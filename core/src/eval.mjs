@@ -33,7 +33,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   makeDoc, makeSet, isQuote,
   makeConduit, makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, conduitBodyAst, conduitEnvRef,
+  isTaggedInstance, isValueClass, conduitBodyAst, conduitEnvRef, isVerb, verbEnvRef, quoteInEnv, envToRun,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
@@ -44,6 +44,7 @@ import { errorFromQlang, errorFromForeign, errorFromParse } from './error-conver
 import { langRuntime } from './runtime/index.mjs';
 import { addressedVerb, addressesOf, subjectServedBy } from './runtime/nouns.mjs';
 import { underPassedTags } from './runtime/dispatch.mjs';
+import { applyVerb, callVerb, effectfulNameOfVerb, verbAsCode } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
@@ -632,9 +633,9 @@ async function evalBareTypeKeyword(node, state) {
 //   ... recursively, no OperandCall / Projection / Pipeline)
 //     → eval'd at decl-time against pipeValue=null (the body does
 //        not depend on pipeValue); the record holds the resulting
-//        value. Catalog descriptor Maps live behind this path so the
-//        langRuntime impl-resolution pass finds a descriptor as the
-//        value of each record.
+//        value, a verb among them [D67]. Catalog descriptor Maps live
+//        behind this path so the langRuntime impl-resolution pass
+//        finds a descriptor as the value of each record.
 //
 //   impure body / parametric form
 //     → captured AST in a Conduit (zero-arg or parametric) with
@@ -669,8 +670,13 @@ async function evalBindStep(node, state) {
   }
 
   if (node.params === null && isPureLiteralAst(node.body)) {
-    const innerState = await evalNode(node.body, withPipeValue(state, null));
-    return withEnv(state, envSet(state.env, name, declarationRecord(node, innerState.pipeValue)));
+    const value = (await evalNode(node.body, withPipeValue(state, null))).pipeValue;
+    if (isVerb(value)) refuseVerbLaunderedByName(name, value, node);
+    const nextEnv = envSet(state.env, name, declarationRecord(node, value));
+    // The verb this declaration made resolves in the scope it writes,
+    // so its body sees its own name.
+    if (isVerb(value)) verbEnvRef(value).env = nextEnv;
+    return withEnv(state, nextEnv);
   }
 
   if (!classifyEffect(name)) {
@@ -698,6 +704,16 @@ async function evalBindStep(node, state) {
   const nextEnv = envSet(state.env, name, declarationRecord(node, conduit));
   envRef.env = nextEnv;
   return withEnv(state, nextEnv);
+}
+
+// A name without the effect marker refuses a verb whose body calls one,
+// as it refuses such a body of its own.
+function refuseVerbLaunderedByName(name, verb, node) {
+  const effectfulName = effectfulNameOfVerb(verb);
+  if (effectfulName === null || classifyEffect(name)) return;
+  const laundering = new EffectLaunderingAtBindStepParseError({ bindingName: name, effectfulName });
+  laundering.location = node.body.location;
+  throw laundering;
 }
 
 // The record a declaration writes: its name, a keyword or a tag, the
@@ -823,6 +839,9 @@ async function evalOperandCall(node, state) {
   // "binding of an effectful function value" safety-net path
   // documented in the effect-marker section of qlang-spec.md.
   const resolved = bindingValueOf(envGet(lookupEnv, lookupName));
+  if (isVerb(resolved)) {
+    return await applyVerb(resolved, node.args.map(argNode => makeLambda(argNode, state)), state, lookupName);
+  }
 
   // Binding-descriptor dispatch — one read of the Map's JS-header
   // tag routes the resolved Map to either the builtin or the conduit
@@ -1064,12 +1083,17 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // (filter/every/any inspect the captured predicate's arity before
 // dispatch) and re-enter a conduit body from the same frame the
 // lambda itself would.
+//
+// A quote written as the modifier carries the environment of the call
+// [D43].
 function makeLambda(astNode, capturedState) {
-  const lambda = async (lambdaInput) => {
-    const subState = nestState(capturedState, lambdaInput, capturedState.env);
-    const evaluatedState = await evalBody(astNode, subState);
-    return evaluatedState.pipeValue;
-  };
+  const lambda = astNode.type === 'QuoteLit'
+    ? async () => quoteInEnv(quoteOfLiteral(astNode), capturedState.env)
+    : async (lambdaInput) => {
+      const subState = nestState(capturedState, lambdaInput, capturedState.env);
+      const evaluatedState = await evalBody(astNode, subState);
+      return evaluatedState.pipeValue;
+    };
   lambda.astNode = astNode;
   lambda.capturedState = capturedState;
   return lambda;
@@ -1079,13 +1103,17 @@ function makeLambda(astNode, capturedState) {
 //
 // The code a slot of kind code receives [D43]: its modifier, evaluated
 // at the call against the subject, is a quote, and the lambda applies it
-// to each input the operand hands it, in the environment of the call.
-// Any other value is refused with `refusalOf(value)`, the site's error,
-// an error value as every value slot refuses one today [D13].
+// to each input the operand hands it, in the environment the quote
+// carries or, for a quote held as data, that of the call; a verb runs
+// with its defaults [D67]. Any other value is refused with
+// `refusalOf(value)`, the site's error, an error value as every value
+// slot refuses one today [D13].
 export async function codeOfModifier(modifierLambda, subject, refusalOf) {
   const code = await modifierLambda(subject);
+  const callState = modifierLambda.capturedState;
+  if (isVerb(code)) return verbAsCode(code, callState);
   if (!isQuote(code)) throw refusalOf(code);
-  return makeLambda(astOfQuote(code), modifierLambda.capturedState);
+  return makeLambda(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
 }
 
 // resolveCapturedConduit(astNode, env) → { conduit, lookupName } | null
@@ -1158,23 +1186,29 @@ export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs,
 // resolveCapturedConduit / invokeConduitWithFixedArgs.
 export const CONDUIT_PARAMS_FIELD = 'params';
 
-// resolveBinaryReducer(astNode, callerState) → ((acc, item) → Promise<value>) | null
+// resolveBinaryReducer(reducerLambda) → ((acc, item) → Promise<value>) | null
 //
-// Resolves a bare reducer reference into the per-step combiner `reduce`
-// folds with. The reducer is applied as `reducer(acc, element)`:
+// Resolves the code of a reducer slot into the per-step combiner
+// `reduce` folds with. The reducer is applied as `reducer(acc, element)`:
 //   - a binary operand (`add` / `mul` / `union` / …) folds via its
 //     bound form — accumulator as subject, element as the single
 //     captured arg (`acc | add element`), through Rule 10;
+//   - a verb, the code itself or one its quote names, folds the same
+//     way, the element filling its first slot [D67];
 //   - a 2-param conduit `[:acc :elem]` binds both through
 //     invokeConduitWithFixedArgs.
 // Returns null when the captured arg is not such a reference (an inline
 // expression, a literal, a non-2-param conduit, or an unbound name),
 // so `reduce` lifts its own per-site error.
-export function resolveBinaryReducer(astNode, callerState) {
+export function resolveBinaryReducer(reducerLambda) {
+  const callerState = reducerLambda.capturedState;
+  if (reducerLambda.verb !== undefined) return verbFold(reducerLambda.verb, callerState, null);
+  const astNode = reducerLambda.astNode;
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   if (!envHas(callerState.env, lookupName)) return null;
   const resolved = bindingValueOf(envGet(callerState.env, lookupName));
+  if (isVerb(resolved)) return verbFold(resolved, callerState, keyword(lookupName));
   if (isConduitDescriptor(resolved)) {
     if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
     return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, callerState);
@@ -1188,6 +1222,10 @@ export function resolveBinaryReducer(astNode, callerState) {
     };
   }
   return null;
+}
+
+function verbFold(verb, callerState, verbName) {
+  return (acc, item) => callVerb(verb, [async () => item], withPipeValue(callerState, acc), verbName);
 }
 
 // ─── Comment (plain forms only — doc forms attach during

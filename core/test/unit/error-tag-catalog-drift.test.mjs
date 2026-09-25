@@ -67,7 +67,7 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::builtin', '::conduit', '::set',
   '::null', '::boolean', '::number', '::string', '::keyword', '::tag', '::vec', '::map', '::doc',
-  '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
+  '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group', '::verb'
 ]);
 
 describe('every refusal names the place it guards [D64]', () => {
@@ -78,9 +78,10 @@ describe('every refusal names the place it guards [D64]', () => {
 });
 
 // The core as a noun, the kind beneath every kind, the kind of
-// errors and the kind of the records of bindings declare a page alone,
-// and neither constructs nor refuses [D62], [D63], [D64].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding']);
+// errors, the kind of the records of bindings and the kind of a verb's
+// signature declare a page alone, and neither constructs nor refuses
+// [D62], [D63], [D64], [D67].
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding', '::spec']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds

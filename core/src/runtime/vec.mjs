@@ -472,7 +472,7 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
 export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerModifier) => {
   const reducerLambda = await codeOfModifier(reducerModifier, subject, v => new ReduceReducerNotQuoteError(v));
   if (!isVec(subject) && !isQMap(subject)) throw new ReduceSubjectNotSequenceError(subject);
-  const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
+  const combine = resolveBinaryReducer(reducerLambda);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = await seedLambda(subject);
   if (isErrorValue(acc)) return acc;

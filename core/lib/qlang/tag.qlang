@@ -184,6 +184,140 @@
        )
   ~~|
 
+::verb
+  |~~ A verb, a quote under this tag: its leading declarations are its
+      signature and the rest its body. A declaration whose body is a
+      tag name is a slot the call fills, one whose body is a set of
+      kinds takes a value of any of them and may be left out when
+      `::null` is among them, and one whose body is any other literal
+      takes that literal when it is left out; `* :name kind` gathers
+      the modifiers that remain. `:subject` and `:returns` are the
+      roles, the kind the verb serves and the kind it answers, `/` for
+      its subject's own. A name bound to a verb runs it when it is
+      mentioned, each modifier evaluated at the call and checked by the
+      kind of its slot, and `~name` hands it on as code; a slot of code
+      and `apply` run a verb with its defaults. `spec` answers the
+      signature.
+
+      ~(:double ::verb~(mul 2) | 3 | double | double | eq 12)
+      ~(:least ::verb~(:n 1 | sort | take n) | [4 8 6] | [least (least 2)] | eq [[4] [4 6]])
+      ~(:scale ::verb~(:by ::number | mul by) | [1 2] * scale / | eq [1 4])
+      ~(:big ::verb~(gt 2) | [1 2 3 4] | filter ~big | eq [3 4])
+  ~~|
+  ::builtin{:impl :qlang/type/verb}
+
+::VerbPayloadNotQuoteError
+  |~~ `::verb` is a tag over a quote, and a payload of another kind is
+      refused.
+
+      ~(
+        ::verb[1]
+        !| [type /actualType]
+        |  eq [::VerbPayloadNotQuoteError ::vec]
+       )
+  ~~|
+
+::VerbSlotNameNotKeywordError
+  |~~ A slot of a verb is named by a keyword, the name its body reads,
+      so a declaration of a tag among the leading ones is refused.
+
+      ~(
+        ::verb~(::T 1 | add 1)
+        !| [type /slot]
+        |  eq [::VerbSlotNameNotKeywordError ::T]
+       )
+  ~~|
+
+::VerbSlotBodyNotLiteralError
+  |~~ The head of a verb is read before it runs, so a slot is declared
+      by a kind, a set of kinds or a literal, and a leading declaration
+      whose body computes is refused where the verb is made; a body
+      that opens with a computed binding opens with `/` before it.
+
+      ~(
+        ::verb~(:x (count) | add x)
+        !| [type /slot]
+        |  eq [::VerbSlotBodyNotLiteralError :x]
+       )
+  ~~|
+
+::VerbRoleNotKindError
+  |~~ The roles of a verb, `:subject` and `:returns`, are declared by a
+      kind or a set of kinds, and `:returns` by `/` for the subject's
+      own kind.
+
+      ~(
+        ::verb~(:returns 3 | add 1)
+        !| [type /role]
+        |  eq [::VerbRoleNotKindError :returns]
+       )
+  ~~|
+
+::VerbSlotMissingError
+  |~~ A slot declared by a kind alone is filled by the call, and a call
+      that leaves it empty is refused by the name of the slot.
+
+      ~(
+        :m ::verb~(:x ::number | add x) | 5 | m
+        !| [type /verbName /slot]
+        |  eq [::VerbSlotMissingError :m :x]
+       )
+  ~~|
+
+::VerbModifiersBeyondSlotsError
+  |~~ A verb takes as many modifiers as it has slots, unless `*`
+      gathers the ones that remain.
+
+      ~(
+        :m ::verb~(:x ::number | add x) | 5 | m 1 2
+        !| [type /slotCount /actualCount]
+        |  eq [::VerbModifiersBeyondSlotsError 1 2]
+       )
+  ~~|
+
+::VerbSlotNotOfKindsError
+  |~~ A slot declared by a set of kinds takes a value of one of them,
+      reached through the tags the value carries, and refuses any
+      other, since no one constructor reads it.
+
+      ~(
+        :m ::verb~(:limit #[::number ::null] | limit) | 5 | m "a"
+        !| [type /slot /kinds]
+        |  eq [::VerbSlotNotOfKindsError :limit #[::null ::number]]
+       )
+  ~~|
+
+::VerbCodeNotQuoteError
+  |~~ A slot of code takes a quote `~(…)` or a verb and nothing else,
+      since a value is never read as code.
+
+      ~(
+        :run ::verb~(:code ::quote | apply code) | 5 | run 1
+        !| [type /slot]
+        |  eq [::VerbCodeNotQuoteError :code]
+       )
+  ~~|
+
+::VerbWithoutBodyError
+  |~~ A verb without a body declares a signature alone, a contract,
+      and answers no call; the refusal names the residences of its
+      name, where the verbs that answer it live.
+
+      ~(
+        :count ::verb~(:x ::number) | [1] | count 1
+        !| [type /addresses]
+        |  eq [::VerbWithoutBodyError #[::map/count ::set/count ::vec/count]]
+       )
+  ~~|
+
+::spec
+  |~~ The signature of a verb, its leading declarations as a quote under
+      this tag with its subject filled, which `spec` answers for a verb.
+
+      ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)
+      ~(:m ::verb~(:x ::number | add x) | :m | spec | payload * /name | eq [:subject :x])
+  ~~|
+
 ::set
   |~~ The set — the vector in the one order without duplicates,
       the value of a `#[…]` literal and of `distinct`, which mints

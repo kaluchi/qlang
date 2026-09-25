@@ -218,6 +218,24 @@ export function makeQuote(steps, ast = undefined) {
   return Object.freeze(quote);
 }
 
+// A quote written as a modifier carries the environment of its call
+// [D43] on a JS-internal slot, so code handed to another pipeline sees
+// the names of its author wherever it is applied; a quote held as data
+// carries none and runs in the environment where it is applied.
+const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
+
+export function quoteInEnv(quote, env) {
+  const carried = [...quote];
+  stampTagHeader(carried, QUOTE_TAG);
+  stampSlot(carried, QUOTE_AST_SLOT, quote[QUOTE_AST_SLOT]);
+  stampSlot(carried, QUOTE_ENV_SLOT, env);
+  return Object.freeze(carried);
+}
+
+export function envToRun(quote, envWhereApplied) {
+  return quote[QUOTE_ENV_SLOT] ?? envWhereApplied;
+}
+
 // Set — the vector in the one order without duplicates, under the
 // `::set` tag [D16]. Its elements sort by `compareValues`, and an
 // element the order ranks alike with the one before it leaves: the
@@ -225,6 +243,7 @@ export function makeQuote(steps, ast = undefined) {
 // is minted here, `makeTaggedInstance` included.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
+export const VERB_TAG_NAME = 'verb';
 
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
@@ -337,7 +356,9 @@ export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
+export const SPEC_TAG        = makeTagKeyword('spec');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
+export const VERB_TAG        = makeTagKeyword(VERB_TAG_NAME);
 
 // The kind of every value without a tag of its own, the one its
 // literal implies [D32]; `type` answers it, and a tag name's kind is
@@ -454,6 +475,31 @@ export function makeTaggedInstance(tag, payload) {
   const wrap = brandValueClass({ tag, payload }, 'taggedInstance');
   stampTagHeader(wrap, tag);
   return Object.freeze(wrap);
+}
+
+// ── verb factory ─────────────────────────────────────────────
+//
+// A verb is a tag over a quote [D67], minted by the constructor of
+// `::verb`, which reads its signature. The scope its body resolves in
+// rides a holder on a JS-internal slot: the scope where the verb was
+// made, which the declaration that binds it ties to the scope it
+// writes, so the body sees the verb's own name. A verb a codec
+// assembled from data holds none.
+const VERB_ENV_REF_SLOT = Symbol('qlang/verbEnvRef');
+
+export function makeVerb(quote, envRef) {
+  const verb = brandValueClass({ tag: VERB_TAG, payload: quote }, 'taggedInstance');
+  stampTagHeader(verb, VERB_TAG);
+  stampSlot(verb, VERB_ENV_REF_SLOT, envRef);
+  return Object.freeze(verb);
+}
+
+export function isVerb(v) {
+  return isValueClass(v, 'taggedInstance') && v.tag.name === VERB_TAG_NAME;
+}
+
+export function verbEnvRef(verb) {
+  return verb[VERB_ENV_REF_SLOT];
 }
 
 // ── error value factory ───────────────────────────────────────

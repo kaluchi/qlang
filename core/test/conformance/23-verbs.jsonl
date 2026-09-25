@@ -1,0 +1,64 @@
+{"name":"a-verb-prints-as-it-is-written","query":"::verb~(:n 1 | add n)","expect":"::verb~(:n 1 | add n)","decision":"D67"}
+{"name":"a-verb-is-of-the-kind-verb","query":"::verb~(add 1) | type","expect":"::verb","decision":"D67"}
+{"name":"the-payload-of-a-verb-is-its-quote","query":"::verb~(add 1) | payload","expect":"~(add 1)","decision":"D67"}
+{"name":"a-verb-is-a-tag-over-a-quote","query":"::verb[1] !| [type /actualType]","expect":"[::VerbPayloadNotQuoteError ::vec]","decision":"D67"}
+{"name":"a-verb-refuses-a-head-that-computes","query":"::verb~(:x (count) | add x) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :x]","decision":"D67"}
+{"name":"a-verb-names-its-slots-by-keywords","query":"::verb~(::T 1 | add 1) !| [type /slot]","expect":"[::VerbSlotNameNotKeywordError ::T]","decision":["D67","D68"]}
+{"name":"a-role-of-a-verb-takes-a-kind","query":"::verb~(:returns 3 | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :returns]","decision":["D67","D68"]}
+{"name":"a-required-slot-left-empty-is-refused-by-its-name","query":":m ::verb~(:x ::number | add x) | 5 | m !| [type /verbName /slot]","expect":"[::VerbSlotMissingError :m :x]","decision":"D67"}
+{"name":"a-verb-refuses-modifiers-beyond-its-slots","query":":m ::verb~(:x ::number | add x) | 5 | m 1 2 !| [type /slotCount /actualCount]","expect":"[::VerbModifiersBeyondSlotsError 1 2]","decision":["D67","D68"]}
+{"name":"a-slot-is-checked-by-its-kind","query":":m ::verb~(:x ::number | add x) | 5 | m \"a\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D67"}
+{"name":"a-slot-takes-the-value-of-its-kind-beneath-the-tags","query":":m ::verb~(:x ::number | x) | null | m ::Width(5)","expect":"5","decision":["D67","D68"]}
+{"name":"a-slot-of-a-kind-without-a-body-mints-its-modifier","query":":m ::verb~(:w ::Width | w) | null | m 80 | type","expect":"::Width","decision":["D67","D68"]}
+{"name":"a-slot-whose-kinds-hold-null-may-be-left-out","query":":m ::verb~(:limit #[::number ::null] | limit) | 5 | m","expect":"null","decision":"D67"}
+{"name":"a-slot-of-several-kinds-takes-any-of-them","query":":m ::verb~(:v #[::number ::string] | v) | null | m \"a\"","expect":"\"a\"","decision":"D67"}
+{"name":"an-optional-slot-checks-its-modifier-by-the-kind-of-its-default","query":":top ::verb~(:n 3 | take n) | [1 2 3 4] | top \"a\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D67"}
+{"name":"a-rest-slot-gathers-the-modifiers-that-remain","query":":all ::verb~(:head ::any * :tail ::number | [head tail]) | null | all :a 1 2","expect":"[:a [1 2]]","decision":"D67"}
+{"name":"a-rest-slot-checks-each-modifier-by-its-kind","query":":all ::verb~(* :xs ::number | xs) | null | all 1 \"b\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D67"}
+{"name":"a-rest-slot-without-modifiers-holds-the-empty-vector","query":":all ::verb~(* :xs ::number | xs) | null | all","expect":"[]","decision":["D67","D68"]}
+{"name":"a-declared-subject-is-checked-by-its-kind","query":":inc ::verb~(:subject ::number | add 1) | \"a\" | inc !| type","expect":"::NumberPayloadNotNumberError","decision":["D67","D68"]}
+{"name":"a-declared-subject-is-reached-through-the-tags","query":":inc ::verb~(:subject ::number | add 1) | ::Width(5) | inc","expect":"6","decision":["D67","D68"]}
+{"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":inc ::verb~(:subject ::number | :returns / | add 1) | ::Width(5) | inc | [type payload]","expect":"[::Width 6]","decision":"D67"}
+{"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":grow ::verb~(:returns / | union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T","decision":"D67"}
+{"name":"a-verb-that-returns-a-kind-checks-its-answer","query":":n ::verb~(:returns ::string | count) | [1 2] | n !| type","expect":"::StringPayloadNotStringError","decision":"D67"}
+{"name":"a-verb-without-a-body-names-the-residences-of-its-name","query":":count ::verb~(:x ::number) | [1] | count 1 !| [type /addresses]","expect":"[::VerbWithoutBodyError #[::map/count ::set/count ::vec/count]]","decision":"D67"}
+{"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":big ::verb~(gt 2) | [1 2 3] | filter ~big","expect":"[3]","decision":"D67"}
+{"name":"a-code-slot-runs-a-verb-with-its-defaults","query":"[1 2 3] | filter ::verb~(:n 2 | gt n)","expect":"[3]","decision":"D67"}
+{"name":"apply-runs-a-verb-with-its-defaults","query":"5 | apply ::verb~(:n 1 | add n)","expect":"6","decision":"D67"}
+{"name":"a-code-slot-refuses-a-verb-whose-slot-is-required","query":"[1 2 3] | filter ::verb~(:n ::number | gt n) !| [type /slot]","expect":"[::VerbSlotMissingError :n]","decision":["D67","D68"]}
+{"name":"a-verb-folds-with-its-slot-taking-the-element","query":":plus ::verb~(:elem ::number | add elem) | [1 2 3] | reduce 0 ~plus","expect":"6","decision":["D67","D68"]}
+{"name":"a-verb-answers-its-signature-with-its-subject-filled","query":":m ::verb~(:x ::number | add x) | :m | spec | payload | parse","expect":"\":subject ::any | :x ::number\"","decision":"D67"}
+{"name":"a-slot-carries-the-doc-of-its-declaration","query":":m ::verb~(:x |~~ How many. ~~| ::number | :x | docs | first | /content) | null | m 1","expect":"\" How many. \"","decision":"D67"}
+{"name":"the-declarations-of-a-verb-body-stay-inside-it","query":":m ::verb~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false","decision":"D67"}
+{"name":"a-verb-resolves-its-names-where-it-is-declared","query":":k 1 | :f ::verb~(add k) | :g ::verb~(:k ::any | 5 | f) | g 100","expect":"6","decision":["D67","D68"]}
+{"name":"a-verb-under-a-clean-name-refuses-an-effectful-body","query":":f ::verb~(@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError","decision":["D67","D68"]}
+{"name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":inf ::verb~(add 1 | inf) | 0 | inf !| type","expect":"::EvaluationDepthExceededError","decision":["D67","D68"]}
+{"name":"a-slot-of-several-kinds-refuses-a-value-of-none","query":":m ::verb~(:limit #[::number ::null] | limit) | 5 | m \"a\" !| [type /slot /kinds]","expect":"[::VerbSlotNotOfKindsError :limit #[::null ::number]]","decision":["D67","D68"]}
+{"name":"a-slot-of-code-takes-a-quote-alone","query":":run ::verb~(:code ::quote | apply code) | 5 | run 1 !| [type /slot]","expect":"[::VerbCodeNotQuoteError :code]","decision":["D67","D68"]}
+{"name":"a-slot-of-code-takes-a-verb","query":":run ::verb~(:code ::quote | apply code) | 5 | run ::verb~(add 1)","expect":"6","decision":["D67","D68"]}
+{"name":"a-slot-of-vectors-reads-a-set-as-one","query":":m ::verb~(:xs ::vec | xs | count) | null | m #[1 2]","expect":"2","decision":["D67","D68"]}
+{"name":"a-slot-of-maps-reads-a-tagged-map-as-one","query":":m ::verb~(:fields ::map | fields | count) | null | m ::T{:a 1}","expect":"1","decision":["D67","D68"]}
+{"name":"a-set-that-names-no-kind-is-a-default","query":":m ::verb~(:s #[1 2] | s) | null | m","expect":"#[1 2]","decision":["D67","D68"]}
+{"name":"the-empty-set-is-a-default","query":":m ::verb~(:s #[] | s) | null | m #[3]","expect":"#[3]","decision":["D67","D68"]}
+{"name":"a-role-is-declared-by-a-kind-alone","query":"::verb~(:returns /a | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :returns]","decision":["D67","D68"]}
+{"name":"the-subject-is-no-projection","query":"::verb~(:subject / | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :subject]","decision":["D67","D68"]}
+{"name":"a-role-declared-by-a-doc-alone-names-no-kind","query":"::verb~(:subject |~~ Any. ~~| | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :subject]","decision":["D67","D68"]}
+{"name":"a-slot-without-a-body-is-refused","query":"::verb~(:x |~~ How many. ~~| | add 1) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :x]","decision":["D67","D68"]}
+{"name":"a-slot-with-parameters-is-refused","query":"::verb~(:f [:y] (add y) | f 1) !| [type /slot]","expect":"[::VerbSlotBodyNotLiteralError :f]","decision":["D67","D68"]}
+{"name":"a-body-may-open-with-a-combinator","query":":m ::verb~(:n 1 * add n) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
+{"name":"a-comment-in-the-head-is-layout","query":":m ::verb~(:x ::number |~ the count ~| add x) | 1 | m 2","expect":"3","decision":["D67","D68"]}
+{"name":"a-declaration-on-the-fail-track-ends-the-head","query":":m ::verb~(:n 1 !| :k 2 | add n) | 5 | m","expect":"6","decision":["D67","D68"]}
+{"name":"the-empty-verb-is-a-contract","query":":c ::verb~() | 1 | c !| type","expect":"::VerbWithoutBodyError","decision":["D67","D68"]}
+{"name":"a-verb-of-comments-alone-is-a-contract","query":":c ::verb~(|~ nothing yet ~|) | 1 | c !| type","expect":"::VerbWithoutBodyError","decision":["D67","D68"]}
+{"name":"a-modifier-that-answers-an-error-answers-the-call","query":":m ::verb~(:x ::any | x) | 5 | m !{:k 1} !| /k","expect":"1","decision":["D67","D68"]}
+{"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":all ::verb~(* :xs ::any | xs) | null | all 1 !{:k 2} !| /k","expect":"2","decision":["D67","D68"]}
+{"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":f ::verb~(:returns ::number | add \"a\") | 1 | f !| type","expect":"::AddRightNotNumberError","decision":["D67","D68"]}
+{"name":"a-subject-its-constructor-refuses-answers-the-call","query":"::Pos {:impl ~(if (gt 0) ~(/) ~(!{:reason :not-positive}))} | :f ::verb~(:subject ::Pos | payload) | 0 | f !| /reason","expect":":not-positive","decision":["D67","D68"]}
+{"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":"::Pos {:impl ~(if (gt 0) ~(/) ~(!{:reason :not-positive}))} | :dec ::verb~(:subject ::Pos | :returns / | payload | sub 1) | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":["D67","D68"]}
+{"name":"an-effectful-verb-under-a-clean-name-is-refused-at-its-call","query":"::verb~(@callers) | as :f | f !| type","expect":"::EffectLaunderingAtCallError","decision":["D67","D68"]}
+{"name":"an-effectful-verb-under-a-marked-name-runs","query":":@f ::verb~(@callers) | @f !| type","expect":"::UnresolvedIdentifierError","decision":["D67","D68"]}
+{"name":"a-verb-folds-as-the-code-of-reduce","query":"[1 2 3] | reduce 0 ::verb~(:elem ::number | add elem)","expect":"6","decision":["D67","D68"]}
+{"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ::verb~(append 3)","expect":"::Box[1 2 3]","decision":["D67","D68"]}
+{"name":"a-declared-subject-fills-the-signature","query":":m ::verb~(:subject ::number | add 1) | :m | spec | payload | parse","expect":"\":subject ::number\"","decision":["D67","D68"]}
+{"name":"a-slot-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":twice ::verb~(:f ::quote | apply f | apply f) | 1 | [(twice ::verb~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":["D67","D68"]}
+{"name":"a-slot-of-code-prints-a-verb-it-holds-by-its-own-name","query":":show ::verb~(:code ::quote | code) | null | show ::verb~(add 1) | parse","expect":"\"code\"","decision":["D67","D68"]}

@@ -6,3 +6,4 @@
 {"name":"indexBy-non-keyword-key-throws","query":"[{:k 1}] | indexBy ~(/k)","error":"typeError","expect":"::IndexByKeyNotKeywordError!{\n  :faultStep ~(indexBy ~(/k))\n  :faultInput [{:k 1}]\n  :actualValue 1\n  :actualType ::number\n  :index 0\n}"}
 {"name":"indexBy-then-projection-chain","query":"[{:id :u1 :role :admin} {:id :u2 :role :user}] | indexBy ~(/id) | /u1/role","expect":":admin"}
 {"name":"indexBy-keys-set","query":"[{:id :a} {:id :b} {:id :c}] | indexBy ~(/id) | keys | count","expect":"3"}
+{"name":"indexBy-builds-a-map-whose-key-is-an-atom","query":"[1 :a] | [{:k /1 :v /0}] | indexBy ~(/k) * /v","expect":"{:a 1}"}

@@ -14,3 +14,5 @@
 {"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError ::number]"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::UnresolvedIdentifierError"}
 {"name":"apply-code-that-fails-is-that-error","query":"5 | apply /nope !| type","expect":"::ProjectionSubjectNotProjectableError"}
+{"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
+{"name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6"}

@@ -14,7 +14,6 @@ import {
   isTagKeyword,
   makeConduit,
   makeSnapshot,
-  makeQuote,
   isQuote,
   makeDoc,
   isDoc,
@@ -24,6 +23,7 @@ import {
   isJsonArray
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
+import { quoteOfSource, printQuoteSource } from '../../src/quote.mjs';
 import { QlangError } from '../../src/errors.mjs';
 
 describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
@@ -69,19 +69,25 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Quote via $quote tag', () => {
-    const original = makeQuote('mul(2)');
+    const original = quoteOfSource('mul(2)');
     const encoded = toTaggedJSON(original);
     expect(encoded).toEqual({ $quote: 'mul(2)' });
     const restored = fromTaggedJSON(encoded);
     expect(isQuote(restored)).toBe(true);
-    expect(restored.source).toBe('mul(2)');
+    expect(printQuoteSource(restored)).toBe('mul(2)');
+  });
+
+  it('reads a tagged envelope under the code tag back as a quote', () => {
+    const restored = fromTaggedJSON({ $tagged: { $tag: 'quote', payload: { $vec: [1] } } });
+    expect(isQuote(restored)).toBe(true);
+    expect(printQuoteSource(restored)).toBe('1');
   });
 
   it('round-trips a Quote with combinator-prefixed source (trail-suffix)', () => {
-    const original = makeQuote('* inc | sort');
+    const original = quoteOfSource('* inc | sort');
     const restored = roundTrip(original);
     expect(isQuote(restored)).toBe(true);
-    expect(restored.source).toBe('* inc | sort');
+    expect(printQuoteSource(restored)).toBe('* inc | sort');
   });
 
   it('round-trips a Doc via $doc tag', () => {

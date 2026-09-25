@@ -17,9 +17,10 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeQuote, makeDoc,
+  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeDoc,
   declarationSiteOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
+import { quoteOfBody, astOfQuote } from '../quote.mjs';
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
 } from '../env-keys.mjs';
@@ -110,11 +111,11 @@ function findBindingStepFor(moduleAst, bindingName) {
 }
 
 // Iterate every module Quote stored in env under `qlang/ast/<uri>`.
-// langRuntime / use(:ns) put a Quote-value with a pre-parsed `.ast`
-// at every such key, so the iterator trusts the shape.
+// langRuntime / use(:ns) put the quote of the module's parsed tree at
+// every such key, so the tree comes back without a second parse.
 function* moduleAstsIn(env) {
   for (const [k, v] of env) {
-    if (isModuleAstKey(k) && isQuote(v)) yield v.ast;
+    if (isModuleAstKey(k) && isQuote(v)) yield astOfQuote(v);
   }
 }
 
@@ -199,7 +200,7 @@ export const source = stateOp('source', 1, (state, _lambdas) => {
   if (step === null) {
     throw new SourceBindingNotFoundError({ bindingName });
   }
-  return withPipeValue(state, makeQuote(step.text));
+  return withPipeValue(state, quoteOfBody(step));
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {

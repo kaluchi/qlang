@@ -2,7 +2,7 @@ import {
   keyword, isKeyword, isQMap, isQSet, isErrorValue,
   makeErrorValue, makeTagKeyword, PARSE_ERROR_TAG
 } from './types.mjs';
-import { locationToQlangMap } from './ast-codec.mjs';
+import { locationToQlangMap } from './walk.mjs';
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class

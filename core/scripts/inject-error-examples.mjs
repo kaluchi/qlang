@@ -55,12 +55,12 @@ function ingestConformance(path) {
 walkConformance(conformanceDir);
 
 // Step 2: pick the shortest repro per tag. Skip queries that
-// already invoke `parse` / `eval` / `!| type` — those are
+// already invoke `parse` / `apply` / `!| type` — those are
 // derivative tests, not direct repros.
 
 function pickRepros(tagName, queries) {
   const direct = queries.filter(q =>
-    !q.includes('| parse') && !q.includes('| eval') &&
+    !q.includes('| parse') && !q.includes('| apply') &&
     !q.includes('!| type') && !q.includes('!| /')
   );
   const pool = direct.length > 0 ? direct : queries;

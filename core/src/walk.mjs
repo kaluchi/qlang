@@ -8,7 +8,7 @@
 // autocomplete (`bindingNamesVisibleAt`), and refactor lookups
 // (`findIdentifierOccurrences`) all import from here instead of
 // duplicating a `switch (node.type)` walk. A new AST node type in
-// `grammar.peggy` extends both this file and `ast-codec.mjs`; every
+// `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
 import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey } from './env-keys.mjs';
@@ -59,6 +59,9 @@ export function astChildrenOf(node) {
     case 'TaggedLit':
       out.push(node.payload);
       break;
+    case 'QuoteLit':
+      if (node.pipeline !== null) out.push(node.pipeline);
+      break;
     case 'BindStep':
       out.push(node.key);
       if (Array.isArray(node.params)) {
@@ -67,8 +70,8 @@ export function astChildrenOf(node) {
       if (node.body) out.push(node.body);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, QuoteLit (frozen source, lazy AST), DocLit (frozen
-    // content), BareTypeKeyword (tag-namespace identifier),
+    // Projection, DocLit (frozen content), BareTypeKeyword
+    // (tag-namespace identifier),
     // LinePlainComment, BlockPlainComment, LineDocComment,
     // BlockDocComment have no semantic children.
   }
@@ -225,6 +228,8 @@ function findTagNamespaceOccurrences(ast, tagName) {
 // them stay local to the fork:
 //
 //   ParenGroup — inner pipeline runs in its own fork
+//   QuoteLit — its pipeline runs where the quote is applied, under
+//              the fork rule of `apply`
 //   VecLit, SetLit — each element is its own fork
 //   MapLit — each entry's value is its own fork
 //   MapEntry — accessor for the value-fork; isolates value from
@@ -234,7 +239,7 @@ function findTagNamespaceOccurrences(ast, tagName) {
 // `as` in step k shadows visibly through step k+1 onwards, so a
 // Pipeline node propagates env writes through its successor steps.
 export const FORK_ISOLATING_AST_TYPES = new Set([
-  'ParenGroup', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
+  'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
 // bindingNamesVisibleAt(ast, offset, namespace?) — returns the Set
@@ -298,6 +303,18 @@ export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) 
     visible.add(bindingName);
   });
   return visible;
+}
+
+// locationToQlangMap(loc) → the qlang view of a peggy location:
+// `{:start {:offset :line :column} :end {…}}`, or null for none. The
+// `:location` of a parse error and of a declaration reads through it.
+export function locationToQlangMap(loc) {
+  if (!loc) return null;
+  return Object.freeze(new Map([['start', positionToQlangMap(loc.start)], ['end', positionToQlangMap(loc.end)]]));
+}
+
+function positionToQlangMap(pos) {
+  return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
 }
 
 // astNodeSpan(node) — number of UTF-16 code units the node spans

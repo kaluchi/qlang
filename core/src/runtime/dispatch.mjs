@@ -31,7 +31,7 @@ import {
   declareArityError
 } from '../errors.mjs';
 import {
-  keyword, isQMap, isSnapshot, isJsonArray,
+  keyword, isQMap, isSnapshot, isJsonArray, makeTaggedInstance,
   TAG_HEADER_SYMBOL, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -79,6 +79,23 @@ const HigherOrderOpVariadicMissingCapturedError = declareInvariantError(
   ({ operandName }) => `higherOrderOpVariadic('${operandName}') requires captured range`
 );
 
+// Whether a tag's binding carries a constructor, the `:impl` that
+// re-establishes the tag's invariant on a payload.
+function tagCarriesConstructor(state, tagName) {
+  let resolved = envGet(state.env, tagBindingKey(tagName));
+  if (isSnapshot(resolved)) resolved = resolved.get('payload');
+  return isQMap(resolved) && resolved.has('impl');
+}
+
+// mintUnderTag(state, tag, value) — the value under the tag: through
+// the tag's constructor when it carries one, as a bare overlay when
+// the tag names an identity alone.
+export async function mintUnderTag(state, tag, value) {
+  if (!tagCarriesConstructor(state, tag.name)) return makeTaggedInstance(tag, value);
+  const { mintTaggedInstance } = await import('../eval.mjs');
+  return await mintTaggedInstance(tag.name, value, state);
+}
+
 // Tag preservation runs as a post-process pass when the operand
 // declares `{ preservesTag: true }`. Identity-only tags stamp
 // the header on the result; `:impl`-bearing tags re-invoke the
@@ -99,9 +116,7 @@ async function applyTagPreservation(state, source, result) {
     freezeIfJsonArray(result);
     return result;
   }
-  let resolved = envGet(state.env, tagBindingKey(sourceTag.name));
-  if (isSnapshot(resolved)) resolved = resolved.get('payload');
-  if (isQMap(resolved) && resolved.has('impl')) {
+  if (tagCarriesConstructor(state, sourceTag.name)) {
     const { mintTaggedInstance } = await import('../eval.mjs');
     return await mintTaggedInstance(sourceTag.name, result, state);
   }

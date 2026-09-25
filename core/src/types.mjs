@@ -5,29 +5,14 @@ import {
   declareShapeError
 } from './errors.mjs';
 import { TAG_BINDING_PREFIX } from './env-keys.mjs';
-
-// Conduit body must carry a `.text` source slice — every production
-// path (parser-built AST, ::conduit constructor parsing a Quote,
-// deserializeSession parsing stored source) hands an AST node with
-// `.text` populated. The slice underwrites printValue's round-trip
-// invariant: `parse(printValue(conduit))` must yield an equivalent
-// conduit, which means the printed form needs literal source.
-// Mint refuses a `.text`-less body up front so the violation
-// surfaces at construction, where the offending caller is on the
-// stack.
-export const ConduitBodyMissingSourceError = declareInvariantError(
-  'ConduitBodyMissingSourceError',
-  () => 'makeConduit: body has no .text — conduit body must carry a source slice ' +
-    'so printValue round-trips through parse',
-  { operand: '::conduit' }
-);
+import { quoteOfBody } from './quote.mjs';
 
 // Function values (`makeFn` output) are runtime-internal: a catalog
 // descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
 // JS-header slot, and conduitParameter proxies live for the duration
 // of a conduit body fork. They have no grammatical literal — the only
 // candidate render form (`:qlang/prim/${name}`) parses back as a
-// keyword value on the next `eval`. Surfacing a function value in
+// keyword value when read back. Surfacing a function value in
 // pipeValue therefore violates printValue's round-trip theorem. The
 // invariant fires at render time, so a host binding mounted through
 // `session.bind` carrying a raw callable surfaces by name and routes
@@ -68,12 +53,12 @@ export const NULL = null;
 
 // ── value-class brand ──────────────────────────────────────────
 //
-// Keyword / TagKeyword / Quote / Doc / Error / Function / the opaque
+// Keyword / TagKeyword / Doc / Error / Function / the opaque
 // TaggedInstance wrap are JS plain objects sharing JsonObject's
 // shape, where `"type"` is ordinary JSON data. Identity rides on a
 // non-enumerable Symbol — the channel JSON_OBJECT_TAG / JSON_ARRAY_TAG
 // / TAG_HEADER_SYMBOL already use — so a JSON document carrying
-// `{"type":"quote"}` cannot forge `isQuote`.
+// `{"type":"doc"}` cannot forge `isDoc`.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {
@@ -142,7 +127,7 @@ export function isMapShape(v) {
   return isQMap(v) || isJsonObject(v);
 }
 
-// Vec / JsonArray / Set — the ordered, indexable sequences `*`, `>>`,
+// Vec / JsonArray / Set — the ordered, indexable sequences `*`
 // and the order-aware operands (first / take / sort / distinct / flat
 // / …) dispatch over uniformly. A Set is the `distinct` of a Vec.
 export function isOrderedSequence(v) {
@@ -184,7 +169,7 @@ export function vecLikeOf(items, source) {
   return isJsonArray(source) ? makeJsonArray(items) : items;
 }
 
-// Per-element transformers (`*`, `>>`) preserve a JsonArray subject's
+// The per-element transformer `*` preserves a JsonArray subject's
 // tag only when every produced element is itself JSON-storeable —
 // scalar Null/Boolean/Number/String or a JSON-shape Object/Array.
 // A qlang-only element (Keyword, Map, Set, Vec, Conduit, …) silently
@@ -297,8 +282,8 @@ export function isSnapshot(v) {
 // `TAG_HEADER_SYMBOL` slot. `makeTaggedInstance` mints two value
 // shapes: Array / Set / Map clones with the header stamped, or
 // an opaque frozen `{type, tag, payload}` wrapper for non-
-// extensible payloads (scalar, Keyword, Quote, Doc, Error,
-// already-tagged composite). Three reserved tag names own
+// extensible payloads (scalar, Keyword, Doc, Error, already-tagged
+// composite, a quote among them). Three reserved tag names own
 // dedicated render / dispatch paths (`::conduit`, `::snapshot`,
 // `::builtin`) and route through their own predicates
 // (`isConduit`, `isSnapshot`, `isBuiltinDescriptor`).
@@ -311,30 +296,40 @@ export function isTaggedInstance(v) {
 }
 
 export function isQuote(v) {
-  return isValueClass(v, 'quote');
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// Quote — frozen JS object carrying `.source` (the verbatim text
-// between `~{` and `}`) and an optional `.ast` (lazily populated when
-// the Quote is run through `eval` or projected via `/ast`). Identity
-// rides the non-enumerable VALUE_CLASS_TAG Symbol brand, keeping a
-// `:kind` Map-key discriminator out of every projection of a
-// Quote-valued pipeValue and leaving a JSON document that carries
-// `{"type":"quote"}` classified as a JsonObject. The lazy `.ast`
-// lets a Quote
-// hold a pipeline-suffix fragment beginning with a combinator
-// (`~{* inc | sort}`) — eager parse would reject the fragment in
-// startRule=Query mode because the top-level rule expects a value
-// expression; Pipeline accepts a leading combinator only inside the
-// `~{…}` body context, which `apply(subject)` re-enters.
-export function makeQuote(source, ast = null) {
-  return Object.freeze(brandValueClass({ source, ast }, 'quote'));
+// Quote — a vector of steps under the code tag `::quote`, so every
+// container operand reads it as the tagged vector it is. A holder on
+// the `QUOTE_AST_SLOT` carries the tree the quote runs through: the
+// parser's own node for a quote read from text, filled on the first
+// run for a quote assembled from data (see `quote.mjs::astOfQuote`).
+// Every quote is minted here, `makeTaggedInstance` included, so the
+// holder is always in place.
+export const QUOTE_TAG_NAME = 'quote';
+export const QUOTE_AST_SLOT = Symbol('qlang/quoteAst');
+
+export function makeQuote(steps, ast = undefined) {
+  const quote = [...steps];
+  stampTagHeader(quote, QUOTE_TAG);
+  stampSlot(quote, QUOTE_AST_SLOT, { ast });
+  return Object.freeze(quote);
+}
+
+// The step an error literal leaves in a quote: an error value whose
+// fields hold the steps that compute them, `:kind` and `:trail`
+// among them, exactly as written, so it prints back as the literal it
+// was read from. It never passes through `makeErrorValue`, whose
+// invariant on `:trail` speaks of the error a step produces.
+export function makeErrorLiteralStep(descriptor) {
+  return Object.freeze(brandValueClass({
+    tag: ERROR_TAG, descriptor, location: null, originalError: null, _trailHead: null
+  }, 'error'));
 }
 
 // Doc — frozen JS object carrying `.content` (the verbatim text
 // between `|~~ ... ~~|` markers, or after `|~~|` up to newline).
-// Same JS-layer discriminator pattern as Quote — the VALUE_CLASS_TAG
-// Symbol brand keeps `:kind` housekeeping out of the user-visible
+// The VALUE_CLASS_TAG Symbol brand keeps `:kind` housekeeping out of the user-visible
 // Map surface. Doc value lands in pipeValue through DocLit literal in
 // any Primary position; the attached-prefix path
 // (DocAttachedSequence) is unrelated — there docs travel as
@@ -398,7 +393,7 @@ function stampSlot(target, slot, value) {
 
 // Body AST of a Conduit — `applyConduit` evaluates it, `withName`
 // re-mints from it, `printConduit` reads the `:source` Quote the
-// factory forged off its `.text` slice.
+// factory read off it.
 export function conduitBodyAst(conduit) {
   return conduit[CONDUIT_BODY_SLOT];
 }
@@ -443,20 +438,29 @@ export const BUILTIN_TAG     = makeTagKeyword('builtin');
 export const CONDUIT_TAG     = makeTagKeyword('conduit');
 export const ERROR_TAG       = makeTagKeyword('Error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
+export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
 export const VALUE_TAG       = makeTagKeyword('value');
 
+// The tags of a quote's steps [D47]: the records of what computes,
+// and the wrappers a step takes on the fail track, under `*`, or in
+// parentheses.
+export const CALL_TAG   = makeTagKeyword('call');
+export const PROJ_TAG   = makeTagKeyword('proj');
+export const BIND_TAG   = makeTagKeyword('bind');
+export const TAGGED_TAG = makeTagKeyword('tagged');
+export const EACH_TAG   = makeTagKeyword('each');
+export const FAIL_TAG   = makeTagKeyword('fail');
+export const GROUP_TAG  = makeTagKeyword('group');
+
 // ── conduit factory ───────────────────────────────────────────
 
 export function makeConduit(body, { name, params = [], envRef = null, docs = [], location = null } = {}) {
-  if (body == null || typeof body.text !== 'string') {
-    throw new ConduitBodyMissingSourceError();
-  }
   const m = new Map();
   m.set('name', name);
   m.set('params', Object.freeze(params.map(p => typeof p === 'string' ? keyword(p) : p)));
-  m.set('source', makeQuote(body.text, body));
+  m.set('source', quoteOfBody(body));
   m.set('docs', Object.freeze([...docs]));
   m.set('effectful', classifyEffect(name));
   stampTagHeader(m, CONDUIT_TAG);
@@ -510,12 +514,12 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 //     slot on user payload coexists with the instance's identity
 //     without collision.
 //
-//   Scalar / Keyword / TagKeyword / Quote / Doc / Error /
-//     Conduit / Snapshot / already-tagged composite — wrap in a
-//     Map carrying the payload under `:payload` slot, stamp the
-//     header on the wrapper. JS scalars cannot carry symbol-
-//     keyed properties (they are immutable primitives); frozen
-//     value-class objects (Quote / Doc / Error) refuse
+//   Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
+//     Snapshot / already-tagged composite, a quote among them —
+//     wrap in a Map carrying the payload under `:payload` slot,
+//     stamp the header on the wrapper. JS scalars cannot carry
+//     symbol-keyed properties (they are immutable primitives);
+//     frozen value-class objects (Doc / Error) refuse
 //     `defineProperty` after freeze; nested tagged composites
 //     already own the header slot and re-stamping would
 //     overwrite the inner identity. The wrap branch covers all
@@ -532,6 +536,7 @@ export function makeTaggedInstance(tag, payload) {
   // coexist on the same Array; downstream predicates read each
   // independently.
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
+    if (tag.name === QUOTE_TAG_NAME) return makeQuote(payload);
     const arr = [...payload];
     if (isJsonArray(payload)) {
       Object.defineProperty(arr, JSON_ARRAY_TAG, {
@@ -553,8 +558,8 @@ export function makeTaggedInstance(tag, payload) {
     stampTagHeader(m, tag);
     return m;
   }
-  // Scalar / Keyword / TagKeyword / Quote / Doc / Error /
-  // Conduit / Snapshot / already-tagged composite — wrap in an
+  // Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
+  // Snapshot / already-tagged composite — wrap in an
   // opaque frozen JS object with `tag` and `payload` fields.
   // The opaque shape keeps `/payload` projection out of reach
   // (the wrapper is not a Map, so projectSegment throws
@@ -605,28 +610,20 @@ export function withName(binding, newName) {
 // identity), and the `type` operand reads `error.tag` directly
 // without descriptor projection.
 //
-// `:trail` carries either a Quote-value holding the joined
-// pipeline-suffix source — copy-pasteable code the user can splice
-// back into a query — or `null` when no success-track combinator
-// has deflected after the fault. Linked-list nodes hold
-// `{combinator, text}` fragment records; materializeTrail joins
-// them via COMBINATOR_SYNTAX into the Quote source on demand
-// inside applyFailTrack.
+// `:trail` carries either a Quote-value holding the deflected
+// pipeline suffix — steps the user can splice back into a query — or
+// `null` when no success-track combinator has deflected after the
+// fault. Linked-list nodes hold `{combinator, node}` fragment
+// records; `eval-trail.mjs::materializeTrail` turns them into the
+// quote on demand inside applyFailTrack.
 
-export const COMBINATOR_SYNTAX = Object.freeze({
-  pipe:       '|',
-  distribute: '*',
-  merge:      '>>'
-});
-
-// `:trail` is runtime-owned: a Quote-value carrying the joined
-// pipeline-suffix source, or `null` before any deflection. A
-// literal (`!{:trail [1 2]}`) or a re-lift (`!| union({:trail []})
-// | error`) that stamps any other value under `:trail` fires this
-// error at mint time, so `combineTrailQuotes` never reads `.source`
-// off a non-Quote and the fail-track never carries a suffix that
-// `apply` cannot replay. Dropping an accumulated suffix before
-// re-lift stamps `:trail null`.
+// `:trail` is runtime-owned: a Quote-value carrying the deflected
+// pipeline suffix, or `null` before any deflection. A literal
+// (`!{:trail [1 2]}`) or a re-lift (`!| union({:trail []}) | error`)
+// that stamps any other value under `:trail` fires this error at mint
+// time, so `combineTrailQuotes` only ever joins quotes and the
+// fail-track never carries a suffix that `apply` cannot replay.
+// Dropping an accumulated suffix before re-lift stamps `:trail null`.
 export const ErrorTrailNotQuoteError = declareShapeError(
   'ErrorTrailNotQuoteError',
   ({ actualType }) => `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
@@ -674,18 +671,6 @@ export function appendTrailNode(errorValue, trailEntry) {
   }, 'error'));
 }
 
-export function materializeTrail(errorValue) {
-  if (errorValue._trailHead === null) return null;
-  const fragments = [];
-  let cur = errorValue._trailHead;
-  while (cur) { fragments.push(cur.entry); cur = cur.prev; }
-  fragments.reverse();
-  const source = fragments
-    .map(f => `${COMBINATOR_SYNTAX[f.combinator]} ${f.text}`)
-    .join(' ');
-  return makeQuote(source);
-}
-
 // ── describeType ──────────────────────────────────────────────
 
 export function describeType(v) {
@@ -701,10 +686,10 @@ export function describeType(v) {
   // (`Conduit` / `Snapshot` handlers below).
   if (isConduit(v)) return 'Conduit';
   if (isSnapshot(v)) return 'Snapshot';
+  if (isQuote(v)) return 'Quote';
   if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isJsonArray(v)) return 'JsonArray';
   if (isVec(v)) return 'Vec';
-  if (isQuote(v)) return 'Quote';
   if (isDoc(v)) return 'Doc';
   if (isQMap(v)) return 'Map';
   if (isQSet(v)) return 'Set';
@@ -733,7 +718,6 @@ export function typeKeyword(v) {
   }
   if (isJsonArray(v)) return keyword('jsonArray');
   if (isVec(v)) return keyword('vec');
-  if (isQuote(v)) return keyword('quote');
   if (isDoc(v)) return keyword('doc');
   if (isQMap(v)) return keyword('map');
   if (isQSet(v)) return keyword('set');

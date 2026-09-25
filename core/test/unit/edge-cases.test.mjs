@@ -42,6 +42,7 @@ import {
   CONDUIT_TAG
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
+import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
 import { rootState } from '../../src/state.mjs';
 import {
   applyRule10,
@@ -102,8 +103,8 @@ describe('types.mjs', () => {
     expect([...doubleConduit.keys()]).toEqual(['name', 'params', 'source', 'docs', 'effectful']);
     const sourceQuote = doubleConduit.get('source');
     expect(isQuote(sourceQuote)).toBe(true);
-    expect(sourceQuote.source).toBe('1');
-    expect(sourceQuote.ast).toBe(bodyAst);
+    expect(printQuoteSource(sourceQuote)).toBe('1');
+    expect(astOfQuote(sourceQuote)).toBe(bodyAst);
   });
 });
 
@@ -359,35 +360,31 @@ describe('runtime/manifest-op.mjs manifest enumeration', () => {
       ':chained (mul(2) | add(1)) | manifest | filter(/name | eq("chained")) | first | /source'
     );
     expect(isQuote(sourceQuote)).toBe(true);
-    expect(sourceQuote.source).toContain('mul(2)');
-    expect(sourceQuote.source).toContain('add(1)');
-    expect(sourceQuote.source).toContain('|');
+    expect(printQuoteSource(sourceQuote)).toBe('(mul(2) | add(1))');
   });
 });
 
 describe('source axis on conduit / snapshot / TagKeyword subjects', () => {
-  // `:name | source` returns a Quote carrying the verbatim source
-  // slice of the declaring BindStep — the canonical "what did the
-  // user write" answer. Same axis covers value-namespace bindings
+  // `:name | source` returns the quote of the declaring BindStep,
+  // which `parse` prints as its text. Same axis covers value-namespace bindings
   // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
 
-  it('source on a conduit binding name returns the full BindStep slice', async () => {
-    const source = await evalQuery(':double mul(2) | :double | source | /source');
+  it('source on a conduit binding name returns the whole declaration', async () => {
+    const source = await evalQuery(':double mul(2) | :double | source | parse');
     expect(source).toBe(':double mul(2)');
   });
 
   it('source on a parametric conduit captures the params slot', async () => {
-    const source = await evalQuery(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | :@surround | source | /source');
-    expect(source).toContain('[:pfx :sfx]');
-    expect(source).toContain('prepend(pfx)');
+    const source = await evalQuery(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | :@surround | source | parse');
+    expect(source).toBe(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx))');
   });
 
   it('source on a snapshot binding name returns the as(:name) BindStep equivalent', async () => {
     // `as(:snap)` is an OperandCall, not a BindStep — the axis
-    // walks both shapes and returns the OperandCall's verbatim
-    // slice as the declaration source.
-    const source = await evalQuery('42 | as(:snap) | :snap | source | /source');
-    expect(source).toContain('as(:snap)');
+    // walks both shapes and returns the quote of the OperandCall as
+    // the declaration.
+    const source = await evalQuery('42 | as(:snap) | :snap | source | parse');
+    expect(source).toBe('as(:snap)');
   });
 });
 

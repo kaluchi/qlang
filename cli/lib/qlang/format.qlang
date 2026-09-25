@@ -8,8 +8,8 @@
 :pretty
   |~~ Renders any value as its canonical qlang-literal display
       form — the same bytes `printValue` produces. Round-trips
-      through `parse | eval` back to the same value, so
-      `pretty | parse | eval | pretty` is an identity for any
+      through `parse | apply(/)` back to the same value, so
+      `pretty | parse | apply(/) | pretty` is an identity for any
       qlang-shaped subject.
 
       ~{42 | pretty | eq("42")}

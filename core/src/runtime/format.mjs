@@ -11,6 +11,7 @@
 // `literalOfKeyword`.
 
 import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
+import { printQuoteSource } from '../quote.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import {
   isQMap,
@@ -92,7 +93,7 @@ const TO_PLAIN_HANDLERS = {
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  Quote:          q => `~{${q.source}}`,
+  Quote:          q => `~{${printQuoteSource(q)}}`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
   // Error → `$error: {$tag, descriptor}` — the tag sits at the
@@ -201,7 +202,7 @@ const CELL_HANDLERS = {
   Map:        m => renderInline(m),
   Set:        s => renderInline(s),
   Error:      e => renderInline(e),
-  Quote:      q => '~{' + q.source + '}',
+  Quote:      q => '~{' + printQuoteSource(q) + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => renderInline(o),
   JsonArray:  a => renderInline(a),
@@ -225,7 +226,7 @@ const INLINE_HANDLERS = {
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
   Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
-  Quote:      q => '~{' + q.source + '}',
+  Quote:      q => '~{' + printQuoteSource(q) + '}',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,

@@ -48,12 +48,13 @@ import {
   isModuleAstKey, isModuleNamespaceKey, isTagBindingName,
   RUNTIME_LOCATOR_KEY
 } from '../env-keys.mjs';
-import { locationToQlangMap } from '../ast-codec.mjs';
+import { locationToQlangMap } from '../walk.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
+import { printQuoteSource } from '../quote.mjs';
 
 const ManifestNamespaceNotKeywordError = declareShapeError('ManifestNamespaceNotKeywordError',
   ({ actualType }) => `manifest(:namespace) requires a keyword captured arg, got ${actualType.name}`,
@@ -262,7 +263,7 @@ export const manifest = stateOpVariadic('manifest', async (state, manifestLambda
 async function runQuoteEntry(quote, callerState) {
   const result = new Map();
   result.set('snippet', quote);
-  const actualValue = await evalQuery(quote.source, callerState.env, callerState);
+  const actualValue = await evalQuery(printQuoteSource(quote), callerState.env, callerState);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
     result.set('error', errorMessageOf(actualValue));

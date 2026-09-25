@@ -19,9 +19,9 @@ import {
   isFunctionValue,
   makeConduit,
   makeSnapshot,
-  makeQuote,
   conduitEnvRef
 } from './types.mjs';
+import { quoteOfBody, printQuoteSource } from './quote.mjs';
 import { moduleAstKey, RUNTIME_LOCATOR_KEY } from './env-keys.mjs';
 
 import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
@@ -108,7 +108,7 @@ export async function createSession(opts = {}) {
         // `::DocsBindingNotFoundError`. The Quote keeps both the
         // verbatim source and the pre-parsed AST so axis-walkers
         // skip a re-parse on every lookup.
-        env = envSet(env, moduleAstKey(cellUri), makeQuote(source, cellAst));
+        env = envSet(env, moduleAstKey(cellUri), quoteOfBody(cellAst));
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
           ? evalOpts.initialPipeValue
           : null;
@@ -116,7 +116,7 @@ export async function createSession(opts = {}) {
         const cellFinalState = await evalAst(cellAst, cellInitialState);
         // Flush any pending `_trailHead` linked-list into the
         // descriptor's `:trail` field so the cell's result reflects
-        // the full deflection chain (`|` / `*` / `>>` deflections
+        // the full deflection chain (`|` / `*` deflections
         // never auto-materialise; only `!|` does mid-pipeline). The
         // script-mode renderer and the REPL both read the descriptor
         // through printValue, which would otherwise elide
@@ -186,7 +186,7 @@ export async function serializeSession(session) {
         kind: 'conduit',
         name: v.get('name'),
         params: v.get('params').map(p => p.name),
-        source: v.get('source').source,
+        source: printQuoteSource(v.get('source')),
         docs: [...v.get('docs')]
       });
     } else if (isSnapshot(v)) {

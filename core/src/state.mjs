@@ -4,8 +4,8 @@
 // Users never see or construct it. Within the evaluator we model
 // it as a frozen object carrying the semantic pair — `pipeValue`,
 // `env` — and one bookkeeping field, `depth`: how many nested
-// evaluation frames (conduit bodies, captured-arg lambdas, `eval`
-// / `apply` re-entry, Quote-bodied tag constructors, doc-segment
+// evaluation frames (conduit bodies, captured-arg lambdas, `apply`
+// re-entry, Quote-bodied tag constructors, doc-segment
 // literals, locator-loaded modules) sit between the root and this
 // state. Every step returns a fresh State carrying the next
 // pipeValue or the next env; the previous State stays observable
@@ -18,7 +18,7 @@
 import { EvaluationDepthExceededError } from './errors.mjs';
 
 // EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A conduit
-// that calls itself without a base case, a Quote that `eval`s
+// that calls itself without a base case, a Quote that applies
 // itself, a tag constructor that mints its own tag: each descends
 // one frame per call and lifts `EvaluationDepthExceededError` on
 // the frame past the budget, so the fail-track reports the runaway
@@ -54,14 +54,6 @@ export function nestState(state, pipeValue, env) {
     throw new EvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
   }
   return makeState(pipeValue, env, depth);
-}
-
-// ascendState(outerState, innerState) → State back on the outer
-// frame, carrying the inner frame's pipeValue and env — the exit of
-// `eval` / `apply`, whose inner BindStep / `as` / `use` writes flow
-// out to the caller.
-export function ascendState(outerState, innerState) {
-  return makeState(innerState.pipeValue, innerState.env, outerState.depth);
 }
 
 // envGet(env, name) → value or undefined

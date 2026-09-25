@@ -6,7 +6,7 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { makeTagKeyword, isErrorValue, isQMap, ConduitBodyMissingSourceError } from '../../src/types.mjs';
+import { makeTagKeyword, isErrorValue, isQMap } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
 import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
@@ -245,17 +245,6 @@ describe('serializeSession / deserializeSession round-trip', () => {
     );
     const cellEntry = await restored.evalCell('"x" | ::wrap"x" | payload');
     expect(cellEntry.result).toBe('[x]');
-  });
-
-  it('makeConduit refuses a body without .text so session payload always carries parseable source', async () => {
-    // Round-trip invariant: every conduit in a serialized session must
-    // deserialize back through parse(binding.source). A body without
-    // .text would emit a non-parseable placeholder, so mint refuses
-    // up front and the session payload never carries a lossy entry.
-    const { makeConduit } = await import('../../src/types.mjs');
-    const synthAst = { type: 'NumberLit', value: 99 };
-    expect(() => makeConduit(synthAst, { name: 'synth' }))
-      .toThrow(ConduitBodyMissingSourceError);
   });
 });
 

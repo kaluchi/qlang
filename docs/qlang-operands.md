@@ -61,9 +61,9 @@ form part of the doc surface and the runtime catalog alike.
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:codeAsData` | Source-text ↔ AST-Map ↔ pipeValue ring closer (parse / eval / apply). |
+| `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
-| `:error` | Error-value constructor (error) or predicate (isError). |
+| `:error` | Error-value constructor (error). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
 
@@ -753,11 +753,11 @@ Map where the value's class is the predicate axis.
 - Returns the Keyword or TagKeyword identity of the value's type.
   Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
   `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:quote`, `:doc`,
-  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Conduit,
-  Snapshot, TaggedInstance, materialized error, catalog builtin
-  descriptor) produce the user-stamped TagKeyword off the JS-header
-  identity slot (`::conduit`, `::snapshot`, `::Foo`, the per-site
+  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:doc`,
+  `:function`, `:jsonObject`, `:jsonArray`); tagged values (Quote,
+  Conduit, Snapshot, TaggedInstance, materialized error, catalog
+  builtin descriptor) produce the TagKeyword off the JS-header
+  identity slot (`::quote`, `::conduit`, `::snapshot`, `::Foo`, the per-site
   error tag, `::builtin`); error values produce the per-site `::Tag`
   straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
   `::ParseError`, generic `::Error` for user `!{}` without an
@@ -1239,15 +1239,17 @@ its own eval handler in `eval.mjs`.
 
 ### `parse`
 
-- **Arity** 1. **Subject** `string` — the source to parse.
-- Reads the subject string into an **AST-Map** — the data-form
-  representation of the program, produced by `ast-codec.mjs::astNodeToMap`.
-  Each AST node becomes a frozen Map carrying `:kind` (the
-  AST type keyword: `:NumberLit`, `:OperandCall`, `:Projection`,
-  `:Pipeline`, and so on), type-specific payload fields (`:value`,
-  `:name`, `:args`, `:elements`, `:entries`, `:keys`, `:steps`,
-  etc.), and the shared `:text` / `:location` metadata the parser
-  stamps on every node. Nested nodes recurse into their own Maps.
+- **Arity** 1. **Subject** `string` or `quote`.
+- Flips a string and a quote, the way `keyword` flips a string and
+  a keyword: a string reads as the **quote** of its steps, and a
+  quote prints back as its text. A quote is a vector of steps under
+  the `::quote` tag: a literal is its own step, a command is a
+  `::call` record (`:name`, `:args` the quote of each argument),
+  a projection a `::proj` record (`:path`), a declaration a
+  `::bind` record, a constructor invocation a `::tagged` record,
+  and the fail track, the distribute and the parentheses wrap the
+  quote of their step as `::fail`, `::each` and `::group`. A
+  comment leaves no step, and no step carries a position.
 - The underlying peggy `ParseError` is caught in-operand and
   converted to an error value via `errorFromParse`, so malformed
   sources surface on the fail-track with `:kind ::ParseError`
@@ -1256,72 +1258,55 @@ its own eval handler in `eval.mjs`.
   bucket — distinct from the `:foreignError` catalog category
   every host JS throw lands under).
 - **Examples**:
-  - `"42" | parse | /:kind` → `:NumberLit`.
-  - `"add(1, 2)" | parse | /name` → `"add"`.
-  - `"add(1, 2)" | parse | /args | count` → `2`.
+  - `"42" | parse | first` → `42`.
+  - `"add(1, 2)" | parse | first | /name` → `:add`.
+  - `"add(1, 2)" | parse | first | /args | count` → `2`.
+  - `~{add( 1 )} | parse` → `"add(1)"`.
   - `"this is not qlang [" | parse !| type` → `::ParseError`.
   - `"this is not qlang [" | parse !| type | spec | /category` → `:parseError`.
 - **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
 
-### `eval`
+### `apply(code)`
 
-- **Arity** 1. **Subject** `map` — the AST-Map to evaluate.
-- Unwraps an AST-Map through `ast-codec.mjs::qlangMapToAst` and runs
-  the reconstructed AST against the current state. The caller's
-  `pipeValue` becomes the inner evaluation's `pipeValue`; the
-  caller's `env` threads in unchanged. Any BindStep / `as` / `use`
-  writes the inner code performs propagate out the same way a
-  paren-group's env writes would. The result is whatever
-  `pipeValue` the inner code produces, ready to flow into the
-  next pipeline step. The inner code runs one frame below the
-  `eval` step, so a Quote that `eval`s itself descends through
-  the evaluation depth budget and lifts
-  `EvaluationDepthExceededError` past `EVAL_DEPTH_LIMIT`.
+- **Arity** 2 (1 captured). **Subject** any value. **Modifier** the
+  code — the Quote the captured arg answers.
+- Runs the code against the subject under the fork rule: BindStep /
+  `as` / `use` writes inside the code stay inside it, and only its
+  value comes out. The first step rides `|` against the subject
+  unless the Quote carries a leading combinator (`~{* mul(2)}` /
+  `~{!| /trail}`), which routes it through that combinator, so a
+  pipeline-suffix shape replays semantically. Code that is an error
+  is that error, unchanged. The code runs one frame below the
+  `apply` step, so a Quote that applies itself descends through the
+  evaluation depth budget and lifts `EvaluationDepthExceededError`
+  past `EVAL_DEPTH_LIMIT`.
 - Pairs with `parse` to close the codeAsData ring:
-  `"source" | parse | eval` is equivalent to evaluating the
-  source string directly, and the intermediate AST-Map can be
+  `"source" | parse | apply(/)` is equivalent to evaluating the
+  source string directly, and the intermediate quote can be
   inspected, filtered, re-assembled, or handed around as
   ordinary qlang data.
 - **Examples**:
-  - `"42" | parse | eval` → `42`.
-  - `"10 | add(3)" | parse | eval` → `13`.
-  - `"[1 2 3] | filter(gt(1)) | count" | parse | eval` → `2`.
-  - `{:kind :NumberLit :value 42} | eval` → `42`
-    (hand-assembled AST-Map bypasses the parser).
-- **Errors**: subject not a Map or Quote → `EvalSubjectNotMapOrQuoteError`.
-  Runtime errors inside the inner evaluation lift through the
-  normal fail-track just like any other qlang failure.
-
-### `apply(subject)`
-
-- **Arity** 2 (1 captured). **Subject** Quote-value or AST-Map
-  sitting in `pipeValue`.
-- Runs the Quote-or-Map body against the captured-arg `subject` as
-  the initial `pipeValue`. A Quote's leading combinator (if any —
-  `~{* mul(2)}` / `~{| count}` / `~{!| /trail}`) routes the first
-  step through that combinator against the new subject, so a
-  pipeline-suffix shape replays semantically.
-- BindStep / `as` / `use` writes inside the applied body propagate
-  outward, matching `eval` semantics; the body runs one frame
-  below the `apply` step, inside the same depth budget.
-- **Examples**:
-  - `~{mul(2)} | apply(5)` → `10`.
-  - `~{| count | add(1)} | apply([1 2 3])` → `4`.
-  - `error !| /trail | apply(start)` — re-runs deflected steps
-    against a fresh subject.
-- **Errors**: pipeValue not a Map or Quote → `ApplySubjectNotMapOrQuoteError`.
+  - `5 | apply(~{mul(2)})` → `10`.
+  - `[1 2 3] | apply(~{| count | add(1)})` → `4`.
+  - `"10 | add(3)" | parse | apply(/)` → `13`.
+  - `[42 ::call{:name :add :args [~{1}]}] | tag(::quote) | apply(/)` → `43`
+    (a quote assembled from its steps).
+  - `error !| /trail | as(:t) | start | apply(t)` — re-runs
+    deflected steps against a fresh subject.
+- **Errors**: code not a Quote → `ApplyCodeNotQuoteError`.
+  Runtime errors inside the code lift through the normal fail-track
+  just like any other qlang failure.
 
 ### `source`
 
 - **Arity** 1. **Subject** Keyword (`:name`) or TagKeyword (`::Tag`).
-- Returns a Quote carrying the verbatim source text of the
-  binding's declaring BindStep (or `as(:name)` OperandCall) found
-  across loaded modules.
+- Returns the quote of the binding's declaring BindStep (or
+  `as(:name)` OperandCall) found across loaded modules.
 - **Examples**:
-  - `:count | source | /source` → the `:count` BindStep source.
-  - `::conduit | source | /source` → the `::conduit` tag-binding source.
+  - `:count | source | parse` → the `:count` declaration as text.
+  - `::conduit | source | parse` → the `::conduit` tag-binding as text.
 - **Errors**: subject not a Keyword or TagKeyword →
   `SourceSubjectNotKeywordOrTagError`; no declaring step found →
   `SourceBindingNotFoundError`.
@@ -1380,9 +1365,10 @@ combinator (fail-apply), which owns the track-dispatch decision.
 ordinary Map operations (`/key`, `has`, `keys`, `vals`, `union`,
 `minus`, `inter`, `eq`, `filter` over `:trail`, etc.) apply
 directly to the descriptor exactly as they would on any other
-Map. The two operands below cover the two endpoints of the
-fail-track itself: `error` lifts a Map into the fail-track and
-`isError` reports whether `pipeValue` already rides there.
+Map. The operand below is the entry of the fail-track: `error`
+lifts a Map into it, and whether `pipeValue` already rides there
+reads as `false !| true`, since the head `false` rides `|` and
+deflects on an error that `!| true` then answers.
 
 ### `error`
 
@@ -1391,8 +1377,8 @@ fail-track itself: `error` lifts a Map into the fail-track and
   5th type at the language level alongside the `!{…}` literal.
   Bare form `map | error` uses pipeValue as the descriptor; full
   form `error(map)` evaluates the captured Map against pipeValue
-  as context. The resulting error rides the fail-track: `|`, `*`,
-  and `>>` deflect it into the trail, `!|` fires its step against
+  as context. The resulting error rides the fail-track: `|` and
+  `*` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
 - Identity sources, in priority order: the source Map's
   `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
@@ -1404,26 +1390,17 @@ fail-track itself: `error` lifts a Map into the fail-track and
 - **Example**: `error({:kind :oops}) !| /kind` → `:oops`.
 - **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
-### `isError`
+Asking each element whether it is an error:
 
-- **Arity** 1. **Subject** any value. Plain predicate — carries no
-  dispatch flag.
-- Returns `true` when pipeValue is an error value, `false`
-  otherwise. Because `|` deflects errors before `isError` can
-  fire, it is intended for raw first-step positions inside
-  predicate lambdas (`filter(isError)`, `any(isError)`,
-  `every(isError | not)`, `* isError`), where the per-element
-  sub-pipeline's first step runs without combinator dispatch and
-  therefore sees the per-element pipeValue directly.
-- **Examples**:
-  - `[!{:kind :oops}] * isError | first` → `true`.
-  - `{:kind :oops} | isError` → `false`.
-  - `42 | isError` → `false`.
+```qlang
+> [!{:kind :oops} 42] * (false !| true)
+[true false]
+```
 
 Removing an error from the success-track view of a container:
 
 ```qlang
-> [1 "x" 3] * add(10) | filter(isError | not)
+> [1 "x" 3] * add(10) | filter(true !| false)
 [11 13]
 ```
 
@@ -1472,18 +1449,17 @@ enumerates).
 | `:typeConversion` | `keyword`, `payload`, `tag` |
 | `:indexedAccess` | `at` |
 | `:format` | `json`, `table` |
-| `:error` | `error`, `isError` |
+| `:error` | `error` |
 | `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:codeAsData` | `parse`, `eval`, `apply` |
+| `:codeAsData` | `parse`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime` Map regardless of how many dispatch paths
-it carries. The reflective pair `parse` /
-`eval` closes the codeAsData ring: a source string lifts into an
-AST-Map through `parse`, runs through `eval` to become a
-`pipeValue`, and the intermediate Map is addressable as ordinary
-qlang data.
+it carries. The pair `parse` / `apply` closes the codeAsData
+ring: a source string reads into a quote through `parse`, runs
+through `apply(/)` to become a `pipeValue`, and the intermediate
+quote is addressable as ordinary qlang data.
 
 Tooling primitives (walk.mjs, session.mjs, codec.mjs, effect.mjs)
 and the embedder API are documented in

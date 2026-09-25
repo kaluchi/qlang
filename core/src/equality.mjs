@@ -13,13 +13,17 @@
 // enough that the constant on a hash-set would dominate, and
 // structural dedup is the spec'd Set semantics.
 //
+// A quote is a tagged vector of steps, so two quotes are equal when
+// their steps are: the spacing and the comments of the text they were
+// read from leave no step.
+//
 // Cross-shape equivalences: a JsonArray and a Vec with the same
 // elements are equal; a JsonObject and a Map with the same entries
 // are equal. The JSON tag is an authoring/round-trip hint;
 // `deepEqual` collapses it.
 
 import {
-  isKeyword, isTagKeyword, isErrorValue, isQuote, isDoc,
+  isKeyword, isTagKeyword, isErrorValue, isDoc,
   isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet,
   TAG_HEADER_SYMBOL, isValueClass
 } from './types.mjs';
@@ -76,9 +80,6 @@ export function deepEqual(a, b) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
     if (!tagHeadersEqual(a, b)) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
-  }
-  if (isQuote(a)) {
-    return isQuote(b) && a.source === b.source;
   }
   if (isDoc(a)) {
     return isDoc(b) && a.content === b.content;

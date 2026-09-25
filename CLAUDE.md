@@ -58,7 +58,7 @@ Tier 2, by topic, only the files the topic names:
 - self-description: `core/src/runtime/axis.mjs`,
   `core/src/runtime/manifest-op.mjs`, `core/src/doc-segments.mjs`,
   `core/lib/qlang/runtime-invariants.qlang`
-- code as data: `core/src/ast-codec.mjs`,
+- code as data: `core/src/quote.mjs`,
   `core/src/runtime/codeAsData.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,
   `core/src/runtime/format.mjs`, `core/src/codec.mjs`

@@ -1,5 +1,4 @@
-// Tests for error operand, isError operand, and the `!|` fail-apply
-// combinator, plus edge cases around trail accumulation, re-lift
+// Tests for the error operand and the `!|` fail-apply combinator, plus edge cases around trail accumulation, re-lift
 // continuity, and conduit invocation on the fail-track.
 
 import { describe, it, expect } from 'vitest';
@@ -25,15 +24,6 @@ describe('error operand', () => {
   it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
     const evalResult = await evalQuery('null | error("not-a-number" | add(1)) !| type');
     expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
-  });
-});
-
-// ── isError operand ─────────────────────────────────────────────
-
-describe('isError operand', () => {
-  it('with captured args produces arity error', async () => {
-    const evalResult = await evalQuery('42 | isError(1) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('arityError'));
   });
 });
 
@@ -65,23 +55,21 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('distribute of add(10) over mixed elements produces per-element errors filterable by isError', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] * add(10) | filter(isError) | count');
+  it('distribute of add(10) over mixed elements produces per-element errors a fail-track predicate selects', async () => {
+    const evalResult = await evalQuery('[1 "x" 3] * add(10) | filter(false !| true) | count');
     expect(evalResult).toBe(1);
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
-    // /trail yields a Quote-value carrying the joined
-    // pipeline-suffix source. `evalPipeline` steps over plain
-    // comments on both tracks, so only the operand-carrying step
-    // (`count`) deflects into the trail — a line comment on the
-    // trail would swallow every step after it on replay.
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | /source');
-    expect(evalResult).toBe('| count');
+    // /trail yields the quote of the deflected steps. `evalPipeline`
+    // steps over plain comments on both tracks, so only the
+    // operand-carrying step (`count`) deflects into the trail.
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | parse');
+    expect(evalResult).toBe('count');
   });
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | apply(42) !| type');
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | as(:t) | 42 | apply(t) !| type');
     expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 });
@@ -103,14 +91,14 @@ describe('EffectLaunderingAtCallError', () => {
   });
 });
 
-describe('source axis surfaces verbatim BindStep slice for rare body shapes', () => {
+describe('source axis prints the declaration for rare body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {
-    expect(await evalQuery(':x count | :x | source | /source')).toBe(':x count');
+    expect(await evalQuery(':x count | :x | source | parse')).toBe(':x count');
   });
 
-  it('renders LinePlainComment inside conduit body', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | /source');
-    expect(evalResult).toContain('|~|');
+  it('a LinePlainComment inside a conduit body leaves no step', async () => {
+    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | parse');
+    expect(evalResult).toBe(':x (42)');
   });
 
   it('attached BlockDocComment surfaces through the docs axis operand', async () => {
@@ -120,15 +108,14 @@ describe('source axis surfaces verbatim BindStep slice for rare body shapes', ()
   });
 
   it('renders ErrorLit body', async () => {
-    expect(await evalQuery(':x [] !{:a 1} | :x | source | /source')).toContain('!{:a 1}');
+    expect(await evalQuery(':x [] !{:a 1} | :x | source | parse')).toBe(':x [] !{:a 1}');
   });
 
   it('renders leading fail-apply prefix in conduit body', async () => {
     // BindStep body is a single Primary, so a `!|` leading
-    // Pipeline-step is wrapped in a ParenGroup at the source level.
-    // The source axis reflects the verbatim BindStep text, parens
-    // and all.
-    expect(await evalQuery(':handler (!| /kind) | :handler | source | /source')).toBe(':handler (!| /kind)');
+    // Pipeline-step is wrapped in a ParenGroup at the source level,
+    // and the group keeps its parentheses in print.
+    expect(await evalQuery(':handler (!| /kind) | :handler | source | parse')).toBe(':handler (!| /kind)');
   });
 });
 
@@ -232,11 +219,6 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('{:a 1} * add(1)');
     expect(caughtErr.name).toBe('DistributeSubjectNotSequenceError');
     expect(caughtErr.context.actualType.name).toBe('map');
-  });
-
-  it('merge on non-sequence → MergeSubjectNotSequenceError (distinct from distribute)', async () => {
-    const caughtErr = await catchOriginalError('42 >> count');
-    expect(caughtErr.name).toBe('MergeSubjectNotSequenceError');
   });
 
   it('apply args to non-function → ApplyToNonFunctionError', async () => {
@@ -370,7 +352,6 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | gt(5)',
       '42 | /name',
       '{:a 1} * add(1)',
-      '42 >> count',
       '5 | as(:five) | five(42)',
       '42 | use',
       '42 | reduce(0, add)',
@@ -404,7 +385,6 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | lt(5)',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '{:a 1} * add(1)',   // DistributeSubjectNotSequenceError
-      '42 >> count',       // MergeSubjectNotSequenceError
       '42 | reduce(0, add)',   // ReduceSubjectNotSequenceError
       '[1 2 3] | reduce(0, 42)' // ReduceReducerNotBinaryError
     ];

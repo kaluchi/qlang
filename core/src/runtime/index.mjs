@@ -65,6 +65,7 @@ import './control.mjs';
 import './error.mjs';
 import './keyword-op.mjs';
 import './tagged.mjs';
+import './quote-steps.mjs';
 import './bind-op.mjs';
 import './use-op.mjs';
 import './manifest-op.mjs';
@@ -86,12 +87,13 @@ import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import {
-  keyword, makeQuote, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
+  keyword, isErrorValue, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   moduleAstKey, RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName
 } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, primKey, TYPE_KEY_PREFIX } from '../primitives.mjs';
+import { quoteOfBody } from '../quote.mjs';
 import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
 import {
   platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
@@ -240,7 +242,7 @@ export async function buildLangRuntime(locator) {
   // axis-operands walk it directly via `node.type` / `node.steps`.
   // The /ast projection converts to AST-Map shape on demand for
   // user code that wants data-form navigation.
-  templateEnv.set(moduleAstKey('qlang/core'), makeQuote(coreSource, coreAst));
+  templateEnv.set(moduleAstKey('qlang/core'), quoteOfBody(coreAst));
 
   PRIMITIVE_REGISTRY.seal();
 

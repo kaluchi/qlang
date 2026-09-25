@@ -33,6 +33,10 @@
 //                                bindingNamesVisibleAt,
 //                                astNodeSpan, astNodeContainsOffset,
 //                                triviaBetweenAstNodes
+//   code as data               — quoteOfSource (text → quote),
+//                                printQuoteSource (quote → text),
+//                                astOfQuote (the tree a quote runs
+//                                through)
 //   value codec                — toTaggedJSON, fromTaggedJSON
 //   format renderers           — printValue (qlang-literal display),
 //                                toPlain (qlang value → JSON-
@@ -101,7 +105,8 @@ import {
   astNodeContainsOffset,
   triviaBetweenAstNodes
 } from './walk.mjs';
-import { astNodeToMap, qlangMapToAst } from './ast-codec.mjs';
+import { quoteOfSource, printQuoteSource, astOfQuote } from './quote.mjs';
+import { materializeTrail } from './eval-trail.mjs';
 import {
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier
@@ -155,7 +160,6 @@ import {
   TAG_BINDING_TAG,
   VALUE_TAG,
   appendTrailNode,
-  materializeTrail,
   describeType,
   typeKeyword
 } from './types.mjs';
@@ -196,8 +200,9 @@ export {
   astNodeSpan,
   astNodeContainsOffset,
   triviaBetweenAstNodes,
-  astNodeToMap,
-  qlangMapToAst,
+  quoteOfSource,
+  printQuoteSource,
+  astOfQuote,
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier,
   toTaggedJSON,

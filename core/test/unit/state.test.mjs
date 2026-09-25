@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  rootState, withPipeValue, withEnv, nestState, ascendState, EVAL_DEPTH_LIMIT,
+  rootState, withPipeValue, withEnv, nestState, EVAL_DEPTH_LIMIT,
   envSet, envHas, envGet, envMerge
 } from '../../src/state.mjs';
 import { QlangError, EvaluationDepthExceededError } from '../../src/errors.mjs';
@@ -45,7 +45,7 @@ describe('state.mjs frames', () => {
     expect(nextEnv.depth).toBe(0);
   });
 
-  it('nestState descends one frame; ascendState returns to the outer frame with the inner pair', () => {
+  it('nestState descends one frame with the inner pair', () => {
     const root = rootState(1, new Map());
     const inner = nestState(root, 2, envSet(root.env, 'y', 2));
     expect(inner.depth).toBe(1);
@@ -53,10 +53,6 @@ describe('state.mjs frames', () => {
     expect(envGet(inner.env, 'y')).toBe(2);
     const deeper = nestState(inner, 3, inner.env);
     expect(deeper.depth).toBe(2);
-    const ascended = ascendState(root, deeper);
-    expect(ascended.depth).toBe(0);
-    expect(ascended.pipeValue).toBe(3);
-    expect(ascended.env).toBe(deeper.env);
   });
 
   it('nestState admits the frame at EVAL_DEPTH_LIMIT and refuses the frame past it', () => {

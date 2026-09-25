@@ -73,12 +73,12 @@ import {
   makeTagKeyword,
   makeJsonObject,
   makeJsonArray,
-  makeQuote,
   makeDoc,
   finiteNumberOrLift,
   TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declarePerSiteError } from './errors.mjs';
+import { quoteOfSource, printQuoteSource } from './quote.mjs';
 
 export const TaggedJSONUnencodableValueError = declarePerSiteError(
   'TaggedJSONUnencodableValueError', 'codecError',
@@ -120,6 +120,8 @@ export function toTaggedJSON(value) {
   if (t === 'string' || t === 'boolean') return value;
   if (isKeyword(value)) return { $keyword: value.name };
   if (isTagKeyword(value)) return { $tagKeyword: value.name };
+  // A quote is a tagged vector; its envelope carries its text.
+  if (isQuote(value)) return { $quote: printQuoteSource(value) };
   // TaggedInstance check before generic Vec / Map / Set branches —
   // a tagged Vec is still `isVec(true)`, but the bare Vec encoder
   // strips identity. The envelope below recovers identity through
@@ -165,7 +167,6 @@ export function toTaggedJSON(value) {
     return encoded;
   }
   if (isVec(value)) return { $vec: value.map(toTaggedJSON) };
-  if (isQuote(value)) return { $quote: value.source };
   if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
     return {
@@ -272,7 +273,7 @@ export function fromTaggedJSON(json, path = []) {
           {}
         );
       }
-      case '$quote': return makeQuote(json.$quote);
+      case '$quote': return quoteOfSource(json.$quote, 'tagged-json');
       case '$doc':   return makeDoc(json.$doc);
     }
     // Catch-all: bare JSON object → JsonObject (recursively decoded).

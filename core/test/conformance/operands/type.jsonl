@@ -16,7 +16,7 @@
 {"name":"type-json-object","query":"::json{:k 1} | type","expect":":jsonObject"}
 {"name":"type-vec","query":"[1 2 3] | type","expect":":vec"}
 {"name":"type-vec-empty","query":"[] | type","expect":":vec"}
-{"name":"type-quote","query":"~{mul(2)} | type","expect":":quote"}
+{"name":"type-quote","query":"~{mul(2)} | type","expect":"::quote"}
 {"name":"type-doc","query":"|~~ note ~~| | type","expect":":doc"}
 {"name":"type-map","query":"{:a 1} | type","expect":":map"}
 {"name":"type-map-empty","query":"{} | type","expect":":map"}

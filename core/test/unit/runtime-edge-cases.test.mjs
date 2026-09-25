@@ -30,7 +30,9 @@ import {
 } from '../../src/types.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 import { createSession } from '../../src/session.mjs';
-import { astNodeToMap, qlangMapToAst } from '../../src/ast-codec.mjs';
+import { locationToQlangMap } from '../../src/walk.mjs';
+import { quoteOfSource, printQuoteSource } from '../../src/quote.mjs';
+import { parse } from '../../src/parse.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 
@@ -179,8 +181,7 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
 });
 
 describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
-  const { makeQuote } = await import('../../src/types.mjs');
-  const coerceFaultStep = makeQuote('hostCoerce');
+  const coerceFaultStep = quoteOfSource('hostCoerce');
   const coerceFaultInput = 'coerce-input';
 
   it('coerce passes through a QSet (JS Set) unchanged', async () => {
@@ -200,24 +201,25 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   });
 });
 
-describe('types.mjs — appendTrailNode stamps {combinator, text} fragments on the trail head', async () => {
-  it('stamps the fragment frozen-as-given and materializes through COMBINATOR_SYNTAX', async () => {
+describe('types.mjs — appendTrailNode stamps {combinator, node} fragments on the trail head', async () => {
+  it('stamps the fragment frozen-as-given and materializes into the quote of its steps', async () => {
     // appendTrailNode stamps the fragment record onto _trailHead in
     // chronological order. Production callsites in eval.mjs::trailEntry
-    // produce a `{combinator, text}` shape — `combinator` ∈
-    // COMBINATOR_SYNTAX keys, `text` the deflected step's source slice.
-    // materializeTrail walks the chain and joins each fragment via
-    // `${COMBINATOR_SYNTAX[combinator]} ${text}` into the
-    // pipeline-suffix Quote source.
-    const { appendTrailNode, materializeTrail, isQuote } = await import('../../src/types.mjs');
+    // produce a `{combinator, node}` shape — `combinator` 'pipe' or
+    // 'distribute', `node` the deflected step. materializeTrail walks
+    // the chain into the quote of those steps, a distributed body under
+    // `::each`.
+    const { appendTrailNode, isQuote } = await import('../../src/types.mjs');
+    const { materializeTrail } = await import('../../src/eval-trail.mjs');
     const errVal = makeErrorValue(makeTagKeyword('TypeError'), new Map());
-    const fragment = Object.freeze({ combinator: 'pipe', text: 'count' });
+    const fragment = Object.freeze({ combinator: 'pipe', node: parse('count') });
     const trailed = appendTrailNode(errVal, fragment);
     expect(isErrorValue(trailed)).toBe(true);
     expect(trailed._trailHead.entry).toBe(fragment);
-    const quote = materializeTrail(trailed);
+    const distributed = appendTrailNode(trailed, Object.freeze({ combinator: 'distribute', node: parse('add(1)') }));
+    const quote = materializeTrail(distributed);
     expect(isQuote(quote)).toBe(true);
-    expect(quote.source).toBe('| count');
+    expect(printQuoteSource(quote)).toBe('count * add(1)');
   });
 });
 
@@ -310,33 +312,17 @@ describe('manifest descriptor — describeBinding branch coverage', async () => 
   });
 });
 
-// ── walk.mjs uncovered branches ────────────────────────────────
-// Three defensive paths only reachable via direct codec API calls
-// (not through parse() → eval()); exercised here so the codec
-// contract is tested rather than silently untested.
+// ── walk.mjs location view ─────────────────────────────────────
 
-describe('walk.mjs — locationToQlangMap(null) → null (line 397)', async () => {
-  it('roundtrip through qlangMapToAst+astNodeToMap with :location null produces null location map entry', async () => {
-    // Build a minimal NumberLit AST Map with :location explicitly null.
-    // qlangMapToAst fires locationFromQlangMap(null) (line 405: !isQMap → null),
-    // then astNodeToMap on the result fires locationToQlangMap(null) (line 397: !loc → null).
-    const m = new Map();
-    m.set('kind', keyword('NumberLit'));
-    m.set('value', 42);
-    m.set('location', null);            // present but non-Map → fires 405
-    const node = qlangMapToAst(m);
-    expect(node.location).toBe(null);            // locationFromQlangMap(null) → null
-    const back = astNodeToMap(node);
-    // locationToQlangMap(null) → null; stampCommonFields sets :location null
-    expect(back.get('location')).toBe(null);  // fires 397
+describe('walk.mjs — locationToQlangMap', async () => {
+  it('answers null for a declaration without a site', async () => {
+    expect(locationToQlangMap(null)).toBe(null);
   });
-});
 
-describe('walk.mjs — qlangMapToAst with non-keyword :kind uses String() fallback (line 603)', async () => {
-  it('throws AstMapKindUnknownError with String(kindKw) label when kind is not a keyword', async () => {
-    const m = new Map();
-    m.set('kind', null);   // present but null → String(null) = "null"
-    expect(() => qlangMapToAst(m)).toThrow('null');
+  it('carries the start and the end of a location as Maps', async () => {
+    const view = locationToQlangMap(parse('42').location);
+    expect(view.get('start').get('offset')).toBe(0);
+    expect(view.get('end').get('column')).toBe(3);
   });
 });
 

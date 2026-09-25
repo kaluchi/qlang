@@ -62,7 +62,6 @@ describe('EvaluationDepthExceededError', () => {
     expect(depthErr).toBeInstanceOf(QlangError);
     expect(depthErr.kind).toBe('resourceLimit');
     expect(depthErr.name).toBe('EvaluationDepthExceededError');
-    expect(depthErr.name).toBe('EvaluationDepthExceededError');
     expect(depthErr.context).toEqual({ depth: 11, limit: 10 });
     expect(depthErr.message).toBe('evaluation depth 11 exceeds the budget of 10 nested frames');
   });
@@ -162,7 +161,6 @@ describe('declareForeignError — a failure of the embedding', () => {
 
     expect(foreignErr).toBeInstanceOf(Error);
     expect(foreignErr).not.toBeInstanceOf(QlangError);
-    expect(foreignErr.name).toBe('HostBridgeUnreachableError');
     expect(foreignErr.name).toBe('HostBridgeUnreachableError');
     expect(foreignErr.context.endpoint).toBe('ipc://bridge');
     expect(foreignErr.message).toContain('ipc://bridge');

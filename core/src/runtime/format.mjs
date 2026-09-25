@@ -1,6 +1,7 @@
-// Operand-level formatter `json` (plain-JSON string render), plus
-// the lossy plain-JSON value codec pair `toPlain` / `fromPlain` that
-// bridges qlang runtime values with ordinary JS data structures.
+// The plain-JSON codec both ways [D49], `json` rendering a value and
+// `parseJson` reading one, over the lossy value codec pair `toPlain` /
+// `fromPlain` that bridges qlang runtime values with ordinary JS data
+// structures.
 //
 // Canonical qlang-literal printing lives next door in
 // `print-value.mjs`; `toPlain` routes through the shared
@@ -11,7 +12,8 @@
 import { printQuoteSource } from '../quote.mjs';
 import { nullaryOp } from './dispatch.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { declareInvariantError, declarePerSiteError } from '../errors.mjs';
+import { declareInvariantError, declarePerSiteError, declareShapeError } from '../errors.mjs';
+import { declareSubjectError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { dispatchQlangValue, printValue } from './print-value.mjs';
 
@@ -159,5 +161,23 @@ function plainObjectToQMap(plainObj, path) {
 
 export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
 
+const ParseJsonSubjectNotStringError =
+  declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
+const ParseJsonInvalidJsonError = declareShapeError('ParseJsonInvalidJsonError',
+  ({ message }) => `parseJson: invalid JSON — ${message}`,
+  { operand: 'parseJson' });
+
+export const parseJson = nullaryOp('parseJson', (subject) => {
+  if (typeof subject !== 'string') throw new ParseJsonSubjectNotStringError(subject);
+  let parsed;
+  try {
+    parsed = JSON.parse(subject);
+  } catch (jsParseError) {
+    throw new ParseJsonInvalidJsonError({ message: jsParseError.message });
+  }
+  return fromPlain(parsed);
+});
+
 // Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
 bindPrim('json', json);
+bindPrim('parseJson', parseJson);

@@ -58,3 +58,7 @@
 {"name":"reduce-folds-with-the-quote-of-a-bare-operand","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
 {"name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | /items | take (count | sub 1)","expect":"[1 2]","decision":"D43"}
 {"name":"a-slot-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (gt 1) !| type","expect":"::FilterPredicateNotQuoteError","decision":"D56"}
+{"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
+{"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
+{"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
+{"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}

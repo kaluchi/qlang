@@ -1,42 +1,10 @@
-|~ qlang operand catalog — CLI parse family. String → qlang-value
-   parsers the CLI binds alongside the format operands. Two
-   parsers, each for a different IPC scenario: `parseJson` bridges
-   to the external world (curl / kubectl / gh / jq output);
-   `parseTjson` bridges between qlang processes round-trippably
-   over `tjson | @out`. JS impls live in
-   `cli/src/parse-operands.mjs`. Each operand BindStep sits
-   directly under the per-site error tags it raises. ~|
-
-:parseJson
-  |~~ Parses a String of plain JSON into a qlang value. Object
-      keys become qlang keywords; arrays become Vecs; scalars
-      pass through. Lossy with respect to qlang-only types — a
-      Set arriving from JSON looks like a Vec, a keyword-as-
-      value cannot be distinguished from a String, error values
-      have no plain-JSON form. Use this for input from any non-
-      qlang producer; reach for `parseTjson` when both ends are
-      qlang.
-
-      ~("42" | parseJson | eq 42)
-      ~("\"hello\"" | parseJson | eq "hello")
-      ~("[1,2,3]" | parseJson | eq [1 2 3])
-      ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
-  ~~|
-  ::builtin{:impl :qlang/cli/prim/parseJson
-            :category :format
-            :subject :string
-            :returns :any
-            :modifiers []}
-
-::ParseJsonSubjectNotStringError
-  |~~ Subject of `parseJson` must be a String — the raw JSON
-      text. Wrap non-String values through `pretty` / `json` /
-      `tjson` first if you need to re-parse them. ~~|
-
-::ParseJsonInvalidJsonError
-  |~~ `parseJson` could not parse the subject as JSON. The
-      original `JSON.parse` message rides on `:message` for
-      diagnostic. ~~|
+|~ qlang operand catalog — CLI parse family. The String → qlang-value
+   parser the CLI binds alongside the format operands: `parseTjson`
+   bridges between qlang processes round-trippably over `tjson |
+   @out`, where the core's `parseJson` reads the JSON of any other
+   producer. The JS impl lives in `cli/src/parse-operands.mjs`. The
+   operand BindStep sits directly under the per-site error tags it
+   raises. ~|
 
 :parseTjson
   |~~ Parses a String of tagged-JSON into a qlang value. The

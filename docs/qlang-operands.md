@@ -11,8 +11,8 @@ for the language syntax.
 **Host-bound operands.** The `@kaluchi/qlang-cli` workspace binds
 a fixed set of host operands on top of `langRuntime()` — effectful
 I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
-`tjson`, `template`), and String-to-value parsers (`parseJson`,
-`parseTjson`). These are host-scope additions; their contracts
+`tjson`, `template`), and the tagged-JSON parser `parseTjson`. These
+are host-scope additions; their contracts
 live in [`cli/README.md`](../cli/README.md). Another host (a
 browser playground, a server-side evaluator) is free to bind a
 different operand set — every binding uses the same
@@ -528,17 +528,25 @@ for the rule and the two other seams that enforce it.
 
 ## String
 
-### `prepend s`
+### `prepend x`
 
-- **Arity** 2. **Subject** `string`, **modifier** `s`.
-- Returns `s` concatenated in front of the subject.
-- **Example**: `"world" | prepend "hello "` → `"hello world"`.
+- **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
+- A string takes `x`, a string, as its prefix; a vector takes `x` as
+  its first element. A tagged vector keeps its tag, the tag's
+  constructor running again.
+- **Examples**: `"world" | prepend "hello "` → `"hello world"`;
+  `[2 3] | prepend 1` → `[1 2 3]`.
 
-### `append s`
+### `append x`
 
-- **Arity** 2. **Subject** `string`, **modifier** `s`.
-- Returns the subject concatenated with `s` on the right.
-- **Example**: `"hello" | append " world"` → `"hello world"`.
+- **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
+- A string takes `x`, a string, as its suffix; a vector takes `x` as
+  its last element, so `[1] | append [2 3]` → `[1 [2 3]]` and vectors
+  join through `flat`. A tagged vector keeps its tag, the tag's
+  constructor running again, so `#[1 2] | within ~(append 1)` →
+  `#[1 2]`.
+- **Examples**: `"hello" | append " world"` → `"hello world"`;
+  `[1 2] | append 3` → `[1 2 3]`.
 
 ### `split separator`
 
@@ -800,6 +808,19 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   writes as its bare name, a key and a value alike.
 - **Examples**: `{:a 1 :b [2 3]} | json` → `"{\"a\":1,\"b\":[2,3]}"`;
   `{:k :v} | json` → `"{\"k\":\"v\"}"`.
+
+### `parseJson`
+
+- **Arity** 1. **Subject** a string of plain JSON.
+- Returns the qlang value the JSON spells, the reverse of `json`:
+  object keys become keywords, arrays become Vecs, scalars pass
+  through.
+- **Examples**: `"{\"a\":1}" | parseJson` → `{:a 1}`;
+  `"[1,2,3]" | parseJson` → `[1 2 3]`.
+- **Errors**: a subject other than a string →
+  `ParseJsonSubjectNotStringError`; text that is no JSON →
+  `ParseJsonInvalidJsonError`; a number past the finite double range
+  → `FromPlainNumberNotFiniteError`.
 
 ## Control flow
 
@@ -1304,7 +1325,6 @@ the predicate:
   ::AddLeftNotNumberError!{
     :faultStep ~(add 10)
     :faultInput "x"
-    :actualValue "x"
     :actualType ::string
   }
 ]

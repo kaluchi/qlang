@@ -1,6 +1,7 @@
 // String operands. Subject-first: position 1 is the subject string,
 // position 2 is the modifier string. Every check throws a class
-// unique to its call site.
+// unique to its call site. `prepend` and `append` serve a vector
+// too, taking an element at its head or its end.
 //
 // Meta lives in lib/qlang/operand/string.qlang.
 
@@ -15,9 +16,9 @@ import {
 } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const PrependSubjectNotStringError    = declareModifierError('PrependSubjectNotStringError',    'prepend',    1, 'string');
+const PrependSubjectNotStringOrVecError = declareModifierError('PrependSubjectNotStringOrVecError', 'prepend', 1, ['string', 'vec']);
 const PrependPrefixNotStringError     = declareModifierError('PrependPrefixNotStringError',     'prepend',    2, 'string');
-const AppendSubjectNotStringError     = declareModifierError('AppendSubjectNotStringError',     'append',     1, 'string');
+const AppendSubjectNotStringOrVecError  = declareModifierError('AppendSubjectNotStringOrVecError',  'append',  1, ['string', 'vec']);
 const AppendSuffixNotStringError      = declareModifierError('AppendSuffixNotStringError',      'append',     2, 'string');
 const SplitSubjectNotStringError      = declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
 const SplitSeparatorNotStringError    = declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
@@ -32,17 +33,23 @@ const StartsWithPrefixNotStringError  = declareModifierError('StartsWithPrefixNo
 const EndsWithSubjectNotStringError   = declareModifierError('EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
 const EndsWithSuffixNotStringError    = declareModifierError('EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
 
+// A string takes its prefix or its suffix, a vector its element at the
+// head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`;
+// the tag of a vector stays, its constructor running again on the
+// edited payload [D41].
 export const prepend = valueOp('prepend', 2, (subject, prefix) => {
-  if (typeof subject !== 'string') throw new PrependSubjectNotStringError(subject);
+  if (isVec(subject)) return [prefix, ...subject];
+  if (typeof subject !== 'string') throw new PrependSubjectNotStringOrVecError(subject);
   if (typeof prefix  !== 'string') throw new PrependPrefixNotStringError(prefix);
   return prefix + subject;
-});
+}, { preservesTag: true });
 
 export const append = valueOp('append', 2, (subject, suffix) => {
-  if (typeof subject !== 'string') throw new AppendSubjectNotStringError(subject);
+  if (isVec(subject)) return [...subject, suffix];
+  if (typeof subject !== 'string') throw new AppendSubjectNotStringOrVecError(subject);
   if (typeof suffix  !== 'string') throw new AppendSuffixNotStringError(suffix);
   return subject + suffix;
-});
+}, { preservesTag: true });
 
 export const split = valueOp('split', 2, (subject, separator) => {
   if (typeof subject !== 'string') throw new SplitSubjectNotStringError(subject);

@@ -194,22 +194,27 @@
   ~~|
 
 :prepend
-  |~~ Concatenates the modifier in front of the subject.
+  |~~ Puts the modifier in front of the subject: a string takes it
+      as its prefix, a vector as its first element. A tagged vector
+      keeps its tag, the tag's constructor running again, so a set
+      stays a set.
 
       ~("world" | prepend "hello " | eq "hello world")
+      ~([2 3] | prepend 1 | eq [1 2 3])
+      ~(#[2 3] | prepend 3 | eq #[2 3])
   ~~|
   ::builtin{:impl :qlang/prim/prepend
             :category :string
-            :subject :string
-            :returns :string
-            :modifiers [:string]}
+            :subject [:string :vec]
+            :returns [:string :vec]
+            :modifiers [:any]}
 
-::PrependSubjectNotStringError
-  |~~ Captured argument at position 1 of `prepend` must be String.
+::PrependSubjectNotStringOrVecError
+  |~~ The subject of `prepend` must be a String or a Vec.
       ~(
         42 | prepend "x"
         !| [type /actualType]
-        |  eq [::PrependSubjectNotStringError ::number]
+        |  eq [::PrependSubjectNotStringOrVecError ::number]
        )
   ~~|
 
@@ -223,22 +228,28 @@
   ~~|
 
 :append
-  |~~ Concatenates the subject with the modifier on the right.
+  |~~ Puts the modifier after the subject: a string takes it as its
+      suffix, a vector as its last element, so `[1] | append [2 3]`
+      answers `[1 [2 3]]` and vectors join through `flat`. A tagged
+      vector keeps its tag, the tag's constructor running again, so
+      a set stays a set.
 
       ~("hello" | append " world" | eq "hello world")
+      ~([1 2] | append 3 | eq [1 2 3])
+      ~(#[1 2] | within ~(append 1) | eq #[1 2])
   ~~|
   ::builtin{:impl :qlang/prim/append
             :category :string
-            :subject :string
-            :returns :string
-            :modifiers [:string]}
+            :subject [:string :vec]
+            :returns [:string :vec]
+            :modifiers [:any]}
 
-::AppendSubjectNotStringError
-  |~~ Captured argument at position 1 of `append` must be String.
+::AppendSubjectNotStringOrVecError
+  |~~ The subject of `append` must be a String or a Vec.
       ~(
         42 | append "x"
         !| [type /actualType]
-        |  eq [::AppendSubjectNotStringError ::number]
+        |  eq [::AppendSubjectNotStringOrVecError ::number]
        )
   ~~|
 

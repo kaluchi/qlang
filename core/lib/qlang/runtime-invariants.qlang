@@ -307,9 +307,11 @@
       magnitude past the double range as one (`1e400` lifts to
       Infinity). The plain-JSON lift refuses it, so a piped document
       cannot seed a pipeline with a value the language does not
-      admit. Host-boundary error: reached through `parseJson` or the
-      CLI's implicit stdin lift, never from a qlang literal, which
-      the parser refuses at its own site.
+      admit. Reached through `parseJson` or a host's lift of its
+      input, the command line's stdin among them, never from a qlang
+      literal, which the parser refuses at its own site.
+
+      ~("1e400" | parseJson !| type | eq ::FromPlainNumberNotFiniteError)
   ~~|
 
 ::TaggedJSONNumberNotFiniteError

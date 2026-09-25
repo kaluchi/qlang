@@ -2883,8 +2883,9 @@ const lifted = fromPlain({ items: [1 2 3] });
 lifted.get(keyword('items'));     // [1 2 3]
 ```
 
-The CLI's `parseJson` operand runs `JSON.parse` then `fromPlain`,
-and the implicit script-mode stdin lift walks the same path.
+The core's `parseJson` operand runs `JSON.parse` then `fromPlain`,
+and the command line's implicit script-mode stdin lift walks the
+same path.
 Use `toTaggedJSON` / `fromTaggedJSON` below when both endpoints
 speak qlang and identity must survive the round-trip.
 

@@ -130,11 +130,9 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     throw new UseNamespaceNotFoundError({ namespaceName: nsKeyword.name });
   }
 
-  // Parse and eval the module source. The module is a Map
-  // expression (like core.qlang) — its pipeValue IS the exports.
-  // Env-delta modules (BindStep declarations) work too: their env
-  // delta is picked up below as a fallback when pipeValue is not a
-  // Map.
+  // Parse and eval the module source. A module exports what its
+  // steps write into the environment, the difference taken below;
+  // the value its last step answers is left unread.
   const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
   const moduleEvalState = nestState(callerState, outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);

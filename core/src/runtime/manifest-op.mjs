@@ -17,13 +17,12 @@
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
-import { isKeyword, isQuote, isTagKeyword, isErrorValue, typeKeyword } from '../types.mjs';
+import { isKeyword, isTagKeyword, isErrorValue, typeKeyword } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { declaringStepOf, stepDocStrings } from './axis.mjs';
+import { declaringStepOf, examplesOfStep, refusalOf } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
-import { parseDocSegments } from '../doc-segments.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
 const ManifestSubjectNotTagError = declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
@@ -31,6 +30,10 @@ const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeE
   ({ actualType }) => `runExamples requires a Keyword (binding name) or a tag name, got ${actualType.name}`,
   { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'tag'] }
 );
+const RunExamplesBindingNotFoundError = declareShapeError('RunExamplesBindingNotFoundError',
+  ({ bindingName }) =>
+    `runExamples: no binding-step found for '${bindingName}' across loaded modules`,
+  { operand: 'runExamples' });
 
 // Extract a human-readable message from an error value — runtime
 // errors carry `.originalError`, user-created errors carry
@@ -77,31 +80,21 @@ async function runQuoteEntry(quote, callerState) {
   return result;
 }
 
-// Bindings without a source-located BindStep (host-installed
-// bindings via `session.bind`, runtime-seeded built-ins) have no
-// examples to run, and `runExamples` returns an empty Vec for them.
-async function collectQuotesOfStep(callerState, step) {
-  if (step === null) return [];
-  const docStrings = stepDocStrings(step);
-  const collected = [];
-  for (const docStr of docStrings) {
-    const segments = await parseDocSegments(docStr, callerState);
-    for (const seg of segments) {
-      if (isQuote(seg)) collected.push(seg);
-    }
-  }
-  return collected;
-}
-
 // A name reads the step that declares it as the axes do, a tag name
-// that no tag binds the step of the verb it addresses [D62].
+// that no tag binds the step of the verb it addresses [D62], and a
+// name that no step declares is refused as `examples` refuses it,
+// with the addresses where the verbs of that name live.
 function stepNamedBy(env, subject) {
-  if (isKeyword(subject) || isTagKeyword(subject)) return declaringStepOf(env, subject);
-  throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
+  if (!isKeyword(subject) && !isTagKeyword(subject)) {
+    throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
+  }
+  const step = declaringStepOf(env, subject);
+  if (step === null) throw new RunExamplesBindingNotFoundError(refusalOf(env, subject));
+  return step;
 }
 
 export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
-  const quotes = await collectQuotesOfStep(state, stepNamedBy(state.env, state.pipeValue));
+  const quotes = await examplesOfStep(state, stepNamedBy(state.env, state.pipeValue));
   const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
   return withPipeValue(state, results);
 });

@@ -1073,17 +1073,17 @@ fixed, the handful of operations of its file protocol, and letting the
 nouns grow, every resource a path in a per-process namespace; the
 catalog should grow the same way.
 
-A verb over a stack of tags is refused, a tag over a set or a quote
-making such a stack, and `payload` is the one way beneath; the walk of
-the tags is the decision that lets a verb reach the value under them
-[D34]. On 25 September 2026:
+A verb over a stack of tags reaches the value under them, a tag over a
+set or a quote making such a stack: the walk of the tags hands a verb
+the value beneath each tag it does not serve, and a verb that keeps its
+subject's tag keeps every tag it passed [D34]. On 25 September 2026:
 
 ```qlang
-> ::Box#[3 1] | count !| type
-::CountSubjectNotContainerError
+> ::Box#[3 1] | count
+2
 
-> ::Box#[3 1] | payload
-#[1 3]
+> ::Box#[1 2 3 4] | filter ~(gt 2)
+::Box#[3 4]
 ```
 
 The repair must put the documentation and the origin on the binding

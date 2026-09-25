@@ -139,6 +139,23 @@ async function applyTagPreservation(state, source, result, options) {
   return makeTaggedInstance(sourceTag, result);
 }
 
+// The tags the walk passed to reach the value a verb serves [D34] come
+// back on the answer of a verb that keeps its subject's tag, minted from
+// the innermost out as `within` mints its edit [D41]; the answer of any
+// other verb, and an error, pass as they are.
+export async function underPassedTags(state, fn, passedTags, result) {
+  if (!fn.meta.preservesTag || isErrorValue(result)) return result;
+  let rewrapped = result;
+  for (const tag of [...passedTags].reverse()) rewrapped = await mintUnderTag(state, tag, rewrapped);
+  return rewrapped;
+}
+
+// What a function value records of the options it was built with, for
+// the walk that hands it a value beneath a tag.
+function tagFacts(options) {
+  return { preservesTag: options.preservesTag === true };
+}
+
 export function valueOp(name, n, impl, options = {}) {
   return makeFn(name, n, async (state, valueOpLambdas) => {
     const capturedCount = valueOpLambdas.length;
@@ -159,7 +176,7 @@ export function valueOp(name, n, impl, options = {}) {
       ? await applyTagPreservation(state, subjectValue, raw, options)
       : raw;
     return withPipeValue(state, final);
-  }, { captured: [n - 1, n] });
+  }, { captured: [n - 1, n], ...tagFacts(options) });
 }
 
 export function higherOrderOp(name, n, impl, options = {}) {
@@ -175,7 +192,7 @@ export function higherOrderOp(name, n, impl, options = {}) {
       ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
-  }, { captured: [n - 1, n - 1] });
+  }, { captured: [n - 1, n - 1], ...tagFacts(options) });
 }
 
 export function nullaryOp(name, impl, options = {}) {
@@ -188,7 +205,7 @@ export function nullaryOp(name, impl, options = {}) {
       ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
-  }, { captured: [0, 0] });
+  }, { captured: [0, 0], ...tagFacts(options) });
 }
 
 export function overloadedOp(name, maxArity, overloadImpls, options = {}) {
@@ -208,7 +225,7 @@ export function overloadedOp(name, maxArity, overloadImpls, options = {}) {
       ? await applyTagPreservation(state, state.pipeValue, raw, options)
       : raw;
     return withPipeValue(state, final);
-  }, { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]] });
+  }, { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]], ...tagFacts(options) });
 }
 
 export function stateOp(name, arity, impl) {

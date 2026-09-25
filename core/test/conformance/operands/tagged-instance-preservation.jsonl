@@ -1,6 +1,6 @@
 {"name":"filter-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
 {"name":"a-tag-over-a-set-stacks-on-it","query":"::Box {} | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
-{"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":"::Box {} | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]","decision":"D34","target":true}
+{"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":"::Box {} | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]","decision":"D34"}
 {"name":"sort-tagged-vec-preserves-tag","query":"::Box {} | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"sort-keyed-tagged-vec-preserves-tag","query":"::Box {} | ::Box[{:k 2} {:k 1}] | sort ~(/k) | type","expect":"::Box"}
 {"name":"take-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}
@@ -14,4 +14,8 @@
 {"name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":"::Box {} | ::Box[1 2] | filter ~(!{:x 1}) !| type","expect":"::error","decision":"D64"}
 {"name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1}) !| type","expect":"::error","decision":"D64"}
 {"name":"a-predicate-error-passes-a-set-as-it-is","query":"#[1 2] | filter ~(!{:x 1}) !| /x","expect":"1"}
-{"name":"count-over-a-tag-stacked-on-a-set-counts-the-set","query":"::Box {} | ::Box#[3 1] | count","expect":"2","decision":"D34","target":true}
+{"name":"count-over-a-tag-stacked-on-a-set-counts-the-set","query":"::Box {} | ::Box#[3 1] | count","expect":"2","decision":"D34"}
+{"name":"a-predicate-error-passes-a-tag-stacked-on-a-set-as-it-is","query":"::Box {} | ::Box#[1 2 3] | filter ~(!{:x 1}) !| /x","expect":"1","decision":"D34"}
+{"name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag","query":"::Box(5) | add 1","expect":"6","decision":"D34"}
+{"name":"sort-over-a-tag-stacked-on-a-set-answers-the-tagged-vector","query":"::Box {} | ::Box#[3 1 2] | sort","expect":"::Box[1 2 3]","decision":"D34"}
+{"name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A(::B[1 2 3]) | filter ~(gt 1)","expect":"::A::B[2 3]","decision":"D34"}

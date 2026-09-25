@@ -11,7 +11,7 @@
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ~[:q :x](apply q) | 2 | t ~(add x) 99","expect":"12","decision":"D43","target":true}
 {"name":"a-declaration-refuses-a-subject-of-another-kind","query":"\"a\" | gt \"b\" | (false !| true)","expect":"true","decision":"D4","target":true}
-{"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34","target":true}
+{"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34"}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
 {"name":"a-head-holds-names-and-kinds-alone","query":"::Width |~~ How many characters a line holds. ~~| | :wrap ~[::string :width ::Width ::vec](split \" \") | :wrap | spec | /slots","expect":"[::string :width ::Width]","decision":"D60","target":true}

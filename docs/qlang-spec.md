@@ -1680,12 +1680,23 @@ preserved. Vec payload → tagged Vec (`/1` indexes elements
 directly, `count` returns the length, and `payload | type`
 answers `::vec` while `type` answers the stamped `::Tag`);
 Map payload → tagged Map (`keys` lists the fields, `/field`
-projects, iteration sees the data plane); Set payload → tagged
-Set. Scalar / Keyword / Quote / Doc / Error / Conduit /
-Snapshot / already-tagged composite payloads ride an opaque
-wrap object that holds the value out of reach of `/key`
-projection — the dedicated `payload` operand is the only
-extractor.
+projects, iteration sees the data plane). Set / Scalar / Keyword /
+Quote / Doc / Error / Conduit / Snapshot / already-tagged composite
+payloads ride an opaque wrap object that holds the value out of
+reach of `/key` projection — the dedicated `payload` operand is the
+only extractor. A verb reaches the value under the wrap by walking
+the subject's tags from the outside in: past each tag its `:subject`
+does not name it takes the value the tag wraps, and a verb that
+keeps its subject's tag, `filter` or `sort`, keeps each tag it
+passed.
+
+```qlang
+> ::Box#[3 1] | count
+2
+
+> ::Box#[3 1 2] | sort
+::Box[1 2 3]
+```
 
 `printValue` reads identity off the JS-header and re-emits the
 source-form `::tag<payload>` literal (`::Tag[…]`, `::Tag{…}`,

@@ -251,14 +251,13 @@ describe('parse — OperandCall', () => {
   });
 });
 
-describe('parse — bindings: BindStep and as operand', () => {
-  it('parses as(:name) as an OperandCall', () => {
-    const ast = parse('as :roster');
-    expect(ast.type).toBe('OperandCall');
-    expect(ast.name).toBe('as');
-    expect(ast.args).toHaveLength(1);
-    expect(ast.args[0].type).toBe('Keyword');
-    expect(ast.args[0].name).toBe('roster');
+describe('parse — bindings: BindStep and the freeze', () => {
+  it('parses the freeze :name / as a BindStep over the empty projection', () => {
+    const ast = parse(':roster /');
+    expect(ast.type).toBe('BindStep');
+    expect(ast.key.name).toBe('roster');
+    expect(ast.body.type).toBe('Projection');
+    expect(ast.body.keys).toEqual([]);
   });
 
   it('parses :name body as a BindStep', () => {
@@ -270,11 +269,6 @@ describe('parse — bindings: BindStep and as operand', () => {
     expect(ast.body.name).toBe('mul');
   });
 
-  it('as parses as an ordinary identifier reference', () => {
-    const asAst = parse('as');
-    expect(asAst.type).toBe('OperandCall');
-    expect(asAst.name).toBe('as');
-  });
 });
 
 describe('parse — Pipeline composition', () => {
@@ -293,11 +287,11 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].combinator).toBe('*');
   });
 
-  it('parses as(:name) inside a pipeline', () => {
-    const ast = parse('foo | as :snapshot | bar');
+  it('parses the freeze inside a pipeline', () => {
+    const ast = parse('foo | :snapshot / | bar');
     expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('OperandCall');
-    expect(ast.steps[1].step.name).toBe('as');
+    expect(ast.steps[1].step.type).toBe('BindStep');
+    expect(ast.steps[1].step.key.name).toBe('snapshot');
   });
 
   it('parses :name body as a BindStep inside a pipeline', () => {
@@ -317,7 +311,7 @@ describe('parse — ParenGroup', () => {
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs * (as :elem | {:k /id :v elem})');
+    const ast = parse('xs * (:elem / | {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });

@@ -42,7 +42,7 @@
 {"name":"type-header-tag-builtin","query":"::number/add | spec | type","expect":"::builtin","decision":"D62"}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(docs | filter ~(/content | eq \"\" | not) | empty | not)","expect":"true","decision":["D61","D62"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runExamples | every ~(/ok))","expect":"true","decision":"D62"}
-{"name":"a-binding-by-as-is-a-record","query":"0.07 | as :taxRate | env | /taxRate | /value","expect":"0.07","decision":"D63"}
+{"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"a-used-value-is-a-binding-without-a-doc","query":"{:myConst 42} | use | env | /myConst | docs | empty","expect":"true","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}

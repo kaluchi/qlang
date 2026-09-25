@@ -11,13 +11,11 @@
 {"name":"a-declared-verb-refuses-modifiers-beyond-its-slots","query":":f ::verb~(:a ::any | add a) | 5 | f 1 2","error":"arityError","expect":"::VerbModifiersBeyondSlotsError!{\n  :faultStep ~(f 1 2)\n  :faultInput 5\n  :verbName :f\n  :slotCount 1\n  :actualCount 2\n}"}
 {"name":"a-slot-shadows-a-builtin","query":":f ::verb~(:count ::any | count) | 42 | f 99","expect":"99"}
 {"name":"lexical-scope-isolation","query":":double ::verb~(mul 2) | :apply_double ::verb~(double) | :double ::verb~(mul 3) | 5 | apply_double","expect":"10"}
-{"name":"an-as-inside-a-verb-body-does-not-leak","query":":f ::verb~(:n ::any | n | as :captured | add captured n) | 0 | f 3 | env | has :captured","expect":"false"}
+{"name":"a-freeze-inside-a-verb-body-does-not-leak","query":":f ::verb~(:n ::any | n | :captured / | add captured n) | 0 | f 3 | env | has :captured","expect":"false"}
 {"name":"a-slot-takes-its-modifier-at-each-call","query":":@pluck ::verb~(:proj ::any | proj) | [{:a 1} {:a 2} {:a 3}] * @pluck /a","expect":"[1 2 3]"}
 {"name":"a-declared-verb-source-axis","query":":double ::verb~(mul 2) | :double | source | parse","expect":"\":double ::verb~(mul 2)\""}
 {"name":"a-verb-effect-marker-clean-body-at-name-ok","query":":@safe ::verb~(count) | [1 2 3] | @safe","expect":"3"}
 {"name":"a-verb-effectful-body-under-a-clean-name-rejected","query":":foo ::verb~(@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
-{"name":"as-operand-basic","query":"42 | as :answer | answer","expect":"42"}
-{"name":"as-name-not-keyword-error","query":"42 | as 42","error":"typeError","expect":"::AsNameNotKeywordError!{\n  :faultStep ~(as 42)\n  :faultInput 42\n  :actualType ::number\n}"}
 {"name":"a-slot-holding-a-value-takes-no-modifiers","query":":f ::verb~(:n ::any | n 42) | 0 | f 5 !| type","expect":"::ApplyToNonFunctionError"}
 {"name":"runaway-self-call-lifts-depth-error","query":":inf ::verb~(add 1 | inf) | 0 | inf !| type","expect":"::EvaluationDepthExceededError"}
 {"name":"runaway-self-call-descriptor-depth-past-limit","query":":inf ::verb~(add 1 | inf) | 0 | inf !| gt /depth /limit","expect":"true"}

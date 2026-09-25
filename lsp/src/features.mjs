@@ -334,7 +334,7 @@ async function hoverForOperand(node, documentAst) {
     };
   }
   // User-defined binding — search the in-document AST for a
-  // BindStep or `as :name` declaration that carries docs.
+  // BindStep declaration that carries docs.
   const docStrings = findInDocumentDocs(documentAst, node.name);
   if (docStrings.length === 0) return null;
   const prose = stripQuoteSegments(docStrings.join('\n'));
@@ -349,18 +349,14 @@ async function hoverForOperand(node, documentAst) {
   };
 }
 
-// Walk the document AST for a BindStep (or `as :name`) whose key
-// matches `name` and return its `.docs` string Vec. Last-match
-// wins (shadowing semantics).
+// Walk the document AST for a BindStep whose key matches `name` and
+// return its `.docs` string Vec. Last-match wins (shadowing
+// semantics).
 function findInDocumentDocs(ast, name) {
   if (!ast) return [];
   let lastDocs = null;
   walkAst(ast, (step) => {
     if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
-      lastDocs = step.docs;
-    } else if (step.type === 'OperandCall' && step.name === 'as'
-               && Array.isArray(step.args) && step.args.length > 0
-               && step.args[0].type === 'Keyword' && step.args[0].name === name) {
       lastDocs = step.docs;
     }
   });
@@ -420,7 +416,7 @@ function formatMetaValue(value) {
 // ── Go to Definition ──────────────────────────────────────────
 //
 // Three-tier resolution:
-//   1. In-document BindStep / `as :name` declaration visible at
+//   1. In-document BindStep declaration visible at
 //      the cursor — last-write-wins with fork isolation
 //      (shadowing-aware)
 //   2. Catalog declaration for builtins, walked across every
@@ -463,13 +459,13 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 // bindingDeclarationOf(node) → { name, kind } | null
 //
 // Single recogniser for every AST shape that introduces a binding
-// in env: `BindStep` with a Keyword key (`:name body`), `BindStep`
-// with a BareTypeKeyword key (`::Tag body` — tag-binding), or an
-// `as :name` OperandCall. The user-facing symbol kind tracks what
-// the binding will hold once `evalBindStep` runs:
+// in env: `BindStep` with a Keyword key (`:name body`) or with a
+// BareTypeKeyword key (`::Tag body` — tag-binding). The user-facing
+// symbol kind tracks what the binding will hold once `evalBindStep`
+// runs:
 //   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
-//   * `value`    — Keyword head with any body but a verb literal, a
-//                  doc-only declaration (no body), or any `as :name`
+//   * `value`    — Keyword head with any body but a verb literal, or
+//                  a doc-only declaration (no body)
 //   * `verb`     — Keyword head whose body is a verb literal,
 //                  `::verb~(…)` [D67]
 function bindingDeclarationOf(node) {
@@ -483,11 +479,6 @@ function bindingDeclarationOf(node) {
     }
     return null;
   }
-  if (node.type === 'OperandCall' && node.name === 'as'
-      && Array.isArray(node.args) && node.args.length > 0
-      && node.args[0].type === 'Keyword') {
-    return { name: node.args[0].name, kind: 'value' };
-  }
   return null;
 }
 
@@ -497,7 +488,7 @@ function bindingKindForKeywordHead(bindStepNode) {
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
-// collecting BindStep / `as :name` declarations for `name` that
+// collecting BindStep declarations for `name` that
 // are lexically visible at `offset` (before the cursor, in a
 // fork-reachable ancestor). Returns the LAST one (closest to
 // cursor = most recent shadowing), or null if no in-document
@@ -550,35 +541,23 @@ export function referencesAtOffset(ast, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return [];
 
-  // Five click-positions resolve to a binding name:
-  //   1. OperandCall named `as` whose first arg is a Keyword
-  //      (`as :foo` → 'foo').
-  //   2. Plain OperandCall (`count`) — its own name is the lookup
-  //      target.
-  //   3. BindStep wrapper (cursor between key and body) — the
+  // Four click-positions resolve to a binding name:
+  //   1. OperandCall (`count`) — its own name is the lookup target.
+  //   2. BindStep wrapper (cursor between key and body) — the
   //      declared name from `node.key`.
-  //   4. Keyword node whose parent is a BindStep key or an
-  //      `as :name` first arg — the name of the keyword.
-  //   5. BareTypeKeyword either standalone or as a BindStep key —
+  //   3. Keyword node whose parent is a BindStep key — the name of
+  //      the keyword.
+  //   4. BareTypeKeyword either standalone or as a BindStep key —
   //      the tag-namespace identifier `::tag`.
   let name = null;
   if (node.type === 'OperandCall') {
-    if (node.name === 'as'
-        && Array.isArray(node.args) && node.args.length > 0
-        && node.args[0].type === 'Keyword') {
-      name = node.args[0].name;
-    } else {
-      name = node.name;
-    }
+    name = node.name;
   } else if (node.type === 'BindStep') {
     if (node.key.type === 'Keyword') name = node.key.name;
     else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
-      name = node.name;
-    } else if (parent.type === 'OperandCall' && parent.name === 'as'
-               && Array.isArray(parent.args) && parent.args[0] === node) {
       name = node.name;
     }
   } else if (node.type === 'BareTypeKeyword') {
@@ -667,7 +646,7 @@ function findEnclosingOperandCall(node) {
 //   operand  → function   (built-in operand name)
 //   atom     → variable   (user-bound identifier reference)
 //   effect   → decorator  (`@`-prefixed effectful operand)
-//   keyword  → keyword    (`as`, BindStep key)
+//   keyword  → keyword    (BindStep key)
 //   tag      → struct     (`::Tag` head, matching CompletionItemKind)
 //   string   → string     (String literal)
 //   quote    → string     (Quote literal — source-as-data)

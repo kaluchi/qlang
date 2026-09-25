@@ -14,10 +14,10 @@
     "body": ["::${1:Tag} {:impl ~(${2:body})}"],
     "description": "Declare a tag-namespace binding via BindStep"
   },
-  "as snapshot": {
-    "prefix": "as",
-    "body": ["as :${1:name}"],
-    "description": "Capture pipeValue as a named snapshot"
+  "freeze": {
+    "prefix": "freeze",
+    "body": [":${1:name} /"],
+    "description": "Freeze pipeValue under a name via BindStep"
   },
   "filter": {
     "prefix": "filter",

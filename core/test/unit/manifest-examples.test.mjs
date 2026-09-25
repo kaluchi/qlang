@@ -77,7 +77,7 @@ describe('catalog self-test via runExamples', () => {
     // that loses code.
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | examples | filter ~(as :example | parse | parse | eq example | not)`);
+      const changed = await evalQuery(`${reader} | examples | filter ~(:example / | parse | parse | eq example | not)`);
       if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);

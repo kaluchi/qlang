@@ -57,7 +57,7 @@ Tier 2, by topic, only the files the topic names:
   not read
 - names, scope, modules, sessions: `core/src/state.mjs`,
   `core/src/fork.mjs`, `core/src/env-keys.mjs`,
-  `core/src/runtime/use-op.mjs`, `core/src/runtime/bind-op.mjs`,
+  `core/src/runtime/use-op.mjs`, `core/src/runtime/env-op.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/operand-errors.mjs`,
   `core/src/error-convert.mjs`, `core/src/eval-trail.mjs`

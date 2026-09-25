@@ -14,7 +14,7 @@
 import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey, canonicalTagName } from './env-keys.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
-// which BindStep / `as` declaration shapes count toward the result
+// which BindStep declaration shapes count toward the result
 // Set. Kept on the export surface so callers (LSP completion,
 // editor autocomplete) pass a named constant at every call site.
 export const VALUE_NAMESPACE = 'value';
@@ -50,9 +50,7 @@ export function astChildrenOf(node) {
       out.push(node.value);
       break;
     case 'OperandCall':
-      if (Array.isArray(node.args)) {
-        for (const arg of node.args) out.push(arg);
-      }
+      for (const arg of node.args) out.push(arg);
       break;
     case 'TaggedLit':
       out.push(node.payload);
@@ -176,8 +174,6 @@ export function findAstNodeAtOffset(ast, offset) {
 //       - OperandCall whose .name matches (read site or bare ident)
 //       - BindStep whose Keyword key names the identifier
 //         (declaration site — `:foo body` form)
-//       - OperandCall named `as` whose first Keyword arg names the
-//         identifier (declaration site of `as :foo`)
 //       - Projection whose .keys contains the name (Map field read)
 //
 //   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
@@ -202,12 +198,6 @@ export function findIdentifierOccurrences(ast, name) {
              && node.key.type === 'Keyword' && node.key.name === name) {
       occurrences.push(node);
     }
-    else if (node.type === 'OperandCall'
-             && node.name === 'as'
-             && Array.isArray(node.args) && node.args.length > 0
-             && node.args[0].type === 'Keyword' && node.args[0].name === name) {
-      occurrences.push(node);
-    }
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -227,7 +217,7 @@ function findTagNamespaceOccurrences(ast, tagName) {
 }
 
 // Fork-isolating AST node types — those whose evaluation creates a
-// new fork via fork.mjs, so BindStep / `as` bindings declared inside
+// new fork via fork.mjs, so BindStep bindings declared inside
 // them stay local to the fork:
 //
 //   ParenGroup — inner pipeline runs in its own fork
@@ -238,8 +228,8 @@ function findTagNamespaceOccurrences(ast, tagName) {
 //   MapEntry — accessor for the value-fork; isolates value from
 //              the key and from sibling entries
 //
-// Pipeline steps run sequentially in a shared env: every BindStep /
-// `as` in step k shadows visibly through step k+1 onwards, so a
+// Pipeline steps run sequentially in a shared env: every BindStep
+// in step k shadows visibly through step k+1 onwards, so a
 // Pipeline node propagates env writes through its successor steps.
 export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
@@ -252,8 +242,8 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // identifier error?"
 //
 // `namespace` picks which declaration shapes contribute:
-//   - `'value'` (default) — BindStep with a Keyword key (`:name body`)
-//     and OperandCall `as :name`. Names land bare (`'foo'`).
+//   - `'value'` (default) — BindStep with a Keyword key (`:name body`).
+//     Names land bare (`'foo'`).
 //   - `'tag'` — BindStep with a BareTypeKeyword key (`::Tag body`).
 //     Names land with the `::Tag` prefix so the Set is directly
 //     comparable with tag-namespace identifiers from env (which
@@ -281,10 +271,6 @@ export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) 
     } else {
       if (node.type === 'BindStep' && node.key.type === 'Keyword') {
         bindingName = node.key.name;
-      } else if (node.type === 'OperandCall' && node.name === 'as'
-                 && Array.isArray(node.args) && node.args.length > 0
-                 && node.args[0].type === 'Keyword') {
-        bindingName = node.args[0].name;
       } else {
         return;
       }

@@ -73,8 +73,8 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
 //
 // A namespace is a header-less Map a host bound with no declaration
 // behind it. An operand descriptor or a verb bound under the same
-// bare name carries a JS-header tag, a value a step declared, `as`
-// among them, has a source, and a host-bound scalar carries no Map at
+// bare name carries a JS-header tag, a value a step declared, a
+// freeze among them, has a source, and a host-bound scalar carries no Map at
 // all, so `use` walks past each of them to the locator and lands on
 // UseNamespaceNotFoundError — a tagged Map's internal slots (`:impl`,
 // `:envRef`) never spill into env.
@@ -96,9 +96,9 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
     expect(probeCell.result).toBe(false);
   });
 
-  it('use(:cfg) walks past the as binding under the bare name and lands on UseNamespaceNotFoundError', async () => {
+  it('use(:cfg) walks past the freeze under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('{:a 1} | as :cfg | use :cfg !| type');
+    const cellEntry = await sessionInstance.evalCell('{:a 1} | :cfg / | use :cfg !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 

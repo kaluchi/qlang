@@ -304,7 +304,7 @@ describe('dispatch helper arity error paths', () => {
   });
 });
 
-describe('source axis on verb / as / TagKeyword subjects', () => {
+describe('source axis on verb / freeze / TagKeyword subjects', () => {
   // `:name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers value-namespace bindings
   // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
@@ -319,11 +319,9 @@ describe('source axis on verb / as / TagKeyword subjects', () => {
     expect(source).toBe(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)');
   });
 
-  it('source on an as binding name returns the as(:name) step', async () => {
-    // `as(:snap)` is an OperandCall, not a BindStep — its record
-    // holds the quote of that call as the declaration.
-    const source = await evalQuery('42 | as :snap | :snap | source | parse');
-    expect(source).toBe('as :snap');
+  it('source on a freeze returns its declaration', async () => {
+    const source = await evalQuery('42 | :snap / | :snap | source | parse');
+    expect(source).toBe(':snap /');
   });
 });
 

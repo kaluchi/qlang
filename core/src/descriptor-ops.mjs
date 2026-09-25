@@ -143,7 +143,7 @@ function operandIdentifier(operand) {
 // bootstrap stamp answers for every catalog entry and every
 // host-supplied impl the `use`-locator pass resolved; a descriptor a
 // query assembled from data (`::builtin{:impl :qlang/prim/count} |
-// as :c`) carries the handle keyword alone and walks the registry
+// :c /`) carries the handle keyword alone and walks the registry
 // here, so a descriptor built as data dispatches like a catalog one.
 export function resolveBuiltinImpl(descriptor) {
   const stampedImpl = builtinImplOf(descriptor);

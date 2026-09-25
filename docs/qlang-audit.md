@@ -920,27 +920,11 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 `signatureHelpAtOffset`) and labels them from the descriptor's
 `:modifiers`; it reads the slot record once the runtime executes one.
 
-### Two ways to name a thing, and comments that are steps
+### Comments that are steps, and a name declared twice
 
-A value can be named by the `as` operand, which freezes the current
-value under a name, or by the binding form, whose body is evaluated
-once, at declaration [D44], so `:x /` is the same freeze spelled a
-second way:
-
-```qlang
-> 42 | as :x | add 1 | x
-42
-
-> 42 | :x / | add 1 | x
-42
-```
-
-The tag-namespace form of the binding adds a third declaration syntax.
-
-Comments are the larger half of this scar. They are pipeline steps
-that absorb the combinators on either side; a line comment eats to the
-end of the line, so the closing marker shown in the reference is
-cosmetic and swallows whatever follows it:
+Comments are pipeline steps that absorb the combinators on either
+side; a line comment eats to the end of the line, so the closing marker
+shown in the reference is cosmetic and swallows whatever follows it:
 
 ```qlang
 > 1 |~| c |~| add(1)
@@ -951,30 +935,22 @@ A fifth of the grammar's rules parse four comment forms, their nesting,
 their absorption of combinators, and their attachment to bindings as
 documentation, and both productions of a pipeline, the one inside
 brackets and the one of a line, carry them; the evaluator carries two
-branches to step around them. A doc comment attaches only to a binding
-and to `as`; before any other step it is a parse error. Three different
-syntax-tree nodes carry the same doc text depending on where it stands.
+branches to step around them. A doc comment attaches only to a
+declaration [D70]; before any other step it is a parse error. Two
+syntax-tree nodes carry the same doc text depending on where it stands,
+the declaration it documents and the doc literal it is anywhere else.
 
 ```sh
 $ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /Comment|Doc|Absorbed/) c++} END{print n, c}' core/src/grammar.peggy
-101 22
+98 20
 ```
 
-The repair must retire `as` [D5], [D44], leaving the one binding form,
-in which a body is evaluated at declaration and named as a value, a
-quote and a verb, `::verb~(…)`, among them [D67]; must make comments trivia
-at the level of whitespace; and must give documentation its own slot
-with its own literal, which doc already is: the doc form `|~~ … ~~|` is
-that literal today, a standalone doc value anywhere and the
-documentation of a binding when it stands between the name and the body,
-and only the plain forms become whitespace. Each role of `as` has its
-spelling in that form: freezing the current value is a binding whose
-body is `/`, aliasing an operand is a verb whose body is the call, `:len
-::verb~(count)`, naming the element inside a group is the same freeze inside
-the group, and freezing a parameter goes with values by default. The
-sister project is the largest user of `as`, almost always to name the
-subject inside a group, and its lines are where the marker's spelling is
-tried.
+The repair must make comments trivia at the level of whitespace and
+must give documentation its own slot with its own literal, which doc
+already is: the doc form `|~~ … ~~|` is that literal today, a
+standalone doc value anywhere and the documentation of a binding when
+it stands between the name and the body, and only the plain forms
+become whitespace.
 
 Code moved into a declaration further left answers as it did inline
 when it is a verb, read at each mention against the subject there, while
@@ -1364,9 +1340,9 @@ and a hand-written TextMate copy for the editor.
 
 ```sh
 $ cat docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md | awk 'NF{k++} END{print k}'
-4759
+4691
 $ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{next} /^[ \t]*$/{next} {k++} END{print k}'
-5278
+5234
 ```
 
 The reference is a tutorial rather than a specification, as the
@@ -2247,3 +2223,4 @@ maintainer wants to explore it before it is fixed.
 [D67]: decisions/D67.md
 [D68]: decisions/D68.md
 [D69]: decisions/D69.md
+[D70]: decisions/D70.md

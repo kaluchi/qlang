@@ -86,7 +86,7 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 }
 
 bindTypeConstructor('call', recordConstructor(CALL_TAG,
-  { name: isKeyword, args: vecOf(isElementStep), docs: vecOf(isString) }, ['name'],
+  { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
   declareShapeError('CallPayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
   declareShapeError('CallReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
 

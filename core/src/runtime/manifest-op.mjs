@@ -58,7 +58,7 @@ export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
 // snippet sees every module loaded through `use :ns` in the
 // surrounding session, so `"no.such.Type" | @type !| type` under
 // `use :jdt/graph` reaches the documented `::TypeNotFound`. Env
-// immutability keeps the example's BindStep / `as` writes off the
+// immutability keeps the example's BindStep writes off the
 // session env — `evalQuery` forges its own env through `envSet`
 // when it stamps the inline-AST Quote. An example passes when it
 // answers `true` [D14], and every other answer, an ErrorValue

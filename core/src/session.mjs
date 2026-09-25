@@ -2,8 +2,8 @@
 // invocations. The basic abstraction for REPL, notebook cells, and
 // any embedded use that needs sequential queries to share bindings.
 //
-// A session owns its env and grows it via BindStep declarations
-// and `as :name` calls, each writing the record of a binding [D63].
+// A session owns its env and grows it via BindStep declarations,
+// each writing the record of a binding [D63].
 // Builtins from langRuntime() are seeded at construction. Cell
 // history records every cell evaluated (source, AST, result,
 // error, env-after-cell) so a notebook UI can render past cells
@@ -67,7 +67,7 @@ const SessionSchemaVersionMismatchError = declarePerSiteError(
 //                                 `null`; the cell's first step
 //                                 must provide a head value (a
 //                                 literal, an identifier reference
-//                                 like `env`, a BindStep / `as`
+//                                 like `env`, a BindStep
 //                                 declaration, or a captured arg).
 //                                 Operands that need a typed
 //                                 subject fail fast on `null` with

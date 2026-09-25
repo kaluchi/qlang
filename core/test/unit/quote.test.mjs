@@ -99,11 +99,6 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('~([count /a]) | filter ~(true) | parse')).toBe('[count /a]');
   });
 
-  it('a documented as stands in a pipeline and in no container', async () => {
-    expect(await refusal('[[(~(|~~ note ~~| as :x) | first)]] | tag ::quote'))
-      .toEqual(await tagOf('::QuoteElementNotStepError'));
-  });
-
   it('a payload that is no Map names no field', async () => {
     expect(await evalQuery('[1] | tag ::proj !| [type /field]'))
       .toEqual(await evalQuery('[::ProjPayloadNotSchemaError null]'));
@@ -111,8 +106,8 @@ describe('assembling steps by hand', () => {
 });
 
 describe('printing steps read from text', () => {
-  it('a documented as keeps its doc in front', async () => {
-    expect(await evalQuery('~(|~~ note ~~| as :x) | parse')).toBe('|~~ note ~~| as :x');
+  it('a doc written before a declaration prints after its name', async () => {
+    expect(await evalQuery('~(|~~ note ~~| :x /) | parse')).toBe(':x |~~ note ~~| /');
   });
 
   it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {

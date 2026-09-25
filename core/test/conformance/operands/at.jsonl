@@ -16,8 +16,8 @@
 {"name":"at-qlangmap-keyword-key","query":"{:a 1 :b 2 :c 3} | at :b","expect":"2"}
 {"name":"at-qlangmap-string-key","query":"{:a 1 :b 2 :c 3} | at \"b\"","expect":"2"}
 {"name":"at-qlangmap-missing-key","query":"{:a 1} | at :z","expect":"null"}
-{"name":"at-qlangmap-dynamic-keyword-key","query":"{:x 42} | as :m | :x | as :k | m | at k","expect":"42"}
-{"name":"at-qlangmap-dynamic-string-key","query":"{:x 42} | as :m | \"x\" | as :k | m | at k","expect":"42"}
+{"name":"at-qlangmap-dynamic-keyword-key","query":"{:x 42} | :m / | :x | :k / | m | at k","expect":"42"}
+{"name":"at-qlangmap-dynamic-string-key","query":"{:x 42} | :m / | \"x\" | :k / | m | at k","expect":"42"}
 {"name":"at-qlangmap-non-key-shape-errors","query":"{:a 1} | at 42 !| type","expect":"::AtKeyNotKeywordOrStringError"}
 {"name":"at-jsonobject-string-key","query":"::json{:a 1 :b 2 :c 3} | at \"b\"","expect":"2"}
 {"name":"at-jsonobject-keyword-key","query":"::json{:a 1 :b 2 :c 3} | at :b","expect":"2"}

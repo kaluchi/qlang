@@ -1,7 +1,7 @@
 |~ qlang operand catalog — reflective family. The handful of
    operands whose impl receives the full evaluator state pair
    `(pipeValue, env)` directly instead of projecting pipeValue:
-   `env` reads, `use` binds, `as` writes a record, `manifest` /
+   `env` reads, `use` binds, `manifest` /
    `runExamples` build descriptor / self-test surfaces over the
    enumerable bindings. Per-binding declarative introspection
    ("what does THIS one do") lives in
@@ -22,15 +22,15 @@
       source and module. The verbs
       and the nouns of the core and of the hosts stay with their
       providers, listed from `::qlang | manifest`. Inside a fork,
-      returns the fork-local scope, including any `as` / BindStep
-      writes that landed in the same branch. Use it for
+      returns the fork-local scope, including the declarations
+      that landed in the same branch. Use it for
       introspection or for forwarding a specific binding to another
       step (`env | /myFlag`).
 
       ~(:limit 10 | env | keys | eq #[:limit])
       ~(env | has :count | not)
-      ~(42 | as :answer | env | /answer | /value | eq 42)
-      ~(99 | as :secret | env | has :secret | eq true)
+      ~(42 | :answer / | env | /answer | /value | eq 42)
+      ~(99 | :secret / | env | has :secret | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/env
             :category :reflective
@@ -51,7 +51,6 @@
 
       ~({:limit 10 :role "admin"} | use | env | /limit | /value | eq 10)
       ~({:x 1} | use | x | add 2 | eq 3)
-      ~(42 | as :n | env | has :n | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/use
             :category :reflective
@@ -199,39 +198,4 @@
        )
       ~(:filter | runExamples !| /addresses | has ::vec/filter)
       ~(::Nonexistent | runExamples !| /bindingName | eq ::Nonexistent)
-  ~~|
-
-:as
-  |~~ Writes the record of a binding that holds the current
-      pipeValue under the given keyword name. pipeValue passes
-      through unchanged. Identifier lookup reads the value the record
-      holds, and `env | /name` answers the record. For the binding's
-      doc-prefix / source reach for the axis trio
-      (`:name | source / docs / examples`).
-
-      ~(42 | as :answer | answer | eq 42)
-      ~([1 2 3] | as :nums | nums | count | eq 3)
-      ~(42 | as :answer | env | /answer | type | eq ::binding)
-  ~~|
-  ::builtin{:impl :qlang/prim/as
-            :category :reflective
-            :subject :any
-            :returns :any
-            :modifiers [:keyword]}
-
-|~ The record of a binding carries its value transparently on
-   identifier lookup — `as :name | name` returns the raw value the
-   record holds. For declarative metadata about the binding (its
-   attached doc-prefix, source, runnable `~(…)` examples) reach for
-   the axis trio (`:name | source` / `| docs` / `| examples`) in
-   `operand/axis.qlang`. ~|
-
-::AsNameNotKeywordError
-  |~~ `as` requires a Keyword captured-arg (the binding name).
-
-      ~(
-        42 | as 42
-        !| [type /actualType]
-        |  eq [::AsNameNotKeywordError ::number]
-       )
   ~~|

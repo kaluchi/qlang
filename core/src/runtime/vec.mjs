@@ -346,7 +346,7 @@ const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrS
 // String over every Map-shape subject (both normalise to the
 // storage-side String via `key.name`/identity, matching
 // `Map.has` / `Map.get`). The `src | keys | first |
-// as :k | src | at k` chain composes through either source
+// :k / | src | at k` chain composes through either source
 // without an inter-shape coercion.
 export const at = valueOp('at', 2, (subject, atKey) => {
   if (isVec(subject)) {

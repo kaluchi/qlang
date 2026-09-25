@@ -60,7 +60,7 @@ form part of the doc surface and the runtime catalog alike.
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
-| `:reflective` | Operand that reads or writes the evaluator state pair (as / env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
+| `:reflective` | Operand that reads or writes the evaluator state pair (env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 | `:error` | Error-value constructor (error). |
@@ -760,7 +760,7 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   - **full** `tag value-expr tag-expr` — both args captured,
     pipeValue is context. Compact pair-Vec reordering:
     `pair | tag /1 /0` rebuilds from a `[value, tag]`-order Vec
-    without an intermediate `as` binding.
+    without an intermediate binding.
 - A composite TaggedInstance subject (bound form) clones-and-
   rebrands the underlying composite; an opaque-wrap subject
   re-wraps into a nested layer. To replace identity rather than
@@ -882,16 +882,16 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 ## Reflective built-ins
 
-`env`, `use`, `manifest`, `runExamples`, and `as` are
+`env`, `use`, `manifest` and `runExamples` are
 **reflective operands**: they read or write the full evaluator
 state pair. All of them are ordinary entries in `langRuntime()`,
 look up like any other identifier, and can be shadowed by a
-`:name body` BindStep or by `as`. Their distinguishing feature
+`:name body` BindStep. Their distinguishing feature
 is internal — the impl receives `(state, lambdas)` directly and
 threads the full state through, in contrast with pure operands
 that take `(pipeValue, args)`.
 
-The declarative binding form `:name body` / `:name [:params] body`
+The declarative binding form `:name body`
 is also covered in this section because it shares the same env-
 writing semantics — it is a grammar production (a BindStep) with
 its own eval handler in `eval.mjs`.
@@ -910,8 +910,7 @@ its own eval handler in `eval.mjs`.
   - `env | /taxRate` → the record of a user binding, `::binding`
     with its `:name :docs :value :source :module`.
 - Inside a fork, returns the fork's current `env` (including any
-  fork-local `as` binding or BindStep declaration visible at the
-  point of lookup).
+  fork-local BindStep declaration visible at the point of lookup).
 - Captured arguments (`env(...)`) are an arity error.
 
 ### `use`
@@ -1008,19 +1007,6 @@ its own eval handler in `eval.mjs`.
   doc-prefix arity are all guaranteed by the grammar — no
   runtime check needed.
 
-### `as :name`
-
-- **Arity** 2 (1 captured). **Subject** any (the value to name).
-- Writes the record of a binding holding the current `pipeValue`
-  under the given keyword name. `pipeValue` passes through
-  unchanged. Identifier lookup reads the value the record holds;
-  for the binding's attached doc-prefix reach for the axis trio
-  (`:name | source / docs / examples`).
-- **Examples**:
-  - `42 | as :answer | answer` → `42`.
-  - `[1 2 3] | as :nums | nums | count` → `3`.
-- **Errors**: name not a keyword → `AsNameNotKeywordError`.
-
 ### `parse`
 
 - **Arity** 1. **Subject** `string` or `quote`.
@@ -1057,7 +1043,7 @@ its own eval handler in `eval.mjs`.
 - **Arity** 2 (1 captured). **Subject** any value. **Modifier** the
   code — the Quote the captured arg answers.
 - Runs the code against the subject under the fork rule: BindStep /
-  `as` / `use` writes inside the code stay inside it, and only its
+  `use` writes inside the code stay inside it, and only its
   value comes out. The first step rides `|` against the subject
   unless the Quote carries a leading combinator (`~(* mul 2)` /
   `~(!| /trail)`), which routes it through that combinator, so a
@@ -1077,7 +1063,7 @@ its own eval handler in `eval.mjs`.
   - `"10 | add 3" | parse | apply /` → `13`.
   - `[42 ::call{:name :add :args [1]}] | tag ::quote | apply /` → `43`
     (a quote assembled from its steps).
-  - `error !| /trail | as :t | start | apply t` — re-runs
+  - `error !| /trail | :t / | start | apply t` — re-runs
     deflected steps against a fresh subject.
 - **Errors**: code not a Quote → `ApplyCodeNotQuoteError`.
   Runtime errors inside the code lift through the normal fail-track
@@ -1094,7 +1080,7 @@ its own eval handler in `eval.mjs`.
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
 - Returns the `:source` of the binding's record, the quote of its
-  declaring step, a BindStep or an `as :name` call, and null for a
+  declaring step, a BindStep, and null for a
   binding no step declared, a value `use` or a host bound. A record,
   the one `env | /name` answers, reads the binding it records.
 - **Examples**:
@@ -1267,7 +1253,7 @@ address.
 | `:indexedAccess` | `at` |
 | `:format` | `json` |
 | `:error` | `error` |
-| `:reflective` | `as`, `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
+| `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:codeAsData` | `parse`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 

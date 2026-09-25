@@ -1,6 +1,6 @@
 // Grammar contract: doc-prefix attachment scope.
 //   1. Inside a literal body (Map / Vec / Set entries) — parse error.
-//   2. In pipeline position — DocAttachedSequence binds to BindStep / `as` only.
+//   2. In pipeline position — DocAttachedSequence binds to a BindStep alone [D70].
 //   3. MapEntry AST node carries no .docs field.
 
 import { describe, it, expect } from 'vitest';
@@ -21,19 +21,19 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
   });
 });
 
-describe('DocAttachedSequence restricts to def / as only', () => {
-  it('attaches a doc-prefix to a def call', async () => {
+describe('DocAttachedSequence binds to a declaration alone', () => {
+  it('attaches a doc-prefix to a declaration', async () => {
     const result = await evalQuery('|~~ note ~~| :x 42 | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 
-  it('attaches a doc-prefix to an as call', async () => {
-    const result = await evalQuery('42 | |~~ note ~~| as :x | :x | docs * /content');
+  it('attaches a doc-prefix to a freeze', async () => {
+    const result = await evalQuery('42 | |~~ note ~~| :x / | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 
-  it('a doc-prefix ahead of a non-def/as operand chain explicitly with `|`', async () => {
-    // DocAttachedSequence binds only to def / as. For other operands
+  it('a doc-prefix ahead of any other step chains explicitly with `|`', async () => {
+    // DocAttachedSequence binds to a declaration alone. For other steps
     // the author must chain explicitly with `|`, so the Doc-value
     // lands as a separate pipeline step that the next operand
     // (here `filter`) sees as its subject.

@@ -151,12 +151,12 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  // Regression — `as` mints only into the value namespace. A
-  // `42 | as(:Foo)` binding under a value-namespace `:Foo` keyword
-  // must not satisfy a tag-namespace lookup `::Foo | source` — they
-  // are distinct env entries by colon-count.
-  it('::Tag | source ignores a same-stem as(:Tag) value-namespace binding', async () => {
-    const result = await evalQuery('42 | as :Foo | ::Foo | source');
+  // Regression — a keyword-keyed declaration mints only into the
+  // value namespace. A `42 | :Foo /` freeze under a value-namespace
+  // `:Foo` keyword must not satisfy a tag-namespace lookup `::Foo |
+  // source` — they are distinct env entries by colon-count.
+  it('::Tag | source ignores a same-stem value-namespace freeze', async () => {
+    const result = await evalQuery('42 | :Foo / | ::Foo | source');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('SourceBindingNotFoundError');
@@ -164,8 +164,8 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 
-  it('::Tag | docs ignores a same-stem as(:Tag) value-namespace binding', async () => {
-    const result = await evalQuery('42 | as :Foo | ::Foo | docs');
+  it('::Tag | docs ignores a same-stem value-namespace freeze', async () => {
+    const result = await evalQuery('42 | :Foo / | ::Foo | docs');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocsBindingNotFoundError');
@@ -322,7 +322,7 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   });
 
   it('a single expected type lifts to a Keyword and several to a Vec', async () => {
-    expect(await evalQuery('::AsNameNotKeywordError | spec | /expectedType'))
+    expect(await evalQuery('::BuiltinImplNotPrimitiveKeyError | spec | /expectedType'))
       .toEqual(makeKeyword('keyword'));
     expect(await evalQuery('::HasSubjectNotMapOrSetError | spec | /expectedType'))
       .toEqual([makeKeyword('map'), makeKeyword('set')]);
@@ -342,9 +342,9 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(evalResult).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 
-  it('spec of an as binding answers the value its record holds', async () => {
-    // `as(:name)` writes the record of a binding under :name in env
+  it('spec of a freeze answers the value its record holds', async () => {
+    // `:name /` writes the record of a binding under :name in env
     // [D63]; spec projects the record's value.
-    expect(await evalQuery('42 | as :answer | :answer | spec')).toBe(42);
+    expect(await evalQuery('42 | :answer / | :answer | spec')).toBe(42);
   });
 });

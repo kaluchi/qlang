@@ -10,7 +10,7 @@
 // the quote its captured arg answers against the subject, subject
 // first like every other operand, so `x | apply /` runs a quote
 // against itself and a trail replays as
-// `error !| /trail | as :t | start | apply t`.
+// `error !| /trail | :t / | start | apply t`.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';

@@ -17,7 +17,7 @@
     the error flows out.
 
     Call via `|` on success-track input. ~~|
-  ::verb~(:action ::quote | :n ::number | as :start | apply action
+  ::verb~(:action ::quote | :n ::number | :start / | apply action
     !| if (n | gt 0)
           ~(start | retry action (n | sub 1))
           ~(error))

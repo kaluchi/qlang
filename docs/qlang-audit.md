@@ -1893,7 +1893,7 @@ built on the language it helps to build.
 
 The start is the tree as the scars describe it, measured against the
 September master, commit `f5e8ec8`. The finish is the tree the previous
-chapter describes. Between them lie five milestones, each a state of
+chapter describes. Between them lie six milestones, each a state of
 the language, each followed by a release
 [D29]. Under each milestone the branches that reach it are named in an
 order that illustrates and binds nobody, and the answers that show a
@@ -1913,7 +1913,32 @@ what is computed; its design is the entrypoint document's, its first
 sensors are the ones that document carries, and its first gates are
 the ones this milestone closes.
 
-### Milestone 1 · Kernel
+### Milestone 1 · Nouns
+
+The catalog is written by nouns. The core is the noun `::qlang`, whose
+page is the root doc, and every noun of the core is named under it; a
+verb lives on the kind its subject names, a verb of any value beneath
+every kind on `::qlang/any`, and a verb that several kinds answer on
+each of them under one contract [D62]; a declaration writes a record into
+its scope, and a module is a pipeline whose value is what it exposes
+[D63], so helpers stay in their module and `env` answers the user's own
+names [D61]; a verb is found by walking the subject's tags [D34], and a
+tag name with a path addresses a verb through the noun it lives on,
+`::vec/count`. The syntax of a declaration stays as it stands, the
+descriptor of a built-in and the binding of today, which the next
+milestone rewrites.
+
+The milestone's answers are the targets of [D34], [D61], [D62] and
+[D63] in the conformance suite, which `node scripts/requirements.mjs`
+prints as the focus while any of them is open.
+
+Beside the answers: `::qlang | manifest` lists the nouns; every verb
+of the core is listed under the kind it lives on and none hangs outside
+a noun; a module's value is its surface, so the sister project's
+helpers leave its client's manifest; the core loads from the kernel
+alone, and the environment holds no key of the runtime's own.
+
+### Milestone 2 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring is
 closed and the command form has landed [D3], [D8], [D9], [D10], [D11], [D47],
@@ -1941,7 +1966,7 @@ refused [D44]; the seven wrappers are gone; no snapshot unwrap remains;
 the declarations of the catalog are true, since the runtime executes
 them.
 
-### Milestone 2 · Values
+### Milestone 3 · Values
 
 The semantics are final. The one order, the single container family
 with the rule for maps and the reading of duplicate keys, the set as
@@ -1963,35 +1988,33 @@ its schema's order; the throw-site registry and both drift tests are
 gone; the language has no effect marker and no effect flag; host
 categories of error are declared by hosts.
 
-### Milestone 3 · One spelling
+### Milestone 4 · One spelling
 
-Every fact has one spelling. Namespaces become values, bindings carry
-their origin, the axes become projections, and one loader remains [D5];
+Every fact has one spelling. Bindings carry their origin, a shadowed
+one stays one projection away, and one loader remains [D5];
 mounted namespaces arrive with it [D24], each a subtree answered by its
 provider, the subject opening its own [D35], [D36]; collisions get their
 rule [D23], [D34], and a host's verbs move onto its tags; the literal
 becomes the one lossless format and tagged JSON and the session envelope
 go [D30]; the doc becomes the vector of its segments, and strings,
 quotes and docs read in pieces [D19]; the documents are generated or
-deleted, the examples live on one plane, the bootstrap has one stamping
-site, the keyword's form comes from the parser, the error library is
+deleted, the examples live on one plane, the keyword's form comes from
+the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
-Its answers are the targets of [D5], [D19], [D34], [D36] and [D61] in
+Its answers are the targets of [D5], [D19] and [D36] in
 the conformance suite. The names `namespace` and `binding` there stand for
 the operands the branch names; where a target uses a name or a field
 no decision fixes, the name is a placeholder and the answer's shape is
 the requirement.
 
-Beside the answers: `env` lists only the user's names; a module ending
-in a map exports that map alone, so the sister project's helpers leave
-its client's manifest; no operand contract is spelled outside the
+Beside the answers: no operand contract is spelled outside the
 catalog; the injection script and the document-compliance runner are
 gone; no parser call exists outside `parse`; one query shows every
 definition of a name and which one wins.
 
-### Milestone 4 · Front door
+### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. The root doc and the
 views sized to a budget arrive, the cheap view the default [D27]; the
@@ -2020,7 +2043,7 @@ hides a null trail and the descriptor shows it; a renderer loads the
 documents of the tags and keywords an answer carries that the session
 has not been shown, and withholds the ones it has.
 
-After the fifth milestone the remaining surfaces follow: the site is
+After the sixth milestone the remaining surfaces follow: the site is
 decided, rendering the root doc and the catalog or reduced to the
 playground, and the coverage threshold applies to the language core
 alone, with the other workspaces under a rule without a number.
@@ -2316,3 +2339,5 @@ maintainer wants to explore it before it is fixed.
 [D59]: decisions/D59.md
 [D60]: decisions/D60.md
 [D61]: decisions/D61.md
+[D62]: decisions/D62.md
+[D63]: decisions/D63.md

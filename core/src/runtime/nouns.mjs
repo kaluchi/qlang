@@ -11,7 +11,7 @@
 import { isQMap, isVec, makeSet, makeTagKeyword, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
-  MODULE_NAMESPACE_PREFIX, CORE_KIND_PREFIX
+  MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
 import { throwSiteSpecOf } from '../errors.mjs';
 
@@ -64,27 +64,29 @@ export function nounsUnder(env, tagName) {
   return makeSet(nouns);
 }
 
+// The verbs of a kind by their addresses, which the axes follow, where a
+// keyword would name a binding of the reader's scope [D62].
 export function verbsOfKind(env, tagName) {
   const kindName = canonicalTagName(tagName);
-  const verbNames = new Set();
+  const addresses = [];
   for (const [, exportsMap] of providerExports(env)) {
     for (const [name, descriptor] of exportsMap) {
       if (!isTagBindingName(name) && carriesBuiltinShape(descriptor) && subjectKindsOf(descriptor).has(kindName)) {
-        verbNames.add(name);
+        addresses.push(makeTagKeyword(`${kindName}/${name}`));
       }
     }
   }
-  return Object.freeze([...verbNames].sort().map(name => keyword(name)));
+  return makeSet(addresses);
 }
 
 // The verb a tag name addresses, with the module that declares it, or
-// null when the address names none.
+// null when the address names none. A tag name comes written short, so
+// the path of an address under the core starts at its kind.
 export function addressedVerb(env, tagName) {
-  const path = tagName.startsWith(CORE_KIND_PREFIX) ? tagName.slice(CORE_KIND_PREFIX.length) : tagName;
-  const cut = path.lastIndexOf('/');
+  const cut = tagName.lastIndexOf('/');
   if (cut < 0) return null;
-  const verbName = path.slice(cut + 1);
-  const kindName = canonicalTagName(path.slice(0, cut));
+  const verbName = tagName.slice(cut + 1);
+  const kindName = tagName.slice(0, cut);
   for (const [uri, exportsMap] of providerExports(env)) {
     const descriptor = exportsMap.get(verbName);
     if (carriesBuiltinShape(descriptor) && subjectKindsOf(descriptor).has(kindName)) {

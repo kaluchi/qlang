@@ -18,9 +18,9 @@
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61"}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61"}
 {"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"],"target":true}
-{"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | has ::number/add","expect":"true","decision":["D61","D62"],"target":true}
-{"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | has ::any/docs","expect":"true","decision":"D62","target":true}
-{"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | has ::string/docs","expect":"false","decision":"D62","target":true}
+{"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | has ::number/add","expect":"true","decision":["D61","D62"]}
+{"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | has ::any/docs","expect":"true","decision":"D62"}
+{"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | has ::string/docs","expect":"false","decision":"D62"}
 {"name":"the-language-is-a-noun-with-a-page","query":"::qlang | docs | count","expect":"1","decision":"D62"}
 {"name":"manifest-is-asked-of-a-noun","query":"::qlang | manifest | filter ~(eq ::qlang/any) | count","expect":"1","decision":"D62"}
 {"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | /x | /value","expect":"1","decision":"D63","target":true}
@@ -30,7 +30,7 @@
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62","target":true}
 {"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62","target":true}
-{"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62","target":true}
+{"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
 {"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62","target":true}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | spec | /impl","expect":":qlang/prim/count","decision":"D62"}

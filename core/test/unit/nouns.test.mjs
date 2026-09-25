@@ -31,14 +31,22 @@ describe('the nouns of the core', () => {
 });
 
 describe('the verbs that live on a kind', () => {
-  it('a kind lists the operands whose subject names it, and any value lists its own', async () => {
-    expect(await evalQuery('::number | spec | /verbs | filter ~(eq :add) | count')).toBe(1);
-    expect(await evalQuery('::qlang/any | spec | /verbs | filter ~(eq :docs) | count')).toBe(1);
-    expect(await evalQuery('::string | spec | /verbs | filter ~(eq :docs) | count')).toBe(0);
+  it('a kind lists by address the operands whose subject names it, and any value lists its own', async () => {
+    expect(await evalQuery('::number | spec | /verbs | has ::number/add')).toBe(true);
+    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/docs')).toBe(true);
+    expect(await evalQuery('::string | spec | /verbs | has ::string/docs')).toBe(false);
+  });
+
+  it('an address the listing answers leads the axes to its verb', async () => {
+    expect(await evalQuery('::number | spec | /verbs | every ~(spec | /subject | eq :number)')).toBe(true);
+  });
+
+  it('an address under a kind of the core goes by its short name', async () => {
+    expect(await evalQuery('::qlang/vec/count')).toEqual(makeTagKeyword('vec/count'));
   });
 
   it('a verb of any tagged value lives beneath every kind', async () => {
-    expect(await evalQuery('::qlang/any | spec | /verbs | filter ~(eq :within) | count')).toBe(1);
+    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/within')).toBe(true);
   });
 
   it('a verb that declares no subject takes any', async () => {
@@ -47,8 +55,8 @@ describe('the verbs that live on a kind', () => {
         ? { source: ':shrug ::builtin{:impl :qlang/prim/count}' }
         : null)
     });
-    const cellEntry = await session.evalCell('use :tests/bare | ::qlang/any | spec | /verbs | filter ~(eq :shrug) | count');
-    expect(cellEntry.result).toBe(1);
+    const cellEntry = await session.evalCell('use :tests/bare | ::qlang/any | spec | /verbs | has ::any/shrug');
+    expect(cellEntry.result).toBe(true);
   });
 
   it('a refusal and a tag the session declares carry no list of verbs', async () => {

@@ -17,14 +17,14 @@
       a value is asked of its kind.
 
       `::qlang | manifest` lists the nouns; `x | docs` reads the page of
-      a value by its kind; `::number | spec | /verbs` lists what lives on
-      a kind; `::vec/count | docs` reads one verb by its address, and its
-      examples are its laws. An error is a value too, and `!| type |
-      docs` reads the page of the site that refused.
+      a value by its kind; `::number | spec | /verbs` lists by address
+      what lives on a kind; `::vec/count | docs` reads one verb by its
+      address, and its examples are its laws. An error is a value too,
+      and `!| type | docs` reads the page of the site that refused.
 
       ~(::qlang | manifest | filter ~(eq ::number) | count | eq 1)
       ~(5 | docs | eq (::number | docs))
-      ~(::string | spec | /verbs | filter ~(eq :split) | count | eq 1)
+      ~(::string | spec | /verbs | has ::string/split)
       ~(::vec/count | docs | count | eq 1)
       ~("x" | add 1 !| type | docs | count | eq 1)
   ~~|
@@ -35,7 +35,7 @@
       answers it as its `type`, since each has a kind of its own above
       it.
 
-      ~(::qlang/any | spec | /verbs | filter ~(eq :type) | count | eq 1)
+      ~(::qlang/any | spec | /verbs | has ::any/type)
       ~(5 | type | eq ::qlang/any | not)
   ~~|
 

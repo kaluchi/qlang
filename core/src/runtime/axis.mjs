@@ -173,7 +173,9 @@ function addressOf(env, subject) {
   return addressedVerb(env, subject.name);
 }
 
-function declaringStepOf(env, subject) {
+// The step that declares what a subject names, the one step every axis
+// and `runExamples` read.
+export function declaringStepOf(env, subject) {
   const address = addressOf(env, subject);
   if (address === null) return findBindingStepAcrossModules(env, bindingNameOf(subject));
   return findBindingStepFor(astOfQuote(envGet(env, moduleAstKey(address.uri))), address.verbName);

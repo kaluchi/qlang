@@ -1224,9 +1224,10 @@ its own eval handler in `eval.mjs`.
   handle and `:throws`; an error tag with the structural facts its
   throw site records — `:category`, and for an operand slot check
   `:operand`, `:position` and `:expectedType`. The declaration of a
-  provider's noun carries `:verbs`, the operands whose subject names
-  it, `::number | spec | /verbs` listing `:add` among them, and the
-  verbs of any value are listed under `::qlang/any`.
+  provider's noun carries `:verbs`, the set of the addresses of the
+  operands whose subject names it, `::number | spec | /verbs` holding
+  `::number/add`, and the verbs of any value are listed under
+  `::qlang/any`.
 - The end of every error-diagnosis chain: an error reads the
   declaration of its tag, what the site that raised it declares about
   itself.

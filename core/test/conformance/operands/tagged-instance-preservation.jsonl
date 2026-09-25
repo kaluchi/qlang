@@ -1,6 +1,5 @@
 {"name":"filter-tagged-vec-preserves-tag","query":"::Box {} | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
 {"name":"filter-tagged-set-preserves-tag","query":"::Box {} | ::Box#[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
-{"name":"filter-tagged-jsonarray-preserves-tag","query":"::Box {} | ::Box(::json[1 2 3 4]) | filter ~(gt 2) | type","expect":"::Box"}
 {"name":"sort-tagged-vec-preserves-tag","query":"::Box {} | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"sort-tagged-set-preserves-tag","query":"::Box {} | ::Box#[3 1 2] | sort | type","expect":"::Box"}
 {"name":"sort-keyed-tagged-vec-preserves-tag","query":"::Box {} | ::Box[{:k 2} {:k 1}] | sort ~(/k) | type","expect":"::Box"}

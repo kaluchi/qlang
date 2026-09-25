@@ -630,10 +630,10 @@ counts conduit bodies, captured-arg lambdas, and re-entry seams,
 while a nested literal or paren-group is bounded by the source
 text.
 
-Sibling forks carry no ordering promise. `evalVecLit`,
-`evalJsonArrayLit`, and `distribute` open their sibling forks
-together through `Promise.all`, while `evalMapLit`,
-`evalJsonObjectLit`, `evalSetLit`, and `evalErrorLit` walk their
+Sibling forks carry no ordering promise. `evalVecLit` and
+`distribute` open their sibling forks together through
+`Promise.all`, while `evalMapLit`, `evalSetLit`, and
+`evalErrorLit` walk their
 entries one await at a time; both shapes collect results
 positionally, so a Vec keeps its element order and a Map its entry
 order either way. Because a fork discards its `nextEnv`, no sibling
@@ -736,7 +736,7 @@ co-located sources:
   `runtime-invariants.qlang` carries shared and cross-family
   tag-bindings (parser, codec, dispatch, projection, combinator
   track-dispatch invariants); `tag.qlang` carries the value-class
-  constructors (`::conduit`, `::qlang`, `::json`).
+  constructors (`::conduit`, `::quote`, `::builtin`).
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-

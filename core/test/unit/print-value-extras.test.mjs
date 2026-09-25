@@ -433,9 +433,9 @@ describe('runtime/format.mjs structural — table layout and json round-trips', 
     expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
   });
 
-  it('json roundtrips keyword as colon-prefixed string', async () => {
+  it('json writes a keyword as its bare name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery(':foo | json')).toBe('":foo"');
+    expect(await evalQuery(':foo | json')).toBe('"foo"');
   });
 
   it('json roundtrips Boolean as JSON boolean', async () => {

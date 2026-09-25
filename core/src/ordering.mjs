@@ -9,8 +9,7 @@
 // pair first (`checkComparable`) and then compare it in the one order.
 
 import {
-  isKeyword, isTagKeyword, isDoc, isErrorValue,
-  isValueClass, mapShapeEntries, mapShapeGet,
+  isKeyword, isTagKeyword, isDoc, isErrorValue, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME
 } from './types.mjs';
 
@@ -125,7 +124,7 @@ function compareSequences(leftItems, rightItems) {
 }
 
 function sortedKeysOf(mapValue) {
-  return [...mapShapeEntries(mapValue)].map(([key]) => key).sort(compareCodeUnits);
+  return [...mapValue].map(([key]) => key).sort(compareCodeUnits);
 }
 
 function compareMaps(leftMap, rightMap) {
@@ -138,7 +137,7 @@ function compareMaps(leftMap, rightMap) {
   }
   if (leftKeys.length !== rightKeys.length) return compareCodeUnits(leftKeys.length, rightKeys.length);
   for (const key of leftKeys) {
-    const byValue = compareValues(mapShapeGet(leftMap, key), mapShapeGet(rightMap, key));
+    const byValue = compareValues(leftMap.get(key), rightMap.get(key));
     if (byValue !== 0) return byValue;
   }
   return 0;

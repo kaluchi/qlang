@@ -4,42 +4,20 @@
 
 :json
   |~~ Renders the subject as a JSON string. qlang-only shapes
-      lose round-trip identity at this boundary: Keywords become
-      colon-prefixed strings (`:foo` → `":foo"`), Sets flatten to
-      arrays, Maps emit with Keyword names as object keys. Use
+      lose round-trip identity at this boundary: a keyword becomes
+      its bare name, a key and a value alike (`:foo` → `"foo"`), Sets
+      flatten to arrays, Maps emit their keys as object keys. Use
       this for handing values to non-qlang consumers; for in-pipeline
       pretty-printing reach for `pretty`.
 
       ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
-      ~([:foo :bar] | json | eq "[\":foo\",\":bar\"]")
+      ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
       ~(#[1 2 3] | json | eq "[1,2,3]")
   ~~|
   ::builtin{:impl :qlang/prim/json
             :category :format
             :subject :any
             :returns :string
-   }
-
-:qlang
-  |~~ Recursively converts JSON shape to qlang shape. JsonObject
-      becomes a qlang Map keyed by the same string keys; JsonArray
-      becomes a qlang Vec. Scalars and qlang-only values pass
-      through unchanged. Idempotent: applying to an already-qlang
-      value returns the same shape. The literal-time pendant is the
-      `::qlang<payload>` TaggedLit constructor; the inverse
-      direction (qlang shape to JSON shape) is the `::json`
-      constructor — both ride the `:typeConversion` taxonomy
-      slot alongside the String↔Keyword involution `keyword`.
-
-      ~(::json{"a" : 1} | qlang | type | eq :map | eq true)
-      ~(::json[1, 2] | qlang | type | eq :vec | eq true)
-      ~({:a 1} | qlang | type | eq :map | eq true)
-      ~([1 2 3] | qlang | type | eq :vec | eq true)
-      ~(42 | qlang | eq 42) ~~|
-  ::builtin{:impl :qlang/prim/qlang
-            :category :typeConversion
-            :subject :any
-            :returns :any
    }
 
 :table

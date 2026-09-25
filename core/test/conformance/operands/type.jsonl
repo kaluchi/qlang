@@ -12,8 +12,8 @@
 {"name":"type-header-tag-conduit","query":":double mul 2 | env | /double | type","expect":"::conduit"}
 {"name":"type-header-tag-builtin","query":":add | env | /add | type","expect":"::builtin"}
 {"name":"type-header-tag-user-instance","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
-{"name":"type-json-array","query":"::json[1 2] | type","expect":":jsonArray"}
-{"name":"type-json-object","query":"::json{:k 1} | type","expect":":jsonObject"}
+{"name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":":vec"}
+{"name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":":map"}
 {"name":"type-vec","query":"[1 2 3] | type","expect":":vec"}
 {"name":"type-vec-empty","query":"[] | type","expect":":vec"}
 {"name":"type-quote","query":"~(mul 2) | type","expect":"::quote"}

@@ -16,16 +16,10 @@
 // A quote is a tagged vector of steps, so two quotes are equal when
 // their steps are: the spacing and the comments of the text they were
 // read from leave no step.
-//
-// Cross-shape equivalences: a JsonArray and a Vec with the same
-// elements are equal; a JsonObject and a Map with the same entries
-// are equal. The JSON tag is an authoring/round-trip hint;
-// `deepEqual` collapses it.
 
 import {
-  isKeyword, isTagKeyword, isErrorValue, isDoc,
-  isMapShape, mapShapeEntries, mapShapeSize, mapShapeHas, mapShapeGet,
-  TAG_HEADER_SYMBOL, isValueClass
+  isKeyword, isTagKeyword, isErrorValue, isDoc, TAG_HEADER_SYMBOL,
+  isValueClass, isQMap
 } from './types.mjs';
 
 // Tag identity comparator — Array/Set/Map carry their identity
@@ -84,11 +78,11 @@ export function deepEqual(a, b) {
   if (isDoc(a)) {
     return isDoc(b) && a.content === b.content;
   }
-  if (isMapShape(a)) {
-    if (!isMapShape(b) || mapShapeSize(a) !== mapShapeSize(b)) return false;
+  if (isQMap(a)) {
+    if (!isQMap(b) || a.size !== b.size) return false;
     if (!tagHeadersEqual(a, b)) return false;
-    for (const [k, v] of mapShapeEntries(a)) {
-      if (!mapShapeHas(b, k) || !deepEqual(v, mapShapeGet(b, k))) return false;
+    for (const [k, v] of a) {
+      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
     }
     return true;
   }

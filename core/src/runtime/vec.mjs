@@ -33,55 +33,25 @@
 
 import { valueOp, higherOrderOp, nullaryOp, overloadedOp } from './dispatch.mjs';
 import {
-  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword,
-  NULL, keyword, isVecShape, isOrderedSequence, sequenceElements, isMapShape, mapShapeEntries, mapShapeSize,
-  mapShapeGet, mapShapeHas, vecLikeOf, mapLikeOf,
-  isJsonArray, JSON_ARRAY_TAG
+  isQSet, isKeyword, isTruthy, isErrorValue, typeKeyword, NULL, keyword,
+  isOrderedSequence, sequenceElements, isVec, isQMap
 } from '../types.mjs';
 import { addStructurallyUnique } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
 
-// containerLikeOf(items, source) — minting site for shape-preserving
-// transformers (filter / take / drop / reverse / sort / flat) over an
-// ordered sequence. Three shape signals carry through:
-//   - JsonArray vs Vec — `vecLikeOf` re-stamps `JSON_ARRAY_TAG`
-//     when the source carries it.
-//   - Set vs Vec — Set re-mints with structural dedup (the only
-//     path where dedup is needed in this module — slice / reverse
-//     / sort over a Set inherit Set members which are already
-//     unique, but `flat` on a Set of Vecs may introduce duplicates
-//     that addStructurallyUnique has to collapse).
-//   - TaggedInstance identity — when the source is a tagged
-//     composite (`::Box[…]`, `::Tag#[…]`, `::Tag(::json[…])`), the
-//     `TAG_HEADER_SYMBOL` slot copies onto the result so the
-//     downstream `type` axis still reads `::Box` after the
-//     transform. Same single-mint pattern keeps every consumer
-//     symmetric without per-operand stamping.
-// containerLikeOf(items, source) — single mint site for shape-
-// preserving transformers (filter / sort / take / drop / reverse /
-// flat) over an ordered sequence. Three shape branches:
-// Set re-mints via `addStructurallyUnique` (the only path where
-// dedup matters — `flat` of a Set of Vecs can introduce
-// duplicates); JsonArray inline-builds with `JSON_ARRAY_TAG` but
-// does NOT freeze (the dispatch-level `applyTagPreservation` hook
-// stamps the optional TaggedInstance header and freezes at the
-// end); Vec passes through `vecLikeOf`. Tag preservation /
-// re-invocation rides entirely on the dispatch wrapper —
-// containerLikeOf stays shape-only.
+// containerLikeOf(items, source) — the mint site of the transformers
+// that keep their subject's shape (filter / sort / take / drop /
+// reverse / flat): a Set re-mints with structural dedup, since `flat`
+// of a Set of Vecs can introduce duplicates, and a Vec passes through;
+// the tag of a tagged source is the dispatch wrapper's
+// `applyTagPreservation`.
 function containerLikeOf(items, source) {
   if (isQSet(source)) {
     const out = new Set();
     for (const v of items) addStructurallyUnique(out, v);
     return out;
   }
-  if (isJsonArray(source)) {
-    const arr = [...items];
-    Object.defineProperty(arr, JSON_ARRAY_TAG, {
-      value: true, enumerable: false, configurable: false, writable: false
-    });
-    return arr;
-  }
-  return vecLikeOf(items, source);
+  return items;
 }
 import {
   declareSubjectError,
@@ -205,9 +175,9 @@ const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteErr
 // ── Polymorphic sizeOf for count/empty ─────────────────────────
 
 function sizeOfContainer(container, ErrorCls) {
-  if (isVecShape(container)) return container.length;
+  if (isVec(container)) return container.length;
   if (isQSet(container))     return container.size;
-  if (isMapShape(container)) return mapShapeSize(container);
+  if (isQMap(container)) return container.size;
   throw new ErrorCls(container);
 }
 
@@ -220,14 +190,14 @@ export const empty = nullaryOp('empty', (container) =>
   sizeOfContainer(container, EmptySubjectNotContainerError) === 0);
 
 // sequenceOrThrow(container, ErrorCls) — array view of an ordered
-// sequence (Vec / JsonArray / Set) for reducers that need indexed
-// access. Vec / JsonArray pass through; Set spreads in insertion-
+// sequence (Vec / Set) for reducers that need indexed
+// access. A Vec passes through; a Set spreads in insertion-
 // order. Set's insertion-order is part of qlang's public contract
 // per §Set in qlang-spec.md, so order-dependent operands (first /
 // last / at / sort / reverse / take / drop / flat) compose
 // meaningfully with a Set subject.
 function sequenceOrThrow(container, ErrorCls) {
-  if (isVecShape(container)) return container;
+  if (isVec(container)) return container;
   if (isQSet(container))     return [...container];
   throw new ErrorCls(container);
 }
@@ -235,7 +205,7 @@ function sequenceOrThrow(container, ErrorCls) {
 // O(1) Set fast path — `subject.values().next().value` skips the
 // `[...subject]` materialization `sequenceOrThrow` performs.
 export const first = nullaryOp('first', (subject) => {
-  if (isVecShape(subject)) {
+  if (isVec(subject)) {
     return subject.length === 0 ? NULL : subject[0];
   }
   if (isQSet(subject)) {
@@ -360,22 +330,22 @@ export const filter = higherOrderOp('filter', 2, async (container, predModifier)
     }
     return containerLikeOf(filterResult, container);
   }
-  if (isMapShape(container)) {
+  if (isQMap(container)) {
     const applyEntry = containerPredDispatch(predLambda, 'pair', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterEntries = [];
-    for (const [filterKey, filterValue] of mapShapeEntries(container)) {
+    for (const [filterKey, filterValue] of container) {
       const predResult = await applyEntry(filterKey, filterValue);
       if (isErrorValue(predResult)) return predResult;
       if (isTruthy(predResult)) filterEntries.push([filterKey, filterValue]);
     }
-    return mapLikeOf(filterEntries, container);
+    return new Map(filterEntries);
   }
   throw new FilterSubjectNotContainerError(container);
 }, { preservesTag: true });
 
 export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
   const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
-  if (isVecShape(container) || isQSet(container)) {
+  if (isVec(container) || isQSet(container)) {
     const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
     for (const everyItem of container) {
       const everyResult = await applyItem(everyItem);
@@ -384,9 +354,9 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
     }
     return true;
   }
-  if (isMapShape(container)) {
+  if (isQMap(container)) {
     const applyEntry = containerPredDispatch(everyPredLambda, 'pair', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
-    for (const [everyKey, everyValue] of mapShapeEntries(container)) {
+    for (const [everyKey, everyValue] of container) {
       const everyResult = await applyEntry(everyKey, everyValue);
       if (isErrorValue(everyResult)) return everyResult;
       if (!isTruthy(everyResult)) return false;
@@ -398,7 +368,7 @@ export const every = higherOrderOp('every', 2, async (container, everyPredModifi
 
 export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
   const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
-  if (isVecShape(container) || isQSet(container)) {
+  if (isVec(container) || isQSet(container)) {
     const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
     for (const anyItem of container) {
       const anyResult = await applyItem(anyItem);
@@ -407,9 +377,9 @@ export const any = higherOrderOp('any', 2, async (container, anyPredModifier) =>
     }
     return false;
   }
-  if (isMapShape(container)) {
+  if (isQMap(container)) {
     const applyEntry = containerPredDispatch(anyPredLambda, 'pair', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
-    for (const [anyKey, anyValue] of mapShapeEntries(container)) {
+    for (const [anyKey, anyValue] of container) {
       const anyResult = await applyEntry(anyKey, anyValue);
       if (isErrorValue(anyResult)) return anyResult;
       if (isTruthy(anyResult)) return true;
@@ -421,8 +391,7 @@ export const any = higherOrderOp('any', 2, async (container, anyPredModifier) =>
 
 // groupBy on a Set subject mints Set-typed buckets so the value-class
 // signal of the original sequence (uniqueness) survives partitioning.
-// On a Vec / JsonArray subject the buckets are same-shape Vec / JsonArray
-// — same construction-time invariant kept on each branch.
+// On a Vec subject the buckets are Vecs.
 export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyModifier) => {
   const groupKeyLambda = await codeOfModifier(groupKeyModifier, subject, v => new GroupByKeyNotQuoteError(v));
   const items = sequenceOrThrow(subject, GroupBySubjectNotSequenceError);
@@ -448,7 +417,7 @@ export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyModif
   }
   if (!subjectIsSet) {
     for (const [bucketKey, bucketItems] of groupResult) {
-      groupResult.set(bucketKey, vecLikeOf(bucketItems, subject));
+      groupResult.set(bucketKey, bucketItems);
     }
   }
   return groupResult;
@@ -518,11 +487,11 @@ const AtKeyNotKeywordOrStringError    = declareModifierError('AtKeyNotKeywordOrS
 // roundtrip, so the captured-arg shape can be either Keyword or
 // String over every Map-shape subject (both normalise to the
 // storage-side String via `key.name`/identity, matching
-// `mapShapeHas` / `mapShapeGet`). The `src | keys | first |
+// `Map.has` / `Map.get`). The `src | keys | first |
 // as :k | src | at k` chain composes through either source
 // without an inter-shape coercion.
 export const at = valueOp('at', 2, (subject, atKey) => {
-  if (isVecShape(subject)) {
+  if (isVec(subject)) {
     assertIntegerModifier(atKey, AtIndexNotIntegerError);
     const resolvedIndex = atKey < 0 ? subject.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < subject.length) ? subject[resolvedIndex] : NULL;
@@ -533,12 +502,12 @@ export const at = valueOp('at', 2, (subject, atKey) => {
     const resolvedIndex = atKey < 0 ? items.length + atKey : atKey;
     return (resolvedIndex >= 0 && resolvedIndex < items.length) ? items[resolvedIndex] : NULL;
   }
-  if (isMapShape(subject)) {
+  if (isQMap(subject)) {
     let lookupKey;
     if (isKeyword(atKey)) lookupKey = atKey.name;
     else if (typeof atKey === 'string') lookupKey = atKey;
     else throw new AtKeyNotKeywordOrStringError(atKey);
-    return mapShapeHas(subject, lookupKey) ? mapShapeGet(subject, lookupKey) : NULL;
+    return subject.has(lookupKey) ? subject.get(lookupKey) : NULL;
   }
   throw new AtSubjectNotSequenceOrMapError(subject);
 });
@@ -564,7 +533,7 @@ export const drop = valueOp('drop', 2, (subject, n) => {
 export const distinct = nullaryOp('distinct', (subject) => {
   if (!isOrderedSequence(subject)) throw new DistinctSubjectNotSequenceError(subject);
   if (isQSet(subject)) return subject;
-  // Subject reduced to Vec/JsonArray after the Set early-return —
+  // Subject reduced to a Vec after the Set early-return —
   // iterate the array directly (`sequenceElements` would no-op
   // for Vec but copy a Set, and the Set case never reaches here).
   // Tag preservation rides on the dispatch wrapper's
@@ -576,7 +545,7 @@ export const distinct = nullaryOp('distinct', (subject) => {
 
 export const reverse = nullaryOp('reverse', (subject) => {
   if (!isOrderedSequence(subject)) throw new ReverseSubjectNotSequenceError(subject);
-  // Single copy via spread — works uniformly across Vec / JsonArray
+  // Single copy via spread — works uniformly across Vec
   // / Set (all iterable).
   return containerLikeOf([...subject].reverse(), subject);
 }, { preservesTag: true });
@@ -584,12 +553,12 @@ export const reverse = nullaryOp('reverse', (subject) => {
 // `flat` lifts one level of nesting. On Set subject the inner Set / Vec
 // elements splice into a fresh Set with `addStructurallyUnique` collapsing
 // any cross-bucket duplicates, so the result still carries the Set
-// signal. On Vec / JsonArray subject inner sequences splice in order
+// signal. On a Vec subject inner sequences splice in order
 // without dedup, matching the existing Vec-flat contract.
 export const flat = nullaryOp('flat', (subject) => {
   if (!isOrderedSequence(subject)) throw new FlatSubjectNotSequenceError(subject);
   // Outer and inner iteration both go through the value directly —
-  // spread accepts any iterable, so Vec / JsonArray / Set splice
+  // spread accepts any iterable, so Vec / Set splice
   // in without an intermediate array copy.
   const result = [];
   for (const item of subject) {

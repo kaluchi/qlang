@@ -415,11 +415,11 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
   // Map's literal round-trips through parse → MapLit → eval with
   // dispatchability reconstituted at host bootstrap time.
 
-  it('json on a raw descriptor Map carries :impl as the :qlang/prim/<name> keyword', async () => {
+  it('json on a raw descriptor Map carries :impl as the bare name of its keyword', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const jsonOutput = await evalQuery('env | /count | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
+    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
   it('manifest descriptor carries the same :impl handle as the env entry', async () => {
@@ -427,7 +427,7 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     const jsonOutput = await evalQuery('manifest | filter ~(/name | eq "count") | first | json');
     expect(typeof jsonOutput).toBe('string');
     expect(jsonOutput).toContain('"kind":"::builtin"');
-    expect(jsonOutput).toContain('"impl":":qlang/prim/count"');
+    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
   it('projection at :impl lands on the handle keyword, and a conduit-parameter proxy fires the invariant', async () => {

@@ -48,13 +48,17 @@ export const RUNTIME_LOCATOR_KEY    = 'qlang/locator';
 
 // canonicalTagName(tagName) — the name a tag goes by. The kinds of
 // the core are named under its prefix and written short [D32], so
-// `::qlang/number` is the tag `::number`; every other name is its own.
+// `::qlang/number` is the tag `::number` and `::qlang/any`, the kind
+// beneath every kind, is `::any` [D62], and an address under one of
+// them alike, `::qlang/vec/count` being `::vec/count`; every other
+// name is its own.
 const CORE_KIND_PREFIX = 'qlang/';
-const CORE_KIND_NAMES = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'tag', 'vec', 'map', 'set', 'quote', 'doc']);
+const CORE_KIND_NAMES = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'tag', 'vec', 'map', 'set', 'quote', 'doc', 'any']);
 
 export function canonicalTagName(tagName) {
   const shortName = tagName.slice(CORE_KIND_PREFIX.length);
-  return tagName.startsWith(CORE_KIND_PREFIX) && CORE_KIND_NAMES.has(shortName) ? shortName : tagName;
+  const [kindName] = shortName.split('/', 1);
+  return tagName.startsWith(CORE_KIND_PREFIX) && CORE_KIND_NAMES.has(kindName) ? shortName : tagName;
 }
 
 // tagBindingKey(tagName) — `::Tag` env-lookup key from a tag name,

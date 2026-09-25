@@ -40,7 +40,7 @@ import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
+  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote, isTagKeyword,
   isErrorValue, typeKeyword, keyword, declarationSiteOf,
   BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
@@ -52,7 +52,8 @@ import { locationToQlangMap } from '../walk.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
-import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
+import { findBindingStepAcrossModules, declaringStepOf, stepDocStrings } from './axis.mjs';
+import { nounsUnder } from './nouns.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -65,8 +66,8 @@ const ManifestNamespaceUnknownError = declareShapeError('ManifestNamespaceUnknow
   { operand: 'manifest' }
 );
 const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
-  ({ actualType }) => `runExamples requires a Keyword (binding name) or a descriptor Map carrying a :name string, got ${actualType.name}`,
-  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'map'] }
+  ({ actualType }) => `runExamples requires a Keyword (binding name), a tag name or a descriptor Map carrying a :name string, got ${actualType.name}`,
+  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'tag', 'map'] }
 );
 
 // Extract a human-readable message from an error value — runtime
@@ -215,7 +216,13 @@ export function compareBindingNames(a, b) {
   return 0;
 }
 
+// Asked of a noun, `manifest` answers the nouns beneath it, the whole
+// set of the providers' nouns for the core's own, `::qlang | manifest`
+// [D62]; asked of any other subject it lists the bindings of env.
 export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
+  if (manifestLambdas.length === 0 && isTagKeyword(state.pipeValue)) {
+    return withPipeValue(state, nounsUnder(state.env, state.pipeValue.name));
+  }
   let namespace = 'value';
   if (manifestLambdas.length === 1) {
     const arg = await manifestLambdas[0](state.pipeValue);
@@ -276,13 +283,12 @@ async function runQuoteEntry(quote, callerState) {
   return result;
 }
 
-async function collectQuotesForBinding(callerState, lookupName) {
-  const step = findBindingStepAcrossModules(callerState.env, lookupName);
-  // Bindings without a source-located BindStep (host-installed
-  // bindings via `session.bind`, runtime-seeded built-ins) have no
-  // examples to run. `runExamples` returns an empty Vec — the
-  // catalog walk in manifest-self-test counts them as
-  // zero-contribution entries.
+// Bindings without a source-located BindStep (host-installed
+// bindings via `session.bind`, runtime-seeded built-ins) have no
+// examples to run. `runExamples` returns an empty Vec — the
+// catalog walk in manifest-self-test counts them as
+// zero-contribution entries.
+async function collectQuotesOfStep(callerState, step) {
   if (step === null) return [];
   const docStrings = stepDocStrings(step);
   const collected = [];
@@ -295,17 +301,19 @@ async function collectQuotesForBinding(callerState, lookupName) {
   return collected;
 }
 
-export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
-  const subject = state.pipeValue;
-  let lookupName;
-  if (isKeyword(subject)) {
-    lookupName = subject.name;
-  } else if (isQMap(subject) && typeof subject.get('name') === 'string') {
-    lookupName = subject.get('name');
-  } else {
-    throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
+// A name reads the step that declares it as the axes do, a tag name
+// that no tag binds the step of the verb it addresses [D62], and a
+// descriptor Map names its binding by its `:name`.
+function stepNamedBy(env, subject) {
+  if (isKeyword(subject) || isTagKeyword(subject)) return declaringStepOf(env, subject);
+  if (isQMap(subject) && typeof subject.get('name') === 'string') {
+    return findBindingStepAcrossModules(env, subject.get('name'));
   }
-  const quotes = await collectQuotesForBinding(state, lookupName);
+  throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
+}
+
+export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
+  const quotes = await collectQuotesOfStep(state, stepNamedBy(state.env, state.pipeValue));
   const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
   return withPipeValue(state, results);
 });

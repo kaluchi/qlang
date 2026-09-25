@@ -70,6 +70,10 @@ const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 
+// The core as a noun and the kind beneath every kind declare a page
+// alone, and neither constructs nor refuses [D62].
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any']);
+
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds
 // nothing.
@@ -169,7 +173,7 @@ describe('per-site error classes — every throw site carries a catalog tag', ()
 
 describe('per-site error classes — every catalog error tag has a throw site', () => {
   for (const [tagName] of catalogTags) {
-    if (VALUE_CLASS_CONSTRUCTOR_TAGS.has(tagName)) continue;
+    if (VALUE_CLASS_CONSTRUCTOR_TAGS.has(tagName) || CORE_NOUNS_OF_A_PAGE_ALONE.has(tagName)) continue;
     const className = tagName.slice('::'.length);
     if (throwSiteSpecOf(className) !== undefined) continue;
     it(`${tagName} is minted outside a per-site factory for a stated reason`, () => {

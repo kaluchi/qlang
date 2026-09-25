@@ -168,15 +168,16 @@
       {:snippet :actual :ok :error}. Each Quote is evalQuery'd in
       an isolated env; :ok is true iff the example answers true,
       every other answer, an error value among them, failing it.
-      Subject is a Keyword (binding name) or a descriptor Map
-      carrying a :name string. The composition
-      `manifest | every ~(runExamples | every ~(/ok))` walks every
-      example in the manifest and must return true —
-      self-describing catalog drift detection.
+      Subject is a Keyword (binding name), a tag name, the address
+      of a verb among them, or a descriptor Map carrying a :name
+      string. The composition
+      `::number | spec | /verbs | every ~(runExamples | every ~(/ok))`
+      runs every example of the verbs of numbers and must return
+      true — self-describing catalog drift detection.
 
-      ~(:add | runExamples * /ok | distinct | eq #[true])
-      ~(:gt | runExamples | count | gte 1)
-      ~(:add | runExamples | first | /ok | eq true)
+      ~(::number/add | runExamples * /ok | distinct | eq #[true])
+      ~(::number/gt | runExamples | count | gte 1)
+      ~(::number/add | runExamples | first | /ok | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/runExamples
             :category :reflective
@@ -184,8 +185,8 @@
             :returns :vec}
 
 ::RunExamplesSubjectShapeError
-  |~~ `runExamples` requires a Keyword (binding name) or a
-      descriptor Map carrying a `:name` String.
+  |~~ `runExamples` requires a Keyword (binding name), a tag name
+      or a descriptor Map carrying a `:name` String.
 
       ~(
         42 | runExamples

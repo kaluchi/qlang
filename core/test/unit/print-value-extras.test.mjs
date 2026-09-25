@@ -259,7 +259,7 @@ describe('the finite-double domain holds at every render seam', () => {
       try { printValue(leaked); } catch (caught) { thrown = caught; }
       expect(thrown).toBeInstanceOf(NumberNotFiniteLeakedToPrintError);
       expect(thrown.name).toBe('NumberNotFiniteLeakedToPrintError');
-      expect(thrown.fingerprint).toBe('NumberNotFiniteLeakedToPrintError');
+      expect(thrown.name).toBe('NumberNotFiniteLeakedToPrintError');
       expect(thrown.context.actualValue).toBe(String(leaked));
     }
   });

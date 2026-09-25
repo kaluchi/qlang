@@ -71,7 +71,6 @@ describe('makeErrorValue', () => {
     expect(thrown).toBeInstanceOf(ErrorTrailNotQuoteError);
     expect(thrown).toBeInstanceOf(QlangTypeError);
     expect(thrown.name).toBe('ErrorTrailNotQuoteError');
-    expect(thrown.fingerprint).toBe('ErrorTrailNotQuoteError');
     expect(thrown.context.actualType).toEqual(makeTagKeyword('vec'));
     expect(thrown.context.actualValue).toEqual([1, 2]);
   });
@@ -448,21 +447,18 @@ describe('withName coverage', () => {
 describe('error-convert coercion edge cases', () => {
   it('coerces qlang keyword values through errorFromQlang context', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', myKey: keyword('val') });
-    typeErr.fingerprint = 'X';
     const errorVal = errorFromQlang(typeErr, ...fault('testOp', 42));
     expect(errorVal.descriptor.get('myKey')).toEqual(keyword('val'));
   });
 
   it('coerces null/undefined context values to null', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', nullField: null, undefField: undefined });
-    typeErr.fingerprint = 'X';
     const errorVal = errorFromQlang(typeErr, ...fault('testOp', null));
     expect(errorVal.descriptor.get('nullField')).toBe(null);
   });
 
   it('coerces array context values to Vec', () => {
     const typeErr = new QlangTypeError('test', { site: 'X', items: [1, 'two', true] });
-    typeErr.fingerprint = 'X';
     const errorVal = errorFromQlang(typeErr, ...fault('testOp', []));
     const items = errorVal.descriptor.get('items');
     expect(Array.isArray(items)).toBe(true);
@@ -477,8 +473,8 @@ describe('error-convert coercion edge cases', () => {
     expect(causes.length).toBe(8);
   });
 
-  it('errorFromQlang without fingerprint uses error name', () => {
-    const typeErr = new QlangTypeError('no fingerprint', {});
+  it('errorFromQlang takes the tag from the error name', () => {
+    const typeErr = new QlangTypeError('a bare type error', {});
     const errorVal = errorFromQlang(typeErr, ...fault('count', [1, 2]));
     expect(errorVal.tag.name).toBe('QlangTypeError');
   });
@@ -542,7 +538,6 @@ describe('error-convert coercion edge cases', () => {
     // single-source-of-truth.
     const subject = { nested: 1 };
     const typeErr = new QlangTypeError('subject error', { actualValue: subject, actualType: keyword('map') });
-    typeErr.fingerprint = 'TestSubjectError';
     const errorVal = errorFromQlang(typeErr, ...fault('firstNonZero', subject));
     expect(errorVal.descriptor.get('faultInput')).toBe(subject);
     expect(errorVal.descriptor.has('actualValue')).toBe(false);
@@ -557,7 +552,6 @@ describe('error-convert coercion edge cases', () => {
     const container = [1, 'x', 3];
     const drilled = 'x';
     const typeErr = new QlangTypeError('element error', { actualValue: drilled, actualType: keyword('string'), index: 1 });
-    typeErr.fingerprint = 'TestElementError';
     const errorVal = errorFromQlang(typeErr, ...fault('sum', container));
     expect(errorVal.descriptor.get('faultInput')).toBe(container);
     expect(errorVal.descriptor.get('actualValue')).toBe(drilled);

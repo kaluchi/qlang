@@ -251,7 +251,6 @@ describe('fromTaggedJSON refuses a number past the finite double range', () => {
     expect(thrown).toBeInstanceOf(TaggedJSONNumberNotFiniteError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('TaggedJSONNumberNotFiniteError');
-    expect(thrown.fingerprint).toBe('TaggedJSONNumberNotFiniteError');
     expect(thrown.kind).toBe('codecError');
     expect(thrown.context.path).toEqual([]);
   });

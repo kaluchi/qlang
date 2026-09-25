@@ -179,9 +179,9 @@ describe('eval-time effect validation in evalBindStep', () => {
     expect(effectErr.context.effectfulName).toBe('@callers');
   });
 
-  it('error has stable fingerprint for Sentry grouping', async () => {
+  it('error has a stable per-site name', async () => {
     const effectErr = await catchOriginalError(':foo @callers');
-    expect(effectErr.fingerprint).toBe('EffectLaunderingAtBindStepParseError');
+    expect(effectErr.name).toBe('EffectLaunderingAtBindStepParseError');
   });
 
   it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {

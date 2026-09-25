@@ -1,6 +1,5 @@
-// Tests for src/errors.mjs — base error hierarchy, fingerprint,
-// location propagation, schemaVersion, and toJSON observability
-// payload (Sentry-safe, drops actualValue PII).
+// Tests for src/errors.mjs — base error hierarchy, per-site names
+// and location propagation.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -15,97 +14,36 @@ import {
   declareForeignError
 } from '../../src/errors.mjs';
 import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
-import { keyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
-  it('carries kind, location=null, fingerprint=null, schemaVersion=1', () => {
+  it('carries kind and location=null', () => {
     const qlangErr = new QlangError('boom', 'custom-kind');
     expect(qlangErr.kind).toBe('custom-kind');
     expect(qlangErr.location).toBeNull();
-    expect(qlangErr.fingerprint).toBeNull();
-    expect(qlangErr.schemaVersion).toBe(1);
     expect(qlangErr.message).toBe('boom');
     expect(qlangErr.name).toBe('QlangError');
     expect(qlangErr).toBeInstanceOf(Error);
   });
 
-  it('toJSON returns a plain object with the documented shape', () => {
-    const qlangErr = new QlangError('boom', 'custom');
-    const jsonPayload = qlangErr.toJSON();
-    expect(jsonPayload).toEqual({
-      name: 'QlangError',
-      kind: 'custom',
-      message: 'boom',
-      fingerprint: null,
-      location: null,
-      context: {},
-      schemaVersion: 1
-    });
-  });
-
-  it('toJSON drops actualValue from context (PII safe)', () => {
-    const typeErr = new QlangTypeError('typed', {
-      site: 'TestSite',
-      operand: 'op',
-      expectedType: keyword('vec'),
-      actualType: { name: 'number' },
-      actualValue: 'SECRET-PII-DO-NOT-LEAK'
-    });
-    const jsonPayload = typeErr.toJSON();
-    expect(jsonPayload.context).toEqual({
-      site: 'TestSite',
-      operand: 'op',
-      expectedType: keyword('vec'),
-      actualType: { name: 'number' }
-    });
-    expect(jsonPayload.context).not.toHaveProperty('actualValue');
-  });
-
-  it('toJSON includes location when set', () => {
-    const qlangErr = new QlangError('boom', 'k');
-    qlangErr.location = { start: { offset: 0, line: 1, column: 1 }, end: { offset: 3, line: 1, column: 4 } };
-    expect(qlangErr.toJSON().location).toEqual(qlangErr.location);
-  });
-
-  it('toJSON includes fingerprint when set', () => {
-    const qlangErr = new QlangError('boom', 'k');
-    qlangErr.fingerprint = 'ExampleFingerprint';
-    expect(qlangErr.toJSON().fingerprint).toBe('ExampleFingerprint');
-  });
-
-  it('JSON.stringify invokes toJSON automatically', () => {
-    const qlangErr = new QlangError('boom', 'k');
-    qlangErr.fingerprint = 'X';
-    const textRepr = JSON.stringify(qlangErr);
-    const parsed = JSON.parse(textRepr);
-    expect(parsed.fingerprint).toBe('X');
-    expect(parsed.kind).toBe('k');
-  });
 });
 
 describe('UnresolvedIdentifierError', () => {
-  it('sets identifierName, kind, fingerprint', () => {
+  it('sets identifierName, kind and name', () => {
     const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
     expect(unresolvedErr.context.identifierName).toBe('foo');
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
-    expect(unresolvedErr.fingerprint).toBe('UnresolvedIdentifierError');
+    expect(unresolvedErr.name).toBe('UnresolvedIdentifierError');
     expect(unresolvedErr.message).toContain('foo');
   });
 
-  it('toJSON inherits from QlangError', () => {
-    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
-    const jsonPayload = unresolvedErr.toJSON();
-    expect(jsonPayload.name).toBe('UnresolvedIdentifierError');
-    expect(jsonPayload.fingerprint).toBe('UnresolvedIdentifierError');
-  });
 });
 
 describe('DivisionByZeroError', () => {
-  it('has a fixed message and fingerprint', () => {
+  it('has a fixed message and its name', () => {
     const divErr = new DivisionByZeroError();
     expect(divErr.kind).toBe('numericDomain');
-    expect(divErr.fingerprint).toBe('DivisionByZeroError');
+    expect(divErr.name).toBe('DivisionByZeroError');
     expect(divErr.message).toBe('division by zero');
   });
 });
@@ -124,7 +62,7 @@ describe('EvaluationDepthExceededError', () => {
     expect(depthErr).toBeInstanceOf(QlangError);
     expect(depthErr.kind).toBe('resourceLimit');
     expect(depthErr.name).toBe('EvaluationDepthExceededError');
-    expect(depthErr.fingerprint).toBe('EvaluationDepthExceededError');
+    expect(depthErr.name).toBe('EvaluationDepthExceededError');
     expect(depthErr.context).toEqual({ depth: 11, limit: 10 });
     expect(depthErr.message).toBe('evaluation depth 11 exceeds the budget of 10 nested frames');
   });
@@ -143,7 +81,7 @@ describe('QlangInvariantError', () => {
 describe('runtime error location propagation via evalNode', () => {
   // Runtime errors are error values; `catchOriginalError` (shared
   // helper) unwraps the underlying QlangError off `.originalError`
-  // so the location / fingerprint assertions below read structurally.
+  // so the location / name assertions below read structurally.
 
   it('attaches a location to a runtime type error', async () => {
     const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
@@ -173,9 +111,9 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(5);
   });
 
-  it('per-site fingerprint is set on type errors thrown by operands', async () => {
+  it('per-site name is set on type errors thrown by operands', async () => {
     const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
-    expect(originalErr.fingerprint).toBe('FilterSubjectNotContainerError');
+    expect(originalErr.name).toBe('FilterSubjectNotContainerError');
   });
 });
 
@@ -197,7 +135,7 @@ describe('error class branding survives Object.defineProperty (minification prox
 describe('throw-site spec registry — one name, one site', () => {
   // The registry is what the bootstrap stamps from, so a second
   // class under one name would hand its `::Tag` binding a spec for
-  // the other site — and share the Sentry fingerprint besides.
+  // the other site.
   it('refuses a second recording under a name already declared', () => {
     let refusal = null;
     try {
@@ -225,7 +163,7 @@ describe('declareForeignError — a failure of the embedding', () => {
     expect(foreignErr).toBeInstanceOf(Error);
     expect(foreignErr).not.toBeInstanceOf(QlangError);
     expect(foreignErr.name).toBe('HostBridgeUnreachableError');
-    expect(foreignErr.fingerprint).toBe('HostBridgeUnreachableError');
+    expect(foreignErr.name).toBe('HostBridgeUnreachableError');
     expect(foreignErr.context.endpoint).toBe('ipc://bridge');
     expect(foreignErr.message).toContain('ipc://bridge');
   });

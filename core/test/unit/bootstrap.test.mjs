@@ -29,10 +29,11 @@ describe('platformLocator', () => {
 });
 
 describe('BootstrapRootMissingError', () => {
-  it('constructs with a clear diagnostic message and stable fingerprint', () => {
+  it('constructs with a clear diagnostic message and stable name', () => {
     const err = new BootstrapRootMissingError();
     expect(err.name).toBe('BootstrapRootMissingError');
-    expect(err.fingerprint).toBe('BootstrapRootMissingError');
+err
+
     expect(err.message).toContain('#qlang/core');
     expect(err.message).toContain('package.json#imports');
     expect(err.context).toEqual({});
@@ -62,7 +63,8 @@ describe('BootstrapCatalogNotLoadedError', () => {
     try { await buildLangRuntime(brokenFamilyLocator); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
     expect(thrown.name).toBe('BootstrapCatalogNotLoadedError');
-    expect(thrown.fingerprint).toBe('BootstrapCatalogNotLoadedError');
+thrown
+
     expect(thrown.context.tagName).toBe('::ParseError');
     expect(thrown.message).toContain('operand families');
   });
@@ -106,7 +108,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
       cause
     });
     expect(err.name).toBe('SourceLoadError');
-    expect(err.fingerprint).toBe('SourceLoadError');
+err
+
     expect(err.message).toContain('#qlang/core');
     expect(err.message).toContain('/locked/core.qlang');
     expect(err.message).toContain('EACCES: permission denied');

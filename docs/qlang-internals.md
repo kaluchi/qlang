@@ -1147,8 +1147,8 @@ up.
 
 The result is that every runtime error escaping `evalQuery` carries
 the source position of the most-specific failing node, which the
-embedder can use to drive editor squiggles, hover-on-error
-diagnostics, and Sentry breadcrumbs. The enrichment is transparent
+embedder can use to drive editor squiggles and hover-on-error
+diagnostics. The enrichment is transparent
 to operand impls — they continue to throw per-site error classes
 without any location-passing plumbing — and to the evaluation
 semantics, which are unchanged.
@@ -1182,7 +1182,7 @@ mark runtime bugs and surface as JS-level throws.
 
 At the catch point, `evalNode` stamps the error value's
 identity tag (a `::Tag` built from the throw site's
-`.fingerprint ?? .name`) on the fresh ErrorValue's JS-header
+`.name`) on the fresh ErrorValue's JS-header
 `tag` slot via `errorFromQlang` / `errorFromForeign` — opaque
 to descriptor projection, read through `result !| type`. The
 descriptor itself takes two flat fields at the head: `:faultStep`

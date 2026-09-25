@@ -4,9 +4,8 @@
 // per host (Node picks the createRequire+fs path, browsers / Deno
 // / Bun pick the import.meta.resolve+fetch path), so only one
 // throw site fires per process. The tag identity stays single
-// regardless of the host the runtime ships into — Sentry groups
-// every failure under the same fingerprint, and consumers
-// disambiguate by reading `:context.host` (`'node'` vs `'web'`).
+// regardless of the host the runtime ships into, and a reader
+// tells the hosts apart by `:context.host` (`'node'` vs `'web'`).
 
 import { declareForeignError } from './errors.mjs';
 

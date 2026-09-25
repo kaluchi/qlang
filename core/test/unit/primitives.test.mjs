@@ -112,7 +112,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveKeyNotStringError');
+      expect(e.name).toBe('PrimitiveKeyNotStringError');
       expect(e.kind).toBe('invariantError');
       expect(e.context.actualType).toBe('object');
     }
@@ -133,7 +133,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveKeyAlreadyBoundError');
+      expect(e.name).toBe('PrimitiveKeyAlreadyBoundError');
       expect(e.context.keyName).toBe('qlang/test-prim/dup');
     }
   });
@@ -153,7 +153,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.fingerprint).toBe('PrimitiveRegistrySealedError');
+      expect(e.name).toBe('PrimitiveRegistrySealedError');
       expect(e.context.keyLabel).toBe('qlang/test-prim/late');
     }
   });
@@ -195,7 +195,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
       expect(e).toBeInstanceOf(QlangError);
       expect(e).not.toBeInstanceOf(QlangInvariantError);
       expect(e.kind).toBe('primitiveUnbound');
-      expect(e.fingerprint).toBe('PrimitiveKeyUnboundError');
+      expect(e.name).toBe('PrimitiveKeyUnboundError');
       expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
     }
   });

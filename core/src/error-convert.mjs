@@ -63,7 +63,7 @@ function liftIdentifier(k, v) {
 }
 
 export function errorFromQlang(qlangError, faultStep, faultInput) {
-  const tag = makeTagKeyword(qlangError.fingerprint ?? qlangError.name);
+  const tag = makeTagKeyword(qlangError.name);
   const d = new Map();
   d.set('faultStep', faultStep);
   d.set('faultInput', faultInput);

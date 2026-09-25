@@ -272,6 +272,18 @@
       ~(zzzzqqq !| /nearest | eq [])
   ~~|
 
+::UnresolvedAddressError
+  |~~ A name with a path names no verb: no verb of its last name
+      lives on the noun of its path. `:address` holds the address as
+      a tag name, written short, which the axes read.
+
+      ~(
+        [1 2 3] | vec/nothing
+        !| [type /address]
+        |  eq [::UnresolvedAddressError ::vec/nothing]
+       )
+  ~~|
+
 ::ParseError
   |~~ Parser failure — source did not match the grammar.
 

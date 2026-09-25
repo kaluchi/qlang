@@ -1303,8 +1303,8 @@ changes are discarded. See the
    manifests as `as` > BindStep > built-in.
 
    `:count 5` makes subsequent `count` references resolve to
-   `5`. Within that pipeline the built-in `count` is inaccessible
-   until a later step shadows `count` again.
+   `5`, and the built-in stays one address away: `:count 5 | [1 2
+   3] | vec/count` answers `3`.
 
 ### Identifier conventions
 
@@ -1323,6 +1323,14 @@ effectful function value refuses to fire through a clean lookup
 name. Domain authors prefix the operands their runtime installs
 (`@callers`, `@resolve`) so the marker propagates through every
 alias.
+
+A name may carry a path, as a keyword and a tag name do: the path of
+a noun and the name of a verb that lives on it. `vec/count` calls the
+`count` that lives on vectors, from the root of the tree of names and
+past every binding of the scope, `::vec/count | docs` reads its page,
+and an address that names no verb is refused with
+`::UnresolvedAddressError`, whose `:address` holds the address as a tag
+name. The effect marker of such a call rides on its verb, `any/@out`.
 
 ### Comments
 

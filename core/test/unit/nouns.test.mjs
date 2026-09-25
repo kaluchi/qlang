@@ -93,3 +93,15 @@ describe('a tag name that no tag binds addresses a verb', () => {
     expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 });
+
+describe('a name with a path calls the verb its address names', () => {
+  it('calls past the bindings of the scope, with the modifiers the call takes', async () => {
+    expect(await evalQuery(':count 5 | [1 2 3] | vec/count')).toBe(3);
+    expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
+    expect(await evalQuery('[1 2 3] | qlang/vec/count')).toBe(3);
+  });
+
+  it('an address that names no verb is refused with the address', async () => {
+    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTagKeyword('vec/nothing'));
+  });
+});

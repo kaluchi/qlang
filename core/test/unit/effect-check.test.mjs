@@ -74,6 +74,11 @@ describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
     expect(ast.effectful).toBe(false);
   });
 
+  it('a call by address carries the marker of the verb it names', () => {
+    expect(parse('any/@out').effectful).toBe(true);
+    expect(parse('vec/count').effectful).toBe(false);
+  });
+
   it('Projection with at least one @-prefixed segment gets effectful=true', () => {
     const ast = parse('/scope/@callers');
     expect(ast.type).toBe('Projection');

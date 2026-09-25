@@ -17,6 +17,7 @@ import {
   QlangError,
   QlangInvariantError,
   UnresolvedIdentifierError,
+  UnresolvedAddressError,
   EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError,
   declareInvariantError,
@@ -41,6 +42,7 @@ import { isPureLiteralAst, isPlainCommentStep } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
+import { addressedVerb } from './runtime/nouns.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
@@ -794,6 +796,7 @@ function isBuiltinDescriptor(descriptor) {
 const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {
+  if (node.address !== undefined) return await callByAddress(node, state);
   const lookupName = node.name;
   const lookupEnv = state.env;
 
@@ -873,6 +876,17 @@ async function evalOperandCall(node, state) {
     });
   }
   return withPipeValue(state, resolved);
+}
+
+// A name with a path calls the verb its address names, from the root
+// and past every binding of the scope, so a verb a declaration shadows
+// stays one address away [D62]: `:count 5 | [1 2 3] | vec/count`
+// answers `3`.
+async function callByAddress(node, state) {
+  const addressName = canonicalTagName(node.name);
+  const address = addressedVerb(state.env, addressName);
+  if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(addressName) });
+  return await applyBuiltinDescriptor(address.descriptor, node, state);
 }
 
 // applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null

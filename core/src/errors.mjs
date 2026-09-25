@@ -328,6 +328,14 @@ export const UnresolvedIdentifierError = declarePerSiteError(
   ({ identifierName }) => `unresolved identifier: ${identifierName}`
 );
 
+// UnresolvedAddressError — a name with a path names no verb that lives
+// on the noun of its path [D62]. `context.address` is the address as a
+// tag name, written short.
+export const UnresolvedAddressError = declarePerSiteError(
+  'UnresolvedAddressError', 'unresolvedIdentifier',
+  ({ address }) => `no verb lives at the address ${address.literal}`
+);
+
 // EvaluationDepthExceededError — `nestState` (state.mjs) refused one
 // more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
 // `resourceLimit`: the runaway sits in the query's recursion.

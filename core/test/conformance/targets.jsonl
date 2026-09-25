@@ -29,7 +29,7 @@
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| type","expect":"::DocsBindingNotFoundError","decision":"D62","target":true}
-{"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62","target":true}
+{"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62"}
 {"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::ParseError","expect":"false","decision":["D61","D62"]}

@@ -122,7 +122,7 @@ function compareSequences(leftItems, rightItems) {
 }
 
 function sortedKeysOf(mapValue) {
-  return [...mapValue].map(([key]) => key).sort(compareCodeUnits);
+  return [...mapValue.keys()].sort(compareCodeUnits);
 }
 
 function compareMaps(leftMap, rightMap) {

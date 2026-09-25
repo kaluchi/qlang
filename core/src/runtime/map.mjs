@@ -26,9 +26,7 @@ export const keys = nullaryOp('keys', (map) => {
 
 export const vals = nullaryOp('vals', (map) => {
   if (!isQMap(map)) throw new ValsSubjectNotMapError(map);
-  const out = [];
-  for (const [, v] of map) out.push(v);
-  return out;
+  return [...map.values()];
 });
 
 // `has` is a boolean lookup — no key-back-into-container roundtrip,

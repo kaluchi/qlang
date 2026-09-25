@@ -285,6 +285,29 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 });
 
+describe('runtime/string.mjs lines', () => {
+  it('a newline ends a line, and a carriage return before it belongs to the ending', async () => {
+    expect(await evalQuery('"a\\r\\n\\r\\nb" | lines')).toEqual(['a', '', 'b']);
+  });
+
+  it('a final newline closes the last line, and a lone one closes an empty line', async () => {
+    expect(await evalQuery('"a\\n" | lines')).toEqual(['a']);
+    expect(await evalQuery('"a\\n\\n" | lines')).toEqual(['a', '']);
+    expect(await evalQuery('"\\n" | lines')).toEqual(['']);
+  });
+
+  it('the empty text has no lines, and a carriage return with no newline stays in its line', async () => {
+    expect(await evalQuery('"" | lines')).toEqual([]);
+    expect(await evalQuery('"a\\r" | lines')).toEqual(['a\r']);
+  });
+
+  it('lines on non-string subject → LinesSubjectNotStringError', async () => {
+    const caughtErr = await catchOriginalError('42 | lines');
+    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr.name).toBe('LinesSubjectNotStringError');
+  });
+});
+
 describe('dispatch helper arity error paths', () => {
   it('overloadedOp throws ArityError on unsupported captured-arg count', async () => {
     // sort accepts 0 or 1 captured args; calling with 2 hits the

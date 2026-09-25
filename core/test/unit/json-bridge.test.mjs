@@ -4,14 +4,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, describeType, typeKeyword, keyword } from '../../src/types.mjs';
+import { isQMap, isVec, describeType, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
 import { fromPlain } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
     const readMap = await evalQuery('{"a": 1, "b c": 2}');
     expect(isQMap(readMap)).toBe(true);
-    expect(typeKeyword(readMap)).toEqual(keyword('map'));
+    expect(typeKeyword(readMap)).toEqual(makeTagKeyword('map'));
     expect([...readMap.keys()]).toEqual(['a', 'b c']);
   });
 
@@ -67,7 +67,7 @@ describe('a map whose data key "type" collides with a value-class name', () => {
 
   it('a {"type":"error"} document does not crash the evaluator', async () => {
     const result = await evalQuery('{"type": "error", "msg": "boom"} | type');
-    expect(result).toEqual(keyword('map'));
+    expect(result).toEqual(makeTagKeyword('map'));
   });
 
   it('toTaggedJSON round-trips a {"type":"keyword"} document as a map', async () => {

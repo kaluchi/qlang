@@ -56,10 +56,11 @@ export const or = valueOp('or', 2, (a, b) => isTruthy(a) || isTruthy(b));
 
 export const not = nullaryOp('not', (subject) => !isTruthy(subject));
 
-// `type` — pipeline-time axis on value identity. Returns the
-// TagKeyword for tagged values (errors, conduits, snapshots,
-// tagged-instances) and the plain Keyword for scalars and base
-// containers. The single user-facing path to a value's identity
+// `type` — pipeline-time axis on value identity. Returns the kind
+// of the value, a TagKeyword: the tag of a tagged value (errors,
+// conduits, snapshots, tagged-instances), and the kind of the core
+// its literal implies for every other [D32]. The single user-facing
+// path to a value's identity
 // tag — symmetric to how `:foo | source` / `| docs` / `| examples`
 // are the user-facing path to binding-namespace metadata.
 // Error-track handling reads as `result !| type | eq ::Foo`.

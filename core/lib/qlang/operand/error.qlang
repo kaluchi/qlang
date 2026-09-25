@@ -32,6 +32,6 @@
       ~(
         42 | error
         !| [type /actualType]
-        |  eq [::ErrorDescriptorNotMapError :number]
+        |  eq [::ErrorDescriptorNotMapError ::number]
        )
   ~~|

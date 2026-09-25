@@ -58,7 +58,7 @@
       ~(
         42 | use
         !| [type /actualType]
-        |  eq [::UseSubjectNotMapError :number]
+        |  eq [::UseSubjectNotMapError ::number]
        )
   ~~|
 
@@ -69,7 +69,7 @@
       ~(
         use 42
         !| [type /actualType]
-        |  eq [::UseNamespaceNotKeywordError :number]
+        |  eq [::UseNamespaceNotKeywordError ::number]
        )
   ~~|
 
@@ -98,7 +98,7 @@
       ~(
         use [42 :foo]
         !| [type /index /actualType]
-        |  eq [::UseNamespaceElementNotKeywordError 0 :number]
+        |  eq [::UseNamespaceElementNotKeywordError 0 ::number]
        )
   ~~|
 
@@ -147,7 +147,7 @@
       ~(
         manifest "tag"
         !| [type /actualType]
-        |  eq [::ManifestNamespaceNotKeywordError :string]
+        |  eq [::ManifestNamespaceNotKeywordError ::string]
        )
   ~~|
 
@@ -190,7 +190,7 @@
       ~(
         42 | runExamples
         !| [type /actualType]
-        |  eq [::RunExamplesSubjectShapeError :number]
+        |  eq [::RunExamplesSubjectShapeError ::number]
        )
   ~~|
 
@@ -223,6 +223,6 @@
       ~(
         42 | as 42
         !| [type /actualType]
-        |  eq [::AsNameNotKeywordError :number]
+        |  eq [::AsNameNotKeywordError ::number]
        )
   ~~|

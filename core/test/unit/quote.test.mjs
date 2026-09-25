@@ -85,7 +85,7 @@ describe('assembling steps by hand', () => {
 
   it('a required field left out does not fit the schema', async () => {
     expect(await evalQuery('::call{:args []} !| [type /field /actualType]'))
-      .toEqual(await evalQuery('[::CallPayloadNotSchemaError :name :null]'));
+      .toEqual(await evalQuery('[::CallPayloadNotSchemaError :name ::null]'));
   });
 
   it('an index, a tag name and calls and projections inside a container are steps', async () => {

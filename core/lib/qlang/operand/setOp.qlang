@@ -26,7 +26,7 @@
       ~(
         42 | union
         !| [type /actualType]
-        |  eq [::UnionBareSubjectNotVecError :number]
+        |  eq [::UnionBareSubjectNotVecError ::number]
        )
   ~~|
 
@@ -44,7 +44,7 @@
       ~(
         #[:a] | union {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::UnionPairIncompatibleError ::set :map]
+        |  eq [::UnionPairIncompatibleError ::set ::map]
        )
   ~~|
 
@@ -68,7 +68,7 @@
       ~(
         42 | minus
         !| [type /actualType]
-        |  eq [::MinusBareSubjectNotVecError :number]
+        |  eq [::MinusBareSubjectNotVecError ::number]
        )
   ~~|
 
@@ -86,7 +86,7 @@
       ~(
         #[:a] | minus {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::MinusPairIncompatibleError ::set :map]
+        |  eq [::MinusPairIncompatibleError ::set ::map]
        )
   ~~|
 
@@ -110,7 +110,7 @@
       ~(
         42 | inter
         !| [type /actualType]
-        |  eq [::InterBareSubjectNotVecError :number]
+        |  eq [::InterBareSubjectNotVecError ::number]
        )
   ~~|
 
@@ -128,6 +128,6 @@
       ~(
         #[:a] | inter {:b 1}
         !| [type /leftType /rightType]
-        |  eq [::InterPairIncompatibleError ::set :map]
+        |  eq [::InterPairIncompatibleError ::set ::map]
        )
   ~~|

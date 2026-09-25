@@ -645,40 +645,40 @@ round-trips to `"a,b,c"`.
 ## Type classifiers
 
 Asking what a value is means composing `type` with `eq`. `type`
-answers exactly one identity per value, so `| type | eq :string`
+answers exactly one kind per value, so `| type | eq ::string`
 is the classification, and it reads the same inside a predicate:
-`filter ~(type | eq :string)` over a Vec of mixed types, or over a
-Map where the value's class is the predicate axis.
+`filter ~(type | eq ::string)` over a Vec of mixed kinds, or over a
+Map where the value's kind is the predicate axis.
 
 ### `type`
 
 - **Arity** 1. **Subject** any value.
-- Returns the Keyword or TagKeyword identity of the value's type.
-  Scalars produce plain keywords (`:number`, `:string`, `:boolean`,
-  `:null`); qlang value-classes produce their type keyword (`:vec`,
-  `:map`, `:set`, `:keyword`, `:tagKeyword`, `:doc`,
-  `:function`); tagged values (Quote,
-  Conduit, Snapshot, TaggedInstance, materialized error, catalog
-  builtin descriptor) produce the TagKeyword off the JS-header
-  identity slot (`::quote`, `::conduit`, `::snapshot`, `::Foo`, the per-site
-  error tag, `::builtin`); error values produce the per-site `::Tag`
-  straight off the JS-header `tag` slot — `::AddLeftNotNumberError`,
-  `::ParseError`, generic `::Error` for user `!{}` without an
-  explicit `:kind ::Foo` lift.
+- Returns the kind of the value, a tag: its outermost tag, or for a
+  value without a tag of its own the kind of the core its literal
+  implies — `::null`, `::boolean`, `::number`, `::string`,
+  `::keyword`, `::tag` for a tag name, `::vec`, `::map`, `::set`,
+  `::quote`, `::doc`. The kinds of the core are named under the
+  prefix `qlang/` and written short, `::qlang/number` reading as
+  `::number`, and `type | docs` reads the kind's page. Tagged values
+  (Conduit, Snapshot, TaggedInstance, materialized error, catalog
+  builtin descriptor) produce their tag (`::conduit`, `::snapshot`,
+  `::Foo`, `::builtin`); error values produce the per-site `::Tag` —
+  `::AddLeftNotNumberError`, `::ParseError`, generic `::Error` for
+  user `!{}` without an explicit `:kind ::Foo` lift.
 - **Examples**:
-  - `42 | type` → `:number`.
-  - `"hello" | type` → `:string`.
-  - `:foo | type` → `:keyword`.
-  - `[1 2] | type` → `:vec`.
-  - `{:a 1} | type` → `:map`.
+  - `42 | type` → `::number`.
+  - `"hello" | type` → `::string`.
+  - `:foo | type` → `::keyword`.
+  - `[1 2] | type` → `::vec`.
+  - `{:a 1} | type` → `::map`.
   - `::conduit[[] ~(mul 2)] | type` → `::conduit`.
   - `!{} !| type` → `::Error`.
   - `!{:kind ::Oops} !| type` → `::Oops`.
 
 JSON syntax reads into the same Map and Vec, so `{"a": 1} | type` →
-`:map` and `[1, 2] | type` → `:vec`. Identity rides the value's
+`::map` and `[1, 2] | type` → `::vec`. Identity rides the value's
 JS-header slot, so a Map carrying a `:kind` field
-answers `:map`; `::Foo{…}` is the form that stamps the header.
+answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 ## Type Conversion
 
@@ -1294,7 +1294,7 @@ the predicate:
     :faultStep ~(add 10)
     :faultInput "x"
     :actualValue "x"
-    :actualType :string
+    :actualType ::string
   }
 ]
 ```

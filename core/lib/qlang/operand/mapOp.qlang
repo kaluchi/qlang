@@ -19,7 +19,7 @@
       ~(
         42 | keys
         !| [type /actualType]
-        |  eq [::KeysSubjectNotMapError :number]
+        |  eq [::KeysSubjectNotMapError ::number]
        )
   ~~|
 
@@ -38,7 +38,7 @@
       ~(
         [1 2] | vals
         !| [type /actualType]
-        |  eq [::ValsSubjectNotMapError :vec]
+        |  eq [::ValsSubjectNotMapError ::vec]
        )
   ~~|
 
@@ -66,7 +66,7 @@
       ~(
         42 | has :k
         !| [type /actualType]
-        |  eq [::HasSubjectNotMapOrSetError :number]
+        |  eq [::HasSubjectNotMapOrSetError ::number]
        )
   ~~|
 
@@ -77,6 +77,6 @@
       ~(
         {:a 1} | has 42
         !| [type /actualType]
-        |  eq [::HasKeyNotKeywordOrStringError :number]
+        |  eq [::HasKeyNotKeywordOrStringError ::number]
        )
   ~~|

@@ -547,7 +547,7 @@ the sister project, source text and rendered cards:
 
 ```qlang
 > "hello world" | count
-::CountSubjectNotContainerError!{ … :actualType :string }
+::CountSubjectNotContainerError!{ … :actualType ::string }
 
 > "a\nb\nc\nd" | split "\n" | drop 1 | take 2 | join "\n"
 b
@@ -902,7 +902,7 @@ two words, `[mul(2) add(1)]` as four. On 24 September 2026:
 [1 2]
 
 > [1 2 3] | filter (count | gt 1) !| [type /actualType]
-[::FilterPredicateNotQuoteError :boolean]
+[::FilterPredicateNotQuoteError ::boolean]
 
 > [1 2 3] | add(1, 2)
 ::ParseError!{ … :message "the argument comma left the language: modifiers are separated by spaces, `f a b`" … }
@@ -971,7 +971,7 @@ so the two spellings answer alike:
 
 ```qlang
 > [1] | type
-:vec
+::vec
 
 > {"a": 1} | keys
 #[:a]
@@ -983,6 +983,36 @@ document holds, `echo '{"a":1}' | qlang 'keys'` printing `["a"]`. The
 sister project's records carry the habit the family served, `:kind
 "type"` as a string field, and under kinds [D32] the kind of a record is
 its tag.
+
+Every value has a kind [D32]: `type` answers its outermost tag, or for a
+value without a tag of its own the kind of the core its literal implies,
+`::null`, `::boolean`, `::number`, `::string`, `::keyword`, `::tag` for
+a tag name, `::vec`, `::map`, `::set`, `::quote` and `::doc`. A kind of
+the core is named under the prefix `qlang/` and written short, so
+`::qlang/number` reads as `::number` and prints so; its constructor
+reads a payload of the kind as the value itself, `::qlang/vec[1 2]`
+answering `[1 2]`, and refuses one of another kind at its site, since no
+kind reads text [D33]; and its page in the catalog is what `5 | type |
+docs` reads. A tag's name lives apart from the values, so a reserved
+word may follow `::` as it may follow `:` and `/`, and `::null` is
+written. A refusal carries the kind of the value it refused,
+`:actualType ::string`; the kinds a site accepts, `:expectedType`, and
+the kinds the catalog declares for subjects and slots stay keywords, and
+they move with the kinds of the slots [D45].
+
+```qlang
+> [1 2] | type
+::vec
+
+> ::qlang/vec[1 2]
+[1 2]
+
+> null | type
+::null
+
+> ::number"5" !| type
+::NumberPayloadNotNumberError
+```
 
 The set is a third family, and the language's own history says what it
 is. The May commit that moved its literal from braces to brackets
@@ -1011,7 +1041,7 @@ implementation set the flag, and the loss is silent:
 ::T
 
 > ::T{:a 1} | union {:b 2} | type
-:map
+::map
 
 > ::T{:a 1} | payload | union {:b 2} | tag ::T
 ::T{:a 1 :b 2}
@@ -1316,7 +1346,7 @@ not:
 
 ```qlang
 > ::app/m8/web/Foo | type
-:tagKeyword
+::tag
 
 > ::app.m8.web.Foo | type
 ::ParseError!{ … :found "." … }
@@ -1704,7 +1734,7 @@ literals it finds:
 
 ```qlang
 > |~~ note ::Box[1] here ~~| | /segments * type
-[:map ::Box :map]
+[::map ::Box ::map]
 ```
 
 A code span is prose [D55], so the mentions of the syntax the catalog

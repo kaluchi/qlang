@@ -31,7 +31,7 @@
       ~(
         42 | source
         !| [type /actualType]
-        |  eq [::SourceSubjectNotKeywordOrTagError :number]
+        |  eq [::SourceSubjectNotKeywordOrTagError ::number]
        )
   ~~|
 
@@ -53,7 +53,7 @@
       Quote segments are the evaluable examples `runExamples` runs.
 
       ~(:filter | docs | first | /content | contains "Keeps items")
-      ~(::AddLeftNotNumberError | docs | first | type | eq :doc)
+      ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
   ~~|
   ::builtin{:impl :qlang/prim/docs
             :category :axis
@@ -67,7 +67,7 @@
       ~(
         42 | docs
         !| [type /actualType]
-        |  eq [::DocsSubjectNotKeywordOrTagError :number]
+        |  eq [::DocsSubjectNotKeywordOrTagError ::number]
        )
   ~~|
 
@@ -103,7 +103,7 @@
       ~(
         42 | examples
         !| [type /actualType]
-        |  eq [::ExamplesSubjectNotKeywordOrTagError :number]
+        |  eq [::ExamplesSubjectNotKeywordOrTagError ::number]
        )
   ~~|
 
@@ -163,7 +163,7 @@
       ~(
         42 | spec
         !| [type /actualType]
-        |  eq [::SpecSubjectNotKeywordOrTagError :number]
+        |  eq [::SpecSubjectNotKeywordOrTagError ::number]
        )
   ~~|
 

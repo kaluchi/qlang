@@ -32,7 +32,7 @@
       ~(
         42 | parse
         !| [type /actualType]
-        |  eq [::ParseSubjectNotStringOrQuoteError :number]
+        |  eq [::ParseSubjectNotStringOrQuoteError ::number]
        )
   ~~|
 
@@ -51,7 +51,7 @@
       shape — exactly the form `:trail` records surface — is
       therefore directly re-executable.
 
-      ~(42 | apply ~(type | eq :null) | eq false)
+      ~(42 | apply ~(type | eq ::null) | eq false)
       ~([1 2 3] | apply ~(* mul 2) | eq [2 4 6])
       ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
       ~("10 | add 3" | parse | apply / | eq 13)
@@ -70,6 +70,6 @@
       ~(
         42 | apply 1
         !| [type /actualType]
-        |  eq [::ApplyCodeNotQuoteError :number]
+        |  eq [::ApplyCodeNotQuoteError ::number]
        )
   ~~|

@@ -37,7 +37,7 @@
 {"name":"quote-in-map","query":"{:body ~(mul 2)} | /body | parse","expect":"\"mul 2\""}
 {"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
 {"name":"quote-pipeline-passthrough","query":"5 | ~(mul 2)","expect":"~(mul 2)"}
-{"name":"quote-type-is-not-map","query":"~(x) | type | eq :map","expect":"false"}
+{"name":"quote-type-is-not-map","query":"~(x) | type | eq ::map","expect":"false"}
 {"name":"quote-with-pipe-operator","query":"~(a | b) | parse","expect":"\"a | b\""}
 {"name":"quote-with-leading-combinator-trail-style","query":"~(* inc | sort) | parse","expect":"\"* inc | sort\""}
 {"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}

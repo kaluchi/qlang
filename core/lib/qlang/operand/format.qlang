@@ -39,7 +39,7 @@
       ~(
         42 | table
         !| [type /actualType]
-        |  eq [::TableSubjectNotVecError :number]
+        |  eq [::TableSubjectNotVecError ::number]
        )
   ~~|
 
@@ -48,6 +48,6 @@
       ~(
         [42 "hello"] | table
         !| [type /actualType /index]
-        |  eq [::TableRowNotMapError :number 0]
+        |  eq [::TableRowNotMapError ::number 0]
        )
   ~~|

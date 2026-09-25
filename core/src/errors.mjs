@@ -89,7 +89,7 @@ export class QlangTypeError extends QlangError {
 }
 
 // NumericDomainError — the value's type is right and its magnitude
-// is not. `typeKeyword(Infinity)` answers `:number`, so a shape
+// is not. `typeKeyword(Infinity)` answers `::number`, so a shape
 // check has nothing to report; what the site refuses is the
 // finite-double domain a qlang Number lives in. A zero divisor is
 // the same refusal reached from the other side, and the reader
@@ -298,7 +298,7 @@ export function declareShapeError(className, buildMessage, facts = {}) {
 // `NumericDomainError` so `.kind` reads `numericDomain` and the
 // tag-binding's `:category` matches — a shape category would claim
 // a type violation the values do not have, since
-// `typeKeyword(Infinity)` answers `:number`.
+// `typeKeyword(Infinity)` answers `::number`.
 export function declareNumericDomainError(className, buildMessage, facts = {}) {
   return declareUnder(NumericDomainError, 'numericDomain', className, buildMessage, facts);
 }

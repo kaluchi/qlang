@@ -1,0 +1,14 @@
+{"name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
+{"name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
+{"name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag"}
+{"name":"a-kind-of-the-core-written-long-is-written-short","query":"::qlang/number","expect":"::number"}
+{"name":"the-long-and-the-short-name-are-one-kind","query":"::qlang/number | eq ::number","expect":"true"}
+{"name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null"}
+{"name":"a-reserved-word-is-a-segment-of-a-namespaced-keyword","query":":qlang/type/null","expect":":qlang/type/null"}
+{"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::qlang/vec[1 2]","expect":"[1 2]"}
+{"name":"the-vector-kind-reads-a-set-as-its-vector","query":"::vec#[2 1]","expect":"[1 2]"}
+{"name":"the-vector-kind-reads-a-quote-as-its-vector","query":"::vec~(a | b) | type","expect":"::vec"}
+{"name":"the-map-kind-reads-a-tagged-map-as-the-bare-one","query":"::map::Box{:a 1} | type","expect":"::map"}
+{"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::NumberPayloadNotNumberError"}
+{"name":"the-kind-of-a-value-has-its-page","query":"5 | type | docs | count | gt 0","expect":"true"}
+{"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| /actualType","expect":"::string"}

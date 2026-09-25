@@ -579,7 +579,7 @@ the result is **an error value** of the `!{}` form introduced in
 ::AddLeftNotNumberError!{
   :faultStep ~(add 1)
   :faultInput [1 2 3]
-  :actualType :vec
+  :actualType ::vec
 }
 |~| add 1 expects a Number in position 1; the Vec fires the per-site
 |~| class ::AddLeftNotNumberError, which becomes the error's tag head.
@@ -1666,7 +1666,7 @@ A constructor invocation `::Tag<payload>` produces a
 `tag` slot (a `TagKeyword`), the payload's native shape is
 preserved. Vec payload → tagged Vec (`/1` indexes elements
 directly, `count` returns the length, and `payload | type`
-answers `:vec` while `type` answers the stamped `::Tag`);
+answers `::vec` while `type` answers the stamped `::Tag`);
 Map payload → tagged Map (`keys` lists the fields, `/field`
 projects, iteration sees the data plane); Set payload → tagged
 Set. Scalar / Keyword / Quote / Doc / Error / Conduit /
@@ -1719,7 +1719,7 @@ through to the end.
 ::AddLeftNotNumberError!{
   :faultStep ~(add 1)
   :faultInput "hello"
-  :actualType :string
+  :actualType ::string
   :trail ~(mul 2 | sub 3)
 }
 |~| add 1 produces the error; mul 2 and sub 3 deflect, each
@@ -2033,7 +2033,7 @@ entirely and address the binding directly (`:filter | source`).
 | `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
-> :filter | docs | first | type | eq :doc
+> :filter | docs | first | type | eq ::doc
 true
 
 > ::ParseError | source | parse | startsWith "::ParseError"

@@ -20,7 +20,7 @@
       ~(
         42 | split ","
         !| [type /actualType]
-        |  eq [::SplitSubjectNotStringError :number]
+        |  eq [::SplitSubjectNotStringError ::number]
        )
   ~~|
 
@@ -29,7 +29,7 @@
       ~(
         "abc" | split 42
         !| [type /actualType]
-        |  eq [::SplitSeparatorNotStringError :number]
+        |  eq [::SplitSeparatorNotStringError ::number]
        )
   ~~|
 
@@ -51,7 +51,7 @@
       ~(
         42 | join ","
         !| [type /actualType]
-        |  eq [::JoinSubjectNotVecError :number]
+        |  eq [::JoinSubjectNotVecError ::number]
        )
   ~~|
 
@@ -60,7 +60,7 @@
       ~(
         ["a" 42 "c"] | join ","
         !| [type /actualType /index]
-        |  eq [::JoinElementNotStringError :number 1]
+        |  eq [::JoinElementNotStringError ::number 1]
        )
   ~~|
 
@@ -69,7 +69,7 @@
       ~(
         ["a" "b"] | join 42
         !| [type /actualType]
-        |  eq [::JoinSeparatorNotStringError :number]
+        |  eq [::JoinSeparatorNotStringError ::number]
        )
   ~~|
 
@@ -92,7 +92,7 @@
       ~(
         42 | contains "x"
         !| [type /actualType]
-        |  eq [::ContainsSubjectNotStringError :number]
+        |  eq [::ContainsSubjectNotStringError ::number]
        )
   ~~|
 
@@ -101,7 +101,7 @@
       ~(
         "hi" | contains 42
         !| [type /actualType]
-        |  eq [::ContainsNeedleNotStringError :number]
+        |  eq [::ContainsNeedleNotStringError ::number]
        )
   ~~|
 
@@ -123,7 +123,7 @@
       ~(
         42 | startsWith "x"
         !| [type /actualType]
-        |  eq [::StartsWithSubjectNotStringError :number]
+        |  eq [::StartsWithSubjectNotStringError ::number]
        )
   ~~|
 
@@ -132,7 +132,7 @@
       ~(
         "hi" | startsWith 42
         !| [type /actualType]
-        |  eq [::StartsWithPrefixNotStringError :number]
+        |  eq [::StartsWithPrefixNotStringError ::number]
        )
   ~~|
 
@@ -154,7 +154,7 @@
       ~(
         42 | endsWith "x"
         !| [type /actualType]
-        |  eq [::EndsWithSubjectNotStringError :number]
+        |  eq [::EndsWithSubjectNotStringError ::number]
        )
   ~~|
 
@@ -163,7 +163,7 @@
       ~(
         "hi" | endsWith 42
         !| [type /actualType]
-        |  eq [::EndsWithSuffixNotStringError :number]
+        |  eq [::EndsWithSuffixNotStringError ::number]
        )
   ~~|
 
@@ -183,7 +183,7 @@
       ~(
         42 | prepend "x"
         !| [type /actualType]
-        |  eq [::PrependSubjectNotStringError :number]
+        |  eq [::PrependSubjectNotStringError ::number]
        )
   ~~|
 
@@ -192,7 +192,7 @@
       ~(
         "x" | prepend 42
         !| [type /actualType]
-        |  eq [::PrependPrefixNotStringError :number]
+        |  eq [::PrependPrefixNotStringError ::number]
        )
   ~~|
 
@@ -212,7 +212,7 @@
       ~(
         42 | append "x"
         !| [type /actualType]
-        |  eq [::AppendSubjectNotStringError :number]
+        |  eq [::AppendSubjectNotStringError ::number]
        )
   ~~|
 
@@ -221,6 +221,6 @@
       ~(
         "x" | append 42
         !| [type /actualType]
-        |  eq [::AppendSuffixNotStringError :number]
+        |  eq [::AppendSuffixNotStringError ::number]
        )
   ~~|

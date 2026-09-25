@@ -58,12 +58,12 @@
       ~(
         ::builtin"hello"
         !| [type /actualType]
-        |  eq [::BuiltinPayloadNotMapError :string]
+        |  eq [::BuiltinPayloadNotMapError ::string]
        )
       ~(
         ::builtin[1 2 3]
         !| [type /actualType]
-        |  eq [::BuiltinPayloadNotMapError :vec]
+        |  eq [::BuiltinPayloadNotMapError ::vec]
        )
   ~~|
 
@@ -84,7 +84,7 @@
       ~(
         ::builtin{:impl 42} | as :bogus | 1 | bogus
         !| [type /actualType]
-        |  eq [::BuiltinImplNotPrimitiveKeyError :number]
+        |  eq [::BuiltinImplNotPrimitiveKeyError ::number]
        )
   ~~|
 
@@ -149,7 +149,7 @@
       ~(
         42 | /foo
         !| [type /key /actualType]
-        |  eq [::ProjectionSubjectNotProjectableError "foo" :number]
+        |  eq [::ProjectionSubjectNotProjectableError "foo" ::number]
        )
   ~~|
 
@@ -180,7 +180,7 @@
       ~(
         42 * add 1
         !| [type /actualType]
-        |  eq [::DistributeSubjectNotSequenceError :number]
+        |  eq [::DistributeSubjectNotSequenceError ::number]
        )
   ~~|
 
@@ -201,7 +201,7 @@
       ~(
         ::badType 42 | ::badType[]
         !| [type /tag /actualType]
-        |  eq [::TaggedLitNotTagBindingError :badType :number]
+        |  eq [::TaggedLitNotTagBindingError :badType ::number]
        )
   ~~|
 
@@ -229,7 +229,7 @@
       ~(
         5 | as :five | five 42
         !| [type /name /actualType]
-        |  eq [::ApplyToNonFunctionError :five :number]
+        |  eq [::ApplyToNonFunctionError :five ::number]
        )
   ~~|
 
@@ -470,7 +470,7 @@
       ~(
         !{:kind :oops :trail [1 2]}
         !| [type /actualType]
-        |  eq [::ErrorTrailNotQuoteError :vec]
+        |  eq [::ErrorTrailNotQuoteError ::vec]
        )
       ~(
         !{:kind :oops} | count

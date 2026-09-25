@@ -17,7 +17,7 @@
 {"name":"conduit-effect-marker-clean-body-at-name-ok","query":":@safe count | [1 2 3] | @safe","expect":"3"}
 {"name":"conduit-effect-marker-effectful-body-clean-name-rejected","query":":foo @callers !| type","expect":"::EffectLaunderingAtBindStepParseError"}
 {"name":"as-operand-basic","query":"42 | as :answer | answer","expect":"42"}
-{"name":"as-name-not-keyword-error","query":"42 | as 42","error":"typeError","expect":"::AsNameNotKeywordError!{\n  :faultStep ~(as 42)\n  :faultInput 42\n  :actualType :number\n}"}
+{"name":"as-name-not-keyword-error","query":"42 | as 42","error":"typeError","expect":"::AsNameNotKeywordError!{\n  :faultStep ~(as 42)\n  :faultInput 42\n  :actualType ::number\n}"}
 {"name":"conduit-parameter-no-captured-args","query":":f [:n] n 42 | 0 | f 5","error":"arityError","expect":"::ConduitParameterNoCapturedArgsError!{\n  :faultStep ~(n 42)\n  :faultInput 0\n  :paramName :n\n  :actualCount 1\n}"}
 {"name":"runaway-self-call-lifts-depth-error","query":":inf (add 1 | inf) | 0 | inf !| type","expect":"::EvaluationDepthExceededError"}
 {"name":"runaway-self-call-descriptor-depth-past-limit","query":":inf (add 1 | inf) | 0 | inf !| gt /depth /limit","expect":"true"}

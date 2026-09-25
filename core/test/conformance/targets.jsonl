@@ -10,7 +10,7 @@
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ~[:q :x](apply q) | 2 | t ~(add x) 99","expect":"12","decision":"D43","target":true}
-{"name":"a-declaration-refuses-a-subject-of-another-kind","query":":twice ~[::number ::number](mul 2) | \"a\" | twice !| true","expect":"true","decision":"D4","target":true}
+{"name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true","decision":"D4","target":true}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34"}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
@@ -52,3 +52,5 @@
 {"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65","target":true}
 {"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}
+{"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66","target":true}
+{"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66","target":true}

@@ -38,10 +38,10 @@ no `use(...)` ceremony.
 |---|---|
 | `@in`  | nullary producer; returns the entire stdin payload as a String |
 | `@out` | bare form: subject must be String → writes `subject + '\n'` to stdout, identity on pipeValue |
-| `@out(renderer)` | runs `renderer` against pipeValue; result must be String → writes to stdout, identity on original pipeValue |
+| `@out renderer` | runs `renderer` against pipeValue; result must be String → writes to stdout, identity on original pipeValue |
 | `@err` | same shape as `@out`, writes to stderr |
-| `@err(renderer)` | same shape as `@out(renderer)`, writes to stderr |
-| `@tap(:label)` | identity on `(pipeValue, env)`; mirrors `printValue(pipeValue)` to stderr with `[tap label] ` prefix |
+| `@err renderer` | same shape as `@out renderer`, writes to stderr |
+| `@tap :label` | identity on `(pipeValue, env)`; mirrors `printValue(pipeValue)` to stderr with `[tap label] ` prefix |
 
 ### Pure formatters (value → String)
 
@@ -49,13 +49,13 @@ no `use(...)` ceremony.
 |---|---|
 | `pretty` | any subject → String, the canonical qlang-literal display form |
 | `tjson` | any subject → String, tagged-JSON wire form (round-trippable through `parseTjson`) |
-| `template("…")` | any subject → String. `{{.}}` substitutes the whole subject; `{{key}}` projects from a Map; `{{a/b/c}}` chains projections. String values embed raw, others render via printValue, missing fields render as `null` |
+| `template "…"` | any subject → String. `{{.}}` substitutes the whole subject; `{{key}}` projects from a Map; `{{a/b/c}}` chains projections. String values embed raw, others render via printValue, missing fields render as `null` |
 
 `json` (plain JSON via `JSON.stringify`) lives in core and is
 already in scope; no need to bind it.
 
 NDJSON does not need a dedicated operand — the composition
-`vec * json | join("\n")` produces the same byte sequence
+`vec * json | join "\n"` produces the same byte sequence
 transparently.
 
 ### Pure parsers (String → value)
@@ -74,14 +74,14 @@ auto-print the final pipeValue. Either route through `@out`:
 qlang '[1 2 3] | count | pretty | @out'
 3
 
-qlang '"hello" | append(" world") | @out'
+qlang '"hello" | append " world" | @out'
 hello world
 ```
 
 …or write nothing to stdout if the side-effects are diagnostic only:
 
 ```
-qlang '@in | parse | apply(/) | /users | @tap(:loaded) | filter(/active) | count | pretty | @out' < users.json
+qlang '@in | parse | apply / | /users | @tap :loaded | filter ~(/active) | count | pretty | @out' < users.json
 ```
 
 ## Exit codes
@@ -89,19 +89,19 @@ qlang '@in | parse | apply(/) | /users | @tap(:loaded) | filter(/active) | count
 | Code | Meaning |
 |---|---|
 | `0` | query evaluated and reached a success-track value |
-| `1` | host-level JS throw (parse failure, primitive missing, …) — message written to stderr; **or** an unhandled fail-track error value reached the end (silent: route diagnostics yourself with `!| @err(pretty)`) |
+| `1` | host-level JS throw (parse failure, primitive missing, …) — message written to stderr; **or** an unhandled fail-track error value reached the end (silent: route diagnostics yourself with `!| @err pretty`) |
 | `2` | usage error (missing or malformed argv) |
 
 ## Examples
 
 ```
-qlang '[1 2 3] | filter(gt(1)) | count | pretty | @out'
+qlang '[1 2 3] | filter ~(gt 1) | count | pretty | @out'
 2
 
-qlang '"hello" | append(" world") | @out'
+qlang '"hello" | append " world" | @out'
 hello world
 
-qlang '@in | parse | apply(/) | /glossary/title | @out' \
+qlang '@in | parse | apply / | /glossary/title | @out' \
   < glossary.json
 example glossary
 
@@ -110,7 +110,7 @@ qlang '@in | parseJson | /users
        | pretty | @out' < users.json
 ["alice" "carol"]
 
-qlang '[1 2 3] | @tap(:before) | filter(gt(1)) | @tap(:after) | count | pretty | @out'
+qlang '[1 2 3] | @tap :before | filter ~(gt 1) | @tap :after | count | pretty | @out'
 [tap before] [1 2 3]
 [tap after] [2 3]
 2
@@ -121,13 +121,13 @@ qlang '#[:admin :user] | tjson | @out' \
 2
 
 # Per-element template into stdout
-qlang '@in | parseJson * template("{{name}}: {{score}}") | join("\n") | @out' \
+qlang '@in | parseJson * template "{{name}}: {{score}}" | join "\n" | @out' \
   < scores.json
 alice: 85
 bob: 42
 
 # NDJSON via composition (no dedicated operand needed)
-qlang '@in | parseJson * json | join("\n") | @out' < users.json
+qlang '@in | parseJson * json | join "\n" | @out' < users.json
 {"name":"alice"}
 {"name":"bob"}
 ```
@@ -136,11 +136,11 @@ qlang '@in | parseJson * json | join("\n") | @out' < users.json
 
 ```
 $ qlang -i
-qlang> [1 2 3] | filter(gt(1)) | count
+qlang> [1 2 3] | filter ~(gt 1) | count
 2
-qlang> "hello" | append(" world")
+qlang> "hello" | append " world"
 "hello world"
-qlang> :double mul(2)
+qlang> :double mul 2
 null  (BindStep is identity on pipeValue — the cell's seed pipeValue is null)
 qlang> 21 | double
 42

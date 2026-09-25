@@ -37,7 +37,7 @@ describe('@in', () => {
 describe('@out — bare form (0 captured)', () => {
   it('writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"hello" | @out | append("!")', io);
+    const cellEntry = await runQuery('"hello" | @out | append "!"', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('hello\n');
     expect(cellEntry.result).toBe('hello!');
@@ -56,7 +56,7 @@ describe('@out — bare form (0 captured)', () => {
 describe('@out — full-application form (1 captured)', () => {
   it('runs the renderer against pipeValue and writes its String result', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('42 | @out(pretty)', io);
+    const cellEntry = await runQuery('42 | @out pretty', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('42\n');
     expect(cellEntry.result).toBe(42);
@@ -70,7 +70,7 @@ describe('@out — full-application form (1 captured)', () => {
     // (every error's identity rides on the tagged-instance
     // invariant). @out's renderer-result type check stamps the
     // inner error's identity tag on `:actualType`.
-    const cellEntry = await runQuery('"x" | @out(add(1))', io);
+    const cellEntry = await runQuery('"x" | @out (add 1)', io);
     expect(io.stdoutText()).toBe('');
     expectOperandErrorThrown(cellEntry, 'OutRendererResultNotStringError', {
       actualType: { name: 'AddLeftNotNumberError' }
@@ -100,14 +100,14 @@ describe('@err — bare form', () => {
 describe('@err — full-application form', () => {
   it('runs the renderer and writes the result to stderr', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('[1 2 3] | @err(pretty)', io);
+    const cellEntry = await runQuery('[1 2 3] | @err pretty', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
   it('lifts ErrRendererResultNotStringError when the renderer returns a non-String', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"x" | @err(add(1))', io);
+    const cellEntry = await runQuery('"x" | @err (add 1)', io);
     expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotStringError', {
       actualType: { name: 'AddLeftNotNumberError' }
     });
@@ -117,7 +117,7 @@ describe('@err — full-application form', () => {
 describe('@tap', () => {
   it('mirrors pipeValue onto stderr with the labelled prefix and is identity', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('[1 2 3] | @tap(:before-count) | count', io);
+    const cellEntry = await runQuery('[1 2 3] | @tap :before-count | count', io);
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(3);
     expect(io.stderrText()).toBe('[tap before-count] [1 2 3]\n');
@@ -126,7 +126,7 @@ describe('@tap', () => {
 
   it('lifts TapLabelNotKeywordError onto the fail-track when the label is not a keyword', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('[1 2 3] | @tap("oops")', io);
+    const cellEntry = await runQuery('[1 2 3] | @tap "oops"', io);
     expectOperandErrorThrown(cellEntry, 'TapLabelNotKeywordError', {
       actualType: { name: 'string' }
     });

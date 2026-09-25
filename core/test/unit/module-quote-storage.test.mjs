@@ -13,7 +13,7 @@ describe('langRuntime stamps the core module as a Quote', () => {
   });
 
   it('prints the module as its text, the comments left out', async () => {
-    const result = await evalQuery('env | /:qlang/ast/qlang/core | parse | startsWith("use(")');
+    const result = await evalQuery('env | /:qlang/ast/qlang/core | parse | startsWith "use ["');
     expect(result).toBe(true);
   });
 
@@ -33,12 +33,12 @@ describe('langRuntime stamps the core module as a Quote', () => {
 
 describe('manifest filters out the qlang/ast/ reserved namespace', () => {
   it('does not list module Quote entries among descriptors', async () => {
-    const result = await evalQuery('manifest * /name | filter(startsWith("qlang/ast/"))');
+    const result = await evalQuery('manifest * /name | filter ~(startsWith "qlang/ast/")');
     expect(result).toEqual([]);
   });
 
   it('still lists ordinary builtin descriptors', async () => {
-    const result = await evalQuery('manifest * /name | filter(eq("count")) | count');
+    const result = await evalQuery('manifest * /name | filter ~(eq "count") | count');
     expect(result).toBe(1);
   });
 });
@@ -51,7 +51,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
         ? { source: moduleSource }
         : null
     });
-    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | parse');
+    const cellEntry = await sessionInstance.evalCell('use :lazy/mod | env | /:qlang/ast/lazy/mod | parse');
     expect(cellEntry.result).toBe(moduleSource);
   });
 
@@ -60,7 +60,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
     const sessionInstance = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await sessionInstance.evalCell('use(:lazy/mod) | env | /:qlang/ast/lazy/mod | first | type');
+    const cellEntry = await sessionInstance.evalCell('use :lazy/mod | env | /:qlang/ast/lazy/mod | first | type');
     expect(cellEntry.result).toEqual(makeTagKeyword('bind'));
   });
 
@@ -73,7 +73,7 @@ describe('use stamps loaded namespaces under :qlang/ast/<ns>', () => {
       }
     });
     const cellEntry = await sessionInstance.evalCell(
-      'use(:lazy/a) | use(:lazy/b) | env | /:qlang/ast/lazy/a | parse');
+      'use :lazy/a | use :lazy/b | env | /:qlang/ast/lazy/a | parse');
     expect(cellEntry.result).toBe(':a 1');
   });
 });

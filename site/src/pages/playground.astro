@@ -35,9 +35,9 @@ import Base from "../layouts/Base.astro"
               autocomplete="off"
               placeholder="Type qlang expressions here...
 
-[1 2 3 4 5] | filter(gt(2)) | count
+[1 2 3 4 5] | filter ~(gt 2) | count
 
-:double mul(2)
+:double mul 2
 | [10 20 30] * double"
             ></textarea>
           </div>

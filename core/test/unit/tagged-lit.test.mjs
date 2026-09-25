@@ -11,7 +11,7 @@ import { printQuoteSource } from '../../src/quote.mjs';
 
 describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
   it('parses ::conduit[[] body] as TaggedLit with Vec payload', () => {
-    const ast = parse('::conduit[[] ~{mul(2)}]');
+    const ast = parse('::conduit[[] ~(mul 2)]');
     expect(ast.type).toBe('TaggedLit');
     expect(ast.tag).toBe('conduit');
     expect(ast.payload.type).toBe('VecLit');
@@ -32,25 +32,25 @@ describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
 
 describe('::conduit constructor builds a Conduit-value', () => {
   it('non-recursive 0-param produces a Conduit', async () => {
-    const result = await evalQuery('::conduit[[] ~{mul(2)}]');
+    const result = await evalQuery('::conduit[[] ~(mul 2)]');
     expect(describeType(result)).toBe('Conduit');
   });
 
   it('Conduit invokes through BindStep + identifier lookup', async () => {
-    const result = await evalQuery(':double ::conduit[[] ~{mul(2)}] | 5 | double');
+    const result = await evalQuery(':double ::conduit[[] ~(mul 2)] | 5 | double');
     expect(result).toBe(10);
   });
 
   it('parametric Conduit binds captured args', async () => {
     const result = await evalQuery(
-      ':@surround ::conduit[[:pfx :sfx] ~{prepend(pfx) | append(sfx)}] | "x" | @surround("[", "]")'
+      ':@surround ::conduit[[:pfx :sfx] ~(prepend pfx | append sfx)] | "x" | @surround "[" "]"'
     );
     expect(result).toBe('[x]');
   });
 
   it('3-element payload with self-name produces a recursive Conduit', async () => {
     const result = await evalQuery(
-      ':walk ::conduit[:walk [] ~{if(empty, 0, first | add(1))}] | [1 2 3] | walk'
+      ':walk ::conduit[:walk [] ~(if empty ~(0) ~(first | add 1))] | [1 2 3] | walk'
     );
     expect(result).toBe(2);
   });
@@ -59,7 +59,7 @@ describe('::conduit constructor builds a Conduit-value', () => {
 describe('::tag descriptor registers a tag-namespace binding', () => {
   it('makes ::myType invokable through the ::conduit constructor handle', async () => {
     const result = await evalQuery(
-      '::myType {:impl :qlang/type/conduit} | :f ::myType[[] ~{add(1)}] | 4 | f'
+      '::myType {:impl :qlang/type/conduit} | :f ::myType[[] ~(add 1)] | 4 | f'
     );
     expect(result).toBe(5);
   });
@@ -111,7 +111,7 @@ describe('TaggedLit error paths', () => {
 
   it('auto-declared binding surfaces under manifest(:tag) with :declarationOrigin :implicit', async () => {
     const evalResult = await evalQuery(
-      '::silentBox[1] | manifest(:tag) | filter(/name | eq("::silentBox")) | first | /declarationOrigin'
+      '::silentBox[1] | manifest :tag | filter ~(/name | eq "::silentBox") | first | /declarationOrigin'
     );
     expect(evalResult).toEqual(keyword('implicit'));
   });
@@ -143,19 +143,19 @@ describe('TaggedLit error paths', () => {
   });
 
   it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
-    const err = await evalQuery('42 | tag("not-a-number" | add(1))');
+    const err = await evalQuery('42 | tag ("not-a-number" | add 1)');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 
   it('tag full-form propagates a fail-track value expression instead of wrapping it', async () => {
-    const err = await evalQuery('null | tag("not-a-number" | add(1), ::Box)');
+    const err = await evalQuery('null | tag ("not-a-number" | add 1) ::Box');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 
   it('tag full-form propagates a fail-track tag-keyword expression', async () => {
-    const err = await evalQuery('null | tag(42, "not-a-number" | add(1))');
+    const err = await evalQuery('null | tag 42 ("not-a-number" | add 1)');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
@@ -167,19 +167,19 @@ describe('TaggedLit error paths', () => {
   });
 
   it('::conduit raises ConduitSelfNameNotKeywordError for 3-element payload with non-keyword selfName', async () => {
-    const err = await evalQuery('::conduit[42 [] ~{mul(2)}]');
+    const err = await evalQuery('::conduit[42 [] ~(mul 2)]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('ConduitSelfNameNotKeywordError'));
   });
 
   it('::conduit raises ConduitParamsNotVecError when params slot is not a Vec', async () => {
-    const err = await evalQuery('::conduit[42 ~{mul(2)}]');
+    const err = await evalQuery('::conduit[42 ~(mul 2)]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('ConduitParamsNotVecError'));
   });
 
   it('::conduit raises ConduitParamNotKeywordError when a params element is not a Keyword', async () => {
-    const err = await evalQuery('::conduit[[42] ~{mul(2)}]');
+    const err = await evalQuery('::conduit[[42] ~(mul 2)]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('ConduitParamNotKeywordError'));
   });
@@ -282,37 +282,37 @@ describe('default constructor — tag-binding without :impl', () => {
 
 describe('TaggedLit / BareTypeKeyword steps', () => {
   it('TaggedLit leaves a ::tagged step over the step of its payload', async () => {
-    expect(await evalQuery('~{::conduit[[] ~{mul(2)}]} | first | [type /tag /payload]'))
-      .toEqual(await evalQuery('[::tagged ::conduit [[] ~{mul(2)}]]'));
+    expect(await evalQuery('~(::conduit[[] ~(mul 2)]) | first | [type /tag /payload]'))
+      .toEqual(await evalQuery('[::tagged ::conduit [[] ~(mul 2)]]'));
   });
 
   it('BareTypeKeyword leaves the tag name itself', async () => {
-    expect(await evalQuery('~{::conduit} | first')).toEqual(makeTagKeyword('conduit'));
+    expect(await evalQuery('~(::conduit) | first')).toEqual(makeTagKeyword('conduit'));
   });
 });
 
 describe('printValue named conduit paths', () => {
-  it('zero-arity named conduit renders as ::conduit[:name [] ~{body}]', async () => {
+  it('zero-arity named conduit renders as `::conduit[:name [] ~(body)]`', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery(':double mul(2) | env | /:double');
-    expect(printValue(value)).toBe('::conduit[:double [] ~{mul(2)}]');
+    const value = await evalQuery(':double mul 2 | env | /:double');
+    expect(printValue(value)).toBe('::conduit[:double [] ~(mul 2)]');
   });
 
   it('parametric named conduit renders with params in :name [params] body form', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery(':wrap [:p :s] (prepend(p) | append(s)) | env | /:wrap');
+    const value = await evalQuery(':wrap [:p :s] (prepend p | append s) | env | /:wrap');
     // The body source preserves the BindStep's `(…)` ParenGroup
     // wrapper around a Pipeline-shaped body — Primary-only is the
     // grammar's body slot, so a multi-step body lives inside parens.
-    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] ~{(prepend(p) | append(s))}]');
+    expect(printValue(value)).toBe('::conduit[:wrap [:p :s] ~((prepend p | append s))]');
   });
 });
 
 describe('printValue Conduit handles named vs anonymous form', () => {
   it('anonymous Conduit renders as ::conduit[...] tagged literal', async () => {
     const { printValue } = await import('../../src/runtime/format.mjs');
-    const value = await evalQuery('::conduit[[] ~{mul(2)}]');
-    expect(printValue(value)).toBe('::conduit[[] ~{mul(2)}]');
+    const value = await evalQuery('::conduit[[] ~(mul 2)]');
+    expect(printValue(value)).toBe('::conduit[[] ~(mul 2)]');
   });
 });
 
@@ -353,12 +353,12 @@ describe('TagKeyword value mechanics', () => {
 });
 
 describe('parse and apply accept Quote subjects transparently', () => {
-  it('~{code} | parse prints the quote as its text', async () => {
-    expect(await evalQuery('~{5 | mul(2)} | parse')).toBe('5 | mul(2)');
+  it('`~(code) | parse` prints the quote as its text', async () => {
+    expect(await evalQuery('~(5 | mul 2) | parse')).toBe('5 | mul 2');
   });
 
-  it('~{code} | apply(/) runs the Quote source against the subject', async () => {
-    expect(await evalQuery('~{5 | mul(2)} | apply(/)')).toBe(10);
+  it('`~(code) | apply /` runs the Quote source against the subject', async () => {
+    expect(await evalQuery('~(5 | mul 2) | apply /')).toBe(10);
   });
 });
 
@@ -381,7 +381,7 @@ describe('auto-declared ::Tag binding respects fork isolation', () => {
   });
 
   it('an auto-declaration inside a fork leaves no trace in the outer env', async () => {
-    expect(await evalQuery('(::Zap(1)) | env | keys | has(:"::Zap")')).toBe(false);
+    expect(await evalQuery('(::Zap(1)) | env | keys | has :"::Zap"')).toBe(false);
   });
 
   it('a self-referential payload resolves the tag the literal declares', async () => {
@@ -397,28 +397,28 @@ describe('auto-declared ::Tag binding respects fork isolation', () => {
 describe('User-defined tag binding with Quote :impl', () => {
   it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
-      '::wrap {:impl ~{prepend("[") | append("]")}} | "x" | ::wrap"x" | payload'
+      '::wrap {:impl ~(prepend "[" | append "]")} | "x" | ::wrap"x" | payload'
     );
     expect(result).toBe('[x]');
   });
 
   it('Quote body sees the tag-binding payload as its initial pipeValue (read through payload after auto-wrap)', async () => {
     const result = await evalQuery(
-      '::shout {:impl ~{append("!")}} | ::shout"ready" | payload'
+      '::shout {:impl ~(append "!")} | ::shout"ready" | payload'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim append("!") | ::shout {:impl ~{exclaim}} | ::shout"go" | payload'
+      ':exclaim append "!" | ::shout {:impl ~(exclaim)} | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
   });
 
   it('auto-wrap stamps the tag identity on the constructor result', async () => {
     const result = await evalQuery(
-      '::wrap {:impl ~{prepend("[") | append("]")}} | ::wrap"x" | type'
+      '::wrap {:impl ~(prepend "[" | append "]")} | ::wrap"x" | type'
     );
     expect(result).toEqual(makeTagKeyword('wrap'));
   });
@@ -427,14 +427,14 @@ describe('User-defined tag binding with Quote :impl', () => {
     // `tag` runs the constructor, so tagging an instance again hands
     // the constructor an instance of its own tag.
     const result = await evalQuery(
-      '::echo {:impl ~{/}} | ::echo"hi" | tag(::echo) | payload'
+      '::echo {:impl ~(/)} | ::echo"hi" | tag ::echo | payload'
     );
     expect(result).toBe('hi');
   });
 
   it('Quote body that fails on the fail-track propagates the error untagged', async () => {
     const err = await evalQuery(
-      '::strictAdd {:impl ~{add("not-a-number")}} | ::strictAdd(5)'
+      '::strictAdd {:impl ~(add "not-a-number")} | ::strictAdd(5)'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('AddRightNotNumberError'));

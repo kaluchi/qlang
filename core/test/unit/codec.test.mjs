@@ -69,12 +69,12 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Quote via $quote tag', () => {
-    const original = quoteOfSource('mul(2)');
+    const original = quoteOfSource('mul 2');
     const encoded = toTaggedJSON(original);
-    expect(encoded).toEqual({ $quote: 'mul(2)' });
+    expect(encoded).toEqual({ $quote: 'mul 2' });
     const restored = fromTaggedJSON(encoded);
     expect(isQuote(restored)).toBe(true);
-    expect(printQuoteSource(restored)).toBe('mul(2)');
+    expect(printQuoteSource(restored)).toBe('mul 2');
   });
 
   it('reads a tagged envelope under the code tag back as a quote', () => {

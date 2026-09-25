@@ -255,8 +255,8 @@ async function evalPipeline(node, state) {
   //
   // The head rides `|` like every other step unless
   // `node.leadingCombinator` names another (`!|` / `*`), so
-  // `~{| count}` and `~{count}` run alike, and a pipeline-suffix
-  // shape (`~{* add(1)}`, `~{!| /trail}`) replays through `apply`
+  // `~(| count)` and `~(count)` run alike, and a pipeline-suffix
+  // shape (`~(* add 1)`, `~(!| /trail)`) replays through `apply`
   // with the combinator it was written with.
   //
   // A plain comment in head position hands the head to the first
@@ -865,7 +865,7 @@ async function evalOperandCall(node, state) {
     if (dispatched !== null) return dispatched;
   }
 
-  const capturedArgsAst = node.args; // null for bare ident, [] for f(), [...] for f(a,b)
+  const capturedArgsAst = node.args;
 
   if (isFunctionValue(resolved)) {
     // Effect-laundering safety net: if the resolved function is
@@ -892,9 +892,7 @@ async function evalOperandCall(node, state) {
     // fresh state whose pipeValue is the per-invocation input; env
     // writes inside the lambda are local to that call and do not
     // escape.
-    const operandLambdas = capturedArgsAst === null
-      ? []
-      : capturedArgsAst.map(argNode => makeLambda(argNode, state));
+    const operandLambdas = capturedArgsAst.map(argNode => makeLambda(argNode, state));
     // Stash doc comments from the OperandCall node on the lambdas
     // array so the `as` operand can read them without changing
     // the fn(state, lambdas) dispatch signature.
@@ -903,9 +901,9 @@ async function evalOperandCall(node, state) {
     return await applyRule10(resolved, operandLambdas, state);
   }
 
-  // Non-function value: replace pipeValue with it. Captured args
+  // Non-function value: replace pipeValue with it. Modifiers
   // would be a type error since you cannot apply a non-function.
-  if (capturedArgsAst !== null) {
+  if (capturedArgsAst.length > 0) {
     throw new ApplyToNonFunctionError({
       name: lookupName,
       actualType: typeKeyword(resolved),
@@ -953,12 +951,7 @@ async function applyBindingDescriptor(descriptor, node, lookupName, state) {
 async function applyBuiltinDescriptor(descriptor, node, state) {
   const resolvedImpl = resolveBuiltinImpl(descriptor);
 
-  const capturedArgsAst = node.args;
-  const hasArgs = capturedArgsAst !== null;
-
-  const builtinLambdas = hasArgs
-    ? capturedArgsAst.map(argNode => makeLambda(argNode, state))
-    : [];
+  const builtinLambdas = node.args.map(argNode => makeLambda(argNode, state));
   builtinLambdas.docs = node.docs ?? [];
   builtinLambdas.location = node.location;
   return await applyRule10(resolvedImpl, builtinLambdas, state);
@@ -991,13 +984,10 @@ async function applyConduit(conduit, node, lookupName, state) {
     });
   }
 
-  const capturedArgsAst = node.args;
   const expectedArity = conduitParams.length;
 
-  // Build lambdas from captured args at the call site.
-  const conduitLambdas = capturedArgsAst === null
-    ? []
-    : capturedArgsAst.map(argNode => makeLambda(argNode, state));
+  // Build lambdas from the modifiers at the call site.
+  const conduitLambdas = node.args.map(argNode => makeLambda(argNode, state));
 
   // Arity check: exact match required. No auto-curry — partial
   // application is achieved through zero-arity conduit aliases and parametric
@@ -1104,6 +1094,19 @@ function makeLambda(astNode, capturedState) {
   return lambda;
 }
 
+// codeOfModifier(modifierLambda, subject, refusalOf) → lambda
+//
+// The code a slot of kind code receives [D43]: its modifier, evaluated
+// at the call against the subject, is a quote, and the lambda applies it
+// to each input the operand hands it, in the environment of the call.
+// Any other value is refused with `refusalOf(value)`, the site's error,
+// an error value as every value slot refuses one today [D13].
+export async function codeOfModifier(modifierLambda, subject, refusalOf) {
+  const code = await modifierLambda(subject);
+  if (!isQuote(code)) throw refusalOf(code);
+  return makeLambda(astOfQuote(code), modifierLambda.capturedState);
+}
+
 // resolveCapturedConduit(astNode, env) → { conduit, lookupName } | null
 //
 // If astNode is a bare OperandCall identifier (no captured args) that
@@ -1113,7 +1116,7 @@ function makeLambda(astNode, capturedState) {
 // over Map to statically resolve a parametric conduit predicate and
 // dispatch by its `:params` arity without a test-application round-trip.
 export function resolveCapturedConduit(astNode, env) {
-  if (!astNode || astNode.type !== 'OperandCall' || astNode.args !== null) return null;
+  if (!astNode || astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   if (!envHas(env, lookupName)) return null;
   let resolved = envGet(env, lookupName);
@@ -1186,7 +1189,7 @@ export const CONDUIT_PARAMS_FIELD = 'params';
 // expression, a literal, a non-2-param conduit, or an unbound name),
 // so `reduce` lifts its own per-site error.
 export function resolveBinaryReducer(astNode, callerState) {
-  if (astNode.type !== 'OperandCall' || astNode.args !== null) return null;
+  if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   if (!envHas(callerState.env, lookupName)) return null;
   let resolved = envGet(callerState.env, lookupName);

@@ -11,7 +11,7 @@ import { isQuote } from '../../src/types.mjs';
 
 describe('the empty quote', () => {
   it('runs as the identity', async () => {
-    expect(await evalQuery('5 | apply(~{})')).toBe(5);
+    expect(await evalQuery('5 | apply ~()')).toBe(5);
   });
 
   it('reads back from blank text', () => {
@@ -22,7 +22,7 @@ describe('the empty quote', () => {
 describe('isStep — the invariant of a quote', () => {
   it('takes literals, containers of steps, docs, quotes and error literals', async () => {
     const assembled = await evalQuery(
-      '[:k ::T |~~ d ~~| ~{x} !{:k 1} [1] #[2] {:a 3} [1, 2] {"j": 4}] | tag(::quote) | count');
+      '[:k ::T |~~ d ~~| ~(x) !{:k 1} [1] #[2] {:a 3} [1, 2] {"j": 4}] | tag ::quote | count');
     expect(assembled).toBe(10);
   });
 
@@ -43,22 +43,27 @@ describe('assembling steps by hand', () => {
   const tagOf = name => evalQuery(name);
 
   it('a record assembled from its fields reads back as itself', async () => {
-    expect(await evalQuery('{:name :filter :args [~{gt(1)}]} | tag(::call) | [/] | tag(::quote) | parse'))
-      .toBe('filter(gt(1))');
+    expect(await evalQuery('{:name :filter :args [~(gt 1)]} | tag ::call | [/] | tag ::quote | parse'))
+      .toBe('filter ~(gt 1)');
   });
 
   it('a fail wrapper over several steps reads back as another step', async () => {
-    expect(await refusal('~{a | b} | tag(::fail)')).toEqual(await tagOf('::FailReadBackDiffersError'));
+    expect(await refusal('~(a | b) | tag ::fail')).toEqual(await tagOf('::FailReadBackDiffersError'));
   });
 
   it('a wrapper stands in the quote itself and in no container', async () => {
-    expect(await refusal('[[~{f} | tag(::each)]] | tag(::quote)')).toEqual(await tagOf('::QuoteElementNotStepError'));
+    expect(await refusal('[[(~(f) | tag ::each)]] | tag ::quote')).toEqual(await tagOf('::QuoteElementNotStepError'));
   });
 
   it('a declaration stands in a pipeline and in no container or argument head', async () => {
-    expect(await refusal('[[::bind{:name :x :body 1}]] | tag(::quote)')).toEqual(await tagOf('::QuoteElementNotStepError'));
-    expect(await refusal('::call{:name :f :args [[::bind{:name :x :body 1}] | tag(::quote)]}'))
-      .toEqual(await tagOf('::CallReadBackDiffersError'));
+    expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::QuoteElementNotStepError'));
+    expect(await refusal('::call{:name :f :args [::bind{:name :x :body 1}]}'))
+      .toEqual(await tagOf('::CallPayloadNotSchemaError'));
+  });
+
+  it('the body of a declaration may be a command with its modifiers', async () => {
+    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :args [1]}} | [/] | tag ::quote | parse'))
+      .toBe(':six add 1');
   });
 
   it('a keyword body reads back as a keyword of its own', async () => {
@@ -75,7 +80,7 @@ describe('assembling steps by hand', () => {
   });
 
   it('an error under another tag is no step', async () => {
-    expect(await refusal('["x" | add(1)] | tag(::quote)')).toEqual(await tagOf('::QuoteElementNotStepError'));
+    expect(await refusal('[("x" | add 1)] | tag ::quote')).toEqual(await tagOf('::QuoteElementNotStepError'));
   });
 
   it('a required field left out does not fit the schema', async () => {
@@ -84,35 +89,35 @@ describe('assembling steps by hand', () => {
   });
 
   it('an index, a tag name and calls and projections inside a container are steps', async () => {
-    expect(await evalQuery('::proj{:path [:items 0]} | [/] | tag(::quote) | parse')).toBe('/items/0');
-    expect(await evalQuery('::bind{:name ::Point :body {:x 0}} | [/] | tag(::quote) | parse')).toBe('::Point {:x 0}');
-    expect(await evalQuery('~{[count /a]} | filter(true) | parse')).toBe('[count /a]');
+    expect(await evalQuery('::proj{:path [:items 0]} | [/] | tag ::quote | parse')).toBe('/items/0');
+    expect(await evalQuery('::bind{:name ::Point :body {:x 0}} | [/] | tag ::quote | parse')).toBe('::Point {:x 0}');
+    expect(await evalQuery('~([count /a]) | filter ~(true) | parse')).toBe('[count /a]');
   });
 
   it('a documented as stands in a pipeline and in no container', async () => {
-    expect(await refusal('[[~{|~~ note ~~| as(:x)} | first]] | tag(::quote)'))
+    expect(await refusal('[[(~(|~~ note ~~| as :x) | first)]] | tag ::quote'))
       .toEqual(await tagOf('::QuoteElementNotStepError'));
   });
 
   it('a payload that is no Map names no field', async () => {
-    expect(await evalQuery('[1] | tag(::proj) !| [type /field]'))
+    expect(await evalQuery('[1] | tag ::proj !| [type /field]'))
       .toEqual(await evalQuery('[::ProjPayloadNotSchemaError null]'));
   });
 });
 
 describe('printing steps read from text', () => {
   it('a documented as keeps its doc in front', async () => {
-    expect(await evalQuery('~{|~~ note ~~| as(:x)} | parse')).toBe('|~~ note ~~| as(:x)');
+    expect(await evalQuery('~(|~~ note ~~| as :x) | parse')).toBe('|~~ note ~~| as :x');
   });
 
   it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {
-    expect(await evalQuery('~{/"a b"} | parse')).toBe('/"a b"');
-    expect(await evalQuery('~{/:ns/name} | parse')).toBe('/:ns/name');
+    expect(await evalQuery('~(/"a b") | parse')).toBe('/"a b"');
+    expect(await evalQuery('~(/:ns/name) | parse')).toBe('/:ns/name');
   });
 
   it('a quote read from text keeps the tree it was read from', () => {
-    const quote = quoteOfSource('add(1)');
+    const quote = quoteOfSource('add 1');
     expect(isQuote(quote)).toBe(true);
-    expect(printQuoteSource(quote)).toBe('add(1)');
+    expect(printQuoteSource(quote)).toBe('add 1');
   });
 });

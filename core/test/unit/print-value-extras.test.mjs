@@ -25,26 +25,26 @@ import { makeFn } from '../../src/rule10.mjs';
 import { rootState } from '../../src/state.mjs';
 
 describe('printValue — Conduit / Snapshot / Function branches', () => {
-  it('renders a zero-arity named Conduit as ~{::conduit[:name [] }body~{]}', () => {
+  it('renders a zero-arity named Conduit as `::conduit[:name [] ~(body)]`', () => {
     const bodyAst = { type: 'NumberLit', value: 42, text: '42' };
     const conduit = makeConduit(bodyAst, { name: 'answer', params: [] });
     expect(isConduit(conduit)).toBe(true);
-    expect(printValue(conduit)).toBe('::conduit[:answer [] ~{42}]');
+    expect(printValue(conduit)).toBe('::conduit[:answer [] ~(42)]');
   });
 
   it('renders a parametric named Conduit with [:params] in declaration order', () => {
-    const conduit = makeConduit(parse('add(x, y)'), { name: 'sum2', params: ['x', 'y'] });
-    expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] ~{add(x, y)}]');
+    const conduit = makeConduit(parse('add x y'), { name: 'sum2', params: ['x', 'y'] });
+    expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] ~(add x y)]');
   });
 
-  it('docs do not appear in value-literal — they are declaration metadata, reachable via the ~{:name | docs} axis', () => {
+  it('docs do not appear in value-literal — they are declaration metadata, reachable via the `:name | docs` axis', () => {
     const bodyAst = { type: 'NumberLit', value: 7, text: '7' };
     const conduit = makeConduit(bodyAst, {
       name: 'lucky',
       params: [],
       docs: [' first remark ', ' second remark ']
     });
-    expect(printValue(conduit)).toBe('::conduit[:lucky [] ~{7}]');
+    expect(printValue(conduit)).toBe('::conduit[:lucky [] ~(7)]');
   });
 
   it('renders a Snapshot by passing through to its wrapped value', () => {
@@ -53,7 +53,7 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
     expect(printValue(snap)).toBe('[1 2 3]');
   });
 
-  it('renders a Doc value as ~{|~~content~~|} block form', () => {
+  it('renders a Doc value as `|~~content~~|` block form', () => {
     const doc = makeDoc(' hello ');
     expect(isDoc(doc)).toBe(true);
     expect(printValue(doc)).toBe('|~~ hello ~~|');
@@ -236,7 +236,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   // Function values in cell positions reach the dispatch only when a
   // user explicitly piped them in (e.g. `env | /name | wrap-in-Map |
   // table`). Tests build the Vec directly so the cell handlers fire.
-  it('renders a Conduit-valued cell as ~{::conduit[:name [] }body~{]}', async () => {
+  it('renders a Conduit-valued cell as `::conduit[:name [] ~(body)]`', async () => {
     const bodyAst = { type: 'NumberLit', value: 99, text: '99' };
     const conduit = makeConduit(bodyAst, { name: 'ninetyNine', params: [] });
     const row = new Map([['fn', conduit]]);
@@ -244,7 +244,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       rootState([row], new Map()),
       []
     );
-    expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~{99}]');
+    expect(rendered.pipeValue).toContain('::conduit[:ninetyNine [] ~(99)]');
   });
 
   it('renders a Snapshot-valued cell as the unwrapped value (round-trip-safe)', async () => {
@@ -261,7 +261,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       []
     );
     expect(rendered.pipeValue).toContain('42');
-    expect(rendered.pipeValue).not.toContain('as(:cached)');
+    expect(rendered.pipeValue).not.toContain('as :cached');
   });
 
   it('table refuses a Function-valued cell — invariant fires through renderCell', async () => {
@@ -284,7 +284,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
       rootState([row], new Map()),
       []
     );
-    expect(rendered.pipeValue).toContain('::conduit[:inner [] ~{7}]');
+    expect(rendered.pipeValue).toContain('::conduit[:inner [] ~(7)]');
   });
 
   it('renders a Vec-of-Snapshot cell — INLINE handler recurses on unwrapped value', async () => {
@@ -297,7 +297,7 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
     // Inline-form recurses on the wrapped String "hi", which
     // round-trips through `escapeQlangStringLiteral` to `"hi"`.
     expect(rendered.pipeValue).toContain('"hi"');
-    expect(rendered.pipeValue).not.toContain('as(:greet)');
+    expect(rendered.pipeValue).not.toContain('as :greet');
   });
 
   it('table refuses a Vec-of-Function cell — invariant fires through renderInline', async () => {
@@ -313,21 +313,21 @@ describe('table — Conduit / Snapshot / Function inside row Maps', () => {
   });
 
   it('renders a Vec-of-Quote cell — INLINE handler for Quote fires', async () => {
-    const row = new Map([['q', [quoteOfSource('mul(2)')]]]);
+    const row = new Map([['q', [quoteOfSource('mul 2')]]]);
     const rendered = await table.fn(
       rootState([row], new Map()),
       []
     );
-    expect(rendered.pipeValue).toContain('~{mul(2)}');
+    expect(rendered.pipeValue).toContain('~(mul 2)');
   });
 
   it('renders a Quote-valued cell — CELL_HANDLERS.Quote fires', async () => {
-    const row = new Map([['q', quoteOfSource('add(1)')]]);
+    const row = new Map([['q', quoteOfSource('add 1')]]);
     const rendered = await table.fn(
       rootState([row], new Map()),
       []
     );
-    expect(rendered.pipeValue).toContain('~{add(1)}');
+    expect(rendered.pipeValue).toContain('~(add 1)');
   });
 
   it('renders a Doc-valued cell — CELL_HANDLERS.Doc fires', async () => {
@@ -557,11 +557,11 @@ describe('a host comparator answering NaN lifts at the sortWith seam', () => {
     const { NumericDomainError } = await import('../../src/errors.mjs');
     const session = await createSession();
     session.bind('nanCmp', NaN);
-    const { result } = await session.evalCell('[3 1 2] | sortWith(nanCmp) !| type');
+    const { result } = await session.evalCell('[3 1 2] | sortWith ~(nanCmp) !| type');
     expect(result.name).toBe('SortWithCmpResultNaNError');
-    const { error } = await session.evalCell('[3 1 2] | sortWith(nanCmp)');
+    const { error } = await session.evalCell('[3 1 2] | sortWith ~(nanCmp)');
     expect(error).toBeNull();
-    const originalError = (await session.evalCell('[3 1 2] | sortWith(nanCmp)')).result.originalError;
+    const originalError = (await session.evalCell('[3 1 2] | sortWith ~(nanCmp)')).result.originalError;
     expect(originalError).toBeInstanceOf(NumericDomainError);
     expect(originalError.kind).toBe('numericDomain');
   });

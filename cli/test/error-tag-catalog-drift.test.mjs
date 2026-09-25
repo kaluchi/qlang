@@ -6,7 +6,7 @@
 // A host operand's per-site error class records its structural facts
 // where the factory call builds it, and names itself again as a
 // `::Tag` binding in `cli/lib/qlang/*.qlang` that carries the prose
-// and the `~{…}` examples. The namespace-resolution pass stamps the
+// and the `~(…)` examples. The namespace-resolution pass stamps the
 // recorded facts onto that binding, so each fact has one spelling.
 //
 // The two halves drift silently: a renamed class leaves `result !|
@@ -88,7 +88,7 @@ const session = await createSession({
   })
 });
 await installCliCatalog(session);
-const { result: tagBindings } = await session.evalCell('manifest(:tag)');
+const { result: tagBindings } = await session.evalCell('manifest :tag');
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 describe('CLI host operands — every throw site carries a catalog tag', () => {

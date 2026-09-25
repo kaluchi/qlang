@@ -189,7 +189,7 @@ describe('parse — Set literal', () => {
   });
 
   it('parses a multi-element Set with commas', () => {
-    const ast = parse('#[:a, :b, :c]');
+    const ast = parse('#[:a :b :c]');
     expect(ast.elements).toHaveLength(3);
   });
 });
@@ -213,25 +213,25 @@ describe('parse — OperandCall', () => {
     const ast = parse('count');
     expect(ast.type).toBe('OperandCall');
     expect(ast.name).toBe('count');
-    expect(ast.args).toBeNull();
+    expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with @ prefix', () => {
     const ast = parse('@callers');
     expect(ast.type).toBe('OperandCall');
     expect(ast.name).toBe('@callers');
-    expect(ast.args).toBeNull();
+    expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with _ prefix', () => {
     const ast = parse('_private');
     expect(ast.type).toBe('OperandCall');
     expect(ast.name).toBe('_private');
-    expect(ast.args).toBeNull();
+    expect(ast.args).toEqual([]);
   });
 
   it('parses a single-arg call', () => {
-    const ast = parse('add(2)');
+    const ast = parse('add 2');
     expect(ast.type).toBe('OperandCall');
     expect(ast.name).toBe('add');
     expect(ast.args).toHaveLength(1);
@@ -239,21 +239,21 @@ describe('parse — OperandCall', () => {
   });
 
   it('parses a multi-arg call', () => {
-    const ast = parse('mul(/price, /qty)');
+    const ast = parse('mul /price /qty');
     expect(ast.args).toHaveLength(2);
     expect(ast.args[0].type).toBe('Projection');
     expect(ast.args[1].type).toBe('Projection');
   });
 
   it('parses a zero-arg call form', () => {
-    const ast = parse('count()');
+    const ast = parse('count');
     expect(ast.args).toEqual([]);
   });
 });
 
 describe('parse — bindings: BindStep and as operand', () => {
   it('parses as(:name) as an OperandCall', () => {
-    const ast = parse('as(:roster)');
+    const ast = parse('as :roster');
     expect(ast.type).toBe('OperandCall');
     expect(ast.name).toBe('as');
     expect(ast.args).toHaveLength(1);
@@ -262,7 +262,7 @@ describe('parse — bindings: BindStep and as operand', () => {
   });
 
   it('parses :name body as a BindStep', () => {
-    const ast = parse(':double mul(2)');
+    const ast = parse(':double mul 2');
     expect(ast.type).toBe('BindStep');
     expect(ast.key.type).toBe('Keyword');
     expect(ast.key.name).toBe('double');
@@ -288,13 +288,13 @@ describe('parse — Pipeline composition', () => {
   });
 
   it('parses a pipeline with distribute', () => {
-    const ast = parse('[1 2 3] * add(1)');
+    const ast = parse('[1 2 3] * add 1');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].combinator).toBe('*');
   });
 
   it('parses as(:name) inside a pipeline', () => {
-    const ast = parse('foo | as(:snapshot) | bar');
+    const ast = parse('foo | as :snapshot | bar');
     expect(ast.steps).toHaveLength(3);
     expect(ast.steps[1].step.type).toBe('OperandCall');
     expect(ast.steps[1].step.name).toBe('as');
@@ -311,13 +311,13 @@ describe('parse — Pipeline composition', () => {
 
 describe('parse — ParenGroup', () => {
   it('parses a parenthesized sub-pipeline', () => {
-    const ast = parse('([1 2] * add(1))');
+    const ast = parse('([1 2] * add 1)');
     expect(ast.type).toBe('ParenGroup');
     expect(ast.pipeline.type).toBe('Pipeline');
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs * (as(:elem) | {:k /id :v elem})');
+    const ast = parse('xs * (as :elem | {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });
@@ -335,7 +335,7 @@ describe('parse — comments and whitespace', () => {
   it('handles multi-line pipelines', () => {
     const ast = parse(`
       [1 2 3 4 5]
-        | filter(gt(2))
+        | filter ~(gt 2)
         | count
     `);
     expect(ast.type).toBe('Pipeline');
@@ -345,7 +345,7 @@ describe('parse — comments and whitespace', () => {
   it('stamps the absorbed marker on the follower of a plain comment and keeps an explicit combinator', () => {
     const absorbedHead = parse('|~ note ~| count');
     expect(absorbedHead.steps[1].combinator).toBe(null);
-    const explicitHead = parse('(|~ note ~| * add(1))').pipeline;
+    const explicitHead = parse('(|~ note ~| * add 1)').pipeline;
     expect(explicitHead.steps[1].combinator).toBe('*');
     const midPipeline = parse('[1] |~ note ~| count');
     expect(midPipeline.steps[1].combinator).toBe('|');
@@ -479,22 +479,22 @@ describe('parse — quoted keyword and projection segments', () => {
 
 describe('parse — per-node location and text', () => {
   it('every produced node carries .location with start/end offsets', () => {
-    const ast = parse('add(2, 3)');
+    const ast = parse('add 2 3');
     expect(ast.location.start.offset).toBe(0);
-    expect(ast.location.end.offset).toBe(9);
+    expect(ast.location.end.offset).toBe(7);
     expect(ast.args[0].location.start.offset).toBe(4);
     expect(ast.args[0].location.end.offset).toBe(5);
   });
 
   it('every produced node carries .text with the matched substring', () => {
-    const ast = parse('add(2, 3)');
-    expect(ast.text).toBe('add(2, 3)');
+    const ast = parse('add 2 3');
+    expect(ast.text).toBe('add 2 3');
     expect(ast.args[0].text).toBe('2');
     expect(ast.args[1].text).toBe('3');
   });
 
   it('text matches source.substring(location.start.offset, location.end.offset)', () => {
-    const source = '[1 2] | filter(gt(0))';
+    const source = '[1 2] | filter ~(gt 0)';
     const ast = parse(source);
     expect(source.substring(ast.location.start.offset, ast.location.end.offset))
       .toBe(ast.text);
@@ -502,24 +502,24 @@ describe('parse — per-node location and text', () => {
 });
 
 describe('parse — projection with digit-led / hyphen-led bare segments', () => {
-  it('parses ~{/0} as a single-segment projection with key "0"', () => {
+  it('parses `/0` as a single-segment projection with key "0"', () => {
     const ast = parse('/0');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['0']);
   });
 
-  it('parses ~{/-1} as a single-segment projection with key "-1"', () => {
+  it('parses `/-1` as a single-segment projection with key "-1"', () => {
     const ast = parse('/-1');
     expect(ast.type).toBe('Projection');
     expect(ast.keys).toEqual(['-1']);
   });
 
-  it('parses ~{/items/0/name} as a three-segment mixed path', () => {
+  it('parses `/items/0/name` as a three-segment mixed path', () => {
     const ast = parse('/items/0/name');
     expect(ast.keys).toEqual(['items', '0', 'name']);
   });
 
-  it('parses ~{/rows/-1/0} as a three-segment mixed path with negative index', () => {
+  it('parses `/rows/-1/0` as a three-segment mixed path with negative index', () => {
     const ast = parse('/rows/-1/0');
     expect(ast.keys).toEqual(['rows', '-1', '0']);
   });
@@ -532,7 +532,7 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
   });
 });
 
-describe('parse — MapLit whitespace tolerance around string-key ~{:}', () => {
+describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
     const ast = parse('{ "name" : "alice" }');
     expect(ast.type).toBe('JsonObjectLit');
@@ -760,14 +760,14 @@ describe('parse — block comment nesting', () => {
       expect(step.content).toBe(' holds a |~~| line-doc mention here ');
     });
 
-    it('plain block preserves Quote span ~{…} verbatim with nested plain inside', () => {
-      const step = blockStep('|~ wraps ~{ inner |~ q ~| pipe } closing ~|\n| 1');
-      expect(step.content).toBe(' wraps ~{ inner |~ q ~| pipe } closing ');
+    it('plain block preserves Quote span ~(…) verbatim with nested plain inside', () => {
+      const step = blockStep('|~ wraps ~( inner |~ q ~| pipe ) closing ~|\n| 1');
+      expect(step.content).toBe(' wraps ~( inner |~ q ~| pipe ) closing ');
     });
 
     it('plain block preserves Quote span enclosing bare ~|', () => {
-      const step = blockStep('|~ keeps ~{ literal ~| close } afterward ~|\n| 1');
-      expect(step.content).toBe(' keeps ~{ literal ~| close } afterward ');
+      const step = blockStep('|~ keeps ~( literal ~| close ) afterward ~|\n| 1');
+      expect(step.content).toBe(' keeps ~( literal ~| close ) afterward ');
     });
 
     it('plain block preserves newlines verbatim across deep nesting', () => {
@@ -941,7 +941,7 @@ describe('parse — block comment nesting', () => {
       '|~ a ~|',
       '|~ outer |~ inner ~| tail ~|',
       '|~ A |~ B |~ C ~| D ~| E ~|',
-      '|~ wraps ~{ inner |~ q ~| } closing ~|',
+      '|~ wraps ~( inner |~ q ~| ) closing ~|',
       '|~ multi\n  line\n  with |~ nested ~| inside ~|',
       '|~~ outer |~~ inner ~~| more ~~|',
       '|~~ holds |~ plain ~| inline ~~|'

@@ -52,7 +52,7 @@ describe('BootstrapCatalogNotLoadedError', () => {
   // reads it rather than handing every session an env whose first
   // `count` surfaces `::UnresolvedIdentifierError`.
   const brokenFamilyLocator = async (namespaceName) => {
-    if (namespaceName === 'qlang/core') return { source: 'use([:qlang/broken])' };
+    if (namespaceName === 'qlang/core') return { source: 'use [:qlang/broken]' };
     if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
     return null;
   };
@@ -69,7 +69,7 @@ describe('BootstrapCatalogNotLoadedError', () => {
 
   it('names the tag the root answered with, whichever it is', async () => {
     const missingFamilyLocator = async (namespaceName) =>
-      namespaceName === 'qlang/core' ? { source: 'use([:qlang/absent])' } : null;
+      namespaceName === 'qlang/core' ? { source: 'use [:qlang/absent]' } : null;
     let thrown = null;
     try { await buildLangRuntime(missingFamilyLocator); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
@@ -84,7 +84,7 @@ describe('use without a locator in env raises UseNamespaceNotFoundError', () => 
     // explicit no-locator throw branch in resolveNamespaceEnv.
     const env = new Map(await langRuntime());
     env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use(:absolutely-nonexistent-namespace) !| type', env);
+    const result = await evalQuery('use :absolutely-nonexistent-namespace !| type', env);
     expect(result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
   });
 });

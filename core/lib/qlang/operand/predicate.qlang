@@ -15,8 +15,8 @@
       (null or false), false otherwise. 0, "", [], {}, #[] are
       all truthy.
 
-      ~{null | not | eq(true)}
-      ~{0 | not | eq(false)}
+      ~(null | not | eq true)
+      ~(0 | not | eq false)
   ~~|
   ::builtin{:impl :qlang/prim/not
             :category :predicate
@@ -29,8 +29,8 @@
       structural equality (deep recursive comparison across Maps,
       Vecs, Sets, and scalars).
 
-      ~{42 | eq(42) | eq(true)}
-      ~{{:a 1} | eq({:a 1}) | eq(true)}
+      ~(42 | eq 42 | eq true)
+      ~({:a 1} | eq {:a 1} | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/eq
             :category :predicate
@@ -40,10 +40,10 @@
    }
 
 :gt
-  |~~ Subject-first ordering: a | gt(b) computes a > b. Both
+  |~~ Subject-first ordering: `a | gt b` computes a > b. Both
       operands must be comparable scalars of the same type.
 
-      ~{10 | gt(5) | eq(true)}
+      ~(10 | gt 5 | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/gt
             :category :predicate
@@ -53,17 +53,17 @@
 
 ::GtOperandsNotComparableError
   |~~ Operands of `gt` are not pairwise-comparable scalars.
-      ~{
-        1 | gt("x")
+      ~(
+        1 | gt "x"
         !| [type /leftType /rightType]
-        |  eq([::GtOperandsNotComparableError :number :string])
-       }
+        |  eq [::GtOperandsNotComparableError :number :string]
+       )
   ~~|
 
 :lt
-  |~~ Subject-first ordering: a | lt(b) computes a < b.
+  |~~ Subject-first ordering: `a | lt b` computes a < b.
 
-      ~{5 | lt(10) | eq(true)}
+      ~(5 | lt 10 | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/lt
             :category :predicate
@@ -73,17 +73,17 @@
 
 ::LtOperandsNotComparableError
   |~~ Operands of `lt` are not pairwise-comparable scalars.
-      ~{
-        1 | lt("x")
+      ~(
+        1 | lt "x"
         !| [type /leftType /rightType]
-        |  eq([::LtOperandsNotComparableError :number :string])
-       }
+        |  eq [::LtOperandsNotComparableError :number :string]
+       )
   ~~|
 
 :gte
-  |~~ Subject-first ordering: a | gte(b) computes a >= b.
+  |~~ Subject-first ordering: `a | gte b` computes a >= b.
 
-      ~{10 | gte(10) | eq(true)}
+      ~(10 | gte 10 | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/gte
             :category :predicate
@@ -93,17 +93,17 @@
 
 ::GteOperandsNotComparableError
   |~~ Operands of `gte` are not pairwise-comparable scalars.
-      ~{
-        1 | gte("x")
+      ~(
+        1 | gte "x"
         !| [type /leftType /rightType]
-        |  eq([::GteOperandsNotComparableError :number :string])
-       }
+        |  eq [::GteOperandsNotComparableError :number :string]
+       )
   ~~|
 
 :lte
-  |~~ Subject-first ordering: a | lte(b) computes a <= b.
+  |~~ Subject-first ordering: `a | lte b` computes a <= b.
 
-      ~{10 | lte(10) | eq(true)}
+      ~(10 | lte 10 | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/lte
             :category :predicate
@@ -113,11 +113,11 @@
 
 ::LteOperandsNotComparableError
   |~~ Operands of `lte` are not pairwise-comparable scalars.
-      ~{
-        1 | lte("x")
+      ~(
+        1 | lte "x"
         !| [type /leftType /rightType]
-        |  eq([::LteOperandsNotComparableError :number :string])
-       }
+        |  eq [::LteOperandsNotComparableError :number :string]
+       )
   ~~|
 
 :and
@@ -126,8 +126,8 @@
       `filter` / `every` / `if` to compose multi-clause predicates
       over a single subject.
 
-      ~{{:active true :age 25} | and(/active, /age | gte(18)) | eq(true)}
-      ~{{:active false :age 25} | and(/active, /age | gte(18)) | eq(false)}
+      ~({:active true :age 25} | and /active (/age | gte 18) | eq true)
+      ~({:active false :age 25} | and /active (/age | gte 18) | eq false)
   ~~|
   ::builtin{:impl :qlang/prim/and
             :category :predicate
@@ -140,9 +140,9 @@
   |~~ Disjunction across captured sub-pipelines: each fires
       against pipeValue, at least one result must be truthy.
 
-      ~{5  | or(eq(5), eq(10)) | eq(true)}
-      ~{7  | or(eq(5), eq(10)) | eq(false)}
-      ~{{:role "admin"} | or(/role | eq("admin"), /role | eq("owner")) | eq(true)}
+      ~(5  | or (eq 5) (eq 10) | eq true)
+      ~(7  | or (eq 5) (eq 10) | eq false)
+      ~({:role "admin"} | or (/role | eq "admin") (/role | eq "owner") | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/or
             :category :predicate

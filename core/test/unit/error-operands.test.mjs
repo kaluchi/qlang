@@ -22,7 +22,7 @@ describe('error operand', () => {
   });
 
   it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
-    const evalResult = await evalQuery('null | error("not-a-number" | add(1)) !| type');
+    const evalResult = await evalQuery('null | error ("not-a-number" | add 1) !| type');
     expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 });
@@ -56,7 +56,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('distribute of add(10) over mixed elements produces per-element errors a fail-track predicate selects', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] * add(10) | filter(false !| true) | count');
+    const evalResult = await evalQuery('[1 "x" 3] * add 10 | filter ~(false !| true) | count');
     expect(evalResult).toBe(1);
   });
 
@@ -69,7 +69,7 @@ describe('fail-track dispatch through ParenGroup and conduit', () => {
   });
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | as(:t) | 42 | apply(t) !| type');
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | as :t | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
   });
 });
@@ -122,7 +122,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
 describe('json operand on error values inside containers', () => {
   it('renders error value as $error wrapper when inside Vec', async () => {
     // [1 "x" 3] * add(10) produces [11 error 13]; json renders the Vec
-    const evalResult = await evalQuery('[1 "x" 3] * add(10) | json');
+    const evalResult = await evalQuery('[1 "x" 3] * add 10 | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('$error');
   });
@@ -154,38 +154,38 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('add left non-number → AddLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | add(1)');
+    const caughtErr = await catchOriginalError('"x" | add 1');
     expect(caughtErr.name).toBe('AddLeftNotNumberError');
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
   it('add right non-number → AddRightNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('1 | add("x")');
+    const caughtErr = await catchOriginalError('1 | add "x"');
     expect(caughtErr.name).toBe('AddRightNotNumberError');
   });
 
   it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
-    const caughtErr = await catchOriginalError('"x" | sub(1)');
+    const caughtErr = await catchOriginalError('"x" | sub 1');
     expect(caughtErr.name).toBe('SubLeftNotNumberError');
   });
 
   it('mul left non-number → MulLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | mul(1)');
+    const caughtErr = await catchOriginalError('"x" | mul 1');
     expect(caughtErr.name).toBe('MulLeftNotNumberError');
   });
 
   it('div left non-number → DivLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | div(1)');
+    const caughtErr = await catchOriginalError('"x" | div 1');
     expect(caughtErr.name).toBe('DivLeftNotNumberError');
   });
 
   it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
-    const caughtErr = await catchOriginalError('"x" | prepend(42)');
+    const caughtErr = await catchOriginalError('"x" | prepend 42');
     expect(caughtErr.name).toBe('PrependPrefixNotStringError');
   });
 
   it('append modifier non-string → AppendSuffixNotStringError', async () => {
-    const caughtErr = await catchOriginalError('"x" | append(42)');
+    const caughtErr = await catchOriginalError('"x" | append 42');
     expect(caughtErr.name).toBe('AppendSuffixNotStringError');
   });
 
@@ -197,14 +197,14 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('gt across types → GtOperandsNotComparableError', async () => {
-    const caughtErr = await catchOriginalError('"a" | gt(5)');
+    const caughtErr = await catchOriginalError('"a" | gt 5');
     expect(caughtErr.name).toBe('GtOperandsNotComparableError');
     expect(caughtErr.context.leftType.name).toBe('string');
     expect(caughtErr.context.rightType.name).toBe('number');
   });
 
   it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
-    const caughtErr = await catchOriginalError('"a" | lt(5)');
+    const caughtErr = await catchOriginalError('"a" | lt 5');
     expect(caughtErr.name).toBe('LtOperandsNotComparableError');
   });
 
@@ -216,7 +216,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('distribute on non-sequence → DistributeSubjectNotSequenceError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} * add(1)');
+    const caughtErr = await catchOriginalError('{:a 1} * add 1');
     expect(caughtErr.name).toBe('DistributeSubjectNotSequenceError');
     expect(caughtErr.context.actualType.name).toBe('map');
   });
@@ -225,7 +225,7 @@ describe('per-site error classes carry unique identity', () => {
     // Use `as` to bind a raw value (snapshot), not a conduit.
     // Snapshot-unwrap produces a non-function, so captured args trigger
     // ApplyToNonFunctionError on the unwrapped value.
-    const caughtErr = await catchOriginalError('5 | as(:five) | five(42)');
+    const caughtErr = await catchOriginalError('5 | as :five | five 42');
     expect(caughtErr.name).toBe('ApplyToNonFunctionError');
     expect(caughtErr.context.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
@@ -237,26 +237,26 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('filter on non-container → FilterSubjectNotContainerError', async () => {
-    const caughtErr = await catchOriginalError('42 | filter(gt(1))');
+    const caughtErr = await catchOriginalError('42 | filter ~(gt 1)');
     expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
   });
 
   it('at on non-Vec-or-Map → AtSubjectNotSequenceOrMapError', async () => {
-    const caughtErr = await catchOriginalError('42 | at(0)');
+    const caughtErr = await catchOriginalError('42 | at 0');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtSubjectNotSequenceOrMapError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} | at(42)');
+    const caughtErr = await catchOriginalError('{:a 1} | at 42');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('AtKeyNotKeywordOrStringError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('has with non-keyword-and-non-string key on Map → HasKeyNotKeywordOrStringError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} | has(42)');
+    const caughtErr = await catchOriginalError('{:a 1} | has 42');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('HasKeyNotKeywordOrStringError');
     expect(caughtErr.context.actualType.name).toBe('number');
@@ -277,7 +277,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('tag with non-TagKeyword captured-arg → TagModifierNotTagKeywordError', async () => {
-    const caughtErr = await catchOriginalError('42 | tag(:foo)');
+    const caughtErr = await catchOriginalError('42 | tag :foo');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
     expect(caughtErr.context.actualType.name).toBe('keyword');
@@ -289,7 +289,7 @@ describe('per-site error classes carry unique identity', () => {
     // the surface produced split-then-swapped pairs:
     // `[value, tag] | tag(/0, /1)` mints the same instance as
     // `value | tag(tag)`.
-    const r = await evalQuery('[42 ::Box] | tag(/0, /1) | type');
+    const r = await evalQuery('[42 ::Box] | tag /0 /1 | type');
     expect(r).toEqual(makeTagKeyword('Box'));
   });
 
@@ -322,24 +322,24 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('take count non-integer → TakeCountNotIntegerError', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | take("x")');
+    const caughtErr = await catchOriginalError('[1 2 3] | take "x"');
     expect(caughtErr.name).toBe('TakeCountNotIntegerError');
   });
 
   it('drop count non-integer → DropCountNotIntegerError (distinct from take)', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | drop("x")');
+    const caughtErr = await catchOriginalError('[1 2 3] | drop "x"');
     expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
   it('reduce on non-sequence → ReduceSubjectNotSequenceError', async () => {
-    const caughtErr = await catchOriginalError('42 | reduce(0, add)');
+    const caughtErr = await catchOriginalError('42 | reduce 0 ~(add)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('ReduceSubjectNotSequenceError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('reduce with a non-binary reducer → ReduceReducerNotBinaryError (distinct from subject site)', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | reduce(0, 42)');
+    const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('ReduceReducerNotBinaryError');
   });
@@ -347,15 +347,15 @@ describe('per-site error classes carry unique identity', () => {
   it('all per-site type errors inherit QlangTypeError and kind', async () => {
     const queries = [
       '42 | count',
-      '"x" | add(1)',
+      '"x" | add 1',
       '[1 "two"] | sum',
-      '"a" | gt(5)',
+      '"a" | gt 5',
       '42 | /name',
-      '{:a 1} * add(1)',
-      '5 | as(:five) | five(42)',
+      '{:a 1} * add 1',
+      '5 | as :five | five 42',
       '42 | use',
-      '42 | reduce(0, add)',
-      '[1 2 3] | reduce(0, 42)'
+      '42 | reduce 0 ~(add)',
+      '[1 2 3] | reduce 0 ~(42)'
     ];
     for (const q of queries) {
       const caughtErr = await catchOriginalError(q);
@@ -377,16 +377,16 @@ describe('per-site error classes carry unique identity', () => {
       '42 | sort',         // SortNaturalSubjectNotSequenceError
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
-      '"a" | add(1)',      // AddLeftNotNumberError
-      '"a" | sub(1)',      // SubLeftNotNumberError
-      '"a" | mul(1)',      // MulLeftNotNumberError
-      '"a" | div(1)',      // DivLeftNotNumberError
-      '"a" | gt(5)',       // GtOperandsNotComparableError
-      '"a" | lt(5)',       // LtOperandsNotComparableError
+      '"a" | add 1',      // AddLeftNotNumberError
+      '"a" | sub 1',      // SubLeftNotNumberError
+      '"a" | mul 1',      // MulLeftNotNumberError
+      '"a" | div 1',      // DivLeftNotNumberError
+      '"a" | gt 5',       // GtOperandsNotComparableError
+      '"a" | lt 5',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '{:a 1} * add(1)',   // DistributeSubjectNotSequenceError
-      '42 | reduce(0, add)',   // ReduceSubjectNotSequenceError
-      '[1 2 3] | reduce(0, 42)' // ReduceReducerNotBinaryError
+      '{:a 1} * add 1',   // DistributeSubjectNotSequenceError
+      '42 | reduce 0 ~(add)',   // ReduceSubjectNotSequenceError
+      '[1 2 3] | reduce 0 ~(42)' // ReduceReducerNotBinaryError
     ];
     for (const q of queries) {
       names.add((await catchOriginalError(q)).name);
@@ -399,14 +399,14 @@ describe('per-site error classes carry unique identity', () => {
 
 describe('coalesce / firstTruthy arityError sites carry unique per-site identity', () => {
   it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchOriginalError('{} | coalesce()');
+    const caughtErr = await catchOriginalError('{} | coalesce');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 
   it('firstTruthy with zero captured args raises FirstTruthyNoAlternativesError as an ArityError', async () => {
-    const caughtErr = await catchOriginalError('{} | firstTruthy()');
+    const caughtErr = await catchOriginalError('{} | firstTruthy');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arityError');
     expect(caughtErr.name).toBe('FirstTruthyNoAlternativesError');

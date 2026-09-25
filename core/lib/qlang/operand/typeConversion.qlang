@@ -8,15 +8,15 @@
   |~~ String↔Keyword involution. On a String subject, produces the
       keyword whose name is that string. On a Keyword subject,
       extracts the name as a String. The two directions are inverse:
-      ~{"foo" | keyword | keyword} yields ~{"foo"}.
+      ~("foo" | keyword | keyword) yields ~("foo").
       Bridges the String world (JSON data, template building) and
       the Keyword world (Map key syntax, enum discriminators).
 
-      ~{"foo" | keyword | eq(:foo)}
-      ~{:foo | keyword | eq("foo")}
-      ~{"bar" | keyword | keyword | eq("bar")}
-      ~{"qlang/error" | keyword | eq(:qlang/error)}
-      ~{:"foo bar" | keyword | eq("foo bar")}
+      ~("foo" | keyword | eq :foo)
+      ~(:foo | keyword | eq "foo")
+      ~("bar" | keyword | keyword | eq "bar")
+      ~("qlang/error" | keyword | eq :qlang/error)
+      ~(:"foo bar" | keyword | eq "foo bar")
   ~~|
   ::builtin{:impl :qlang/prim/keyword
             :category :typeConversion
@@ -25,26 +25,26 @@
 
 ::KeywordSubjectNotStringOrKeywordError
   |~~ `keyword` involution requires a String or Keyword subject.
-      ~{
+      ~(
         42 | keyword
         !| [type /actualType]
-        |  eq([::KeywordSubjectNotStringOrKeywordError :number])
-       }
+        |  eq [::KeywordSubjectNotStringOrKeywordError :number]
+       )
   ~~|
 
 :payload
   |~~ TaggedInstance split — opaque-unwrap of a `::Tag<payload>`
-      value into its captured payload value. Pair with `tag(::Foo)`
-      for the round-trip: `value | tag(::Foo) | payload | eq(value)`
+      value into its captured payload value. Pair with `tag ::Foo`
+      for the round-trip: `value | tag ::Foo | payload | eq value`
       on any qlang value. The dedicated operand sidesteps the
       `/payload` Map-field projection, which would expose the
       wrapper Map's internal shape; `payload` reads identity
       through the JS-header `tag` slot and returns the payload
       slot's value directly.
 
-      ~{::Box {} | ::Box[42] | payload | eq([42])}
-      ~{::Pair {} | ::Pair[1 2] | payload | eq([1 2])}
-      ~{::Note {} | ::Note"hello" | payload | eq("hello")}
+      ~(::Box {} | ::Box[42] | payload | eq [42])
+      ~(::Pair {} | ::Pair[1 2] | payload | eq [1 2])
+      ~(::Note {} | ::Note"hello" | payload | eq "hello")
   ~~|
   ::builtin{:impl :qlang/prim/payload
             :category :typeConversion
@@ -54,11 +54,11 @@
 ::PayloadSubjectNotTaggedInstanceError
   |~~ `payload` requires a TaggedInstance subject (a value built
       through a `::Tag<payload>` constructor invocation).
-      ~{
+      ~(
         42 | payload
         !| [type /actualType]
-        |  eq([::PayloadSubjectNotTaggedInstanceError :number])
-       }
+        |  eq [::PayloadSubjectNotTaggedInstanceError :number]
+       )
   ~~|
 
 :tag
@@ -73,24 +73,24 @@
               recovers the same TaggedInstance for composite-
               shape payloads.
 
-        bound `value | tag(::Foo)` — subject becomes the wrapped
+        bound `value | tag ::Foo` — subject becomes the wrapped
               value, captured TagKeyword becomes identity.
 
-        full  `tag(value-expr, tag-expr)` — both args captured,
+        full  `tag value-expr tag-expr` — both args captured,
               pipeValue is context. Compact rebuild patterns:
-              `pair | tag(/1, /0)` reorders Vec elements into
+              `pair | tag /1 /0` reorders Vec elements into
               the operand's `value, tag` order.
 
       A TaggedInstance subject (bound form) wraps into a nested
-      layer (`tagged | tag(::Outer)` → `::Outer[tagged]`); to
+      layer (`tagged | tag ::Outer` → `::Outer[tagged]`); to
       replace identity rather than nest, route through
-      `tagged | payload | tag(::Other)`.
+      `tagged | payload | tag ::Other`.
 
-      ~{42 | tag(::Box) | payload | eq(42)}
-      ~{[1 2 3] | tag(::Triple) | type | eq(::Triple)}
-      ~{::Box {} | ::Box[1 2 3] | [type payload] | tag | eq(::Box[1 2 3])}
-      ~{1 | add("1") !| [type payload] | tag | error !| type | eq(::AddRightNotNumberError)}
-      ~{::Inner {} | ::Outer {} | ::Inner[1] | tag(::Outer) | payload | type | eq(::Inner)}
+      ~(42 | tag ::Box | payload | eq 42)
+      ~([1 2 3] | tag ::Triple | type | eq ::Triple)
+      ~(::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
+      ~(1 | add "1" !| [type payload] | tag | error !| type | eq ::AddRightNotNumberError)
+      ~(::Inner {} | ::Outer {} | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
   ~~|
   ::builtin{:impl :qlang/prim/tag
             :category :typeConversion
@@ -100,25 +100,25 @@
 
 ::TagModifierNotTagKeywordError
   |~~ Captured argument at position 2 of `tag` must be a TagKeyword.
-      ~{
-        42 | tag(:foo)
+      ~(
+        42 | tag :foo
         !| [type /actualType]
-        |  eq([::TagModifierNotTagKeywordError :keyword])
-       }
+        |  eq [::TagModifierNotTagKeywordError :keyword]
+       )
   ~~|
 
 ::TagBareSubjectShapeError
   |~~ `tag` (bare form) requires a 2-element Vec `[tagKeyword,
       value]` subject. Non-Vec subject or Vec of length != 2 fires
       this error.
-      ~{
+      ~(
         42 | tag
         !| [type /actualType]
-        |  eq([::TagBareSubjectShapeError :number])
-       }
-      ~{
+        |  eq [::TagBareSubjectShapeError :number]
+       )
+      ~(
         [::Foo 1 2] | tag
         !| [type /actualLength]
-        |  eq([::TagBareSubjectShapeError 3])
-       }
+        |  eq [::TagBareSubjectShapeError 3]
+       )
   ~~|

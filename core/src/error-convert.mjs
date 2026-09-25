@@ -140,14 +140,13 @@ export function errorFromParse(parseError) {
     d.set('source', excerpt.source);
     d.set('marker', excerpt.marker);
   }
+  // A refusal the grammar names itself carries its sentence, which says
+  // the fix; any other failure lists what the parser expected there.
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
+  else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  // No `:message` stamp — `:source` + `:marker` + `:expected` +
-  // `:found` carry the diagnostic data structurally; the human-
-  // readable prose is reachable through `::ParseError | docs`
-  // hypertext navigation.
   return makeErrorValue(PARSE_ERROR_TAG, d, {
     location: parseError.location,
     originalError: parseError

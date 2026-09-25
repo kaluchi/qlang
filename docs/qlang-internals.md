@@ -77,7 +77,7 @@ Components of the pair are individually first-class, however:
 
 - **`pipeValue`** is implicitly first-class — it is the current value,
   and any operation that reads or writes a value is acting on it.
-  Capture it by name with `as(:name)` and it becomes referenceable
+  Capture it by name with `as :name` and it becomes referenceable
   like any other value.
 - **`env`** is first-class through the `env` operand, which reads the
   environment into `pipeValue` as an ordinary Map. From that point
@@ -157,7 +157,7 @@ built-ins (`use`, `env`), BindStep-installed conduits, and
 `as`-bound snapshots. They differ only in what is stored in
 `env[:name]`, never in how lookup behaves.
 
-### 4. Value binding — `as(:name)`
+### 4. Value binding — `as :name`
 
     (pipeValue, env) → (pipeValue, env[:name := Snapshot(pipeValue, docs)])
 
@@ -234,8 +234,8 @@ stays a pure operand suffix that `apply` replays. A comment in
 head position hands the head to the first operand step, as if the
 comment were absent: that step applies through the pipeline's
 leading combinator when there is one, through the combinator the
-author wrote after the comment (`(|~ note ~| * add(1))` reads as
-`(* add(1))`), and through `|` when its continuation unit carries
+author wrote after the comment (`(|~ note ~| * add 1)` reads as
+`(* add 1)`), and through `|` when its continuation unit carries
 the grammar's absorbed marker (`combinator: null`). Past
 the head an absorbed follower rides `|`. A leading combinator and
 an explicit combinator on the same first operand step is a parse
@@ -254,7 +254,7 @@ Four surface forms, two orthogonal axes (line/block, plain/doc):
 
 The two doc forms additionally carry **metadata attachment**: their
 content is absorbed into the `docs` field of the immediately
-following binding — a BindStep (`:name body`) or an `as(:name)`
+following binding — a BindStep (`:name body`) or an `as :name`
 OperandCall. Multiple doc comments preceding the same binding
 accumulate into the `docs` Vec in declaration order — one comment
 token per Vec entry, with no concatenation of adjacent line docs.
@@ -324,7 +324,7 @@ Arity 1. Replaces `pipeValue` with the current `env`:
 Enables introspection:
 
     env | keys         -- set of identifiers in scope
-    env | has(:count)  -- is the built-in `count` bound?
+    env | has :count  -- is the built-in `count` bound?
     env | /count       -- read a specific binding
 
 Inside a fork, `env` returns the fork's current env (with any
@@ -340,8 +340,8 @@ of descriptors sorted by binding name. The descriptor's `:kind`
 field is an explicit enum-bucket TagKeyword on the view-Map
 (distinct from identity which rides on the underlying env entry's
 JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
-same way, so `manifest | filter(/kind | eq(::builtin))` and
-`manifest | filter(type | eq(::builtin))` agree). Five provenances:
+same way, so `manifest | filter ~(/kind | eq ::builtin)` and
+`manifest | filter ~(type | eq ::builtin)` agree). Five provenances:
 
 - `::builtin` — env entry is a descriptor Map loaded by
   `langRuntime()` from one of the catalog family files under
@@ -355,7 +355,7 @@ same way, so `manifest | filter(/kind | eq(::builtin))` and
   data-plane surface. Authored prose lives on the
   `BindStep`'s attached doc-prefix and is reachable via the
   `:name | docs` axis (Vec of Doc-values) or `:name | examples`
-  axis (Vec of Quote-values pulled from every `~{…}` segment in
+  axis (Vec of Quote-values pulled from every `~(…)` segment in
   the docs).
 - `::tagBinding` — env entry under a `::Tag` name (catalog tag
   declaration: error tags, value-class tags, the `::builtin`
@@ -376,7 +376,7 @@ same way, so `manifest | filter(/kind | eq(::builtin))` and
 
 Typical call pattern:
 
-    env | manifest | filter(/kind | eq(::builtin)) | table
+    env | manifest | filter ~(/kind | eq ::builtin) | table
 
 `manifest` is the enumeration surface. For per-binding source-level
 introspection reach for the axis trio (`:name | source` / `| docs`
@@ -417,7 +417,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
    marker field lets `manifest(:tag) | filter(/declarationOrigin
    | eq(:implicit))` surface every tag the source never bound
    explicitly — strict-mode lint and CI tooling read that view.
-3. **Unwrap a snapshot** if the binding is wrapped (`as(:tag)`
+3. **Unwrap a snapshot** if the binding is wrapped (`as :tag`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map.
    Otherwise → `TaggedLitNotTagBindingError`.
@@ -427,7 +427,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
      `PRIMITIVE_REGISTRY` to a JS-side constructor function.
      Invoke `await constructor(payloadValue, state)`; the return
      becomes the new pipeValue.
-   - **Quote-value** (`~{body}`) — parse the Quote's source
+   - **Quote-value** (`~(body)`) — parse the Quote's source
      (cached as `.ast` after the first parse), build a fresh
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
@@ -458,7 +458,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
        `/payload` projection throws cleanly — the dedicated
        `payload` operand is the only extractor.
      The same single mint site backs the runtime `value |
-     tag(::Foo)` operand; both literal and operand paths produce
+     tag ::Foo` operand; both literal and operand paths produce
      observationally-identical values.
 
 ### `BareTypeKeyword` — tag-identifier as value
@@ -482,7 +482,7 @@ Constructors must satisfy:
   catches `@`-prefixed identifiers regardless of which namespace
   the BindStep declares into).
 - **Deterministic over payload.** Same payload-value → same
-  output. Required by the round-trip theorem (`parse(printValue(V))`
+  output. Required by the round-trip theorem (`parse (printValue V)`
   yields an equivalent V).
 - **Frozen output.** Constructor returns an immutable value; the
   enclosing language-level immutability invariant follows from
@@ -509,7 +509,7 @@ from the value alone, so the round-trip theorem covers
 user-defined tagged types without a custom printer per tag.
 
 Reserved tag names own dedicated render paths:
-- `::conduit` → `::conduit[:self [params] ~{body}]` form (the
+- `::conduit` → `::conduit[:self [params] ~(body)]` form (the
   Conduit value-class print).
 - `::snapshot` → wrapped value (snapshot is an env wrapper,
   recursing on the underlying value).
@@ -586,7 +586,7 @@ instead, even though no preceding step exists. The
 `!|` form is used inside predicate lambdas of `filter(…)`,
 `when(…)`, `if(…)` and inside distribute element bodies where the
 per-element `pipeValue` may be on either track; every form is what
-makes a pipeline-suffix Quote (`~{| count}`, `~{* mul(2)}`)
+makes a pipeline-suffix Quote (`~(| count)`, `~(* mul 2)`)
 replay through `apply`.
 
 ### `*` — distribute
@@ -699,15 +699,15 @@ a specific input type; in that case the query must explicitly
 establish `pipeValue` before calling any such operand.
 
 (A simpler host might choose `pipeValue = null` instead of
-`langRuntime`. This is NOT equivalent to the conceptual model for
+`langRuntime()`. This is NOT equivalent to the conceptual model for
 queries whose first step is a function lookup, because Step 3 would
 pass `null` as the subject. Implementations should document which
 variant they use; the reference evaluator uses `pipeValue =
 langRuntime` to match the conceptual model exactly.)
 
-### How `langRuntime` is assembled
+### How `langRuntime()` is assembled
 
-The reference implementation assembles `langRuntime` from two
+The reference implementation assembles `langRuntime()` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the orchestrator. One `use(...)`
@@ -731,7 +731,7 @@ co-located sources:
   module's `qlang/ast/<uri>` Quote as `step.docs` and are
   reachable through axis-operands (`:count | docs` returns a
   Vec of Doc-values, `:count | examples` returns a Vec of every
-  `~{…}` Quote segment extracted by `parseDocSegments`). Each
+  `~(…)` Quote segment extracted by `parseDocSegments`). Each
   Quote is a self-test expression `runExamples` evaluates.
   `runtime-invariants.qlang` carries shared and cross-family
   tag-bindings (parser, codec, dispatch, projection, combinator
@@ -782,10 +782,10 @@ examples`, not a bare-name shortcut into the descriptor Map.
 Additional runtimes and user libraries are loaded anywhere in a query
 by providing a Map and applying `use`:
 
-    {:double mul(2)
-     :isSenior /age | gt(65)}
+    {:double (mul 2)
+     :isSenior (/age | gt 65)}
       | use
-      | employees * {:doubledAge /age | double :senior isSenior}
+      | employees * {:doubledAge (/age | double) :senior isSenior}
 
 After `use`, the keys of the Map become regular identifiers
 indistinguishable from built-ins.
@@ -798,7 +798,7 @@ indistinguishable from built-ins.
 | `/key` projection (possibly nested) | Step 2 — projection                   |
 | Identifier (any name, including `@`-prefixed) | Step 3 — env lookup         |
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
-| `as(:name)` operand call            | Step 3 — identifier lookup + snapshot capture |
+| `as :name` operand call            | Step 3 — identifier lookup + snapshot capture |
 | `:name body` / `:name [:p] body` / `::Tag body` | Step 5 — BindStep declaration |
 | `\|~\|`, `\|~ ~\|`                   | Step 6 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | Step 6 — doc comment (identity + attach) |
@@ -817,15 +817,16 @@ Eight examples traced through the model.
 
 ### Example 1 — basic pipeline
 
-    > [1 2 3 4 5] | filter(gt(3)) | count
+    > [1 2 3 4 5] | filter ~(gt 3) | count
     2
 
 Trace (reference host variant: `env = langRuntime`, `pipeValue = langRuntime`; the first step is a literal, so the initial `pipeValue` is immediately overwritten):
 
 1. `[1 2 3 4 5]` — literal. `pipeValue = [1 2 3 4 5]`.
-2. `filter(gt(3))` — lookup `filter` in `env` → binary function.
-   1 arg captured (`gt(3)`). Rule 10 partial: captured fills position
-   2, `pipeValue` fills position 1. `filter([1..5], gt(3))` → `[4 5]`.
+2. `filter ~(gt 3)` — lookup `filter` in `env` → binary function.
+   1 modifier, the quote `~(gt 3)`. Rule 10 partial: the modifier fills
+   position 2, `pipeValue` fills position 1, and `filter` applies the
+   quote to each element → `[4 5]`.
    `pipeValue = [4 5]`.
 3. `count` — lookup `count` → unary function, 0 captured.
    `pipeValue = 2`.
@@ -843,18 +844,18 @@ Final `pipeValue = 2`. ✓
 ### Example 3 — distribute + full application in reshape
 
     > [{:name "Alice" :price 100 :qty 3}]
-      * {:name /name :total mul(/price, /qty)}
+      * {:name /name :total (mul /price /qty)}
 
 1. Literal Vec. `pipeValue = [{:name "Alice" :price 100 :qty 3}]`.
 2. `*` distributes. Fork with the single element.
 3. Inside element fork: `pipeValue = {:name "Alice" :price 100 :qty 3}`.
-4. `{:name /name :total mul(/price, /qty)}` — Map literal. Each
+4. `{:name /name :total (mul /price /qty)}` — Map literal. Each
    entry value is evaluated in its own sub-fork against `pipeValue`.
    - `:name /name` sub-fork: `/name` → `"Alice"`. Entry value `"Alice"`.
-   - `:total mul(/price, /qty)` sub-fork: lookup `mul`, binary
+   - `:total mul /price /qty` sub-fork: lookup `mul`, binary
      function, 2 args captured — **full application**. `pipeValue`
      becomes context. `/price` resolves against `pipeValue` → `100`.
-     `/qty` → `3`. `mul(100, 3)` → `300`. Entry value `300`.
+     `/qty` → `3`. `mul 100 3` → `300`. Entry value `300`.
    - Collected: `{:name "Alice" :total 300}`.
 5. Element fork returns that Map. Distribute collects into a Vec.
 
@@ -863,14 +864,14 @@ Final `pipeValue = [{:name "Alice" :total 300}]`.
 ### Example 4 — wrap-with-original
 
     > [{:id 1 :name "Alice"} {:id 2 :name "Bob"}]
-      * (as(:employee) | {:key /id :record employee})
+      * (as :employee | {:key /id :record employee})
 
 For element 1 = `{:id 1 :name "Alice"}`:
 
 1. Fork with (element 1, outer `env`).
    `pipeValue = {:id 1 :name "Alice"}`.
-2. `(as(:employee) | {:key /id :record employee})` — paren fork.
-   - `as(:employee)` — `env[:employee] = {:id 1 :name "Alice"}`.
+2. `(as :employee | {:key /id :record employee})` — paren fork.
+   - `as :employee` — `env[:employee] = {:id 1 :name "Alice"}`.
      `pipeValue` unchanged.
    - `{:key /id :record employee}` — Map literal.
      - `:key /id` sub-fork → `1`.
@@ -892,17 +893,17 @@ the paren group. A non-function identifier lookup replaces
 ### Example 5 — multi-stage bindings
 
     > [85 92 47 78 68 95 52]
-      | as(:allScores)
-      | filter(gte(70))
-      | as(:passingScores)
+      | as :allScores
+      | filter ~(gte 70)
+      | as :passingScores
       | [allScores | count, passingScores | count]
     [7 4]
 
 1. `pipeValue = [85 92 47 78 68 95 52]`.
-2. `as(:allScores)` — `env[:allScores] = [85 92 47 78 68 95 52]`.
-3. `filter(gte(70))` — `pipeValue = [85 92 78 95]`.
-4. `as(:passingScores)` — `env[:passingScores] = [85 92 78 95]`.
-5. `[allScores | count, passingScores | count]` — Vec literal with
+2. `as :allScores` — `env[:allScores] = [85 92 47 78 68 95 52]`.
+3. `filter ~(gte 70)` — `pipeValue = [85 92 78 95]`.
+4. `as :passingScores` — `env[:passingScores] = [85 92 78 95]`.
+5. `[(allScores | count), (passingScores | count)]` — Vec literal with
    two element sub-forks, each starting from the same outer state
    (`[85 92 78 95]`, `env` with both bindings).
    - Sub-fork 1 runs `allScores | count`:
@@ -938,7 +939,7 @@ Three patterns demonstrated on a directory tree:
 
 Starting with the tree literal above as `pipeValue`:
 
-    | :totalSize add(/size, /children * totalSize | sum)
+    | :totalSize add /size (/children * totalSize | sum)
     | totalSize
 
 For each node, compute `/size + sum of children's totalSize`.
@@ -951,22 +952,22 @@ Trace, assuming the tree literal already occupies `pipeValue`:
 1. `:totalSize <expr>` — writes a conduit into `env[:totalSize]`.
    `pipeValue` (the tree root) unchanged.
 2. `totalSize` — lookup `env[:totalSize]`, force the conduit. Evaluate
-   `add(/size, /children * totalSize | sum)` with `pipeValue = root`
+   `add /size (/children * totalSize | sum)` with `pipeValue = root`
    as context.
    - arg1 `/size` sub-fork: `pipeValue = root`, `/size` → `0`.
    - arg2 `/children * totalSize | sum` sub-fork:
      - `/children` → `[README.md, src]`.
      - `* totalSize` — for each child, recurse with the child as
        `pipeValue`.
-       - README.md: `add(2048, [] * totalSize | sum)` =
-         `add(2048, 0)` = `2048`.
-       - src: `add(0, [main.c, util.c] * totalSize | sum)` =
-         `add(0, 768)` = `768`.
+       - README.md: `add 2048 ([] * totalSize | sum)` =
+         `add 2048 0` = `2048`.
+       - src: `add 0 ([main.c util.c] * totalSize | sum)` =
+         `add 0 768` = `768`.
      - Collected: `[2048 768]`.
      - `| sum` → `2816`.
-3. `add(0, 2816)` → `2816`.
+3. `add 0 2816` → `2816`.
 
-The pattern — `aggregator(/leafValue, /children * self | reducer)` —
+The pattern — `aggregator /leafValue (/children * self | reducer)` —
 generalizes to any aggregation: count nodes with `add(1, ...)`,
 find max depth with `max(0, ... | max) | add(1)`, etc.
 
@@ -991,9 +992,9 @@ Trace, assuming the tree literal already occupies `pipeValue`:
 1. `:allNames <expr>` — writes a conduit into `env[:allNames]`.
    `pipeValue` (the tree root) unchanged.
 2. `allNames` — lookup, force conduit. Evaluate the conduit body
-   `[[/label], /children * allNames | flat] | flat` with
+   `[[/label], (/children * allNames | flat)] | flat` with
    `pipeValue = root`:
-   - Inner Vec literal `[[/label], /children * allNames | flat]`:
+   - Inner Vec literal `[[/label], (/children * allNames | flat)]`:
      - Element 1 `[/label]` — sub-fork with `pipeValue = root`.
        `/label` → `"root"`. Inner Vec → `["root"]`.
      - Element 2 `/children * allNames | flat`:
@@ -1013,7 +1014,7 @@ Trace, assuming the tree literal already occupies `pipeValue`:
      `["root", "README.md", "src", "main.c", "util.c"]`.
 
 A nested tree becomes a flat Vec in depth-first order. The pattern —
-`[[own], /children * self | flat] | flat` — is the classical
+`[[own], (/children * self | flat)] | flat` — is the classical
 tree-to-list conversion.
 
 #### 6c — tree transformation: enrich each node with child count
@@ -1052,7 +1053,7 @@ Result on the root:
 
 Replace `:count /children | count` with any computed expression and
 you get a different transformation: `:depth /children * withCounts | ...`,
-`:hash /label | hash-string`, `:archived /mtime | lt(cutoff)`,
+`:hash /label | hash-string`, `:archived /mtime | lt cutoff`,
 whatever. The shape is preserved; fields are added/rewritten per
 node. This is the practical form of the "`walk` template".
 
@@ -1066,22 +1067,22 @@ resolvable. Termination is guaranteed whenever the tree is finite:
 
     > {:pi 3.14159 :e 2.71828 :goldenRatio 1.61803}
       | use
-      | [pi | mul(2), e | mul(3)]
+      | [(pi | mul 2), (e | mul 3)]
     [6.28318 8.15484]
 
 1. Literal Map: `pipeValue = {:pi 3.14159 :e 2.71828 :goldenRatio 1.61803}`.
 2. `use` — `pipeValue` is a Map, merge into `env`. `env[:pi]`,
    `env[:e]`, and `env[:goldenRatio]` bind to their number values.
    `pipeValue` unchanged (still the Map).
-3. `[pi | mul(2), e | mul(3)]` — Vec literal with two element
+3. `[(pi | mul 2), (e | mul 3)]` — Vec literal with two element
    sub-forks. Each sub-fork starts with `pipeValue` = the Map from
    step 2 (the outer state).
-   - Sub-fork 1 runs `pi | mul(2)`:
+   - Sub-fork 1 runs `pi | mul 2`:
      - `pi` — lookup `env[:pi]`, non-function value (number),
        replace `pipeValue` with `3.14159`.
-     - `mul(2)` — lookup `mul`, binary function, 1 captured.
-       Partial application: `mul(3.14159, 2) = 6.28318`.
-   - Sub-fork 2 runs `e | mul(3)` → `8.15484`.
+     - `mul 2` — lookup `mul`, binary function, 1 captured.
+       Partial application: `3.14159 | mul 2` = `6.28318`.
+   - Sub-fork 2 runs `e | mul 3` → `8.15484`.
    - Collected: `[6.28318 8.15484]`.
 
 The user extended the namespace in the middle of a query by merging
@@ -1092,14 +1093,14 @@ ordinary identifiers downstream.
 pre-built Map whose values are already the bindings you want
 (typically constants or host-provided native functions). It
 cannot be used to define new *functions* from inside the query,
-because a Map literal like `{:double mul(2)}` evaluates each
-value expression as a sub-pipeline: `mul(2)` applies to the
+because a Map literal like `{:double (mul 2)}` evaluates each
+value expression as a sub-pipeline: `mul 2` applies to the
 current `pipeValue` via Rule 10 and yields the applied result.
 For in-query function extension, declare a BindStep:
 
-    | :double mul(2)
-    | :isSenior (/age | gt(65))
-    | employees * {:doubledAge /age | double :senior isSenior}
+    | :double mul 2
+    | :isSenior (/age | gt 65)
+    | employees * {:doubledAge (/age | double) :senior isSenior}
 
 Each BindStep writes a conduit that forces against `pipeValue` at
 each reference site. `use` and BindStep are complementary: `use`
@@ -1108,12 +1109,12 @@ derived expressions within the query.
 
 ### Example 8 — env introspection
 
-    > [1 2 3] | env | has(:count)
+    > [1 2 3] | env | has :count
     true
 
 1. `pipeValue = [1 2 3]`.
 2. `env` — `pipeValue = env` (the current environment as a Map value).
-3. `has(:count)` — lookup `has`, binary, 1 captured (`:count`).
+3. `has :count` — lookup `has`, binary, 1 captured (`:count`).
    Partial: `has(env, :count) → true`. `pipeValue = true`.
 
 A query can ask the language what names are available to it.
@@ -1123,12 +1124,12 @@ A query can ask the language what names are available to it.
 - **Thread safety.** The pure state-transformer model makes parallel
   query execution trivially safe as long as native functions in the
   runtime do not share host-side state.
-- **Destructuring `as`.** Not part of the primitive set. `as(:name)`
+- **Destructuring `as`.** Not part of the primitive set. `as :name`
   captures a single value.
 - **Cycle detection.** The language assumes acyclic data. Cycle
   detection is the host's responsibility.
 - **Identity operand.** There is no separate identity operand.
-  `as(:cur)` followed by `cur` achieves the same effect.
+  `as :cur` followed by `cur` achieves the same effect.
 
 ## Source-location enrichment of runtime errors
 
@@ -1265,7 +1266,7 @@ descriptor retains the `:trail` Quote the step handed back, and
 subsequent deflections accumulate into a fresh `_trailHead`
 linked list. The next `!|` combines both sources again —
 continuous accumulation through any number of re-lift boundaries
-without losing history. Explicit truncation: `union({:trail null})`
+without losing history. Explicit truncation: `union {:trail null}`
 inside a fail-apply step before re-lift drops the prior suffix
 while letting future deflections re-grow it.
 
@@ -1274,7 +1275,7 @@ while letting future deflections re-grow it.
 `makeErrorValue` (in `types.mjs`) enforces a single invariant:
 every error descriptor carries `:trail` as either a Quote-value
 or `null`. Callers supplying an explicit `:trail` in the input
-descriptor (user literal `!{:trail ~{| count}}`, a re-lift under
+descriptor (user literal `!{:trail ~(| count)}`, a re-lift under
 `!|`, codec replay via `fromTaggedJSON`) keep that Quote
 unchanged; callers that omit the field get `null` forged in; any
 other value under `:trail` fires `ErrorTrailNotQuoteError` at mint
@@ -1324,13 +1325,13 @@ throw site. The factory that declares the class records them
 reach the reader through the `spec` axis: `result !| type | spec |
 /category` for the broad-bucket, `result !| type | spec | /operand`
 for the per-site origin. The catalog side of that binding carries
-the prose and the `~{…}` examples — one fact, one spelling, and a
+the prose and the `~(…)` examples — one fact, one spelling, and a
 `::builtin{…}` body restating any of them is what the stamp would
 overwrite. The runtime instance descriptor itself carries only the
 dynamic fields above so each fault stays compact and consumers go
 through hypertext for tag-binding metadata.
 
-User-created error values (`!{...}` or `error(map)`) carry
+User-created error values (`!{...}` or `error map`) carry
 whatever fields the author provides — no mandatory schema beyond
 the `:trail` invariant. The runtime guarantees the other fields
 only for its own errors.
@@ -1357,7 +1358,7 @@ from here: adding a node type in `grammar.peggy` lands its
   a UTF-16 offset. Drives editor hover and goto-definition.
 - `findIdentifierOccurrences(ast, name)` — every OperandCall and
   Projection segment naming the given identifier, including
-  `:name ...` and `as(:name)` declaration patterns.
+  `:name ...` and `as :name` declaration patterns.
 - `bindingNamesVisibleAt(ast, offset)` — lexical-scope-correct set
   of binding names visible at a cursor position. Honors fork-
   isolating ancestors (ParenGroup, QuoteLit, VecLit, SetLit, MapLit,
@@ -1382,7 +1383,7 @@ and the parentheses wrap the quote of their step as `::fail`,
 `::each` and `::group`. Comments and positions leave no step.
 
 - `quoteOfBody(node)` / `quoteOfSource(text)` / `quoteOfLiteral(node)`
-  — the quote of a parsed body, of source text, and of a `~{…}`
+  — the quote of a parsed body, of source text, and of a `~(…)`
   literal, which the parser reads as the pipeline it holds.
 - `printQuoteSource(quote)` — the text of a quote, in the call form;
   reading it back leaves equal steps.
@@ -1431,7 +1432,7 @@ Persistent `(env, cellHistory)` pair across multiple `evalCell`
 invocations.
 
 - `await createSession(opts?)` — fresh session seeded with
-  `langRuntime`. Options:
+  `langRuntime()`. Options:
   - `opts.env` — initial env Map (default: `langRuntime()`).
   - `opts.locator` — `async (namespaceName: string) =>
     { source, impls? } | null`. Called by `use(:ns)` when the
@@ -1530,7 +1531,7 @@ unrecognized tagged objects.
 `effect-check.mjs` provides AST decoration:
 
 - `decorateAstWithEffectMarkers(ast)` — stamps `.effectful` on every
-  OperandCall and Projection node. Run automatically by `parse()`.
+  OperandCall and Projection node. Run automatically by `parse`.
 - `findFirstEffectfulIdentifier(node)` — returns the first effectful
   identifier in a subtree, used by `evalBindStep` for eval-time
   effectLaundering validation.
@@ -1580,7 +1581,7 @@ Subpath exports (tree-shaking-friendly):
   operand slot checks (`declareSubjectError`, `declareModifierError`,
   `declareElementError`, `declareComparabilityError`).
 - `@kaluchi/qlang-core/primitives` — `PRIMITIVE_REGISTRY`,
-  `createPrimitiveRegistry`, `bindPrim`, `bindTypeConstructor`.
+  `createPrimitiveRegistry()`, `bindPrim`, `bindTypeConstructor`.
   A host registering its own value-class constructors or
   primitives binds them here before `langRuntime()` seals the
   registry.

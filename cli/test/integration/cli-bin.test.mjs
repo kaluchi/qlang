@@ -61,7 +61,7 @@ describe('CLI: --version', () => {
 
 describe('CLI: script mode — query argument', () => {
   it('evaluates `42 | mul(2)` and writes `84`', async () => {
-    const { stdout, exitCode } = await runCli(['42 | mul(2)'], { stdin: '' });
+    const { stdout, exitCode } = await runCli(['42 | mul 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('84');
   });
@@ -107,7 +107,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
   });
 
   it('--raw treats stdin as a literal String subject', async () => {
-    const { stdout, exitCode } = await runCli(['--raw', 'append(" world")'], {
+    const { stdout, exitCode } = await runCli(['--raw', 'append " world"'], {
       stdin: 'hello'
     });
     expect(exitCode).toBe(0);
@@ -139,7 +139,7 @@ describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
 
   it('evaluates a query in REPL mode and prints the result', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
-      stdin: '42 | mul(2)\n.exit\n'
+      stdin: '42 | mul 2\n.exit\n'
     });
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/84/);
@@ -147,7 +147,7 @@ describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
 
   it('REPL persists BindStep bindings across cells in one session', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
-      stdin: ':double mul(2)\n21 | double\n.exit\n'
+      stdin: ':double mul 2\n21 | double\n.exit\n'
     });
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/42/);

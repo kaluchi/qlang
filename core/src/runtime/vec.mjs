@@ -99,6 +99,7 @@ import {
   resolveCapturedConduit,
   invokeConduitWithFixedArgs,
   resolveBinaryReducer,
+  codeOfModifier,
   CONDUIT_PARAMS_FIELD
 } from '../eval.mjs';
 
@@ -171,6 +172,21 @@ const DropSubjectNotSequenceError        = declareSubjectError('DropSubjectNotSe
 const DistinctSubjectNotSequenceError    = declareSubjectError('DistinctSubjectNotSequenceError',    'distinct', ['vec', 'set']);
 const ReverseSubjectNotSequenceError     = declareSubjectError('ReverseSubjectNotSequenceError',     'reverse',  ['vec', 'set']);
 const FlatSubjectNotSequenceError        = declareSubjectError('FlatSubjectNotSequenceError',        'flat',     ['vec', 'set']);
+
+// The slot that runs code per element takes a quote, and a value
+// computed at the call is refused at the site.
+const FilterPredicateNotQuoteError      = declareModifierError('FilterPredicateNotQuoteError',      'filter',     2, 'quote');
+const EveryPredicateNotQuoteError       = declareModifierError('EveryPredicateNotQuoteError',       'every',      2, 'quote');
+const AnyPredicateNotQuoteError         = declareModifierError('AnyPredicateNotQuoteError',         'any',        2, 'quote');
+const GroupByKeyNotQuoteError           = declareModifierError('GroupByKeyNotQuoteError',           'groupBy',    2, 'quote');
+const IndexByKeyNotQuoteError           = declareModifierError('IndexByKeyNotQuoteError',           'indexBy',    2, 'quote');
+const SortKeyNotQuoteError              = declareModifierError('SortKeyNotQuoteError',              'sort',       2, 'quote');
+const SortWithComparatorNotQuoteError   = declareModifierError('SortWithComparatorNotQuoteError',   'sortWith',   2, 'quote');
+const AscKeyNotQuoteError               = declareModifierError('AscKeyNotQuoteError',               'asc',        2, 'quote');
+const DescKeyNotQuoteError              = declareModifierError('DescKeyNotQuoteError',              'desc',       2, 'quote');
+const NullsFirstKeyNotQuoteError        = declareModifierError('NullsFirstKeyNotQuoteError',        'nullsFirst', 2, 'quote');
+const NullsLastKeyNotQuoteError         = declareModifierError('NullsLastKeyNotQuoteError',         'nullsLast',  2, 'quote');
+const ReduceReducerNotQuoteError        = declareModifierError('ReduceReducerNotQuoteError',        'reduce',     3, 'quote');
 
 const TakeCountNotIntegerError = declareModifierError('TakeCountNotIntegerError', 'take', 2, 'integer');
 const DropCountNotIntegerError = declareModifierError('DropCountNotIntegerError', 'drop', 2, 'integer');
@@ -384,7 +400,8 @@ function containerPredDispatch(predLambda, shape, VecOrSetArityErrorCls, MapArit
   return async (item) => await predLambda(item);
 }
 
-export const filter = higherOrderOp('filter', 2, async (container, predLambda) => {
+export const filter = higherOrderOp('filter', 2, async (container, predModifier) => {
+  const predLambda = await codeOfModifier(predModifier, container, v => new FilterPredicateNotQuoteError(v));
   if (isOrderedSequence(container)) {
     const applyItem = containerPredDispatch(predLambda, 'single', FilterVecOrSetPredArityInvalidError, FilterMapPredArityInvalidError);
     const filterResult = [];
@@ -408,7 +425,8 @@ export const filter = higherOrderOp('filter', 2, async (container, predLambda) =
   throw new FilterSubjectNotContainerError(container);
 }, { preservesTag: true });
 
-export const every = higherOrderOp('every', 2, async (container, everyPredLambda) => {
+export const every = higherOrderOp('every', 2, async (container, everyPredModifier) => {
+  const everyPredLambda = await codeOfModifier(everyPredModifier, container, v => new EveryPredicateNotQuoteError(v));
   if (isVecShape(container) || isQSet(container)) {
     const applyItem = containerPredDispatch(everyPredLambda, 'single', EveryVecOrSetPredArityInvalidError, EveryMapPredArityInvalidError);
     for (const everyItem of container) {
@@ -430,7 +448,8 @@ export const every = higherOrderOp('every', 2, async (container, everyPredLambda
   throw new EverySubjectNotContainerError(container);
 });
 
-export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
+export const any = higherOrderOp('any', 2, async (container, anyPredModifier) => {
+  const anyPredLambda = await codeOfModifier(anyPredModifier, container, v => new AnyPredicateNotQuoteError(v));
   if (isVecShape(container) || isQSet(container)) {
     const applyItem = containerPredDispatch(anyPredLambda, 'single', AnyVecOrSetPredArityInvalidError, AnyMapPredArityInvalidError);
     for (const anyItem of container) {
@@ -456,7 +475,8 @@ export const any = higherOrderOp('any', 2, async (container, anyPredLambda) => {
 // signal of the original sequence (uniqueness) survives partitioning.
 // On a Vec / JsonArray subject the buckets are same-shape Vec / JsonArray
 // — same construction-time invariant kept on each branch.
-export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyLambda) => {
+export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyModifier) => {
+  const groupKeyLambda = await codeOfModifier(groupKeyModifier, subject, v => new GroupByKeyNotQuoteError(v));
   const items = sequenceOrThrow(subject, GroupBySubjectNotSequenceError);
   const subjectIsSet = isQSet(subject);
   const groupResult = new Map();
@@ -486,7 +506,8 @@ export const groupBy = higherOrderOp('groupBy', 2, async (subject, groupKeyLambd
   return groupResult;
 });
 
-export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyLambda) => {
+export const indexBy = higherOrderOp('indexBy', 2, async (subject, indexKeyModifier) => {
+  const indexKeyLambda = await codeOfModifier(indexKeyModifier, subject, v => new IndexByKeyNotQuoteError(v));
   const items = sequenceOrThrow(subject, IndexBySubjectNotSequenceError);
   const indexResult = new Map();
   for (let ii = 0; ii < items.length; ii++) {
@@ -514,7 +535,8 @@ export const sort = overloadedOp('sort', 2, {
     });
     return containerLikeOf(sorted, subject);
   },
-  1: async (subject, sortKeyLambda) => {
+  1: async (subject, sortKeyModifier) => {
+    const sortKeyLambda = await codeOfModifier(sortKeyModifier, subject, v => new SortKeyNotQuoteError(v));
     const items = sequenceOrThrow(subject, SortByKeySubjectNotSequenceError);
     const sortEntries = await Promise.all(
       items.map(async (sortElem) => ({
@@ -661,7 +683,8 @@ async function mergeSortWith(subjectRun, comparePair) {
   return merged;
 }
 
-export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) => {
+export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpModifier) => {
+  const cmpLambda = await codeOfModifier(cmpModifier, subject, v => new SortWithComparatorNotQuoteError(v));
   if (!isOrderedSequence(subject)) throw new SortWithSubjectNotSequenceError(subject);
   const comparePair = async (left, right) => {
     const cmpPair = new Map([['left', left], ['right', right]]);
@@ -678,7 +701,8 @@ export const sortWith = higherOrderOp('sortWith', 2, async (subject, cmpLambda) 
   return containerLikeOf(await mergeSortWith([...subject], comparePair), subject);
 }, { preservesTag: true });
 
-export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
+export const asc = higherOrderOp('asc', 2, async (pair, ascKeyModifier) => {
+  const ascKeyLambda = await codeOfModifier(ascKeyModifier, pair, v => new AscKeyNotQuoteError(v));
   if (!isQMap(pair)) throw new AscPairNotMapError({
     actualType: typeKeyword(pair), actualValue: pair
   });
@@ -690,7 +714,8 @@ export const asc = higherOrderOp('asc', 2, async (pair, ascKeyLambda) => {
   return compareScalars(ascLeftKey, ascRightKey);
 });
 
-export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
+export const desc = higherOrderOp('desc', 2, async (pair, descKeyModifier) => {
+  const descKeyLambda = await codeOfModifier(descKeyModifier, pair, v => new DescKeyNotQuoteError(v));
   if (!isQMap(pair)) throw new DescPairNotMapError({
     actualType: typeKeyword(pair), actualValue: pair
   });
@@ -702,7 +727,8 @@ export const desc = higherOrderOp('desc', 2, async (pair, descKeyLambda) => {
   return -compareScalars(descLeftKey, descRightKey);
 });
 
-async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapError, KeysNotComparableError) {
+async function nullsKeyComparator(pair, nullsKeyModifier, nullFirst, KeyNotQuoteError, PairNotMapError, KeysNotComparableError) {
+  const nullsKeyLambda = await codeOfModifier(nullsKeyModifier, pair, v => new KeyNotQuoteError(v));
   if (!isQMap(pair)) throw new PairNotMapError({ actualType: typeKeyword(pair), actualValue: pair });
   const nullsLeft  = pair.get('left');
   const nullsRight = pair.get('right');
@@ -717,11 +743,11 @@ async function nullsKeyComparator(pair, nullsKeyLambda, nullFirst, PairNotMapErr
   return compareScalars(nullsLeftKey, nullsRightKey);
 }
 
-export const nullsFirst = higherOrderOp('nullsFirst', 2, async (pair, nullsFirstKeyLambda) =>
-  await nullsKeyComparator(pair, nullsFirstKeyLambda, true, NullsFirstPairNotMapError, NullsFirstKeysNotComparableError));
+export const nullsFirst = higherOrderOp('nullsFirst', 2, async (pair, nullsFirstKeyModifier) =>
+  await nullsKeyComparator(pair, nullsFirstKeyModifier, true, NullsFirstKeyNotQuoteError, NullsFirstPairNotMapError, NullsFirstKeysNotComparableError));
 
-export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKeyLambda) =>
-  await nullsKeyComparator(pair, nullsLastKeyLambda, false, NullsLastPairNotMapError, NullsLastKeysNotComparableError));
+export const nullsLast = higherOrderOp('nullsLast', 2, async (pair, nullsLastKeyModifier) =>
+  await nullsKeyComparator(pair, nullsLastKeyModifier, false, NullsLastKeyNotQuoteError, NullsLastPairNotMapError, NullsLastKeysNotComparableError));
 
 export const firstNonZero = nullaryOp('firstNonZero', (vec) => {
   if (!isVecShape(vec)) throw new FirstNonZeroSubjectNotVecError(vec);
@@ -745,7 +771,8 @@ const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryErr
   { operand: 'reduce' }
 );
 
-export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerLambda) => {
+export const reduce = higherOrderOp('reduce', 3, async (subject, seedLambda, reducerModifier) => {
+  const reducerLambda = await codeOfModifier(reducerModifier, subject, v => new ReduceReducerNotQuoteError(v));
   if (!isOrderedSequence(subject)) throw new ReduceSubjectNotSequenceError(subject);
   const combine = resolveBinaryReducer(reducerLambda.astNode, reducerLambda.capturedState);
   if (combine === null) throw new ReduceReducerNotBinaryError();

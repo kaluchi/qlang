@@ -34,7 +34,7 @@ describe('installCliCatalog', () => {
     const session = await createSession({ locator: createCliLocator(noopCtx) });
     await installCliCatalog(session);
     const { result } = await session.evalCell(
-      'manifest * /name | filter(eq("@out") | not | not)'
+      'manifest * /name | filter ~(eq "@out" | not | not)'
     );
     expect(result).toContain('@out');
   });

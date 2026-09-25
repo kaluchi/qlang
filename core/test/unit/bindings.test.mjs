@@ -57,7 +57,7 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('impure body containing OperandCall fires the deferred body per call', async () => {
-    expect(await evalQuery(':double mul(2) | 5 | double')).toBe(10);
+    expect(await evalQuery(':double mul 2 | 5 | double')).toBe(10);
   });
 
   it('snapshot lookup returns the eval-at-bind-time value', async () => {
@@ -65,18 +65,18 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('conduit lookup fires the deferred body against pipeValue', async () => {
-    expect(await evalQuery(':double mul(2) | 5 | double')).toBe(10);
+    expect(await evalQuery(':double mul 2 | 5 | double')).toBe(10);
   });
 });
 
 describe('BindStep — parametric conduit form', () => {
   it('parametric conduit binds captured args as lazy proxies', async () => {
-    expect(await evalQuery(':@surround [:pfx :sfx] (prepend(pfx) | append(sfx)) | "x" | @surround("[", "]")'))
+    expect(await evalQuery(':@surround [:pfx :sfx] (prepend pfx | append sfx) | "x" | @surround "[" "]"'))
       .toBe('[x]');
   });
 
   it(':@add1 [:x] add(x) — captured arg x binds the modifier', async () => {
-    expect(await evalQuery(':@add1 [:x] add(x) | 5 | @add1(10)')).toBe(15);
+    expect(await evalQuery(':@add1 [:x] add x | 5 | @add1 10')).toBe(15);
   });
 });
 

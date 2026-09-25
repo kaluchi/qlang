@@ -8,9 +8,8 @@
 // where the syntax computes, the step is a record, `::call`, `::proj`,
 // `::bind` or `::tagged`; the fail track, the distribute and the
 // parentheses wrap the quote of their step as `::fail`, `::each` and
-// `::group` [D47, D52]. A comment leaves no step. In the call form an
-// argument is code the operand runs against an input of its choosing,
-// so a call holds each argument as the quote of its pipeline.
+// `::group` [D47, D52]. A comment leaves no step. A command's modifier
+// is one word and is stored as its step [D10, D47].
 //
 // A quote read from text keeps the parser's node on its holder and runs
 // through it; a quote assembled from data is printed and parsed the
@@ -128,7 +127,7 @@ function segmentOf(key) {
 
 function callStepOf(node) {
   const fields = [['name', keyword(node.name)]];
-  if (node.args !== null) fields.push(['args', Object.freeze(node.args.map(quoteOfBody))]);
+  if (node.args.length > 0) fields.push(['args', Object.freeze(node.args.map(stepOfNode))]);
   if (node.docs?.length) fields.push(['docs', Object.freeze([...node.docs])]);
   return record(CALL_TAG, fields);
 }
@@ -199,26 +198,32 @@ export function isStep(value) {
 // isElementStep(value) — a literal, a quote, a doc, a container of
 // element steps, an error literal's step under `::Error`, a group, or a
 // record, which counts by its tag since its constructor already read it
-// back from its own text. A declaration and a documented `as` stand in
-// a pipeline alone: inside a container the grammar reads their keyword
-// and their doc as values of their own.
+// back from its own text. A declaration, a command with modifiers and a
+// documented `as` stand in a pipeline alone: inside a container the
+// grammar reads each of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
   if (isErrorValue(value)) return value.tag.name === 'Error' && [...value.descriptor.values()].every(isElementStep);
   const stepTag = stepTagOf(value);
-  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('docs'));
+  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && (value.has('docs') || value.has('args')));
   if (isVec(value) || isJsonArray(value) || isQSet(value)) return [...value].every(isElementStep);
   if (isQMap(value)) return [...value.values()].every(isElementStep);
   return isJsonObject(value) && Object.values(value).every(isElementStep);
 }
 
+// isCommandStep(value) — a command with its modifiers, the step a
+// declaration's body may be beside an element step.
+export function isCommandStep(value) {
+  return stepTagOf(value) === 'call' && !value.has('docs');
+}
+
 // ── steps into text ────────────────────────────────────────────
 
-// printQuoteSource(quote) → the text between `~{` and `}`, in the call
-// form of today's surface. A quote read from that text leaves steps
-// equal to the ones printed, since the constructor of every record and
-// wrapper refuses one whose text reads back as another step.
+// printQuoteSource(quote) → the text between `~(` and `)`, in the command
+// form. A quote read from that text leaves steps equal to the ones
+// printed, since the constructor of every record and wrapper refuses one
+// whose text reads back as another step.
 export function printQuoteSource(quote) {
   return printSteps(quote);
 }
@@ -246,7 +251,7 @@ function printEachBody(quote) {
 }
 
 function printStep(step) {
-  if (isQuote(step)) return `~{${printSteps(step)}}`;
+  if (isQuote(step)) return `~(${printSteps(step)})`;
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
     case 'proj':   return printProj(step);
@@ -275,9 +280,7 @@ function printDocs(docs) {
 
 function printCall(call) {
   const parts = call.has('docs') ? printDocs(call.get('docs')) : [];
-  const args = call.get('args');
-  const argumentList = args === undefined ? '' : `(${args.map(printSteps).join(', ')})`;
-  parts.push(call.get('name').name + argumentList);
+  parts.push(call.get('name').name, ...(call.get('args') ?? []).map(printStep));
   return parts.join(' ');
 }
 

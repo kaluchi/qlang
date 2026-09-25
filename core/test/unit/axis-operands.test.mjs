@@ -25,7 +25,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
-    const cellEntry = await session.evalCell('use(:tests/scalar-only) | :missing | source !| type');
+    const cellEntry = await session.evalCell('use :tests/scalar-only | :missing | source !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
   });
 
@@ -142,7 +142,7 @@ describe(':name | examples extracts Quote segments from docs', () => {
   });
 });
 
-describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
+describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
   it(':"::conduit" | source finds the tag binding via the keyword form', async () => {
     const result = await evalQuery(':"::conduit" | source');
     expect(isQuote(result)).toBe(true);
@@ -173,7 +173,7 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
   // tag-namespace lookup `::Foo | source` — they are distinct env
   // entries by colon-count.
   it('::Tag | source ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
-    const result = await evalQuery('42 | as(:Foo) | ::Foo | source');
+    const result = await evalQuery('42 | as :Foo | ::Foo | source');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('SourceBindingNotFoundError');
@@ -182,7 +182,7 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
   });
 
   it('::Tag | docs ignores a same-stem as(:Tag) value-namespace snapshot', async () => {
-    const result = await evalQuery('42 | as(:Foo) | ::Foo | docs');
+    const result = await evalQuery('42 | as :Foo | ::Foo | docs');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocsBindingNotFoundError');
@@ -194,11 +194,11 @@ describe('axis-operands walk tag-namespace bindings via ~{::} prefix', () => {
 describe('examples axis extracts Quote segments from a loaded module', () => {
   it('use-loaded module with Quote segment is reachable through examples', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ ~{5 | mul(2) | eq(10)} ~~|\n:demo 99';
+    const moduleSource = '|~~ ~(5 | mul 2 | eq 10) ~~|\n:demo 99';
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
-    const cellEntry = await session.evalCell('use(:tests/demo) | :demo | examples | count');
+    const cellEntry = await session.evalCell('use :tests/demo | :demo | examples | count');
     expect(cellEntry.result).toBe(1);
   });
 
@@ -208,7 +208,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/demo) | :demo | docs | first | /content');
+    const cellEntry = await session.evalCell('use :tests/demo | :demo | docs | first | /content');
     expect(cellEntry.result).toBe(' A short note. ');
   });
 
@@ -218,7 +218,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | docs | count');
+    const cellEntry = await session.evalCell('use :tests/bare | :bare | docs | count');
     expect(cellEntry.result).toBe(0);
   });
 
@@ -228,7 +228,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/bare) | :bare | examples | count');
+    const cellEntry = await session.evalCell('use :tests/bare | :bare | examples | count');
     expect(cellEntry.result).toBe(0);
   });
 
@@ -242,7 +242,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: 'count' })
     });
-    const cellEntry = await session.evalCell('use(:tests/non-binding) | :missing | source !| type');
+    const cellEntry = await session.evalCell('use :tests/non-binding | :missing | source !| type');
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
@@ -253,9 +253,9 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     // key. Lookup falls through to the axis's not-found class.
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({
-      locator: async () => ({ source: '42 | as()' })
+      locator: async () => ({ source: '42 | as' })
     });
-    const cellEntry = await session.evalCell('use(:tests/zero) | :nonexistentBinding | source !| type');
+    const cellEntry = await session.evalCell('use :tests/zero | :nonexistentBinding | source !| type');
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
@@ -265,7 +265,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/other) | :notHere | source !| type');
+    const cellEntry = await session.evalCell('use :tests/other | :notHere | source !| type');
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 
@@ -279,7 +279,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use(:tests/bare-ref) | :anything | source !| type');
+    const cellEntry = await session.evalCell('use :tests/bare-ref | :anything | source !| type');
     expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
   });
 });
@@ -291,7 +291,7 @@ describe('a tagged subject names its binding through the header', () => {
   // the field's job, since a view describes a binding rather than
   // being one.
   it('a materialized error reaches its own tag docs', async () => {
-    expect(await evalQuery('10 | div(0) !| docs | first | /content'))
+    expect(await evalQuery('10 | div 0 !| docs | first | /content'))
       .toContain('Division by zero');
   });
 
@@ -306,11 +306,11 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
   // ASTs env holds. Both readings have to name one declaration, or a
   // binding that shadows a built-in reads as the built-in — the case
   // the hypertext chain exists for.
-  const shadowed = ':add mul(100) | ';
+  const shadowed = ':add mul 100 | ';
 
   it('a binding shadowing a built-in is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | add')).toBe(200);
-    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add mul(100)');
+    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add mul 100');
   });
 
   it('docs and examples answer for the shadowing binding, which carries neither', async () => {
@@ -335,7 +335,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
-      '[contested, :contested | source | parse, :contested | docs | first | /content]');
+      '[contested, (:contested | source | parse), (:contested | docs | first | /content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       222, ':contested |~~ from the cell ~~| 222', ' from the cell '
@@ -359,7 +359,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
-      '[contested, :contested | source | parse, :contested | docs | first | /content]');
+      '[contested, (:contested | source | parse), (:contested | docs | first | /content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '
@@ -415,6 +415,6 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     // reads env directly and unwraps inline so the surface stays
     // the captured payload rather than the Snapshot housekeeping
     // Map.
-    expect(await evalQuery('42 | as(:answer) | :answer | spec')).toBe(42);
+    expect(await evalQuery('42 | as :answer | :answer | spec')).toBe(42);
   });
 });

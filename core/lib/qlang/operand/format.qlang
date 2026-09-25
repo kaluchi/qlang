@@ -10,9 +10,9 @@
       this for handing values to non-qlang consumers; for in-pipeline
       pretty-printing reach for `pretty`.
 
-      ~{{:a 1 :b 2} | json | eq("{\"a\":1,\"b\":2}")}
-      ~{[:foo :bar] | json | eq("[\":foo\",\":bar\"]")}
-      ~{#[1 2 3] | json | eq("[1,2,3]")}
+      ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
+      ~([:foo :bar] | json | eq "[\":foo\",\":bar\"]")
+      ~(#[1 2 3] | json | eq "[1,2,3]")
   ~~|
   ::builtin{:impl :qlang/prim/json
             :category :format
@@ -31,11 +31,11 @@
       constructor — both ride the `:typeConversion` taxonomy
       slot alongside the String↔Keyword involution `keyword`.
 
-      ~{::json{"a" : 1} | qlang | type | eq(:map) | eq(true)}
-      ~{::json[1, 2] | qlang | type | eq(:vec) | eq(true)}
-      ~{{:a 1} | qlang | type | eq(:map) | eq(true)}
-      ~{[1 2 3] | qlang | type | eq(:vec) | eq(true)}
-      ~{42 | qlang | eq(42)} ~~|
+      ~(::json{"a" : 1} | qlang | type | eq :map | eq true)
+      ~(::json[1, 2] | qlang | type | eq :vec | eq true)
+      ~({:a 1} | qlang | type | eq :map | eq true)
+      ~([1 2 3] | qlang | type | eq :vec | eq true)
+      ~(42 | qlang | eq 42) ~~|
   ::builtin{:impl :qlang/prim/qlang
             :category :typeConversion
             :subject :any
@@ -48,8 +48,8 @@
       across all rows; missing keys render as empty cells.
       Empty Vec yields the marker "(empty)".
 
-      ~{[{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains("alice")}
-      ~{[] | table | eq("(empty)")}
+      ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+      ~([] | table | eq "(empty)")
   ~~|
   ::builtin{:impl :qlang/prim/table
             :category :format
@@ -58,18 +58,18 @@
 
 ::TableSubjectNotVecError
   |~~ Subject of `table` must be Vec.
-      ~{
+      ~(
         42 | table
         !| [type /actualType]
-        |  eq([::TableSubjectNotVecError :number])
-       }
+        |  eq [::TableSubjectNotVecError :number]
+       )
   ~~|
 
 ::TableRowNotMapError
   |~~ Element of `table` input collection must be Map.
-      ~{
+      ~(
         [42 "hello"] | table
         !| [type /actualType /index]
-        |  eq([::TableRowNotMapError :number 0])
-       }
+        |  eq [::TableRowNotMapError :number 0]
+       )
   ~~|

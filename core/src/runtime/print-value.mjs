@@ -96,7 +96,7 @@ const PRINT_HANDLERS = {
   Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
   Map:        (m, indent) => printMapLike('{', m, indent),
   Set:        (s, indent) => printListLike('#[', ']', ' ', [...s], indent),
-  Quote:      q => '~{' + printQuoteSource(q) + '}',
+  Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: (o, indent) => printJsonObject(o, indent),
   JsonArray:  (a, indent) => printListLike('[', ']', ', ', a,      indent),
@@ -126,7 +126,7 @@ function printFallback(v) {
 // fires whenever any rendered element already contains a `\n` —
 // a single multi-line entry would otherwise drag every subsequent
 // entry onto the trailing line of the previous one (the "ladder"
-// layout users complained about for `[~{multi-line} ~{multi-line}]`).
+// layout users complained about for `[~(multi-line) ~(multi-line)]`).
 // One element per row, indented by the surrounding depth, restores
 // the columnar shape.
 function printListLike(open, close, inlineSep, elements, indent) {
@@ -174,8 +174,8 @@ function printJsonObject(obj, indent) {
 // Both named and anonymous conduits render as the `::conduit[…]`
 // TaggedLit literal — the same shape `evalTaggedLit` accepts on
 // the way back in. Named form carries the self-name keyword in
-// the payload's first slot (`::conduit[:self [params] ~{body}]`),
-// anonymous form omits it (`::conduit[[params] ~{body}]`).
+// the payload's first slot (`::conduit[:self [params] ~(body)]`),
+// anonymous form omits it (`::conduit[[params] ~(body)]`).
 // Round-trip: parse → evalTaggedLit → conduitConstructor →
 // makeConduit reproduces the same Conduit-value modulo the
 // lexical envRef holder, which the constructor binds to the

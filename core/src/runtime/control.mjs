@@ -1,10 +1,9 @@
 // Control-flow operands.
 //
-// Five pipeline-level selection primitives sharing one design
-// principle: all branch arguments are captured sub-pipelines
-// (lambdas), and only the branch(es) that need to fire actually
-// evaluate against pipeValue. The `then`/`else`/`alt` slots are
-// never eagerly resolved.
+// A branch, a clause and an alternative is a quote the operand applies
+// only when it is chosen, and the condition of `if`, `when` and
+// `unless` is a value computed at the call [D43]. Every quote is
+// checked at the call, the ones never chosen included.
 //
 // Meta lives in lib/qlang/operand/control.qlang.
 
@@ -13,9 +12,36 @@ import {
   higherOrderOpVariadic,
   UNBOUNDED
 } from './dispatch.mjs';
-import { isTruthy, isNull, isErrorValue, NULL } from '../types.mjs';
-import { declareArityError } from '../errors.mjs';
+import { isTruthy, isNull, isErrorValue, typeKeyword, NULL } from '../types.mjs';
+import { declareArityError, declareShapeError } from '../errors.mjs';
+import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
+import { codeOfModifier } from '../eval.mjs';
+
+const IfThenNotQuoteError       = declareModifierError('IfThenNotQuoteError',       'if',     3, 'quote');
+const IfElseNotQuoteError       = declareModifierError('IfElseNotQuoteError',       'if',     4, 'quote');
+const WhenBranchNotQuoteError   = declareModifierError('WhenBranchNotQuoteError',   'when',   3, 'quote');
+const UnlessBranchNotQuoteError = declareModifierError('UnlessBranchNotQuoteError', 'unless', 3, 'quote');
+
+// A variadic operand's refusal names the modifier by its index, from 1.
+const variadicCodeRefusal = operand => ({ index, actualType }) =>
+  `${operand} takes each modifier as a quote, modifier ${index} is ${actualType.name}`;
+const CondClauseNotQuoteError = declareShapeError('CondClauseNotQuoteError',
+  variadicCodeRefusal('cond'), { operand: 'cond', expectedType: 'quote' });
+const CoalesceAlternativeNotQuoteError = declareShapeError('CoalesceAlternativeNotQuoteError',
+  variadicCodeRefusal('coalesce'), { operand: 'coalesce', expectedType: 'quote' });
+const FirstTruthyAlternativeNotQuoteError = declareShapeError('FirstTruthyAlternativeNotQuoteError',
+  variadicCodeRefusal('firstTruthy'), { operand: 'firstTruthy', expectedType: 'quote' });
+
+// The code of every modifier of a variadic operand.
+async function codesOfModifiers(modifiers, subject, RefusalError) {
+  const codes = [];
+  for (let index = 0; index < modifiers.length; index++) {
+    codes.push(await codeOfModifier(modifiers[index], subject, value =>
+      new RefusalError({ index: index + 1, actualType: typeKeyword(value), actualValue: value })));
+  }
+  return codes;
+}
 
 const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline',
@@ -31,24 +57,28 @@ const CondNoBranchesError = declareArityError('CondNoBranchesError',
 );
 
 export const ifOp = higherOrderOp('if', 4,
-  async (ifSubject, ifCondLambda, ifThenLambda, ifElseLambda) => {
+  async (ifSubject, ifCondLambda, ifThenModifier, ifElseModifier) => {
+    const ifThen = await codeOfModifier(ifThenModifier, ifSubject, v => new IfThenNotQuoteError(v));
+    const ifElse = await codeOfModifier(ifElseModifier, ifSubject, v => new IfElseNotQuoteError(v));
     return isTruthy(await ifCondLambda(ifSubject))
-      ? await ifThenLambda(ifSubject)
-      : await ifElseLambda(ifSubject);
+      ? await ifThen(ifSubject)
+      : await ifElse(ifSubject);
   });
 
 export const when = higherOrderOp('when', 3,
-  async (whenSubject, whenCondLambda, whenThenLambda) => {
+  async (whenSubject, whenCondLambda, whenThenModifier) => {
+    const whenThen = await codeOfModifier(whenThenModifier, whenSubject, v => new WhenBranchNotQuoteError(v));
     return isTruthy(await whenCondLambda(whenSubject))
-      ? await whenThenLambda(whenSubject)
+      ? await whenThen(whenSubject)
       : whenSubject;
   });
 
 export const unless = higherOrderOp('unless', 3,
-  async (unlessSubject, unlessCondLambda, unlessThenLambda) => {
+  async (unlessSubject, unlessCondLambda, unlessThenModifier) => {
+    const unlessThen = await codeOfModifier(unlessThenModifier, unlessSubject, v => new UnlessBranchNotQuoteError(v));
     return isTruthy(await unlessCondLambda(unlessSubject))
       ? unlessSubject
-      : await unlessThenLambda(unlessSubject);
+      : await unlessThen(unlessSubject);
   });
 
 // Returns the first alternative that resolves to a non-null,
@@ -62,10 +92,11 @@ export const unless = higherOrderOp('unless', 3,
 // strict projection turned "undefined" into an error, this catch
 // restores the iteration semantics.
 export const coalesce = higherOrderOpVariadic('coalesce',
-  async (coalesceSubject, ...coalesceLambdas) => {
-    if (coalesceLambdas.length === 0) {
+  async (coalesceSubject, ...coalesceModifiers) => {
+    if (coalesceModifiers.length === 0) {
       throw new CoalesceNoAlternativesError();
     }
+    const coalesceLambdas = await codesOfModifiers(coalesceModifiers, coalesceSubject, CoalesceAlternativeNotQuoteError);
     for (const coalesceAlt of coalesceLambdas) {
       const coalesceVal = await coalesceAlt(coalesceSubject);
       if (isNull(coalesceVal) || isErrorValue(coalesceVal)) continue;
@@ -75,10 +106,11 @@ export const coalesce = higherOrderOpVariadic('coalesce',
   }, [1, UNBOUNDED]);
 
 export const cond = higherOrderOpVariadic('cond',
-  async (condSubject, ...condLambdas) => {
-    if (condLambdas.length < 2) {
+  async (condSubject, ...condModifiers) => {
+    if (condModifiers.length < 2) {
       throw new CondNoBranchesError();
     }
+    const condLambdas = await codesOfModifiers(condModifiers, condSubject, CondClauseNotQuoteError);
     let condIdx = 0;
     while (condIdx + 1 < condLambdas.length) {
       const condPredLambda = condLambdas[condIdx];
@@ -98,10 +130,11 @@ export const cond = higherOrderOpVariadic('cond',
 // ErrorValue from an alternative counts as falsy and the iteration
 // moves to the next.
 export const firstTruthy = higherOrderOpVariadic('firstTruthy',
-  async (firstTruthySubject, ...firstTruthyLambdas) => {
-    if (firstTruthyLambdas.length === 0) {
+  async (firstTruthySubject, ...firstTruthyModifiers) => {
+    if (firstTruthyModifiers.length === 0) {
       throw new FirstTruthyNoAlternativesError();
     }
+    const firstTruthyLambdas = await codesOfModifiers(firstTruthyModifiers, firstTruthySubject, FirstTruthyAlternativeNotQuoteError);
     for (const truthyAlt of firstTruthyLambdas) {
       const truthyVal = await truthyAlt(firstTruthySubject);
       if (isErrorValue(truthyVal)) continue;

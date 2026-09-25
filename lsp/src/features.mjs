@@ -32,8 +32,8 @@ const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
 const F_MODIFIERS = 'modifiers';
 
-// Strip `~{...}` Quote segments from doc content, leaving only
-// prose. Balanced-brace scan handles nested `~{` and string
+// Strip `~(...)` Quote segments from doc content, leaving only
+// prose. A balanced-parenthesis scan handles nesting and string
 // literals inside the Quote body. The result is the human-readable
 // description without executable examples — hover and completion
 // show prose; examples surface through `| examples` in the detail
@@ -42,7 +42,7 @@ function stripQuoteSegments(content) {
   const parts = [];
   let cursor = 0;
   while (cursor < content.length) {
-    const tildePos = content.indexOf('~{', cursor);
+    const tildePos = content.indexOf('~(', cursor);
     if (tildePos === -1) {
       parts.push(content.slice(cursor));
       break;
@@ -61,9 +61,8 @@ function stripQuoteSegments(content) {
         i++;
         continue;
       }
-      if (ch === '~' && content[i + 1] === '{') { depth++; i += 2; continue; }
-      if (ch === '{') { depth++; i++; continue; }
-      if (ch === '}') { depth--; i++; continue; }
+      if (ch === '(') { depth++; i++; continue; }
+      if (ch === ')') { depth--; i++; continue; }
       i++;
     }
     cursor = i;
@@ -632,15 +631,12 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const modifiers = descriptor.get(F_MODIFIERS).map(formatMetaValue);
   const docContents = await fetchDocsContents(operandCall.name);
 
-  const argsStartOffset = operandCall.location.start.offset
-    + operandCall.name.length + 1;
-  const textBeforeCursor = source.substring(argsStartOffset, offset);
-  const activeParameter = (textBeforeCursor.match(/,/g) || []).length;
+  // The active parameter is the modifier the cursor stands on or after:
+  // one per word that ends before it.
+  const activeParameter = operandCall.args.filter(arg => arg.location.end.offset < offset).length;
 
   return {
-    label: modifiers.length > 0
-      ? `${operandCall.name}(${modifiers.join(', ')})`
-      : `${operandCall.name}()`,
+    label: [operandCall.name, ...modifiers].join(' '),
     documentation: stripQuoteSegments(docContents[0] ?? ''),
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
@@ -650,7 +646,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
 function findEnclosingOperandCall(node) {
   let current = node;
   while (current) {
-    if (current.type === 'OperandCall' && current.args !== null) {
+    if (current.type === 'OperandCall' && current.args.length > 0) {
       return current;
     }
     current = current.parent;

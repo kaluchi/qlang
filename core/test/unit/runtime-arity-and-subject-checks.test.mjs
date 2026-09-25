@@ -38,15 +38,15 @@ import { QlangInvariantError } from '../../src/errors.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', async () => {
-    expect(isErrorValue(await evalQuery('5 | sub("x")'))).toBe(true);
+    expect(isErrorValue(await evalQuery('5 | sub "x"'))).toBe(true);
   });
 
   it('mul with non-numeric right operand throws', async () => {
-    expect(isErrorValue(await evalQuery('5 | mul("x")'))).toBe(true);
+    expect(isErrorValue(await evalQuery('5 | mul "x"'))).toBe(true);
   });
 
   it('div with non-numeric right operand throws', async () => {
-    expect(isErrorValue(await evalQuery('5 | div("x")'))).toBe(true);
+    expect(isErrorValue(await evalQuery('5 | div "x"'))).toBe(true);
   });
 });
 
@@ -94,7 +94,7 @@ describe('setops bare-form non-Vec subject errors', async () => {
 
 describe('setops full form (two captured args)', async () => {
   it('minus full form computes left minus right via two captured pipelines', async () => {
-    const result = await evalQuery('null | minus({:a 1 :b 2 :tmp 3}, #[:tmp])');
+    const result = await evalQuery('null | minus {:a 1 :b 2 :tmp 3} #[:tmp]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -102,7 +102,7 @@ describe('setops full form (two captured args)', async () => {
   });
 
   it('inter full form computes left inter right via two captured pipelines', async () => {
-    const result = await evalQuery('null | inter({:a 1 :b 2 :c 3}, #[:a :b])');
+    const result = await evalQuery('null | inter {:a 1 :b 2 :c 3} #[:a :b]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -110,7 +110,7 @@ describe('setops full form (two captured args)', async () => {
   });
 
   it('union full form computes left union right via two captured pipelines', async () => {
-    const result = await evalQuery('null | union({:a 1}, {:b 2})');
+    const result = await evalQuery('null | union {:a 1} {:b 2}');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -137,13 +137,13 @@ describe('vec.min and vec.max on empty Vec', async () => {
 
 describe('vec.sort with key on non-Vec subject', async () => {
   it('sort with key throws SortByKeySubjectNotSequenceError', async () => {
-    expect(isErrorValue(await evalQuery('42 | sort(/x)'))).toBe(true);
+    expect(isErrorValue(await evalQuery('42 | sort ~(/x)'))).toBe(true);
   });
 });
 
 describe('higherOrderOp / nullaryOp arity errors', async () => {
   it('nullaryOp called with captured args throws', async () => {
-    expect(isErrorValue(await evalQuery('[1 2 3] | count(:foo)'))).toBe(true);
+    expect(isErrorValue(await evalQuery('[1 2 3] | count :foo'))).toBe(true);
   });
 
   it('higherOrderOp filter called with zero captured args throws', async () => {
@@ -152,7 +152,7 @@ describe('higherOrderOp / nullaryOp arity errors', async () => {
     // form `filter()` forces actual application with zero lambdas
     // and triggers the arity error inside the higherOrderOp
     // dispatch wrapper.
-    expect(isErrorValue(await evalQuery('[1 2 3] | filter()'))).toBe(true);
+    expect(isErrorValue(await evalQuery('[1 2 3] | filter'))).toBe(true);
   });
 });
 
@@ -168,7 +168,7 @@ describe('valueOp arity overflow', async () => {
     // because its minCaptured is 1. The empty-call form `add()`
     // forces actual application with zero lambdas and triggers
     // ValueOpArityMismatchError.
-    expect(isErrorValue(await evalQuery('5 | add()'))).toBe(true);
+    expect(isErrorValue(await evalQuery('5 | add'))).toBe(true);
   });
 });
 

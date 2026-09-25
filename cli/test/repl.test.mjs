@@ -32,13 +32,13 @@ function captureRepl(scriptedInput) {
 }
 
 describe('runRepl — meta commands', () => {
-  it('closes on ~{.exit} and resolves to exit code 0', async () => {
+  it('closes on `.exit` and resolves to exit code 0', async () => {
     const replHarness = captureRepl('.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
   });
 
-  it('writes the help banner on ~{.help} and stays open until EOF', async () => {
+  it('writes the help banner on `.help` and stays open until EOF', async () => {
     const replHarness = captureRepl('.help\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
@@ -62,20 +62,20 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const replHarness = captureRepl(':double mul(2)\n10 | double\n.exit\n');
+    const replHarness = captureRepl(':double mul 2\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
   it('auto-prints a fail-track error value on stderr (still exit 0 on close)', async () => {
-    const replHarness = captureRepl('[1 2 3] | add(1)\n.exit\n');
+    const replHarness = captureRepl('[1 2 3] | add 1\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
     expect(stripAnsi(replHarness.stderrText())).toMatch(/!\{/);
   });
 
   it('materializes trail in error display without explicit !|', async () => {
-    const replHarness = captureRepl('"hello" | add(1) | mul(2) | sub(3)\n.exit\n');
+    const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     const text = stripAnsi(replHarness.stderrText());
     expect(text).toMatch(/:trail/);
@@ -109,7 +109,7 @@ describe('runRepl — output highlighting', () => {
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
-  it('translates ~{\\n} into ~{\\r\\n} for stderr writes in TTY mode', async () => {
+  it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
@@ -172,7 +172,7 @@ describe('runRepl — render-invariant catch', () => {
     // raw function values via FunctionValueLeakedToPrintError; the
     // REPL renderer catches that, writes a render-invariant
     // diagnostic to stderr, and stays open for the next prompt.
-    const replHarness = captureRepl(':f [:n] (env | /n) | 5 | f(1)\n.exit\n');
+    const replHarness = captureRepl(':f [:n] (env | /n) | 5 | f 1\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
     expect(stripAnsi(replHarness.stderrText())).toMatch(/render invariant: FunctionValueLeakedToPrintError/);
@@ -184,19 +184,19 @@ describe('runRepl — render-invariant catch', () => {
     // `:trail` is already a single Quote covering every deflected
     // step (no `_trailHead` remnant). The REPL renders the value
     // verbatim through `printValue`.
-    const query = '!{:kind :first} | count !| union({:k 1}) | error | add(1) | mul(2)';
+    const query = '!{:kind :first} | count !| union {:k 1} | error | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
     const out = stripAnsi(replHarness.stderrText());
     expect(out).toMatch(/count/);
-    expect(out).toMatch(/add\(1\)/);
-    expect(out).toMatch(/mul\(2\)/);
+    expect(out).toMatch(/add 1/);
+    expect(out).toMatch(/mul 2/);
   });
 });
 
 describe('runRepl — @in / @out behaviour', () => {
-  it('binds ~{@in} to return the empty String so the cell does not deadlock against the prompt', async () => {
+  it('binds `@in` to return the empty String so the cell does not deadlock against the prompt', async () => {
     const replHarness = captureRepl('@in | pretty | @out\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // `@in` resolves to ''. pretty renders it as the qlang String

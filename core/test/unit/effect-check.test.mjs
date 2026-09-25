@@ -94,7 +94,7 @@ describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
 
 describe('findFirstEffectfulIdentifier', () => {
   it('returns null for an effect-clean body', () => {
-    const ast = parse('mul(2)');
+    const ast = parse('mul 2');
     expect(findFirstEffectfulIdentifier(ast)).toBeNull();
   });
 
@@ -104,7 +104,7 @@ describe('findFirstEffectfulIdentifier', () => {
   });
 
   it('reaches into nested OperandCall arguments', () => {
-    const ast = parse('filter(@callers | count)');
+    const ast = parse('filter ~(@callers | count)');
     expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
@@ -136,12 +136,12 @@ describe('eval-time effect validation in evalBindStep', () => {
   });
 
   it('accepts a quote literal whose steps name an effect — the quote is data', async () => {
-    const accepted = await evalQuery(':holdsCode [~{@callers} /x] | 1');
+    const accepted = await evalQuery(':holdsCode [~(@callers) /x] | 1');
     expect(accepted).toBe(1);
   });
 
   it('rejects nested effectful body', async () => {
-    const effectErr = await catchOriginalError(':foo filter(@callers | count)');
+    const effectErr = await catchOriginalError(':foo filter ~(@callers | count)');
     expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
   });
 
@@ -193,7 +193,7 @@ describe('eval-time effect validation in evalBindStep', () => {
 
   it('as binding on an effectful expression result is exempt', async () => {
     // as(:result) captures the call result, not the function value.
-    const evalResult = await evalQuery('[1 2 3] | as(:result) | result | count');
+    const evalResult = await evalQuery('[1 2 3] | as :result | result | count');
     expect(isErrorValue(evalResult)).toBe(false);
   });
 
@@ -223,7 +223,7 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
     const cellEntry = await sessionInstance.evalCell(
-      '(env | /@callers) | as(:snap) | snap'
+      '(env | /@callers) | as :snap | snap'
     );
     expect(isErrorValue(cellEntry.result)).toBe(true);
     const originalErr = cellEntry.result.originalError;

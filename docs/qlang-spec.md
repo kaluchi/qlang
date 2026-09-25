@@ -135,7 +135,7 @@ mint one:
   production, so `1e400` is a parse failure whose `:expected` Vec
   names the domain.
 - An arithmetic step whose result leaves the domain lifts a
-  per-site `numericDomain` error — `1e308 | mul(10)` answers
+  per-site `numericDomain` error — `1e308 | mul 10` answers
   `::MulResultNotFiniteError` carrying both finite operands, the
   second answer `div` gives alongside `::DivisionByZeroError`.
   `sum` reads its running total at every element and answers
@@ -160,7 +160,7 @@ infinity would silently become `null`.
 
 The range is the only thing pinned. Precision is the double's own:
 an integer past 2^53 rounds to its nearest representable neighbour
-the way it does in any IEEE host, and `0.1 | add(0.2)` answers
+the way it does in any IEEE host, and `0.1 | add 0.2` answers
 `0.30000000000000004`.
 
 ### boolean
@@ -471,7 +471,7 @@ explains how operands hook into the pipeline.
 > {:name "alice" :age 30} | /name
 "alice"
 
-> [1 2 3 4 5] | filter(gt(3)) | count
+> [1 2 3 4 5] | filter ~(gt 3) | count
 2
 ```
 
@@ -479,59 +479,44 @@ Operands are referenced by name after `|`. Built-ins like `count`,
 `sort`, and `filter` are always in scope at the top of a query;
 later chapters show how to add more.
 
-### Binding and application
+### Commands and their modifiers
 
-Two of the examples above used `count` bare and `filter(gt(3))`
-with arguments in parentheses. Two distinct operations explain the
-difference.
+Two of the examples above used `count` bare and `filter ~(gt 3)`
+with a modifier. A step is a **command**: a name followed by its
+modifiers, separated by spaces. A modifier is one word — a literal,
+a projection, a name, a quote, or a pipeline in parentheses, which
+is the only thing parentheses mean.
 
-**`()`** is **binding**. It takes a function and some arguments,
-returns a new function with those arguments fixed. Binding never
-runs anything — it only constructs a new function.
+**`|`** is **application**. It takes a value and a command and
+runs the command with the value as its subject. `|` is the only
+thing in the language that actually executes a step.
 
-**`|`** is **application**. It takes a value and a function and
-applies the function to the value. `|` is the only thing in the
-language that actually executes a step.
-
-```qlang
-gt              |~| function: needs (value, threshold)
-gt(10)          |~| binding: fix threshold = 10 → new function awaiting value
-                |~| nothing executed yet
-
-filter          |~| function: needs (vec, predicate)
-filter(gt(10))  |~| binding: fix predicate → new function awaiting vec
-                |~| still nothing executed
-
-[1 2 3 4 5] | filter(gt(10))
-             ^
-             application — fires here
-```
-
-A zero-argument operand is complete on its own and applies
-immediately:
+A modifier is evaluated at the call against the subject. A slot that
+runs code on each element, or only when chosen — a predicate, a key,
+a reducer, a comparator, a branch — takes a **quote**, `~(…)`, and
+the operand applies it:
 
 ```qlang
-count           |~| complete: needs only (vec)
-[1 2 3] | count |~| application → 3
-
-sort            |~| complete: (vec), natural order
-sort(/name)     |~| binding: fix key → new function (vec)
-```
-
-Expressions inside `()` are **captured**: the parser keeps the
-source verbatim and defers evaluation. When the bound function is
-later applied via `|`, each captured argument evaluates against
-the current `pipeValue`:
-
-```qlang
-filter(/age | gt(18))
-       ^^^^^^^^^^^^^
-       captured pipeline — fires per element at apply time
+> [1 2 3 4 5] | take (count | sub 2)
+[1 2 3]
 
 > [{:name "a" :age 25} {:name "b" :age 15} {:name "c" :age 30}]
-  | filter(/age | gt(18))
+  | filter ~(/age | gt 18)
 [{:name "a" :age 25} {:name "c" :age 30}]
 ```
+
+A group in a slot of code computes its value at the call, and the
+slot refuses it, naming the quote it wanted. A quote of a single
+name or projection may drop the parentheses: `~add`, `~/age`.
+
+At the top level a line is a step: a command's modifiers end with
+their line, and a line that neither ends nor begins with a
+combinator continues the pipeline through `|`. Inside brackets a
+newline is whitespace, so a command whose modifiers take several
+lines stands in parentheses. Inside a literal every element is a
+word, so a command with modifiers stands there in parentheses too:
+`[(mul 2) (add 1)]`. Every combinator is set off by whitespace on
+both sides.
 
 ### Subject-first convention
 
@@ -544,7 +529,7 @@ pipeline fills the missing leading slots — this is **partial
 application**:
 
 ```qlang
-100 | mul(2)            |~| pipeValue 100 fills position 1
+100 | mul 2            |~| pipeValue 100 fills position 1
                         |~| captured 2 fills position 2
                         |~| → 200
 ```
@@ -554,7 +539,7 @@ When all positions are captured, the pipeline fills no slot and
 are evaluated — this is **full application**:
 
 ```qlang
-> {:price 100 :qty 3} | mul(/price, /qty)
+> {:price 100 :qty 3} | mul /price /qty
 300
 |~| both args captured from pipeValue fields;
 |~| pipeValue itself fills no position
@@ -567,7 +552,7 @@ including `0`, `""`, `[]`, `{}`, `#[]`. Predicates such as
 `filter`, `if`, `when`, and `not` honour this rule uniformly.
 
 ```qlang
-> [0 "" null false true 1 "a"] | filter(not)
+> [0 "" null false true 1 "a"] | filter ~(not)
 [null false]
 ```
 
@@ -581,13 +566,13 @@ the result is **an error value** of the `!{}` form introduced in
 `pipeValue` and flows through the rest of the pipeline as data.
 
 ```qlang
-> [1 2 3] | add(1)
+> [1 2 3] | add 1
 ::AddLeftNotNumberError!{
-  :faultStep ~{add(1)}
+  :faultStep ~(add 1)
   :faultInput [1 2 3]
   :actualType :vec
 }
-|~| add(1) expects a Number in position 1; the Vec fires the per-site
+|~| add 1 expects a Number in position 1; the Vec fires the per-site
 |~| class ::AddLeftNotNumberError, which becomes the error's tag head.
 |~| The descriptor lays out the failure structure and the error becomes
 |~| the new pipeValue.
@@ -621,7 +606,7 @@ on either side, so no extra `|` is needed around it:
 
 ```qlang
 > [1 2 3 4 5]
-  | filter(gt(2))
+  | filter ~(gt 2)
   |~| keep elements greater than 2 |~|
   count
 3
@@ -642,8 +627,8 @@ left to right. `()` scopes a sub-expression into an isolated
 sub-pipeline:
 
 ```qlang
-filter(/age | gt(18))
-|~| /age | gt(18) is a complete sub-pipeline inside ()
+filter ~(/age | gt 18)
+|~| /age | gt 18 is a complete sub-pipeline inside the quote
 ```
 
 ---
@@ -666,7 +651,7 @@ Part 1. A key the Map does not carry raises `::ProjectionKeyNotInMapError`:
 
 > {:name "alice"} | /missing
 ::ProjectionKeyNotInMapError!{
-  :faultStep ~{/missing}
+  :faultStep ~(/missing)
   :faultInput {:name "alice"}
   :key "missing"
 }
@@ -726,15 +711,15 @@ Useful as a reference to the implicit subject inside captured
 arguments:
 
 ```qlang
-> 5 | mul(/)
+> 5 | mul /
 25
 |~| 5 fills slot 1; the captured / resolves to pipeValue = 5,
-|~| fills slot 2 → mul(5, 5) → 25.
+|~| fills slot 2 → mul 5 5 → 25.
 
-> {:price 100 :tax 0.2} | mul(/price, /tax)
+> {:price 100 :tax 0.2} | mul /price /tax
 20.0
 
-> [1 2 3] | eq(/)
+> [1 2 3] | eq /
 true
 |~| compares pipeValue against itself.
 
@@ -749,7 +734,7 @@ true
 
 Without `/` the only path to reference the running pipeValue
 inside a captured arg is the snapshot-and-deref dance
-`as(:_self) | … | _self` — verbose for a single reference.
+`as :_self | … | _self` — verbose for a single reference.
 
 Type error: projection on a non-Map (Scalar, Vec, Set, null, function)
 produces an Error value — see [Error track](#error-track).
@@ -759,7 +744,7 @@ produces an Error value — see [Error track](#error-track).
 Apply an expression to each element of a Vec.
 
 ```qlang
-> [1 2 3] * add(10)
+> [1 2 3] * add 10
 [11 12 13]
 
 > [{:name "a" :x 1} {:name "b" :x 2}] * /name
@@ -775,11 +760,11 @@ Apply an expression to each element of a Vec.
 > [1 2 3] | count
 3
 
-> [1 2 3] * add(1)
+> [1 2 3] * add 1
 [2 3 4]
 ```
 
-This resolves the type error from Partial application: `[1 2 3] | add(1)`
+This resolves the type error from Partial application: `[1 2 3] | add 1`
 failed because `add` expects a number in the first position. `*`
 applies the step per element of the Vec or Set.
 
@@ -797,7 +782,7 @@ syntax, new behaviour.
 ### Vec as step — fan-out
 
 ```qlang
-> 10 | [add(1), mul(2), sub(3)]
+> 10 | [(add 1), (mul 2), (sub 3)]
 [11 20 7]
 
 > {:name "alice" :age 30} | [/name, /age]
@@ -812,16 +797,16 @@ A Vec expression produces a Vec of results. Combined with `flat`,
 which flattens one level, this merges the branches:
 
 ```qlang
-> [1 2 3 4 5] | [filter(gt(3)), filter(lt(2))] | flat | count
+> [1 2 3 4 5] | [(filter ~(gt 3)), (filter ~(lt 2))] | flat | count
 3
-|~| [filter(gt(3)), filter(lt(2))] builds [[4 5], [1]]
+|~| [(filter ~(gt 3)) (filter ~(lt 2))] builds [[4 5] [1]]
 |~| flat flattens to [4 5 1], count → 3
 ```
 
 ### Map as step — reshape
 
 ```qlang
-> {:name "alice" :age 30 :x 5} | {:name /name :doubled /x | mul(2)}
+> {:name "alice" :age 30 :x 5} | {:name /name :doubled (/x | mul 2)}
 {:name "alice" :doubled 10}
 ```
 
@@ -829,7 +814,7 @@ After `*` — reshape each Vec element:
 
 ```qlang
 > [{:name "a" :x 3} {:name "b" :x 7}]
-  * {:name /name :doubled /x | mul(2)}
+  * {:name /name :doubled (/x | mul 2)}
 [{:name "a" :doubled 6} {:name "b" :doubled 14}]
 ```
 
@@ -840,7 +825,7 @@ being reshaped:
 ```qlang
 > [{:name "a" :price 100 :qty 3}
    {:name "b" :price 50 :qty 10}]
-  * {:name /name :total mul(/price, /qty)}
+  * {:name /name :total (mul /price /qty)}
 [{:name "a" :total 300} {:name "b" :total 500}]
 ```
 
@@ -850,7 +835,7 @@ A Set literal after `|` collects values — each element expression
 receives `pipeValue`:
 
 ```qlang
-> {:name "alice" :age 30} | #[/name, /age]
+> {:name "alice" :age 30} | #[/name /age]
 #["alice" 30]
 
 |~| equivalent via operands
@@ -904,13 +889,13 @@ or Maps. Left-fold.
 Bound operand forms — single argument, no Vec wrapper needed:
 
 ```qlang
-> {:name "a" :age 20} | union({:adult /age | gt(18)})
+> {:name "a" :age 20} | union {:adult (/age | gt 18)}
 {:name "a" :age 20 :adult true}
 
-> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
+> {:name "a" :age 20 :tmp 1} | minus #[:tmp]
 {:name "a" :age 20}
 
-> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
+> {:name "a" :age 20 :tmp 1} | inter #[:name :age]
 {:name "a" :age 20}
 ```
 
@@ -938,14 +923,14 @@ write into it. The Map has a name — `env` — which becomes
 relevant when [Reflection](#reflection) introduces an operand
 that returns it as a value.
 
-### `as(:name)` — value snapshot
+### `as :name` — value snapshot
 
-`as(:name)` captures `pipeValue` under a keyword name. The value
+`as :name` captures `pipeValue` under a keyword name. The value
 passes through unchanged; the name becomes available to all
 subsequent steps in the same scope.
 
 ```qlang
-order | normalize | as(:cleanOrder) | computeTax | as(:taxedOrder) | shipQuote | finalize
+order | normalize | as :cleanOrder | computeTax | as :taxedOrder | shipQuote | finalize
 |~| after normalize → cleanOrder = the cleaned order map
 |~| after computeTax → taxedOrder = the taxed map
 ```
@@ -958,7 +943,7 @@ Multiple `as` calls can appear in sequence, binding either the same
 value under different names or different values at different stages:
 
 ```qlang
-purchase | normalize | as(:initial) | applyDiscounts | as(:discounted) | [initial discounted]
+purchase | normalize | as :initial | applyDiscounts | as :discounted | [initial discounted]
 |~| initial    = the normalized purchase
 |~| discounted = the same purchase after discounts applied
 ```
@@ -969,16 +954,16 @@ computed delta:
 
 ```qlang
 > {:name "a" :age 20 :tmp 1}
-  | as(:r) | [r, #[:tmp]] | minus
+  | as :r | [r, #[:tmp]] | minus
 {:name "a" :age 20}
 
 > {:name "a" :age 20}
-  | as(:r) | [r, {:adult /age | gt(18)}] | union
+  | as :r | [r, {:adult (/age | gt 18)}] | union
 {:name "a" :age 20 :adult true}
 
-record | as(:r) | [r, {:adult /age | gt(18)}] | union
-record | as(:r) | [r, #[:tmp]] | minus
-record | as(:r) | [r, #[:name :age]] | inter
+record | as :r | [r, {:adult (/age | gt 18)}] | union
+record | as :r | [r, #[:tmp]] | minus
+record | as :r | [r, #[:name :age]] | inter
 ```
 
 Multi-step reference — capture at one point, use at several later
@@ -988,10 +973,10 @@ points:
 > [{:name "a" :age 25}
    {:name "b" :age 15}
    {:name "c" :age 30}]
-  | as(:people)
-  | filter(/age | gte(18))
-  | as(:adults)
-  | {:total people | count :adult adults | count}
+  | as :people
+  | filter ~(/age | gte 18)
+  | as :adults
+  | {:total (people | count) :adult (adults | count)}
 {:total 3 :adult 2}
 ```
 
@@ -1003,15 +988,15 @@ captures a transformation — a reusable pipeline fragment called a
 the name goes into scope.
 
 ```qlang
-> :double mul(2)
+> :double mul 2
   | [1 2 3] * double
 [2 4 6]
 ```
 
 The two forms are a single mechanism with different arity:
 
-- `:double mul(2)` — zero-arity conduit, no parameters.
-- `:@surround [:pfx :sfx] (prepend(pfx) | append(sfx))` —
+- `:double mul 2` — zero-arity conduit, no parameters.
+- `:@surround [:pfx :sfx] (prepend pfx | append sfx)` —
   two-arity conduit, two parameters.
 - `:f [] body` — equivalent to zero-arity (empty params list).
 
@@ -1019,14 +1004,14 @@ Multi-step bodies must be wrapped in parentheses so the `|` inside
 does not bleed into the outer pipeline:
 
 ```qlang
-| :isSenior (/age | gt(65))
-|~| parens required: /age | gt(65) is the body pipeline
+| :isSenior (/age | gt 65)
+|~| parens required: /age | gt 65 is the body pipeline
 ```
 
 Difference from `as`:
 - `:name expr` — captures the **expression**. Each reference
   evaluates `expr` in a lexically-scoped fork.
-- `as(:name)` — captures the **value** of `pipeValue` at the point
+- `as :name` — captures the **value** of `pipeValue` at the point
   where the operand executes. Frozen — same value every reference.
 
 Both mechanisms write to the same `env[:name]` slot, so the usual
@@ -1035,7 +1020,7 @@ last-write-wins rule applies.
 #### Invocation
 
 A conduit is invoked like any operand: `value | double`,
-`"world" | @surround("[", "]")`. At the call site:
+`"world" | @surround "[" "]"`. At the call site:
 
 1. Captured-arg expressions become lazy lambdas (not eagerly fired).
 2. Each lambda is wrapped in a conduitParameter that fires against
@@ -1058,9 +1043,9 @@ the conduit's frozen lexical anchor, so the conduit body keeps
 resolving identifiers through the env captured at declaration.
 
 ```qlang
-> :@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n))
-  | :@topNByV [:n] @topBy(/v, n)
-  | :@top2ByV @topNByV(2)
+> :@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n)
+  | :@topNByV [:n] @topBy /v n
+  | :@top2ByV @topNByV 2
   | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v
 [30 20]
 ```
@@ -1078,8 +1063,8 @@ that fires per-element inside `sortWith`, per-iteration inside
 `filter`, per-pair inside `desc`/`asc`:
 
 ```qlang
-> :@topBy [:keyFn :n] (sortWith(desc(keyFn)) | take(n))
-  | [{:score 1} {:score 3} {:score 2}] | @topBy(/score, 2) * /score
+> :@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n)
+  | [{:score 1} {:score 3} {:score 2}] | @topBy /score 2 * /score
 [3 2]
 ```
 
@@ -1089,12 +1074,12 @@ element when `desc` invokes it per comparison pair.
 #### Examples
 
 ```qlang
-> :@surround [:pfx :sfx] (prepend(pfx) | append(sfx))
-  | "world" | @surround("[", "]")
+> :@surround [:pfx :sfx] (prepend pfx | append sfx)
+  | "world" | @surround "[" "]"
 "[world]"
 
 > [{:name "Alice" :age 25} {:name "Bob" :age 16} {:name "Carol" :age 40}]
-  | :votingAge filter(/age | gte(18))
+  | :votingAge filter ~(/age | gte 18)
   | :nameAndAge {:name /name :age /age}
   | votingAge * nameAndAge
 [{:name "Alice" :age 25} {:name "Carol" :age 40}]
@@ -1103,7 +1088,7 @@ element when `desc` invokes it per comparison pair.
 #### Recursion via self-reference
 
 ```qlang
-| :walk {:label /label :children /children * walk}
+| :walk {:label /label :children (/children * walk)}
 | {:label "root" :children [
     {:label "a" :children []}
     {:label "b" :children [
@@ -1125,14 +1110,14 @@ tag constructors, doc-segment literals, locator-loaded modules — so
 a runaway surfaces as an ordinary error value:
 
 ```qlang
-> :inf (add(1) | inf) | 0 | inf !| type
+> :inf (add 1 | inf) | 0 | inf !| type
 ::EvaluationDepthExceededError
 ```
 
 Recursive parametric conduits work the same way:
 
 ```qlang
-| :@treeMap [:fn] {:label (/label | fn) :children /children * @treeMap(fn)}
+| :@treeMap [:fn] {:label (/label | fn) :children (/children * @treeMap fn)}
 ```
 
 See [qlang-internals.md](qlang-internals.md#example-6-recursive-bindstep)
@@ -1150,7 +1135,7 @@ bound.
 ```qlang
 > {:pi 3.14159 :e 2.71828 :phi 1.61803}
   | use
-  | [pi | mul(2), e | mul(3)]
+  | [(pi | mul 2), (e | mul 3)]
 [6.28318 8.15484]
 ```
 
@@ -1166,14 +1151,14 @@ another with `:pi 3.14159` ends up with `pi → 3.14159`.
 `use` installs **data and host-resolved function values** from
 the given Map; Map literal values evaluate eagerly against
 `pipeValue` (the same Rule 10 every container literal follows),
-so `{:double mul(2)}` writes `{:double <pipeValue * 2>}` into
+so `{:double (mul 2)}` writes `{:double <pipeValue * 2>}` into
 env, with the captured-arg expression already fired. To declare
 a callable from inside a query, write a BindStep (`:name body`).
 To install one from outside a query, install it as part of the
 host-provided env or load it as a module through one of the
 namespaced forms below.
 
-#### Loading modules — `use(:namespace)`
+#### Loading modules — `use :namespace`
 
 A host application that ships its own libraries installs each
 one under a namespace keyword. The user calls `use` with the
@@ -1181,7 +1166,7 @@ namespace keyword as a captured argument, and the module's
 exports merge into scope:
 
 ```qlang
-use(:qlang/error)
+use :qlang/error
 |~| pulls the :qlang/error module's exports into scope
 ```
 
@@ -1190,12 +1175,12 @@ the module came from — built-in (`:qlang/error`), host-provided
 (`:domain/tax`), or user-installed for the session
 (`:my/helpers`). Module keywords are the namespaced keywords
 introduced in [Atomic values](#atomic-values), and their nested
-forms work too: `use(:qlang/error/guards)` loads a sub-module.
+forms work too: `use :qlang/error/guards` loads a sub-module.
 
 A namespace is a header-less Map bound under the namespace name
 or under the runtime's `qlang/namespace/<name>` cache key. An
 operand descriptor, a conduit, or a snapshot bound under the same
-bare name is an identifier-plane binding: `use(:count)` walks
+bare name is an identifier-plane binding: `use :count` walks
 past the `count` operand to the locator and lands on
 `UseNamespaceNotFoundError`.
 
@@ -1204,18 +1189,18 @@ captured-arg shapes:
 
 ```qlang
 |~| Vec — ordered list, later entries override earlier conflicts
-use([:qlang/error :domain/tax])
+use [:qlang/error :domain/tax]
 
 |~| Set — collision-raising, when shadowing is NOT what you want.
 |~| Two namespaces exporting the same name raise an error so the
 |~| host disambiguates explicitly instead of letting one silently
 |~| overwrite the other.
-use(#[:qlang/error :domain/tax])
+use #[:qlang/error :domain/tax]
 
 |~| Two captured args — namespace plus selection filter.
 |~| Only the named identifiers are imported; everything else
 |~| stays out of scope.
-use(:qlang/error, #[:guard :assert])
+use :qlang/error #[:guard :assert]
 ```
 
 The host-side mechanism that installs module Maps into env under
@@ -1251,7 +1236,7 @@ fork closes, its final `pipeValue` propagates out but its env
 changes are discarded. See the
 [model's Fork section](qlang-internals.md#fork) for details.
 
-1. **Lexical, left-to-right.** `as(:name)` is visible in all
+1. **Lexical, left-to-right.** `as :name` is visible in all
    subsequent steps of the same pipeline, and in any nested
    expression evaluated by those steps.
 
@@ -1260,7 +1245,7 @@ changes are discarded. See the
    scope are visible.
 
    ```qlang
-   employees | as(:roster) * {:name /name :teamSize roster | count}
+   employees | as :roster * {:name /name :teamSize (roster | count)}
    |~| roster captured before the distribute;
    |~| inside each iteration's reshape, roster is visible
    |~| (every element receives the same :teamSize)
@@ -1271,7 +1256,7 @@ changes are discarded. See the
    invisible after it closes.
 
    ```qlang
-   candidates | filter(/peerRating | as(:peerScore) | /selfRating | gte(peerScore))
+   candidates | filter ~(/peerRating | as :peerScore | /selfRating | gte peerScore)
    |~| peerScore is local to the filter predicate
    ```
 
@@ -1281,7 +1266,7 @@ changes are discarded. See the
 
 5. **Sibling expressions are independent.** In `{:a e1 :b e2}`,
    bindings from `e1` are NOT visible in `e2`. Same for Vec
-   elements `[a b c]`, Set elements `#[a, b, c]`, and each
+   elements `[a b c]`, Set elements `#[a b c]`, and each
    iteration of `*` — every entry is its own fork over the same
    outer state, and the evaluator makes no ordering promise
    between siblings. Results are collected positionally, so the
@@ -1290,7 +1275,7 @@ changes are discarded. See the
    `@`-prefixed writer) must not lean on the order those effects
    land in across siblings.
 
-6. **Shadowing.** A later `as(:name)` or `:name ...` in the same
+6. **Shadowing.** A later `as :name` or `:name ...` in the same
    scope replaces the earlier one for subsequent uses.
 
 7. **Resolution order**: last-write-wins in `env`. Under typical
@@ -1365,12 +1350,12 @@ virtual (no predecessor to connect to).
 
 ```qlang
 orders | @find | @members
-  | filter(/kind | eq(:method))
-  | filter(@callers | empty)
+  | filter ~(/kind | eq :method)
+  | filter ~(@callers | empty)
   |~ Why @overriddenBy empty as a separate check: Eclipse
      SearchEngine does not count override calls as @callers, and a
      method with empty @callers can still be invoked via polymorphism. ~|
-  filter(@overriddenBy | empty)
+  filter ~(@overriddenBy | empty)
 ```
 
 The leading `|` of `|~` absorbs the combinator from the previous
@@ -1378,8 +1363,8 @@ filter; the trailing `|` of `~|` absorbs the combinator to the next
 filter. Neither side needs an explicit `|`.
 
 A step written with its own combinator after a comment keeps it:
-`(|~ note ~| * add(1))` distributes exactly as `(* add(1))`, and
-`~{|~ note ~| !| /kind}` replays through `apply` as `~{!| /kind}`.
+`(|~ note ~| * add 1)` distributes exactly as `(* add 1)`, and
+`~(|~ note ~| !| /kind)` replays through `apply` as `~(!| /kind)`.
 At the start of a query, a paren-group, or a Quote, the step after
 a comment is the head step — it rides `|` like every other step,
 or the pipeline's leading combinator when one is written before
@@ -1390,7 +1375,7 @@ combinator on that same step is a parse error.
 
 Doc comments (`|~~|`, `|~~ ~~|`) attach as metadata to the
 **immediately following binding step** — that is, the next
-BindStep (`:name ...`) or `as(:name)`. The retrieval path goes
+BindStep (`:name ...`) or `as :name`. The retrieval path goes
 through the binding's name, so a doc comment must be followed by
 a binding; preceding any other step, the doc comment fails to
 parse.
@@ -1454,9 +1439,9 @@ coexist in env without collision — colon-count alone picks the
 namespace.
 
 ```qlang
-> :duration mul(60)
-  | ::duration {:impl ~{as(:s) | {:seconds s}}}
-  | [10 | duration, ::duration(10)]
+> :duration mul 60
+  | ::duration {:impl ~(as :s | {:seconds s})}
+  | [(10 | duration), ::duration(10)]
 [600 ::duration{:seconds 10}]
 ```
 
@@ -1464,9 +1449,9 @@ The tag-namespace branch auto-wraps the constructor's Quote-body
 result with `::duration` identity (the body returns `{:seconds
 10}`, the runtime stamps the tag header on the result), so
 `::duration(10) | type` reads `::duration`. To opt out and
-return the raw shape, end the Quote body with `| tag(::Other)`
+return the raw shape, end the Quote body with `| tag ::Other`
 to re-brand under a different identity, or use a value-namespace
-Conduit (as `:duration mul(60)` above) which carries no
+Conduit (as `:duration mul 60` above) which carries no
 auto-wrap.
 
 Element 1 (`10 | duration`) invokes the value-namespace Conduit;
@@ -1505,7 +1490,7 @@ pipeline position. Whitespace forces the split — same rule as
 projection (`/foo` vs `/ foo`).
 
 The base composite literals — `[...]`, `{...}`, `#[...]`, `!{...}`,
-`~{...}` — are short forms for the most-frequent value classes
+`~(...)` — are short forms for the most-frequent value classes
 (Vec, Map, Set, Error, Quote). New value classes ride the `::tag`
 syntax until usage earns them a shorthand.
 
@@ -1524,16 +1509,16 @@ the payload as initial `pipeValue`. No JavaScript needed; works
 from inside any query or library module.
 
 ```qlang
-::wrap {:impl ~{prepend("[") | append("]")}}
+::wrap {:impl ~(prepend "[" | append "]")}
 | "world" | ::wrap"world"
 |~| → "[world]"
 
 |~~ Set permissions — only :read/:write/:delete allowed. ~~|
 ::permissions {:allowed #[:read :write :delete]
-   :impl ~{as(:p)
-     | every(:permissions/allowed | has)
-     | when(not, error({:kind :PermissionUnknown}))
-     | p}}
+   :impl ~(as :p
+     | every ~(:permissions/allowed | has)
+     | when not ~(error {:kind :PermissionUnknown})
+     | p)}
 
 |~| → returns the Set unchanged on valid input,
 |~| → lifts on fail-track on unknown keyword.
@@ -1541,7 +1526,7 @@ from inside any query or library module.
 ```
 
 The Quote body sees the env of the invocation site — `:exclaim
-append("!") | ::shout {:impl ~{exclaim}}` resolves `exclaim`
+append "!" | ::shout {:impl ~(exclaim)}` resolves `exclaim`
 through ordinary env lookup. Identifier resolution carries no
 namespace switch — a tag-constructor body is a normal
 sub-pipeline.
@@ -1578,7 +1563,7 @@ A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
 invocation. A reference to a tag that has no env binding
 auto-declares an identity-only Map binding on the spot (carrying
-`:declarationOrigin :implicit` for `manifest(:tag)` introspection)
+`:declarationOrigin :implicit` for `manifest :tag` introspection)
 — `::Tag<payload>` always succeeds shape-wise, regardless of
 whether the source explicitly declared `::Tag {…}`. Strict-mode
 tooling reads the `:implicit` marker through manifest to flag
@@ -1591,7 +1576,7 @@ unbound usage; runtime stays permissive.
   name raises `EffectLaunderingAtBindStepParseError` — the same
   invariant as for value-namespace BindSteps.
 - **Deterministic.** Same payload produces the same value.
-  Round-trip integrity depends on this: `parse(printValue(V))`
+  Round-trip integrity depends on this: `parse (printValue V)`
   must yield an equivalent V.
 - **Frozen output.** Constructor returns a frozen value (Map /
   Vec / Set / scalar / nested tagged value).
@@ -1601,10 +1586,10 @@ unbound usage; runtime stays permissive.
 The payload is a normal Primary expression: it evaluates against
 the outer `pipeValue` before the constructor runs. Map-literal
 payload becomes a constructor call with **keyword-keyed
-arguments** — read it as the dual of positional `op(a, b)`:
+arguments** — read it as the dual of positional `op a b`:
 
 ```qlang
-value | op(a, b)                       |~| positional args
+value | op a b                       |~| positional args
 value | ::tag{:k1 expr1 :k2 expr2}     |~| keyword-keyed args
 ```
 
@@ -1639,16 +1624,16 @@ Quote payload. The Quote holds the steps of its code and runs only
 when the constructor applies it.
 
 ```qlang
-::cond {:impl ~{as(:branches)
-          | first(/condition | apply(/) | isTruthy)
-          | /body | apply(/)}}
+::cond {:impl ~(as :branches
+          | first (/condition | apply / | isTruthy)
+          | /body | apply /)}
 
-| 25 | ::cond[{:condition ~{/ | gt(18)} :body ~{"adult"}}
-              {:condition ~{true}        :body ~{"minor"}}]
+| 25 | ::cond[{:condition ~(/ | gt 18) :body ~("adult")}
+              {:condition ~(true)        :body ~("minor")}]
 |~| → "adult"
 ```
 
-No grammar-level lazy flag — the Quote literal `~{...}` carries
+No grammar-level lazy flag — the Quote literal `~(...)` carries
 the deferred semantics.
 
 The Quote-payload pattern composes with Doc-payload for inline
@@ -1677,7 +1662,7 @@ extractor.
 
 `printValue` reads identity off the JS-header and re-emits the
 source-form `::tag<payload>` literal (`::Tag[…]`, `::Tag{…}`,
-`::Tag#[…]`, `::Tag~{…}`, `::Tag"…"`, `::Tag(scalar)`), so any
+`::Tag#[…]`, `::Tag~(…)`, `::Tag"…"`, `::Tag(scalar)`), so any
 TaggedLit value flows through the round-trip invariant. The
 `type` operand returns the identity tag directly; the `payload`
 operand strips identity and returns the underlying value (a
@@ -1715,14 +1700,14 @@ pipeline after the failure becomes a no-op; the error rides
 through to the end.
 
 ```qlang
-> "hello" | add(1) | mul(2) | sub(3)
+> "hello" | add 1 | mul 2 | sub 3
 ::AddLeftNotNumberError!{
-  :faultStep ~{add(1)}
+  :faultStep ~(add 1)
   :faultInput "hello"
   :actualType :string
-  :trail ~{mul(2) | sub(3)}
+  :trail ~(mul 2 | sub 3)
 }
-|~| add(1) produces the error; mul(2) and sub(3) deflect, each
+|~| add 1 produces the error; mul 2 and sub 3 deflect, each
 |~| stamping its step onto the trail the query boundary
 |~| materializes into the :trail Quote.
 ```
@@ -1733,12 +1718,12 @@ step only when `pipeValue` is an error value, exposing the error's
 `pipeValue`, `!|` is a pass-through.
 
 ```qlang
-> "hello" | add(1) | mul(2) !| type | spec | /category
+> "hello" | add 1 | mul 2 !| type | spec | /category
 :typeError
 
-> "hello" | add(1) | mul(2) !| /trail | parse
-"mul(2)"
-|~| mul(2) deflected; add(1) produced the error
+> "hello" | add 1 | mul 2 !| /trail | parse
+"mul 2"
+|~| mul 2 deflected; add 1 produced the error
 ```
 
 ### Descriptor and `:trail`
@@ -1754,8 +1739,8 @@ to replay. When no success-track combinator has deflected after the
 fault, `:trail` is `null`. `parse` prints the quote as its text.
 
 ```qlang
-> !{:kind :oops} | count | add(1) !| /trail | parse
-"count | add(1)"
+> !{:kind :oops} | count | add 1 !| /trail | parse
+"count | add 1"
 
 > !{:kind :oops} !| /trail
 null
@@ -1777,10 +1762,10 @@ example above uses it to bypass the need for a failing step.
 ### The `error` operand
 
 `error` lifts a Map into an error value — bare form (`map | error`)
-or full form (`error(map)`):
+or full form (`error map`):
 
 ```qlang
-> error({:kind :oops}) !| /kind
+> error {:kind :oops} !| /kind
 :oops
 ```
 
@@ -1801,10 +1786,10 @@ Runtime type errors, arity errors, and other recoverable failures
 lift automatically into error values with structured descriptors:
 
 ```qlang
-> "hello" | add(1) !| type
+> "hello" | add 1 !| type
 ::AddLeftNotNumberError
 
-> "hello" | add(1) !| type | spec | /category
+> "hello" | add 1 !| type | spec | /category
 :typeError
 ```
 
@@ -1816,7 +1801,7 @@ JS-header field, addressed through the `type` operand:
 literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
 this slot at construction; errors without an explicit `:kind`
 default to `::Error`. The descriptor Map below carries only
-data — no `:kind` field — so `result !| union(…) | error`
+data — no `:kind` field — so `result !| union … | error`
 re-lift round-trips preserve identity automatically.
 
 The materialized descriptor exposed by `!|` stamps the tag onto
@@ -1832,7 +1817,7 @@ or duplicates the literal head on print.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | The quote of the failing step. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error(map)`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
+| `:faultStep` | Quote | The quote of the failing step. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error map`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
 | `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
 | `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
 | `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
@@ -1855,7 +1840,7 @@ throw site, stamped onto the tag-binding at bootstrap, and reach the
 reader through the `spec` axis: `result !| type | spec | /category`
 returns the broad-bucket keyword; `result !| type | spec | /operand`
 returns the per-site origin. The catalog side of the same binding
-carries the prose and the `~{…}` examples that `docs` and `examples`
+carries the prose and the `~(…)` examples that `docs` and `examples`
 answer with. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
@@ -1879,7 +1864,7 @@ handed back. Subsequent deflections accumulate into a fresh
 again. This is the mechanism behind MDC-style context enrichment:
 
 ```qlang
-!| union({:request @requestId}) | error
+!| union {:request @requestId} | error
 |~| adds fields to the descriptor and re-lifts without losing the trail
 ```
 
@@ -1888,8 +1873,8 @@ inside the fail-apply step; deflections past the re-lift grow a
 fresh suffix:
 
 ```qlang
-> !{:kind :oops} | count !| union({:trail null}) | error | add(1) !| /trail
-~{add(1)}
+> !{:kind :oops} | count !| union {:trail null} | error | add 1 !| /trail
+~(add 1)
 ```
 
 ---
@@ -1933,14 +1918,14 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    embedding host — because every effectful invocation ultimately
    funnels through identifier lookup.
 
-`as` is exempt from the effect invariant: `@callers | as(:result)`
+`as` is exempt from the effect invariant: `@callers | as :result`
 captures the *call result* — the frozen value the host operand
 produced. The effect already fired by the time `as` runs, so the
 snapshot is pure data that downstream pipelines can reference under
 any name without re-triggering the host call.
 
 The runtime safety net does still fire on `as` snapshots that wrap
-a function value (e.g. `(env | /@callers) | as(:snap) | snap`),
+a function value (e.g. `(env | /@callers) | as :snap | snap`),
 because in that path the captured value is the function reference
 and `snap` would invoke it on lookup.
 
@@ -2007,15 +1992,15 @@ and per-kind fields stamped by `describeBinding` in
 `runtime/manifest-op.mjs`. The `:kind` field on manifest entries
 is a view-only enumeration surface — distinct from the JS-header
 identity slot the underlying env values carry; both `manifest |
-* /kind | eq(::builtin)` (field projection) and `manifest | * type
-| eq(::builtin)` (identity through the `type` operand) produce
+* /kind | eq ::builtin` (field projection) and `manifest | * type
+| eq ::builtin` (identity through the `type` operand) produce
 the same partition.
 
 ```qlang
-env | manifest | filter(/kind | eq(::builtin)) | count
+env | manifest | filter ~(/kind | eq ::builtin) | count
 |~| how many built-in operands are in scope
 
-env | manifest | filter(/effectful) * /name
+env | manifest | filter ~(/effectful) * /name
 |~| names of all effectful operands in scope
 ```
 
@@ -2030,21 +2015,21 @@ entirely and address the binding directly (`:filter | source`).
 |---|---|---|
 | `source` | `:name` or `::Tag` | The quote of the declaring BindStep |
 | `docs` | `:name` or `::Tag` | Vec of Doc-values, one per attached doc-comment |
-| `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~{…}` segment in the docs |
+| `examples` | `:name` or `::Tag` | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
-> :filter | docs | first | type | eq(:doc)
+> :filter | docs | first | type | eq :doc
 true
 
-> ::ParseError | source | parse | startsWith("::ParseError")
+> ::ParseError | source | parse | startsWith "::ParseError"
 true
 
-> :count | examples | first | type | eq(::quote)
+> :count | examples | first | type | eq ::quote
 true
 ```
 
 Lookup walks the `qlang/ast/<uri>` module Quote that
-`langRuntime` and every `use(:ns)` stamp into env at load time.
+`langRuntime()` and every `use :ns` stamp into env at load time.
 The match is **last-write-wins** — the same shadowing rule that
 governs identifier resolution. A `:name` declared in module B
 loaded after module A surfaces B's docs / source / examples; A's
@@ -2069,7 +2054,7 @@ catalog entry's docs.
 ### `runExamples` — execute Quote segments from a binding's docs
 
 Every catalog binding's attached doc-prefix may carry inline
-`~{…}` Quote segments — each Quote is an executable self-test
+`~(…)` Quote segments — each Quote is an executable self-test
 expression. `runExamples` is the self-test driver: given a
 binding name (Keyword or a descriptor Map carrying a `:name`
 string) as `pipeValue`, it walks the loaded modules' AST,
@@ -2081,8 +2066,8 @@ not an ErrorValue) reports `:ok true`.
 
 ```qlang
 :count | runExamples
-|~| → [{:snippet ~{[1 2 3] | count | eq(3)}     :actual true :error null :ok true}
-|~|    {:snippet ~{#[:a :b] | count | eq(2)}    :actual true :error null :ok true}
+|~| → [{:snippet ~([1 2 3] | count | eq 3)     :actual true :error null :ok true}
+|~|    {:snippet ~(#[:a :b] | count | eq 2)    :actual true :error null :ok true}
 |~|    ...]
 
 env | manifest * /name
@@ -2118,17 +2103,17 @@ reads back as: its constructor refuses an assembly whose text reads
 back as another step, and names the text.
 
 ```qlang
-> "1 | add(1)" | parse | count
+> "1 | add 1" | parse | count
 2
 
-> "add(2, 3)" | parse | first | /name
+> "add 2 3" | parse | first | /name
 :add
 
-> "add(2, 3)" | parse | first | /args | count
+> "add 2 3" | parse | first | /args | count
 2
 
-> ~{add( 2,3 )} | parse
-"add(2, 3)"
+> ~(add 2 3) | parse
+"add 2 3"
 ```
 
 A trail is the same kind of value: `!| /trail` is the quote of the
@@ -2139,21 +2124,21 @@ deflected steps, so `parse` prints it and `apply` replays it.
 `apply` runs the quote its captured argument answers against the
 subject, subject first like every other
 operand and under the fork rule: the declarations the code makes
-stay inside it. `apply(/)` runs code held as the subject against
+stay inside it. `apply /` runs code held as the subject against
 itself, which is how `parse` round-trips source text through the
 data plane:
 
 ```qlang
-> "42" | parse | apply(/)
+> "42" | parse | apply /
 42
 
-> "10 | add(5)" | parse | apply(/)
+> "10 | add 5" | parse | apply /
 15
 
-> "[1 2 3] | filter(gt(1)) | count" | parse | apply(/)
+> "[1 2 3] | filter ~(gt 1) | count" | parse | apply /
 2
 
-> 5 | apply(~{mul(2)})
+> 5 | apply ~(mul 2)
 10
 ```
 
@@ -2176,10 +2161,10 @@ Six step types:
 
 | # | Form | Effect on `(pipeValue, env)` |
 |---|---|---|
-| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a,b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
+| 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | identifier `name` or `name(arg₁..argₖ)` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, evaluating their captured branches lazily so only the selected branch executes. |
-| 4 | `as(:name)` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
+| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `when`, `unless`, `coalesce`, `firstTruthy` also resolve here, taking their branches as quotes and applying only the selected one. |
+| 4 | `as :name` | → `(pipeValue, env[:name := Snapshot(pipeValue, docs)])`. Identity on the value; names the current snapshot. Any doc comments immediately preceding the `as` attach to the snapshot. |
 | 5 | `:name expr` / `:name [:p..] expr` (BindStep) | → `(pipeValue, env[:name := Conduit(expr, params, envRef, docs)])`. Writes a lexically-scoped conduit. When `name` is later looked up, the conduit's body is evaluated in a fork with the declaration-time env (lexical scope via envRef tie-the-knot) plus conduitParameter proxies for each captured arg. Recursion works via self-reference in the tied env. Any doc comments immediately preceding the BindStep attach to the conduit. |
 | 6 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (BindStep or `as`), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
@@ -2206,19 +2191,19 @@ scoping rules listed in [Scoping rules](#scoping-rules).
 
 ### Rule 10 — operand application
 
-For `op(arg₁..argₖ)` where `op` resolves to a function of arity `n`:
+For `op mod₁ … modₖ` where `op` resolves to a function of arity `n`:
 
-- **Partial** (`k < n`): captured args fill positions `(n-k+1)..n`
+- **Partial** (`k < n`): the modifiers fill positions `(n-k+1)..n`
   (the trailing slots). `pipeValue` fills positions `1..(n-k)`
-  (the leading slots). Captured args are expressions evaluated
-  against `pipeValue`.
-- **Full** (`k = n`): captured args fill all positions `1..n` in
-  order. `pipeValue` becomes the **context** for resolving them;
+  (the leading slots). The modifiers are evaluated against
+  `pipeValue`, and a slot of code receives a quote.
+- **Full** (`k = n`): the modifiers fill all positions `1..n` in
+  order. `pipeValue` becomes the **context** for evaluating them;
   no position is filled by `pipeValue`.
 
 All operand signatures follow subject-first: position 1 is the data
-(filled by the pipeline in partial form), positions 2..n are
-modifiers (filled by captured args).
+(filled by the pipeline in partial form), positions 2..n are the
+modifiers.
 
 ### Precedence
 
@@ -2231,8 +2216,8 @@ a | b * c !| d  =  (((a | b) * c) !| d)
 `()` scopes sub-expressions:
 
 ```qlang
-filter(/age | gt(18))
-|~| /age | gt(18) is a complete sub-pipeline inside ()
+filter ~(/age | gt 18)
+|~| /age | gt 18 is a complete sub-pipeline inside the quote
 ```
 
 ### Error conditions
@@ -2246,7 +2231,7 @@ filter(/age | gt(18))
 | Captured args applied to a non-function value | type error |
 | Too many captured args for operand arity | arity error |
 | `union`/`minus`/`inter` on incompatible types | type error |
-| `div(0)` | division by zero |
+| `div 0` | division by zero |
 | Arithmetic whose result leaves the finite double range | type error |
 | `sum` whose running total leaves the finite double range | type error |
 | Number literal whose magnitude lies past the finite double range | parse error |
@@ -2270,12 +2255,12 @@ For every value V that can appear in `pipeValue` and whose
 identity is purely structural (no internal AST nodes, no envRef
 holders, no host-injected JS opaques),
 
-> `eval(parse(printValue(V)))`  is deepEqual to  V
+> `eval (parse (printValue V))`  is deepEqual to  V
 
 and dually, for every syntactically valid literal source S that
 evaluates to a `pipeValue`,
 
-> `printValue(eval(parse(S)))`  ≡  S
+> `printValue (eval (parse S))`  ≡  S
 
 modulo canonical whitespace and modulo equivalent surface forms
 (`:foo` and `:"foo"` both print as the bare form; JSON-mode
@@ -2300,9 +2285,9 @@ holder; both are reference-distinct between independent mints, so
 strict `deepEqual` would surface phantom drift. The **rendered
 form** stabilises across round-trip:
 
-> `printValue(apply(parse(printValue(V))))`  ≡  `printValue(V)`
+> `printValue (apply (parse (printValue V)))`  ≡  `printValue(V)`
 
-The `::conduit[:self [params] ~{body-source}]` literal contains
+The `::conduit[:self [params] ~(body-source)]` literal contains
 every input the next `apply` needs to reconstruct an
 observationally-equivalent Conduit; the JS-side identity (envRef,
 body AST) differs but the **behavioural** identity matches.
@@ -2332,7 +2317,7 @@ to `printValue`:
 - **Function values** — live only on `:impl` of a
   descriptor Map, projected back to keyword handle on render.
   Any leak to `pipeValue` raises the guard above.
-- **Snapshot wrappers** — `as(:name)` snapshots are env entries,
+- **Snapshot wrappers** — `as :name` snapshots are env entries,
   not pipeline values. Identifier lookup auto-unwraps a snapshot
   to its underlying value before the value escapes into
   `pipeValue`; projection (`/key`) does the same.
@@ -2456,7 +2441,7 @@ true false null
 ```
 
 `as` is an ordinary identifier bound to an operand in
-`langRuntime`. It can be shadowed like any other name. The
+`langRuntime()`. It can be shadowed like any other name. The
 declarative binding form `:name body` is a BindStep — a grammar
 production whose key carries a leading colon. Shadowing of its
 target name happens by a later BindStep / `as` / `use` write to
@@ -2482,7 +2467,7 @@ documentation level.
 4
 
 |~| filter + count
-> [10 25 3 47 8 31] | filter(gt(20)) | count
+> [10 25 3 47 8 31] | filter ~(gt 20) | count
 3
 
 |~| distribute + reshape
@@ -2495,19 +2480,19 @@ documentation level.
 |~| binary arithmetic in reshape
 > [{:name "a" :price 100 :qty 3}
    {:name "b" :price 50 :qty 10}]
-  * {:name /name :total mul(/price, /qty)}
+  * {:name /name :total (mul /price /qty)}
 [{:name "a" :total 300} {:name "b" :total 500}]
 
 |~| filter with composed predicate
 > [{:name "a" :age 25 :active true}
    {:name "b" :age 15 :active true}
    {:name "c" :age 30 :active false}]
-  | filter(and(/active, /age | gt(18)))
+  | filter ~(and /active (/age | gt 18))
 [{:name "a" :age 25 :active true}]
 
 |~| fan-out + merge
 > [1 2 3 4 5 6 7 8 9 10]
-  | [filter(gt(7)), filter(lt(3))] | flat | sort
+  | [(filter ~(gt 7)), (filter ~(lt 3))] | flat | sort
 [1 2 8 9 10]
 
 |~| nested projection
@@ -2519,46 +2504,46 @@ documentation level.
 > [{:name "server-1" :cpu 45}
    {:name "server-2" :cpu 92}
    {:name "server-3" :cpu 12}]
-  | filter(/cpu | gt(80))
+  | filter ~(/cpu | gt 80)
   * /name
 ["server-2"]
 
 |~| enrich via bound union
-> {:name "a" :age 20} | union({:adult /age | gt(18)})
+> {:name "a" :age 20} | union {:adult (/age | gt 18)}
 {:name "a" :age 20 :adult true}
 
 |~| drop fields via bound minus
-> {:name "a" :age 20 :tmp 1} | minus(#[:tmp])
+> {:name "a" :age 20 :tmp 1} | minus #[:tmp]
 {:name "a" :age 20}
 
 |~| select fields via bound inter
-> {:name "a" :age 20 :tmp 1} | inter(#[:name :age])
+> {:name "a" :age 20 :tmp 1} | inter #[:name :age]
 {:name "a" :age 20}
 
 |~| enrich each element in distribute
 > [{:name "a" :score 85} {:name "b" :score 92}]
-  * union({:grade /score | gte(90)})
+  * union {:grade (/score | gte 90)}
 [{:name "a" :score 85 :grade false} {:name "b" :score 92 :grade true}]
 
 |~| value binding: reference earlier pipeline stage
 > {:name "a" :age 20}
-  | as(:r)
-  | /age | add(10) | as(:future_age)
+  | as :r
+  | /age | add 10 | as :future_age
   | [r, {:future_age future_age}] | union
 {:name "a" :age 20 :future_age 30}
 
 |~| wrap-with-original: keep full element alongside computed fields
 > [{:id 1 :name "a"} {:id 2 :name "b"}]
-  * (as(:r) | {:key /id :record r})
+  * (as :r | {:key /id :record r})
 [{:key 1 :record {:id 1 :name "a"}}
  {:key 2 :record {:id 2 :name "b"}}]
 
 |~| multi-stage bindings: capture different pipeline stages
 > [85 92 47 78 68 95 52]
-  | as(:allScores)
-  | filter(gte(70))
-  | as(:passingScores)
-  | [allScores | count, passingScores | count]
+  | as :allScores
+  | filter ~(gte 70)
+  | as :passingScores
+  | [(allScores | count), (passingScores | count)]
 [7 4]
 
 |~| JSON paste: copy raw JSON, pipe straight into qlang operations
@@ -2567,7 +2552,7 @@ documentation level.
     {"name": "bob",   "score": 7.2e1},
     {"name": "carol", "score": 9.3e1}
   ]}
-  | /users | filter(/score | gte(85)) * /name
+  | /users | filter ~(/score | gte 85) * /name
 ["alice" "carol"]
 
 |~| BindStep + recursion: rename :label → :value throughout a tree
@@ -2576,7 +2561,7 @@ documentation level.
       {:label "a1" :children []}]}
     {:label "b" :children []}]}
   | :renameLabel {:value /label
-                       :children /children * renameLabel}
+                       :children (/children * renameLabel)}
   | renameLabel
 ```
 
@@ -2614,7 +2599,7 @@ import { createSession } from '@kaluchi/qlang-core';
 
 const session = await createSession();
 
-await session.evalCell(':double mul(2)');
+await session.evalCell(':double mul 2');
 await session.evalCell('5 | double');
 // → { source: '5 | double', uri: 'cell-2', ast: ..., result: 10,
 //     error: null, envAfterCell: <Map> }
@@ -2642,7 +2627,7 @@ operand at session construction.
 ### Save and restore
 
 `serializeSession(session)` produces a JSON-serializable payload
-capturing user-defined bindings (those not in `langRuntime`) plus
+capturing user-defined bindings (those not in `langRuntime()`) plus
 the source of every cell ever executed. The payload's `schemaVersion`
 field guards against forward-incompatible deserialization.
 
@@ -2712,7 +2697,7 @@ const session = await createSession();
 installModules(session, catalog);
 
 // User code can import namespaces:
-// use(:qlang/error) | :guard ...
+// use :qlang/error | :guard ...
 ```
 
 - **`discoverModules(libDir)`** — scans `libDir` recursively for
@@ -2731,7 +2716,7 @@ installModules(session, catalog);
 
   The `ast` lets `installModules` stamp the module's quote under
   `qlang/ast/<ns>`, matching the env shape the locator-based
-  `use(:ns)` pathway already produces.
+  `use :ns` pathway already produces.
   Options:
   - `opts.baseEnv` — initial env (default: `langRuntime()`).
   - `opts.dependencies` — `Map<namespaceName, string[]>` for explicit
@@ -2740,7 +2725,7 @@ installModules(session, catalog);
 
 - **`installModules(session, catalog)`** — iterates the catalog and
   binds two env keys per namespace: `qlang/namespace/<nsName> →
-  exports` (the cache key `use(:nsName)` probes, so the export Map
+  exports` (the cache key `use :nsName` probes, so the export Map
   never shadows an operand whose name matches the namespace stem),
   and `qlang/ast/<nsName> → the module's quote` so the axis-operands
   `:name | source`, `| docs`, `| examples` walk the loaded module
@@ -2768,7 +2753,7 @@ before it.
 
 Instead of resolving all modules at session creation, a host can
 provide a **locator** — a function that loads modules on demand when
-`use(:namespace)` first encounters an unknown namespace keyword.
+`use :namespace` first encounters an unknown namespace keyword.
 
 ```js
 import { createSession } from '@kaluchi/qlang-core';
@@ -2789,13 +2774,13 @@ string (module declarations). `impls` is an optional map of
 `{ operandName: functionValue }` pairs — host-provided JS
 implementations for builtin descriptors declared in the source.
 
-When `use(:ns)` encounters a namespace keyword not in env:
+When `use :ns` encounters a namespace keyword not in env:
 
 1. Reads the locator from the reserved `:qlang/locator` keyword in
    env (installed by `createSession` from `opts.locator`).
 2. Calls `locator(namespaceName)`. If null → `UseNamespaceNotFoundError`.
 3. Parses and evaluates `source` against the current env (transitive
-   `use(:other-ns)` inside the module triggers the locator
+   `use :other-ns` inside the module triggers the locator
    recursively).
 4. Computes the module's export surface (env delta — bindings the
    module added beyond the base env).
@@ -2929,7 +2914,7 @@ import { tokenize, langRuntime } from '@kaluchi/qlang-core';
 
 const builtinNames = new Set([...langRuntime().keys()]
   .filter((k) => typeof k === 'string'));
-const tokens = tokenize('[1 2 3] | filter(gt(1))', builtinNames);
+const tokens = tokenize('[1 2 3] | filter ~(gt 1)', builtinNames);
 // [{ start, end, kind }, ...]
 ```
 
@@ -2947,15 +2932,15 @@ walk the array and concatenate slices without extra bookkeeping.
 | `comment` | Any comment form (line plain, line doc, block plain, block doc) |
 | `atom` | `:name` keyword OR an OperandCall name that resolves through a user-defined binding |
 | `effect` | `:@name` keyword OR an `@`-prefixed OperandCall (effectful host operand or conduit) |
-| `operand` | OperandCall name that resolves to a builtin from `langRuntime`, plus each key segment of a `Projection` |
+| `operand` | OperandCall name that resolves to a builtin from `langRuntime()`, plus each key segment of a `Projection` |
 | `keyword` | `as` — the binding-introducing operand — plus the head Keyword/TagKeyword of a BindStep declaration |
 | `err` | `!` sigil and attached bracket of an `!{…}` descriptor, plus the `!|` fail-track combinator |
 | `set` | `#[` opener and matching `]` closer of a SetLit |
 | `vec` | `[` opener and matching `]` closer of a VecLit |
-| `punct` | Every other combinator (`\|`, `*`), MapLit / arg-list brackets, commas, dots, and the `/` separator inside a `Projection` |
+| `punct` | Every other combinator (`\|`, `*`), MapLit braces, the parentheses of a group, the commas of JSON, and the `/` separator inside a `Projection` |
 | `whitespace` | Runs of whitespace between meaningful tokens; also the entire input on a parse failure (safe fallback for live-typing render paths) |
 
 Builtin names are supplied by the caller so the tokenizer stays
-free of `langRuntime` side effects — a bundler-sensitive host can
+free of `langRuntime()` side effects — a bundler-sensitive host can
 tree-shake away the runtime and synthesise the set from a static
 list, and a test can narrow the set to a minimal stub.

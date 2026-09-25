@@ -11,9 +11,9 @@ import { isErrorValue } from '../../src/types.mjs';
 
 // Sample values per advertised type — one entry per :subject and
 // :modifier keyword the catalog uses. Each value must round-trip
-// through the qlang parser so the test plugs it directly into the
-// generated call source. `any` and pipeline-typed slots receive a
-// trivial filler whose only requirement is parsing.
+// through the qlang parser as one word so the test plugs it directly
+// into the generated command. `any` receives a trivial filler, and a
+// slot of a code kind a quote.
 const TYPE_SAMPLE = {
   vec:              '[1 2]',
   set:              '#[1 2]',
@@ -25,13 +25,13 @@ const TYPE_SAMPLE = {
   integer:          '3',
   boolean:          'true',
   null:             'null',
-  quote:            '~{42}',
+  quote:            '~(42)',
   any:              '0',
-  pipeline:         '0',
-  predicateLambda:  'isNumber',
-  keyLambda:        '/',
-  comparatorLambda: 'asc(/)',
-  reducerLambda:    'add',
+  pipeline:         '~(0)',
+  predicateLambda:  '~(true)',
+  keyLambda:        '~(/)',
+  comparatorLambda: '~(asc ~(/))',
+  reducerLambda:    '~(add)',
   taggedInstance:   '::Foo[42]'
 };
 
@@ -66,7 +66,7 @@ function buildCallSnippet(name, arity, modifiers) {
     if (sample === undefined) return { missingType: ty };
     args.push(sample);
   }
-  return '| ' + name + '(' + args.join(', ') + ')';
+  return '| ' + name + ' ' + args.join(' ');
 }
 
 // Variadic upper-bound sentinel coming from the manifest. The
@@ -162,8 +162,8 @@ describe('catalog vs runtime drift — derived from manifest', async () => {
 
       it(`${name} :captured [${lower} :unbounded] accepts arity well past any hard-coded JS cap`, async () => {
         const ARGS = 32;
-        const args = Array.from({ length: ARGS }, () => 'null').join(', ');
-        const value = await evalQuery(session, `42 | ${name}(${args})`);
+        const args = Array.from({ length: ARGS }, () => '~(null)').join(' ');
+        const value = await evalQuery(session, `42 | ${name} ${args}`);
         expect(isArityError(value),
           `${name} declared :captured [${lower} :unbounded] but raised Rule10ArityOverflowError at ${ARGS} captured args`
         ).toBe(false);

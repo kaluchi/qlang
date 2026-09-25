@@ -1,4 +1,4 @@
-// Constructors of a quote and of its steps [D8, D47, D53].
+// Constructors of a quote and of its steps [D8, D47, D54].
 //
 // `::quote[…]` holds a vector every element of which is a step, and
 // runs wherever a vector comes under the tag, `tag(::quote)` and every
@@ -14,7 +14,7 @@ import { bindTypeConstructor } from '../primitives.mjs';
 import { declareSubjectError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
-import { isStep, isElementStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
+import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
   keyword, typeKeyword, isVecShape, isQMap, isQuote, isKeyword, isTagKeyword, isString,
   makeQuote, makeTaggedInstance,
@@ -60,6 +60,7 @@ const readBackMessage = operand => ({ printed }) =>
 const vecOf = isElement => value => isVecShape(value) && value.every(isElement);
 const isSegment = segment => isKeyword(segment) || Number.isInteger(segment);
 const isBindName = name => isKeyword(name) || isTagKeyword(name);
+const isBodyStep = step => isElementStep(step) || isCommandStep(step);
 
 // A record's payload is a Map whose fields each fit the schema, the
 // required ones present; the field the refusal names is null when the
@@ -85,7 +86,7 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 }
 
 bindTypeConstructor('call', recordConstructor(CALL_TAG,
-  { name: isKeyword, args: vecOf(isQuote), docs: vecOf(isString) }, ['name'],
+  { name: isKeyword, args: vecOf(isElementStep), docs: vecOf(isString) }, ['name'],
   declareShapeError('CallPayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
   declareShapeError('CallReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
 
@@ -95,7 +96,7 @@ bindTypeConstructor('proj', recordConstructor(PROJ_TAG,
   declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
 bindTypeConstructor('bind', recordConstructor(BIND_TAG,
-  { name: isBindName, docs: vecOf(isString), params: vecOf(isKeyword), body: isElementStep }, ['name'],
+  { name: isBindName, docs: vecOf(isString), params: vecOf(isKeyword), body: isBodyStep }, ['name'],
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 

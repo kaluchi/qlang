@@ -47,7 +47,7 @@ describe('runQuery', () => {
     expect(cellEntry.result.tag.name).toBe('ParseError');
   });
 
-  it('binds the ioContext writers so ~{@out} reaches the captured stdout chunks', async () => {
+  it('binds the ioContext writers so `@out` reaches the captured stdout chunks', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"qlang" | @out', io);
     expect(cellEntry.error).toBeNull();

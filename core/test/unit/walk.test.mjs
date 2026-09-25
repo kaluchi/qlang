@@ -45,7 +45,7 @@ describe('astChildrenOf', () => {
   });
 
   it('yields args for a :name body OperandCall', () => {
-    const ast = parse(':double mul(2)');
+    const ast = parse(':double mul 2');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('Keyword');
@@ -54,7 +54,7 @@ describe('astChildrenOf', () => {
   });
 
   it('yields the inner pipeline for a ParenGroup', () => {
-    const ast = parse('(mul(2) | add(1))');
+    const ast = parse('(mul 2 | add 1)');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(1);
     expect(children[0].type).toBe('Pipeline');
@@ -76,7 +76,7 @@ describe('astChildrenOf', () => {
   });
 
   it('yields args for an OperandCall and nothing for a bare ident', () => {
-    const withArgs = parse('add(2, 3)');
+    const withArgs = parse('add 2 3');
     expect(astChildrenOf(withArgs)).toHaveLength(2);
     const bare = parse('count');
     expect(astChildrenOf(bare)).toEqual([]);
@@ -85,7 +85,7 @@ describe('astChildrenOf', () => {
 
 describe('walkAst', () => {
   it('visits every AST node in pre-order', () => {
-    const ast = parse('[1 2] | add(3)');
+    const ast = parse('[1 2] | add 3');
     const visited = [];
     walkAst(ast, (node) => visited.push(node.type));
     expect(visited).toContain('Pipeline');
@@ -95,7 +95,7 @@ describe('walkAst', () => {
   });
 
   it('skips children when visitor returns false', () => {
-    const ast = parse('[1 2] | add(3)');
+    const ast = parse('[1 2] | add 3');
     const visited = [];
     walkAst(ast, (node) => {
       visited.push(node.type);
@@ -151,7 +151,7 @@ describe('findAstNodeAtOffset', () => {
   });
 
   it('returns the narrowest node containing the offset', () => {
-    const source = '[1 2 3] | filter(gt(2))';
+    const source = '[1 2 3] | filter ~(gt 2)';
     //              0123456789012345678901234
     //                       111111111122222
     // offset 19 lands inside `gt(2)` which is the narrowest
@@ -173,14 +173,14 @@ describe('findAstNodeAtOffset', () => {
 
 describe('findIdentifierOccurrences', () => {
   it('finds OperandCall occurrences of a name', () => {
-    const ast = parse('count | add(count)');
+    const ast = parse('count | add count');
     const refs = findIdentifierOccurrences(ast, 'count');
     expect(refs.length).toBeGreaterThanOrEqual(2);
     expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
   });
 
   it('finds :name ... declaration alongside read sites', () => {
-    const ast = parse(':double mul(2) | double');
+    const ast = parse(':double mul 2 | double');
     const refs = findIdentifierOccurrences(ast, 'double');
     // Both the `:double …` BindStep declaration and the bare
     // `double` read site land in the result — the BindStep matches
@@ -203,7 +203,7 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds TaggedLit occurrences when name carries the :: prefix', () => {
-    const ast = parse('::conduit[[] ~{count}]');
+    const ast = parse('::conduit[[] ~(count)]');
     const refs = findIdentifierOccurrences(ast, '::conduit');
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
@@ -243,14 +243,14 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('includes as bindings', () => {
-    const source = '42 | as(:answer) | answer';
+    const source = '42 | as :answer | answer';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('answer')).toBe(true);
   });
 
   it('skips zero-arg as() — no name to bind', () => {
-    const source = 'as() | here';
+    const source = 'as | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -261,7 +261,7 @@ describe('bindingNamesVisibleAt', () => {
     // `mul(2)` is an OperandCall, not a BindStep or `as`; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
-    const source = '42 | mul(2) | here';
+    const source = '42 | mul 2 | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere);
@@ -310,7 +310,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
     const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '::MyType {:impl ~{42}} | 42';
+    const source = '::MyType {:impl ~(42)} | 42';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
     expect(visible.has('::MyType')).toBe(true);
@@ -328,7 +328,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_NAMESPACE honours fork-isolation rules', async () => {
     const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '(::Local {:impl ~{42}}) | here';
+    const source = '(::Local {:impl ~(42)}) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
@@ -373,7 +373,7 @@ describe('bindingNamesVisibleAt', () => {
     // closer must not see it. Companion check to the BindStep
     // form `(:local 1 | local) | here` above — same isolation rule
     // governs both binding mechanisms.
-    const src = '(42 | as(:x)) | count';
+    const src = '(42 | as :x) | count';
     const ast = parse(src);
     const offsetAfterParen = src.indexOf('| count');
     const visible = bindingNamesVisibleAt(ast, offsetAfterParen);
@@ -423,7 +423,7 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
   });
 
   it('findIdentifierOccurrences finds an as(:name) declaration', () => {
-    const ast = parse('42 | as(:snapshot) | snapshot');
+    const ast = parse('42 | as :snapshot | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
     // as(:snapshot) OperandCall matches via first-arg Keyword pattern;
     // bare `snapshot` matches as a read-site OperandCall.

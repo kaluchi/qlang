@@ -49,15 +49,15 @@ describe('createSession lifecycle', () => {
 
   it('evalCell persists BindStep bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul(2)');
+    await sessionInstance.evalCell(':double mul 2');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
 
   it('evalCell persists as bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('42 | as(:answer)');
-    const cellEntry = await sessionInstance.evalCell('answer | mul(2)');
+    await sessionInstance.evalCell('42 | as :answer');
+    const cellEntry = await sessionInstance.evalCell('answer | mul 2');
     expect(cellEntry.result).toBe(84);
   });
 
@@ -117,8 +117,8 @@ describe('createSession lifecycle', () => {
 describe('serializeSession / deserializeSession round-trip', () => {
   it('preserves user BindStep bindings via conduit source replay', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul(2)');
-    await sessionInstance.evalCell(':triple mul(3)');
+    await sessionInstance.evalCell(':double mul 2');
+    await sessionInstance.evalCell(':triple mul 3');
 
     const payload = await serializeSession(sessionInstance);
     const jsonText = JSON.stringify(payload);
@@ -136,21 +136,21 @@ describe('serializeSession / deserializeSession round-trip', () => {
     // applyConduit fallback to state.env gives dynamic scope and the
     // shadow leaks into the body.
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double mul(2)');
+    await sessionInstance.evalCell(':double mul 2');
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
     // Shadow mul AFTER restore. Lexical scope means double's body
     // still resolves mul through the env captured at deserialize
     // time (the original builtin), not the call-site env carrying
     // the shadow.
-    await restored.evalCell(':mul sub(1)');
+    await restored.evalCell(':mul sub 1');
     expect((await restored.evalCell('5 | double')).result).toBe(10);
   });
 
   it('preserves user as snapshots via tagged-JSON value replay', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('42 | as(:answer)');
-    await sessionInstance.evalCell('[1 2 3] | as(:nums)');
+    await sessionInstance.evalCell('42 | as :answer');
+    await sessionInstance.evalCell('[1 2 3] | as :nums');
 
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
@@ -238,7 +238,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(
-      '::wrap {:impl ~{prepend("[") | append("]")}}'
+      '::wrap {:impl ~(prepend "[" | append "]")}'
     );
     const restored = await deserializeSession(
       JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
@@ -271,7 +271,7 @@ const MOCK_MODULE_SOURCE = [
   '                   :examples []',
   '                   :throws []}}',
   '| use',
-  '| :@doubled (@fetch | append(@fetch))'
+  '| :@doubled (@fetch | append @fetch)'
 ].join('\n');
 
 // Host-provided impl for the @fetch builtin — returns a fixed string.
@@ -292,30 +292,30 @@ describe('createSession with locator — lazy module loading', () => {
 
   it('use(:ns) triggers locator when namespace not pre-installed', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    const loadCell = await locatorSession.evalCell('use(:test/io) | @fetch');
+    const loadCell = await locatorSession.evalCell('use :test/io | @fetch');
     expect(loadCell.error).toBeNull();
     expect(loadCell.result).toBe('fetched-value');
   });
 
   it('qlang-only conduit in a locator-loaded module works', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    const conduitCell = await locatorSession.evalCell('use(:test/io) | @doubled');
+    const conduitCell = await locatorSession.evalCell('use :test/io | @doubled');
     expect(conduitCell.error).toBeNull();
     expect(conduitCell.result).toBe('fetched-valuefetched-value');
   });
 
   it('locator-loaded namespace keyword persists for subsequent use calls', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    await locatorSession.evalCell('use(:test/io)');
+    await locatorSession.evalCell('use :test/io');
     // Second use of same namespace should not re-trigger locator.
-    const secondUse = await locatorSession.evalCell('use(:test/io) | @fetch');
+    const secondUse = await locatorSession.evalCell('use :test/io | @fetch');
     expect(secondUse.error).toBeNull();
     expect(secondUse.result).toBe('fetched-value');
   });
 
   it('locator returning null falls through to UseNamespaceNotFoundError', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    const missingCell = await locatorSession.evalCell('use(:nonexistent/ns)');
+    const missingCell = await locatorSession.evalCell('use :nonexistent/ns');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const locatorMissErr = missingCell.result.originalError;
@@ -326,9 +326,9 @@ describe('createSession with locator — lazy module loading', () => {
 
   it('manifest descriptor for a locator-loaded builtin includes captured and effectful', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    await locatorSession.evalCell('use(:test/io)');
+    await locatorSession.evalCell('use :test/io');
     const manifestCell = await locatorSession.evalCell(
-      'manifest | filter(/name | eq("@fetch")) | first'
+      'manifest | filter ~(/name | eq "@fetch") | first'
     );
     expect(manifestCell.error).toBeNull();
     const fetchDesc = manifestCell.result;
@@ -340,7 +340,7 @@ describe('createSession with locator — lazy module loading', () => {
 
   it('session without locator throws UseNamespaceNotFoundError on unknown namespace', async () => {
     const plainSession = await createSession();
-    const missingCell = await plainSession.evalCell('use(:anything)');
+    const missingCell = await plainSession.evalCell('use :anything');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const noLocatorErr = missingCell.result.originalError;
@@ -353,7 +353,7 @@ describe('createSession with locator — lazy module loading', () => {
 describe('session cells that carry more than a parse failure', () => {
   it('serializes a conduit parameter list by name', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':scaled [:factor] (mul(factor))');
+    await sessionInstance.evalCell(':scaled [:factor] (mul factor)');
 
     const payload = await serializeSession(sessionInstance);
     const scaled = payload.bindings.find(b => b.name === 'scaled');
@@ -361,7 +361,7 @@ describe('session cells that carry more than a parse failure', () => {
     expect(scaled.params).toEqual(['factor']);
 
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-    expect((await restored.evalCell('5 | scaled(3)')).result).toBe(15);
+    expect((await restored.evalCell('5 | scaled 3')).result).toBe(15);
   });
 
   it('leaves an invariant failure on the error channel with no result value', async () => {

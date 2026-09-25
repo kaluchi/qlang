@@ -64,8 +64,8 @@ describe('setops Set×Set keyword-aware operations', async () => {
 describe('Set keyword membership without interning', async () => {
   it('has(:key) on Set finds keyword by name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#[:a :b :c] | has(:b)')).toBe(true);
-    expect(await evalQuery('#[:a :b :c] | has(:z)')).toBe(false);
+    expect(await evalQuery('#[:a :b :c] | has :b')).toBe(true);
+    expect(await evalQuery('#[:a :b :c] | has :z')).toBe(false);
   });
 
   it('deepEqual on Sets with keywords compares by name', async () => {
@@ -96,8 +96,8 @@ describe('Set keyword membership without interning', async () => {
 describe('has on Set with non-keyword values', async () => {
   it('finds number in Set', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#[1 2 3] | has(2)')).toBe(true);
-    expect(await evalQuery('#[1 2 3] | has(9)')).toBe(false);
+    expect(await evalQuery('#[1 2 3] | has 2')).toBe(true);
+    expect(await evalQuery('#[1 2 3] | has 9')).toBe(false);
   });
 });
 
@@ -183,17 +183,17 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
 
   it('gt / lt / gte / lte on Keywords compare by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery(':b | gt(:a)')).toBe(true);
-    expect(await evalQuery(':a | gt(:b)')).toBe(false);
-    expect(await evalQuery(':a | lt(:b)')).toBe(true);
-    expect(await evalQuery(':a | gte(:a)')).toBe(true);
-    expect(await evalQuery(':a | lte(:a)')).toBe(true);
+    expect(await evalQuery(':b | gt :a')).toBe(true);
+    expect(await evalQuery(':a | gt :b')).toBe(false);
+    expect(await evalQuery(':a | lt :b')).toBe(true);
+    expect(await evalQuery(':a | gte :a')).toBe(true);
+    expect(await evalQuery(':a | lte :a')).toBe(true);
   });
 
   it('gt / lt on TagKeywords compare by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::B | gt(::A)')).toBe(true);
-    expect(await evalQuery('::A | lt(::B)')).toBe(true);
+    expect(await evalQuery('::B | gt ::A')).toBe(true);
+    expect(await evalQuery('::A | lt ::B')).toBe(true);
   });
 
   it('sort with equal keyword neighbours hits the equal-by-name branch', async () => {
@@ -204,8 +204,8 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
 
   it('eq on equal keywords through compareScalars equality path', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery(':a | gte(:a)')).toBe(true);
-    expect(await evalQuery(':a | lte(:a)')).toBe(true);
+    expect(await evalQuery(':a | gte :a')).toBe(true);
+    expect(await evalQuery(':a | lte :a')).toBe(true);
   });
 });
 
@@ -215,7 +215,7 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
 describe('groupBy on a Set subject yields Set buckets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy(/dept)');
+    const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy ~(/dept)');
     expect(result).toBeInstanceOf(Map);
     const engBucket = result.get('eng');
     expect(engBucket).toBeInstanceOf(Set);
@@ -230,23 +230,23 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
 describe('at on a Set subject', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect((await evalQuery('#[:a :b :c] | at(0)')).name).toBe('a');
-    expect((await evalQuery('#[:a :b :c] | at(2)')).name).toBe('c');
+    expect((await evalQuery('#[:a :b :c] | at 0')).name).toBe('a');
+    expect((await evalQuery('#[:a :b :c] | at 2')).name).toBe('c');
   });
 
   it('negative index counts from the end', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect((await evalQuery('#[:a :b :c] | at(-1)')).name).toBe('c');
+    expect((await evalQuery('#[:a :b :c] | at -1')).name).toBe('c');
   });
 
   it('out-of-range index returns null', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#[:a :b :c] | at(99)')).toBe(null);
+    expect(await evalQuery('#[:a :b :c] | at 99')).toBe(null);
   });
 
   it('non-integer index raises AtIndexNotIntegerError', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const err = await evalQuery('#[:a :b] | at(0.5)');
+    const err = await evalQuery('#[:a :b] | at 0.5');
     expect(err.tag.name).toBe('AtIndexNotIntegerError');
   });
 });

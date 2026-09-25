@@ -23,7 +23,7 @@ import { isJsonArray, makeTaggedInstance, makeTagKeyword, typeKeyword } from '..
 
 describe('applyTagPreservation — JsonArray freeze hardening', () => {
   it('freezes untagged JsonArray after a preservesTag operand (filter)', async () => {
-    const result = await evalQuery('::json[1 2 3] | filter(gt(1))');
+    const result = await evalQuery('::json[1 2 3] | filter ~(gt 1)');
     expect(isJsonArray(result)).toBe(true);
     expect(Object.isFrozen(result)).toBe(true);
   });
@@ -35,7 +35,7 @@ describe('applyTagPreservation — JsonArray freeze hardening', () => {
   });
 
   it('freezes untagged JsonArray after take', async () => {
-    const result = await evalQuery('::json[1 2 3 4] | take(2)');
+    const result = await evalQuery('::json[1 2 3 4] | take 2');
     expect(isJsonArray(result)).toBe(true);
     expect(Object.isFrozen(result)).toBe(true);
   });
@@ -47,7 +47,7 @@ describe('applyTagPreservation — JsonArray freeze hardening', () => {
   });
 
   it('freezes tagged-instance JsonArray after a preservesTag operand', async () => {
-    const result = await evalQuery('::Box {} | ::Box(::json[1 2 3]) | filter(gt(1))');
+    const result = await evalQuery('::Box {} | ::Box(::json[1 2 3]) | filter ~(gt 1)');
     expect(Object.isFrozen(result)).toBe(true);
   });
 });
@@ -66,7 +66,7 @@ describe('applyTagPreservation — unbound tag survives shape-preserving transfo
   }
 
   it('take on a host-built unbound tagged Vec keeps the tag', async () => {
-    const result = await transform(makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]), 'take(1)');
+    const result = await transform(makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]), 'take 1');
     expect(typeKeyword(result).name).toBe('Box');
     expect([...result]).toEqual([1]);
   });

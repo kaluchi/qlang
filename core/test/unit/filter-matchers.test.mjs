@@ -24,24 +24,24 @@ import {
 
 describe('filter — container polymorphism', () => {
   it('Vec element predicate filters through subject-first comparator', async () => {
-    expect(await evalQuery('[1 2 3 4 5] | filter(gt(2))')).toEqual([3, 4, 5]);
+    expect(await evalQuery('[1 2 3 4 5] | filter ~(gt 2)')).toEqual([3, 4, 5]);
   });
 
   it('Vec field predicate on Map elements', async () => {
-    const result = await evalQuery('[{:age 25} {:age 15} {:age 30}] | filter(/age | gte(18))');
+    const result = await evalQuery('[{:age 25} {:age 15} {:age 30}] | filter ~(/age | gte 18)');
     expect(result).toHaveLength(2);
     expect(result[0].get('age')).toBe(25);
     expect(result[1].get('age')).toBe(30);
   });
 
   it('Set element predicate — returns Set, preserves insertion order', async () => {
-    const setResult = await evalQuery('#[1 2 3 4 5] | filter(gt(2))');
+    const setResult = await evalQuery('#[1 2 3 4 5] | filter ~(gt 2)');
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([3, 4, 5]);
   });
 
   it('Map with 0-arity pipeline predicate fires against value', async () => {
-    const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter(gt(1))');
+    const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter ~(gt 1)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('b')).toBe(2);
@@ -51,7 +51,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 0-arity named conduit predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b 2 :c 3} | :big gt(1) | filter(big)'
+      '{:a 1 :b 2 :c 3} | :big gt 1 | filter ~(big)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -59,7 +59,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 2-arity conduit — key axis', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :avocado 3} | :@isA [:k :v] (k | eq(:apple)) | filter(@isA)'
+      '{:apple 1 :banana 2 :avocado 3} | :@isA [:k :v] (k | eq :apple) | filter ~(@isA)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -68,7 +68,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 2-arity conduit — compound key and value', async () => {
     const mapResult = await evalQuery(
-      '{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and(k | eq(:avocado), v | gt(1)) | filter(@hot)'
+      '{:apple 1 :banana 2 :avocado 3} | :@hot [:k :v] and (k | eq :avocado) (v | gt 1) | filter ~(@hot)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -80,8 +80,8 @@ describe('filter — container polymorphism', () => {
     // of invokeConduitWithFixedArgs (conduitEffectful=false).
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| :selfTiered [:k :v] eq(k, v | /tier) '
-      + '| filter(selfTiered)'
+      + '| :selfTiered [:k :v] eq k (v | /tier) '
+      + '| filter ~(selfTiered)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -95,7 +95,7 @@ describe('filter — container polymorphism', () => {
     // the captured-arg identifier is not in env, so conduit resolution
     // returns null and the per-value predLambda path runs; the lookup
     // error then surfaces on the fail-track.
-    const errorValue = await evalQuery('{:a 1} | filter(unknownPred) !| type');
+    const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
     expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
   });
 
@@ -105,7 +105,7 @@ describe('filter — container polymorphism', () => {
     // so conduit resolution returns null. The per-value path then fires
     // the predicate identifier per entry, which replaces pipeValue with
     // the truthy number — all entries survive.
-    const count = await evalQuery('42 | as(:n) | {:a 1 :b 2} | filter(n) | count');
+    const count = await evalQuery('42 | as :n | {:a 1 :b 2} | filter ~(n) | count');
     expect(count).toBe(2);
   });
 
@@ -116,35 +116,35 @@ describe('filter — container polymorphism', () => {
     // with EffectLaunderingAtCallError — the same safety net applyConduit
     // enforces for ordinary conduit calls.
     const errorValue = await evalQuery(
-      ':@hot [:k :v] (v | gt(0)) '
-      + '| env | /@hot | as(:clean) '
-      + '| {:a 1 :b 2} | filter(clean) !| type'
+      ':@hot [:k :v] (v | gt 0) '
+      + '| env | /@hot | as :clean '
+      + '| {:a 1 :b 2} | filter ~(clean) !| type'
     );
     expect(errorValue).toEqual(makeTagKeyword('EffectLaunderingAtCallError'));
   });
 
   it('Map empty subject — returns empty Map for 0-arity pred', async () => {
-    const mapResult = await evalQuery('{} | filter(gt(0))');
+    const mapResult = await evalQuery('{} | filter ~(gt 0)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
   });
 
   it('Map empty subject — returns empty Map for 2-arity pred', async () => {
     const mapResult = await evalQuery(
-      '{} | :@never [:k :v] false | filter(@never)'
+      '{} | :@never [:k :v] false | filter ~(@never)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
   });
 
   it('Map preserves insertion order of surviving entries', async () => {
-    const mapResult = await evalQuery('{:c 3 :a 1 :b 2} | filter(gt(1))');
+    const mapResult = await evalQuery('{:c 3 :a 1 :b 2} | filter ~(gt 1)');
     const orderedKeys = [...mapResult.keys()];
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
   it('non-container subject lifts to FilterSubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | filter(gt(0))', 'FilterSubjectNotContainerError');
+    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'FilterSubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('FilterSubjectNotContainerError');
     expect(originalErr.context.actualType.name).toBe('number');
@@ -152,13 +152,13 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 1-arity conduit — element is bound as captured-arg', async () => {
     expect(await evalQuery(
-      '[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos)'
+      '[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos)'
     )).toEqual([1, 3]);
   });
 
   it('Set with 1-arity conduit — element is bound as captured-arg', async () => {
     const setResult = await evalQuery(
-      '#[1 -2 3] | :@pos [:v] (v | gt(0)) | filter(@pos)'
+      '#[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos)'
     );
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([-2, 1, 3].filter(n => n > 0).sort());
@@ -166,7 +166,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 1-arity conduit — value bound as captured-arg', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt(0)) | filter(@pos)'
+      '{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -176,7 +176,7 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 2-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | :@kv [:k :v] true | filter(@kv)',
+      '[1 2] | :@kv [:k :v] true | filter ~(@kv)',
       'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -187,7 +187,7 @@ describe('filter — container polymorphism', () => {
 
   it('Set with 2-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '#[1 2] | :@kv [:k :v] true | filter(@kv)',
+      '#[1 2] | :@kv [:k :v] true | filter ~(@kv)',
       'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -196,7 +196,7 @@ describe('filter — container polymorphism', () => {
 
   it('Vec with 3-arity conduit — FilterVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | :@tooWide [:x :y :z] true | filter(@tooWide)',
+      '[1 2] | :@tooWide [:x :y :z] true | filter ~(@tooWide)',
       'FilterVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -205,7 +205,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with 3-arity conduit — FilterMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | filter(@tooWide)',
+      '{:a 1} | :@tooWide [:x :y :z] true | filter ~(@tooWide)',
       'FilterMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -219,78 +219,78 @@ describe('filter — container polymorphism', () => {
 
 describe('every — container polymorphism', () => {
   it('Vec all-match', async () => {
-    expect(await evalQuery('[2 4 6] | every(gt(0))')).toBe(true);
+    expect(await evalQuery('[2 4 6] | every ~(gt 0)')).toBe(true);
   });
 
   it('Vec some-fail', async () => {
-    expect(await evalQuery('[1 2 3] | every(gt(2))')).toBe(false);
+    expect(await evalQuery('[1 2 3] | every ~(gt 2)')).toBe(false);
   });
 
   it('Set all-match', async () => {
-    expect(await evalQuery('#[2 4 6] | every(gt(0))')).toBe(true);
+    expect(await evalQuery('#[2 4 6] | every ~(gt 0)')).toBe(true);
   });
 
   it('Set some-fail', async () => {
-    expect(await evalQuery('#[1 2 3] | every(gt(2))')).toBe(false);
+    expect(await evalQuery('#[1 2 3] | every ~(gt 2)')).toBe(false);
   });
 
   it('Map 0-arity — all values positive', async () => {
-    expect(await evalQuery('{:a 1 :b 2 :c 3} | every(gt(0))')).toBe(true);
+    expect(await evalQuery('{:a 1 :b 2 :c 3} | every ~(gt 0)')).toBe(true);
   });
 
   it('Map 0-arity — one value fails', async () => {
-    expect(await evalQuery('{:a 1 :b -2 :c 3} | every(gt(0))')).toBe(false);
+    expect(await evalQuery('{:a 1 :b -2 :c 3} | every ~(gt 0)')).toBe(false);
   });
 
   it('Map 2-arity conduit — both axes satisfied', async () => {
     expect(await evalQuery(
-      '{:a 1 :b 2} | :@bothOk [:k :v] and(v | gt(0), k | type | eq(:keyword)) | every(@bothOk)'
+      '{:a 1 :b 2} | :@bothOk [:k :v] and (v | gt 0) (k | type | eq :keyword) | every ~(@bothOk)'
     )).toBe(true);
   });
 
   it('Map 2-arity conduit — one entry fails', async () => {
     expect(await evalQuery(
-      '{:a 1 :b -2} | :@bothOk [:k :v] (v | gt(0)) | every(@bothOk)'
+      '{:a 1 :b -2} | :@bothOk [:k :v] (v | gt 0) | every ~(@bothOk)'
     )).toBe(false);
   });
 
   it('Map empty — vacuously true', async () => {
-    expect(await evalQuery('{} | every(gt(0))')).toBe(true);
+    expect(await evalQuery('{} | every ~(gt 0)')).toBe(true);
   });
 
   it('non-container subject lifts to EverySubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | every(gt(0))', 'EverySubjectNotContainerError');
+    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'EverySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('EverySubjectNotContainerError');
   });
 
   it('Vec with 1-arity conduit — every applies element as captured-arg', async () => {
     expect(await evalQuery(
-      '[1 2 3] | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '[1 2 3] | :@pos [:v] (v | gt 0) | every ~(@pos)'
     )).toBe(true);
     expect(await evalQuery(
-      '[1 -2 3] | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '[1 -2 3] | :@pos [:v] (v | gt 0) | every ~(@pos)'
     )).toBe(false);
   });
 
   it('Set with 1-arity conduit — every applies element as captured-arg', async () => {
     expect(await evalQuery(
-      '#[2 4 6] | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '#[2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos)'
     )).toBe(true);
   });
 
   it('Map with 1-arity conduit — every applies value as captured-arg', async () => {
     expect(await evalQuery(
-      '{:a 1 :b 2} | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '{:a 1 :b 2} | :@pos [:v] (v | gt 0) | every ~(@pos)'
     )).toBe(true);
     expect(await evalQuery(
-      '{:a 1 :b -2} | :@pos [:v] (v | gt(0)) | every(@pos)'
+      '{:a 1 :b -2} | :@pos [:v] (v | gt 0) | every ~(@pos)'
     )).toBe(false);
   });
 
   it('Vec with 2-arity conduit — EveryVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '[1 2] | :@kv [:k :v] true | every(@kv)',
+      '[1 2] | :@kv [:k :v] true | every ~(@kv)',
       'EveryVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -299,7 +299,7 @@ describe('every — container polymorphism', () => {
 
   it('Set with 2-arity conduit — EveryVecOrSetPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '#[1 2] | :@kv [:k :v] true | every(@kv)',
+      '#[1 2] | :@kv [:k :v] true | every ~(@kv)',
       'EveryVecOrSetPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -308,7 +308,7 @@ describe('every — container polymorphism', () => {
 
   it('Map with 3-arity conduit — EveryMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | every(@tooWide)',
+      '{:a 1} | :@tooWide [:x :y :z] true | every ~(@tooWide)',
       'EveryMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -321,40 +321,40 @@ describe('every — container polymorphism', () => {
 
 describe('any — container polymorphism', () => {
   it('Vec one-matches', async () => {
-    expect(await evalQuery('[1 2 3] | any(gt(2))')).toBe(true);
+    expect(await evalQuery('[1 2 3] | any ~(gt 2)')).toBe(true);
   });
 
   it('Vec none-match', async () => {
-    expect(await evalQuery('[1 2 3] | any(gt(99))')).toBe(false);
+    expect(await evalQuery('[1 2 3] | any ~(gt 99)')).toBe(false);
   });
 
   it('Set one-matches', async () => {
-    expect(await evalQuery('#[1 2 3] | any(gt(2))')).toBe(true);
+    expect(await evalQuery('#[1 2 3] | any ~(gt 2)')).toBe(true);
   });
 
   it('Map 0-arity — any value positive', async () => {
-    expect(await evalQuery('{:a -1 :b 0 :c 2} | any(gt(0))')).toBe(true);
+    expect(await evalQuery('{:a -1 :b 0 :c 2} | any ~(gt 0)')).toBe(true);
   });
 
   it('Map 2-arity conduit — any entry by key', async () => {
     expect(await evalQuery(
-      '{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq(:apple)) | any(@isApple)'
+      '{:apple 1 :banana 2} | :@isApple [:k :v] (k | eq :apple) | any ~(@isApple)'
     )).toBe(true);
   });
 
   it('Map empty — vacuously false', async () => {
-    expect(await evalQuery('{} | any(gt(0))')).toBe(false);
+    expect(await evalQuery('{} | any ~(gt 0)')).toBe(false);
   });
 
   it('non-container subject lifts to AnySubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | any(gt(0))', 'AnySubjectNotContainerError');
+    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'AnySubjectNotContainerError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
     expect(originalErr.name).toBe('AnySubjectNotContainerError');
   });
 
   it('Map with 3-arity conduit — AnyMapPredArityInvalidError', async () => {
     const errorValue = await expectErrorThrown(
-      '{:a 1} | :@tooWide [:x :y :z] true | any(@tooWide)',
+      '{:a 1} | :@tooWide [:x :y :z] true | any ~(@tooWide)',
       'AnyMapPredArityInvalidError'
     );
     const originalErr = expectOriginalError(errorValue, ArityError);
@@ -367,69 +367,69 @@ describe('any — container polymorphism', () => {
 
 describe('classification through `type | eq(:kind)` — string / number / vec / map / set / keyword / boolean / null', () => {
   it('type answers :string for String subjects', async () => {
-    expect(await evalQuery('"hello" | type | eq(:string)')).toBe(true);
-    expect(await evalQuery('42 | type | eq(:string)')).toBe(false);
-    expect(await evalQuery(':name | type | eq(:string)')).toBe(false);
-    expect(await evalQuery('[1] | type | eq(:string)')).toBe(false);
+    expect(await evalQuery('"hello" | type | eq :string')).toBe(true);
+    expect(await evalQuery('42 | type | eq :string')).toBe(false);
+    expect(await evalQuery(':name | type | eq :string')).toBe(false);
+    expect(await evalQuery('[1] | type | eq :string')).toBe(false);
   });
 
   it('type answers :number for Number subjects', async () => {
-    expect(await evalQuery('42 | type | eq(:number)')).toBe(true);
-    expect(await evalQuery('3.14 | type | eq(:number)')).toBe(true);
-    expect(await evalQuery('"42" | type | eq(:number)')).toBe(false);
-    expect(await evalQuery('null | type | eq(:number)')).toBe(false);
+    expect(await evalQuery('42 | type | eq :number')).toBe(true);
+    expect(await evalQuery('3.14 | type | eq :number')).toBe(true);
+    expect(await evalQuery('"42" | type | eq :number')).toBe(false);
+    expect(await evalQuery('null | type | eq :number')).toBe(false);
   });
 
   it('type answers :vec for Vec subjects', async () => {
-    expect(await evalQuery('[1 2 3] | type | eq(:vec)')).toBe(true);
-    expect(await evalQuery('[] | type | eq(:vec)')).toBe(true);
-    expect(await evalQuery('#[1] | type | eq(:vec)')).toBe(false);
-    expect(await evalQuery('{:a 1} | type | eq(:vec)')).toBe(false);
+    expect(await evalQuery('[1 2 3] | type | eq :vec')).toBe(true);
+    expect(await evalQuery('[] | type | eq :vec')).toBe(true);
+    expect(await evalQuery('#[1] | type | eq :vec')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq :vec')).toBe(false);
   });
 
   it('type answers :map for Map subjects', async () => {
-    expect(await evalQuery('{:a 1} | type | eq(:map)')).toBe(true);
-    expect(await evalQuery('{} | type | eq(:map)')).toBe(true);
-    expect(await evalQuery('[] | type | eq(:map)')).toBe(false);
-    expect(await evalQuery('#[:a] | type | eq(:map)')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq :map')).toBe(true);
+    expect(await evalQuery('{} | type | eq :map')).toBe(true);
+    expect(await evalQuery('[] | type | eq :map')).toBe(false);
+    expect(await evalQuery('#[:a] | type | eq :map')).toBe(false);
   });
 
   it('type answers ::conduit, not :map, for a conduit binding', async () => {
-    expect(await evalQuery(':double mul(2) | env | /double | type | eq(:map)')).toBe(false);
+    expect(await evalQuery(':double mul 2 | env | /double | type | eq :map')).toBe(false);
   });
 
   it('type answers :set for Set subjects', async () => {
-    expect(await evalQuery('#[1 2] | type | eq(:set)')).toBe(true);
-    expect(await evalQuery('#[] | type | eq(:set)')).toBe(true);
-    expect(await evalQuery('[1 2] | type | eq(:set)')).toBe(false);
-    expect(await evalQuery('{:a 1} | type | eq(:set)')).toBe(false);
+    expect(await evalQuery('#[1 2] | type | eq :set')).toBe(true);
+    expect(await evalQuery('#[] | type | eq :set')).toBe(true);
+    expect(await evalQuery('[1 2] | type | eq :set')).toBe(false);
+    expect(await evalQuery('{:a 1} | type | eq :set')).toBe(false);
   });
 
   it('type answers :keyword for bare and namespaced keywords', async () => {
-    expect(await evalQuery(':name | type | eq(:keyword)')).toBe(true);
-    expect(await evalQuery(':kind | type | eq(:keyword)')).toBe(true);
-    expect(await evalQuery('"name" | type | eq(:keyword)')).toBe(false);
-    expect(await evalQuery('42 | type | eq(:keyword)')).toBe(false);
+    expect(await evalQuery(':name | type | eq :keyword')).toBe(true);
+    expect(await evalQuery(':kind | type | eq :keyword')).toBe(true);
+    expect(await evalQuery('"name" | type | eq :keyword')).toBe(false);
+    expect(await evalQuery('42 | type | eq :keyword')).toBe(false);
   });
 
   it('type answers :boolean for the literals alone', async () => {
-    expect(await evalQuery('true | type | eq(:boolean)')).toBe(true);
-    expect(await evalQuery('false | type | eq(:boolean)')).toBe(true);
-    expect(await evalQuery('0 | type | eq(:boolean)')).toBe(false);
-    expect(await evalQuery('null | type | eq(:boolean)')).toBe(false);
-    expect(await evalQuery('"" | type | eq(:boolean)')).toBe(false);
+    expect(await evalQuery('true | type | eq :boolean')).toBe(true);
+    expect(await evalQuery('false | type | eq :boolean')).toBe(true);
+    expect(await evalQuery('0 | type | eq :boolean')).toBe(false);
+    expect(await evalQuery('null | type | eq :boolean')).toBe(false);
+    expect(await evalQuery('"" | type | eq :boolean')).toBe(false);
   });
 
   it('type answers :null for null alone', async () => {
-    expect(await evalQuery('null | type | eq(:null)')).toBe(true);
+    expect(await evalQuery('null | type | eq :null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
     // key now errors (::ProjectionKeyNotInMapError) instead of silently
     // returning null.
-    expect(await evalQuery('{:nothing null} | /nothing | type | eq(:null)')).toBe(true);
-    expect(await evalQuery('0 | type | eq(:null)')).toBe(false);
-    expect(await evalQuery('"" | type | eq(:null)')).toBe(false);
-    expect(await evalQuery('false | type | eq(:null)')).toBe(false);
+    expect(await evalQuery('{:nothing null} | /nothing | type | eq :null')).toBe(true);
+    expect(await evalQuery('0 | type | eq :null')).toBe(false);
+    expect(await evalQuery('"" | type | eq :null')).toBe(false);
+    expect(await evalQuery('false | type | eq :null')).toBe(false);
   });
 });
 
@@ -438,7 +438,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
 describe('filter + type classifiers integration', () => {
   it('filter(type | eq(:string)) over Map keeps only String-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter(type | eq(:string))'
+      '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter ~(type | eq :string)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -450,7 +450,7 @@ describe('filter + type classifiers integration', () => {
 
   it('filter(type | eq(:map)) over Map keeps only Map-valued entries', async () => {
     const mapResult = await evalQuery(
-      '{:ID "SGML" :GlossDef {:para "..."}} | filter(type | eq(:map))'
+      '{:ID "SGML" :GlossDef {:para "..."}} | filter ~(type | eq :map)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
@@ -463,12 +463,12 @@ describe('filter + type classifiers integration', () => {
 describe('filter — conduit portability across containers', () => {
   it('0-arity conduit fires uniformly on Vec elements and Map values', async () => {
     const vecResult = await evalQuery(
-      ':big gt(1) | [1 2 3] | filter(big)'
+      ':big gt 1 | [1 2 3] | filter ~(big)'
     );
     expect(vecResult).toEqual([2, 3]);
 
     const mapResult = await evalQuery(
-      ':big gt(1) | {:a 1 :b 2 :c 3} | filter(big)'
+      ':big gt 1 | {:a 1 :b 2 :c 3} | filter ~(big)'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -481,22 +481,22 @@ describe('filter — conduit portability across containers', () => {
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
   it('filter over Set — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('#[1 2] | filter(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('filter over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1 :b 2} | filter(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('every over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | every(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('any over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | any(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed}) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 });

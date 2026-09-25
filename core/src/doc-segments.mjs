@@ -3,14 +3,13 @@
 //
 //   Prose     — `{:kind :prose :text "..."}` for the raw
 //               text between special tokens.
-//   Quote     — the quote of a `~{…}` paired-delimiter code
-//               fragment; a fragment that does not read as code
-//               stays prose.
+//   Quote     — the quote of a `~(…)` code fragment; a fragment
+//               that does not read as code stays prose.
 //   TaggedLit — the value produced by invoking a `::tag`
 //               constructor against its parsed payload (e.g.
-//               `::link~{path}` or `::diagram[…]`).
+//               `::link~(path)` or `::diagram[…]`).
 //
-// The tokenizer scans char-by-char for `~{` (Quote opener) and
+// The tokenizer scans char-by-char for `~(` (Quote opener) and
 // `::` (TaggedLit opener), parses the surrounding qlang fragment
 // through the canonical parse() entry point, and emits the
 // corresponding value-class. Anything between the openers (or
@@ -31,9 +30,9 @@ function makeProseSegment(text) {
   return Object.freeze(m);
 }
 
-// Find the next opener (`~{` or `::`) at or after `from` in `content`.
+// Find the next opener (`~(` or `::`) at or after `from` in `content`.
 // Returns { offset, kind } or null when none.
-//   kind 'quote'  — `~{...}` paired Quote delimiter.
+//   kind 'quote'  — `~(...)` Quote delimiter.
 //   kind 'tagged' — `::tag<payload>` (TaggedLit, evaluated through
 //                   the registered constructor).
 // Keyword references (`:foo`), bare names, and stray `:` characters
@@ -45,7 +44,15 @@ function findNextOpener(content, from) {
   let best = null;
   for (let i = from; i < content.length; i++) {
     const ch = content[i];
-    if (ch === '~' && content[i + 1] === '{') {
+    // A code span is prose, read literally as markdown reads it.
+    if (ch === '`') {
+      const close = content.indexOf('`', i + 1);
+      if (close !== -1) {
+        i = close;
+        continue;
+      }
+    }
+    if (ch === '~' && content[i + 1] === '(') {
       best = { offset: i, kind: 'quote' };
       break;
     }
@@ -57,11 +64,8 @@ function findNextOpener(content, from) {
   return best;
 }
 
-// Locate the position AFTER the matching `}` closer for a `~{...}`
-// Quote starting at `start` (which points to `~`). Balance-counts
-// `~{` opens against `}` closes; string-literal spans and nested
-// `~{...}` Quote spans are skip-zones so inner `}` chars do not
-// trip the outer close.
+// Locate the position after the `)` that closes the `~(` at `start`:
+// parentheses nest, and a string literal is skipped whole.
 function findQuoteEnd(content, start) {
   let i = start + 2;
   let depth = 1;
@@ -76,13 +80,8 @@ function findQuoteEnd(content, start) {
       i++;
       continue;
     }
-    if (ch === '~' && content[i + 1] === '{') {
-      depth++;
-      i += 2;
-      continue;
-    }
-    if (ch === '{') { depth++; i++; continue; }
-    if (ch === '}') {
+    if (ch === '(') { depth++; i++; continue; }
+    if (ch === ')') {
       depth--;
       if (depth === 0) return i + 1;
       i++;
@@ -105,7 +104,7 @@ function findTaggedEnd(content, start) {
   while (i < content.length && /\s/.test(content[i])) i++;
   if (i >= content.length) return -1;
   const opener = content[i];
-  if (opener === '~' && content[i + 1] === '{') {
+  if (opener === '~' && content[i + 1] === '(') {
     return findQuoteEnd(content, i);
   }
   if (opener === '"') {
@@ -122,7 +121,7 @@ function findTaggedEnd(content, start) {
   i++;
   while (i < content.length) {
     const ch = content[i];
-    if (ch === '~' && content[i + 1] === '{') {
+    if (ch === '~' && content[i + 1] === '(') {
       const end = findQuoteEnd(content, i);
       if (end === -1) return -1;
       i = end;
@@ -171,7 +170,7 @@ async function evalTaggedSegment(ast, callerState) {
   return result.pipeValue;
 }
 
-// Inside a doc a `~{…}` is a quote when its text reads as code, and
+// Inside a doc a `~(…)` is a quote when its text reads as code, and
 // prose like the rest of the doc when it does not [D43].
 function quoteOrProseSegment(source, spanText) {
   try {
@@ -201,7 +200,7 @@ export async function parseDocSegments(content, callerState) {
         segments.push(makeProseSegment(content.slice(opener.offset)));
         break;
       }
-      // opener.offset points to `~`; content slice between `~{` and `}` is the source.
+      // opener.offset points to `~`; content slice between `~(` and `)` is the source.
       const source = content.slice(opener.offset + 2, endAfter - 1);
       segments.push(quoteOrProseSegment(source, content.slice(opener.offset, endAfter)));
       cursor = endAfter;

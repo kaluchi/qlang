@@ -140,7 +140,7 @@ bindTypeConstructor('json',  (payload) => jsonFromQlang(payload));
 // Every operand BindStep in `core/lib/qlang/operand/<family>.qlang`
 // declares its body as `::builtin{:impl :qlang/prim/<name>
 // :category … :subject … :modifiers … :returns …}`;
-// an error tag declares prose and `~{…}` examples alone, and
+// an error tag declares prose and `~(…)` examples alone, and
 // `buildLangRuntime` stamps its `:category` / `:operand` /
 // `:position` / `:expectedType` from the spec the factory recorded
 // at the throw site. The catalog reader and

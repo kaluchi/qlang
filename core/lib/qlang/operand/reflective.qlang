@@ -22,9 +22,9 @@
       branch. Use it for introspection or for forwarding a specific
       binding to another step (`env | /myFlag`).
 
-      ~{env | has(:count) | eq(true)}
-      ~{42 | as(:answer) | env | /answer | eq(42)}
-      ~{99 | as(:secret) | env | has(:secret) | eq(true)}
+      ~(env | has :count | eq true)
+      ~(42 | as :answer | env | /answer | eq 42)
+      ~(99 | as :secret | env | has :secret | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/env
             :category :reflective
@@ -41,9 +41,9 @@
       imports only the named bindings. pipeValue unchanged in all
       forms. Inside a fork, merged bindings evaporate on close.
 
-      ~{{:limit 10 :role "admin"} | use | env | /limit | eq(10)}
-      ~{{:x 1} | use | env | /x | add(2) | eq(3)}
-      ~{42 | as(:n) | env | has(:n) | eq(true)}
+      ~({:limit 10 :role "admin"} | use | env | /limit | eq 10)
+      ~({:x 1} | use | env | /x | add 2 | eq 3)
+      ~(42 | as :n | env | has :n | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/use
             :category :reflective
@@ -55,26 +55,26 @@
   |~~ `use` (bare form) requires a Map subject — its entries
       become the merged bindings.
 
-      ~{
+      ~(
         42 | use
         !| [type /actualType]
-        |  eq([::UseSubjectNotMapError :number])
-       }
+        |  eq [::UseSubjectNotMapError :number]
+       )
   ~~|
 
 ::UseNamespaceNotKeywordError
-  |~~ `use(:ns)` requires a Keyword captured-arg naming the
+  |~~ `use :ns` requires a Keyword captured-arg naming the
       namespace to import.
 
-      ~{
-        use(42)
+      ~(
+        use 42
         !| [type /actualType]
-        |  eq([::UseNamespaceNotKeywordError :number])
-       }
+        |  eq [::UseNamespaceNotKeywordError :number]
+       )
   ~~|
 
 ::UseNamespaceNotFoundError
-  |~~ `use(:ns)` — namespace not in env and no host-provided
+  |~~ `use :ns` — namespace not in env and no host-provided
       locator can resolve it. A namespace is a header-less Map
       bound under the namespace name or under the runtime's
       `qlang/namespace/<ns>` cache key; an operand descriptor, a
@@ -82,35 +82,35 @@
       bare name is an identifier-plane binding, and `use` walks
       past it to the locator.
 
-      ~{
-        use(:absolutely-nonexistent-namespace)
+      ~(
+        use :absolutely-nonexistent-namespace
         !| [type /namespaceName]
-        |  eq([::UseNamespaceNotFoundError
-                :absolutely-nonexistent-namespace])
-       }
-      ~{use(:count) !| type | eq(::UseNamespaceNotFoundError)}
+        |  eq [::UseNamespaceNotFoundError
+                :absolutely-nonexistent-namespace]
+       )
+      ~(use :count !| type | eq ::UseNamespaceNotFoundError)
   ~~|
 
 ::UseNamespaceElementNotKeywordError
-  |~~ `use([:ns1 :ns2 …])` — every element of the namespace
+  |~~ `use [:ns1 :ns2 …]` — every element of the namespace
       Vec must be a Keyword.
 
-      ~{
-        use([42 :foo])
+      ~(
+        use [42 :foo]
         !| [type /index /actualType]
-        |  eq([::UseNamespaceElementNotKeywordError 0 :number])
-       }
+        |  eq [::UseNamespaceElementNotKeywordError 0 :number]
+       )
   ~~|
 
 ::UseNamespaceCollisionError
-  |~~ `use(#[:ns1 :ns2 …])` — two namespaces export a name
+  |~~ `use #[:ns1 :ns2 …]` — two namespaces export a name
       under the same identifier; Set-form rejects collisions.
       Host-boundary error: requires two host-installed namespace
       Maps with overlapping keys.
   ~~|
 
 ::UseNameNotExportedError
-  |~~ `use(:ns, #[:name1 …])` — selection filter names an
+  |~~ `use :ns #[:name1 …]` — selection filter names an
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|
@@ -122,7 +122,7 @@
       `::tag` / `::value`), `:name`, plus per-kind fields stamped
       by `describeBinding` in `runtime/manifest-op.mjs`.
       Overloaded by captured-arg count: bare manifest or
-      manifest(:value) lists value-namespace bindings; manifest(:tag)
+      `manifest :value` lists value-namespace bindings; `manifest :tag`
       lists tag-namespace `::Tag` bindings. For per-binding
       source-level introspection reach for the axis trio
       (`:name | source` / `:name | docs` / `:name | examples`)
@@ -130,9 +130,9 @@
       enumeration surface, not a substitute for the AST-axis
       navigation.
 
-      ~{manifest | filter(/name | eq("add")) | first | /returns | eq(:number)}
-      ~{manifest | filter(/category | eq(:arith)) * /name | count | gte(4)}
-      ~{manifest(:tag) | first | /kind | eq(::tag)}
+      ~(manifest | filter ~(/name | eq "add") | first | /returns | eq :number)
+      ~(manifest | filter ~(/category | eq :arith) * /name | count | gte 4)
+      ~(manifest :tag | first | /kind | eq ::tag)
   ~~|
   ::builtin{:impl :qlang/prim/manifest
             :category :reflective
@@ -141,25 +141,25 @@
             :modifiers [:keyword]}
 
 ::ManifestNamespaceNotKeywordError
-  |~~ `manifest(:namespace)` requires a Keyword captured-arg
+  |~~ `manifest :namespace` requires a Keyword captured-arg
       naming the namespace to enumerate (`:value` or `:tag`).
 
-      ~{
-        manifest("tag")
+      ~(
+        manifest "tag"
         !| [type /actualType]
-        |  eq([::ManifestNamespaceNotKeywordError :string])
-       }
+        |  eq [::ManifestNamespaceNotKeywordError :string]
+       )
   ~~|
 
 ::ManifestNamespaceUnknownError
-  |~~ `manifest(:namespace)` accepts `:value` or `:tag`; any
+  |~~ `manifest :namespace` accepts `:value` or `:tag`; any
       other keyword fires this error.
 
-      ~{
-        manifest(:wat)
+      ~(
+        manifest :wat
         !| [type /namespace]
-        |  eq([::ManifestNamespaceUnknownError :wat])
-       }
+        |  eq [::ManifestNamespaceUnknownError :wat]
+       )
   ~~|
 
 :runExamples
@@ -170,13 +170,13 @@
       (anything that is neither false nor null nor an error value).
       Subject is a Keyword (binding name) or a descriptor Map
       carrying a :name string. The composition
-      manifest | every(runExamples | every(/ok)) walks every
+      `manifest | every ~(runExamples | every ~(/ok))` walks every
       example in the manifest and must return true —
       self-describing catalog drift detection.
 
-      ~{:add | runExamples * /ok | distinct | eq(#[true])}
-      ~{:gt | runExamples | count | gte(1)}
-      ~{:add | runExamples | first | /ok | eq(true)}
+      ~(:add | runExamples * /ok | distinct | eq #[true])
+      ~(:gt | runExamples | count | gte 1)
+      ~(:add | runExamples | first | /ok | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/runExamples
             :category :reflective
@@ -187,11 +187,11 @@
   |~~ `runExamples` requires a Keyword (binding name) or a
       descriptor Map carrying a `:name` String.
 
-      ~{
+      ~(
         42 | runExamples
         !| [type /actualType]
-        |  eq([::RunExamplesSubjectShapeError :number])
-       }
+        |  eq [::RunExamplesSubjectShapeError :number]
+       )
   ~~|
 
 :as
@@ -201,8 +201,8 @@
       to the raw value). For the binding's doc-prefix / source slice
       reach for the axis trio (`:name | source / docs / examples`).
 
-      ~{42 | as(:answer) | answer | eq(42)}
-      ~{[1 2 3] | as(:nums) | nums | count | eq(3)}
+      ~(42 | as :answer | answer | eq 42)
+      ~([1 2 3] | as :nums | nums | count | eq 3)
   ~~|
   ::builtin{:impl :qlang/prim/as
             :category :reflective
@@ -211,18 +211,18 @@
             :modifiers [:keyword]}
 
 |~ Snapshot wrappers carry their captured value transparently on
-   identifier lookup — `as(:name) | name` returns the raw value
+   identifier lookup — `as :name | name` returns the raw value
    the snapshot captured. For declarative metadata about the
    binding (its attached doc-prefix, source slice, runnable
-   `~{…}` examples) reach for the axis trio (`:name | source` /
+   `~(…)` examples) reach for the axis trio (`:name | source` /
    `| docs` / `| examples`) in `operand/axis.qlang`. ~|
 
 ::AsNameNotKeywordError
   |~~ `as` requires a Keyword captured-arg (the binding name).
 
-      ~{
-        42 | as(42)
+      ~(
+        42 | as 42
         !| [type /actualType]
-        |  eq([::AsNameNotKeywordError :number])
-       }
+        |  eq [::AsNameNotKeywordError :number]
+       )
   ~~|

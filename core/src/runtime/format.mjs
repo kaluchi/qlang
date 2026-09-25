@@ -93,7 +93,7 @@ const TO_PLAIN_HANDLERS = {
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  Quote:          q => `~{${printQuoteSource(q)}}`,
+  Quote:          q => `~(${printQuoteSource(q)})`,
   Doc:            d => `|~~${d.content}~~|`,
   Set:            s => [...s].map(toPlain),
   // Error → `$error: {$tag, descriptor}` — the tag sits at the
@@ -202,7 +202,7 @@ const CELL_HANDLERS = {
   Map:        m => renderInline(m),
   Set:        s => renderInline(s),
   Error:      e => renderInline(e),
-  Quote:      q => '~{' + printQuoteSource(q) + '}',
+  Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => renderInline(o),
   JsonArray:  a => renderInline(a),
@@ -226,7 +226,7 @@ const INLINE_HANDLERS = {
   Vec:        v => `[${v.map(renderInline).join(' ')}]`,
   Map:        m => `{${mapEntriesInline(m)}}`,
   Set:        s => `#[${[...s].map(renderInline).join(' ')}]`,
-  Quote:      q => '~{' + printQuoteSource(q) + '}',
+  Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
   JsonObject: o => `{${Object.entries(o).map(([k, v]) => `${JSON.stringify(k)}: ${renderInline(v)}`).join(', ')}}`,
   JsonArray:  a => `[${a.map(renderInline).join(', ')}]`,

@@ -44,10 +44,11 @@ stale, and the only defence is to run it: a probe whose answer changed
 means the sentence around it is wrong, and the sentence is replaced by
 the new fact with its new probe.
 
-A decision is a choice between alternatives. Decisions are numbered,
-`D1` to the last, and recorded in the chapter of decisions [D31], one
-record each: what was decided, who decided it, the source, what it
-rests on, and the alternatives set aside with the reason. The source of
+A decision is the discussion that ends in a choice between
+alternatives. Decisions are numbered, `D1` to the last, and recorded
+one to a file, `docs/decisions/Dnn.md`, written once [D31], [D58]: what
+was decided, who decided it, the source, what it rests on, and the
+alternatives set aside with the reason. The source of
 a decision the maintainer took is the maintainer's own words, quoted
 verbatim in the language they were written in, slips of typing
 included, an elision marked […], with the time in UTC as the transcript
@@ -57,9 +58,13 @@ everywhere in this document, and words quoted from the tree stand in
 “…” beside their anchor, so a script can hold the first against the
 transcripts and a grep the second against the tree. The source of a
 decision the model took says so, and says what request it answered.
-Other chapters cite a decision by its number. A decision changes by a
-new record that names the one it replaces; the old record stays,
-marked replaced, so the chain of reasons survives.
+This document cites a decision by its number, a link to its file. A
+decision changes by a new record that names the one it replaces; the
+old record stays as it was written, with one line that names the record
+replacing it, so the chain of reasons survives as a graph of files. A
+requirement a decision leaves is a conformance case that names the
+decision, a target until the tree meets it, so whether a decision is
+carried out is computed by running the cases.
 
 An inference is the model's reasoning from named facts. Where an
 inference carries weight it is marked as the model's reading, so that
@@ -819,7 +824,7 @@ flag, and the loss is silent:
 ::T{:a 1 :b 2}
 ```
 
-The kind of an operand's result belongs to its declaration [D4, D41].
+The kind of an operand's result belongs to its declaration [D4], [D41].
 
 A quote held as data carries no environment, so a parameter of the
 body that receives one captures a name of the caller, where an
@@ -836,7 +841,7 @@ argument of today's lazy form is read in its author's environment:
 A quote written as a modifier carries the environment of its call and
 one written as the body of a binding that of its declaration, so code
 handed to another pipeline sees the names of its author wherever it is
-applied [D43, D44].
+applied [D43], [D44].
 
 The wrappers are also the host's interface. The command line's I/O
 operands and every operand of the sister project are built from
@@ -851,7 +856,7 @@ a host operand gets designed rather than inherited.
 The repair must make a parameter bind a value, make code an explicit
 quote at the call site, and make the kind of every slot a declaration
 the runtime reads, so that the catalog's slot vocabulary stops being
-decoration [D4, D43, D45]. An operand is then a declaration, whatever
+decoration [D4], [D43], [D45]. An operand is then a declaration, whatever
 implements it: the tag or the type of its subject, its slots with their
 kinds, code among them, the tag or the type of its result, and its doc,
 written in the head of its literal [D57]. The runtime executes the
@@ -941,7 +946,7 @@ it stands.
 The repair must leave one binding form, in which a body is evaluated at
 declaration and named as a value, a quote included, and a verb is the
 same form with a conduit for its value, `~[slots](body)`, which retires
-`as` and the snapshot wrapper [D5, D44, D57]; must make comments trivia
+`as` and the snapshot wrapper [D5], [D44], [D57]; must make comments trivia
 at the level of whitespace; and must give documentation its own slot
 with its own literal, which doc already is: the doc form `|~~ … ~~|` is
 that literal today, a standalone doc value anywhere and the
@@ -1264,8 +1269,8 @@ the Node module resolver used by tests, and cannot be loaded from the
 command line at all; the reference nonetheless shows `use(:qlang/error)`
 as if it could.
 
-The repair must keep error identity per site and declare it once [D7,
-D46]: each site's tag is a kind declared in the catalog beside its
+The repair must keep error identity per site and declare it once [D7],
+[D46]: each site's tag is a kind declared in the catalog beside its
 operand, whose schema owns the site's fields in the order a reader needs
 them and whose document is the site's procedure; the throw site passes
 the facts, and the tag's constructor checks them. It must hold one law
@@ -1661,1543 +1666,12 @@ each guard together with the duplicate it guards.
 
 ## Decisions
 
-Each record states the decision, its source, what it rests on where
-that is not obvious, and the alternatives set aside with the reason.
-A decision the maintainer took is sourced by the maintainer's words; a
-decision the model took says so and names the request it answered.
-Several decisions of 15 September were taken by the model at the
-maintainer's request; the first version of this document records the
-request, and the maintainer's words for it were not found when the
-transcripts were searched on 23 September, so those records say only
-that, and a record whose words a later search found quotes them. When
-the model took the remaining open questions on 22
-September, it was because the maintainer asked why those decisions
-fell to the maintainer at all:
-«давай по остатку, почему это мои решения? .. из чего мне выбирать?
-можешь разобраться, а то я не понимаю.. что ты можешь предложить сам?»
-(maintainer, 2026-09-22 04:37, session 0ea77851) and, later the same
-day in another session, «почему все мое?» (2026-09-22 07:21, session
-86982eb5).
-
-### D1 · One map and one vector; JSON is syntax and codec
-
-Decision. The JSON container family leaves the runtime. JSON syntax is
-accepted on input and normalized at parse time; the JSON shape is the
-business of the codec at the boundary; the branch that preserves it
-through transforms goes, and so does every shape predicate that
-serves it.
-Source. «с json тоже в целом согласен.. считаю этот эксперимент
-неудачным.. но только благодаря всем трудностям при его внедрении и
-появились ::Тэги в языке» (maintainer, 2026-09-14 22:38, session
-268516f5); its scale, once counted across every layer from the grammar's
-literals to the catalog: «так я хоть осознаю теперь объем его семейства
-это считай дубликат qlangа был .. начиная с парсера и дальше в эвал ..
-что б развести по семантике это.. он считай "возводил в квадрат" связи
-базовой модели» (maintainer, 2026-09-23 18:38, session 86982eb5).
-Set aside. Keeping the family to preserve a pasted document's shape: it
-costs a predicate in every container operand, a re-stamping pass in
-every transformer and a codec of its own, and the shape is recovered at
-the boundary anyway.
-
-### D2 · The effect marker leaves the language
-
-Decision. The `@` convention, its checks and its flags leave the core
-and are not relocated into a host convention. A host that wants the
-provenance of a value visible tags the value. A tag may describe an
-effect, a write the host is to perform, and such a value is performed
-only by an explicit step at the host boundary; a tag's constructor is
-pure, and reading or constructing a literal performs nothing.
-Source. «эффекты в ядре как "не пришей к кобыле хвост" .. […] я даже в
-какой-то момент думал их вообще просто удалить и никуда не переностить
-никак» (maintainer, 2026-09-15 00:12, session 268516f5), and «на
-границе хоста и хостовых операндах через ::тэги можно эффекты и всякую
-мутабельность моделировать при желании и надобности» (maintainer,
-2026-09-23 08:58, session 86982eb5). The purity of constructors and the
-place of performance are the model's, from the history of YAML's
-unsafe `load`.
-Set aside. The marker as a host naming convention: every `@`-name stays
-a different name from its plain twin, reading its document means
-remembering the sigil, and the core has no consumer of purity.
-
-### D3 · The ring comes first
-
-Decision. The data form of code and the involution between it and its
-text are settled before anything that produces or consumes a quote, the
-argument model included.
-Source. «кольцо Code as data и инволюция вероятно первичны в дизайне по
-отношению к прочим фичам» (maintainer, 2026-09-15 02:12, session
-268516f5).
-
-### D4 · A parameter binds a value, and an operand is a declaration
-
-Decision. A parameter holds a value; code passed to an operand is an
-explicit quote, or the slot is declared as code. Every operand, built
-in, hosted or declared as a pipeline, is a declaration of its subject,
-its slots with their kinds, its result and its doc, and the runtime
-executes it: subject and value slots are checked before the
-implementation runs, code slots are closed at the call site, the result
-is checked after. A reducer or comparator slot supplies its second
-value as a trailing modifier of the code's last step. The arity
-dispatch of predicates and the second calling convention go. A host
-operand is a plain function over checked values, delivered with the
-module that declares it as `{ source, impls }`; the dispatch wrappers
-and error factories stop being an interface.
-Source. The model, 15 September 2026, at the maintainer's request; the
-interface of hosts was added by the model on 23 September 2026 when the
-reading of the whole tree showed the wrappers to be that interface.
-The parameter written `~(f)` and the rules of forks were accepted in
-passing: «с ~(f) синтаксисом параметров наверное тоже всех устроит, как
-и те правила с форками» (maintainer, 2026-09-22 01:30, session
-96f3df79).
-Set aside. Lazy parameters by default, which produce the `m(/)` answer
-of forty; keeping the wrappers and adding declarations beside them,
-which is a second spelling of every calling shape.
-Replaced in part by D43, under which a slot captures nothing, code
-arrives as a quote, and a declared pipeline's parameter is a value its
-body applies.
-Replaced in part by D16, under which the comparator slot leaves with the
-comparator operands.
-
-### D5 · One binding form, and the binding is a record
-
-Decision. One form, `:name body`: a quote body is code, a bare body is
-evaluated once at declaration against the current value, tags are
-declared through the same form, and `as` and the snapshot go. A
-declaration produces a binding value that carries its name, its doc,
-its source, the module it came from, and its value or its code; the
-four axes become projections of that record, the examples being the
-quotes among the doc's segments.
-Source. The binding as a named result is the maintainer's: «если считать
-биндинг просто как именованным результатом вычисления над тем же
-pipeValue […] без всяких там as(:name)» (maintainer, 2026-09-15 23:14,
-session f4f0c99b); `:n /` in place of `as`, «да, выглядит что ты прав..
-просто изначально были там всякие let def и т.п. операнды.. и вообще
-отстутсвовала биндинг форма с :n /» (18:47), answering the model's
-account of the four roles of `as`; the binding that keeps its origin
-answers «источник теряется.. пуповина обрывается.. наши BindStep-ы не
-дорабатывают..» (maintainer, 2026-09-15 01:20, session 268516f5). The
-quote body as code, the model, the same day; the axes as projections,
-the model, 23 September 2026.
-Set aside. Keeping `as` beside the binding form, which keeps the
-snapshot wrapper and its eight unwraps; deciding between value and code
-by the shape of the body's syntax.
-Replaced in part by D44, under which a binding names a value, a quote
-included, and a verb is declared with its slot list.
-
-### D6 · A tag's declaration is its schema or its constructor
-
-Decision. A tag's body is its schema when it is a map, a field's kind
-being a type, a tag, `[kind]` for a vector of the kind or `#[…]` for an
-enumeration of keywords, and its constructor when it is code; the
-runtime derives a record's constructor from its schema with the checker
-that checks a slot. The tags built in the host language keep the
-builtin descriptor as their body, and a tag without a body is identity.
-A record that wants a check beyond the kinds of its fields is declared
-with code. The spelling of a slot list, which a vector of one kind
-would otherwise collide with, is settled with the argument model.
-Source. Proposed by the model on 22 September 2026 as the fourth
-question; «ладно тогда 4 ок» (maintainer, 2026-09-22 05:56, session
-0ea77851).
-Replaced in part by D45, which spells the slot list that this record
-left to the argument model.
-
-### D7 · One tag per kind of refusal
-
-Decision. Error identity stops being declared per throw site. There is
-one tag per kind of refusal, named for the refusal; the operand, the
-position and the expected type are fields of the descriptor; a bright
-headline is derived by the printer from those fields; a foreign failure
-carries a tag of the language with the host's class name as a field.
-The document behind each refusal kind is a procedure: what it means,
-which field names the culprit, the usual cause, the recovery through
-`!|` as a runnable example, and the kinds it is confused with. An error
-prints like an alert, headline and anchors and a short excerpt, with
-the full value one projection away; an unresolved name names the
-nearest known names, and a parse error the continuations a reader
-could have meant.
-Source. The identity, the model, 14 September 2026, which offered it
-beside per-site tags and left the choice to the maintainer, who did not
-answer then. The tag of the language for a foreign failure answers «ни в
-коем случае js-ошибки не должны вытекать из рантайма, вычисляться во
-что-то что не является литералом qlang.. хотя бы потому как вдург qlang
-на rust кто-то захочет переписать..» (maintainer, 2026-09-14 23:30,
-session 268516f5). The procedure and the printing, the model, 23
-September 2026, after the maintainer named what the tags were for:
-«именно поэтому я и вводил в ошибки qlang тэги и делал их
-гипертекстовыми.. и подразумевая что получившая их модель может
-провалиться и дочитать там гипертекст-инстркции как поступать с ошибкой,
-как она возникает и что значит» (maintainer, 2026-09-23 04:35, session
-86982eb5).
-Set aside. A per-site tag such as `::AddLeftNotNumberError` derived by
-the runtime from the same facts: it removes the declarations as well,
-but costs a naming rule in the runtime and a tag that names no entry of
-the catalog.
-Replaced in part by D46, under which a refusal keeps the tag of its
-site, declared once as a kind.
-
-### D8 · The quote is `~(…)`, transparent over its vector of steps
-
-Decision. A quote is a vector of steps under the code tag, spelled
-`~(…)`; container operands apply to it as to any tagged vector; the
-data form carries no `:kind` and no positions; the parser's tree stays
-a separate view for tools.
-Source. The spelling is the maintainer's: «ладно ~() .. наверное
-перевешивает и старую форму и альтернативу в виде ~[] ...» (maintainer,
-2026-09-15 22:47, session f4f0c99b). Transparency answers «для упаковки
-и распаковки наверное проше операнд с биекцией придумать?» (20:52) with
-the bijection every tag already has, `payload` one way and `tag` the
-other, as the maintainer read it back, «т.е. ты предлагаешь что-то типа
-~(1 | add(/a | mul(2))) | payload = и на выходе я получаю [1 ::Call{}]
-или как?» (21:09), and it was accepted with «ок, принимаю» (maintainer,
-2026-09-24 00:07, session 86982eb5). The data form, the model, 15 and 19
-September 2026.
-Set aside. An opaque value reached through one involution operand, the
-way `error` exposes its descriptor: transparency removes a value class
-where the alternative adds an operand, at the price of every container
-operand acquiring a meaning on a quote.
-Replaced in part by D47, which stores a modifier as its step and names
-the tags of the data form.
-
-### D9 · `apply` is subject first
-
-Decision. `apply q` runs the quote against the subject under the fork
-rule; the group is the same run written as a literal; `eval` leaves.
-Source. The model, 15 September 2026, answering «про apply можешь мне
-расписать текушие формы и из недостатки и что именно ты предлагаешь и
-как оно со всем будет сочетаться - потому как оно звучит наверное
-здраво» (maintainer, 2026-09-15 19:19, session f4f0c99b); the replay of
-a trail took the form the maintainer asked about, «а так что будет, если
-→ завтра err !| :t /trail | 5 | apply(t)» (19:44). The subject first is
-the maintainer's reading: «есни надо выполнить квоту - то против
-субъекта (apply q) это явно и правильно звучит» (maintainer, 2026-09-23
-21:14, session 86982eb5).
-Set aside. Overloading `apply` by the type of its argument, which two
-quotes make undecidable. The price accepted: a declaration when the
-code arrives through the pipeline, as in the replay of a trail.
-
-### D10 · The command form
-
-Decision. A step is a command, a name followed by its modifiers
-separated by spaces; parentheses mean only a pipeline taken as one
-word; the argument comma leaves the grammar.
-Source. Proposed by the model; «давай уже зафиксируем командную форму
-тобой предложенную» (maintainer, 2026-09-19 10:11, session ad12f85d).
-The exploration opened with «идея с командной строкой возможно
-действительно лучше» (maintainer, 2026-09-16 02:04, session f4f0c99b).
-Set aside. The call form, uniform and self-delimiting, which keeps two
-meanings of parentheses and the reading of a function call that brings
-another paradigm's expectations; dropping the comma alone, `op(a b)`,
-which keeps both; parentheses around every command, which costs a pair
-on every step of the top level. The price accepted: one text reads as
-a command with a modifier on the pipe and as two elements inside a
-literal, which the first screen states in a sentence and a parse error
-names.
-
-### D11 · A line is a step
-
-Decision. A newline ends the modifiers of a bare command; the next line
-continues the pipeline through the combinator it begins with, or
-through `|` when it begins with none; inside parentheses and literals a
-newline is whitespace; the parts of a declaration may take a line each.
-Source. The model, 22 September 2026, answering «по семантике синтаксису
-все решено?» (maintainer, 2026-09-22 07:27, session 86982eb5). The rule
-held under the maintainer's condition on the whitespace of D43, «[…]
-если ты подвердишь что с многострочными примерами и переносами
-комбинаторов туда сюда проблем не будет и все будет праситься как
-надо..» (maintainer, 2026-09-23 21:40, session 86982eb5), which the
-model's check answers, recorded in the scar of the call in the second
-version of this document.
-Replaced in part by D43, which continues a line that ends with a
-combinator through that combinator and sets every combinator off by
-whitespace.
-
-### D12 · Modifiers evaluate as the elements of a vector
-
-Decision. A command's modifiers are forks against the subject at the
-call site, evaluated as the elements of a vector literal: results by
-position, simultaneity unspecified, none seeing another. A code slot's
-modifier is closed at the call site and run by the operand in its own
-order, which its catalog entry states where the order is observable;
-`if`, `cond` and `coalesce` are lazy by that declaration.
-Source. Proposed by the model and accepted by the maintainer, as the
-first version records, and confirmed on 22 September: «ок, слева
-направо ты предложил.. в целом ок» (maintainer, 2026-09-22 01:30,
-session 96f3df79), answering the model's account of the order in which
-modifiers evaluate.
-Replaced in part by D43, under which a slot of kind code receives a
-quote instead of capturing its modifier, and `if`, `cond` and
-`coalesce` take as quotes the parts they run only when chosen.
-
-### D13 · One law for nested errors
-
-Decision. The error of a fork is its value, handed to whatever ran the
-fork. A place declared for any value keeps it; a place declared for a
-kind fails with that same error, unchanged. An operand whose
-alternatives are pipeline slots, `coalesce` and its kin, runs them in
-order and treats an error result as no value, which is its documented
-contract.
-Source. The model; the maintainer left `coalesce` to the model: «с
-coalesce наверное можно как-то и смириться с тем что оно все аргументы
-посчитает до вызова.. что возможно некоторых может смутить ..хотя может
-и раньше так оно было .. в общем здесь ты лучше самостоятельно подумай»
-(maintainer, 2026-09-22 01:30, session 96f3df79).
-
-### D14 · Predicates are strict
-
-Decision. A condition answers a boolean or fails at its slot. `when`,
-`unless` and `firstTruthy` leave the catalog; `not` takes a boolean;
-null is tested with `eq null`; `runExamples` passes an example only when
-it answers `true`.
-Source. Proposed by the model on 22 September 2026 as the first
-question; «по 1 пункту согласен с тобой» (maintainer, 2026-09-22 05:34,
-session 0ea77851).
-Set aside. Truthiness, under which `null` and `false` were false and
-every other value true: it needs a second kind in the declaration of a
-slot and answers silently where a string or a quote lands in a
-predicate. A `boolean` coercion operand: it carries the Lisp reading
-that false is absence into a tool for JSON, where null is explicit and
-`false` is a value.
-
-### D15 · A map's elements are its values
-
-Decision. A map is a record and a dictionary at once. Its elements are
-its values, and its keys are the shape that travels with them: `*`,
-`filter`, `sort`, `take`, `drop` and `reverse` act on the values and
-keep the keys, the reducers read the values, `keys` answers the sorted
-set of keys, and a predicate sees the value alone.
-Source. Proposed by the model on 22 September 2026 as the second
-question; «2 - согласен тоже» (maintainer, 2026-09-22 05:34, session
-0ea77851).
-Set aside. The entry as a value with an `entries` and `fromEntries`
-pair: the reflex of every other language, paid for with a second
-collection inside the map, while `*` over a map and `indexBy` write both
-directions as compositions.
-
-### D16 · One order over all values, and the set as the ordered vector
-
-Decision. One order ranks every value, so anything sorts, a vector is a
-compound key, and the comparator operands and the refusals of
-incomparability go. The set is the vector in that order without
-duplicates, under the `::set` tag, with `distinct` its constructor and
-`#[…]` its literal.
-Source. The maintainer first asked whether the set should leave the
-language: «может вообще сеты убрать из языка? а есть isDistict/isSet
-операнд над вектором» (maintainer, 2026-09-22 05:34, session 0ea77851);
-after the model's second pass, «ок, убедил.. дорабатывай аудит»
-(maintainer, 2026-09-22 06:27, session 0ea77851). The comparators left
-after the maintainer asked after the motive, «это мы так договаривались,
-сносить компараторы? .. напомни мотивацию?» (maintainer, 2026-09-24
-07:48, session 86982eb5), and heard their price, «ааа ок, продолжай»
-(07:50).
-Set aside. A language without sets, the same order with `distinct`
-answering a canonical vector, set aside by a small margin since the
-tagged vector costs two lines of catalog and answers for itself when
-printed; a set as a primitive with an equality of its own; a vector
-whose equality knew order, which would be no set. The price accepted: a
-key that descends beside one that ascends is written for numbers alone,
-`sort ~([/p (/t | mul -1)])`; the descending order is the sort reversed,
-which reverses the order of equal keys as well; and `firstNonZero`, the
-composition primitive of compound comparators, leaves with them.
-
-### D17 · The order of the types
-
-Decision. Values order first by type: null, boolean, number, string,
-keyword, tag name, vector, map, and after them every tagged value by
-the name of its tag; within a type as today.
-Source. The model, 22 September 2026; the place of tag names after
-keywords, the model, 23 September 2026, since the first list omitted
-them.
-Replaced by D48, which places the tagged kinds of the core and the kinds
-of the hosts.
-
-### D18 · A duplicate key reads as JSON reads it
-
-Decision. A duplicate key in a map literal, in either spelling, keeps
-the last value in the first position, as `JSON.parse` does, and the
-boundary reads the same.
-Source. «ок, видимо у нас правильно js-совместимо сделано, с учетом
-того что мы должны жевать любой json на входе и относиться к нему как к
-тому все привыкли уже» (maintainer, 2026-09-22 06:17, session
-0ea77851).
-
-### D19 · A doc is the vector of its segments
-
-Decision. A doc is the vector of its segments, prose strings and
-quotes, under its own tag, parsed once by the language's parser; it
-counts, addresses and slices as a vector; `|~~ … ~~|` is its literal;
-its text is the join of its segments.
-Source. The model, 22 September 2026, from the maintainer's picture of a
-doc: «так и в qlang - любой Doc - задумывался так что б быть маркдауном
-по сути .. и внутри него есть квоты из qlang-а» (maintainer, 2026-09-19
-07:18, session ad12f85d).
-
-### D20 · A tag names a kind
-
-Decision. A tag is the name of an interpretation. It stacks over any
-payload and reads from the outside in; the tag taken as a value is the
-kind as a subject; behaviour lives in the catalog and is found through
-the tag, never in the value. The vocabulary of objects stays out of the
-language and its documents; the first screen defines the word in one
-sentence, since a model's prior for "tag" is vague, HTML and git and
-clouds of labels.
-Source. «мне нравится что "имена интерпретации" в целом много что
-моделируют и компонуются .. т.е. то же множественное-наследование ради
-полиморфизма там легко можно реализовать наслаиванием конкатенацией
-тэгов» and «слова тащат парадигму -- верно на 100%» (maintainer,
-2026-09-23 08:58, session 86982eb5); the definition and its
-consequences, the model, the same day.
-
-### D21 · Progressive disclosure and the elision marker
-
-Decision. The contract is called progressive disclosure. What a host
-leaves out is replaced by a value under `::elision`. The language
-computes whole values; the budget, elision, enrichment, the explanation
-of an error and the performing of an effect belong to the host and its
-session. The marker's payload is a map with two fields the host owes
-and the tag's declaration documents, `:size`, in the elements of the
-vector it replaces, and `:read`, a quote that applied to the original
-answer yields the part left out; every other field is the host's.
-Source. «да, progressive disclosure - ок, как и ::elision и c его
-внутренностями произвольными» (maintainer, 2026-09-19 08:43, session
-ad12f85d); the two owed fields, the model, 22 September 2026.
-
-### D22 · The catalog is the coreutils of values
-
-Decision. An operand enters the catalog when it expresses what was
-inexpressible over the values the language has, or shortens what every
-host would otherwise write; a domain's operands belong to its host.
-There is one sequence, the vector: a string becomes a vector through
-`split`, `lines` and `join` and is worked on as one, so the string
-operands stay a handful and a string reads in pieces by the rule
-everything else obeys.
-Source. The model's proposal of 15 September 2026, restated on 22
-September; the maintainer has raised no objection.
-Set aside. A string library of its own, which the sister project's
-source text asks for first and is the one road on which the catalog
-grows without bound.
-Replaced in part by D49, which counts a host without a shell among every
-host.
-
-### D23 · Collisions are resolved by the subject, ownership and scope
-
-Decision. A verb resolves against the subject first: the tag's own
-verbs, from the outermost tag inward, then the verbs of the payload's
-shape, then the global verbs. A verb and a kind may be joined by
-whoever owns one of them, so a host may specialize a core verb on its
-own tags and may not redefine a core verb on the core's kinds.
-Extensions to foreign tags are active only in a query that uses their
-module. Names without a prefix belong to the core. The user's own
-declaration in a query wins over a tag's verb. One query shows every
-definition of a name and which one wins.
-Source. «глаголов мало, субьектов много .. поэтому и смотрел в сторону
-мультидиспатча на тэгах - что б хоть что-то полиморфное и релевантное
-текущему pipeValue получать» (maintainer, 2026-09-23 07:02, session
-86982eb5) and «правильный дизайн где-то там же в районе тэгов.. как
-будто бы сейчас кажется нельзя выставлять свои "глаголы" просто так»
-(maintainer, 2026-09-23 08:58); the parts of the rule, the model, the
-same day, from the keymaps of Emacs, the modes of Cisco's command line,
-the orphan rule of Rust, the rule against type piracy in Julia, Ruby's
-refinements and EDN's reserved tags.
-Set aside. A table owned by each verb, the generic function of CLOS
-and Julia, which makes adding a verb cheap and adding a kind expensive
-and is the candidate of the first version; a loud refusal of every
-collision, which makes a host rename its verbs and lets the core's
-names freeze the hosts out.
-Replaced in part by D34, which restates the order of resolution on the
-kinds of D32.
-
-### D24 · Large namespaces are mounted, and Java types become tags
-
-Decision. A host may serve a namespace lazily: a tag no binding knows
-is asked of the mounted namespaces in order, the first that knows it
-answers, and ownership settles overlap. The core knows how to ask a
-mounted namespace and nothing about any domain. The sister project
-mounts its types, each a tag spelled as Java spells it; the dot is
-admitted inside a tag's name and a quoted form, `::"…"`, covers the
-rest; a member of a type is a record under the host's tag pointing at
-its type.
-Source. «а для графа jdt (навигации по типам, методам и т.п.) .. можно
-ведь было fqn-ы жавы перенести как на ::тэги? и упростить там апи по
-связям» (maintainer, 2026-09-23 07:24, session 86982eb5); mounting,
-spelling and members, the model, the same day.
-Set aside. Binding every type in the environment, which cannot hold
-tens of thousands of names; slashes in Java names, which give one name
-two spellings and a conversion at every paste.
-
-### D25 · Where the meaning of a field lives
-
-Decision, proposed. A bare key in a tagged record is read through the
-record's tag, whose declaration documents it; a namespaced keyword is a
-global attribute owned by its prefix and documented once, so that a
-field shared by several kinds of record, `:jdt/location` on a type, a
-method and a field, has one document.
-Source. The model, 23 September 2026, refining the first version's
-decision that a tag's declaration documents the fields of its record,
-from the design of Clojure's spec, where the meaning of an attribute
-lives with the attribute. The maintainer has not answered.
-Set aside. Documenting every field on every tag that carries it, which
-gives a shared field as many documents as it has records.
-Replaced by D50, under which a key stays short and a value shared by
-several kinds of record carries its own tag.
-
-### D26 · The benchmark
-
-Decision. Both instruments, each in its role. The attempt of a fresh
-model in the loop is the mission's measure and runs at milestones: a
-script hands the model the first screen as its only prior, the task
-with its input, and one tool, the query; every answer the tool returns
-counts toward the bill; the first query the model offers as its answer
-runs against the expected value. A deterministic proxy runs on every
-branch: the token bill of the shortest reading path to a task's
-expected query, the first screen, the documents of every operand and
-tag the query names, and the printed answer, all derived from the
-expected query itself. The threshold is the whole set; a task that
-fails names a scar and enters this document. The tasks are the sister
-project's queries and the command line's integration tests, each with
-its expected value, so correctness is `eq` and needs no judge.
-
-The attempt runs every task in three arms, the same tool behind each.
-The first is the query. The second is code mode: the tool is an API the
-model calls from code that runs in a sandbox, the pattern Cloudflare
-published as Code Mode (Kenton Varda and Sunil Pai, 26 September 2025)
-and Anthropic as code execution with MCP (Adam Jones and Conor Kelly,
-4 November 2025), and which Anthropic's API ships as programmatic tool
-calling (Bin Wu, 24 November 2025), so the arm needs no sandbox of the
-project's own. The third is the shell: the tool answers JSON through a
-flag and the model composes it with `jq` and `head`, the way the sister
-project was used before qlang. Code mode keeps intermediate results out
-of the context and speaks a language the model has read a great deal
-of; the shell composes tools and lets a model discover them with
-`--help`, but its pipes carry text, so `head` cuts a document in the
-middle of an object and `wc` counts lines. The query has to beat both
-on the bill and on first attempts, and a task where another arm wins
-names a scar.
-Source. The model, 22 September 2026, answering «почему все мое?»; the
-arms, the model, 23 September 2026, from the three articles read whole,
-after an outside reviewer called the niche empty, and «тулам гораздо
-лучше живется, когда они живут внутри баша» (maintainer, 2026-09-23
-14:18, session 86982eb5).
-Set aside. The proxy alone, which cannot measure the mission; the model
-alone, which cannot gate a branch; a single baseline, which leaves the
-query unmeasured against the other.
-
-### D27 · The first screen
-
-Decision. The first screen is a screen, what a terminal shows at once,
-about four kilobytes. The protocol for asking, `manifest`, `docs`,
-`examples`, `spec` and how an error reads, is the same everywhere and
-takes one paragraph written once in the core; the rest of the start
-command's screen is the host's domain; the language's own base and its
-seed pipelines stand on a screen of their own, one query away. The
-cheap view is the default everywhere.
-Source. The model, 22 September 2026, answering «почему все мое?».
-Set aside. A larger first screen, which pays on every session for what
-most never read. The price: a session facing a reshaping beyond
-projection reads two screens before its first query.
-
-### D28 · The ranking of the seven conditions
-
-Decision. When two conditions of the satisfactory state conflict, the
-earlier in their list wins. One model comes first, because a construct
-that helps the first attempt but needs a second mechanism would have to
-be explained on every first screen that follows; then self-description,
-the measure itself; then one spelling, since a second spelling is what
-goes stale under a session; then the consumers, since the language
-lives inside its hosts; then the grammar's proportion. The sixth is the
-precondition of the others and competes with none; the seventh yields
-only to a branch that introduces a model.
-Source. The model, 22 September 2026, answering «почему все мое?».
-
-### D29 · The route is a sequence of milestones
-
-Decision. The work runs from the start, the tree as the scars describe
-it, to the finish, the tree the chapter on the finish describes,
-through milestones that are states of the language, each followed by a
-release. The order of branches under a milestone illustrates and binds
-nobody; a scar leaves this document when the tree no longer shows it.
-Source. «нам нужна точка старта и точка финиша, и их итеративно
-проявляем/уточнями.. что б в коцне концов получить итоговый маршнут и
-последовательность вех на нём» (maintainer, 2026-09-23 00:04, session
-86982eb5); on the order of work as an illustration, «в плане если это
-просто для илюстрации порядка будущих работ - то ок. но как
-ОБЯЗАТЕЛЬСТВО - я против подобного» (maintainer, 2026-09-22 04:09,
-session 0ea77851).
-Set aside. A ledger with closing conditions and statuses, which turns
-the order of work into an obligation and drifts from the tree.
-
-### D30 · The texture of the code is repaired by every branch
-
-Decision. Every branch leaves the files it touches with comments that
-state what holds in one sentence, moves any reason it finds into the
-record of its decision or deletes it with the compromise it excuses,
-and deletes false comments. The literal is the one lossless format; one
-loader remains; the embedding surface is designed with the argument
-model; the unused session surface goes; consumers keep no rule of their
-own. The ratio of comment lines to code lines is measured against the
-September master and falls.
-Source. The model, 23 September 2026, from the reading of the whole
-tree, answering what the maintainer asked of the work: «итоговый код
-как бы дисцилировался, непрерывно улучшался, сокрашался, уплотнялся в
-связях и качестве, а такое ощущение что модели хочется его разбавить
-токенами, лишней писаниной или адхуками, которые следствие плохой
-подготовительной работы» (maintainer, 2026-09-23 00:04, session
-86982eb5).
-
-### D31 · How decisions and requirements are recorded
-
-Decision, partly adopted. Adopted in this document: decisions are
-numbered records in this chapter, cited by number elsewhere, changed by
-a new record that names the one it replaces; a block fenced as `qlang
-target` states the answer a repair must produce. Proposed and designed
-in the entrypoint document, not yet adopted: each new or replacing
-record lands on master as a commit whose subject begins with its
-number and whose body is the record, commits that implement a decision
-carry a `Decision:` trailer and a replacing record a `Supersedes:`
-trailer, and the status of a record is computed from those trailers;
-the conformance cases are the requirements of the language, a case
-that confirms a decision names it and is red until the branch that
-implements the decision makes it green; the probes and the `qlang
-target` blocks of this document run as tests, through the probe runner
-the entrypoint document carries, so that a changed answer marks the
-sentence around it stale.
-Source. The maintainer proposed Markdown decision records and empty
-commits (2026-09-23 01:29, session 86982eb5), asked for chronology and
-immutable hashes, «а хронология, ссылки на коммиты и т.п. незименяемые
-хэши... а как кратко ссылаться на предыдущее?» (2026-09-23 02:06), and
-for tests as the basis of requirements, «у нас есть юнит тесты, они
-ведь могут служить оснвой какой-то для формирования и проверки
-требований?» (2026-09-23 02:14); the design, the model, the same day.
-Set aside. Records as a directory of files beside git, which duplicates
-the identity, chronology and immutability git already has; empty
-commits, which blame cannot reach and a squash merge swallows; the unit
-tests as requirements, since almost all of them import the internals
-they check.
-
-### D32 · Every value has a kind, and a bare literal has the core's
-
-Decision. Every value has a kind: the outermost tag of its stack, and
-for a value without a tag of its own, the kind of the core its literal
-implies. `[…]` implies the vector, `{…}` the map, `#[…]` the set,
-`~(…)` the quote, `|~~ … ~~|` the doc, and a number, a string, a
-keyword, a tag name, a boolean and null each have their own; a host's
-value carries its tags above one of them. The core's kinds are named
-under its prefix, `::qlang/vec`, `::qlang/map`, `::qlang/number`,
-`::qlang/set`, and print short, `::vec`, since the names without a
-prefix belong to the core [D23]. The printer writes every tag of a
-stack except the kind the brackets already imply, so `[1 2]` prints
-bare and `::jdt/list[1 2]` prints its tag. `type` answers the kind of
-any value, `[1 2] | type` answering `::vec`, and `type | docs` leads
-to the kind's page for a value of the core as for a host's. The long
-form `::qlang/vec[1 2]` reads as the same value and is never printed.
-Source. «с этой позиции то что без тэга это все голый ::qlang и его
-наймес только и [] и {} ~{} и что там было ... который мы опускаем..»
-(maintainer, 2026-09-23 18:20, session 86982eb5); «да, ты прав насчет
-вид: ::qlang/vec, ::qlang/map, ::qlang/number, ::qlang/set»
-(maintainer, 2026-09-23 18:25); the printing rule and the answer of
-`type`, the model, the same day.
-Set aside. One tag `::qlang` over every value of the core, which names
-the owner and loses the kind the core's verbs dispatch on.
-
-### D33 · A kind owns its constructor, JSON form, order and laws
-
-Decision. The contracts of a value attach to its kind. A kind declares
-its constructor, which checks and normalizes a payload after the
-parser has read it, since no kind reads text itself; its JSON form, the
-lossy codec of the boundary, which by default drops the tag and writes
-the payload, and from which only the core's kinds come back; its place
-in the one order, the core fixing the order of its own kinds and the
-hosts' kinds following by name [D48]; and its document, whose examples
-are its laws. The literal belongs to no kind: one rule of the core
-prints every stack, and `parse(print(v)) = v` holds for every kind and
-is tested with the kind's examples. A rendering, the dark cockpit, a
-compact view, a table, is a view at the boundary, lossy and marked by
-elision, and a kind may offer one to its host.
-Source. «и возможно к ним же и можно подцепить все эти
-printValue-контракты или что там можно присобачить тогда.. сериализацию
-десериализацию там какую если надо» (maintainer, 2026-09-23 18:25,
-session 86982eb5); the literal kept apart from the renderings, the
-model, the same day, from the printer that drops `::builtin` because
-its table of handlers has no line for it.
-Set aside. A kind that prints its own literal, which lets a host print a
-node as a reference and breaks the involution.
-
-### D34 · A verb is found by walking the subject's tags
-
-Decision. A verb resolves against the subject by walking its stack of
-tags from the outside in, down to the core's kind at the bottom [D32];
-the verbs of a payload's shape and the global verbs of the first
-formulation are the verbs of the core's kinds. A host puts its verbs on
-the tags it owns, its own noun included, `::jdt | projects`,
-`::workflow | status`, so no verb of a host takes a global name. The
-core owns the contract of a verb that several kinds answer, its
-document and its examples, and every specialization answers the
-examples as laws; a verb means one act wherever it resolves, and a kind
-implements it. `status` and `compact` are verbs of the hosts whose
-contracts are shared, the way `git status --porcelain` is a promise of
-form. The rest of the rule of collisions stands [D23].
-Source. «да, ::jdt | projects и ::jdt | status и т.д. - это именно то о
-чем я и думал...» (maintainer, 2026-09-23 15:34, session 86982eb5);
-«SVO звучит практично и как то что нам подойдет» (maintainer,
-2026-09-23 17:49); «если мы делаем 'status | compact' - то compact же
-будет резолвиться относительно результата прошлого шага.. от его тэгов
-стартовать» (maintainer, 2026-09-23 18:00); «status и compact это
-вероятно хостовые концерны.. ядру они не особо нужны..» (maintainer,
-2026-09-23 18:13); the contracts and their laws, the model, the same
-day. The order rests on an asymmetry the maintainer named, «если я
-использую "Инвариант ..." и надо будет подставить глагол - то вариантов
-будет сильно меньше» (maintainer, 2026-09-23 17:32): after a noun the
-verbs that can follow are few, after a verb the nouns are many, so the
-subject first narrows a model's next step and a completion list alike.
-Set aside. The verb first, the order of a shell's command line, which
-opens the whole catalog at the first word.
-
-### D35 · The subject opens its namespace
-
-Decision. A noun in the subject position is the pipeline value and
-opens its namespace for the steps after it, so that mentioning a host
-is using it. Every pipeline starts inside the core's namespace, and a
-host's pipeline inside its own, `::qlang | ::jdt`. A name typed bare
-resolves first among the core's names, then as a module mounted at that
-name, then through the nearest open namespace outward. The search
-happens only where a name enters the text: the values a host produces
-carry qualified tags, so dispatch between steps never searches. A name
-that two open namespaces know is a refusal that lists both, an answer
-names who resolved its names, and a qualified name skips the search.
-An argument is a fork from the subject, as it is today, so it resolves
-inside the subject's namespace and what it opens ends with it:
-
-```qlang
-> [1 2 3] | take (count | sub 1)
-[1 2]
-```
-
-Source. «типа дефолт любого пайплайна это ::qlang в субъектной позиции
-и это триггерит загрузку модуля и дальнейший резолв относительно
-субъекта .. а если мы внутри jdt - то там это просто '::qlang | ::jdt'
-в роли умолчания .. и если я пишу потом ::app/m8/Handler - то
-резолвится сначала прямой модуль, если нет - то через ближайший ...
-т.е. через ::jdt ...» (maintainer, 2026-09-23 17:49, session
-86982eb5); the boundary of the search, the refusal of ambiguity and the
-scope of an argument, the model, the same day, from the search lists of
-DNS, where a name that resolved through one domain resolves through
-another once the other starts to know it.
-Set aside. A search at every step, which lets a value change its
-meaning between two steps; the first match among open namespaces, which
-lets a new module change the meaning of an old query.
-
-### D36 · A namespace is a subtree of names with its provider
-
-Decision. The flat environment splits into three things. The lexical
-scope holds the names the user declares in a query, and it is all that
-`env` shows. The verbs live on tags [D34]. The nouns form a tree of
-names in which each subtree is answered by a provider: the core answers
-its own names, a host its prefix and the names it mounts, the `.qlang/`
-folder of a repository its project [E1 in the entrypoint document]. A
-namespace is such a subtree with its provider, the way a file server
-was mounted at a path in Plan 9. A module is the unit that brings tags
-with their documents and the verbs on them. One loader remains, from a
-tag to its provider to its declaration, and the stages of the
-bootstrap, the language's catalog, a host's catalog, the user's query,
-become namespaces asked when a name needs them rather than stages that
-merge their deltas into one environment. `use` remains for bringing a
-library's declared pipelines into the user's names. The kernel is the
-evaluator with its table of primitives and the one shape it knows,
-`::builtin`, which the catalog documents rather than defines.
-Source. «а ещё неймспейсы все никак не поймем что такое.. по крайней
-мере я в них плаваю, с учетом субьекто-ориентированности .. тут я ещё
-не осознал решение» (maintainer, 2026-09-23 17:17, session 86982eb5),
-with the long pipeline recalled in the same message, «langSpec |
-langRuntime | hostRuntime | userQuery | hostRendering !|
-hostErrorHandling»; the split, the model, the same day. It rests on the
-conceptual model of `docs/qlang-internals.md`, whose state starts from
-the runtime as its subject, and on the seeding of `use` and
-`::builtin` in `buildLangRuntime` (`core/src/runtime/index.mjs`),
-which the code calls “Chicken-and-egg”.
-The kernel as the bottom, documented by the catalog and defined by
-nothing in it, was left to the model: «здесь на твое усмотрение, что
-красиво в коде - то красиво и в использовании как по мне...»
-(maintainer, 2026-09-24 00:55, session 86982eb5), and the model keeps
-the decision as it stands.
-Set aside. Namespaces as maps merged into one environment, which is the
-scar of names that lose their origin.
-
-### D37 · A host's setting is the first value of the pipe
-
-Decision. A host sets up a query by one thing, the value its pipe
-starts from, and by nothing else in the environment. `jdt q 'status'`
-is `qlang '::m8 | status'`, the workspace derived from the working
-directory, or `::jdt` when none is. The command line of the language
-starts from the standard input when it carries bytes, and otherwise
-from the noun of the nearest `.qlang/` folder, or `::qlang` outside any
-project; the empty start as `null` goes. The module is the unit a host
-ships: a catalog with its implementations, loaded by the language's
-command line through its tag and by the host's command as its default
-subject. A registry of the user's, written by the host's setup, lets the
-language's command line and the language server find the modules
-installed outside a repository.
-Source. «если поступать так, то все вроде как связно выходит»
-(maintainer, 2026-09-23 16:32, session 86982eb5), answering the model's
-sentence that a host's setting comes down to the first value of the
-pipe; the default subject and the registry, the model, the same day.
-Set aside. Seeds a host installs into the environment before the query,
-which is the long pipeline this replaces; `null` as the start, which
-carries no meaning where a noun can.
-
-### D38 · Several workspaces
-
-Decision. A name of the sister project is a workspace and a name inside
-it, since several workspaces open at once are ordinary. A name
-qualified by its workspace, `::m8/app.m8.web.Handler`, is unambiguous
-everywhere; a workspace in the subject position resolves the names
-after it, `::m8 | ::app.m8.web.Handler | source`, and
-`[::m8 ::m8-review] * (::app.m8.web.Handler | source)` compares two
-checkouts. Every node a host answers carries its workspace, so the verbs
-applied to it search where it came from. A bare name resolves in the
-workspace derived from the working directory; a name that several open
-workspaces know is a refusal listing the qualified candidates, the way
-the sister project refuses an ambiguous overload with
-`:context/candidates`. A binary type whose source lives in another
-workspace answers with a link to it.
-Source. «несколько воркспейсов в эклипсе обычное дело как оказалось..
-много кто ревьювит код так, или просто одному проекту делает воркспейс
-или там в одином пишет клиент, плагин.. а в другом откыто апи или
-сервер и их документацией исходниками и т.п.» (maintainer, 2026-09-23
-15:42, session 86982eb5); the mechanism, the model, the same day, after
-reading `docs/jdt-use-spec.md` and `cli/src/resolve.mjs` of the sister
-project.
-Set aside. A workspace pinned outside the value, as `jdt use` pins it
-in files keyed by the parent process and the terminal tab: on 23
-September a pin written on 18 September for a shell long gone named a
-process id that another process had taken, and no answer says which
-workspace it came from.
-
-### D39 · Commands write, queries read
-
-Decision. A query reads. What changes the world or streams to a
-terminal, a launch, a test run, a build, a refactoring, stays a command
-of its host, and its result becomes a noun that queries read,
-`::jdt | launches`, a launch's status, its log in pieces. A command and a
-query address the same names, the pair of control and status files
-Plan 9 gave every resource.
-Source. «просто qlang это все ещё язык запросов.. а в jdt и всякие
-мутации и стриминг в консоль чего там только нет.. но все что readonly
-конечно можно выставить в qlang напрямую» (maintainer, 2026-09-23 16:14,
-session 86982eb5); the pairing, the model, the same day. The question of
-effects as emitted values stays open.
-
-### D40 · Named options are one map
-
-Decision. A command's positional modifiers stay few, since their place
-is their role; the options beyond them are one map whose keys the verb
-declares, where a key names the role and the order is free, as a case
-names the role in a language whose word order is free. A view needs few
-options when its default is the cheap one and more is read by the query
-that follows it, a projection or the quote of an elision marker.
-Source. The model, 23 September 2026, answering the maintainer's
-recollection of PowerShell's switches and splatting, «когда можно быбло
-писать jdt 'status { :compact true}' или как-то ещё jdt 'status
-:compact' ... в общем не то что бы оно сильно нужно» (maintainer,
-2026-09-23 18:13, session 86982eb5).
-Set aside. A keyword standing for `{:k true}`, which is a second
-spelling; binding a map in the pipe to a verb's parameters by name, as
-PowerShell binds by property name, which takes the subject's place.
-
-### D41 · An edit keeps its kind, and `within` edits under a tag
-
-Decision. Whether a verb keeps its subject's kind is part of its
-declaration, as its result [D4], and never an option of its
-implementation. When it keeps the kind, the constructors of the tags
-above the edited payload run again from the inside out, and an edit
-that breaks an invariant is a refusal naming the field and the kind it
-expected. A host may own the verbs of editing on its tags, so a kind
-may be read only, a computed dashboard refusing `assoc`, and `payload`
-is then the deliberate exit into plain data. `within ~(…)` edits under
-one tag: it takes the payload, applies the quote to it as a fork, and
-wraps the result back into the same tag, whose constructor runs once,
-at the rewrap; the steps between may break the invariant, since an
-invariant holds of the result, and a deeper stack is reached by
-nesting. A kind's laws are written with it:
-`::jdt/gate{:name :net :state :red} | within ~(dissoc :state)` answers
-the refusal of `:state`, and `#[1 2] | within ~(append 1)` answers
-`#[1 2]`, the set's constructor normalizing where a record's refuses.
-Source. «язык допускает прямое низкоуровневое редактирование тэгов ..
-::jdt/dashboard::qlang/map{} - c заполненными как-то внутренностями ..и
-если мы вводим какой-то аналог операнда set/assoc или чего там когда мы
-имитируем мутабельность .. то то что оставалось валидным для ::qlang -
-может стать невалидным уже для ::jdt и тогда конструктор отработает и
-как-то ругнется что нарушен инвариант какой-то ... а хочешь что б не
-ругалось - то сперва делай | payload и потом ковыряй чистый qlang»
-(maintainer, 2026-09-23 19:45, session 86982eb5); «а как бы про
-проваливание вгубь упаковок переделки внутренностей и запаковки всего
-назад» (maintainer, 2026-09-23 19:59); the read-only kind, the model,
-and «следствие которое нравится тебе, мне тоже симпатично» (maintainer,
-2026-09-23 19:55); the rest, the model, the same day.
-Set aside. The name `into`, whose prior from Clojure is conversion; a
-conversion verb `into K`, which pours a value into a kind and would
-fold `distinct`, the exit to the core's map and a checked construction
-into one verb, left to the rule of the catalog [D22] until a task asks
-for it; the behaviour of Clojure's records, where `dissoc` of a declared
-field silently answers a plain map, which is today's `union` over a
-tagged map.
-
-### D42 · Any value comes apart into atoms and back
-
-Decision. Every value comes apart into its atoms, null, booleans,
-numbers, strings, keywords and tag names, and a shape, a quote over the
-vector of those atoms written with projections, `/0`, `/1`; applying
-the shape to the atoms rebuilds a value equal to the first. The taking
-apart and the putting back are written in qlang with its own verbs,
-`payload`, `tag`, `type`, `keys`, `indexBy`, the literals and `*`. The
-ring is closed when they are, a part that needs a primitive of the host
-language marking it open, and the round trip runs over every example of
-the catalog and every literal of the conformance cases.
-Source. «просто я рассматриваю сейчас задачу программной сборки и
-разборки квоты средствами самого qlang .. у нас в нем есть неделивые
-никак дальше атомы, а есть молекулы-датумы или как ты их называл .. так
-вот хочется уметь разбирать все до атомов и наоборот собирать все из
-атомов ..» (maintainer, 2026-09-15 20:36, session f4f0c99b); «мне
-важная некая обратимость и симметричность формы .. т.е. если я что-то
-разбираю до атомов и дальше из них собираю .. то у меня не должно
-возникать ступора..» (maintainer, 2026-09-15 21:23); «да входе у нас
-вектор атомов - на выходе из него мы должны уметь получить любую
-собирающуюся из частей стрктуру используя там /0 /1 /2 /3 /4 /5 .. ну и
-наоборот ..» (maintainer, 2026-09-23 20:10, session 86982eb5); the
-shape as a quote over the atoms, the model, the same day.
-
-### D43 · Code is a quote, and only `apply` runs it
-
-Decision. A modifier is read by its own form and evaluated at the call
-against the subject, a bare name and a group included, so `take count`
-takes as many elements as there are [D12]. Code is a quote, `~(…)`,
-and a quote of a single word may drop the parentheses, `~add` or
-`~/age`; the full form is the main one, which the printer writes and
-the documents show. Nothing runs a quote but `apply`. An operand that
-runs a part per element, in its own order or only when that part is
-chosen declares the slot of kind code, takes a quote there and nothing
-else, and applies it: `filter ~(gt 1)`, `reduce 0 ~(add)` as the
-canonical fold, the branches of `if`, the clauses of `cond` and the
-alternatives of `coalesce`, while the condition of `if`, which always
-runs first, is a value, `if (n | lte 1) ~(1) ~(…)`. So `filter (gt 1)`,
-whose group computes a boolean at the call, is refused, and the
-refusal names the tilde. A declared pipeline's parameters are values,
-and its body applies one that holds code, `:twice [:f]
-~(apply f | apply f)`. A quote written as a modifier carries the
-environment of its call, so code handed to another pipeline sees the
-names of its author wherever it is applied; a quote held as data
-resolves its names where it is applied. A combinator is set off by
-whitespace on both sides, a line break counting as whitespace and an
-opening bracket or the start of the text standing for the space before
-it, so `|~`, `|~|`, `|~~` and `|~~|` written together always open a
-comment or a doc, `| ~(add)` is a pipe before a quote, and a
-combinator written against its neighbour is refused with a message that
-names the space. A line that ends with a combinator is continued by the
-next line through it [D11]. Inside a doc only `~(` opens a quote, and
-the rest is prose.
-Source. «квота это просто данные и любой их неявный автозапуск может
-удивить .. есни надо выполнить квоту - то против субъекта (apply q) это
-явно и правильно звучит ... может просто в других местах не хватает
-apply .. на вызываемой стороне ...» (maintainer, 2026-09-23 21:14,
-session 86982eb5); the short form, «а если как-то доработать грамматику
-квоты до ~add без скобок ?» (21:23); the space, «я просто думал
-что |-комбинатор эт |+пробельный символ или как там..я бы и спереди и
-сзади требовал такое..» (21:33); «согласен запретом короткой формы в
-доках, убедил .. и с тем что выше согласен... если ты подвердишь что с
-многострочными примерами и переносами комбинаторов туда сюда проблем не
-будет и все будет праситься как надо..» (21:40), a condition the model
-checked the same night, as the scar of the call in the second version
-of this document records; «ну и само
-собой полная форма ~(add) остается за главную...» (21:43). The rest, the
-model, 23 September 2026: the reading of modifiers, the canonical fold,
-the refusal and the rule for a doc in the evening, and that night the
-slot that takes code alone, the condition of `if` as a value, the
-clauses of `cond` as quotes and the environment a handed quote carries,
-the last from a probe in which a parameter of the body captures a name
-of the caller.
-Set aside. A slot of kind code that captures its modifier and runs it
-later, the form of D4 and D12, under which a call reads only with the
-operand's declaration at hand and a quote meant as data is run by the
-slot it lands in. A bare name that stands for its binding without
-running it, as `+` does in Clojure's `reduce`, which keeps `reduce 0
-add` and makes `take count` a refusal. The quote without a short form,
-which costs two brackets on every reference, and the short form inside
-a doc too, where `~/.jdtbridge`, `~5` and `~~struck~~` would need
-escapes and a forgotten escape breaks a document silently. A new sign
-for a reference, `&add`, which spells code a second way, and a new sign
-for a comment, `#`, which trades the trap at `|~` for one at `#[`. A
-slot that takes a value or code and runs code, as Smalltalk's `value`
-answers on any object, under which a branch computed at the call
-silently does its work and a quote held as data runs where it lands. A
-quote that resolves its names only where it is applied, which lets a
-parameter capture a name of the caller; a slot of kind code that closes
-what it receives, which leaves open to that capture every declared
-pipeline whose declaration omits the kind; a quote that carries its
-environment wherever it is evaluated, which makes a quote held as data
-more than data.
-Replaced in part by D44, which gives a quote written as a binding's body
-the environment of its declaration.
-
-### D44 · A binding names a value, and a verb declares its slots
-
-Decision. A binding names a value: its body is evaluated once, at
-declaration, against the current value, and a quote body is a quote held
-as a value, so `:q ~(add 1) | q` answers `~(add 1)`. A verb is the same
-form with its slot list, `[]` when it takes no modifiers, and a quote
-body, `:inc [] ~(add 1)` and `:m [:x] ~(mul 10 | add x)`; it runs when
-it is mentioned, as a built-in does, and `~inc` hands it on as code. A
-value never runs by itself, and `apply` runs a quote; a slot of kind
-code applies what it receives, so a named quote goes into it bare,
-`:adult ~(/age | gte 18) | [{:age 30} {:age 12}] | filter adult`.
-Today's lazy binding splits in two: the verb keeps its behaviour,
-computed at each mention against the subject there, and the value is the
-snapshot `as` used to make. A quote written as a binding's body carries
-the environment of its declaration, as one written as a modifier carries
-that of its call [D43]. A name is declared once in a scope, and a second
-declaration there is refused; a cell of the REPL opens a scope of its
-own. Under these rules code moved into a declaration further left
-answers as it did inline or is refused: a quote or a verb means the same
-wherever its names mean the same, and only a value, computed where it is
-declared, follows the subject there, as its spelling shows.
-Source. «[] у каждого глагола без модификаторов - и это правильно ..
-согласен с предложениями, в целом ..» (maintainer, 2026-09-23 23:02,
-session 86982eb5) and «ок, это меня устроит .. выходит проще и
-синтаксически куда заметнее .. методы вызываются по одной логике, квоты
-по apply .. все различимо и юзкейсы не перемешиваются» (23:14). It
-answers «тут как по мне заворачивание в скобки может смутить .. с другой
-стороны нехота везде писать apply q -- но может так и честнее и
-правильнее» (22:47), read with «когда мы это все первый раз решали .. то
-ещё не было осознано .. что дает субъектно-ориентированность .. вообще
-про это не думали тогда» (22:50): under subject orientation a verb is
-the vocabulary of a kind [D34], and a name the user declares is a noun.
-The law of extraction answers «не нарушится ли логика .. если я
-инлайново написал какой-то степ с квотами внутри.. а оптом просто что б
-сократить написание вынес их в объявления левее .. и у меня неожиданно
-поменялось поведение..» (23:02). The slot list as the mark of a verb,
-the environment of a named quote and the single declaration, the model,
-the same night.
-Set aside. The quote body as code, the first spelling of D5, under which
-one literal is data everywhere but as a body and a quote held as a value
-needs a group, `:q (~(add 1))`. `apply` before every declared pipeline,
-under which a user's verb is called otherwise than a built-in and a
-host's catalog reads `apply problems`. A named quote that resolves its
-names where it is applied, which keeps extraction free but lets a
-parameter of another verb capture a name of the caller. A second
-declaration of a name in one scope, which lets a quote moved left past
-it silently see the first.
-Replaced in part by D45, under which a built-in is a verb with the same
-slot list and its descriptor for a body.
-Replaced in part by D57, under which a verb is a binding whose value is
-a conduit, written `~[slots](body)`, and the slot list leaves the place
-after the name.
-
-### D45 · The slot list carries the kinds
-
-Decision. A verb's slot list says what the verb accepts, in the language
-of a schema [D6]. A slot's kind follows its name, `[:n ::number :ids
-[::number] :dir #[:in :out] :f ::quote]`, and a name without a kind
-takes any value; since a name is a keyword and a kind a tag name,
-`[::number]` after a name is a vector of numbers, as it is in a schema,
-and the collision D6 foresaw does not arise. The subject's kind stands
-first, before the names, `[::jdt/Method]` and `[::number :n ::number]`,
-so the list reads in the order of the call; a verb with a subject kind
-lives on that kind [D34], and one without takes any subject. The result
-of a declared pipeline is the kind its body answers, so the fact has one
-spelling: a body that promises a shape tags its result, and the tag's
-schema checks it. Host code, which has no body in qlang, declares its
-result with its descriptor, and a built-in takes the same slot list,
-`:add [::number :n ::number] ::builtin{:impl :qlang/prim/add :returns
-::number}`, so `:subject` and `:modifiers` leave the descriptor. A
-declaration writes a kind of the core short, `::number`, as the printer
-does [D32]: a name without a prefix belongs to the core, resolves among
-its names first, and no other scope may declare it [D23, D35];
-`::qlang/number` reads as the same kind.
-Source. «ок, все устраивает» (maintainer, 2026-09-23 23:31, session
-86982eb5), accepting the model's three rules and its answer to «а
-::number или ::qlang/number или как мы там недавно вводили для
-примитивов тэги .. что б формально точнее быть и ссылать на одно и то же
-объявление .. без разночтений что такое ::number» (23:29). The result
-read from the body follows «форму ответа можно было вывести»
-(maintainer, 2026-09-22 02:09, session 96f3df79). The rules, the model,
-the same night.
-Set aside. The kinds in a descriptor beside the slot list, today's
-`:subject`, `:modifiers` and `:returns`, which give the call two
-spellings and have drifted, `gt` declared for numbers and comparing
-strings. A declared result for a declared pipeline, a second spelling of
-what its body answers. The subject's kind written before the verb's
-name, `::jdt/Method :callers …`, which reads as a kind standing in the
-subject position followed by a binding. The long form `::qlang/number`
-in a declaration, which the printer would not write back.
-Replaced in part by D57, under which the slot list stands in the head of
-the verb literal, each slot written as a declaration with its doc, the
-result's kind stands last in the head as the subject's stands first, and
-a built-in carries its slots and its result in its descriptor.
-
-### D46 · A refusal keeps the tag of its site
-
-Decision. Error identity stays per site: every place that refuses has a
-tag of its own, named so that a reader knows at once what failed,
-`::AddLeftNotNumberError`, and pointing at that one place in the system.
-The tag is declared once, in the catalog beside its operand, as a kind
-[D6]. Its schema owns the facts of the site, in the order a reader needs
-them; the step, the input and the trail are the frame every error
-carries, declared once by the kind of errors and printed after the
-facts, so the signal comes in the first characters and elision takes the
-tail. Its document is the site's procedure [D7]. A throw site passes the
-facts and the tag's constructor checks them, so no place adds or drops a
-field that another fills. What leaves with today's declarations is their
-second spelling: the JavaScript class of every site, the registry of
-throw sites, the stamping passes, the drift tests, the injection script,
-and the converter's table of field order. A host's refusals carry tags
-under its prefix [D23].
-Source. «я не хочу генерик сайты - это откат для рантайма.. потом
-какие-то поля в одном месте добавлять, в другом убирать - у семерых
-нянек дите без глазу.. всетаки это более сильный сигнал для читающей
-ошибку модели, куда качественнее дообогащаемый.. и там ещё кажется
-как-то порядок обявления полей влиял на их printValue - тем самым важное
-шло в начале, в первых же символах.. неважное могло быть в конце и
-спокойно подвергаться элизии ..» (maintainer, 2026-09-23 23:53, session
-86982eb5), holding to «стоит ли реюзить ошибку между операндами -- как
-по мне сомненительно, это снижает диагностическую ценность полученного
-сигнала - куда проще когда имя ошибки уникально (или её какой-то
-идентификатор) пойнтит в единственное место во всей системе (но возможно
-это вкусовщина моя такая..)» (maintainer, 2026-09-14 23:30, session
-268516f5). The schema as the owner of the fields and their order, and
-what leaves, the model, the same night.
-Set aside. One tag per kind of refusal with the site as fields, the
-first form of D7: fewer pages and a weaker signal, and a tag shared by
-sites that each fill its fields their own way. A per-site tag the
-runtime derives from the facts, which has no entry of the catalog behind
-it.
-
-### D47 · A modifier is stored as its step, in a form of eight tags
-
-Decision. A command's modifiers are words [D10], and the data form
-stores each as its step, by the rule of a literal's elements: a literal
-as itself, a quote literal included, a name or a projection as its
-record, a group as its quote under `::group`. `add ~(x)` and `add x`
-stay apart, `[~(x)]` against `[::call{:name :x}]`, and no quote is
-doubled, so `filter ~(gt 1)` is `::call{:name :filter :args [~(gt 1)]}`
-and assembling it is writing what one reads. A field that holds a word
-holds its step, and a field that holds a pipeline holds a quote: a value
-binding is `::bind{:name :q :body ~(add 1)}` and a verb `::bind{:name
-:inc :slots [] :code ~(add 1)}` [D44, D45]. The data form speaks with
-eight tags of the core, written small as the core's kinds are [D32]: the
-records `::call`, `::proj`, `::bind` and `::tagged`, and the wrappers of
-a step, `::each` for `*`, `::flat` for `>>`, `::fail` for `!|` and
-`::group` for parentheses; `::flat` lives as long as `>>` does.
-Source. «ок, принимаю» (maintainer, 2026-09-24 00:07, session 86982eb5),
-answering the model's proposal and its question on the case of the
-names. The rule, the model, the same night, from the one word of D10 and
-the quotes of D43, held to the maintainer's measure of 15 September:
-«мне важная некая обратимость и симметричность формы .. т.е. если я
-что-то разбираю до атомов и дальше из них собираю .. то у меня не должно
-возникать ступора.. а почему из полученных запчастей я не могу
-пересобрать то же самое назад самым очевидным интуитивным синтаксисом»
-(maintainer, 2026-09-15 21:23, session f4f0c99b).
-Set aside. Every modifier as the quote of its pipeline, the form of 15
-September, which doubles the quote of every code modifier once D43 makes
-code a quote and asks an assembler to wrap a literal as `~(1)`. The
-names with a capital, `::Call`, which the first sketch used and the
-core's kinds do not.
-Replaced in part by D51, under which `>>` leaves and `::flat` with it,
-so the form speaks with seven tags.
-Replaced in part by D57, under which a verb's binding holds its conduit
-as its body, `::bind{:name :inc :body ~[](add 1)}`, so a binding is one
-record.
-
-### D48 · The order of the kinds
-
-Decision. Values order first by kind: null, boolean, number, string,
-keyword, tag name, vector, set, map, quote, doc, error and elision, and
-after them the kinds of the hosts by name [D33]. Within a kind the order
-is today's: numbers by value, strings by their code units, vectors
-element by element, a set as its vector, maps by their keys and then
-their values, and a host's value by its payload. The part that JSON has
-is the order of jq, null before false before true before numbers,
-strings, arrays and objects, so a session trained on jq meets no
-surprise; a kind JSON lacks stands beside the one it resembles, the
-keyword and the tag name after the string, the set after the vector, and
-the kinds of code, prose and refusal after the map.
-Source. «д17 ок и остальное что написал тоже ок» (maintainer, 2026-09-24
-00:18, session 86982eb5), answering the model's list of the same night,
-which placed the tagged kinds of the core [D32] and the kinds of the
-hosts [D33] in the order of D17.
-Set aside. The tagged kinds of the core ordered among the hosts' kinds
-by the names of their tags, the reading of D17 before D32, under which a
-host's kind whose name sorts before `quote` would fall between two kinds
-of the core.
-
-### D49 · The catalog serves a host without a shell
-
-Decision. The measure of D22, what every host would otherwise write,
-counts a host that has no shell around its queries, the site's sandbox
-and its demos among them. The core therefore carries the working set a
-shell would otherwise supply: the JSON codec both ways, text as lines,
-`split` and `join`, trimming, replacing, case and search. A host keeps
-its domain, its input and output, `@in`, `@out` and `@tap`, and its
-renderings, `table` and `template`, since a rendering is a view at the
-boundary [D33] and the sandbox draws values itself. The benchmark [D26],
-run in the sandbox, is the measure: every task is solved by the query
-alone, and a task that lacks an operand names it.
-Source. «d22 непонятно будет когда у нас песочница в австросайте и демки
-... им по идее тоже нужны эти базовые вещи .. т.е. не только одним башем
-мы живем..» (maintainer, 2026-09-24 00:36, session 86982eb5), and «ок,
-согласен ...» (00:44) to the model's reading of it.
-Set aside. Sizing the core by what the command line cannot reach through
-its shell, the reading D22 was given, which leaves every other host to
-write the same basics again.
-
-### D50 · A field means what its schema and its value's kind say
-
-Decision. A key of a record is short, and its meaning is given by the
-schema of the record's tag [D6]. A value shared by several kinds of
-record carries a tag of its own and is documented by it, once, wherever
-it appears, `:location ::jdt/Location`; a Java type named by its tag is
-already such a link [D24]. A schema names the kind of a field and stops
-there: it never spells a nested structure inline, since the kind is a
-link, and a reader who wants the fields of `::jdt/Location` follows it.
-The depth is the reader's choice, the cheap view first and the detail on
-demand [D21]: an axis that reads a declaration may take one map of
-options [D40], of the depth, what to follow and what to expand, and
-answer the expanded structure. The grammar keeps keys with a prefix for
-a host that wants a global attribute; the convention of the core is the
-short key.
-Source. «d25 - там наверное что-то похожее уже было у ошибок возможно ..
-:jdt/location возможно вообще какой-то тэг со своей структурой полей ..
-если пор значения говорим .. а вот насчет длинных ключей в мэпах даже и
-не знаю ..» (maintainer, 2026-09-24 00:36, session 86982eb5); «ок,
-согласен ... и да .. не надо в схеме пытаться там сразу всю вложенность
-мутить .. у нас же гипертекст :location ::jdt/Location и все .. кому
-надо подробности тот уже делает провал в схему ::jdt/Location - и
-добирает {:file … :line …} и остальное .. есни надо то там docs и
-остальное можно параметризовать какими-то мэпом потом с ключами {
-:глубина фоллоу expand и т.п.} - который выдаст массив или ещё какую-то
-нестед структуру если надо ...» (00:44). The comparison with Clojure's
-spec, where the meaning of an attribute lives with a namespaced keyword,
-and with Hickey's talk Maybe Not, where which keys a map must hold is
-decided where it is used, the model, the same night.
-Set aside. Global attributes under long keys, the proposal of D25 after
-clojure.spec, which JSON-shaped data and the sessions trained on it do
-not expect and the tags of values make unnecessary. Documenting every
-field on every tag that carries it, which gives a shared field as many
-documents as it has records.
-
-### D51 · `>>` leaves
-
-Decision. The flatten combinator leaves the language: `x >> f` is `x |
-flat | f`, and the operand `flat` already says it. With it go its tokens
-in the grammar, its branch in the evaluator and its refusal, its syntax
-in a trail, its token in the editor's grammar, and its tag in the data
-form, `::flat`, so the form speaks with seven tags [D47]; its
-conformance cases go with it, the one example of the catalog that uses
-it is written with `flat`, and the refusal it raised leaves with its
-page.
-Source. The model, 24 September 2026, at the opening of the ring branch,
-which this document left to decide it before encoding it; the maintainer
-asked «а что с судьбой >> ? операндом заменить или что ?» (maintainer,
-2026-09-24 01:04, session 86982eb5), and no operand is needed.
-Set aside. Keeping `>>`, which spends a token, a production, a branch of
-the evaluator and a tag of the data form on what two steps already say.
-
-### D52 · The parentheses after `*` delimit its body
-
-Decision. The body of `*` is the step after it, and parentheses there
-delimit the body the way a call's parentheses delimit an argument, so
-the body's own head meets each element and rides `|` unless it names
-another combinator: `* (false !| true)` asks each element whether it is
-an error, `* (!| 0)` recovers an error element, and `* (count)` hands
-one on with its trail. In the data form the distribute wraps the quote
-of its body, `* (false !| true)` being `::each~(false !| true)` and
-`* add(1)` being `::each~(add(1))`, while a group inside the body stays
-a group.
-Source. The model, 24 September 2026, on the ring branch, from the
-example the scar of code as data in the second version of this
-document gave for a head that rides `|`, in
-which the group after `*` answers as the same group written with a
-leading `|`.
-Set aside. The group after `*` as one step riding `|`,
-`::each::group~(…)`, under which the group deflects an error element
-before its `!|` can answer, so `* (!| 0)` no longer recovers one and no
-body under `*` can ask whether an element is an error.
-
-### D53 · The data form reads the call form until the command form lands
-
-Decision. On the ring branch the quote is the vector of steps D8 and D47
-describe, read from the call form of today's surface: a call holds each
-argument as the quote of its pipeline, since in the call form an
-argument is code the operand runs against an input of its choosing, and
-the branch of the command form moves the argument of a value slot to its
-step [D47]. A container literal holds the steps of its elements, a
-pipeline element as its group; the step of an error literal is an error
-value whose fields hold their steps as written; a path segment is an
-index when the parser saw a canonical integer and a key otherwise;
-`type` answers the code tag, `::quote`. A quote literal's content is
-read with the text around it, so a literal that holds no pipeline is a
-syntax error, `~{}` is the empty quote and runs as the identity, and
-inside a doc a `~{…}` that does not read as code is prose. A quote runs
-through the tree it was read from, or through the parse of its printed
-text, kept on the quote. `parse` flips text and a quote; the map of the
-parser's tree, `/source` and `/ast` leave with the code they served, and
-a trail prints without the `|` of its head. `tag` mints through the
-tag's constructor when the tag carries one, so `tag(::quote)` refuses a
-vector holding an element that is no step; the records and the wrappers
-name identities alone until their constructors refuse a wrong field.
-Source. The model, 24 September 2026, on the ring branch, reading D8,
-D47 and D52 in the call form the ring keeps.
-Set aside. Each argument as its step on this branch already, which needs
-the kinds of the slots to tell code from value and prints
-`filter(false !| true)` as a group, changing what the argument does to
-an error element. The parser's tree as the quote's payload, which
-carries positions and text into the data. A quote literal read when it
-runs, which keeps an unparseable literal alive until then and leaves its
-steps undefined.
-Replaced in part by D54, under which the records and the wrappers carry
-constructors that read each step back from its text.
-Replaced in part by D55, under which a command stores each modifier as
-its step and the quote literal is `~(…)`.
-
-### D54 · A step is what its text reads back as
-
-Decision. The constructor of every record and wrapper of a quote checks
-the fields the printer reads against the record's schema, prints the
-step and reads the text back; an assembly that reads back as another
-step, or as none, is refused where it is made, with the text it printed
-as. The printer therefore prints what text can produce and nothing more.
-The wrappers of the fail track and the distribute, a declaration and a
-documented `as` stand in a pipeline alone, so inside a container, a
-field or a payload a step is an element step, and an error is a step
-when it is an error literal's, under `::Error`. `parse` and its inverse
-round-trip every example of the catalog, which a test written in qlang
-holds.
-Source. The model, 24 September 2026, on the ring branch, from the rule
-of the scar of code as data in the second version of this document
-that a wrong assembly is refused by the
-record's constructor at construction rather than run as a program.
-Set aside. A constructor that turns a wrong assembly into the step its
-text reads back as, which accepts what the author did not write. The
-fields checked one by one against the grammar's classes, which copies
-the parser into the runtime. The quote's constructor reading every quote
-back from its text, which a transform of a large quote would pay for in
-parsing.
-
-### D55 · The command form as it reads
-
-Decision. The command form of D10, D11 and D43 reads as follows where
-those records leave a choice. The first modifier of a command may touch
-its name when it opens with a parenthesis, so `filter(gt(1))` reads as
-`filter` with the group `(gt(1))`, and a call written by habit runs at a
-value slot and is refused at a slot of code; every other word is set off
-from the one before it by whitespace or a comment, so `add (1)(2)` is
-refused. Inside a literal every element is a word, so a pipeline stands
-there in parentheses as a command with modifiers does, `{:n (/items |
-count)}`, a call written by habit, `[mul(2)]`, is refused where it would
-read as two elements, and a doc after a command is the next step and
-never its modifier. At the top level a command whose modifiers take
-several lines stands in parentheses, and inside brackets a declaration
-that follows a command takes its `|`, since the command would take its
-words. The short form of a quote holds a name, a projection or a tag
-name, `~add`, `~/age`, `~::T`. The comma leaves the set literal with the
-argument comma and stays in the JSON literals until the JSON family
-leaves [D1]. The data form stores each modifier as its step [D47]: `add
-1` holds `[1]`, and `take (count | sub 1)` holds `[::group~(count | sub
-1)]`. A code span of a doc is prose, as markdown reads it, so a doc
-names `filter ~(gt 1)` in a code span without running it, and only a
-`~(…)` or a tag literal outside one is a segment of code. A refusal the
-grammar names itself carries its sentence as `:message`: a combinator
-written against its neighbour names the space, `|~` without a closer
-names `| ~(…)`, a comma inside parentheses names the command form, a
-word written against the one before it names the space, and a map entry
-that holds a command, or a word of a literal written against the one
-before it, names the parentheses.
-Source. The model, 24 September 2026, on the command-form branch,
-reading D10, D11 and D43 against every text of the repository and of the
-sister project, which the parser of the call form and the printer of the
-command form rewrote by machine, each rewritten text read back into the
-tree the old one read into.
-Set aside. A first modifier that must be set off by a space, under which
-a call written by habit is a parse error even where it would answer
-rightly. The elements of a literal as pipelines of bare commands, `{:n
-/items | take 2}`, under which a word inside a literal reads otherwise
-after a pipe than before it. A newline that stands for `|` inside
-brackets too, which splits the parts of `if` and `cond` spread over
-lines. A code span that opens quotes in a doc, under which a doc cannot
-name a command with a slot of code without running its quote as an
-example.
-
-### D56 · A slot of code takes a quote before the argument model
-
-Decision. Until the argument model executes the declarations [D4, D45],
-an operand of the core whose slot runs code on each element or only when
-chosen, a slot the catalog declares `:predicateLambda`, `:keyLambda`,
-`:comparatorLambda`, `:reducerLambda` or `:pipeline`, evaluates its
-modifier at the call against the subject; a quote is applied to each
-input the operand hands it, in the environment of the call, and any
-other value, an error value among them, is refused by the tag of that
-site, `::FilterPredicateNotQuoteError` and its kin, each declared in the
-catalog beside its operand [D46]. The condition of `if` is declared a
-value, as D43 wants, and the renderer of `@out`
-and `@err` a string, since each runs once against the subject. A
-declared pipeline keeps its lazy parameters, so a call of one carries no
-tilde until the argument model makes its parameters values [D43, D44]. A
-predicate or a reducer that names a declared pipeline or an operand
-keeps the dispatch of today, read from the single step of its quote,
-`filter ~(hot)` with the two-parameter `hot` over a map and `reduce 0
-~(add)`, until the argument model completes the last step with the
-second value and the rule for maps drops the two-parameter predicate
-[D15].
-Source. The model, 24 September 2026, on the command-form branch, from
-the order of the route, under which the command form rewrites every text
-once with the tilde on every slot of code and the argument model
-follows.
-Set aside. The evaluator reading the kinds of `:modifiers`, which would
-make the runtime execute the one part of the declaration the argument
-model replaces. One refusal shared by every slot of code, which D46
-refuses. An error value passed through a slot of code unchanged, which
-D13 asks of every slot at once and which lands with it.
-
-### D57 · A verb is a value, written `~[slots](body)`
-
-Decision. A verb is a value, the conduit, and its literal is
-`~[slots](body)`: its head in brackets and its body, a pipeline in
-parentheses [D8], opening right after the bracket; `~[](add 1)` is a
-verb without modifiers beside the quote `~(add 1)`. The head declares
-both ends of the verb and reads in the order of the call: the subject's
-kind first, as D45 has it, the slots after it, and last the kind the
-verb answers, `~[::jdt/Method :depth |~~ levels of callers to walk ~~|
-::number ::jdt/CallerTree](…)`. The two kinds that follow no name are
-the ends, and a kind right after a name is that name's, so a result
-after a slot without a kind follows `::any`, the kind the descriptors
-write `:any` today. The runtime checks the result against its kind as it
-checks every slot, and a verb that declares none answers any value. A
-slot is written as a declaration is, its name, its doc when it has one
-and, in the place of a body, the kind it takes; inside the brackets a
-newline is whitespace, so a slot may take a line of its own, and inside
-the body a slot is a name like any declared one, its doc with it. A verb
-is a record of its slots, its result and its body, whatever implements
-it: `~[:n ::number ::number](add n)` is the short spelling of
-`::conduit{:slots [:n ::number] :returns ::number :body ~(add n)}`, as
-`~(…)` is of `::quote[…]`, so a conduit prints as it is written and
-reads back from its print [D54], and a built-in, whose body is host
-code, is `::builtin{:slots [::number :n ::number] :returns ::number
-:impl :qlang/prim/add}`, so `:subject` and `:modifiers` leave the
-descriptor and `spec` answers the same fields for both. A binding is
-`:name value` wherever it stands, and a verb is a binding whose value is
-a conduit, `:inc ~[](add 1)`: the slot list leaves the place after the
-name, the conduit's name leaves the value, so a bound conduit equals its
-literal, and a binding is one record, `::bind{:name :inc :body ~[](add
-1)}` [D47].
-Source. «да, принимаю .. только ты мне скажи ... в слотах точно можно
-будет использовать обычный синтаксис биндингов?» (maintainer, 2026-09-24
-06:20, session 86982eb5), accepting the model's reading of his proposal,
-«у меня кстати появилась идея доработать квоты .. точнее форму её
-усилить .. сделав более литеральной.. ну или как-то закинув и квоты и
-кондуиты в одно семейство ... отличие простое как мне кажется и весьма
-элеганатное ~(add x) и ~[:x](add x) - второе это литеральная
-принтабельная форма параметризуемой в точке вызова квоты, т.е. кондуита
-ну или ещё как ~{:name :type}( use name) придумать.. что б то выглядело
-более самоописуемо и самодокументируемо ... подумай об этом после того
-как доделаешь текущую часть.. тогда биндинг будет проще и понятнее
-выглядеть» (04:25), and of the signal at its start, «туда бы хорошо
-встал класический биндинг ~(:name doc value | :name2 если есть)(code)..
-но грамматика чуть усложнится .. или делать как ~(:name doc value |
-:name2 | code) - но это тогда обычная квота ... и её со старта нужно
-тогда отделять другим знаком ~~(двойная квота?) ... или квота которая
-вычисляет квоту.. тоже бред какой-то ... или дважды применяемая квота ..
-или квота-вектор из двух групп ~[declageparams code] - где первая группа
-может быть пустой и тогда все кодпайп ~[noargcodepipe] такой синтаксис
-жуется вроде ~[("" | "") ("y" | "z")] - только скобки с недавних пор
-стали обязательны .. но можно и так обойти тогда ~[declale][code] -
-тогда так уже оно и так было "~[" - будет тем самым сильным стартовыми
-сигналом снимающим дальнейшую неоднозначность.. и премственность
-какая-то будет .. квота фиксированная или квота ленивая
-параметризуемая(кондуит) ..» (05:52), after he asked «так а что насчет
-~[] преложения? не разорит оно нас и нашу модель?..» (06:02). The slot
-written as a declaration answers his question and his recollection «и у
-нас уже было как-то .. что-то подобное в мэпах {:x |~~ paramdoc ~~|
-(coalesce value defaultValue) } и потом эти доки вмерживались и были
-видны как обычные биндинги ... но там когда-то гигамэп из-за этого
-возникать начал.. и модель начала утрачивать свой пайплайную форму..»
-(05:23): the doc of a slot stays where a declaration keeps it, and the
-value computed in the head leaves. His remark «и да.. у нас же не только
-параметры .. но и вовзращаемое значение же наверное есть ... и вход и
-выход.. тут ты прав что ранее написал» (06:34) asks for both ends, and
-his question «а так возвращаемый тип задаваться будет в объявлении? или
-как и раньше - никак? и какой-то приемственнсоти и билтинами не будет ?»
-(06:48) puts the result in the head: a built-in declares it today,
-`:add | spec | [/subject /modifiers /returns]` answering `[:number
-[:number] :number]`, while a conduit declares none, `::conduit[:f [:x]
-~((add x))]`. D45 read the source of its rule, «форму ответа можно было
-вывести» (maintainer, 2026-09-22 02:09, session 96f3df79), as a result
-derived from the body, where the maintainer asked for the shape of an
-answer to be found on demand, from the verb's source or its docs, which
-a declared result gives before the verb runs. The result stands without
-a mark of its own, «не хотел бы я эти стрелки вводить .. так долго без
-них жили» (06:58). The reading, the model, the same morning, from the
-tree: a conduit prints as `::conduit[[:x] ~(add x)]` and a binding of it
-runs, `:g ::conduit[[:x] ~(add x)] | 5 | g 2` answering `7`, and the
-grammar reads a head of declarations as words, `[:x |~~ how many ~~|
-::number :y] | count` answering `4`.
-Set aside. The slot list after the name, the form of D44, under which a
-verb and a value bind in two forms, and `:f [:x] ~(add x) | 5 | f 2`
-answers its quote while the conduit prints it doubled, `::conduit[:f
-[:x] ~(~(add x))]`. An arrow before the result, `-> ::jdt/CallerTree`, a
-token the language has lived without. The result read from the body, the
-rule of D45, under which a verb promises a tag and never
-`[::jdt/Method]`, a reader finds the promise in the last step of the
-body while a built-in declares it in its descriptor, and a body that
-ends otherwise promises nothing. The tagged vector the runtime prints a
-conduit as today, `::conduit[[:x] ~(add x)]`, whose places name nothing,
-where the record names its fields as the descriptor of a built-in does.
-The body in brackets, `~[declare][code]`, where every element is a word
-[D55], so `[add x]` is two words. A head that computes, the quote in two
-parts «про кондуиты добавлю .. что я просто думал ещё в строну того что
-б квота как бы была двухсоставная.. в порядке бреда.. где первая часть
-это решейпинг пайплайн из субъекта и аргументов а ля ~(bindparamstep |
-bindingparamstep | minienv_map_here)(code) -- т.е. первая часть смотрела
-в точку использования выковыривала данные.. а вторая уже работала над
-расковырянными данными .. т.е. мы эти 2 концерна как бы могли развести
-...через какое-то соглашение по вызову ..» (04:58) and the head of
-bindings joined by `|`, `~(:name doc value | :name2)(code)`: it cannot
-be read before it runs, so the arity, the names and the kinds that help,
-completion and the refusals take from the slot list are lost, where
-PowerShell's `param()` keeps its binding declarative for its help; a
-value computed in the head, `(coalesce value defaultValue)`, is such a
-head, and it brought the gigamap the catalog left, «раньше у нас были
-гигамэп в качестве декларации рантайма - убивавший подсветку синтаксиса
-и различимость в редакторе... и гигаквоту предлагал кто-то .. но как-то
-все не увязывалось с идеей длинного пайплайна .. разбитого на шаги ..»
-(maintainer, 2026-09-15 01:20, session 268516f5), `94dff34` writing the
-catalog as one map literal and `86c0a80` rewriting it into a series of
-declaration steps. A head as a map of kinds, «вот и я колеблюсь насчет
-слота из субъекта.. есть ли смысл .. или же клей проще держать на
-вызывающей стороне, а в параметрической квоте оставлять только
-требования .. но каким образом эти требования задать, как ограничения и
-констрейны вписать если те нужны там .. просто map из кейворд тэг
-кортежей смотрелась бы наверное максимально увиверсально .. ну а если
-пишем через вектор - то там только имена которые по порядку агрументов
-матчатся (как сейчас).. это если никак граматику не расширять ... а так
-можно более сложную логику /проекций всегда сделать ... /:glang/subject
-/:qlang/args или ещё как в порядке бреда.. для экзотический случаев»
-(05:16), which compares equal in either order, `{:x ::number :y
-::string} | eq {:y ::string :x ::number}` answering `true`, while the
-order of the slots decides which modifier each takes; with it the
-projections that reach the frame of the call, `/:qlang/subject`, keys of
-the runtime's housekeeping, since the glue stays at the calling side,
-`{:price 100 :qty 3} | mul /price /qty` answering `300`. `~~(…)`, which
-after a pipe opens a comment, `5 |~~(add 1)` refused as one never
-closed, and a doubled quote [D47]. `apply` taking the glue beside the
-quote, «и что там было с агрументами apply - может не надо ниче с этими
-кондуитами мучиться а просто в apply систаксис доработать и передавать
-клей сцепление с квотой..» (06:30), which the maintainer set aside
-himself: «хотя нет.. документацию все равно цеплять надо же какую-то..
-если у нас реюз подразумевается» (06:31). The glue is written already
-with a binding before `apply`, `5 | :x 2 | apply ~(add x)` answering
-`7`, or with `use`, `{:x 2} | use | 5 | apply ~(add x)` answering `7`,
-and it declares nothing a reader finds before the code runs, neither a
-doc nor a kind; a named quote carries the names of its declaration
-[D44], so glue at the point of application reaches only a quote without
-an environment. A value in the place of the kind, which collides with
-the kinds since a tag name is a value too; a default belongs to the open
-question of optional slots [D45].
+A decision is the discussion with its choice and its circumstances, and
+each lives in a file of its own under `docs/decisions/`, written once;
+a citation of its number in this document is a link to that file, and
+the requirements it left are the conformance cases that name it [D58].
+How the records are sourced is the subject of the folder's
+`README.md`.
 
 ## The finish
 
@@ -3256,7 +1730,7 @@ handed over sees the names of its author [D43]. There is one binding
 form, `:name value`: its body is evaluated once at declaration against
 the current value and named as a value, a quote included, and a verb is
 a binding whose value is a conduit, `~[slots](body)`, `~[]` when it
-takes no modifiers [D44, D57]. A name is declared once in a scope. The
+takes no modifiers [D44], [D57]. A name is declared once in a scope. The
 pipe is linear continuation and the binding is a branch to the side. A
 verb runs when its name is mentioned, as a built-in does, so `apply` is
 only for a quote held as a value, from a name, a parameter, `parse`, a
@@ -3421,14 +1895,14 @@ the ones this milestone closes.
 ### Milestone 1 · Kernel
 
 The syntax and the mechanism of an operand are final. The ring is
-closed and the command form has landed [D3, D8, D9, D10, D11, D47,
-D51–D56]: a quote is the vector of its steps, every step is a command,
+closed and the command form has landed [D3], [D8], [D9], [D10], [D11], [D47],
+[D51]–[D56]: a quote is the vector of its steps, every step is a command,
 and every text of the repository and of the sister project is written
-in that form. The argument model follows [D4, D43, D45, D57], writing
+in that form. The argument model follows [D4], [D43], [D45], [D57], writing
 every slot list once, in the head of the verb literal and in the
 descriptor of a built-in, with the interface of hosts designed in the
 same branch and landed in every host; the one binding form closes the
-milestone [D5, D44], with comments as whitespace and the doc literal
+milestone [D5], [D44], with comments as whitespace and the doc literal
 in the binding's slot.
 
 ```qlang target
@@ -3464,11 +1938,11 @@ them.
 The semantics are final. The one order, the single container family
 with the rule for maps and the reading of duplicate keys, the set as
 the ordered vector, the kinds and the strict predicates have landed
-[D1, D14, D15, D16, D18, D32, D48], and so have the command line's
+[D1], [D14], [D15], [D16], [D18], [D32], [D48], and so have the command line's
 default subject and its terminal views [D37]. What remains is the
 contracts moving onto the kinds [D33]; the tags of the refusing sites
 as kinds with their schemas and procedures, and the law for nested
-errors [D7, D13, D46], which is where the JavaScript classes of errors
+errors [D7], [D13], [D46], which is where the JavaScript classes of errors
 and the prose that restates their facts disappear; and the effect
 marker leaving the core [D2].
 
@@ -3488,8 +1962,8 @@ categories of error are declared by hosts.
 Every fact has one spelling. Namespaces become values, bindings carry
 their origin, the axes become projections, and one loader remains [D5];
 mounted namespaces arrive with it [D24], each a subtree answered by its
-provider, the subject opening its own [D35, D36]; collisions get their
-rule [D23, D34], and a host's verbs move onto its tags; the literal
+provider, the subject opening its own [D35], [D36]; collisions get their
+rule [D23], [D34], and a host's verbs move onto its tags; the literal
 becomes the one lossless format and tagged JSON and the session envelope
 go [D30]; the doc becomes the vector of its segments, and strings,
 quotes and docs read in pieces [D19]; the documents are generated or
@@ -3648,7 +2122,7 @@ The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
 
-The key of a sort that answers an error [D13, D16]. The one order ranks
+The key of a sort that answers an error [D13], [D16]. The one order ranks
 errors, and in the model's reading a sort key is a place declared for
 any value, so a key that answers an error is ranked as a value and a
 key that misses a field sorts its element among the errors. On 25
@@ -3665,7 +2139,7 @@ loud, at the price of a sort by key over a vector that holds errors,
 which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it.
 
-The spelling of a verb's head [D34, D40, D57]. «я вижу массу
+The spelling of a verb's head [D34], [D40], [D57]. «я вижу массу
 неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method
 :depth |~~ levels of callers to walk ~~| ::number][:jdt/Method
 :parallel |~~ way of working ~~| ::boolean](Сode) - а если так?
@@ -3698,7 +2172,7 @@ declares [D40], `callers 2 {:scope :project :keep ~(/static | not)
 call holds five, and a map entry holds one word, so a key of such a map
 has no doc of its own.
 
-The contract of a verb [D45, D46, D57]. «наверное такой контакт чуть ли
+The contract of a verb [D45], [D46], [D57]. «наверное такой контакт чуть ли
 не отдельным способом описывается.. типа интерфейс вызова .. что там
 умного у кложуры было или что ты можешь подходящего для нас и не костыль
 и эмержентно сочетающегося со всем предложить?» (maintainer, 2026-09-24
@@ -3717,7 +2191,7 @@ second spelling of what the declaration says, the drift D45 set aside.
 What it teaches without that price: the meaning of an attribute is
 declared once and reused wherever the attribute stands, which the
 language keeps in a kind, a tag with its doc and its schema or
-constructor [D6, D50]; optionality is a property of the context that
+constructor [D6], [D50]; optionality is a property of the context that
 asks for an attribute, the lesson of the schema and select of its second
 spec, so in the open question of optional slots the mark stands in the
 head beside the slot and a kind means the same wherever it is taken; and
@@ -3725,13 +2199,13 @@ the vocabulary of a kind is the set of verbs that take it as their
 subject, which its protocols declare and the language computes,
 `manifest | filter ~(/subject | eq :string) * /name` answering the verbs
 on strings [D34]. A pre- or postcondition written as code is a head that
-computes; a constraint is a kind whose constructor checks it [D6, D33],
+computes; a constraint is a kind whose constructor checks it [D6], [D33],
 and the runtime checks every call against the declaration [D45], where
 Clojure's instrumentation is a mode switched on for development. The
 dispatch asked after, «а мультидиспатч каокй-то там был?» (07:27), is
 decided: a verb is found by walking the subject's tags from the outside
 in, and it keeps one contract, its document and its examples, which
-every kind that implements it answers as laws [D23, D34]. The head then
+every kind that implements it answers as laws [D23], [D34]. The head then
 belongs to that contract and is written once, a kind that implements the
 verb brings its body, a variant by the subject's kind is the walk's, and
 what one head may hold beside its slots is the alternatives of its
@@ -3746,7 +2220,7 @@ the list to kinds and leave the default to the prose. A last slot that
 gathers the remaining modifiers needs a mark of its own, since a slot of
 kind `[::quote]` already takes one vector.
 
-How a check finds the tag of its site [D45, D46]. The runtime checks an
+How a check finds the tag of its site [D45], [D46]. The runtime checks an
 operand's subject and slots from its declaration, and a refusal must
 carry the tag declared for that site. The tag can name its site in its
 declaration, the runtime indexing the declarations by site when it loads
@@ -3755,7 +2229,7 @@ lengthens every declaration; or the tag can be the site's path under the
 operand in the tree of names, `::add/n`, which needs no index and gives
 up the self-describing name a reader sees first.
 
-How elision knows a kind [D21, D34, D46]. «просто рано или поздно все
+How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
 элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно
 могло пеуплотниться без риска того что итоговый результат получится
@@ -3787,3 +2261,57 @@ it, how the state of what a session has been shown is kept, how sensed
 items are computed, and how the maintainer's intent enters the task:
 all of it is the subject of `docs/qlang-entrypoint.md`, and the
 maintainer wants to explore it before it is fixed.
+
+[D1]: decisions/D1.md
+[D2]: decisions/D2.md
+[D3]: decisions/D3.md
+[D4]: decisions/D4.md
+[D5]: decisions/D5.md
+[D6]: decisions/D6.md
+[D7]: decisions/D7.md
+[D8]: decisions/D8.md
+[D9]: decisions/D9.md
+[D10]: decisions/D10.md
+[D11]: decisions/D11.md
+[D12]: decisions/D12.md
+[D13]: decisions/D13.md
+[D14]: decisions/D14.md
+[D15]: decisions/D15.md
+[D16]: decisions/D16.md
+[D18]: decisions/D18.md
+[D19]: decisions/D19.md
+[D20]: decisions/D20.md
+[D21]: decisions/D21.md
+[D22]: decisions/D22.md
+[D23]: decisions/D23.md
+[D24]: decisions/D24.md
+[D26]: decisions/D26.md
+[D27]: decisions/D27.md
+[D28]: decisions/D28.md
+[D29]: decisions/D29.md
+[D30]: decisions/D30.md
+[D31]: decisions/D31.md
+[D32]: decisions/D32.md
+[D33]: decisions/D33.md
+[D34]: decisions/D34.md
+[D35]: decisions/D35.md
+[D36]: decisions/D36.md
+[D37]: decisions/D37.md
+[D38]: decisions/D38.md
+[D39]: decisions/D39.md
+[D40]: decisions/D40.md
+[D41]: decisions/D41.md
+[D42]: decisions/D42.md
+[D43]: decisions/D43.md
+[D44]: decisions/D44.md
+[D45]: decisions/D45.md
+[D46]: decisions/D46.md
+[D47]: decisions/D47.md
+[D48]: decisions/D48.md
+[D50]: decisions/D50.md
+[D51]: decisions/D51.md
+[D53]: decisions/D53.md
+[D55]: decisions/D55.md
+[D56]: decisions/D56.md
+[D57]: decisions/D57.md
+[D58]: decisions/D58.md

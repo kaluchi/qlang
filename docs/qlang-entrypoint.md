@@ -245,7 +245,7 @@ the gates of milestone 0; a fact that was not measured says so:
 ```
 status — qlang-audit @ 05eb884, docs rewritten and uncommitted
 
-MODE   design · a decision lands in docs/qlang-audit.md with its source
+MODE   design · a decision lands in docs/decisions/ with its source
 
 GATES  milestone 0 · footing
   ✗ docs-on-master        the audit and this document live on qlang-audit only
@@ -268,7 +268,7 @@ been tried [E3]:
 > ::workflow | status
 ::workflow/status{
   :head {:branch "qlang-audit" :commit "05eb884" :changed [:docs]}
-  :mode ::workflow/mode{:name :design :rule "a decision lands in docs/qlang-audit.md with its source"}
+  :mode ::workflow/mode{:name :design :rule "a decision lands in docs/decisions/ with its source"}
   :gates [::workflow/gate{:name :docs-on-master :state :red}
           ::workflow/gate{:name :sister-on-workspace :state :red :blocks [:breaking-branch] :see ~(::jdt | status)}
           ::workflow/gate{:name :entrypoint :state :red :waits :maintainer}
@@ -595,7 +595,7 @@ form, so the runner holds a string's answer against its raw print first.
 ```
 $ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     42 ok
+     41 ok
      12 target
 ```
 

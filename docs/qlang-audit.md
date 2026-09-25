@@ -1118,18 +1118,6 @@ fixed, the handful of operations of its file protocol, and letting the
 nouns grow, every resource a path in a per-process namespace; a host's
 catalog should grow the same way.
 
-The distribute combinator takes the vector beneath a tag and refuses
-the set beneath one, which a verb reaches through the walk of the tags
-[D34]:
-
-```qlang
-> ::Box["a" "b"] * type
-[::string ::string]
-
-> ::Box#["a"] * type
-::DistributeSubjectNotSequenceError!{ … :actualType ::Box }
-```
-
 The repair must let a module decide its own surface without a keyword,
 a module that ends in a map exporting that map alone and a module of
 declarations exporting its declarations, so that helpers stay lexically
@@ -1138,8 +1126,7 @@ visible to the operands that use them and out of the client's scope
 from a tag to its provider to its declaration [D36], so that the
 housekeeping keys leave the environment for values of their own. It
 must write the catalog by its nouns, so a noun's verbs are read where
-they are written [D62]. It must let the distribute combinator reach
-what a verb reaches. And it must hold the rest of the rule of
+they are written [D62]. And it must hold the rest of the rule of
 collisions:
 
 - A verb and a kind may be joined by whoever owns one of them. This is

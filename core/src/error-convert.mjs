@@ -4,6 +4,7 @@ import {
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
 import { recordThrowSiteSpec } from './errors.mjs';
+import { isTagBindingName, stripTagBindingPrefix } from './env-keys.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
@@ -51,10 +52,11 @@ const RUNTIME_FIELD_ORDER = [
 // Identifier-shaped descriptor fields carrying a `name`-like string
 // from a JS throw site — a referenced conduit / namespace /
 // parameter / operand / axis / binding. The JS→qlang boundary lifts
-// each such string to a Keyword so the descriptor surface stays
-// uniformly identifier-typed: `printValue` prints `:name` rather
-// than `"name"`, `!| /operandName` projection reads as a Keyword,
-// downstream pattern-match against `eq :foo` works. Numeric and
+// each such string to a Keyword, and the env key of a tag, `::Foo`,
+// to the tag, so the descriptor surface stays uniformly
+// identifier-typed: `printValue` prints `:name` rather than `"name"`,
+// `!| /operandName` projection reads as a Keyword, downstream
+// pattern-match against `eq :foo` or `eq ::Foo` works. Numeric and
 // non-string slots pass through unchanged (`fieldName in
 // IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([
@@ -65,7 +67,7 @@ const IDENTIFIER_FIELDS = new Set([
 ]);
 function liftIdentifier(k, v) {
   if (!IDENTIFIER_FIELDS.has(k)) return v;
-  return keyword(v);
+  return isTagBindingName(v) ? makeTagKeyword(stripTagBindingPrefix(v)) : keyword(v);
 }
 
 export function errorFromQlang(qlangError, faultStep, faultInput) {

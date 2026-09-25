@@ -181,6 +181,22 @@
        )
   ~~|
 
+::RunExamplesBindingNotFoundError
+  |~~ `runExamples` — no declaration found for the name it read, as
+      `examples` finds none: a keyword that names no binding of its
+      scope, the name of a verb a provider keeps among them, or a
+      tag name that names nothing. `:addresses` holds the addresses
+      where the verbs of that name live.
+
+      ~(
+        :nonexistent-binding | runExamples
+        !| [type /bindingName]
+        |  eq [::RunExamplesBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | runExamples !| /addresses | has ::vec/filter)
+      ~(::Nonexistent | runExamples !| /bindingName | eq ::Nonexistent)
+  ~~|
+
 :as
   |~~ Captures the current pipeValue as a frozen snapshot under
       the given keyword name. pipeValue passes through unchanged.

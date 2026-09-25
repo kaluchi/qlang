@@ -1,32 +1,40 @@
 // runExamples — execute each Quote segment in a binding's attached
-// docs as an executable test case. Truthy result (anything not
-// false / null / error-value) means pass. Subject can be a keyword
-// (binding name) or a descriptor Map carrying a :name string —
-// the Map shape is what `manifest` yields per entry, so
-// `manifest * runExamples` walks the whole catalog without an
-// intermediate name-projection step.
+// docs as an executable test case. An example passes when it answers
+// `true`. The subject is a keyword (binding name) or a tag name, the
+// address of a verb among them, so `::qlang | manifest * manifest |
+// flat * runExamples` walks the whole catalog.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
-describe('runExamples accepts a name, an address and a descriptor subject', () => {
+describe('runExamples reads a name as examples does', () => {
   it('address subject — ::vec/count | runExamples', async () => {
     const result = await evalQuery('::vec/count | runExamples * /ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });
 
-  it('subject naming a binding without a source-located BindStep returns an empty Vec', async () => {
-    // Host-installed bindings (via `session.bind`, or any binding
-    // landed in env without an attached AST) carry no BindStep to
-    // walk. runExamples gracefully returns an empty Vec rather
-    // than throwing the axis's not-found class.
+  it('a binding no step declares is refused as examples refuses it', async () => {
+    // A host-installed binding (via `session.bind`) carries no
+    // BindStep to walk, and `examples` finds none for it either.
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
     const cellEntry = await sessionInstance.evalCell(':hostInjected | runExamples');
-    expect(cellEntry.result).toEqual([]);
+    expect(cellEntry.result.tag).toEqual(makeTagKeyword('RunExamplesBindingNotFoundError'));
+    const examplesEntry = await sessionInstance.evalCell(':hostInjected | examples');
+    expect(examplesEntry.result.tag).toEqual(makeTagKeyword('ExamplesBindingNotFoundError'));
+  });
+
+  it('the keyword of a verb a provider keeps hands on its addresses', async () => {
+    const addresses = await evalQuery(':count | runExamples !| /addresses');
+    expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'vec/count']);
+  });
+
+  it('a tag name that names nothing is refused under the tag it read', async () => {
+    const bindingName = await evalQuery('::Nonexistent | runExamples !| /bindingName');
+    expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 
   it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {

@@ -959,20 +959,21 @@ its own eval handler in `eval.mjs`.
 
 ### `runExamples`
 
-- **Arity** 1. **Subject** Keyword (binding name) or descriptor
-  Map carrying a `:name` string.
-- Walks the loaded modules' AST through `findBindingStepAcrossModules`
-  to locate the binding's source. Pulls every Quote segment from
-  each attached doc-prefix through `parseDocSegments`. For each
-  Quote, evaluates the `:source` against an empty initial state;
-  a result that is not `false`, `null`, or an ErrorValue counts
-  as `:ok true`. Returns a Vec of `{:snippet :actual :error :ok}`
-  Maps — one per Quote segment.
-- Bindings without a source-located BindStep (host-installed
-  bindings, runtime-seeded built-ins) return an empty Vec.
+- **Arity** 1. **Subject** Keyword (binding name) or tag name, the
+  address of a verb among them.
+- Reads the step that declares the name as `examples` does, and
+  pulls every Quote segment from each attached doc-prefix through
+  `parseDocSegments`. Each Quote evaluates one frame below the step,
+  against the caller's env and a null pipeValue; an example passes
+  when it answers `true`, and every other answer, an ErrorValue
+  among them, counts as `:ok false`. Returns a Vec of
+  `{:snippet :actual :error :ok}` Maps — one per Quote segment.
 - **Example**: `::vec/count | runExamples | first | /ok` → `true`.
-- **Errors**: subject neither Keyword, tag name nor
-  Map-with-`:name`-string → `RunExamplesSubjectShapeError`.
+- **Errors**: subject neither Keyword nor tag name →
+  `RunExamplesSubjectShapeError`; a name no step declares, a verb a
+  provider keeps among them → `RunExamplesBindingNotFoundError`,
+  whose `:addresses` holds the addresses where the verbs of that
+  name live.
 
 ### `:name body` / `:name [:params] body` — BindStep
 

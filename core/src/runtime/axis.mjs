@@ -151,7 +151,7 @@ export function findBindingStepAcrossModules(env, bindingName) {
 // none, and an `as :name` call carries the field only when it has
 // some; every reader of them, `docs`, `examples` and `runExamples`,
 // goes through here.
-export function stepDocStrings(step) {
+function stepDocStrings(step) {
   return step.docs ?? [];
 }
 
@@ -188,7 +188,7 @@ function nameOf(subject) {
 
 // What a refusal of an axis holds: the name it read and the addresses
 // where the verbs of that name live [D62].
-function refusalOf(env, subject) {
+export function refusalOf(env, subject) {
   return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)) };
 }
 
@@ -218,20 +218,25 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
   return withPipeValue(state, Object.freeze(docStrings.map(s => makeDoc(s))));
 });
 
-export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const step = declaringStepOf(state.env, state.pipeValue);
-  if (step === null) {
-    throw new ExamplesBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  const docStrings = stepDocStrings(step);
+// Every quote among the segments of a step's docs, what `examples`
+// answers and `runExamples` runs.
+export async function examplesOfStep(state, step) {
   const collected = [];
-  for (const docStr of docStrings) {
+  for (const docStr of stepDocStrings(step)) {
     const segments = await parseDocSegments(docStr, state);
     for (const seg of segments) {
       if (isQuote(seg)) collected.push(seg);
     }
   }
-  return withPipeValue(state, Object.freeze(collected));
+  return collected;
+}
+
+export const examples = stateOp('examples', 1, async (state, _lambdas) => {
+  const step = declaringStepOf(state.env, state.pipeValue);
+  if (step === null) {
+    throw new ExamplesBindingNotFoundError(refusalOf(state.env, state.pipeValue));
+  }
+  return withPipeValue(state, Object.freeze(await examplesOfStep(state, step)));
 });
 
 // `spec` — env-side declaration descriptor Map for the named binding.

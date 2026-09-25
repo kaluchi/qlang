@@ -740,7 +740,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 25 September 2026
+shell with the `qlang` command or in its REPL, and on 26 September 2026
 every probe of this chapter answered as its block records.
 
 ### Arguments that move with the subject
@@ -777,11 +777,19 @@ expression built from the parameter, which is why every recursive
 example in the catalog recurses through the pipeline value and none
 through a parameter.
 
-The rule holds for a declared pipeline alone, since a modifier of a
-built-in is evaluated at the call against the subject and a slot of a
-code kind takes a quote [D56]. A declared pipeline has no way to say
-whether an argument is a value or a piece of code, and so treats every
-argument as code. Around this sit seven dispatch wrappers in
+The rule holds for a pipeline declared by today's binding form alone,
+since a modifier of a built-in and of a verb, `::verb~(…)`, is
+evaluated at the call against the subject and a slot of a code kind
+takes a quote [D56], [D67]:
+
+```qlang
+> :m ::verb~(:x ::number | mul 10 | add x) | 2 | m /
+22
+```
+
+The binding form has no way to say whether an argument is a value or a
+piece of code, and so treats every argument as code. Around this sit
+seven dispatch wrappers in
 `core/src/runtime/dispatch.mjs`, one per calling shape, a
 family of arity error classes for the predicates that dispatch on a
 parameter count, and a second calling convention,
@@ -851,22 +859,18 @@ The kind of an operand's result belongs to its declaration [D4], [D41],
 and a verb that keeps its subject's tag keeps every tag the walk passed
 [D34], which `:returns /` says [D67].
 
-A quote held as data carries no environment, so a parameter of the
-body that receives one captures a name of the caller, where an
-argument of today's lazy form is read in its author's environment:
+A quote written as a modifier carries the environment of its call
+[D43], and one written as the body of a binding carries none, so a slot
+of the verb that applies it captures a name of the caller:
 
 ```qlang
-> :x 10 | :t [:f :x] (f) | 2 | t (add x) 99
-12
-
-> :x 10 | :t [:q :x] (apply q) | 2 | t ~(add x) 99
+> :x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99
 101
 ```
 
-A quote written as a modifier carries the environment of its call and
-one written as the body of a binding that of its declaration, so code
-handed to another pipeline sees the names of its author wherever it is
-applied [D43], [D44].
+A quote written as the body of a binding carries the environment of
+its declaration, so code handed to another pipeline sees the names of
+its author wherever it is applied [D44].
 
 The wrappers are also the host's interface. The command line's I/O
 operands and every operand of the sister project are built from
@@ -888,8 +892,9 @@ kinds, code among them, the tag or the type of its result, and its doc,
 written as the leading declarations of its quote under `::verb` [D67].
 The runtime executes the
 declaration: it checks the subject and every slot before the
-implementation runs, a slot of kind code taking a quote and nothing
-else, and it checks the result. A built-in, a host's operand and a
+implementation runs, a slot of kind code taking a quote or a verb and
+nothing else, and it checks the result, each by the walk of the value's
+tags and the constructor of the kind [D68]. A built-in, a host's operand and a
 declared pipeline share one convention, and the seven wrappers go with
 the arity classes. A host operand becomes a plain function over values
 the runtime has already checked, handed to the core as `{ source, impls
@@ -2274,3 +2279,4 @@ maintainer wants to explore it before it is fixed.
 [D65]: decisions/D65.md
 [D66]: decisions/D66.md
 [D67]: decisions/D67.md
+[D68]: decisions/D68.md

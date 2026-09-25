@@ -12,14 +12,15 @@
 // `docs`     a Vec of Doc-values, one per doc-prefix of the step.
 // `examples` every quote among the segments of those docs, the cases
 //            `runExamples` runs.
-// `spec`     the value the binding holds.
+// `spec`     the value the binding holds, a verb's signature for a verb.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
+import { signatureSpecOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 import { addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, verbsOfKind } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
@@ -145,8 +146,8 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // impl-resolution pass, for an operand and a value-class constructor;
 // the throw-site spec the bootstrap stamps for an error tag, since
 // what raises the error is what knows the category and the slot; the
-// Conduit Map for a conduit, and the value itself for any other
-// binding.
+// Conduit Map for a conduit, the signature of a verb as a
+// `::spec~(…)` [D67], and the value itself for any other binding.
 //
 // The discriminator path for per-tag static facts attached to any
 // tagged value-class: `result !| type | spec | /category`
@@ -159,6 +160,8 @@ export const spec = stateOp('spec', 1, (state, _lambdas) => {
   if (record === null) {
     throw new SpecBindingNotFoundError(refusalOf(state.env, state.pipeValue));
   }
+  const declaration = record.get('value');
+  if (isVerb(declaration)) return withPipeValue(state, signatureSpecOf(declaration));
   return withPipeValue(state, withVerbsOfNoun(state.env, record));
 });
 

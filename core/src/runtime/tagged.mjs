@@ -14,10 +14,11 @@ import { withPipeValue, nestState } from '../state.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isVec, isKeyword, isQuote, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
-  isTaggedInstance, isTagKeyword, isErrorValue,
+  isTaggedInstance, isTagKeyword, isErrorValue, isVerb, envToRun,
   makeConduit, makeSet, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { astOfQuote } from '../quote.mjs';
+import { callVerb } from './verb.mjs';
 import {
   declareSubjectError,
   declareModifierError
@@ -293,11 +294,18 @@ export const withinOperand = stateOp('within', 2, async (state, withinLambdas) =
   if (!isTaggedInstance(subject)) throw new WithinSubjectNotTaggedInstanceError(subject);
   const code = await withinLambdas[0](subject);
   if (isErrorValue(code)) return withPipeValue(state, code);
-  if (!isQuote(code)) throw new WithinCodeNotQuoteError(code);
-  const edited = (await evalAst(astOfQuote(code), nestState(state, payloadOf(subject), state.env))).pipeValue;
+  const edited = await editOf(code, payloadOf(subject), state);
   if (isErrorValue(edited)) return withPipeValue(state, edited);
   return withPipeValue(state, await mintUnderTag(state, typeKeyword(subject), edited));
 });
+
+// The payload run through the code, a quote in the environment it
+// carries [D43] or a verb with its defaults [D67].
+async function editOf(code, payload, state) {
+  if (isVerb(code)) return await callVerb(code, [], withPipeValue(state, payload), null);
+  if (!isQuote(code)) throw new WithinCodeNotQuoteError(code);
+  return (await evalAst(astOfQuote(code), nestState(state, payload, envToRun(code, state.env)))).pipeValue;
+}
 
 bindPrim('payload', payloadOperand);
 bindPrim('tag',     tagOperand);

@@ -171,6 +171,16 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
     expect(isTaggedInstance(restored)).toBe(true);
     expect(restored).toEqual([1, 2]);
   });
+
+  it('carries a verb as its quote under its tag, and the verb resolves where it runs', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const verb = await evalQuery('::verb~(add k)');
+    expect(toTaggedJSON(verb)).toEqual({ $tagged: { $tag: 'verb', payload: { $quote: 'add k' } } });
+    const env = await langRuntime();
+    env.set('inc', makeBinding({ name: keyword('inc'), value: roundTrip(verb) }));
+    expect(await evalQuery(':k 2 | 1 | inc', env)).toBe(3);
+  });
 });
 
 describe('toTaggedJSON unencodable values', () => {

@@ -1920,15 +1920,23 @@ closed and the command form has landed [D3], [D8], [D9], [D10], [D11], [D47],
 [D51]–[D56]: a quote is the vector of its steps, every step is a command,
 and every text of the repository and of the sister project is written
 in that form. The argument model follows [D4], [D43], [D45], [D57], writing
-every slot list once, in the head of the verb literal and in the
-descriptor of a built-in, with the interface of hosts designed in the
-same branch and landed in every host; the one binding form closes the
+every slot list once, in the head of the verb literal, whose result
+stands after the tilde and which a built-in writes with its descriptor
+for a body [D64], with the interface of hosts designed in the same
+branch and landed in every host; the one binding form closes the
 milestone [D5], [D44], with comments as whitespace and the doc literal
-in the binding's slot.
+in the binding's slot. A declaration produces a record and a module is
+a pipeline whose value is what it exposes [D63], so the catalog is
+written once, in the form it keeps: under the noun `::qlang`, each verb
+listed under the kind it lives on, `::qlang/any` beneath every kind
+[D61], [D62]. The met cases that read the catalog through `env` and
+`manifest` answer the reading these records replace, so a branch of
+design settles them before the branch that implements the records.
 
-The milestone's answers are the targets of [D4], [D43], [D44], [D57]
-and [D60] in the conformance suite, which `node scripts/requirements.mjs`
-prints as the focus while any of them is open. Among them `42 | :x / |
+The milestone's answers are the targets of [D4], [D43], [D44], [D57],
+[D60], [D61], [D62], [D63] and [D64] in the conformance suite, which `node
+scripts/requirements.mjs` prints as the focus while any of them is
+open. Among them `42 | :x / |
 add 1 | x` answers 43 today,
 because `:x /` re-evaluates its body at every mention; under the one
 binding form a bare body is evaluated once, at declaration, and that
@@ -1939,7 +1947,10 @@ atoms and a shape and putting it back, both written in qlang, answers
 an `eq` value [D42]; a second declaration of a name in one scope is
 refused [D44]; the seven wrappers are gone; no snapshot unwrap remains;
 the declarations of the catalog are true, since the runtime executes
-them.
+them; `env` lists only the user's names, and a module's value is its
+surface, so the sister project's helpers leave its client's manifest;
+the core loads from the kernel alone, and the environment holds no key
+of the runtime's own.
 
 ### Milestone 2 · Values
 
@@ -1965,28 +1976,26 @@ categories of error are declared by hosts.
 
 ### Milestone 3 · One spelling
 
-Every fact has one spelling. Namespaces become values, bindings carry
-their origin, the axes become projections, and one loader remains [D5];
+Every fact has one spelling. Bindings carry their origin, a shadowed
+one stays one projection away, and one loader remains [D5];
 mounted namespaces arrive with it [D24], each a subtree answered by its
 provider, the subject opening its own [D35], [D36]; collisions get their
 rule [D23], [D34], and a host's verbs move onto its tags; the literal
 becomes the one lossless format and tagged JSON and the session envelope
 go [D30]; the doc becomes the vector of its segments, and strings,
 quotes and docs read in pieces [D19]; the documents are generated or
-deleted, the examples live on one plane, the bootstrap has one stamping
-site, the keyword's form comes from the parser, the error library is
+deleted, the examples live on one plane, the keyword's form comes from
+the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
-Its answers are the targets of [D5], [D19], [D34], [D36] and [D61] in
+Its answers are the targets of [D5], [D19], [D34] and [D36] in
 the conformance suite. The names `namespace` and `binding` there stand for
 the operands the branch names; where a target uses a name or a field
 no decision fixes, the name is a placeholder and the answer's shape is
 the requirement.
 
-Beside the answers: `env` lists only the user's names; a module ending
-in a map exports that map alone, so the sister project's helpers leave
-its client's manifest; no operand contract is spelled outside the
+Beside the answers: no operand contract is spelled outside the
 catalog; the injection script and the document-compliance runner are
 gone; no parser call exists outside `parse`; one query shows every
 definition of a name and which one wins.
@@ -2134,42 +2143,6 @@ loud, at the price of a sort by key over a vector that holds errors,
 which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it.
 
-The spelling of a verb's head [D34], [D40], [D57], [D60]. The doc of a
-slot has left the head for the kind of the slot [D60], so what stays
-open is where the kind of the result stands and what several groups of
-brackets would mean. «я вижу массу
-неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method
-:depth |~~ levels of callers to walk ~~| ::number][:jdt/Method
-:parallel |~~ way of working ~~| ::boolean](Сode) - а если так?
-~[][][][]..[]() - такое типа если :count ~::number[](::builtin{:impl})»
-(maintainer, 2026-09-24 07:09, session 86982eb5), held back for a fresh
-look, «ок, отложим на свежую голову ..» (07:31). The proposal puts the
-result's kind right after the tilde, where D57 has it last in the head,
-so the head holds only what the verb takes and needs no rule of
-position; `~::number[…]` stands free, since a word written against a
-word is refused, while `~::number` alone stays the quote of a tag name,
-`~::number` answering `~(::number)`. It writes a built-in with the same
-literal, its descriptor for the body, `:count
-~::number[](::builtin{:impl})`, so every verb is one literal. Its
-groups, one bracket after another, read as alternative signatures:
-`sort` takes a key or none, `[3 1 2] | sort` and `[{:a 2} {:a 1}] | sort
-~(/a)` both answering, which its descriptor cannot say, `:modifiers
-[:keyLambda]`. A group for each kind of the subject repeats the walk of
-D34, which finds the implementation of one contract on each kind, so
-what the groups may hold is the alternatives of arity, and alternatives
-told apart by the kind of a modifier are the overloading D9 set aside.
-Read as one group for each slot, the groups must touch one another to
-stay one word, since `f ~::T [x] (y)` reads otherwise as three
-modifiers. Inside one head every keyword opens a slot and holds what
-follows it up to the next keyword, its doc and then its kind, which the
-grammar reads already as words: a head of five slots reads as the
-subject's kind and five times a keyword, a doc and a kind. Options
-beyond a few positional modifiers are one map whose keys the verb
-declares [D40], `callers 2 {:scope :project :keep ~(/static | not)
-:limit 50 :parallel false}` holding two modifiers where the positional
-call holds five, and a map entry holds one word, so a key of such a map
-has no doc of its own.
-
 The contract of a verb [D45], [D46], [D57]. «наверное такой контакт чуть ли
 не отдельным способом описывается.. типа интерфейс вызова .. что там
 умного у кложуры было или что ты можешь подходящего для нас и не костыль
@@ -2191,8 +2164,8 @@ declared once and reused wherever the attribute stands, which the
 language keeps in a kind, a tag with its doc and its schema or
 constructor [D6], [D50]; optionality is a property of the context that
 asks for an attribute, the lesson of the schema and select of its second
-spec, so in the open question of optional slots the mark stands in the
-head beside the slot and a kind means the same wherever it is taken; and
+spec, so an optional slot says it in the head, by a kind that admits
+null [D64], and a kind means the same wherever it is taken; and
 the vocabulary of a kind is the set of verbs that take it as their
 subject, which its protocols declare and the language computes,
 `manifest | filter ~(/subject | eq :string) * /name` answering the verbs
@@ -2206,17 +2179,8 @@ in, and it keeps one contract, its document and its examples, which
 every kind that implements it answers as laws [D23], [D34]. The head then
 belongs to that contract and is written once, a kind that implements the
 verb brings its body, a variant by the subject's kind is the walk's, and
-what one head may hold beside its slots is the alternatives of its
-arity, the open question of optional slots.
-
-Optional and variadic slots [D45]. `sort` takes a key or none, `cond`
-and `coalesce` take as many clauses as they are given, and the slot list
-has no mark for either. A default after the kind would mark a slot
-optional and say what it takes when absent, `:key ::quote ~()`, at the
-price of a value inside a list of kinds; a mark on the kind would keep
-the list to kinds and leave the default to the prose. A last slot that
-gathers the remaining modifiers needs a mark of its own, since a slot of
-kind `[::quote]` already takes one vector.
+what one head may hold beside its slots is the slots that may be left
+out and the groups that repeat [D64].
 
 How a check finds the tag of its site [D45], [D46]. The runtime checks an
 operand's subject and slots from its declaration, and a refusal must
@@ -2316,3 +2280,6 @@ maintainer wants to explore it before it is fixed.
 [D59]: decisions/D59.md
 [D60]: decisions/D60.md
 [D61]: decisions/D61.md
+[D62]: decisions/D62.md
+[D63]: decisions/D63.md
+[D64]: decisions/D64.md

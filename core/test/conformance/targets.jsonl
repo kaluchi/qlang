@@ -18,11 +18,11 @@
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":"::Box |~~ A box. ~~| | ::Box#[3 1] | docs | count","expect":"1","decision":"D61"}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | docs | first | /content | eq (::map | docs | first | /content)","expect":"true","decision":"D61"}
 {"name":"env-answers-the-sessions-own-names","query":":x 1 | env | keys","expect":"#[:x]","decision":["D36","D61"],"target":true}
-{"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | filter ~(eq :add) | count","expect":"1","decision":"D61","target":true}
-{"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | filter ~(eq :docs) | count","expect":"1","decision":"D62","target":true}
-{"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | filter ~(eq :docs) | count","expect":"0","decision":"D62","target":true}
-{"name":"the-language-is-a-noun-with-a-page","query":"::qlang | docs | count","expect":"1","decision":"D62","target":true}
-{"name":"manifest-is-asked-of-a-noun","query":"::qlang | manifest | filter ~(eq ::qlang/any) | count","expect":"1","decision":"D62","target":true}
+{"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | spec | /verbs | filter ~(eq :add) | count","expect":"1","decision":"D61"}
+{"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::qlang/any | spec | /verbs | filter ~(eq :docs) | count","expect":"1","decision":"D62"}
+{"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | spec | /verbs | filter ~(eq :docs) | count","expect":"0","decision":"D62"}
+{"name":"the-language-is-a-noun-with-a-page","query":"::qlang | docs | count","expect":"1","decision":"D62"}
+{"name":"manifest-is-asked-of-a-noun","query":"::qlang | manifest | filter ~(eq ::qlang/any) | count","expect":"1","decision":"D62"}
 {"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | /x | /value","expect":"1","decision":"D63","target":true}
 {"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | /x | docs | first | /content","expect":"\" One. \"","decision":"D63","target":true}
 {"name":"a-module-exposes-what-its-last-step-answers","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D63","target":true}
@@ -31,8 +31,8 @@
 {"name":"a-trailing-slot-that-admits-null-may-be-left-out","query":":k ~[:x #[::number ::null]](x) | 5 | k","expect":"null","decision":"D64","target":true}
 {"name":"a-group-of-slots-repeats","query":":firsts ~[[:a :b]](a) | 0 | firsts 1 2 3 4","expect":"[1 3]","decision":"D64","target":true}
 {"name":"a-built-in-is-the-same-literal","query":":len ~::number[#[::vec ::set ::map]](::builtin{:impl :qlang/prim/count}) | [1 2 3] | len","expect":"3","decision":"D64","target":true}
-{"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"],"target":true}
+{"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | docs | count","expect":"1","decision":["D62","D63"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":":count | docs !| true","expect":"true","decision":"D62","target":true}
-{"name":"the-contract-of-a-verb-is-addressed-by-its-name","query":"::count | docs | count","expect":"1","decision":"D62","target":true}
+{"name":"the-contract-of-a-verb-is-addressed-by-its-name","query":"::count | docs | count","expect":"1","decision":"D62"}
 {"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62","target":true}

@@ -40,7 +40,7 @@ import { stateOp, stateOpVariadic } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue } from '../state.mjs';
 import {
-  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote,
+  isQMap, isFunctionValue, isConduit, isSnapshot, isKeyword, isQuote, isTagKeyword,
   isErrorValue, typeKeyword, keyword, declarationSiteOf,
   BUILTIN_TAG, CONDUIT_TAG, SNAPSHOT_TAG, VALUE_TAG, TAG_BINDING_TAG, TAG_HEADER_SYMBOL
 } from '../types.mjs';
@@ -53,6 +53,7 @@ import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, stepDocStrings } from './axis.mjs';
+import { nounsUnder } from './nouns.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -215,7 +216,13 @@ export function compareBindingNames(a, b) {
   return 0;
 }
 
+// Asked of a noun, `manifest` answers the nouns beneath it, the whole
+// set of the providers' nouns for the core's own, `::qlang | manifest`
+// [D62]; asked of any other subject it lists the bindings of env.
 export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
+  if (manifestLambdas.length === 0 && isTagKeyword(state.pipeValue)) {
+    return withPipeValue(state, nounsUnder(state.env, state.pipeValue.name));
+  }
   let namespace = 'value';
   if (manifestLambdas.length === 1) {
     const arg = await manifestLambdas[0](state.pipeValue);

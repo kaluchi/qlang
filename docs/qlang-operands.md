@@ -914,7 +914,14 @@ its own eval handler in `eval.mjs`.
 
 ### `manifest`
 
-- **Arity** 1 or 2 (0 or 1 captured). **Subject** irrelevant —
+- **Asked of a noun**, a tag name in the subject position, `manifest`
+  answers the set of the nouns beneath it: `::qlang | manifest` the
+  nouns of the core and of the hosts a session loaded, the kinds of
+  values among them and the refusals of the sites apart, and `::shop |
+  manifest` the nouns under `::shop/`. A tag the session declares is its
+  own and stays out.
+  - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
+- **Arity** 1 or 2 (0 or 1 captured). **Subject** any other value —
   `manifest` ignores its pipeline input and iterates the current
   `env`.
 - Returns a Vec of descriptors, one per binding in `env`, sorted
@@ -1154,6 +1161,10 @@ its own eval handler in `eval.mjs`.
   (`::Tag`) reads the binding it names; every other value reads the
   declaration of its kind, the kind `type` answers, so `5 | source`
   reads `::number` and `{:kind ::set} | source` reads `::map`.
+- A tag name that no tag binds is the address of a verb from the root:
+  `::vec/count | source` reads the verb `count` that lives on vectors,
+  `::count | source` the verb by its name, and an address reads what the
+  verb's provider declared, whatever the scope binds under the name.
 - Returns the quote of the binding's declaring step, a BindStep or an
   `as :name` call, found across loaded modules.
 - **Examples**:
@@ -1167,6 +1178,10 @@ its own eval handler in `eval.mjs`.
   (`::Tag`) reads the binding it names; every other value reads the
   declaration of its kind, the kind `type` answers, so `5 | docs`
   reads `::number` and `{:kind ::set} | docs` reads `::map`.
+- A tag name that no tag binds is the address of a verb from the root:
+  `::vec/count | docs` reads the verb `count` that lives on vectors,
+  `::count | docs` the verb by its name, and an address reads what the
+  verb's provider declared, whatever the scope binds under the name.
 - Returns a Vec of Doc-values from the binding's attached doc-prefix,
   one Doc per prefix entry.
 - **Examples**:
@@ -1180,6 +1195,10 @@ its own eval handler in `eval.mjs`.
   (`::Tag`) reads the binding it names; every other value reads the
   declaration of its kind, the kind `type` answers, so `5 | examples`
   reads `::number` and `{:kind ::set} | examples` reads `::map`.
+- A tag name that no tag binds is the address of a verb from the root:
+  `::vec/count | examples` reads the verb `count` that lives on vectors,
+  `::count | examples` the verb by its name, and an address reads what the
+  verb's provider declared, whatever the scope binds under the name.
 - Returns a Vec of Quote-values extracted from the binding's
   doc-prefix — every `~(…)` Quote segment in the doc-content stream
   is a candidate test case for `runExamples`.
@@ -1194,13 +1213,20 @@ its own eval handler in `eval.mjs`.
   (`::Tag`) reads the binding it names; every other value reads the
   declaration of its kind, the kind `type` answers, so `5 | spec`
   reads `::number` and `{:kind ::set} | spec` reads `::map`.
+- A tag name that no tag binds is the address of a verb from the root:
+  `::vec/count | spec` reads the verb `count` that lives on vectors,
+  `::count | spec` the verb by its name, and an address reads what the
+  verb's provider declared, whatever the scope binds under the name.
 - Returns the env-side declaration descriptor Map for the binding.
   An operand answers with the `::builtin{…}` body its catalog entry
   declares, backfilled with `:captured` / `:effectful` from the
   resolved primitive; a value-class constructor with its `:impl`
   handle and `:throws`; an error tag with the structural facts its
   throw site records — `:category`, and for an operand slot check
-  `:operand`, `:position` and `:expectedType`.
+  `:operand`, `:position` and `:expectedType`. The declaration of a
+  provider's noun carries `:verbs`, the operands whose subject names
+  it, `::number | spec | /verbs` listing `:add` among them, and the
+  verbs of any value are listed under `::qlang/any`.
 - The end of every error-diagnosis chain: an error reads the
   declaration of its tag, what the site that raised it declares about
   itself.

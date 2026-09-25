@@ -6,7 +6,38 @@
    tag names an identity alone. Per-tag error sites sit directly under the
    constructor BindStep they belong to (so axis-operand walks
    stay one-pass within this file); the constructor's `:throws`
-   Vec references each error tag by name. ~|
+   Vec references each error tag by name. The first two declare the
+   core itself as a noun and the kind beneath every kind. ~|
+
+::qlang
+  |~~ qlang, a pipeline of values: each step is a command on the value
+      the step before it answered, `S | verb object`. Every value has a
+      kind, the outermost tag of its stack or the kind its literal
+      implies, and its verbs live on its kind, so what can be done with
+      a value is asked of its kind.
+
+      `::qlang | manifest` lists the nouns; `x | docs` reads the page of
+      a value by its kind; `::number | spec | /verbs` lists what lives on
+      a kind; `::vec/count | docs` reads one verb by its address, and its
+      examples are its laws. An error is a value too, and `!| type |
+      docs` reads the page of the site that refused.
+
+      ~(::qlang | manifest | filter ~(eq ::number) | count | eq 1)
+      ~(5 | docs | eq (::number | docs))
+      ~(::number | spec | /verbs | filter ~(eq :add) | count | eq 1)
+      ~(::vec/count | docs | count | eq 1)
+      ~("x" | add 1 !| type | docs | count | eq 1)
+  ~~|
+
+::qlang/any
+  |~~ The kind beneath every kind, under which the verbs of any value
+      are listed: `type`, `eq`, `docs`, `spec` and their kin. No value
+      answers it as its `type`, since each has a kind of its own above
+      it.
+
+      ~(::qlang/any | spec | /verbs | filter ~(eq :docs) | count | eq 1)
+      ~(5 | type | eq ::qlang/any | not)
+  ~~|
 
 ::conduit
   |~~ Conduit literal — invokeable lexically-scoped value carrying

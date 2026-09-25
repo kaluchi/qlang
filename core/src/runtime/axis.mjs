@@ -1,7 +1,9 @@
 // Axis-operands — reflective navigation to a binding's declaration
 // [D61]: a name, a keyword `:foo` or a tag name `::Foo`, reads the
-// binding it names, and every other value reads the declaration of its
-// kind, the kind `type` answers. Each operand walks the
+// binding it names, a tag name that no tag binds reads the verb it
+// addresses from the root, `::vec/count` [D62], and every other value
+// reads the declaration of its kind, the kind `type` answers. Each
+// operand walks the
 // `qlang/ast/<uri>` quotes in env for the step that declares the
 // binding, a BindStep or an `as :name` call, and answers a field of it:
 //
@@ -15,12 +17,15 @@ import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isSnapshot, makeDoc, typeKeyword, declarationSiteOf
+  isKeyword, isQuote, isTagKeyword, isSnapshot, makeDoc, typeKeyword, declarationSiteOf,
+  stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { quoteOfBody, astOfQuote } from '../quote.mjs';
 import {
-  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
+  isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix, moduleAstKey,
+  canonicalTagName
 } from '../env-keys.mjs';
+import { addressedVerb, isNoun, verbsOfKind } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
@@ -61,7 +66,7 @@ function matchesBindingStep(step, isTagBinding, targetName) {
   if (step.type === 'BindStep') {
     const key = step.key;
     return isTagBinding
-      ? key.type === 'BareTypeKeyword' && key.tag === targetName
+      ? key.type === 'BareTypeKeyword' && canonicalTagName(key.tag) === targetName
       : key.type === 'Keyword'         && key.name === targetName;
   }
   return false;
@@ -159,30 +164,41 @@ function bindingNameOf(subject) {
   return tagBindingKey(typeKeyword(subject).name);
 }
 
+// A tag name that no tag binds addresses a verb from the root of the
+// tree of names, `::vec/count` or `::count` [D62], and reads what the
+// verb's provider declared, whatever the scope binds under its name.
+function addressOf(env, subject) {
+  if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
+  return addressedVerb(env, subject.name);
+}
+
+function declaringStepOf(env, subject) {
+  const address = addressOf(env, subject);
+  if (address === null) return findBindingStepAcrossModules(env, bindingNameOf(subject));
+  return findBindingStepFor(astOfQuote(envGet(env, moduleAstKey(address.uri))), address.verbName);
+}
+
 export const source = stateOp('source', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue);
-  const step = findBindingStepAcrossModules(state.env, bindingName);
+  const step = declaringStepOf(state.env, state.pipeValue);
   if (step === null) {
-    throw new SourceBindingNotFoundError({ bindingName });
+    throw new SourceBindingNotFoundError({ bindingName: bindingNameOf(state.pipeValue) });
   }
   return withPipeValue(state, quoteOfBody(step));
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue);
-  const step = findBindingStepAcrossModules(state.env, bindingName);
+  const step = declaringStepOf(state.env, state.pipeValue);
   if (step === null) {
-    throw new DocsBindingNotFoundError({ bindingName });
+    throw new DocsBindingNotFoundError({ bindingName: bindingNameOf(state.pipeValue) });
   }
   const docStrings = stepDocStrings(step);
   return withPipeValue(state, Object.freeze(docStrings.map(s => makeDoc(s))));
 });
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue);
-  const step = findBindingStepAcrossModules(state.env, bindingName);
+  const step = declaringStepOf(state.env, state.pipeValue);
   if (step === null) {
-    throw new ExamplesBindingNotFoundError({ bindingName });
+    throw new ExamplesBindingNotFoundError({ bindingName: bindingNameOf(state.pipeValue) });
   }
   const docStrings = stepDocStrings(step);
   const collected = [];
@@ -212,14 +228,26 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // raises; `::conduit | spec | /impl` returns the
 // `:qlang/type/conduit` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
+  const address = addressOf(state.env, state.pipeValue);
+  if (address !== null) return withPipeValue(state, address.descriptor);
   const bindingName = bindingNameOf(state.pipeValue);
   if (!envHas(state.env, bindingName)) {
     throw new SpecBindingNotFoundError({ bindingName });
   }
   let entry = envGet(state.env, bindingName);
   if (isSnapshot(entry)) entry = entry.get('payload');
-  return withPipeValue(state, entry);
+  return withPipeValue(state, withVerbsOfNoun(state.env, bindingName, entry));
 });
+
+// The declaration of a provider's noun lists the verbs that live on it
+// [D61], computed from the subjects its providers' operands declare.
+function withVerbsOfNoun(env, bindingName, declaration) {
+  if (!isTagBindingName(bindingName) || !isNoun(env, stripTagBindingPrefix(bindingName))) return declaration;
+  const withVerbs = new Map(declaration);
+  withVerbs.set('verbs', verbsOfKind(env, stripTagBindingPrefix(bindingName)));
+  stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
+  return withVerbs;
+}
 
 bindPrim('source',   source);
 bindPrim('docs',     docs);

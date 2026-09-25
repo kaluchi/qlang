@@ -1,0 +1,81 @@
+// The nouns a session can reach and the verbs that live on a kind
+// [D61], [D62]: `::qlang | manifest`, `/verbs` on a noun's `spec`, and a
+// tag name that no tag binds read as the address of a verb.
+
+import { describe, it, expect } from 'vitest';
+import { evalQuery } from '../../src/eval.mjs';
+import { createSession } from '../../src/session.mjs';
+import { makeTagKeyword, keyword } from '../../src/types.mjs';
+
+describe('the nouns of the core', () => {
+  it('the core answers the nouns beneath it, itself and its refusals apart', async () => {
+    expect(await evalQuery('::qlang | manifest | filter ~(eq ::number) | count')).toBe(1);
+    expect(await evalQuery('::qlang | manifest | filter ~(eq ::qlang) | count')).toBe(0);
+    expect(await evalQuery('::qlang | manifest | filter ~(eq ::AddLeftNotNumberError) | count')).toBe(0);
+  });
+
+  it('a noun answers the nouns under its path, and a noun with none the empty set', async () => {
+    const session = await createSession({
+      locator: async nsName => (nsName === 'tests/shop'
+        ? { source: '::shop/Order |~~ An order. ~~| | ::shop/Line |~~ A line. ~~| | env' }
+        : null)
+    });
+    const cellEntry = await session.evalCell('use :tests/shop | ::shop | manifest');
+    expect([...cellEntry.result]).toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
+    expect([...await evalQuery('::number | manifest')]).toEqual([]);
+  });
+
+  it('a tag the session declares is its own, beside the providers\' nouns', async () => {
+    expect(await evalQuery('::Box |~~ A box. ~~| | ::qlang | manifest | filter ~(eq ::Box) | count')).toBe(0);
+  });
+});
+
+describe('the verbs that live on a kind', () => {
+  it('a kind lists the operands whose subject names it, and any value lists its own', async () => {
+    expect(await evalQuery('::number | spec | /verbs | filter ~(eq :add) | count')).toBe(1);
+    expect(await evalQuery('::qlang/any | spec | /verbs | filter ~(eq :docs) | count')).toBe(1);
+    expect(await evalQuery('::string | spec | /verbs | filter ~(eq :docs) | count')).toBe(0);
+  });
+
+  it('a verb of any tagged value lives beneath every kind', async () => {
+    expect(await evalQuery('::qlang/any | spec | /verbs | filter ~(eq :within) | count')).toBe(1);
+  });
+
+  it('a verb that declares no subject takes any', async () => {
+    const session = await createSession({
+      locator: async nsName => (nsName === 'tests/bare'
+        ? { source: ':shrug ::builtin{:impl :qlang/prim/count}' }
+        : null)
+    });
+    const cellEntry = await session.evalCell('use :tests/bare | ::qlang/any | spec | /verbs | filter ~(eq :shrug) | count');
+    expect(cellEntry.result).toBe(1);
+  });
+
+  it('a refusal and a tag the session declares carry no list of verbs', async () => {
+    expect(await evalQuery('::AddLeftNotNumberError | spec | has :verbs')).toBe(false);
+    expect(await evalQuery('::Box {} | ::Box | spec | has :verbs')).toBe(false);
+  });
+});
+
+describe('a tag name that no tag binds addresses a verb', () => {
+  it('an address with a kind reads the verb that lives on that kind', async () => {
+    expect(await evalQuery('::qlang/vec/count | docs | count')).toBe(1);
+    expect(await evalQuery('::vec/count | source | parse | startsWith ":count"')).toBe(true);
+    expect(await evalQuery('::vec/count | examples | count | gt 0')).toBe(true);
+    expect(await evalQuery('::vec/count | spec | /category')).toEqual(keyword('containerReducer'));
+  });
+
+  it('a verb alone is addressed by its name', async () => {
+    expect(await evalQuery('::count | docs | count')).toBe(1);
+  });
+
+  it('an address reads the provider\'s verb whatever the scope binds under its name', async () => {
+    expect(await evalQuery(':count 5 | ::vec/count | docs | first | /content | contains "number of elements"'))
+      .toBe(true);
+  });
+
+  it('an address whose kind the verb does not live on names nothing', async () => {
+    expect(await evalQuery('::string/count | docs !| type')).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
+    expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
+  });
+});

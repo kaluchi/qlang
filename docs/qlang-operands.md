@@ -915,12 +915,14 @@ its own eval handler in `eval.mjs`.
 ### `manifest`
 
 - **Asked of a noun**, a tag name in the subject position, `manifest`
-  answers the set of the nouns beneath it: `::qlang | manifest` the
-  nouns of the core and of the hosts a session loaded, the kinds of
-  values among them and the refusals of the sites apart, and `::shop |
-  manifest` the nouns under `::shop/`. A tag the session declares is its
-  own and stays out.
+  answers the set of what lies below it in the tree of names, the nouns
+  under its path and the addresses of the verbs that live on it:
+  `::qlang | manifest` the nouns of the core and of the hosts a session
+  loaded, the kinds of values among them and the refusals apart, `::shop
+  | manifest` the nouns under `::shop/`, and `::number | manifest` the
+  verbs of numbers. A tag the session declares is its own and stays out.
   - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
+  - `::number | manifest | has ::number/add` → `true`.
 - **Arity** 1 or 2 (0 or 1 captured). **Subject** any other value —
   `manifest` ignores its pipeline input and iterates the current
   `env`.

@@ -50,7 +50,7 @@ export function isNoun(env, tagName) {
 }
 
 // The nouns under a noun, the whole set for the core's own noun.
-export function nounsUnder(env, tagName) {
+function nounsUnder(env, tagName) {
   const under = canonicalTagName(tagName);
   const nouns = [];
   for (const [envKey, value] of env) {
@@ -75,6 +75,14 @@ export function verbsOfKind(env, tagName) {
     }
   }
   return makeSet(addresses);
+}
+
+// What lies below a noun in the tree of names [D62]: the nouns under its
+// path and the addresses of the verbs that live on it, so `::number`
+// answers `::number/add` among its own and `::qlang`, with no verb of
+// its own, the nouns of the providers.
+export function namesUnder(env, tagName) {
+  return makeSet([...nounsUnder(env, tagName), ...verbsOfKind(env, tagName)]);
 }
 
 // The verb a tag name addresses, with the module that declares it, or

@@ -53,7 +53,7 @@ import { declareShapeError } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { manifestBuiltinDescriptor } from '../descriptor-ops.mjs';
 import { findBindingStepAcrossModules, declaringStepOf, stepDocStrings } from './axis.mjs';
-import { nounsUnder } from './nouns.mjs';
+import { namesUnder } from './nouns.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -216,12 +216,14 @@ export function compareBindingNames(a, b) {
   return 0;
 }
 
-// Asked of a noun, `manifest` answers the nouns beneath it, the whole
-// set of the providers' nouns for the core's own, `::qlang | manifest`
-// [D62]; asked of any other subject it lists the bindings of env.
+// Asked of a noun, `manifest` answers what lies below it in the tree of
+// names, the nouns under its path and the verbs that live on it, the
+// whole set of the providers' nouns for the core's own, `::qlang |
+// manifest` [D62]; asked of any other subject it lists the bindings of
+// env.
 export const manifest = stateOpVariadic('manifest', async (state, manifestLambdas) => {
   if (manifestLambdas.length === 0 && isTagKeyword(state.pipeValue)) {
-    return withPipeValue(state, nounsUnder(state.env, state.pipeValue.name));
+    return withPipeValue(state, namesUnder(state.env, state.pipeValue.name));
   }
   let namespace = 'value';
   if (manifestLambdas.length === 1) {

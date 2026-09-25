@@ -116,9 +116,15 @@
   ~~|
 
 :manifest
-  |~~ Returns a Vec of descriptors, one per binding in env,
-      sorted alphabetically by binding name. Each descriptor
-      carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
+  |~~ Asked of a noun, answers the set of what lies below it in
+      the tree of names: the nouns under its path and the
+      addresses of the verbs that live on it, so `::qlang |
+      manifest` lists the nouns of the core and of the hosts, and
+      `::number | manifest` the verbs of numbers.
+
+      Asked of any other subject, returns a Vec of descriptors,
+      one per binding in env, sorted alphabetically by binding
+      name. Each descriptor carries `:kind` (`::builtin` / `::conduit` / `::snapshot` /
       `::tag` / `::value`), `:name`, plus per-kind fields stamped
       by `describeBinding` in `runtime/manifest-op.mjs`.
       Overloaded by captured-arg count: bare manifest or
@@ -130,6 +136,7 @@
       enumeration surface, not a substitute for the AST-axis
       navigation.
 
+      ~(::number | manifest | has ::number/add)
       ~(manifest | filter ~(/name | eq "add") | first | /returns | eq :number)
       ~(manifest | filter ~(/category | eq :arith) * /name | count | gte 4)
       ~(manifest :tag | first | /kind | eq ::tag)

@@ -19,7 +19,7 @@ describe('the nouns of the core', () => {
     expect(await evalQuery('::qlang | manifest | has ::ForeignFailureError')).toBe(false);
   });
 
-  it('a noun answers the nouns under its path, and a noun with none the empty set', async () => {
+  it('a noun answers what lies below it, the nouns under its path and the verbs that live on it', async () => {
     const session = await createSession({
       locator: async nsName => (nsName === 'tests/shop'
         ? { source: '::shop/Order |~~ An order. ~~| | ::shop/Line |~~ A line. ~~| | env' }
@@ -27,7 +27,8 @@ describe('the nouns of the core', () => {
     });
     const cellEntry = await session.evalCell('use :tests/shop | ::shop | manifest');
     expect([...cellEntry.result]).toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
-    expect([...await evalQuery('::number | manifest')]).toEqual([]);
+    expect(await evalQuery('::number | manifest | eq (::number | spec | /verbs)')).toBe(true);
+    expect([...await evalQuery('::builtin | manifest')]).toEqual([]);
   });
 
   it('a tag the session declares is its own, beside the providers\' nouns', async () => {

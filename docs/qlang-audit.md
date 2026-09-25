@@ -1558,30 +1558,15 @@ barely moved from the September master.
 
 In several files the comments outweigh the code: the bootstrap of the
 runtime, the primitive registry, the error roots and the descriptor
-stamping carry more lines of prose than of statements. The comments are
-of two kinds, and none states an invariant in a sentence:
+stamping carry more lines of prose than of statements. Most of the
+comments justify, and none states an invariant in a sentence: the
+bootstrap calls its seeding of `::builtin` “Chicken-and-egg” and
+explains it (`core/src/runtime/index.mjs`); the registry explains why
+its verb is “seal” and not “freeze” (`core/src/primitives.mjs`). Each
+is a decision that has no record, written where it will be read by
+whoever touches the line and by nobody who decides.
 
-- Some are false. The package's entry point promises that `keyword`
-  interns, “every call with the same name returns the same interned
-  object” (`core/src/index.mjs`), while `keyword` builds a fresh object
-  on every call (`core/src/types.mjs`, `keyword`). The header of the
-  tagged-JSON codec
-  says the conformance runner hydrates its cases from that format
-  (`core/src/codec.mjs`); the runner compares qlang literals. The
-  values module says that each of the two reserved tags of the
-  header, `::conduit` and `::builtin`, owns a path of its
-  own through the printer (`core/src/types.mjs`, beside
-  `isTaggedInstance`), while `describeType` gives `::builtin` none, so
-  a descriptor reaches the printer of maps and prints without its tag.
-- Most justify. The bootstrap calls its seeding of `::builtin`
-  “Chicken-and-egg” and explains it (`core/src/runtime/index.mjs`);
-  the registry explains why its verb is “seal” and not “freeze”
-  (`core/src/primitives.mjs`). Each is a decision that has no record,
-  written where it will be read by whoever touches the line and by
-  nobody who decides.
-
-The false comment about the reserved tags shows in a query: every
-descriptor of the catalog prints as a bare map, and the map it prints
+A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang

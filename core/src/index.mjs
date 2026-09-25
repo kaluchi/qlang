@@ -43,8 +43,8 @@
 //                                serializable JS shape; lossy for
 //                                Set / Error / Keyword-as-value),
 //                                fromPlain (inverse of toPlain;
-//                                JS shape → qlang value with
-//                                interned keyword keys)
+//                                JS shape → qlang value whose map
+//                                keys are plain names)
 //   error hierarchy            — QlangError, QlangTypeError, ArityError,
 //                                UnresolvedIdentifierError,
 //                                DivisionByZeroError, ParseError,
@@ -57,10 +57,9 @@
 //                                `EvaluationDepthExceededError`
 //                                reports as `context.limit`)
 //   effect-marker classification — classifyEffect, EFFECT_MARKER_PREFIX
-//   keyword interning          — keyword (every call with the same name
-//                                returns the same interned object, so
-//                                a Map keyed by qlang keywords is
-//                                lookable from JS via `m.get(keyword(name))`)
+//   keywords                   — keyword (a fresh keyword value for a
+//                                name; a map keys its entries by the
+//                                plain name, `m.get(name)`)
 //   value-class construction   — makeTagKeyword, makeQuote, makeDoc,
 //                                makeErrorValue, errorFromKindDescriptor,
 //                                makeTaggedInstance, stampTagHeader,

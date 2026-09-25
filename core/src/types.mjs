@@ -184,10 +184,11 @@ export function bindingValueOf(entry) {
 // shapes: Array / Map clones with the header stamped, or
 // an opaque frozen `{type, tag, payload}` wrapper for non-
 // extensible payloads (scalar, Keyword, Doc, Error, already-tagged
-// composite, a quote and a set among them). Two reserved tag names own
-// dedicated render / dispatch paths (`::conduit`, `::builtin`) and
-// route through their own predicates (`isConduit`,
-// `isBuiltinDescriptor`).
+// composite, a quote and a set among them). A value under one of the
+// two reserved tag names, `::conduit` or `::builtin`, is no tagged
+// instance: `isConduit` and `isBuiltinDescriptor` answer for it, a
+// conduit prints by its own path, and a descriptor prints as its bare
+// map.
 const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'builtin']);
 export function isTaggedInstance(v) {
   if (v === null || typeof v !== 'object') return false;

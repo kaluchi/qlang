@@ -36,9 +36,11 @@ Evidence is a fact about the tree. Its handle is a probe or an anchor.
 A probe is a fenced block whose lines beginning with `>` are queries
 typed into `qlang` and whose other lines are what the tree answered on
 the date written before the block; a probe that begins with `$` is a
-shell command. A block fenced as `qlang target` shows the answer a
-repair must produce, so it disagrees with the tree until the repair
-lands. An anchor names a file and a symbol, `core/src/eval.mjs` and
+shell command. A target, the answer a repair must produce, is a
+conformance case that names its decision [D58]; a block fenced as
+`qlang target` holds one whose answer no literal states yet, and it
+disagrees with the tree until the repair lands. An anchor names a file
+and a symbol, `core/src/eval.mjs` and
 `applyConduit`; line numbers drift and are avoided. Evidence goes
 stale, and the only defence is to run it: a probe whose answer changed
 means the sentence around it is wrong, and the sentence is replaced by
@@ -1876,8 +1878,8 @@ chapter describes. Between them lie five milestones, each a state of
 the language, each followed by a release
 [D29]. Under each milestone the branches that reach it are named in an
 order that illustrates and binds nobody, and the answers that show a
-milestone reached are written as target blocks, which disagree with the
-tree until the work lands.
+milestone reached are the targets its decisions left in the
+conformance suite, which answer otherwise until the work lands [D58].
 
 ### Milestone 0 · Footing
 
@@ -1905,26 +1907,12 @@ same branch and landed in every host; the one binding form closes the
 milestone [D5], [D44], with comments as whitespace and the doc literal
 in the binding's slot.
 
-```qlang target
-> :m ~[:x](mul 10 | add x) | 2 | m /
-22
-
-> :fact ~[:n](if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
-120
-
-> :inc ~[](add 1) | 5 | inc | inc
-7
-
-> :most ~[](count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most
-[1 2]
-
-> 42 | :x / | add 1 | x
-42
-```
-
-The last block answers 43 today, because `:x /` re-evaluates its body
-at every mention; under the one binding form a bare body is evaluated
-once, at declaration, and that is how `as` is spelled once it is gone.
+The milestone's answers are the targets of [D43], [D44] and [D57] in
+the conformance suite, which `node scripts/requirements.mjs D43 D44
+D57` lists. Among them `42 | :x / | add 1 | x` answers 43 today,
+because `:x /` re-evaluates its body at every mention; under the one
+binding form a bare body is evaluated once, at declaration, and that
+is how `as` is spelled once it is gone.
 
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
@@ -1946,12 +1934,8 @@ errors [D7], [D13], [D46], which is where the JavaScript classes of errors
 and the prose that restates their facts disappear; and the effect
 marker leaving the core [D2].
 
-```qlang target
-> 1 | add (!{:k 1}) !| type
-::Error
-```
-
-Beside the answer: no factory-declared error class remains; every
+Its answer is the target of [D13] in the conformance suite. Beside the
+answer: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; the language has no effect marker and no effect flag; host
@@ -1972,23 +1956,11 @@ site, the keyword's form comes from the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
-```qlang target
-> :filter ~[](mul 2) | namespace :qlang/operand/container | /filter | docs | count
-1
-
-> :filter | binding | /module
-:qlang/operand/container
-
-> ::builtin | docs | first | /segments * type | distinct
-#[:string]
-
-> "a\nb\nc" | lines | drop 1 | take 1
-["b"]
-```
-
-The names `namespace` and `binding` stand for the operands the branch
-names; where a target block uses a name or a field no decision fixes,
-the name is a placeholder and the answer's shape is the requirement.
+Its answers are the targets of [D5], [D19] and [D36] in the
+conformance suite. The names `namespace` and `binding` there stand for
+the operands the branch names; where a target uses a name or a field
+no decision fixes, the name is a placeholder and the answer's shape is
+the requirement.
 
 Beside the answers: `env` lists only the user's names; a module ending
 in a map exports that map alone, so the sister project's helpers leave
@@ -2014,12 +1986,8 @@ answers name the workspace they came from [D38]; a host's command is the
 language's with its noun as the first value [D37]; and the benchmark
 runs [D26].
 
-```qlang target
-> [1 2 3] | filtr ~(gt 1)
-!{ … :nearest [:filter] }
-```
-
-Beside the answer, whose tag and field name are placeholders: `manifest`
+Its answer is the target of [D7] in the conformance suite, whose field
+name is a placeholder. Beside it: `manifest`
 answers by default a view of names that fits the first screen; one start
 command returns the root doc within four kilobytes; a host answers
 within a budget and marks what it left out with its size and the query

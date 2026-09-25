@@ -4,6 +4,16 @@ One file holds one decision, `Dnn.md`, written once; a record that a later one
 replaces keeps its text and gains the line that names the record replacing it
 [D58].
 
+A record's first line names its domain, which says where its requirements
+live. A decision of the language leaves them as conformance cases that name
+it, and one that no case names is still being decided; a decision of a host
+leaves them to the host's own tests; a rule of work leaves none and is held
+by reading or by a sensor of the entrypoint. `node scripts/requirements.mjs`
+computes from the cases where the work stands. A record that replaces
+another in part is written together with what becomes of the cases of the
+one it replaces: `node scripts/requirements.mjs D45` lists them, and the
+same commit keeps, rewrites or drops each.
+
 Each record states the decision, its source, what it rests on where
 that is not obvious, and the alternatives set aside with the reason.
 A decision the maintainer took is sourced by the maintainer's words; a

@@ -1907,9 +1907,10 @@ same branch and landed in every host; the one binding form closes the
 milestone [D5], [D44], with comments as whitespace and the doc literal
 in the binding's slot.
 
-The milestone's answers are the targets of [D43], [D44] and [D57] in
-the conformance suite, which `node scripts/requirements.mjs D43 D44
-D57` lists. Among them `42 | :x / | add 1 | x` answers 43 today,
+The milestone's answers are the targets of [D4], [D43], [D44] and
+[D57] in the conformance suite, which `node scripts/requirements.mjs`
+prints as the focus while any of them is open. Among them `42 | :x / |
+add 1 | x` answers 43 today,
 because `:x /` re-evaluates its body at every mention; under the one
 binding form a bare body is evaluated once, at declaration, and that
 is how `as` is spelled once it is gone.
@@ -1928,14 +1929,16 @@ with the rule for maps and the reading of duplicate keys, the set as
 the ordered vector, the kinds and the strict predicates have landed
 [D1], [D14], [D15], [D16], [D18], [D32], [D48], and so have the command line's
 default subject and its terminal views [D37]. What remains is the
-contracts moving onto the kinds [D33]; the tags of the refusing sites
+contracts moving onto the kinds, an edit that keeps its kind among
+them [D33], [D41]; the tags of the refusing sites
 as kinds with their schemas and procedures, and the law for nested
 errors [D7], [D13], [D46], which is where the JavaScript classes of errors
 and the prose that restates their facts disappear; and the effect
 marker leaving the core [D2].
 
-Its answer is the target of [D13] in the conformance suite. Beside the
-answer: no factory-declared error class remains; every
+Its answers are the targets of [D13] and [D41] in the conformance
+suite. Beside the answers: no factory-declared error class remains;
+every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; the language has no effect marker and no effect flag; host
@@ -1956,7 +1959,7 @@ site, the keyword's form comes from the parser, the error library is
 decided, and the editor's grammar is generated or reduced; the consumers
 lose the rules they carry of their own.
 
-Its answers are the targets of [D5], [D19] and [D36] in the
+Its answers are the targets of [D5], [D19], [D34] and [D36] in the
 conformance suite. The names `namespace` and `binding` there stand for
 the operands the branch names; where a target uses a name or a field
 no decision fixes, the name is a placeholder and the answer's shape is

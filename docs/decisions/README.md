@@ -1,6 +1,8 @@
 # Decisions
 
-One file holds one decision, `Dnn.md`, written once; a record that a later one
+One file holds one decision, written once: `Dnn.md` for a decision of the
+language and of the work on it, `En.md` for one of the environment of the
+work that `docs/qlang-entrypoint.md` designs; a record that a later one
 replaces keeps its text and gains the line that names the record replacing it
 [D58].
 

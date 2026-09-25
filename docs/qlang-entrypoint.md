@@ -278,7 +278,7 @@ been tried [E3]:
 
 The tags are placeholders for the schema the discussion settles, and
 they are qualified by their owner, since the values a host produces
-carry their owner in the prefix [D35 in the audit]. What the block
+carry their owner in the prefix [D35]. What the block
 fixes is that the dashboard is a literal whose parts are addressed by
 projection, `/gates`, and read in detail by a query on the part, the
 gate's page or the fact's text, under the budget and the elision of
@@ -631,19 +631,19 @@ qlang-литералом дашборд в духе темной кабины в
 Read against the audit, that sketch is the first real user of three of
 its decisions at once. `::workflow | start`, which became
 `::workflow | status` [E5], is a verb found through the subject's tag
-[D34 in the audit]: the verb belongs to `::workflow`. The
+[D34]: the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag with a schema [D6 in the audit], printed as
+case, a metric, each a tag with a schema [D6], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
-[D21 in the audit].
+[D21].
 
 The mechanism the sketch needs: the command line finds a folder of
 modules above the working directory, as git finds its directory,
 serves them as host catalogs whose implementations are the sensors,
 reading git, the test results, the files and the transcript, loads the
-one the query asks for, and applies the verb [E1, E2].
+one the query asks for, and applies the verb [E1], [E2].
 The world of the work becomes a domain like the sister project's graph:
 its nouns are tags and addresses, its verbs few. The hook calls the
 same command and hands its output to the session within the cap,
@@ -653,102 +653,9 @@ become the benchmark's first domain with real expected values.
 
 ## Decisions
 
-The decisions of this document are numbered E1 onward and recorded as
-the audit records its own; the audit cites them as [E1 in the
-entrypoint document].
-
-### E1 · The modules of the work live in `.qlang/`
-
-Decision. A project keeps the qlang modules of its work in `.qlang/` at
-its root. The command line finds the folder by walking up from the
-working directory, as git finds `.git`, and serves its modules to
-`use`: `.qlang/<name>.qlang` is a module, and `.qlang/<name>.mjs`, when
-present, carries the implementations of the module's host operands. A
-module loads only when a query asks for it, so the command line run as
-a filter inside someone else's repository executes none of its code.
-Until mounted namespaces arrive [D24 in the audit] the entrypoint is
-`qlang 'use :workflow | start'`; with them the folder is mounted,
-`::workflow` finds its module, and the command becomes the maintainer's
-sketch.
-Source. «где консольный qlang найдет в cwd папочку с qlang-модулями
-загрузит их и запустит стартовый скрипт» (maintainer, 2026-09-23 09:46,
-session 86982eb5); the folder's name, the search and the loading on
-request, the model, 23 September 2026.
-Set aside. A visible folder such as `workflow/`, which puts the process
-among the product; loading every module of the folder on every run,
-which executes a repository's code whenever anyone pipes JSON through
-`qlang` inside it; a list of modules in a configuration file, a second
-spelling of what the folder already says.
-Replaced in part by E5, which makes the command `qlang 'status'`; the
-folder, its search and the loading on request stand.
-
-### E2 · Sensors are host operands, the screen is composed in qlang
-
-Decision. The sensors that read git, files and transcripts are host
-operands implemented in `.qlang/workflow.mjs` and declared, with their
-documents and examples, in `.qlang/workflow.qlang`; the gates, the
-facts and the dashboard are composed in qlang in the same module. The
-first gates are the gates of milestone 0 in the audit, and the first
-instruments are the three sensors of this document.
-Source. The model, 23 September 2026: a session's transcript runs to
-megabytes of JSON lines, reading it through the language costs more
-than the answer is worth, and the sensors exist in JavaScript already.
-Set aside. Measurement in qlang over generic host primitives that read
-a file or run git, which turns the command line into a runner of
-arbitrary reads and still leaves the transcript too heavy to fold in the
-language.
-
-### E3 · The first screen is a literal
-
-Decision. `start` answers a value under `::dashboard`, and the command
-line prints it as the literal. The dark rendering is a property of the
-value, which carries only what deviates, and no renderer stands between
-the value and the session. Every part of the value is a record under a
-tag the module declares with its document, so the screen explains
-itself through `docs`.
-Source. «и выплюнет qlang-литералом дашборд в духе темной кабины»
-(maintainer, 2026-09-23 09:46, session 86982eb5); the rest, the model,
-the same day.
-Set aside. A text renderer at the end of the pipe, which gives the
-screen a second spelling before the first has been tried.
-Replaced in part by E5: the verb is `status`, and its answer is a
-record under the tag of the noun it describes.
-
-### E4 · The hook pushes the same screen at every start
-
-Decision. `SessionStart`, for every source it reports, runs the
-entrypoint in the repository and returns its output to the session
-within the cap. The hook reads the session's transcript through the
-path it is given, and the reading it reports counts from the last
-compaction. On the maintainer's machine it is configured in
-`.claude/settings.local.json`, which git ignores, until the screen has
-proved itself; then it moves to `.claude/settings.json`, and every
-session of the repository starts from it.
-Source. The model, 23 September 2026, from the mechanics of this
-document and the first run of the reading sensor.
-
-### E5 · The first command is `qlang 'status'`
-
-Decision. A session starts from `qlang 'status'` in its repository.
-The subject is the noun of the nearest `.qlang/` folder [D37 in the
-audit], and `status` answers the state of the work as a record under
-that noun's tag. `docs` teaches and `status` shows: `::qlang | docs` is
-the language on one screen, `::qlang | status` what is mounted and
-where the session stands, and each noun's status speaks of that noun
-alone, a dependency appearing as a gate that links to the other noun's
-status and never as a copy of it. The line that says how to read a
-screen and where the documents are is appended by the host once per
-session, keyed by the session's identity. `jdt q 'status'` gives the
-sister project's screen by the same mechanism.
-Source. «если мы уже придумали что status у нас будет отвечать за
-онбординг работы с инструментом .. то тогда должна быть команда и
->qlang 'status'» (maintainer, 2026-09-23 16:32, session 86982eb5);
-composition by reference and the line once per session, the model, the
-same day.
-Set aside. A seed that carries the composition,
-`qlang '[/ ::jdt] * status'`, which the screen teaches once it has said
-that `::jdt` is worth asking; `status` as a verb of the core, which the
-maintainer judged a concern of the hosts [D34 in the audit].
+The decisions of this document are numbered E1 onward, since they treat
+the environment of the work, and live one to a file beside the audit's,
+`docs/decisions/En.md` [D58].
 
 ## Open questions
 
@@ -779,3 +686,13 @@ decision and no record followed.
 
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
+
+[D6]: decisions/D6.md
+[D21]: decisions/D21.md
+[D34]: decisions/D34.md
+[D35]: decisions/D35.md
+[D58]: decisions/D58.md
+[E1]: decisions/E1.md
+[E2]: decisions/E2.md
+[E3]: decisions/E3.md
+[E5]: decisions/E5.md

@@ -805,11 +805,10 @@ fetched, reads these declarations, and today it reads something false.
 Executing the declaration is the only thing that keeps it true. Here
 the declaration is the false party, since the page of `gt` asks for
 “comparable scalars of the same type”
-(`core/lib/qlang/operand/predicate.qlang`); in the model's reading `gt`
-is declared on each kind it compares, each with its own head [D62], and
-the refusal of a number compared with a string,
-`::GtOperandsNotComparableError` today, becomes the refusal of the
-slot's kind, the refusals of incomparability leaving as D16 has it.
+(`core/lib/qlang/operand/predicate.qlang`), so `gt` is declared on each
+kind it compares, each with its own head, and the refusal of a number
+compared with a string, `::GtOperandsNotComparableError` today, becomes
+the refusal of the head [D65].
 
 The declarations speak keywords where the values speak kinds: `type`
 answers a tag for every value [D32], while the catalog declares the
@@ -2045,8 +2044,8 @@ one descriptor stands today for every kind its subject lists, and the
 result a head declares carries whether the verb keeps its subject's
 kind, which `preservesTag` and `imposesOrder` decide today [D41].
 
-The milestone's answers are the targets of [D4], [D43], [D44], [D57]
-and [D60] in the conformance suite, which `node scripts/requirements.mjs`
+The milestone's answers are the targets of [D4], [D43], [D44], [D57],
+[D60] and [D65] in the conformance suite, which `node scripts/requirements.mjs`
 prints as the focus while any of them is open. Among them `42 | :x / |
 add 1 | x` answers 43 today, because `:x /` re-evaluates its body at
 every mention; under the one binding form a bare body is evaluated
@@ -2464,3 +2463,4 @@ maintainer wants to explore it before it is fixed.
 [D62]: decisions/D62.md
 [D63]: decisions/D63.md
 [D64]: decisions/D64.md
+[D65]: decisions/D65.md

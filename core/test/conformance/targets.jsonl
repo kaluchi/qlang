@@ -50,3 +50,5 @@
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64"}
 {"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}
+{"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65","target":true}
+{"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}

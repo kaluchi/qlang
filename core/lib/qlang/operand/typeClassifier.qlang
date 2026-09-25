@@ -21,7 +21,7 @@
       tag identity — the materialised descriptor exposed by
       `!|` is a Map with the per-site `::ErrorTag` riding on
       the JS-header slot, and `type` reads through the same
-      invariant every other tagged value-class shares.
+      invariant every other tagged value shares.
 
       ~(42 | type | eq ::number)
       ~("hi" | type | eq ::string)

@@ -82,7 +82,7 @@
   ~~|
 
 ::SumResultNotFiniteError
-  |~~ Every element carries the right value-class, and the running
+  |~~ Every element is of the right kind, and the running
       total still answered outside the finite-double domain. The
       total is read at each element in the subject's order, so a subject
       whose partial sums leave the domain lifts here while its

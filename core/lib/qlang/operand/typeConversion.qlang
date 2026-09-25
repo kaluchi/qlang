@@ -1,5 +1,5 @@
 |~ qlang operand catalog — typeConversion family. Involutive
-   lifts between sibling value-classes — `keyword` swings a value
+   lifts between sibling kinds — `keyword` swings a value
    between the String and Keyword surfaces, `keyword | keyword`
    round-trips. Future entries on this axis (`tagKeyword`,
    `quote ↔ string`, …) land here. ~|

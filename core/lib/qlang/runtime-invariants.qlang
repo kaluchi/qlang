@@ -6,8 +6,8 @@
    projection segment-walker, the combinator track-dispatcher,
    the render-path round-trip guards. Per-operand errors live
    inline in the operand's own family file
-   (lib/qlang/operand/<family>.qlang); value-class-constructor
-   errors (::conduit / ::quote / ::builtin) live next to their
+   (lib/qlang/operand/<family>.qlang); the errors of the kinds'
+   constructors (::conduit / ::quote / ::builtin) live next to their
    constructors in lib/qlang/tag.qlang.
 
    Section layout, top to bottom:
@@ -32,14 +32,14 @@
 
 ::builtin
   |~~ Tag-binding declaration shape. Every catalog entry — operand
-      declarations, value-class-constructor declarations, error
+      declarations, the declarations of kinds, error
       tag-binding declarations — uses ::builtin{…} as its body.
 
         :name ::builtin{:impl :qlang/prim/<name> …catalog metadata}
           binds a runtime callback under the impl handle.
 
         ::Name ::builtin{…tag-side metadata}
-          declares an identity (error tag, value-class tag) carrying
+          declares an identity (an error tag, a kind) carrying
           docs / category / position / expectedType metadata that
           downstream `::Name | source / docs / examples` exposes.
 
@@ -103,7 +103,7 @@
 
 ::ProjectionFieldNotOnValueClassError
   |~~ Projection segment is not a publicly-projectable field
-      on the value-class subject, a Doc.
+      on the subject, a doc.
 
       ~(
         |~~ prose ~~| | /missing
@@ -136,8 +136,8 @@
   ~~|
 
 ::ProjectionSubjectNotProjectableError
-  |~~ Projection `/key` requires a Map, Vec, Set, or value-class
-      subject; null subject and other shapes lift to this error.
+  |~~ Projection `/key` requires a map, a vector, a set or a tagged
+      value as its subject; null and other shapes lift to this error.
 
       ~(
         42 | /foo

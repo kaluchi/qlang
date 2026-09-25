@@ -38,7 +38,7 @@
 
 ::AddResultNotFiniteError
   |~~ `add` answered outside the finite-double domain a qlang
-      Number lives in. Both operands carry the right value-class
+      Number lives in. Both operands are of the right kind
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
@@ -84,7 +84,7 @@
 
 ::SubResultNotFiniteError
   |~~ `sub` answered outside the finite-double domain a qlang
-      Number lives in. Both operands carry the right value-class
+      Number lives in. Both operands are of the right kind
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
@@ -129,7 +129,7 @@
 
 ::MulResultNotFiniteError
   |~~ `mul` answered outside the finite-double domain a qlang
-      Number lives in. Both operands carry the right value-class
+      Number lives in. Both operands are of the right kind
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 
@@ -176,7 +176,7 @@
 
 ::DivResultNotFiniteError
   |~~ `div` answered outside the finite-double domain a qlang
-      Number lives in. Both operands carry the right value-class
+      Number lives in. Both operands are of the right kind
       and ride the descriptor as `:leftValue` / `:rightValue`; the
       magnitude is what the site refuses.
 

@@ -33,7 +33,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   makeDoc, makeSet, isQuote,
   makeConduit, makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, conduitBodyAst, conduitEnvRef,
+  isTaggedInstance, isValueClass, conduitBodyAst, conduitEnvRef,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
@@ -332,11 +332,20 @@ function evalBody(node, state) {
     : applySuccessTrack(state, node);
 }
 
+// The container beneath every tag stacked over a value, which distribute
+// reaches as the walk hands a verb the value it serves [D34].
+function containerBeneathTags(value) {
+  let beneath = value;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  return beneath;
+}
+
 async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) {
     return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
   }
-  if (!isVec(state.pipeValue) && !isQMap(state.pipeValue)) {
+  const subjectSeq = containerBeneathTags(state.pipeValue);
+  if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
@@ -346,7 +355,6 @@ async function distribute(state, bodyNode) {
   // takes the track: `[e 1] * (!| 0)` recovers the error element, and
   // `[e 1] * (count)` hands it on with its trail.
   const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
-  const subjectSeq = state.pipeValue;
   // A map's elements are its values, and the keys travel with them.
   if (isQMap(subjectSeq)) {
     const mapEntries = [...subjectSeq];

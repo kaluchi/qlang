@@ -1346,11 +1346,8 @@ rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
 module speaks of the `BUILTIN_IMPL_SLOT` and of
 `createPrimitiveRegistry()` and sends the reader to
 `cli/src/cli-locator.mjs` (`core/lib/qlang/runtime-invariants.qlang`).
-It speaks the vocabulary of objects as well, which D20 keeps out of the
-language: the page of `::builtin` counts “value-class-constructor
-declarations” among the entries of the catalog. A session learning
-qlang from its catalog meets the names of the files that implement it
-and the habits of classes.
+A session learning qlang from its catalog meets the names of the files
+that implement it.
 
 Examples live on four planes: the conformance suite, the `~(…)` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in

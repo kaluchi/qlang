@@ -1,8 +1,8 @@
-|~ Value-class tag-bindings — ::conduit, ::quote, ::set, ::builtin,
+|~ The tag-bindings of the kinds — ::conduit, ::quote, ::set, ::builtin,
    and the tags of a quote's steps. Each constructor declares its
    identity through ::builtin{…} with an :impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that mints
-   the corresponding value-class instance from a payload; a step's
+   the corresponding value from a payload; a step's
    tag names an identity alone. Per-tag error sites sit directly under the
    constructor BindStep they belong to (so axis-operand walks
    stay one-pass within this file); the constructor's `:throws`

@@ -18,14 +18,16 @@ const conformanceDir = join(root, 'core', 'test', 'conformance');
 const decisionsDir = join(root, 'docs', 'decisions');
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
+// The decisions of the language and of the work on it are D1 onward,
+// those of the environment of the work E1 onward, and they list in that
+// order.
 const decisions = new Map(readdirSync(decisionsDir)
-  .map(fileName => fileName.match(/^D(\d+)\.md$/)?.[1])
+  .map(fileName => fileName.match(/^([DE]\d+)\.md$/)?.[1])
   .filter(Boolean)
-  .map(Number)
-  .sort((left, right) => left - right)
-  .map(number => {
-    const recordText = readText(join(decisionsDir, `D${number}.md`));
-    return [`D${number}`, {
+  .sort((left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
+  .map(name => {
+    const recordText = readText(join(decisionsDir, `${name}.md`));
+    return [name, {
       domain: recordText.match(/^Domain\. (\w+)\./m)[1].toLowerCase(),
       replaced: /^Replaced by \[D\d+\]/m.test(recordText),
       met: [],

@@ -101,7 +101,7 @@ for (const line of git('diff', '--name-status', base, head, '--', 'docs/decision
   const replacementOnly = hunks.every(hunkLines => {
     const changed = hunkLines.filter(changedLine => changedLine !== '');
     return changed.every(changedLine => changedLine.startsWith('+'))
-      && (/^\+Replaced (in part )?by \[D\d+\]/.test(changed[0]) || changed.every(added => /^\+\[D\d+\]: D\d+\.md$/.test(added)));
+      && (/^\+Replaced (in part )?by \[[DE]\d+\]/.test(changed[0]) || changed.every(added => /^\+\[[DE]\d+\]: [DE]\d+\.md$/.test(added)));
   });
   if (replacementOnly) notes.push(`record replaced: ${path}`);
   else findings.push(`record rewritten: ${path}`);

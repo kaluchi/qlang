@@ -1918,7 +1918,10 @@ its scope, and a module is a pipeline whose value is what it exposes
 [D63], so helpers stay in their module and `env` answers the user's own
 names [D61]; a verb is found by walking the subject's tags [D34], and a
 tag name with a path addresses a verb through the noun it lives on,
-`::vec/count`. The syntax of a declaration stays as it stands, the
+`::vec/count`; a refusal lives on the place it guards, a verb, a noun
+or a step of the language, whose `/throws` lists it, and errors are of
+the kind `::error`, a noun of the core [D64]. The syntax of a
+declaration stays as it stands, the
 descriptor of a built-in and the binding of today, which the next
 milestone rewrites.
 
@@ -1974,8 +1977,10 @@ errors [D7], [D13], [D46], which is where the JavaScript classes of errors
 and the prose that restates their facts disappear; and the effect
 marker leaving the core [D2].
 
-Its answers are the targets of [D13] and [D41] in the conformance
-suite. Beside the answers: no factory-declared error class remains;
+Its answers are the targets of [D13], [D41] and [D64] in the
+conformance suite, the last for the error a value slot hands on, whose
+kind D64 names and whose passage D13 settles. Beside the answers: no
+factory-declared error class remains;
 every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
@@ -2335,3 +2340,4 @@ maintainer wants to explore it before it is fixed.
 [D61]: decisions/D61.md
 [D62]: decisions/D62.md
 [D63]: decisions/D63.md
+[D64]: decisions/D64.md

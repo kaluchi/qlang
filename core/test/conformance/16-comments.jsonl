@@ -66,3 +66,4 @@
 {"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add 1","expect":"[2 3]"}
 {"name":"comment-head-keeps-leading-pipe-deflection","query":"[!{:kind :z}] * (| |~ note ~| count) | first !| /trail","expect":"~(| count)"}
 {"name":"comment-head-without-leading-combinator-rides-pipe","query":"[!{:kind :z}] * (|~ note ~| count) | first !| /trail","expect":"~(| count)"}
+{"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | /content | contains \"\\r\"","expect":"false"}

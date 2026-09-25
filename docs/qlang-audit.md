@@ -7,11 +7,16 @@ maintainer alone, checking whether the work still points where it
 should. It records what the language is for, what state would count as
 satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. The first
-version was written in September 2026 and frozen in commit `05eb884`;
-this second version rewrites it after a day of holding it against the
-whole tree, the reference, the sister project and a long conversation
-with the maintainer. `git diff 05eb884 -- docs/qlang-audit.md` shows
-what changed.
+version was written in September 2026 and frozen in commit `05eb884`.
+The second rewrote it after a day of holding it against the whole
+tree, the reference, the sister project and a long conversation with
+the maintainer, drove the repairs that landed as the pull requests
+from #42 to #52, and is frozen in commit `32db75c`. This third version
+holds the text against the tree those repairs left: a scar the tree no
+longer shows has left the document, and what remains of a scar is
+stated as it stands. `git diff 32db75c -- docs/qlang-audit.md` shows
+what changed, and the message of the commit that wrote this version
+tells what the repairs did.
 
 The design of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`. This document treats
@@ -347,6 +352,13 @@ builds fork against the outer value, which is what makes reshaping a
 matter of writing the shape you want. Projection walks a path with
 strict misses. Application is subject-first.
 
+A literal reads by its spelling alone: a bare word is a name, a string
+is quoted, a keyword carries its colon, and nothing is typed by its
+appearance, the normalization of pasted JSON included. YAML 1.1 read
+the country code of Norway, `NO`, as `false`, because it guessed the
+type of a bare word; the Norway problem is the standard warning
+against resolving untyped text by its look.
+
 Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. The error is a
 value with a tag and a descriptor; its trail is a quote of the steps it
@@ -554,12 +566,21 @@ b
 c
 ```
 
-A quote has none, since it holds its code as text, and a doc offers
-its content and its segments and no more, so the guide itself cannot
-be read in pieces. The pageable shape is the vector, and a value that
-can overflow has to break into one: a string through its lines, a
-quote as the vector of its steps, a doc as the vector of its segments
-[D19].
+A quote has all three, being the vector of its steps [D53], and a doc
+offers its content and its segments and no more, so the guide itself
+cannot be read in pieces. On 25 September 2026:
+
+```qlang
+> ~(add 1 | mul 2) | take 1
+~(add 1)
+
+> |~~ a ~(add 1) b ~~| | count !| type
+::CountSubjectNotContainerError
+```
+
+The pageable shape is the vector, and a value that can overflow has to
+break into one, as the quote has: a string through its lines, a doc as
+the vector of its segments [D19].
 
 Next, every tag and keyword inside a value is an anchor that resolves to
 its document. A tag is one. A keyword resolves only as the name of a
@@ -574,8 +595,8 @@ own [D50]. The shape of an answer is read the same way, before the
 answer is fetched: the operand's declaration names the tag or the type
 of its result, the tag's declaration names the fields, and `spec` and
 `docs` on the operand answer for one operand what a schema sheet would
-answer for all. The result of a declared pipeline is the kind its body
-answers, and that of host code is declared with it [D45]; the fields are
+answer for all. The result of a verb is the kind its head declares
+last, a declared verb's and a built-in's alike [D57]; the fields are
 declared with the tag, and the element shape of a container is spelled
 as the container's literal around the kind, `[::Method]` for a vector of
 methods. Last, everything prints as what it is, code included, because
@@ -666,6 +687,22 @@ field were catalogued; then two drift tests and an injection script
 were written to keep the catalog and the classes in agreement. Each
 surgery treats the one before it.
 
+In the last week of September the second version of this document
+drove a series of repairs, each a branch read by the external reviewer
+as a pull request and merged whole with its commits. Code became the
+vector of its steps, which the language takes apart and assembles with
+its own verbs, and `apply` came to take its subject first. Every step
+became a command, the verb literal was chosen, and every text of the
+repository and of the sister project was rewritten by machine into the
+command form. One order came to rank every value and the comparators
+left; JSON syntax came to read into the one map and the one vector; a
+map's elements became its values; the set became the ordered vector
+under its tag; every value received a kind; every condition was held
+to a boolean; the terminal views moved to the command line, which
+starts from a noun; the fields kept for an observability backend left
+the errors; and a failure of the host came to carry a tag of the
+language. What those repairs left is what the scars below describe.
+
 ## The scars
 
 The rest of the audit walks the scars in the order in which their
@@ -673,10 +710,9 @@ repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
 shell with the `qlang` command or in its REPL; a probe without a date
-answered so on 14 September 2026, and all of them were run again on 23
-September 2026 with the same answers. On 24 September 2026 the command
-form rewrote the query of every probe, and each answered as its block
-records.
+answered so on 14 September 2026, the command form rewrote the query of
+every probe on 24 September 2026, and on 25 September 2026 every probe
+of this version answered as its block records.
 
 ### Arguments that move with the subject
 
@@ -747,6 +783,61 @@ that the shape of an answer can be known before it is fetched, reads
 these declarations, and today it reads something false. Executing the
 declaration is the only thing that keeps it true.
 
+The declarations speak keywords where the values speak kinds: `type`
+answers a tag for every value [D32], while the catalog declares the
+subject, the slots and the result of an operand with keywords, and the
+page of a refusal names the kind it expected with one. On 25 September
+2026:
+
+```qlang
+> 1 | type
+::number
+
+> :add | spec | /subject
+:number
+```
+
+The kinds move into the declarations with the kinds of the slots
+[D45].
+
+Whether a transform keeps its subject's tag at all is an option of the
+operand's implementation, `preservesTag`, which `applyTagPreservation`
+in `core/src/runtime/dispatch.mjs` reads, and a second option there,
+`imposesOrder`, lets `sort` and `reverse` answer a vector over a set,
+as D16 asks. Neither is a fact of a declaration, so an edit of a
+tagged map keeps the tag or loses it by which implementation set the
+flag, and the loss is silent:
+
+```qlang
+> ::T{:a 1 :b 2} | filter ~(eq 1) | type
+::T
+
+> ::T{:a 1} | union {:b 2} | type
+::map
+
+> ::T{:a 1} | payload | union {:b 2} | tag ::T
+::T{:a 1 :b 2}
+```
+
+The kind of an operand's result belongs to its declaration [D4, D41].
+
+A quote held as data carries no environment, so a parameter of the
+body that receives one captures a name of the caller, where an
+argument of today's lazy form is read in its author's environment:
+
+```qlang
+> :x 10 | :t [:f :x] (f) | 2 | t (add x) 99
+12
+
+> :x 10 | :t [:q :x] (apply q) | 2 | t ~(add x) 99
+101
+```
+
+A quote written as a modifier carries the environment of its call and
+one written as the body of a binding that of its declaration, so code
+handed to another pipeline sees the names of its author wherever it is
+applied [D43, D44].
+
 The wrappers are also the host's interface. The command line's I/O
 operands and every operand of the sister project are built from
 `nullaryOp`, `valueOp` and `overloadedOp` and from the per-site error
@@ -763,7 +854,7 @@ the runtime reads, so that the catalog's slot vocabulary stops being
 decoration [D4, D43, D45]. An operand is then a declaration, whatever
 implements it: the tag or the type of its subject, its slots with their
 kinds, code among them, the tag or the type of its result, and its doc,
-the kinds written in its slot list. The runtime executes the
+written in the head of its literal [D57]. The runtime executes the
 declaration: it checks the subject and every slot before the
 implementation runs, a slot of kind code taking a quote and nothing
 else, and it checks the result. A built-in, a host's operand and a
@@ -792,47 +883,12 @@ several layers of pipelines, keeps its shape: the reference's `:@topBy
 [:keyFn :n] (sort ~(keyFn) | reverse | take n)` receives its key as a
 quote that carries its caller's environment and hands it on as a value.
 
-A predicate slot refuses a result that is not a boolean [D14], so a
-predicate that answers a string or a quote fails at the slot, `[1 2] |
-filter ~(1)` lifting `::FilterConditionNotBooleanError` with `:index 0`,
-and a result that is an error is the error itself, which `filter`,
-`every`, `any` and `cond` hand on. The same refusal reaches every
-condition: `if` and `cond` refuse a condition of another kind, `and`,
-`or` and `not` take booleans, `when` and `unless` became `if` with an
-identity branch, `if (gt 0) ~(add 100) ~()`, and `firstTruthy` gave way
-to `coalesce`, the three gone from the catalog; the test for null is `eq
-null`, and whether that test earns an operand of its own is a question
-the benchmark answers. A predicate over a Map sees the value alone, by
-the rule for maps stated with the containers [D15]. And `runExamples`
-counts an example as passed only when it answers `true`. A condition
-computed at the call, that of `if` and the operands of `and` and `or`,
-refuses an error value by the tag of its site as every value slot does,
-and the one law for nested errors, under which a place declared for a
-kind hands the error on unchanged, comes with the kinds of the slots
-[D13].
-
-```qlang
-> [1 2] | filter ~(1) !| [type /index]
-[::FilterConditionNotBooleanError 0]
-
-> 5 | if (gt 0) ~(add 100) ~()
-105
-
-> null | not !| type
-::NotSubjectNotBooleanError
-```
-
-What a lenient slot costs was measured on the sister project the day
-it moved onto the workspace copy. Its dispatch of `@problems` tested
-`cond(isNull, …)` after the core had removed `isNull`, and every node
-took the first branch, since the refusal in the predicate slot counted
-as true and nothing reported it. The predicate's refusal now comes out
-of `cond` as it is:
-
-```qlang
-> "x" | cond ~(noSuchName) ~("first") ~("second")
-::UnresolvedIdentifierError!{ … :identifierName "noSuchName" }
-```
+A condition answers a boolean or is refused at its site [D14], and a
+predicate's own error is the answer of `filter`, `every`, `any` and
+`cond`. A value slot, a condition computed at the call among them,
+refuses an error value by the tag of its own site, where the one law
+for nested errors hands the error on unchanged; the law comes with the
+kinds of the slots [D13].
 
 The declaration is also where help comes from. Once the runtime reads
 the slots, completion in the editor, the list of verbs that accept a
@@ -844,298 +900,6 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 `signatureHelpAtOffset`) and labels them from the descriptor's
 `:modifiers`; it reads the slot record once the runtime executes one.
 
-### A call borrowed from another paradigm
-
-A step was written as a function call, a name with a parenthesised list,
-and the notation brought the expectations of another paradigm: a
-function applied to its arguments, a standard library to complete and
-lambdas to pass around, in a language whose steps are the commands of a
-tool with the subject arriving by pipe. That is how the sister project's
-command line was used before the language existed, and it is the form a
-session is most practised in. Parentheses meant two things, the argument
-list and a group; the comma belonged to the argument list alone, and a
-call without arguments had two spellings.
-
-The command form replaced it [D10, D55]. A step is a command: a name
-followed by its modifiers, separated by spaces. A modifier is one word,
-a literal, a projection, a name, a quote, or a pipeline in parentheses,
-which is the only thing parentheses mean. A slot that runs code takes a
-quote, `~(…)` [D43, D56]. On 24 September 2026:
-
-```qlang
-> 5 | add (mul 2)
-15
-
-> {:price 100 :qty 3} | mul /price /qty
-300
-
-> [1 2 3] | filter ~(gt 1)
-[2 3]
-```
-
-A command stands bare where the pipeline delimits it, up to the next
-combinator, the next closing bracket or the end of its line; inside a
-modifier and inside a literal, where words are elements, a command that
-has modifiers or a pipeline goes in parentheses, and there a newline is
-whitespace. It is the rule of every shell: `methods | filter
-~(/modifiers | any ~(eq "public")) * /name`. A line is a step [D11]: the
-line that follows continues the pipeline through the combinator it
-begins with, through the one the line before ends with, or through `|`
-when neither has one [D43], so an example keeps its combinator first on
-the line, two declarations stand on two lines with nothing between them
-as the catalog writes them, and a module prints as it is written, a step
-to a line. The parts of a binding, the name, its doc, its parameter
-vector and its body, are no modifiers and may take a line each. A
-combinator is set off by whitespace on both sides, a line break counting
-as whitespace, so the pipe written against a tilde, `|~`, always opens a
-comment and `| ~(add)` is a pipe before a quote [D43].
-
-The argument comma has left the grammar, a command without modifiers has
-one spelling, and a query carries one pair of parentheses fewer at every
-leaf than the call form gave it. A command whose slots are all required
-value slots may be given its subject as its first modifier, the pipeline
-value then serving as context alone, as `mul /price /qty` above, which
-is how two projections of one subject meet in one operand; an operand
-with a code slot or an optional slot takes its subject from the pipe and
-from nowhere else. Named options are one modifier, a map under a tag
-whose declaration documents its fields, `refs {:kind :call :limit 20}`,
-so the keys and flags that swelled a command line are data [D40]. The
-binding form stays as it is, a keyword and a body; the body is a step,
-`:six add 1`, and code is a quote, `:inc ~(add 1)`. The form is part of
-the format in which values travel, since a trail, a snippet in a doc and
-an example all carry it, and the printer writes it.
-
-The habit of a model trained on function calls breaks in three places,
-as the decision foresaw, and each fails with an error rather than a
-wrong answer. A call of one argument still reads as a command whose
-modifier is a group, so `take(2)` answers as `take 2`, and at a slot of
-code the group computes a value at the call, which the slot refuses,
-naming the quote it wanted. A comma inside parentheses is refused by a
-sentence that names the command form. Inside a literal a call reads as
-two words, `[mul(2) add(1)]` as four. On 24 September 2026:
-
-```qlang
-> [1 2 3] | take(2)
-[1 2]
-
-> [1 2 3] | filter (count | gt 1) !| [type /actualType]
-[::FilterPredicateNotQuoteError ::boolean]
-
-> [1 2 3] | add(1, 2)
-::ParseError!{ … :message "the argument comma left the language: modifiers are separated by spaces, `f a b`" … }
-
-> 5 | [(mul 2) (add 1)]
-[10 6]
-```
-
-The price the decision accepted lands where it was expected: every
-predicate, key and fold is a slot of code, and its refusal names the
-fix.
-
-The maintainer made one condition of the space around a combinator, that
-examples over several lines and combinators moved to either end of a
-line keep parsing [D43]. Under the rule, on 24 September 2026, a
-combinator at the start of the next line and one at the end of the line
-both carry a pipeline over the break, a combinator on each side of one
-break leaves an empty step, and the pipe written against a tilde opens a
-comment the parser names:
-
-```qlang
-> [1 2 3]
-  | filter ~(gt 1)
-  | count
-2
-
-> [1 2 3] |
-  filter ~(gt 1) |
-  count
-2
-
-> [1 2 3] |
-  | count
-::ParseError!{ … :found "|" … }
-
-> [1 2 3] |~(count)
-::ParseError!{ … :message "`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`" … }
-```
-
-A break with no combinator at either end stands for `|` outside brackets
-and is whitespace inside them, so a line there without a combinator
-hands its words to the command of the line before, which is how `if` and
-`cond` spread their parts over lines and what a command with no slot
-left refuses. A combinator written against its neighbour is refused with
-a sentence that names the space:
-
-```qlang
-> [1 2]|count
-::ParseError!{ … :message "a combinator is set off by whitespace on both sides: write ` | `" … }
-```
-
-The same principle that keeps a bare word a name keeps the reader from
-guessing. YAML 1.1 read the country code of Norway, `NO`, as `false`,
-because it guessed the type of a bare word; the Norway problem is the
-standard warning against resolving untyped text by its look. In qlang a
-bare word is a name, a string is quoted, a keyword carries its colon,
-and nothing is typed by its appearance, the normalization of pasted JSON
-included.
-
-### Two container families
-
-JSON syntax reads into the one map and the one vector [D1]: a literal
-with string keys and commas is a map whose keys are the keywords of its
-strings, and a bracket with commas or with a single element is a vector,
-so the two spellings answer alike:
-
-```qlang
-> [1] | type
-::vec
-
-> {"a": 1} | keys
-#[:a]
-```
-
-The codec writes a keyword back as its bare name, for keys and for
-values alike, so the command line answers JSON with the strings a
-document holds, `echo '{"a":1}' | qlang 'keys'` printing `["a"]`. The
-sister project's records carry the habit the family served, `:kind
-"type"` as a string field, and under kinds [D32] the kind of a record is
-its tag.
-
-Every value has a kind [D32]: `type` answers its outermost tag, or for a
-value without a tag of its own the kind of the core its literal implies,
-`::null`, `::boolean`, `::number`, `::string`, `::keyword`, `::tag` for
-a tag name, `::vec`, `::map`, `::set`, `::quote` and `::doc`. A kind of
-the core is named under the prefix `qlang/` and written short, so
-`::qlang/number` reads as `::number` and prints so; its constructor
-reads a payload of the kind as the value itself, `::qlang/vec[1 2]`
-answering `[1 2]`, and refuses one of another kind at its site, since no
-kind reads text [D33]; and its page in the catalog is what `5 | type |
-docs` reads. A tag's name lives apart from the values, so a reserved
-word may follow `::` as it may follow `:` and `/`, and `::null` is
-written. A refusal carries the kind of the value it refused,
-`:actualType ::string`; the kinds a site accepts, `:expectedType`, and
-the kinds the catalog declares for subjects and slots stay keywords, and
-they move with the kinds of the slots [D45].
-
-```qlang
-> [1 2] | type
-::vec
-
-> ::qlang/vec[1 2]
-[1 2]
-
-> null | type
-::null
-
-> ::number"5" !| type
-::NumberPayloadNotNumberError
-```
-
-The set is a third family, and the language's own history says what it
-is. The May commit that moved its literal from braces to brackets
-explains that `#[…]` reads as a tagged `[…]` and that the set carries
-the invariant of no duplicates onto the type plane. That is the
-definition of a tag with a constructor: a vector whose constructor
-removes structural duplicates and runs again after any transform that
-could reintroduce them. The runtime keeps it so [D16]. A set is the
-vector under the `::set` tag; the constructor that `#[…]`, `distinct`
-and `::set[…]` share sorts its elements into the one order and keeps
-each once; and the tag-constructor re-invocation machinery, which exists
-for exactly this contract and pays for it with a dynamic import that
-breaks a module cycle, runs it again after `filter`, `take`, `drop` and
-`flat`. Its equality is the vector's, `#[1 2] | eq #[2 1]` answering
-true because both read `#[1 2]`, and its membership is a binary search
-in the one order.
-
-Whether a transform keeps its subject's tag at all is an option of the
-operand's implementation, `preservesTag`, which `applyTagPreservation`
-in `core/src/runtime/dispatch.mjs` reads, and not a fact of its
-declaration. An edit of a tagged map keeps the tag or loses it by which
-implementation set the flag, and the loss is silent:
-
-```qlang
-> ::T{:a 1 :b 2} | filter ~(eq 1) | type
-::T
-
-> ::T{:a 1} | union {:b 2} | type
-::map
-
-> ::T{:a 1} | payload | union {:b 2} | tag ::T
-::T{:a 1 :b 2}
-```
-
-The kind of an operand's result belongs to its declaration [D4, D41].
-
-A duplicate key in a map literal, in either spelling, reads as
-`JSON.parse` reads it, the last value in the first position,
-`{:a 1 :b 2 :a 3} | vals` answering `[3 2]`, and the boundary reads the
-same, so a document means one thing whether it was pasted into a query
-or piped into it [D18].
-
-A map is a record and a dictionary at once, insertion-ordered, equal to
-another by its keys. Its elements are its values and its keys are the
-shape that travels with them, so every operation over elements sees a
-value and keeps the key [D15]: `*` replaces the values under their keys,
-`{:a 1 :b 2} * add 1` answering `{:a 2 :b 3}`, `filter` keeps the
-entries whose value passes, `sort`, `take`, `drop` and `reverse` order
-and cut the entries by value, and the reducers read the values. `keys`
-answers the sorted set of keys, `at` reads one, `inter` and `minus`
-select by a set or a vector of keys. A predicate sees the value alone,
-and a conduit of two parameters is refused by the arity of its site as
-over any container; the joint test of a key with its value reads the
-keys, `{:apple 1 :banana 2 :avocado 3} | inter (keys | filter
-~(keyword | startsWith "a"))` answering `{:apple 1 :avocado 3}`, a
-vector of records is made from a map through `keys` and rebuilt into one
-through `indexBy`, and `groupBy` and `indexBy` answer maps.
-
-One order ranks every value [D16, D48]: by the kind, null, boolean,
-number, string, keyword, tag name, vector, set, map, quote, doc, error
-and elision, and after them the hosts' kinds by name, so that a null
-sorts first unless a key says otherwise; then within the kind, vectors
-element by element, maps by their keys and then their values, a host's
-value by its payload. `sort`, `min` and `max` accept any vector, `[3
-null "x" 1] | sort` answering `[null 1 3 "x"]`, a vector serves as a
-compound key and `[(eq null) /]` as one that puts nulls last, and the
-ordering predicates keep their refusal until the kinds of their slots
-carry it.
-
-The set is the vector in that order without duplicates, under the
-`::set` tag, `distinct` its constructor and `#[…]` its literal [D16], so
-that `#[3 1 3]` prints as `#[1 3]`, `[1 2 1] | distinct | type` answers
-`::set`, and equality, structural like everywhere, compares two sets by
-their content. Wherever a vector is accepted a set is accepted, since it
-is one, `#["b" "a"] | join ","` answering `"a,b"`; the reverse does not
-hold. `filter`, `take`, `drop` and `*` keep the set, an operand that
-imposes an order answers a vector, `flat` over a set of sets is their
-union, membership is a binary search and the algebra of two sets a
-merge, and the vector keeps its own arithmetic, since `union`, `minus`
-and `inter` are operations of sets and maps. The price is paid:
-`distinct` keeps no order of first occurrence, `keys` answers in the one
-order, and a literal reorders when printed. The JavaScript set is gone
-with its answer `:set` from `type`, its branches and its `$set`
-envelope; a set travels in the `$tagged` envelope and reads back through
-its constructor. A tag over a set stacks on it as over a quote, and a
-verb over the stack is refused as over any other stack, `::Box#[3 1] |
-count` lifting `::CountSubjectNotContainerError`; the walk of the tags
-is the decision that lets a verb reach the set beneath [D34].
-
-```qlang
-> #[3 1 3]
-#[1 3]
-
-> [2 1 2] | distinct | type
-::set
-
-> #[3 1 2] * add 1
-#[2 3 4]
-
-> #[3 1 2] | reverse
-[3 2 1]
-
-> ::Box#[3 1] | payload
-#[1 3]
-```
-
 ### Two ways to name a thing, and comments that are steps
 
 A value can be named by the `as` operand, which freezes the current
@@ -1143,8 +907,9 @@ value under a name, or by the binding form `:name body`, which binds an
 expression. The two are not interchangeable: the binding form cannot
 freeze the current value, because its body is re-evaluated at every
 use, and `as` cannot bind code. The wrapper that `as` produces is
-transparent to lookup, so it is unwrapped at eight places across the
-evaluator, the dispatch wrappers, the axes and `use`, and it is the
+transparent to lookup, so it is unwrapped wherever a binding is read,
+across the evaluator, the dispatch wrappers, the axes and `use`, and it
+is the
 reason the environment holds three kinds of binding, each serialized
 and described differently. The binding form itself chooses between a
 snapshot and a lazily evaluated body by inspecting the shape of the
@@ -1290,6 +1055,19 @@ fixed, the handful of operations of its file protocol, and letting the
 nouns grow, every resource a path in a per-process namespace; the
 catalog should grow the same way.
 
+A verb over a stack of tags is refused, a tag over a set or a quote
+making such a stack, and `payload` is the one way beneath; the walk of
+the tags is the decision that lets a verb reach the value under them
+[D34]. On 25 September 2026:
+
+```qlang
+> ::Box#[3 1] | count !| type
+::CountSubjectNotContainerError
+
+> ::Box#[3 1] | payload
+#[1 3]
+```
+
 The repair must put the documentation and the origin on the binding
 value, so that the axes read a value instead of searching for a name,
 and the four axes then become projections of one binding record:
@@ -1390,203 +1168,6 @@ mounted for it; a session, and a sub-agent inside it, is given the
 namespaces its task needs, and focus comes from construction rather
 than from being asked for.
 
-### Code as data, half a ring
-
-Code is a value, and the language takes it apart with its own verbs: a
-quote is the vector of its steps under the code tag, so `count` counts
-them, `payload` peels the tag and `tag` puts it back, `parse` flips text
-and a quote, and equality compares steps, which the spacing and the
-comments of the text do not reach [D53]:
-
-```qlang
-> ~(1 | add 1 | mul 2) | count
-3
-
-> ~(filter ~(gt 1)) | payload
-[::call{:name :filter :args [~(gt 1)]}]
-
-> eq ~(add 1) ~(add  1 |~ note ~|)
-true
-
-> "add  1" | parse
-~(add 1)
-```
-
-A command holds each modifier as its step [D47, D55], a literal as
-itself, a quote literal included, and a group as its quote under
-`::group`: A record or a wrapper is the step its own text reads back as,
-so a wrong assembly is refused where it is made, with the text it
-printed as [D54]:
-
-```qlang
-> ~(add 1 | take (count | sub 1) | filter ~(gt 1)) | payload * /args
-[[1] [::group~(count | sub 1)] [~(gt 1)]]
-```
-
-```qlang
-> ::call{:name :"a b"} !| [type /printed]
-[::CallReadBackDiffersError "a b"]
-
-> ::tagged{:tag ::Box :payload 42} !| /printed
-"::Box42"
-```
-
-The maintainer put this ring first: «кольцо Code as data и инволюция
-вероятно первичны в дизайне по отношению к прочим фичам» (maintainer,
-2026-09-15 02:12, session 268516f5), because the argument model passes
-code as a quote, a binding keeps its source as one, an error's trail is
-one, a doc's examples are ones, and an effect as a value would be one
-[D3].
-
-The repair must close the ring with a data form made of the language's
-own values, and the quote is that form [D8]: a vector of steps under
-the code tag, spelled `~(…)` by the rule the set's move from `#{…}` to
-`#[…]` established, that the sigil names the tag and the bracket names
-the shape of the payload, a map under `!{…}`, a vector under `#[…]`, a
-pipeline under `~(…)` because the parenthesis is the pipeline's
-delimiter everywhere else. So `count` counts steps, `filter` selects
-them, a quote is assembled on a plain vector and tagged last, since
-distribute drops a tag and `union` takes no vector, the empty quote
-`~()` is the identity, a tagged quote `::T~(…)` is the literal of a
-tagged piece of code, the tilde staying inside it because `::T(…)`
-already means a tag over the value of a group, and the tag's
-constructor re-establishes the one invariant, that every element is a
-step, after each transform.
-
-Where the syntax is a literal, the step is that literal itself, a nested
-quote included; where the syntax computes, a command, a projection, a
-declaration, a constructor invocation, the step is a tagged record
-declared and documented in the catalog, `::call`, `::proj`, `::bind` or
-`::tagged` [D47]. The combinators dissolve into the step: `5 | add 1 !|
-type` answers 6, so a step listens on one track and is skipped on the
-other; the fail track begins where a step produces an error and ends at
-the first step that listens on it, which receives the error as data, so
-`"x" | add 1 !| / | 5` answers 5. The group, the fail track and the
-distribute are therefore attributes of a step, each a tag stacked on the
-quote of that step, `::group`, `::fail` and `::each`, as `::T[1 2] | tag
-::U` already stacks to `::U::T[1 2]`, while `|` is the adjacency of the
-vector.
-
-The head of a pipeline is a step like the others and rides `|` unless
-tagged otherwise, the head of a query, of a group, of a distribute body,
-of a captured argument, of a declared pipeline and of an applied quote
-alike, and the parentheses after `*` delimit its body, so the body's own
-head meets each element [D52]: `[1 "x"] * add 1 * (false !| true)`
-answers `[false true]`, an error element under `*` passes through with
-its trail as the law for nested errors wants, and whether a value is an
-error is the composition `(false !| true)`, which needs no operand of
-its own. With the head riding `|`, the leading combinator needs no
-field, `~(| count)` and `~(count)` are one quote. Nothing in the form
-carries a `:kind`, since the tag is the language's own identity and
-errors already left `:kind` behind; the parser's tree with its positions
-and text never leaves the runtime, staying available to the tools as a
-separate view.
-
-```qlang
-> [1 "x"] * add 1 * (false !| true)
-[false true]
-
-> [!{:k 1}] * add 1 | first !| /trail
-~(add 1)
-
-> [1 "x"] * add 1 * (!| 0)
-[2 0]
-```
-
-`parse` reads text into a quote and its inverse prints a quote as text,
-the way `keyword` flips a string and a keyword, and equality over quotes
-is structural. Running code held as data is one operation, subject first
-[D9]: `apply q` runs the quote against the subject under the fork rule,
-the parenthesised group is the same run written as a literal, the
-wrapper tag on a quote that stands beside the distribute and the fail
-track, so that `(x)` behaves as `apply ~(x)` while its datum carries no
-doubled quote, and `eval`, being `apply /`, has left with the code-first
-`apply`, which let the declarations made inside leak out. A trail
-replays as `err !| :t /trail | 5 | apply t`, the declaration standing on
-the fail track because a declaration is a transparent step and hands the
-descriptor on as data, which `"x" | add 1 !| :t /trail | 5` answering
-`5` confirms.
-
-```qlang
-> 5 | apply ~(mul 2)
-10
-
-> 1 | apply ~(:x 2) | x !| type
-::UnresolvedIdentifierError
-```
-
-A quote held as data carries no environment; its names resolve where it
-is applied. The closure of the language is the binding, which carries
-its lexical environment on its header as the named pipeline does today,
-and so does a quote written as a modifier or as the body of a binding,
-which carries the environment where it is written, so that code handed
-to another pipeline sees the names of its author wherever it is applied
-[D43, D44]. Today an argument is read in its author's environment and a
-quote handed over as data in the body's, where a parameter of the body
-captures a name of the caller:
-
-```qlang
-> :x 10 | :t [:f :x] (f) | 2 | t (add x) 99
-12
-
-> :x 10 | :t [:q :x] (apply q) | 2 | t ~(add x) 99
-101
-```
-
-A binding's environment contains the binding itself, since a body may
-call its own name, so it is a cycle that no literal prints; it rides
-on the header, and the data plane shows the module the binding came
-from, which is what the axes need. An environment on a header is the
-one place where everything having a literal rests on a reference.
-Templates with holes are not needed: a hole is a free name of a quote
-held as data.
-
-Taking a quote apart and putting it back is the same pair of moves at
-every level. `payload` peels the tag from a quote, a record or a wrapped
-step, and `tag` puts it back; `[type payload] | tag` is the identity on
-every tagged value today, and `payload | type` answers the container
-shape beneath a tag. The literal of whatever `payload` shows rebuilds
-it: a vector literal, a map literal, a quote literal, then `tag`. A
-field of a record that holds a pipeline holds a quote, and a field that
-holds a word holds that word's step, the modifiers of a command among
-them, since a modifier is one word [D10]: a literal is itself, a quote
-literal included, a name or a projection is its record, and a group is
-its quote under `::group`, so `add ~(x)` and `add x` keep apart as
-`[~(x)]` and `[::call{:name :x}]` and no quote is doubled [D47]. The
-obvious assembly is the right one, `{:name :filter :args [~(gt 1)]} |
-tag ::call` being `filter ~(gt 1)`, and a wrong one is refused by the
-record's constructor at construction rather than accepted as a program
-that runs. The binding record says by its field whether it holds code or
-a value, `:code` for a verb and `:body` for a value evaluated at
-declaration. What remains to know is one rule: a declaration with a slot
-list is a verb whose code is its quote body, and every other declaration
-names a value, a quote included [D44]. `>>` has left before the form
-could encode it, since two steps say what it said [D51]:
-
-```qlang
-> [[1 2] [3 [4]]] | flat | count
-4
-```
-
-The same moves take any value apart into atoms and build it back [D42],
-and today they reach as far as projections, literals and quotes do. They
-stop at a key that comes from the data:
-
-```qlang
-> [1 :a "x" ::T] | [/3 {:a /0}] | tag
-::T{:a 1}
-
-> [1 :a "x"] | [/2 [/0 /0] {:b /1}]
-["x" [1 1] {:b :a}]
-
-> ~(add 1 | mul 2) | payload * type
-[::call ::call]
-```
-
-A map whose key is an atom is built through `indexBy` and `*` over the
-map, which the rule for maps grants [D15]; code comes apart as the
-vector of steps its quote is [D8].
-
 ### Errors named by their site
 
 Every throw site in the runtime declares its own error class, and the
@@ -1611,6 +1192,15 @@ at its end is the alert said again, followed by an example that
 produces the same error. What the reader should do, the procedure,
 is absent.
 
+The strict conditions and the kinds of the core added such pages, and
+the catalog is the one area whose diff against the September master
+is positive. On 25 September 2026:
+
+```sh
+$ git diff --shortstat f5e8ec8 -- core/lib cli/lib
+ 25 files changed, 1759 insertions(+), 1604 deletions(-)
+```
+
 Keeping the class names and the catalog in agreement requires a registry
 of throw-site specifications, a stamping pass at bootstrap that runs
 twice because there are two bootstrap paths, a test that checks six axes
@@ -1618,13 +1208,8 @@ of agreement, an injection script that copies example queries from the
 conformance suite into the catalog, and two tables in the error
 converter that spell the descriptor's field order and which fields are
 identifiers. The structure was built for an observability backend that
-fingerprints errors by class name; no such backend is attached. A
-foreign failure, a JavaScript error escaping an operand, carries the tag
-of the language `::ForeignFailureError` with the host's class name as
-its `:name`, and so do the records of its cause chain [D7], so the
-language the runtime happens to be written in stays out of the
-language's identities and a port to another host language changes a
-field, never what a query matches.
+fingerprinted errors by class name; the fingerprints have left the
+errors, and the structure stayed.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
@@ -1650,21 +1235,27 @@ unclosed quote has one sensible continuation, `)`, and the error names
 every token the parser could have taken there, among them the markers of
 comments.
 
-Three different policies govern an error raised inside a nested
-evaluation. Distribute keeps it as a value in the result. The
-container selectors abort with it:
+An error raised inside a nested evaluation meets the law of D13 in most
+places: distribute keeps it as a value in the result, a container
+selector answers with it, and `coalesce` treats it as no value, which
+is its contract, so a misspelled field becomes the fallback where a
+fallback was asked for:
 
 ```qlang
 > [1 "x"] | filter ~(add 1 | gt 1)
 ::AddLeftNotNumberError!{ … :trail ~(gt 1) }
-```
 
-And the fallback operands swallow it, so a misspelled field name
-silently becomes the fallback:
-
-```qlang
 > {:a 1} | coalesce ~(/b) ~(/a)
 1
+```
+
+A value slot is where the law does not hold: it refuses an error value
+by the tag of its own site, so one error nests inside another. On 25
+September 2026:
+
+```qlang
+> 1 | add (!{:k 1}) !| type
+::AddRightNotNumberError
 ```
 
 A library of error-handling pipelines, retry and recover and assert
@@ -1734,10 +1325,9 @@ symbols and services: the type classifier's entry explains that identity
 rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
 (`core/lib/qlang/operand/typeClassifier.qlang`); the invariants module
 speaks of the `BUILTIN_IMPL_SLOT` and of `createPrimitiveRegistry()`
-(`core/lib/qlang/runtime-invariants.qlang`); the reflective family
-refers the reader to `runtime/manifest-op.mjs`; the vector family to a
-section number of the reference. A session learning qlang from its
-catalog meets the names of the files that implement it.
+(`core/lib/qlang/runtime-invariants.qlang`); and the reflective family
+refers the reader to `runtime/manifest-op.mjs`. A session learning qlang
+from its catalog meets the names of the files that implement it.
 
 Examples live on four planes: the conformance suite, the `~{…}` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in
@@ -1833,9 +1423,13 @@ the tables are false in places, because nothing executes them:
 - The example of a quote-bodied constructor, `::cond`, calls `first`
   with a modifier, and fails.
 - The grammar chapter has no quote, no tag, no doc and no binding form.
-- The tables of the plain and tagged JSON codecs describe envelopes
-  the code does not produce: a vector is `$vec`, and an error does not
-  make the plain codec throw.
+- The table of the plain JSON codec says that an error is unencodable
+  and makes `toPlain` throw, while `json` writes it:
+
+  ```qlang
+  > [!{:a 1}] | json
+  [{"$error":{"$tag":"Error","descriptor":{"a":1,"trail":null}}}]
+  ```
 - The embedding API tells a host to install its operands with
   `session.bind(name, fn)`, which the runtime's own render guard calls
   a leak of a function value.
@@ -1870,22 +1464,10 @@ leak
 hi
 ```
 
-The error classes carried a fingerprint and a schema version for an
-observability backend that was not attached; both are gone with the
-errors' `toJSON`, and an error's tag is its site's name. More than half
-of the error categories describe failures of the host or the runtime
-that no query author meets. The command line owns `table`, which draws a
-frame of dashes and pipes for a terminal
-(`cli/src/format-operands.mjs`), a view at the boundary whose cell is a
-literal on one line, and `template`, a second language of projections
-inside a string with a miss rule of its own, is gone, a query building
-the string instead, `[/name (/score | pretty)] | join ": "`. The command
-line starts from standard input when it carries bytes and from its
-default subject otherwise [D37], so a bare `count` names the subject it
-refused and `qlang 'type' < /dev/null` answers `::tag`; outside any
-project the subject is `::qlang`, and the noun of a project's `.qlang/`
-folder comes with the modules. Its JSON output writes a keyword as its
-bare name, `{:k :v}` leaving as `{"k": "v"}` [D1]. A raw-mode line
+More than half of the error categories describe failures of the host
+or the runtime that no query author meets. The command line starts
+from `::qlang` when standard input carries no bytes [D37], and the noun
+of a project's `.qlang/` folder comes with the modules. A raw-mode line
 editor and its tests are the largest single piece of the command-line
 workspace, and the REPL it serves cannot save a session although the
 core can serialize one.
@@ -1923,9 +1505,7 @@ of that rule. Whether an effect deserves to become a value of its own,
 an action awaiting the host the way a quote awaits `apply`, is a
 question for a later branch that would have to show a task no plainer
 construct solves. The repair must also give the sister project a guide
-generated from the catalog; the observability fields have left the error
-classes, `table` and `template` the core and the command line, and the
-command line starts from its default subject [D37].
+generated from the catalog.
 
 ### Concurrency nobody declared
 
@@ -1949,26 +1529,31 @@ completion order stops being observable at all.
 
 ### Code that explains itself
 
-The code is more commentary than design. On 23 September 2026, over the
-JavaScript of the core, the command line and the language server:
+The code is more commentary than design. On 25 September 2026, over the
+JavaScript of the core, the command line and the language server, the
+tree and then the September master:
 
 ```sh
-$ # lines that begin with // against lines of code and blank lines
+$ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
+code 7016   comment 4318   blank 993
+$ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
 code 7529   comment 4644   blank 1025
 ```
+
+The repairs deleted comments and code in about the proportion they
+stood in, so the ratio D30 asks to fall has barely moved.
 
 In several files the comments outweigh the code: the bootstrap of the
 runtime, the primitive registry, the error roots and the descriptor
 stamping carry more lines of prose than of statements, and the grammar
-carries more comment lines than rule lines. The comments are of three
+carries more comment lines than rule lines. The comments are of two
 kinds, and none states an invariant in a sentence:
 
 - Some are false. The package's entry point promises that `keyword`
   interns, “every call with the same name returns the same interned
-  object” (`core/src/index.mjs`), and the equality module builds on
-  “interned keywords” (`core/src/equality.mjs`, `setHasStructurally`),
-  while `keyword` builds a fresh object on every call
-  (`core/src/types.mjs`, `keyword`). The header of the tagged-JSON codec
+  object” (`core/src/index.mjs`), while `keyword` builds a fresh object
+  on every call (`core/src/types.mjs`, `keyword`). The header of the
+  tagged-JSON codec
   says the conformance runner hydrates its cases from that format
   (`core/src/codec.mjs`); the runner compares qlang literals. The
   values module says that each of the three reserved tags of the
@@ -1976,8 +1561,6 @@ kinds, and none states an invariant in a sentence:
   own through the printer (`core/src/types.mjs`, beside
   `isTaggedInstance`), while `describeType` gives `::builtin` none, so
   a descriptor reaches the printer of maps and prints without its tag.
-- Some repeat. `containerLikeOf` in `core/src/runtime/vec.mjs` carries
-  two versions of the same explanation, one after the other.
 - Most justify. The bootstrap calls its seeding of `::builtin`
   “Chicken-and-egg” and explains it (`core/src/runtime/index.mjs`);
   the registry explains why its verb is “seal” and not “freeze”
@@ -2004,16 +1587,16 @@ false
 The rest of the scar is duplication the other sections name only in
 part:
 
-- Four codecs for one value. The literal and its parser; a tagged JSON
-  with envelopes for vectors, maps and sets (`core/src/codec.mjs`),
-  exposed on the command line as `tjson` and `parseTjson`; a lossy JSON
-  (`core/src/runtime/format.mjs`, `toPlain` and `fromPlain`); and a
-  pair of inline renderers for `table`. A fifth format is the session
-  envelope, a JSON with a schema version and binding kinds
-  (`core/src/session.mjs`, `serializeSession`). The literal is
-  lossless for every value but a descriptor under `::builtin`, which
-  prints as its bare map; the tagged JSON cannot even encode a named
-  pipeline, which the literal prints.
+- Three codecs for one value. The literal and its parser; a tagged JSON
+  with envelopes for keywords, maps and tagged values
+  (`core/src/codec.mjs`), exposed on the command line as `tjson` and
+  `parseTjson`; and a lossy JSON (`core/src/runtime/format.mjs`,
+  `toPlain` and `fromPlain`). A fourth format is the session envelope,
+  a JSON with a schema version and binding kinds
+  (`core/src/session.mjs`, `serializeSession`). The literal is lossless
+  for every value but a descriptor under `::builtin`, which prints as
+  its bare map; the tagged JSON cannot even encode a named pipeline,
+  which the literal prints.
 - Three loaders of modules: the bootstrap of the catalog
   (`core/src/runtime/index.mjs`, `buildLangRuntime`), `use` through a
   locator (`core/src/runtime/use-op.mjs`, `resolveNamespaceEnv`), and a
@@ -2031,10 +1614,9 @@ part:
   leaks into what a user sees, `:uri "cell-2"` on a parse error of the
   command line.
 - Consumers that carry spellings of the language. The language server
-  re-derives the snapshot-or-conduit choice of the binding form, scans
-  doc text with its own loop, and counts commas; the TextMate grammar
-  hard-codes the slot vocabulary of the catalog; the command line
-  carries `template`.
+  re-derives the snapshot-or-conduit choice of the binding form and
+  scans doc text with its own loop, and the TextMate grammar hard-codes
+  the slot vocabulary of the catalog.
 
 The repair is a property of every branch [D30]. A branch leaves every
 file it touches with comments that state what holds in one sentence,
@@ -2056,11 +1638,8 @@ branch against the September master and falls.
 
 ### A process that grows text
 
-The file the tooling injects into every session carried the design of
-the catalog and of the error classes among its process rules, so the
-design was repeated as law in the one place the model cannot avoid
-reading; it now names no design rule and points here. Several of the
-review rules generate additions by construction, one by demanding a
+Several of the review rules generate additions by construction, one by
+demanding a
 distinct class per throw site, one by requiring that the documents be
 kept in step with code they duplicate, one by asking the reviewer to
 propose sibling operands, one by requiring retroactive fixes in every
@@ -2070,18 +1649,15 @@ tests the mechanism rather than the language: almost every unit test
 imports the internals it checks, so it dies with them, while the
 conformance cases, each a query and the literal it must answer, state
 what the language does and survive any rewrite of how. The drift tests
-and three of the five convention checks exist to guard duplicates. The
-external reviewer is run as a gate and, round after round, proposes
-fallbacks and defensive checks that the principles reject.
+and three of the five convention checks exist to guard duplicates.
 
 The repair must derive every process rule from a principle, with each
 rule reading as the principle plus the check that enforces it; must
 replace the coverage number with a policy that keeps the threshold for
 the language core and a no-number rule elsewhere; must treat the
 conformance cases as the requirements of the language and the unit
-tests as scaffolding that goes with what it scaffolds; must demote the
-external reviewer to a signal at milestones; and must delete each guard
-together with the duplicate it guards.
+tests as scaffolding that goes with what it scaffolds; and must delete
+each guard together with the duplicate it guards.
 
 ## Decisions
 
@@ -2329,7 +1905,8 @@ held under the maintainer's condition on the whitespace of D43, «[…]
 если ты подвердишь что с многострочными примерами и переносами
 комбинаторов туда сюда проблем не будет и все будет праситься как
 надо..» (maintainer, 2026-09-23 21:40, session 86982eb5), which the
-model's check in the scar of the call answers.
+model's check answers, recorded in the scar of the call in the second
+version of this document.
 Replaced in part by D43, which continues a line that ends with a
 combinator through that combinator and sets every combinator off by
 whitespace.
@@ -3027,7 +2604,8 @@ session 86982eb5); the short form, «а если как-то доработат�
 доках, убедил .. и с тем что выше согласен... если ты подвердишь что с
 многострочными примерами и переносами комбинаторов туда сюда проблем не
 будет и все будет праситься как надо..» (21:40), a condition the model
-checked the same night, as the scar of the call records; «ну и само
+checked the same night, as the scar of the call in the second version
+of this document records; «ну и само
 собой полная форма ~(add) остается за главную...» (21:43). The rest, the
 model, 23 September 2026: the reading of modifiers, the canonical fold,
 the refusal and the rule for a doc in the evening, and that night the
@@ -3332,7 +2910,8 @@ of its body, `* (false !| true)` being `::each~(false !| true)` and
 `* add(1)` being `::each~(add(1))`, while a group inside the body stays
 a group.
 Source. The model, 24 September 2026, on the ring branch, from the
-example the scar of code as data gives for a head that rides `|`, in
+example the scar of code as data in the second version of this
+document gave for a head that rides `|`, in
 which the group after `*` answers as the same group written with a
 leading `|`.
 Set aside. The group after `*` as one step riding `|`,
@@ -3390,7 +2969,8 @@ when it is an error literal's, under `::Error`. `parse` and its inverse
 round-trip every example of the catalog, which a test written in qlang
 holds.
 Source. The model, 24 September 2026, on the ring branch, from the rule
-of the scar of code as data that a wrong assembly is refused by the
+of the scar of code as data in the second version of this document
+that a wrong assembly is refused by the
 record's constructor at construction rather than run as a program.
 Set aside. A constructor that turns a wrong assembly into the step its
 text reads back as, which accepts what the author did not write. The
@@ -3770,19 +3350,17 @@ them may name them otherwise.
   for highlighting, derived from the grammar, for the language server,
   the site and the command line.
 
-What leaves the tree, as the repairs land: the JSON family and every
-predicate and pass that serves it; the snapshot and conduit as two kinds
-of binding; the seven dispatch wrappers and the application rule built
-on them; the classes of errors with their factories, the registry of
-throw sites, the stamping passes and the converter's tables; the
-primitive registry with its sealing; tagged JSON and the session
-envelope; the codec of syntax trees as maps, since the quote is the data
-form; the effect marker and its checks; the character scanner of doc
-text; the housekeeping keys of the environment; the history of cells;
-the resolver of module directories; the call to the parser from outside
-`parse`; the error prose of the catalog that restates the facts; the
-drift tests, the injection script and the document-compliance runner for
-the documents that go.
+What leaves the tree, as the repairs land: the snapshot and conduit as
+two kinds of binding; the seven dispatch wrappers and the application
+rule built on them; the classes of errors with their factories, the
+registry of throw sites, the stamping passes and the converter's
+tables; the primitive registry with its sealing; tagged JSON and the
+session envelope; the effect marker and its checks; the character
+scanner of doc text; the housekeeping keys of the environment; the
+history of cells; the resolver of module directories; the call to the
+parser from outside `parse`; the error prose of the catalog that
+restates the facts; the drift tests, the injection script and the
+document-compliance runner for the documents that go.
 
 The documents at the finish are few. This audit and the entrypoint
 document, which are the measure. The reference, reduced to the
@@ -3831,58 +3409,29 @@ tree until the work lands.
 
 The measure is in the repository and every consumer can receive a
 breaking change in the same move. This document and the entrypoint
-document land on master, with the instruction file reduced to how a
-session starts. The sister project moves onto the workspace copy of
-the core: its migration is committed, its dependency resolves to the
-workspace folder, and its status page renders without the retired set
-literal. And the entrypoint of the work gets its first version, the
-command that measures the tree and prints the state of the work as a
-dark cockpit, so that every later session starts from what is
-computed; its design is the entrypoint document's, its first sensors
-are the ones that document carries, and its first gates are the ones
-this milestone closes.
+document are on master, the instruction file is reduced to how a
+session starts, and the sister project builds on the workspace copy of
+the core. What remains is the entrypoint of the work in its first
+version, the command that measures the tree and prints the state of
+the work as a dark cockpit, so that every later session starts from
+what is computed; its design is the entrypoint document's, its first
+sensors are the ones that document carries, and its first gates are
+the ones this milestone closes.
 
 ### Milestone 1 · Kernel
 
-The syntax and the mechanism of an operand are final. The ring closes
-first [D3, D8, D9, D47, D51, D52, D53, D54] and keeps the surface of the
-call form, the spelling of a quote included; the command form follows on
-its heels [D10, D11, D55, D56] and changes the whole surface at once,
-`~(…)` with it, because the step's form is what the printer prints and
-what every trail, snippet and example carries, and the parser of the
-call form together with the printer of the command form rewrites every
-text of the repository and of the sister project by machine, taking the
-tilde of each code slot from the kinds the catalog declares for its
-slots today [D43], so each later branch writes its examples once; the
-argument model follows [D4, D43, D45, D57], writing every slot list
-once, in the head of the verb literal and in the descriptor of a
-built-in, with the interface of hosts designed in the same branch and
-landed in every host; the one binding form closes the milestone [D5,
-D44], with comments as whitespace and the doc literal in the binding's
-slot.
+The syntax and the mechanism of an operand are final. The ring is
+closed and the command form has landed [D3, D8, D9, D10, D11, D47,
+D51–D56]: a quote is the vector of its steps, every step is a command,
+and every text of the repository and of the sister project is written
+in that form. The argument model follows [D4, D43, D45, D57], writing
+every slot list once, in the head of the verb literal and in the
+descriptor of a built-in, with the interface of hosts designed in the
+same branch and landed in every host; the one binding form closes the
+milestone [D5, D44], with comments as whitespace and the doc literal
+in the binding's slot.
 
 ```qlang target
-> ~(1 | add 1 | mul 2) | count
-3
-
-> ~(filter ~(gt 1)) | payload
-[::call{:name :filter :args [~(gt 1)]}]
-
-> ~(add 1) | eq ~(add  1)
-true
-
-> 5 | apply ~(add 1 | mul 2)
-12
-
-> [1 2 3] | filter ~(gt 1)
-[2 3]
-
-> [1 2 3] | reduce 0 ~(add)
-6
-
-> ~add
-~(add)
-
 > :m ~[:x](mul 10 | add x) | 2 | m /
 22
 
@@ -3891,12 +3440,6 @@ true
 
 > :inc ~[](add 1) | 5 | inc | inc
 7
-
-> :q ~(add 1) | 5 | apply q
-6
-
-> {:items [1 2 3] :limit 2} | /items | take (count | sub 1)
-[1 2]
 
 > :most ~[](count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most
 [1 2]
@@ -3909,80 +3452,36 @@ The last block answers 43 today, because `:x /` re-evaluates its body
 at every mention; under the one binding form a bare body is evaluated
 once, at declaration, and that is how `as` is spelled once it is gone.
 
-Beside the answers: `parse` and its inverse round-trip every example of
-the catalog; taking every example apart into atoms and a shape and
-putting it back, both written in qlang, answers an `eq` value [D42]; a
-wrong assembly is refused by a constructor; `filter (gt 1)` is refused,
-since its group computes a value where code is expected [D43]; a second
-declaration of a name in one scope is refused [D44]; `isError` and
-`eval` are gone; `>>` is gone [D51]; the argument comma is gone from the
-grammar; the seven wrappers are gone; no snapshot unwrap remains; the
-declarations of the catalog are true, since the runtime executes them.
+Beside the answers: taking every example of the catalog apart into
+atoms and a shape and putting it back, both written in qlang, answers
+an `eq` value [D42]; a second declaration of a name in one scope is
+refused [D44]; the seven wrappers are gone; no snapshot unwrap remains;
+the declarations of the catalog are true, since the runtime executes
+them.
 
 ### Milestone 2 · Values
 
-The semantics are final. The one order lands first, since containers and
-sets rest on it [D16, D48]; then the single container family with the
-rule for maps and the reading of duplicate keys [D1, D15, D18]; then the
-set as the ordered vector; then the kinds, every value with one and
-every bare literal with the core's, the contracts moving onto them [D32,
-D33]; then the tags of the refusing sites as kinds with their schemas
-and procedures, and the law for nested errors [D7, D13, D46], which is
-where the JavaScript classes of errors and the prose that restates their
-facts disappear; strict predicates land with the argument model's slots
-or here, whichever branch reaches them first [D14]; and the host
-concerns leave the core, the effect marker and the fingerprints first
-[D2], `table` and `template` to the hosts, the command line starting
-from its default subject [D37] and writing keywords as bare strings.
+The semantics are final. The one order, the single container family
+with the rule for maps and the reading of duplicate keys, the set as
+the ordered vector, the kinds and the strict predicates have landed
+[D1, D14, D15, D16, D18, D32, D48], and so have the command line's
+default subject and its terminal views [D37]. What remains is the
+contracts moving onto the kinds [D33]; the tags of the refusing sites
+as kinds with their schemas and procedures, and the law for nested
+errors [D7, D13, D46], which is where the JavaScript classes of errors
+and the prose that restates their facts disappear; and the effect
+marker leaving the core [D2].
 
 ```qlang target
-> [1] | type
-::vec
-
-> ::qlang/number
-::number
-
-> ::qlang/number | eq ::number
-true
-
-> {:a 1 :b 2} * add 1
-{:a 2 :b 3}
-
-> [3 null "x" 1] | sort
-[null 1 3 "x"]
-
-> [{:a 1} [2] "x" :k null 3 true #[1] ~(add 1)] | sort
-[null true 3 "x" :k [2] #[1] {:a 1} ~(add 1)]
-
-> #[3 1 3]
-#[1 3]
-
-> [1 2 1] | distinct | type
-::set
-
-> {:a 1} | coalesce ~(/b) ~(/a)
-1
-
-> [1 :a] | [{:k /1 :v /0}] | indexBy ~(/k) * /v
-{:a 1}
+> 1 | add (!{:k 1}) !| type
+::Error
 ```
 
-```sh
-$ qlang 'type' < /dev/null
-::tag
-$ echo '{"k":"v"}' | qlang '{:k :v}'
-{
-  "k": "v"
-}
-```
-
-Beside the answers: no JavaScript set remains in the runtime; no
-factory-declared error class remains; every refusal's tag is declared
-once in the catalog and prints its facts in its schema's order; a
-foreign failure carries a tag of the language;
-the throw-site registry and both drift tests are gone; the language has
-no effect marker and no effect flag; host categories of error are
-declared by hosts.
+Beside the answer: no factory-declared error class remains; every
+refusal's tag is declared once in the catalog and prints its facts in
+its schema's order; the throw-site registry and both drift tests are
+gone; the language has no effect marker and no effect flag; host
+categories of error are declared by hosts.
 
 ### Milestone 3 · One spelling
 
@@ -4059,9 +3558,8 @@ has not been shown, and withholds the ones it has.
 
 After the fifth milestone the remaining surfaces follow: the site is
 decided, rendering the root doc and the catalog or reduced to the
-playground; the coverage threshold applies to the language core alone,
-with the other workspaces under a rule without a number; the external
-reviewer is a signal at milestones and no branch waits on its findings.
+playground, and the coverage threshold applies to the language core
+alone, with the other workspaces under a rule without a number.
 
 ### How a branch moves
 
@@ -4149,6 +3647,23 @@ pipelines built on the refusal tags, or leaves the package.
 The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
+
+The key of a sort that answers an error [D13, D16]. The one order ranks
+errors, and in the model's reading a sort key is a place declared for
+any value, so a key that answers an error is ranked as a value and a
+key that misses a field sorts its element among the errors. On 25
+September 2026:
+
+```qlang
+> [{:a 2} {:b 1}] | sort ~(/a)
+[{:a 2} {:b 1}]
+```
+
+The alternative is the rule of `filter` and `groupBy`, under which the
+error of a key is the answer of the operand: a misspelled key is then
+loud, at the price of a sort by key over a vector that holds errors,
+which answers the first of them, while a sort without a key still ranks
+them. The review of pull request #46 raised it.
 
 The spelling of a verb's head [D34, D40, D57]. «я вижу массу
 неоднозначности и слабую структуру.. это ~::jdt/CallerTree[:jdt/Method

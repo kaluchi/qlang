@@ -595,14 +595,14 @@ form, so the runner holds a string's answer against its raw print first.
 ```
 $ node run-probes.mjs . docs/qlang-audit.md docs/qlang-entrypoint.md | awk '{print $1}' | sort | uniq -c
       2 LOSSY
-     19 MET
-     77 ok
-     11 target
+     42 ok
+     12 target
 ```
 
 The two lossy probes are the descriptor's; every other probe of both
 documents gives the recorded answer, and a target the tree now answers
-is reported as met.
+is reported as met and leaves the audit for a conformance case that
+keeps it.
 
 ## What the maintainer repeats
 

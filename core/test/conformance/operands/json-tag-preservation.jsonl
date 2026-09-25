@@ -5,7 +5,6 @@
 {"name":"drop-jsonarray-preserves-tag","query":"::json[1 2 3 4] | drop 2 | type","expect":":jsonArray"}
 {"name":"reverse-jsonarray-preserves-tag","query":"::json[1 2 3] | reverse | type","expect":":jsonArray"}
 {"name":"flat-jsonarray-preserves-tag","query":"::json[[1] [2 3]] | flat | type","expect":":jsonArray"}
-{"name":"sortWith-jsonarray-preserves-tag","query":"::json[3 1 2] | sortWith ~(sub /left /right) | type","expect":":jsonArray"}
 {"name":"groupBy-jsonarray-buckets-preserve-tag","query":"::json[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | /big | type","expect":":jsonArray"}
 {"name":"distribute-jsonarray-jsonscalar-preserves-tag","query":"::json[1 2 3] * mul 2 | type","expect":":jsonArray"}
 {"name":"distribute-jsonarray-qlangonly-element-drops-to-vec","query":"::json[1 2 3] * keyword | type","expect":":vec"}

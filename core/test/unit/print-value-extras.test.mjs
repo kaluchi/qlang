@@ -547,22 +547,3 @@ describe('the finite-double domain holds at every render seam', () => {
   });
 });
 
-describe('a host comparator answering NaN lifts at the sortWith seam', () => {
-  // The comparator is caller-supplied input at this seam. `typeof
-  // NaN` is `'number'`, and every `NaN <= 0` reading in the merge
-  // answers false, so the run order would come out of a comparison
-  // the comparator declined to make.
-  it('lifts SortWithCmpResultNaNError with its numericDomain category', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const { NumericDomainError } = await import('../../src/errors.mjs');
-    const session = await createSession();
-    session.bind('nanCmp', NaN);
-    const { result } = await session.evalCell('[3 1 2] | sortWith ~(nanCmp) !| type');
-    expect(result.name).toBe('SortWithCmpResultNaNError');
-    const { error } = await session.evalCell('[3 1 2] | sortWith ~(nanCmp)');
-    expect(error).toBeNull();
-    const originalError = (await session.evalCell('[3 1 2] | sortWith ~(nanCmp)')).result.originalError;
-    expect(originalError).toBeInstanceOf(NumericDomainError);
-    expect(originalError.kind).toBe('numericDomain');
-  });
-});

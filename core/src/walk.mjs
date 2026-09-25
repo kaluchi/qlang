@@ -151,8 +151,8 @@ export function attachAstParents(root) {
 // AST node whose source range contains the given UTF-16 offset, or
 // null if no node contains the offset. The narrowest-wins tiebreaker
 // matches editor expectations for hover and goto-definition: clicking
-// inside `filter(gt(2))` lands on the inner `gt(2)`, not the outer
-// `filter(...)` that encloses it.
+// inside `filter ~(gt 2)` lands on the inner `gt 2`, not the outer
+// `filter ~(…)` that encloses it.
 export function findAstNodeAtOffset(ast, offset) {
   let narrowest = null;
   walkAst(ast, (node) => {
@@ -174,7 +174,7 @@ export function findAstNodeAtOffset(ast, offset) {
 //       - BindStep whose Keyword key names the identifier
 //         (declaration site — `:foo body` form)
 //       - OperandCall named `as` whose first Keyword arg names the
-//         identifier (snapshot declaration site — `as(:foo)`)
+//         identifier (snapshot declaration site — `as :foo`)
 //       - Projection whose .keys contains the name (Map field read)
 //
 //   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
@@ -186,7 +186,7 @@ export function findAstNodeAtOffset(ast, offset) {
 //
 // Keyword literals (`:foo` value-position) stay out of the
 // result set: a `:foo` literal in value position is a keyword
-// value, addressable by `eq(:foo)` predicates but separate from
+// value, addressable by `eq :foo` predicates but separate from
 // identifier resolution.
 export function findIdentifierOccurrences(ast, name) {
   if (isTagBindingName(name)) {
@@ -250,7 +250,7 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 //
 // `namespace` picks which declaration shapes contribute:
 //   - `'value'` (default) — BindStep with a Keyword key (`:name body`)
-//     and OperandCall `as(:name)`. Names land bare (`'foo'`).
+//     and OperandCall `as :name`. Names land bare (`'foo'`).
 //   - `'tag'` — BindStep with a BareTypeKeyword key (`::Tag body`).
 //     Names land with the `::Tag` prefix so the Set is directly
 //     comparable with tag-namespace identifiers from env (which

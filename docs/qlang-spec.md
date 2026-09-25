@@ -148,9 +148,7 @@ A host reaches further: `session.bind` and a locator's `impls` map
 install JS values the language never parsed. Such a value meets the
 domain rule at the seams where it becomes observable —
 `printValue`, `toPlain` and the tagged-JSON encoder answer
-`::NumberNotFiniteLeakedToPrintError`, and a comparator answering
-NaN lifts `::SortWithCmpResultNaNError` at the `sortWith` seam,
-the one reading whose answer would otherwise change in silence.
+`::NumberNotFiniteLeakedToPrintError`.
 
 Three guarantees rest on that rule: every number renders back to a
 literal that parses ([Round-trip invariant](#round-trip-invariant)),
@@ -381,7 +379,7 @@ detail — every operand traversal, every `printValue` output, every
 The determinism enables reproducible builds, idempotent deployments,
 and stable snapshot tests for any pipeline that flows through Set
 values. Order-aware operands (`first`, `last`, `at`, `take`, `drop`,
-`reverse`, `sort`, `sortWith`, `flat`) work the natural way on a
+`reverse`, `sort`, `flat`) work the natural way on a
 Set subject.
 
 The uniqueness invariant is the primary value of the type — a
@@ -493,7 +491,7 @@ thing in the language that actually executes a step.
 
 A modifier is evaluated at the call against the subject. A slot that
 runs code on each element, or only when chosen — a predicate, a key,
-a reducer, a comparator, a branch — takes a **quote**, `~(…)`, and
+a reducer, a branch — takes a **quote**, `~(…)`, and
 the operand applies it:
 
 ```qlang
@@ -1043,7 +1041,7 @@ the conduit's frozen lexical anchor, so the conduit body keeps
 resolving identifiers through the env captured at declaration.
 
 ```qlang
-> :@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n)
+> :@topBy [:keyFn :n] (sort ~(keyFn) | reverse | take n)
   | :@topNByV [:n] @topBy /v n
   | :@top2ByV @topNByV 2
   | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v
@@ -1059,17 +1057,16 @@ is expressed through explicit composition.
 Parameters are lazy: the captured-arg expression stays unevaluated
 until the parameter name is looked up inside the body. This enables
 higher-order composition — a parameter can be a pipeline fragment
-that fires per-element inside `sortWith`, per-iteration inside
-`filter`, per-pair inside `desc`/`asc`:
+that fires per element inside `sort`, per iteration inside `filter`:
 
 ```qlang
-> :@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n)
+> :@topBy [:keyFn :n] (sort ~(keyFn) | reverse | take n)
   | [{:score 1} {:score 3} {:score 2}] | @topBy /score 2 * /score
 [3 2]
 ```
 
 `keyFn` is a lazy parameter — it evaluates `/score` against each
-element when `desc` invokes it per comparison pair.
+element when `sort` computes that element's key.
 
 #### Examples
 
@@ -2236,7 +2233,6 @@ filter ~(/age | gt 18)
 | `sum` whose running total leaves the finite double range | type error |
 | Number literal whose magnitude lies past the finite double range | parse error |
 | JSON lift of a number past the finite double range | codec error |
-| `sort` on Vec with non-comparable elements | type error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
 | `:trail` stamped with anything except a Quote or `null` | type error |

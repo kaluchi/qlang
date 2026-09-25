@@ -26,7 +26,7 @@ export const BootstrapRootMissingError = declareInvariantError(
     'add an entry to package.json#imports or the import map'
 );
 
-// The catalog root is one `use([…])` step, and `use` answers on the
+// The catalog root is one `use […]` step, and `use` answers on the
 // fail-track like any other operand: a family source the locator
 // resolves but the parser refuses leaves the env without that
 // family and hands the error value back as the root's pipeValue.
@@ -47,7 +47,7 @@ export const BootstrapCatalogNotLoadedError = declareInvariantError(
 // Matches the `:qlang/locator` contract documented for `use`
 // (see `core/src/runtime/use-op.mjs::resolveNamespaceEnv`). Used
 // both as the bootstrap-time loader for `#qlang/core` and as the
-// in-query locator that answers every `use(:ns)` from inside the
+// in-query locator that answers every `use :ns` from inside the
 // catalog or from user code.
 //
 // Logical names mirror the namespace keyword 1:1 under the

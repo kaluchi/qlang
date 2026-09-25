@@ -3,7 +3,7 @@
 // examples into the catalog's `::Tag` doc-only declaration's
 // attached doc-prefix.
 //
-// `runExamples(::Tag)` consumes these — each Quote evaluates to a
+// `runExamples ::Tag` consumes these — each Quote evaluates to a
 // boolean (true iff the query produces an error whose identity
 // tag — `:kind` TagKeyword on the descriptor, surfaced through
 // `type` — matches the catalog declaration). Conformance and
@@ -65,7 +65,7 @@ function pickRepros(tagName, queries) {
   );
   const pool = direct.length > 0 ? direct : queries;
   pool.sort((a, b) => a.length - b.length);
-  // The wrapped Quote `<query> !| type | eq(::Tag)` must
+  // The wrapped Quote `<query> !| type | eq ::Tag` must
   // itself parse cleanly — runExamples evaluates the Quote, and
   // a Quote with unparseable body throws on entry. Test-parse
   // each candidate and drop the unparseable ones. ::ParseError
@@ -74,7 +74,7 @@ function pickRepros(tagName, queries) {
   // belongs in a `<string-source> | parse` form instead.
   const parseable = pool.filter(q => {
     try {
-      parse(`${q} !| type | eq(::${tagName})`, { uri: 'repro-probe' });
+      parse(`${q} !| type | eq ::${tagName}`, { uri: 'repro-probe' });
       return true;
     } catch { return false; }
   });
@@ -126,7 +126,7 @@ function processCatalogFile(path) {
   // has no conformance queries OR the prose already pins the tag
   // identity through any of the recognised shape-check forms (see
   // `proseAlreadyPinsTagIdentity`). The script's injected weak form
-  // (`!| type | eq(::Tag)`) is a baseline coverage seed — once a
+  // (`!| type | eq ::Tag`) is a baseline coverage seed — once a
   // hand-curated structured shape check lands in the prose, the
   // script must stay idle on that tag so re-runs do not stack
   // weak-and-structured pairs.
@@ -152,10 +152,10 @@ function processCatalogFile(path) {
 // Decide whether the prose already carries an identity-pinning
 // shape check. Recognises both forms the catalog uses:
 //
-//   weak form       — `!| type | eq(::TagName)` (this script's
+//   weak form       — `!| type | eq ::TagName` (this script's
 //                     own injection shape; a single re-run must
 //                     not stack a duplicate).
-//   structured form — `!| [type /field …] | eq([::TagName …])`
+//   structured form — `!| [type /field …] | eq [::TagName …]`
 //                     (the hand-curated rich shape-pin form that
 //                     dominates the current catalog — checks
 //                     identity + the relevant descriptor fields in
@@ -167,9 +167,10 @@ function processCatalogFile(path) {
 // unrelated `::OtherTag` mention in prose does not falsely suppress
 // the inject pass.
 function proseAlreadyPinsTagIdentity(prose, tagName) {
-  if (prose.includes(`!| type | eq(::${tagName})`)) return true;
-  const structuredEqRe = new RegExp(`!\\|\\s*\\[type\\b[\\s\\S]*?\\|\\s*eq\\(\\[::${tagName}\\b`);
-  return structuredEqRe.test(prose);
+  const flatProse = prose.replace(/\s+/g, ' ');
+  if (flatProse.includes(`!| type | eq ::${tagName}`)) return true;
+  const structuredEqRe = new RegExp(`!\\|\\s*\\[type\\b[\\s\\S]*?\\|\\s*eq\\s+\\[::${tagName}\\b`);
+  return structuredEqRe.test(flatProse);
 }
 
 walkCatalog(catalogDir);

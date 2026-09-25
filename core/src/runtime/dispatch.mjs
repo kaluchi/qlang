@@ -64,7 +64,7 @@ const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
 
 // Unbounded-upper-limit sentinel for variadic operand `captured`
 // ranges. Surfaced into manifest descriptors as a keyword value so
-// user code can pattern-match with `eq(:unbounded)`.
+// user code can pattern-match with `eq :unbounded`.
 export const UNBOUNDED = keyword('unbounded');
 
 // ── Per-site invariant errors for variadic registration ───────
@@ -122,7 +122,7 @@ async function applyTagPreservation(state, source, result) {
   }
   // `result[TAG_HEADER_SYMBOL]` reads safely through every
   // `preservesTag` return shape — those operands (filter / sort
-  // / take / drop / reverse / flat / sortWith / distinct) always
+  // / take / drop / reverse / flat / distinct) always
   // produce composite Vec / Set / Map / JsonArray. A preserve-
   // path operand that returns a primitive surfaces the contract
   // bug as a TypeError at the operand site.

@@ -1,6 +1,6 @@
 // Pure value-to-String formatter impls for the `:cli/format` host
 // catalog — `pretty` renders qlang-literal form, `tjson` renders
-// the tagged-JSON wire form, `template(:s)` does `{{slot}}`
+// the tagged-JSON wire form, `template :s` does `{{slot}}`
 // substitution. Catalog declaration lives in
 // `cli/lib/qlang/format.qlang`.
 

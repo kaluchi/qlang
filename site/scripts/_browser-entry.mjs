@@ -22,7 +22,6 @@ import tagSource               from '@kaluchi/qlang-core/lib/qlang/tag.qlang';
 import arithSource             from '@kaluchi/qlang-core/lib/qlang/operand/arith.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
-import comparatorSource        from '@kaluchi/qlang-core/lib/qlang/operand/comparator.qlang';
 import containerSource         from '@kaluchi/qlang-core/lib/qlang/operand/container.qlang';
 import controlSource           from '@kaluchi/qlang-core/lib/qlang/operand/control.qlang';
 import errorSource             from '@kaluchi/qlang-core/lib/qlang/operand/error.qlang';
@@ -46,7 +45,6 @@ const CATALOG = new Map([
   ['qlang/operand/arith',           arithSource],
   ['qlang/operand/axis',            axisSource],
   ['qlang/operand/codeAsData',    codeAsDataSource],
-  ['qlang/operand/comparator',      comparatorSource],
   ['qlang/operand/container',       containerSource],
   ['qlang/operand/control',         controlSource],
   ['qlang/operand/error',           errorSource],

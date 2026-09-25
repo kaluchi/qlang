@@ -3,7 +3,7 @@
 // places:
 //
 //   1. lib/qlang/ — the authored source catalog, split across:
-//      - core.qlang: orchestrator, one `use([...])` call that
+//      - core.qlang: orchestrator, one `use [...]` call that
 //        loads the families in order.
 //      - operand/<family>.qlang (arith, vec, container, setOp,
 //        mapOp, string, predicate, control, format,
@@ -35,7 +35,7 @@
 //      the binding's source AST.
 //
 // langRuntime() ties the two together by parsing core.qlang once
-// (which threads through `use(...)` to load every family via the
+// (which threads through `use …` to load every family via the
 // `:qlang/locator`-resolved sources), evaluating it against a
 // seed env carrying just `:use` and the locator, and handing back
 // a shallow copy of the resulting template on every call so callers
@@ -146,7 +146,7 @@ export async function langRuntime(opts = {}) {
 
 export async function buildLangRuntime(locator) {
   // Bootstrap seed: the only env entries `core.qlang` needs
-  // before its own `use([...])` call pulls in the operand family
+  // before its own `use [...]` call pulls in the operand family
   // catalog and shared-runtime tag-bindings. `:use` is the operand
   // the root module invokes on every family namespace; `:qlang/
   // locator` is the platform-conditional source resolver `use`
@@ -192,7 +192,7 @@ export async function buildLangRuntime(locator) {
   // descriptor without a registry lookup per call. Tag bindings
   // keep their :impl as a keyword (`:qlang/type/<tag>`);
   // evalTaggedLit resolves it through PRIMITIVE_REGISTRY at
-  // every invocation, so `manifest(:tag)` surfaces the readable
+  // every invocation, so `manifest :tag` surfaces the readable
   // `:qlang/type/<tag>` keyword handle the catalog declared.
   //
   // `stampStructuralFacts` is the single mint-site backfill —
@@ -210,7 +210,7 @@ export async function buildLangRuntime(locator) {
     // tag but live under `::Tag` env-keys. Their `:impl` keyword
     // names a tag-namespace constructor (`qlang/type/<tag>`) that
     // `evalTaggedLit` resolves per call — keeping the keyword
-    // readable in `manifest(:tag)` output, so the author-form
+    // readable in `manifest :tag` output, so the author-form
     // `:impl` stays. What lands there is the throw-site spec: the
     // `:category` / `:operand` / `:position` / `:expectedType` the
     // per-site factory recorded when it built the class.

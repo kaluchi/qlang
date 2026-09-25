@@ -52,7 +52,7 @@ export const vals = nullaryOp('vals', (map) => {
 // so the captured-arg shape can be either Keyword or String over
 // every Map-shape subject (both normalise to the storage-side
 // String via `key.name`/identity, matching `mapShapeHas`). The
-// `keys | first | as(:k) | src | has(k)` chain composes through
+// `keys | first | as :k | src | has k` chain composes through
 // either source without an inter-shape coercion. Set subject
 // keeps structural membership — Keyword elements compare by
 // name, every other shape by ref/value.

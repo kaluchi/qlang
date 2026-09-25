@@ -15,7 +15,7 @@ import { locationToQlangMap } from './walk.mjs';
 // `:faultInput`, Comparability pair-fields, `:index`, dispatch-
 // time `:operandName` / `:conduitName`) follows. Identity is
 // surfaced through the `type` operand (`result !| type |
-// eq(::Foo)`), which reads `error.tag` straight off the JS
+// eq ::Foo`), which reads `error.tag` straight off the JS
 // header. Per-tag static facts — `:category`, `:operand`,
 // `:position`, `:expectedType` — are properties of the throw
 // site, recorded by the factory that builds the class and
@@ -48,7 +48,7 @@ const RUNTIME_FIELD_ORDER = [
 // each such string to a Keyword so the descriptor surface stays
 // uniformly identifier-typed: `printValue` prints `:name` rather
 // than `"name"`, `!| /operandName` projection reads as a Keyword,
-// downstream pattern-match against `eq(:foo)` works. Numeric and
+// downstream pattern-match against `eq :foo` works. Numeric and
 // non-string slots pass through unchanged (`fieldName in
 // IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([

@@ -3,7 +3,7 @@
 // any embedded use that needs sequential queries to share bindings.
 //
 // A session owns its env and grows it via BindStep declarations
-// and `as(:name)` snapshots written by each evaluated cell.
+// and `as :name` snapshots written by each evaluated cell.
 // Builtins from langRuntime() are seeded at construction. Cell
 // history records every cell evaluated (source, AST, result,
 // error, env-after-cell) so a notebook UI can render past cells
@@ -53,7 +53,7 @@ const SessionBindingKindUnknownError = declarePerSiteError(
 // opts:
 //   env     — initial env Map (defaults to a fresh langRuntime())
 //   locator — async (namespaceName: string) => {source, impls?} | null
-//             Called by `use(:ns)` when the namespace keyword is not
+//             Called by `use :ns` when the namespace keyword is not
 //             in env. May be sync or async. Enables lazy module loading
 //             for host embeddings. Stored under :qlang/locator in env.
 //

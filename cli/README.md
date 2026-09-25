@@ -30,7 +30,7 @@ shell does not split on whitespace or pipe characters.
 ## Pre-bound I/O and format operands
 
 Every query runs in a session with these operands bound into env —
-no `use(...)` ceremony.
+no `use …` ceremony.
 
 ### Effectful
 

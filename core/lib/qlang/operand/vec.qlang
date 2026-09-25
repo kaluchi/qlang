@@ -100,12 +100,12 @@
   ~~|
 
 :min
-  |~~ Returns the minimum element under natural ordering.
-      Polymorphic over Vec and Set (min is order-independent).
-      Empty container yields null. All elements must be comparable
-      scalars of the same type.
+  |~~ Returns the first element in the one order of values, the order
+      `sort` answers. Polymorphic over Vec and Set. Empty container
+      yields null.
 
       ~([3 1 4 1 5] | min | eq 1)
+      ~([3 "a" null] | min | eq null)
       ~(["b" "a" "c"] | min | eq "a")
       ~(#[3 1 4] | min | eq 1)
   ~~|
@@ -123,22 +123,13 @@
        )
   ~~|
 
-::MinElementsNotComparableError
-  |~~ Operands of `min` are not pairwise-comparable scalars.
-      ~(
-        [1 "two"] | min
-        !| [type /leftType /rightType]
-        |  eq [::MinElementsNotComparableError :number :string]
-       )
-  ~~|
-
 :max
-  |~~ Returns the maximum element under natural ordering.
-      Polymorphic over Vec and Set (max is order-independent).
-      Empty container yields null. All elements must be comparable
-      scalars of the same type.
+  |~~ Returns the last element in the one order of values, the order
+      `sort` answers. Polymorphic over Vec and Set. Empty container
+      yields null.
 
       ~([3 1 4 1 5] | max | eq 5)
+      ~([3 "a" null] | max | eq "a")
       ~(["b" "a" "c"] | max | eq "c")
       ~(#[3 1 4] | max | eq 4)
   ~~|
@@ -153,48 +144,6 @@
         42 | max
         !| [type /actualType]
         |  eq [::MaxSubjectNotVecOrSetError :number]
-       )
-  ~~|
-
-::MaxElementsNotComparableError
-  |~~ Operands of `max` are not pairwise-comparable scalars.
-      ~(
-        [1 "two"] | max
-        !| [type /leftType /rightType]
-        |  eq [::MaxElementsNotComparableError :number :string]
-       )
-  ~~|
-
-:firstNonZero
-  |~~ Returns the first non-zero number in a Vec. If all elements
-      are zero or the Vec is empty, returns 0. The composition
-      primitive for compound comparators in sortWith: each comparator
-      returns -1/0/1, and firstNonZero picks the first non-tie,
-      giving lexicographic ordering.
-
-      ~([0 0 -1 0] | firstNonZero | eq -1)
-      ~([0 0 0] | firstNonZero | eq 0)
-  ~~|
-  ::builtin{:impl :qlang/prim/firstNonZero
-            :category :vecReducer
-            :subject :vec
-            :returns :number}
-
-::FirstNonZeroSubjectNotVecError
-  |~~ Subject of `firstNonZero` must be Vec.
-      ~(
-        42 | firstNonZero
-        !| [type /actualType]
-        |  eq [::FirstNonZeroSubjectNotVecError :number]
-       )
-  ~~|
-
-::FirstNonZeroElementNotNumberError
-  |~~ Element of `firstNonZero` input collection must be Number.
-      ~(
-        [0 null 1] | firstNonZero
-        !| [type /actualType /index]
-        |  eq [::FirstNonZeroElementNotNumberError :null 1]
        )
   ~~|
 
@@ -254,18 +203,26 @@
   ~~|
 
 :sort
-  |~~ Returns a new sequence sorted in natural ascending order.
-      Polymorphic on Vec / Set — same shape as subject. Overloaded
-      by arity: bare sort uses natural order, `sort ~(key)` sorts by
-      the value the key sub-pipeline returns for each element.
-      Pairwise-comparable scalars only: Number↔Number, String↔
-      String, Keyword↔Keyword (lexicographic by `.name`), or
-      TagKeyword↔TagKeyword.
+  |~~ Returns a new sequence in the one order of values: by kind first,
+      null, boolean, number, string, keyword, tag name, vector, set,
+      map, quote, doc, error and elision, then every other tag by its
+      name; within a kind numbers by value, strings by their code
+      units, keywords and tag names by their names, vectors element
+      by element, a set as its vector, maps by their keys and then
+      their values, and a tagged value by its payload. Polymorphic on
+      Vec / Set — same shape as subject. `sort ~(key)` orders by the
+      value the key answers for each element, a vector serving as a
+      compound key, and keeps elements with equal keys in the
+      subject's order; the descending order is the sort reversed.
 
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+      ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
       ~(#[:y :x :z] | sort | eq #[:x :y :z])
       ~([::B ::A] | sort | eq [::A ::B])
       ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
+      ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
+      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
+      ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
   ~~|
   ::builtin{:impl :qlang/prim/sort
             :category :vecTransformer
@@ -291,24 +248,6 @@
        )
   ~~|
 
-::SortNaturalNotComparableError
-  |~~ Operands of `sort` are not pairwise-comparable scalars.
-      ~(
-        [1 "two"] | sort
-        !| [type /leftType /rightType]
-        |  eq [::SortNaturalNotComparableError :string :number]
-       )
-  ~~|
-
-::SortByKeyNotComparableError
-  |~~ Operands of `sort ~(key)` are not pairwise-comparable scalars.
-      ~(
-        [{:k 1} {:k "x"}] | sort ~(/k)
-        !| [type /leftType /rightType]
-        |  eq [::SortByKeyNotComparableError :string :number]
-       )
-  ~~|
-
 ::SortKeyNotQuoteError
   |~~ The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
@@ -316,62 +255,6 @@
         [3 1 2] | sort 1
         !| [type /actualType]
         |  eq [::SortKeyNotQuoteError :number]
-       )
-  ~~|
-
-:sortWith
-  |~~ Sorts a Vec or Set using a custom comparator sub-pipeline.
-      Polymorphic — same shape as subject. The comparator receives
-      a pair Map {:left a :right b} and must return a number:
-      negative places left before right, positive places right
-      before left, zero preserves relative order. The sort is a
-      stable merge sort: the comparator fires at most n·⌈log₂ n⌉
-      times. Pair with asc/desc/firstNonZero for declarative
-      compound comparators.
-
-      ~([3 1 2] | sortWith ~(sub /left /right) | eq [1 2 3])
-  ~~|
-  ::builtin{:impl :qlang/prim/sortWith
-            :category :vecTransformer
-            :subject [:vec :set]
-            :returns [:vec :set]
-            :modifiers [:comparatorLambda]}
-
-::SortWithSubjectNotSequenceError
-  |~~ Subject of `sortWith` must be Vec or Set.
-      ~(
-        42 | sortWith ~(asc ~(/x))
-        !| [type /actualType]
-        |  eq [::SortWithSubjectNotSequenceError :number]
-       )
-  ~~|
-
-::SortWithCmpResultNaNError
-  |~~ `sortWith` comparator answered NaN, which orders no pair: every
-      comparison against it reads false, so the run order would come
-      out of a comparison the comparator declined to make. Source
-      cannot mint a NaN — the parser refuses the literal and every
-      arithmetic site lifts a numericDomain error — so this tag
-      reports a comparator a host installed through `session.bind`
-      or a locator's `impls` map.
-  ~~|
-
-::SortWithCmpResultNotNumberError
-  |~~ `sortWith` comparator must return a Number; one comparison produced a non-Number.
-      ~(
-        [1 2] | sortWith ~(:tag)
-        !| [type /actualType]
-        |  eq [::SortWithCmpResultNotNumberError :keyword]
-       )
-  ~~|
-
-::SortWithComparatorNotQuoteError
-  |~~ The comparator of `sortWith` is code it runs on each pair, so it takes a
-      quote, `sortWith ~(desc ~(/age))`; a value computed at the call is refused.
-      ~(
-        [3 1 2] | sortWith 0
-        !| [type /actualType]
-        |  eq [::SortWithComparatorNotQuoteError :number]
        )
   ~~|
 

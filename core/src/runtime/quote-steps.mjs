@@ -1,7 +1,7 @@
 // Constructors of a quote and of its steps [D8, D47, D54].
 //
 // `::quote[…]` holds a vector every element of which is a step, and
-// runs wherever a vector comes under the tag, `tag(::quote)` and every
+// runs wherever a vector comes under the tag, `tag ::quote` and every
 // transform of a quote included, so the invariant holds after each.
 //
 // A record or a wrapper is the step its own text reads back as: its

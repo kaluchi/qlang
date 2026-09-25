@@ -62,7 +62,6 @@
     "#qlang/operand/setOp": "./lib/qlang/operand/setOp.qlang",
     "#qlang/operand/mapOp": "./lib/qlang/operand/mapOp.qlang",
     "#qlang/operand/string": "./lib/qlang/operand/string.qlang",
-    "#qlang/operand/comparator": "./lib/qlang/operand/comparator.qlang",
     "#qlang/operand/predicate": "./lib/qlang/operand/predicate.qlang",
     "#qlang/operand/typeClassifier": "./lib/qlang/operand/typeClassifier.qlang",
     "#qlang/operand/typeConversion": "./lib/qlang/operand/typeConversion.qlang",

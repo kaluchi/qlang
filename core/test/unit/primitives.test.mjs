@@ -274,10 +274,9 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
     await import('../../src/runtime/index.mjs');
     const vecNames = [
       'count', 'empty', 'first', 'last', 'sum', 'min', 'max',
-      'every', 'any', 'firstNonZero',
-      'filter', 'sort', 'sortWith', 'take', 'drop', 'distinct',
-      'reverse', 'flat', 'groupBy', 'indexBy',
-      'asc', 'desc', 'nullsFirst', 'nullsLast'
+      'every', 'any',
+      'filter', 'sort', 'take', 'drop', 'distinct',
+      'reverse', 'flat', 'groupBy', 'indexBy'
     ];
     for (const name of vecNames) {
       expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);

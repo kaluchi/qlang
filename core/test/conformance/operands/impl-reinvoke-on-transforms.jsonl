@@ -8,7 +8,6 @@
 {"name":"identity-tag-no-impl-sticky-after-sort","query":"::Box {} | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"impl-tag-reinvoke-on-take","query":"::Sorted {:impl ~(sort)} | ::Sorted[5 3 1 2] | take 2 | payload","expect":"[1 2]"}
 {"name":"impl-tag-reinvoke-on-drop","query":"::Sorted {:impl ~(sort)} | ::Sorted[5 3 1 2] | drop 2 | payload","expect":"[3 5]"}
-{"name":"impl-tag-preserved-through-sortwith","query":"::Box {:impl ~(sort)} | ::Box[3 1 2] | sortWith ~(sub /left /right) | type","expect":"::Box"}
 {"name":"impl-tag-reinvoke-flat-distributes-sort","query":"::Sorted {:impl ~(sort)} | ::Sorted[2 3 1] | flat | payload","expect":"[1 2 3]"}
 {"name":"non-preserving-count-drops-tag-naturally","query":"::Box {} | ::Box[1 2 3] | count","expect":"3"}
 {"name":"non-preserving-sum-drops-tag-naturally","query":"::Box {} | ::Box[1 2 3] | sum","expect":"6"}

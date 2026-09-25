@@ -2,9 +2,9 @@
 {"name":"zero-arity-conduit-distribute","query":":plus10 add 10 | [1 2 3] * plus10","expect":"[11 12 13]"}
 {"name":"parametric-conduit-single-param","query":":addN [:n] add n | 5 | addN 3","expect":"8"}
 {"name":"parametric-conduit-two-params","query":":@surround [:pfx :sfx] (prepend pfx | append sfx) | \"world\" | @surround \"[\" \"]\"","expect":"\"[world]\""}
-{"name":"higher-order-param-in-sort","query":":@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n) | [{:v 1} {:v 3} {:v 2}] | @topBy /v 2 * /v","expect":"[3 2]"}
+{"name":"higher-order-param-in-sort","query":":@topBy [:keyFn :n] (sort ~(keyFn) | reverse | take n) | [{:v 1} {:v 3} {:v 2}] | @topBy /v 2 * /v","expect":"[3 2]"}
 {"name":"higher-order-param-in-filter","query":":@matching [:pred] filter ~(pred) | [1 2 3 4 5] | @matching (gt 3)","expect":"[4 5]"}
-{"name":"fractal-composition-three-levels","query":":@topBy [:keyFn :n] (sortWith ~(desc ~(keyFn)) | take n) | :@topNByV [:n] @topBy /v n | :@top2ByV @topNByV 2 | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
+{"name":"fractal-composition-three-levels","query":":@topBy [:keyFn :n] (sort ~(keyFn) | reverse | take n) | :@topNByV [:n] @topBy /v n | :@top2ByV @topNByV 2 | [{:v 10} {:v 30} {:v 20}] | @top2ByV * /v","expect":"[30 20]"}
 {"name":"recursive-conduit-tree-sum","query":":totalSize add /size (/children * totalSize | sum) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
 {"name":"recursive-conduit-with-params","query":":@treeMap [:fn] {:label (/label | fn) :children (/children * @treeMap fn)} | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap (append \"!\") | /label","expect":"\"a!\""}
 {"name":"conduit-arity-mismatch-too-few","query":":f [:a :b] add a b | 0 | f 1","error":"arityError","expect":"::ConduitArityMismatchError!{\n  :faultStep ~(f 1)\n  :faultInput 0\n  :conduitName :f\n  :expectedArity 2\n  :actualArity 1\n}"}

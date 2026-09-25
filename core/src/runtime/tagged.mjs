@@ -192,7 +192,7 @@ bindPrim('qlang', qlangOperand);
 
 // ── tag / payload — TaggedInstance split/assemble pair ──────
 //
-// `tag(::Foo)` mints the value under the tag: through the tag's
+// `tag ::Foo` mints the value under the tag: through the tag's
 // constructor when its binding carries one, so a wrong assembly is
 // refused where it is made; as a bare overlay otherwise, through
 // `makeTaggedInstance` — composite payloads (Vec / Set / Map /
@@ -207,8 +207,8 @@ bindPrim('qlang', qlangOperand);
 // data plane. Composite-shape returns a fresh clone of the
 // payload without the header (the result re-enters the
 // untagged value-class surface, ready to be re-tagged through
-// `tag(::Other)`); wrap-object shape returns the `.payload`
-// value directly. Inverse of every `tag(::Foo)` mint and the
+// `tag ::Other`); wrap-object shape returns the `.payload`
+// value directly. Inverse of every `tag ::Foo` mint and the
 // natural «open the envelope» step for tagged-value workflow.
 //
 // `tag` mints `TaggedInstance` from a value plus a TagKeyword.
@@ -223,13 +223,13 @@ bindPrim('qlang', qlangOperand);
 //     wrap-shape payloads with already-tagged inner content
 //     fold through the makeTaggedInstance wrap branch.
 //
-//   bound — `value | tag(::Foo)`. Subject is any pipeValue,
+//   bound — `value | tag ::Foo`. Subject is any pipeValue,
 //     captured arg is the TagKeyword. The everyday partial-
 //     application form.
 //
-//   full  — `tag(value-expr, tag-expr)`. Both args captured,
+//   full  — `tag value-expr tag-expr`. Both args captured,
 //     pipeValue is context for both — lets compact rebuild
-//     patterns like `pair | tag(/1, /0)` reorder elements of
+//     patterns like `pair | tag /1 /0` reorder elements of
 //     a positional Vec into the operand's value-then-tag
 //     order without an intermediate `as` snapshot.
 

@@ -138,7 +138,7 @@ export function isOrderedSequence(v) {
 // isOrderedSequence. A Vec / JsonArray yields itself (no copy); a Set
 // is spread into an array in insertion order. Order-aware operands
 // that need indexed access (first / last / at) or full materialisation
-// (sort / sortWith), and the `*` distribute fork, source their element
+// (sort), and the `*` distribute fork, source their element
 // array here.
 export function sequenceElements(v) {
   return isVecShape(v) ? v : [...v];
@@ -493,7 +493,7 @@ export function makeSnapshot(value, { name, docs = [], location = null } = {}) {
 // through `isVec` / `isQSet` / `isQMap` predicates see the same
 // shape they always see — `::Tag[1 2 3] | /1` indexes the
 // underlying Array, `::Tag{:a 1} | keys` lists the underlying
-// Map keys, `::Tag#[:a :b] | union(#[:c])` merges the underlying
+// Map keys, `::Tag#[:a :b] | union #[:c]` merges the underlying
 // Set. `typeKeyword` reads the header first so identity comes
 // through `result | type`. Reserved header tags
 // (`::conduit`, `::snapshot`, `::builtin`) are matched against
@@ -619,7 +619,7 @@ export function withName(binding, newName) {
 
 // `:trail` is runtime-owned: a Quote-value carrying the deflected
 // pipeline suffix, or `null` before any deflection. A literal
-// (`!{:trail [1 2]}`) or a re-lift (`!| union({:trail []}) | error`)
+// (`!{:trail [1 2]}`) or a re-lift (`!| union {:trail []} | error`)
 // that stamps any other value under `:trail` fires this error at mint
 // time, so `combineTrailQuotes` only ever joins quotes and the
 // fail-track never carries a suffix that `apply` cannot replay.

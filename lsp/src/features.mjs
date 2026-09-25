@@ -232,7 +232,7 @@ async function tagNamespaceCompletions() {
 // whether the cursor sits right after a `::` prefix — that picks
 // the tag-namespace catalog alone. Without a source slice the
 // default merges both catalogs so hover-style discovery works
-// inside `filter(::` / `eq(::` / first-token contexts.
+// inside `filter ::` / `eq ::` / first-token contexts.
 function justTypedDoubleColon(source, offset) {
   if (typeof source !== 'string' || offset < 2) return false;
   return source[offset - 2] === ':' && source[offset - 1] === ':';
@@ -331,7 +331,7 @@ async function hoverForOperand(node, documentAst) {
     };
   }
   // User-defined binding — search the in-document AST for a
-  // BindStep or `as(:name)` declaration that carries docs.
+  // BindStep or `as :name` declaration that carries docs.
   const docStrings = findInDocumentDocs(documentAst, node.name);
   if (docStrings.length === 0) return null;
   const prose = stripQuoteSegments(docStrings.join('\n'));
@@ -346,7 +346,7 @@ async function hoverForOperand(node, documentAst) {
   };
 }
 
-// Walk the document AST for a BindStep (or `as(:name)`) whose key
+// Walk the document AST for a BindStep (or `as :name`) whose key
 // matches `name` and return its `.docs` string Vec. Last-match
 // wins (shadowing semantics).
 function findInDocumentDocs(ast, name) {
@@ -417,7 +417,7 @@ function formatMetaValue(value) {
 // ── Go to Definition ──────────────────────────────────────────
 //
 // Three-tier resolution:
-//   1. In-document BindStep / `as(:name)` declaration visible at
+//   1. In-document BindStep / `as :name` declaration visible at
 //      the cursor — last-write-wins with fork isolation
 //      (shadowing-aware)
 //   2. Catalog declaration for builtins, walked across every
@@ -462,11 +462,11 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 // Single recogniser for every AST shape that introduces a binding
 // in env: `BindStep` with a Keyword key (`:name body`), `BindStep`
 // with a BareTypeKeyword key (`::Tag body` — tag-binding), or an
-// `as(:name)` OperandCall. The user-facing symbol kind tracks what
+// `as :name` OperandCall. The user-facing symbol kind tracks what
 // the binding will hold once `evalBindStep` runs:
 //   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
 //   * `snapshot` — Keyword head with a pure-literal body or a
-//                  doc-only declaration (no body), or any `as(:name)`
+//                  doc-only declaration (no body), or any `as :name`
 //   * `conduit`  — Keyword head with an impure / parametric body
 function bindingDeclarationOf(node) {
   if (node.type === 'BindStep') {
@@ -494,7 +494,7 @@ function bindingKindForKeywordHead(bindStepNode) {
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST
-// collecting BindStep / `as(:name)` declarations for `name` that
+// collecting BindStep / `as :name` declarations for `name` that
 // are lexically visible at `offset` (before the cursor, in a
 // fork-reachable ancestor). Returns the LAST one (closest to
 // cursor = most recent shadowing), or null if no in-document
@@ -549,13 +549,13 @@ export function referencesAtOffset(ast, offset) {
 
   // Five click-positions resolve to a binding name:
   //   1. OperandCall named `as` whose first arg is a Keyword
-  //      (`as(:foo)` → 'foo').
+  //      (`as :foo` → 'foo').
   //   2. Plain OperandCall (`count`) — its own name is the lookup
   //      target.
   //   3. BindStep wrapper (cursor between key and body) — the
   //      declared name from `node.key`.
   //   4. Keyword node whose parent is a BindStep key or an
-  //      `as(:name)` first arg — the name of the keyword.
+  //      `as :name` first arg — the name of the keyword.
   //   5. BareTypeKeyword either standalone or as a BindStep key —
   //      the tag-namespace identifier `::tag`.
   let name = null;

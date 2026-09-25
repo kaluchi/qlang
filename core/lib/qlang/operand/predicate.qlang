@@ -6,9 +6,7 @@
    composes over. The identity-tag reader `type` and the `keyword`
    involution ride parallel axes and live in
    `core/lib/qlang/operand/typeClassifier.qlang` and
-   `core/lib/qlang/operand/typeConversion.qlang` respectively;
-   comparator builders (`asc`/`desc`/`nullsFirst`/`nullsLast`) for
-   sortWith live in `core/lib/qlang/operand/comparator.qlang`. ~|
+   `core/lib/qlang/operand/typeConversion.qlang` respectively. ~|
 
 :not
   |~~ Logical negation. Returns true if the subject is falsy

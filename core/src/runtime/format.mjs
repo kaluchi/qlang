@@ -211,7 +211,7 @@ const CELL_HANDLERS = {
   // carries the renderable identity, the wrapper itself is env
   // housekeeping. Cell-renderer recurses on the unwrapped value
   // so the cell stays a value literal (round-trip-safe), bypassing
-  // the `as(:name)` binding-statement surface form.
+  // the `as :name` binding-statement surface form.
   Snapshot:   s => renderCell(s.get('payload')),
   TaggedInstance: renderTaggedInstanceInline
 };
@@ -233,7 +233,7 @@ const INLINE_HANDLERS = {
   Conduit:    printConduit,
   // Snapshot is an immutable value-wrapper — recurse on the
   // captured value (which carries the renderable identity). The
-  // `as(:name)` surface form is a binding statement; rendering a
+  // `as :name` surface form is a binding statement; rendering a
   // Snapshot back through it would re-enter the parser as a
   // BindStep, where eval would write env and leave pipeValue at
   // the captured value, diverging from the Snapshot identity.

@@ -1,37 +1,29 @@
-// Axis-operands — reflective navigation from a binding name to
-// declarative metadata living on the binding's source AST.
+// Axis-operands — reflective navigation to a binding's declaration
+// [D61]: a name, a keyword `:foo` or a tag name `::Foo`, reads the
+// binding it names, and every other value reads the declaration of its
+// kind, the kind `type` answers. Each operand walks the
+// `qlang/ast/<uri>` quotes in env for the step that declares the
+// binding, a BindStep or an `as :name` call, and answers a field of it:
 //
-// Each operand walks the `qlang/ast/<uri>` Quote-values in env to
-// find the originating `BindStep` (or `as :name` OperandCall) for
-// the named binding, then returns the field projected from that
-// step (source text, docs, example Quotes, etc.).
-//
-// `source` returns a Quote of the BindStep's source text.
-// `docs`   returns a Vec of Doc-values built from each attached
-//          doc-prefix on the BindStep (one Doc-value per prefix).
-// `examples` returns a Vec of Quote-values extracted from those
-//          docs — every Quote segment in the doc-content stream
-//          is a candidate test case for runExamples.
+// `source`   the quote of the step.
+// `docs`     a Vec of Doc-values, one per doc-prefix of the step.
+// `examples` every quote among the segments of those docs, the cases
+//            `runExamples` runs.
+// `spec`     the descriptor the binding holds in env.
 
 import { stateOp } from './dispatch.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { withPipeValue, envGet, envHas } from '../state.mjs';
 import {
-  isKeyword, isQMap, isQuote, isTagKeyword, isSnapshot, makeDoc,
-  declarationSiteOf, TAG_HEADER_SYMBOL
+  isKeyword, isQuote, isTagKeyword, isSnapshot, makeDoc, typeKeyword, declarationSiteOf
 } from '../types.mjs';
 import { quoteOfBody, astOfQuote } from '../quote.mjs';
 import {
   isModuleAstKey, isTagBindingName, tagBindingKey, stripTagBindingPrefix
 } from '../env-keys.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
-const SourceSubjectNotKeywordOrTagError   = declareSubjectError('SourceSubjectNotKeywordOrTagError',   'source',   ['keyword', 'tagKeyword']);
-const DocsSubjectNotKeywordOrTagError     = declareSubjectError('DocsSubjectNotKeywordOrTagError',     'docs',     ['keyword', 'tagKeyword']);
-const ExamplesSubjectNotKeywordOrTagError = declareSubjectError('ExamplesSubjectNotKeywordOrTagError', 'examples', ['keyword', 'tagKeyword']);
-const SpecSubjectNotKeywordOrTagError     = declareSubjectError('SpecSubjectNotKeywordOrTagError',     'spec',     ['keyword', 'tagKeyword']);
 // `bindingName` (a value-namespace identifier or a `::`-prefixed
 // tag-binding reference) is an identifier-shaped string at the JS
 // level; the JS→qlang lift in `error-convert.mjs::liftIdentifier`
@@ -61,19 +53,10 @@ export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundEr
     `spec: no binding-step found for '${bindingName}' across loaded modules`,
   { operand: 'spec' });
 
-// Walk a module AST for the binding-step that binds `bindingName`.
-// Two surface forms produce a binding visible to axis lookup:
-//
-//   BindStep `:name … body` / `::Tag … body` — the AST node
-//   carries `.key` (Keyword or BareTypeKeyword) and the
-//   doc-prefix in `.docs`.
-//
-//   OperandCall `as :name` — the AST node carries `.args[0]`
-//   (Keyword) and the doc-prefix in `.docs`. `as` mints into the
-//   value namespace only, so a tag-namespace lookup
-//   (`::Tag | source`) must never reach the `as` branch — the
-//   value-namespace `:Tag` snapshot and the tag-namespace `::Tag`
-//   binding are distinct env entries.
+// The walk by name serves the catalog's descriptors, which carry no
+// site and are all BindSteps: one matches when its key names the
+// binding, a keyword in the value namespace, a tag name in the tag
+// namespace.
 function matchesBindingStep(step, isTagBinding, targetName) {
   if (step.type === 'BindStep') {
     const key = step.key;
@@ -86,10 +69,9 @@ function matchesBindingStep(step, isTagBinding, targetName) {
 
 // Walk the module AST front to back, return the LAST matching binding
 // step. The last-match rule mirrors qlang's shadowing semantics: a
-// later `:foo body` BindStep (or `as :foo`) shadows the earlier
-// binding, so axis-operand lookups surface the docs / source /
-// examples of the shadowing-resolved binding at that point in the
-// module.
+// later `:foo body` BindStep shadows the earlier binding, so
+// axis-operand lookups surface the docs / source / examples of the
+// shadowing-resolved binding at that point in the module.
 // A module of one declaration parses as that step itself, with no
 // Pipeline wrapper, and the head step of a Pipeline rides without
 // the combinator wrapper its followers carry. Both readings below
@@ -160,42 +142,25 @@ export function findBindingStepAcrossModules(env, bindingName) {
   return lastMatch;
 }
 
-// `as :name` OperandCall nodes without an attached doc-prefix
-// carry no `.docs` field; `BindStep` always carries `.docs` (null
-// or string Vec). `stepDocStrings` lifts both shapes to a plain
-// array of doc strings — the single normalisation seam every axis-
-// operand reader (`docs`, `examples`, `runExamples`) flows through.
+// A BindStep carries its doc-prefixes as `.docs`, null when it has
+// none, and an `as :name` call carries the field only when it has
+// some; every reader of them, `docs`, `examples` and `runExamples`,
+// goes through here.
 export function stepDocStrings(step) {
   return step.docs ?? [];
 }
 
-// Resolve the subject to a binding name a BindStep lives under.
-// Keyword `:foo`         → `'foo'` (ordinary value/conduit binding).
-// TagKeyword `::Tag`     → `'::Tag'` (tag-binding subject — the form
-// `::Tag | source` lands here once BareTypeKeyword evaluation returns
-// a TagKeyword identifier).
-// Descriptor / view Map carrying a `:kind` TagKeyword field (a
-// `manifest` view-Map, or a user-built `{:kind ::Foo …}` Map) →
-// `'::<tag>'` taken from that field — the binding whose docs the
-// Map's `:kind` names.
-function bindingNameOf(subject, env, ErrorCls) {
+// The binding a subject names: a keyword names a binding, a tag name
+// a tag's, and every other value names the declaration of its kind,
+// the kind `type` answers [D61].
+function bindingNameOf(subject) {
   if (isKeyword(subject)) return subject.name;
   if (isTagKeyword(subject)) return tagBindingKey(subject.name);
-  if (isQMap(subject)) {
-    // A tagged value names its binding through the JS-header slot —
-    // the same identity `type` answers with. A `manifest` view-Map
-    // names one through its `:kind` field, which is the field's job:
-    // it says which binding the view describes.
-    const headerTag = subject[TAG_HEADER_SYMBOL];
-    if (headerTag !== undefined) return tagBindingKey(headerTag.name);
-    const describedKind = subject.get('kind');
-    if (isTagKeyword(describedKind)) return tagBindingKey(describedKind.name);
-  }
-  throw new ErrorCls(subject);
+  return tagBindingKey(typeKeyword(subject).name);
 }
 
 export const source = stateOp('source', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, SourceSubjectNotKeywordOrTagError);
+  const bindingName = bindingNameOf(state.pipeValue);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new SourceBindingNotFoundError({ bindingName });
@@ -204,7 +169,7 @@ export const source = stateOp('source', 1, (state, _lambdas) => {
 });
 
 export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, DocsSubjectNotKeywordOrTagError);
+  const bindingName = bindingNameOf(state.pipeValue);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new DocsBindingNotFoundError({ bindingName });
@@ -214,7 +179,7 @@ export const docs = stateOp('docs', 1, (state, _lambdas) => {
 });
 
 export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, ExamplesSubjectNotKeywordOrTagError);
+  const bindingName = bindingNameOf(state.pipeValue);
   const step = findBindingStepAcrossModules(state.env, bindingName);
   if (step === null) {
     throw new ExamplesBindingNotFoundError({ bindingName });
@@ -247,7 +212,7 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // raises; `::conduit | spec | /impl` returns the
 // `:qlang/type/conduit` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
-  const bindingName = bindingNameOf(state.pipeValue, state.env, SpecSubjectNotKeywordOrTagError);
+  const bindingName = bindingNameOf(state.pipeValue);
   if (!envHas(state.env, bindingName)) {
     throw new SpecBindingNotFoundError({ bindingName });
   }

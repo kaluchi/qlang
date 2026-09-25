@@ -24,7 +24,7 @@
 
       ~(::qlang | manifest | filter ~(eq ::number) | count | eq 1)
       ~(5 | docs | eq (::number | docs))
-      ~(::number | spec | /verbs | filter ~(eq :add) | count | eq 1)
+      ~(::string | spec | /verbs | filter ~(eq :split) | count | eq 1)
       ~(::vec/count | docs | count | eq 1)
       ~("x" | add 1 !| type | docs | count | eq 1)
   ~~|
@@ -35,7 +35,7 @@
       answers it as its `type`, since each has a kind of its own above
       it.
 
-      ~(::qlang/any | spec | /verbs | filter ~(eq :docs) | count | eq 1)
+      ~(::qlang/any | spec | /verbs | filter ~(eq :type) | count | eq 1)
       ~(5 | type | eq ::qlang/any | not)
   ~~|
 

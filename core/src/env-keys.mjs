@@ -42,7 +42,7 @@ export const RUNTIME_LOCATOR_KEY    = 'qlang/locator';
 // canonicalTagName(tagName) — the name a tag goes by. The names
 // without a prefix belong to the core [D23], so every name under the
 // core's noun is written short [D32], [D62]: `::qlang/number` is the
-// tag `::number`, `::qlang/conduit` is `::conduit`, and
+// tag `::number`, `::qlang/verb` is `::verb`, and
 // `::qlang/vec/count` the address `::vec/count`; every other name is
 // its own.
 const CORE_NOUN_PREFIX = 'qlang/';

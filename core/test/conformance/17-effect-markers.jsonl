@@ -1,8 +1,8 @@
-{"name":"bindstep-with-effectful-body-rejected","query":":foo @callers !| type","expect":"::EffectLaunderingAtBindStepParseError"}
-{"name":"bindstep-with-nested-effectful-body-rejected","query":":foo filter ~(@callers | count) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
-{"name":"bindstep-with-projection-laundering-rejected","query":":bad (env | /@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
-{"name":"bindstep-with-clean-body-and-at-name-accepted","query":":@safe count | [1 2 3] | @safe","expect":"3"}
-{"name":"bindstep-with-clean-body-and-clean-name-accepted","query":":foo count | [1 2 3] | foo","expect":"3"}
-{"name":"transitive-laundering-via-alias-rejected","query":":@a count | :b @a !| type","expect":"::EffectLaunderingAtBindStepParseError"}
+{"name":"bindstep-with-effectful-body-rejected","query":":foo ::verb~(@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
+{"name":"bindstep-with-nested-effectful-body-rejected","query":":foo ::verb~(filter ~(@callers | count)) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
+{"name":"bindstep-with-projection-laundering-rejected","query":":bad ::verb~(env | /@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
+{"name":"bindstep-with-clean-body-and-at-name-accepted","query":":@safe ::verb~(count) | [1 2 3] | @safe","expect":"3"}
+{"name":"bindstep-with-clean-body-and-clean-name-accepted","query":":foo ::verb~(count) | [1 2 3] | foo","expect":"3"}
+{"name":"transitive-laundering-via-alias-rejected","query":":@a ::verb~(count) | :b ::verb~(@a) !| type","expect":"::EffectLaunderingAtBindStepParseError"}
 {"name":"as-binding-on-effectful-source-not-rejected","query":"[1 2 3] | as :result | result | count","expect":"3"}
-{"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:bad @callers | bad)","error":"effectLaundering","expect":"::EffectLaunderingAtBindStepParseError!{\n  :faultStep ~(:bad @callers)\n  :faultInput 1\n  :bindingName :bad\n  :effectfulName :@callers\n  :trail ~(| bad)\n}"}
+{"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:bad ::verb~(@callers) | bad)","error":"effectLaundering","expect":"::EffectLaunderingAtBindStepParseError!{\n  :faultStep ~(:bad ::verb~(@callers))\n  :faultInput 1\n  :bindingName :bad\n  :effectfulName :@callers\n  :trail ~(| bad)\n}"}

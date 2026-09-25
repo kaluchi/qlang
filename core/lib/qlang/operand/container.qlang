@@ -48,19 +48,18 @@
 :every
   |~~ Returns true iff every item of the container satisfies the
       predicate. Polymorphic over Vec / Set / Map, a map's elements
-      being its values: the predicate fires per element with it as
-      pipeValue, and a conduit of one parameter [:x] binds it as a
-      captured-arg. The predicate answers a boolean, and every
-      short-circuits on the first false. Vacuously true for empty
-      containers.
+      being its values: the predicate runs against each element as
+      its subject, a verb among the code it takes. The predicate
+      answers a boolean, and every short-circuits on the first false.
+      Vacuously true for empty containers.
 
       ~([2 4 6 8] | every ~(gt 0) | eq true)
       ~([1 2 3] | every ~(gt 2) | eq false)
-      ~([2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos) | eq true)
+      ~([2 4 6] | :positive ::verb~(gt 0) | every ~positive | eq true)
       ~([] | every ~(gt 0) | eq true)
       ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
       ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
-      ~({:a 1 :b 2} | :@pos [:v] (v | gt 0) | every ~(@pos) | eq true)
+      ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/every
             :category :containerSelector
@@ -74,15 +73,6 @@
         42 | every ~(gt 0)
         !| [type /actualType]
         |  eq [::EverySubjectNotContainerError ::number]
-       )
-  ~~|
-
-::EveryPredArityInvalidError
-  |~~ `every` requires a predicate conduit with 0 or 1 params (`[:x]` binds the element, a map's value among them).
-      ~(
-        [1 2] | :@kv [:k :v] true | every ~(@kv)
-        !| [type /conduitName /actualArity]
-        |  eq [::EveryPredArityInvalidError :@kv 2]
        )
   ~~|
 
@@ -109,16 +99,16 @@
 :any
   |~~ Returns true iff at least one item of the container
       satisfies the predicate. Polymorphic over Vec / Set / Map,
-      a map's elements being its values, with the same dispatch as
-      every, the predicate answering a boolean. Short-circuits on the
+      a map's elements being its values, the predicate running
+      against each as every runs it and answering a boolean. Short-circuits on the
       first true. Vacuously false for empty containers.
 
       ~([1 2 3] | any ~(gt 2) | eq true)
       ~([1 2 3] | any ~(gt 99) | eq false)
-      ~([1 2 3] | :@big [:v] (v | gt 2) | any ~(@big) | eq true)
+      ~([1 2 3] | :big ::verb~(gt 2) | any ~big | eq true)
       ~([] | any ~(gt 0) | eq false)
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
-      ~({:a -1 :b 2} | :@pos [:v] (v | gt 0) | any ~(@pos) | eq true)
+      ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
   ~~|
   ::builtin{:impl :qlang/prim/any
             :category :containerSelector
@@ -132,15 +122,6 @@
         42 | any ~(gt 0)
         !| [type /actualType]
         |  eq [::AnySubjectNotContainerError ::number]
-       )
-  ~~|
-
-::AnyPredArityInvalidError
-  |~~ `any` requires a predicate conduit with 0 or 1 params (`[:x]` binds the element, a map's value among them).
-      ~(
-        [1 2] | :@kv [:k :v] true | any ~(@kv)
-        !| [type /conduitName /actualArity]
-        |  eq [::AnyPredArityInvalidError :@kv 2]
        )
   ~~|
 
@@ -169,18 +150,18 @@
       returning a new container of the same shape; the predicate
       answers a boolean. A map's
       elements are its values: the predicate sees the value, and the
-      entries whose value passes keep their keys. A conduit of one
-      parameter [:x] binds the element as its captured-arg; the joint
-      test of a key with its value reads the keys, `m | keys | filter
-      ~(…)`, and `at` the value of each.
+      entries whose value passes keep their keys. A verb runs against
+      each element as a quote does; the joint test of a key with its
+      value reads the keys, `m | keys | filter ~(…)`, and `at` the
+      value of each.
 
       ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
       ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
-      ~([1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos) | eq [1 3])
+      ~([1 -2 3] | :positive ::verb~(gt 0) | filter ~positive | eq [1 3])
       ~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
-      ~(#[1 -2 3] | :@pos [:v] (v | gt 0) | filter ~(@pos) | eq #[1 3])
+      ~(#[1 -2 3] | filter ::verb~(gt 0) | eq #[1 3])
       ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
-      ~({:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos) | eq {:a 1 :c 3})
+      ~({:a 1 :b -2 :c 3} | :positive ::verb~(gt 0) | filter ~positive | eq {:a 1 :c 3})
       ~({} | filter ~(gt 0) | eq {})
   ~~|
   ::builtin{:impl :qlang/prim/filter
@@ -195,15 +176,6 @@
         42 | filter ~(gt 0)
         !| [type /actualType]
         |  eq [::FilterSubjectNotContainerError ::number]
-       )
-  ~~|
-
-::FilterPredArityInvalidError
-  |~~ `filter` requires a predicate conduit with 0 or 1 params (`[:x]` binds the element, a map's value among them).
-      ~(
-        [1 2] | :@kv [:k :v] true | filter ~(@kv)
-        !| [type /conduitName /actualArity]
-        |  eq [::FilterPredArityInvalidError :@kv 2]
        )
   ~~|
 

@@ -1,8 +1,7 @@
 {"name":"env-has-unknown","query":"env | has :thisNameDoesNotExist","expect":"false"}
 {"name":"env-after-as-binding","query":"42 | as :answer | env | has :answer","expect":"true"}
-{"name":"env-after-bind","query":":double mul 2 | env | has :double","expect":"true"}
+{"name":"env-after-bind","query":":double ::verb~(mul 2) | env | has :double","expect":"true"}
 {"name":"env-after-use-install","query":"{:pi 3.14} | use | env | has :pi","expect":"true"}
 {"name":"env-operator-ignores-pipeValue","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
-{"name":"conduit-data-plane-carries-qlang-values-only","query":":f mul 2 | :f | spec | keys","expect":"#[:name :params :source :docs :effectful]"}
 {"name":"data-assembled-builtin-descriptor-dispatches","query":"::builtin{:impl :qlang/prim/count} | as :c | [1 2 3] | c","expect":"3"}
 {"name":"data-assembled-descriptor-refuses-a-non-handle-impl","query":"::builtin{:impl 42} | as :bogus | 1 | bogus !| type","expect":"::BuiltinImplNotPrimitiveKeyError"}

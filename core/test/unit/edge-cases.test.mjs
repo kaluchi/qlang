@@ -27,21 +27,17 @@ import {
 import {
   keyword,
   describeType,
-  isConduit,
   isFunctionValue,
   isKeyword,
   isQMap,
   isQSet,
   isQuote,
   isVec,
-  makeConduit,
   makeSet,
   makeTagKeyword,
-  conduitBodyAst,
-  conduitEnvRef,
   typeKeyword,
   TAG_HEADER_SYMBOL,
-  CONDUIT_TAG
+  VERB_TAG
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
 import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
@@ -73,13 +69,10 @@ describe('types.mjs', () => {
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(makeSet([]))).toBe('Set');
     expect(describeType(makeFn('probe', 1, () => {}))).toBe('Function');
-    expect(describeType(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe('Conduit');
     expect(describeType(Symbol('weird'))).toBe('Unknown');
   });
 
   it('value-class predicates', () => {
-    expect(isConduit(makeConduit({ type: 'NumberLit', value: 1, text: '1' }))).toBe(true);
-    expect(isConduit(makeFn('probe', 1, () => {}))).toBe(false);
     expect(isFunctionValue(makeFn('probe', 1, () => {}))).toBe(true);
     expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
@@ -89,26 +82,14 @@ describe('types.mjs', () => {
     expect(isVec([])).toBe(true);
   });
 
-  it('makeConduit stamps ::conduit plus the body AST and envRef holder on JS-header slots', async () => {
-    const bodyAst = { type: 'NumberLit', value: 1, text: '1' };
-    const lexicalRef = { env: null };
-    const doubleConduit = makeConduit(bodyAst, { name: 'double', envRef: lexicalRef });
-    expect(doubleConduit).toBeInstanceOf(Map);
-    expect(doubleConduit.has('kind')).toBe(false);
-    expect(doubleConduit[TAG_HEADER_SYMBOL]).toBe(CONDUIT_TAG);
-    expect(typeKeyword(doubleConduit)).toBe(CONDUIT_TAG);
-    // Body AST and lexical anchor ride the slots; the data plane
-    // enumerates qlang values alone.
-    expect(conduitBodyAst(doubleConduit)).toBe(bodyAst);
-    expect(conduitEnvRef(doubleConduit)).toBe(lexicalRef);
-    expect(doubleConduit.has('body')).toBe(false);
-    expect(doubleConduit.has('envRef')).toBe(false);
-    expect(doubleConduit.has('location')).toBe(false);
-    expect([...doubleConduit.keys()]).toEqual(['name', 'params', 'source', 'docs', 'effectful']);
-    const sourceQuote = doubleConduit.get('source');
-    expect(isQuote(sourceQuote)).toBe(true);
-    expect(printQuoteSource(sourceQuote)).toBe('1');
-    expect(astOfQuote(sourceQuote)).toBe(bodyAst);
+  it('a verb is a tag over its quote, its scope on a JS-header slot', async () => {
+    const doubleVerb = await evalQuery('::verb~(mul 2)');
+    expect(doubleVerb[TAG_HEADER_SYMBOL]).toEqual(VERB_TAG);
+    expect(typeKeyword(doubleVerb)).toEqual(VERB_TAG);
+    expect(isQuote(doubleVerb.payload)).toBe(true);
+    expect(printQuoteSource(doubleVerb.payload)).toBe('mul 2');
+    expect(astOfQuote(doubleVerb.payload).type).toBe('OperandCall');
+    expect(Object.keys(doubleVerb)).toEqual(['tag', 'payload']);
   });
 });
 
@@ -323,19 +304,19 @@ describe('dispatch helper arity error paths', () => {
   });
 });
 
-describe('source axis on conduit / as / TagKeyword subjects', () => {
+describe('source axis on verb / as / TagKeyword subjects', () => {
   // `:name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers value-namespace bindings
   // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
 
-  it('source on a conduit binding name returns the whole declaration', async () => {
-    const source = await evalQuery(':double mul 2 | :double | source | parse');
-    expect(source).toBe(':double mul 2');
+  it('source on a verb binding name returns the whole declaration', async () => {
+    const source = await evalQuery(':double ::verb~(mul 2) | :double | source | parse');
+    expect(source).toBe(':double ::verb~(mul 2)');
   });
 
-  it('source on a parametric conduit captures the params slot', async () => {
-    const source = await evalQuery(':@surround [:pfx :sfx] (prepend pfx | append sfx) | :@surround | source | parse');
-    expect(source).toBe(':@surround [:pfx :sfx] (prepend pfx | append sfx)');
+  it('source on a verb with slots captures its head', async () => {
+    const source = await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | :@surround | source | parse');
+    expect(source).toBe(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)');
   });
 
   it('source on an as binding name returns the as(:name) step', async () => {

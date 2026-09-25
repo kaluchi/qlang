@@ -2,14 +2,10 @@
 //
 // `printValue(v, indent?)` is the round-trip surface — every value
 // V that can land in pipeValue renders into a source string that
-// `eval(parse(...))` brings back to a deepEqual (or render-stable
-// for Conduit) value. The contract is pinned by
-// `core/test/unit/round-trip-invariant.test.mjs`.
-//
-// Two categories sit outside the contract by design:
-//   * raw qlang function values → `FunctionValueLeakedToPrintError`
-//   * conduitParameter proxies — local to `applyConduit`'s body
-//     fork, never escape the outer pipeValue channel
+// `eval(parse(...))` brings back to a deepEqual value. The contract is
+// pinned by `core/test/unit/round-trip-invariant.test.mjs`; a raw
+// function value sits outside it by design and lifts
+// `FunctionValueLeakedToPrintError`.
 //
 // `dispatchQlangValue` is the per-value-class lookup-table walker
 // every render-time consumer (this file, `format.mjs`'s
@@ -72,7 +68,7 @@ export function literalOfKeyword(k) { return k.literal; }
 //
 // for every value V that can land in pipeValue — Number, String,
 // Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, Error, Quote,
-// Doc, Conduit, TaggedInstance (user-defined `::tag` instances and
+// Doc, TaggedInstance (user-defined `::tag` instances, a verb and
 // the `::binding` records `env` answers). The shape is enforced by
 // `core/test/unit/round-trip-invariant.test.mjs`.
 //
@@ -93,7 +89,6 @@ const PRINT_HANDLERS = {
   Set:        (s, indent) => printListLike('#[', ']', ' ', s,      indent),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + d.content + '~~|',
-  Conduit:    printConduit,
   TaggedInstance: printTaggedInstance
 };
 
@@ -153,31 +148,6 @@ function printErrorValue(e, indent) {
   }
   if (payload.size === 0) return tagHead + '!{}';
   return tagHead + printMapLike('!{', payload, indent);
-}
-
-// Both named and anonymous conduits render as the `::conduit[…]`
-// TaggedLit literal — the same shape `evalTaggedLit` accepts on
-// the way back in. Named form carries the self-name keyword in
-// the payload's first slot (`::conduit[:self [params] ~(body)]`),
-// anonymous form omits it (`::conduit[[params] ~(body)]`).
-// Round-trip: parse → evalTaggedLit → conduitConstructor →
-// makeConduit reproduces the same Conduit-value modulo the
-// lexical envRef holder, which the constructor binds to the
-// call-site env at reconstruction time.
-// The `::conduit` literal head sits on the Map's
-// TAG_HEADER_SYMBOL slot — the printer reads identity through
-// the same channel `typeKeyword` / `isConduit` use.
-export function printConduit(conduit) {
-  const tagLiteral = conduit[TAG_HEADER_SYMBOL].literal;
-  const name = conduit.get('name');
-  const params = conduit.get('params');
-  const sourceQuote = conduit.get('source');
-  const paramList = `[${params.map(p => p.literal).join(' ')}]`;
-  const quotedBody = printValue(sourceQuote);
-  if (name == null) {
-    return `${tagLiteral}[${paramList} ${quotedBody}]`;
-  }
-  return `${tagLiteral}[${canonicalKeywordLiteral(name)} ${paramList} ${quotedBody}]`;
 }
 
 // Round-trip a tagged-instance Map back into the TaggedLit literal

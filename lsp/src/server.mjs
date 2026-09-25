@@ -265,7 +265,7 @@ connection.onReferences((params) => {
 // ── Document Symbols (Outline) ────────────────────────────────
 
 const SYMBOL_KIND_MAP = {
-  conduit:  SymbolKind.Function,
+  verb:     SymbolKind.Function,
   value:    SymbolKind.Variable,
   tag:      SymbolKind.Struct
 };

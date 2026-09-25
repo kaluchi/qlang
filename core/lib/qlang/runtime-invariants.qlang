@@ -7,7 +7,7 @@
    the render-path round-trip guards. Per-operand errors live
    inline in the operand's own family file
    (lib/qlang/operand/<family>.qlang); the errors of the kinds'
-   constructors (::conduit / ::quote / ::builtin) live next to their
+   constructors (::verb / ::quote / ::builtin) live next to their
    constructors in lib/qlang/tag.qlang.
 
    Section layout, top to bottom:
@@ -206,7 +206,7 @@
       laundering caught at parse time.
 
       ~(
-        1 | (:bad @callers | bad)
+        1 | (:bad ::verb~(@callers) | bad)
         !| [type /bindingName /effectfulName]
         |  eq [::EffectLaunderingAtBindStepParseError
                 :bad :@callers]
@@ -304,9 +304,9 @@
   ~~|
 
 ::TaggedJSONUnencodableValueError
-  |~~ `toTaggedJSON` cannot encode a function or conduit value,
-      nor the record of a binding that holds one — use
-      `serializeSession` for the binding-aware path.
+  |~~ `toTaggedJSON` cannot encode a function value, nor the record
+      of a binding that holds one, since a function a host bound has no
+      reading as data.
   ~~|
 
 |~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
@@ -419,16 +419,6 @@
 
 |~ ── 10. Session lifecycle invariants ──────────────────── ~|
 
-::SessionBindingKindUnknownError
-  |~~ Session deserialization — a binding entry carries an
-      unknown `:kind`.
-  ~~|
-
-::SessionConduitSourceMissingError
-  |~~ Session deserialization — a conduit binding entry has
-      no `:source` to re-parse.
-  ~~|
-
 ::SessionPayloadInvalidError
   |~~ Session deserialization — payload is malformed (missing
       required fields).
@@ -466,12 +456,9 @@
 
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
-      with no JSON form. A conduit and the record of its binding
-      reconstruct through `serializeSession` / `deserializeSession`;
-      a host value an
-      embedder installed reaches the boundary the same way. Route
-      the value through `tjson` / `toTaggedJSON` when the round-trip
-      has to stay lossless, or project around the slot.
+      with no JSON form, a host value an embedder installed. Route the
+      value through `tjson` / `toTaggedJSON` when the round-trip has
+      to stay lossless, or project around the slot.
   ~~|
 
 |~ ── 12. Error-value mint invariants ──────────────────── ~|
@@ -505,17 +492,17 @@
 |~ ── 13. Evaluation depth budget ───────────────────────── ~|
 
 ::EvaluationDepthExceededError
-  |~~ The evaluator descends one frame per conduit body,
+  |~~ The evaluator descends one frame per verb body,
       captured-arg lambda, `apply` re-entry, Quote-bodied
       tag constructor, doc-segment literal, and locator-loaded
       module; the frame past `EVAL_DEPTH_LIMIT` (state.mjs) lifts
       this error with `:depth` (the refused frame) and `:limit`
-      (the budget) on the descriptor. A conduit that calls itself
+      (the budget) on the descriptor. A verb that calls itself
       without a base case surfaces here on the fail-track while the
       host's heap stays bounded.
 
       ~(
-        :inf (add 1 | inf) | 0 | inf
+        :inf ::verb~(add 1 | inf) | 0 | inf
         !| type | eq ::EvaluationDepthExceededError
        )
       ~(

@@ -96,17 +96,16 @@ export class QlangInvariantError extends QlangError {
 // concrete subclasses fire from two different points:
 //
 //   EffectLaunderingAtBindStepParseError — fired by `evalBindStep` when
-//     the body AST scan (findFirstEffectfulIdentifier) finds an
-//     @-prefixed OperandCall or Projection key inside a non-@-
-//     prefixed BindStep body.
+//     a non-@-prefixed name declares a verb whose body calls an
+//     @-prefixed OperandCall or reads an @-prefixed Projection key.
 //
 //   EffectLaunderingAtCallError — fired at runtime by
-//     eval.mjs::evalOperandCall and eval.mjs::applyConduit
-//     when a non-@-prefixed identifier resolves to an effectful
-//     function value or conduit (the laundering path where the
-//     binding was installed via use, captured via as, or injected
-//     by the embedding host, so the eval-time AST scan could not
-//     detect the effect).
+//     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
+//     a non-@-prefixed identifier resolves to an effectful function
+//     value or verb (the laundering path where the binding was
+//     installed via use, captured via as, or injected by the
+//     embedding host, so the declaration could not detect the
+//     effect).
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'effectLaundering', context);

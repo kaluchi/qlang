@@ -1,17 +1,14 @@
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
-import { classifyEffect } from './effect.mjs';
 import {
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
 import { TAG_BINDING_PREFIX, canonicalTagName } from './env-keys.mjs';
-import { quoteOfBody } from './quote.mjs';
 import { compareValues } from './ordering.mjs';
 
 // Function values (`makeFn` output) are runtime-internal: a catalog
 // descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
-// JS-header slot, and conduitParameter proxies live for the duration
-// of a conduit body fork. They have no grammatical literal — the only
+// JS-header slot. They have no grammatical literal — the only
 // candidate render form (`:qlang/prim/${name}`) parses back as a
 // keyword value when read back. Surfacing a function value in
 // pipeValue therefore violates printValue's round-trip theorem. The
@@ -122,8 +119,7 @@ export function keyword(name) {
 // `.name` mirrors the keyword shape so a single
 // `kind.name === '<discriminator>'` check reads both Keyword
 // (`:builtin`, `:tag` declarative kinds) and TagKeyword
-// (`::conduit`, `::binding`, user-defined ::tag instances)
-// uniformly.
+// (`::binding`, user-defined ::tag instances) uniformly.
 
 export function makeTagKeyword(tag) {
   const name = canonicalTagName(tag);
@@ -140,17 +136,7 @@ export function isTagKeyword(v) {
 // the prefix; every other env-keys-aware consumer imports from
 // `env-keys.mjs` directly.
 
-// ── conduit / binding / quote predicates ──────────────────────
-//
-// Conduit identity rides on the Map's non-enumerable JS-header `tag`
-// slot (a TagKeyword), stamped at construction below. The `:kind`
-// Map field is reserved for the value's own data; user-built Maps
-// that happen to carry `:kind ::Foo` flow through `isTaggedInstance`
-// rather than colliding with the conduit render path.
-
-export function isConduit(v) {
-  return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === 'conduit';
-}
+// ── binding / quote predicates ────────────────────────────────
 
 // The record a declaration writes into its scope [D63]: the name, the
 // docs of its doc-prefixes, the value, the quote of the declaring step
@@ -172,9 +158,8 @@ export function makeBinding({ name, docs = [], value, source = null, module = nu
   return record;
 }
 
-// What a name of the scope holds: the value of its record; a
-// conduit's parameter, bound for the time of a call, and a key of
-// the runtime's own as they lie.
+// What a name of the scope holds: the value of its record; a value a
+// host bound as it is, and a key of the runtime's own as they lie.
 export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
 }
@@ -184,17 +169,15 @@ export function bindingValueOf(entry) {
 // shapes: Array / Map clones with the header stamped, or
 // an opaque frozen `{type, tag, payload}` wrapper for non-
 // extensible payloads (scalar, Keyword, Doc, Error, already-tagged
-// composite, a quote and a set among them). A value under one of the
-// two reserved tag names, `::conduit` or `::builtin`, is no tagged
-// instance: `isConduit` and `isBuiltinDescriptor` answer for it, a
-// conduit prints by its own path, and a descriptor prints as its bare
-// map.
-const RESERVED_HEADER_TAG_NAMES = new Set(['conduit', 'builtin']);
+// composite, a quote and a set among them). A value under the
+// reserved tag name `::builtin` is no tagged instance:
+// `isBuiltinDescriptor` answers for it, and a descriptor prints as its
+// bare map.
 export function isTaggedInstance(v) {
   if (v === null || typeof v !== 'object') return false;
   const tag = v[TAG_HEADER_SYMBOL];
   if (tag === undefined) return false;
-  return !RESERVED_HEADER_TAG_NAMES.has(tag.name);
+  return tag.name !== BUILTIN_TAG_NAME;
 }
 
 export function isQuote(v) {
@@ -244,6 +227,7 @@ export function envToRun(quote, envWhereApplied) {
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
 export const VERB_TAG_NAME = 'verb';
+const BUILTIN_TAG_NAME = 'builtin';
 
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
@@ -279,8 +263,7 @@ export function makeDoc(content) {
 // Non-enumerable Symbol key under which a Map carries its
 // identity TagKeyword: invisible to Map iteration (`for (const [k, v] of m)`), to `m.get('kind')`,
 // to JSON serialization, and to the manifest enumeration
-// surface. Every identity-bearing value-class — Conduit,
-// binding record, TaggedInstance, catalog `::builtin` descriptor,
+// surface. Every identity-bearing value-class — binding record, TaggedInstance, catalog `::builtin` descriptor,
 // materialized error — stamps the slot through `stampTagHeader`
 // and reads it through `typeKeyword`'s header branch in one
 // property access, leaving the data plane untouched.
@@ -293,42 +276,21 @@ export function stampTagHeader(m, tag) {
 
 // ── JS-internal slots — the data plane stays qlang-only ───────
 //
-// Three structures ride a Map without a qlang literal behind them:
-// a Conduit's body AST node, the lexical `envRef` holder its
-// tie-the-knot mutates, and the resolved JS function value a catalog
-// `::builtin` descriptor dispatches through. Each lands on a
-// non-enumerable Symbol slot — the channel `TAG_HEADER_SYMBOL` uses
-// too — so `keys`, `/key` projection, `printValue`, `toPlain`, and
-// `toTaggedJSON` see a data plane of qlang values alone: `:name`,
-// `:params`, `:source` (a Quote of the body), `:docs`, `:effectful`,
-// plus the `:impl :qlang/prim/<name>` handle keyword the catalog
-// author wrote.
-//
-// The accessors below are the only readers. A dispatch site that
-// reaches for `descriptor.get('impl')` gets the author's handle
-// keyword; `builtinImplOf` gets the callable.
+// The resolved JS function value a catalog `::builtin` descriptor
+// dispatches through rides a non-enumerable Symbol slot — the channel
+// `TAG_HEADER_SYMBOL` uses too — so `keys`, `/key` projection,
+// `printValue`, `toPlain`, and `toTaggedJSON` see the `:impl
+// :qlang/prim/<name>` handle keyword the catalog author wrote. The
+// accessors below are the only readers: a dispatch site that reaches
+// for `descriptor.get('impl')` gets the author's handle keyword, and
+// `builtinImplOf` gets the callable.
 
-export const CONDUIT_BODY_SLOT     = Symbol('qlang/conduitBody');
-export const CONDUIT_ENV_REF_SLOT  = Symbol('qlang/conduitEnvRef');
 export const BUILTIN_IMPL_SLOT     = Symbol('qlang/builtinImpl');
 
 function stampSlot(target, slot, value) {
   Object.defineProperty(target, slot, {
     value, enumerable: false, configurable: false, writable: false
   });
-}
-
-// Body AST of a Conduit — `applyConduit` evaluates it, and
-// `printConduit` reads the `:source` Quote the factory read off it.
-export function conduitBodyAst(conduit) {
-  return conduit[CONDUIT_BODY_SLOT];
-}
-
-// Lexical scope anchor of a Conduit. The holder object is shared
-// with the construction site so the declaration-time env lands on
-// `.env` after the binding itself is in place (tie-the-knot).
-export function conduitEnvRef(conduit) {
-  return conduit[CONDUIT_ENV_REF_SLOT];
 }
 
 // Resolved function value of a catalog `::builtin` descriptor,
@@ -350,8 +312,7 @@ export function stampBuiltinImpl(descriptor, fn) {
 // minting a fresh TagKeyword on every call. Listed alphabetically.
 
 export const BINDING_TAG     = makeTagKeyword(BINDING_TAG_NAME);
-export const BUILTIN_TAG     = makeTagKeyword('builtin');
-export const CONDUIT_TAG     = makeTagKeyword('conduit');
+export const BUILTIN_TAG     = makeTagKeyword(BUILTIN_TAG_NAME);
 export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
@@ -388,21 +349,6 @@ export const EACH_TAG   = makeTagKeyword('each');
 export const FAIL_TAG   = makeTagKeyword('fail');
 export const GROUP_TAG  = makeTagKeyword('group');
 
-// ── conduit factory ───────────────────────────────────────────
-
-export function makeConduit(body, { name, params = [], envRef = null, docs = [] } = {}) {
-  const m = new Map();
-  m.set('name', name);
-  m.set('params', Object.freeze(params.map(paramName => keyword(paramName))));
-  m.set('source', quoteOfBody(body));
-  m.set('docs', Object.freeze([...docs]));
-  m.set('effectful', classifyEffect(name));
-  stampTagHeader(m, CONDUIT_TAG);
-  stampSlot(m, CONDUIT_BODY_SLOT, body);
-  stampSlot(m, CONDUIT_ENV_REF_SLOT, envRef);
-  return m;
-}
-
 // ── tagged-instance factory ──────────────────────────────────
 //
 // Identity overlay on a payload value. The TagKeyword rides on
@@ -414,11 +360,10 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [] 
 // shape they always see — `::Tag[1 2 3] | /1` indexes the
 // underlying Array, `::Tag{:a 1} | keys` lists the underlying
 // Map keys. `typeKeyword` reads the header first so identity comes
-// through `result | type`. Reserved header tags
-// (`::conduit`, `::builtin`) are matched against
-// in `isTaggedInstance` so the dedicated render / dispatch
-// paths for those value-classes stay disjoint from generic
-// TaggedInstance.
+// through `result | type`. The reserved header tag `::builtin`
+// is matched against in `isTaggedInstance` so the dedicated
+// render and dispatch paths of a descriptor stay disjoint from the
+// generic TaggedInstance.
 //
 // Payload shapes:
 //
@@ -434,7 +379,7 @@ export function makeConduit(body, { name, params = [], envRef = null, docs = [] 
 //     slot on user payload coexists with the instance's identity
 //     without collision.
 //
-//   Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
+//   Scalar / Keyword / TagKeyword / Doc / Error /
 //     already-tagged composite, a quote, a set and a binding record
 //     among them — wrap in a Map carrying the payload under `:payload` slot,
 //     stamp the header on the wrapper. JS scalars cannot carry
@@ -462,7 +407,7 @@ export function makeTaggedInstance(tag, payload) {
     stampTagHeader(m, tag);
     return m;
   }
-  // Scalar / Keyword / TagKeyword / Doc / Error / Conduit /
+  // Scalar / Keyword / TagKeyword / Doc / Error /
   // already-tagged composite — wrap in an
   // opaque frozen JS object with `tag` and `payload` fields.
   // The opaque shape keeps `/payload` projection out of reach
@@ -585,11 +530,6 @@ export function describeType(v) {
   if (isString(v)) return 'String';
   if (isKeyword(v)) return 'Keyword';
   if (isTagKeyword(v)) return 'TagKeyword';
-  // TaggedInstance reads the JS-header tag slot first; the
-  // reserved-tag check rules out the conduit, which lives on the
-  // same header but rides a dedicated render path (the `Conduit`
-  // handler).
-  if (isConduit(v)) return 'Conduit';
   if (isQuote(v)) return 'Quote';
   if (isQSet(v)) return 'Set';
   if (isTaggedInstance(v)) return 'TaggedInstance';
@@ -612,10 +552,7 @@ export function typeKeyword(v) {
   if (isTagKeyword(v)) return CORE_KIND.tag;
   // Identity-on-JS-header takes precedence on every composite:
   // tagged Vec, tagged Map, the set, the quote and the binding
-  // record — `result | type` returns the TagKeyword directly. The
-  // conduit shares the same slot under its reserved tag name
-  // (`::conduit`) and falls through this branch too; its identity
-  // reads exactly the same way.
+  // record — `result | type` returns the TagKeyword directly.
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;

@@ -93,8 +93,8 @@ export function refusalOf(env, subject) {
 }
 
 // The record a subject names, the one record every axis and
-// `runExamples` read, or null when it names none: a name the scope
-// binds for the time of a call, a conduit's parameter, is no record.
+// `runExamples` read, or null when it names none: a value a host bound
+// under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
   if (namesNoScopeBinding(env, subject)) return null;
@@ -146,15 +146,15 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // impl-resolution pass, for an operand and a value-class constructor;
 // the throw-site spec the bootstrap stamps for an error tag, since
 // what raises the error is what knows the category and the slot; the
-// Conduit Map for a conduit, the signature of a verb as a
-// `::spec~(…)` [D67], and the value itself for any other binding.
+// signature of a verb as a `::spec~(…)` [D67]; and the value itself
+// for any other binding.
 //
 // The discriminator path for per-tag static facts attached to any
 // tagged value-class: `result !| type | spec | /category`
 // reads `:typeError` / `:arityError` / etc. off the error tag;
 // `::number/add | spec | /throws` lists the per-site error classes
-// `add` raises; `::conduit | spec | /impl` returns the
-// `:qlang/type/conduit` constructor handle.
+// `add` raises; `::verb | spec | /impl` returns the
+// `:qlang/type/verb` constructor handle.
 export const spec = stateOp('spec', 1, (state, _lambdas) => {
   const record = declaringRecordOf(state.env, state.pipeValue);
   if (record === null) {

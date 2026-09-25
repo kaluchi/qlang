@@ -114,7 +114,7 @@ function processCatalogFile(path) {
   //     <maybe more lines> ~~|
   //
   // Optional `::builtin{…}` body trails the doc-prefix on
-  // value-class tags (::conduit / ::qlang / ::json) but error tags
+  // value-class tags (::verb / ::qlang / ::json) but error tags
   // are doc-only — every entry the script targets is the
   // doc-only form (its `:trail` semantic rides through `!|`
   // dispatch, no constructor body required). The lookahead skips

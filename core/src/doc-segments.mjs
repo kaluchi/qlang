@@ -161,8 +161,9 @@ function tryParseTaggedAt(content, start) {
 // Eval a TaggedLit AST one frame below the reading state, with a
 // null pipeValue (Doc-segment evaluation is independent of the
 // outer pipeValue — segments are content). The constructor sees
-// its own payload-value; the reader's env carries through for
-// ::conduit-style env capture, and the frame keeps a constructor
+// its own payload-value; the reader's env carries through for a
+// constructor that reads its scope, `::verb` among them, and the frame
+// keeps a constructor
 // that reads its own docs inside the depth budget.
 async function evalTaggedSegment(ast, callerState) {
   const segmentState = nestState(callerState, null, callerState.env);

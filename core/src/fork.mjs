@@ -9,7 +9,7 @@
 // outer State object survives the inner run untouched; the fork
 // closes by lifting the inner pipeValue onto that outer State and
 // dropping the inner State. A fork stays on the outer frame: the
-// depth budget counts conduit bodies, captured-arg lambdas, and
+// depth budget counts verb bodies, captured-arg lambdas, and
 // re-entry seams, while a nested literal or paren-group is bounded
 // by the source text.
 

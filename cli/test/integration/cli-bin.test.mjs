@@ -147,7 +147,7 @@ describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
 
   it('REPL persists BindStep bindings across cells in one session', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
-      stdin: ':double mul 2\n21 | double\n.exit\n'
+      stdin: ':double ::verb~(mul 2)\n21 | double\n.exit\n'
     });
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/42/);

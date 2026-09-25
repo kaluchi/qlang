@@ -152,7 +152,7 @@ function readSignature(quote) {
       else signature.returns = kindsOfRole(declaration);
       continue;
     }
-    if (declaration.params !== null || declaration.body === null || !isPureLiteralAst(declaration.body)) {
+    if (declaration.body === null || !isPureLiteralAst(declaration.body)) {
       throw new VerbSlotBodyNotLiteralError({ slot: keyword(name) });
     }
     if (combinator === '*') signature.rest = slotOf(declaration);

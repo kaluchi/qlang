@@ -126,7 +126,7 @@ describe(':name | examples extracts Quote segments from docs', () => {
 
 describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::conduit" | source !| type')).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
+    expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
   });
 
   it('a keyword naming a verb of a provider is refused with the addresses where it lives', async () => {
@@ -134,20 +134,20 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
       .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('vec/count')]);
   });
 
-  it('::conduit | source resolves the tag-binding descriptor through reverse env lookup', async () => {
-    const result = await evalQuery('::conduit | source');
+  it('::verb | source resolves the tag-binding descriptor through reverse env lookup', async () => {
+    const result = await evalQuery('::verb | source');
     expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith('::conduit')).toBe(true);
+    expect(printQuoteSource(result).startsWith('::verb')).toBe(true);
   });
 
-  it('::conduit | docs returns the attached Doc-prefix on the type BindStep', async () => {
-    const result = await evalQuery('::conduit | docs | first | /content');
+  it('::verb | docs returns the attached Doc-prefix on the type BindStep', async () => {
+    const result = await evalQuery('::verb | docs | first | /content');
     expect(typeof result).toBe('string');
-    expect(result).toContain('Conduit literal');
+    expect(result).toContain('A verb, a quote under this tag');
   });
 
-  it('::conduit | examples extracts the Quote segments from the type docstring', async () => {
-    const result = await evalQuery('::conduit | examples | count');
+  it('::verb | examples extracts the Quote segments from the type docstring', async () => {
+    const result = await evalQuery('::verb | examples | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
@@ -242,11 +242,11 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
   // The four axes project the one record the scope holds under the
   // name, so a binding that shadows a built-in reads as itself — the
   // case the hypertext chain exists for.
-  const shadowed = ':add mul 100 | ';
+  const shadowed = ':add ::verb~(mul 100) | ';
 
   it('a binding shadowing a built-in is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | add')).toBe(200);
-    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add mul 100');
+    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add ::verb~(mul 100)');
   });
 
   it('docs and examples answer for the shadowing binding, which carries neither', async () => {
@@ -254,8 +254,8 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(await evalQuery(shadowed + ':add | examples | count')).toBe(0);
   });
 
-  it('spec names the same declaration source does', async () => {
-    expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('conduit'));
+  it('spec answers the signature of the verb source reports', async () => {
+    expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('spec'));
   });
 
   // Whichever of a `use` and a cell's declaration writes the name last
@@ -329,8 +329,8 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   });
 
   it('a value-class constructor names itself on :operand as a TagKeyword', async () => {
-    expect(await evalQuery('::ConduitBodyNotQuoteError | spec | /operand'))
-      .toEqual(makeTagKeyword('conduit'));
+    expect(await evalQuery('::VerbPayloadNotQuoteError | spec | /operand'))
+      .toEqual(makeTagKeyword('verb'));
   });
 
   it('a value that is no name reads the descriptor of its kind', async () => {

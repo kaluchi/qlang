@@ -130,11 +130,11 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
   // A host-installed namespace is a header-less Map bound under the
   // bare name with no declaration behind it, its entries brought in as
   // bindings. Every other binding there — one a step declared, `as
-  // :cfg` among them, an operand descriptor (`use :count`), a conduit
+  // :cfg` among them, an operand descriptor (`use :count`), a verb
   // (`use :double`), a scalar or function a host bound — sits on the
   // identifier plane, so the probe walks past it to the locator:
-  // merging a tagged Map would spill `:impl` / `:envRef` slots into
-  // env as bindings.
+  // merging a tagged Map would spill its `:impl` slot into env as a
+  // binding.
   const hostRecord = outerEnv.get(nsKeyword.name);
   if (isHostNamespace(hostRecord)) return [bindingsOf(hostRecord.get('value')), outerEnv];
 

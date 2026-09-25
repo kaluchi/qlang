@@ -1,5 +1,5 @@
 // Unit coverage for printValue branches that fire only when a
-// Conduit / binding record / Function value lands in pipeValue — paths
+// binding record / Function value lands in pipeValue — paths
 // reachable via `env | /name` ceremony (env-walk drops the descriptor
 // Map directly into pipeValue) but not exercised by ordinary pipeline
 // execution. Tests build the values directly and call printValue.
@@ -7,43 +7,18 @@
 import { describe, it, expect } from 'vitest';
 import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
 import {
-  makeConduit,
   makeBinding,
   makeDoc,
   keyword,
   makeTagKeyword,
   makeErrorValue,
-  isConduit,
   isDoc,
   isQMap,
   FunctionValueLeakedToPrintError
 } from '../../src/types.mjs';
-import { parse } from '../../src/parse.mjs';
 import { makeFn } from '../../src/rule10.mjs';
 
-describe('printValue — Conduit / binding record / Function branches', () => {
-  it('renders a zero-arity named Conduit as `::conduit[:name [] ~(body)]`', () => {
-    const bodyAst = { type: 'NumberLit', value: 42, text: '42' };
-    const conduit = makeConduit(bodyAst, { name: 'answer', params: [] });
-    expect(isConduit(conduit)).toBe(true);
-    expect(printValue(conduit)).toBe('::conduit[:answer [] ~(42)]');
-  });
-
-  it('renders a parametric named Conduit with [:params] in declaration order', () => {
-    const conduit = makeConduit(parse('add x y'), { name: 'sum2', params: ['x', 'y'] });
-    expect(printValue(conduit)).toBe('::conduit[:sum2 [:x :y] ~(add x y)]');
-  });
-
-  it('docs do not appear in value-literal — they are declaration metadata, reachable via the `:name | docs` axis', () => {
-    const bodyAst = { type: 'NumberLit', value: 7, text: '7' };
-    const conduit = makeConduit(bodyAst, {
-      name: 'lucky',
-      params: [],
-      docs: [' first remark ', ' second remark ']
-    });
-    expect(printValue(conduit)).toBe('::conduit[:lucky [] ~(7)]');
-  });
-
+describe('printValue — binding record / Function branches', () => {
   it('renders a binding record as the tagged Map it is', () => {
     const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(

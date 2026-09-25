@@ -4,8 +4,7 @@
     side-effect; its result is discarded and the
     original value is restored via the ~(:original)
     snapshot. Call via `|` on success-track. ~~|
-  [:observer]
-  (as :original | observer | original)
+  ::verb~(:observer ::quote | as :original | apply observer | original)
 
 :tapError
   |~~ Observe an error's materialized descriptor without
@@ -15,8 +14,7 @@
     ~(:original) snapshot before being re-lifted into a
     fresh error. Trail continues via the makeErrorValue
     invariant. Call via `!|` on fail-track. ~~|
-  [:observer]
-  (as :original | observer | original | error)
+  ::verb~(:observer ::quote | as :original | apply observer | original | error)
 
 :finally
   |~~ Cleanup/finalization on a success-track pipeValue.
@@ -24,8 +22,7 @@
     ~(action) must happen regardless of why the caller
     is tapping in (resource release, metric emission,
     log write). Call via `|` on success-track. ~~|
-  [:action]
-  (as :original | action | original)
+  ::verb~(:action ::quote | as :original | apply action | original)
 
 :finallyError
   |~~ Cleanup/finalization on an error's materialized
@@ -33,5 +30,4 @@
     intent — the ~(action) must run before the error
     continues down the fail-track. Call via `!|` on
     fail-track. ~~|
-  [:action]
-  (as :original | action | original | error)
+  ::verb~(:action ::quote | as :original | apply action | original | error)

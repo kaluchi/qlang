@@ -54,12 +54,6 @@ const TO_PLAIN_HANDLERS = {
   // Map / opaque wrap-object). The envelope carries identity
   // through `$tag` and encodes the payload through `toPlain`
   // recursively — mirrors the symmetric `Error` envelope.
-  // Conduit deliberately has no handler: its `:body` AST node
-  // and `:envRef` holder are JS-opaque, and the bidirectional
-  // codec for conduits is `serializeSession` /
-  // `deserializeSession` (`session.mjs`), not `toPlain`. Falling
-  // through to `toPlainFallback` flags the leak loudly through
-  // `ToPlainUnencodableValueError` at the call site.
   TaggedInstance: t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];

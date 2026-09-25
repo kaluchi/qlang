@@ -70,10 +70,8 @@
     ];
   }
 
-  function bindStepNode(key, docs, rest, loc, txt) {
-    const params = rest && rest.params ? rest.params : null;
-    const body = rest && rest.body ? rest.body : null;
-    const fields = { key, docs: docs || null, params, body };
+  function bindStepNode(key, docs, body, loc, txt) {
+    const fields = { key, docs: docs || null, body };
     if (docs && typeof docs._start === 'number') fields.docPrefixStart = docs._start;
     return node('BindStep', fields, loc, txt);
   }
@@ -349,19 +347,19 @@ FirstModifierSeparator
 FirstLineModifierSeparator
   = _h1 / &"("
 
-// A declaration: a keyword or a tag name, then an optional doc, an
-// optional vector of keyword parameters and an optional body, each of
-// which may take a line of its own. A body is a step other than a bare
-// keyword or tag name; a lone `:foo` is a keyword.
+// A declaration: a keyword or a tag name, then an optional doc and an
+// optional body, each of which may take a line of its own. A body is a
+// step other than a bare keyword or tag name; a lone `:foo` is a
+// keyword.
 BindStep
-  = key:BindName docs:(__ @DocPrefix)? rest:(_h1 @KindBody / __ @BindRest)?
-    & { return docs !== null || rest !== null; }
-    { return bindStepNode(key, docs, rest, location(), text()); }
+  = key:BindName docs:(__ @DocPrefix)? body:(_h1 @KindBody / __ @BindBody)?
+    & { return docs !== null || body !== null; }
+    { return bindStepNode(key, docs, body, location(), text()); }
 
 LineBindStep
-  = key:BindName docs:(__ @DocPrefix)? rest:(_h1 @LineKindBody / __ @LineBindRest)?
-    & { return docs !== null || rest !== null; }
-    { return bindStepNode(key, docs, rest, location(), text()); }
+  = key:BindName docs:(__ @DocPrefix)? body:(_h1 @LineKindBody / __ @LineBindBody)?
+    & { return docs !== null || body !== null; }
+    { return bindStepNode(key, docs, body, location(), text()); }
 
 BindName
   = key:Keyword         { return key; }
@@ -383,20 +381,6 @@ DocPrefix
       return docs;
     }
 
-// A parameter vector holds keywords only; any other vector is a body.
-BindRest
-  = params:Params _? body:BindBody { return { params, body }; }
-  / body:BindBody                  { return { params: null, body }; }
-
-LineBindRest
-  = params:Params _? body:LineBindBody { return { params, body }; }
-  / body:LineBindBody                  { return { params: null, body }; }
-
-Params
-  = "[" _L head:Keyword tail:((Whitespace / PlainCommentStep)+ @Keyword)* _L "]"
-    { return [head, ...tail]; }
-  / "[" _L "]" { return []; }
-
 BindBody
   = body:Step
     & { return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
@@ -412,12 +396,12 @@ LineBindBody
 KindBody
   = body:Step
     & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
-    { return { params: null, body }; }
+    { return body; }
 
 LineKindBody
   = body:LineStep
     & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
-    { return { params: null, body }; }
+    { return body; }
 
 // ── Words ──────────────────────────────────────────────────────────
 //

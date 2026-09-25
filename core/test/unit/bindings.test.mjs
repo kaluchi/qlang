@@ -56,26 +56,26 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('impure body containing OperandCall fires the deferred body per call', async () => {
-    expect(await evalQuery(':double mul 2 | 5 | double')).toBe(10);
+    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
   });
 
   it('lookup of a literal binding returns the eval-at-bind-time value', async () => {
     expect(await evalQuery(':answer 42 | answer')).toBe(42);
   });
 
-  it('conduit lookup fires the deferred body against pipeValue', async () => {
-    expect(await evalQuery(':double mul 2 | 5 | double')).toBe(10);
+  it('a verb lookup runs its body against pipeValue', async () => {
+    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
   });
 });
 
-describe('BindStep — parametric conduit form', () => {
-  it('parametric conduit binds captured args as lazy proxies', async () => {
-    expect(await evalQuery(':@surround [:pfx :sfx] (prepend pfx | append sfx) | "x" | @surround "[" "]"'))
+describe('BindStep — a verb with slots', () => {
+  it('a verb binds its slots from the modifiers of the call', async () => {
+    expect(await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | "x" | @surround "[" "]"'))
       .toBe('[x]');
   });
 
-  it(':@add1 [:x] add(x) — captured arg x binds the modifier', async () => {
-    expect(await evalQuery(':@add1 [:x] add x | 5 | @add1 10')).toBe(15);
+  it(':@add1 ::verb~(:x ::any | add x) — the slot x binds the modifier', async () => {
+    expect(await evalQuery(':@add1 ::verb~(:x ::any | add x) | 5 | @add1 10')).toBe(15);
   });
 });
 
@@ -87,7 +87,7 @@ describe('BindStep — pipeline-transparency', () => {
 
 describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
-    const err = await evalQuery(':safe @nonExistent');
+    const err = await evalQuery(':safe ::verb~(@nonExistent)');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
   });

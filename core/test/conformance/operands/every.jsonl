@@ -14,17 +14,12 @@
 {"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
-{"name":"every-vec-0arity-conduit","query":"[2 4 6] | :big gt 0 | every ~(big)","expect":"true"}
-{"name":"every-vec-1arity-conduit","query":"[2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos)","expect":"true"}
-{"name":"every-vec-1arity-conduit-fails","query":"[2 4 -1] | :@pos [:v] (v | gt 0) | every ~(@pos)","expect":"false"}
-{"name":"every-set-0arity-conduit","query":"#[2 4 6] | :big gt 0 | every ~(big)","expect":"true"}
-{"name":"every-set-1arity-conduit","query":"#[2 4 6] | :@pos [:v] (v | gt 0) | every ~(@pos)","expect":"true"}
-{"name":"every-map-0arity-conduit","query":"{:a 1 :b 2} | :big gt 0 | every ~(big)","expect":"true"}
-{"name":"every-map-1arity-conduit","query":"{:a 1 :b 2} | :@pos [:v] (v | gt 0) | every ~(@pos)","expect":"true"}
-{"name":"every-map-1arity-conduit-fails","query":"{:a 1 :b -2} | :@pos [:v] (v | gt 0) | every ~(@pos)","expect":"false"}
-{"name":"every-map-2arity-pred-throws","query":"{:a 1 :b 2} | :@bothPositive [:k :v] and (v | gt 0) (k | type | eq ::keyword) | every ~(@bothPositive) !| type","expect":"::EveryPredArityInvalidError"}
-{"name":"every-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | every ~(@kv) !| type","expect":"::EveryPredArityInvalidError"}
-{"name":"every-set-2arity-pred-throws","query":"#[1 2] | :@kv [:k :v] true | every ~(@kv) !| type","expect":"::EveryPredArityInvalidError"}
-{"name":"every-vec-3arity-pred-throws","query":"[1] | :@tooWide [:x :y :z] true | every ~(@tooWide) !| type","expect":"::EveryPredArityInvalidError"}
-{"name":"every-set-3arity-pred-throws","query":"#[1] | :@tooWide [:x :y :z] true | every ~(@tooWide) !| type","expect":"::EveryPredArityInvalidError"}
-{"name":"every-map-3arity-pred-throws","query":"{:a 1} | :@tooWide [:x :y :z] true | every ~(@tooWide) !| type","expect":"::EveryPredArityInvalidError"}
+{"name":"every-vec-declared-verb","query":"[2 4 6] | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-vec-verb-predicate","query":"[2 4 6] | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-vec-verb-predicate-fails","query":"[2 4 -1] | :positive ::verb~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-set-declared-verb","query":"#[2 4 6] | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-set-verb-predicate","query":"#[2 4 6] | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :positive ::verb~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | every ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}

@@ -31,10 +31,10 @@
 |~| Ctrl+Click on a builtin → core.qlang.
 
 |~~| Doubles a number via partial mul. ~~|
-:double mul 2
+:double ::verb~(mul 2)
 
 |~~| Triples a number via partial mul. ~~|
-:triple mul 3
+:triple ::verb~(mul 3)
 
 |~| Ctrl+Click on double below → jumps to the BindStep above
 [1 2 3] * double
@@ -69,7 +69,7 @@ x
 |~| ── 5. Find References ────────────────────────────────
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
-:greet prepend "hello "
+:greet ::verb~(prepend "hello ")
 | "world" | greet | as :greeted1
 | "qlang" | greet | as :greeted2
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
@@ -79,7 +79,7 @@ x
 |~| Ctrl+Shift+O → BindStep bindings show as Function,
 |~| as bindings show as Variable.
 
-:votingAge filter ~(/age | gte 18)
+:votingAge ::verb~(filter ~(/age | gte 18))
 | 42 | as :answer
 |~| Outline lists: double, triple, x, greet, greeted1,
 |~| greeted2, votingAge, answer
@@ -102,7 +102,7 @@ x
 |~| including as and error) + user bindings
 |~| visible at the cursor position.
 
-:myHelper mul 10
+:myHelper ::verb~(mul 10)
 |~| Ctrl+Space here → myHelper alongside every builtin
 
 
@@ -117,11 +117,11 @@ x
 |~| Doc comments attach to the next BindStep / as binding.
 
 |~~| Computes the absolute value via conditional negation. ~~|
-:abs if (lt 0) ~(mul -1)
+:abs ::verb~(if (lt 0) ~(mul -1))
 
 |~~ Surround a string with a prefix and suffix.
-    Parametric conduit with two captured parameters. ~~|
-:@surround [:pfx :sfx] (prepend pfx | append sfx)
+    A verb with two slots. ~~|
+:@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)
 
 |~| Ctrl+Click on @surround → jumps to the BindStep above
 "world" | @surround "[" "]"

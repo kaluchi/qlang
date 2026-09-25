@@ -1,13 +1,13 @@
 {
-  "BindStep — zero-arity conduit": {
+  "BindStep — value": {
     "prefix": "bind",
     "body": [":${1:name} ${2:body}"],
-    "description": "Declare a zero-arity conduit via BindStep"
+    "description": "Name the value of a body via BindStep"
   },
-  "BindStep — parametric conduit": {
-    "prefix": "bindp",
-    "body": [":${1:name} [:${2:param}] (${3:body})"],
-    "description": "Declare a parametric conduit via BindStep"
+  "BindStep — verb": {
+    "prefix": "bindv",
+    "body": [":${1:name} ::verb~(:${2:slot} ::${3:any} | ${4:body})"],
+    "description": "Declare a verb with a slot via BindStep"
   },
   "BindStep — tag-binding": {
     "prefix": "bindtag",

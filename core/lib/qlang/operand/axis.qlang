@@ -130,9 +130,9 @@
       `examples` answer with. The constructors of kinds surface as
       `{:impl :qlang/type/<tag> :throws […]}`. All three carry the
       same `::builtin` header identity.
-      BindStep-bound conduits surface as their conduit; any other
-      binding as the value its record holds. Any
-      other value reads the descriptor of its kind.
+      A declared verb surfaces as its signature, a `::spec~(…)`;
+      any other binding as the value its record holds. Any other
+      value reads the descriptor of its kind.
 
       The discriminator path for per-tag static facts attached
       to any tagged value — `result !| spec | /category`
@@ -143,7 +143,8 @@
 
       ~(::number/add | spec | /category | eq :arith)
       ~(::AddLeftNotNumberError | spec | /operand | eq :add)
-      ~(::conduit | spec | /impl | eq :qlang/type/conduit)
+      ~(::verb | spec | /impl | eq :qlang/type/verb)
+      ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
       ~("x" | add 1 !| spec | /category | eq :typeError)
   ~~|
   ::builtin{:impl :qlang/prim/spec

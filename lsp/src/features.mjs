@@ -16,12 +16,12 @@ import {
   VALUE_NAMESPACE,
   TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
-  isPureLiteralAst,
   walkAst,
   isModuleNamespaceKey,
   isTagBindingName,
   RUNTIME_LOCATOR_KEY,
   tagBindingKey,
+  canonicalTagName,
   tokenize,
   isKeyword,
   bindingValueOf
@@ -184,7 +184,7 @@ export function buildCatalogIndex(catalogAst) {
 //
 // Two catalogs cached at startup: value-namespace builtins
 // (`count`, `filter`, `parse`, ...) and tag-namespace bindings
-// (`::AddLeftNotNumberError`, `::conduit`, ...). Walked from
+// (`::AddLeftNotNumberError`, `::verb`, ...). Walked from
 // `langRuntime` directly because the namespace partitioning runs
 // off `isTagBindingName` on the env key; the catalog index built
 // in `buildCatalogIndex` covers the same surface and carries the
@@ -468,9 +468,10 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 // `as :name` OperandCall. The user-facing symbol kind tracks what
 // the binding will hold once `evalBindStep` runs:
 //   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
-//   * `value`    — Keyword head with a pure-literal body or a
+//   * `value`    — Keyword head with any body but a verb literal, a
 //                  doc-only declaration (no body), or any `as :name`
-//   * `conduit`  — Keyword head with an impure / parametric body
+//   * `verb`     — Keyword head whose body is a verb literal,
+//                  `::verb~(…)` [D67]
 function bindingDeclarationOf(node) {
   if (node.type === 'BindStep') {
     if (node.key.type === 'BareTypeKeyword') {
@@ -491,9 +492,8 @@ function bindingDeclarationOf(node) {
 }
 
 function bindingKindForKeywordHead(bindStepNode) {
-  if (bindStepNode.body === null) return 'value';
-  if (bindStepNode.params !== null) return 'conduit';
-  return isPureLiteralAst(bindStepNode.body) ? 'value' : 'conduit';
+  const body = bindStepNode.body;
+  return body?.type === 'TaggedLit' && canonicalTagName(body.tag) === 'verb' ? 'verb' : 'value';
 }
 
 // findLastVisibleDeclaration(ast, name, offset) — walks the AST

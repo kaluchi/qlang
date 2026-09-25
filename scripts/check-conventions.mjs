@@ -32,7 +32,7 @@
 //       direct `class Foo extends QlangError` declaration across
 //       `core/src`, `cli/src`, `lsp/src` must carry the `Error`
 //       suffix, so the named-error island stays distinct from the
-//       value-class tag-bindings (`::conduit`, `::qlang`,
+//       value-class tag-bindings (`::verb`, `::qlang`,
 //       `::json`).
 //
 //   (4) Derivable tallies in markdown prose. A count that
@@ -199,7 +199,7 @@ function catalogDocDrift() {
 // Every concrete error class in `core/src/**/*.mjs` must carry the
 // `Error` suffix — the convention that distinguishes named-error
 // tag-bindings (`::FooError`) from value-class tag-bindings
-// (`::conduit`, `::qlang`, `::json`). Classes are introduced two
+// (`::verb`, `::qlang`, `::json`). Classes are introduced two
 // ways:
 //
 //   * `declare(Subject|Modifier|Element|Comparability|Shape|Arity)
@@ -392,7 +392,7 @@ if (errorSuffixViolations.length > 0) {
     `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
   for (const v of errorSuffixViolations) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
-    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::conduit / ::qlang / ::json).\n`);
+    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::verb / ::qlang / ::json).\n`);
   }
 }
 if (proseTallies.length > 0) {

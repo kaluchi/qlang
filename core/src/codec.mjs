@@ -44,10 +44,9 @@
 // `$`-prefixed keys outside the known set, or multiple keys) decodes
 // as a Map, since a JSON document is one.
 //
-// Function values and conduits cannot be encoded as JSON directly —
-// they require the higher-level session serializer to reconstruct
-// them from source on restore. toTaggedJSON throws on these via
-// TaggedJSONUnencodableValueError.
+// A function value has no reading as JSON, and toTaggedJSON throws on
+// one via TaggedJSONUnencodableValueError; a verb rides as its quote
+// under its tag.
 
 import {
   keyword,
@@ -56,7 +55,6 @@ import {
   isVec,
   isQMap,
   isFunctionValue,
-  isConduit,
   isQuote,
   isDoc,
   isErrorValue,
@@ -97,14 +95,6 @@ export const MalformedTaggedJSONError = declarePerSiteError(
 );
 
 // toTaggedJSON(value) → JSON-serializable plain value
-//
-// The conduit check runs BEFORE the generic isQMap branch because
-// the conduit is a JS Map whose identity rides on the JS-header
-// `TAG_HEADER_SYMBOL` slot. Without the early check the generic
-// `$map` serializer would walk the descriptor's entries and leak the
-// JS-opaque `:envRef` holder into the tagged-JSON stream, contrary
-// to the "conduits require session-level reconstruction" contract
-// the session serializer relies on.
 export function toTaggedJSON(value) {
   if (value === null || value === undefined) return null;
   const t = typeof value;
@@ -137,7 +127,6 @@ export function toTaggedJSON(value) {
       }
     };
   }
-  if (isConduit(value))  throw new TaggedJSONUnencodableValueError({ typeName: 'conduit' });
   if (isVec(value)) return value.map(toTaggedJSON);
   if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {

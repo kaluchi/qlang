@@ -12,7 +12,7 @@ import {
   rootState, withPipeValue, withEnv, nestState, envSet, envGet, envHas
 } from './state.mjs';
 import { fork, forkWith } from './fork.mjs';
-import { applyRule10, makeFn } from './rule10.mjs';
+import { applyRule10 } from './rule10.mjs';
 import {
   QlangError,
   QlangInvariantError,
@@ -21,24 +21,22 @@ import {
   EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError,
   declareInvariantError,
-  declareShapeError,
-  declareArityError
+  declareShapeError
 } from './errors.mjs';
-import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isConduit, isFunctionValue, isErrorValue,
+  isVec, isQMap, isQSet, isKeyword, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
   makeDoc, makeSet, isQuote,
-  makeConduit, makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, conduitBodyAst, conduitEnvRef, isVerb, verbEnvRef, quoteInEnv, envToRun,
+  makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+  isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, envToRun,
   ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
-import { isPureLiteralAst, isPlainCommentStep, moduleUriOf } from './walk.mjs';
+import { isPlainCommentStep, moduleUriOf } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
@@ -133,15 +131,6 @@ const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError'
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { operand: '::call', expectedType: 'function' }
 );
-const ConduitArityMismatchError    = declareArityError('ConduitArityMismatchError',
-  ({ conduitName, expectedArity, actualArity }) =>
-    `conduit '${conduitName}' expects ${expectedArity} captured arguments, got ${actualArity}`,
-  { operand: '::conduit' });
-const ConduitParameterNoCapturedArgsError = declareArityError('ConduitParameterNoCapturedArgsError',
-  ({ paramName, actualCount }) =>
-    `conduit parameter '${paramName}' takes no captured arguments, got ${actualCount}`,
-  { operand: '::conduit' });
-
 // evalQuery(source, env?, callerState?) → Promise<final pipeValue>
 //
 // Convenience entry point: parse + evaluate. If env is omitted,
@@ -323,7 +312,7 @@ async function applySuccessTrack(state, stepNode) {
 // evalBody(node, state) → Promise<state'>
 //
 // Runs a body — a query, a group, a distribute body, a captured
-// argument, a conduit body, an applied quote — so that its head
+// argument, a verb's body, an applied quote — so that its head
 // rides `|` like every other step. A pipeline routes its own head; a
 // lone step the parser collapsed rides `|` here, and a lone plain
 // comment stays trivia.
@@ -410,8 +399,8 @@ async function applyFailTrack(state, stepNode) {
   // Materialize for fail-track exposure: descriptor data fields
   // ride flat on the Map, the error tag rides on the JS-header
   // `TAG_HEADER_SYMBOL` slot — `!| type` reads it directly, the
-  // identity-overlay invariant stays uniform with Conduit /
-  // binding record / TaggedInstance. Identity intentionally does not
+  // identity-overlay invariant stays uniform with the binding
+  // record and the TaggedInstance. Identity intentionally does not
   // duplicate as a `:kind` Map field: any `:kind` slot the user
   // stamped on the source descriptor (e.g. `!{:kind :oops :…}`)
   // rides through verbatim as ordinary data, but the runtime
@@ -586,8 +575,8 @@ function ensureTagBinding(state, tagName) {
 async function evalTaggedLit(node, state) {
   // Declare the tag before evaluating the payload so a self-referential
   // payload (`::Tag(::Tag | spec)`) resolves the binding the literal is
-  // introducing — the same lexical visibility a named conduit's body
-  // has over its own self-name. A kind of the core written long,
+  // introducing — the same lexical visibility a declared verb's body
+  // has over its own name. A kind of the core written long,
   // `::qlang/vec[1 2]`, is the kind written short [D32].
   const tagName = canonicalTagName(node.tag);
   const declaredState = ensureTagBinding(state, tagName);
@@ -621,31 +610,13 @@ async function evalBareTypeKeyword(node, state) {
 
 // ─── BindStep ───────────────────────────────────────────────────
 
-// BindStep — declarative binding form. Transparent for pipeValue
-// (env-write only): it writes into the scope the record of the
-// binding [D63], whose value takes one of three shapes, purity-routed
-// for value bodies:
-//
-//   doc-only         (body absent, docs present)
-//     → a Doc value materialized from the joined prefix.
-//
-//   pure-literal body (NumberLit / StringLit / VecLit / MapLit /
-//   ... recursively, no OperandCall / Projection / Pipeline)
-//     → eval'd at decl-time against pipeValue=null (the body does
-//        not depend on pipeValue); the record holds the resulting
-//        value, a verb among them [D67]. Catalog descriptor Maps live
-//        behind this path so the langRuntime impl-resolution pass
-//        finds a descriptor as the value of each record.
-//
-//   impure body / parametric form
-//     → captured AST in a Conduit (zero-arg or parametric) with
-//        the lexical envRef tied for recursive references. Body
-//        evaluates lazily at invocation against the caller's
-//        pipeValue.
-//
-// Effect-laundering AST scan runs on impure body / parametric
-// before installing — a non-@-prefixed name with an effectful
-// body raises EffectLaunderingAtBindStepParseError.
+// BindStep — the one binding form [D44]. Transparent for pipeValue
+// (env-write only): it writes into the scope the record of the binding
+// [D63], whose value is the body evaluated once, at declaration,
+// against the current value, so `42 | :x / | add 1 | x` answers 42.
+// A doc alone binds a Doc value, and under a tag name an empty tag
+// binding. A verb written as the body resolves in the scope the
+// declaration writes, so its body sees its own name [D67].
 async function evalBindStep(node, state) {
   const name = node.key.type === 'BareTypeKeyword'
     ? tagBindingKey(node.key.tag)
@@ -669,40 +640,12 @@ async function evalBindStep(node, state) {
     return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(docs.join('\n')))));
   }
 
-  if (node.params === null && isPureLiteralAst(node.body)) {
-    const value = (await evalNode(node.body, withPipeValue(state, null))).pipeValue;
-    if (isVerb(value)) refuseVerbLaunderedByName(name, value, node);
-    const nextEnv = envSet(state.env, name, declarationRecord(node, value));
-    // The verb this declaration made resolves in the scope it writes,
-    // so its body sees its own name.
-    if (isVerb(value)) verbEnvRef(value).env = nextEnv;
-    return withEnv(state, nextEnv);
-  }
-
-  if (!classifyEffect(name)) {
-    const offender = findFirstEffectfulIdentifier(node.body);
-    if (offender !== null) {
-      // The body AST, not the whole BindStep, carries the laundered
-      // reference — stamping its location points the squiggle at the
-      // offending identifier.
-      const laundering = new EffectLaunderingAtBindStepParseError({
-        bindingName: name,
-        effectfulName: offender
-      });
-      laundering.location = node.body.location;
-      throw laundering;
-    }
-  }
-  const paramNames = node.params ? node.params.map(p => p.name) : [];
-  const envRef = { env: null };
-  const conduit = makeConduit(node.body, {
-    name,
-    params: paramNames,
-    envRef,
-    docs
-  });
-  const nextEnv = envSet(state.env, name, declarationRecord(node, conduit));
-  envRef.env = nextEnv;
+  const value = (await evalNode(node.body, state)).pipeValue;
+  if (isVerb(value)) refuseVerbLaunderedByName(name, value, node);
+  const nextEnv = envSet(state.env, name, declarationRecord(node, value));
+  // A tag literal that answers a verb is the verb literal, whose verb
+  // this declaration made.
+  if (isVerb(value) && node.body.type === 'TaggedLit') verbEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
 }
 
@@ -802,25 +745,19 @@ function projectSegment(subject, projKey, state) {
   });
 }
 
-// ─── Identifier lookup + Conduit dispatch ──────────────────────
+// ─── Identifier lookup ─────────────────────────────────────────
 
 // Binding-descriptor identity rides on the Map's JS-header
 // `TAG_HEADER_SYMBOL` slot — a TagKeyword stamped by the
-// `::builtin{…}` / conduit / binding-record factories, never a `:kind`
-// Map field (which stays free for the value's own data). The two
-// readers below probe the header: a `::builtin` descriptor's
-// `:impl` slot carries the namespaced primitive key that
+// `::builtin{…}` and binding-record factories, never a `:kind` Map
+// field (which stays free for the value's own data). A `::builtin`
+// descriptor's `:impl` slot carries the namespaced primitive key that
 // PRIMITIVE_REGISTRY.resolve walks into the matching JS function
-// value; conduit descriptors carry the payload field set documented
-// in src/types.mjs.
+// value.
 
 function isBuiltinDescriptor(descriptor) {
   return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
-// Conduit identity rides on the Map's JS-header
-// `TAG_HEADER_SYMBOL` slot under the `CONDUIT_TAG` value —
-// `isConduit` is the single discriminator.
-const isConduitDescriptor = isConduit;
 
 async function evalOperandCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
@@ -831,42 +768,23 @@ async function evalOperandCall(node, state) {
     throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
   }
 
-  // A name reads the value its record holds [D63], so `as :name | name`
-  // sees the raw data. Unwrapping upstream of applyBindingDescriptor
-  // keeps the header-tag dispatch exhaustive over {builtin, conduit};
-  // the remaining non-Map branches handle conduitParameter proxies
-  // (isFunctionValue) and plain user values (tail) — and preserve the
-  // "binding of an effectful function value" safety-net path
-  // documented in the effect-marker section of qlang-spec.md.
+  // A name reads the value its record holds [D63], so `:x / | x` sees
+  // the raw data: a verb runs [D67], a `::builtin` descriptor applies
+  // its host code, a function value a host bound applies through
+  // Rule 10, and any other value is itself.
   const resolved = bindingValueOf(envGet(lookupEnv, lookupName));
   if (isVerb(resolved)) {
     return await applyVerb(resolved, node.args.map(argNode => makeLambda(argNode, state)), state, lookupName);
   }
-
-  // Binding-descriptor dispatch — one read of the Map's JS-header
-  // tag routes the resolved Map to either the builtin or the conduit
-  // dispatch core. Plain user Maps (bound via session.bind or
-  // captured by value-level projection) carry no header tag and
-  // fall through as non-function values.
-  if (isQMap(resolved)) {
-    const dispatched = await applyBindingDescriptor(resolved, node, lookupName, state);
-    if (dispatched !== null) return dispatched;
-  }
+  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) return await applyBuiltinDescriptor(resolved, node, state);
 
   const capturedArgsAst = node.args;
 
   if (isFunctionValue(resolved)) {
-    // Effect-laundering safety net: if the resolved function is
-    // effectful but the lookup name we used is not @-prefixed, we
-    // refuse the call. This catches every laundering path the
-    // parse-time AST scan cannot see — installation via use,
-    // capture via as, or rebinding via session.bind — because
-    // every effectful invocation ultimately flows through an
-    // identifier lookup at this point. Only conduitParameter
-    // proxies reach this branch — built-ins dispatch through
-    // `applyBindingDescriptor` above. The check stays because a
-    // conduitParameter proxy may wrap an effectful captured-arg
-    // lambda under a non-@-prefixed binding.
+    // Effect-laundering safety net: a function value a host bound under
+    // a name, through `session.bind` or `use`, is refused under a name
+    // without the effect marker when it is effectful, since every
+    // effectful invocation flows through an identifier lookup here.
     if (resolved.effectful && !classifyEffect(lookupName)) {
       throw new EffectLaunderingAtCallError({
         bindingName: lookupName,
@@ -908,28 +826,6 @@ async function callByAddress(node, state) {
   return await applyBuiltinDescriptor(address.descriptor, node, state);
 }
 
-// applyBindingDescriptor(descriptor, node, lookupName, state) → state' | null
-//
-// Single dispatch over the Map's JS-header tag that routes a
-// Map-shaped env binding to its dispatch core: a `::builtin`
-// descriptor rides through applyBuiltinDescriptor (resolve :impl →
-// PRIMITIVE_REGISTRY, apply via Rule 10), a `::conduit` descriptor
-// rides through applyConduit (lexical envRef + parameter proxies +
-// body fork). Returns null when the Map carries no recognized
-// header tag — the caller treats the null return as "this Map is
-// user data, fall through to plain-value handling". The record of a
-// binding is unwrapped upstream in evalOperandCall, so no record
-// branch here.
-async function applyBindingDescriptor(descriptor, node, lookupName, state) {
-  if (isBuiltinDescriptor(descriptor)) {
-    return await applyBuiltinDescriptor(descriptor, node, state);
-  }
-  if (isConduitDescriptor(descriptor)) {
-    return await applyConduit(descriptor, node, lookupName, state);
-  }
-  return null;
-}
-
 // applyBuiltinDescriptor(descriptor, node, state) → state'
 //
 // Dispatch core for built-in operands. Reads the callable through
@@ -957,115 +853,6 @@ async function applyBuiltinDescriptor(descriptor, node, state) {
   return withPipeValue(servedState, await underPassedTags(servedState, resolvedImpl, passedTags, servedState.pipeValue));
 }
 
-// applyConduit(conduit, node, lookupName, state) → state'
-//
-// Dispatches a conduit call — the "bonus fruit" in the Pac-man model.
-// Builds conduitParameter proxies (lazy nullary function values) from
-// captured-arg lambdas, constructs a bodyEnv from the lexical envRef
-// anchor plus the params, forks the body, and ascends with only the
-// final pipeValue. The entire operation is one atomic state
-// transformation from the outer pipeline's perspective.
-async function applyConduit(conduit, node, lookupName, state) {
-  // Read the conduit's fields once. The authored plane —
-  // `:name` / `:params` / `:effectful` — comes off the Map; the
-  // body AST and the lexical anchor ride JS-header slots so the data
-  // plane stays qlang-only.
-  const conduitName       = conduit.get('name');
-  const conduitParams     = conduit.get('params');
-  const conduitBody       = conduitBodyAst(conduit);
-  const conduitLexicalRef = conduitEnvRef(conduit);
-  const conduitEffectful  = conduit.get('effectful');
-
-  // Effect-laundering safety net (same invariant as intrinsic operands).
-  if (conduitEffectful && !classifyEffect(lookupName)) {
-    throw new EffectLaunderingAtCallError({
-      bindingName: lookupName,
-      effectfulName: conduitName
-    });
-  }
-
-  const expectedArity = conduitParams.length;
-
-  // Build lambdas from the modifiers at the call site.
-  const conduitLambdas = node.args.map(argNode => makeLambda(argNode, state));
-
-  // Arity check: exact match required. No auto-curry — partial
-  // application is achieved through zero-arity conduit aliases and parametric
-  // forwarding patterns (fractal composition).
-  if (conduitLambdas.length !== expectedArity) {
-    throw new ConduitArityMismatchError({
-      conduitName,
-      expectedArity,
-      actualArity: conduitLambdas.length
-    });
-  }
-
-  // Build bodyEnv: start from the lexical scope anchor
-  // (envRef.env), then layer conduitParameter proxies on top. Each
-  // param proxy is a nullary function value that fires the
-  // captured-arg lambda against whatever pipeValue the identifier
-  // lookup sees at the moment — this is the lazy binding that
-  // enables higher-order composition (params fire per-element
-  // inside sort, per-iteration inside filter, etc.).
-  //
-  // Every conduit reachable at this point has its envRef holder
-  // wired by the construction site (`evalBindStep` for in-query
-  // declarations, deserializeSession for restored bindings); both
-  // perform the tie-the-knot pattern so the body resolves through
-  // the env captured at declaration time. Reading `.env` directly
-  // — no `?? state.env` fallback — pins lexical scope: the body
-  // resolves through the env captured by the construction-site
-  // tie-the-knot, never through the caller's env at invocation.
-  let bodyEnv = conduitLexicalRef.env;
-  for (let i = 0; i < conduitParams.length; i++) {
-    const paramName = conduitParams[i].name;
-    const paramProxy = makeConduitParameter(conduitLambdas[i], paramName);
-    bodyEnv = envSet(bodyEnv, paramName, paramProxy);
-  }
-
-  // Fork body: inner sub-pipeline starts one frame deeper with the
-  // caller's pipeValue and the lexical bodyEnv. Body's env writes
-  // (BindStep / `as` declarations inside the body) are discarded on
-  // return — only the final pipeValue escapes. A self-call without a
-  // base case descends a frame per call until `nestState` lifts
-  // `EvaluationDepthExceededError`.
-  const bodyState = nestState(state, state.pipeValue, bodyEnv);
-  const finalBodyState = await evalBody(conduitBody, bodyState);
-  return withPipeValue(state, finalBodyState.pipeValue);
-}
-
-// makeConduitParameter(capturedArgLambda, paramName) → function value
-//
-// Wraps a captured-arg lambda in a nullary function value (arity 1,
-// zero captured args) that fires the lambda against the current
-// pipeValue at each lookup site. This is the mechanism that enables
-// higher-order conduit parameters: the lambda stays lazy, evaluated
-// per-element inside sort, per-iteration inside filter —
-// wherever the identifier lookup happens inside
-// the conduit body.
-function makeConduitParameter(capturedArgLambda, paramName) {
-  // Conduit parameters are ephemeral — meta is inline because
-  // they have no operand-family catalog entry.
-  return makeFn(paramName, 1, async (state, paramLambdas) => {
-    if (paramLambdas.length !== 0) {
-      throw new ConduitParameterNoCapturedArgsError({
-        paramName,
-        actualCount: paramLambdas.length
-      });
-    }
-    return withPipeValue(state, await capturedArgLambda(state.pipeValue));
-  }, {
-    category: 'conduitParameter',
-    subject: 'any (current pipeValue at the lookup site)',
-    modifiers: [],
-    returns: 'any (the captured expression evaluated against pipeValue)',
-    captured: [0, 0],
-    docs: [`Conduit parameter '${paramName}': fires the captured expression against the current pipeValue.`],
-    examples: [],
-    throws: ['ConduitParameterNoCapturedArgsError']
-  });
-}
-
 // makeLambda(astNode, capturedState) → (input) → value
 //
 // Constructs a closure that evaluates `astNode` as a sub-pipeline
@@ -1073,16 +860,10 @@ function makeConduitParameter(capturedArgLambda, paramName) {
 // construction time and in that state's env. Operand impls call
 // lambdas to resolve captured args at the moment they need them.
 //
-// The `.astNode` property exposes the raw AST for higher-order
-// operands (`filter` / `every` / `any`, `reduce`) that need to
-// inspect the captured expression's shape to dispatch by conduit
-// arity without a test-application round-trip.
-// The `.capturedState` property exposes the capture-site state so
-// higher-order operands can statically resolve a bare-identifier
-// captured arg to its binding descriptor through its env
-// (filter/every/any inspect the captured predicate's arity before
-// dispatch) and re-enter a conduit body from the same frame the
-// lambda itself would.
+// The `.astNode` property exposes the raw AST, and `.capturedState`
+// the capture-site state, so `reduce` finds the operand or the verb a
+// quote of one name holds [D56] and folds with it from the frame the
+// lambda itself would run in.
 //
 // A quote written as the modifier carries the environment of the call
 // [D43].
@@ -1116,76 +897,6 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
   return makeLambda(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
 }
 
-// resolveCapturedConduit(astNode, env) → { conduit, lookupName } | null
-//
-// If astNode is a bare OperandCall identifier (no captured args) that
-// resolves in env to a conduit descriptor, the value of its record,
-// returns the conduit and the binding name used at the lookup site.
-// Otherwise returns null. Used by filter/every/any
-// to statically resolve a parametric conduit predicate and dispatch by
-// its `:params` arity without a test-application round-trip.
-export function resolveCapturedConduit(astNode, env) {
-  if (!astNode || astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
-  const lookupName = astNode.name;
-  if (!envHas(env, lookupName)) return null;
-  const resolved = bindingValueOf(envGet(env, lookupName));
-  if (!(resolved instanceof Map)) return null;
-  if (!isConduitDescriptor(resolved)) return null;
-  return { conduit: resolved, lookupName };
-}
-
-// invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, callerState)
-//   → Promise<pipeValue>
-//
-// Applies a parametric conduit with caller-supplied captured values,
-// bypassing the AST-args construction path. Each fixedArgs[i] becomes
-// a nullary captured-arg lambda that ignores pipeValue and returns the
-// fixed value — matching the conduitParameter lazy-proxy contract for
-// a value the caller has already resolved. Used by filter/every/any
-// to supply the element to a predicate of one parameter, and by
-// `reduce` to supply the accumulator and the element to a reducer of
-// two.
-// The body runs one frame below `callerState` — the capture-site state
-// of the lambda that carried the conduit reference.
-//
-// Enforces the same effectLaundering invariant as applyConduit: an
-// effectful conduit cannot be invoked through a clean lookup name.
-// Caller must guarantee fixedArgs.length === conduit's params.length —
-// this invoker performs no arity check because the dispatching operand
-// has already verified the arity.
-export async function invokeConduitWithFixedArgs(conduit, lookupName, fixedArgs, pipeValue, callerState) {
-  const conduitName       = conduit.get('name');
-  const conduitParams     = conduit.get('params');
-  const conduitBody       = conduitBodyAst(conduit);
-  const conduitLexicalRef = conduitEnvRef(conduit);
-  const conduitEffectful  = conduit.get('effectful');
-
-  if (conduitEffectful && !classifyEffect(lookupName)) {
-    throw new EffectLaunderingAtCallError({
-      bindingName: lookupName,
-      effectfulName: conduitName
-    });
-  }
-
-  let bodyEnv = conduitLexicalRef.env;
-  for (let pi = 0; pi < conduitParams.length; pi++) {
-    const fixedValue = fixedArgs[pi];
-    const fixedArgLambda = async () => fixedValue;
-    const paramName = conduitParams[pi].name;
-    const paramProxy = makeConduitParameter(fixedArgLambda, paramName);
-    bodyEnv = envSet(bodyEnv, paramName, paramProxy);
-  }
-
-  const bodyState = nestState(callerState, pipeValue, bodyEnv);
-  const finalBodyState = await evalBody(conduitBody, bodyState);
-  return finalBodyState.pipeValue;
-}
-
-// Exposed params field key so higher-order operands can read a
-// conduit's arity without re-interning the keyword. Pairs with
-// resolveCapturedConduit / invokeConduitWithFixedArgs.
-export const CONDUIT_PARAMS_FIELD = 'params';
-
 // resolveBinaryReducer(reducerLambda) → ((acc, item) → Promise<value>) | null
 //
 // Resolves the code of a reducer slot into the per-step combiner
@@ -1194,12 +905,10 @@ export const CONDUIT_PARAMS_FIELD = 'params';
 //     bound form — accumulator as subject, element as the single
 //     captured arg (`acc | add element`), through Rule 10;
 //   - a verb, the code itself or one its quote names, folds the same
-//     way, the element filling its first slot [D67];
-//   - a 2-param conduit `[:acc :elem]` binds both through
-//     invokeConduitWithFixedArgs.
+//     way, the element filling its first slot [D67].
 // Returns null when the captured arg is not such a reference (an inline
-// expression, a literal, a non-2-param conduit, or an unbound name),
-// so `reduce` lifts its own per-site error.
+// expression, a literal, or an unbound name), so `reduce` lifts its
+// own per-site error.
 export function resolveBinaryReducer(reducerLambda) {
   const callerState = reducerLambda.capturedState;
   if (reducerLambda.verb !== undefined) return verbFold(reducerLambda.verb, callerState, null);
@@ -1209,10 +918,6 @@ export function resolveBinaryReducer(reducerLambda) {
   if (!envHas(callerState.env, lookupName)) return null;
   const resolved = bindingValueOf(envGet(callerState.env, lookupName));
   if (isVerb(resolved)) return verbFold(resolved, callerState, keyword(lookupName));
-  if (isConduitDescriptor(resolved)) {
-    if (resolved.get(CONDUIT_PARAMS_FIELD).length !== 2) return null;
-    return (acc, item) => invokeConduitWithFixedArgs(resolved, lookupName, [acc, item], item, callerState);
-  }
   if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
     const reducerImpl = resolveBuiltinImpl(resolved);
     return async (acc, item) => {

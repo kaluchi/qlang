@@ -51,8 +51,8 @@ below applies to shell output, so a large file is never `cat`-ed.
 Tier 2, by topic, only the files the topic names:
 
 - arguments and dispatch: `core/src/rule10.mjs`,
-  `core/src/runtime/dispatch.mjs`, the conduit functions at the end of
-  `core/src/eval.mjs`, and `core/lib/qlang/operand/container.qlang`
+  `core/src/runtime/dispatch.mjs`, `core/src/runtime/verb.mjs`, and
+  `core/lib/qlang/operand/container.qlang`
   for the slot vocabulary the catalog declares and the runtime does
   not read
 - names, scope, modules, sessions: `core/src/state.mjs`,

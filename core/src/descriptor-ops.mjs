@@ -130,7 +130,7 @@ export function stampThrowSiteSpec(binding, envKey) {
 
 // `:operand` spells a value-namespace operand as a Keyword (`:add`,
 // `:@tap`) and a value-class constructor as a TagKeyword
-// (`::conduit`), matching how each is written in source.
+// (`::verb`), matching how each is written in source.
 function operandIdentifier(operand) {
   return isTagBindingName(operand)
     ? makeTagKeyword(stripTagBindingPrefix(operand))

@@ -12,7 +12,7 @@
 //      - runtime-invariants.qlang: shared / cross-family
 //        runtime tag-bindings (projection, combinator, parser,
 //        AST codec, dispatch, registry, session, render).
-//      - tag.qlang: value-class constructors (::conduit,
+//      - tag.qlang: value-class constructors (::verb,
 //        ::quote, ::builtin).
 //      Each operand BindStep writes the record of a binding [D63]
 //      whose value is a descriptor Map stamped with `::builtin`

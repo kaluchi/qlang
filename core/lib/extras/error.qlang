@@ -3,11 +3,10 @@
     starting pipeValue as ~(:start) before each attempt
     and restores it on retry so action always sees
     ~(start) — the pipeValue snapshotted before the first
-    attempt. The action parameter is a lazy lambda — if
-    the caller passes an effectful operand, the effect
-    fires at the call site, in the caller's frame.
+    attempt. The action is code, a quote the call hands it,
+    applied again on every attempt.
 
-    Success path: `|` fires action against pipeValue;
+    Success path: `|` applies action against pipeValue;
     the trailing `!|` deflects and the successful result
     flows out unchanged.
     Fail path: action returned an error; `!|` fires the
@@ -18,8 +17,7 @@
     the error flows out.
 
     Call via `|` on success-track input. ~~|
-  [:action :n]
-  (as :start | action
+  ::verb~(:action ::quote | :n ::number | as :start | apply action
     !| if (n | gt 0)
           ~(start | retry action (n | sub 1))
           ~(error))
@@ -31,8 +29,7 @@
     become the new pipeValue. Otherwise re-lift the
     descriptor into a fresh error and continue on the
     fail-track. Call via `!|` on fail-track. ~~|
-  [:pred :handler]
-  if pred ~(handler) ~(error)
+  ::verb~(:pred ::quote | :handler ::quote | if (apply pred) handler ~(error))
 
 :mapError
   |~~ Transform an error's materialized descriptor via
@@ -41,8 +38,7 @@
     the returned Map becomes the new error's descriptor
     (trail continues via the makeErrorValue invariant).
     Call via `!|` on fail-track. ~~|
-  [:fn]
-  (fn | error)
+  ::verb~(:fn ::quote | apply fn | error)
 
 :withContext
   |~~ Enrich an error's materialized descriptor with
@@ -52,5 +48,4 @@
     result becomes the new error's descriptor. Used for
     MDC-style context accumulation as an error flows
     through a pipeline. Call via `!|` on fail-track. ~~|
-  [:ctx]
-  (union ctx | error)
+  ::verb~(:ctx ::map | union ctx | error)

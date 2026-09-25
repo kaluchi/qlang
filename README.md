@@ -31,7 +31,7 @@ npm run test:coverage                    # verify 100/100/100/100 thresholds on 
 
 | Audience | Doc |
 |---|---|
-| query authors | [docs/qlang-spec.md](docs/qlang-spec.md) — values, pipeline, conduits, scoping, grammar |
+| query authors | [docs/qlang-spec.md](docs/qlang-spec.md) — values, pipeline, verbs, scoping, grammar |
 | query authors | [docs/qlang-operands.md](docs/qlang-operands.md) — full catalog of built-in operands |
 | evaluator implementors | [docs/qlang-internals.md](docs/qlang-internals.md) — formal `(pipeValue, env)` model, AST, codec |
 

@@ -65,7 +65,7 @@
 //                                makeTaggedInstance, stampTagHeader,
 //                                appendTrailNode, materializeTrail, plus
 //                                the identity TagKeyword constants
-//                                (BUILTIN_TAG / CONDUIT_TAG / ERROR_TAG /
+//                                (BUILTIN_TAG / ERROR_TAG /
 //                                PARSE_ERROR_TAG / BINDING_TAG /
 //                                TAG_BINDING_TAG) and the
 //                                TAG_HEADER_SYMBOL Symbol slot
@@ -75,7 +75,8 @@
 //   env-key namespaces          — TAG_BINDING_PREFIX,
 //                                MODULE_NAMESPACE_PREFIX, RUNTIME_LOCATOR_KEY
 //                                plus the mint / probe helpers
-//                                (tagBindingKey, moduleNamespaceKey, … /
+//                                (tagBindingKey, moduleNamespaceKey,
+//                                canonicalTagName, … /
 //                                isTagBindingName, isModuleNamespaceKey, …)
 
 import { parse, ParseError } from './parse.mjs';
@@ -145,7 +146,6 @@ import {
   stampTagHeader,
   makeTaggedInstance,
   BUILTIN_TAG,
-  CONDUIT_TAG,
   ERROR_TAG,
   PARSE_ERROR_TAG,
   BINDING_TAG,
@@ -162,6 +162,7 @@ import {
   isModuleNamespaceKey,
   moduleNamespaceKey,
   tagBindingKey,
+  canonicalTagName,
   stripTagBindingPrefix
 } from './env-keys.mjs';
 
@@ -230,7 +231,6 @@ export {
   stampTagHeader,
   makeTaggedInstance,
   BUILTIN_TAG,
-  CONDUIT_TAG,
   ERROR_TAG,
   PARSE_ERROR_TAG,
   BINDING_TAG,
@@ -246,5 +246,6 @@ export {
   isModuleNamespaceKey,
   moduleNamespaceKey,
   tagBindingKey,
+  canonicalTagName,
   stripTagBindingPrefix
 };

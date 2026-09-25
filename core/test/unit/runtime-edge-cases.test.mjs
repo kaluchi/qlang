@@ -25,7 +25,6 @@ import {
   keyword,
   makeTagKeyword,
   makeBinding,
-  makeConduit,
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
@@ -64,15 +63,14 @@ describe('equality.deepEqual rejection branches', async () => {
   });
 });
 
-describe('describeType for conduit and binding record', async () => {
+describe('describeType for a verb and a binding record', async () => {
   it('describeType reads a binding record as the tagged Map it is', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(describeType(record)).toBe('TaggedInstance');
   });
 
-  it('describeType returns "Conduit" for a conduit value', async () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
-    expect(describeType(conduit)).toBe('Conduit');
+  it('describeType reads a verb as the tagged instance it is', async () => {
+    expect(describeType(await evalQuery('::verb~(mul 2)'))).toBe('TaggedInstance');
   });
 
   it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
@@ -85,9 +83,6 @@ describe('describeType for conduit and binding record', async () => {
     // Identity-overlay design: tag rides on the JS-header slot
     // of the Array payload itself. `toPlain` encodes the
     // underlying array as `payload`, identity rides on `$tag`.
-    // (`Conduit` deliberately has no toPlain handler — its
-    // internal `:envRef` / `:body` slots are JS-opaque and the
-    // bidirectional codec for conduits is the session serializer.)
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
     const tagged = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
@@ -96,16 +91,13 @@ describe('describeType for conduit and binding record', async () => {
     expect(plainTagged.payload).toEqual([42, 'inner']);
   });
 
-  it('isTaggedInstance rejects a real conduit without checking :kind field shape', async () => {
-    // The conduit identity rides on the Map's JS-header
-    // `TAG_HEADER_SYMBOL` slot. `isTaggedInstance` routes through
-    // `isConduit` first so the generic tagged-instance render path
-    // stays disjoint from `printConduit`, regardless of whether a
-    // bystander Map happens to carry `:kind ::conduit` as ordinary
-    // data.
-    const { makeConduit, isTaggedInstance } = await import('../../src/types.mjs');
-    const realConduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' });
-    expect(isTaggedInstance(realConduit)).toBe(false);
+  it('isTaggedInstance rejects a builtin descriptor without checking :kind field shape', async () => {
+    // A descriptor's identity rides on the Map's JS-header
+    // `TAG_HEADER_SYMBOL` slot under the reserved `::builtin`, so the
+    // generic tagged-instance render path stays disjoint from the
+    // descriptor's, whatever a bystander Map carries as `:kind`.
+    const { isTaggedInstance } = await import('../../src/types.mjs');
+    expect(isTaggedInstance(await evalQuery('::builtin{:a 1}'))).toBe(false);
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
@@ -134,9 +126,8 @@ describe('typeKeyword covers all value kinds', () => {
     expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');
   });
 
-  it('typeKeyword returns :conduit for a conduit', () => {
-    const conduit = makeConduit({ type: 'NumberLit', value: 1, text: '1' }, { name: 'x' });
-    expect(typeKeyword(conduit).name).toBe('conduit');
+  it('typeKeyword returns ::verb for a verb', async () => {
+    expect(typeKeyword(await evalQuery('::verb~(mul 2)')).name).toBe('verb');
   });
 
   it('typeKeyword returns ::binding for a binding record', () => {
@@ -208,12 +199,13 @@ describe('types.mjs — appendTrailNode stamps {combinator, node} fragments on t
   });
 });
 
-describe('conduit effectLaundering at call site', async () => {
-  it('conduit with @-name called via clean alias triggers EffectLaunderingAtCallError', async () => {
+describe('verb effectLaundering at call site', async () => {
+  it('an effectful verb called via a clean alias triggers EffectLaunderingAtCallError', async () => {
     const s = await createSession();
-    // Declare an @-prefixed conduit, then shadow it under a clean name
-    // via use, triggering the runtime safety net in applyConduit.
-    await s.evalCell(':@effFn count');
+    // Declare a verb whose body calls an @-name under an @-name, then
+    // bind it under a clean name via use, triggering the runtime safety
+    // net in applyVerb.
+    await s.evalCell(':@effFn ::verb~(@callers | count)');
     await s.evalCell('{:clean (env | /@effFn)} | use');
     const cell = await s.evalCell('[1 2 3] | clean');
     // EffectLaunderingAtCallError produces an error value.
@@ -222,17 +214,15 @@ describe('conduit effectLaundering at call site', async () => {
   });
 });
 
-describe('conduitParameter arity error', async () => {
-  it('calling a conduit parameter with captured args throws ConduitParameterNoCapturedArgsError', async () => {
-    // Inside the body, `n` is a conduitParameter proxy (nullary
-    // function value). Calling it with captured args (n(42)) should
-    // raise ConduitParameterNoCapturedArgsError with structured context.
-    const result = await evalQuery(':f [:n] n 42 | 0 | f 5');
+describe('a slot takes no modifiers', async () => {
+  it('a slot holding a value refuses modifiers as any value does', async () => {
+    // Inside the body, `n` is the record of a slot holding a value, so
+    // a modifier handed to it is refused with ApplyToNonFunctionError.
+    const result = await evalQuery(':f ::verb~(:n ::any | n 42) | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
-    expect(e.name).toBe('ConduitParameterNoCapturedArgsError');
-    expect(e.context.paramName).toBe('n');
-    expect(e.context.actualCount).toBe(1);
+    expect(e.name).toBe('ApplyToNonFunctionError');
+    expect(e.context.name).toBe('n');
   });
 });
 
@@ -240,10 +230,10 @@ describe('conduitParameter arity error', async () => {
 import { deserializeSession } from '../../src/session.mjs';
 
 describe('session deserialization edge cases', async () => {
-  it('deserializes conduit binding without params field', async () => {
+  it('deserializes a verb binding from its quote under its tag', async () => {
     const payload = {
-      schemaVersion: 2,
-      bindings: [{ kind: 'conduit', name: 'x', source: 'mul 2', docs: [] }],
+      schemaVersion: 3,
+      bindings: [{ name: 'x', value: { $tagged: { $tag: 'verb', payload: { $quote: 'mul 2' } } }, docs: [] }],
       cells: []
     };
     const s = await deserializeSession(payload);

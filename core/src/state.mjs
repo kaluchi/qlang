@@ -4,7 +4,7 @@
 // Users never see or construct it. Within the evaluator we model
 // it as a frozen object carrying the semantic pair — `pipeValue`,
 // `env` — and one bookkeeping field, `depth`: how many nested
-// evaluation frames (conduit bodies, captured-arg lambdas, `apply`
+// evaluation frames (verb bodies, captured-arg lambdas, `apply`
 // re-entry, Quote-bodied tag constructors, doc-segment
 // literals, locator-loaded modules) sit between the root and this
 // state. Every step returns a fresh State carrying the next
@@ -17,7 +17,7 @@
 
 import { EvaluationDepthExceededError } from './errors.mjs';
 
-// EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A conduit
+// EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
 // that calls itself without a base case, a Quote that applies
 // itself, a tag constructor that mints its own tag: each descends
 // one frame per call and lifts `EvaluationDepthExceededError` on

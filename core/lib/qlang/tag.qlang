@@ -1,4 +1,4 @@
-|~ The tag-bindings of the kinds — ::conduit, ::quote, ::set, ::builtin,
+|~ The tag-bindings of the kinds — ::verb, ::quote, ::set, ::builtin,
    and the tags of a quote's steps. Each constructor declares its
    identity through ::builtin{…} with an :impl keyword pointing
    into PRIMITIVE_REGISTRY at the JS-side constructor that mints
@@ -37,108 +37,6 @@
 
       ~(::qlang/any | spec | /verbs | has ::any/type)
       ~(5 | type | eq ::qlang/any | not)
-  ~~|
-
-::conduit
-  |~~ Conduit literal — invokeable lexically-scoped value carrying
-      a frozen body AST plus optional self-name and parameter list.
-      Payload Vec shape:
-        [params body]            — non-recursive, params is a Vec
-                                   of Keywords, body is a Quote.
-        [:self params body]      — with self-name for recursion;
-                                   inside body the identifier
-                                   matching :self resolves to the
-                                   conduit itself.
-      Body Quote source is parsed at construction time; the
-      returned Conduit-value captures the env at the call site
-      through a tie-the-knot envRef so recursive references resolve
-      against the lexical scope.
-
-      ~( :double ::conduit[[] ~(mul 2)] | 5 | double | eq 10 )
-  ~~|
-  ::builtin{:impl :qlang/type/conduit}
-
-::ConduitPayloadNotVecError
-  |~~ `::conduit[…]` payload must be a Vec.
-
-      ~(
-        ::conduit{:not :a-vec}
-        !| [type /actualType]
-        |  eq [::ConduitPayloadNotVecError ::map]
-       )
-  ~~|
-
-::ConduitArityInvalidError
-  |~~ `::conduit[…]` payload Vec must have 2 (`[params body]`)
-      or 3 (`[:self params body]`) elements.
-
-      ~(
-        ::conduit[42]
-        !| [type /actualCount]
-        |  eq [::ConduitArityInvalidError 1]
-       )
-  ~~|
-
-::ConduitSelfNameNotKeywordError
-  |~~ `::conduit` self-name (3-element form) must be a Keyword.
-
-      ~(
-        ::conduit[42 [] ~(mul 2)]
-        !| [type /actualType]
-        |  eq [::ConduitSelfNameNotKeywordError ::number]
-       )
-  ~~|
-
-::ConduitParamsNotVecError
-  |~~ `::conduit` params slot must be a Vec of Keywords.
-
-      ~(
-        ::conduit[42 ~(mul 2)]
-        !| [type /actualType]
-        |  eq [::ConduitParamsNotVecError ::number]
-       )
-  ~~|
-
-::ConduitParamNotKeywordError
-  |~~ `::conduit` params Vec elements must be Keywords.
-
-      ~(
-        ::conduit[[42] ~(mul 2)]
-        !| [type /index /actualType]
-        |  eq [::ConduitParamNotKeywordError 0 ::number]
-       )
-  ~~|
-
-::ConduitBodyNotQuoteError
-  |~~ `::conduit` body slot must be a Quote-value.
-
-      ~(
-        ::conduit[[] 42]
-        !| [type /actualType]
-        |  eq [::ConduitBodyNotQuoteError ::number]
-       )
-  ~~|
-
-::ConduitArityMismatchError
-  |~~ Conduit invocation supplied a captured-arg count
-      different from the conduit's declared parameter list.
-
-      ~(
-        :f [:a] add a | 5 | f 1 2
-        !| [type /conduitName /expectedArity /actualArity]
-        |  eq [::ConduitArityMismatchError :f 1 2]
-       )
-  ~~|
-
-::ConduitParameterNoCapturedArgsError
-  |~~ Conduit-parameter proxies are nullary — passing captured
-      arguments to a parameter reference fires this error.
-
-      ~(
-        :f [:n] n 42 | 0 | f 5
-        !| [type /paramName /actualCount]
-        |  eq [::ConduitParameterNoCapturedArgsError :n 1]
-       )
   ~~|
 
 ::quote

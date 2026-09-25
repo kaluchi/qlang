@@ -20,20 +20,15 @@
 {"name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
 {"name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
 {"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
-{"name":"filter-vec-0arity-conduit","query":"[1 2 3 4 5] | :big gt 2 | filter ~(big)","expect":"[3 4 5]"}
-{"name":"filter-vec-1arity-conduit","query":"[1 -2 3 -4 5] | :@pos [:v] (v | gt 0) | filter ~(@pos)","expect":"[1 3 5]"}
-{"name":"filter-set-0arity-conduit","query":"#[1 2 3 4 5] | :big gt 2 | filter ~(big)","expect":"#[3 4 5]"}
-{"name":"filter-set-1arity-conduit","query":"#[1 -2 3 -4 5] | :@pos [:v] (v | gt 0) | filter ~(@pos)","expect":"#[1 3 5]"}
-{"name":"filter-map-0arity-conduit","query":"{:a 1 :b 2 :c 3} | :big gt 1 | filter ~(big)","expect":"{:b 2 :c 3}"}
-{"name":"filter-map-1arity-conduit","query":"{:a 1 :b -2 :c 3} | :@pos [:v] (v | gt 0) | filter ~(@pos)","expect":"{:a 1 :c 3}"}
-{"name":"filter-map-2arity-pred-throws-key","query":"{:a 1 :b 2 :c 3} | :@isA [:k :v] (k | eq :a) | filter ~(@isA) !| type","expect":"::FilterPredArityInvalidError"}
+{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :big ::verb~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
+{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :positive ::verb~(gt 0) | filter ~positive","expect":"[1 3 5]"}
+{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :big ::verb~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
+{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :positive ::verb~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
+{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :big ::verb~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
+{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :positive ::verb~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
+{"name":"filter-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2 :c 3} | :above ::verb~(:limit ::number | gt limit) | filter ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}
 {"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
-{"name":"filter-vec-2arity-pred-throws","query":"[1 2] | :@kv [:k :v] true | filter ~(@kv) !| type","expect":"::FilterPredArityInvalidError"}
-{"name":"filter-set-2arity-pred-throws","query":"#[1 2] | :@kv [:k :v] true | filter ~(@kv) !| type","expect":"::FilterPredArityInvalidError"}
-{"name":"filter-vec-3arity-pred-throws","query":"[1] | :@wide [:x :y :z] true | filter ~(@wide) !| type","expect":"::FilterPredArityInvalidError"}
-{"name":"filter-set-3arity-pred-throws","query":"#[1] | :@wide [:x :y :z] true | filter ~(@wide) !| type","expect":"::FilterPredArityInvalidError"}
-{"name":"filter-map-3arity-pred-throws","query":"{:a 1} | :@wide [:x :y :z] true | filter ~(@wide) !| type","expect":"::FilterPredArityInvalidError"}
 {"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","error":"typeError","expect":"::FilterSubjectNotContainerError!{\n  :faultStep ~(filter ~(gt 0))\n  :faultInput 42\n  :actualType ::number\n}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
@@ -51,7 +46,7 @@
 {"name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
-{"name":"reduce-max-via-conduit","query":":max2 [:acc :x] (if (x | gt acc) ~(x) ~(acc)) | [3 1 4 1 5] | reduce 0 ~(max2)","expect":"5"}
+{"name":"reduce-max-via-verb","query":":max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]","decision":"D43"}

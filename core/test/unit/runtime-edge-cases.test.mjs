@@ -379,7 +379,7 @@ describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound
   // descriptor's `:type` field. `typeKeyword`'s isErrorValue
   // branch returns `error.tag` directly — the universal
   // identity slot every error carries on the JS-header `tag`
-  // field, defaulting to `::Error` for user `!{}` without
+  // field, the kind of errors `::error` for user `!{}` without
   // explicit `:kind`.
 
   it('error tag surfaces as the TagKeyword on the :type field', async () => {
@@ -390,12 +390,12 @@ describe('manifest-op.mjs — buildValueDescriptor :type lift for directly-bound
     expect(r.result).toEqual(makeTagKeyword('test'));
   });
 
-  it('default ::Error tag surfaces when no explicit tag was lifted', async () => {
+  it('the kind of errors surfaces when no explicit tag was lifted', async () => {
     const s = await createSession();
-    const errVal = makeErrorValue(makeTagKeyword('Error'), new Map());
+    const errVal = makeErrorValue(makeTagKeyword('error'), new Map());
     s.bind('myErr', errVal);
     const r = await s.evalCell('manifest | filter ~(/name | eq "myErr") | first | /type');
-    expect(r.result).toEqual(makeTagKeyword('Error'));
+    expect(r.result).toEqual(makeTagKeyword('error'));
   });
 });
 
@@ -558,17 +558,18 @@ describe('printValue round-trip — all composite types', async () => {
 
   it('Error value with TagKeyword :kind lift', async () => {
     // `:kind` carrying a TagKeyword lifts to `error.tag` on
-    // construction; the print form re-emits `::Error!{…}` with the
-    // remaining fields, and re-parse recovers the same value.
-    await assertRoundTrip('!{:kind ::Error :message "boom"}', 'Error');
+    // construction; the print form leaves the kind of errors out,
+    // `!{…}` with the remaining fields, and re-parse recovers the
+    // same value.
+    await assertRoundTrip('!{:kind ::error :message "boom"}', 'Error');
   });
 
-  it('Error value with plain-keyword :kind stays in descriptor under default ::Error tag', async () => {
+  it('Error value with plain-keyword :kind stays in descriptor under the kind of errors', async () => {
     await assertRoundTrip('!{:kind :oops :message "boom"}', 'Error');
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind ::Error :trail ~(| count)}', 'Error trail');
+    await assertRoundTrip('!{:kind ::error :trail ~(| count)}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

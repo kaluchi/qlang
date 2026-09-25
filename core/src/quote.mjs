@@ -23,7 +23,7 @@ import {
   keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
   makeTaggedInstance, makeErrorLiteralStep,
   isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
-  isErrorValue, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
+  isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
 } from './types.mjs';
 
@@ -193,7 +193,7 @@ export function isStep(value) {
 }
 
 // isElementStep(value) — a literal, a quote, a doc, a container of
-// element steps, an error literal's step under `::Error`, a group, or a
+// element steps, an error literal's step, of the kind `::error`, a group, or a
 // record, which counts by its tag since its constructor already read it
 // back from its own text. A declaration, a command with modifiers and a
 // documented `as` stand in a pipeline alone: inside a container the
@@ -201,7 +201,7 @@ export function isStep(value) {
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
-  if (isErrorValue(value)) return value.tag.name === 'Error' && [...value.descriptor.values()].every(isElementStep);
+  if (isErrorValue(value)) return value.tag.name === ERROR_TAG.name && [...value.descriptor.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && (value.has('docs') || value.has('args')));

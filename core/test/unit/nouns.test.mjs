@@ -14,9 +14,9 @@ describe('the nouns of the core', () => {
     expect(await evalQuery('::qlang | manifest | filter ~(eq ::AddLeftNotNumberError) | count')).toBe(0);
   });
 
-  it('a refusal the catalog declares with its category is no noun either', async () => {
-    expect(await evalQuery('::qlang | manifest | has ::Error')).toBe(false);
+  it('a refusal the catalog declares with its category is no noun, and the kind of errors is one', async () => {
     expect(await evalQuery('::qlang | manifest | has ::ForeignFailureError')).toBe(false);
+    expect(await evalQuery('::qlang | manifest | has ::error')).toBe(true);
   });
 
   it('a noun answers what lies below it, the nouns under its path and the verbs that live on it', async () => {

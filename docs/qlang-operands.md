@@ -693,8 +693,8 @@ Map where the value's kind is the predicate axis.
   (Conduit, Snapshot, TaggedInstance, materialized error, catalog
   builtin descriptor) produce their tag (`::conduit`, `::snapshot`,
   `::Foo`, `::builtin`); error values produce the per-site `::Tag` —
-  `::AddLeftNotNumberError`, `::ParseError`, generic `::Error` for
-  user `!{}` without an explicit `:kind ::Foo` lift.
+  `::AddLeftNotNumberError`, `::ParseError`, and the kind of errors
+  `::error` for user `!{}` without an explicit `:kind ::Foo` lift.
 - **Examples**:
   - `42 | type` → `::number`.
   - `"hello" | type` → `::string`.
@@ -702,7 +702,7 @@ Map where the value's kind is the predicate axis.
   - `[1 2] | type` → `::vec`.
   - `{:a 1} | type` → `::map`.
   - `::conduit[[] ~(mul 2)] | type` → `::conduit`.
-  - `!{} !| type` → `::Error`.
+  - `!{} !| type` → `::error`.
   - `!{:kind ::Oops} !| type` → `::Oops`.
 
 JSON syntax reads into the same Map and Vec, so `{"a": 1} | type` →
@@ -1296,7 +1296,7 @@ deflects on an error that `!| true` then answers.
   `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
   materialization and `tag ::Foo` use); then a `:kind ::Tag`
   field if the header is absent (qlang-level rebrand); falling
-  back to the generic `::Error` tag. The first branch makes
+  back to the kind of errors, `::error`. The first branch makes
   `error !| [type payload] | tag | error` recover the original
   per-site tag without a manual `:kind` field stamp.
 - **Example**: `error {:kind :oops} !| /kind` → `:oops`.

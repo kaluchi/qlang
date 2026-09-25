@@ -35,7 +35,7 @@ const ErrorDescriptorNotMapError = declareSubjectError(
 //   2. `:kind ::TagName` entry where the value is a TagKeyword
 //      — covers literal user descriptors `{:kind ::Foo …} |
 //      error`. Lifted to the header, dropped from the descriptor.
-//   3. Default `::Error` tag — covers Map descriptors without
+//   3. The kind of errors, `::error` — covers Map descriptors without
 //      either form. A non-TagKeyword `:kind` value stays in the
 //      descriptor as ordinary data.
 export const error = makeFn('error', 1, async (state, errorLambdas) => {

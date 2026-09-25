@@ -84,32 +84,32 @@ describe('printValue — Conduit / Snapshot / Function branches', () => {
 });
 
 describe('printErrorValue — head + payload-filter branches', () => {
-  it('default ::Error tag heads an otherwise-empty error', async () => {
+  it('an error of the kind of errors prints without its kind', async () => {
     // Every error carries an identity tag on the JS-header `tag`
-    // slot — `::Error` is the universal default for user `!{}`
-    // without explicit `:kind ::Foo`. The printer emits the tag
-    // unconditionally so the round-trip recovers the same
-    // identity.
-    const err = makeErrorValue(makeTagKeyword('Error'), new Map());
-    expect(printValue(err)).toBe('::Error!{}');
+    // slot — `::error`, the kind of errors, for user `!{}` without
+    // explicit `:kind ::Foo`. The brackets imply that kind, so the
+    // printer leaves it out, as it does a vector's, and the
+    // round-trip recovers the same identity [D32], [D64].
+    const err = makeErrorValue(makeTagKeyword('error'), new Map());
+    expect(printValue(err)).toBe('!{}');
   });
 
-  it('descriptor fields ride after the tag head', async () => {
-    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
+  it('descriptor fields ride inside the brackets', async () => {
+    const err = makeErrorValue(makeTagKeyword('error'), new Map([
       ['message', 'something broke']
     ]));
-    expect(printValue(err)).toBe('::Error!{:message "something broke"}');
+    expect(printValue(err)).toBe('!{:message "something broke"}');
   });
 
-  it('descriptor with non-TagKeyword :kind keeps the field verbatim under the default ::Error head', async () => {
+  it('descriptor with non-TagKeyword :kind keeps the field verbatim', async () => {
     // The runtime treats `:kind` only as an identity slot when its
     // value is a TagKeyword. A plain-keyword `:kind` stays in the
-    // descriptor as ordinary user data — the universal `::Error`
-    // tag still appears at the head.
-    const err = makeErrorValue(makeTagKeyword('Error'), new Map([
+    // descriptor as ordinary user data, the error staying of the kind
+    // of errors.
+    const err = makeErrorValue(makeTagKeyword('error'), new Map([
       ['kind', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('::Error!{:kind :oops}');
+    expect(printValue(err)).toBe('!{:kind :oops}');
   });
 
   it('an empty user-defined tag-headed error renders as ::Foo!{}', async () => {

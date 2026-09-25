@@ -448,12 +448,12 @@ async function evalMapLit(node, state) {
 async function evalErrorLit(node, state) {
   // `:kind ::TagName` entry in the literal lifts to the error's
   // JS-header `tag` slot — the universal identity invariant for
-  // every tagged value-class. Literals without `:kind` default
-  // to `::Error` generic identity so `error.tag` is always
+  // every tagged value-class. Literals without `:kind` are of the
+  // kind of errors, `::error` [D64], so `error.tag` is always
   // present without defensive checks at consumer sites. A non-
   // TagKeyword `:kind` value (`!{:kind :foo}`, `!{:kind "x"}`)
   // stays in the descriptor — the user explicitly chose to ride
-  // identity through a non-tag value, the default `::Error`
+  // identity through a non-tag value, the kind of errors
   // covers the surface identity.
   const errorDescriptor = new Map();
   let tag = ERROR_TAG;

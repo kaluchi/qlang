@@ -1303,7 +1303,7 @@ No redundant `:kind <tag>` Map field — any user-stamped `:kind`
 slot on the source descriptor (`{:kind :oops :…} | error`)
 rides through verbatim as ordinary data without identity-
 slot collision. Errors without an explicit `:kind ::Foo`
-literal entry default to the `::Error` generic identity so
+literal entry are of the kind of errors, `::error`, so
 `error.tag` is always present without defensive checks at
 consumer sites.
 

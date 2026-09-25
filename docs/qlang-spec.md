@@ -1707,8 +1707,9 @@ descriptor itself holds only data fields. `printValue` emits
 `::Tag!{…fields…}` with the tag at the head and the descriptor
 fields after, the same shape both a JavaScript throw site and a
 literal `::Tag!{…}` source produce ([Error track](#error-track)).
-Errors without an explicit `:kind` lift carry the generic
-`::Error` tag — every ErrorValue has an identity.
+Errors without an explicit `:kind` lift are of the kind of errors,
+`::error`, which the `!{…}` brackets imply and the printer leaves
+out, `!{:k 1}` — every ErrorValue has an identity.
 
 ## Error track
 
@@ -1827,7 +1828,7 @@ JS-header field, addressed through the `type` operand:
 `result !| type` returns the `::Tag` (TagKeyword). User-facing
 literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
 this slot at construction; errors without an explicit `:kind`
-default to `::Error`. The descriptor Map below carries only
+are of the kind of errors, `::error`. The descriptor Map below carries only
 data — no `:kind` field — so `result !| union … | error`
 re-lift round-trips preserve identity automatically.
 

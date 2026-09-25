@@ -325,7 +325,7 @@ export function stampBuiltinImpl(descriptor, fn) {
 
 export const BUILTIN_TAG     = makeTagKeyword('builtin');
 export const CONDUIT_TAG     = makeTagKeyword('conduit');
-export const ERROR_TAG       = makeTagKeyword('Error');
+export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
@@ -491,7 +491,7 @@ export function withName(binding, newName) {
 // ── error value factory ───────────────────────────────────────
 //
 // Identity rides on the `tag` JS-header field (a TagKeyword) —
-// every error value carries one, defaulting to `::Error` for
+// every error value carries one, the kind of errors `::error` for
 // user-created `!{}` literals that omit `:kind`. The descriptor
 // Map is pure data: `:faultStep`, `:faultInput`, `:actualType`,
 // dynamic per-site fields, and `:trail`. `:kind` never appears in

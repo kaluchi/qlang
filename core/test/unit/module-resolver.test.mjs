@@ -119,7 +119,7 @@ describe('installModules', () => {
 
     const liftCell = await sessionInstance.evalCell('{:kind :x} | error !| type');
     expect(liftCell.error).toBeNull();
-    expect(liftCell.result).toEqual(makeTagKeyword('Error'));
+    expect(liftCell.result).toEqual(makeTagKeyword('error'));
 
     const valueKindCell = await sessionInstance.evalCell('manifest | filter ~(/kind | eq ::value) | count');
     expect(valueKindCell.error).toBeNull();

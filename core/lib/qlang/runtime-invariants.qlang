@@ -88,24 +88,6 @@
        )
   ~~|
 
-::Error
-  |~~ Generic error identity. The universal default tag every
-      ErrorValue carries on its JS-header `tag` slot when no
-      explicit `:kind ::Foo` lifts in. `!{}` and `!{:kind :oops}`
-      (plain-keyword `:kind`) both default to this tag; per-site
-      runtime errors (`::AddLeftNotNumberError`, `::FilterSubject
-      NotContainerError`, etc.) stamp their own tag and never
-      fall back here. `!|` exposes the descriptor with identity
-      on the same JS-header slot — `type` projects it directly,
-      and `[type payload] | tag | error` round-trips the
-      per-site tag back into the fail-track without an
-      intermediate `:kind` field.
-
-      ~(!{} !| type | eq ::Error)
-      ~(!{:detail "boom"} !| type | eq ::Error)
-  ~~|
-  ::builtin{:category :error}
-
 ::ForeignFailureError
   |~~ A failure of the host's implementation: an error of the language
       the runtime is written in escaped an operand, which is a defect

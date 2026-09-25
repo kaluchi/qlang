@@ -56,7 +56,6 @@ const catalogDir = join(here, '..', '..', 'lib', 'qlang');
 // Tags whose ErrorValue is minted without going through a per-site
 // factory, each with the site that mints it.
 const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
-  ['::Error',      'makeErrorValue default identity for a user `!{…}` literal'],
   ['::ParseError', 'errorFromParse lifts the peggy ParseError shape'],
   ['::ForeignFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
 ]);
@@ -70,9 +69,10 @@ const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group'
 ]);
 
-// The core as a noun and the kind beneath every kind declare a page
-// alone, and neither constructs nor refuses [D62].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any']);
+// The core as a noun, the kind beneath every kind and the kind of
+// errors declare a page alone, and neither constructs nor refuses
+// [D62], [D64].
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds

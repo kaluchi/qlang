@@ -133,8 +133,8 @@ export function manifestBuiltinDescriptor(rawDescriptor, name) {
 // recorded there by the factory that builds the class. This stamps
 // them onto the `::Tag` binding the catalog declares under the same
 // name, so `result !| type | spec` reads one Map while the facts
-// have one spelling. A tag with no throw site (`::Error`,
-// `::ParseError`, the value-class constructors) keeps whatever body
+// have one spelling. A tag with no throw site (`::ParseError`, the
+// kinds of the core, the value-class constructors) keeps whatever body
 // the catalog authored.
 //
 // Both stamp sites — the core-catalog pass in `runtime/index.mjs`

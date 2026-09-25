@@ -22,8 +22,8 @@ function carriesBuiltinShape(value) {
 
 // A refusal is a tag whose declaration names the category of its
 // failure, stamped from the site that raises it or written in the
-// catalog, `::ParseError` and `::Error` among them; every other tag a
-// provider declares is a noun.
+// catalog, `::ParseError` and `::ForeignFailureError` among them;
+// every other tag a provider declares is a noun.
 function isProviderNoun(envKey, value) {
   return isTagBindingName(envKey) && carriesBuiltinShape(value) && !value.has('category');
 }

@@ -83,7 +83,7 @@ describe('table — a view for a terminal', () => {
     const mapCell = await runQuery('[{:loc {:file "f.java" :line 12 :ok true}}] | table', noopIo);
     expect(mapCell.result).toContain('{:file "f.java" :line 12 :ok true}');
     const errorCell = await runQuery('[{:err !{:kind :oops}}] | table', noopIo);
-    expect(errorCell.result).toContain('::Error!{:kind :oops}');
+    expect(errorCell.result).toContain('!{:kind :oops}');
     const nullCell = await runQuery('[{:a 1 :b null} {:a 2 :b 3}] | table', noopIo);
     expect(nullCell.result.split('\n').find(line => line.includes('| 1 '))).toMatch(/\|\s+\|$/);
   });

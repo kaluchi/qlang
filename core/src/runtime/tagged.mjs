@@ -8,9 +8,10 @@
 // the outer env (notably ::conduit, which captures lexical scope
 // for body invocation) can pick it up directly.
 
-import { nullaryOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
+import { nullaryOp, stateOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
-import { withPipeValue } from '../state.mjs';
+import { withPipeValue, nestState } from '../state.mjs';
+import { evalAst } from '../eval.mjs';
 import {
   isVec, isKeyword, isQuote, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
   isTaggedInstance, isTagKeyword, isErrorValue,
@@ -232,16 +233,20 @@ const TagBareSubjectShapeError = declareShapeError('TagBareSubjectShapeError',
   { operand: 'tag', position: 'subject', expectedType: 'vec' }
 );
 
+// Composite-shape — fresh clone without the TaggedInstance header;
+// a set's payload is its vector. Opaque wrap object — the wrapped
+// value directly.
+function payloadOf(tagged) {
+  if (Array.isArray(tagged)) return Object.freeze([...tagged]);
+  if (tagged instanceof Map) return new Map(tagged);
+  return tagged.payload;
+}
+
 export const payloadOperand = nullaryOp('payload', (subject) => {
   if (!isTaggedInstance(subject)) {
     throw new PayloadSubjectNotTaggedInstanceError(subject);
   }
-  // Composite-shape — fresh clone without the TaggedInstance header;
-  // a set's payload is its vector.
-  if (Array.isArray(subject)) return Object.freeze([...subject]);
-  if (subject instanceof Map) return new Map(subject);
-  // Opaque wrap object — return the wrapped value directly.
-  return subject.payload;
+  return payloadOf(subject);
 });
 
 // The value and the tag each form reads before the tag mints: a
@@ -271,5 +276,29 @@ export const tagOperand = stateOpVariadic('tag', async (state, tagLambdas) => {
   return withPipeValue(state, await mintUnderTag(state, tagKw, value));
 }, [0, 2]);
 
+// `tagged | within code` — an edit under one tag [D41]: the payload
+// runs through the quote as `apply` runs it, a fork whose declarations
+// stay inside, and the answer mints back under the subject's tag,
+// whose constructor runs once, at the rewrap. The steps between may
+// break the tag's invariant, since an invariant holds of the result;
+// an error the edit answers passes as it is; a deeper stack of tags is
+// reached by nesting.
+const WithinSubjectNotTaggedInstanceError = declareSubjectError(
+  'WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');
+const WithinCodeNotQuoteError = declareModifierError(
+  'WithinCodeNotQuoteError', 'within', 2, 'quote');
+
+export const withinOperand = stateOp('within', 2, async (state, withinLambdas) => {
+  const subject = state.pipeValue;
+  if (!isTaggedInstance(subject)) throw new WithinSubjectNotTaggedInstanceError(subject);
+  const code = await withinLambdas[0](subject);
+  if (isErrorValue(code)) return withPipeValue(state, code);
+  if (!isQuote(code)) throw new WithinCodeNotQuoteError(code);
+  const edited = (await evalAst(astOfQuote(code), nestState(state, payloadOf(subject), state.env))).pipeValue;
+  if (isErrorValue(edited)) return withPipeValue(state, edited);
+  return withPipeValue(state, await mintUnderTag(state, typeKeyword(subject), edited));
+});
+
 bindPrim('payload', payloadOperand);
 bindPrim('tag',     tagOperand);
+bindPrim('within',  withinOperand);

@@ -122,3 +122,44 @@
         |  eq [::TagBareSubjectShapeError 3]
        )
   ~~|
+
+:within
+  |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
+      against the payload as `apply` runs it, a fork whose
+      declarations stay inside, and mints the answer back under the
+      subject's tag, whose constructor runs once, at the rewrap. The
+      steps between may break the tag's invariant, since an invariant
+      holds of the result: a set's constructor normalizes the vector
+      the edit answers, where a record's refuses it. An error the
+      edit answers passes as it is, and a deeper stack of tags is
+      reached by nesting `within`.
+
+      ~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
+      ~(::Box {} | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+      ~(::Box {} | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
+  ~~|
+  ::builtin{:impl :qlang/prim/within
+            :category :typeConversion
+            :subject :taggedInstance
+            :returns :taggedInstance
+            :modifiers [:quote]}
+
+::WithinSubjectNotTaggedInstanceError
+  |~~ `within` requires a TaggedInstance subject, a value that has a
+      tag to edit under.
+      ~(
+        [1 2] | within ~(reverse)
+        !| [type /actualType]
+        |  eq [::WithinSubjectNotTaggedInstanceError ::vec]
+       )
+  ~~|
+
+::WithinCodeNotQuoteError
+  |~~ `within` requires its captured arg to answer a Quote — the
+      edit it runs against the payload.
+      ~(
+        #[3 1] | within 1
+        !| [type /actualType]
+        |  eq [::WithinCodeNotQuoteError ::number]
+       )
+  ~~|

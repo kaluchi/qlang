@@ -734,10 +734,8 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL; a probe without a date
-answered so on 14 September 2026, the command form rewrote the query of
-every probe on 24 September 2026, and on 25 September 2026 every probe
-of this version answered as its block records.
+shell with the `qlang` command or in its REPL, and on 25 September 2026
+every probe of this chapter answered as its block records.
 
 ### Arguments that move with the subject
 
@@ -773,14 +771,12 @@ expression built from the parameter, which is why every recursive
 example in the catalog recurses through the pipeline value and none
 through a parameter.
 
-The rule survives for a declared pipeline alone. A modifier of a
-built-in is evaluated at the call against the subject, and a slot the
-catalog declares of a code kind takes a quote and refuses any other
-value [D56], so the reference's chapter on binding became its chapter on
-commands and their modifiers (`docs/qlang-spec.md`). A declared pipeline
-has no way to say whether an argument is a value or a piece of code, and
-so treats every argument as code. Around this sit seven dispatch
-wrappers in `core/src/runtime/dispatch.mjs`, one per calling shape, a
+The rule holds for a declared pipeline alone, since a modifier of a
+built-in is evaluated at the call against the subject and a slot of a
+code kind takes a quote [D56]. A declared pipeline has no way to say
+whether an argument is a value or a piece of code, and so treats every
+argument as code. Around this sit seven dispatch wrappers in
+`core/src/runtime/dispatch.mjs`, one per calling shape, a
 family of arity error classes for the predicates that dispatch on a
 parameter count, and a second calling convention,
 `invokeConduitWithFixedArgs`, that hands a named pipeline fixed values;
@@ -789,7 +785,7 @@ quote.
 
 The catalog declares a slot vocabulary for every operand, and the
 runtime reads none of it, so the declarations are free to be wrong,
-and they are. On 23 September 2026:
+and they are:
 
 ```qlang
 > ::number/gt | spec | [/subject /modifiers]
@@ -805,16 +801,15 @@ fetched, reads these declarations, and today it reads something false.
 Executing the declaration is the only thing that keeps it true. Here
 the declaration is the false party, since the page of `gt` asks for
 “comparable scalars of the same type”
-(`core/lib/qlang/operand/predicate.qlang`), so `gt` is declared on each
-kind it compares, each with its own head, and the refusal of a number
-compared with a string, `::GtOperandsNotComparableError` today, becomes
+(`core/lib/qlang/operand/predicate.qlang`); `gt` is to be declared on
+each kind it compares, each with its own head, the refusal of a number
+compared with a string, `::GtOperandsNotComparableError` today, becoming
 the refusal of the head [D65].
 
 The declarations speak keywords where the values speak kinds: `type`
 answers a tag for every value [D32], while the catalog declares the
 subject, the slots and the result of an operand with keywords, and the
-page of a refusal names the kind it expected with one. On 25 September
-2026:
+page of a refusal names the kind it expected with one:
 
 ```qlang
 > 1 | type
@@ -926,13 +921,6 @@ several layers of pipelines, keeps its shape: the reference's `:@topBy
 [:keyFn :n] (sort ~(keyFn) | reverse | take n)` receives its key as a
 quote that carries its caller's environment and hands it on as a value.
 
-A condition answers a boolean or is refused at its site [D14], and a
-predicate's own error is the answer of `filter`, `every`, `any` and
-`cond`. A value slot, a condition computed at the call among them,
-refuses an error value by the tag of its own site, where the one law
-for nested errors hands the error on unchanged; the law comes with the
-kinds of the slots [D13].
-
 The declaration is also where help comes from. Once the runtime reads
 the slots, completion in the editor, the list of verbs that accept a
 value, the name and kind of the next modifier, and the wording of an
@@ -949,14 +937,7 @@ A value can be named by the `as` operand, which freezes the current
 value under a name, or by the binding form `:name body`, which binds an
 expression. The two are not interchangeable: the binding form cannot
 freeze the current value, because its body is re-evaluated at every
-use, and `as` cannot bind code. Both write the record of a binding
-[D63], `as` holding the value it froze and the binding form a value or
-a conduit, so a lookup reads one shape of binding:
-
-```qlang
-> 42 | as :x | env | /x | type
-::binding
-```
+use, and `as` cannot bind code.
 
 The binding form itself chooses between a value and a lazily evaluated
 body by inspecting the shape of the body's syntax tree (`core/src/walk.mjs`, `isPureLiteralAst`), so the
@@ -975,14 +956,18 @@ cosmetic and swallows whatever follows it:
 1
 ```
 
-A third of the grammar, counted in rules and in lines, exists to parse
-four comment forms, their nesting, their absorption of combinators, and
-their attachment to bindings as documentation; the pipeline production
-exists twice, once with comments and once without, and the evaluator
-carries two branches to step around them. A doc comment attaches only
-to a binding; before any other step it is a parse error. Three
-different syntax-tree nodes carry the same doc text depending on where
-it stands.
+A fifth of the grammar's rules parse four comment forms, their nesting,
+their absorption of combinators, and their attachment to bindings as
+documentation, and both productions of a pipeline, the one inside
+brackets and the one of a line, carry them; the evaluator carries two
+branches to step around them. A doc comment attaches only to a binding
+and to `as`; before any other step it is a parse error. Three different
+syntax-tree nodes carry the same doc text depending on where it stands.
+
+```sh
+$ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /Comment|Doc|Absorbed/) c++} END{print n, c}' core/src/grammar.peggy
+101 22
+```
 
 The repair must leave one binding form, in which a body is evaluated at
 declaration and named as a value, a quote included, and a verb is the
@@ -1018,8 +1003,8 @@ answers as it did inline, even when it reads the subject:
 
 Under the one form the verb keeps that, `:most ~[](count | sub 1)` read
 at each mention against the subject there, while `:most (count | sub 1)`
-is a value computed where it is declared, which is what a snapshot is
-for. A quote or a verb moved left means the same wherever its names mean
+is a value computed where it is declared, which is what `as` is for
+today. A quote or a verb moved left means the same wherever its names mean
 the same, and a name is declared once in a scope, so the move either
 answers as the inline form did or is refused [D44].
 
@@ -1031,32 +1016,18 @@ wanted again later or beside another; the linear reach is the pipe.
 
 ### Modules that dissolve into their clients
 
-A name keeps its origin since the first milestone. A declaration writes
-into its scope the record of its binding, with its name, its docs, its
-value, the quote of its step and the module it came from, and the axes
-read the record [D63]; a keyword names a binding of its scope, a tag
-name addresses a verb through the noun it lives on, and a verb that a
-declaration shadows stays one address away, where it still runs [D62]:
-
-```qlang
-> :filter mul 2 | ::vec/filter | docs | count
-1
-
-> :filter mul 2 | [1 2 3] | vec/filter ~(gt 1)
-[2 3]
-```
-
-A module has no record and no value. `use` runs it and merges into the
-client's scope the difference between the environment before and after
-its steps, so a module exists at the moment of the merge and dissolves
-in it: a helper written for the module's own definitions lands in the
-client's scope beside the operands meant for the client, and a module
-that loads another passes that module's names on as its own. The
-language offers an underscore convention to which it attaches nothing.
-The sister project's graph catalog uses no such convention and is
-loaded whole into every session, so the helpers behind `@problems`
-stand in its client's `env` beside `@problems` itself. On 25 September
-2026, in the sister project:
+A declaration writes the record of its binding into its scope [D63],
+and a module has neither a record nor a value. `use` runs it and merges
+into the client's scope the difference between the environment before
+and after its steps, so a module exists at the moment of the merge and
+dissolves in it: a helper written for the module's own definitions
+lands in the client's scope beside the operands meant for the client,
+and a module that loads another passes that module's names on as its
+own. The language offers an underscore convention to which it attaches
+nothing. The sister project's graph catalog uses no such convention and
+is loaded whole into every session, so the helpers behind `@problems`
+stand in its client's `env` beside `@problems` itself. In the sister
+project:
 
 ```sh
 $ node cli/bin/jdt q 'env | keys | inter #[:@problems :@problemsVia :@problemsForNodeVia :problemsInRangeOf]'
@@ -1070,15 +1041,11 @@ a client's `env` shows until a module's surface is its own.
 What the merge leaves behind is the runtime's housekeeping in the
 environment: the export map of every namespace under a prefix of its
 own, and the host's locator, a raw JavaScript function, under another,
-which every reader of the environment filters, so that `env` answers
-the names the session wrote and nothing else [D61]. The prefix of the
-runtime's own namespace of tags still reaches that answer, since a kind
-the scope declares is keyed by it. On 25 September 2026:
+which every reader of the environment filters. The prefix of the
+runtime's own namespace of tags reaches what `env` answers, since a
+kind the scope declares is keyed by it:
 
 ```qlang
-> :x 1 | env | keys
-#[:x]
-
 > ::Width |~~ How many characters a line holds. ~~| | env | keys
 #[:"::Width"]
 ```
@@ -1087,15 +1054,13 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D23], [D34], [D62], and the tree holds
-its first part: a query's own declaration wins over every verb in view.
-A host still publishes names without a prefix. The sister project's
-names meet the core's on `type` and on `source`, kept apart by the
-effect marker alone, and its graph alone declares sixty operands, among
-them six lookups by kind of element, four accessors of the containing
-element, four enumerations by scope, some fifteen relations and four
-private helpers of `@problems`. On 23 September 2026, in the sister
-project:
+86982eb5). The rule is decided [D23], [D34], [D62], and a host still
+publishes names without a prefix. The sister project's names meet the
+core's on `type` and on `source`, kept apart by the effect marker alone,
+and its graph alone declares sixty operands, among them six lookups by
+kind of element, four accessors of the containing element, four
+enumerations by scope, some fifteen relations and four private helpers
+of `@problems`. In the sister project:
 
 ```sh
 $ grep -oE '^:@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
@@ -1105,14 +1070,12 @@ $ grep -oE '^:@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
 That is the `ioctl` of Unix: every new capability a new verb in one
 shared space. Plan 9 answered the same growth by keeping the verbs
 fixed, the handful of operations of its file protocol, and letting the
-nouns grow, every resource a path in a per-process namespace; the
-core's catalog grows that way since the first milestone, and a host's
-should grow the same way.
+nouns grow, every resource a path in a per-process namespace; a host's
+catalog should grow the same way.
 
-The walk of the tags serves verbs: it hands a verb the value beneath
-each tag the verb does not serve [D34], so `::Box#[3 1] | count` answers
-`2`. The distribute combinator takes the vector beneath a tag and
-refuses the set beneath one. On 25 September 2026:
+The distribute combinator takes the vector beneath a tag and refuses
+the set beneath one, which a verb reaches through the walk of the tags
+[D34]:
 
 ```qlang
 > ::Box["a" "b"] * type
@@ -1132,18 +1095,6 @@ housekeeping keys leave the environment for values of their own. It
 must let the distribute combinator reach what a verb reaches. And it
 must hold the rest of the rule of collisions:
 
-- A name resolves nearest first [D62]: the declarations of its scope,
-  then the verbs of its subject, the core's names last, so a verb the
-  core or a host adds later never changes the meaning of a query
-  written before it. The verbs a tag declares for itself are found
-  before those of the kinds beneath it, the way a major mode's keymap
-  in Emacs is searched before the global map and an interface mode of
-  Cisco's command line offers its own commands; after the tag's verbs
-  come those of the payload, since a value under a tag is still a
-  vector or a map. Stacked tags are searched from the outside in, which
-  gives the linear precedence of a method resolution order without its
-  algorithm, and with the core's kinds at the bottom of every stack the
-  payload's verbs are simply the last tag's [D34].
 - A verb and a kind may be joined by whoever owns one of them. This is
   the orphan rule of Rust and the rule against type piracy in Julia: a
   host may specialize a core verb on its own tags and may declare its
@@ -1155,9 +1106,9 @@ must hold the rest of the rule of collisions:
   tag.
 - Extensions are switched on lexically. Ruby's global reopening of
   classes broke libraries against each other until refinements made a
-  patch active only where `using` names it; `use` does that already,
-  and a module's verbs for foreign tags are active in the query that
-  uses the module and nowhere else.
+  patch active only where `using` names it; `use` is lexical, and a
+  module's verbs for foreign tags are active in the query that uses the
+  module and nowhere else.
 - Names without a prefix belong to the core. EDN reserves its
   unprefixed tags for built-ins and requires every user tag to carry a
   prefix the user owns, a domain or a mark; CBOR's registry gives its
@@ -1166,18 +1117,16 @@ must hold the rest of the rule of collisions:
   because an old library had already put a different `flatten` there,
   and the method became `flat`: a shared space of verbs that hosts can
   write into freezes the core out of its own names.
-- The user's own declaration in a query wins over a tag's verb, since
-  the user wrote it there and sees it; and one query shows every
-  definition of a name and which one wins, as `type -a` does in bash.
+- One query shows every definition of a name and which one wins, as
+  `type -a` does in bash.
 
 Namespaces that are too large to bind become mounted [D24]. The sister
 project's types are tens of thousands of names; they cannot live as
 bindings in an environment map. A host serves a namespace lazily, the
 way a file server was mounted into a namespace of Plan 9: a tag that no
 binding knows is asked of the mounted namespaces in order, and the
-first that knows it answers,
-with the order of mounting and the rule of ownership settling any
-overlap. The core knows nothing about Java; it knows how to ask a
+first that knows it answers, with the order of mounting and the rule of
+ownership settling any overlap. The core knows nothing about Java; it knows how to ask a
 mounted namespace. With that, a Java type is a tag, written in Java's
 own spelling so that the name has one spelling, copied from a stack
 trace and pasted into a query:
@@ -1187,9 +1136,8 @@ trace and pasted into a query:
 ```
 
 answers the type's source text, and `docs`, `spec` and the type's
-relations work on it as they work on any tag of the catalog. On 23
-September 2026 the slash is accepted inside a tag's name and the dot is
-not:
+relations work on it as they work on any tag of the catalog. The slash
+is accepted inside a tag's name and the dot is not:
 
 ```qlang
 > ::app/m8/web/Foo | type
@@ -1244,9 +1192,8 @@ at its end is the alert said again, followed by an example that
 produces the same error. What the reader should do, the procedure,
 is absent.
 
-The strict conditions, the kinds and the nouns of the core added such
-pages, and the catalog is the one area whose diff against the September
-master is positive. On 25 September 2026:
+The catalog is the one area whose diff against the September master is
+positive:
 
 ```sh
 $ git diff --shortstat f5e8ec8 -- core/lib cli/lib
@@ -1259,15 +1206,12 @@ twice because there are two bootstrap paths, a test that checks six axes
 of agreement, an injection script that copies example queries from the
 conformance suite into the catalog, and two tables in the error
 converter that spell the descriptor's field order and which fields are
-identifiers. The structure was built for an observability backend that
-fingerprinted errors by class name; the fingerprints have left the
-errors, and the structure stayed.
+identifiers.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
 prints the value, and a parse error lists the alternatives of the
-parser in the parser's own vocabulary; a name that does not resolve
-names the names nearest to it [D7]. On 25 September 2026:
+parser in the parser's own vocabulary:
 
 ```sh
 $ qlang '::vec | spec' | wc -c
@@ -1277,35 +1221,17 @@ $ qlang '::vec | spec | add 1' | wc -c
 ```
 
 ```qlang
-> [1 2 3] | filtr ~(gt 1)
-::UnresolvedIdentifierError!{ … :identifierName "filtr" :nearest [:filter] }
-
 > [1 2 3] | filter ~(gt 1
 ::ParseError!{ … :expected [:whitespace "|~|" "|~" "|~~|" "|~~" "!|" "|" "*" ")"] … }
 ```
 
-`filtr` is one letter from `filter`, and the error names it; the
-unclosed quote has one sensible continuation, `)`, and the error names
-every token the parser could have taken there, among them the markers of
-comments.
+The unclosed quote has one sensible continuation, `)`, and the error
+names every token the parser could have taken there, among them the
+markers of comments.
 
-An error raised inside a nested evaluation meets the law of D13 in most
-places: distribute keeps it as a value in the result, a container
-selector answers with it, and `coalesce` treats it as no value, which
-is its contract, so a misspelled field becomes the fallback where a
-fallback was asked for:
-
-```qlang
-> [1 "x"] | filter ~(add 1 | gt 1)
-::AddLeftNotNumberError!{ … :trail ~(gt 1) }
-
-> {:a 1} | coalesce ~(/b) ~(/a)
-1
-```
-
-A value slot is where the law does not hold: it refuses an error value
-by the tag of its own site, so one error nests inside another. On 25
-September 2026:
+A value slot, a condition computed at the call among them, refuses an
+error value by the tag of its own site, so one error nests inside
+another, where the law of nested errors hands it on unchanged [D13]:
 
 ```qlang
 > 1 | add (!{:k 1}) !| type
@@ -1339,9 +1265,8 @@ It must hold one law for an error inside a nested evaluation, derived
 from the fork rule [D13]: the error of a fork is its value, handed to
 whatever ran the fork; a place declared for any value keeps it, as an
 element of a literal or of a distribute does today; a place declared
-for a kind, the
-number slot of `add` or the boolean a predicate must return, fails with
-that same error, unchanged, so a selector still aborts on a failing
+for a kind, the number slot of `add` or the boolean a predicate must
+return, fails with that same error, unchanged, so a selector still aborts on a failing
 predicate and an arithmetic step stops nesting one error inside another;
 and an operand whose alternatives are pipeline slots, `coalesce` and its
 kin, runs them in order and treats an error result as no value, which is
@@ -1359,34 +1284,14 @@ It must print an error the way the cockpit shows an alert: the tag, the
 facts of the site in the order of its schema, a short excerpt of the
 input, and the rest one projection away, the tail being what elision
 takes first. A parse error names the continuations a reader could have
-meant, in the reader's vocabulary, as an unresolved name names the
-nearest known names. And it must decide whether the error library
-enters the catalog with examples or leaves the package.
+meant, in the reader's vocabulary. And it must decide whether the error
+library enters the catalog with examples or leaves the package.
 
 ### Self-description at full size
 
-The language has a front door since the first milestone. The page of
-`::qlang` is the root doc: what the language is in one paragraph, the
-protocol for asking in another, and examples that run; `manifest`
-answers the nouns; and what can be done with a value is asked of its
-kind [D61], [D62]. On 25 September 2026:
-
-```sh
-$ qlang '::qlang | docs' | wc -c
-958
-$ qlang 'manifest | json' | wc -c
-227
-```
-
-```qlang
-> ::string | manifest | has ::string/split
-true
-```
-
-Past the door the full view is the default one, where the terminals of
-the paper age made the cheap path the default and the full view a
-flag: the declaration of a kind answers its verbs beside every refusal
-they raise.
+The full view is the default one, where the terminals of the paper age
+made the cheap path the default and the full view a flag: the
+declaration of a kind answers its verbs beside every refusal they raise.
 
 ```sh
 $ qlang '::vec | spec' | wc -c
@@ -1413,7 +1318,7 @@ declarations” among the entries of the catalog. A session learning
 qlang from its catalog meets the names of the files that implement it
 and the habits of classes.
 
-Examples live on four planes: the conformance suite, the `~{…}` quotes
+Examples live on four planes: the conformance suite, the `~(…)` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in
 the operand document, with three test runners and a script that copies
 from the first plane into the second. The catalog's own examples run
@@ -1428,20 +1333,17 @@ literals it finds:
 [::map ::Box ::map]
 ```
 
-A code span is prose [D55], so the mentions of the syntax the catalog
-makes in code spans, `::builtin{}` in the prose of `::builtin` and
-`::Outer[tagged]` in that of `tag`, stay prose; a tag literal written
-outside a code span runs when its doc is read, as above. No
-documentation in the catalog uses tag literals on purpose. The language
-server scans the same text a third time, with its own loop over braces
-and strings, to strip the quotes for a hover (`lsp/src/features.mjs`,
-`stripQuoteSegments`).
+A tag literal written outside a code span runs when its doc is read, as
+above, and no documentation in the catalog uses one on purpose. The
+language server scans the same text a third time, with its own loop over
+braces and strings, to strip the quotes for a hover
+(`lsp/src/features.mjs`, `stripQuoteSegments`).
 
 The text of a doc is the text of the file it was read from, line
 endings included, so on a checkout that ends its lines with a carriage
 return every page of the catalog carries one, and the same query
-answers `false` where the checkout writes a line feed alone. On 25
-September 2026, on the maintainer's machine:
+answers `false` where the checkout writes a line feed alone. On the
+maintainer's machine:
 
 ```sh
 $ qlang '::qlang | docs | first | /content | contains "\r"'
@@ -1449,9 +1351,7 @@ true
 ```
 
 The repair must give the language views sized to a budget, the cheap
-view the default [D27], the view by subject being the kind itself,
-since a verb is listed under the kind it lives on and an axis reads a
-value by its kind [D61]. It must reduce catalog prose to what the facts
+view the default [D27]. It must reduce catalog prose to what the facts
 do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane; reduce doc segments to prose and
@@ -1466,8 +1366,8 @@ the full value reachable by projection rather than dumped.
 ### Three documents that retell the catalog
 
 The reference, the evaluation-model document, and the operand document
-together weigh more than twice the core sources, and each restates the
-catalog: an operand's contract is spelled in the catalog, in the
+together hold nearly as many lines as the code of the core, and each
+restates the catalog: an operand's contract is spelled in the catalog, in the
 operand document, in a chapter of the reference, and in a chapter of
 the evaluation model. A convention check exists to keep the operand
 document from drifting against the catalog, which is machinery guarding
@@ -1479,15 +1379,22 @@ grammar of comments dictated the order of concepts. The reference's
 grammar chapter is a third spelling of the grammar, beside the parser
 and a hand-written TextMate copy for the editor.
 
+```sh
+$ cat docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md | awk 'NF{k++} END{print k}'
+4759
+$ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{next} /^[ \t]*$/{next} {k++} END{print k}'
+5278
+```
+
 The reference is a tutorial rather than a specification, as the
 maintainer put it: «это не спецификация, а скорее референс, туториал»
 (maintainer, 2026-09-23 00:47, session 86982eb5). It introduces the
 concepts in order on REPL pairs, and its normative parts ride behind:
 the grammar chapter, the table of evaluation rules, the tables of the
-codecs, the embedding API. Read whole against the tree on 23 September
-2026, the two halves fared differently. The REPL pairs are true,
-because the document-compliance runner executes them; the prose and
-the tables are false in places, because nothing executes them:
+codecs, the embedding API. The two halves fare differently against the
+tree. The REPL pairs are true, because the document-compliance runner
+executes them; the prose and the tables are false in places, because
+nothing executes them:
 
 - The chapter on null says a missing map key produces `null`, and the
   table of evaluation rules says a projection answers `null` if the key
@@ -1529,9 +1436,9 @@ the tables are false in places, because nothing executes them:
   `session.bind(name, fn)`, which the runtime's own render guard calls
   a leak of a function value.
 
-The executable half stayed true and the narrated half rotted, inside
-one document. That is the argument for the principle of executable
-over narrated, in the project's own text.
+The executable half is true and the narrated half false, inside one
+document. That is the argument for the principle of executable over
+narrated, in the project's own text.
 
 The repair must leave each document either generated from the catalog
 or deleted, with the reference reduced to what the catalog cannot say:
@@ -1559,24 +1466,13 @@ leak
 hi
 ```
 
-More than half of the error categories describe failures of the host
-or the runtime that no query author meets. The command line starts
-from `::qlang` when standard input carries no bytes [D37], and the noun
-of a project's `.qlang/` folder comes with the modules. A raw-mode line
-editor and its tests are the largest single piece of the command-line
-workspace, and the REPL it serves cannot save a session although the
-core can serialize one.
-
-The sister project builds on the workspace copy of the core since 23
-September 2026, its dependency a link to the core's folder:
-
-```sh
-$ grep '"@kaluchi/qlang-core"' ../eclipse-jdt-search/cli/package.json
-    "@kaluchi/qlang-core": "file:../../qlang/core",
-```
-
-Its query command still reimplements the parse-error descriptor by
-hand, and it onboards its user with a static guide.
+A raw-mode line editor and its tests are the largest single piece of
+the command-line workspace, and the REPL it serves cannot save a
+session although the core can serialize one. The noun of a project's
+`.qlang/` folder waits for the modules [D37]. The sister project's query
+command reimplements the parse-error descriptor by hand
+(`cli/src/commands/query.mjs`, `parseErrorToValue`), and it onboards its
+user with a static guide.
 
 The repair must remove the effect marker from the language rather than
 relocate it [D2]: a naming convention would keep every `@`-name a
@@ -1627,9 +1523,9 @@ completion order stops being observable at all.
 
 ### Code that explains itself
 
-The code is more commentary than design. On 25 September 2026, over the
-JavaScript of the core, the command line and the language server, the
-tree and then the September master:
+The code is more commentary than design. Over the JavaScript of the
+core, the command line and the language server, the tree and then the
+September master:
 
 ```sh
 $ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
@@ -1638,14 +1534,13 @@ $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | 
 code 7529   comment 4644   blank 1025
 ```
 
-The repairs deleted comments and code in about the proportion they
-stood in, so the ratio D30 asks to fall has barely moved.
+The ratio of comment lines to code lines, which D30 asks to fall, has
+barely moved from the September master.
 
 In several files the comments outweigh the code: the bootstrap of the
 runtime, the primitive registry, the error roots and the descriptor
-stamping carry more lines of prose than of statements, and the grammar
-carries more comment lines than rule lines. The comments are of two
-kinds, and none states an invariant in a sentence:
+stamping carry more lines of prose than of statements. The comments are
+of two kinds, and none states an invariant in a sentence:
 
 - Some are false. The package's entry point promises that `keyword`
   interns, “every call with the same name returns the same interned
@@ -1666,10 +1561,9 @@ kinds, and none states an invariant in a sentence:
   written where it will be read by whoever touches the line and by
   nobody who decides.
 
-The false comment about the reserved tags shows in a query, found on
-23 September 2026 by running this document's probes: every descriptor
-of the catalog prints as a bare map, and the map it prints reads back
-as another value.
+The false comment about the reserved tags shows in a query: every
+descriptor of the catalog prints as a bare map, and the map it prints
+reads back as another value.
 
 ```qlang
 > ::vec/count | spec | type

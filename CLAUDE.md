@@ -144,6 +144,12 @@ that lands, where a rule and the audit disagree, the audit wins.
 - A branch repairs one scar or one part of one, states in its
   description what it shows when it lands, and reports the sign of
   its diff by area: core sources, catalog, documents, tests.
+- A branch that works targets, a subagent's in its own worktree
+  among them, starts from a green baseline, leaves the decision
+  records, the conformance cases and the gates as it found them, and
+  drops only the mark of a target it met (`docs/decisions/D59.md`).
+  Review it with the baseline's copy of `node scripts/gate-diff.mjs
+  --task Dnn`.
 - Tests first for any new public surface. `npm run ci` green before a
   push.
 - Commit on request. Push only on an explicit invitation. Never amend.

@@ -2017,7 +2017,12 @@ diff is negative in every area it touches, core sources, catalog,
 documents, tests, or the branch introduces a model and says in its
 description what the next branch deletes because of it. The files it
 touches leave with comments that state what holds in one sentence
-[D30]. A design question that appears during a branch is decided in
+[D30]. A branch that works targets, a session's or a subagent's in a
+worktree of its own, starts from a baseline whose suite is green and
+carries its targets; it leaves the records, the cases and the gates as
+it found them and drops only the mark of a target it met, and the
+baseline's copy of `node scripts/gate-diff.mjs --task Dnn` names for
+the review every move it made on them [D59]. A design question that appears during a branch is decided in
 this document on master before the branch goes on; an implementation
 session decides nothing silently, since a decision taken in code is a
 decision no one will find. The sister project receives every breaking
@@ -2286,3 +2291,4 @@ maintainer wants to explore it before it is fixed.
 [D56]: decisions/D56.md
 [D57]: decisions/D57.md
 [D58]: decisions/D58.md
+[D59]: decisions/D59.md

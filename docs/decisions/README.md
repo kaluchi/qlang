@@ -14,6 +14,11 @@ another in part is written together with what becomes of the cases of the
 one it replaces: `node scripts/requirements.mjs D45` lists them, and the
 same commit keeps, rewrites or drops each.
 
+A branch that works targets leaves the records, the cases and the gates
+as it found them and drops only the mark of a target it met [D59]; the
+baseline's copy of `node scripts/gate-diff.mjs --task Dnn` names every
+move a branch made on them.
+
 Each record states the decision, its source, what it rests on where
 that is not obvious, and the alternatives set aside with the reason.
 A decision the maintainer took is sourced by the maintainer's words; a
@@ -33,3 +38,4 @@ day in another session, «почему все мое?» (2026-09-22 07:21, sessi
 86982eb5).
 
 [D58]: D58.md
+[D59]: D59.md

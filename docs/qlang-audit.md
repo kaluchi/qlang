@@ -780,15 +780,11 @@ and they are. On 23 September 2026:
 
 > "a" | gt "b"
 false
-
-> ::map/runExamples | spec | /subject
-:map
 ```
 
-`gt` is declared for numbers and compares strings; `runExamples` is
-declared for maps and takes a keyword. The mission's third requirement,
-that the shape of an answer can be known before it is fetched, reads
-these declarations, and today it reads something false. Executing the
+`gt` is declared for numbers and compares strings. The mission's third
+requirement, that the shape of an answer can be known before it is
+fetched, reads these declarations, and today it reads something false. Executing the
 declaration is the only thing that keeps it true.
 
 The declarations speak keywords where the values speak kinds: `type`

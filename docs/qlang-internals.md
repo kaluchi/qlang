@@ -333,55 +333,24 @@ the point of lookup).
 
 ### `manifest`
 
-Arity 1. Ignores `pipeValue`; iterates over every binding in the
-current `env`, building a descriptor Map per entry via
-`describeBinding` in `runtime/manifest-op.mjs`, and returns a Vec
-of descriptors sorted by binding name. The descriptor's `:kind`
-field is an explicit enum-bucket TagKeyword on the view-Map
-(distinct from identity which rides on the underlying env entry's
-JS-header `TAG_HEADER_SYMBOL` slot — both surfaces partition the
-same way, so `manifest | filter ~(/kind | eq ::builtin)` and
-`manifest | filter ~(type | eq ::builtin)` agree). Five provenances:
+Arity 1. Asked of a noun, a tag name in the subject position, it
+answers the set of what lies below the noun in the tree of names: the
+nouns under its path and the addresses of the verbs that live on it,
+computed from what the providers exported, their namespaces' export
+maps [D62]. `::qlang | manifest` answers the nouns of the core and of
+the hosts; `::number | manifest` the verbs of numbers. A refusal is no
+noun: it is reached from the place it guards, whose `/throws` lists it
+[D64]. Any other subject is refused with `ManifestSubjectNotTagError`.
 
-- `::builtin` — env entry is a descriptor Map loaded by
-  `langRuntime()` from one of the catalog family files under
-  `lib/qlang/operand/`. The user-facing descriptor stamps
-  `:kind ::builtin` and copies every authored field verbatim —
-  `:impl` (the `:qlang/prim/<name>` handle keyword), `:category`,
-  `:subject`, `:modifiers`, `:returns`, `:throws`. The
-  derived `:captured` / `:effectful` fields are stamped from the
-  resolved primitive's `meta`; the callable itself rides the env
-  entry's `BUILTIN_IMPL_SLOT` JS-header slot, outside every
-  data-plane surface. Authored prose lives on the
-  `BindStep`'s attached doc-prefix and is reachable via the
-  `:name | docs` axis (Vec of Doc-values) or `:name | examples`
-  axis (Vec of Quote-values pulled from every `~(…)` segment in
-  the docs).
-- `::tagBinding` — env entry under a `::Tag` name (catalog tag
-  declaration: error tags, value-class tags, the `::builtin`
-  meta-tag itself). Descriptor stamps `:kind ::tagBinding` and
-  copies every descriptor field through (category, position,
-  expectedType, impl handle for value-class constructors, …).
-- `::conduit` — a BindStep-installed conduit. Descriptor has
-  `:kind ::conduit`, `:name`, `:params`, `:source` (textual form
-  of the body), `:effectful`, `:location`.
-- `::snapshot` — an `as`-bound snapshot. Descriptor has `:kind
-  ::snapshot`, `:name`, `:value`, `:type`, `:effectful`,
-  `:location`.
-- `::value` — any other plain JS value (scalar, Vec, Map, Set,
-  error value, function value, etc.). Descriptor has `:kind
-  ::value`, `:name`, `:value`, `:type`.
-
-    (pipeValue, env) → (Vec<descriptor>, env)
+    (tagName, env) → (Set<tagName>, env)
 
 Typical call pattern:
 
-    env | manifest | filter ~(/kind | eq ::builtin) | table
+    ::qlang | manifest * manifest | flat * (spec | /category) | distinct
 
-`manifest` is the enumeration surface. For per-binding source-level
-introspection reach for the axis trio (`:name | source` / `| docs`
-/ `| examples`) — they read the catalog AST directly and never
-touch the runtime descriptor Map.
+`manifest` walks the tree of names. For what one binding does reach
+for the axis trio (`::vec/count | source` / `| docs` / `| examples`),
+which reads the catalog AST directly.
 
 ## Tag bindings and TaggedLit dispatch
 
@@ -414,9 +383,9 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
    Absent → auto-declare an identity-only Map binding carrying
    `:declarationOrigin :implicit` in the query-local env, then
    continue with the default constructor branch below. The
-   marker field lets `manifest(:tag) | filter(/declarationOrigin
-   | eq(:implicit))` surface every tag the source never bound
-   explicitly — strict-mode lint and CI tooling read that view.
+   marker field lets `::Tag | spec | /declarationOrigin` answer
+   `:implicit` for every tag the source never bound explicitly —
+   strict-mode lint and CI tooling read it.
 3. **Unwrap a snapshot** if the binding is wrapped (`as :tag`
    snapshots route through here too).
 4. **Validate descriptor shape.** Binding must be a Map.

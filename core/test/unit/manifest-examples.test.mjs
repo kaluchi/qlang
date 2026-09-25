@@ -13,6 +13,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
+import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
 import { isErrorValue, isQSet } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
@@ -33,7 +35,7 @@ function safeprint(v) {
 // `examples` read.
 async function catalogReaders() {
   const verbAddresses = await evalQuery('::qlang | manifest * manifest | flat');
-  const tagNames = await evalQuery('null | manifest :tag * /name');
+  const tagNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
   return [...[...verbAddresses].map(address => address.literal), ...tagNames];
 }
 
@@ -82,10 +84,10 @@ describe('catalog self-test via runExamples', () => {
   }, 30000);
 
   it('every verb of the catalog lives on a noun', async () => {
-    const verbNames = await evalQuery('null | manifest | filter ~(/kind | eq ::builtin) * /name | distinct');
+    const verbNames = catalogEntriesOf(await langRuntime(), { tags: false }).map(entry => entry.get('name'));
     const addressedNames = new Set([...await evalQuery('::qlang | manifest * manifest | flat')]
       .map(address => address.name.slice(address.name.lastIndexOf('/') + 1)));
-    expect([...verbNames].filter(verbName => !addressedNames.has(verbName))).toEqual([]);
+    expect(verbNames.filter(verbName => !addressedNames.has(verbName))).toEqual([]);
   });
 
   it('the /ok distribution over every verb is {true}', async () => {

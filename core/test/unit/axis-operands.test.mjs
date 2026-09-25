@@ -285,9 +285,6 @@ describe('a value that is no name reads the declaration of its kind', () => {
       .toContain('Division by zero');
   });
 
-  it('a manifest entry reads the page of ::map', async () => {
-    expect(await evalQuery('manifest | first | docs | eq (::map | docs)')).toBe(true);
-  });
 });
 
 describe('axis-operands resolve the binding the evaluator dispatches', () => {

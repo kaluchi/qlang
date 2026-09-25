@@ -29,17 +29,7 @@
 // `:impl` handle keyword walked through `PRIMITIVE_REGISTRY` so a
 // descriptor a query assembled from data dispatches like any
 // catalog entry.
-//
-// `manifestBuiltinDescriptor` wraps the raw form for the `manifest`
-// reflective operand in `runtime/manifest-op.mjs`: it stamps the
-// `:kind ::builtin` field as an explicit enum-bucket on the view-
-// Map (the only place `:kind` lives as a field — identity itself
-// stays on the header), adds a `:name` field, and passes every
-// structural fact through, `:impl` handle keyword included, so the
-// enumeration surface and the `spec` axis agree field for field.
-// Lives here so the projection edge is single-sourced; any future
-// surface that wants the same manifest shape imports it without
-// dragging `manifest-op.mjs` into the graph.
+
 
 import {
   BUILTIN_TAG, TAG_HEADER_SYMBOL, isKeyword, typeKeyword, keyword, makeTagKeyword,
@@ -98,32 +88,6 @@ export function stampRaisedTags(descriptor, bindingName, whenEmpty = 'stamp') {
   if (raised.length === 0 && whenEmpty === 'omit') return descriptor;
   descriptor.set('throws', Object.freeze(raised));
   return descriptor;
-}
-
-// manifestBuiltinDescriptor(rawDescriptor, name) → Map
-//
-// Builds the manifest-shape descriptor from a raw env descriptor.
-// Stamps `:kind ::builtin` as an explicit enum-bucket field (so
-// `manifest | filter ~(/kind | eq ::builtin)` partitions identically
-// to `manifest | filter ~(type | eq ::builtin)` — the field is the
-// view-Map's plain-JSON projection of the identity that rides on the
-// env entry's JS-header slot), and copies every structural fact
-// through (`:impl` handle keyword / `:captured` / `:effectful` /
-// `:category` / `:subject` / `:modifiers` / `:returns` / `:throws`,
-// all stamped on the env entry at bootstrap).
-export function manifestBuiltinDescriptor(rawDescriptor, name) {
-  const result = new Map();
-  // `:kind` is a readable enum bucket on the data plane; the JS
-  // header is where identity rides, the way it does for every other
-  // tagged value.
-  result.set('kind', BUILTIN_TAG);
-  // `manifest` iterates env entries and threads each key through as
-  // `name`, so every descriptor carries one.
-  result.set('name', name);
-  for (const [fieldKey, fieldVal] of rawDescriptor) {
-    result.set(fieldKey, fieldVal);
-  }
-  return result;
 }
 
 // stampThrowSiteSpec(binding, envKey) → binding

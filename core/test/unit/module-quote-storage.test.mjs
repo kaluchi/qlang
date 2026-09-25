@@ -36,18 +36,6 @@ describe('langRuntime stamps the core module as a Quote', () => {
   });
 });
 
-describe('manifest filters out the qlang/ast/ reserved namespace', () => {
-  it('does not list module Quote entries among descriptors', async () => {
-    const result = await evalQuery('manifest * /name | filter ~(startsWith "qlang/ast/")');
-    expect(result).toEqual([]);
-  });
-
-  it('still lists ordinary builtin descriptors', async () => {
-    const result = await evalQuery('manifest * /name | filter ~(eq "count") | count');
-    expect(result).toBe(1);
-  });
-});
-
 describe('use stamps loaded namespaces under qlang/ast/<ns>', () => {
   it('stores the module source as a Quote when the locator returns one', async () => {
     const moduleSource = ':greet "hi"';

@@ -51,11 +51,12 @@ import {
   makeFn
 } from '../../src/rule10.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { createSession } from '../../src/session.mjs';
-import { nullaryOp } from '../../src/runtime/dispatch.mjs';
-import { compareBindingNames } from '../../src/runtime/manifest-op.mjs';
 
 describe('types.mjs', () => {
+  it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
+    expect(typeKeyword(Symbol('host'))).toEqual(makeTagKeyword('unknown'));
+  });
+
   it('interns keywords', () => {
     expect(keyword('foo')).toEqual(keyword('foo'));
     expect(keyword('foo')).not.toEqual(keyword('bar'));
@@ -319,66 +320,6 @@ describe('dispatch helper arity error paths', () => {
     // env accepts 0 captured args; calling env(arg) fires the
     // stateOp's `lambdas.length !== expected` branch.
     await expectErrorCategory('env :foo', 'arityError');
-  });
-});
-
-describe('runtime/manifest-op.mjs manifest enumeration', () => {
-  // `manifest` walks env, building a per-binding descriptor through
-  // `describeBinding`. The descriptor `:effectful` field is the only
-  // user-visible bit derived at enumeration time from the impl
-  // function-value; everything else is read straight off the env
-  // entry. For per-binding introspection (source / docs / examples
-  // of a single name) reach for the axis trio instead — manifest
-  // is the enumeration surface, not the navigation surface.
-
-  it('manifest descriptors all have :effectful field for builtin entries', async () => {
-    const effectfulResult = await evalQuery('manifest * /effectful | distinct');
-    // Every langRuntime builtin is a clean (non-effectful) function.
-    expect(isQSet(effectfulResult)).toBe(true);
-    expect([...effectfulResult]).toEqual([false]);
-  });
-
-  it('manifest returns a Vec of descriptors sorted by name', async () => {
-    const manifestResult = await evalQuery('env | manifest');
-    expect(Array.isArray(manifestResult)).toBe(true);
-    expect(manifestResult.length).toBeGreaterThan(30);
-    // Check that names are sorted alphabetically.
-    const names = manifestResult.map(d => d.get('name'));
-    const sorted = [...names].sort();
-    expect(names).toEqual(sorted);
-  });
-
-  it('compareBindingNames is a code-point three-way comparator', async () => {
-    expect(compareBindingNames('a', 'b')).toBe(-1);
-    expect(compareBindingNames('b', 'a')).toBe(1);
-    expect(compareBindingNames('x', 'x')).toBe(0);
-  });
-
-  it('host-bound raw function value surfaces as :kind ::value rather than crashing', async () => {
-    // A function value landed in env through `session.bind(name, fn)`
-    // without a descriptor-Map wrapper carries only the dispatch-
-    // wrapper's `{ captured }` meta — no `category` / `subject` /
-    // `returns` shape. `describeBinding` routes such entries to
-    // `describeValue` (host-fn marker) rather than the conduit-
-    // parameter proxy descriptor builder; conduitParameter proxies
-    // are the only function values that stamp `meta.category
-    // :conduitParameter` inline and therefore the only ones that
-    // route through `describeConduitParameter`.
-    const sessionInstance = await createSession();
-    sessionInstance.bind('hostFn', nullaryOp('hostFn', async () => 42));
-    const cellEntry = await sessionInstance.evalCell(
-      'manifest | filter ~(/name | eq "hostFn") | first');
-    expect(cellEntry.result instanceof Map).toBe(true);
-    expect(cellEntry.result.get('kind').name).toBe('value');
-    expect(cellEntry.result.get('name')).toBe('hostFn');
-  });
-
-  it('conduit descriptor through manifest surfaces :source as a Quote', async () => {
-    const sourceQuote = await evalQuery(
-      ':chained (mul 2 | add 1) | manifest | filter ~(/name | eq "chained") | first | /source'
-    );
-    expect(isQuote(sourceQuote)).toBe(true);
-    expect(printQuoteSource(sourceQuote)).toBe('(mul 2 | add 1)');
   });
 });
 

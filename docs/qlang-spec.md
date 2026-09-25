@@ -1590,7 +1590,7 @@ A descriptor whose `:impl` is neither a Keyword handle nor
 a Quote-value raises `TagBindingHasNoConstructorError` on first
 invocation. A reference to a tag that has no env binding
 auto-declares an identity-only Map binding on the spot (carrying
-`:declarationOrigin :implicit` for `manifest :tag` introspection)
+`:declarationOrigin :implicit`, which `::Tag | spec` reads)
 — `::Tag<payload>` always succeeds shape-wise, regardless of
 whether the source explicitly declared `::Tag {…}`. Strict-mode
 tooling reads the `:implicit` marker through manifest to flag

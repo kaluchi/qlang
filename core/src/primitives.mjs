@@ -27,7 +27,7 @@
 //   `qlang/type/<tag>` — tag-namespace constructors (`::conduit`,
 //     `::quote`, `::builtin`). The keyword stays a keyword on the
 //     descriptor; `evalTaggedLit` resolves it through the registry
-//     at every invocation so `manifest :tag` keeps the readable
+//     at every invocation so `::Tag | spec` keeps the readable
 //     `:impl :qlang/type/<tag>` handle on the descriptor.
 //
 // Lifecycle:

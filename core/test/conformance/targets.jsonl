@@ -35,7 +35,7 @@
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::ParseError","expect":"false","decision":["D61","D62"]}
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
-{"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62","target":true}
+{"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | spec | /impl","expect":":qlang/prim/count","decision":"D62"}
 {"name":"builtin-descriptor-renders-without-a-function-leak","query":"::vec/count | spec | json | contains \"qlang/prim/count\"","expect":"true","decision":"D62"}
 {"name":"type-header-tag-builtin","query":"::number/add | spec | type","expect":"::builtin","decision":"D62"}

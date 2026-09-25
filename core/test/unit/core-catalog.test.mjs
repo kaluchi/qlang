@@ -261,27 +261,6 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   });
 });
 
-describe('manifest descriptor for a conduitParameter proxy', () => {
-  // Conduit parameters are the only function values that reach env
-  // during dispatch — `makeConduitParameter` in `eval.mjs` mints
-  // them at applyConduit time with a full `meta` shape inline.
-  // Running `manifest` inside a conduit body iterates the body's
-  // fork env, which carries the proxy; `describeBinding` takes the
-  // `isFunctionValue` path and stamps a `:kind ::builtin` descriptor
-  // through `describeConduitParameter`. The descriptor's `:category`
-  // tracks the proxy's authored slot (`:conduitParameter`), so
-  // catalog walkers can distinguish synthetic-per-call entries from
-  // the static catalog operands.
-
-  it('manifest inside a conduit body surfaces the param proxy as :category :conduitParameter', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery(
-      ':f [:p] (manifest | filter ~(/name | eq "p") | first | /category) | 42 | f (add 1)'
-    );
-    expect(evalResult).toEqual(keyword('conduitParameter'));
-  });
-});
-
 describe('format.toPlain refuses a raw function value — round-trip invariant', () => {
   // Function values have no grammatical literal: emitting any string
   // for one would falsely round-trip through parse / eval into a
@@ -306,17 +285,19 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // six tags minted outside a per-site factory (`::Error`,
   // `::ParseError`, and the four value-class constructors) pass both
   // axes whether or not they exist — axis 1 never names them and
-  // axis 2 skips a name absent from `manifest(:tag)`. These pins fail
+  // axis 2 skips a name the environment does not bind. These pins fail
   // on a silent catalog shrink; per §8a of the review rules a tally
   // belongs in test code, which CI re-verifies, and never in prose.
   it('the tag namespace holds every declared tag-binding', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest :tag | count')).toBe(232);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(231);
   });
 
   it('the value namespace holds every declared operand', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('manifest | count')).toBe(68);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(68);
   });
 });
 
@@ -324,10 +305,9 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
   it('groupBy category — full catalog is addressable as data', async () => {
     // A miniature exercise of the self-describing nature: run a
     // qlang query against the catalog itself to count operands per
-    // category. Under Variant B this is what `env | manifest | ...`
-    // will produce; this test pins the shape by iterating the
-    // evaluated Map directly — the same projection surface
-    // `env | manifest | ...` exercises at the qlang level.
+    // category, iterating the evaluated Map directly — the reading
+    // `::qlang | manifest * manifest | flat * (spec | /category)`
+    // gives at the qlang level, verb by address.
     const coreEnv = await evalCore();
     const categories = new Map();
     for (const [, entryVal] of coreEnv) {

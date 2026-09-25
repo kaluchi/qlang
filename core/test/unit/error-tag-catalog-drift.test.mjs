@@ -46,6 +46,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '../../src/session.mjs';
+import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
 import {
   throwSiteSpecOf, throwSiteSpecNames, throwSiteTagsRaisedBy
 } from '../../src/errors.mjs';
@@ -128,8 +129,8 @@ function collectCatalogDeclarations() {
 const declarations = collectCatalogDeclarations();
 const declarationsByName = new Map(declarations.map(d => [d.name, d]));
 const session = await createSession();
-const { result: tagBindings } = await session.evalCell('manifest :tag');
-const { result: operandBindings } = await session.evalCell('manifest');
+const tagBindings = catalogEntriesOf(session.env, { tags: true });
+const operandBindings = catalogEntriesOf(session.env, { tags: false });
 const catalogTags = new Map(tagBindings.map(binding => [binding.get('name'), binding]));
 
 describe('catalog declarations — each name is bound once', () => {

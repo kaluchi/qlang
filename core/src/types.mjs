@@ -333,7 +333,6 @@ export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SNAPSHOT_TAG    = makeTagKeyword('snapshot');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
-export const VALUE_TAG       = makeTagKeyword('value');
 
 // The kind of every value without a tag of its own, the one its
 // literal implies [D32]; `type` answers it, and a tag name's kind is

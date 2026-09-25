@@ -426,14 +426,6 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
     expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
-  it('manifest descriptor carries the same :impl handle as the env entry', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('manifest | filter ~(/name | eq "count") | first | json');
-    expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"kind":"::builtin"');
-    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
-  });
-
   it('projection at :impl lands on the handle keyword, and a conduit-parameter proxy fires the invariant', async () => {
     // `::vec/count | spec | /:impl` reads the descriptor's handle keyword
     // (note the namespaced keyword segment `/:impl` — without the

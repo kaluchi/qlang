@@ -112,10 +112,8 @@ describe('TaggedLit error paths', () => {
     expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
   });
 
-  it('auto-declared binding surfaces under manifest(:tag) with :declarationOrigin :implicit', async () => {
-    const evalResult = await evalQuery(
-      '::silentBox[1] | manifest :tag | filter ~(/name | eq "::silentBox") | first | /declarationOrigin'
-    );
+  it('an auto-declared binding carries :declarationOrigin :implicit', async () => {
+    const evalResult = await evalQuery('::silentBox[1] | ::silentBox | spec | /declarationOrigin');
     expect(evalResult).toEqual(keyword('implicit'));
   });
 

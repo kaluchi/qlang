@@ -164,7 +164,7 @@ export async function evalQuery(source, env, callerState = null) {
   // subject through an explicit head step (a literal, a captured
   // arg, the `env` identifier). The `env` identifier resolves
   // through env-lookup like any other name, so introspective
-  // queries (`env | keys`, `env | manifest | …`) read the env
+  // queries (`env | keys`, `env | /x`) read the env
   // Map without seeding pipeValue with it implicitly — keeping the
   // env out of `:fault.input` on every error descriptor.
   // `runExamples` evaluates each example Quote from inside a running
@@ -602,8 +602,8 @@ async function evalTaggedLit(node, state) {
 //   `::TypoTag[payload]`   → auto-declares an identity-only
 //                            binding with `:declarationOrigin
 //                            :implicit` (evalTaggedLit), mints
-//                            a tagged instance; lint sweeps over
-//                            `manifest :tag` flag the auto-decl.
+//                            a tagged instance; a lint reads the
+//                            auto-decl off `::TypoTag | spec`.
 //   `::TypoTag | source`   → SourceBindingNotFoundError
 //   `::TypoTag | docs`     → DocsBindingNotFoundError
 //   `::TypoTag | examples` → ExamplesBindingNotFoundError

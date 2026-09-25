@@ -18,15 +18,6 @@ describe('runExamples accepts a name, an address and a descriptor subject', () =
     expect([...result]).toEqual([true]);
   });
 
-  it('descriptor subject — manifest-yielded Map with :name passes through', async () => {
-    // `manifest` enumerates env into descriptor Maps carrying `:name`;
-    // composing it with `* runExamples` per-entry covers the
-    // Map-with-:name subject path on the runExamples contract.
-    const result = await evalQuery('manifest | filter ~(/name | eq "count") | first | runExamples * /ok | distinct');
-    expect(isQSet(result)).toBe(true);
-    expect([...result]).toEqual([true]);
-  });
-
   it('subject naming a binding without a source-located BindStep returns an empty Vec', async () => {
     // Host-installed bindings (via `session.bind`, or any binding
     // landed in env without an attached AST) carry no BindStep to

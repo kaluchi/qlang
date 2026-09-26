@@ -757,11 +757,12 @@ slot of code takes a quote [D67], [D68]:
 120
 ```
 
-So does a built-in declared on its noun, the verbs of numbers, of the
-comparisons, of strings, of the containers and of their algebra: its
-head checks the subject and the slots before its primitive runs and
-raises the refusal its site declares at that place, and `spec` answers
-the head [D72], [D73], [D74], [D75]:
+So does a built-in declared on its noun, the verbs of numbers, of
+booleans, of strings, of the containers and of their algebra, the
+comparisons, the predicates of any value and the JSON codec: its head
+checks the subject and the slots before its primitive runs and raises
+the refusal its site declares at that place, and `spec` answers the
+head [D72], [D73], [D74], [D75], [D76]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -784,14 +785,14 @@ the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::any/and | spec | /modifiers
-[:any]
+> ::any/if | spec | /modifiers
+[:any :pipeline :pipeline]
 
-> true | and 1 !| type
-::AndRightNotBooleanError
+> 5 | if 1 ~(1) ~(2) !| type
+::IfConditionNotBooleanError
 ```
 
-`and` is declared to take any operand and refuses a number.
+`if` is declared to take any condition and refuses a number.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -806,8 +807,8 @@ page of a refusal names the kind it expected with one:
 > 1 | type
 ::number
 
-> ::any/type | spec | /returns
-:keyword
+> ::keyword/keyword | spec | /returns
+[:string :keyword]
 ```
 
 The kinds move into the declarations with the kinds of the slots
@@ -962,9 +963,9 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
-The verbs of numbers, of strings, of the containers and of their
-algebra live in the module of their noun [D72], [D73], [D74], [D75].
-The other modules of the
+The verbs of numbers, of booleans, of strings, of the containers and
+of their algebra, and the verbs of any value, live in the module of
+their noun [D72], [D73], [D74], [D75], [D76]. The other modules of the
 core are the families of the categories the catalog once sorted its
 operands by, where the manifest answers nouns, so the verbs of one noun
 come from several files and one file feeds several nouns, and the
@@ -1163,8 +1164,8 @@ so one error nests inside another, where the law of nested errors hands
 it on unchanged [D13], as a verb's slot does [D68]:
 
 ```qlang
-> true | and (!{:k 1}) !| type
-::AndRightNotBooleanError
+> 5 | if (!{:k 1}) ~(1) ~(2) !| type
+::IfConditionNotBooleanError
 
 > 1 | add (!{:k 1}) !| type
 ::error
@@ -1238,9 +1239,9 @@ it in one sentence [D20].
 
 The catalog itself speaks the vocabulary of its implementation. The
 prose a session reads to learn the language names JavaScript files,
-symbols and services: the type classifier's entry explains that identity
-rides on “the value's JS-header `TAG_HEADER_SYMBOL` slot”
-(`core/lib/qlang/operand/typeClassifier.qlang`), and the invariants
+symbols and services: the entry of `payload` explains that it “reads
+identity through the JS-header `tag` slot”
+(`core/lib/qlang/operand/typeConversion.qlang`), and the invariants
 module speaks of the `BUILTIN_IMPL_SLOT` and of
 `createPrimitiveRegistry()` and sends the reader to
 `cli/src/cli-locator.mjs` (`core/lib/qlang/runtime-invariants.qlang`).
@@ -1465,7 +1466,7 @@ A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang
-> ::any/type | spec | type
+> ::keyword/keyword | spec | type
 ::builtin
 
 > ::builtin{:a 1}
@@ -2186,3 +2187,4 @@ maintainer wants to explore it before it is fixed.
 [D73]: decisions/D73.md
 [D74]: decisions/D74.md
 [D75]: decisions/D75.md
+[D76]: decisions/D76.md

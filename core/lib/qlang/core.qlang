@@ -22,13 +22,10 @@ use [:qlang/runtime-invariants
      :qlang/vec
      :qlang/set
      :qlang/map
+     :qlang/boolean
      :qlang/any
-     :qlang/operand/predicate
-     :qlang/operand/typeClassifier
      :qlang/operand/typeConversion
      :qlang/operand/control
-     :qlang/operand/format
      :qlang/operand/reflective
-     :qlang/operand/error
      :qlang/operand/codeAsData
      :qlang/operand/axis]

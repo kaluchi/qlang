@@ -70,7 +70,7 @@
 ::BuiltinImplNotPrimitiveKeyError
   |~~ A descriptor a query assembled from data dispatches through
       its `:impl` handle keyword — `::builtin{:impl
-      :qlang/prim/type}` binds and fires like a catalog entry.
+      :qlang/prim/keyword}` binds and fires like a catalog entry.
       Catalog descriptors carry the resolved callable on the
       `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
       reading below fires only for the data-assembled shape, and
@@ -78,8 +78,8 @@
       cannot be keyed by.
 
       ~(
-        ::builtin{:impl :qlang/prim/type} | :k / | {:a 1} | k
-        |  eq ::map
+        ::builtin{:impl :qlang/prim/keyword} | :k / | "a" | k
+        |  eq :a
        )
       ~(
         ::builtin{:impl 42} | :bogus / | 1 | bogus
@@ -354,9 +354,9 @@
   |~~ Nullary operand received captured arguments.
 
       ~(
-        {:a 1} | type 42
+        :a | keyword 42
         !| [type /operandName]
-        |  eq [::NullaryOpArgsProvidedError :type]
+        |  eq [::NullaryOpArgsProvidedError :keyword]
        )
   ~~|
 
@@ -398,9 +398,9 @@
       operand's declared maximum arity.
 
       ~(
-        {:a 1} | type 1 2
+        :a | keyword 1 2
         !| [type /operandName]
-        |  eq [::Rule10ArityOverflowError :type]
+        |  eq [::Rule10ArityOverflowError :keyword]
        )
   ~~|
 

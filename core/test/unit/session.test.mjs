@@ -8,7 +8,7 @@ import {
 } from '../../src/session.mjs';
 import { makeTagKeyword, isErrorValue, isQMap, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
-import { nullaryOp, overloadedOp } from '../../src/runtime/dispatch.mjs';
+import { nullaryOp, overloadedOp, valueOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -255,6 +255,14 @@ describe('serializeSession / deserializeSession round-trip', () => {
     }));
     expect((await sessionInstance.evalCell('7 | pick')).result).toBe(7);
     expect((await sessionInstance.evalCell('7 | pick (add 1)')).result).toBe(8);
+  });
+
+  it('runs a host operand of values against the subject or against two modifiers', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('less', valueOp('less', 2, (left, right) => left - right));
+    expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
+    expect((await sessionInstance.evalCell('7 | less 10 4')).result).toBe(6);
+    expect((await sessionInstance.evalCell('7 | less !| type')).result).toEqual(makeTagKeyword('ValueOpArityMismatchError'));
   });
 
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {

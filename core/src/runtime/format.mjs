@@ -10,7 +10,6 @@
 // at a host's boundary, and the command line owns its `table`.
 
 import { printQuoteSource } from '../quote.mjs';
-import { nullaryOp } from './dispatch.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareInvariantError, declarePerSiteError, declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
@@ -149,16 +148,15 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
-export const json = nullaryOp('json', (subject) => JSON.stringify(toPlain(subject)));
-
-const ParseJsonSubjectNotStringError =
-  declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
+// `json` resides on `::qlang/any` and `parseJson` on `::string`, each a
+// plain function over the value the head of its verb checked [D72].
+declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
 const ParseJsonInvalidJsonError = declareShapeError('ParseJsonInvalidJsonError',
   ({ message }) => `parseJson: invalid JSON — ${message}`,
   { operand: 'parseJson' });
 
-export const parseJson = nullaryOp('parseJson', (subject) => {
-  if (typeof subject !== 'string') throw new ParseJsonSubjectNotStringError(subject);
+bindPrim('json', subject => JSON.stringify(toPlain(subject)));
+bindPrim('parseJson', subject => {
   let parsed;
   try {
     parsed = JSON.parse(subject);
@@ -167,7 +165,3 @@ export const parseJson = nullaryOp('parseJson', (subject) => {
   }
   return fromPlain(parsed);
 });
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('json', json);
-bindPrim('parseJson', parseJson);

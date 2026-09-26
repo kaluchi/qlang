@@ -48,13 +48,9 @@ verbs of vectors [D72].
 | `:category` keyword | Meaning |
 |---|---|
 | `:control` | Control-flow operand (if / coalesce / cond). |
-| `:predicate` | Subject-first boolean operand or combinator. |
-| `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
-| `:format` | Value-to-string renderer. |
 | `:reflective` | Operand that reads or writes the evaluator state pair (env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
-| `:error` | Error-value constructor (error). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
 
@@ -629,6 +625,9 @@ round-trips to `"a,b,c"`.
 
 ## Boolean
 
+`not`, `and` and `or` reside on `::boolean`, and `eq`, `type` and
+`json` on `::qlang/any` [D72], [D76].
+
 ### `not`
 
 - **Arity** 1. **Subject** a boolean.
@@ -664,8 +663,9 @@ round-trips to `"a,b,c"`.
 ### `and a b`
 
 - **Arity** 2. Returns `true` if both `a` and `b` are `true`, each
-  answering a boolean. Used in full form inside predicates:
-  `filter ~(and /active (/age | gt 18))`.
+  answering a boolean: bound, `a | and b`, or in full form inside
+  predicates, `filter ~(and /active (/age | gt 18))`, whose first
+  condition is the subject of `and`.
 - **Example**: `filter ~(and /active (/age | gt 18))` keeps active
   adults.
 - **Errors**: a condition not a boolean → `AndLeftNotBooleanError` /
@@ -820,7 +820,8 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 ### `parseJson`
 
-- **Arity** 1. **Subject** a string of plain JSON.
+- **Arity** 1. **Subject** a string of plain JSON; the verb resides on
+  `::string` [D76].
 - Returns the qlang value the JSON spells, the reverse of `json`:
   object keys become keywords, arrays become Vecs, scalars pass
   through.
@@ -1191,7 +1192,8 @@ deflects on an error that `!| true` then answers.
 
 ### `error`
 
-- **Arity** 1. **Subject** `map` (the descriptor).
+- **Arity** 1. **Subject** `map` (the descriptor); the verb resides on
+  `::map` [D76].
 - Lifts a Map into an error value — the sole constructor for the
   5th type at the language level alongside the `!{…}` literal.
   Bare form `map | error` uses pipeValue as the descriptor; full
@@ -1252,11 +1254,7 @@ address.
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `coalesce`, `cond` |
-| `:predicate` | `not`, `eq`, `and`, `or` |
-| `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
-| `:format` | `json` |
-| `:error` | `error` |
 | `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:codeAsData` | `parse`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |

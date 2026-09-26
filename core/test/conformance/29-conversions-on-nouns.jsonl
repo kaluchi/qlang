@@ -1,0 +1,8 @@
+{"name":"the-contract-of-keyword-names-its-residences","query":"42 | keyword !| /addresses","expect":"#[::keyword/keyword ::string/keyword]","decision":"D78"}
+{"name":"the-contract-of-parse-names-its-residences","query":"42 | parse !| /addresses","expect":"#[::quote/parse ::string/parse]","decision":"D78"}
+{"name":"payload-resides-on-the-tagged","query":"::tagged/payload | spec | /subject","expect":"::tagged","decision":["D62","D78"]}
+{"name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]","decision":["D16","D78"]}
+{"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box","decision":["D41","D67","D78"]}
+{"name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::PayloadSubjectNotTaggedInstanceError","decision":"D78"}
+{"name":"apply-takes-code","query":"::any/apply | spec | /code","expect":"::quote","decision":["D43","D78"]}
+{"name":"a-quote-that-applies-itself-exhausts-the-depth","query":":q ~(apply q) | 1 | apply q !| type","expect":"::EvaluationDepthExceededError","decision":"D78"}

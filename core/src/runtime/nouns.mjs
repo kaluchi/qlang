@@ -10,8 +10,8 @@
 // the module named by the noun's path, resides on that noun [D72].
 
 import {
-  isQMap, isVec, isVerb, isValueClass, makeSet, makeTagKeyword, keyword, residenceOfVerb, typeKeyword,
-  bindingValueOf, TAG_HEADER_SYMBOL
+  isQMap, isVec, isVerb, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, keyword, residenceOfVerb,
+  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
@@ -45,6 +45,7 @@ function* providerExports(env) {
 
 const SUBJECTS_BENEATH_EVERY_KIND = new Set(['any', 'taggedInstance']);
 const ANY_KIND_NAME = 'any';
+const TAGGED_KIND_NAME = 'tagged';
 
 // The module of a noun of the core is named by its path, `qlang/number`
 // for the kind `::number` [D72].
@@ -73,12 +74,14 @@ function* residencesOnKind(env, kindName) {
 }
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
-// of the value, the payload beneath a tag over a value, and the kind of
-// a vector or a map beneath a tag of its own.
+// of the value, the kind of every tagged value after a tag [D78], the
+// payload beneath a tag over a value, and the kind of a vector or a map
+// beneath a tag of its own.
 function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
     yield typeKeyword(value).name;
+    if (isTaggedInstance(value)) yield TAGGED_KIND_NAME;
     if (isValueClass(value, 'taggedInstance')) {
       value = value.payload;
       continue;

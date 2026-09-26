@@ -33,12 +33,11 @@ import {
 } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import {
-  bindingValueOf, isQuote, isVec, isQMap, isVerb, isErrorValue, isValueClass, keyword, makeTagKeyword, makeBinding,
+  bindingValueOf, isQuote, isVec, isQMap, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
+  makeBinding,
   makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, typeKeyword, verbEnvRef,
   BIND_TAG, BUILTIN_TAG, SPEC_TAG
 } from '../types.mjs';
-
-const nameOfVerb = verbName => verbName?.literal ?? 'the verb';
 
 const VerbPayloadNotQuoteError = declareSubjectError('VerbPayloadNotQuoteError', '::verb', 'quote');
 const VerbSlotNameNotKeywordError = declareShapeError('VerbSlotNameNotKeywordError',
@@ -51,10 +50,10 @@ const VerbRoleNotKindError = declareShapeError('VerbRoleNotKindError',
   ({ role }) => `::verb role ${role.literal} is declared by a kind or a set of kinds, and :returns by / as well`,
   { operand: '::verb' });
 const VerbSlotMissingError = declareArityError('VerbSlotMissingError',
-  ({ verbName, slot }) => `${nameOfVerb(verbName)} takes ${slot.literal}, and the call leaves it empty`,
+  ({ verbName, slot }) => `${verbName.literal} takes ${slot.literal}, and the call leaves it empty`,
   { operand: '::verb' });
 const VerbModifiersBeyondSlotsError = declareArityError('VerbModifiersBeyondSlotsError',
-  ({ verbName, slotCount, actualCount }) => `${nameOfVerb(verbName)} has ${slotCount} slots, and the call gives ${actualCount} modifiers`,
+  ({ verbName, slotCount, actualCount }) => `${verbName.literal} has ${slotCount} slots, and the call gives ${actualCount} modifiers`,
   { operand: '::verb' });
 const VerbSlotNotOfKindsError = declareShapeError('VerbSlotNotOfKindsError',
   ({ slot, actualType }) => `${slot.literal} takes a value of one of its kinds, got ${actualType.name}`,
@@ -63,7 +62,7 @@ const VerbCodeNotQuoteError = declareShapeError('VerbCodeNotQuoteError',
   ({ slot, actualType }) => `${slot.literal} takes code, a quote \`~(…)\` or a verb, got ${actualType.name}`,
   { operand: '::verb', expectedType: 'quote' });
 const VerbWithoutBodyError = declareShapeError('VerbWithoutBodyError',
-  ({ verbName }) => `${nameOfVerb(verbName)} declares a signature and no body, and answers no call`,
+  ({ verbName }) => `${verbName.literal} declares a signature and no body, and answers no call`,
   { operand: '::verb' });
 
 const ROLE_NAMES = new Set(['subject', 'returns']);
@@ -221,6 +220,7 @@ function isOfKind(value, kindName) {
     case 'vec':   return isVec(value);
     case 'map':   return isQMap(value);
     case 'quote': return isQuote(value) || isVerb(value);
+    case 'tagged': return isTaggedInstance(value);
     default:      return typeKeyword(value).name === kindName;
   }
 }
@@ -380,7 +380,7 @@ export function isContract(verb) {
 // callVerb(verb, modifierLambdas, state, verbName) → the verb's answer
 // against the subject of `state`, or against its first modifier, evaluated
 // there, in a full application; `verbName` is the keyword the call reached
-// it by, or null for a verb run as code.
+// it by, the name of the slot for a verb run as code [D67].
 export async function callVerb(verb, modifierLambdas, state, verbName) {
   if (!takesFullApplication(verb, modifierLambdas.length)) {
     return await callVerbOn(verb, state.pipeValue, modifierLambdas, state, verbName);
@@ -396,7 +396,7 @@ export async function callVerb(verb, modifierLambdas, state, verbName) {
 export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const signature = signatureOf(verb.payload);
   if (signature.body === null) {
-    throw new VerbWithoutBodyError({ verbName, addresses: addressesOf(state.env, verbName?.name) });
+    throw new VerbWithoutBodyError({ verbName, addresses: addressesOf(state.env, verbName.name) });
   }
   if (signature.rest === null && slotLambdas.length > signature.slots.length) {
     throw new VerbModifiersBeyondSlotsError({ verbName, slotCount: signature.slots.length, actualCount: slotLambdas.length });

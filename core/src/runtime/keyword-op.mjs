@@ -1,15 +1,8 @@
-import { nullaryOp } from './dispatch.mjs';
-import { isString, isKeyword, keyword } from '../types.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
+// `keyword` flips a string and a keyword, a plain function over the
+// subject the head of its verb checked [D72]: it resides on `::string`
+// and on `::keyword`, under its contract on `::qlang/any`.
+
+import { isString, keyword } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const KeywordSubjectNotStringOrKeywordError = declareSubjectError(
-  'KeywordSubjectNotStringOrKeywordError', 'keyword', ['string', 'keyword']);
-
-export const keywordOp = nullaryOp('keyword', (subject) => {
-  if (isString(subject)) return keyword(subject);
-  if (isKeyword(subject)) return subject.name;
-  throw new KeywordSubjectNotStringOrKeywordError(subject);
-});
-
-bindPrim('keyword', keywordOp);
+bindPrim('keyword', subject => (isString(subject) ? keyword(subject) : subject.name));

@@ -1,0 +1,10 @@
+|~ The verbs of quotes [D62]. Each resides on `::qlang/quote`, the kind
+   whose module declares it [D72]; a quote is also the vector of its
+   steps, so the verbs of vectors read it as one. ~|
+
+:parse
+  |~~ The source text of the quote, the reverse of `parse` on a string.
+
+      ~(~(add 1) | parse | eq "add 1")
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/parse})

@@ -758,11 +758,12 @@ slot of code takes a quote [D67], [D68]:
 ```
 
 So does a built-in declared on its noun, the verbs of numbers, of
-booleans, of strings, of the containers and of their algebra, the
-comparisons, the predicates and the control of any value, and the JSON
-codec: its head checks the subject and the slots before its primitive
-runs and raises the refusal its site declares at that place, and `spec`
-answers the head [D72], [D73], [D74], [D75], [D76], [D77]:
+booleans, of strings, of quotes, of tagged values, of the containers and
+of their algebra, the comparisons, the predicates and the control of any
+value, the conversions and the JSON codec: its head checks the subject
+and the slots before its primitive runs and raises the refusal its site
+declares at that place, and `spec` answers the head [D72], [D73], [D74],
+[D75], [D76], [D77], [D78]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -806,8 +807,8 @@ page of a refusal names the kind it expected with one:
 > 1 | type
 ::number
 
-> ::keyword/keyword | spec | /returns
-[:string :keyword]
+> ::any/tag | spec | /returns
+:taggedInstance
 ```
 
 The kinds move into the declarations with the kinds of the slots
@@ -857,16 +858,16 @@ of the runtime is exported for building operands.
 
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
-share [D62], [D67], as the verbs of containers, of their algebra and of
-strings do [D73], [D74], [D75]. Where the catalog has not moved a verb
+share [D62], [D67], as the verbs of containers, of their algebra, of
+strings and the conversions do [D73], [D74], [D75], [D78]. Where the catalog has not moved a verb
 onto its nouns, one descriptor stands for every kind its subject lists,
 and each of those kinds reads the same one:
 
 ```qlang
-> ::string/keyword | spec | /subject
-[:string :keyword]
+> ::vec/tag | spec | /subject
+[:any :vec]
 
-> ::string/keyword | spec | eq (::keyword/keyword | spec)
+> ::vec/tag | spec | eq (::any/tag | spec)
 true
 ```
 
@@ -874,8 +875,8 @@ A call by address reaches that one descriptor as well, so it serves any
 kind the descriptor lists, and the kind in the address checks nothing:
 
 ```qlang
-> "a" | keyword/keyword
-:a
+> 42 | vec/tag ::Foo
+::Foo(42)
 ```
 
 The vocabulary carries the calling shape as well as the kind. A
@@ -962,9 +963,10 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
-The verbs of numbers, of booleans, of strings, of the containers and
-of their algebra, and the verbs of any value, live in the module of
-their noun [D72], [D73], [D74], [D75], [D76]. The other modules of the
+The verbs of numbers, of booleans, of strings, of quotes, of tagged
+values, of the containers and of their algebra, and the verbs of any
+value, live in the module of their noun [D72], [D73], [D74], [D75],
+[D76], [D77], [D78]. The other modules of the
 core are the families of the categories the catalog once sorted its
 operands by, where the manifest answers nouns, so the verbs of one noun
 come from several files and one file feeds several nouns, and the
@@ -1238,9 +1240,9 @@ it in one sentence [D20].
 
 The catalog itself speaks the vocabulary of its implementation. The
 prose a session reads to learn the language names JavaScript files,
-symbols and services: the entry of `payload` explains that it “reads
-identity through the JS-header `tag` slot”
-(`core/lib/qlang/operand/typeConversion.qlang`), and the invariants
+symbols and services: the entry of `spec` names a descriptor's
+identity “`::builtin` on the JS-header slot”
+(`core/lib/qlang/operand/axis.qlang`), and the invariants
 module speaks of the `BUILTIN_IMPL_SLOT` and of
 `createPrimitiveRegistry()` and sends the reader to
 `cli/src/cli-locator.mjs` (`core/lib/qlang/runtime-invariants.qlang`).
@@ -1465,7 +1467,7 @@ A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang
-> ::keyword/keyword | spec | type
+> ::any/tag | spec | type
 ::builtin
 
 > ::builtin{:a 1}
@@ -2188,3 +2190,4 @@ maintainer wants to explore it before it is fixed.
 [D75]: decisions/D75.md
 [D76]: decisions/D76.md
 [D77]: decisions/D77.md
+[D78]: decisions/D78.md

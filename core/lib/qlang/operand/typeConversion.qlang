@@ -1,65 +1,5 @@
-|~ qlang operand catalog — typeConversion family. Involutive
-   lifts between sibling kinds — `keyword` swings a value
-   between the String and Keyword surfaces, `keyword | keyword`
-   round-trips. Future entries on this axis (`tagKeyword`,
-   `quote ↔ string`, …) land here. ~|
-
-:keyword
-  |~~ String↔Keyword involution. On a String subject, produces the
-      keyword whose name is that string. On a Keyword subject,
-      extracts the name as a String. The two directions are inverse:
-      `"foo" | keyword | keyword` yields `"foo"`.
-      Bridges the String world (JSON data, template building) and
-      the Keyword world (Map key syntax, enum discriminators).
-
-      ~("foo" | keyword | eq :foo)
-      ~(:foo | keyword | eq "foo")
-      ~("bar" | keyword | keyword | eq "bar")
-      ~("qlang/error" | keyword | eq :qlang/error)
-      ~(:"foo bar" | keyword | eq "foo bar")
-  ~~|
-  ::builtin{:impl :qlang/prim/keyword
-            :category :typeConversion
-            :subject [:string :keyword]
-            :returns [:string :keyword]}
-
-::KeywordSubjectNotStringOrKeywordError
-  |~~ `keyword` involution requires a String or Keyword subject.
-      ~(
-        42 | keyword
-        !| [type /actualType]
-        |  eq [::KeywordSubjectNotStringOrKeywordError ::number]
-       )
-  ~~|
-
-:payload
-  |~~ TaggedInstance split — opaque-unwrap of a `::Tag<payload>`
-      value into its captured payload value. Pair with `tag ::Foo`
-      for the round-trip: `value | tag ::Foo | payload | eq value`
-      on any qlang value. The dedicated operand sidesteps the
-      `/payload` Map-field projection, which would expose the
-      wrapper Map's internal shape; `payload` reads identity
-      through the JS-header `tag` slot and returns the payload
-      slot's value directly.
-
-      ~(::Box {} | ::Box[42] | payload | eq [42])
-      ~(::Pair {} | ::Pair[1 2] | payload | eq [1 2])
-      ~(::Note {} | ::Note"hello" | payload | eq "hello")
-  ~~|
-  ::builtin{:impl :qlang/prim/payload
-            :category :typeConversion
-            :subject :taggedInstance
-            :returns :any}
-
-::PayloadSubjectNotTaggedInstanceError
-  |~~ `payload` requires a TaggedInstance subject (a value built
-      through a `::Tag<payload>` constructor invocation).
-      ~(
-        42 | payload
-        !| [type /actualType]
-        |  eq [::PayloadSubjectNotTaggedInstanceError ::number]
-       )
-  ~~|
+|~ qlang operand catalog — typeConversion family: `tag`, which lays a
+   tag over a value, the reverse of `payload` on `::qlang/tagged`. ~|
 
 :tag
   |~~ TaggedInstance assemble — mints `::Tag<value>` at runtime
@@ -120,46 +60,5 @@
         [::Foo 1 2] | tag
         !| [type /actualLength]
         |  eq [::TagBareSubjectShapeError 3]
-       )
-  ~~|
-
-:within
-  |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
-      against the payload as `apply` runs it, a fork whose
-      declarations stay inside, and mints the answer back under the
-      subject's tag, whose constructor runs once, at the rewrap. The
-      steps between may break the tag's invariant, since an invariant
-      holds of the result: a set's constructor normalizes the vector
-      the edit answers, where a record's refuses it. An error the
-      edit answers passes as it is, and a deeper stack of tags is
-      reached by nesting `within`.
-
-      ~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
-      ~(::Box {} | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
-      ~(::Box {} | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
-  ~~|
-  ::builtin{:impl :qlang/prim/within
-            :category :typeConversion
-            :subject :taggedInstance
-            :returns :taggedInstance
-            :modifiers [:quote]}
-
-::WithinSubjectNotTaggedInstanceError
-  |~~ `within` requires a TaggedInstance subject, a value that has a
-      tag to edit under.
-      ~(
-        [1 2] | within ~(reverse)
-        !| [type /actualType]
-        |  eq [::WithinSubjectNotTaggedInstanceError ::vec]
-       )
-  ~~|
-
-::WithinCodeNotQuoteError
-  |~~ `within` requires its captured arg to answer a Quote — the
-      edit it runs against the payload.
-      ~(
-        #[3 1] | within 1
-        !| [type /actualType]
-        |  eq [::WithinCodeNotQuoteError ::number]
        )
   ~~|

@@ -246,13 +246,6 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('keyword on non-String-or-Keyword → KeywordSubjectNotStringOrKeywordError', async () => {
-    const caughtErr = await catchOriginalError('42 | keyword');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('KeywordSubjectNotStringOrKeywordError');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
   it('payload on non-TaggedInstance → PayloadSubjectNotTaggedInstanceError', async () => {
     const caughtErr = await catchOriginalError('42 | payload');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);

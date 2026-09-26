@@ -282,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(195);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(193);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(14);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(9);
   });
 });
 
@@ -305,9 +305,8 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within
+    expect(categories.get('typeConversion')).toBe(1);  // tag
     expect(categories.get('reflective')).toBe(4);   // env use manifest runExamples
-    expect(categories.get('codeAsData')).toBe(2); // parse apply
     expect(categories.get('axis')).toBe(4);         // source docs examples spec
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);
@@ -340,7 +339,7 @@ describe('parse / apply — the codeAsData ring closer', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| type');
-    expect(evalResult).toEqual(makeTagKeyword('ParseSubjectNotStringOrQuoteError'));
+    expect(evalResult).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 
   it('apply runs a quote assembled from its steps', async () => {

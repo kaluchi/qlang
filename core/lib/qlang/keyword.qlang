@@ -33,3 +33,12 @@
       ~(:a | lte :a | eq true)
   ~~|
   ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+
+:keyword
+  |~~ The name of the keyword, as a string: the reverse of `keyword` on
+      a string, so `"foo" | keyword | keyword` answers `"foo"`.
+
+      ~(:foo | keyword | eq "foo")
+      ~(:"foo bar" | keyword | eq "foo bar")
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/keyword})

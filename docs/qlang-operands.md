@@ -48,7 +48,6 @@ verbs of vectors [D72].
 | `:category` keyword | Meaning |
 |---|---|
 | `:reflective` | Operand that reads or writes the evaluator state pair (env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
@@ -720,6 +719,10 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 ## Type Conversion
 
+`keyword` resides on `::string` and `::keyword` under one contract on
+`::qlang/any`, and `payload` and `within` on `::tagged`, the kind of
+every value under a tag [D72], [D78]; `tag` is a descriptor still.
+
 ### `keyword`
 
 - **Arity** 1. **Subject** `string` or `keyword`.
@@ -731,8 +734,8 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
   - `:foo | keyword` → `"foo"`.
   - `"foo bar" | keyword` → `:"foo bar"`.
   - `"foo" | keyword | keyword` → `"foo"` (round-trip).
-- **Errors**: non-String-or-Keyword subject →
-  `KeywordSubjectNotStringOrKeywordError`.
+- **Errors**: a subject of another kind → the contract's
+  `VerbWithoutBodyError` with `:addresses`.
 
 ### `payload`
 
@@ -1025,6 +1028,9 @@ its own eval handler in `eval.mjs`.
   doc-prefix arity are all guaranteed by the grammar — no
   runtime check needed.
 
+`parse` resides on `::string` and `::quote` under one contract on
+`::qlang/any`, and `apply` on `::qlang/any` [D72], [D78].
+
 ### `parse`
 
 - **Arity** 1. **Subject** `string` or `quote`.
@@ -1052,7 +1058,7 @@ its own eval handler in `eval.mjs`.
   - `~(add 1) | parse` → `"add 1"`.
   - `"this is not qlang [" | parse !| type` → `::ParseError`.
   - `"this is not qlang [" | parse !| type | spec | /category` → `:parseError`.
-- **Errors**: subject not a String or Quote → `ParseSubjectNotStringOrQuoteError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
 
@@ -1257,9 +1263,8 @@ address.
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
-| `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
+| `:typeConversion` | `tag` |
 | `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:codeAsData` | `parse`, `apply` |
 | `:axis` | `source`, `docs`, `examples` |
 
 Each polymorphic / overloaded operand is one identifier in the

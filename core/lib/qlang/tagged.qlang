@@ -1,0 +1,62 @@
+|~ The verbs of tagged values [D62]. Each resides on `::qlang/tagged`,
+   the kind of every value under a tag, which the walk of a tagged value
+   reaches after its own tag [D72], [D78]. ~|
+
+:payload
+  |~~ The value the tag holds, the reverse of `tag`: `value | tag ::Foo
+      | payload | eq value` holds of every value. A set's payload is its
+      vector.
+
+      ~(::Box {} | ::Box[42] | payload | eq [42])
+      ~(::Pair {} | ::Pair[1 2] | payload | eq [1 2])
+      ~(::Note {} | ::Note"hello" | payload | eq "hello")
+      ~(#[2 1] | payload | eq [1 2])
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/payload})
+
+::PayloadSubjectNotTaggedInstanceError
+  |~~ `payload` requires a TaggedInstance subject (a value built
+      through a `::Tag<payload>` constructor invocation).
+      ~(
+        42 | payload
+        !| [type /actualType]
+        |  eq [::PayloadSubjectNotTaggedInstanceError ::number]
+       )
+  ~~|
+
+:within
+  |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
+      against the payload as `apply` runs it, a fork whose declarations
+      stay inside, and the answer returns the subject's kind, minted
+      back under its tag, whose constructor runs once, at the rewrap
+      [D41], [D67]. The steps between may break the tag's invariant,
+      since an invariant holds of the result: a set's constructor
+      normalizes the vector the edit answers, where a record's refuses
+      it. An error the edit answers passes as it is, and a deeper stack
+      of tags is reached by nesting `within`.
+
+      ~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
+      ~(::Box {} | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+      ~(::Box {} | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
+  ~~|
+  ::verb~(:code ::quote | :returns / | ::builtin{:impl :qlang/prim/within})
+
+::WithinSubjectNotTaggedInstanceError
+  |~~ `within` requires a TaggedInstance subject, a value that has a
+      tag to edit under.
+      ~(
+        [1 2] | within ~(reverse)
+        !| [type /actualType]
+        |  eq [::WithinSubjectNotTaggedInstanceError ::vec]
+       )
+  ~~|
+
+::WithinCodeNotQuoteError
+  |~~ `within` requires its captured arg to answer a Quote — the
+      edit it runs against the payload.
+      ~(
+        #[3 1] | within 1
+        !| [type /actualType]
+        |  eq [::WithinCodeNotQuoteError ::number]
+       )
+  ~~|

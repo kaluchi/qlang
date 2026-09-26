@@ -5,17 +5,13 @@
 // and invokes it against the payload-value; the state reaches a
 // constructor that reads the scope it is called in.
 
-import { nullaryOp, stateOp, stateOpVariadic, mintUnderTag } from './dispatch.mjs';
+import { stateOpVariadic, mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
-import { withPipeValue, nestState } from '../state.mjs';
-import { evalAst } from '../eval.mjs';
+import { withPipeValue } from '../state.mjs';
 import {
-  isVec, isKeyword, isQuote, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
-  isTaggedInstance, isTagKeyword, isErrorValue, isVerb, envToRun,
-  makeSet, typeKeyword, TAG_HEADER_SYMBOL
+  isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
+  isTagKeyword, isErrorValue, makeSet, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { astOfQuote } from '../quote.mjs';
-import { callVerb } from './verb.mjs';
 import {
   declareSubjectError,
   declareModifierError
@@ -152,8 +148,7 @@ bindTypeConstructor('builtin', builtinConstructor);
 //     a positional Vec into the operand's value-then-tag
 //     order without an intermediate binding.
 
-const PayloadSubjectNotTaggedInstanceError = declareSubjectError(
-  'PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
+declareSubjectError('PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
 const TagModifierNotTagKeywordError = declareModifierError(
   'TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
 const TagBareSubjectShapeError = declareShapeError('TagBareSubjectShapeError',
@@ -173,12 +168,12 @@ function payloadOf(tagged) {
   return tagged.payload;
 }
 
-export const payloadOperand = nullaryOp('payload', (subject) => {
-  if (!isTaggedInstance(subject)) {
-    throw new PayloadSubjectNotTaggedInstanceError(subject);
-  }
-  return payloadOf(subject);
-});
+// `payload` and `within` reside on `::tagged`, each a plain function
+// over the tagged value the head of its verb checked [D72], [D78];
+// `within` returns its subject's kind, so the answer of its edit mints
+// back under the subject's tag [D41], [D67].
+bindPrim('payload', subject => payloadOf(subject));
+bindPrim('within', async (subject, code) => await code(payloadOf(subject)));
 
 // The value and the tag each form reads before the tag mints: a
 // modifier that answers an error answers the step with it.
@@ -207,36 +202,7 @@ export const tagOperand = stateOpVariadic('tag', async (state, tagLambdas) => {
   return withPipeValue(state, await mintUnderTag(state, tagKw, value));
 }, [0, 2]);
 
-// `tagged | within code` — an edit under one tag [D41]: the payload
-// runs through the quote as `apply` runs it, a fork whose declarations
-// stay inside, and the answer mints back under the subject's tag,
-// whose constructor runs once, at the rewrap. The steps between may
-// break the tag's invariant, since an invariant holds of the result;
-// an error the edit answers passes as it is; a deeper stack of tags is
-// reached by nesting.
-const WithinSubjectNotTaggedInstanceError = declareSubjectError(
-  'WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');
-const WithinCodeNotQuoteError = declareModifierError(
-  'WithinCodeNotQuoteError', 'within', 2, 'quote');
+declareSubjectError('WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');
+declareModifierError('WithinCodeNotQuoteError', 'within', 2, 'quote');
 
-export const withinOperand = stateOp('within', 2, async (state, withinLambdas) => {
-  const subject = state.pipeValue;
-  if (!isTaggedInstance(subject)) throw new WithinSubjectNotTaggedInstanceError(subject);
-  const code = await withinLambdas[0](subject);
-  if (isErrorValue(code)) return withPipeValue(state, code);
-  const edited = await editOf(code, payloadOf(subject), state);
-  if (isErrorValue(edited)) return withPipeValue(state, edited);
-  return withPipeValue(state, await mintUnderTag(state, typeKeyword(subject), edited));
-});
-
-// The payload run through the code, a quote in the environment it
-// carries [D43] or a verb with its defaults [D67].
-async function editOf(code, payload, state) {
-  if (isVerb(code)) return await callVerb(code, [], withPipeValue(state, payload), null);
-  if (!isQuote(code)) throw new WithinCodeNotQuoteError(code);
-  return (await evalAst(astOfQuote(code), nestState(state, payload, envToRun(code, state.env)))).pipeValue;
-}
-
-bindPrim('payload', payloadOperand);
-bindPrim('tag',     tagOperand);
-bindPrim('within',  withinOperand);
+bindPrim('tag', tagOperand);

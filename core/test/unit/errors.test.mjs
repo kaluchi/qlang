@@ -111,8 +111,8 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site name is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
-    expect(originalErr.name).toBe('FilterSubjectNotContainerError');
+    const originalErr = await catchOriginalError('"a" | add 1');
+    expect(originalErr.name).toBe('AddLeftNotNumberError');
   });
 });
 
@@ -123,11 +123,11 @@ describe('error class branding survives Object.defineProperty (minification prox
   // verify the contract here: even if we artificially shadow the
   // class identifier, the runtime `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('42 | count');
-    expect(originalErr.name).toBe('CountSubjectNotContainerError');
+    const originalErr = await catchOriginalError('"a" | add 1');
+    expect(originalErr.name).toBe('AddLeftNotNumberError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('CountSubjectNotContainerError');
+    expect(originalErr.constructor.name).toBe('AddLeftNotNumberError');
   });
 });
 

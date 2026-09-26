@@ -56,7 +56,7 @@
       field of a map names nothing: the map reads the page of
       `::map`.
 
-      ~(::vec/filter | docs | first | /content | contains "Keeps items")
+      ~(::vec/filter | docs | first | /content | contains "predicate")
       ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
       ~(5 | docs | eq (::number | docs))
       ~({:kind ::set} | docs | eq (::map | docs))

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword, keyword } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
 
 describe('the nouns of the core', () => {
   it('the core answers the nouns beneath it, itself and its refusals apart', async () => {
@@ -76,7 +76,7 @@ describe('a tag name that no tag binds addresses a verb', () => {
     expect(await evalQuery('::qlang/vec/count | docs | count')).toBe(1);
     expect(await evalQuery('::vec/count | source | parse | startsWith ":count"')).toBe(true);
     expect(await evalQuery('::vec/count | examples | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | spec | /category')).toEqual(keyword('containerReducer'));
+    expect(await evalQuery('::vec/count | spec | /subject')).toEqual(makeTagKeyword('vec'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {

@@ -119,7 +119,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, countOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/count/);
-    expect(hover.content).toMatch(/containerReducer/);
+    expect(hover.content).toMatch(/:returns ::number/);
   });
 
   it('hover includes docs from manifest', async () => {

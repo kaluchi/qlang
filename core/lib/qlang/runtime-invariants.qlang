@@ -70,7 +70,7 @@
 ::BuiltinImplNotPrimitiveKeyError
   |~~ A descriptor a query assembled from data dispatches through
       its `:impl` handle keyword — `::builtin{:impl
-      :qlang/prim/count}` binds and fires like a catalog entry.
+      :qlang/prim/keys}` binds and fires like a catalog entry.
       Catalog descriptors carry the resolved callable on the
       `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
       reading below fires only for the data-assembled shape, and
@@ -78,13 +78,26 @@
       cannot be keyed by.
 
       ~(
-        ::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c
-        |  eq 3
+        ::builtin{:impl :qlang/prim/keys} | :k / | {:a 1} | k
+        |  eq #[:a]
        )
       ~(
         ::builtin{:impl 42} | :bogus / | 1 | bogus
         !| [type /actualType]
         |  eq [::BuiltinImplNotPrimitiveKeyError ::number]
+       )
+  ~~|
+
+::BuiltinImplOfVerbError
+  |~~ The primitive of a built-in declared as a verb on its noun is
+      called through the head of its declaration, which checks what it
+      takes [D72]; a descriptor a query assembled from data that names
+      it is refused, and the verb is called by its name or its address.
+
+      ~(
+        ::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c
+        !| [type /impl]
+        |  eq [::BuiltinImplOfVerbError :qlang/prim/count]
        )
   ~~|
 
@@ -341,20 +354,9 @@
   |~~ Nullary operand received captured arguments.
 
       ~(
-        [1 2 3] | count 42
+        {:a 1} | keys 42
         !| [type /operandName]
-        |  eq [::NullaryOpArgsProvidedError :count]
-       )
-  ~~|
-
-::OverloadedOpUnsupportedArityError
-  |~~ Overloaded operand has no impl for the supplied
-      captured-arg count.
-
-      ~(
-        [3 1 2] | sort ~(:a) :b
-        !| [type /operandName]
-        |  eq [::OverloadedOpUnsupportedArityError :sort]
+        |  eq [::NullaryOpArgsProvidedError :keys]
        )
   ~~|
 
@@ -396,9 +398,9 @@
       operand's declared maximum arity.
 
       ~(
-        [1 2 3] | count 1 2
+        {:a 1} | keys 1 2
         !| [type /operandName]
-        |  eq [::Rule10ArityOverflowError :count]
+        |  eq [::Rule10ArityOverflowError :keys]
        )
   ~~|
 

@@ -47,3 +47,445 @@
       ~(::a | lte ::b | eq true)
   ~~|
   ::verb~()
+
+:count
+  |~~ The number of elements a container holds: a vector's, a set's,
+      and a map's entries.
+
+      ~([1 2 3] | count | eq 3)
+      ~(#[:a :b] | count | eq 2)
+      ~({:x 1 :y 2 :z 3} | count | eq 3)
+      ~(42 | count !| /addresses | has ::vec/count)
+  ~~|
+  ::verb~()
+
+:empty
+  |~~ Whether a container holds no element.
+
+      ~([] | empty | eq true)
+      ~([1] | empty | eq false)
+      ~({} | empty | eq true)
+  ~~|
+  ::verb~()
+
+:first
+  |~~ The first element of a vector, the least of a set, or the first
+      value of a map, and null for an empty container.
+
+      ~([10 20 30] | first | eq 10)
+      ~(#[:c :a :b] | first | eq :a)
+      ~({:a 1 :b 2} | first | eq 1)
+      ~([] | first | eq null)
+  ~~|
+  ::verb~()
+
+:last
+  |~~ The last element of a vector, the greatest of a set, or the last
+      value of a map, and null for an empty container.
+
+      ~([10 20 30] | last | eq 30)
+      ~(#[:c :a :b] | last | eq :c)
+      ~({:a 1 :b 2} | last | eq 2)
+      ~([] | last | eq null)
+  ~~|
+  ::verb~()
+
+:sum
+  |~~ The sum of the elements of a vector or a set, or of the values of a
+      map, each a number; an empty container sums to 0.
+
+      ~([1 2 3 4] | sum | eq 10)
+      ~([] | sum | eq 0)
+      ~(#[1 2 3] | sum | eq 6)
+      ~({:a 10 :b 20} | sum | eq 30)
+  ~~|
+  ::verb~()
+
+::SumElementNotNumberError
+  |~~ An element `sum` adds must be a number; `:index` names it.
+      ~(
+        [1 "two" 3] | sum
+        !| [type /actualType /index]
+        |  eq [::SumElementNotNumberError ::string 1]
+       )
+  ~~|
+
+::SumResultNotFiniteError
+  |~~ Every element is of the right kind, and the running
+      total still answered outside the finite-double domain. The
+      total is read at each element in the subject's order, so a subject
+      whose partial sums leave the domain lifts here while its
+      mathematical total sits inside it — `:index` names the element
+      the total crossed at, and the subject splits there.
+
+      ~(
+        [1e308 1e308] | sum
+        !| [type /index]
+        |  eq [::SumResultNotFiniteError 1]
+       )
+  ~~|
+
+:min
+  |~~ The first element in the one order of values, the order `sort`
+      answers, of a vector, a set, or the values of a map; an empty
+      container yields null.
+
+      ~([3 1 4 1 5] | min | eq 1)
+      ~({:a 3 :b 1} | min | eq 1)
+      ~([3 "a" null] | min | eq null)
+      ~(#[3 1 4] | min | eq 1)
+  ~~|
+  ::verb~()
+
+:max
+  |~~ The last element in the one order of values, the order `sort`
+      answers, of a vector, a set, or the values of a map; an empty
+      container yields null.
+
+      ~([3 1 4 1 5] | max | eq 5)
+      ~({:a 3 :b 1} | max | eq 3)
+      ~([3 "a" null] | max | eq "a")
+      ~(#[3 1 4] | max | eq 4)
+  ~~|
+  ::verb~()
+
+:filter
+  |~~ Keeps the elements of a container whose predicate answers true,
+      in a container of the same kind; the predicate runs against each
+      element as its subject, a map's value among them, and answers a
+      boolean. A verb runs against each element as a quote does.
+
+      ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
+      ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
+      ~([1 -2 3] | :positive ::verb~(gt 0) | filter ~positive | eq [1 3])
+      ~(#[1 -2 3] | filter ::verb~(gt 0) | eq #[1 3])
+      ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
+      ~({} | filter ~(gt 0) | eq {})
+  ~~|
+  ::verb~()
+
+::FilterConditionNotBooleanError
+  |~~ The predicate of `filter` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | filter ~(1)
+        !| [type /index /actualType]
+        |  eq [::FilterConditionNotBooleanError 0 ::number]
+       )
+  ~~|
+
+::FilterPredicateNotQuoteError
+  |~~ The predicate of `filter` is code it runs on each element, so it takes a
+      quote, `filter ~(gt 1)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | filter (count | gt 1)
+        !| [type /actualType]
+        |  eq [::FilterPredicateNotQuoteError ::boolean]
+       )
+  ~~|
+
+:every
+  |~~ Whether the predicate answers true for every element of a
+      container, a map's elements being its values; it stops at the
+      first false, and an empty container answers true.
+
+      ~([2 4 6 8] | every ~(gt 0) | eq true)
+      ~([1 2 3] | every ~(gt 2) | eq false)
+      ~([2 4 6] | :positive ::verb~(gt 0) | every ~positive | eq true)
+      ~([] | every ~(gt 0) | eq true)
+      ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
+      ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
+  ~~|
+  ::verb~()
+
+::EveryConditionNotBooleanError
+  |~~ The predicate of `every` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | every ~(1)
+        !| [type /index /actualType]
+        |  eq [::EveryConditionNotBooleanError 0 ::number]
+       )
+  ~~|
+
+::EveryPredicateNotQuoteError
+  |~~ The predicate of `every` is code it runs on each element, so it takes a
+      quote, `every ~(gt 0)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | every (count | gt 1)
+        !| [type /actualType]
+        |  eq [::EveryPredicateNotQuoteError ::boolean]
+       )
+  ~~|
+
+:any
+  |~~ Whether the predicate answers true for some element of a
+      container, a map's elements being its values; it stops at the
+      first true, and an empty container answers false.
+
+      ~([1 2 3] | any ~(gt 2) | eq true)
+      ~([1 2 3] | any ~(gt 99) | eq false)
+      ~([1 2 3] | :big ::verb~(gt 2) | any ~big | eq true)
+      ~([] | any ~(gt 0) | eq false)
+      ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
+      ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
+  ~~|
+  ::verb~()
+
+::AnyConditionNotBooleanError
+  |~~ The predicate of `any` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+      ~(
+        [1 2] | any ~(1)
+        !| [type /index /actualType]
+        |  eq [::AnyConditionNotBooleanError 0 ::number]
+       )
+  ~~|
+
+::AnyPredicateNotQuoteError
+  |~~ The predicate of `any` is code it runs on each element, so it takes a
+      quote, `any ~(gt 2)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | any (count | gt 1)
+        !| [type /actualType]
+        |  eq [::AnyPredicateNotQuoteError ::boolean]
+       )
+  ~~|
+
+:groupBy
+  |~~ Partitions a vector or a set into a map keyed by the keyword the key
+      answers for each element: a vector's buckets are vectors and a
+      set's are sets. The entries follow the first occurrence of each
+      key, and each bucket the subject's order.
+
+      ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
+  ~~|
+  ::verb~()
+
+::GroupByKeyNotKeywordError
+  |~~ `groupBy ~(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
+      ~(
+        [{:k 1} {:k 2}] | groupBy ~(/k)
+        !| [type /actualType /index]
+        |  eq [::GroupByKeyNotKeywordError ::number 0]
+       )
+  ~~|
+
+::GroupByKeyNotQuoteError
+  |~~ The key of `groupBy` is code it runs on each element, so it takes a
+      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
+      ~(
+        [{:kind :a}] | groupBy :a
+        !| [type /actualType]
+        |  eq [::GroupByKeyNotQuoteError ::keyword]
+       )
+  ~~|
+
+:indexBy
+  |~~ Collapses a vector or a set into a map keyed by the keyword the key
+      answers for each element; of two elements the key answers alike,
+      the last wins.
+
+      ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
+  ~~|
+  ::verb~()
+
+::IndexByKeyNotKeywordError
+  |~~ `indexBy ~(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
+      ~(
+        [{:k 1}] | indexBy ~(/k)
+        !| [type /actualType /index]
+        |  eq [::IndexByKeyNotKeywordError ::number 0]
+       )
+  ~~|
+
+::IndexByKeyNotQuoteError
+  |~~ The key of `indexBy` is code it runs on each element, so it takes a
+      quote, `indexBy ~(/id)`; a value computed at the call is refused.
+      ~(
+        [{:id :a}] | indexBy :a
+        !| [type /actualType]
+        |  eq [::IndexByKeyNotQuoteError ::keyword]
+       )
+  ~~|
+
+:sort
+  |~~ The elements in the one order of values: by kind first, null,
+      boolean, number, string, keyword, tag name, vector, set, map,
+      quote, doc, error and elision, then every other tag by its name;
+      within a kind numbers by value, strings by their code units,
+      keywords and tag names by their names, vectors element by element,
+      a set as its vector, maps by their keys and then their values, and
+      a tagged value by its payload. A vector and a set sort into a
+      vector, since the order is imposed and a set keeps its own; a map
+      sorts its entries by their values and keeps the keys. `sort ~(key)`
+      orders by the value the key answers for each element, a vector
+      serving as a compound key, and keeps elements with equal keys in
+      the subject's order; the descending order is the sort reversed.
+
+      ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+      ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
+      ~(#[:y :x :z] | sort | eq [:x :y :z])
+      ~([::B ::A] | sort | eq [::A ::B])
+      ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
+      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
+      ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
+      ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
+  ~~|
+  ::verb~()
+
+::SortKeyNotQuoteError
+  |~~ The key of `sort` is code it runs on each element, so it takes a
+      quote, `sort ~(/age)`; a value computed at the call is refused.
+      ~(
+        [3 1 2] | sort 1
+        !| [type /actualType]
+        |  eq [::SortKeyNotQuoteError ::number]
+       )
+  ~~|
+
+:take
+  |~~ The first count elements in the subject's order, a set's least
+      among them, and a map's first count entries, in a container of the
+      subject's kind. The count is a whole number: past the length the
+      whole container comes back, and a negative count takes nothing.
+
+      ~([1 2 3 4 5] | take 3 | eq [1 2 3])
+      ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
+      ~([1 2 3] | take -1 | eq [])
+  ~~|
+  ::verb~()
+
+::TakeCountNotIntegerError
+  |~~ The count of `take` must be a whole number — a fractional count
+      cannot name a prefix length.
+      ~(
+        [1 2 3] | take 0.5
+        !| [type /actualType]
+        |  eq [::TakeCountNotIntegerError ::number]
+       )
+  ~~|
+
+:drop
+  |~~ The container with its first count elements removed, a map's first
+      count entries, in a container of the subject's kind. The count is
+      a whole number: past the length the empty container comes back,
+      and a negative count drops nothing.
+
+      ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
+      ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
+      ~([1 2 3] | drop -1 | eq [1 2 3])
+  ~~|
+  ::verb~()
+
+::DropCountNotIntegerError
+  |~~ The count of `drop` must be a whole number — a fractional count
+      cannot name how many to remove.
+      ~(
+        [1 2 3] | drop 0.5
+        !| [type /actualType]
+        |  eq [::DropCountNotIntegerError ::number]
+       )
+  ~~|
+
+:at
+  |~~ Indexed access: the element of a vector or a set at an integer
+      index, a set indexing in its one order and a negative index
+      counting from the end, or the value of a map at a key; a miss
+      answers null, the soft counterpart of the strict `/key`
+      projection.
+
+      ~([10 20 30] | at 1 | eq 20)
+      ~([10 20 30] | at 99 | eq null)
+      ~(#[:a :b :c] | at -1 | eq :c)
+      ~({:a 1 :b 2} | at :a | eq 1)
+  ~~|
+  ::verb~()
+
+::AtIndexNotIntegerError
+  |~~ The index of `at` on a vector or a set must be a whole number.
+      ~(
+        [1 2 3] | at 0.5
+        !| [type /actualType]
+        |  eq [::AtIndexNotIntegerError ::number]
+       )
+  ~~|
+
+:distinct
+  |~~ The constructor of the set: the elements of a vector in the one
+      order of values, each once [D16], so a downstream verb receives a
+      value whose kind says «no duplicates»; a set passes through as it
+      is. Duplication is decided by structural equality, the axiom of
+      `eq`, so two maps, vectors or sets of the same content collapse;
+      `#[…]` and `::set[…]` mint the same value.
+
+      ~([2 1 2 3 1] | distinct | eq #[1 2 3])
+      ~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
+      ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
+      ~(#[1 2 3] | distinct | eq #[1 2 3])
+  ~~|
+  ::verb~()
+
+:reverse
+  |~~ The container in reverse order: a vector and a set reverse into a
+      vector, since a set keeps its own order, and a map reverses its
+      entries and keeps the keys.
+
+      ~([1 2 3] | reverse | eq [3 2 1])
+      ~(#[:a :b :c] | reverse | eq [:c :b :a])
+      ~({:a 1 :b 2} | reverse | vals | eq [2 1])
+  ~~|
+  ::verb~()
+
+:flat
+  |~~ One level of nesting flattened: the vectors and sets among the
+      elements are spliced in, the other elements pass through, and the
+      answer is of the subject's kind, so a set of sets flattens into
+      their union.
+
+      ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
+      ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
+  ~~|
+  ::verb~()
+
+:reduce
+  |~~ The universal left-fold: threads an accumulator across the
+      elements of a vector, a set in its order, or the values of a map,
+      and collapses them to one value. The seed is the first accumulator,
+      returned as it is for an empty subject; the reducer is applied as
+      `reducer accumulator element` — an operand of two places folded
+      through its bound form (`acc | add element`), or a verb with the
+      accumulator as its subject and the element in its first slot.
+      `sum`, `count`, `max` and the builders of structures all factor
+      through it.
+
+      ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
+      ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
+      ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
+      ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+      ~(:max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
+      ~(:tally ::verb~(:_ ::any | add 1) | [10 20 30] | reduce 0 ~tally | eq 3)
+      ~([] | reduce 42 ~(add) | eq 42)
+  ~~|
+  ::verb~()
+
+::ReduceReducerNotBinaryError
+  |~~ `reduce` reducer must be a binary operand or a verb whose first
+      slot takes the element. An inline expression, a literal or an
+      unbound name carries no (accumulator, element) binding.
+      ~(
+        [1 2 3] | reduce 0 ~(42)
+        !| type
+        |  eq ::ReduceReducerNotBinaryError
+       )
+  ~~|
+
+::ReduceReducerNotQuoteError
+  |~~ The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
+      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | reduce 0 1
+        !| [type /actualType]
+        |  eq [::ReduceReducerNotQuoteError ::number]
+       )
+  ~~|

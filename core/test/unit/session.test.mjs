@@ -82,7 +82,7 @@ describe('createSession lifecycle', () => {
     // evalCell succeeds; result is an error value, entry.error is null.
     expect(cellEntry.error).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.originalError.name).toBe('CountSubjectNotContainerError');
+    expect(cellEntry.result.originalError.name).toBe('VerbWithoutBodyError');
   });
 
   it('evalCell uri defaults to cell-N', async () => {

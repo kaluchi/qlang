@@ -70,7 +70,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | :t / | 42 | apply t !| type');
-    expect(evalResult).toEqual(makeTagKeyword('CountSubjectNotContainerError'));
+    expect(evalResult).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 });
 
@@ -142,11 +142,11 @@ describe('per-site error classes carry unique identity', () => {
   // `.originalError` for structured (`.name`, `.context.*`,
   // `instanceof QlangTypeError`) inspection.
 
-  it('count on non-container → CountSubjectNotContainerError', async () => {
+  it('count on a non-container reaches its contract, which names the residences [D72]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('CountSubjectNotContainerError');
-    expect(caughtErr.context.actualType.name).toBe('number');
+    expect(caughtErr.name).toBe('VerbWithoutBodyError');
+    expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'vec/count']);
   });
 
   it('keys on non-Map → KeysSubjectNotMapError', async () => {
@@ -231,17 +231,6 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('UseSubjectNotMapError');
   });
 
-  it('filter on non-container → FilterSubjectNotContainerError', async () => {
-    const caughtErr = await catchOriginalError('42 | filter ~(gt 1)');
-    expect(caughtErr.name).toBe('FilterSubjectNotContainerError');
-  });
-
-  it('at on non-Vec-or-Map → AtSubjectNotSequenceOrMapError', async () => {
-    const caughtErr = await catchOriginalError('42 | at 0');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtSubjectNotSequenceOrMapError');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
 
   it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
     const caughtErr = await catchOriginalError('{:a 1} | at 42');
@@ -328,12 +317,6 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
-  it('reduce on non-sequence → ReduceSubjectNotSequenceError', async () => {
-    const caughtErr = await catchOriginalError('42 | reduce 0 ~(add)');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('ReduceSubjectNotSequenceError');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
 
   it('reduce with a non-binary reducer → ReduceReducerNotBinaryError (distinct from subject site)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
@@ -365,13 +348,7 @@ describe('per-site error classes carry unique identity', () => {
   it('throw sites produce distinct class names (no sharing)', async () => {
     const names = new Set();
     const queries = [
-      '42 | count',        // CountSubjectNotContainerError
-      '42 | first',        // FirstSubjectNotSequenceError
-      '42 | last',         // LastSubjectNotSequenceError
-      '42 | sum',          // SumSubjectNotContainerError
-      '42 | reverse',      // ReverseSubjectNotSequenceError
-      '42 | distinct',     // DistinctSubjectNotSequenceError
-      '42 | sort',         // SortNaturalSubjectNotSequenceError
+      '42 | count',        // VerbWithoutBodyError, the contract of count
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
       '"a" | add 1',      // AddLeftNotNumberError
@@ -380,7 +357,6 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | div 1',      // DivLeftNotNumberError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '42 * add 1',       // DistributeSubjectNotSequenceError
-      '42 | reduce 0 ~(add)',   // ReduceSubjectNotSequenceError
       '[1 2 3] | reduce 0 ~(42)' // ReduceReducerNotBinaryError
     ];
     for (const q of queries) {

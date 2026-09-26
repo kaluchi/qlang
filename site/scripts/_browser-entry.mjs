@@ -22,10 +22,12 @@ import tagSource               from '@kaluchi/qlang-core/lib/qlang/tag.qlang';
 import numberSource            from '@kaluchi/qlang-core/lib/qlang/number.qlang';
 import stringNounSource        from '@kaluchi/qlang-core/lib/qlang/string.qlang';
 import keywordSource           from '@kaluchi/qlang-core/lib/qlang/keyword.qlang';
+import vecNounSource           from '@kaluchi/qlang-core/lib/qlang/vec.qlang';
+import setSource               from '@kaluchi/qlang-core/lib/qlang/set.qlang';
+import mapSource               from '@kaluchi/qlang-core/lib/qlang/map.qlang';
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
-import containerSource         from '@kaluchi/qlang-core/lib/qlang/operand/container.qlang';
 import controlSource           from '@kaluchi/qlang-core/lib/qlang/operand/control.qlang';
 import errorSource             from '@kaluchi/qlang-core/lib/qlang/operand/error.qlang';
 import formatSource            from '@kaluchi/qlang-core/lib/qlang/operand/format.qlang';
@@ -36,7 +38,6 @@ import setOpSource             from '@kaluchi/qlang-core/lib/qlang/operand/setOp
 import stringSource            from '@kaluchi/qlang-core/lib/qlang/operand/string.qlang';
 import typeClassifierSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeClassifier.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
-import vecSource               from '@kaluchi/qlang-core/lib/qlang/operand/vec.qlang';
 
 // Logical-name keys here mirror `core.qlang`'s `use([:qlang/<ns>])`
 // invocation list — the locator is the only seam the runtime calls
@@ -48,10 +49,12 @@ const CATALOG = new Map([
   ['qlang/number',                  numberSource],
   ['qlang/string',                  stringNounSource],
   ['qlang/keyword',                 keywordSource],
+  ['qlang/vec',                     vecNounSource],
+  ['qlang/set',                     setSource],
+  ['qlang/map',                     mapSource],
   ['qlang/any',                     anySource],
   ['qlang/operand/axis',            axisSource],
   ['qlang/operand/codeAsData',    codeAsDataSource],
-  ['qlang/operand/container',       containerSource],
   ['qlang/operand/control',         controlSource],
   ['qlang/operand/error',           errorSource],
   ['qlang/operand/format',          formatSource],
@@ -61,8 +64,7 @@ const CATALOG = new Map([
   ['qlang/operand/setOp',          setOpSource],
   ['qlang/operand/string',          stringSource],
   ['qlang/operand/typeClassifier', typeClassifierSource],
-  ['qlang/operand/typeConversion', typeConversionSource],
-  ['qlang/operand/vec',             vecSource]
+  ['qlang/operand/typeConversion', typeConversionSource]
 ]);
 
 export async function inlineCatalogLocator(namespaceName) {

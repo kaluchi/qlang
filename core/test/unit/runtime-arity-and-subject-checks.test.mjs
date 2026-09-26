@@ -187,15 +187,11 @@ describe('setops bare-form empty Vec', async () => {
 });
 
 describe('min/max subject type checks', async () => {
-  it('min on a non-Vec-or-Set throws MinSubjectNotContainerError', async () => {
-    const result = await evalQuery('42 | min');
-    expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MinSubjectNotContainerError');
-  });
-
-  it('max on a non-Vec-or-Set throws MaxSubjectNotContainerError', async () => {
-    const result = await evalQuery('"hello" | max');
-    expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('MaxSubjectNotContainerError');
+  it('min and max on a non-container reach their contracts [D72]', async () => {
+    for (const query of ['42 | min', '"hello" | max']) {
+      const result = await evalQuery(query);
+      expect(isErrorValue(result)).toBe(true);
+      expect(result.originalError.name).toBe('VerbWithoutBodyError');
+    }
   });
 });

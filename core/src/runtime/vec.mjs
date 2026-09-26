@@ -194,7 +194,8 @@ bindPrim('indexBy', async (sequence, key) => {
 // orders its entries by their values and keeps the keys.
 bindPrim('sort', async (container, key) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
-  const keyed = await Promise.all(entries.map(async entry => ({ entry, sortKey: key === NULL ? entry[1] : await key(entry[1]) })));
+  const keyed = [];
+  for (const entry of entries) keyed.push({ entry, sortKey: key === NULL ? entry[1] : await key(entry[1]) });
   keyed.sort((left, right) => compareValues(left.sortKey, right.sortKey));
   const sorted = keyed.map(({ entry }) => entry);
   return isQMap(container) ? new Map(sorted) : sorted.map(([, element]) => element);

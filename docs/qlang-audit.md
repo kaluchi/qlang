@@ -1387,26 +1387,6 @@ awaits `apply`, is a question for a later branch that would have to
 show a task no plainer construct solves. The repair must also give the
 sister project a guide generated from the catalog.
 
-### Concurrency nobody declared
-
-The evaluator is asynchronous, and it fans out in some places and not
-in others. Distribute and the vector literal evaluate their elements at
-once; the map, set, and error literals evaluate their entries one after
-another; the container selectors walk elements one at a time, while the
-captured arguments of a single operand resolve together. The reference
-states none of this. In a pure pipeline the difference is invisible,
-because values are immutable and an element's error stays a value in
-its place. It becomes visible through host effects: a diagnostic print
-inside a distribute appears in completion order rather than element
-order, and a vector of ten thousand elements issues ten thousand
-simultaneous calls to a host with nothing to bound them.
-
-The repair must state the rule in the reference: results are ordered
-by element, the modifiers of a command among the elements [D12],
-simultaneity is unspecified, and bounding the fan-out is the host
-operand's business. Once effects are values performed at the boundary,
-completion order stops being observable at all.
-
 ### Code that explains itself
 
 The code is more commentary than design. Over the JavaScript of the
@@ -2033,6 +2013,20 @@ construct solves, the sister project's plan-then-apply workflow being
 the first candidate, and only after the argument model and the binding
 form have landed, because it amends the state pair.
 
+Where a host's query runs. A host answers the language's calls one by
+one over its own boundary today, so a query that fans out over a large
+answer, `@members * @callers` on `java.lang.String`, pays a round trip
+per element, and its elements now run in their order [D84]. The
+maintainer's direction is the other end: «само qlang выражение мы будем
+отправлять через jdt в сам эклипс и пусть его процесс считает ... и
+тогда не надо все эти ресты выставлять в апи, для выдергивания данных»
+(maintainer, 2026-09-26 06:10, session 86982eb5). The query then runs
+where the data lives and only its answer crosses the boundary; the cost
+is a JavaScript engine inside the host's process, since the core is
+JavaScript, and a session whose scope lives in two processes. The
+alternative keeps the evaluator in the client and gives the host
+operands that take a vector whole and bound their own calls.
+
 The error library. It either enters the catalog with examples, as
 pipelines built on the refusal tags, or leaves the package.
 
@@ -2169,3 +2163,4 @@ maintainer wants to explore it before it is fixed.
 [D81]: decisions/D81.md
 [D82]: decisions/D82.md
 [D83]: decisions/D83.md
+[D84]: decisions/D84.md

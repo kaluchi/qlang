@@ -2118,15 +2118,21 @@ value but an error and answers only errors, and the value it takes is a
 map, «т.к. для error легальная нагрузка это только ::map» (09:58), so
 it stays on `::map` [D76]. The walk down the tags [D34] hands it the map
 beneath a tag a step laid over the descriptor, so `!| tag ::Foo | error`
-keeps the tag of the site, as above, and the rename is the idiom of
-`tag` for replacing a tag, `!| payload | tag ::Foo | error`. Open is
-whether `error`, the one verb whose answer is its tag, refuses a map it
-reaches beneath another tag, which makes the lost tag loud at the price
-of a head that sees the tags the walk passed. The cost of the rest is
-one alternative in the grammar, the branch of the tag's mint that
-rebrands an error leaving, the step of a tagged error literal becoming
-an error value of that tag, and the readers of a tag's occurrences, the
-editor's among them, reading the tag of an error literal.
+keeps the tag of the site, as above, while the outer tag names every
+other value, `::A::B{} | type` answering `::A`. The maintainer expects
+the tag a step lays over the descriptor to name the error: «и здесь
+что-то не так работает на мой взгляд .. у меня были другие ожидания»
+(10:05), then, of the descriptor tagged `::Foo{…}` by hand, «вот что я
+ждал примерно» (10:06). So the error `error` makes takes the tag its
+value shows: the outermost tag the walk passed on its way to the map,
+then the map's own, then a `:kind` that names a tag, then `::error`;
+`!| tag ::Foo | error` renames, and the tags beneath the one it shows
+leave with their layers. The cost is one alternative in the grammar,
+the branch of the tag's mint that rebrands an error leaving, the step
+of a tagged error literal becoming an error value of that tag, the
+call handing the primitive of `error` the tags its walk passed, which
+it drops today, and the readers of a tag's occurrences, the editor's
+among them, reading the tag of an error literal.
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

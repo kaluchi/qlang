@@ -47,7 +47,6 @@ verbs of vectors [D72].
 
 | `:category` keyword | Meaning |
 |---|---|
-| `:control` | Control-flow operand (if / coalesce / cond). |
 | `:reflective` | Operand that reads or writes the evaluator state pair (env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 | `:codeAsData` | Source-text ↔ quote ↔ pipeValue ring closer (parse / apply). |
 | `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
@@ -834,6 +833,11 @@ answers `::map`; `::Foo{…}` is the form that stamps the header.
 
 ## Control flow
 
+`if`, `coalesce` and `cond` reside on `::qlang/any` [D72], [D77]; a
+branch, an alternative and a clause is a quote, and a value of the rest
+of `coalesce` or `cond` that is no quote is refused with
+`VerbCodeNotQuoteError`, which names the slot and the value's `:index`.
+
 ### `if cond ~(then) ~(else)`
 
 - **Arity** 4. **Subject** any value (the current `pipeValue`),
@@ -1253,7 +1257,6 @@ address.
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
-| `:control` | `if`, `coalesce`, `cond` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
 | `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
 | `:codeAsData` | `parse`, `apply` |

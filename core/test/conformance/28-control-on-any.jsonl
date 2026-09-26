@@ -1,0 +1,6 @@
+{"name":"if-resides-on-any","query":"::any/if | spec | /condition","expect":"::boolean","decision":["D62","D77"]}
+{"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| [type /slot /index]","expect":"[::VerbCodeNotQuoteError :clauses 1]","decision":"D77"}
+{"name":"an-alternative-of-another-kind-names-its-index","query":"{:a 1} | coalesce ~(/b) /a !| [type /slot /index]","expect":"[::VerbCodeNotQuoteError :alternatives 2]","decision":"D77"}
+{"name":"a-verb-in-a-rest-of-code-runs-as-code","query":"{:a 1} | coalesce ::verb~(/a)","expect":"1","decision":["D67","D77"]}
+{"name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if /missing ~(1) ~(2) !| type","expect":"::ProjectionKeyNotInMapError","decision":["D68","D77"]}
+{"name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| [type /slot]","expect":"[::VerbSlotMissingError :else]","decision":["D68","D77"]}

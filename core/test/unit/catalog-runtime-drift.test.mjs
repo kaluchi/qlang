@@ -49,10 +49,6 @@ function isSubjectError(value) {
   return /SubjectNot.*Error$/.test(tag) || tag.endsWith('SubjectShapeError');
 }
 
-function isArityError(value) {
-  return isErrorValue(value) && value.tag.name === 'Rule10ArityOverflowError';
-}
-
 // Builds a call snippet for one (operand, arity) pair, sourcing
 // every captured-slot type from the manifest's `:modifiers` list
 // and looking up the sample via TYPE_SAMPLE. Returns null when the
@@ -69,12 +65,6 @@ function buildCallSnippet(name, arity, modifiers) {
     args.push(sample);
   }
   return '| ' + name + ' ' + args.join(' ');
-}
-
-// Variadic upper-bound sentinel coming from the manifest. The
-// `:unbounded` keyword's `.name` is the literal we match against.
-function isUnboundedUpper(upper) {
-  return upper && typeof upper === 'object' && upper.name === 'unbounded';
 }
 
 describe('catalog vs runtime drift — derived from the verbs of the catalog', async () => {
@@ -117,7 +107,7 @@ describe('catalog vs runtime drift — derived from the verbs of the catalog', a
       const captured = entry.get('captured');
       const modifiers = entry.get('modifiers') || [];
       const lo = captured[0];
-      const hi = isUnboundedUpper(captured[1]) ? lo + modifiers.length : captured[1];
+      const hi = captured[1];
 
       describe(name, () => {
         for (const ty of subjectTypes) {
@@ -143,32 +133,6 @@ describe('catalog vs runtime drift — derived from the verbs of the catalog', a
             ).toBe(true);
           });
         }
-      });
-    }
-  });
-
-  describe('variadic :captured [min :unbounded] — JS dispatch honours the upper bound', () => {
-    const variadic = manifest.filter(m => {
-      const cap = m.get('captured');
-      return Array.isArray(cap) && isUnboundedUpper(cap[1]);
-    });
-
-    expect(variadic.length,
-      'expected at least one :unbounded operand on the manifest'
-    ).toBeGreaterThan(0);
-
-    for (const entry of variadic) {
-      const name = entry.get('name');
-      const cap = entry.get('captured');
-      const lower = cap[0];
-
-      it(`${name} :captured [${lower} :unbounded] accepts arity well past any hard-coded JS cap`, async () => {
-        const ARGS = 32;
-        const args = Array.from({ length: ARGS }, () => '~(null)').join(' ');
-        const value = await evalQuery(session, `42 | ${name} ${args}`);
-        expect(isArityError(value),
-          `${name} declared :captured [${lower} :unbounded] but raised Rule10ArityOverflowError at ${ARGS} captured args`
-        ).toBe(false);
       });
     }
   });

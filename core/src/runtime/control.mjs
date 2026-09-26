@@ -1,49 +1,24 @@
-// Control-flow operands.
+// The verbs of control, residing on `::qlang/any`, each a plain function
+// over the values the head of its verb checked [D72]: a branch, a clause
+// and an alternative is code the verb runs only when it is chosen, closed
+// at the call [D43], [D73], and the condition of `if` is a boolean
+// computed at the call [D14].
 //
-// A branch, a clause and an alternative is a quote the operand applies
-// only when it is chosen, and the condition of `if` is a value computed
-// at the call [D43]. Every quote is checked at the call, the ones never
-// chosen included. A condition answers a boolean or fails at its slot
-// [D14].
-//
-// Meta lives in lib/qlang/operand/control.qlang.
+// The verbs live in lib/qlang/any.qlang.
 
-import {
-  higherOrderOp,
-  higherOrderOpVariadic,
-  UNBOUNDED
-} from './dispatch.mjs';
 import { isNull, isErrorValue, typeKeyword, NULL } from '../types.mjs';
 import { declareArityError, declareShapeError } from '../errors.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { codeOfModifier } from '../eval.mjs';
 
-const IfConditionNotBooleanError = declareModifierError('IfConditionNotBooleanError', 'if', 2, 'boolean');
-const IfThenNotQuoteError        = declareModifierError('IfThenNotQuoteError',        'if', 3, 'quote');
-const IfElseNotQuoteError        = declareModifierError('IfElseNotQuoteError',        'if', 4, 'quote');
+// The refusals the head of `if` raises at the places it declares.
+declareModifierError('IfConditionNotBooleanError', 'if', 2, 'boolean');
+declareModifierError('IfThenNotQuoteError',        'if', 3, 'quote');
+declareModifierError('IfElseNotQuoteError',        'if', 4, 'quote');
 
-// A variadic operand's refusal names the modifier by its index, from 1.
-const variadicCodeRefusal = operand => ({ index, actualType }) =>
-  `${operand} takes each modifier as a quote, modifier ${index} is ${actualType.name}`;
-const CondClauseNotQuoteError = declareShapeError('CondClauseNotQuoteError',
-  variadicCodeRefusal('cond'), { operand: 'cond', expectedType: 'quote' });
-const CoalesceAlternativeNotQuoteError = declareShapeError('CoalesceAlternativeNotQuoteError',
-  variadicCodeRefusal('coalesce'), { operand: 'coalesce', expectedType: 'quote' });
 const CondConditionNotBooleanError = declareShapeError('CondConditionNotBooleanError',
   ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,
   { operand: 'cond', expectedType: 'boolean' });
-
-// The code of every modifier of a variadic operand.
-async function codesOfModifiers(modifiers, subject, RefusalError) {
-  const codes = [];
-  for (let index = 0; index < modifiers.length; index++) {
-    codes.push(await codeOfModifier(modifiers[index], subject, value =>
-      new RefusalError({ index: index + 1, actualType: typeKeyword(value), actualValue: value })));
-  }
-  return codes;
-}
-
 const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline',
   { operand: 'coalesce' }
@@ -53,64 +28,34 @@ const CondNoBranchesError = declareArityError('CondNoBranchesError',
   { operand: 'cond' }
 );
 
-export const ifOp = higherOrderOp('if', 4,
-  async (ifSubject, ifCondLambda, ifThenModifier, ifElseModifier) => {
-    const ifThen = await codeOfModifier(ifThenModifier, ifSubject, v => new IfThenNotQuoteError(v));
-    const ifElse = await codeOfModifier(ifElseModifier, ifSubject, v => new IfElseNotQuoteError(v));
-    const ifCondition = await ifCondLambda(ifSubject);
-    if (typeof ifCondition !== 'boolean') throw new IfConditionNotBooleanError(ifCondition);
-    return ifCondition ? await ifThen(ifSubject) : await ifElse(ifSubject);
-  });
+bindPrim('if', async (subject, condition, thenCode, elseCode) =>
+  (condition ? await thenCode(subject) : await elseCode(subject)));
 
-// Returns the first alternative that resolves to a non-null,
-// non-error value — both `null` (the "no value" sentinel) and
-// `ErrorValue` (typically a strict-projection miss like `/missing`
-// on a Map without the key) count as "skip and try next". The
-// fall-back is `null` when every alternative fails or yields
-// `null`. Treating ErrorValue as "try next" is what makes
-// `coalesce ~(/a) ~(/b) ~("default")` continue past a missing-key error
-// from `/a` — the operand's intent is "first defined value",
-// strict projection turned "undefined" into an error, this catch
-// restores the iteration semantics.
-export const coalesce = higherOrderOpVariadic('coalesce',
-  async (coalesceSubject, ...coalesceModifiers) => {
-    if (coalesceModifiers.length === 0) {
-      throw new CoalesceNoAlternativesError();
-    }
-    const coalesceLambdas = await codesOfModifiers(coalesceModifiers, coalesceSubject, CoalesceAlternativeNotQuoteError);
-    for (const coalesceAlt of coalesceLambdas) {
-      const coalesceVal = await coalesceAlt(coalesceSubject);
-      if (isNull(coalesceVal) || isErrorValue(coalesceVal)) continue;
-      return coalesceVal;
-    }
-    return NULL;
-  }, [1, UNBOUNDED]);
+// The first alternative that answers neither null nor an error value: a
+// strict projection's miss, `/missing` on a map without the key, is an
+// error, and the walk skips it as it skips null, so `coalesce ~(/a)
+// ~(/b) ~("default")` reads the first value defined.
+bindPrim('coalesce', async (subject, alternatives) => {
+  if (alternatives.length === 0) throw new CoalesceNoAlternativesError();
+  for (const alternative of alternatives) {
+    const answer = await alternative(subject);
+    if (isNull(answer) || isErrorValue(answer)) continue;
+    return answer;
+  }
+  return NULL;
+});
 
-export const cond = higherOrderOpVariadic('cond',
-  async (condSubject, ...condModifiers) => {
-    if (condModifiers.length < 2) {
-      throw new CondNoBranchesError();
+bindPrim('cond', async (subject, clauses) => {
+  if (clauses.length < 2) throw new CondNoBranchesError();
+  let clauseIndex = 0;
+  while (clauseIndex + 1 < clauses.length) {
+    const answer = await clauses[clauseIndex](subject);
+    if (isErrorValue(answer)) return answer;
+    if (typeof answer !== 'boolean') {
+      throw new CondConditionNotBooleanError({ index: clauseIndex + 1, actualType: typeKeyword(answer), actualValue: answer });
     }
-    const condLambdas = await codesOfModifiers(condModifiers, condSubject, CondClauseNotQuoteError);
-    let condIdx = 0;
-    while (condIdx + 1 < condLambdas.length) {
-      const condAnswer = await condLambdas[condIdx](condSubject);
-      if (isErrorValue(condAnswer)) return condAnswer;
-      if (typeof condAnswer !== 'boolean') {
-        throw new CondConditionNotBooleanError({ index: condIdx + 1, actualType: typeKeyword(condAnswer), actualValue: condAnswer });
-      }
-      if (condAnswer) return await condLambdas[condIdx + 1](condSubject);
-      condIdx += 2;
-    }
-    if (condIdx < condLambdas.length) {
-      return await condLambdas[condIdx](condSubject);
-    }
-    return NULL;
-  }, [2, UNBOUNDED]);
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-// `ifOp` is the JS-level identifier for the qlang `if` operand
-// (because `if` is a JS reserved word).
-bindPrim('if',          ifOp);
-bindPrim('coalesce',    coalesce);
-bindPrim('cond',        cond);
+    if (answer) return await clauses[clauseIndex + 1](subject);
+    clauseIndex += 2;
+  }
+  return clauseIndex < clauses.length ? await clauses[clauseIndex](subject) : NULL;
+});

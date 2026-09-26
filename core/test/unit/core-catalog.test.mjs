@@ -282,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(199);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(195);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(17);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(14);
   });
 });
 
@@ -305,7 +305,6 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('control')).toBe(3);
     expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within
     expect(categories.get('reflective')).toBe(4);   // env use manifest runExamples
     expect(categories.get('codeAsData')).toBe(2); // parse apply

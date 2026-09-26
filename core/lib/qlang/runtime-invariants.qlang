@@ -340,16 +340,6 @@
 
 |~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
 
-::HigherOrderOpArityMismatchError
-  |~~ Dispatch invariant — `higherOrderOp` impl received an
-      unexpected captured-arg count.
-  ~~|
-
-::HigherOrderOpVariadicMissingCapturedError
-  |~~ Dispatch invariant — `higherOrderOpVariadic` registration
-      is missing the `captured` range argument.
-  ~~|
-
 ::NullaryOpArgsProvidedError
   |~~ Nullary operand received captured arguments.
 

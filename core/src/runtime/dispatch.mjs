@@ -17,12 +17,10 @@
 // dispatch shape itself.
 //
 //   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
-//   higherOrderOp(name, n, impl)     — pure `(subject, ...lambdas) → result`
 //   nullaryOp(name, impl)            — pure `(subject) → result`
 //   overloadedOp(name, maxArity, impls) — dispatch by captured-arg count
 //   stateOp(name, arity, impl)       — raw `(state, lambdas) → state`
-//   stateOpVariadic(name, maxArity, impl, captured) — variadic state op
-//   higherOrderOpVariadic(name, maxArity, impl, captured) — variadic higher-order
+//   stateOpVariadic(name, impl, captured) — state op over a range of counts
 
 import { makeFn } from '../rule10.mjs';
 import { withPipeValue, envGet } from '../state.mjs';
@@ -30,14 +28,14 @@ import {
   declareInvariantError,
   declareArityError
 } from '../errors.mjs';
-import { keyword, isQMap, makeTaggedInstance, bindingValueOf } from '../types.mjs';
+import { isQMap, makeTaggedInstance, bindingValueOf } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
 // `mintTaggedInstance` lives in `eval.mjs`, which depends on
-// `runtime/index.mjs`, which depends on `runtime/control.mjs`,
-// which depends on this file — a static import here would close
-// a cycle and trip TDZ on `UNBOUNDED` whenever a consumer enters
-// the graph through `runtime/dispatch.mjs` first (subpath import
+// `runtime/index.mjs`, which depends on `runtime/use-op.mjs`, which
+// builds `use` from this file at its top level — a static import here
+// would close a cycle and trip TDZ whenever a consumer enters the graph
+// through `runtime/dispatch.mjs` first (subpath import
 // `@kaluchi/qlang-core/dispatch`). The dynamic form below resolves
 // `eval.mjs` after every module in the cycle finishes initialising;
 // Node caches the resolution after the first call.
@@ -46,10 +44,6 @@ import { tagBindingKey } from '../env-keys.mjs';
 const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
   ({ operandName, expectedArity, actualArity }) =>
     `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`,
-  { operand: '::call' });
-const HigherOrderOpArityMismatchError = declareArityError('HigherOrderOpArityMismatchError',
-  ({ operandName, expectedCaptured, actualArity }) =>
-    `${operandName} expects ${expectedCaptured} captured args (higher-order), got ${actualArity}`,
   { operand: '::call' });
 const NullaryOpArgsProvidedError = declareArityError('NullaryOpArgsProvidedError',
   ({ operandName, actualArity }) =>
@@ -60,22 +54,11 @@ const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
     `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`,
   { operand: '::call' });
 
-// Unbounded-upper-limit sentinel for variadic operand `captured`
-// ranges. Surfaced into manifest descriptors as a keyword value so
-// user code can pattern-match with `eq :unbounded`.
-export const UNBOUNDED = keyword('unbounded');
-
 // ── Per-site invariant errors for variadic registration ───────
 
 const StateOpVariadicMissingCapturedError = declareInvariantError(
   'StateOpVariadicMissingCapturedError',
   ({ operandName }) => `stateOpVariadic('${operandName}') requires captured range`,
-  { operand: '::qlang' }
-);
-
-const HigherOrderOpVariadicMissingCapturedError = declareInvariantError(
-  'HigherOrderOpVariadicMissingCapturedError',
-  ({ operandName }) => `higherOrderOpVariadic('${operandName}') requires captured range`,
   { operand: '::qlang' }
 );
 
@@ -115,18 +98,6 @@ export function valueOp(name, n, impl) {
   }, { captured: [n - 1, n] });
 }
 
-export function higherOrderOp(name, n, impl) {
-  return makeFn(name, n, async (state, hoLambdas) => {
-    const capturedCount = hoLambdas.length;
-    if (capturedCount !== n - 1) {
-      throw new HigherOrderOpArityMismatchError({
-        operandName: name, expectedCaptured: n - 1, actualArity: capturedCount
-      });
-    }
-    return withPipeValue(state, await impl(state.pipeValue, ...hoLambdas));
-  }, { captured: [n - 1, n - 1] });
-}
-
 export function nullaryOp(name, impl) {
   return makeFn(name, 1, async (state, nullaryLambdas) => {
     if (nullaryLambdas.length !== 0) {
@@ -155,26 +126,11 @@ export function stateOp(name, arity, impl) {
   }, { captured: [expectedCaptured, expectedCaptured] });
 }
 
-function variadicMaxArity(captured) {
-  const upper = captured[1];
-  if (upper === UNBOUNDED) return Infinity;
-  return upper;
-}
-
 export function stateOpVariadic(name, impl, captured) {
   if (!captured) {
     throw new StateOpVariadicMissingCapturedError({ operandName: name });
   }
-  return makeFn(name, variadicMaxArity(captured), async (state, variadicLambdas) => {
+  return makeFn(name, captured[1], async (state, variadicLambdas) => {
     return await impl(state, variadicLambdas);
-  }, { captured });
-}
-
-export function higherOrderOpVariadic(name, impl, captured) {
-  if (!captured) {
-    throw new HigherOrderOpVariadicMissingCapturedError({ operandName: name });
-  }
-  return makeFn(name, variadicMaxArity(captured), async (state, hoVariadicLambdas) => {
-    return withPipeValue(state, await impl(state.pipeValue, ...hoVariadicLambdas));
   }, { captured });
 }

@@ -3,5 +3,5 @@
 {"name":"env-after-bind","query":":double ::verb~(mul 2) | env | has :double","expect":"true"}
 {"name":"env-after-use-install","query":"{:pi 3.14} | use | env | has :pi","expect":"true"}
 {"name":"env-operator-ignores-pipeValue","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
-{"name":"data-assembled-builtin-descriptor-dispatches","query":"::builtin{:impl :qlang/prim/tag} | :t / | [::Foo 1] | t","expect":"::Foo(1)"}
+{"name":"data-assembled-builtin-descriptor-dispatches","query":"::builtin{:impl :qlang/prim/use} | :u / | {:x 1} | u | x","expect":"1"}
 {"name":"data-assembled-descriptor-refuses-a-non-handle-impl","query":"::builtin{:impl 42} | :bogus / | 1 | bogus !| type","expect":"::BuiltinImplNotPrimitiveKeyError"}

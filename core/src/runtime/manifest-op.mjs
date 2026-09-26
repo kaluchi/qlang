@@ -14,10 +14,8 @@
 // axis trio in `axis.mjs` (`::vec/count | source` / `| docs` /
 // `| examples`), which reads the declaration where it was written.
 
-import { stateOp } from './dispatch.mjs';
-import { bindPrim } from '../primitives.mjs';
-import { withPipeValue } from '../state.mjs';
-import { isKeyword, isTagKeyword, isErrorValue, typeKeyword } from '../types.mjs';
+import { bindStateReader } from '../primitives.mjs';
+import { isErrorValue } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
@@ -25,11 +23,9 @@ import { declaringRecordOf, examplesOfRecord, refusalOf } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-const ManifestSubjectNotTagError = declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
-const RunExamplesSubjectShapeError = declareShapeError('RunExamplesSubjectShapeError',
-  ({ actualType }) => `runExamples requires a Keyword (binding name) or a tag name, got ${actualType.name}`,
-  { operand: 'runExamples', position: 'subject', expectedType: ['keyword', 'tag'] }
-);
+// `manifest` resides on `::tag` and `runExamples` on `::keyword` and
+// `::tag`, each primitive reading the state of the call [D79].
+declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
 const RunExamplesBindingNotFoundError = declareShapeError('RunExamplesBindingNotFoundError',
   ({ bindingName }) =>
     `runExamples: no binding-step found for '${bindingName}' across loaded modules`,
@@ -45,10 +41,7 @@ function errorMessageOf(errorValue) {
 
 // `manifest` — asked of a noun, the set of what lies below it in the
 // tree of names [D62].
-export const manifest = stateOp('manifest', 1, (state, _lambdas) => {
-  if (!isTagKeyword(state.pipeValue)) throw new ManifestSubjectNotTagError(state.pipeValue);
-  return withPipeValue(state, namesUnder(state.env, state.pipeValue.name));
-});
+bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
 
 // `runExamples` — execute every Quote segment in a binding's
 // attached doc-prefix as a self-test expression.
@@ -85,19 +78,12 @@ async function runQuoteEntry(quote, callerState) {
 // name that names no binding is refused as `examples` refuses it,
 // with the addresses where the verbs of that name live.
 function recordNamedBy(env, subject) {
-  if (!isKeyword(subject) && !isTagKeyword(subject)) {
-    throw new RunExamplesSubjectShapeError({ actualType: typeKeyword(subject), actualValue: subject });
-  }
   const record = declaringRecordOf(env, subject);
   if (record === null) throw new RunExamplesBindingNotFoundError(refusalOf(env, subject));
   return record;
 }
 
-export const runExamples = stateOp('runExamples', 1, async (state, _runExLambdas) => {
-  const quotes = await examplesOfRecord(state, recordNamedBy(state.env, state.pipeValue));
-  const results = await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
-  return withPipeValue(state, results);
+bindStateReader('runExamples', async (subject, state) => {
+  const quotes = await examplesOfRecord(state, recordNamedBy(state.env, subject));
+  return await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
 });
-
-bindPrim('manifest',    manifest);
-bindPrim('runExamples', runExamples);

@@ -17,7 +17,7 @@
 // primitive its `::builtin{:impl}` step names over the checked values. A
 // verb without a body is a contract, which answers no call.
 
-import { PRIMITIVE_REGISTRY, bindTypeConstructor } from '../primitives.mjs';
+import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState } from '../primitives.mjs';
 import { codeOf, evalAst } from '../eval.mjs';
 import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
@@ -414,8 +414,14 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const primitiveKey = primitiveKeyOfVerb(signature, verb);
   const answer = primitiveKey === null
     ? (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue
-    : await PRIMITIVE_REGISTRY.resolve(primitiveKey)(served, ...primitiveArgumentsOf(signature, slotValues, state));
+    : await runPrimitive(PRIMITIVE_REGISTRY.resolve(primitiveKey), served, primitiveArgumentsOf(signature, slotValues, state), state);
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
+}
+
+// A primitive runs over the values its head checked, and a reader of the
+// scope over the state of the call after them [D79].
+function runPrimitive(primitive, served, slotArguments, state) {
+  return readsState(primitive) ? primitive(served, ...slotArguments, state) : primitive(served, ...slotArguments);
 }
 
 // What a primitive takes for its slots: each value as the head checked

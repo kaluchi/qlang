@@ -761,3 +761,257 @@
         |  eq [::ApplyCodeNotQuoteError ::number]
        )
   ~~|
+
+:env
+  |~~ Replaces pipeValue with the bindings the scope holds — a Map
+      keyed by binding name carrying what the query, the session and
+      a module's `use` wrote at this point in the pipeline, each the
+      record of its binding, `::binding` with its name, docs, value,
+      source and module. The verbs
+      and the nouns of the core and of the hosts stay with their
+      providers, listed from `::qlang | manifest`. Inside a fork,
+      returns the fork-local scope, including the declarations
+      that landed in the same branch. Use it for
+      introspection or for forwarding a specific binding to another
+      step (`env | /myFlag`).
+
+      ~(:limit 10 | env | keys | eq #[:limit])
+      ~(env | has :count | not)
+      ~(42 | :answer / | env | /answer | /value | eq 42)
+      ~(99 | :secret / | env | has :secret | eq true)
+  ~~|
+  ::verb~(:returns ::map | ::builtin{:impl :qlang/prim/env})
+
+:source
+  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
+      in its scope, the `:source` of its record, which `parse`
+      prints as its text; `::Tag | source` the tag's. A binding no
+      step declared, a value `use` or a host bound, answers null.
+      Any other value reads the declaration of its kind.
+
+      ~(::vec/filter | source | parse | contains ":filter")
+      ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
+      ~("text" | source | eq (::string | source))
+  ~~|
+  ::verb~(:returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
+
+::SourceBindingNotFoundError
+  |~~ `source` — no declaration found for the name it read: a
+      keyword that names no binding of its scope, the name of a
+      verb a provider keeps among them, or a tag name that names
+      nothing. `:addresses` holds the addresses where the verbs of
+      that name live.
+
+      ~(
+        :nonexistent-binding | source
+        !| [type /bindingName]
+        |  eq [::SourceBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | source !| /addresses | has ::vec/filter)
+  ~~|
+
+:docs
+  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
+      on the `BindStep` that binds `:name` in its scope, and
+      `::vec/filter | docs` the page of a verb by its address. Each
+      Doc-value `/segments`
+      surfaces TaggedLit and Quote inline structure for navigation;
+      Quote segments are the evaluable examples `runExamples` runs.
+      Any other value reads the page of its kind, and the `:kind`
+      field of a map names nothing: the map reads the page of
+      `::map`.
+
+      ~(::vec/filter | docs | first | /content | contains "predicate")
+      ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
+      ~(5 | docs | eq (::number | docs))
+      ~({:kind ::set} | docs | eq (::map | docs))
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docs})
+
+::DocsBindingNotFoundError
+  |~~ `docs` — no declaration found for the name it read: a
+      keyword that names no binding of its scope, the name of a
+      verb a provider keeps among them, or a tag name that names
+      nothing. `:addresses` holds the addresses where the verbs of
+      that name live.
+
+      ~(
+        :nonexistent-binding | docs
+        !| [type /bindingName]
+        |  eq [::DocsBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | docs !| /addresses | has ::vec/filter)
+  ~~|
+
+:examples
+  |~~ `:name | examples` — Vec of Quote-values extracted from the
+      binding's docs. `runExamples` consumes this Vec to evaluate
+      each Quote against an isolated env; `:ok` is true iff the
+      example answers true. Any other value reads the examples of
+      its kind.
+
+      ~(::vec/filter | examples | count | gt 0)
+      ~(::vec/filter | examples | first | parse | contains "filter")
+      ~(5 | examples | eq (::number | examples))
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/examples})
+
+::ExamplesBindingNotFoundError
+  |~~ `examples` — no declaration found for the name it read: a
+      keyword that names no binding of its scope, the name of a
+      verb a provider keeps among them, or a tag name that names
+      nothing. `:addresses` holds the addresses where the verbs of
+      that name live.
+
+      ~(
+        :nonexistent-binding | examples
+        !| [type /bindingName]
+        |  eq [::ExamplesBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | examples !| /addresses | has ::vec/filter)
+  ~~|
+
+:spec
+  |~~ `:name | spec` — env-side declaration descriptor Map for the
+      named binding. Operand declarations surface as
+      `{:impl :qlang/prim/<name> :category … :subject …
+      :modifiers … :returns … :throws … :captured … :effectful …}`
+      with identity `::builtin` on the JS-header slot (reachable
+      through `:name | spec | type`). `:captured` and `:effectful`
+      are stamped from the resolved primitive at bootstrap, and
+      `:throws` is read back off the sites that record this binding
+      as their `:operand`; the rest is authored in the catalog
+      body. Error tags surface as
+      `{:category :typeError :operand … :position … :expectedType
+      …}`, every field of it stamped at bootstrap from the throw
+      site that records it — the catalog side of an error tag
+      carries the prose and the example segments `docs` and
+      `examples` answer with. The constructors of kinds surface as
+      `{:impl :qlang/type/<tag> :throws […]}`. All three carry the
+      same `::builtin` header identity.
+      A declared verb surfaces as its signature, a `::spec~(…)`;
+      any other binding as the value its record holds. Any other
+      value reads the descriptor of its kind. A built-in declared as a
+      verb on its noun surfaces as its signature too, its noun the
+      subject and its refusals `:throws`, and a projection of a
+      signature reads the body of the declaration it names [D72].
+
+      The discriminator path for per-tag static facts attached
+      to any tagged value — `result !| spec | /category`
+      reads `:typeError` off the error tag the error carries;
+      `::number/add | spec | /throws` lists the per-site error
+      classes `add` raises, and each of those names `:add` back on
+      its own `/operand`.
+
+      ~(::number/add | spec | /subject | eq ::number)
+      ~(::AddLeftNotNumberError | spec | /operand | eq :add)
+      ~(::verb | spec | /impl | eq :qlang/type/verb)
+      ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
+      ~("x" | add 1 !| spec | /category | eq :typeError)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/spec})
+
+::SpecBindingNotFoundError
+  |~~ `spec` — no declaration found for the name it read: a
+      keyword that names no binding of its scope, the name of a
+      verb a provider keeps among them, or a tag name that names
+      nothing. `:addresses` holds the addresses where the verbs of
+      that name live.
+
+      ~(
+        :nonexistent-binding | spec
+        !| [type /bindingName]
+        |  eq [::SpecBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | spec !| /addresses | has ::vec/filter)
+  ~~|
+
+:runExamples
+  |~~ Walks every quote among the segments of the docs of the binding a
+      name reads, a keyword or a tag name, the address of a verb among
+      them, and answers a vector of result maps shaped `{:snippet
+      :actual :ok :error}`. Each quote runs in an isolated scope; `:ok`
+      is true iff the example answers true, every other answer, an
+      error value among them, failing it. The composition `::number |
+      spec | /verbs | every ~(runExamples | every ~(/ok))` runs every
+      example of the verbs of numbers and must answer true.
+
+      ~(::number/add | runExamples * /ok | distinct | eq #[true])
+      ~(::number/gt | runExamples | count | gte 1)
+      ~(42 | runExamples !| /addresses | eq #[::keyword/runExamples ::tag/runExamples])
+  ~~|
+  ::verb~()
+
+::RunExamplesBindingNotFoundError
+  |~~ `runExamples` — no declaration found for the name it read, as
+      `examples` finds none: a keyword that names no binding of its
+      scope, the name of a verb a provider keeps among them, or a
+      tag name that names nothing. `:addresses` holds the addresses
+      where the verbs of that name live.
+
+      ~(
+        :nonexistent-binding | runExamples
+        !| [type /bindingName]
+        |  eq [::RunExamplesBindingNotFoundError :nonexistent-binding]
+       )
+      ~(:filter | runExamples !| /addresses | has ::vec/filter)
+      ~(::Nonexistent | runExamples !| /bindingName | eq ::Nonexistent)
+  ~~|
+
+:tag
+  |~~ TaggedInstance assemble — mints `::Tag<value>` at runtime
+      from a value and a TagKeyword. Three call shapes form the
+      symmetric partner to the `[type, payload]` split:
+
+        bare  `[tag, value] | tag` — subject is a 2-element Vec
+              `[tagKeyword, value]` (exactly the shape
+              `[type payload]` projects from any tagged value).
+              Round-trip pair: `tagged | [type payload] | tag`
+              recovers the same TaggedInstance for composite-
+              shape payloads.
+
+        bound `value | tag ::Foo` — subject becomes the wrapped
+              value, captured TagKeyword becomes identity.
+
+        full  `tag value-expr tag-expr` — both args captured,
+              pipeValue is context. Compact rebuild patterns:
+              `pair | tag /1 /0` reorders Vec elements into
+              the operand's `value, tag` order.
+
+      A TaggedInstance subject (bound form) wraps into a nested
+      layer (`tagged | tag ::Outer` → `::Outer[tagged]`); to
+      replace identity rather than nest, route through
+      `tagged | payload | tag ::Other`.
+
+      ~(42 | tag ::Box | payload | eq 42)
+      ~([1 2 3] | tag ::Triple | type | eq ::Triple)
+      ~(::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
+      ~(1 | add "1" !| [type payload] | tag | error !| type | eq ::AddRightNotNumberError)
+      ~(::Inner {} | ::Outer {} | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
+  ~~|
+  ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
+
+::TagModifierNotTagKeywordError
+  |~~ Captured argument at position 2 of `tag` must be a TagKeyword.
+      ~(
+        42 | tag :foo
+        !| [type /actualType]
+        |  eq [::TagModifierNotTagKeywordError ::keyword]
+       )
+  ~~|
+
+::TagBareSubjectShapeError
+  |~~ `tag` (bare form) requires a 2-element Vec `[tagKeyword,
+      value]` subject. Non-Vec subject or Vec of length != 2 fires
+      this error.
+      ~(
+        42 | tag
+        !| [type /actualType]
+        |  eq [::TagBareSubjectShapeError ::number]
+       )
+      ~(
+        [::Foo 1 2] | tag
+        !| [type /actualLength]
+        |  eq [::TagBareSubjectShapeError 3]
+       )
+  ~~|

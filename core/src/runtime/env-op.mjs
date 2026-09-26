@@ -1,16 +1,11 @@
-// `env` — the reflective operand that reads the env directly: it
-// answers the bindings the scope holds as a Map, the names the query,
-// the session and a module's `use` wrote [D61], each as the record of
-// its binding [D63], so introspective queries (`env | keys`, `env | /x
-// | /value`) compose through the regular Map operand surface.
+// `env` reads the scope of its call: it answers the bindings the scope
+// holds as a map, the names the query, the session and a module's `use`
+// wrote [D61], each as the record of its binding [D63], so introspective
+// queries (`env | keys`, `env | /x | /value`) compose through the
+// verbs of maps. The verb resides on `::qlang/any`, and its primitive
+// reads the state of the call [D79].
 
-import { stateOp } from './dispatch.mjs';
-import { bindPrim } from '../primitives.mjs';
-import { withPipeValue } from '../state.mjs';
+import { bindStateReader } from '../primitives.mjs';
 import { scopeBindingsOf } from './nouns.mjs';
 
-// `env` — replaces `pipeValue` with the bindings of the scope.
-export const env = stateOp('env', 1, (state, _lambdas) =>
-  withPipeValue(state, scopeBindingsOf(state.env)));
-
-bindPrim('env', env);
+bindStateReader('env', (subject, state) => scopeBindingsOf(state.env));

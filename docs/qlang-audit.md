@@ -757,13 +757,11 @@ slot of code takes a quote [D67], [D68]:
 120
 ```
 
-So does a built-in declared on its noun, the verbs of numbers, of
-booleans, of strings, of quotes, of tagged values, of the containers and
-of their algebra, the comparisons, the predicates and the control of any
-value, the conversions and the JSON codec: its head checks the subject
-and the slots before its primitive runs and raises the refusal its site
-declares at that place, and `spec` answers the head [D72], [D73], [D74],
-[D75], [D76], [D77], [D78]:
+So does a built-in declared on its noun, which every operand of the core
+is but the loader's `use`: its head checks the subject and the slots
+before its primitive runs and raises the refusal its site declares at
+that place, and `spec` answers the head [D72], [D73], [D74], [D75],
+[D76], [D77], [D78], [D79]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -773,26 +771,25 @@ declares at that place, and `spec` answers the head [D72], [D73], [D74],
 [::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]
 ```
 
-Every other built-in executes none of its own. Its modifiers are
-evaluated at the call as a verb's are [D56], and its implementation
+The loader's `use` and every operand of a host execute none of their
+own. Their modifiers are evaluated at the call as a verb's are [D56],
+and the implementation of each
 checks them in code of its own, around which sit the dispatch wrappers
 in `core/src/runtime/dispatch.mjs`, one per calling shape, and the arity
 classes of Rule 10.
 
-The catalog declares a slot vocabulary for every other operand, and
-the runtime reads none of it, so the declarations are free to be wrong,
-and they are:
+Such an operand declares a slot vocabulary, and the runtime reads none
+of it, so the declarations are free to be wrong, and they are:
 
 ```qlang
-> ::any/tag | spec | /modifiers
-[:tagKeyword]
+> ::any/use | spec | /modifiers
+[:any]
 
-> null | tag 5 ::Foo
-::Foo(5)
+> use 5 !| type
+::UseNamespaceNotKeywordError
 ```
 
-`tag` is declared to take one modifier and takes two, the value before
-the tag.
+`use` is declared to take any operand and refuses a number.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -807,8 +804,8 @@ page of a refusal names the kind it expected with one:
 > 1 | type
 ::number
 
-> ::any/tag | spec | /returns
-:taggedInstance
+> ::any/use | spec | /subject
+:any
 ```
 
 The kinds move into the declarations with the kinds of the slots
@@ -829,7 +826,7 @@ its author wherever it is applied [D44].
 
 The wrappers are also the host's interface. The command line's I/O
 operands and every operand of the sister project are built from
-`nullaryOp`, `valueOp` and `overloadedOp` and from the per-site error
+`nullaryOp`, `valueOp`, `overloadedOp` and `stateOp` and from the per-site error
 factories, imported through the `dispatch` and `operand-errors`
 subpaths of the core (`cli/src/io-operands.mjs`, and
 `cli/lib/jdt/graph.impl.mjs` in the sister project, which also carries
@@ -858,25 +855,19 @@ of the runtime is exported for building operands.
 
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
-share [D62], [D67], as the verbs of containers, of their algebra, of
-strings and the conversions do [D73], [D74], [D75], [D78]. Where the catalog has not moved a verb
+share [D62], [D67], as the verbs of the core that several kinds answer
+do [D73], [D74], [D75], [D78], [D79]. Where a host has not moved a verb
 onto its nouns, one descriptor stands for every kind its subject lists,
-and each of those kinds reads the same one:
+each of those kinds reads the same one, and a call by address reaches
+that one descriptor as well, so the kind in the address checks nothing.
+In the sister project:
 
-```qlang
-> ::vec/tag | spec | /subject
-[:any :vec]
+```sh
+$ node cli/bin/jdt q '::string/@type | spec | /subject'
+[:string :map]
 
-> ::vec/tag | spec | eq (::any/tag | spec)
+$ node cli/bin/jdt q '::string/@type | spec | eq (::map/@type | spec)'
 true
-```
-
-A call by address reaches that one descriptor as well, so it serves any
-kind the descriptor lists, and the kind in the address checks nothing:
-
-```qlang
-> 42 | vec/tag ::Foo
-::Foo(42)
 ```
 
 The vocabulary carries the calling shape as well as the kind. A
@@ -963,20 +954,20 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
-The verbs of numbers, of booleans, of strings, of quotes, of tagged
-values, of the containers and of their algebra, and the verbs of any
-value, live in the module of their noun [D72], [D73], [D74], [D75],
-[D76], [D77], [D78]. The other modules of the
-core are the families of the categories the catalog once sorted its
-operands by, where the manifest answers nouns, so the verbs of one noun
-come from several files and one file feeds several nouns, and the
-runtime joins a kind to its verbs by scanning every provider for the
-kinds a descriptor's `:subject` lists (`core/src/runtime/nouns.mjs`,
-`verbsOfKind`):
+The verbs of the core live in the module of their noun, and the loader's
+`use` in the one family left, `core/lib/qlang/operand/reflective.qlang`
+[D72], [D79]. The modules of a host are the families of its operands,
+where the manifest answers nouns, so the verbs of one noun come from
+several files and one file feeds several nouns, and the runtime joins a
+kind to a host's verbs by scanning every provider for the kinds a
+descriptor's `:subject` lists (`core/src/runtime/nouns.mjs`,
+`verbsOfKind`). In the sister project:
 
 ```sh
-$ grep -lE ':subject (\[[^]]*)?:vec\b' core/lib/qlang/operand/*.qlang
-core/lib/qlang/operand/typeConversion.qlang
+$ grep -lE ':subject (\[[^]]*)?:map\b' cli/lib/jdt/*.qlang
+cli/lib/jdt/coverage.qlang
+cli/lib/jdt/graph.qlang
+cli/lib/jdt/render.qlang
 ```
 
 What the merge leaves behind is the runtime's housekeeping in the
@@ -1242,7 +1233,7 @@ The catalog itself speaks the vocabulary of its implementation. The
 prose a session reads to learn the language names JavaScript files,
 symbols and services: the entry of `spec` names a descriptor's
 identity “`::builtin` on the JS-header slot”
-(`core/lib/qlang/operand/axis.qlang`), and the invariants
+(`core/lib/qlang/any.qlang`), and the invariants
 module speaks of the `BUILTIN_IMPL_SLOT` and of
 `createPrimitiveRegistry()` and sends the reader to
 `cli/src/cli-locator.mjs` (`core/lib/qlang/runtime-invariants.qlang`).
@@ -1467,7 +1458,7 @@ A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang
-> ::any/tag | spec | type
+> ::any/use | spec | type
 ::builtin
 
 > ::builtin{:a 1}
@@ -1849,7 +1840,8 @@ declaration, and that is how `as` is spelled once it is gone.
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
 an `eq` value [D42]; a second declaration of a name in one scope is
-refused [D44]; the dispatch wrappers are gone; the declarations of the
+refused [D44]; the dispatch wrappers are gone, but for the loader's,
+which the one loader of M4 replaces [D79]; the declarations of the
 catalog are true, since the runtime executes them.
 
 ### Milestone 3 · Values
@@ -2191,3 +2183,4 @@ maintainer wants to explore it before it is fixed.
 [D76]: decisions/D76.md
 [D77]: decisions/D77.md
 [D78]: decisions/D78.md
+[D79]: decisions/D79.md

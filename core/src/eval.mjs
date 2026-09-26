@@ -932,10 +932,10 @@ export function codeOf(code, callState) {
 //
 // Resolves the code of a reducer slot into the per-step combiner
 // `reduce` folds with. The reducer is applied as `reducer(acc, element)`:
-//   - a name its quote holds, of an operand (`add` / `mul` / `union` / …)
-//     or a verb, is called as the pipe calls it, accumulator as subject
-//     and element as its one modifier (`acc | add element`), the verb
-//     that resides on the accumulator among them [D72];
+//   - a name its quote holds of a verb, `add`, `mul`, `union` or one the
+//     query declares, is called as the pipe calls it, accumulator as
+//     subject and element as its one modifier (`acc | add element`), the
+//     verb that resides on the accumulator among them [D72];
 // Returns null when the captured arg is not such a reference (an inline
 // expression, a literal, or a name of a value), so `reduce` lifts its
 // own per-site error.
@@ -946,7 +946,7 @@ export function resolveBinaryReducer(reducerLambda) {
   const lookupName = astNode.name;
   if (!envHas(callerState.env, lookupName)) return null;
   const resolved = bindingValueOf(envGet(callerState.env, lookupName));
-  if (!isVerb(resolved) && !(isQMap(resolved) && isBuiltinDescriptor(resolved))) return null;
+  if (!isVerb(resolved)) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }

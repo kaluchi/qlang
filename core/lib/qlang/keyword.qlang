@@ -42,3 +42,11 @@
       ~(:"foo bar" | keyword | eq "foo bar")
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/keyword})
+
+:runExamples
+  |~~ The results of the examples of the binding the keyword names in
+      its scope.
+
+      ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runExamples * /ok | eq [true])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runExamples})

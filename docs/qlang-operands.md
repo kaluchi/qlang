@@ -47,8 +47,7 @@ verbs of vectors [D72].
 
 | `:category` keyword | Meaning |
 |---|---|
-| `:reflective` | Operand that reads or writes the evaluator state pair (env / use / manifest / runExamples). The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
-| `:axis` | Declarative-metadata reader from binding name to source AST (source / docs / examples). |
+| `:reflective` | The loader, `use`, which writes the scope. The declarative binding form `:name body` parses as a BindStep (a grammar production with its own dispatch path). |
 
 ## Container reducers — `(Vec / Set / Map) → Scalar`
 
@@ -763,6 +762,9 @@ every value under a tag [D72], [D78]; `tag` is a descriptor still.
 
 ### `tag`
 
+`tag` resides on `::qlang/any` and reads the scope of its call, whose
+binding of the tag holds its constructor [D79].
+
 - **Arity** 2. Three call shapes form the symmetric assemble-side
   partner for the `[type, payload]` split:
   - **bare** `[tag, value] | tag` — subject is a 2-element Vec
@@ -903,14 +905,13 @@ of `coalesce` or `cond` that is no quote is refused with
 
 ## Reflective built-ins
 
-`env`, `use`, `manifest` and `runExamples` are
-**reflective operands**: they read or write the full evaluator
-state pair. All of them are ordinary entries in `langRuntime()`,
-look up like any other identifier, and can be shadowed by a
-`:name body` BindStep. Their distinguishing feature
-is internal — the impl receives `(state, lambdas)` directly and
-threads the full state through, in contrast with pure operands
-that take `(pipeValue, args)`.
+`env`, `manifest` and `runExamples` read the scope of their call, the
+primitive of each taking the state of the call after its values [D79]:
+`env` and the axes `source`, `docs`, `examples` and `spec` reside on
+`::qlang/any`, `manifest` on `::tag`, and `runExamples` on `::keyword`
+and `::tag` under one contract. `use`, the loader, writes the scope and
+keeps its descriptor [D79]. Each looks up like any other identifier and
+can be shadowed by a `:name body` BindStep.
 
 The declarative binding form `:name body`
 is also covered in this section because it shares the same env-
@@ -985,8 +986,8 @@ its own eval handler in `eval.mjs`.
   among them, counts as `:ok false`. Returns a Vec of
   `{:snippet :actual :error :ok}` Maps — one per Quote segment.
 - **Example**: `::vec/count | runExamples | first | /ok` → `true`.
-- **Errors**: subject neither Keyword nor tag name →
-  `RunExamplesSubjectShapeError`; a name no step declares, a verb a
+- **Errors**: subject neither Keyword nor tag name → the contract's
+  `VerbWithoutBodyError` with `:addresses`; a name no step declares, a verb a
   provider keeps among them → `RunExamplesBindingNotFoundError`,
   whose `:addresses` holds the addresses where the verbs of that
   name live.
@@ -1263,9 +1264,7 @@ address.
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
-| `:typeConversion` | `tag` |
-| `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |
-| `:axis` | `source`, `docs`, `examples` |
+| `:reflective` | `use` (plus the `:name body` BindStep grammar production) |
 
 Each polymorphic / overloaded operand is one identifier in the
 initial `langRuntime()` Map regardless of how many dispatch paths

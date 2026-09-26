@@ -692,3 +692,38 @@
       ~(::a | lte ::a | eq true)
   ~~|
   ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+
+:manifest
+  |~~ Asked of a noun, answers the set of what lies below it in
+      the tree of names: the nouns under its path and the
+      addresses of the verbs that live on it. `::qlang | manifest`
+      lists the nouns of the core and of the hosts, `::number |
+      manifest` the verbs of numbers, and a refusal is reached
+      from the place it guards, `::number/add | spec | /throws`.
+      For what one binding does reach for the axis trio
+      (`::vec/count | source` / `| docs` / `| examples`).
+
+      ~(::number | manifest | has ::number/add)
+      ~(::qlang | manifest | has ::vec)
+      ~(::qlang | manifest * manifest | flat | has ::vec/count)
+  ~~|
+  ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/manifest})
+
+::ManifestSubjectNotTagError
+  |~~ `manifest` is asked of a noun, a tag name in the subject
+      position.
+
+      ~(
+        5 | manifest
+        !| [type /actualType]
+        |  eq [::ManifestSubjectNotTagError ::number]
+       )
+  ~~|
+
+:runExamples
+  |~~ The results of the examples of the declaration the tag name
+      reads, a verb by its address among them.
+
+      ~(::number/add | runExamples | first | /ok | eq true)
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runExamples})

@@ -29,9 +29,7 @@ import booleanSource           from '@kaluchi/qlang-core/lib/qlang/boolean.qlang
 import quoteSource             from '@kaluchi/qlang-core/lib/qlang/quote.qlang';
 import taggedSource            from '@kaluchi/qlang-core/lib/qlang/tagged.qlang';
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
-import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
-import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
 
 // Logical-name keys here mirror `core.qlang`'s `use([:qlang/<ns>])`
 // invocation list — the locator is the only seam the runtime calls
@@ -50,9 +48,7 @@ const CATALOG = new Map([
   ['qlang/quote',                   quoteSource],
   ['qlang/tagged',                  taggedSource],
   ['qlang/any',                     anySource],
-  ['qlang/operand/axis',            axisSource],
-  ['qlang/operand/reflective',      reflectiveSource],
-  ['qlang/operand/typeConversion', typeConversionSource]
+  ['qlang/operand/reflective',      reflectiveSource]
 ]);
 
 export async function inlineCatalogLocator(namespaceName) {

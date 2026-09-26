@@ -42,10 +42,10 @@ describe('runExamples reads a name as examples does', () => {
     expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 
-  it('non-keyword non-descriptor subject raises RunExamplesSubjectShapeError', async () => {
+  it('a subject no residence takes reaches the contract, which refuses it', async () => {
     const err = await evalQuery('42 | runExamples');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('RunExamplesSubjectShapeError'));
+    expect(err.tag).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 });
 

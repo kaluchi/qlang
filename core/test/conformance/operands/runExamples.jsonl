@@ -4,5 +4,5 @@
 {"name":"every-result-map-has-error-null-on-success","query":"|~~ ~(3 | eq 3) ~(3 | gt 2) ~~| :three 3 | :three | runExamples | first | /error","expect":"null"}
 {"name":"every-result-map-has-actual-truthy-on-pass","query":"|~~ ~(3 | eq 3) ~(3 | gt 2) ~~| :three 3 | :three | runExamples | first | /actual","expect":"true"}
 {"name":"result-count-equals-examples-count","query":"|~~ ~(3 | eq 3) ~(3 | gt 2) ~~| :three 3 | :three | runExamples | count | eq (:three | examples | count)","expect":"true"}
-{"name":"subject-not-descriptor-throws","query":"42 | runExamples","error":"typeError","expect":"::RunExamplesSubjectShapeError!{\n  :faultStep ~(runExamples)\n  :faultInput 42\n  :actualType ::number\n}"}
-{"name":"subject-without-examples-field-throws","query":"{:kind :builtin} | runExamples","error":"typeError","expect":"::RunExamplesSubjectShapeError!{\n  :faultStep ~(runExamples)\n  :faultInput {:kind :builtin}\n  :actualType ::map\n}"}
+{"name":"subject-not-descriptor-throws","query":"42 | runExamples","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(runExamples)\n  :faultInput 42\n  :verbName :runExamples\n  :addresses #[::keyword/runExamples ::tag/runExamples]\n}"}
+{"name":"subject-without-examples-field-throws","query":"{:kind :builtin} | runExamples","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(runExamples)\n  :faultInput {:kind :builtin}\n  :verbName :runExamples\n  :addresses #[::keyword/runExamples ::tag/runExamples]\n}"}

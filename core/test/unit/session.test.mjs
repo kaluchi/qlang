@@ -8,7 +8,8 @@ import {
 } from '../../src/session.mjs';
 import { makeTagKeyword, isErrorValue, isQMap, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
-import { nullaryOp, overloadedOp, valueOp } from '../../src/runtime/dispatch.mjs';
+import { nullaryOp, overloadedOp, stateOp, valueOp } from '../../src/runtime/dispatch.mjs';
+import { withPipeValue } from '../../src/state.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -263,6 +264,14 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less 10 4')).result).toBe(6);
     expect((await sessionInstance.evalCell('7 | less !| type')).result).toEqual(makeTagKeyword('ValueOpArityMismatchError'));
+  });
+
+  it('runs a host operand over the state pair with its captured modifiers', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('twice', stateOp('twice', 2, async (state, lambdas) =>
+      withPipeValue(state, (await lambdas[0](state.pipeValue)) * 2)));
+    expect((await sessionInstance.evalCell('3 | twice (add 1)')).result).toBe(8);
+    expect((await sessionInstance.evalCell('3 | twice !| type')).result).toEqual(makeTagKeyword('StateOpArityMismatchError'));
   });
 
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {

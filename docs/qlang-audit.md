@@ -2051,7 +2051,11 @@ of a doc, its prose apart from its runnable quotes, and a name to reach
 a page by [D88]; the prose of a module is a plain comment that no name
 reaches, and a tag or a keyword inside prose is no segment yet [D19].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
-нравиться» (13:23).
+нравиться» (13:23). A tutorial that serves is also how the documents
+that retell the catalog leave: «и если интерактивный туториал
+действительно станет хорош, то тогда все эти референсы и прочие md
+файлы наконец можно будет удалить за ненадобностью», and «но сперва UIX
+в вебе и UIX в терминале нас должен удовлетворять» (13:26).
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

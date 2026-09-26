@@ -12,6 +12,7 @@ import {
   langRuntime, evalQuery,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
+  writesTag,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
   TAG_NAMESPACE,
@@ -308,7 +309,7 @@ export async function hoverAtOffset(ast, source, offset) {
   if (node.type === 'OperandCall') {
     return await hoverForOperand(node, ast);
   }
-  if (node.type === 'BareTypeKeyword' || node.type === 'TaggedLit') {
+  if (node.type === 'BareTypeKeyword' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
@@ -377,8 +378,16 @@ function findInDocumentDocs(ast, name) {
   return lastDocs ?? [];
 }
 
-// Tag-namespace hover — `::Tag` reference (BareTypeKeyword) or
-// `::Tag<payload>` constructor invocation (TaggedLit). Both resolve
+// A click on the head of a node that writes a tag, the `::Tag` of a
+// TaggedLit or of an error literal `::Tag!{…}` [D86], and not on the
+// brackets the error literal owns around its entries.
+function isOnTagHead(node, offset) {
+  return writesTag(node) && offset < node.location.start.offset + 2 + node.tag.length;
+}
+
+// Tag-namespace hover — `::Tag` reference (BareTypeKeyword),
+// `::Tag<payload>` constructor invocation (TaggedLit) or the tag an
+// error literal writes before its bang. All resolve
 // the same way: lookup `::Tag` in env, pull `:docs` via the docs
 // axis-operand, render a markdown popup with the tag's identity
 // banner plus the joined doc content.
@@ -447,11 +456,12 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   // navigate to a declaration:
   //   * `OperandCall` — its own `.name` (read site, e.g. `count`).
   //   * `BareTypeKeyword` — `::` + `.tag` (type identifier reference).
-  //   * `TaggedLit` — `::` + `.tag` (type constructor invocation).
+  //   * `TaggedLit` — `::` + `.tag` (type constructor invocation),
+  //     and the error literal that writes its tag, `::Tag!{…}` [D86].
   let name;
   if (node.type === 'OperandCall')        name = node.name;
   else if (node.type === 'BareTypeKeyword') name = tagBindingKey(node.tag);
-  else if (node.type === 'TaggedLit')       name = tagBindingKey(node.tag);
+  else if (isOnTagHead(node, offset))       name = tagBindingKey(node.tag);
   else return null;
 
   // Tier 1: last visible in-document declaration — only offsets;

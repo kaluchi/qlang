@@ -981,13 +981,17 @@
       A TaggedInstance subject (bound form) wraps into a nested
       layer (`tagged | tag ::Outer` → `::Outer[tagged]`); to
       replace identity rather than nest, route through
-      `tagged | payload | tag ::Other`.
+      `tagged | payload | tag ::Other`. A tag laid over an error
+      answers the error unchanged, since no tag stands over one;
+      the fail track opens the error to its descriptor, which a
+      tag and `error` rename [D86].
 
       ~(42 | tag ::Box | payload | eq 42)
       ~([1 2 3] | tag ::Triple | type | eq ::Triple)
       ~(::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
       ~(1 | add "1" !| [type payload] | tag | error !| type | eq ::AddRightNotNumberError)
       ~(::Inner {} | ::Outer {} | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
+      ~([::Box (!{:k 1})] | tag !| type | eq ::error)
   ~~|
   ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
 

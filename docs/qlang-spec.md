@@ -1503,7 +1503,11 @@ the parser builds a TaggedLit AST node, the evaluator runs the
 payload, looks up `::tag` in the tag namespace, and invokes the
 tag's constructor against the payload value. The constructor's
 return becomes the new `pipeValue`. `printValue` emits the same
-`::tag<payload>` form back, so the round-trip invariant holds.
+`::tag<payload>` form back, so the round-trip invariant holds. A
+tagged literal is its payload piped into `tag`, and no tag stands
+over an error: a payload that answers an error answers it unchanged,
+the constructor never running, and the step of the tag, `tag ::tag`,
+joins the skipped steps of the error's last stop [D86].
 
 ```qlang
 ::duration{:hours 3}
@@ -1723,11 +1727,13 @@ dedicated render path and rides a distinct value-class handler;
 every other tag rides the generic shape, a verb and the
 `::binding` records `env` answers among them.
 
-A named error value (`!{:kind ::Tag …}`) carries the
-universal tagged-instance identity slot on the error value's
+A named error value (`::Tag!{…}`, `!{:kind ::Tag …}`) carries
+the universal tagged-instance identity slot on the error value's
 **JS-header `tag` field** — opaque to descriptor projection,
-read through the `type` operand. The `:kind ::Tag` entry in
-the literal lifts to that header slot at construction; the
+read through the `type` operand. `::Tag!{…}` is one literal, the
+error whose content carries the tag written before its bang, so no
+tag stands over an error [D86]; the tag it writes, or a `:kind ::Tag`
+entry, lifts to that header slot at construction, and the
 descriptor itself holds only data fields. `printValue` emits
 `::Tag!{…fields…}` with the tag at the head and the descriptor
 fields after, the same shape both a JavaScript throw site and a
@@ -1883,11 +1889,19 @@ lift automatically into error values with structured descriptors:
 Every error value carries its per-site identity on a dedicated
 JS-header field, addressed through the `type` operand:
 `result !| type` returns the `::Tag` (TagKeyword). User-facing
-literals (`::Tag!{…}`, `!{:kind ::Tag …}`) lift `:kind` into
-this slot at construction; errors without an explicit `:kind`
-are of the kind of errors, `::error`. The descriptor Map below carries only
-data — no `:kind` field — so `result !| union … | error`
-re-lift round-trips preserve identity automatically.
+literals name this slot at construction, `::Tag!{…}` by the tag
+written before its bang and `!{:kind ::Tag …}` by its `:kind`;
+errors without either are of the kind of errors, `::error`. The
+descriptor Map below carries only data — no `:kind` field — so
+`result !| union … | error` re-lift round-trips preserve identity
+automatically. `error` names the error it lifts by the tag its value
+shows, so a tag a step lays over the descriptor renames the error
+[D86]:
+
+```qlang
+> "hello" | add 1 !| tag ::Greeting | error !| type
+::Greeting
+```
 
 The materialized descriptor exposed by `!|` stamps the tag onto
 the Map's JS-header identity slot (the same channel

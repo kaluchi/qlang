@@ -17,7 +17,7 @@
 // primitive its `::builtin{:impl}` step names over the checked values. A
 // verb without a body is a contract, which answers no call.
 
-import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState } from '../primitives.mjs';
+import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags } from '../primitives.mjs';
 import { codeOf, evalAst } from '../eval.mjs';
 import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
@@ -253,10 +253,11 @@ async function servedByKinds(value, kindNames, state, place, siteRefusal) {
 }
 
 // The value under the tags from the innermost out, their constructors
-// run again [D41]; an error passes as it is.
+// run again [D41]; an error passes as it is, as it does under every tag
+// [D86].
 async function underTags(value, tags, state) {
   let wrapped = value;
-  for (const tag of [...tags].reverse()) wrapped = isErrorValue(wrapped) ? wrapped : await mintUnderTag(state, tag, wrapped);
+  for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
   return wrapped;
 }
 
@@ -421,15 +422,18 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
   const answer = callsPrimitive(signature, verb)
-    ? await runPrimitive(primitiveOfVerb(signature, verb), served, primitiveArgumentsOf(signature, slotValues, state), state)
+    ? await runPrimitive(primitiveOfVerb(signature, verb), served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
     : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
 
-// A primitive runs over the values its head checked, and a reader of the
-// scope over the state of the call after them [D79].
-function runPrimitive(primitive, served, slotArguments, state) {
-  return readsState(primitive) ? primitive(served, ...slotArguments, state) : primitive(served, ...slotArguments);
+// A primitive runs over the values its head checked, a reader of the
+// scope over the state of the call after them [D79], and a reader of the
+// tags its subject stood beneath over the tags the walk passed [D86].
+function runPrimitive(primitive, served, passedTags, slotArguments, state) {
+  if (readsState(primitive)) return primitive(served, ...slotArguments, state);
+  if (readsPassedTags(primitive)) return primitive(served, ...slotArguments, passedTags);
+  return primitive(served, ...slotArguments);
 }
 
 // What a primitive takes for its slots: each value as the head checked

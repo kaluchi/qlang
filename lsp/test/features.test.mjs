@@ -184,6 +184,19 @@ describe('hoverAtOffset', () => {
     expect(hover.content).toMatch(/tag-binding/);
   });
 
+  it('returns hover for the tag an error literal writes before its bang', async () => {
+    // `::Tag!{…}` is one literal, the error whose content carries the
+    // tag, so its head resolves like every tag head, and its braces,
+    // which the literal owns, show no tag [D86].
+    const src = '::AddLeftNotNumberError!{:actualType ::string}';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(ast, src, 5);
+    expect(hover).not.toBeNull();
+    expect(hover.content).toMatch(/::AddLeftNotNumberError/);
+    expect(hover.endOffset - hover.startOffset).toBe('::AddLeftNotNumberError'.length);
+    expect(await hoverAtOffset(ast, src, src.indexOf('!{'))).toBeNull();
+  });
+
   it('hover on ::Tag spans only the tag head, not the payload', async () => {
     const src = '"x" | ::verb~(mul 2)';
     const { ast } = parseDocument(src, 'test.qlang');

@@ -782,11 +782,14 @@ binding of the tag holds its constructor [D79].
   rebrands the underlying composite; an opaque-wrap subject
   re-wraps into a nested layer. To replace identity rather than
   nest, route through `tagged | payload | tag ::Other`.
+- An error to lay the tag over answers the call unchanged, since no
+  tag stands over an error [D86].
 - **Examples**:
   - `42 | tag ::Box | payload | eq 42` → `true`.
   - `[1 2 3] | tag ::Triple | type` → `::Triple`.
   - `::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3]` → `true` — split/assemble round-trip.
   - `1 | add "1" !| [type payload] | tag | error !| type` → `::AddRightNotNumberError` — short rebuild of a fail-track error from its `[tag, descriptor]` projection.
+  - `[::Box (!{:k 1})] | tag !| type` → `::error` — the error the pair holds answers the call.
 - **Errors**: captured arg / first Vec element not a TagKeyword →
   `TagModifierNotTagKeywordError`; bare-form subject not a 2-element
   Vec → `TagBareSubjectShapeError`.
@@ -1212,14 +1215,17 @@ deflects on an error that `!| true` then answers.
   as context. The resulting error rides the fail-track: `|` and
   `*` deflect it into the trail, `!|` fires its step against
   the materialized descriptor.
-- Identity sources, in priority order: the source Map's
-  `TAG_HEADER_SYMBOL` JS-header slot (the channel `!|`-
-  materialization and `tag ::Foo` use); then a `:kind ::Tag`
+- Identity sources, in priority order: the tag its value shows
+  over the map, the outermost the walk passed [D86]; then the
+  source Map's `TAG_HEADER_SYMBOL` JS-header slot (the channel
+  `!|`-materialization and `tag ::Foo` use); then a `:kind ::Tag`
   field if the header is absent (qlang-level rebrand); falling
-  back to the kind of errors, `::error`. The first branch makes
+  back to the kind of errors, `::error`. The header branch makes
   `error !| [type payload] | tag | error` recover the original
-  per-site tag without a manual `:kind` field stamp.
-- **Example**: `error {:kind :oops} !| /kind` → `:oops`.
+  per-site tag without a manual `:kind` field stamp, and the first
+  makes a tag a step lays over the descriptor rename the error.
+- **Examples**: `error {:kind :oops} !| /kind` → `:oops`;
+  `"x" | add 1 !| tag ::Renamed | error !| type` → `::Renamed`.
 - **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
 
 Asking each element whether it is an error:

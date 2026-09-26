@@ -68,3 +68,11 @@
 {"name":"a-stop-of-an-operand-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| /trail * /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]","decision":"D85"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first !| /trail * /step","expect":"[~(first)]","decision":"D85"}
 {"name":"the-fault-fields-leave-the-descriptor","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]","decision":"D85"}
+{"name":"a-tag-over-a-failed-payload-answers-the-failure","query":"[::Foo(nosuch)] * (!| type)","expect":"[::UnresolvedIdentifierError]","decision":"D86"}
+{"name":"a-constructor-of-the-core-never-meets-a-failure","query":"[::set(nosuch)] * (!| type)","expect":"[::UnresolvedIdentifierError]","decision":"D86"}
+{"name":"the-tag-of-a-literal-over-a-failure-joins-its-skipped-steps","query":"::P {:impl ~(add 1)} | [::P(nosuch)] * (!| /trail * /skipped)","expect":"[[~(tag ::P)]]","decision":"D86"}
+{"name":"tag-over-an-error-it-takes-out-of-a-pair-answers-the-error","query":"[::Foo (!{:k 1})] | tag !| [type (/trail * /step)]","expect":"[::error [~(!{:k 1}) ~(tag)]]","decision":"D86"}
+{"name":"the-tag-a-step-lays-over-the-descriptor-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | error !| [type (/trail * /step)]","expect":"[::Foo [~(add 1)]]","decision":"D86"}
+{"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | error !| type","expect":"::Bar","decision":"D86"}
+{"name":"the-step-of-a-tagged-error-literal-is-the-error-it-spells","query":"~(::Foo!{:k 1}) | first !| [type /k]","expect":"[::Foo 1]","decision":"D86"}
+{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::ErrorTrailNotVecError]","decision":"D86"}

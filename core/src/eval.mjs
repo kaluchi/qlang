@@ -38,7 +38,7 @@ import {
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
 import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope, slotDocContentsOf } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, astOfQuote, stepOfNode, eachStepOf } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -373,20 +373,24 @@ async function evalErrorLit(node, state) {
   // TagKeyword `:kind` value (`!{:kind :foo}`, `!{:kind "x"}`)
   // stays in the descriptor — the user explicitly chose to ride
   // identity through a non-tag value, the kind of errors
-  // covers the surface identity.
+  // covers the surface identity. The tag written before the bang,
+  // `::Foo!{…}`, names the content over any `:kind`, and the literal
+  // declares it as a tagged literal declares its tag [D86].
+  const declaredState = node.tag === null ? state : ensureTagBinding(state, canonicalTagName(node.tag));
   const errorDescriptor = new Map();
   let tag = ERROR_TAG;
   for (const entry of node.entries) {
-    const entryValue = await wordAnswer(entry.value, state);
+    const entryValue = await wordAnswer(entry.value, declaredState);
     if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
       tag = entryValue;
       continue;
     }
     errorDescriptor.set(entry.key.name, entryValue);
   }
+  if (node.tag !== null) tag = makeTagKeyword(node.tag);
   // A literal that writes its `:trail` resumes that path [D85].
   const minted = makeErrorValue(tag, errorDescriptor, { location: node.location });
-  return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
+  return withPipeValue(declaredState, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
 }
 
 // The value a word of a literal answers, forked against the subject:
@@ -435,7 +439,9 @@ async function evalSetLit(node, state) {
 // transforms (`filter` / `sort` / `distinct` / …) re-validating the
 // post-transform payload through the same constructor — the
 // «invariant re-run on transforms» contract for tags carrying `:impl`.
-export async function mintTaggedInstance(tagName, payload, state, location = null) {
+// No constructor meets an error: the tagged literal and `tag` answer
+// one before the mint [D86].
+export async function mintTaggedInstance(tagName, payload, state) {
   const typeKey = tagBindingKey(tagName);
   const typeBinding = bindingValueOf(envGet(state.env, typeKey));
   if (!isQMap(typeBinding)) {
@@ -460,17 +466,8 @@ export async function mintTaggedInstance(tagName, payload, state, location = nul
     return makeTaggedInstance(tagKw, constructorResult);
   }
   // Identity-only binding (no `:impl`) — wrap the payload under the
-  // tag. An ErrorValue payload keeps its descriptor so `::Foo(err)`
-  // stays an error value under ::Foo; every other payload wraps
-  // through `makeTaggedInstance`.
-  if (implKey === undefined) {
-    if (isErrorValue(payload)) {
-      return makeErrorValue(makeTagKeyword(tagName), payload.descriptor, {
-        location, originalError: payload.originalError
-      });
-    }
-    return makeTaggedInstance(makeTagKeyword(tagName), payload);
-  }
+  // tag through `makeTaggedInstance`.
+  if (implKey === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   throw new TagBindingHasNoConstructorError({
     tag: tagName,
     payloadValue: payload,
@@ -505,12 +502,20 @@ async function evalTaggedLit(node, state) {
   const tagName = canonicalTagName(node.tag);
   const declaredState = ensureTagBinding(state, tagName);
   const payload = (await fork(declaredState, inner => evalNode(node.payload, inner))).pipeValue;
-  const minted = await mintTaggedInstance(tagName, payload, declaredState, node.location);
-  // The error a payload raised is the literal's own raise, and a
-  // payload that resumes its trail makes the literal resume it [D85].
-  if (isErrorValue(minted) && isRaisedBy(payload, node.payload)) raisedBy(minted, node);
-  if (isErrorValue(minted) && resumesItsTrail(payload)) resumingItsTrail(minted);
-  return withPipeValue(declaredState, minted);
+  if (isErrorValue(payload)) return withPipeValue(declaredState, passedUntagged(payload, node, tagName));
+  return withPipeValue(declaredState, await mintTaggedInstance(tagName, payload, declaredState));
+}
+
+// A tagged literal is its payload piped into `tag`, and a tag laid over
+// an error answers the error, so the step of the tag joins the skipped
+// steps of its last stop [D86]. An error the payload raised is the
+// literal's own raise, and one that resumes its trail makes the literal
+// resume it [D85].
+function passedUntagged(payloadError, node, tagName) {
+  const passed = skipping(payloadError, tagCallStepOf(makeTagKeyword(tagName)));
+  if (isRaisedBy(payloadError, node.payload)) raisedBy(passed, node);
+  if (resumesItsTrail(payloadError)) resumingItsTrail(passed);
+  return passed;
 }
 
 

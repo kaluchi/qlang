@@ -1799,9 +1799,10 @@ with the rule for maps and the reading of duplicate keys, the set as
 the ordered vector, the kinds and the strict predicates have landed
 [D1], [D14], [D15], [D16], [D18], [D32], [D48], and so have the command
 line's default subject and its terminal views [D37], the edit under a
-tag that rewraps through the tag's constructor [D41], and the trail of
-an error as the path it took, a stop at every step that handed it on
-[D85]. What remains is
+tag that rewraps through the tag's constructor [D41], the trail of an
+error as the path it took, a stop at every step that handed it on
+[D85], and an error as the envelope on top of its value, with no tag
+over it [D86]. What remains is
 the contracts moving onto the kinds, a tag's declaration being its
 schema or its constructor [D6], [D33]; and the tags of the refusing
 sites as kinds with their schemas and procedures, and the law for
@@ -2041,99 +2042,6 @@ which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it, and the law for nested
 errors of the third milestone settles it [D13].
 
-A tag over a payload that failed [D13], [D46]. A tagged literal over an
-error literal names the error it spells, `::Foo!{:k 1}`, which is how
-the printer writes an error of a tag, and the fail track opens an error
-so that `!| payload | tag ::Foo | error` renames it with its path kept.
-A payload that failed meets the constructor of the tag all the same,
-and each kind of constructor answers it its own way: a tag without one
-gives the failure its tag, a constructor of the core refuses it by a
-tag of its own, and a constructor written as a quote skips it, its
-steps joining the path of the failure.
-
-```qlang
-> [(nosuch)] * (!| type)
-[::UnresolvedIdentifierError]
-
-> [::Foo(nosuch)] * (!| type)
-[::Foo]
-
-> [::set(nosuch)] * (!| type)
-[::SetPayloadNotVecError]
-
-> ::P {:impl ~(add 1)} | [::P(nosuch)] * (!| /trail * /skipped)
-[[~(add 1)]]
-
-> "x" | add 1 !| payload | tag ::Foo | error !| [type (/trail * /step)]
-[::Foo [~(add 1)]]
-```
-
-The pair form of `tag` lays the tag over an error it takes out of the
-pair, which answers a value on the success track that prints as an
-error of that tag, and `error` over a descriptor a step tagged again
-takes the tag of the map beneath, so the tag the step wrote is lost:
-
-```qlang
-> [::Foo (!{:k 1})] | tag | false !| true
-false
-
-> "x" | add 1 !| tag ::Foo | error !| type
-::AddLeftNotNumberError
-```
-
-The maintainer reads an error as an envelope around its content, which
-no step opens but `!|`: «как будто тэг Foo не должен был навеститься на
-ошибку .. раз у нас падение.. и по логике вещей конструктор фоо не
-должен был здесь исполняться» (maintainer, 2026-09-26 09:08, session
-86982eb5); «если следовать логике обещанной то ::Foo!{:k 1} - это
-::error(::Foo{:k 1})» and «но уж точно базовый тэг не может получить в
-аргументы ошибку - та вылетит из него и в трейл залетит» (09:33); of
-`!|` and `error`, «первый ловит только ошибки но выпускает из себя не
-ошибки... второй ловит все что угодно кроме ошибок, но выпускает только
-ошибку» and «и поэтому оболочка с ошибкой оказывается как будто бы
-всегда наверху» (09:42). The literal writes its tag before the bang for
-Claude Code, whose input turns into a shell command at a `!` it opens
-with: «просто если переносить символ !перед тэгами - как бы обозначая что
-все что правее это дальше ошибка .. то было не удобно тебе в клод код
-вставлять .. т.к. этот ! переводил поле ввода в режим командной строки»
-(09:46), so the order of its characters says nothing of which layer is
-on top. The bang after the tag is the stronger signal as well: «просто
-AddLeftNotNumberError! с восклицательным знаком Error! это более сильный
-сигнал для моделей впервые видящих qlang - что полученное не результат
-успешно исполнения пайплайна, а что-то другое» (09:56). The spelling
-stays, brackets that would put the bang in front, `!(::Tag{…})`, being
-too much for the maintainer, who leaves the reading to the grammar:
-«вероятно да, грамматика такое может наверное отсечь сама и по
-построению исключить любую левую интерпретацию» (09:56).
-
-The model's reading of it is that an error is the outermost layer of its
-value. `::Foo!{…}` is one literal, an error whose content carries the
-tag, which the grammar reads as the error literal with its tag, so its
-step in a quote is the error it spells and no tag in the language
-stands over an error. A tag laid over an error, by a tagged literal
-whose payload answers one or by `tag` over one taken out of a pair,
-answers the error unchanged, the step of the tag joining the skipped
-steps of its last stop, whatever the constructor. `error` takes any
-value but an error and answers only errors, and the value it takes is a
-map, «т.к. для error легальная нагрузка это только ::map» (09:58), so
-it stays on `::map` [D76]. The walk down the tags [D34] hands it the map
-beneath a tag a step laid over the descriptor, so `!| tag ::Foo | error`
-keeps the tag of the site, as above, while the outer tag names every
-other value, `::A::B{} | type` answering `::A`. The maintainer expects
-the tag a step lays over the descriptor to name the error: «и здесь
-что-то не так работает на мой взгляд .. у меня были другие ожидания»
-(10:05), then, of the descriptor tagged `::Foo{…}` by hand, «вот что я
-ждал примерно» (10:06). So the error `error` makes takes the tag its
-value shows: the outermost tag the walk passed on its way to the map,
-then the map's own, then a `:kind` that names a tag, then `::error`;
-`!| tag ::Foo | error` renames, and the tags beneath the one it shows
-leave with their layers. The cost is one alternative in the grammar,
-the branch of the tag's mint that rebrands an error leaving, the step
-of a tagged error literal becoming an error value of that tag, the
-call handing the primitive of `error` the tags its walk passed, which
-it drops today, and the readers of a tag's occurrences, the editor's
-among them, reading the tag of an error literal.
-
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
 элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно
@@ -2247,3 +2155,4 @@ maintainer wants to explore it before it is fixed.
 [D83]: decisions/D83.md
 [D84]: decisions/D84.md
 [D85]: decisions/D85.md
+[D86]: decisions/D86.md

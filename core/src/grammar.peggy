@@ -416,11 +416,17 @@ DocLit
 
 // ── Literals ───────────────────────────────────────────────────────
 
+// An error literal, `!{…}`, and the literal of an error whose content
+// carries a tag, `::Tag!{…}`, the tag written before the bang: one
+// literal, so no tag stands over an error [D86].
 ErrorLit
-  = "!{" _ "}"
-    { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return node('ErrorLit', { entries: [head, ...tail] }, location(), text()); }
+  = tag:ErrorLitTag? "!{" _ "}"
+    { return node('ErrorLit', { tag, entries: [] }, location(), text()); }
+  / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
+    { return node('ErrorLit', { tag, entries: [head, ...tail] }, location(), text()); }
+
+ErrorLitTag
+  = "::" @TagName
 
 // Braces with string keys and commas are JSON syntax for a map, whose
 // keys read as the keywords of their strings; a literal mixing the two

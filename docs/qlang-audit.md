@@ -2068,16 +2068,46 @@ steps joining the path of the failure.
 [::Foo [~(add 1)]]
 ```
 
-The maintainer reads the failure as an envelope no step opens but `!|`:
-«как будто тэг Foo не должен был навеститься на ошибку .. раз у нас
-падение.. и по логике вещей конструктор фоо не должен был здесь
-исполняться» (maintainer, 2026-09-26 09:08, session 86982eb5). Under
-that reading a tagged literal whose payload answers an error answers it
-unchanged, whatever its constructor, and only an error literal written
-in place takes the tag, which asks the literal to tell the two apart as
-an element of a literal tells a raised error from a value [D85]. The
-alternative keeps the payload a place declared for any value, which
-keeps what it gets, and the answers above stand.
+The pair form of `tag` lays the tag over an error it takes out of the
+pair, which answers a value on the success track that prints as an
+error of that tag, and `error` over a descriptor a step tagged again
+takes the tag of the map beneath, so the tag the step wrote is lost:
+
+```qlang
+> [::Foo (!{:k 1})] | tag | false !| true
+false
+
+> "x" | add 1 !| tag ::Foo | error !| type
+::AddLeftNotNumberError
+```
+
+The maintainer reads an error as an envelope around its content, which
+no step opens but `!|`: «как будто тэг Foo не должен был навеститься на
+ошибку .. раз у нас падение.. и по логике вещей конструктор фоо не
+должен был здесь исполняться» (maintainer, 2026-09-26 09:08, session
+86982eb5); «если следовать логике обещанной то ::Foo!{:k 1} - это
+::error(::Foo{:k 1})» and «но уж точно базовый тэг не может получить в
+аргументы ошибку - та вылетит из него и в трейл залетит» (09:33); of
+`!|` and `error`, «первый ловит только ошибки но выпускает из себя не
+ошибки... второй ловит все что угодно кроме ошибок, но выпускает только
+ошибку» and «и поэтому оболочка с ошибкой оказывается как будто бы
+всегда наверху» (09:42).
+
+The model's reading of it is that an error is the outermost layer of its
+value. `::Foo!{…}` is one literal, an error whose content carries the
+tag, which the grammar reads as the error literal with its tag, so its
+step in a quote is the error it spells and no tag in the language
+stands over an error. A tag laid over an error, by a tagged literal
+whose payload answers one or by `tag` over one taken out of a pair,
+answers the error unchanged, the step of the tag joining the skipped
+steps of its last stop, whatever the constructor. `error` takes any
+value but an error and answers only errors, its tag being the tag its
+value shows, so `!| tag ::Foo | error` renames as the envelope asks; it
+moves from `::map` to `::qlang/any` [D76]. The cost is one alternative
+in the grammar, the branch of the tag's mint that rebrands an error
+leaving, the step of a tagged error literal becoming an error value of
+that tag, and the readers of a tag's occurrences, the editor's among
+them, reading the tag of an error literal.
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

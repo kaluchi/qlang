@@ -1,17 +1,19 @@
-|~ Every value comes apart into its atoms and a shape, and the shape
-   applied to the atoms builds it back [D42]. The atoms are the values
-   no verb takes further apart, null, booleans, numbers, strings,
-   keywords and tag names, in the order of the literal, the values of a
-   map in the one order of its keys. The shape is the literal of the
-   value with a projection in the place of each atom, a quote over the
-   vector of the atoms: `["x" [1 1] {:b :a}]` has the atoms
-   `["x" 1 1 :a]` and the shape `~([/0 [/1 /2] {:b /3}])`.
-   A tagged value is its tag over the shape of its payload, the set and
-   the quote among them, so code comes back through the constructors of
-   its steps; an error is its descriptor handed to `error`, and a doc
-   its text handed to `parse`. The verbs are the language's own, and the
-   test of the ring runs them over every example of the catalog and
-   every literal of the conformance cases. ~|
+|~ Every value comes apart into the set of its atoms and a shape, and
+   the shape applied to the set builds the value back [D42], [D82]. The
+   atoms are the values no verb takes further apart, null, booleans,
+   numbers, strings, keywords and tag names, each once, in the one
+   order, and a value is taken apart to the end: the keys of its maps
+   and the tags over its payloads are atoms as its other leaves are.
+   The shape is a quote of projections into the set and of the steps
+   that build the value from what they read: a vector is the vector of
+   the shapes of its elements; a map is built from the pairs of its keys
+   and values by `indexBy`; a tagged value, the set and the quote among
+   them, from its tag and its payload by `tag`; an error from its
+   descriptor by `error`; and a doc from its text by `parse`.
+   `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
+   `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])`. The verbs
+   are the language's own, and the test of the ring runs them over every
+   example of the catalog and every literal of the conformance cases. ~|
 
 :atomKinds
   |~~ The kinds of the atoms. ~~|
@@ -19,61 +21,80 @@
 
 :asPairs
   |~~ Each element of a vector as the pair of whether it failed and the
-      value its pieces are taken from: an error as the descriptor the
+      value its parts are taken from: an error as the descriptor the
       fail track reads, any other value as it is. The error rides a
       second error past the step that pairs a value, which leaves its
       trail on the second. ~~|
   ::verb~(* (!| error {:failed /} | [false /] !| [true /failed]))
 
 :groupBefore
-  |~~ The group of the step followed by the steps of the suffix. ~~|
-  ::verb~(:suffix ::vec | [[/] suffix] | flat | tag ::quote | tag ::group)
-
-:pairedWith
-  |~~ The pairs so far, `{:pairs … :others …}`, with the element and the
-      first of the others. ~~|
+  |~~ The step followed by the steps of the suffix, as a group, or the
+      step alone under an empty suffix. ~~|
   ::verb~(
-    :element ::any
-    | :acc /
-    | {:pairs (acc | /pairs | append [element (acc | /others | first)]) :others (acc | /others | drop 1)})
+    :suffix ::vec
+    | if (suffix | count | eq 0) ~() ~([[/] suffix] | flat | tag ::quote | tag ::group))
 
-:intoPieces
-  |~~ The pieces taken so far, `{:atoms … :steps …}`, with those of one
-      pair after them: its atoms, and its step, whose projections count
-      from the atoms before it. `reduce` folds it over the pairs of a
-      vector, and it folds itself over the parts of each value it meets. ~~|
+:partsOf
+  |~~ The parts a value that is no atom is built from, and the steps
+      that build it from them: a vector from its elements by none, a map
+      from the pairs of its keys and values, a doc from its text, and a
+      tagged value from its tag and its payload, an error from its
+      descriptor among them. ~~|
+  ::verb~(
+    :failed ::boolean
+    | :kind (type)
+    | cond
+        ~(kind | eq ::vec) ~({:parts / :glue ~()})
+        ~(kind | eq ::map) ~(:entries / | {:parts (keys | sort * (:key / | [key (entries | at key)])) :glue ~(indexBy ~(first) * last)})
+        ~(kind | eq ::doc) ~({:parts [(json | parseJson)] :glue ~(first | parse | first)})
+        ~({:parts [kind (payload)] :glue (if failed ~(~(tag | error)) ~(~(tag)))}))
+
+:intoAtoms
+  |~~ The atoms gathered so far with those of one pair after them.
+      `reduce` folds it over the pairs of a vector, and it folds itself
+      over the parts of each value it meets. ~~|
+  ::verb~(
+    :pair ::vec
+    | :gathered /
+    | pair | /1
+    | if (atomKinds | has (pair | /1 | type))
+        ~(gathered | append (pair | /1))
+        ~(partsOf (pair | /0) | /parts | asPairs | reduce gathered ~(intoAtoms)))
+
+:numberedWith
+  |~~ The atoms numbered so far, `{:next … :pairs …}`, with one more. ~~|
+  ::verb~(
+    :atom ::any
+    | :acc /
+    | {:next (acc | /next | add 1) :pairs (acc | /pairs | append [atom (acc | /next)])})
+
+:intoShape
+  |~~ The steps built so far, `{:numbered … :steps …}`, with the step of
+      one pair after them: the projection of an atom's place in the set,
+      which the pairs of `:numbered` hold, or the step that builds a
+      value from the steps of its parts. ~~|
   ::verb~(
     :pair ::vec
     | :acc /
-    | :kind (pair | /1 | type)
     | pair | /1
-    | if (atomKinds | has kind)
-        ~({:atoms (acc | /atoms | append (pair | /1))
-           :steps (acc | /steps | append ({:path [(acc | /atoms | count)]} | tag ::proj))})
-        ~(cond
-            ~(kind | eq ::vec)
-            ~(asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
-              | {:atoms (inner | /atoms) :steps (acc | /steps | append (inner | /steps))})
-            ~(kind | eq ::map)
-            ~(:entries / | keys | sort | :order /
-              | order * (:key / | entries | at key) | asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
-              | {:atoms (inner | /atoms)
-                 :steps (acc | /steps | append (order | reduce {:pairs [] :others (inner | /steps)} ~(pairedWith) | /pairs | indexBy ~(/0) * /1))})
-            ~(kind | eq ::doc)
-            ~({:atoms (acc | /atoms | append (pair | /1 | json | parseJson))
-               :steps (acc | /steps | append ({:path [(acc | /atoms | count)]} | tag ::proj | groupBefore ~(parse | first)))})
-            ~([(payload)] | asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
-              | {:atoms (inner | /atoms)
-                 :steps (acc | /steps | append ({:tag kind :payload (inner | /steps | first)} | tag ::tagged | if (pair | /0) ~(groupBefore ~(error)) ~()))})))
+    | if (atomKinds | has (pair | /1 | type))
+        ~(:atom /
+          | {:numbered (acc | /numbered)
+             :steps (acc | /steps | append ({:path [(acc | /numbered | filter ~(first | eq atom) | first | last)]} | tag ::proj))})
+        ~(partsOf (pair | /0) | :built /
+          | built | /parts | asPairs | reduce {:numbered (acc | /numbered) :steps []} ~(intoShape) | :inner /
+          | {:numbered (acc | /numbered) :steps (acc | /steps | append (inner | /steps | groupBefore (built | /glue)))}))
 
 :apart
   |~~ The atoms of the subject and its shape.
 
-      ~(["x" [1 1] {:b :a}] | apart | eq {:atoms ["x" 1 1 :a] :shape ~([/0 [/1 /2] {:b /3}])})
+      ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])})
   ~~|
   ::verb~(
-    [/] | asPairs | reduce {:atoms [] :steps []} ~(intoPieces)
-    | {:atoms /atoms :shape (/steps | tag ::quote)})
+    :held [/]
+    | :atoms (held | asPairs | reduce [] ~(intoAtoms) | tag ::set)
+    | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | /pairs)
+    | {:atoms atoms :shape (held | asPairs | reduce {:numbered numbered :steps []} ~(intoShape) | /steps | tag ::quote)})
 
 :rebuilt
   |~~ The value the shape of the subject builds from its atoms. ~~|

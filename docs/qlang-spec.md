@@ -2164,6 +2164,24 @@ true
 true
 ```
 
+Given a name, each axis reads the member the subject holds under it
+[D88]: the slot a verb's head declares, and for any other subject the
+verb the name calls after it. A tag name in the subject position is
+dispatched to the noun it names after the verbs of tag names, so
+`::map | docs :minus` reads the page of `::map/minus`, and a vector
+reads the page of the `count` it calls:
+
+```qlang
+> ::map | docs :minus | eq (::map/minus | docs)
+true
+
+> [1 2] | docs :count | eq (::vec/count | docs)
+true
+
+> ::vec/take | source :count | parse
+":count ::number"
+```
+
 ### `runExamples` — execute Quote segments from a binding's docs
 
 The docs of every catalog binding's slot may carry inline

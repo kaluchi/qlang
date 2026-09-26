@@ -13,15 +13,22 @@
 // `examples` every quote among the segments of those docs, the cases
 //            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.
+//
+// Given a name, each axis reads the member the subject holds under it
+// [D88]: the slot a verb's head declares, `::vec/take | docs :count`,
+// and for any other subject the verb the name calls after it,
+// `::map | docs :minus` the page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, typeKeyword, stampTagHeader, makeSet, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { refusalsOfVerb, signatureSpecOf } from './verb.mjs';
+import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
-import { addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, verbsOfKind } from './nouns.mjs';
+import {
+  addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, residenceOnSubject, verbsOfKind
+} from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { parseDocSegments } from '../doc-segments.mjs';
 
@@ -116,19 +123,46 @@ export async function examplesOfRecord(state, record) {
   return collected;
 }
 
-// The record the subject names in the scope of the call, or the refusal
-// of the axis that read it; each axis resides on `::qlang/any`, and its
-// primitive reads the state of the call [D79].
-function recordReadBy(subject, state, NotFoundError) {
+// The record of the member the subject holds under a name [D88], or
+// null: the slot a verb declares, and for any other subject the verb its
+// walk reaches under the name, the noun's own after a tag name.
+function memberRecordOf(env, subject, memberName) {
+  const declared = declaringRecordOf(env, subject)?.get('value');
+  if (isVerb(declared)) return slotMemberOf(declared, memberName);
+  return residenceOnSubject(env, memberName, subject);
+}
+
+// What the refusal of a member holds: the address the name would have
+// on a noun, or the name alone, and where the verbs of that name live.
+function memberRefusalOf(env, subject, memberName) {
+  const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
+  return {
+    bindingName: onNoun ? tagBindingKey(`${subject.name}/${memberName}`) : memberName,
+    addresses: isVerb(declaringRecordOf(env, subject)?.get('value')) ? makeSet([]) : addressesOf(env, memberName)
+  };
+}
+
+// The record the subject names in the scope of the call, or the member
+// it holds under a name, or the refusal of the axis that read it; each
+// axis resides on `::qlang/any`, and its primitive reads the state of
+// the call [D79].
+function recordReadBy(subject, memberName, state, NotFoundError) {
+  if (!isNull(memberName)) {
+    const member = memberRecordOf(state.env, subject, memberName.name);
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
+    return member;
+  }
   const record = declaringRecordOf(state.env, subject);
   if (record === null) throw new NotFoundError(refusalOf(state.env, subject));
   return record;
 }
 
-bindStateReader('source', (subject, state) => recordReadBy(subject, state, SourceBindingNotFoundError).get('source'));
-bindStateReader('docs', (subject, state) => recordReadBy(subject, state, DocsBindingNotFoundError).get('docs'));
-bindStateReader('examples', async (subject, state) =>
-  Object.freeze(await examplesOfRecord(state, recordReadBy(subject, state, ExamplesBindingNotFoundError))));
+bindStateReader('source', (subject, memberName, state) =>
+  recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
+bindStateReader('docs', (subject, memberName, state) =>
+  recordReadBy(subject, memberName, state, DocsBindingNotFoundError).get('docs'));
+bindStateReader('examples', async (subject, memberName, state) =>
+  Object.freeze(await examplesOfRecord(state, recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
 // `spec` — the value the record holds: the structured Map that a
 // catalog `::builtin{…}` body declared, after `langRuntime`'s
@@ -144,8 +178,8 @@ bindStateReader('examples', async (subject, state) =>
 // `::number/add | spec | /throws` lists the per-site error classes
 // `add` raises; `::verb | spec | /impl` returns the
 // `:qlang/type/verb` constructor handle.
-bindStateReader('spec', (subject, state) => {
-  const record = recordReadBy(subject, state, SpecBindingNotFoundError);
+bindStateReader('spec', (subject, memberName, state) => {
+  const record = recordReadBy(subject, memberName, state, SpecBindingNotFoundError);
   const declaration = record.get('value');
   return isVerb(declaration) ? signatureSpecOf(declaration) : withVerbsOfNoun(state.env, record);
 });

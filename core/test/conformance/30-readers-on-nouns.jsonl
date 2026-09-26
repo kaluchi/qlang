@@ -6,3 +6,9 @@
 {"name":"the-contract-of-run-examples-names-its-residences","query":"42 | runExamples !| /addresses","expect":"#[::keyword/runExamples ::tag/runExamples]","decision":"D79"}
 {"name":"the-loader-stays-a-descriptor","query":"::any/use | spec | type","expect":"::builtin","decision":"D79"}
 {"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type /actualType]","expect":"[::TagModifierNotTagKeywordError ::keyword]","decision":"D79"}
+{"name":"an-axis-reads-a-default-and-a-rest-slot-by-name","query":":f ::verb~(:n 3 * :rest ::number | [n rest]) | :f | [(spec :n) (spec :rest)]","expect":"[3 ::number]","decision":"D88"}
+{"name":"an-axis-reads-a-set-of-kinds-a-slot-admits","query":":f ::verb~(:limit #[::number ::null] | [limit]) | :f | spec :limit","expect":"#[::null ::number]","decision":"D88"}
+{"name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | docs :nosuch !| [type /bindingName /addresses]","expect":"[::DocsBindingNotFoundError :nosuch #[]]","decision":"D88"}
+{"name":"a-name-a-verb-declares-no-slot-under-is-refused","query":"::vec/take | docs :nosuch !| [type /bindingName /addresses]","expect":"[::DocsBindingNotFoundError :nosuch #[]]","decision":"D88"}
+{"name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"::number | gt ::A","expect":"true","decision":"D88"}
+{"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | [(manifest | has ::vec/count) (docs :count | eq (::vec/count | docs))]","expect":"[true true]","decision":"D88"}

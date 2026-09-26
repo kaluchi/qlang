@@ -22,7 +22,7 @@ import { codeOf, evalAst } from '../eval.mjs';
 import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
-import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource } from '../quote.mjs';
+import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope, slotDocContentsOf } from '../walk.mjs';
 import { canonicalTagName, tagBindingKey } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
@@ -75,6 +75,24 @@ const RETURNS_SUBJECT = Symbol('returnsSubject');
 const CODE_KIND_NAMES = new Set(['quote', 'verb']);
 
 // ── the signature ──────────────────────────────────────────────
+
+// slotMemberOf(verb, slotName) → the record of the slot the verb's head
+// declares under the name, the member an axis reads [D88], or null: the
+// docs of its declaration, the declaration itself as its source, and as
+// its value the kind it names, the kinds of a set, or the default it
+// writes.
+export function slotMemberOf(verb, slotName) {
+  const signature = signatureOf(verb.payload);
+  const slot = [...signature.slots, ...(signature.rest === null ? [] : [signature.rest])]
+    .find(candidate => candidate.name === slotName);
+  if (slot === undefined) return null;
+  return makeBinding({ name: keyword(slot.name), docs: slot.docs, value: slotValueOf(slot), source: slot.source });
+}
+
+function slotValueOf(slot) {
+  if (slot.kindNames === null) return stepOfNode(slot.defaultNode);
+  return slot.kindNames.length === 1 ? makeTagKeyword(slot.kindNames[0]) : makeSet(slot.kindNames.map(makeTagKeyword));
+}
 
 // A quote is read once, and every verb over it shares the reading.
 const SIGNATURE_OF_QUOTE = new WeakMap();

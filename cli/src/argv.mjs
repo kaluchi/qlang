@@ -63,8 +63,8 @@ Output colour:
 Examples:
   curl -s api/users | qlang '/data * /name'
   cat data.json     | qlang '/glossary/title'
-  echo hi           | qlang --raw 'append(" world")'
-  qlang '[1 2 3] | filter(gt(1)) | count'
+  echo hi           | qlang --raw 'append " world"'
+  qlang '[1 2 3] | filter ~(gt 1) | count'
   qlang -i
 
 See https://github.com/kaluchi/qlang for the language reference.

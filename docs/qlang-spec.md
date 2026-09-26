@@ -1884,10 +1884,10 @@ tag-binding metadata.
 inspection:
 
 ```qlang
-!| /faultStep | parse         -- the failing step as text
-!| /faultStep | first         -- the failing step itself, a step of code
-!| /faultInput | keys         -- keys available on the Map the step received
-!| /faultInput                -- the full value the step received
+!| /faultStep | parse         |~| the failing step as text
+!| /faultStep | first         |~| the failing step itself, a step of code
+!| /faultInput | keys         |~| keys available on the Map the step received
+!| /faultInput                |~| the full value the step received
 ```
 
 ### Trail continuity across re-lift
@@ -2254,7 +2254,7 @@ modifiers.
 
 `|`, `!|`, `*` — left-associative, equal precedence:
 
-```qlang
+```text
 a | b * c !| d  =  (((a | b) * c) !| d)
 ```
 

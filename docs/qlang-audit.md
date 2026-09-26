@@ -1140,6 +1140,15 @@ build, since the error a step produces holds a quote there or null
 ::ErrorTrailNotQuoteError
 ```
 
+The trail crosses the levels as well: the steps a verb's body skipped
+land in its caller's trail with the names of the body's scope, so the
+trail replays nowhere.
+
+```qlang
+> :g ::verb~(:n ::number | add n | mul n) | "x" | g 2 | sub 3 !| /trail
+~(mul n | sub 3)
+```
+
 A library of error-handling pipelines, retry and recover and assert
 and their kin, ships in the core package, is reachable only through
 the Node module resolver used by tests, and cannot be loaded from the
@@ -1174,9 +1183,12 @@ and an operand whose alternatives are pipeline slots, `coalesce` and its
 kin, runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
-asked. Every reader of an error, the printer and equality among them,
-must read the trail `!|` reads, so an error a value holds prints and
-compares with the steps it deflected through.
+asked. An error must leave a crumb at every level it leaves, the step
+that opened the level, the subject the level began from and the trail
+it gathered there, its own trail starting over, so the trail it shows
+replays where it is read and the crumbs lead from the fault to the
+reader: an error no step handles carries the path of the computation
+[D85].
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which
@@ -1819,9 +1831,10 @@ sites as kinds with their schemas and procedures, and the law for
 nested errors [D7], [D13], [D46], which is where the JavaScript classes
 of errors and the prose that restates their facts disappear.
 
-Its answer is the target of [D13] and [D64] in the conformance suite,
-the error a value slot hands on, whose kind D64 names and whose passage
-D13 settles. Beside it: no factory-declared error class remains; every
+Its answers are the targets of [D13], [D64] and [D85] in the
+conformance suite: the error a value slot hands on, whose kind D64 names
+and whose passage D13 settles, and the crumbs an error leaves at every
+level it leaves. Beside it: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; host categories of error are declared by hosts.
@@ -2164,3 +2177,4 @@ maintainer wants to explore it before it is fixed.
 [D82]: decisions/D82.md
 [D83]: decisions/D83.md
 [D84]: decisions/D84.md
+[D85]: decisions/D85.md

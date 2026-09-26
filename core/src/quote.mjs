@@ -16,7 +16,6 @@
 // first time it runs (`astOfQuote`).
 
 import { parse } from './parse.mjs';
-import { isPlainCommentStep } from './walk.mjs';
 import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
@@ -46,10 +45,11 @@ export function quoteOfBody(node) {
 }
 
 // quoteOfSource(source, uri) → quote — reads text as a quote; blank
-// text is the empty quote. A ParseError rides out to the caller.
+// text, comments among it, is the empty quote [D81]. A ParseError rides
+// out to the caller.
 export function quoteOfSource(source, uri = 'quote') {
-  if (source.trim() === '') return makeQuote([]);
-  return quoteOfBody(parse(source, { uri }));
+  const ast = parse(source, { uri });
+  return ast.type === 'Blank' ? makeQuote([]) : quoteOfBody(ast);
 }
 
 // A quote literal's value, read once per node: the value is immutable,
@@ -78,25 +78,17 @@ export function eachStepOf(bodyNode) {
 }
 
 function stepsOfBody(node) {
-  if (node.type === 'Pipeline') return stepsOfPipeline(node);
-  if (isPlainCommentStep(node)) return [];
-  return [stepOfNode(node)];
+  return node.type === 'Pipeline' ? stepsOfPipeline(node) : [stepOfNode(node)];
 }
 
 // The combinator each step rides resolves as `evalPipeline` resolves
-// it: the leading combinator for the head, the unit's own after it, `|`
-// wherever a comment's closer stands for it.
+// it: the leading combinator or `|` for the head, the unit's own after
+// it.
 function stepsOfPipeline(node) {
-  const steps = [];
-  let leadingCombinator = node.leadingCombinator;
-  node.steps.forEach((unit, index) => {
-    const stepNode = index === 0 ? unit : unit.step;
-    if (isPlainCommentStep(stepNode)) return;
-    const combinator = leadingCombinator ?? (index === 0 ? null : unit.combinator) ?? '|';
-    leadingCombinator = null;
-    steps.push(stepUnderCombinator(combinator, stepNode));
-  });
-  return steps;
+  return [
+    stepUnderCombinator(node.leadingCombinator ?? '|', node.steps[0]),
+    ...node.steps.slice(1).map(unit => stepUnderCombinator(unit.combinator, unit.step))
+  ];
 }
 
 function stepUnderCombinator(combinator, stepNode) {

@@ -23,7 +23,7 @@ import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource } from '../quote.mjs';
-import { declaredNameOf, isPlainCommentStep, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
+import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
 import { canonicalTagName, tagBindingKey } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
@@ -95,15 +95,7 @@ function unitsOf(quote) {
   if (quote.length === 0) return [];
   const ast = astOfQuote(quote);
   if (ast.type !== 'Pipeline') return [{ combinator: '|', step: ast }];
-  const units = [];
-  let leadingCombinator = ast.leadingCombinator;
-  ast.steps.forEach((unit, index) => {
-    const step = index === 0 ? unit : unit.step;
-    if (isPlainCommentStep(step)) return;
-    units.push({ combinator: leadingCombinator ?? (index === 0 ? null : unit.combinator) ?? '|', step });
-    leadingCombinator = null;
-  });
-  return units;
+  return [{ combinator: ast.leadingCombinator ?? '|', step: ast.steps[0] }, ...ast.steps.slice(1)];
 }
 
 // A declaration of a value the body derives, `:self /` or `:limit (k |

@@ -1,9 +1,9 @@
 {"name":"line-plain-then-step","query":"|~| pre-step note\n| 42","expect":"42"}
 {"name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add 3","expect":"8"}
 {"name":"block-plain-then-step","query":"|~ block note ~| 42","expect":"42"}
-{"name":"block-plain-eats-trailing-combinator","query":"5 |~ rationale ~| add 3","expect":"8"}
+{"name":"a-block-comment-stands-between-a-pipe-and-its-step","query":"5 | |~ rationale ~| add 3","expect":"8","decision":"D81"}
 {"name":"line-plain-mid-pipeline","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
-{"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| add 1","expect":"11"}
+{"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| | add 1","expect":"11","decision":"D81"}
 {"name":"line-doc-on-let","query":"|~~| Doubles the input.\n:double ::verb~(mul 2)\n| 5 | double","expect":"10"}
 {"name":"line-doc-retrieve","query":"|~~| Doc text.\n:foo 42\n| :foo | docs * /content","expect":"[\" Doc text.\"]"}
 {"name":"block-doc-on-let","query":"|~~ Multi-line doc\n    spanning many lines. ~~|\n:foo 42\n| 5 | foo","expect":"42"}
@@ -52,9 +52,9 @@
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | docs | first | /content","expect":"\" pair holds |~| line marker inline \""}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}
 {"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~(| count)"}
-{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~ note ~| count !| /trail","expect":"~(| count)"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail","expect":"~(| count)","decision":"D81"}
 {"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | :t / | 42 | apply t !| type","expect":"::VerbWithoutBodyError"}
-{"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}
+{"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}
 {"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
@@ -66,3 +66,7 @@
 {"name":"comment-head-keeps-leading-pipe-deflection","query":"[!{:kind :z}] * (| |~ note ~| count) | first !| /trail","expect":"~(| count)"}
 {"name":"comment-head-without-leading-combinator-rides-pipe","query":"[!{:kind :z}] * (|~ note ~| count) | first !| /trail","expect":"~(| count)"}
 {"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | /content | contains \"\\r\"","expect":"false"}
+{"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6","decision":"D81"}
+{"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6","decision":["D11","D81"]}
+{"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true","decision":"D81"}
+{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| :foo | docs * /content","expect":"[\" the doc\"]","decision":["D70","D81"]}

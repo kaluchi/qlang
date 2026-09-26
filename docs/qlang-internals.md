@@ -203,33 +203,20 @@ env-key prefix in the tag namespace.
 
 ### 5. Comment — `|~|`, `|~ ... ~|`, `|~~|`, `|~~ ... ~~|`
 
-    (pipeValue, env) → (pipeValue, env)
-
-Pure identity. A comment step consumes neither `pipeValue` nor
-`env`; the state threads through unchanged. `evalPipeline` steps
-over a plain comment on both tracks, so a comment never fires,
-never deflects, and never enters `:trail` — the materialized trail
-stays a pure operand suffix that `apply` replays. A comment in
-head position hands the head to the first operand step, as if the
-comment were absent: that step applies through the pipeline's
-leading combinator when there is one, through the combinator the
-author wrote after the comment (`(|~ note ~| * add 1)` reads as
-`(* add 1)`), and through `|` when its continuation unit carries
-the grammar's absorbed marker (`combinator: null`). Past
-the head an absorbed follower rides `|`. A leading combinator and
-an explicit combinator on the same first operand step is a parse
-error. Comments appear
-in the AST as first-class PipeSteps and are visible to the tools
-(the highlighter, the language server); a quote keeps none.
+A plain comment is whitespace [D81]: the grammar reads it wherever
+whitespace stands, so no step, quote or trail holds one, and the
+parser keeps the comments of a source on the side, the root's
+`.comments`, for the tools that paint them (the highlighter, the
+language server).
 
 Four surface forms, two orthogonal axes (line/block, plain/doc):
 
 | Form            | Role                                                    |
 |-----------------|---------------------------------------------------------|
-| `\|~\|`          | line plain — identity, content to newline              |
-| `\|~ ~\|`        | block plain — identity, content to `~\|`, multi-line   |
-| `\|~~\|`         | line doc — identity + attach to next RawStep           |
-| `\|~~ ~~\|`      | block doc — identity + attach to next RawStep          |
+| `\|~\|`          | line plain — whitespace, content to newline            |
+| `\|~ ~\|`        | block plain — whitespace, content to `~\|`, multi-line |
+| `\|~~\|`         | line doc — attach to next binding                      |
+| `\|~~ ~~\|`      | block doc — attach to next binding                     |
 
 The two doc forms additionally carry **metadata attachment**: their
 content is absorbed into the `docs` field of the immediately
@@ -241,23 +228,7 @@ A block doc with internal newlines produces **one** Vec entry (a
 multi-line string). Two consecutive `|~~|` line docs produce
 **two** separate Vec entries.
 
-Comments absorb adjacent combinators into their own delimiters
-uniformly across all four forms: the combinator position immediately
-before the comment and the combinator position immediately after it
-are both implicit, so a comment can sit between two pipeline steps
-without any explicit `|` on either side.
-
-- **Block forms** absorb through the `|` in the opener and the `|`
-  in the closer.
-- **Line forms** absorb the leading `|` through the opener; the
-  trailing combinator position is implicit across the newline, so
-  the next step follows directly.
-
-At the start of a query, the leading `|` is virtual.
-
-Since comments are identity steps with no effect on the state
-pair, their evaluation semantics are trivial. The non-trivial
-content — the metadata attachment for doc forms — is a parser-side
+The metadata attachment of the doc forms is a parser-side
 transformation: the parser folds `DocComment*` into the binding
 AST node's `docs` Vec field, so `evalBindStep` sees the docs at
 construction time and folds them into the record of the binding.

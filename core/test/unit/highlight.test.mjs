@@ -203,6 +203,12 @@ describe('tokenize — comments', () => {
     expect(tokens[0].kind).toBe('comment');
   });
 
+  it('paints a doc literal as `comment`', async () => {
+    const src = '42 |~~ a doc ~~|';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens.at(-1)).toEqual({ start: 3, end: src.length, kind: 'comment' });
+  });
+
   it('classifies a block plain comment as `comment`', async () => {
     const src = '|~ block ~|';
     const tokens = tokenize(src, await builtins());

@@ -45,7 +45,7 @@
 {"name":"a-role-declared-by-a-doc-alone-names-no-kind","query":"::verb~(:subject |~~ Any. ~~| | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :subject]","decision":["D67","D68"]}
 {"name":"a-slot-without-a-body-is-refused","query":"::verb~(:x |~~ How many. ~~| | add 1) !| [type /slot]","expect":"[::VerbSlotWithoutBodyError :x]","decision":["D67","D68","D70"]}
 {"name":"a-body-may-open-with-a-combinator","query":":m ::verb~(:n 1 * add n) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
-{"name":"a-comment-in-the-head-is-layout","query":":m ::verb~(:x ::number |~ the count ~| add x) | 1 | m 2","expect":"3","decision":["D67","D68"]}
+{"name":"a-comment-in-the-head-is-layout","query":":m ::verb~(:x ::number |~ the count ~| | add x) | 1 | m 2","expect":"3","decision":["D67","D68","D81"]}
 {"name":"a-declaration-on-the-fail-track-ends-the-head","query":":m ::verb~(:n 1 !| :k 2 | add n) | 5 | m","expect":"6","decision":["D67","D68"]}
 {"name":"the-empty-verb-is-a-contract","query":":c ::verb~() | 1 | c !| type","expect":"::VerbWithoutBodyError","decision":["D67","D68"]}
 {"name":"a-verb-of-comments-alone-is-a-contract","query":":c ::verb~(|~ nothing yet ~|) | 1 | c !| type","expect":"::VerbWithoutBodyError","decision":["D67","D68"]}

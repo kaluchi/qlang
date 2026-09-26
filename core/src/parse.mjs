@@ -12,6 +12,8 @@
 //     as .uri
 //   - records a per-process .parseId for cross-parse identity
 //   - records .schemaVersion for forward-compat AST evolution
+//   - records .comments, the plain comments the grammar read as
+//     whitespace [D81], in the order of the source, for the tools
 
 import {
   parse as peggyParse
@@ -61,9 +63,10 @@ export function parse(source, opts = {}) {
       opts.uri ?? null
     );
   }
+  const commentTrivia = new Map();
   let ast;
   try {
-    ast = peggyParse(source, opts.startRule ? { startRule: opts.startRule } : undefined);
+    ast = peggyParse(source, opts.startRule ? { startRule: opts.startRule, commentTrivia } : { commentTrivia });
   } catch (err) {
     throw new ParseError(err.message, err.location, opts.uri ?? null, {
       expected: err.expected,
@@ -84,5 +87,6 @@ export function parse(source, opts = {}) {
   ast.uri = opts.uri ?? 'inline';
   ast.parseId = ++parseCounter;
   ast.schemaVersion = AST_SCHEMA_VERSION;
+  ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return ast;
 }

@@ -238,10 +238,12 @@ export function makeSet(elements) {
 
 // The step an error literal leaves in a quote: an error value whose
 // fields hold the steps that compute them, `:kind` and `:trail`
-// among them, exactly as written, so it prints back as the literal it
-// was read from. It never passes through `makeErrorValue`, whose
-// invariant on `:trail` speaks of the error a step produces.
-export function makeErrorLiteralStep(descriptor) {
+// among them, as written, and a null `:trail` where the literal writes
+// none, as every error holds one, so the error its fields build is the
+// step [D42]. It never passes through `makeErrorValue`, whose invariant
+// on `:trail` speaks of the error a step produces.
+export function makeErrorLiteralStep(fieldSteps) {
+  const descriptor = fieldSteps.has('trail') ? fieldSteps : new Map(fieldSteps).set('trail', null);
   return Object.freeze(brandValueClass({
     tag: ERROR_TAG, descriptor, location: null, originalError: null, _trailHead: null
   }, 'error'));

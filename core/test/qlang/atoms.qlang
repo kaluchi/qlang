@@ -1,0 +1,85 @@
+|~ Every value comes apart into its atoms and a shape, and the shape
+   applied to the atoms builds it back [D42]. The atoms are the values
+   no verb takes further apart, null, booleans, numbers, strings,
+   keywords and tag names, in the order of the literal, the values of a
+   map in the one order of its keys. The shape is the literal of the
+   value with a projection in the place of each atom, a quote over the
+   vector of the atoms: `["x" [1 1] {:b :a}]` has the atoms
+   `["x" 1 1 :a]` and the shape `~([/0 [/1 /2] {:b /3}])`.
+   A tagged value is its tag over the shape of its payload, the set and
+   the quote among them, so code comes back through the constructors of
+   its steps; an error is its descriptor handed to `error`, and a doc
+   its text handed to `parse`. The verbs are the language's own, and the
+   test of the ring runs them over every example of the catalog and
+   every literal of the conformance cases. ~|
+
+:atomKinds
+  |~~ The kinds of the atoms. ~~|
+  #[::null ::boolean ::number ::string ::keyword ::tag]
+
+:asPairs
+  |~~ Each element of a vector as the pair of whether it failed and the
+      value its pieces are taken from: an error as the descriptor the
+      fail track reads, any other value as it is. The error rides a
+      second error past the step that pairs a value, which leaves its
+      trail on the second. ~~|
+  ::verb~(* (!| error {:failed /} | [false /] !| [true /failed]))
+
+:groupBefore
+  |~~ The group of the step followed by the steps of the suffix. ~~|
+  ::verb~(:suffix ::vec | [[/] suffix] | flat | tag ::quote | tag ::group)
+
+:pairedWith
+  |~~ The pairs so far, `{:pairs … :others …}`, with the element and the
+      first of the others. ~~|
+  ::verb~(
+    :element ::any
+    | :acc /
+    | {:pairs (acc | /pairs | append [element (acc | /others | first)]) :others (acc | /others | drop 1)})
+
+:intoPieces
+  |~~ The pieces taken so far, `{:atoms … :steps …}`, with those of one
+      pair after them: its atoms, and its step, whose projections count
+      from the atoms before it. `reduce` folds it over the pairs of a
+      vector, and it folds itself over the parts of each value it meets. ~~|
+  ::verb~(
+    :pair ::vec
+    | :acc /
+    | :kind (pair | /1 | type)
+    | pair | /1
+    | if (atomKinds | has kind)
+        ~({:atoms (acc | /atoms | append (pair | /1))
+           :steps (acc | /steps | append ({:path [(acc | /atoms | count)]} | tag ::proj))})
+        ~(cond
+            ~(kind | eq ::vec)
+            ~(asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
+              | {:atoms (inner | /atoms) :steps (acc | /steps | append (inner | /steps))})
+            ~(kind | eq ::map)
+            ~(:entries / | keys | sort | :order /
+              | order * (:key / | entries | at key) | asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
+              | {:atoms (inner | /atoms)
+                 :steps (acc | /steps | append (order | reduce {:pairs [] :others (inner | /steps)} ~(pairedWith) | /pairs | indexBy ~(/0) * /1))})
+            ~(kind | eq ::doc)
+            ~({:atoms (acc | /atoms | append (pair | /1 | json | parseJson))
+               :steps (acc | /steps | append ({:path [(acc | /atoms | count)]} | tag ::proj | groupBefore ~(parse | first)))})
+            ~([(payload)] | asPairs | reduce {:atoms (acc | /atoms) :steps []} ~(intoPieces) | :inner /
+              | {:atoms (inner | /atoms)
+                 :steps (acc | /steps | append ({:tag kind :payload (inner | /steps | first)} | tag ::tagged | if (pair | /0) ~(groupBefore ~(error)) ~()))})))
+
+:apart
+  |~~ The atoms of the subject and its shape.
+
+      ~(["x" [1 1] {:b :a}] | apart | eq {:atoms ["x" 1 1 :a] :shape ~([/0 [/1 /2] {:b /3}])})
+  ~~|
+  ::verb~(
+    [/] | asPairs | reduce {:atoms [] :steps []} ~(intoPieces)
+    | {:atoms /atoms :shape (/steps | tag ::quote)})
+
+:rebuilt
+  |~~ The value the shape of the subject builds from its atoms. ~~|
+  ::verb~(apart | :pieces / | pieces | /atoms | apply (pieces | /shape))
+
+:survives
+  |~~ Whether the value its pieces build is the subject. A value that is
+      an error goes in a vector, since it deflects around a verb. ~~|
+  ::verb~(:original / | rebuilt | eq original)

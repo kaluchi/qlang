@@ -236,11 +236,13 @@ function walkToKinds(value, kindNames) {
 // one kind, the value its constructor reads, which is the check of the
 // kind [D60]; code is taken only as it is. `place` names the slot or the
 // role, `{ slot }`, and for a value of the rest its index from 1,
-// `{ slot, index }` [D77]; `PlaceRefusal` is the refusal a built-in's
-// site declares there, raised in place of the kind's [D72].
-async function servedByKinds(value, kindNames, state, place, PlaceRefusal) {
+// `{ slot, index }` [D77]; `siteRefusal` finds the refusal a built-in's
+// site declares there, raised in place of the kind's [D72], and runs only
+// for a value the kinds refuse.
+async function servedByKinds(value, kindNames, state, place, siteRefusal) {
   const walked = walkToKinds(value, kindNames);
   if (walked !== null) return walked;
+  const PlaceRefusal = siteRefusal?.();
   if (PlaceRefusal !== undefined) throw new PlaceRefusal(value);
   const refusalFacts = { ...place, actualType: typeKeyword(value), actualValue: value };
   if (kindNames.length > 1) {
@@ -311,16 +313,18 @@ function primitiveOfVerb(signature, verb) {
 }
 
 // The scope of the body: the verb's own with each slot bound to the
-// record of its value, and the values in the order of the slots, or the
-// error a modifier or a constructor answered. The kinds of the head are
-// read in the verb's scope.
+// record of its value, which a body of steps reads and a primitive does
+// not, and the values in the order of the slots, or the error a modifier
+// or a constructor answered. The kinds of the head are read in the
+// verb's scope.
 async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName) {
   const { slots, rest } = signature;
+  const bindsSlotNames = !callsPrimitive(signature, verb);
   const scopeState = withPipeValue(withEnv(state, scopeEnv), null);
   const takeModifier = async (slot, kindNames, modifierLambda, positions, place) => {
     const modifier = await modifierLambda(state.pipeValue);
     if (isErrorValue(modifier)) return modifier;
-    const { served } = await servedByKinds(modifier, kindNames, scopeState, place, siteRefusalAt(signature, verb, positions));
+    const { served } = await servedByKinds(modifier, kindNames, scopeState, place, () => siteRefusalAt(signature, verb, positions));
     return asCodeOfSlot(slot, kindNames, served, scopeEnv);
   };
   let bodyEnv = scopeEnv;
@@ -335,7 +339,7 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
     else throw new VerbSlotMissingError({ verbName, slot: keyword(slot.name) });
     if (isErrorValue(value)) return { failed: value };
     slotValues.push(value);
-    bodyEnv = envSet(bodyEnv, slot.name, slotRecord(slot, value));
+    if (bindsSlotNames) bodyEnv = envSet(bodyEnv, slot.name, slotRecord(slot, value));
   }
   if (rest !== null) {
     const { kindNames } = await kindNamesOfSlot(rest, scopeState);
@@ -346,7 +350,7 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
       gathered.push(value);
     }
     slotValues.push(Object.freeze(gathered));
-    bodyEnv = envSet(bodyEnv, rest.name, slotRecord(rest, Object.freeze(gathered)));
+    if (bindsSlotNames) bodyEnv = envSet(bodyEnv, rest.name, slotRecord(rest, Object.freeze(gathered)));
   }
   return { bodyEnv, slotValues };
 }
@@ -412,7 +416,7 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const subjectKinds = signature.subjectKinds ?? residenceKindsOf(verb);
   const { served, passedTags } = subjectKinds === null
     ? { served: subject, passedTags: [] }
-    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
+    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, () => siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
   if (isErrorValue(served)) return served;
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;

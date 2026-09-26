@@ -10,7 +10,7 @@
 // the module named by the noun's path, resides on that noun [D72].
 
 import {
-  isQMap, isVec, isVerb, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
+  isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -74,12 +74,17 @@ function* residencesOnKind(env, kindName) {
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
 // of the value, the kind of every tagged value after a tag [D78], the
-// payload beneath a tag over a value, and the kind of a vector or a map
-// beneath a tag of its own.
+// payload beneath a tag over a value, the kind of a vector or a map
+// beneath a tag of its own, and, after the kind of tag names, the noun a
+// tag name names [D88].
 function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
     yield typeKeyword(value).name;
+    if (isTagKeyword(value)) {
+      yield value.name;
+      return;
+    }
     if (isTaggedInstance(value)) yield TAGGED_KIND_NAME;
     if (isValueClass(value, 'taggedInstance')) {
       value = value.payload;

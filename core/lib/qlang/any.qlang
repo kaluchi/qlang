@@ -790,13 +790,17 @@
       in its scope, the `:source` of its record, which `parse`
       prints as its text; `::Tag | source` the tag's. A binding no
       step declared, a value `use` or a host bound, answers null.
-      Any other value reads the declaration of its kind.
+      Any other value reads the declaration of its kind. Given a name,
+      it reads the member the subject holds under it [D88]: the slot a
+      verb's head declares, and for any other subject the verb the name
+      calls after it.
 
       ~(::vec/filter | source | parse | contains ":filter")
       ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
       ~("text" | source | eq (::string | source))
+      ~(::vec/take | source :count | parse | eq ":count ::number")
   ~~|
-  ::verb~(:returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
+  ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
 
 ::SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a
@@ -822,14 +826,21 @@
       Quote segments are the evaluable examples `runExamples` runs.
       Any other value reads the page of its kind, and the `:kind`
       field of a map names nothing: the map reads the page of
-      `::map`.
+      `::map`. Given a name, it reads the docs of the member the
+      subject holds under it [D88]: `::map | docs :minus` the page of
+      `::map/minus`, `[1 2] | docs :count` the page of the `count`
+      a vector calls, and `::vec/take | docs :count` the docs the head
+      of `take` writes on its slot.
 
       ~(::vec/filter | docs | first | /content | contains "predicate")
       ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
       ~(5 | docs | eq (::number | docs))
       ~({:kind ::set} | docs | eq (::map | docs))
+      ~(::map | docs :minus | eq (::map/minus | docs))
+      ~([1 2] | docs :count | eq (::vec/count | docs))
+      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | /content | eq " how many ")
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docs})
+  ::verb~(:name #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/docs})
 
 ::DocsBindingNotFoundError
   |~~ `docs` — no declaration found for the name it read: a
@@ -857,7 +868,7 @@
       ~(::vec/filter | examples | first | parse | contains "filter")
       ~(5 | examples | eq (::number | examples))
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/examples})
+  ::verb~(:name #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/examples})
 
 ::ExamplesBindingNotFoundError
   |~~ `examples` — no declaration found for the name it read: a
@@ -912,7 +923,7 @@
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
       ~("x" | add 1 !| spec | /category | eq :typeError)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/spec})
+  ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
 
 ::SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a

@@ -1133,6 +1133,12 @@ its own eval handler in `eval.mjs`.
 - Returns the `:docs` of the binding's record, a Vec of Doc-values
   from the doc literals of its slot, one Doc per literal, empty for a
   binding without a doc.
+- Given a name, `docs :name` reads the docs of the member the subject
+  holds under it [D88]: the slot a verb's head declares,
+  `::vec/take | docs :count`, and for any other subject the verb the
+  name calls after it, `::map | docs :minus` the page of
+  `::map/minus`; `source`, `examples` and `spec` take the name
+  alike.
 - **Examples**:
   - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
     entry, read by its address.
@@ -1140,6 +1146,7 @@ its own eval handler in `eval.mjs`.
   - `:count | docs !| /addresses` → `#[::map/count ::set/count
     ::vec/count]`: a keyword names a binding of its scope, and the
     refusal names where the verbs of the name live.
+  - `::map | docs :minus | eq (::map/minus | docs)` → `true`.
 - **Errors**: the subject names no binding → `DocsBindingNotFoundError`,
   carrying `:addresses`.
 

@@ -1594,9 +1594,12 @@ A namespace is a subtree of names with the provider that answers for it,
 a large one mounted and served on demand [D36]. A name typed bare
 resolves nearest first, the declarations of its scope, then the verbs
 of its subject, the core's names last, and a name with a path calls by
-address without a search [D62]; a noun in the subject position opens
-its namespace for the nouns written after it, and values carry their
-qualified tags [D35]; a host sets up a query by the first value of its
+address without a search [D62]; a tag in the subject position is
+dispatched to the noun it names, after the verbs of tag names, and each
+step resolves by its own subject [D88], while values carry their
+qualified tags [D35]; an axis with a name reads the member its subject
+holds under it, the slot of a verb or the verb a noun holds [D88]; a
+host sets up a query by the first value of its
 pipe and nothing else [D37]. `use` brings a library's pipelines into
 the user's names, and the environment the user sees holds only those.
 A declaration writes into its scope the record of its binding, with its
@@ -1824,8 +1827,9 @@ gone; host categories of error are declared by hosts.
 Every fact has one spelling. One loader remains [D5], [D36], which runs
 a module once, a pipeline whose value is what it exposes, so helpers
 stay in their module [D63]; mounted namespaces arrive with it [D24],
-each a subtree answered by its provider, the subject opening its own
-[D35], [D36]; the loader holds the rest of the rule of collisions, a
+each a subtree answered by its provider, a tag in the subject position
+dispatching to its noun [D36], [D88]; the loader holds the rest of the
+rule of collisions, a
 verb and a kind joined only by whoever owns one of them [D23]; the
 literal becomes the one lossless format and tagged JSON and the session
 envelope go [D30]; the doc becomes the vector of its segments, and
@@ -1862,7 +1866,8 @@ alerts, and a parse error names the continuations a reader meant [D7];
 enrichment happens once per session; fields are documented by their
 records' tags and shared values by their own [D50]; the sister
 project's nodes carry their kind as a tag, its verbs move onto its tags
-and its noun [D34], [D62], its types are mounted, its verbs shrink to
+and its noun [D34], [D62], the noun's own verbs taking its name as their
+subject [D88], its types are mounted, its verbs shrink to
 about a dozen, and its guide is generated from the catalog [D24]; the
 effect marker leaves the language with them [D2], since without it a
 host's names meet the core's in a client's scope, where a module's
@@ -2144,3 +2149,4 @@ maintainer wants to explore it before it is fixed.
 [D85]: decisions/D85.md
 [D86]: decisions/D86.md
 [D87]: decisions/D87.md
+[D88]: decisions/D88.md

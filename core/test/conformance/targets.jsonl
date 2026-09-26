@@ -77,3 +77,8 @@
 {"name":"the-step-of-a-tagged-error-literal-is-the-error-it-spells","query":"~(::Foo!{:k 1}) | first !| [type /k]","expect":"[::Foo 1]","decision":"D86"}
 {"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::ErrorTrailNotVecError]","decision":"D86"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::ProjectionKeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
+{"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | docs :minus | eq (::map/minus | docs)","expect":"true","decision":"D88"}
+{"name":"an-axis-reads-the-slot-a-verb-holds-under-a-name","query":"::vec/take | [(source :count) (spec :count) (docs :count)]","expect":"[~(:count ::number) ::number []]","decision":"D88"}
+{"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | /content","expect":"\" how many \"","decision":"D88"}
+{"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | docs :nosuch !| [type /bindingName]","expect":"[::DocsBindingNotFoundError ::map/nosuch]","decision":"D88"}
+{"name":"a-tag-name-meets-the-verbs-of-its-noun-at-their-heads","query":"::vec | count !| type","expect":"::VecPayloadNotVecError","decision":"D88"}

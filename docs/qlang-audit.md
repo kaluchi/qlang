@@ -2041,10 +2041,15 @@ which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it, and the law for nested
 errors of the third milestone settles it [D13].
 
-A tag over a payload that failed [D13], [D46]. A tagged literal over a
-payload that is an error gives the error its tag, so `::Foo!{:k 1}`
-names an error of its own kind, and a payload that failed takes the tag
-as well, losing the one its site gave it:
+A tag over a payload that failed [D13], [D46]. A tagged literal over an
+error literal names the error it spells, `::Foo!{:k 1}`, which is how
+the printer writes an error of a tag, and the fail track opens an error
+so that `!| payload | tag ::Foo | error` renames it with its path kept.
+A payload that failed meets the constructor of the tag all the same,
+and each kind of constructor answers it its own way: a tag without one
+gives the failure its tag, a constructor of the core refuses it by a
+tag of its own, and a constructor written as a quote skips it, its
+steps joining the path of the failure.
 
 ```qlang
 > [(nosuch)] * (!| type)
@@ -2052,14 +2057,27 @@ as well, losing the one its site gave it:
 
 > [::Foo(nosuch)] * (!| type)
 [::Foo]
+
+> [::set(nosuch)] * (!| type)
+[::SetPayloadNotVecError]
+
+> ::P {:impl ~(add 1)} | [::P(nosuch)] * (!| /trail * /skipped)
+[[~(add 1)]]
+
+> "x" | add 1 !| payload | tag ::Foo | error !| [type (/trail * /step)]
+[::Foo [~(add 1)]]
 ```
 
-The path keeps the failing step, `~(nosuch)`, and no stop keeps the
-site's tag [D85]. The alternatives are the tag over the error its
-payload spells, a failure passing through unchanged, which asks the
-tagged literal to tell a raised error from a value as an element of a
-literal does; and the tag over any error, as the tree has it, the
-payload being a place declared for any value, which keeps what it gets.
+The maintainer reads the failure as an envelope no step opens but `!|`:
+«как будто тэг Foo не должен был навеститься на ошибку .. раз у нас
+падение.. и по логике вещей конструктор фоо не должен был здесь
+исполняться» (maintainer, 2026-09-26 09:08, session 86982eb5). Under
+that reading a tagged literal whose payload answers an error answers it
+unchanged, whatever its constructor, and only an error literal written
+in place takes the tag, which asks the literal to tell the two apart as
+an element of a literal tells a raised error from a value [D85]. The
+alternative keeps the payload a place declared for any value, which
+keeps what it gets, and the answers above stand.
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

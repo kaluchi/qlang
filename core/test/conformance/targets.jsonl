@@ -61,3 +61,8 @@
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
 {"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::vec/count]","decision":"D67"}
 {"name":"a-verb-answers-its-signature","query":"::vec/sort | spec | type","expect":"::spec","decision":"D67"}
+{"name":"a-nested-error-keeps-the-crumb-of-its-level","query":"[(!{:k 1} | add 1)] | eq [!{:k 1}]","expect":"false","decision":"D85","target":true}
+{"name":"a-trail-holds-the-steps-of-the-level-that-reads-it","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| /trail","expect":"~(mul 2)","decision":"D85","target":true}
+{"name":"a-call-starts-the-trail-of-its-caller","query":":g ::verb~(:n ::number | add n | mul n) | \"x\" | g 2 | sub 3 !| /trail","expect":"~(sub 3)","decision":"D85","target":true}
+{"name":"a-crumb-holds-the-step-the-subject-and-the-trail-of-its-level","query":":g ::verb~(:n ::number | add n | mul n) | \"x\" | g 2 | sub 3 !| /crumbs | first | [/step /subject /trail]","expect":"[~(g 2) \"x\" ~(mul n)]","decision":"D85","target":true}
+{"name":"a-crumb-of-distribute-holds-the-element","query":"[\"x\"] * (add 1 | mul 2) | first !| /crumbs | first | [/subject /trail]","expect":"[\"x\" ~(mul 2)]","decision":"D85","target":true}

@@ -4,27 +4,13 @@
 // kind numbers by value, strings by their code units, vectors element
 // by element, a set as its vector, maps by their keys and then their
 // values, and a tagged value by its payload. `sort`, `min` and `max`
-// order by it. The ordering predicates keep their refusal of a pair of
-// two kinds until the kinds of their slots carry it, so they gate the
-// pair first (`checkComparable`) and then compare it in the one order.
+// order by it, and so do the ordering predicates, whose heads admit two
+// values of one kind [D65], [D72].
 
 import {
   isKeyword, isTagKeyword, isDoc, isErrorValue, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
-
-// checkComparable(ErrorCls, left, right) — the pairs an ordering
-// predicate compares: two numbers, two strings, two keywords or two
-// tag names; any other pair throws the caller's per-site error.
-export function checkComparable(ErrorCls, left, right) {
-  const bothNumbers     = typeof left === 'number' && typeof right === 'number';
-  const bothStrings     = typeof left === 'string' && typeof right === 'string';
-  const bothKeywords    = isKeyword(left)    && isKeyword(right);
-  const bothTagKeywords = isTagKeyword(left) && isTagKeyword(right);
-  if (!bothNumbers && !bothStrings && !bothKeywords && !bothTagKeywords) {
-    throw new ErrorCls(left, right);
-  }
-}
 
 // The kinds in their order.
 const NULL_KIND     = 0;

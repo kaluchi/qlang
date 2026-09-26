@@ -7,10 +7,10 @@ pipelines. Domain-agnostic. Pure. Composable.
 > [1 2 3 4 5] | filter ~(gt 3) | count
 2
 
-> :double mul 2 | [10 20 30] * double
+> :double ::verb~(mul 2) | [10 20 30] * double
 [20 40 60]
 
-> :@surround [:pfx :sfx] (prepend pfx | append sfx)
+> :@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)
   | "world" | @surround "[" "]"
 "[world]"
 
@@ -18,9 +18,9 @@ pipelines. Domain-agnostic. Pure. Composable.
 > "10 | add 3" | parse | apply /
 13
 
-|~| bare operand → its descriptor as data
-> mul | /category
-:arith
+|~| a verb of numbers → its signature as data
+> ::number/mul | spec | /multiplier
+::number
 ```
 
 ## Documentation

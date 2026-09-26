@@ -132,7 +132,10 @@
       same `::builtin` header identity.
       A declared verb surfaces as its signature, a `::spec~(…)`;
       any other binding as the value its record holds. Any other
-      value reads the descriptor of its kind.
+      value reads the descriptor of its kind. A built-in declared as a
+      verb on its noun surfaces as its signature too, its noun the
+      subject and its refusals `:throws`, and a projection of a
+      signature reads the body of the declaration it names [D72].
 
       The discriminator path for per-tag static facts attached
       to any tagged value — `result !| spec | /category`
@@ -141,7 +144,7 @@
       classes `add` raises, and each of those names `:add` back on
       its own `/operand`.
 
-      ~(::number/add | spec | /category | eq :arith)
+      ~(::number/add | spec | /subject | eq ::number)
       ~(::AddLeftNotNumberError | spec | /operand | eq :add)
       ~(::verb | spec | /impl | eq :qlang/type/verb)
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)

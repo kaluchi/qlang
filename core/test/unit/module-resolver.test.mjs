@@ -88,6 +88,14 @@ describe('resolveModules', () => {
 // ── installModules ──────────────────────────────────────────────
 
 describe('installModules', () => {
+  it('a verb a module outside a noun exports resides on no noun [D72]', async () => {
+    const catalog = await resolveModules(libDir);
+    const sessionInstance = await createSession();
+    installModules(sessionInstance, catalog);
+    const cellEntry = await sessionInstance.evalCell('use :error | :retry 5 | retry 1 !| /addresses | count');
+    expect(cellEntry.result).toBe(0);
+  });
+
   it('makes namespaces available via use(:ns)', async () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();

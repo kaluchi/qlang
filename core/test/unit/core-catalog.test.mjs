@@ -161,16 +161,13 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     }
   });
 
-  it('spot-check — :add descriptor resolves to the add impl with arity 2', async () => {
+  it('spot-check — :add is a verb that resides on ::number [D72]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { isVerb, residenceOfVerb } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
-    const addDescriptor = bindingValueOf(resolved.get('add'));
-    expect(isQMap(addDescriptor)).toBe(true);
-    expect(addDescriptor.get('category')).toEqual(keyword('arith'));
-    expect(addDescriptor.get('subject')).toEqual(keyword('number'));
-    const impl = builtinImplOf(addDescriptor);
-    expect(impl.name).toBe('add');
-    expect(impl.arity).toBe(2);
+    const addVerb = bindingValueOf(resolved.get('add'));
+    expect(isVerb(addVerb)).toBe(true);
+    expect(residenceOfVerb(addVerb)).toBe('number');
   });
 
   it('spot-check — :filter is a higher-order containerSelector', async () => {
@@ -249,16 +246,14 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
 
-  it('bare `mul` (non-nullary) on null pipeValue fires an arityError', async () => {
-    // mul has captured [1, 2]. Bare call has zero captured args,
-    // so Rule 10's value-op arity check fires before the impl
-    // could mishandle the call. The diagnostic carries the
-    // operand name and the expected range.
+  it('bare `mul` on a number leaves its slot empty and is refused by its name', async () => {
+    // The head of `mul` declares one slot, which a call without a
+    // modifier leaves empty [D68], [D72].
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
-    const evalResult = await evalQuery('mul');
+    const evalResult = await evalQuery('5 | mul');
     expect(isErrorValue(evalResult)).toBe(true);
-    expect(evalResult.tag.name).toBe('ValueOpArityMismatchError');
+    expect(evalResult.tag.name).toBe('VerbSlotMissingError');
   });
 });
 
@@ -292,13 +287,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(230);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(226);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(67);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(59);
   });
 });
 
@@ -323,9 +318,8 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
     expect(categories.get('control')).toBe(3);
     expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
     expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
-    expect(categories.get('arith')).toBe(4);
     expect(categories.get('string')).toBe(8);
-    expect(categories.get('predicate')).toBe(8);  // not + eq + gt + lt + gte + lte + and + or
+    expect(categories.get('predicate')).toBe(4);  // not + eq + and + or
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
     expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within
     expect(categories.get('format')).toBe(2);  // json + parseJson, the JSON codec both ways

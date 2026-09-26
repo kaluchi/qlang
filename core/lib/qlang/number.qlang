@@ -1,23 +1,21 @@
-|~ qlang operand catalog — arith family. Each operand BindStep
-   below sits directly under the per-site error tags it raises;
-   the operand's `:throws` Vec references those tags by name. ~|
+|~ The verbs of numbers [D62]. Each resides on `::qlang/number`, the
+   kind whose module declares it, so its subject is a number, and its
+   head is its declaration, which the runtime executes before the
+   primitive runs [D72]. The refusals of a verb sit under it: the head
+   raises the one its site declares at the place it checks, and the
+   primitive the rest. ~|
 
 :add
-  |~~ Adds two numbers. Bound form `a | add b` computes a+b;
-      full form `add a b` resolves both modifiers against
-      pipeValue as context.
+  |~~ Adds two numbers: `a | add b` computes a + b, and the full form
+      `add a b` reads both modifiers against the value in the pipe.
 
       ~(10 | add 3 | eq 13)
       ~({:x 10 :y 3} | add /x /y | eq 13)
   ~~|
-  ::builtin{:impl :qlang/prim/add
-            :category :arith
-            :subject :number
-            :returns :number
-            :modifiers [:number]}
+  ::verb~(:addend ::number | :returns ::number | ::builtin{:impl :qlang/prim/add})
 
 ::AddLeftNotNumberError
-  |~~ Captured argument at position 1 of `add` must be Number.
+  |~~ The subject of `add` must be a number.
 
       ~(
         "hello" | add 1
@@ -27,7 +25,7 @@
   ~~|
 
 ::AddRightNotNumberError
-  |~~ Captured argument at position 2 of `add` must be Number.
+  |~~ The addend of `add` must be a number.
 
       ~(
         1 | add "x"
@@ -50,20 +48,15 @@
   ~~|
 
 :sub
-  |~~ Subtracts the second number from the first. Non-commutative:
-      position 1 is the minuend.
+  |~~ Subtracts the subtrahend from the subject, the minuend.
 
       ~(10 | sub 3 | eq 7)
       ~({:x 10 :y 3} | sub /x /y | eq 7)
   ~~|
-  ::builtin{:impl :qlang/prim/sub
-            :category :arith
-            :subject :number
-            :returns :number
-            :modifiers [:number]}
+  ::verb~(:subtrahend ::number | :returns ::number | ::builtin{:impl :qlang/prim/sub})
 
 ::SubLeftNotNumberError
-  |~~ Captured argument at position 1 of `sub` must be Number.
+  |~~ The subject of `sub` must be a number.
 
       ~(
         "hello" | sub 1
@@ -73,7 +66,7 @@
   ~~|
 
 ::SubRightNotNumberError
-  |~~ Captured argument at position 2 of `sub` must be Number.
+  |~~ The subtrahend of `sub` must be a number.
 
       ~(
         1 | sub "x"
@@ -96,19 +89,15 @@
   ~~|
 
 :mul
-  |~~ Multiplies two numbers. Commutative.
+  |~~ Multiplies two numbers.
 
       ~(10 | mul 3 | eq 30)
       ~({:x 5 :y 4} | mul /x /y | eq 20)
   ~~|
-  ::builtin{:impl :qlang/prim/mul
-            :category :arith
-            :subject :number
-            :returns :number
-            :modifiers [:number]}
+  ::verb~(:multiplier ::number | :returns ::number | ::builtin{:impl :qlang/prim/mul})
 
 ::MulLeftNotNumberError
-  |~~ Captured argument at position 1 of `mul` must be Number.
+  |~~ The subject of `mul` must be a number.
 
       ~(
         "hello" | mul 2
@@ -118,7 +107,7 @@
   ~~|
 
 ::MulRightNotNumberError
-  |~~ Captured argument at position 2 of `mul` must be Number.
+  |~~ The multiplier of `mul` must be a number.
 
       ~(
         1 | mul "x"
@@ -141,21 +130,16 @@
   ~~|
 
 :div
-  |~~ Divides the first number by the second. Non-commutative:
-      position 1 is the dividend. Raises `::DivisionByZeroError` on
-      b == 0.
+  |~~ Divides the subject, the dividend, by the divisor, and refuses a
+      divisor of zero with `::DivisionByZeroError`.
 
       ~(10 | div 2 | eq 5)
       ~({:x 20 :y 4} | div /x /y | eq 5)
   ~~|
-  ::builtin{:impl :qlang/prim/div
-            :category :arith
-            :subject :number
-            :returns :number
-            :modifiers [:number]}
+  ::verb~(:divisor ::number | :returns ::number | ::builtin{:impl :qlang/prim/div})
 
 ::DivLeftNotNumberError
-  |~~ Captured argument at position 1 of `div` must be Number.
+  |~~ The subject of `div` must be a number.
 
       ~(
         "hello" | div 2
@@ -165,7 +149,7 @@
   ~~|
 
 ::DivRightNotNumberError
-  |~~ Captured argument at position 2 of `div` must be Number.
+  |~~ The divisor of `div` must be a number.
 
       ~(
         1 | div "x"
@@ -196,3 +180,33 @@
         |  eq [::DivisionByZeroError]
        )
   ~~|
+
+:gt
+  |~~ Whether the subject is greater than the number the call gives.
+
+      ~(10 | gt 5 | eq true)
+  ~~|
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+
+:gte
+  |~~ Whether the subject is greater than or equal to the number the
+      call gives.
+
+      ~(10 | gte 10 | eq true)
+  ~~|
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+
+:lt
+  |~~ Whether the subject is less than the number the call gives.
+
+      ~(5 | lt 10 | eq true)
+  ~~|
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+
+:lte
+  |~~ Whether the subject is less than or equal to the number the call
+      gives.
+
+      ~(10 | lte 10 | eq true)
+  ~~|
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})

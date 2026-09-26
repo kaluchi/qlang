@@ -24,7 +24,12 @@ import {
   canonicalTagName,
   tokenize,
   isKeyword,
-  bindingValueOf
+  isVerb,
+  bindingValueOf,
+  printQuoteSource,
+  signatureSpecOf,
+  slotLabelsOf,
+  verbShownFor
 } from '@kaluchi/qlang-core';
 
 // Interned keyword references for descriptor-Map field projection.
@@ -202,12 +207,12 @@ async function valueNamespaceCompletions() {
     if (k === RUNTIME_LOCATOR_KEY) continue;
     if (isTagBindingName(k)) continue;
     const descriptor = bindingValueOf(entry);
-    if (!(descriptor instanceof Map)) continue;
+    if (!(descriptor instanceof Map) && !isVerb(descriptor)) continue;
     const docContents = await fetchDocsContents(k);
     _valueCompletions.push({
       label: k,
       kind: 'function',
-      detail: formatMetaValue(descriptor.get(F_CATEGORY)),
+      detail: isVerb(descriptor) ? signatureTextOf(runtime, k) : formatMetaValue(descriptor.get(F_CATEGORY)),
       documentation: stripQuoteSegments(docContents[0] ?? '')
     });
   }
@@ -269,7 +274,7 @@ export async function completionsAtOffset(ast, offset, source = null) {
         items.push({
           label: name,
           kind: 'variable',
-          detail: 'BindStep / as binding',
+          detail: 'BindStep binding',
           documentation: null
         });
       }
@@ -316,19 +321,25 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
+// The head a verb of the runtime declares, as its signature prints [D72].
+function signatureTextOf(runtime, name) {
+  return printQuoteSource(signatureSpecOf(verbShownFor(runtime, name)).payload);
+}
+
 async function hoverForOperand(node, documentAst) {
   const runtime = await langRuntime();
   if (runtime.has(node.name)) {
     const descriptor = bindingValueOf(runtime.get(node.name));
     const docContents = await fetchDocsContents(node.name);
     const prose = stripQuoteSegments(docContents.join('\n'));
-    return {
-      content: markdownHardBreaks([
+    const heading = isVerb(descriptor)
+      ? [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`]
+      : [
         `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
-        `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`,
-        '',
-        prose
-      ].join('\n')),
+        `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`
+      ];
+    return {
+      content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     };
@@ -610,7 +621,9 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   if (!runtime.has(operandCall.name)) return null;
 
   const descriptor = bindingValueOf(runtime.get(operandCall.name));
-  const modifiers = descriptor.get(F_MODIFIERS).map(formatMetaValue);
+  const modifiers = isVerb(descriptor)
+    ? slotLabelsOf(verbShownFor(runtime, operandCall.name))
+    : descriptor.get(F_MODIFIERS).map(formatMetaValue);
   const docContents = await fetchDocsContents(operandCall.name);
 
   // The active parameter is the modifier the cursor stands on or after:

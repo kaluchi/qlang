@@ -30,10 +30,10 @@ import { withEnv, nestState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
-  isQMap, isKeyword, isVec, isQSet, isBinding, keyword, makeBinding, bindingValueOf,
+  isQMap, isKeyword, isVec, isQSet, isBinding, isVerb, keyword, makeBinding, bindingValueOf, resideVerbOn,
   typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { moduleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
+import { canonicalTagName, moduleNamespaceKey, tagBindingKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
@@ -196,9 +196,23 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     }
   }
 
+  resideVerbsOnNoun(nsKeyword.name, loadedExports, moduleResultState.env);
+
   const envWithNamespace = new Map(outerEnv);
   envWithNamespace.set(cacheKey, loadedExports);
   return [loadedExports, envWithNamespace];
+}
+
+// A module named by the path of a noun its scope binds is that noun's
+// module, and the verbs it declares reside on the noun [D72]; a verb it
+// passes on from a module it loaded keeps its own residence.
+function resideVerbsOnNoun(moduleName, loadedExports, moduleEnv) {
+  const nounName = canonicalTagName(moduleName);
+  if (!moduleEnv.has(tagBindingKey(nounName))) return;
+  for (const record of loadedExports.values()) {
+    const declared = bindingValueOf(record);
+    if (isVerb(declared) && record.get('module')?.name === moduleName) resideVerbOn(declared, nounName);
+  }
 }
 
 async function importSingleNamespace(state, nsKeyword) {

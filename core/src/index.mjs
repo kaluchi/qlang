@@ -71,7 +71,12 @@
 //                                TAG_HEADER_SYMBOL Symbol slot
 //   value-class predicates      — describeType, typeKeyword, isKeyword,
 //                                isTagKeyword, isErrorValue, isQuote,
-//                                isDoc
+//                                isDoc, isVerb
+//   the head of a verb          — signatureSpecOf (the `::spec~(…)` that
+//                                `spec` answers), slotLabelsOf (its slots
+//                                as written), verbShownFor (the verb a
+//                                tool shows for a name, a contract's
+//                                first residence for a contract) [D72]
 //   env-key namespaces          — TAG_BINDING_PREFIX,
 //                                MODULE_NAMESPACE_PREFIX, RUNTIME_LOCATOR_KEY
 //                                plus the mint / probe helpers
@@ -82,6 +87,7 @@
 import { parse, ParseError } from './parse.mjs';
 import { evalAst, evalQuery } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
+import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
 import {
   createSession,
   serializeSession,
@@ -137,6 +143,7 @@ import {
   isErrorValue,
   isQuote,
   isDoc,
+  isVerb,
   bindingValueOf,
   makeErrorValue,
   errorFromKindDescriptor,
@@ -222,6 +229,7 @@ export {
   isErrorValue,
   isQuote,
   isDoc,
+  isVerb,
   bindingValueOf,
   makeErrorValue,
   errorFromKindDescriptor,
@@ -239,6 +247,9 @@ export {
   materializeTrail,
   describeType,
   typeKeyword,
+  signatureSpecOf,
+  slotLabelsOf,
+  verbShownFor,
   TAG_BINDING_PREFIX,
   MODULE_NAMESPACE_PREFIX,
   RUNTIME_LOCATOR_KEY,

@@ -655,10 +655,12 @@ The reference implementation assembles `langRuntime()` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the orchestrator. One `use […]`
-  call that imports the catalog families in order:
-  `runtime-invariants`, `tag`, then every `operand/<family>`.
-  Each family file (`lib/qlang/operand/arith.qlang`,
-  `operand/vec.qlang`, etc.) is a series of BindStep
+  call that imports the catalog modules in order:
+  `runtime-invariants`, `tag`, the modules of the nouns
+  (`number`, `string`, `keyword`, `any`), whose verbs reside on
+  their noun [D72], then every `operand/<family>`.
+  Each family file (`lib/qlang/operand/vec.qlang`,
+  `operand/container.qlang`, etc.) is a series of BindStep
   declarations: per-site error tag-bindings inline followed
   by the operand BindSteps that reference those tags in their
   `:throws` Vec. Each operand binds a keyword identifier

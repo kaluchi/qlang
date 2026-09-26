@@ -19,7 +19,10 @@
 import coreSource              from '@kaluchi/qlang-core/lib/qlang/core.qlang';
 import runtimeInvariantsSource from '@kaluchi/qlang-core/lib/qlang/runtime-invariants.qlang';
 import tagSource               from '@kaluchi/qlang-core/lib/qlang/tag.qlang';
-import arithSource             from '@kaluchi/qlang-core/lib/qlang/operand/arith.qlang';
+import numberSource            from '@kaluchi/qlang-core/lib/qlang/number.qlang';
+import stringNounSource        from '@kaluchi/qlang-core/lib/qlang/string.qlang';
+import keywordSource           from '@kaluchi/qlang-core/lib/qlang/keyword.qlang';
+import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
 import containerSource         from '@kaluchi/qlang-core/lib/qlang/operand/container.qlang';
@@ -42,7 +45,10 @@ const CATALOG = new Map([
   ['qlang/core',                    coreSource],
   ['qlang/runtime-invariants',      runtimeInvariantsSource],
   ['qlang/tag',                     tagSource],
-  ['qlang/operand/arith',           arithSource],
+  ['qlang/number',                  numberSource],
+  ['qlang/string',                  stringNounSource],
+  ['qlang/keyword',                 keywordSource],
+  ['qlang/any',                     anySource],
   ['qlang/operand/axis',            axisSource],
   ['qlang/operand/codeAsData',    codeAsDataSource],
   ['qlang/operand/container',       containerSource],

@@ -1,0 +1,26 @@
+{"name":"a-built-in-takes-the-kind-of-its-noun-as-subject","query":"::number/add | spec | /subject","expect":"::number","decision":"D72"}
+{"name":"a-built-in-lists-its-refusals-in-its-signature","query":"::number/add | spec | /throws","expect":"[::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]","decision":"D72"}
+{"name":"a-projection-of-a-signature-reads-a-slot","query":"::number/add | spec | /addend","expect":"::number","decision":"D72"}
+{"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::AddLeftNotNumberError ::string]","decision":"D72"}
+{"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::AddRightNotNumberError ::string]","decision":"D72"}
+{"name":"a-full-application-reads-its-first-modifier-as-the-subject","query":"{:price 100 :qty 3} | mul /price /qty","expect":"300","decision":"D72"}
+{"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::AddLeftNotNumberError","decision":"D72"}
+{"name":"a-declared-verb-takes-a-full-application","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2","expect":"10","decision":"D72"}
+{"name":"a-full-application-leaves-no-modifier-beyond-the-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 3 !| type","expect":"::VerbModifiersBeyondSlotsError","decision":"D72"}
+{"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
+{"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
+{"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
+{"name":"a-comparison-refuses-a-slot-of-another-kind-by-the-kind","query":"1 | gt \"x\" !| type","expect":"::NumberPayloadNotNumberError","decision":["D65","D72"]}
+{"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72"]}
+{"name":"a-name-several-kinds-answer-is-found-again-from-a-full-application","query":"{:a 2 :b 1} | gt /a /b","expect":"true","decision":"D72"}
+{"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | spec | /verbs | has ::number/gt","expect":"true","decision":"D72"}
+{"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | docs | count | gt 0","expect":"true","decision":"D72"}
+{"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
+{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::NumberPayloadNotNumberError","decision":"D72"}
+{"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
+{"name":"a-projection-of-a-signature-names-what-it-declares","query":"::number/add | spec | /nope !| /availableFields","expect":"[\"subject\" \"addend\" \"returns\" \"throws\"]","decision":"D72"}
+{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
+{"name":"a-full-application-keeps-its-verb-where-the-subject-finds-none","query":"5 | add \"a\" 1 !| type","expect":"::AddLeftNotNumberError","decision":"D72"}
+{"name":"a-declared-verb-in-full-application-answers-an-error-subject","query":":s ::verb~(:k ::number | mul k) | null | s (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
+{"name":"a-builtin-body-without-a-handle-is-a-step","query":":v ::verb~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}
+{"name":"an-operand-outside-its-noun-keeps-its-arity-refusal","query":"[1 2] | take !| type","expect":"::ValueOpArityMismatchError","decision":"D72"}

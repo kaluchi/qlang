@@ -197,16 +197,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
-  it('gt across types → GtOperandsNotComparableError', async () => {
+  it('gt across kinds → the refusal of the head, by the kind of its slot [D65], [D72]', async () => {
     const caughtErr = await catchOriginalError('"a" | gt 5');
-    expect(caughtErr.name).toBe('GtOperandsNotComparableError');
-    expect(caughtErr.context.leftType.name).toBe('string');
-    expect(caughtErr.context.rightType.name).toBe('number');
-  });
-
-  it('lt across types → LtOperandsNotComparableError (distinct class)', async () => {
-    const caughtErr = await catchOriginalError('"a" | lt 5');
-    expect(caughtErr.name).toBe('LtOperandsNotComparableError');
+    expect(caughtErr.name).toBe('StringPayloadNotStringError');
+    expect(caughtErr.context.actualType.name).toBe('number');
   });
 
   it('projection on non-Map → ProjectionSubjectNotProjectableError', async () => {
@@ -384,8 +378,6 @@ describe('per-site error classes carry unique identity', () => {
       '"a" | sub 1',      // SubLeftNotNumberError
       '"a" | mul 1',      // MulLeftNotNumberError
       '"a" | div 1',      // DivLeftNotNumberError
-      '"a" | gt 5',       // GtOperandsNotComparableError
-      '"a" | lt 5',       // LtOperandsNotComparableError
       '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '42 * add 1',       // DistributeSubjectNotSequenceError
       '42 | reduce 0 ~(add)',   // ReduceSubjectNotSequenceError

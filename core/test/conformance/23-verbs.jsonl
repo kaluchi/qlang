@@ -6,7 +6,7 @@
 {"name":"a-verb-names-its-slots-by-keywords","query":"::verb~(::T 1 | add 1) !| [type /slot]","expect":"[::VerbSlotNameNotKeywordError ::T]","decision":["D67","D68"]}
 {"name":"a-role-of-a-verb-takes-a-kind","query":"::verb~(:returns 3 | add 1) !| [type /role]","expect":"[::VerbRoleNotKindError :returns]","decision":["D67","D68"]}
 {"name":"a-required-slot-left-empty-is-refused-by-its-name","query":":m ::verb~(:x ::number | add x) | 5 | m !| [type /verbName /slot]","expect":"[::VerbSlotMissingError :m :x]","decision":"D67"}
-{"name":"a-verb-refuses-modifiers-beyond-its-slots","query":":m ::verb~(:x ::number | add x) | 5 | m 1 2 !| [type /slotCount /actualCount]","expect":"[::VerbModifiersBeyondSlotsError 1 2]","decision":["D67","D68"]}
+{"name":"a-verb-refuses-modifiers-beyond-its-slots","query":":m ::verb~(:x ::number | add x) | 5 | m 1 2 3 !| [type /slotCount /actualCount]","expect":"[::VerbModifiersBeyondSlotsError 1 3]","decision":["D67","D68"]}
 {"name":"a-slot-is-checked-by-its-kind","query":":m ::verb~(:x ::number | add x) | 5 | m \"a\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D67"}
 {"name":"a-slot-takes-the-value-of-its-kind-beneath-the-tags","query":":m ::verb~(:x ::number | x) | null | m ::Width(5)","expect":"5","decision":["D67","D68"]}
 {"name":"a-slot-of-a-kind-without-a-body-mints-its-modifier","query":":m ::verb~(:w ::Width | w) | null | m 80 | type","expect":"::Width","decision":["D67","D68"]}

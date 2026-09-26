@@ -3,7 +3,7 @@
 {"name":"a-verb-without-modifiers-runs-at-each-mention","query":":inc ::verb~(add 1) | 5 | inc | inc","expect":"7","decision":["D57","D67"]}
 {"name":"a-verb-moved-left-answers-as-inline","query":":most ::verb~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57","D67"]}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
-{"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"],"target":true}
+{"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter 5 | ::vec/filter | docs | count","expect":"1","decision":["D5","D36"]}
 {"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first * type | distinct","expect":"#[::string]","decision":"D19","target":true}
@@ -39,7 +39,7 @@
 {"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | spec | /impl","expect":":qlang/prim/count","decision":"D62"}
 {"name":"builtin-descriptor-renders-without-a-function-leak","query":"::vec/count | spec | json | contains \"qlang/prim/count\"","expect":"true","decision":"D62"}
-{"name":"type-header-tag-builtin","query":"::number/add | spec | type","expect":"::builtin","decision":"D62"}
+{"name":"an-addressed-built-in-answers-its-signature","query":"::number/add | spec | type","expect":"::spec","decision":["D62","D72"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(docs | filter ~(/content | eq \"\" | not) | empty | not)","expect":"true","decision":["D61","D62"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runExamples | every ~(/ok))","expect":"true","decision":"D62"}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
@@ -50,7 +50,7 @@
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::AddLeftNotNumberError) | count","expect":"1","decision":"D64"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::ProjectionKeyNotInMapError) | count","expect":"1","decision":"D64"}
 {"name":"a-refusal-names-the-place-it-guards","query":"::UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D64"}
-{"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65","target":true}
+{"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | spec | /verbs | has ::string/gt","expect":"true","decision":"D65"}
 {"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}
 {"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66"}
 {"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66"}

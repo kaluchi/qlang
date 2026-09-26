@@ -1,0 +1,49 @@
+|~ The verbs of any value [D62], and the contracts of the verbs that
+   several kinds answer, each residing on `::qlang/any`, the kind beneath
+   every kind. A contract is a verb without a body: its page and its
+   examples are the laws of every verb of its name, what a residence
+   leaves out it says, and a call whose subject no residence serves
+   reaches it and is refused with `:addresses`, the residences of the
+   name [D67], [D72]. ~|
+
+:gt
+  |~~ Whether the subject follows the value the call gives in the one
+      order of their kind. Numbers, strings, keywords and tag names each
+      compare with a value of their own kind, a residence on each of
+      them checking both [D65]; a subject of another kind reaches this
+      contract.
+
+      ~(10 | gt 5 | eq true)
+      ~("b" | gt "a" | eq true)
+      ~(null | gt 1 !| /addresses | has ::number/gt)
+  ~~|
+  ::verb~()
+
+:gte
+  |~~ Whether the subject follows or equals the value the call gives in
+      the one order of their kind, which `gt` states for every kind it
+      compares.
+
+      ~(10 | gte 10 | eq true)
+      ~(:b | gte :a | eq true)
+  ~~|
+  ::verb~()
+
+:lt
+  |~~ Whether the subject precedes the value the call gives in the one
+      order of their kind, which `gt` states for every kind it compares.
+
+      ~(5 | lt 10 | eq true)
+      ~("a" | lt "b" | eq true)
+  ~~|
+  ::verb~()
+
+:lte
+  |~~ Whether the subject precedes or equals the value the call gives in
+      the one order of their kind, which `gt` states for every kind it
+      compares.
+
+      ~(10 | lte 10 | eq true)
+      ~(::a | lte ::b | eq true)
+  ~~|
+  ::verb~()

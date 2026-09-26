@@ -33,7 +33,7 @@ import {
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, envToRun,
-  ERROR_TAG, BUILTIN_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
+  BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
@@ -41,9 +41,13 @@ import { declaredNameOf, isPlainCommentStep, moduleUriOf, repeatsDeclarationInSc
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
-import { addressedVerb, addressesOf, subjectServedBy } from './runtime/nouns.mjs';
+import {
+  addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf, subjectServedBy
+} from './runtime/nouns.mjs';
 import { underPassedTags } from './runtime/dispatch.mjs';
-import { applyVerb, callVerb, effectfulNameOfVerb, verbAsCode } from './runtime/verb.mjs';
+import {
+  applyVerb, applyVerbOn, callVerb, effectfulNameOfVerb, isContract, takesFullApplication, verbAsCode
+} from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
@@ -713,7 +717,25 @@ const PROJECTABLE_BY_TYPE = {
   }
 };
 
+// A signature is read by the names it declares: `/throws` of a
+// built-in's, `/subject`, or a slot's kind [D72].
+function projectSignature(signatureSpec, projKey) {
+  const declarations = signatureSpec.payload.filter(step => typeKeyword(step).name === BIND_TAG.name);
+  const declared = declarations.find(step => step.get('name').name === projKey);
+  if (declared === undefined) {
+    throw new ProjectionFieldNotOnValueClassError({
+      key: projKey,
+      valueClass: SPEC_TAG.name,
+      availableFields: declarations.map(step => step.get('name').name)
+    });
+  }
+  return declared.get('body');
+}
+
 function projectSegment(subject, projKey, state) {
+  if (isValueClass(subject, 'taggedInstance') && subject.tag.name === SPEC_TAG.name) {
+    return projectSignature(subject, projKey);
+  }
   if (typeof subject === 'object' && subject !== null) {
     const valueClass = subject[VALUE_CLASS_TAG];
     const handlers = PROJECTABLE_BY_TYPE[valueClass];
@@ -766,24 +788,48 @@ function isBuiltinDescriptor(descriptor) {
 
 async function evalOperandCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
-  const lookupName = node.name;
+  return await callByName(node.name, node.args.map(argNode => makeLambda(argNode, state)), state);
+}
+
+// A bare name resolves nearest first [D62]: the declaration of the scope,
+// then the verb that resides on the subject, found by the walk of its
+// tags [D72], then the core's binding of the name.
+async function callByName(lookupName, lambdas, state) {
   const lookupEnv = state.env;
-
-  if (!envHas(lookupEnv, lookupName)) {
-    throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
+  const entry = envGet(lookupEnv, lookupName);
+  if (entry !== undefined && !isProviderBinding(lookupEnv, lookupName)) {
+    return await applyBinding(entry, lookupName, lambdas, state);
   }
+  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue);
+  if (residence !== null) return await callResidence(bindingValueOf(residence), lookupName, lambdas, state);
+  if (entry !== undefined) return await applyBinding(entry, lookupName, lambdas, state);
+  throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
+}
 
-  // A name reads the value its record holds [D63], so `:x / | x` sees
-  // the raw data: a verb runs [D67], a `::builtin` descriptor applies
-  // its host code, a function value a host bound applies through
-  // Rule 10, and any other value is itself.
-  const resolved = bindingValueOf(envGet(lookupEnv, lookupName));
-  if (isVerb(resolved)) {
-    return await applyVerb(resolved, node.args.map(argNode => makeLambda(argNode, state)), state, lookupName);
-  }
-  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) return await applyBuiltinDescriptor(resolved, node, state);
+// A call with one modifier more than the slots of its verb reads the
+// subject from its first modifier, and the verb of a name several kinds
+// answer is found again from that subject [D72]; a call reaching a
+// contract does so when a verb it answers for takes its modifiers so.
+async function callResidence(verb, lookupName, lambdas, state) {
+  const fullApplication = isContract(verb)
+    ? residencesOf(state.env, lookupName).some(([, record]) => takesFullApplication(bindingValueOf(record), lambdas.length))
+    : takesFullApplication(verb, lambdas.length);
+  if (!fullApplication) return await applyVerb(verb, lambdas, state, lookupName);
+  const subject = await lambdas[0](state.pipeValue);
+  if (isErrorValue(subject)) return withPipeValue(state, subject);
+  const residence = residenceOnSubject(state.env, lookupName, subject);
+  const found = residence === null ? verb : bindingValueOf(residence);
+  return await applyVerbOn(found, subject, lambdas.slice(1), state, lookupName);
+}
 
-  const capturedArgsAst = node.args;
+// A name reads the value its record holds [D63], so `:x / | x` sees the
+// raw data: a verb runs [D67], a `::builtin` descriptor applies its host
+// code, a function value a host bound applies through Rule 10, and any
+// other value is itself.
+async function applyBinding(entry, lookupName, lambdas, state) {
+  const resolved = bindingValueOf(entry);
+  if (isVerb(resolved)) return await applyVerb(resolved, lambdas, state, lookupName);
+  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) return await applyBuiltinDescriptor(resolved, lambdas, state);
 
   if (isFunctionValue(resolved)) {
     // Effect-laundering safety net: a function value a host bound under
@@ -796,25 +842,21 @@ async function evalOperandCall(node, state) {
         effectfulName: resolved.name
       });
     }
-    // Build lambdas for each captured arg. Each lambda evaluates
-    // the captured AST node against the input it is invoked with,
-    // sharing the env of the original capture site. Lambdas run
-    // their sub-pipeline one frame below the capture site, in a
-    // fresh state whose pipeValue is the per-invocation input; env
-    // writes inside the lambda are local to that call and do not
-    // escape.
-    const operandLambdas = capturedArgsAst.map(argNode => makeLambda(argNode, state));
-    return await applyRule10(resolved, operandLambdas, state);
+    // Each lambda evaluates its captured AST node against the input it
+    // is invoked with, one frame below the capture site, in a fresh
+    // state whose pipeValue is the per-invocation input; env writes
+    // inside the lambda are local to that call and do not escape.
+    return await applyRule10(resolved, lambdas, state);
   }
 
   // A value takes no modifiers; its refusal names where a verb of the
   // name lives, one a declaration shadows among them [D62].
-  if (capturedArgsAst.length > 0) {
+  if (lambdas.length > 0) {
     throw new ApplyToNonFunctionError({
       name: lookupName,
       actualType: typeKeyword(resolved),
       actualValue: resolved,
-      addresses: addressesOf(lookupEnv, lookupName)
+      addresses: addressesOf(state.env, lookupName)
     });
   }
   return withPipeValue(state, resolved);
@@ -828,10 +870,12 @@ async function callByAddress(node, state) {
   const addressName = canonicalTagName(node.name);
   const address = addressedVerb(state.env, addressName);
   if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(addressName) });
-  return await applyBuiltinDescriptor(address.descriptor, node, state);
+  const lambdas = node.args.map(argNode => makeLambda(argNode, state));
+  if (isVerb(address.descriptor)) return await applyVerb(address.descriptor, lambdas, state, address.verbName);
+  return await applyBuiltinDescriptor(address.descriptor, lambdas, state);
 }
 
-// applyBuiltinDescriptor(descriptor, node, state) → state'
+// applyBuiltinDescriptor(descriptor, builtinLambdas, state) → state'
 //
 // Dispatch core for built-in operands. Reads the callable through
 // `resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp the bootstrap
@@ -844,10 +888,8 @@ async function callByAddress(node, state) {
 // arityError. The introspection surface for "what does this operand
 // do" is the axes on its address, `::vec/count | source` / `| docs` /
 // `| examples`, not a bare-name shortcut into the descriptor Map.
-async function applyBuiltinDescriptor(descriptor, node, state) {
+async function applyBuiltinDescriptor(descriptor, builtinLambdas, state) {
   const resolvedImpl = resolveBuiltinImpl(descriptor);
-
-  const builtinLambdas = node.args.map(argNode => makeLambda(argNode, state));
   const { served, passedTags } = subjectServedBy(descriptor, state.pipeValue);
   if (passedTags.length === 0) return await applyRule10(resolvedImpl, builtinLambdas, state);
   const servedState = await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, served));
@@ -902,13 +944,14 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
 //
 // Resolves the code of a reducer slot into the per-step combiner
 // `reduce` folds with. The reducer is applied as `reducer(acc, element)`:
-//   - a binary operand (`add` / `mul` / `union` / …) folds via its
-//     bound form — accumulator as subject, element as the single
-//     captured arg (`acc | add element`), through Rule 10;
-//   - a verb, the code itself or one its quote names, folds the same
-//     way, the element filling its first slot [D67].
+//   - a name its quote holds, of an operand (`add` / `mul` / `union` / …)
+//     or a verb, is called as the pipe calls it, accumulator as subject
+//     and element as its one modifier (`acc | add element`), the verb
+//     that resides on the accumulator among them [D72];
+//   - a verb that is the code itself folds the same way, the element
+//     filling its first slot [D67].
 // Returns null when the captured arg is not such a reference (an inline
-// expression, a literal, or an unbound name), so `reduce` lifts its
+// expression, a literal, or a name of a value), so `reduce` lifts its
 // own per-site error.
 export function resolveBinaryReducer(reducerLambda) {
   const callerState = reducerLambda.capturedState;
@@ -918,16 +961,9 @@ export function resolveBinaryReducer(reducerLambda) {
   const lookupName = astNode.name;
   if (!envHas(callerState.env, lookupName)) return null;
   const resolved = bindingValueOf(envGet(callerState.env, lookupName));
-  if (isVerb(resolved)) return verbFold(resolved, callerState, keyword(lookupName));
-  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) {
-    const reducerImpl = resolveBuiltinImpl(resolved);
-    return async (acc, item) => {
-      const reducerLambdas = [() => item];
-      reducerLambdas.step = astNode;
-      return (await applyRule10(reducerImpl, reducerLambdas, withPipeValue(callerState, acc))).pipeValue;
-    };
-  }
-  return null;
+  if (!isVerb(resolved) && !(isQMap(resolved) && isBuiltinDescriptor(resolved))) return null;
+  return async (acc, item) =>
+    (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }
 
 function verbFold(verb, callerState, verbName) {

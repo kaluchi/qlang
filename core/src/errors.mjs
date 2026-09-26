@@ -188,6 +188,25 @@ export function throwSiteSpecOf(className) {
   return throwSiteSpecs.get(className);
 }
 
+// The classes of the sites that refuse the value at one place of a verb,
+// the subject or a slot, which the runtime raises when the head it checks
+// refuses there [D72]; each takes the value it refuses.
+const placeRefusalClasses = new Map();
+
+export function recordPlaceRefusal(className, Cls) {
+  placeRefusalClasses.set(className, Cls);
+}
+
+// placeRefusalOf(operandName, positions) → the class of the refusal the
+// site of `operandName` declares at one of `positions`, or undefined.
+export function placeRefusalOf(operandName, positions) {
+  for (const className of throwSiteTagsRaisedBy(operandName)) {
+    const Cls = placeRefusalClasses.get(className);
+    if (Cls !== undefined && positions.includes(throwSiteSpecs.get(className).position)) return Cls;
+  }
+  return undefined;
+}
+
 export function throwSiteSpecNames() {
   return throwSiteSpecs.keys();
 }

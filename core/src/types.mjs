@@ -447,6 +447,17 @@ export function verbEnvRef(verb) {
   return verb[VERB_ENV_REF_SLOT];
 }
 
+// The noun a verb resides on, the kind of its subject when its head
+// names none: the noun whose module declared it [D72], which the loader
+// of that module records in the holder beside the verb's scope.
+export function residenceOfVerb(verb) {
+  return verb[VERB_ENV_REF_SLOT]?.residence ?? null;
+}
+
+export function resideVerbOn(verb, kindName) {
+  verb[VERB_ENV_REF_SLOT].residence = kindName;
+}
+
 // ── error value factory ───────────────────────────────────────
 //
 // Identity rides on the `tag` JS-header field (a TagKeyword) —

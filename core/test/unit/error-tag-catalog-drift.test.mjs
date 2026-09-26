@@ -138,14 +138,23 @@ describe('catalog declarations — each name is bound once', () => {
   // A second BindStep under the same name shadows the first, so
   // `manifest` shows one entry either way and every drift axis below
   // passes while the catalog carries a stale body nothing reads.
-  // Reading the sources directly is what surfaces it.
+  // Reading the sources directly is what surfaces it. A verb declared in
+  // the modules of several nouns resides on each of them [D72], so the
+  // module of a noun binds its names apart from the others.
+  const NOUN_MODULE_RE = /^core\/lib\/qlang\/([^/]+)\.qlang$/;
+  const isNounModule = file => {
+    const nounName = NOUN_MODULE_RE.exec(file)?.[1];
+    return nounName !== undefined && session.env.has(`::${nounName}`);
+  };
   const timesBound = new Map();
-  for (const { name } of declarations) {
-    timesBound.set(name, (timesBound.get(name) ?? 0) + 1);
+  for (const { name, file } of declarations) {
+    const place = isNounModule(file) ? `${name} in ${file}` : name;
+    timesBound.set(place, (timesBound.get(place) ?? 0) + 1);
   }
 
-  for (const [name, count] of timesBound) {
+  for (const [place, count] of timesBound) {
     if (count === 1) continue;
+    const name = place.split(' in ')[0];
     const files = declarations.filter(d => d.name === name).map(d => d.file);
     it(`${name} is declared once`, () => {
       expect(count, `${name} is declared ${count} times across ${files.join(', ')} — ` +

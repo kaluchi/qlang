@@ -8,7 +8,7 @@
 {"name":"a-declared-verb-recurses-over-a-tree","query":":totalSize ::verb~(add /size (/children * totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
 {"name":"a-declared-verb-recurses-with-its-slot-of-code","query":":@treeMap ::verb~(:fn ::quote | {:label (/label | apply fn) :children (/children * @treeMap fn)}) | {:label \"a\" :children [{:label \"b\" :children []}]} | @treeMap ~(append \"!\") | /label","expect":"\"a!\""}
 {"name":"a-declared-verb-refuses-a-slot-left-empty","query":":f ::verb~(:a ::any | :b ::any | add a b) | 0 | f 1","error":"arityError","expect":"::VerbSlotMissingError!{\n  :faultStep ~(f 1)\n  :faultInput 0\n  :verbName :f\n  :slot :b\n}"}
-{"name":"a-declared-verb-refuses-modifiers-beyond-its-slots","query":":f ::verb~(:a ::any | add a) | 5 | f 1 2","error":"arityError","expect":"::VerbModifiersBeyondSlotsError!{\n  :faultStep ~(f 1 2)\n  :faultInput 5\n  :verbName :f\n  :slotCount 1\n  :actualCount 2\n}"}
+{"name":"a-declared-verb-refuses-modifiers-beyond-its-slots","query":":f ::verb~(:a ::any | add a) | 5 | f 1 2 3","error":"arityError","expect":"::VerbModifiersBeyondSlotsError!{\n  :faultStep ~(f 1 2 3)\n  :faultInput 5\n  :verbName :f\n  :slotCount 1\n  :actualCount 3\n}"}
 {"name":"a-slot-shadows-a-builtin","query":":f ::verb~(:count ::any | count) | 42 | f 99","expect":"99"}
 {"name":"lexical-scope-isolation","query":":double ::verb~(mul 2) | :apply_double ::verb~(double) | (:double ::verb~(mul 3) | 5 | apply_double)","expect":"10"}
 {"name":"a-freeze-inside-a-verb-body-does-not-leak","query":":f ::verb~(:n ::any | n | :captured / | add captured n) | 0 | f 3 | env | has :captured","expect":"false"}

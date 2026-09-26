@@ -1,27 +1,16 @@
-// Polymorphic set operations: union, minus, inter.
+// The algebra of containers: union, minus, inter, each a plain function
+// over the values the head of its verb checked [D72]. The verbs reside
+// on `::set` and `::map`, the other operand in their slot, and on
+// `::vec`, where the subject is the vector of operands the primitive
+// folds; one primitive serves the three by the arguments it takes. A
+// pair of kinds apart can meet only inside the fold, whose refusal names
+// the pair.
 //
-// Each operand dispatches on the number of captured arguments via
-// overloadedOp:
-//
-//   bare   (0 captured): subject is a non-empty Vec of operands;
-//                        left-fold the binary pair function across it.
-//   bound  (1 captured): subject is left, captured is right; apply
-//                        the pair function to (left, right-resolved).
-//   full   (2 captured): pipeValue is context; both captured args
-//                        resolve against it, then apply the pair.
-//
-// Each throw site has its own unique error class.
-// Meta lives in lib/qlang/operand/setOp.qlang.
+// The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
-import { overloadedOp } from './dispatch.mjs';
-import {
-  isQSet, isKeyword, isVec, isQMap, makeSet
-} from '../types.mjs';
+import { isQSet, isKeyword, isVec, isQMap, makeSet, NULL } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import {
-  declareSubjectError,
-  declareComparabilityError
-} from '../operand-errors.mjs';
+import { declareComparabilityError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
@@ -61,10 +50,6 @@ function mergeSets(left, right, keeps) {
   if (keeps.rightAlone) merged.push(...right.slice(rightIndex));
   return makeSet(merged);
 }
-
-const UnionBareSubjectNotVecError    = declareSubjectError('UnionBareSubjectNotVecError',    'union', 'vec');
-const MinusBareSubjectNotVecError    = declareSubjectError('MinusBareSubjectNotVecError',    'minus', 'vec');
-const InterBareSubjectNotVecError    = declareSubjectError('InterBareSubjectNotVecError',    'inter', 'vec');
 
 const UnionPairIncompatibleError = declareComparabilityError('UnionPairIncompatibleError', 'union');
 const MinusPairIncompatibleError = declareComparabilityError('MinusPairIncompatibleError', 'minus');
@@ -120,40 +105,18 @@ function interPair(left, right) {
   throw new InterPairIncompatibleError(left, right);
 }
 
-export const union = overloadedOp('union', 2, {
-  0: (vec) => {
-    if (!isVec(vec)) throw new UnionBareSubjectNotVecError(vec);
-    if (vec.length === 0) throw new UnionBareEmptyError();
-    return [...vec].reduce(unionPair);
-  },
-  1: async (unionSubject, unionRightLambda) => unionPair(unionSubject, await unionRightLambda(unionSubject)),
-  2: async (unionCtx, unionLeftLambda, unionRightLambda) =>
-    unionPair(await unionLeftLambda(unionCtx), await unionRightLambda(unionCtx))
-});
+// A pair's answer for the verbs of sets and maps, and the fold of a
+// non-empty vector of operands for the verb of vectors, which takes no
+// other operand, and for a set whose other operand is left out, a set
+// of sets being the vector of its elements [D16].
+function pairOrFold(pair, EmptyError) {
+  return (subject, ...other) => {
+    if (other.length === 1 && other[0] !== NULL) return pair(subject, other[0]);
+    if (subject.length === 0) throw new EmptyError();
+    return [...subject].reduce(pair);
+  };
+}
 
-export const minus = overloadedOp('minus', 2, {
-  0: (vec) => {
-    if (!isVec(vec)) throw new MinusBareSubjectNotVecError(vec);
-    if (vec.length === 0) throw new MinusBareEmptyError();
-    return [...vec].reduce(minusPair);
-  },
-  1: async (minusSubject, minusRightLambda) => minusPair(minusSubject, await minusRightLambda(minusSubject)),
-  2: async (minusCtx, minusLeftLambda, minusRightLambda) =>
-    minusPair(await minusLeftLambda(minusCtx), await minusRightLambda(minusCtx))
-});
-
-export const inter = overloadedOp('inter', 2, {
-  0: (vec) => {
-    if (!isVec(vec)) throw new InterBareSubjectNotVecError(vec);
-    if (vec.length === 0) throw new InterBareEmptyError();
-    return [...vec].reduce(interPair);
-  },
-  1: async (interSubject, interRightLambda) => interPair(interSubject, await interRightLambda(interSubject)),
-  2: async (interCtx, interLeftLambda, interRightLambda) =>
-    interPair(await interLeftLambda(interCtx), await interRightLambda(interCtx))
-});
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('union', union);
-bindPrim('minus', minus);
-bindPrim('inter', inter);
+bindPrim('union', pairOrFold(unionPair, UnionBareEmptyError));
+bindPrim('minus', pairOrFold(minusPair, MinusBareEmptyError));
+bindPrim('inter', pairOrFold(interPair, InterBareEmptyError));

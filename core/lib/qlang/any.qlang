@@ -489,3 +489,47 @@
         |  eq [::ReduceReducerNotQuoteError ::number]
        )
   ~~|
+
+:union
+  |~~ The union of two operands of one kind: two sets merged in the one
+      order, or two maps merged with the second one's value winning a
+      key both hold; over a vector of operands it folds them. The bound
+      form `a | union b` reads b against a, and the full form `union a
+      b` reads both against the value in the pipe.
+
+      ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
+      ~({:a 1} | union {:b 2} | eq {:a 1 :b 2})
+      ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
+  ~~|
+  ::verb~()
+
+:minus
+  |~~ The first operand without what the second holds: a set without the
+      elements of another, a map without the keys of a map, a vector or a
+      set of keywords; over a vector of operands it folds them.
+
+      ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
+      ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
+      ~([#[:a :b :c] #[:b]] | minus | eq #[:a :c])
+  ~~|
+  ::verb~()
+
+:inter
+  |~~ What the first operand and the second both hold: the elements two
+      sets share, or the entries of a map whose keys a map, a vector or a
+      set of keywords holds; over a vector of operands it folds them.
+
+      ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
+      ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
+      ~([#[:a :b :c] #[:b :d]] | inter | eq #[:b])
+  ~~|
+  ::verb~()
+
+:has
+  |~~ Whether a map holds a key or a set holds an element.
+
+      ~({:name "Alice"} | has :name | eq true)
+      ~(#[:a :b :c] | has :b | eq true)
+      ~(42 | has :k !| /addresses | has ::map/has)
+  ~~|
+  ::verb~()

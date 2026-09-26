@@ -8,7 +8,7 @@ import {
 } from '../../src/session.mjs';
 import { makeTagKeyword, isErrorValue, isQMap, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
-import { nullaryOp } from '../../src/runtime/dispatch.mjs';
+import { nullaryOp, overloadedOp } from '../../src/runtime/dispatch.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -245,6 +245,16 @@ describe('serializeSession / deserializeSession round-trip', () => {
     sessionInstance.bind('userFn', nullaryOp('userFn', (subject) => subject));
     const payload = await serializeSession(sessionInstance);
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
+  });
+
+  it('runs a host operand overloaded by the count of its captured modifiers', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('pick', overloadedOp('pick', 2, {
+      0: (subject) => subject,
+      1: async (subject, pickLambda) => pickLambda(subject)
+    }));
+    expect((await sessionInstance.evalCell('7 | pick')).result).toBe(7);
+    expect((await sessionInstance.evalCell('7 | pick (add 1)')).result).toBe(8);
   });
 
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {

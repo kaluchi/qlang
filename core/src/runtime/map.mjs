@@ -1,41 +1,31 @@
-// Map operands. `has` is polymorphic across Map and Set subjects
-// and therefore owns three distinct error classes — one for each
-// branch of the type check.
+// The verbs of the keys of a map and of membership, each a plain
+// function over the value the head of its verb checked [D72]: `keys`
+// and `vals` reside on `::map`, and `has` on `::map`, whose key is a
+// keyword or a string, and on `::set`, whose element is any value.
 //
-// Meta lives in lib/qlang/operand/mapOp.qlang.
+// The verbs live in lib/qlang/map.qlang and set.qlang.
 
-import { nullaryOp, valueOp } from './dispatch.mjs';
-import {
-  keyword, isQSet, isKeyword, isQMap, makeSet
-} from '../types.mjs';
+import { keyword, isKeyword, isQMap, makeSet } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
-const KeysSubjectNotMapError       = declareSubjectError('KeysSubjectNotMapError',       'keys', 'map');
-const ValsSubjectNotMapError       = declareSubjectError('ValsSubjectNotMapError',       'vals', 'map');
-const HasSubjectNotMapOrSetError   = declareSubjectError('HasSubjectNotMapOrSetError',   'has',  ['map', 'set']);
-const HasKeyNotKeywordOrStringError = declareModifierError('HasKeyNotKeywordOrStringError', 'has', 2, ['keyword', 'string']);
+// The refusals the heads raise at the places they declare; the key of
+// `has` is the map's alone, the element of a set being any value [D73].
+declareSubjectError('KeysSubjectNotMapError', 'keys', 'map');
+declareSubjectError('ValsSubjectNotMapError', 'vals', 'map');
+declareModifierError('HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.
-export const keys = nullaryOp('keys', (map) => {
-  if (!isQMap(map)) throw new KeysSubjectNotMapError(map);
-  return makeSet([...map.keys()].map(keyword));
-});
+bindPrim('keys', map => makeSet([...map.keys()].map(keyword)));
+bindPrim('vals', map => [...map.values()]);
 
-export const vals = nullaryOp('vals', (map) => {
-  if (!isQMap(map)) throw new ValsSubjectNotMapError(map);
-  return [...map.values()];
-});
-
-// `has` is a boolean lookup — no key-back-into-container roundtrip,
-// so the captured-arg shape can be either Keyword or String over
-// a map (both normalise to the storage-side String via `key.name`
-// or identity). The `keys | first | :k / | src | has k` chain
-// composes without a coercion. Over a set, membership is a binary
-// search in the one order, which ranks two values alike exactly when
-// they are equal [D16].
+// `has` is a boolean lookup: over a map a keyword and a string both
+// name the key as the map stores it, so the `keys | first | :k / | src |
+// has k` chain composes without a coercion; over a set, membership is a
+// binary search in the one order, which ranks two values alike exactly
+// when they are equal [D16].
 function setHas(set, value) {
   let low = 0;
   let high = set.length - 1;
@@ -49,19 +39,5 @@ function setHas(set, value) {
   return false;
 }
 
-export const has = valueOp('has', 2, (subject, key) => {
-  if (isQMap(subject)) {
-    let lookupKey;
-    if (isKeyword(key)) lookupKey = key.name;
-    else if (typeof key === 'string') lookupKey = key;
-    else throw new HasKeyNotKeywordOrStringError(key);
-    return subject.has(lookupKey);
-  }
-  if (isQSet(subject)) return setHas(subject, key);
-  throw new HasSubjectNotMapOrSetError(subject);
-});
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('keys', keys);
-bindPrim('vals', vals);
-bindPrim('has',  has);
+bindPrim('has', (container, place) =>
+  (isQMap(container) ? container.has(isKeyword(place) ? place.name : place) : setHas(container, place)));

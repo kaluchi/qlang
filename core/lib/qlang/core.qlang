@@ -25,7 +25,6 @@ use [:qlang/runtime-invariants
      :qlang/boolean
      :qlang/any
      :qlang/operand/typeConversion
-     :qlang/operand/control
      :qlang/operand/reflective
      :qlang/operand/codeAsData
      :qlang/operand/axis]

@@ -4,7 +4,7 @@
 // names one runtime module and the specific arity / subject /
 // shape branch it pins:
 //
-//   * dispatch.mjs — `stateOpVariadic` / `higherOrderOpVariadic`
+//   * dispatch.mjs — `stateOpVariadic`
 //     refusing to mint a wrapper without a captured-range argument
 //     (the JS-side invariant fires at module-load time, not at
 //     dispatch).
@@ -17,9 +17,8 @@
 //   * setops.mjs — the bare form over a subject no residence
 //     takes, over a set of sets, and the full form (two captured
 //     args) for `union` / `minus` / `inter`.
-//   * Rule 10 dispatcher — `valueOp` arity overflow, `nullaryOp`
-//     called with captured args, `higherOrderOp` called with zero
-//     captured args.
+//   * the heads of verbs — a modifier beyond the slots, and a slot
+//     of code left without its modifier.
 //
 // Topical happy-path semantics live in the per-operand test files
 // (`arith.test.mjs`, `vec.test.mjs`, `setops.test.mjs`,
@@ -29,10 +28,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
-import {
-  stateOpVariadic,
-  higherOrderOpVariadic
-} from '../../src/runtime/dispatch.mjs';
+import { stateOpVariadic } from '../../src/runtime/dispatch.mjs';
 import { QlangInvariantError } from '../../src/errors.mjs';
 
 describe('arith right-operand type checks', () => {
@@ -62,14 +58,6 @@ describe('dispatch variadic registration invariants', async () => {
 
   it('stateOpVariadic with null captured throws QlangInvariantError', async () => {
     expect(() => stateOpVariadic('badOp', (s) => s, null)).toThrow(QlangInvariantError);
-  });
-
-  it('higherOrderOpVariadic without captured throws QlangInvariantError', async () => {
-    expect(() => higherOrderOpVariadic('badOp', (pv) => pv)).toThrow(QlangInvariantError);
-  });
-
-  it('higherOrderOpVariadic with null captured throws QlangInvariantError', async () => {
-    expect(() => higherOrderOpVariadic('badOp', (pv) => pv, null)).toThrow(QlangInvariantError);
   });
 });
 
@@ -140,17 +128,12 @@ describe('vec.sort with key on non-Vec subject', async () => {
   });
 });
 
-describe('higherOrderOp / nullaryOp arity errors', async () => {
-  it('nullaryOp called with captured args throws', async () => {
+describe('arity refusals of verbs', async () => {
+  it('a verb without slots refuses a modifier past its subject', async () => {
     expect(isErrorValue(await evalQuery('[1 2 3] | count :foo'))).toBe(true);
   });
 
-  it('higherOrderOp filter called with zero captured args throws', async () => {
-    // Bare `filter` returns filter's descriptor Map for REPL
-    // introspection because its minCaptured > 0. The empty-call
-    // form `filter()` forces actual application with zero lambdas
-    // and triggers the arity error inside the higherOrderOp
-    // dispatch wrapper.
+  it('filter without its predicate is refused', async () => {
     expect(isErrorValue(await evalQuery('[1 2 3] | filter'))).toBe(true);
   });
 });

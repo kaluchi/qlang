@@ -4,7 +4,7 @@
 //
 //     fn(state, lambdas) → state
 //
-// The helpers in runtime/dispatch.mjs (valueOp, higherOrderOp,
+// The helpers in runtime/dispatch.mjs (valueOp,
 // nullaryOp, overloadedOp) wrap pure `(values) → value` cores
 // inside this signature: they project `state.pipeValue`, resolve
 // captured-arg lambdas against it, call the pure core, and wrap
@@ -58,8 +58,8 @@ export async function applyRule10(fn, appliedLambdas, state) {
 //
 // `meta` carries only the per-impl structural fields the runtime
 // itself reads. For the dispatch wrappers (`valueOp`,
-// `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
-// `stateOpVariadic`, `higherOrderOpVariadic`) the shape is
+// `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`) the
+// shape is
 // `{ captured: [min, max] }` — the [min, max] count of captured
 // arg slots the operand accepts, derived structurally from the
 // dispatch wrapper itself. Catalog-bound builtin descriptors keep

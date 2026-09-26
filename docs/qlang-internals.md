@@ -688,8 +688,7 @@ co-located sources:
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
   load time under their `:qlang/prim/<name>` keys. The dispatch
   wrappers in `core/src/runtime/dispatch.mjs` (`valueOp`,
-  `higherOrderOp`, `nullaryOp`, `overloadedOp`, `stateOp`,
-  `stateOpVariadic`, `higherOrderOpVariadic`) attach a tiny
+  `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`) attach a tiny
   `meta` object carrying only the `captured` range — the rest
   of the metadata lives in the operand-family catalog files
   and is addressable via `manifest` enumeration or the axis trio

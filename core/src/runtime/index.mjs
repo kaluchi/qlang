@@ -27,8 +27,7 @@
 //      module binds its impls into PRIMITIVE_REGISTRY at import
 //      time under namespaced :qlang/prim/<name> keys. The
 //      dispatch wrappers in src/runtime/dispatch.mjs (valueOp,
-//      higherOrderOp, nullaryOp, overloadedOp, stateOp,
-//      stateOpVariadic, higherOrderOpVariadic) attach a tiny
+//      nullaryOp, overloadedOp, stateOp, stateOpVariadic) attach a tiny
 //      meta object carrying only the `captured` range — the rest
 //      of the metadata lives in the operand-family catalog files
 //      and is addressed by descriptor-Map projection, or by the

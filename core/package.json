@@ -65,7 +65,6 @@
     "#qlang/boolean": "./lib/qlang/boolean.qlang",
     "#qlang/any": "./lib/qlang/any.qlang",
     "#qlang/operand/typeConversion": "./lib/qlang/operand/typeConversion.qlang",
-    "#qlang/operand/control": "./lib/qlang/operand/control.qlang",
     "#qlang/operand/reflective": "./lib/qlang/operand/reflective.qlang",
     "#qlang/operand/codeAsData": "./lib/qlang/operand/codeAsData.qlang",
     "#qlang/operand/axis": "./lib/qlang/operand/axis.qlang",

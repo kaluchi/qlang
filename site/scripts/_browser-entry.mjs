@@ -29,7 +29,6 @@ import booleanSource           from '@kaluchi/qlang-core/lib/qlang/boolean.qlang
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
-import controlSource           from '@kaluchi/qlang-core/lib/qlang/operand/control.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
 
@@ -50,7 +49,6 @@ const CATALOG = new Map([
   ['qlang/any',                     anySource],
   ['qlang/operand/axis',            axisSource],
   ['qlang/operand/codeAsData',    codeAsDataSource],
-  ['qlang/operand/control',         controlSource],
   ['qlang/operand/reflective',      reflectiveSource],
   ['qlang/operand/typeConversion', typeConversionSource]
 ]);

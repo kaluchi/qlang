@@ -242,13 +242,14 @@ function walkToKinds(value, kindNames) {
 // its kinds beneath the tags the walk passed, or, for a declaration of
 // one kind, the value its constructor reads, which is the check of the
 // kind [D60]; code is taken only as it is. `place` names the slot or the
-// role, and `PlaceRefusal` the refusal a built-in's site declares there,
-// raised in place of the kind's [D72].
+// role, `{ slot }`, and for a value of the rest its index from 1,
+// `{ slot, index }` [D77]; `PlaceRefusal` is the refusal a built-in's
+// site declares there, raised in place of the kind's [D72].
 async function servedByKinds(value, kindNames, state, place, PlaceRefusal) {
   const walked = walkToKinds(value, kindNames);
   if (walked !== null) return walked;
   if (PlaceRefusal !== undefined) throw new PlaceRefusal(value);
-  const refusalFacts = { slot: keyword(place), actualType: typeKeyword(value), actualValue: value };
+  const refusalFacts = { ...place, actualType: typeKeyword(value), actualValue: value };
   if (kindNames.length > 1) {
     throw new VerbSlotNotOfKindsError({ ...refusalFacts, kinds: makeSet(kindNames.map(makeTagKeyword)) });
   }
@@ -311,10 +312,10 @@ function primitiveKeyOfVerb(signature, verb) {
 async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName) {
   const { slots, rest } = signature;
   const scopeState = withPipeValue(withEnv(state, scopeEnv), null);
-  const takeModifier = async (slot, kindNames, modifierLambda, positions) => {
+  const takeModifier = async (slot, kindNames, modifierLambda, positions, place) => {
     const modifier = await modifierLambda(state.pipeValue);
     if (isErrorValue(modifier)) return modifier;
-    const { served } = await servedByKinds(modifier, kindNames, scopeState, slot.name, siteRefusalAt(signature, verb, positions));
+    const { served } = await servedByKinds(modifier, kindNames, scopeState, place, siteRefusalAt(signature, verb, positions));
     return asCodeOfSlot(slot, kindNames, served, scopeEnv);
   };
   let bodyEnv = scopeEnv;
@@ -322,7 +323,9 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
   for (const [index, slot] of slots.entries()) {
     const { kindNames, defaultValue } = await kindNamesOfSlot(slot, scopeState);
     let value;
-    if (index < slotLambdas.length) value = await takeModifier(slot, kindNames, slotLambdas[index], slotPositions(index));
+    if (index < slotLambdas.length) {
+      value = await takeModifier(slot, kindNames, slotLambdas[index], slotPositions(index), { slot: keyword(slot.name) });
+    }
     else if (slot.optional) value = defaultValue;
     else throw new VerbSlotMissingError({ verbName, slot: keyword(slot.name) });
     if (isErrorValue(value)) return { failed: value };
@@ -332,8 +335,8 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
   if (rest !== null) {
     const { kindNames } = await kindNamesOfSlot(rest, scopeState);
     const gathered = [];
-    for (const modifierLambda of slotLambdas.slice(slots.length)) {
-      const value = await takeModifier(rest, kindNames, modifierLambda, []);
+    for (const [restIndex, modifierLambda] of slotLambdas.slice(slots.length).entries()) {
+      const value = await takeModifier(rest, kindNames, modifierLambda, [], { slot: keyword(rest.name), index: restIndex + 1 });
       if (isErrorValue(value)) return { failed: value };
       gathered.push(value);
     }
@@ -350,7 +353,7 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
 // reads, where the subject came from.
 async function answerOfKind(answer, returns, served, passedTags, scopeState, state) {
   if (returns === null || isErrorValue(answer)) return answer;
-  if (returns !== RETURNS_SUBJECT) return (await servedByKinds(answer, returns, scopeState, 'returns')).served;
+  if (returns !== RETURNS_SUBJECT) return (await servedByKinds(answer, returns, scopeState, { slot: keyword('returns') })).served;
   const ownKind = typeKeyword(served).name;
   const kept = walkToKinds(answer, [ownKind])?.served ?? await mintUnderTag(state, makeTagKeyword(ownKind), answer);
   return await underTags(kept, passedTags, state);
@@ -404,7 +407,7 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const subjectKinds = signature.subjectKinds ?? residenceKindsOf(verb);
   const { served, passedTags } = subjectKinds === null
     ? { served: subject, passedTags: [] }
-    : await servedByKinds(subject, subjectKinds, scopeState, 'subject', siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
+    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
   if (isErrorValue(served)) return served;
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
@@ -416,11 +419,14 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
 }
 
 // What a primitive takes for its slots: each value as the head checked
-// it, and a quote in a slot of code closed at the call into the code it
-// runs [D4], [D73].
+// it, a quote in a slot of code closed at the call into the code it runs
+// [D4], [D73], and the rest as the vector of its values, closed alike
+// [D77].
 function primitiveArgumentsOf(signature, slotValues, state) {
-  return slotValues.map((value, index) =>
-    isQuote(value) && signature.slots[index]?.kindNames?.includes('quote') ? codeOf(value, state) : value);
+  const takenBy = (slot, value) => (isQuote(value) && slot.kindNames?.includes('quote') ? codeOf(value, state) : value);
+  const fixed = signature.slots.map((slot, index) => takenBy(slot, slotValues[index]));
+  if (signature.rest === null) return fixed;
+  return [...fixed, slotValues[signature.slots.length].map(value => takenBy(signature.rest, value))];
 }
 
 // A name without the effect marker refuses a verb whose body calls one.
@@ -444,36 +450,28 @@ export async function applyVerbOn(verb, subject, slotLambdas, state, lookupName)
   return withPipeValue(state, await callVerbOn(verb, subject, slotLambdas, state, keyword(lookupName)));
 }
 
-// A code slot takes a verb as a quote and runs it with its defaults
-// against each input [D67].
-export function verbAsCode(verb, capturedState) {
-  const verbLambda = async input => await callVerb(verb, [], nestState(capturedState, input, capturedState.env), null);
-  verbLambda.verb = verb;
-  verbLambda.capturedState = capturedState;
-  return verbLambda;
-}
-
 // ── the signature as a value ───────────────────────────────────
 
 const declarationStep = (name, body) => makeTaggedInstance(BIND_TAG, new Map([['name', keyword(name)], ['body', body]]));
 
 // The refusals the check of a place raises where its site declares none,
-// as the head raises them: a value of none of several kinds, or the
-// refusals of the one kind's constructor [D68], [D74]. Every slot of code
-// of a built-in declares its own [D73].
+// as the head raises them: a value of none of several kinds, code that is
+// no quote, or the refusals of the one kind's constructor [D68], [D74].
 function refusalsOfKinds(kindNames) {
   if (kindNames.length > 1) return [VerbSlotNotOfKindsError.name];
+  if (CODE_KIND_NAMES.has(kindNames[0])) return [VerbCodeNotQuoteError.name];
   return throwSiteTagsRaisedBy(tagBindingKey(kindNames[0]));
 }
 
-// The refusals a built-in raises: at each place of its head, the subject
-// and then the slots in their order, the one its site declares there
+// The refusals a built-in raises: at each place of its head, the subject,
+// the slots in their order and the rest, the one its site declares there
 // [D64], [D73], or those of the kinds the place checks [D72]; then the
 // refusals of its site that guard no place [D74].
 function refusalsOfBuiltin(signature, verb) {
   const places = [
     [SUBJECT_POSITIONS, signature.subjectKinds ?? residenceKindsOf(verb)],
-    ...signature.slots.map((slot, index) => [slotPositions(index), slot.kindNames])
+    ...signature.slots.map((slot, index) => [slotPositions(index), slot.kindNames]),
+    ...(signature.rest === null ? [] : [[[], signature.rest.kindNames]])
   ];
   const placeRefusals = places.flatMap(([positions, kindNames]) => {
     const SiteRefusal = siteRefusalAt(signature, verb, positions);

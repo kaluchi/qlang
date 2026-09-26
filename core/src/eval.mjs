@@ -45,7 +45,7 @@ import {
   addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf, subjectServedBy
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication, verbAsCode
+  applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
 } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
@@ -917,23 +917,6 @@ function makeLambda(astNode, capturedState) {
   lambda.astNode = astNode;
   lambda.capturedState = capturedState;
   return lambda;
-}
-
-// codeOfModifier(modifierLambda, subject, refusalOf) → lambda
-//
-// The code a slot of kind code receives [D43]: its modifier, evaluated
-// at the call against the subject, is a quote, and the lambda applies it
-// to each input the operand hands it, in the environment the quote
-// carries or, for a quote held as data, that of the call; a verb runs
-// with its defaults [D67]. Any other value is refused with
-// `refusalOf(value)`, the site's error, an error value as every value
-// slot refuses one today [D13].
-export async function codeOfModifier(modifierLambda, subject, refusalOf) {
-  const code = await modifierLambda(subject);
-  const callState = modifierLambda.capturedState;
-  if (isVerb(code)) return verbAsCode(code, callState);
-  if (!isQuote(code)) throw refusalOf(code);
-  return codeOf(code, callState);
 }
 
 // codeOf(code, callState) → lambda: a quote a slot of code holds, closed

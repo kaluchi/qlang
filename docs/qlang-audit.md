@@ -759,10 +759,10 @@ slot of code takes a quote [D67], [D68]:
 
 So does a built-in declared on its noun, the verbs of numbers, of
 booleans, of strings, of the containers and of their algebra, the
-comparisons, the predicates of any value and the JSON codec: its head
-checks the subject and the slots before its primitive runs and raises
-the refusal its site declares at that place, and `spec` answers the
-head [D72], [D73], [D74], [D75], [D76]:
+comparisons, the predicates and the control of any value, and the JSON
+codec: its head checks the subject and the slots before its primitive
+runs and raises the refusal its site declares at that place, and `spec`
+answers the head [D72], [D73], [D74], [D75], [D76], [D77]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -774,25 +774,24 @@ head [D72], [D73], [D74], [D75], [D76]:
 
 Every other built-in executes none of its own. Its modifiers are
 evaluated at the call as a verb's are [D56], and its implementation
-checks them in code of its own, around which sit seven dispatch
-wrappers in
-`core/src/runtime/dispatch.mjs`, one per calling shape, the arity
-classes of Rule 10, and `codeOfModifier` in `core/src/eval.mjs`, which
-each slot of code asks for its quote.
+checks them in code of its own, around which sit the dispatch wrappers
+in `core/src/runtime/dispatch.mjs`, one per calling shape, and the arity
+classes of Rule 10.
 
 The catalog declares a slot vocabulary for every other operand, and
 the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::any/if | spec | /modifiers
-[:any :pipeline :pipeline]
+> ::any/tag | spec | /modifiers
+[:tagKeyword]
 
-> 5 | if 1 ~(1) ~(2) !| type
-::IfConditionNotBooleanError
+> null | tag 5 ::Foo
+::Foo(5)
 ```
 
-`if` is declared to take any condition and refuses a number.
+`tag` is declared to take one modifier and takes two, the value before
+the tag.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -850,7 +849,7 @@ declaration: it checks the subject and every slot before the
 implementation runs, a slot of kind code taking a quote or a verb and
 nothing else, and it checks the result, each by the walk of the value's
 tags and the constructor of the kind [D68]. A built-in, a host's operand and a
-declared pipeline share one convention, and the seven wrappers go with
+declared pipeline share one convention, and the wrappers go with
 the arity classes. A host operand becomes a plain function over values
 the runtime has already checked, handed to the core as `{ source, impls
 }` where the source is the catalog module that declares it; nothing else
@@ -1158,14 +1157,14 @@ The unclosed quote has one sensible continuation, `)`, and the error
 names every token the parser could have taken there, among them the
 markers of comments.
 
-A value slot of a built-in outside its noun, a condition computed at
-the call among them, refuses an error value by the tag of its own site,
-so one error nests inside another, where the law of nested errors hands
-it on unchanged [D13], as a verb's slot does [D68]:
+A value slot of a built-in outside its noun, the namespace `use`
+computes at the call among them, refuses an error value by the tag of
+its own site, so one error nests inside another, where the law of nested
+errors hands it on unchanged [D13], as a verb's slot does [D68]:
 
 ```qlang
-> 5 | if (!{:k 1}) ~(1) ~(2) !| type
-::IfConditionNotBooleanError
+> use (!{:k 1}) !| type
+::UseNamespaceNotKeywordError
 
 > 1 | add (!{:k 1}) !| type
 ::error
@@ -1329,7 +1328,7 @@ nothing executes them:
 
   ```qlang
   > [1 2 3] | filter
-  ::HigherOrderOpArityMismatchError!{ … :operandName :filter … }
+  ::VerbSlotMissingError!{ … :verbName :filter :slot :predicate }
   ```
 
 - The chapter on modules shows `use :qlang/error` loading the error
@@ -1728,7 +1727,7 @@ them may name them otherwise.
   the site and the command line.
 
 What leaves the tree, as the repairs land: the choice of a binding's
-kind by the shape of its body; the seven dispatch wrappers and the
+kind by the shape of its body; the dispatch wrappers and the
 application rule built on them; the classes of errors with their
 factories, the
 registry of throw sites, the stamping passes and the converter's
@@ -1848,7 +1847,7 @@ declaration, and that is how `as` is spelled once it is gone.
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
 an `eq` value [D42]; a second declaration of a name in one scope is
-refused [D44]; the seven wrappers are gone; the declarations of the
+refused [D44]; the dispatch wrappers are gone; the declarations of the
 catalog are true, since the runtime executes them.
 
 ### Milestone 3 · Values
@@ -2188,3 +2187,4 @@ maintainer wants to explore it before it is fixed.
 [D74]: decisions/D74.md
 [D75]: decisions/D75.md
 [D76]: decisions/D76.md
+[D77]: decisions/D77.md

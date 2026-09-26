@@ -148,3 +148,34 @@
       ~(#[1 2 3] | reduce 0 ~(add) | eq 6)
   ~~|
   ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})
+
+:union
+  |~~ The set of the elements of either set, merged in the one order;
+      left without the other set, the union of the sets the set holds.
+
+      ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
+      ~(#[#[1] #[2]] | union | eq #[1 2])
+  ~~|
+  ::verb~(:with #[::set ::null] | :returns / | ::builtin{:impl :qlang/prim/union})
+
+:minus
+  |~~ The set of the elements the other set lacks.
+
+      ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
+  ~~|
+  ::verb~(:with #[::set ::null] | :returns / | ::builtin{:impl :qlang/prim/minus})
+
+:inter
+  |~~ The set of the elements both sets hold.
+
+      ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
+  ~~|
+  ::verb~(:with #[::set ::null] | :returns / | ::builtin{:impl :qlang/prim/inter})
+
+:has
+  |~~ Whether the set holds the element, found by a binary search in
+      the one order.
+
+      ~(#[:a :b :c] | has :b | eq true)
+  ~~|
+  ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})

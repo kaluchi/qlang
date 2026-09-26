@@ -5,10 +5,11 @@
 //   1. lib/qlang/ — the authored source catalog, split across:
 //      - core.qlang: orchestrator, one `use [...]` call that
 //        loads the families in order.
-//      - operand/<family>.qlang (arith, vec, container, setOp,
-//        mapOp, string, predicate, control, format,
-//        reflective): per-family operand BindSteps and the
-//        per-site error tags they throw, declared inline.
+//      - the modules of the nouns (number, string, keyword, vec,
+//        set, map, any): the verbs that reside on each kind [D72].
+//      - operand/<family>.qlang (string, predicate, control,
+//        format, reflective, …): per-family operand BindSteps and
+//        the per-site error tags they throw, declared inline.
 //      - runtime-invariants.qlang: shared / cross-family
 //        runtime tag-bindings (projection, combinator, parser,
 //        AST codec, dispatch, registry, session, render).

@@ -282,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(205);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(201);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(39);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(33);
   });
 });
 
@@ -306,8 +306,6 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
     expect(categories.get('control')).toBe(3);
-    expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
-    expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)
     expect(categories.get('string')).toBe(8);
     expect(categories.get('predicate')).toBe(4);  // not + eq + and + or
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`

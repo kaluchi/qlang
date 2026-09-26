@@ -134,3 +134,80 @@
       ~({:a 1 :b 2} | reduce 0 ~(add) | eq 3)
   ~~|
   ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})
+
+:keys
+  |~~ The set of the keys, keywords in the one order: sorted by name.
+
+      ~({:name "Alice" :age 30} | keys | eq #[:age :name])
+      ~({:name "Alice" :age 30} | keys | first | eq :age)
+  ~~|
+  ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/keys})
+
+::KeysSubjectNotMapError
+  |~~ The subject of `keys` must be a map.
+      ~(
+        42 | keys
+        !| [type /actualType]
+        |  eq [::KeysSubjectNotMapError ::number]
+       )
+  ~~|
+
+:vals
+  |~~ The vector of the values, in the order of the entries.
+
+      ~({:name "Alice" :age 30} | vals | eq ["Alice" 30])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/vals})
+
+::ValsSubjectNotMapError
+  |~~ The subject of `vals` must be a map.
+      ~(
+        [1 2] | vals
+        !| [type /actualType]
+        |  eq [::ValsSubjectNotMapError ::vec]
+       )
+  ~~|
+
+:has
+  |~~ Whether the map holds the key, a keyword or a string, both naming
+      the key as the map stores it, so the `keys | first | has _` chain
+      composes.
+
+      ~({:name "Alice"} | has :name | eq true)
+      ~({:name "Alice"} | has "name" | eq true)
+  ~~|
+  ::verb~(:key #[::keyword ::string] | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
+
+::HasKeyNotKeywordOrStringError
+  |~~ The key of `has` on a map is a keyword or a string, both naming
+      the key as the map stores it.
+      ~(
+        {:a 1} | has 42
+        !| [type /actualType]
+        |  eq [::HasKeyNotKeywordOrStringError ::number]
+       )
+  ~~|
+
+:union
+  |~~ The entries of both maps, the other map's value winning a key both
+      hold.
+
+      ~({:a 1 :b 2} | union {:b 3 :c 4} | eq {:a 1 :b 3 :c 4})
+  ~~|
+  ::verb~(:with ::map | :returns / | ::builtin{:impl :qlang/prim/union})
+
+:minus
+  |~~ The entries whose keys the other operand lacks: a map's keys, or the
+      keywords of a vector or a set.
+
+      ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
+  ~~|
+  ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/minus})
+
+:inter
+  |~~ The entries whose keys the other operand holds: a map's keys, or
+      the keywords of a vector or a set.
+
+      ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
+  ~~|
+  ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})

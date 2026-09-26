@@ -31,10 +31,8 @@ import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeA
 import controlSource           from '@kaluchi/qlang-core/lib/qlang/operand/control.qlang';
 import errorSource             from '@kaluchi/qlang-core/lib/qlang/operand/error.qlang';
 import formatSource            from '@kaluchi/qlang-core/lib/qlang/operand/format.qlang';
-import mapOpSource             from '@kaluchi/qlang-core/lib/qlang/operand/mapOp.qlang';
 import predicateSource         from '@kaluchi/qlang-core/lib/qlang/operand/predicate.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
-import setOpSource             from '@kaluchi/qlang-core/lib/qlang/operand/setOp.qlang';
 import stringSource            from '@kaluchi/qlang-core/lib/qlang/operand/string.qlang';
 import typeClassifierSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeClassifier.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
@@ -58,10 +56,8 @@ const CATALOG = new Map([
   ['qlang/operand/control',         controlSource],
   ['qlang/operand/error',           errorSource],
   ['qlang/operand/format',          formatSource],
-  ['qlang/operand/mapOp',          mapOpSource],
   ['qlang/operand/predicate',       predicateSource],
   ['qlang/operand/reflective',      reflectiveSource],
-  ['qlang/operand/setOp',          setOpSource],
   ['qlang/operand/string',          stringSource],
   ['qlang/operand/typeClassifier', typeClassifierSource],
   ['qlang/operand/typeConversion', typeConversionSource]

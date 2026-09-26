@@ -197,6 +197,10 @@ export function recordPlaceRefusal(className, Cls) {
   placeRefusalClasses.set(className, Cls);
 }
 
+export function isPlaceRefusal(className) {
+  return placeRefusalClasses.has(className);
+}
+
 // placeRefusalOf(operandName, positions) → the class of the refusal the
 // site of `operandName` declares at one of `positions`, or undefined.
 export function placeRefusalOf(operandName, positions) {

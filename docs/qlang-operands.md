@@ -48,8 +48,6 @@ verbs of vectors [D72].
 | `:category` keyword | Meaning |
 |---|---|
 | `:control` | Control-flow operand (if / coalesce / cond). |
-| `:mapOp` | Map-only operand (keys / vals / has on Map). |
-| `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `distinct`. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
@@ -390,6 +388,11 @@ keys.
 
 ## Map operations
 
+`keys`, `vals` and `has` reside on `::map`, and `has` on `::set`
+as well, under one contract on `::qlang/any` [D72], [D74]; a subject
+of another kind → the contract's `VerbWithoutBodyError` with
+`:addresses`.
+
 ### `keys`
 
 - **Arity** 1. **Subject** `map`.
@@ -404,16 +407,18 @@ keys.
 
 ### `has key`
 
-- **Arity** 2. **Subject** `map`, **modifier** `key` (a keyword).
+- **Arity** 2. **Subject** `map`, **modifier** `key` (a keyword or a
+  string, both naming the key as the map stores it).
 - Returns `true` if the Map contains the key, `false` otherwise.
 - **Example**: `{:name "Alice"} | has :name` → `true`;
   `{:name "Alice"} | has :age` → `false`.
+- **Errors**: a key of another kind → `HasKeyNotKeywordOrStringError`.
 
 ## Set operations
 
-### `has value`
+### `has element`
 
-- **Arity** 2. **Subject** `set`, **modifier** `value`.
+- **Arity** 2. **Subject** `set`, **modifier** `element`, any value.
 - Returns `true` if the value is a member of the Set, found by a
   binary search in the one order.
 - **Example**: `#[:a :b :c] | has :b` → `true`.
@@ -421,16 +426,18 @@ keys.
 `count` and `empty` on a Set and on a Map reside on each kind under
 one contract on `::qlang/any` [D72], one doc entry here.
 
-## Polymorphic set operations — `union`, `minus`, `inter`
+## Set operations of sets, maps and vectors — `union`, `minus`, `inter`
 
-These three operands are polymorphic across Set and Map
-combinations and overloaded by captured-arg count; two Sets combine
-by a merge of their elements in the one order. Three call shapes are
-supported:
+Each of the three resides on `::set`, `::map` and `::vec` under one
+contract on `::qlang/any` [D72], [D74]. On a set and on a map the other
+operand is the slot; on a vector the subject is the vector of operands
+the verb folds, and so is a set whose other operand is left out. Two
+Sets combine by a merge of their elements in the one order. Three call
+shapes are supported:
 
 ### Bound form — one captured arg
 
-- **Arity** 2. **Subject** `left`, **modifier** `right`.
+- **Arity** 2. **Subject** `left`, a set or a map, **modifier** `right`.
 - Applied under Rule 10 partial: `left | union right` evaluates
   `right` as a sub-expression against `left` as context.
 - **Examples**:
@@ -446,7 +453,8 @@ supported:
 
 ### Bare form — zero captured args
 
-- **Arity** 1. **Subject** `vec` — a non-empty Vec of operands.
+- **Arity** 1. **Subject** `vec` — a non-empty Vec of operands, or a
+  set of them.
 - Left-fold: `[a b c] | union` = `(a ∪ b) ∪ c`. Same for `minus`
   and `inter`.
 - **Examples**:
@@ -455,7 +463,8 @@ supported:
   - `[#[:a :b :c] #[:b :d]] | inter` → `#[:b]`.
   - `[{:name "a"} {:score 100}] | union`
     → `{:name "a" :score 100}`.
-- **Errors**: empty Vec → `UnionBareSubjectNotVecError` / `MinusBareSubjectNotVecError` / `InterBareSubjectNotVecError`.
+  - `#[#[1] #[2]] | union` → `#[1 2]`.
+- **Errors**: empty Vec → `UnionBareEmptyError` / `MinusBareEmptyError` / `InterBareEmptyError`.
 
 ### Full form — two captured args
 
@@ -477,7 +486,7 @@ supported:
 of `M₂` are ignored). `M × M` for `inter` keeps keys present in both
 and takes values from `M₁`.
 
-**Errors**: incompatible types (e.g., Set and number) → `UnionPairIncompatibleError` / `MinusPairIncompatibleError` / `InterPairIncompatibleError`.
+**Errors**: another operand of a kind the slot does not declare → `VerbSlotNotOfKindsError`; a pair of kinds apart inside a fold, and a vector beside another operand, a vector being no set for the algebra [D16] → `UnionPairIncompatibleError` / `MinusPairIncompatibleError` / `InterPairIncompatibleError`.
 
 ## Arithmetic — `Scalar → Scalar`
 
@@ -1237,8 +1246,6 @@ address.
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `coalesce`, `cond` |
-| `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
-| `:setOp` | `union`, `minus`, `inter` |
 | `:string` | `split`, `lines`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `and`, `or` |
 | `:typeClassifier` | `type` |

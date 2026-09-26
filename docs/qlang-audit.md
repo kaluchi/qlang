@@ -758,9 +758,10 @@ slot of code takes a quote [D67], [D68]:
 ```
 
 So does a built-in declared on its noun, the verbs of numbers, of the
-comparisons and of the containers: its head checks the subject and the
-slots before its primitive runs and raises the refusal its site
-declares at that place, and `spec` answers the head [D72], [D73]:
+comparisons, of the containers and of their algebra: its head checks the
+subject and the slots before its primitive runs and raises the refusal
+its site declares at that place, and `spec` answers the head [D72],
+[D73], [D74]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -783,14 +784,15 @@ the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::map/has | spec | /modifiers
+> ::string/prepend | spec | /modifiers
 [:any]
 
-> {:a 1} | has 1 !| type
-::HasKeyNotKeywordOrStringError
+> "a" | prepend 5 !| type
+::PrependPrefixNotStringError
 ```
 
-`has` is declared to take any key and refuses a number on a map.
+`prepend` is declared to take any prefix and refuses a number before a
+string.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -813,23 +815,23 @@ The kinds move into the declarations with the kinds of the slots
 [D45], [D67].
 
 A verb on its noun says in its head whether it keeps its subject's
-kind, `:returns /` for `filter` and `::vec` for `sort` over a set
-[D67], [D72]. For the operands not moved yet, whether a transform keeps
-its subject's tag at all is an option of the operand's implementation,
-`preservesTag`, which `applyTagPreservation` in
-`core/src/runtime/dispatch.mjs` reads. It is no fact of a declaration,
-so an edit of a tagged map keeps the tag or loses it by which
-implementation set the flag, and the loss is silent:
+kind, `:returns /` for `filter` and for `union`, and `::vec` for
+`sort` over a set [D67], [D72], [D74]. For the two edits not moved
+yet, `prepend` and `append`, keeping the subject's tag is an option of
+the operand's implementation, `preservesTag`, which
+`applyTagPreservation` in `core/src/runtime/dispatch.mjs` reads. It is
+no fact of a declaration, which names the kinds of the result with
+keywords, and the tag comes back by the flag:
 
 ```qlang
-> ::T{:a 1 :b 2} | filter ~(eq 1) | type
+> ::T{:a 1} | union {:b 2} | type
 ::T
 
-> ::T{:a 1} | union {:b 2} | type
-::map
+> ::string/prepend | spec | /returns
+[:string :vec]
 
-> ::T{:a 1} | payload | union {:b 2} | tag ::T
-::T{:a 1 :b 2}
+> ::Box[1] | prepend 0
+::Box[0 1]
 ```
 
 The kind of an operand's result belongs to its declaration [D4], [D41],
@@ -880,16 +882,16 @@ of the runtime is exported for building operands.
 
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
-share [D62], [D67], as the verbs of containers do [D73]. Where the
-catalog has not moved a verb onto its nouns, one descriptor stands for
-every kind its subject lists, and each of those kinds reads the same
-one:
+share [D62], [D67], as the verbs of containers and of their algebra do
+[D73], [D74]. Where the catalog has not moved a verb onto its nouns, one
+descriptor stands for every kind its subject lists, and each of those
+kinds reads the same one:
 
 ```qlang
-> ::set/union | spec | /subject
-[:set :map :vec]
+> ::string/prepend | spec | /subject
+[:string :vec]
 
-> ::set/union | spec | eq (::map/union | spec)
+> ::string/prepend | spec | eq (::vec/prepend | spec)
 true
 ```
 
@@ -897,8 +899,8 @@ A call by address reaches that one descriptor as well, so it serves any
 kind the descriptor lists, and the kind in the address checks nothing:
 
 ```qlang
-> {:a 1} | vec/union {:b 2}
-{:a 1 :b 2}
+> [1] | string/prepend 0
+[0 1]
 ```
 
 The vocabulary carries the calling shape as well as the kind. A
@@ -985,20 +987,19 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
-The modules of the core are the families of the categories the catalog
-once sorted its operands by, where the manifest answers nouns, so the
-verbs of one noun come from several files and one file feeds several
-nouns, and the runtime joins a kind to its verbs by scanning every
-provider for the kinds a descriptor's `:subject` lists
-(`core/src/runtime/nouns.mjs`, `verbsOfKind`):
+The verbs of numbers, of the containers and of their algebra live in
+the module of their noun [D72], [D73], [D74]. The other modules of the
+core are the families of the categories the catalog once sorted its
+operands by, where the manifest answers nouns, so the verbs of one noun
+come from several files and one file feeds several nouns, and the
+runtime joins a kind to its verbs by scanning every provider for the
+kinds a descriptor's `:subject` lists (`core/src/runtime/nouns.mjs`,
+`verbsOfKind`):
 
 ```sh
 $ grep -lE ':subject (\[[^]]*)?:vec\b' core/lib/qlang/operand/*.qlang
-core/lib/qlang/operand/container.qlang
-core/lib/qlang/operand/setOp.qlang
 core/lib/qlang/operand/string.qlang
 core/lib/qlang/operand/typeConversion.qlang
-core/lib/qlang/operand/vec.qlang
 ```
 
 What the merge leaves behind is the runtime's housekeeping in the
@@ -1489,7 +1490,7 @@ A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang
-> ::map/keys | spec | type
+> ::any/type | spec | type
 ::builtin
 
 > ::builtin{:a 1}
@@ -1860,7 +1861,7 @@ catalog is written one module per noun, a verb that several kinds
 answer residing in each under the contract on its provider's `any`,
 where one descriptor stands today for every kind its subject lists, and
 `:returns` carries whether the verb keeps its subject's kind, which
-`preservesTag` and `imposesOrder` decide today [D41], [D67].
+`preservesTag` decides today for the operands not moved [D41], [D67].
 
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
 [D60], [D65], [D66] and [D67] in the conformance suite, which `node scripts/requirements.mjs`
@@ -2208,3 +2209,4 @@ maintainer wants to explore it before it is fixed.
 [D70]: decisions/D70.md
 [D72]: decisions/D72.md
 [D73]: decisions/D73.md
+[D74]: decisions/D74.md

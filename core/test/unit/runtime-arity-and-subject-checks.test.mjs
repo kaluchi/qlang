@@ -14,10 +14,9 @@
 //   * vec.mjs — flat / min / max / sort behaviour on edge subjects
 //     (empty Vec, non-Vec subject, non-Vec elements alongside Vec
 //     elements, singleton Vec).
-//   * setops.mjs — bare-form (non-Vec subject, empty Vec) and
-//     full-form (two captured args) error / behaviour branches
-//     for `union` / `minus` / `inter`.
-//   * mapOp.mjs — `count` polymorphism over Map subject.
+//   * setops.mjs — the bare form over a subject no residence
+//     takes, over a set of sets, and the full form (two captured
+//     args) for `union` / `minus` / `inter`.
 //   * Rule 10 dispatcher — `valueOp` arity overflow, `nullaryOp`
 //     called with captured args, `higherOrderOp` called with zero
 //     captured args.
@@ -74,21 +73,21 @@ describe('dispatch variadic registration invariants', async () => {
   });
 });
 
-describe('setops bare-form non-Vec subject errors', async () => {
-  it('union bare on non-Vec/non-Set throws UnionBareSubjectNotVecError', async () => {
-    expect(isErrorValue(await evalQuery('42 | union'))).toBe(true);
+describe('setops bare form over a subject no residence takes', async () => {
+  it('union bare on a number reaches the contract, which refuses it', async () => {
+    expect(await evalQuery('42 | union !| type | eq ::VerbWithoutBodyError')).toBe(true);
   });
 
   it('union bare on a set folds its elements, the set being a vector', async () => {
     expect(await evalQuery('#[#[1] #[2]] | union | eq #[1 2]')).toBe(true);
   });
 
-  it('minus bare on non-Vec throws MinusBareSubjectNotVecError', async () => {
-    expect(isErrorValue(await evalQuery('42 | minus'))).toBe(true);
+  it('minus bare on a number reaches the contract, which refuses it', async () => {
+    expect(await evalQuery('42 | minus !| type | eq ::VerbWithoutBodyError')).toBe(true);
   });
 
-  it('inter bare on non-Vec throws InterBareSubjectNotVecError', async () => {
-    expect(isErrorValue(await evalQuery('42 | inter'))).toBe(true);
+  it('inter bare on a number reaches the contract, which refuses it', async () => {
+    expect(await evalQuery('42 | inter !| type | eq ::VerbWithoutBodyError')).toBe(true);
   });
 });
 

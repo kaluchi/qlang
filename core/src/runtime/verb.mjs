@@ -28,8 +28,8 @@ import { canonicalTagName, tagBindingKey } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import {
-  BindNameDeclaredTwiceError, EffectLaunderingAtCallError, declareArityError, declareShapeError, placeRefusalOf,
-  throwSiteTagsRaisedBy
+  BindNameDeclaredTwiceError, EffectLaunderingAtCallError, declareArityError, declareShapeError, isPlaceRefusal,
+  placeRefusalOf, throwSiteTagsRaisedBy
 } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import {
@@ -457,25 +457,32 @@ export function verbAsCode(verb, capturedState) {
 
 const declarationStep = (name, body) => makeTaggedInstance(BIND_TAG, new Map([['name', keyword(name)], ['body', body]]));
 
-// The refusals of the check of a built-in's place of one kind where no
-// site declares one, its constructor's [D68].
+// The refusals the check of a place raises where its site declares none,
+// as the head raises them: a value of none of several kinds, or the
+// refusals of the one kind's constructor [D68], [D74]. Every slot of code
+// of a built-in declares its own [D73].
 function refusalsOfKinds(kindNames) {
+  if (kindNames.length > 1) return [VerbSlotNotOfKindsError.name];
   return throwSiteTagsRaisedBy(tagBindingKey(kindNames[0]));
 }
 
-// The refusals a built-in raises: its site's, each at the place it
-// guards [D64], then those of the kinds its unguarded places check [D72].
+// The refusals a built-in raises: at each place of its head, the subject
+// and then the slots in their order, the one its site declares there
+// [D64], [D73], or those of the kinds the place checks [D72]; then the
+// refusals of its site that guard no place [D74].
 function refusalsOfBuiltin(signature, verb) {
   const places = [
     [SUBJECT_POSITIONS, signature.subjectKinds ?? residenceKindsOf(verb)],
     ...signature.slots.map((slot, index) => [slotPositions(index), slot.kindNames])
   ];
-  const kindRefusals = places
-    .filter(([positions, kindNames]) => kindNames !== null && siteRefusalAt(signature, verb, positions) === undefined)
-    .flatMap(([, kindNames]) => refusalsOfKinds(kindNames));
-  const residenceRefusals = throwSiteTagsRaisedBy(tagBindingKey(`${residenceOfVerb(verb)}/${signature.siteName}`));
-  const refusals = new Set([...residenceRefusals, ...throwSiteTagsRaisedBy(signature.siteName), ...kindRefusals]);
-  return Object.freeze([...refusals].map(makeTagKeyword));
+  const placeRefusals = places.flatMap(([positions, kindNames]) => {
+    const SiteRefusal = siteRefusalAt(signature, verb, positions);
+    return SiteRefusal === undefined ? refusalsOfKinds(kindNames) : [SiteRefusal.name];
+  });
+  const unplacedRefusals = [tagBindingKey(`${residenceOfVerb(verb)}/${signature.siteName}`), signature.siteName]
+    .flatMap(throwSiteTagsRaisedBy)
+    .filter(className => !isPlaceRefusal(className));
+  return Object.freeze([...new Set([...placeRefusals, ...unplacedRefusals])].map(makeTagKeyword));
 }
 
 // refusalsOfVerb(verb) → the refusals a built-in lists, and none for a

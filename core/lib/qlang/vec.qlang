@@ -149,3 +149,89 @@
       ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
   ~~|
   ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})
+
+:union
+  |~~ The union of the operands the vector holds, sets merged in the one
+      order or maps merged with the last value winning a key. A vector is
+      no set for the algebra [D16], so another operand beside it is
+      refused with the pair.
+
+      ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
+      ~([1] | union #[2] !| type | eq ::UnionPairIncompatibleError)
+  ~~|
+  ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/union})
+
+::UnionBareEmptyError
+  |~~ `union` over a vector folds its operands, so the vector holds one
+      at least.
+      ~(
+        [] | union
+        !| [type]
+        |  eq [::UnionBareEmptyError]
+       )
+  ~~|
+
+::UnionPairIncompatibleError
+  |~~ The operands `union` folds are two sets or two maps.
+      ~(
+        [#[:a] {:b 1}] | union
+        !| [type /leftType /rightType]
+        |  eq [::UnionPairIncompatibleError ::set ::map]
+       )
+  ~~|
+
+:minus
+  |~~ The first operand the vector holds minus each one after it; another
+      operand beside the vector is refused with the pair.
+
+      ~([#[:a :b :c] #[:b]] | minus | eq #[:a :c])
+  ~~|
+  ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/minus})
+
+::MinusBareEmptyError
+  |~~ `minus` over a vector folds its operands, so the vector holds one
+      at least.
+      ~(
+        [] | minus
+        !| [type]
+        |  eq [::MinusBareEmptyError]
+       )
+  ~~|
+
+::MinusPairIncompatibleError
+  |~~ The operands `minus` folds are two sets, or a map and a map or a
+      vector of keys.
+      ~(
+        [#[:a] {:b 1}] | minus
+        !| [type /leftType /rightType]
+        |  eq [::MinusPairIncompatibleError ::set ::map]
+       )
+  ~~|
+
+:inter
+  |~~ The intersection of the operands the vector holds; another operand
+      beside the vector is refused with the pair.
+
+      ~([#[:a :b :c] #[:b :d]] | inter | eq #[:b])
+  ~~|
+  ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/inter})
+
+::InterBareEmptyError
+  |~~ `inter` over a vector folds its operands, so the vector holds one
+      at least.
+      ~(
+        [] | inter
+        !| [type]
+        |  eq [::InterBareEmptyError]
+       )
+  ~~|
+
+::InterPairIncompatibleError
+  |~~ The operands `inter` folds are two sets, or a map and a map or a
+      vector of keys.
+      ~(
+        [#[:a] {:b 1}] | inter
+        !| [type /leftType /rightType]
+        |  eq [::InterPairIncompatibleError ::set ::map]
+       )
+  ~~|

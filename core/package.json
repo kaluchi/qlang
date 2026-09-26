@@ -35,9 +35,6 @@
     "./effect-check": {
       "import": "./src/effect-check.mjs"
     },
-    "./dispatch": {
-      "import": "./src/runtime/dispatch.mjs"
-    },
     "./operand-errors": {
       "import": "./src/operand-errors.mjs"
     },

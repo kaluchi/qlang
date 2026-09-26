@@ -10,7 +10,7 @@
 // the module named by the noun's path, resides on that noun [D72].
 
 import {
-  isQMap, isVec, isVerb, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, keyword, residenceOfVerb,
+  isQMap, isVec, isVerb, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -43,7 +43,6 @@ function* providerExports(env) {
   }
 }
 
-const SUBJECTS_BENEATH_EVERY_KIND = new Set(['any', 'taggedInstance']);
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
 
@@ -118,29 +117,9 @@ export function residencesOf(env, verbName) {
   return residences;
 }
 
-
-// A verb that declares no subject takes any [D45].
-function subjectKindsOf(descriptor) {
-  const subject = descriptor.get('subject') ?? keyword('any');
-  const named = isVec(subject) ? subject : [subject];
-  return new Set(named.map(kindKeyword => (SUBJECTS_BENEATH_EVERY_KIND.has(kindKeyword.name) ? 'any' : kindKeyword.name)));
-}
-
-function servesKindOf(descriptor, value) {
-  const kinds = subjectKindsOf(descriptor);
-  return kinds.has('any') || kinds.has(typeKeyword(value).name);
-}
-
-// The value a descriptor takes from its subject, walking the subject's
-// tags from the outside in [D34]: the subject itself when the descriptor
-// serves its kind, and past a tag it does not serve the value that tag
-// wraps, so `::Box("[1]") | parseJson` reads the string. A tag a vector
-// or a map carries rides the value itself.
-export function subjectServedBy(descriptor, subject) {
-  let served = subject;
-  while (isValueClass(served, 'taggedInstance') && !servesKindOf(descriptor, served)) served = served.payload;
-  return served;
-}
+// A descriptor, the loader's alone among the operands of the core, takes
+// any subject and lives beneath every kind [D79].
+const DESCRIPTOR_KINDS = new Set([ANY_KIND_NAME]);
 
 export function isNoun(env, tagName) {
   return isProviderNoun(env, tagBindingKey(tagName));
@@ -178,7 +157,7 @@ export function addressesOf(env, verbName) {
   for (const [, exportsMap] of providerExports(env)) {
     const descriptor = bindingValueOf(exportsMap.get(verbName));
     if (!carriesBuiltinShape(descriptor) || isTagBindingName(verbName)) continue;
-    for (const kindName of subjectKindsOf(descriptor)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
+    for (const kindName of DESCRIPTOR_KINDS) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
   }
   for (const [kindName] of residencesOf(env, verbName)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
   return makeSet(addresses);
@@ -205,7 +184,7 @@ export function verbsOfKind(env, tagName) {
   for (const [, exportsMap] of providerExports(env)) {
     for (const [name, entry] of exportsMap) {
       const descriptor = bindingValueOf(entry);
-      if (!isTagBindingName(name) && carriesBuiltinShape(descriptor) && subjectKindsOf(descriptor).has(kindName)) {
+      if (!isTagBindingName(name) && carriesBuiltinShape(descriptor) && DESCRIPTOR_KINDS.has(kindName)) {
         addresses.push(makeTagKeyword(`${kindName}/${name}`));
       }
     }
@@ -249,7 +228,7 @@ export function addressedVerb(env, tagName) {
   for (const [, exportsMap] of providerExports(env)) {
     const record = exportsMap.get(verbName);
     const descriptor = bindingValueOf(record);
-    if (carriesBuiltinShape(descriptor) && subjectKindsOf(descriptor).has(kindName)) {
+    if (carriesBuiltinShape(descriptor) && DESCRIPTOR_KINDS.has(kindName)) {
       return { verbName, descriptor, record };
     }
   }

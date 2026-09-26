@@ -687,8 +687,8 @@ co-located sources:
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
   load time under their `:qlang/prim/<name>` keys. The dispatch
-  wrappers in `core/src/runtime/dispatch.mjs` (`valueOp`,
-  `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`) attach a tiny
+  wrapper in `core/src/runtime/dispatch.mjs`, `stateOpVariadic`, the
+  loader's alone, attaches a tiny
   `meta` object carrying only the `captured` range — the rest
   of the metadata lives in the operand-family catalog files
   and is addressable via `manifest` enumeration or the axis trio
@@ -1526,8 +1526,6 @@ Subpath exports (tree-shaking-friendly):
   `declareInvariantError`, `declareEffectLaunderingError`,
   `declarePerSiteError`).
 - `@kaluchi/qlang-core/effect-check` — AST effect-marker decoration.
-- `@kaluchi/qlang-core/dispatch` — `nullaryOp`, `valueOp`,
-  `stateOp`, `overloadedOp` for host operand registration.
 - `@kaluchi/qlang-core/operand-errors` — per-site factories for the
   operand slot checks (`declareSubjectError`, `declareModifierError`,
   `declareElementError`, `declareComparabilityError`).

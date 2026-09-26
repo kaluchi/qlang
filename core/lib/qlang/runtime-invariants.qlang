@@ -340,23 +340,9 @@
 
 |~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
 
-::NullaryOpArgsProvidedError
-  |~~ A nullary host operand received captured arguments.
-  ~~|
-
-::StateOpArityMismatchError
-  |~~ A host operand over the state pair received an unexpected
-      captured-arg count.
-  ~~|
-
 ::StateOpVariadicMissingCapturedError
   |~~ Dispatch invariant — `stateOpVariadic` registration is
       missing the `captured` range argument.
-  ~~|
-
-::ValueOpArityMismatchError
-  |~~ Dispatch invariant — `valueOp` impl received an unexpected
-      captured-arg count for its declared arity.
   ~~|
 
 |~ ── 8. Evaluator dispatch invariants ─────────────────── ~|

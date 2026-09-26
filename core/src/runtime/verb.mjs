@@ -35,7 +35,8 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import {
   bindingValueOf, isQuote, isVec, isQMap, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
   makeBinding,
-  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, typeKeyword, verbEnvRef,
+  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, hostImplOfVerb, typeKeyword,
+  verbEnvRef,
   BIND_TAG, BUILTIN_TAG, SPEC_TAG
 } from '../types.mjs';
 
@@ -291,18 +292,30 @@ function asCodeOfSlot(slot, kindNames, value, scopeEnv) {
 // of a name check a place differently, and otherwise the one that names
 // the verb [D73]; undefined for a verb of steps.
 function siteRefusalAt(signature, verb, positions) {
-  const primitiveKey = primitiveKeyOfVerb(signature, verb);
-  if (primitiveKey === null) return undefined;
-  return placeRefusalOf(tagBindingKey(`${residenceOfVerb(verb)}/${signature.siteName}`), positions)
+  if (!callsPrimitive(signature, verb)) return undefined;
+  const residenceSite = residenceSiteOf(signature, verb);
+  return (residenceSite === null ? undefined : placeRefusalOf(residenceSite, positions))
     ?? placeRefusalOf(signature.siteName, positions);
 }
 
-// The primitive a verb calls: a built-in's, the verb declared in the
-// module of a noun [D72]; a `::builtin` step in any other verb is a step,
-// so no head a user writes reaches a primitive past its declaration's
-// [D73].
-function primitiveKeyOfVerb(signature, verb) {
-  return residenceOfVerb(verb) === null ? null : signature.primitiveKey;
+// The site of the residence of a built-in, `::map/at`, or null for a
+// verb of a host, which resides on no noun.
+function residenceSiteOf(signature, verb) {
+  const residence = residenceOfVerb(verb);
+  return residence === null ? null : tagBindingKey(`${residence}/${signature.siteName}`);
+}
+
+// Whether a verb calls a primitive: a built-in, the verb declared in the
+// module of a noun [D72], or a verb whose host handed its implementation
+// with the module that declared it [D80]; a `::builtin` step in any other
+// verb is a step, so no head a user writes reaches a primitive past its
+// declaration's [D73].
+function callsPrimitive(signature, verb) {
+  return signature.primitiveKey !== null && (residenceOfVerb(verb) !== null || hostImplOfVerb(verb) !== null);
+}
+
+function primitiveOfVerb(signature, verb) {
+  return residenceOfVerb(verb) === null ? hostImplOfVerb(verb) : PRIMITIVE_REGISTRY.resolve(signature.primitiveKey);
 }
 
 // The scope of the body: the verb's own with each slot bound to the
@@ -411,10 +424,9 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   if (isErrorValue(served)) return served;
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
-  const primitiveKey = primitiveKeyOfVerb(signature, verb);
-  const answer = primitiveKey === null
-    ? (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue
-    : await runPrimitive(PRIMITIVE_REGISTRY.resolve(primitiveKey), served, primitiveArgumentsOf(signature, slotValues, state), state);
+  const answer = callsPrimitive(signature, verb)
+    ? await runPrimitive(primitiveOfVerb(signature, verb), served, primitiveArgumentsOf(signature, slotValues, state), state)
+    : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
 
@@ -475,7 +487,7 @@ function refusalsOfKinds(kindNames) {
 // refusals of its site that guard no place [D74].
 function refusalsOfBuiltin(signature, verb) {
   const places = [
-    [SUBJECT_POSITIONS, signature.subjectKinds ?? residenceKindsOf(verb)],
+    [SUBJECT_POSITIONS, signature.subjectKinds ?? residenceKindsOf(verb) ?? ['any']],
     ...signature.slots.map((slot, index) => [slotPositions(index), slot.kindNames]),
     ...(signature.rest === null ? [] : [[[], signature.rest.kindNames]])
   ];
@@ -483,7 +495,8 @@ function refusalsOfBuiltin(signature, verb) {
     const SiteRefusal = siteRefusalAt(signature, verb, positions);
     return SiteRefusal === undefined ? refusalsOfKinds(kindNames) : [SiteRefusal.name];
   });
-  const unplacedRefusals = [tagBindingKey(`${residenceOfVerb(verb)}/${signature.siteName}`), signature.siteName]
+  const unplacedRefusals = [residenceSiteOf(signature, verb), signature.siteName]
+    .filter(siteName => siteName !== null)
     .flatMap(throwSiteTagsRaisedBy)
     .filter(className => !isPlaceRefusal(className));
   return Object.freeze([...new Set([...placeRefusals, ...unplacedRefusals])].map(makeTagKeyword));
@@ -493,7 +506,7 @@ function refusalsOfBuiltin(signature, verb) {
 // verb of steps, whose refusals are those its body meets.
 export function refusalsOfVerb(verb) {
   const signature = signatureOf(verb.payload);
-  return primitiveKeyOfVerb(signature, verb) === null ? Object.freeze([]) : refusalsOfBuiltin(signature, verb);
+  return callsPrimitive(signature, verb) ? refusalsOfBuiltin(signature, verb) : Object.freeze([]);
 }
 
 // slotLabelsOf(verb) → the slots of a verb as its head writes them,
@@ -523,6 +536,6 @@ export function signatureSpecOf(verb) {
   const subjectSteps = signature.subjectKinds === null
     ? [declarationStep('subject', makeTagKeyword(residenceOfVerb(verb) ?? 'any'))]
     : [];
-  const throwsSteps = primitiveKeyOfVerb(signature, verb) === null ? [] : [declarationStep('throws', refusalsOfBuiltin(signature, verb))];
+  const throwsSteps = callsPrimitive(signature, verb) ? [declarationStep('throws', refusalsOfBuiltin(signature, verb))] : [];
   return makeTaggedInstance(SPEC_TAG, makeQuote([...subjectSteps, ...headSteps, ...throwsSteps]));
 }

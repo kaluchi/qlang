@@ -4,16 +4,10 @@
 //
 //     fn(state, lambdas) → state
 //
-// The helpers in runtime/dispatch.mjs (valueOp,
-// nullaryOp, overloadedOp) wrap pure `(values) → value` cores
-// inside this signature: they project `state.pipeValue`, resolve
-// captured-arg lambdas against it, call the pure core, and wrap
-// the result back into a new state with `withPipeValue`.
-//
-// Reflective operands (env, use, manifest, runExamples) use the
-// `stateOp` / `stateOpVariadic` helpers, which do NOT descend to
-// the value level — the impl receives the full state and returns
-// a full state, giving it read/write access to `env`.
+// The one operand of the core built on it is the loader's `use`,
+// through `stateOpVariadic` in runtime/dispatch.mjs: the impl receives
+// the full state and returns a full state, writing the scope [D79];
+// every other operand is a verb whose head the runtime executes.
 //
 // Captured arguments are LAMBDAS: each captured expression becomes
 // an `(input) → value` closure that the operand impl can invoke
@@ -52,17 +46,11 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // makeFn(name, arity, impl, meta) → function value
 //
 // Wraps a state-transformer impl with the metadata Rule 10 needs.
-// The impl signature is `(state, lambdas) → state`. Helpers from
-// `runtime/dispatch.mjs` build value-core friendly wrappers on
-// top of this base.
+// The impl signature is `(state, lambdas) → state`.
 //
 // `meta` carries only the per-impl structural fields the runtime
-// itself reads. For the dispatch wrappers (`valueOp`,
-// `nullaryOp`, `overloadedOp`, `stateOp`, `stateOpVariadic`) the
-// shape is
-// `{ captured: [min, max] }` — the [min, max] count of captured
-// arg slots the operand accepts, derived structurally from the
-// dispatch wrapper itself. Catalog-bound builtin descriptors keep
+// itself reads, `{ captured: [min, max] }` — the [min, max] count of
+// captured arg slots the operand accepts. Catalog-bound builtin descriptors keep
 // their `category` / `subject` / `modifiers` / `returns` / `throws`
 // fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
 // reads them through descriptor projection at enumeration time, so

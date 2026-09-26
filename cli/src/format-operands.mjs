@@ -1,14 +1,13 @@
-// Pure value-to-String formatter impls for the `:cli/format` host
-// catalog — `pretty` renders qlang-literal form, `tjson` renders
-// the tagged-JSON wire form, `table` draws a Vec of Maps as a frame
-// for a terminal. Catalog declaration lives in
-// `cli/lib/qlang/format.qlang`.
+// Value-to-String formatters for the `:cli/format` host catalog —
+// `pretty` renders qlang-literal form, `tjson` renders the tagged-JSON
+// wire form, `table` draws a Vec of Maps as a frame for a terminal —
+// each a plain function over the value the head of its verb checks
+// [D80]. Catalog declaration lives in `cli/lib/qlang/format.qlang`.
 
-import { nullaryOp } from '@kaluchi/qlang-core/dispatch';
 import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue, toTaggedJSON } from '@kaluchi/qlang-core';
 
-const TableSubjectNotVecError = declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
+declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
 const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
 
 // A cell is a view at the boundary: a String prints bare, null as an
@@ -29,10 +28,7 @@ function columnOrderOf(rows) {
   return [...columnNames];
 }
 
-const prettyOperand = nullaryOp('pretty', (subject) => printValue(subject));
-const tjsonOperand  = nullaryOp('tjson',  (subject) => JSON.stringify(toTaggedJSON(subject)));
-const tableOperand  = nullaryOp('table', (subject) => {
-  if (!Array.isArray(subject)) throw new TableSubjectNotVecError(subject);
+function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
     if (!(row instanceof Map)) throw new TableRowNotMapError(rowIndex, row);
@@ -47,10 +43,10 @@ const tableOperand  = nullaryOp('table', (subject) => {
   const horizontalRule = widths.map(width => '-'.repeat(width + 2)).join('+');
   const formatRow = rowCells => '|' + rowCells.map((cellText, columnIndex) => ' ' + cellText.padEnd(widths[columnIndex]) + ' ').join('|') + '|';
   return [horizontalRule, formatRow(columnNames), horizontalRule, ...cells.map(formatRow), horizontalRule].join('\n');
-});
+}
 
 export const formatImpls = {
-  pretty: prettyOperand,
-  tjson:  tjsonOperand,
-  table:  tableOperand
+  pretty: subject => printValue(subject),
+  tjson:  subject => JSON.stringify(toTaggedJSON(subject)),
+  table
 };

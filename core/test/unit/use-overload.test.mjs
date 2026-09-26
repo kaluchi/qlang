@@ -164,8 +164,7 @@ describe('use selective with Vec filter', () => {
   });
 });
 
-import { QlangTypeError, ArityError } from '../../src/errors.mjs';
-import { nullaryOp } from '../../src/runtime/dispatch.mjs';
+import { QlangTypeError } from '../../src/errors.mjs';
 
 describe('per-site error triple-assertions', () => {
   it('UseNamespaceNotFoundError: name, instanceof, context', async () => {
@@ -220,18 +219,6 @@ describe('per-site error triple-assertions', () => {
     const originalErr = evalResult.originalError;
     expect(originalErr.name).toBe('ErrorDescriptorNotMapError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
-  });
-
-  it('NullaryOpArgsProvidedError on a nullary host operand given a modifier: name, instanceof, context', async () => {
-    // A host operand built with nullaryOp refuses a captured arg with the
-    // dispatch-layer arity class every nullary operand shares.
-    const sessionInstance = await createSession();
-    sessionInstance.bind('probe', nullaryOp('probe', subject => subject));
-    const originalErr = (await sessionInstance.evalCell('1 | probe 2')).result.originalError;
-    expect(originalErr.name).toBe('NullaryOpArgsProvidedError');
-    expect(originalErr).toBeInstanceOf(ArityError);
-    expect(originalErr.context.operandName).toBe('probe');
-    expect(originalErr.context.actualArity).toBe(1);
   });
 });
 

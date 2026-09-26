@@ -125,27 +125,10 @@ bindTypeConstructor('builtin', builtinConstructor);
 // value directly. Inverse of every `tag ::Foo` mint and the
 // natural «open the envelope» step for tagged-value workflow.
 //
-// `tag` mints `TaggedInstance` from a value plus a TagKeyword.
-// Three arities through overloadedOp form a symmetric partner
-// for `[type, payload]` split:
-//
-//   bare  — subject is a `[tag, value]` 2-element Vec (the
-//     shape `[type payload]` projects from any tagged value).
-//     Unpacks the pair and routes through `makeTaggedInstance`.
-//     Round-trip pair: `tagged | [type payload] | tag` yields
-//     the same TaggedInstance for composite-shape payloads;
-//     wrap-shape payloads with already-tagged inner content
-//     fold through the makeTaggedInstance wrap branch.
-//
-//   bound — `value | tag ::Foo`. Subject is any pipeValue,
-//     captured arg is the TagKeyword. The everyday partial-
-//     application form.
-//
-//   full  — `tag value-expr tag-expr`. Both args captured,
-//     pipeValue is context for both — lets compact rebuild
-//     patterns like `pair | tag /1 /0` reorder elements of
-//     a positional Vec into the operand's value-then-tag
-//     order without an intermediate binding.
+// `tag` mints `TaggedInstance` from a value plus a TagKeyword, the
+// symmetric partner of the `[type, payload]` split: the pair
+// `[tag, value]` it takes apart without a name, `tagged | [type
+// payload] | tag` yielding the same value for composite payloads.
 
 declareSubjectError('PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
 const TagModifierNotTagKeywordError = declareModifierError(

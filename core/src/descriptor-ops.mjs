@@ -72,7 +72,6 @@ export function stampStructuralFacts(descriptor, fn, bindingName) {
   stampBuiltinImpl(descriptor, fn);
   descriptor.set('captured', [...fn.meta.captured]);
   descriptor.set('effectful', fn.effectful);
-  if (!descriptor.has('modifiers')) descriptor.set('modifiers', Object.freeze([]));
   stampRaisedTags(descriptor, bindingName);
   return descriptor;
 }

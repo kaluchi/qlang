@@ -31,12 +31,12 @@ import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
   isQMap, isKeyword, isVec, isQSet, isBinding, isVerb, keyword, makeBinding, bindingValueOf, resideVerbOn,
-  typeKeyword, TAG_HEADER_SYMBOL
+  attachHostImpl, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { canonicalTagName, moduleNamespaceKey, tagBindingKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
-import { stampStructuralFacts, stampThrowSiteSpec } from '../descriptor-ops.mjs';
+import { stampThrowSiteSpec } from '../descriptor-ops.mjs';
 
 const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');
 const UseNamespaceNotKeywordError = declareShapeError('UseNamespaceNotKeywordError',
@@ -53,6 +53,10 @@ const UseNamespaceElementNotKeywordError = declareShapeError('UseNamespaceElemen
 );
 const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
   ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple namespaces: ${namespaces.join(', ')}`,
+  { operand: 'use' }
+);
+const UseImplNamesNoVerbError = declareShapeError('UseImplNamesNoVerbError',
+  ({ namespaceName, implName }) => `use: namespace '${namespaceName}' hands an implementation for '${implName}', which its source declares as no verb`,
   { operand: 'use' }
 );
 const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
@@ -178,22 +182,13 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     stampThrowSiteSpec(bindingValueOf(exportVal), exportKey);
   }
 
-  // Stamp the resolved JS function value onto each freshly-built
-  // builtin descriptor, the value of its record, through the shared
-  // `stampStructuralFacts` mint-site — same surface
-  // `runtime/index.mjs::buildLangRuntime` uses for the core catalog.
-  // Locator-loaded descriptors carry a resolved JS function value on
-  // `:impl` plus the structural-from-impl backfill (`:captured` /
-  // `:effectful` / empty-fallback `:modifiers`, and `:throws` read
-  // off the sites) so `spec` axis and `manifest` enumeration read
-  // them off the record uniformly.
-  if (locatorResult.impls) {
-    for (const [implName, implFn] of Object.entries(locatorResult.impls)) {
-      const implDescriptor = bindingValueOf(loadedExports.get(implName));
-      if (isQMap(implDescriptor) && implDescriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-        stampStructuralFacts(implDescriptor, implFn, implName);
-      }
-    }
+  // A host hands the implementations of the verbs its source declares,
+  // each a plain function over the values the verb's head checks, and
+  // the loader records each beside its verb [D4], [D80].
+  for (const [implName, impl] of Object.entries(locatorResult.impls ?? {})) {
+    const declared = bindingValueOf(loadedExports.get(implName));
+    if (!isVerb(declared)) throw new UseImplNamesNoVerbError({ namespaceName: nsKeyword.name, implName: keyword(implName) });
+    attachHostImpl(declared, impl);
   }
 
   resideVerbsOnNoun(nsKeyword.name, loadedExports, moduleResultState.env);

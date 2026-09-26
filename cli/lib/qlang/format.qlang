@@ -2,8 +2,9 @@
    formatters the CLI binds alongside the io operands. Each takes a
    pipeValue subject and returns a rendered String; chaining them
    in front of `@out` is how a query produces stdout. JS impls live
-   in `cli/src/format-operands.mjs`. Each operand BindStep sits
-   directly under the per-site error tags it raises. ~|
+   in `cli/src/format-operands.mjs`, plain functions over the values
+   the head of each verb checks [D80]. Each verb sits directly under
+   the per-site error tags it raises. ~|
 
 :pretty
   |~~ Renders any value as its canonical qlang-literal display
@@ -18,12 +19,7 @@
       ~({:a 1} | pretty | eq "{:a 1}")
       ~(:foo | pretty | eq ":foo")
   ~~|
-  ::builtin{:impl :qlang/cli/prim/pretty
-            :category :format
-            :subject :any
-            :returns :string
-            :modifiers []
-   }
+  ::verb~(:returns ::string | ::builtin{:impl :cli/format/pretty})
 
 :tjson
   |~~ Renders any value as the tagged-JSON wire format from core's
@@ -39,12 +35,7 @@
       ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
       ~({:a 1 :b :keyword} | tjson | parseTjson | eq {:a 1 :b :keyword})
   ~~|
-  ::builtin{:impl :qlang/cli/prim/tjson
-            :category :format
-            :subject :any
-            :returns :string
-            :modifiers []
-   }
+  ::verb~(:returns ::string | ::builtin{:impl :cli/format/tjson})
 
 :table
   |~~ Renders a Vec of Maps as a fixed-width tabular string, a view
@@ -58,10 +49,7 @@
       ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
       ~([] | table | eq "(empty)")
   ~~|
-  ::builtin{:impl :qlang/cli/prim/table
-            :category :format
-            :subject :vec
-            :returns :string}
+  ::verb~(:subject ::vec | :returns ::string | ::builtin{:impl :cli/format/table})
 
 ::TableSubjectNotVecError
   |~~ Subject of `table` must be Vec.

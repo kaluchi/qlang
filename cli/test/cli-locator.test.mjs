@@ -33,7 +33,7 @@ describe('installCliCatalog', () => {
   it('binds every cli/* operand into the session env', async () => {
     const session = await createSession({ locator: createCliLocator(noopCtx) });
     await installCliCatalog(session);
-    const { result } = await session.evalCell('::any | manifest | has ::any/@out');
+    const { result } = await session.evalCell('env | has :@out');
     expect(result).toBe(true);
   });
 });

@@ -2795,8 +2795,9 @@ The locator signature is
 `async (namespaceName: string) => { source, impls? } | null`.
 It may be synchronous or asynchronous. `source` is a qlang source
 string (module declarations). `impls` is an optional map of
-`{ operandName: functionValue }` pairs — host-provided JS
-implementations for builtin descriptors declared in the source.
+`{ verbName: function }` pairs — the primitives of the verbs the
+source declares, each a plain function over the values the verb's head
+checks, the subject first and the slots in their order [D4], [D80].
 
 When `use :ns` encounters a namespace keyword not in env:
 
@@ -2808,28 +2809,25 @@ When `use :ns` encounters a namespace keyword not in env:
    recursively).
 4. Computes the module's export surface (env delta — bindings the
    module added beyond the base env).
-5. Patches `:impl` on each exported builtin descriptor with
-   the corresponding function from `impls`.
+5. Records each function of `impls` beside the verb of its name,
+   which calls it once its head has checked the call; a name the
+   source declares as no verb is refused with
+   `UseImplNamesNoVerbError`.
 6. Installs the namespace keyword → exports in env for subsequent
    lookups (cache hit serves subsequent references to the same
    namespace).
 7. Merges exports into env (the standard `use` behavior).
 
-The `impls` function values are constructed using dispatch wrappers
-from the `@kaluchi/qlang-core/dispatch` subpath export:
+The source declares the verb with its head, and the impl is a plain
+function over what the head checked:
 
 ```js
-import { nullaryOp, valueOp, overloadedOp } from '@kaluchi/qlang-core/dispatch';
+const searchQlangSource =
+  ':@find ::verb~(:pattern #[::string ::null] | ::builtin{:impl :jdt/search/@find})';
 
-const findImpl = overloadedOp('@find', 2, {
-  0: async (namePattern) => searchByName(namePattern),
-  1: async (ctx, nameLambda) => searchByName(await nameLambda(ctx)),
-});
+const findImpl = async (subject, pattern) =>
+  searchByName(pattern === null ? subject : pattern);
 ```
-
-This subpath imports only the dispatch wrappers without triggering
-the runtime bootstrap side effects that `@kaluchi/qlang-core/runtime`
-carries.
 
 ### Plain-JSON value codec
 

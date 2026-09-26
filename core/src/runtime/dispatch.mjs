@@ -1,33 +1,15 @@
-// Dispatch wrappers for operand state transformers.
+// The wrapper of the loader's `use`, the one operand of the core that
+// steps over the state pair itself [D79], and the minting of a value
+// under a tag, which the verbs that keep a kind and `tag` share.
 //
 // Every function value installed in langRuntime has the uniform
-// signature `(state, lambdas) → state`. The wrappers in this file
-// bridge pure value-level cores so most operands do not need to
-// touch state directly — they keep writing value-level impls, and
-// the wrapper performs the state descent (extract pipeValue) and
-// ascent (withPipeValue) on their behalf.
-//
-// None of the wrappers accept authored meta (docs, examples,
-// throws, category, subject, modifiers, returns). That metadata
-// lives in the per-family catalog files under
-// lib/qlang/operand/<family>.qlang as descriptor Maps that
-// langRuntime() parses into env. The only structural fact each
-// wrapper computes is the `captured` range — the [min, max] count
-// of captured args the operand accepts — derived from the
-// dispatch shape itself.
-//
-//   valueOp(name, n, impl)           — pure `(slot1..slotN) → result`
-//   nullaryOp(name, impl)            — pure `(subject) → result`
-//   overloadedOp(name, maxArity, impls) — dispatch by captured-arg count
-//   stateOp(name, arity, impl)       — raw `(state, lambdas) → state`
-//   stateOpVariadic(name, impl, captured) — state op over a range of counts
+// signature `(state, lambdas) → state`; `stateOpVariadic` builds one over
+// a range of captured-arg counts, the `captured` range the descriptor of
+// `use` records.
 
 import { makeFn } from '../rule10.mjs';
-import { withPipeValue, envGet } from '../state.mjs';
-import {
-  declareInvariantError,
-  declareArityError
-} from '../errors.mjs';
+import { envGet } from '../state.mjs';
+import { declareInvariantError } from '../errors.mjs';
 import { isQMap, makeTaggedInstance, bindingValueOf } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
@@ -35,24 +17,9 @@ import { tagBindingKey } from '../env-keys.mjs';
 // `runtime/index.mjs`, which depends on `runtime/use-op.mjs`, which
 // builds `use` from this file at its top level — a static import here
 // would close a cycle and trip TDZ whenever a consumer enters the graph
-// through `runtime/dispatch.mjs` first (subpath import
-// `@kaluchi/qlang-core/dispatch`). The dynamic form below resolves
+// through `runtime/dispatch.mjs` first. The dynamic form below resolves
 // `eval.mjs` after every module in the cycle finishes initialising;
 // Node caches the resolution after the first call.
-
-// Per-site arity error classes for the dispatch wrappers.
-const ValueOpArityMismatchError = declareArityError('ValueOpArityMismatchError',
-  ({ operandName, expectedArity, actualArity }) =>
-    `${operandName} expects ${expectedArity - 1} or ${expectedArity} captured args, got ${actualArity}`,
-  { operand: '::call' });
-const NullaryOpArgsProvidedError = declareArityError('NullaryOpArgsProvidedError',
-  ({ operandName, actualArity }) =>
-    `${operandName} takes no arguments, got ${actualArity}`,
-  { operand: '::call' });
-const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
-  ({ operandName, expectedCaptured, actualArity }) =>
-    `${operandName} expects ${expectedCaptured} captured args, got ${actualArity}`,
-  { operand: '::call' });
 
 // ── Per-site invariant errors for variadic registration ───────
 
@@ -76,54 +43,6 @@ export async function mintUnderTag(state, tag, value) {
   if (!tagCarriesConstructor(state, tag.name)) return makeTaggedInstance(tag, value);
   const { mintTaggedInstance } = await import('../eval.mjs');
   return await mintTaggedInstance(tag.name, value, state);
-}
-
-export function valueOp(name, n, impl) {
-  return makeFn(name, n, async (state, valueOpLambdas) => {
-    const capturedCount = valueOpLambdas.length;
-    const subjectValue = state.pipeValue;
-    let raw;
-    if (capturedCount === n - 1) {
-      const resolvedModifiers = await Promise.all(valueOpLambdas.map(lam => lam(subjectValue)));
-      raw = await impl(subjectValue, ...resolvedModifiers);
-    } else if (capturedCount === n) {
-      const resolvedSlots = await Promise.all(valueOpLambdas.map(lam => lam(subjectValue)));
-      raw = await impl(...resolvedSlots);
-    } else {
-      throw new ValueOpArityMismatchError({
-        operandName: name, expectedArity: n, actualArity: capturedCount
-      });
-    }
-    return withPipeValue(state, raw);
-  }, { captured: [n - 1, n] });
-}
-
-export function nullaryOp(name, impl) {
-  return makeFn(name, 1, async (state, nullaryLambdas) => {
-    if (nullaryLambdas.length !== 0) {
-      throw new NullaryOpArgsProvidedError({ operandName: name, actualArity: nullaryLambdas.length });
-    }
-    return withPipeValue(state, await impl(state.pipeValue));
-  }, { captured: [0, 0] });
-}
-
-export function overloadedOp(name, maxArity, overloadImpls) {
-  const arityKeys = Object.keys(overloadImpls).map(Number).sort((a, b) => a - b);
-  return makeFn(name, maxArity, async (state, overloadLambdas) =>
-    withPipeValue(state, await overloadImpls[overloadLambdas.length](state.pipeValue, ...overloadLambdas)),
-  { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]] });
-}
-
-export function stateOp(name, arity, impl) {
-  const expectedCaptured = arity - 1;
-  return makeFn(name, arity, async (state, stateOpLambdas) => {
-    if (stateOpLambdas.length !== expectedCaptured) {
-      throw new StateOpArityMismatchError({
-        operandName: name, expectedCaptured, actualArity: stateOpLambdas.length
-      });
-    }
-    return await impl(state, stateOpLambdas);
-  }, { captured: [expectedCaptured, expectedCaptured] });
 }
 
 export function stateOpVariadic(name, impl, captured) {

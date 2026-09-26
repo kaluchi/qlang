@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { nullaryOp } from '../../src/runtime/dispatch.mjs';
+import { makeFn } from '../../src/rule10.mjs';
 import { EVAL_DEPTH_LIMIT } from '../../src/state.mjs';
 import { QlangError, EvaluationDepthExceededError } from '../../src/errors.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
@@ -67,10 +67,10 @@ describe('depth budget — host seams', () => {
     // step lifts the error and the tally deflects.
     const sessionInstance = await createSession();
     let frameTally = 0;
-    sessionInstance.bind('tallyFrame', nullaryOp('tallyFrame', async (outcomes) => {
+    sessionInstance.bind('tallyFrame', makeFn('tallyFrame', 1, async state => {
       frameTally++;
-      return outcomes;
-    }));
+      return state;
+    }, { captured: [0, 0] }));
     const cellEntry = await sessionInstance.evalCell(
       '|~~ ~(:x | runExamples | tallyFrame | count | eq 1) ~~| :x 1 | :x | runExamples | tallyFrame'
     );

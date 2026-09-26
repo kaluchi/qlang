@@ -6,10 +6,9 @@ import {
   serializeSession,
   deserializeSession
 } from '../../src/session.mjs';
-import { makeTagKeyword, isErrorValue, isQMap, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
-import { nullaryOp, overloadedOp, stateOp, valueOp } from '../../src/runtime/dispatch.mjs';
-import { withPipeValue } from '../../src/state.mjs';
+import { makeFn } from '../../src/rule10.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -243,35 +242,33 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const sessionInstance = await createSession();
     // Inject a function value directly. serializeSession should
     // refuse to encode it but should not throw — it just omits.
-    sessionInstance.bind('userFn', nullaryOp('userFn', (subject) => subject));
+    sessionInstance.bind('userFn', makeFn('userFn', 1, async state => state, { captured: [0, 0] }));
     const payload = await serializeSession(sessionInstance);
     expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
   });
 
-  it('runs a host operand overloaded by the count of its captured modifiers', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('pick', overloadedOp('pick', 2, {
-      0: (subject) => subject,
-      1: async (subject, pickLambda) => pickLambda(subject)
-    }));
-    expect((await sessionInstance.evalCell('7 | pick')).result).toBe(7);
-    expect((await sessionInstance.evalCell('7 | pick (add 1)')).result).toBe(8);
+  it('runs a host verb through the implementation its module was handed with', async () => {
+    const sessionInstance = await createSession({
+      locator: async nsName => (nsName === 'tests/host'
+        ? {
+            source: ':less ::verb~(:by ::number | ::builtin{:impl :tests/host/less})',
+            impls: { less: (subject, by) => subject - by }
+          }
+        : null)
+    });
+    expect((await sessionInstance.evalCell('use :tests/host | 7 | less 2')).result).toBe(5);
+    expect((await sessionInstance.evalCell('use :tests/host | 7 | less "a" !| type')).result)
+      .toEqual(makeTagKeyword('NumberPayloadNotNumberError'));
   });
 
-  it('runs a host operand of values against the subject or against two modifiers', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('less', valueOp('less', 2, (left, right) => left - right));
-    expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
-    expect((await sessionInstance.evalCell('7 | less 10 4')).result).toBe(6);
-    expect((await sessionInstance.evalCell('7 | less !| type')).result).toEqual(makeTagKeyword('ValueOpArityMismatchError'));
-  });
-
-  it('runs a host operand over the state pair with its captured modifiers', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('twice', stateOp('twice', 2, async (state, lambdas) =>
-      withPipeValue(state, (await lambdas[0](state.pipeValue)) * 2)));
-    expect((await sessionInstance.evalCell('3 | twice (add 1)')).result).toBe(8);
-    expect((await sessionInstance.evalCell('3 | twice !| type')).result).toEqual(makeTagKeyword('StateOpArityMismatchError'));
+  it('refuses an implementation handed for a name the source declares as no verb', async () => {
+    const sessionInstance = await createSession({
+      locator: async nsName => (nsName === 'tests/stray'
+        ? { source: ':limit 10', impls: { limit: () => 1 } }
+        : null)
+    });
+    expect((await sessionInstance.evalCell('use :tests/stray !| [type /implName]')).result)
+      .toEqual([makeTagKeyword('UseImplNamesNoVerbError'), keyword('limit')]);
   });
 
   it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
@@ -289,26 +286,16 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
 // ── Locator-based lazy module loading ─────────────────────────
 
-// Minimal .qlang source for a module with one builtin descriptor
-// and one qlang-only verb: a Map literal with the descriptor, merged
-// via `use` to install it in env, then a verb that builds on it.
-// The locator patches :impl on the builtin descriptor with the host
-// function after eval. Env delta = the exports.
+// Minimal .qlang source for a module with one host verb and one
+// qlang-only verb that builds on it; the locator hands the host verb's
+// implementation beside the source [D80]. Env delta = the exports.
 const MOCK_MODULE_SOURCE = [
-  '{:@fetch ::builtin{:impl null',
-  '                   :category :test-io',
-  '                   :subject :string',
-  '                   :modifiers []',
-  '                   :returns :string',
-  '                   :docs ["Fetches a resource by URL."]',
-  '                   :examples []',
-  '                   :throws []}}',
-  '| use',
+  ':@fetch ::verb~(:returns ::string | ::builtin{:impl :test/io/@fetch})',
   '| :@doubled ::verb~(@fetch | append @fetch)'
 ].join('\n');
 
 // Host-provided impl for the @fetch builtin — returns a fixed string.
-const fetchImpl = nullaryOp('@fetch', () => 'fetched-value');
+const fetchImpl = () => 'fetched-value';
 
 function mockLocator(namespaceName) {
   if (namespaceName === 'test/io') {
@@ -357,16 +344,11 @@ describe('createSession with locator — lazy module loading', () => {
     expect(locatorMissErr.context.namespaceName).toBe('nonexistent/ns');
   });
 
-  it('the descriptor of a locator-loaded builtin carries captured and effectful', async () => {
+  it('the signature of a locator-loaded host verb answers its head', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
-    await locatorSession.evalCell('use :test/io');
-    const specCell = await locatorSession.evalCell('::string/@fetch | spec');
+    const specCell = await locatorSession.evalCell('use :test/io | :@fetch | spec | [type /returns]');
     expect(specCell.error).toBeNull();
-    const fetchDesc = specCell.result;
-    expect(isQMap(fetchDesc)).toBe(true);
-    expect(fetchDesc[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('builtin'));
-    expect(fetchDesc.get('captured')).toEqual([0, 0]);
-    expect(fetchDesc.get('effectful')).toBe(true);
+    expect(specCell.result).toEqual([makeTagKeyword('spec'), makeTagKeyword('string')]);
   });
 
   it('session without locator throws UseNamespaceNotFoundError on unknown namespace', async () => {
@@ -400,9 +382,9 @@ describe('session cells that carry more than a parse failure', () => {
     // cell records it on the error channel; only a ParseError also
     // lands a structured value on the result channel.
     const sessionInstance = await createSession();
-    sessionInstance.bind('collapse', nullaryOp('collapse', () => {
+    sessionInstance.bind('collapse', makeFn('collapse', 1, async () => {
       throw new QlangInvariantError('catalog bootstrap left no root module');
-    }));
+    }, { captured: [0, 0] }));
 
     const cellEntry = await sessionInstance.evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();

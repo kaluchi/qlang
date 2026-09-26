@@ -2,9 +2,9 @@
    parser the CLI binds alongside the format operands: `parseTjson`
    bridges between qlang processes round-trippably over `tjson |
    @out`, where the core's `parseJson` reads the JSON of any other
-   producer. The JS impl lives in `cli/src/parse-operands.mjs`. The
-   operand BindStep sits directly under the per-site error tags it
-   raises. ~|
+   producer. The JS impl lives in `cli/src/parse-operands.mjs`, a plain
+   function over the string the head checks [D80]. The verb sits
+   directly under the per-site error tags it raises. ~|
 
 :parseTjson
   |~~ Parses a String of tagged-JSON into a qlang value. The
@@ -19,11 +19,7 @@
       ~([1 :foo "hi"] | tjson | parseTjson | eq [1 :foo "hi"])
       ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
   ~~|
-  ::builtin{:impl :qlang/cli/prim/parseTjson
-            :category :format
-            :subject :string
-            :returns :any
-            :modifiers []}
+  ::verb~(:subject ::string | ::builtin{:impl :cli/parse/parseTjson})
 
 ::ParseTjsonSubjectNotStringError
   |~~ Subject of `parseTjson` must be a String — the tagged-JSON

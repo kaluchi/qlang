@@ -64,16 +64,19 @@ describe('@out — full-application form (1 captured)', () => {
 
   it('lifts OutRendererResultNotStringError when the renderer returns a non-String value', async () => {
     const io = captureIoContext();
-    // `add(1)` against a String subject lifts an error inside the
-    // renderer lambda — the renderer's resolved value is therefore
-    // an error value carrying `:kind ::AddLeftNotNumberError`
-    // (every error's identity rides on the tagged-instance
-    // invariant). @out's renderer-result type check stamps the
-    // inner error's identity tag on `:actualType`.
-    const cellEntry = await runQuery('"x" | @out (add 1)', io);
+    const cellEntry = await runQuery('42 | @out (add 1)', io);
     expect(io.stdoutText()).toBe('');
     expectOperandErrorThrown(cellEntry, 'OutRendererResultNotStringError', {
-      actualType: { name: 'AddLeftNotNumberError' }
+      actualType: { name: 'number' }
+    });
+  });
+
+  it('answers the error its renderer answers, as every modifier of a verb does', async () => {
+    const io = captureIoContext();
+    const cellEntry = await runQuery('"x" | @out (add 1)', io);
+    expect(io.stdoutText()).toBe('');
+    expectOperandErrorThrown(cellEntry, 'AddLeftNotNumberError', {
+      actualType: { name: 'string' }
     });
   });
 });
@@ -107,9 +110,9 @@ describe('@err — full-application form', () => {
 
   it('lifts ErrRendererResultNotStringError when the renderer returns a non-String', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"x" | @err (add 1)', io);
+    const cellEntry = await runQuery('42 | @err (add 1)', io);
     expectOperandErrorThrown(cellEntry, 'ErrRendererResultNotStringError', {
-      actualType: { name: 'AddLeftNotNumberError' }
+      actualType: { name: 'number' }
     });
   });
 });

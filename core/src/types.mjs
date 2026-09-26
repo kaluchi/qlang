@@ -458,6 +458,18 @@ export function resideVerbOn(verb, kindName) {
   verb[VERB_ENV_REF_SLOT].residence = kindName;
 }
 
+// The implementation a host handed with the module that declared a verb,
+// a plain function over the values the verb's head checks [D4], [D80],
+// which the loader of that module records in the holder beside the verb's
+// scope.
+export function hostImplOfVerb(verb) {
+  return verb[VERB_ENV_REF_SLOT]?.hostImpl ?? null;
+}
+
+export function attachHostImpl(verb, impl) {
+  verb[VERB_ENV_REF_SLOT].hostImpl = impl;
+}
+
 // ── error value factory ───────────────────────────────────────
 //
 // Identity rides on the `tag` JS-header field (a TagKeyword) —

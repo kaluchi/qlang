@@ -380,8 +380,9 @@ against resolving untyped text by its look.
 
 Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. The error is a
-value with a tag and a descriptor; its trail is a quote of the steps it
-skipped, and applying that quote to a fresh subject replays them. A
+value with a tag and a descriptor; its trail is the path it took, a stop
+at every step that raised it or handed it on, and the steps its last
+stop skipped, applied to a fresh subject, replay them [D85]. A
 quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every operand is a binding with prose and
@@ -578,7 +579,7 @@ the sister project, source text and rendered cards:
 
 ```qlang
 > "hello world" | count
-::VerbWithoutBodyError!{ … :addresses #[::map/count ::set/count ::vec/count] }
+::VerbWithoutBodyError!{ :verbName :count :addresses #[::map/count ::set/count ::vec/count] … }
 
 > "a\nb\nc\nd" | split "\n" | drop 1 | take 2 | join "\n"
 b
@@ -1083,9 +1084,9 @@ parser in the parser's own vocabulary:
 
 ```sh
 $ qlang '::vec | spec' | wc -c
-2263
+1805
 $ qlang '::vec | spec | add 1' | wc -c
-2359
+1963
 ```
 
 ```qlang
@@ -1096,6 +1097,14 @@ $ qlang '::vec | spec | add 1' | wc -c
 The unclosed quote has one sensible continuation, `)`, and the error
 names every token the parser could have taken there, among them the
 markers of comments.
+
+The path of an error carries the subject of every level it left
+[D85], so the same failure one verb deeper prints the value twice:
+
+```sh
+$ qlang ':g ::verb~(add 1) | ::vec | spec | g' | wc -c
+3855
+```
 
 A value slot of a built-in outside its noun, the namespace `use`
 computes at the call among them, refuses an error value by the tag of
@@ -1110,43 +1119,14 @@ errors hands it on unchanged [D13], as a verb's slot does [D68]:
 ::error
 ```
 
-The trail of an error rides outside its descriptor until a `!|`
-reads it, and the readers that take the descriptor, the printer and
-equality, miss it: an error that deflected inside a value prints
-without its trail and equals the error it was before, while `!|`
-shows the trail.
+The ring of atoms [D42] stays open at one example of the catalog: an
+error literal whose trail is no vector of stops is a step that `error`,
+the one verb that builds an error from its fields, refuses to build,
+since the error a step produces carries its path there [D82], [D85].
 
 ```qlang
-> [(!{:k 1} | add 1)]
-[!{:k 1}]
-
-> [(!{:k 1} | add 1)] | eq [!{:k 1}]
-true
-
-> [(!{:k 1} | add 1)] | first !| /trail
-~(add 1)
-```
-
-The literal it prints reads back as another value, and the ring of
-atoms, which takes an error apart through `!|`, builds back an error
-unequal to it [D42]. The ring stays open at one example of the catalog
-as well: an error literal whose trail is no quote is a step that
-`error`, the one verb that builds an error from its fields, refuses to
-build, since the error a step produces holds a quote there or null
-[D82].
-
-```qlang
-> ~(!{:kind :oops :trail [1 2]}) | first !| error !| type
-::ErrorTrailNotQuoteError
-```
-
-The trail crosses the levels as well: the steps a verb's body skipped
-land in its caller's trail with the names of the body's scope, so the
-trail replays nowhere.
-
-```qlang
-> :g ::verb~(:n ::number | add n | mul n) | "x" | g 2 | sub 3 !| /trail
-~(mul n | sub 3)
+> ~(!{:kind :oops :trail 5}) * (!| error !| type)
+[::ErrorTrailNotVecError]
 ```
 
 A library of error-handling pipelines, retry and recover and assert
@@ -1183,12 +1163,7 @@ and an operand whose alternatives are pipeline slots, `coalesce` and its
 kin, runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
-asked. An error must leave a crumb at every level it leaves, the step
-that opened the level, the subject the level began from and the trail
-it gathered there, its own trail starting over, so the trail it shows
-replays where it is read and the crumbs lead from the fault to the
-reader: an error no step handles carries the path of the computation
-[D85].
+asked.
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which
@@ -1331,7 +1306,7 @@ nothing executes them:
 
   ```qlang
   > [!{:a 1}] | json
-  [{"$error":{"$tag":"error","descriptor":{"a":1,"trail":null}}}]
+  [{"$error":{"$tag":"error","descriptor":{"a":1,"trail":[]}}}]
   ```
 - The embedding API tells a host to install its operands with
   `session.bind(name, fn)`, which the runtime's own render guard calls
@@ -1812,7 +1787,7 @@ declaration, and that is how `as` is spelled once it is gone.
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
 an `eq` value [D42], [D82], but for the error literal whose trail is no
-quote, which no verb builds from its fields; a second declaration of a name in one scope is
+vector of stops, which no verb builds from its fields; a second declaration of a name in one scope is
 refused [D44]; the dispatch wrappers are gone, but for the loader's,
 which the one loader of M4 replaces [D79]; the declarations of the
 catalog are true, since the runtime executes them.
@@ -1823,18 +1798,19 @@ The semantics are final. The one order, the single container family
 with the rule for maps and the reading of duplicate keys, the set as
 the ordered vector, the kinds and the strict predicates have landed
 [D1], [D14], [D15], [D16], [D18], [D32], [D48], and so have the command
-line's default subject and its terminal views [D37] and the edit under
-a tag that rewraps through the tag's constructor [D41]. What remains is
+line's default subject and its terminal views [D37], the edit under a
+tag that rewraps through the tag's constructor [D41], and the trail of
+an error as the path it took, a stop at every step that handed it on
+[D85]. What remains is
 the contracts moving onto the kinds, a tag's declaration being its
 schema or its constructor [D6], [D33]; and the tags of the refusing
 sites as kinds with their schemas and procedures, and the law for
 nested errors [D7], [D13], [D46], which is where the JavaScript classes
 of errors and the prose that restates their facts disappear.
 
-Its answers are the targets of [D13], [D64] and [D85] in the
-conformance suite: the error a value slot hands on, whose kind D64 names
-and whose passage D13 settles, and the crumbs an error leaves at every
-level it leaves. Beside it: no factory-declared error class remains; every
+Its answers are the targets of [D13] and [D64] in the conformance
+suite: the error a value slot hands on, whose kind D64 names and whose
+passage D13 settles. Beside it: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; host categories of error are declared by hosts.
@@ -1895,7 +1871,7 @@ budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the
 parser's list of alternatives; `:trail` prints the same way on an error
 value and on its materialized descriptor, where the error literal hides
-a null trail and the descriptor shows it; a renderer loads the
+an empty trail and the descriptor shows it; a renderer loads the
 documents of the tags and keywords an answer carries that the session
 has not been shown, and withholds the ones it has; the language has no
 effect marker and no effect flag.

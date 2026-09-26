@@ -15,12 +15,11 @@ recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 // identity (the same invariant every tagged-instance value-class
 // carries — verb, binding record, qlang, json, user `::Foo[…]`)
 // rides on the error value's JS-header `tag` slot, not on the
-// descriptor Map. `:faultStep` (Quote of failing source slice)
-// and `:faultInput` (pipeValue at step entry) carry the runtime
-// fault frame as two flat fields — no wrapper Map; per-invocation
-// context (`:actualType`, `:actualValue` when it differs from
-// `:faultInput`, Comparability pair-fields, `:index`, dispatch-
-// time `:operandName`) follows. Identity is
+// descriptor Map. The per-invocation context comes first
+// (`:actualType`, `:actualValue` when it differs from the subject of
+// the step, Comparability pair-fields, `:index`, dispatch-time
+// `:operandName`), and the path of the error, `:trail`, which names
+// the step and its subject, after it [D85]. Identity is
 // surfaced through the `type` operand (`result !| type |
 // eq ::Foo`), which reads `error.tag` straight off the JS
 // header. Per-tag static facts — `:category`, `:operand`,
@@ -32,15 +31,14 @@ recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 // type | spec | /operand` reads the per-site origin.
 //
 // `:actualValue` lift rule: stamped only when the throw site
-// drilled below `:faultInput` (multi-segment projection,
+// drilled below the subject of the step (multi-segment projection,
 // full-application captured-arg resolution, element-iteration).
 // Reader sees the presence-as-signal: absent → fault landed at
-// the top of the step's `:faultInput`; present → drill-down,
-// look at `:actualValue` for the offending sub-value. The dedup
-// runs ref-equality against `:faultInput` inside the lift loop
+// the subject the first stop of the trail names; present →
+// drill-down, look at `:actualValue` for the offending sub-value. The
+// dedup runs ref-equality against that subject inside the lift loop
 // below — no per-site code needs to know.
 const RUNTIME_FIELD_ORDER = [
-  'faultStep', 'faultInput',
   'payloadValue', 'payloadType',
   'actualValue', 'actualType',
   'leftValue', 'leftType', 'rightValue', 'rightType',
@@ -70,11 +68,9 @@ function liftIdentifier(k, v) {
   return isTagBindingName(v) ? makeTagKeyword(stripTagBindingPrefix(v)) : keyword(v);
 }
 
-export function errorFromQlang(qlangError, faultStep, faultInput) {
+export function errorFromQlang(qlangError, subject) {
   const tag = makeTagKeyword(qlangError.name);
   const d = new Map();
-  d.set('faultStep', faultStep);
-  d.set('faultInput', faultInput);
 
   // Instance carries only the dynamic facts the JS context attached
   // (`:actualType`, comparability pair-types, `:index`, dispatch-time
@@ -86,11 +82,11 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   // the BindStep source; `result !| type | docs` returns the
   // canonical prose the catalog authored.
   //
-  // `:actualValue` ref-eq dedup against `:faultInput` — when the
+  // `:actualValue` ref-eq dedup against the subject — when the
   // throw site's per-instance `actualValue` is the very pipeValue
   // the step received (subject-shape errors on a partial application,
   // single-segment projection on a leaf subject), the redundant lift
-  // is skipped. When the throw site drilled below `:faultInput`
+  // is skipped. When the throw site drilled below the subject
   // (multi-segment projection, full-application captured-arg, element
   // iteration), `actualValue` is stamped — its presence is the
   // type-level signal «drill-down happened, look here».
@@ -101,16 +97,15 @@ export function errorFromQlang(qlangError, faultStep, faultInput) {
   const ctx = qlangError.context;
   const liftedFromOrder = new Set();
   for (const k of RUNTIME_FIELD_ORDER) {
-    if (k === 'faultStep' || k === 'faultInput') continue;
     if (!(k in ctx) || ctx[k] === undefined) continue;
-    if (k === 'actualValue' && ctx[k] === faultInput) continue;
+    if (k === 'actualValue' && ctx[k] === subject) continue;
     d.set(k, liftIdentifier(k, ctx[k]));
     liftedFromOrder.add(k);
   }
   for (const [k, v] of Object.entries(ctx)) {
     if (liftedFromOrder.has(k)) continue;
     // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
-    // against `faultInput` runs in the loop above; tail-loop fields
+    // against the subject runs in the loop above; tail-loop fields
     // are exclusively per-site shape extras (operand-, namespace-,
     // etc.) and never need the same gate.
     if (RUNTIME_FIELD_ORDER.includes(k)) continue;
@@ -229,7 +224,7 @@ const WELL_KNOWN_PROPS = [
 // field and no identity a query matches.
 const FOREIGN_FAILURE_TAG = makeTagKeyword('ForeignFailureError');
 
-export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
+export function errorFromForeign(jsError, astNode) {
   const tag = FOREIGN_FAILURE_TAG;
   const d = new Map();
   d.set('message', jsError.message);
@@ -261,8 +256,6 @@ export function errorFromForeign(jsError, astNode, faultStep, faultInput) {
   }
 
   d.set('operand', astNode?.text ?? null);
-  d.set('faultStep', faultStep);
-  d.set('faultInput', faultInput);
 
   return makeErrorValue(tag, d, {
     location: astNode?.location ?? null,

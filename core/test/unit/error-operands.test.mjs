@@ -61,15 +61,15 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
-    // /trail yields the quote of the deflected steps. `evalPipeline`
-    // steps over plain comments on both tracks, so only the
-    // operand-carrying step (`count`) deflects into the trail.
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | parse');
+    // The last stop of the trail holds the steps the error skipped.
+    // `evalPipeline` steps over plain comments on both tracks, so only
+    // the operand-carrying step (`count`) joins them [D85].
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
 
-  it('a trail materialized past a plain comment replays through apply as the bare operand suffix', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail | :t / | 42 | apply t !| type');
+  it('the steps skipped past a plain comment replay through apply as the bare operand suffix', async () => {
+    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 });

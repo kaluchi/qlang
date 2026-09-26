@@ -19,7 +19,7 @@
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | /content","expect":"\" second \""}
-{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :faultStep ~(/unknownKey)\n  :faultInput |~~ x ~~|\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n}"}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"doc-type-is-not-vec","query":"|~~ x ~~| | type | eq ::vec","expect":"false"}
 {"name":"doc-type-is-not-map","query":"|~~ x ~~| | type | eq ::map","expect":"false"}
 {"name":"doc-type-is-not-string","query":"|~~ x ~~| | type | eq ::string","expect":"false"}

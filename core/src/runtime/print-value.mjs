@@ -133,17 +133,17 @@ function printListLike(open, close, inlineSep, elements, indent) {
 // non-error tagged-instances. `error.tag` is always a TagKeyword
 // (universal identity invariant for the value-class), and the kind
 // the brackets imply, `::error`, goes unwritten, as a vector's does
-// [D32], [D64]. The payload-Map drops the auto-injected
-// `:trail null` (makeErrorValue's invariant restores it on
-// reconstruction — see types.mjs::makeErrorValue); every other
-// descriptor field — `:message`, per-site dynamic context, user-
-// stamped slots — rides through verbatim so the print form is
-// round-trip exact under `parse(printValue(V))`.
+// [D32], [D64]. The payload-Map drops the empty path `:trail []`
+// (makeErrorValue's invariant restores it on reconstruction — see
+// types.mjs::makeErrorValue); every other descriptor field —
+// `:message`, per-site dynamic context, user-stamped slots, a path
+// that holds stops — rides through verbatim, so the print form read
+// where a value stands is the value it printed [D85].
 function printErrorValue(e, indent) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const payload = new Map();
   for (const [k, v] of e.descriptor) {
-    if (k === 'trail' && v === null) continue;
+    if (k === 'trail' && v.length === 0) continue;
     payload.set(k, v);
   }
   if (payload.size === 0) return tagHead + '!{}';

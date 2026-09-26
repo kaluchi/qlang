@@ -1088,8 +1088,8 @@ its own eval handler in `eval.mjs`.
   - `"10 | add 3" | parse | apply /` → `13`.
   - `[42 ::call{:name :add :args [1]}] | tag ::quote | apply /` → `43`
     (a quote assembled from its steps).
-  - `error !| /trail | :t / | start | apply t` — re-runs
-    deflected steps against a fresh subject.
+  - `error !| /trail/-1/skipped | :t / | start | apply t` — re-runs
+    the steps the error skipped against a fresh subject.
 - **Errors**: code not a Quote → `ApplyCodeNotQuoteError`.
   Runtime errors inside the code lift through the normal fail-track
   just like any other qlang failure.
@@ -1243,9 +1243,14 @@ the predicate:
 > [1 "x" 3] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError)
 [
   ::AddLeftNotNumberError!{
-    :faultStep ~(add 10)
-    :faultInput "x"
     :actualType ::string
+    :trail [
+      {
+        :step ~(add 10)
+        :subject "x"
+        :skipped ~()
+      }
+    ]
   }
 ]
 ```

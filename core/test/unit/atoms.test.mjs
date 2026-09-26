@@ -17,6 +17,7 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
+import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const atomsModulePath = join(here, '..', 'qlang', 'atoms.qlang');
@@ -24,11 +25,11 @@ const conformanceDir = join(here, '..', 'conformance');
 const RING_TIMEOUT = 120_000;
 
 const OPEN_EXAMPLES = new Map([
-  // The step of an error literal whose trail is no quote: `error`, the
-  // one verb that builds an error from its fields, refuses that trail,
-  // since the error a step produces holds a quote there or null.
-  ['!{:kind :oops :trail [1 2]} !| [type /actualType] | eq [::ErrorTrailNotQuoteError ::vec]',
-    'no verb builds an error step whose trail is no quote'],
+  // The step of an error literal whose trail is no vector of stops:
+  // `error`, the one verb that builds an error from its fields, refuses
+  // that trail, since the error a step produces holds its path there.
+  ['!{:kind :oops :trail 5} !| [type /actualType] | eq [::ErrorTrailNotVecError ::number]',
+    'no verb builds an error step whose trail is no vector of stops'],
 ]);
 
 let ringSession;
@@ -65,7 +66,7 @@ async function conformanceLiterals() {
   for (const caseFile of readdirSync(conformanceDir, { recursive: true }).map(String).filter(name => name.endsWith('.jsonl'))) {
     for (const line of readFileSync(join(conformanceDir, caseFile), 'utf8').split(/\r?\n/)) {
       if (line.trim() === '' || line.trim().startsWith('//')) continue;
-      const literal = await evalQuery(JSON.parse(line).expect);
+      const literal = await expectedValueOf(JSON.parse(line).expect);
       literalsByPrint.set(printValue(literal), literal);
     }
   }

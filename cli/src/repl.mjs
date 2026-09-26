@@ -19,11 +19,6 @@
 //   * Each cell's success-track value auto-prints (printValue +
 //     ANSI), the way every interactive REPL surfaces results;
 //     script mode stays silent without `@out` by design.
-//   * Error values auto-materialize their trail before display —
-//     deflected steps accumulated in `_trailHead` are folded into
-//     the `:trail` Quote-value so the printed output shows the
-//     full pipeline-suffix source without requiring an explicit
-//     `!|` step.
 //   * `@in` resolves to the empty String — interactive stdin is
 //     consumed by the prompt itself, so reading "stdin" from
 //     inside a cell would deadlock against the line editor.
@@ -165,10 +160,8 @@ function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   // Parse failures and runtime fail-track errors both surface as
   // `isErrorValue(cellEntry.result)` — session.evalCell lifts
   // ParseError through `errorFromParse` so the same structured
-  // `::Tag!{…}` print path covers both. The descriptor's `:trail`
-  // is already materialised by `materializePendingTrail` inside
-  // session.evalCell (`_trailHead` is null at this point), so the
-  // REPL can render the value as-is.
+  // `::Tag!{…}` print path covers both, the path of the error in its
+  // `:trail` [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
   sink(highlightAnsi(printValue(cellEntry.result), builtinNames) + '\n');
 }

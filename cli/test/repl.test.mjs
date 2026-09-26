@@ -80,7 +80,7 @@ describe('runRepl — query evaluation', () => {
     expect(stripAnsi(replHarness.stderrText())).toMatch(/!\{/);
   });
 
-  it('materializes trail in error display without explicit !|', async () => {
+  it('prints the path of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     const text = stripAnsi(replHarness.stderrText());
@@ -171,12 +171,10 @@ describe('runRepl — output highlighting', () => {
 });
 
 describe('runRepl — error rendering', () => {
-  it('renders an error-value with materialised :trail through the same printValue path as success values', async () => {
-    // `materializePendingTrail` runs inside `session.evalCell`, so
-    // by the time the REPL receives the cell entry the descriptor's
-    // `:trail` is already a single Quote covering every deflected
-    // step (no `_trailHead` remnant). The REPL renders the value
-    // verbatim through `printValue`.
+  it('renders an error value with its path through the same printValue path as success values', async () => {
+    // The path of an error is written as it flows [D85], so the value
+    // the cell answers already holds every stop and every skipped
+    // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | count !| union {:k 1} | error | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);

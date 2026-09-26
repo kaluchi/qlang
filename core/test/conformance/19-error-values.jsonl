@@ -1,7 +1,7 @@
-{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
-{"name":"error-lit-empty","query":"!{}","expect":"!{}"}
-{"name":"error-operand-from-map","query":"{:kind :oops} | error","expect":"!{:kind :oops}"}
-{"name":"error-operand-full-form","query":"error {:kind :oops}","expect":"!{:kind :oops}"}
+{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{\n  :kind :oops\n  :message \"boom\"\n  :trail [\n    {\n      :step ~(!{:kind :oops :message \"boom\"})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"error-lit-empty","query":"!{}","expect":"!{\n  :trail [\n    {\n      :step ~(!{})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"error-operand-from-map","query":"{:kind :oops} | error","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(error)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"error-operand-full-form","query":"error {:kind :oops}","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(error {:kind :oops})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"error-test-via-distribute-on-error","query":"[!{:kind :oops} 42] * (false !| true)","expect":"[true false]","decision":"D52"}
 {"name":"fail-apply-deflects-map-with-kind","query":"{:kind :oops} !| /kind","expect":"{:kind :oops}"}
 {"name":"fail-apply-deflects-null","query":"null !| /kind","expect":"null"}
@@ -11,16 +11,16 @@
 {"name":"fail-apply-deflects-string","query":"\"hello\" !| /kind","expect":"\"hello\""}
 {"name":"fail-apply-deflects-vec","query":"[1 2 3] !| /kind","expect":"[1 2 3]"}
 {"name":"fail-apply-into-paren-group","query":"!{:kind :oops} !| (/kind)","expect":":oops"}
-{"name":"deflect-count-into-trail","query":"!{:kind :oops} | count !| /trail | parse","expect":"\"count\""}
-{"name":"deflect-add-into-trail","query":"!{:kind :oops} | add 1 !| /trail | parse","expect":"\"add 1\""}
-{"name":"deflect-projection-into-trail","query":"!{:kind :oops} | /name !| /trail | parse","expect":"\"/name\""}
-{"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | count | add 1 | mul 2 !| /trail | parse","expect":"\"count | add 1 | mul 2\""}
-{"name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | add 1 !| /trail | first | type","expect":"::call","decision":"D47"}
-{"name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | add 1 !| /trail | first | /name","expect":":add"}
+{"name":"deflect-count-into-trail","query":"!{:kind :oops} | count !| /trail/-1/skipped | parse","expect":"\"count\"","decision":"D85"}
+{"name":"deflect-add-into-trail","query":"!{:kind :oops} | add 1 !| /trail/-1/skipped | parse","expect":"\"add 1\"","decision":"D85"}
+{"name":"deflect-projection-into-trail","query":"!{:kind :oops} | /name !| /trail/-1/skipped | parse","expect":"\"/name\"","decision":"D85"}
+{"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | count | add 1 | mul 2 !| /trail/-1/skipped | parse","expect":"\"count | add 1 | mul 2\"","decision":"D85"}
+{"name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | add 1 !| /trail/-1/skipped | first | type","expect":"::call","decision":["D47","D85"]}
+{"name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | add 1 !| /trail/-1/skipped | first | /name","expect":":add","decision":"D85"}
 {"name":"deflect-entry-carries-no-location","query":"!{:kind :oops} | add 1 !| /trail | first | has :location","expect":"false"}
-{"name":"trail-empty-no-deflections","query":"!{:kind :oops} !| /trail","expect":"null"}
-{"name":"trail-materialised-at-query-boundary-single-deflection","query":"\"1\" | add 1 | mul 3 !| /trail","expect":"~(| mul 3)"}
-{"name":"trail-materialised-at-query-boundary-multi-deflection","query":"\"x\" | add 1 | mul 3 | count !| /trail","expect":"~(| mul 3 | count)"}
+{"name":"a-stop-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} !| /trail/-1/skipped","expect":"~()","decision":"D85"}
+{"name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| /trail/-1/skipped","expect":"~(mul 3)","decision":"D85"}
+{"name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| /trail/-1/skipped","expect":"~(mul 3 | count)","decision":"D85"}
 {"name":"runtime-error-thrown","query":"\"hello\" | add 1 !| type","expect":"::AddLeftNotNumberError"}
 {"name":"runtime-error-category","query":"\"hello\" | add 1 !| type | spec | /category","expect":":typeError"}
 {"name":"runtime-div-zero-category","query":"10 | div 0 !| type | spec | /category","expect":":numericDomain"}
@@ -29,14 +29,19 @@
 {"name":"distribute-error-count","query":"[1 \"x\" 3] * add 10 | filter ~(false !| true) | count","expect":"1"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"error-descriptor-not-map","query":"42 | error !| type | spec | /category","expect":":typeError"}
-{"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | error | add 1 !| /trail | parse","expect":"\"count | add 1\""}
+{"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | error | add 1 !| /trail/-1/skipped | parse","expect":"\"count | add 1\"","decision":"D85"}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union {:request \"r-1\"} | error | count !| /request","expect":"\"r-1\""}
 {"name":"leading-fail-apply-filter-by-error-kind","query":"[1 \"x\" 3 \"y\"] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError) | count","expect":"2"}
-{"name":"explicit-trail-truncation","query":"!{:kind :oops} | count | add 1 !| union {:trail null} | error !| /trail","expect":"null"}
-{"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail ~(| pre)} !| /trail","expect":"~(| pre)"}
-{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail ~(| pre)} | count !| /trail","expect":"~(| pre | count)"}
-{"name":"trail-not-quote-in-literal","query":"!{:kind :oops :trail [1 2]} !| [type /actualType]","expect":"[::ErrorTrailNotQuoteError ::vec]"}
-{"name":"trail-not-quote-on-relift","query":"!{:kind :oops} | count !| union {:trail []} | error !| type","expect":"::ErrorTrailNotQuoteError"}
-{"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| union {:trail null} | error | add 1 !| /trail","expect":"~(| add 1)"}
-{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail | parse","expect":"\"* add 1\""}
-{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :faultStep ~(add 1)\n  :faultInput \"hello\"\n  :actualType ::string\n}"}
+{"name":"a-relift-without-its-trail-starts-a-path","query":"!{:kind :oops} | count | add 1 !| minus #[:trail] | error !| /trail * /step","expect":"[~(error)]","decision":"D85"}
+{"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail","expect":"[{:step ~(pre) :subject 1 :skipped ~()}]","decision":"D85"}
+{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
+{"name":"trail-not-vec-in-literal","query":"!{:kind :oops :trail 5} !| [type /actualType]","expect":"[::ErrorTrailNotVecError ::number]","decision":"D85"}
+{"name":"trail-not-vec-on-relift","query":"!{:kind :oops} | count !| union {:trail 5} | error !| type","expect":"::ErrorTrailNotVecError","decision":"D85"}
+{"name":"a-trail-that-is-a-quote-is-refused","query":"!{:kind :oops :trail ~(| pre)} !| [type /actualType]","expect":"[::ErrorTrailNotVecError ::quote]","decision":"D85"}
+{"name":"a-step-that-takes-out-an-error-step-without-a-path-refuses-it","query":"~(!{:kind :oops :trail 5}) | first !| [type /actualType /trail/0/step]","expect":"[::ErrorTrailNotVecError ::number ~(first)]","decision":"D85"}
+{"name":"an-error-step-without-a-path-passes-the-steps-that-skip-it","query":"~(!{:kind :oops :trail 5}) * count * (!| /trail)","expect":"[5]","decision":"D85"}
+{"name":"an-error-step-without-a-path-waits-in-a-container","query":"~(!{:kind :oops :trail 5}) | [/0] * (!| /trail)","expect":"[5]","decision":"D85"}
+{"name":"a-tagged-literal-whose-payload-raises-passes-a-stop-at-its-word","query":"[::Foo!{:trail 5}] * (!| /trail * (/step | parse))","expect":"[[\"::Foo!{:trail 5}\"]]","decision":"D85"}
+{"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | error | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
+{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail/-1/skipped | parse","expect":"\"* add 1\"","decision":"D85"}
+{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}

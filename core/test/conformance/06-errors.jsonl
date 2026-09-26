@@ -1,33 +1,33 @@
-{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :faultStep ~(/foo)\n  :faultInput 42\n  :actualType ::number\n  :key \"foo\"\n}"}
-{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :faultStep ~(/foo)\n  :faultInput #[:a]\n  :key \"foo\"\n}"}
+{"name":"projection-on-number","query":"42 | /foo","expect":"::ProjectionSubjectNotProjectableError!{\n  :actualType ::number\n  :key \"foo\"\n  :trail [\n    {\n      :step ~(/foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::ProjectionSequenceKeyNotIntegerError!{\n  :key \"foo\"\n  :trail [\n    {\n      :step ~(/foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":x"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":z"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::ProjectionIndexOutOfBoundsError"}
-{"name":"distribute-on-number","query":"42 * add 1","expect":"::DistributeSubjectNotSequenceError!{\n  :faultStep ~(add 1)\n  :faultInput 42\n  :actualType ::number\n}"}
-{"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~(use)\n  :faultInput 42\n  :actualType ::number\n}"}
-{"name":"use-on-vec","query":"[1 2] | use","expect":"::UseSubjectNotMapError!{\n  :faultStep ~(use)\n  :faultInput [1 2]\n  :actualType ::vec\n}"}
-{"name":"div-by-zero","query":"10 | div 0","expect":"::DivisionByZeroError!{:faultStep ~(div 0) :faultInput 10}"}
-{"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::SumElementNotNumberError!{\n  :faultStep ~(sum)\n  :faultInput [1 \"two\" 3]\n  :actualValue \"two\"\n  :actualType ::string\n  :index 1\n}"}
-{"name":"count-on-number","query":"42 | count","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(count)\n  :faultInput 42\n  :verbName :count\n  :addresses #[::map/count ::set/count ::vec/count]\n}"}
-{"name":"empty-on-number","query":"42 | empty","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(empty)\n  :faultInput 42\n  :verbName :empty\n  :addresses #[::map/empty ::set/empty ::vec/empty]\n}"}
-{"name":"first-on-number","query":"42 | first","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(first)\n  :faultInput 42\n  :verbName :first\n  :addresses #[::map/first ::set/first ::vec/first]\n}"}
-{"name":"last-on-number","query":"42 | last","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(last)\n  :faultInput 42\n  :verbName :last\n  :addresses #[::map/last ::set/last ::vec/last]\n}"}
-{"name":"reverse-on-number","query":"42 | reverse","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(reverse)\n  :faultInput 42\n  :verbName :reverse\n  :addresses #[::map/reverse ::set/reverse ::vec/reverse]\n}"}
-{"name":"distinct-on-number","query":"42 | distinct","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(distinct)\n  :faultInput 42\n  :verbName :distinct\n  :addresses #[::set/distinct ::vec/distinct]\n}"}
-{"name":"drop-on-number","query":"42 | drop 1","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(drop 1)\n  :faultInput 42\n  :verbName :drop\n  :addresses #[::map/drop ::set/drop ::vec/drop]\n}"}
-{"name":"take-on-number","query":"42 | take 1","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(take 1)\n  :faultInput 42\n  :verbName :take\n  :addresses #[::map/take ::set/take ::vec/take]\n}"}
-{"name":"sort-on-number","query":"42 | sort","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(sort)\n  :faultInput 42\n  :verbName :sort\n  :addresses #[::map/sort ::set/sort ::vec/sort]\n}"}
-{"name":"flat-on-number","query":"42 | flat","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(flat)\n  :faultInput 42\n  :verbName :flat\n  :addresses #[::set/flat ::vec/flat]\n}"}
-{"name":"keys-on-number","query":"42 | keys","expect":"::KeysSubjectNotMapError!{\n  :faultStep ~(keys)\n  :faultInput 42\n  :actualType ::number\n}"}
-{"name":"vals-on-vec","query":"[1 2] | vals","expect":"::ValsSubjectNotMapError!{\n  :faultStep ~(vals)\n  :faultInput [1 2]\n  :actualType ::vec\n}"}
-{"name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::PrependPrefixNotStringError!{\n  :faultStep ~(prepend 42)\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType ::number\n}"}
-{"name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::AppendSuffixNotStringError!{\n  :faultStep ~(append 42)\n  :faultInput \"x\"\n  :actualValue 42\n  :actualType ::number\n}"}
-{"name":"cannot-apply-args-to-value","query":"5 | :five / | five 42","expect":"::ApplyToNonFunctionError!{\n  :faultStep ~(five 42)\n  :faultInput 5\n  :actualType ::number\n  :name :five\n  :addresses #[]\n}"}
+{"name":"distribute-on-number","query":"42 * add 1","expect":"::DistributeSubjectNotSequenceError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(* add 1)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"use-on-number","query":"42 | use","expect":"::UseSubjectNotMapError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(use)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"use-on-vec","query":"[1 2] | use","expect":"::UseSubjectNotMapError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(use)\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"div-by-zero","query":"10 | div 0","expect":"::DivisionByZeroError!{\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::SumElementNotNumberError!{\n  :actualValue \"two\"\n  :actualType ::string\n  :index 1\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"count-on-number","query":"42 | count","expect":"::VerbWithoutBodyError!{\n  :verbName :count\n  :addresses #[::map/count ::set/count ::vec/count]\n  :trail [\n    {\n      :step ~(count)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"empty-on-number","query":"42 | empty","expect":"::VerbWithoutBodyError!{\n  :verbName :empty\n  :addresses #[::map/empty ::set/empty ::vec/empty]\n  :trail [\n    {\n      :step ~(empty)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"first-on-number","query":"42 | first","expect":"::VerbWithoutBodyError!{\n  :verbName :first\n  :addresses #[::map/first ::set/first ::vec/first]\n  :trail [\n    {\n      :step ~(first)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"last-on-number","query":"42 | last","expect":"::VerbWithoutBodyError!{\n  :verbName :last\n  :addresses #[::map/last ::set/last ::vec/last]\n  :trail [\n    {\n      :step ~(last)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"reverse-on-number","query":"42 | reverse","expect":"::VerbWithoutBodyError!{\n  :verbName :reverse\n  :addresses #[::map/reverse ::set/reverse ::vec/reverse]\n  :trail [\n    {\n      :step ~(reverse)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"distinct-on-number","query":"42 | distinct","expect":"::VerbWithoutBodyError!{\n  :verbName :distinct\n  :addresses #[::set/distinct ::vec/distinct]\n  :trail [\n    {\n      :step ~(distinct)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"drop-on-number","query":"42 | drop 1","expect":"::VerbWithoutBodyError!{\n  :verbName :drop\n  :addresses #[::map/drop ::set/drop ::vec/drop]\n  :trail [\n    {\n      :step ~(drop 1)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"take-on-number","query":"42 | take 1","expect":"::VerbWithoutBodyError!{\n  :verbName :take\n  :addresses #[::map/take ::set/take ::vec/take]\n  :trail [\n    {\n      :step ~(take 1)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"sort-on-number","query":"42 | sort","expect":"::VerbWithoutBodyError!{\n  :verbName :sort\n  :addresses #[::map/sort ::set/sort ::vec/sort]\n  :trail [\n    {\n      :step ~(sort)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"flat-on-number","query":"42 | flat","expect":"::VerbWithoutBodyError!{\n  :verbName :flat\n  :addresses #[::set/flat ::vec/flat]\n  :trail [\n    {\n      :step ~(flat)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"keys-on-number","query":"42 | keys","expect":"::KeysSubjectNotMapError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(keys)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"vals-on-vec","query":"[1 2] | vals","expect":"::ValsSubjectNotMapError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(vals)\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::PrependPrefixNotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::AppendSuffixNotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"cannot-apply-args-to-value","query":"5 | :five / | five 42","expect":"::ApplyToNonFunctionError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort ~(/a) !| /addresses","expect":"#[::map/sort ::set/sort ::vec/sort]"}
 {"name":"unresolvedIdentifier","query":"thisIsNotDefined !| type","expect":"::UnresolvedIdentifierError"}
-{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /faultStep | first | /name","expect":":thisIsNotDefined"}
+{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /trail/0/step | first | /name","expect":":thisIsNotDefined","decision":"D85"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::UnresolvedIdentifierError"}
-{"name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(reduce 0 ~(add))\n  :faultInput 42\n  :verbName :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n}"}
+{"name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::VerbWithoutBodyError!{\n  :verbName :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n  :trail [\n    {\n      :step ~(reduce 0 ~(add))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"reduce-reducer-literal","query":"[1 2 3] | reduce 0 ~(42) !| type","expect":"::ReduceReducerNotBinaryError"}
 {"name":"reduce-reducer-applied-expr","query":"[1 2 3] | reduce 0 ~(add 1) !| type","expect":"::ReduceReducerNotBinaryError"}
 {"name":"reduce-reducer-unbound","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::ReduceReducerNotBinaryError"}

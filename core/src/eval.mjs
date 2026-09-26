@@ -29,7 +29,7 @@ import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isKeyword, isFunctionValue, isErrorValue,
-  typeKeyword, keyword, NULL, makeErrorValue, appendTrailNode,
+  typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, envToRun,
@@ -38,7 +38,7 @@ import {
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
 import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope, slotDocContentsOf } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, astOfQuote, stepOfNode, eachStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -50,10 +50,8 @@ import {
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
 import {
-  trailEntry, materializeTrail, combineTrailQuotes, materializePendingTrail
+  answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
 } from './eval-trail.mjs';
-
-export { materializePendingTrail };
 
 // ─── Dispatch-table invariants ─────────────────────────────────
 //
@@ -127,9 +125,8 @@ const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstr
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`,
   { operand: '::tagged' });
-// The combinator names its qlang kind — `distribute`, the same
-// vocabulary `trailEntry` speaks — so the message and the catalog
-// tag-binding's `:operand` read alike.
+// The combinator names its qlang kind, `distribute`, so the message
+// and the catalog tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
@@ -155,7 +152,7 @@ export async function evalQuery(source, env, callerState = null) {
   // through env-lookup like any other name, so introspective
   // queries (`env | keys`, `env | /x`) read the env
   // Map without seeding pipeValue with it implicitly — keeping the
-  // env out of `:fault.input` on every error descriptor.
+  // env out of the subject of every stop of an error's trail.
   // `runExamples` evaluates each example Quote from inside a running
   // frame and hands that frame in as `callerState`, so an example that
   // runs its own binding's examples descends through the same depth
@@ -164,7 +161,7 @@ export async function evalQuery(source, env, callerState = null) {
     ? rootState(null, initialEnv)
     : nestState(callerState, null, initialEnv);
   const finalState = await evalBody(ast, initialState);
-  return materializePendingTrail(finalState.pipeValue);
+  return finalState.pipeValue;
 }
 
 // evalAst(ast, state) → Promise<state'>
@@ -215,27 +212,13 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
-    const faultStep = quoteOfBody(node);
-    const faultInput = state.pipeValue;
-    if (caughtError instanceof ParseError) {
-      // A ParseError raised mid-eval — typically from `apply`
-      // parsing a Quote source — lifts to a `::ParseError!{…}`
-      // ErrorValue (same structured shape as a top-level parse
-      // failure), with the originating step's faultStep / faultInput
-      // stamped flat on the descriptor.
-      const lifted = errorFromParse(caughtError);
-      const enriched = new Map(lifted.descriptor);
-      enriched.set('faultStep', faultStep);
-      enriched.set('faultInput', faultInput);
-      return withPipeValue(state, makeErrorValue(lifted.tag, enriched, {
-        location: lifted.location,
-        originalError: lifted.originalError
-      }));
-    }
-    return withPipeValue(state,
-      caughtError instanceof QlangError
-        ? errorFromQlang(caughtError, faultStep, faultInput)
-        : errorFromForeign(caughtError, node, faultStep, faultInput));
+    // The error the node raised, a `::ParseError` among them when a
+    // step reads text as code mid-evaluation; the step that ran the node
+    // writes its stop [D85].
+    const raised = caughtError instanceof ParseError ? errorFromParse(caughtError)
+      : caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue)
+      : errorFromForeign(caughtError, node);
+    return withPipeValue(state, raisedBy(raised, node));
   }
 }
 
@@ -255,14 +238,13 @@ async function evalPipeline(node, state) {
 }
 
 // Track dispatch lives here and only here. Each success-track
-// combinator — `|`, `*` — deflects on an error pipeValue by
-// stamping a `trailEntry` fragment — the upcoming step's source
-// slice plus the combinator kind — onto the error's `_trailHead`
-// and returning the error unchanged. The fail-track combinator `!|`
-// does the dual: fires on errors via applyFailTrack, deflects on
-// success values as identity pass-through. evalNode is a pure
-// dispatcher over AST node types and performs no track dispatch
-// of its own.
+// combinator — `|`, `*` — deflects on an error pipeValue, the step
+// it skips joining the last stop of the error's trail [D85]. The
+// fail-track combinator `!|` does the dual: fires on errors via
+// applyFailTrack, deflects on success values as identity
+// pass-through. A step whose answer is an error its subject was not
+// gives the error a stop. evalNode is a pure dispatcher over AST node
+// types and performs no track dispatch of its own.
 const COMBINATOR_EVALUATORS = {
   '|':  applySuccessTrack,
   '!|': applyFailTrack,
@@ -278,16 +260,14 @@ async function applyCombinator(kind, state, stepNode) {
 }
 
 // applySuccessTrack(state, stepNode) — the `|` combinator. Fires
-// `stepNode` when pipeValue is on the success-track; deflects on
-// error by stamping `trailEntry(stepNode, 'pipe')` — the step plus
-// its combinator kind — onto the trail linked list and returning the
-// error unchanged. `!|` turns the fragments into the `:trail` quote
-// that downstream consumers replay through `apply`.
+// `stepNode` when pipeValue is on the success-track, and an error it
+// answers passes a stop there; an error in the pipe skips the step,
+// which joins the `:skipped` of its last stop, the steps a reader
+// replays through `apply`.
 async function applySuccessTrack(state, stepNode) {
-  if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(stepNode, 'pipe')));
-  }
-  return await evalNode(stepNode, state);
+  if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode)));
+  const answered = await evalNode(stepNode, state);
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue));
 }
 
 // evalBody(node, state) → Promise<state'>
@@ -309,19 +289,19 @@ function containerBeneathTags(value) {
 }
 
 async function distribute(state, bodyNode) {
-  if (isErrorValue(state.pipeValue)) {
-    return withPipeValue(state, appendTrailNode(state.pipeValue, trailEntry(bodyNode, 'distribute')));
-  }
+  if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, eachStepOf(bodyNode)));
   const subjectSeq = containerBeneathTags(state.pipeValue);
   if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
     const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    return withPipeValue(state, errorFromQlang(distributeErr, quoteOfBody(bodyNode), state.pipeValue));
+    const refused = errorFromQlang(distributeErr, state.pipeValue);
+    return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue));
   }
   // The parentheses after `*` delimit its body the way a call's
   // parentheses delimit a captured argument, so the body's own head
   // takes the track: `[e 1] * (!| 0)` recovers the error element, and
-  // `[e 1] * (count)` hands it on with its trail.
+  // `[e 1] * (count)` keeps it in its place. An error the body answers
+  // waits in the result, which hands on no error.
   const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
   // A map's elements are its values, and the keys travel with them.
   if (isQMap(subjectSeq)) {
@@ -340,51 +320,21 @@ async function distribute(state, bodyNode) {
 // is an error value. On success values, it deflects as identity
 // pass-through (state unchanged).
 //
-// On fire, the error wrapper is exposed to `stepNode` as its
-// *materialized descriptor* — a fresh Map carrying every descriptor
-// field plus `:trail` stamped from the combined Quote of
-//   (1) the descriptor's existing `:trail` (a Quote or null by
-//       makeErrorValue's invariant), plus
-//   (2) the new deflected steps walked out of `_trailHead` linked list
-//       (deflections that happened since the last materialization).
-//
-// The invariant that every error descriptor carries `:trail` as a
-// Quote-value or null is enforced by `makeErrorValue` in types.mjs at
-// mint time, which lets this hot-path read `:trail` without a
-// defensive fallback.
-//
-// Trail continuity across re-lift: when an operand running under `!|`
-// returns a Map and a later `| error` re-wraps it, the new error
-// value's descriptor carries the `:trail` Quote the operand handed
-// back. Subsequent deflections append to a fresh `_trailHead` linked
-// list. The next `!|` combines both sources again — continuous
-// accumulation. Dropping the accumulated suffix before re-lift stamps
-// `:trail null` inside the fail-apply step (`!| union {:trail null}
-// | error`); deflections past the re-lift grow a fresh suffix.
+// On fire, the error is exposed to `stepNode` as its descriptor, a
+// fresh Map carrying every field, its `:trail` among them, under the
+// error's tag: descriptor data fields ride flat on the Map, the tag
+// rides on the JS-header `TAG_HEADER_SYMBOL` slot, so `!| type` reads
+// it directly, and a `:kind` the literal wrote rides as ordinary data.
+// An error the step answers passes a stop there. A re-lift that writes
+// the `:trail` it read, `!| union {:k 2} | error`, resumes that path;
+// one that leaves it out starts a path at the step that lifts it.
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const errorVal = state.pipeValue;
-  const existingTrail = errorVal.descriptor.get('trail');
-  const newTrail = materializeTrail(errorVal);
-  const combinedTrail = combineTrailQuotes(existingTrail, newTrail);
-  // Materialize for fail-track exposure: descriptor data fields
-  // ride flat on the Map, the error tag rides on the JS-header
-  // `TAG_HEADER_SYMBOL` slot — `!| type` reads it directly, the
-  // identity-overlay invariant stays uniform with the binding
-  // record and the TaggedInstance. Identity intentionally does not
-  // duplicate as a `:kind` Map field: any `:kind` slot the user
-  // stamped on the source descriptor (e.g. `!{:kind :oops :…}`)
-  // rides through verbatim as ordinary data, but the runtime
-  // never mints a redundant `:kind <tag>` entry that would
-  // shadow user content or print twice next to the literal
-  // head.
-  const materializedDescriptor = new Map();
-  for (const [k, v] of errorVal.descriptor) {
-    materializedDescriptor.set(k, v);
-  }
-  materializedDescriptor.set('trail', combinedTrail);
-  stampTagHeader(materializedDescriptor, errorVal.tag);
-  return await evalNode(stepNode, withPipeValue(state, materializedDescriptor));
+  const descriptorView = new Map(errorVal.descriptor);
+  stampTagHeader(descriptorView, errorVal.tag);
+  const answered = await evalNode(stepNode, withPipeValue(state, descriptorView));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), descriptorView));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -402,7 +352,7 @@ async function evalVecLit(node, state) {
   // Each element is a sub-pipeline forked against the outer state, one
   // after another in their order [D84].
   const elementValues = [];
-  for (const elem of node.elements) elementValues.push((await fork(state, inner => evalNode(elem, inner))).pipeValue);
+  for (const elem of node.elements) elementValues.push(await wordAnswer(elem, state));
   return withPipeValue(state, elementValues);
 }
 
@@ -410,10 +360,7 @@ async function evalMapLit(node, state) {
   // Each value is a sub-pipeline forked against the outer state.
   // Keys are keyword AST nodes; we resolve them to interned keywords.
   const mapResult = new Map();
-  for (const entry of node.entries) {
-    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    mapResult.set(entry.key.name, entryFork.pipeValue);
-  }
+  for (const entry of node.entries) mapResult.set(entry.key.name, await wordAnswer(entry.value, state));
   return withPipeValue(state, mapResult);
 }
 
@@ -430,15 +377,24 @@ async function evalErrorLit(node, state) {
   const errorDescriptor = new Map();
   let tag = ERROR_TAG;
   for (const entry of node.entries) {
-    const entryFork = await fork(state, inner => evalNode(entry.value, inner));
-    const entryValue = entryFork.pipeValue;
+    const entryValue = await wordAnswer(entry.value, state);
     if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
       tag = entryValue;
       continue;
     }
     errorDescriptor.set(entry.key.name, entryValue);
   }
-  return withPipeValue(state, makeErrorValue(tag, errorDescriptor, { location: node.location }));
+  // A literal that writes its `:trail` resumes that path [D85].
+  const minted = makeErrorValue(tag, errorDescriptor, { location: node.location });
+  return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
+}
+
+// The value a word of a literal answers, forked against the subject:
+// an error the word raised passes a stop at the word, and any other
+// waits in the container as it is [D85].
+async function wordAnswer(wordNode, state) {
+  const answered = await fork(state, inner => evalNode(wordNode, inner));
+  return answerOfWord(answered.pipeValue, wordNode, state.pipeValue);
 }
 
 function evalQuoteLit(node, state) {
@@ -453,10 +409,7 @@ function evalDocLit(node, state) {
 // them in the one order [D16].
 async function evalSetLit(node, state) {
   const setElements = [];
-  for (const setElem of node.elements) {
-    const elemFork = await fork(state, inner => evalNode(setElem, inner));
-    setElements.push(elemFork.pipeValue);
-  }
+  for (const setElem of node.elements) setElements.push(await wordAnswer(setElem, state));
   return withPipeValue(state, makeSet(setElements));
 }
 
@@ -551,8 +504,12 @@ async function evalTaggedLit(node, state) {
   // `::qlang/vec[1 2]`, is the kind written short [D32].
   const tagName = canonicalTagName(node.tag);
   const declaredState = ensureTagBinding(state, tagName);
-  const payloadFork = await fork(declaredState, inner => evalNode(node.payload, inner));
-  const minted = await mintTaggedInstance(tagName, payloadFork.pipeValue, declaredState, node.location);
+  const payload = (await fork(declaredState, inner => evalNode(node.payload, inner))).pipeValue;
+  const minted = await mintTaggedInstance(tagName, payload, declaredState, node.location);
+  // The error a payload raised is the literal's own raise, and a
+  // payload that resumes its trail makes the literal resume it [D85].
+  if (isErrorValue(minted) && isRaisedBy(payload, node.payload)) raisedBy(minted, node);
+  if (isErrorValue(minted) && resumesItsTrail(payload)) resumingItsTrail(minted);
   return withPipeValue(declaredState, minted);
 }
 

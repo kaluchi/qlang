@@ -10,7 +10,7 @@
 // and step-back navigation can revisit them.
 
 import { parse, ParseError } from './parse.mjs';
-import { evalAst, materializePendingTrail } from './eval.mjs';
+import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { scopeBindingsOf } from './runtime/nouns.mjs';
 import { rootState } from './state.mjs';
@@ -99,14 +99,7 @@ export async function createSession(opts = {}) {
           : null;
         const cellInitialState = rootState(cellSeedPipeValue, env);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
-        // Flush any pending `_trailHead` linked-list into the
-        // descriptor's `:trail` field so the cell's result reflects
-        // the full deflection chain (`|` / `*` deflections
-        // never auto-materialise; only `!|` does mid-pipeline). The
-        // script-mode renderer and the REPL both read the descriptor
-        // through printValue, which would otherwise elide
-        // `:trail null` and hide every deflected step.
-        cellResult = materializePendingTrail(cellFinalState.pipeValue);
+        cellResult = cellFinalState.pipeValue;
         env = cellFinalState.env;
       } catch (evalCellErr) {
         // Parse failures land BOTH as a first-class ErrorValue on

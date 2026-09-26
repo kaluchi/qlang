@@ -415,15 +415,17 @@ or as membership tables.
 The fourth composite — Error — is structurally similar to Map but
 carries a special identity in the pipeline. Its literal is `!{}`
 with the same `:key value` entry syntax as Map, and the result is
-an **error value**.
+an **error value**. Where a value stands, as an element of a
+container, the literal is the error value it spells:
 
 ```qlang
-> !{:kind :oops :message "boom"}
-!{:kind :oops :message "boom"}
-
-> !{}
-!{}
+> [!{:kind :oops :message "boom"} !{}]
+[!{:kind :oops :message "boom"} !{}]
 ```
+
+Written as a step of a pipeline, the literal raises its error, and
+the error carries the path it takes from there, `:trail`, which
+[Error track](#error-track) follows.
 
 An error value wraps a **descriptor Map** — the content between
 `!{` and `}`. Any qlang value may sit inside the descriptor,
@@ -582,9 +584,14 @@ the result is **an error value** of the `!{}` form introduced in
 ```qlang
 > [1 2 3] | add 1
 ::AddLeftNotNumberError!{
-  :faultStep ~(add 1)
-  :faultInput [1 2 3]
   :actualType ::vec
+  :trail [
+    {
+      :step ~(add 1)
+      :subject [1 2 3]
+      :skipped ~()
+    }
+  ]
 }
 |~| add 1 expects a Number in position 1; the Vec fires the per-site
 |~| class ::AddLeftNotNumberError, which becomes the error's tag head.
@@ -593,19 +600,19 @@ the result is **an error value** of the `!{}` form introduced in
 ```
 
 The tag head names the per-site error class (`::AddLeftNotNumberError`);
-the descriptor names the failing step (`:faultStep`, the quote of
-that step), the pipeValue it received
-(`:faultInput`), and the type the throw site inspected
-(`:actualType`). `:actualValue` would also be stamped if the throw
-site had drilled below `:faultInput`, but for a subject-shape error
-on a partial application like this one the offending value equals
-`:faultInput` and the dedup-rule skips the redundant lift. No
-`:trail` key is shown at the moment of failure because no
-success-track combinator has deflected past it yet; `:trail`
-accumulates as the error flows through subsequent steps. From this point on examples
-in this document may show an error output, and the descriptor
-shape is the same in every case: a `::Tag!{…}` head over a
-keyword-keyed Map you can read at a glance.
+the descriptor holds the facts of the site first, here the type the
+throw site inspected (`:actualType`), and then the path of the error,
+`:trail`, a vector of stops. The first stop names the failing step
+(`:step`, the quote of that step) and the pipeValue it received
+(`:subject`). `:actualValue` would also be stamped if the throw site
+had drilled below the subject, but for a subject-shape error on a
+partial application like this one the offending value equals the
+subject and the dedup-rule skips the redundant lift. The `:skipped`
+of a stop is empty at the moment of failure; the steps the error
+passes as it flows on join it. From this point on examples in this
+document may show an error output, and the descriptor shape is the
+same in every case: a `::Tag!{…}` head over a keyword-keyed Map you
+can read at a glance.
 
 The full machinery for inspecting, recovering from, and routing
 around errors — the deflect rule for `|`, the `!|` fail-track
@@ -665,9 +672,14 @@ Part 1. A key the Map does not carry raises `::ProjectionKeyNotInMapError`:
 
 > {:name "alice"} | /missing
 ::ProjectionKeyNotInMapError!{
-  :faultStep ~(/missing)
-  :faultInput {:name "alice"}
   :key "missing"
+  :trail [
+    {
+      :step ~(/missing)
+      :subject {:name "alice"}
+      :skipped ~()
+    }
+  ]
 }
 |~| `/key` is the strict reading. `at` is its soft counterpart and
 |~| answers null on a miss.
@@ -1734,23 +1746,26 @@ propagates, and how to recover.
 When a step produces a failure — a type mismatch in projection,
 an arity error, a division by zero — the result is an error value
 (the `!{}` type from Part 1). At that point, the success-track
-combinators `|` and `*` **deflect**: they record the
-upcoming step's source onto the error's `:trail` Quote and let
-the error flow through unchanged. The entire success-track
-pipeline after the failure becomes a no-op; the error rides
-through to the end.
+combinators `|` and `*` **deflect**: they skip the upcoming step,
+record it in the `:skipped` of the error's last stop, and let the
+error flow through unchanged. The entire success-track pipeline
+after the failure becomes a no-op; the error rides through to the
+end.
 
 ```qlang
 > "hello" | add 1 | mul 2 | sub 3
 ::AddLeftNotNumberError!{
-  :faultStep ~(add 1)
-  :faultInput "hello"
   :actualType ::string
-  :trail ~(mul 2 | sub 3)
+  :trail [
+    {
+      :step ~(add 1)
+      :subject "hello"
+      :skipped ~(mul 2 | sub 3)
+    }
+  ]
 }
 |~| add 1 produces the error; mul 2 and sub 3 deflect, each
-|~| stamping its step onto the trail the query boundary
-|~| materializes into the :trail Quote.
+|~| joining the :skipped of the stop add 1 left.
 ```
 
 The `!|` combinator is the **fail-track** counterpart. It fires its
@@ -1762,7 +1777,7 @@ step only when `pipeValue` is an error value, exposing the error's
 > "hello" | add 1 | mul 2 !| type | spec | /category
 :typeError
 
-> "hello" | add 1 | mul 2 !| /trail | parse
+> "hello" | add 1 | mul 2 !| /trail/-1/skipped | parse
 "mul 2"
 |~| mul 2 deflected; add 1 produced the error
 ```
@@ -1770,31 +1785,60 @@ step only when `pipeValue` is an error value, exposing the error's
 ### Descriptor and `:trail`
 
 When `!|` fires, it materializes the error's descriptor — the
-descriptor Map with `:trail` combined from any pre-existing source
-fragment plus the deflections recorded since the last
-materialization.
+descriptor Map, the error's tag on its header.
 
-`:trail` is a **Quote-value** — the quote of every deflected step,
-a step deflected under `*` wrapped as `::each`, ready for `apply`
-to replay. When no success-track combinator has deflected after the
-fault, `:trail` is `null`. `parse` prints the quote as its text.
+`:trail` is the **path** of the error, a vector of stops from the
+step where it arose to the step where it is read. A stop is
+`{:step :subject :skipped}`: a step that raised the error or handed
+it on, the subject that step had, and the steps of its pipeline the
+error skipped after it, a step skipped under `*` wrapped as
+`::each`. A step whose answer is an error its subject was not adds a
+stop: a step that fails, a call of `error`, an error literal written
+as a step, and a step that answers an error from inside it, the call
+of a verb, a group, an operand running a quote. `trail | first` is
+where the error arose, `trail | last` the stop of the level that
+reads it, and `/trail/-1/skipped` is a quote ready for `apply` to
+replay there; `parse` prints it as its text.
 
 ```qlang
-> !{:kind :oops} | count | add 1 !| /trail | parse
+> "x" | add 1 | mul 2 !| /trail
+[
+  {
+    :step ~(add 1)
+    :subject "x"
+    :skipped ~(mul 2)
+  }
+]
+
+> !{:kind :oops} | count | add 1 !| /trail/-1/skipped | parse
 "count | add 1"
 
-> !{:kind :oops} !| /trail
-null
+> !{:kind :oops} !| /trail/-1/skipped
+~()
 ```
 
-`:trail` is runtime-owned. A literal or a re-lift that stamps
-anything except a Quote or `null` under `:trail` lifts
-`ErrorTrailNotQuoteError` at construction, so the fail-track never
-carries a suffix that `apply` cannot replay:
+Every level has its own stop, with its own subject and its own
+skipped steps, so an error no step handles carries the path of the
+whole computation:
+
+```qlang
+> :g ::verb~(:n ::number | add n | mul n) | "x" | g 2 | sub 3 !| /trail * /step
+[~(add n) ~(g 2)]
+```
+
+An element of a container literal holds the value its word answers:
+an error the word raises itself passes a stop there, an error the
+word hands on from inside it waits in the container until a step
+takes it out, and an error literal there is the value it spells.
+
+`:trail` is runtime-owned. A literal or a re-lift that writes
+anything but a vector of stops under `:trail` lifts
+`ErrorTrailNotVecError` at construction, so the fail-track never
+carries a path whose skipped steps have no stop to join:
 
 ```qlang
 > !{:kind :oops :trail [1 2]} !| type
-::ErrorTrailNotQuoteError
+::ErrorTrailNotVecError
 ```
 
 The `!{}` literal from Part 1 can seed an error directly — the
@@ -1849,7 +1893,7 @@ The materialized descriptor exposed by `!|` stamps the tag onto
 the Map's JS-header identity slot (the same channel
 TaggedInstance / binding record use) — `result !| type`
 reads the identity directly, `result !| payload` strips it and
-returns the data plane Map sans tag, `result !| /faultStep`
+returns the data plane Map sans tag, `result !| /trail`
 projects fields as on any ordinary Map. Identity stays in one
 place; no duplicate `:kind <tag>` Map field shadows user data
 or duplicates the literal head on print.
@@ -1858,11 +1902,9 @@ or duplicates the literal head on print.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | The quote of the failing step. Present on every runtime and foreign error; absent on user-created errors (`!{…}` / `error map`) and on parse errors. Pair with `:faultInput`; together they encode «what operation ran on what pipeValue and threw» with no wrapper Map between them |
-| `:faultInput` | any | The pipeValue the step received at entry — the context against which captured-arg lambdas resolved and against which the throw site checked its invariants. Absent in the same cases as `:faultStep` |
-| `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `:faultInput \| type`, because the explicit field saves a round-trip walk on every reader |
-| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, `:faultInput` is the outer context». Absent → fault landed at the top of the step's `:faultInput`, no drill happened |
-| `:trail` | Quote or null | The quote of every step a success-track combinator deflected, one deflected under `*` wrapped as `::each`. `null` until the first deflection; the accumulated chain materializes into the Quote when `!\|` fires and again at the query / cell boundary, so a pipeline that ends on the fail-track still renders its full suffix. The Quote's `/source` projects to the raw text; `/ast` lazy-parses it on demand |
+| `:actualType` | Keyword | `typeKeyword` of the value that triggered the per-site check — `:string`, `:vec`, `:number`, etc. Denormalized: always stamped even when derivable from `/trail/0/subject \| type`, because the explicit field saves a round-trip walk on every reader |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below the subject of the step — multi-segment projection intermediate, full-application captured-arg result, per-element iteration target. Its **presence is a type-level signal**: reader sees «look here for the offending sub-value, the subject is the outer context». Absent → fault landed at the top of the step's subject, no drill happened |
+| `:trail` | Vec | The path of the error, a stop `{:step :subject :skipped}` at every step that raised it or handed it on, from the step where it arose to the step where it is read. The first stop names the failing step and the pipeValue it received; `:skipped` is the quote of the steps skipped after a stop, one skipped under `*` wrapped as `::each`. Empty on an error no step has raised, the value an error literal spells where a word stands |
 
 Additional dynamic context fields vary by error site (comparability
 errors carry `:leftType` / `:rightType`; element errors carry
@@ -1886,36 +1928,40 @@ answer with. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
 
-`:faultStep` and `:faultInput` enable pipeline-level diagnostic
-inspection:
+The stops of `:trail` enable pipeline-level diagnostic inspection:
 
 ```qlang
-!| /faultStep | parse         |~| the failing step as text
-!| /faultStep | first         |~| the failing step itself, a step of code
-!| /faultInput | keys         |~| keys available on the Map the step received
-!| /faultInput                |~| the full value the step received
+!| /trail/0/step | parse      |~| the failing step as text
+!| /trail/0/step | first      |~| the failing step itself, a step of code
+!| /trail/0/subject | keys    |~| keys available on the Map the step received
+!| /trail/0/subject           |~| the full value the step received
+!| /trail * /step             |~| the step of every level the error left
+!| /trail/-1/skipped          |~| the steps skipped at the level that reads it
 ```
 
 ### Trail continuity across re-lift
 
 When a step under `!|` returns a Map and a later `| error` re-wraps
-it, the new error's descriptor carries the `:trail` Quote the step
-handed back. Subsequent deflections accumulate into a fresh
-`_trailHead` linked list, and the next `!|` combines both sources
-again. This is the mechanism behind MDC-style context enrichment:
+it, a Map that writes the `:trail` it read resumes that path: the new
+error adds no stop, and the steps it skips join the last stop again.
+An error printed and read back, or built back from its atoms, is the
+error it was. This is the mechanism behind MDC-style context
+enrichment:
 
 ```qlang
 !| union {:request @requestId} | error
 |~| adds fields to the descriptor and re-lifts without losing the trail
 ```
 
-To drop the accumulated suffix before re-lift, stamp `:trail null`
-inside the fail-apply step; deflections past the re-lift grow a
-fresh suffix:
+A verb that re-lifts inside its body hands the error on from inside
+it, so its call adds a stop of its own after the path it resumed. To
+start the path over at the re-lift, leave `:trail` out of the Map;
+the `error` that lifts it adds the first stop, and the steps past it
+join that stop:
 
 ```qlang
-> !{:kind :oops} | count !| union {:trail null} | error | add 1 !| /trail
-~(add 1)
+> !{:kind :oops} | count !| minus #[:trail] | error | add 1 !| /trail * /step
+[~(error)]
 ```
 
 ---
@@ -1992,9 +2038,10 @@ Three mechanisms close the "everything is data" ring:
 2. **Runtime is data** — built-ins without arguments evaluate to
    their own descriptor Map (not an arity error). `manifest` gives
    the full env as a Vec of descriptors.
-3. **Errors are data** — `!|` materializes the trail as the quote
-   of the deflected steps, each individually addressable. (Covered
-   in [Error track](#error-track).)
+3. **Errors are data** — `!|` materializes the descriptor, whose
+   trail is the path of the error, a stop at every level, each step
+   in it individually addressable. (Covered in
+   [Error track](#error-track).)
 
 All three use the same mechanism: Map + pipeline.
 
@@ -2168,8 +2215,9 @@ back as another step, and names the text.
 "add 2 3"
 ```
 
-A trail is the same kind of value: `!| /trail` is the quote of the
-deflected steps, so `parse` prints it and `apply` replays it.
+The steps an error skipped are the same kind of value:
+`!| /trail/-1/skipped` is a quote, so `parse` prints it and `apply`
+replays it.
 
 ### `apply` — run code from data
 
@@ -2221,8 +2269,8 @@ Five step types:
 
 Combinators thread state between steps. `|` and `*` are
 **success-track** combinators — they fire their step when `pipeValue`
-is a non-error value, and **deflect** on an error (stamping the
-upcoming step's source slice onto the error's `:trail` and letting
+is a non-error value, and **deflect** on an error (recording the
+upcoming step in the `:skipped` of the error's last stop and letting
 the error flow downstream unchanged). `!|` is the **fail-track**
 combinator — it fires its step only when `pipeValue` is an error,
 exposing the error's materialized descriptor Map to the step; on a
@@ -2230,8 +2278,8 @@ success `pipeValue` it deflects as identity pass-through.
 
 | Combinator | Effect |
 |---|---|
-| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`. On error `pipeValue`, deflect: stamp `b`'s source slice onto the trail and return the error unchanged. |
-| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, combine the descriptor's `:trail` Quote with any new `_trailHead` deflections into a fresh materialized descriptor Map, then eval `b` against that Map as the new `pipeValue`. On a non-error `pipeValue`, pass through unchanged (identity). |
+| `a \| b` | eval `a`, pipe resulting `(pipeValue, env)` into `b`; when `b` answers an error its `pipeValue` was not, the error gains the stop `{:step b :subject pipeValue :skipped ~()}`. On error `pipeValue`, deflect: record `b` in the `:skipped` of the last stop and return the error. |
+| `a !\| b` | eval `a`; if the resulting `pipeValue` is an error, materialize its descriptor Map, the error's tag on its header, then eval `b` against that Map as the new `pipeValue`; an error `b` answers gains its stop there. On a non-error `pipeValue`, pass through unchanged (identity). |
 | `a * b` | eval `a` (must be Vec). For each element, fork to `(element, env)`, run `b`, collect inner `pipeValue'`. Result is Vec of collected values; outer `env` preserved. On error `pipeValue`, deflect. |
 
 **Fork** opens on entry to `(...)`, `[...]`, `{...}`, `#[...]`.
@@ -2289,7 +2337,7 @@ filter ~(/age | gt 18)
 | JSON lift of a number past the finite double range | codec error |
 | `:cleanName …@effectful…` | effect laundering |
 | Identifier resolved to effectful function via clean name | effect laundering |
-| `:trail` stamped with anything except a Quote or `null` | type error |
+| `:trail` written with anything but a vector of stops | type error |
 | Evaluation frames nested past the depth budget | resource limit |
 
 ---

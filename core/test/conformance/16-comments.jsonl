@@ -51,20 +51,20 @@
 {"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | docs | first | /content","expect":"\" outer |~~ inner ~~| more \""}
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | docs | first | /content","expect":"\" pair holds |~| line marker inline \""}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}
-{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~(| count)"}
-{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail","expect":"~(| count)","decision":"D81"}
-{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | :t / | 42 | apply t !| type","expect":"::VerbWithoutBodyError"}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail/-1/skipped","expect":"~(count)","decision":["D81","D85"]}
+{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::VerbWithoutBodyError","decision":"D85"}
 {"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}
 {"name":"comment-head-hands-the-head-to-first-operand","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
 {"name":"comment-head-explicit-distribute","query":"[1 2] | (|~ note ~| * add 1)","expect":"[2 3]"}
 {"name":"comment-head-explicit-fail-apply","query":"[!{:kind :zap}] * (|~ note ~| !| /kind)","expect":"[:zap]"}
-{"name":"comment-head-explicit-pipe-deflects","query":"[!{:kind :zap}] * (|~ note ~| | type) | first !| /trail","expect":"~(| type)"}
+{"name":"comment-head-explicit-pipe-deflects","query":"[(\"x\" | add 1)] * (|~ note ~| | type) | first !| /trail/0/skipped","expect":"~(type)","decision":"D85"}
 {"name":"line-comment-head-explicit-distribute","query":"[1 2] | (|~| note\n* add 1)","expect":"[2 3]"}
 {"name":"comment-mid-pipeline-explicit-distribute","query":"[1 2] |~ note ~| * add 1","expect":"[2 3]"}
-{"name":"comment-head-keeps-leading-pipe-deflection","query":"[!{:kind :z}] * (| |~ note ~| count) | first !| /trail","expect":"~(| count)"}
-{"name":"comment-head-without-leading-combinator-rides-pipe","query":"[!{:kind :z}] * (|~ note ~| count) | first !| /trail","expect":"~(| count)"}
+{"name":"comment-head-keeps-leading-pipe-deflection","query":"[(\"x\" | add 1)] * (| |~ note ~| count) | first !| /trail/0/skipped","expect":"~(count)","decision":"D85"}
+{"name":"comment-head-without-leading-combinator-rides-pipe","query":"[(\"x\" | add 1)] * (|~ note ~| count) | first !| /trail/0/skipped","expect":"~(count)","decision":"D85"}
 {"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | /content | contains \"\\r\"","expect":"false"}
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6","decision":"D81"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6","decision":["D11","D81"]}

@@ -811,8 +811,8 @@
   ~~|
 
 :docs
-  |~~ `:name | docs` — Vec of Doc-values, one per attached doc-prefix
-      on the `BindStep` that binds `:name` in its scope, and
+  |~~ `:name | docs` — Vec of Doc-values, one per doc in the slot of
+      the `BindStep` that binds `:name` in its scope, and
       `::vec/filter | docs` the page of a verb by its address. Each
       Doc-value `/segments`
       surfaces TaggedLit and Quote inline structure for navigation;

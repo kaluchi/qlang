@@ -82,7 +82,7 @@ function markdownHardBreaks(text) {
 }
 
 // Remove the common leading whitespace from every non-empty line.
-// Doc-prefix content carries the catalog-file indent (6 spaces for
+// Doc content carries the catalog-file indent (6 spaces for
 // B+I convention); hover/completion output reads as prose, so the
 // indent must go. Markdown renders 4+ leading spaces as a code
 // block — dedenting prevents accidental code-block promotion.
@@ -166,7 +166,7 @@ export function parseDocument(source, uri) {
 // core.qlang is a series of `BindStep` declarations — one per
 // builtin operand or tag-binding — so the index walks for
 // `BindStep` nodes and records the entire BindStep span as the
-// jump-target (the keyword key plus attached docs plus descriptor
+// jump-target (the keyword key plus the docs of its slot plus descriptor
 // body). Both value-namespace keys (`:count {…}`) and tag-
 // namespace keys (`::AddLeftNotNumberError {…}`) land in the index
 // under the canonical name a `definitionAtOffset` lookup builds.
@@ -371,7 +371,7 @@ function findInDocumentDocs(ast, name) {
   let lastDocs = null;
   walkAst(ast, (step) => {
     if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
-      lastDocs = step.docs;
+      lastDocs = (step.docs ?? []).map(doc => doc.content);
     }
   });
   return lastDocs ?? [];

@@ -20,7 +20,7 @@
 //      identity on its JS-header slot plus a `:impl
 //      :qlang/prim/<name>` keyword that resolves against
 //      `PRIMITIVE_REGISTRY` at dispatch time. The record holds the
-//      attached doc-prefixes and the quote of the step, which the
+//      docs of the step's slot and the quote of the step, which the
 //      axis-operands project (`::vec/count | docs`, `| examples`).
 //
 //   2. src/runtime/*.mjs — the JS-level primitive impls. Each

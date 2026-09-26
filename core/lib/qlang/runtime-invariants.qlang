@@ -43,9 +43,9 @@
           docs / category / position / expectedType metadata that
           downstream `::Name | source / docs / examples` exposes.
 
-        ::Name (doc-prefix-only, no body)
+        ::Name (docs only, no body)
           equivalent to `::Name ::builtin{}` — declares an identity
-          whose only payload is the attached docs.
+          whose only payload is the docs of its slot.
   ~~|
   ::builtin{:impl :qlang/type/builtin}
 

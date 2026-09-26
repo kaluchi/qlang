@@ -1,6 +1,8 @@
-// Grammar contract: doc-prefix attachment scope.
+// Grammar contract: where a doc stands.
 //   1. Inside a literal body (Map / Vec / Set entries) — parse error.
-//   2. In pipeline position — DocAttachedSequence binds to a BindStep alone [D70].
+//   2. In the slot of a declaration, between its name and its body, it
+//      documents the declaration; before a declaration it is refused
+//      [D83].
 //   3. MapEntry AST node carries no .docs field.
 
 import { describe, it, expect } from 'vitest';
@@ -21,22 +23,32 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
   });
 });
 
-describe('DocAttachedSequence binds to a declaration alone', () => {
-  it('attaches a doc-prefix to a declaration', async () => {
-    const result = await evalQuery('|~~ note ~~| :x 42 | :x | docs * /content');
+describe('a doc documents the declaration whose slot it stands in', () => {
+  it('documents a declaration', async () => {
+    const result = await evalQuery(':x |~~ note ~~| 42 | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 
-  it('attaches a doc-prefix to a freeze', async () => {
-    const result = await evalQuery('42 | |~~ note ~~| :x / | :x | docs * /content');
+  it('documents a freeze', async () => {
+    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | docs * /content');
     expect(result).toEqual([' note ']);
   });
 
-  it('a doc-prefix ahead of any other step chains explicitly with `|`', async () => {
-    // DocAttachedSequence binds to a declaration alone. For other steps
-    // the author must chain explicitly with `|`, so the Doc-value
-    // lands as a separate pipeline step that the next operand
-    // (here `filter`) sees as its subject.
+  it('holds the doc literals of the slot as the tree holds any doc', () => {
+    const ast = parse(':x |~~ one ~~| |~~ two ~~| 42');
+    expect(ast.docs.map(doc => [doc.type, doc.content])).toEqual([['DocLit', ' one '], ['DocLit', ' two ']]);
+  });
+
+  it('refuses a doc written before a declaration, on its line or the one above', () => {
+    expect(() => parse('|~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
+    expect(() => parse('5 | |~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
+    expect(() => parse('|~~| note\n:x 42')).toThrow(/slot of the declaration/);
+    expect(() => parse(':y 1\n|~~ note ~~|\n:x 42')).toThrow(/slot of the declaration/);
+  });
+
+  it('a doc ahead of any other step chains explicitly with `|`', async () => {
+    // The doc value lands as a separate pipeline step that the next
+    // operand (here `filter`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | filter ~(gt 0) !| type');
     expect(result).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });

@@ -260,7 +260,7 @@
 ::binding
   |~~ The kind of the record a declaration writes into its scope:
       `:name`, the keyword or the tag it binds, `:docs`, one Doc per
-      doc-prefix, `:value`, `:source`, the quote of the declaring
+      doc of its slot, `:value`, `:source`, the quote of the declaring
       step, and `:module`, the source it came from. `env` answers the
       records of the scope, a name reads the value its record holds,
       and the axes project the record, so `env | /x | docs` answers

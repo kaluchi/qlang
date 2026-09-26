@@ -9,7 +9,7 @@
 //
 // `source`   the quote of the declaring step, null for a binding no
 //            step declared, a value `use` or a host bound.
-// `docs`     a Vec of Doc-values, one per doc-prefix of the step.
+// `docs`     a Vec of Doc-values, one per doc of the step's slot.
 // `examples` every quote among the segments of those docs, the cases
 //            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.

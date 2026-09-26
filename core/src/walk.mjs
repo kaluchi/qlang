@@ -60,6 +60,7 @@ export function astChildrenOf(node) {
       break;
     case 'BindStep':
       out.push(node.key);
+      for (const doc of node.docs ?? []) out.push(doc);
       if (node.body) out.push(node.body);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
@@ -138,6 +139,11 @@ export function moduleUriOf(node) {
 // name of a keyword, a tag's under the `::` prefix.
 export function declaredNameOf(bindStep) {
   return bindStep.key.type === 'BareTypeKeyword' ? tagBindingKey(bindStep.key.tag) : bindStep.key.name;
+}
+
+// The text of each doc literal in the slot of a declaration [D83].
+export function slotDocContentsOf(bindStep) {
+  return (bindStep.docs ?? []).map(doc => doc.content);
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of

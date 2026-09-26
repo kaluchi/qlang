@@ -106,8 +106,8 @@ describe('assembling steps by hand', () => {
 });
 
 describe('printing steps read from text', () => {
-  it('a doc written before a declaration prints after its name', async () => {
-    expect(await evalQuery('~(|~~ note ~~| :x /) | parse')).toBe(':x |~~ note ~~| /');
+  it('a doc in the slot of a declaration prints in its slot', async () => {
+    expect(await evalQuery('~(:x |~~ note ~~| /) | parse')).toBe(':x |~~ note ~~| /');
   });
 
   it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {

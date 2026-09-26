@@ -37,7 +37,7 @@ import {
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
-import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
+import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope, slotDocContentsOf } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
@@ -597,7 +597,6 @@ async function evalBareTypeKeyword(node, state) {
 // declaration writes, so its body sees its own name [D67].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
-  const docs = node.docs ?? [];
   if (repeatsDeclarationInScope(node)) throw new BindNameDeclaredTwiceError({ name });
 
   if (node.body === null) {
@@ -614,7 +613,7 @@ async function evalBindStep(node, state) {
       stampTagHeader(tagBinding, BUILTIN_TAG);
       return withEnv(state, envSet(state.env, name, declarationRecord(node, tagBinding)));
     }
-    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(docs.join('\n')))));
+    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocContentsOf(node).join('\n')))));
   }
 
   const value = (await evalNode(node.body, state)).pipeValue;
@@ -637,8 +636,8 @@ function refuseVerbLaunderedByName(name, verb, node) {
 }
 
 // The record a declaration writes: its name, a keyword or a tag, the
-// docs of its prefixes, the value, the quote of its step and the
-// module its source came from [D63].
+// docs of its slot, the value, the quote of its step and the module its
+// source came from [D63].
 // The keyword or the tag a declaration names.
 function declaredKeywordOf(node) {
   return node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
@@ -647,7 +646,7 @@ function declaredKeywordOf(node) {
 function declarationRecord(node, value) {
   return makeBinding({
     name: declaredKeywordOf(node),
-    docs: node.docs ?? [],
+    docs: slotDocContentsOf(node),
     value,
     source: quoteOfBody(node),
     module: keyword(moduleUriOf(node))

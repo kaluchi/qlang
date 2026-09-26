@@ -139,7 +139,7 @@ export function isTagKeyword(v) {
 // ── binding / quote predicates ────────────────────────────────
 
 // The record a declaration writes into its scope [D63]: the name, the
-// docs of its doc-prefixes, the value, the quote of the declaring step
+// docs of its slot, the value, the quote of the declaring step
 // and the module it came from, under the kind `::binding`. A binding
 // with no declaration behind it, a value `use` or a host bound, holds
 // no source.

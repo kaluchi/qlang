@@ -11,7 +11,7 @@
 {"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::OrRightNotBooleanError","decision":"D14"}
 {"name":"not-negates-a-boolean","query":"false | not","expect":"true","decision":"D14"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]","decision":"D14"}
-{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":"|~~ ~(1) ~~| :x 1 | :x | runExamples | first | /ok","expect":"false","decision":"D14"}
-{"name":"runExamples-passes-an-example-that-answers-true","query":"|~~ ~(true) ~~| :x 1 | :x | runExamples | first | /ok","expect":"true","decision":"D14"}
+{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x |~~ ~(1) ~~| 1 | :x | runExamples | first | /ok","expect":"false","decision":"D14"}
+{"name":"runExamples-passes-an-example-that-answers-true","query":":x |~~ ~(true) ~~| 1 | :x | runExamples | first | /ok","expect":"true","decision":"D14"}
 {"name":"when-left-the-catalog","query":"5 | when true ~(1) !| type","expect":"::UnresolvedIdentifierError","decision":"D14"}
 {"name":"a-predicate-may-name-an-operand","query":"[true false] | filter ~(not)","expect":"[false]","decision":"D14"}

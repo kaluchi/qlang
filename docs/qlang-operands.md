@@ -979,7 +979,7 @@ its own eval handler in `eval.mjs`.
 - **Arity** 1. **Subject** Keyword (binding name) or tag name, the
   address of a verb among them.
 - Reads the step that declares the name as `examples` does, and
-  pulls every Quote segment from each attached doc-prefix through
+  pulls every Quote segment from each doc of the declaration's slot through
   `parseDocSegments`. Each Quote evaluates one frame below the step,
   against the caller's env and a null pipeValue; an example passes
   when it answers `true`, and every other answer, an ErrorValue
@@ -997,7 +997,7 @@ its own eval handler in `eval.mjs`.
 - **Form**: grammar production with its own dispatch path (the
   evaluator routes BindStep nodes through `evalBindStep`, separate
   from `langRuntime()` lookups). The parser reads `:name`-or-`::Tag`
-  head plus an optional attached doc-prefix and an optional body,
+  head plus the doc literals of its slot and an optional body,
   and emits a BindStep AST node
   (`core/src/grammar.peggy::BindStep`). Subject passes through
   unchanged — BindStep is transparent for pipeValue and writes
@@ -1008,7 +1008,7 @@ its own eval handler in `eval.mjs`.
   (`core/src/eval.mjs::evalBindStep`). A body `::verb~(…)` names a
   verb, which runs when the name is mentioned, its leading
   declarations the slots its modifiers fill.
-- Doc-only form: a BindStep with attached docs and no body binds a
+- Doc-only form: a BindStep with docs in its slot and no body binds a
   Doc value under the name; an identifier lookup returns the
   Doc-value the record holds (`:guide | /content`).
 - **Examples**:
@@ -1025,9 +1025,9 @@ its own eval handler in `eval.mjs`.
   → `"[x]"`.
 - **Errors**: clean binding name carrying an effectful body →
   `EffectLaunderingAtBindStepParseError` (the only runtime throw inside
-  `evalBindStep`). Name shape, params shape, body presence, and
-  doc-prefix arity are all guaranteed by the grammar — no
-  runtime check needed.
+  `evalBindStep`). Name shape, body presence, and the place of
+  the docs are all guaranteed by the grammar, which refuses a doc
+  written before a declaration [D83] — no runtime check needed.
 
 `parse` resides on `::string` and `::quote` under one contract on
 `::qlang/any`, and `apply` on `::qlang/any` [D72], [D78].
@@ -1124,7 +1124,7 @@ its own eval handler in `eval.mjs`.
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
 - Returns the `:docs` of the binding's record, a Vec of Doc-values
-  from its attached doc-prefix, one Doc per prefix entry, empty for a
+  from the doc literals of its slot, one Doc per literal, empty for a
   binding without a doc.
 - **Examples**:
   - `::vec/count | docs` → Vec of Doc-values from the `count` catalog

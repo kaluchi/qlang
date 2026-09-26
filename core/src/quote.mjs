@@ -125,7 +125,7 @@ function callStepOf(node) {
 function bindStepOf(node) {
   const name = node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
   const fields = [['name', name]];
-  if (node.docs?.length) fields.push(['docs', Object.freeze([...node.docs])]);
+  if (node.docs !== null) fields.push(['docs', Object.freeze(node.docs.map(stepOfNode))]);
   if (node.body !== null) fields.push(['body', stepOfNode(node.body)]);
   return record(BIND_TAG, fields);
 }
@@ -257,10 +257,6 @@ function printEntries(entries) {
   return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printStep(value)}`).join(' ');
 }
 
-function printDocs(docs) {
-  return docs.map(doc => `|~~${doc}~~|`);
-}
-
 function printCall(call) {
   return [call.get('name').name, ...(call.get('args') ?? []).map(printStep)].join(' ');
 }
@@ -280,7 +276,7 @@ function printProj(proj) {
 
 function printBind(bind) {
   const parts = [bind.get('name').literal];
-  if (bind.has('docs')) parts.push(...printDocs(bind.get('docs')));
+  if (bind.has('docs')) parts.push(...bind.get('docs').map(printStep));
   if (bind.has('body')) parts.push(printStep(bind.get('body')));
   return parts.join(' ');
 }

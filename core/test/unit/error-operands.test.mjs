@@ -102,8 +102,8 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(evalResult).toBe(':x (42)');
   });
 
-  it('attached BlockDocComment surfaces through the docs axis operand', async () => {
-    const evalResult = await evalQuery('|~~ doc ~~| :x 42 | :x | docs | first | /content');
+  it('a block doc in the slot surfaces through the docs axis operand', async () => {
+    const evalResult = await evalQuery(':x |~~ doc ~~| 42 | :x | docs | first | /content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });

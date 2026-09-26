@@ -5,8 +5,8 @@
 // tree of names, the nouns under its path and the verbs that live on
 // it [D62], so `::qlang | manifest` lists the nouns of the core and of
 // the hosts; a refusal is reached from the place it guards, its `/throws`
-// [D64]. `runExamples` pulls every Quote segment from a named binding's
-// attached doc-prefix and evaluates each as a self-test, yielding
+// [D64]. `runExamples` pulls every Quote segment from the docs of a
+// named binding and evaluates each as a self-test, yielding
 // `{:snippet :actual :ok :error}` per Quote, so `::number | manifest *
 // (runExamples * /ok)` runs the examples of the verbs of numbers.
 //
@@ -43,8 +43,8 @@ function errorMessageOf(errorValue) {
 // tree of names [D62].
 bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
 
-// `runExamples` — execute every Quote segment in a binding's
-// attached doc-prefix as a self-test expression.
+// `runExamples` — execute every Quote segment in a binding's docs
+// as a self-test expression.
 //
 // Each example evaluates one frame below the `runExamples` step,
 // against the caller's env, with a null initial pipeValue: the

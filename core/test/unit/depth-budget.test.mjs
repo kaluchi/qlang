@@ -72,7 +72,7 @@ describe('depth budget — host seams', () => {
       return state;
     }, { captured: [0, 0] }));
     const cellEntry = await sessionInstance.evalCell(
-      '|~~ ~(:x | runExamples | tallyFrame | count | eq 1) ~~| :x 1 | :x | runExamples | tallyFrame'
+      ':x |~~ ~(:x | runExamples | tallyFrame | count | eq 1) ~~| 1 | :x | runExamples | tallyFrame'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);

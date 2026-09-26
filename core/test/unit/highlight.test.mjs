@@ -301,16 +301,12 @@ describe('tokenize — parseError fallback', () => {
   });
 });
 
-describe('tokenize — doc-prefix spans', () => {
-  // Doc-comment delimiters (`|~~ … ~~|` / `|~~| …`) do not surface as
-  // standalone AST nodes — DocAttachedSequence and the inline
-  // BindStep doc-prefix production both fold doc-content into a
-  // plain string Vec. The grammar stamps `docPrefixStart` on the
-  // wrapping AST node so the highlighter paints one contiguous
-  // `comment` span over the prefix region instead of letting
-  // `pushGapTokens` byte-by-byte misclassify the prose as punct.
+describe('tokenize — the docs of a slot', () => {
+  // The doc literals of a declaration's slot are the DocLit nodes the
+  // tree holds for every doc [D83], so each paints as one `comment`
+  // span instead of `pushGapTokens` misclassifying the prose as punct.
 
-  it('inline BindStep doc-prefix gets one comment span between key and body', async () => {
+  it('a doc between the key and the body gets one comment span', async () => {
     const src = ':double |~~ Doubles the input. ~~| mul 2';
     const tokens = tokenize(src, await builtins());
     const commentSpan = tokens.find(t => t.kind === 'comment');
@@ -319,20 +315,14 @@ describe('tokenize — doc-prefix spans', () => {
       .toMatch(/^\|~~ Doubles the input\. ~~\|/);
   });
 
-  it('external doc-prefix on a BindStep (DocAttachedSequence path) gets one comment span before the key', async () => {
-    const src = '|~~ Note. ~~|\n:double mul 2';
+  it('each doc of a slot gets a comment span of its own', async () => {
+    const src = ':double |~~ One. ~~| |~~ Two. ~~| mul 2';
     const tokens = tokenize(src, await builtins());
-    const commentSpan = tokens.find(t => t.kind === 'comment');
-    expect(commentSpan).toBeDefined();
-    expect(commentSpan.start).toBe(0);
-    expect(src.slice(commentSpan.start, commentSpan.end))
-      .toMatch(/^\|~~ Note\. ~~\|/);
+    const commentSpans = tokens.filter(t => t.kind === 'comment').map(t => src.slice(t.start, t.end));
+    expect(commentSpans).toEqual(['|~~ One. ~~|', '|~~ Two. ~~|']);
   });
 
-  it('docs-only BindStep (no body) extends the comment span to the BindStep end', async () => {
-    // `:name |~~ docs ~~|` — no body. The inline doc-prefix region
-    // ends at the BindStep's own end offset (the closing `~~|`)
-    // rather than a non-existent body.start.
+  it('a docs-only BindStep (no body) paints its doc to the BindStep end', async () => {
     const src = ':forward |~~ placeholder ~~|';
     const tokens = tokenize(src, await builtins());
     const commentSpan = tokens.find(t => t.kind === 'comment');

@@ -17,7 +17,7 @@ import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
   keyword, typeKeyword, isQMap, isQuote, isKeyword, isTagKeyword,
-  isString, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
+  isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
   TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
@@ -96,7 +96,7 @@ bindTypeConstructor('proj', recordConstructor(PROJ_TAG,
   declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
 bindTypeConstructor('bind', recordConstructor(BIND_TAG,
-  { name: isBindName, docs: vecOf(isString), body: isBodyStep }, ['name'],
+  { name: isBindName, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 

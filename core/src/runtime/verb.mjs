@@ -23,7 +23,7 @@ import { mintUnderTag } from './dispatch.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource } from '../quote.mjs';
-import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
+import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope, slotDocContentsOf } from '../walk.mjs';
 import { canonicalTagName, tagBindingKey } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
@@ -145,7 +145,7 @@ function kindsOfRole(declaration) {
 }
 
 function slotOf(declaration) {
-  const slot = { name: declaration.key.name, docs: declaration.docs ?? [], source: quoteOfBody(declaration) };
+  const slot = { name: declaration.key.name, docs: slotDocContentsOf(declaration), source: quoteOfBody(declaration) };
   const kinds = kindsNamedBy(declaration.body);
   if (kinds !== null) return { ...slot, kindNames: kinds, optional: kinds.includes('null'), defaultNode: null };
   return { ...slot, kindNames: null, optional: true, defaultNode: declaration.body };

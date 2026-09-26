@@ -15,26 +15,12 @@
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [D81]; the parser records each on
 // the side, `options.commentTrivia`, for the tools. The doc forms,
-// `|~~| …` and `|~~ … ~~|`, are the doc literal and the doc of a
-// declaration [D70].
+// `|~~| …` and `|~~ … ~~|`, are the doc literal, which documents the
+// declaration whose slot it stands in [D83].
 
 {{
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
-  }
-
-  // The docs of a doc-attached sequence ride the declaration after them.
-  function attachDocs(firstDoc, rest, step) {
-    const existingDocs = Array.isArray(step.docs) ? step.docs : [];
-    const bound = { ...step, docs: [firstDoc.content, ...rest.map(doc => doc.content), ...existingDocs] };
-    bound.docPrefixStart = firstDoc.location.start.offset;
-    return bound;
-  }
-
-  function bindStepNode(key, docs, body, loc, txt) {
-    const fields = { key, docs: docs || null, body };
-    if (docs && typeof docs._start === 'number') fields.docPrefixStart = docs._start;
-    return node('BindStep', fields, loc, txt);
   }
 }}
 
@@ -94,21 +80,20 @@ Combinator
   / "*"  { return '*'; }
 
 PipelineHead
-  = DocAttachedSequence
+  = DocBeforeDeclaration
   / BindStep
   / Step
   / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
-  = LineDocAttachedSequence
+  = LineDocBeforeDeclaration
   / LineBindStep
   / LineStep
   / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
-// A doc comment's opening `|` is the pipe to the declaration it
-// documents or to the doc value it is.
+// A doc literal's opening `|` is the pipe to the doc value it is.
 ContinuationUnit
-  = _ step:DocAttachedSequence { return { combinator: '|', step }; }
+  = _ DocBeforeDeclaration
   / _ step:DocLit { return { combinator: '|', step }; }
   / __ step:BindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:StepAfterCombinator { return { combinator: c, step }; }
@@ -117,7 +102,7 @@ ContinuationUnit
 // A break with a combinator at neither end stands for `|` at the top
 // level.
 LineContinuationUnit
-  = _ step:LineDocAttachedSequence { return { combinator: '|', step }; }
+  = _ LineDocBeforeDeclaration
   / _ step:DocLit { return { combinator: '|', step }; }
   / __ step:LineBindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
@@ -135,29 +120,25 @@ SpacingRefusal
   / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
 
 StepAfterCombinator
-  = DocAttachedSequence
+  = DocBeforeDeclaration
   / BindStep
   / Step
 
 LineStepAfterCombinator
-  = LineDocAttachedSequence
+  = LineDocBeforeDeclaration
   / LineBindStep
   / LineStep
 
-// One or more doc comments attached to the declaration after them
-// [D70]; each doc comment is one entry of the declaration's `docs`.
-// Before any other step a doc comment is a standalone doc value.
-DocAttachedSequence
-  = firstDoc:DocComment rest:(_ @DocComment)* _ step:BindStep
-    { return attachDocs(firstDoc, rest, step); }
+// A doc documents the declaration whose slot it stands in, between the
+// name and the body; written before a declaration it is refused, since
+// no step reads a doc it hands to the next [D83].
+DocBeforeDeclaration
+  = DocLit (_ DocLit)* _ &BindStep
+    { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
-LineDocAttachedSequence
-  = firstDoc:DocComment rest:(_ @DocComment)* _ step:LineBindStep
-    { return attachDocs(firstDoc, rest, step); }
-
-DocComment
-  = LineDocComment
-  / BlockDocComment
+LineDocBeforeDeclaration
+  = DocLit (_ DocLit)* _ &LineBindStep
+    { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 PlainComment
   = LinePlainComment
@@ -168,14 +149,6 @@ PlainComment
 // Longer markers are tried first: `|~~|` before `|~|`, `|~~` before
 // `|~`. A block comment nests, and a quote span inside it is opaque,
 // so neither a nested closer nor one inside a quote ends it.
-
-LineDocComment
-  = "|~~|" content:LineCommentContent
-  { return node('LineDocComment', { content }, location(), text()); }
-
-BlockDocComment
-  = "|~~" !"|" content:BlockDocContent "~~|"
-  { return node('BlockDocComment', { content }, location(), text()); }
 
 LinePlainComment
   = "|~|" content:LineCommentContent
@@ -262,33 +235,27 @@ FirstModifierSeparator
 FirstLineModifierSeparator
   = _h1 / &"("
 
-// A declaration: a keyword or a tag name, then an optional doc and an
-// optional body, each of which may take a line of its own. A body is a
-// step other than a bare keyword or tag name; a lone `:foo` is a
-// keyword.
+// A declaration: a keyword or a tag name, then the doc literals of its
+// slot and an optional body, each of which may take a line of its own.
+// A body is a step other than a bare keyword or tag name; a lone `:foo`
+// is a keyword.
 BindStep
-  = key:BindName docs:(__ @DocPrefix)? body:(_h1 @KindBody / __ @BindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:(_h1 @KindBody / __ @BindBody)?
     & { return docs !== null || body !== null; }
-    { return bindStepNode(key, docs, body, location(), text()); }
+    { return node('BindStep', { key, docs, body }, location(), text()); }
 
 LineBindStep
-  = key:BindName docs:(__ @DocPrefix)? body:(_h1 @LineKindBody / __ @LineBindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:(_h1 @LineKindBody / __ @LineBindBody)?
     & { return docs !== null || body !== null; }
-    { return bindStepNode(key, docs, body, location(), text()); }
+    { return node('BindStep', { key, docs, body }, location(), text()); }
 
 BindName
   = key:Keyword         { return key; }
   / key:BareTypeKeyword { return key; }
 
-// The doc prefix after the name. `docs._start` carries the prefix's
-// offset to the tools.
-DocPrefix
-  = first:DocComment rest:(_ @DocComment)*
-    {
-      const docs = [first.content, ...rest.map(doc => doc.content)];
-      docs._start = first.location.start.offset;
-      return docs;
-    }
+DocSlot
+  = first:DocLit rest:(_ @DocLit)*
+    { return [first, ...rest]; }
 
 BindBody
   = body:Step

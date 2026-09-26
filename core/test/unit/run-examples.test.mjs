@@ -52,8 +52,8 @@ describe('runExamples reads a name as examples does', () => {
 describe('runExamples Quote-as-test outcomes', () => {
   it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
-      '|~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
-      ':demo 1';
+      ':demo |~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
+      '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -68,8 +68,8 @@ describe('runExamples Quote-as-test outcomes', () => {
     // with :error nil — there is no error message, the assertion
     // just did not hold.
     const moduleSource =
-      '|~~ falsy example.\n    ~(5 | mul 2 | eq 99) ~~|\n' +
-      ':demo 1';
+      ':demo |~~ falsy example.\n    ~(5 | mul 2 | eq 99) ~~|\n' +
+      '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -81,7 +81,7 @@ describe('runExamples Quote-as-test outcomes', () => {
 
   it('Quote that evaluates truthy → ok:true', async () => {
     const moduleSource =
-      '|~~ ~(5 | mul 2 | eq 10) ~~|\n:demo 1';
+      ':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -89,7 +89,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     expect(cellEntry.result).toBe(true);
   });
 
-  it('binding without an attached doc-prefix returns an empty Vec', async () => {
+  it('a binding without a doc in its slot returns an empty Vec', async () => {
     const session = await createSession({
       locator: async () => ({ source: ':bare 42' })
     });
@@ -98,7 +98,7 @@ describe('runExamples Quote-as-test outcomes', () => {
   });
 
   it('example sees module bindings loaded through the calling session', async () => {
-    // The Quote inside `:fortytwo`'s doc-prefix references `add` —
+    // The Quote inside `:fortytwo`'s doc references `add` —
     // an operand pulled in via `use(:qlang/operand/arith)` inside
     // the test's transient module. runExamples must evaluate the
     // Quote against the calling session's env so the operand
@@ -113,9 +113,9 @@ describe('runExamples Quote-as-test outcomes', () => {
     // verifies the documented fail-track tag. Coverage here uses
     // bare-qlang `add` to keep the test runtime-free.
     const moduleSource =
-      '|~~ tracks env propagation through runExamples.\n' +
+      ':fortytwo |~~ tracks env propagation through runExamples.\n' +
       '    ~(40 | add 2 | eq 42)\n ~~|\n' +
-      ':fortytwo 1';
+      '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -125,15 +125,15 @@ describe('runExamples Quote-as-test outcomes', () => {
   });
 
   it('example does not leak BindStep writes back into the calling session', async () => {
-    // The Quote in `:writer`'s prefix runs a BindStep — the
+    // The Quote in `:writer`'s doc runs a BindStep — the
     // session-env copy isolates the write so the calling session
     // still sees no `:scratch` after runExamples completes. Reading
     // `:scratch` on the session after `runExamples` therefore lifts
     // ::UnresolvedIdentifierError.
     const moduleSource =
-      '|~~ leaks BindStep into session env.\n' +
+      ':writer |~~ leaks BindStep into session env.\n' +
       '    ~(:scratch 99 | scratch | eq 99)\n ~~|\n' +
-      ':writer 1';
+      '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
@@ -154,8 +154,8 @@ describe('runExamples Quote-as-test outcomes', () => {
     // case where the JS throw routed through `errorFromQlang` and
     // the wrapper retained `.originalError`.
     const moduleSource =
-      '|~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | error)\n    ~~|\n' +
-      ':demo 1';
+      ':demo |~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | error)\n    ~~|\n' +
+      '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });

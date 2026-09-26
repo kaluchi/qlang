@@ -53,9 +53,10 @@ pipeline. The pipeline
 combinator `|` itself is introduced in [Pipeline](#pipeline);
 until then, comments stand alone next to single-step examples.
 
-A second variety of comment, written `|~~| ... |` or
-`|~~ ... ~~|`, attaches as metadata to the binding it precedes.
-Doc comments are introduced together with the BindStep form
+A second variety of comment, written `|~~| ...` or
+`|~~ ... ~~|`, is the doc literal, a value of its own, and documents
+the declaration whose slot it stands in, between the name and the
+body. Doc comments are introduced together with the BindStep form
 `:name body` in [Names and modules](#names-and-modules).
 
 Block comments **nest recursively**. The four marker shapes pick
@@ -627,9 +628,9 @@ at the top level does:
 ```
 
 Inside a line, a block comment sits beside the pipe it annotates,
-`[1 2 3] | |~ how many ~| count`. The doc comments, which attach to
-a binding, live alongside the BindStep form `:name body` in [Names
-and modules](#names-and-modules).
+`[1 2 3] | |~ how many ~| count`. The doc comments, which stand in
+the slot of a declaration, live alongside the BindStep form `:name
+body` in [Names and modules](#names-and-modules).
 
 ### Precedence
 
@@ -1345,14 +1346,15 @@ Verbs declared via a BindStep naturally deserve documentation, and
 the doc forms carry it; the plain forms are whitespace for the reader
 of the source [D81]. Four forms cover two orthogonal axes: **line vs
 block** (content terminator) and **plain vs doc** (whether the comment
-attaches as metadata to the following binding):
+is whitespace or the doc literal, which documents the declaration whose
+slot it stands in):
 
 | Form | Role |
 |---|---|
 | `\|~\|` | line plain — content to newline, whitespace |
 | `\|~ ... ~\|` | block plain — content to `~\|`, multi-line, whitespace |
-| `\|~~\|` | line doc — content to newline, attaches to next binding |
-| `\|~~ ... ~~\|` | block doc — content to `~~\|`, multi-line, attaches |
+| `\|~~\|` | line doc — content to newline, the doc literal |
+| `\|~~ ... ~~\|` | block doc — content to `~~\|`, multi-line, the doc literal |
 
 All four share the `|~` character family as the opening declarator.
 Doubling the tilde promotes plain to doc. The line form is the
@@ -1388,49 +1390,47 @@ finds it: `(|~ note ~| * add 1)` distributes exactly as `(* add
 1)`, and `~(|~ note ~| !| /kind)` replays through `apply` as
 `~(!| /kind)`.
 
-#### Attach-to-next — doc comments
+#### The doc of a declaration — its slot
 
-Doc comments (`|~~|`, `|~~ ~~|`) attach as metadata to the
-**immediately following binding step** — that is, the next
-BindStep (`:name ...`). The retrieval path goes
-through the binding's name, so a doc comment must be followed by
-a binding; preceding any other step, the doc comment fails to
-parse.
+A doc literal (`|~~|`, `|~~ ~~|`) documents the declaration whose
+**slot** it stands in, between the name and the body [D83]; the
+declaration keeps every doc of its slot, in order, and a doc anywhere
+else is the doc value it is.
 
 ```qlang
-|~~| First remark.
-|~ formatting separator ~|
-|~~| Second remark.
-:foo ...
+:foo
+  |~~| First remark.
+  |~ formatting separator ~|
+  |~~| Second remark.
+  42
 ```
 
 The binding's `docs` Vec holds two entries (`" First remark."`,
-`" Second remark."`). The plain block comment appears in the AST
-as an identity step immediately before the BindStep.
-
-Multiple doc comments before the same binding accumulate into the
-`docs` field on the binding node. One doc token, one entry — no
-concatenation of adjacent line docs.
+`" Second remark."`); the plain comment between them is whitespace.
+One doc token, one entry — no concatenation of adjacent line docs.
 
 ```qlang
-|~~| First remark.
-|~~| Second remark.
-|~~ Block-form remark
-    with internal newlines. ~~|
-:foo ...
+:foo
+  |~~| First remark.
+  |~~| Second remark.
+  |~~ Block-form remark
+      with internal newlines. ~~|
+  42
 ```
 
-The `:foo ...` binding's `docs` field holds three entries:
-two single-line strings and one multi-line string.
+The `:foo` binding's `docs` field holds three entries: two
+single-line strings and one multi-line string.
 
-Plain comments interleaved among the docs are transparent to
-attachment — surrounding docs still collect into the binding's
-`docs` Vec.
+A doc written before a declaration is refused where it stands, since
+no step reads a doc the step before it hands on: `|~~ note ~~| :x 42`
+is a parse error that names the slot, and `:x |~~ note ~~| 42`
+documents `x`. A doc ahead of any other step is a doc value, chained
+with `|`.
 
-A binding's docs are preserved in the AST and reachable through
-the `:name | docs` axis-operand introduced in
-[Reflection](#reflection). The takeaway here is that docs are
-addressable.
+A binding's docs are preserved in the AST, as the doc literals of its
+slot, and reachable through the `:name | docs` axis-operand
+introduced in [Reflection](#reflection). The takeaway here is that
+docs are addressable.
 
 #### Enrichment via shadowing
 
@@ -1531,8 +1531,9 @@ from inside any query or library module.
 | "world" | ::wrap"world"
 |~| → "[world]"
 
-|~~ Set permissions — only :read/:write/:delete allowed. ~~|
-::permissions {:allowed #[:read :write :delete]
+::permissions
+  |~~ Set permissions — only :read/:write/:delete allowed. ~~|
+  {:allowed #[:read :write :delete]
    :impl ~(:p /
      | every ~(:permissions/allowed | has)
      | if not ~(error {:kind :PermissionUnknown}) ~()
@@ -2009,7 +2010,7 @@ env | keys | count          |~| how many names the scope holds
 
 The canonical "what does this binding do" surface. The three
 **axis-operands** read declarative metadata from the binding's
-**source AST** — the doc-prefix the author attached and the
+**source AST** — the docs of the declaration's slot and the
 source-text the parser captured at declaration time. Subject is a
 Keyword (value-namespace binding name) or a TagKeyword (tag-
 namespace tag), and the axis returns the named field as a fresh
@@ -2046,7 +2047,7 @@ compose with the axis trio on its address (`::vec/filter | source`).
 | Axis | Subject | Returns |
 |---|---|---|
 | `source` | any value | The quote of the declaring step, null for a binding no step declared |
-| `docs` | any value | Vec of Doc-values, one per attached doc-comment |
+| `docs` | any value | Vec of Doc-values, one per doc of the declaration's slot |
 | `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
@@ -2098,12 +2099,12 @@ true
 
 ### `runExamples` — execute Quote segments from a binding's docs
 
-Every catalog binding's attached doc-prefix may carry inline
+The docs of every catalog binding's slot may carry inline
 `~(…)` Quote segments — each Quote is an executable self-test
 expression. `runExamples` is the self-test driver: given a
 binding name (Keyword or a descriptor Map carrying a `:name`
 string) as `pipeValue`, it walks the loaded modules' AST,
-collects the binding's attached docs, parses each through the
+collects the docs of the binding's slot, parses each through the
 Doc-content tokenizer (`parseDocSegments`), keeps every Quote
 segment, and evaluates each Quote against an empty initial
 state. A Quote that answers `true` reports `:ok true`; every other
@@ -2380,8 +2381,7 @@ value-class above.
 | RBracket | `]` | |
 | LinePlainComment | `\|~\|` chars until newline | `\|~\| short note` |
 | BlockPlainComment | `\|~` chars (not containing `~\|`) `~\|` | `\|~ rationale ~\|` |
-| LineDocComment | `\|~~\|` chars until newline | `\|~~\| doc for next step` |
-| BlockDocComment | `\|~~` chars (not containing `~~\|`) `~~\|` | `\|~~ multi-line\n    doc ~~\|` |
+| DocLit | `\|~~\|` chars until newline, or `\|~~` chars (not containing `~~\|`) `~~\|` | `\|~~\| doc of a slot`, `\|~~ multi-line\n    doc ~~\|` |
 
 Whitespace separates tokens. `,` is optional separator
 (whitespace-equivalent, aids readability).
@@ -2398,18 +2398,17 @@ sequence literally in your prose.
 ```
 Query         ← Pipeline
 
-Pipeline      ← ('!|' _)? DocAttached (Combinator DocAttached / PlainComment)*
-DocAttached   ← DocComment* OperandCall / DocComment* RawStep
+Pipeline      ← ('!|' _)? Step (Combinator Step)*
+Step          ← BindStep / OperandCall / RawStep
+BindStep      ← (Keyword / TagName) DocLit* Primary?
 RawStep       ← Primary
 Combinator    ← '|' / '!|' / '*'
 
-PlainComment  ← LinePlainComment / BlockPlainComment
-DocComment    ← LineDocComment / BlockDocComment
+PlainComment  ← LinePlainComment / BlockPlainComment   (whitespace)
+DocLit        ← '|~~|' [^\n]* / '|~~' (!'~~|' .)* '~~|'
 
 LinePlainComment  ← '|~|'  [^\n]*
 BlockPlainComment ← '|~'   (!'~|' .)*  '~|'
-LineDocComment    ← '|~~|' [^\n]*
-BlockDocComment   ← '|~~'  (!'~~|' .)* '~~|'
 
 Primary       ← '(' Pipeline ')' / Error / Map / Set / Vec
                / Operand / Projection / Scalar
@@ -2441,8 +2440,9 @@ Ident             ← [@_\p{ID_Start}] [\p{ID_Continue}_-]*  (same shape, !Reser
 Comment productions are matched before bare combinators in the
 ordered-choice sequence, so `|~|`, `|~~|`, `|~`, and `|~~` parse
 as single comment tokens: a plain one as whitespace [D81], a doc one
-as the doc literal, whose leading `|` draws the pipe to the step it
-is or documents.
+as the doc literal, whose leading `|` draws the pipe to the doc value
+it is, or which documents the declaration whose slot it stands in
+[D83].
 
 Disambiguation:
 - `!{` → Error (same entry syntax as Map)

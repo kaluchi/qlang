@@ -166,7 +166,7 @@ Identity on `pipeValue`; writes the record of the binding into
 `env` and falls through. The body is evaluated once, at declaration,
 against the current `pipeValue`, and the record holds its value; a
 doc-only declaration (`:name |~~ … ~~|`, no body) holds a `Doc`
-value built from the joined doc prefix. Catalog descriptor Maps land
+value built from the joined docs of its slot. Catalog descriptor Maps land
 through this path, the value of each operand's record.
 
 A body `::verb~(…)` is a **verb**, the tag `::verb` over a quote,
@@ -215,23 +215,18 @@ Four surface forms, two orthogonal axes (line/block, plain/doc):
 |-----------------|---------------------------------------------------------|
 | `\|~\|`          | line plain — whitespace, content to newline            |
 | `\|~ ~\|`        | block plain — whitespace, content to `~\|`, multi-line |
-| `\|~~\|`         | line doc — attach to next binding                      |
-| `\|~~ ~~\|`      | block doc — attach to next binding                     |
+| `\|~~\|`         | line doc — the doc literal                             |
+| `\|~~ ~~\|`      | block doc — the doc literal                            |
 
-The two doc forms additionally carry **metadata attachment**: their
-content is absorbed into the `docs` field of the immediately
-following binding — a BindStep (`:name body`). Multiple doc comments preceding the same binding
-accumulate into the `docs` Vec in declaration order — one comment
-token per Vec entry, with no concatenation of adjacent line docs.
-
-A block doc with internal newlines produces **one** Vec entry (a
-multi-line string). Two consecutive `|~~|` line docs produce
-**two** separate Vec entries.
-
-The metadata attachment of the doc forms is a parser-side
-transformation: the parser folds `DocComment*` into the binding
-AST node's `docs` Vec field, so `evalBindStep` sees the docs at
-construction time and folds them into the record of the binding.
+The two doc forms are the doc literal, one `DocLit` node wherever it
+stands [D83]. In the slot of a declaration, between the name and the
+body, the literals are the declaration's docs: the BindStep node holds
+them in its `docs` field in the order they are written, one literal per
+entry, with no concatenation of adjacent line docs, and `evalBindStep`
+folds their text into the record of the binding. A block doc with
+internal newlines is **one** entry; two consecutive `|~~|` line docs
+are **two**. A doc written before a declaration is a parse error that
+names the slot; ahead of any other step a doc is the value it is.
 
 ## Reflective built-ins
 
@@ -643,9 +638,9 @@ co-located sources:
   descriptor's JS-header `TAG_HEADER_SYMBOL` slot, stamped by
   the `::builtin{…}` constructor in `runtime/tagged.mjs`; the
   reader sites (`isBuiltinDescriptor`, `manifest`-op routing)
-  probe the header directly. Doc-prefixes attached to each BindStep via
-  DocAttachedSequence (`:count |~~ ... ~~| ...`) live on the record
-  the BindStep writes, as its `:docs`, and are
+  probe the header directly. The docs of each BindStep's slot
+  (`:count |~~ ... ~~| ...`) live on the record the BindStep
+  writes, as its `:docs`, and are
   reachable through axis-operands (`::vec/count | docs` returns a
   Vec of Doc-values, `::vec/count | examples` returns a Vec of every
   `~(…)` Quote segment extracted by `parseDocSegments`). Each
@@ -723,7 +718,7 @@ indistinguishable from built-ins.
 | `op(arg₁..argₖ)` operand call       | Step 3 — env lookup + Rule 10         |
 | `:name body` / `::Tag body`        | Step 4 — BindStep declaration         |
 | `\|~\|`, `\|~ ~\|`                   | Step 5 — plain comment (identity)     |
-| `\|~~\|`, `\|~~ ~~\|`                | Step 5 — doc comment (identity + attach) |
+| `\|~~\|`, `\|~~ ~~\|`                | the doc literal, or a doc of a declaration's slot |
 | `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
 | `error`                             | Step 3 — error built-in               |
 | `\|`, `!\|`, `*`                    | Combinators                           |

@@ -177,7 +177,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
 describe('examples axis extracts Quote segments from a loaded module', () => {
   it('use-loaded module with Quote segment is reachable through examples', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ ~(5 | mul 2 | eq 10) ~~|\n:demo 99';
+    const moduleSource = ':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n99';
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
@@ -187,7 +187,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
 
   it('docs of the loaded module carries the prefix as a Doc-value', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = '|~~ A short note. ~~|\n:demo 1';
+    const moduleSource = ':demo |~~ A short note. ~~|\n1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });

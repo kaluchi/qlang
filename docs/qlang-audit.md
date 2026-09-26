@@ -882,26 +882,6 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 `signatureHelpAtOffset`) and labels them from the descriptor's
 `:modifiers`; it reads the slot record once the runtime executes one.
 
-### A doc in two nodes
-
-A plain comment is whitespace [D81]. The doc forms keep a fifth of the
-grammar's rules, which read the four comment forms, their nesting and
-the attachment of a doc to a declaration, before its name or between
-its name and its body. A doc comment attaches only to a declaration
-[D70]; before any other step it is a parse error. Two syntax-tree nodes
-carry the same doc text depending on where it stands, the declaration
-it documents and the doc literal it is anywhere else.
-
-```sh
-$ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /Comment|Doc|Absorbed/) c++} END{print n, c}' core/src/grammar.peggy
-92 17
-```
-
-The repair must give documentation its own slot with its own literal,
-which doc already is: the doc form `|~~ … ~~|` is that literal today, a
-standalone doc value anywhere and the documentation of a binding when
-it stands between the name and the body.
-
 ### Modules that dissolve into their clients
 
 A declaration writes the record of its binding into its scope [D63],
@@ -1823,7 +1803,8 @@ every signature once, as the leading declarations of a verb's quote
 under `::verb`, a built-in's body being its `::builtin` step, with the
 interface of hosts designed in the same branch and landed in every
 host; the one binding form closes the milestone [D5], [D44], with
-comments as whitespace and the doc literal in the binding's slot. The
+comments as whitespace and the doc literal in the binding's slot [D81],
+[D83]. The
 catalog is written one module per noun, a verb that several kinds
 answer residing in each under the contract on its provider's `any`,
 where one descriptor stands today for every kind its subject lists, and
@@ -2187,3 +2168,4 @@ maintainer wants to explore it before it is fixed.
 [D80]: decisions/D80.md
 [D81]: decisions/D81.md
 [D82]: decisions/D82.md
+[D83]: decisions/D83.md

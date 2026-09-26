@@ -1852,7 +1852,9 @@ the runtime's own.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. The views sized to
-a budget arrive beside the root doc, the cheap view the default [D27];
+a budget arrive beside the root doc, the cheap view the default [D27],
+and a view takes its options beyond a few positional modifiers as one
+map whose keys it declares [D40];
 the catalog's prose is reduced to what the facts do not say and written
 in the language's own vocabulary; answers stay within a budget and
 replace what exceeds it with `::elision` markers [D21]; errors print as

@@ -33,7 +33,6 @@ import errorSource             from '@kaluchi/qlang-core/lib/qlang/operand/error
 import formatSource            from '@kaluchi/qlang-core/lib/qlang/operand/format.qlang';
 import predicateSource         from '@kaluchi/qlang-core/lib/qlang/operand/predicate.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
-import stringSource            from '@kaluchi/qlang-core/lib/qlang/operand/string.qlang';
 import typeClassifierSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeClassifier.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
 
@@ -58,7 +57,6 @@ const CATALOG = new Map([
   ['qlang/operand/format',          formatSource],
   ['qlang/operand/predicate',       predicateSource],
   ['qlang/operand/reflective',      reflectiveSource],
-  ['qlang/operand/string',          stringSource],
   ['qlang/operand/typeClassifier', typeClassifierSource],
   ['qlang/operand/typeConversion', typeConversionSource]
 ]);

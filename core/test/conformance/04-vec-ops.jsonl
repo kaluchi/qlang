@@ -46,6 +46,7 @@
 {"name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
+{"name":"reduce-by-an-operand-outside-its-noun","query":"[true false] | reduce true ~(and)","expect":"false","decision":"D56"}
 {"name":"reduce-max-via-verb","query":":max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}

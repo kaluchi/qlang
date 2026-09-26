@@ -235,3 +235,58 @@
         |  eq [::InterPairIncompatibleError ::set ::map]
        )
   ~~|
+
+:join
+  |~~ The strings the vector holds joined with the separator between
+      consecutive ones. Inverse of `split`.
+
+      ~(["a" "b" "c"] | join "," | eq "a,b,c")
+      ~([] | join "," | eq "")
+  ~~|
+  ::verb~(:separator ::string | :returns ::string | ::builtin{:impl :qlang/prim/join})
+
+::JoinSubjectNotVecError
+  |~~ Subject of `join` must be Vec.
+      ~(
+        42 | join ","
+        !| [type /actualType]
+        |  eq [::JoinSubjectNotVecError ::number]
+       )
+  ~~|
+
+::JoinElementNotStringError
+  |~~ Element of `join` input collection must be String.
+      ~(
+        ["a" 42 "c"] | join ","
+        !| [type /actualType /index]
+        |  eq [::JoinElementNotStringError ::number 1]
+       )
+  ~~|
+
+::JoinSeparatorNotStringError
+  |~~ Captured argument at position 2 of `join` must be String.
+      ~(
+        ["a" "b"] | join 42
+        !| [type /actualType]
+        |  eq [::JoinSeparatorNotStringError ::number]
+       )
+  ~~|
+
+:prepend
+  |~~ The vector with the element at its head, any value; a set takes it
+      through its constructor, so it stays a set.
+
+      ~([2 3] | prepend 1 | eq [1 2 3])
+      ~(#[2 3] | prepend 3 | eq #[2 3])
+  ~~|
+  ::verb~(:element ::any | :returns / | ::builtin{:impl :qlang/prim/prepend})
+
+:append
+  |~~ The vector with the element at its end, any value, so `[1] |
+      append [2 3]` answers `[1 [2 3]]` and vectors join through
+      `flat`; a set takes it through its constructor, so it stays a set.
+
+      ~([1 2] | append 3 | eq [1 2 3])
+      ~(#[1 2] | append 1 | eq #[1 2])
+  ~~|
+  ::verb~(:element ::any | :returns / | ::builtin{:impl :qlang/prim/append})

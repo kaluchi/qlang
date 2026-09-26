@@ -48,7 +48,6 @@ verbs of vectors [D72].
 | `:category` keyword | Meaning |
 |---|---|
 | `:control` | Control-flow operand (if / coalesce / cond). |
-| `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
 | `:format` | Value-to-string renderer. |
@@ -528,25 +527,32 @@ for the rule and the two other seams that enforce it.
 
 ## String
 
+The verbs of strings reside on `::string`, `join` on `::vec`, and
+`prepend` and `append` on both under one contract on `::qlang/any`
+[D72], [D75]. A subject of another kind is refused by the verb's head
+at the subject, or, for `prepend` and `append`, by the contract's
+`VerbWithoutBodyError` with `:addresses`.
+
 ### `prepend x`
 
 - **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
-- A string takes `x`, a string, as its prefix; a vector takes `x` as
-  its first element. A tagged vector keeps its tag, the tag's
-  constructor running again.
+- A string takes `x`, a string, as its prefix; a vector takes `x`, any
+  value, as its first element. The subject keeps its kind and the tags
+  over it, a set staying a set through its constructor.
 - **Examples**: `"world" | prepend "hello "` → `"hello world"`;
   `[2 3] | prepend 1` → `[1 2 3]`.
+- **Errors**: a prefix of another kind before a string → `PrependPrefixNotStringError`.
 
 ### `append x`
 
 - **Arity** 2. **Subject** `string` or `vec`, **modifier** `x`.
-- A string takes `x`, a string, as its suffix; a vector takes `x` as
-  its last element, so `[1] | append [2 3]` → `[1 [2 3]]` and vectors
-  join through `flat`. A tagged vector keeps its tag, the tag's
-  constructor running again, so `#[1 2] | within ~(append 1)` →
-  `#[1 2]`.
+- A string takes `x`, a string, as its suffix; a vector takes `x`, any
+  value, as its last element, so `[1] | append [2 3]` → `[1 [2 3]]` and
+  vectors join through `flat`. The subject keeps its kind and the tags
+  over it, so `#[1 2] | append 1` → `#[1 2]`.
 - **Examples**: `"hello" | append " world"` → `"hello world"`;
   `[1 2] | append 3` → `[1 2 3]`.
+- **Errors**: a suffix of another kind after a string → `AppendSuffixNotStringError`.
 
 ### `split separator`
 
@@ -1246,7 +1252,6 @@ address.
 |---|---|
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `coalesce`, `cond` |
-| `:string` | `split`, `lines`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
 | `:predicate` | `not`, `eq`, `and`, `or` |
 | `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |

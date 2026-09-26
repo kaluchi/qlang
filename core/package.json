@@ -63,7 +63,6 @@
     "#qlang/set": "./lib/qlang/set.qlang",
     "#qlang/map": "./lib/qlang/map.qlang",
     "#qlang/any": "./lib/qlang/any.qlang",
-    "#qlang/operand/string": "./lib/qlang/operand/string.qlang",
     "#qlang/operand/predicate": "./lib/qlang/operand/predicate.qlang",
     "#qlang/operand/typeClassifier": "./lib/qlang/operand/typeClassifier.qlang",
     "#qlang/operand/typeConversion": "./lib/qlang/operand/typeConversion.qlang",

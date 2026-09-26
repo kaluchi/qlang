@@ -721,9 +721,8 @@ on the descriptor, or the `:impl` handle keyword walked through
 from data — and invokes it via Rule 10. Before the call it walks the
 subject's tags [D34] through `nouns.mjs::subjectServedBy`: past each
 opaque wrap whose tag the descriptor's `:subject` does not name, the
-operand takes the value the wrap holds, and the answer of an operand
-built with `preservesTag` goes back under the tags passed, from the
-innermost out, through `dispatch.mjs::underPassedTags`. A tag stamped
+operand takes the value the wrap holds and answers as it answers. A
+tag stamped
 on a Vec or a Map rides the value itself, which the operand reads as
 it is. Bare lookup fires the operand against
 the current `pipeValue` regardless of arity — non-nullary operands

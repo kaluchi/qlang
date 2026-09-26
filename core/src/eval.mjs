@@ -44,7 +44,6 @@ import { langRuntime } from './runtime/index.mjs';
 import {
   addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf, subjectServedBy
 } from './runtime/nouns.mjs';
-import { underPassedTags } from './runtime/dispatch.mjs';
 import {
   applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication, verbAsCode
 } from './runtime/verb.mjs';
@@ -890,10 +889,7 @@ async function callByAddress(node, state) {
 // `| examples`, not a bare-name shortcut into the descriptor Map.
 async function applyBuiltinDescriptor(descriptor, builtinLambdas, state) {
   const resolvedImpl = resolveBuiltinImpl(descriptor);
-  const { served, passedTags } = subjectServedBy(descriptor, state.pipeValue);
-  if (passedTags.length === 0) return await applyRule10(resolvedImpl, builtinLambdas, state);
-  const servedState = await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, served));
-  return withPipeValue(servedState, await underPassedTags(servedState, resolvedImpl, passedTags, servedState.pipeValue));
+  return await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, subjectServedBy(descriptor, state.pipeValue)));
 }
 
 // makeLambda(astNode, capturedState) → (input) → value

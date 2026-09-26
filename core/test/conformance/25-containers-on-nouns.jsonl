@@ -8,8 +8,8 @@
 {"name":"a-builtin-step-in-a-declared-verb-is-a-step","query":":c ::verb~(::builtin{:impl :qlang/prim/count}) | 42 | c | type","expect":"::builtin","decision":"D73"}
 {"name":"a-descriptor-naming-the-primitive-of-a-verb-is-refused","query":"::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c !| [type /impl]","expect":"[::BuiltinImplOfVerbError :qlang/prim/count]","decision":"D73"}
 {"name":"a-slot-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(at k)","expect":"[{:b 1} {:b 2}]","decision":["D43","D73"]}
-{"name":"an-address-reaches-an-operand-not-moved-onto-its-noun","query":"\"a-b\" | string/split \"-\"","expect":"[\"a\" \"b\"]","decision":"D62"}
-{"name":"a-tag-over-a-string-passes-to-an-operand-not-moved","query":"::Box(\"a-b\") | split \"-\"","expect":"[\"a\" \"b\"]","decision":"D34"}
+{"name":"an-address-reaches-an-operand-not-moved-onto-its-noun","query":"\"[1]\" | string/parseJson","expect":"[1]","decision":"D62"}
+{"name":"a-tag-over-a-string-passes-to-an-operand-not-moved","query":"::Box(\"[1]\") | parseJson","expect":"[1]","decision":"D34"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ::verb~(add 1) ~(0)","expect":"6","decision":["D43","D67"]}
 {"name":"if-keeps-its-arity-refusal","query":"true | if ~(1) !| type","expect":"::HigherOrderOpArityMismatchError"}
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]","decision":"D41"}

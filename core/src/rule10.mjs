@@ -62,10 +62,7 @@ export async function applyRule10(fn, appliedLambdas, state) {
 // `stateOpVariadic`, `higherOrderOpVariadic`) the shape is
 // `{ captured: [min, max] }` — the [min, max] count of captured
 // arg slots the operand accepts, derived structurally from the
-// dispatch wrapper itself — and the four that take options add
-// `preservesTag`, whether the operand keeps its subject's tag,
-// which the walk of the subject's tags reads [D34]. Catalog-bound
-// builtin descriptors keep
+// dispatch wrapper itself. Catalog-bound builtin descriptors keep
 // their `category` / `subject` / `modifiers` / `returns` / `throws`
 // fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
 // reads them through descriptor projection at enumeration time, so

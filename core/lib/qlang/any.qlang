@@ -533,3 +533,27 @@
       ~(42 | has :k !| /addresses | has ::map/has)
   ~~|
   ::verb~()
+
+:prepend
+  |~~ The subject with the operand in front: a string takes a string as
+      its prefix, a vector any value as its first element. The subject
+      keeps its kind and the tags over it, a set staying a set through
+      its constructor.
+
+      ~("world" | prepend "hello " | eq "hello world")
+      ~([2 3] | prepend 1 | eq [1 2 3])
+      ~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
+  ~~|
+  ::verb~()
+
+:append
+  |~~ The subject with the operand after it: a string takes a string as
+      its suffix, a vector any value as its last element. The subject
+      keeps its kind and the tags over it, a set staying a set through
+      its constructor.
+
+      ~("hello" | append " world" | eq "hello world")
+      ~([1 2] | append 3 | eq [1 2 3])
+      ~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
+  ~~|
+  ::verb~()

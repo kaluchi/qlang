@@ -30,10 +30,7 @@ import {
   declareInvariantError,
   declareArityError
 } from '../errors.mjs';
-import {
-  keyword, isQMap, isErrorValue, makeTaggedInstance, bindingValueOf,
-  TAG_HEADER_SYMBOL, stampTagHeader
-} from '../types.mjs';
+import { keyword, isQMap, makeTaggedInstance, bindingValueOf } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
 // `mintTaggedInstance` lives in `eval.mjs`, which depends on
@@ -98,50 +95,7 @@ export async function mintUnderTag(state, tag, value) {
   return await mintTaggedInstance(tag.name, value, state);
 }
 
-// Tag preservation runs as a post-process pass when the operand
-// declares `{ preservesTag: true }`. Identity-only tags stamp
-// the header on the result, or stack over a result that carries a
-// tag of its own (`::Box[1 1] | distinct` answers `::Box#[1]`);
-// `:impl`-bearing tags re-invoke the constructor against the
-// post-transform payload (the «invariant re-runs across transforms»
-// contract). An error the operand answered, a predicate's among them,
-// passes as it is.
-// Operands opt in because shape-changing reducers (count, every,
-// sum, …) drop the source tag naturally — the operand body knows
-// whether its output is the same value-class as its input.
-async function applyTagPreservation(state, source, result) {
-  // Optional chaining on source handles a `null` pipeValue safely
-  // — `null?.[Symbol]` yields undefined and falls through here.
-  const sourceTag = source?.[TAG_HEADER_SYMBOL];
-  if (sourceTag === undefined || isErrorValue(result)) return result;
-  if (tagCarriesConstructor(state, sourceTag.name)) {
-    const { mintTaggedInstance } = await import('../eval.mjs');
-    return await mintTaggedInstance(sourceTag.name, result, state);
-  }
-  // The operands that keep their tag this way, prepend and append,
-  // answer a fresh composite, which takes the identity tag on its header.
-  stampTagHeader(result, sourceTag);
-  return result;
-}
-
-// The tags the walk passed to reach the value a verb serves [D34] come
-// back on the answer of a verb that keeps its subject's tag, minted from
-// the innermost out as `within` mints its edit [D41]; the answer of any
-// other verb, and an error, pass as they are.
-export async function underPassedTags(state, fn, passedTags, result) {
-  if (!fn.meta.preservesTag || isErrorValue(result)) return result;
-  let rewrapped = result;
-  for (const tag of [...passedTags].reverse()) rewrapped = await mintUnderTag(state, tag, rewrapped);
-  return rewrapped;
-}
-
-// What a function value records of the options it was built with, for
-// the walk that hands it a value beneath a tag.
-function tagFacts(options) {
-  return { preservesTag: options.preservesTag === true };
-}
-
-export function valueOp(name, n, impl, options = {}) {
+export function valueOp(name, n, impl) {
   return makeFn(name, n, async (state, valueOpLambdas) => {
     const capturedCount = valueOpLambdas.length;
     const subjectValue = state.pipeValue;
@@ -157,11 +111,8 @@ export function valueOp(name, n, impl, options = {}) {
         operandName: name, expectedArity: n, actualArity: capturedCount
       });
     }
-    const final = options.preservesTag
-      ? await applyTagPreservation(state, subjectValue, raw)
-      : raw;
-    return withPipeValue(state, final);
-  }, { captured: [n - 1, n], ...tagFacts(options) });
+    return withPipeValue(state, raw);
+  }, { captured: [n - 1, n] });
 }
 
 export function higherOrderOp(name, n, impl) {

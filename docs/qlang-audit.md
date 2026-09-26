@@ -1130,6 +1130,36 @@ errors hands it on unchanged [D13], as a verb's slot does [D68]:
 ::error
 ```
 
+The trail of an error rides outside its descriptor until a `!|`
+reads it, and the readers that take the descriptor, the printer and
+equality, miss it: an error that deflected inside a value prints
+without its trail and equals the error it was before, while `!|`
+shows the trail.
+
+```qlang
+> [(!{:k 1} | add 1)]
+[!{:k 1}]
+
+> [(!{:k 1} | add 1)] | eq [!{:k 1}]
+true
+
+> [(!{:k 1} | add 1)] | first !| /trail
+~(add 1)
+```
+
+The literal it prints reads back as another value, and the ring of
+atoms, which takes an error apart through `!|`, builds back an error
+unequal to it [D42]. The ring stays open at one example of the catalog
+as well: an error literal whose trail is no quote is a step that
+`error`, the one verb that builds an error from its fields, refuses to
+build, since the error a step produces holds a quote there or null
+[D82].
+
+```qlang
+> ~(!{:kind :oops :trail [1 2]}) | first !| error !| type
+::ErrorTrailNotQuoteError
+```
+
 A library of error-handling pipelines, retry and recover and assert
 and their kin, ships in the core package, is reachable only through
 the Node module resolver used by tests, and cannot be loaded from the
@@ -1164,7 +1194,9 @@ and an operand whose alternatives are pipeline slots, `coalesce` and its
 kin, runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
-asked.
+asked. Every reader of an error, the printer and equality among them,
+must read the trail `!|` reads, so an error a value holds prints and
+compares with the steps it deflected through.
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which
@@ -1806,7 +1838,8 @@ declaration, and that is how `as` is spelled once it is gone.
 
 Beside the answers: taking every example of the catalog apart into
 atoms and a shape and putting it back, both written in qlang, answers
-an `eq` value [D42]; a second declaration of a name in one scope is
+an `eq` value [D42], [D82], but for the error literal whose trail is no
+quote, which no verb builds from its fields; a second declaration of a name in one scope is
 refused [D44]; the dispatch wrappers are gone, but for the loader's,
 which the one loader of M4 replaces [D79]; the declarations of the
 catalog are true, since the runtime executes them.
@@ -2153,3 +2186,4 @@ maintainer wants to explore it before it is fixed.
 [D79]: decisions/D79.md
 [D80]: decisions/D80.md
 [D81]: decisions/D81.md
+[D82]: decisions/D82.md

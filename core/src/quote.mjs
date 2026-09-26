@@ -247,7 +247,7 @@ function printStep(step) {
     case 'tagged': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
-  if (isErrorValue(step)) return `!{${printEntries([...step.descriptor])}}`;
+  if (isErrorValue(step)) return `!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || value !== null))}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);

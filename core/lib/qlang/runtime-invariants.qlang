@@ -70,7 +70,7 @@
 ::BuiltinImplNotPrimitiveKeyError
   |~~ A descriptor a query assembled from data dispatches through
       its `:impl` handle keyword — `::builtin{:impl
-      :qlang/prim/tag}` binds and fires like a catalog entry.
+      :qlang/prim/use}` binds and fires like a catalog entry.
       Catalog descriptors carry the resolved callable on the
       `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
       reading below fires only for the data-assembled shape, and
@@ -78,8 +78,8 @@
       cannot be keyed by.
 
       ~(
-        ::builtin{:impl :qlang/prim/tag} | :t / | [::Foo 1] | t
-        |  eq ::Foo(1)
+        ::builtin{:impl :qlang/prim/use} | :u / | {:x 1} | u | x
+        |  eq 1
        )
       ~(
         ::builtin{:impl 42} | :bogus / | 1 | bogus
@@ -345,13 +345,8 @@
   ~~|
 
 ::StateOpArityMismatchError
-  |~~ `stateOp` impl received an unexpected captured-arg count.
-
-      ~(
-        examples :filter
-        !| [type /operandName]
-        |  eq [::StateOpArityMismatchError :examples]
-       )
+  |~~ A host operand over the state pair received an unexpected
+      captured-arg count.
   ~~|
 
 ::StateOpVariadicMissingCapturedError
@@ -382,9 +377,9 @@
       operand's declared maximum arity.
 
       ~(
-        42 | env 1 2
+        use :a :b :c
         !| [type /operandName]
-        |  eq [::Rule10ArityOverflowError :env]
+        |  eq [::Rule10ArityOverflowError :use]
        )
   ~~|
 

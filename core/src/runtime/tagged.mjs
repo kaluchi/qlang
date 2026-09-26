@@ -5,12 +5,11 @@
 // and invokes it against the payload-value; the state reaches a
 // constructor that reads the scope it is called in.
 
-import { stateOpVariadic, mintUnderTag } from './dispatch.mjs';
-import { bindPrim, bindTypeConstructor } from '../primitives.mjs';
-import { withPipeValue } from '../state.mjs';
+import { mintUnderTag } from './dispatch.mjs';
+import { bindPrim, bindStateReader, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
-  isTagKeyword, isErrorValue, makeSet, typeKeyword, TAG_HEADER_SYMBOL
+  isTagKeyword, makeSet, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -175,34 +174,27 @@ function payloadOf(tagged) {
 bindPrim('payload', subject => payloadOf(subject));
 bindPrim('within', async (subject, code) => await code(payloadOf(subject)));
 
-// The value and the tag each form reads before the tag mints: a
-// modifier that answers an error answers the step with it.
-async function tagPartsOf(subject, tagLambdas) {
-  if (tagLambdas.length === 0) {
-    if (!isVec(subject) || subject.length !== 2) {
-      throw new TagBareSubjectShapeError({
-        actualType: typeKeyword(subject),
-        actualValue: subject,
-        actualLength: isVec(subject) ? subject.length : undefined
-      });
-    }
-    return { value: subject[1], tagKw: subject[0] };
+// `tag` resides on `::qlang/any` and reads the state of its call, whose
+// scope holds the constructor of the tag [D79]: `value | tag ::Foo` lays
+// the tag over the subject, `tag value ::Foo` over its first modifier,
+// the full application [D72], and `[::Foo value] | tag` over the second
+// element of the pair it takes apart.
+async function mintPair(pair, state) {
+  if (!isVec(pair) || pair.length !== 2) {
+    throw new TagBareSubjectShapeError({
+      actualType: typeKeyword(pair),
+      actualValue: pair,
+      actualLength: isVec(pair) ? pair.length : undefined
+    });
   }
-  const value = tagLambdas.length === 2 ? await tagLambdas[0](subject) : subject;
-  if (isErrorValue(value)) return { failed: value };
-  const tagKw = await tagLambdas[tagLambdas.length - 1](subject);
-  if (isErrorValue(tagKw)) return { failed: tagKw };
-  return { value, tagKw };
+  const [pairTag, value] = pair;
+  if (!isTagKeyword(pairTag)) throw new TagModifierNotTagKeywordError(pairTag);
+  return await mintUnderTag(state, pairTag, value);
 }
 
-export const tagOperand = stateOpVariadic('tag', async (state, tagLambdas) => {
-  const { value, tagKw, failed } = await tagPartsOf(state.pipeValue, tagLambdas);
-  if (failed !== undefined) return withPipeValue(state, failed);
-  if (!isTagKeyword(tagKw)) throw new TagModifierNotTagKeywordError(tagKw);
-  return withPipeValue(state, await mintUnderTag(state, tagKw, value));
-}, [0, 2]);
+bindStateReader('tag', async (subject, tagName, state) =>
+  (isNull(tagName) ? await mintPair(subject, state) : await mintUnderTag(state, tagName, subject)));
 
 declareSubjectError('WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');
 declareModifierError('WithinCodeNotQuoteError', 'within', 2, 'quote');
 
-bindPrim('tag', tagOperand);

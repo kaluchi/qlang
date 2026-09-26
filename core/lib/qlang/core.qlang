@@ -26,6 +26,4 @@ use [:qlang/runtime-invariants
      :qlang/quote
      :qlang/tagged
      :qlang/any
-     :qlang/operand/typeConversion
-     :qlang/operand/reflective
-     :qlang/operand/axis]
+     :qlang/operand/reflective]

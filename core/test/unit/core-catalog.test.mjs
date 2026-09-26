@@ -175,13 +175,13 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(await evalQuery('::vec/filter | spec | /predicate')).toEqual(makeTagKeyword('quote'));
   });
 
-  it('spot-check — :env reflective operand lands with :category :reflective', async () => {
+  it('spot-check — :use reflective operand lands with :category :reflective', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const resolved = await langRuntime();
-    const envDescriptor = bindingValueOf(resolved.get('env'));
-    expect(envDescriptor.get('category')).toEqual(keyword('reflective'));
-    const envImpl = builtinImplOf(envDescriptor);
-    expect(envImpl.name).toBe('env');
+    const useDescriptor = bindingValueOf(resolved.get('use'));
+    expect(useDescriptor.get('category')).toEqual(keyword('reflective'));
+    const useImpl = builtinImplOf(useDescriptor);
+    expect(useImpl.name).toBe('use');
   });
 });
 
@@ -282,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(193);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(192);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(9);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(1);
   });
 });
 
@@ -305,9 +305,7 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('typeConversion')).toBe(1);  // tag
-    expect(categories.get('reflective')).toBe(4);   // env use manifest runExamples
-    expect(categories.get('axis')).toBe(4);         // source docs examples spec
+    expect(categories.get('reflective')).toBe(1);   // use
     const sum = [...categories.values()].reduce((a, b) => a + b, 0);
     expect(sum).toBe(coreEnv.size);
   });

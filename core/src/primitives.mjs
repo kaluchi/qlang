@@ -215,6 +215,20 @@ export function bindPrim(name, impl) {
   return PRIMITIVE_REGISTRY.bind(PRIM_KEY_PREFIX + name, impl);
 }
 
+// A primitive that reads the scope of its call takes the state of the
+// call after its values [D79]; every other primitive is a plain function
+// over the values its head checked [D72].
+const STATE_READERS = new WeakSet();
+
+export function bindStateReader(name, impl) {
+  STATE_READERS.add(impl);
+  return bindPrim(name, impl);
+}
+
+export function readsState(impl) {
+  return STATE_READERS.has(impl);
+}
+
 // bindTypeConstructor(tagName, ctor) — bind a tag-namespace
 // constructor under the `qlang/type/<tag>` key. Pairs with the
 // `:impl :qlang/type/<tag>` slot the catalog tag-binding

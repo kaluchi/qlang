@@ -14,9 +14,8 @@
 //            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.
 
-import { stateOp } from './dispatch.mjs';
-import { bindPrim } from '../primitives.mjs';
-import { withPipeValue, envHas } from '../state.mjs';
+import { bindStateReader } from '../primitives.mjs';
+import { envHas } from '../state.mjs';
 import {
   isKeyword, isQuote, isTagKeyword, isBinding, isVerb, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
@@ -117,29 +116,19 @@ export async function examplesOfRecord(state, record) {
   return collected;
 }
 
-export const source = stateOp('source', 1, (state, _lambdas) => {
-  const record = declaringRecordOf(state.env, state.pipeValue);
-  if (record === null) {
-    throw new SourceBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  return withPipeValue(state, record.get('source'));
-});
+// The record the subject names in the scope of the call, or the refusal
+// of the axis that read it; each axis resides on `::qlang/any`, and its
+// primitive reads the state of the call [D79].
+function recordReadBy(subject, state, NotFoundError) {
+  const record = declaringRecordOf(state.env, subject);
+  if (record === null) throw new NotFoundError(refusalOf(state.env, subject));
+  return record;
+}
 
-export const docs = stateOp('docs', 1, (state, _lambdas) => {
-  const record = declaringRecordOf(state.env, state.pipeValue);
-  if (record === null) {
-    throw new DocsBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  return withPipeValue(state, record.get('docs'));
-});
-
-export const examples = stateOp('examples', 1, async (state, _lambdas) => {
-  const record = declaringRecordOf(state.env, state.pipeValue);
-  if (record === null) {
-    throw new ExamplesBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
-  return withPipeValue(state, Object.freeze(await examplesOfRecord(state, record)));
-});
+bindStateReader('source', (subject, state) => recordReadBy(subject, state, SourceBindingNotFoundError).get('source'));
+bindStateReader('docs', (subject, state) => recordReadBy(subject, state, DocsBindingNotFoundError).get('docs'));
+bindStateReader('examples', async (subject, state) =>
+  Object.freeze(await examplesOfRecord(state, recordReadBy(subject, state, ExamplesBindingNotFoundError))));
 
 // `spec` — the value the record holds: the structured Map that a
 // catalog `::builtin{…}` body declared, after `langRuntime`'s
@@ -155,14 +144,10 @@ export const examples = stateOp('examples', 1, async (state, _lambdas) => {
 // `::number/add | spec | /throws` lists the per-site error classes
 // `add` raises; `::verb | spec | /impl` returns the
 // `:qlang/type/verb` constructor handle.
-export const spec = stateOp('spec', 1, (state, _lambdas) => {
-  const record = declaringRecordOf(state.env, state.pipeValue);
-  if (record === null) {
-    throw new SpecBindingNotFoundError(refusalOf(state.env, state.pipeValue));
-  }
+bindStateReader('spec', (subject, state) => {
+  const record = recordReadBy(subject, state, SpecBindingNotFoundError);
   const declaration = record.get('value');
-  if (isVerb(declaration)) return withPipeValue(state, signatureSpecOf(declaration));
-  return withPipeValue(state, withVerbsOfNoun(state.env, record));
+  return isVerb(declaration) ? signatureSpecOf(declaration) : withVerbsOfNoun(state.env, record);
 });
 
 // The declaration of a provider's noun lists the verbs that live on it
@@ -179,7 +164,3 @@ function withVerbsOfNoun(env, record) {
   return withVerbs;
 }
 
-bindPrim('source',   source);
-bindPrim('docs',     docs);
-bindPrim('examples', examples);
-bindPrim('spec',     spec);

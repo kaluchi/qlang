@@ -290,14 +290,6 @@ describe('runtime/string.mjs lines', () => {
   });
 });
 
-describe('dispatch helper arity error paths', () => {
-  it('stateOp throws ArityError when captured-arg count mismatches expected', async () => {
-    // env accepts 0 captured args; calling env(arg) fires the
-    // stateOp's `lambdas.length !== expected` branch.
-    await expectErrorCategory('env :foo', 'arityError');
-  });
-});
-
 describe('source axis on verb / freeze / TagKeyword subjects', () => {
   // `:name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers value-namespace bindings

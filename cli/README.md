@@ -105,7 +105,7 @@ qlang '@in | parse | apply / | /glossary/title | @out' \
 example glossary
 
 qlang '@in | parseJson | /users
-       | filter(/active) * /name
+       | filter ~(/active) * /name
        | pretty | @out' < users.json
 ["alice" "carol"]
 

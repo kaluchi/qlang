@@ -40,15 +40,16 @@ Comments exist so prose can ride alongside the code:
 |~ block comments may span as many lines as needed
    and terminate at the closing token ~|
 
-> [1 2 3] |~| three-element Vec |~|
+> [1 2 3] |~| three-element Vec
 [1 2 3]
 ```
 
-When a comment sits between two pipeline steps, the combinators
-on either side are absorbed into the comment token, so no extra
-punctuation is needed around it. Use comments freely throughout —
-every snippet in this document is allowed to carry inline
-annotations without disrupting the pipeline. The pipeline
+A plain comment is whitespace [D81]: it stands wherever a space may,
+between the steps of a pipeline and between the words of a command,
+and it carries no combinator, so a pipe is written beside it. Use
+comments freely throughout — every snippet in this document is
+allowed to carry inline annotations without disrupting the
+pipeline. The pipeline
 combinator `|` itself is introduced in [Pipeline](#pipeline);
 until then, comments stand alone next to single-step examples.
 
@@ -611,23 +612,24 @@ combinator, the trail, the materialised descriptor — is covered
 in [Error track](#error-track). At this point it is enough to
 recognise errors when they appear and read them as data.
 
-### Combinator absorption — quick rule
+### Comments between steps — quick rule
 
-A plain comment between two pipeline steps absorbs the combinators
-on either side, so no extra `|` is needed around it:
+A plain comment between two pipeline steps is whitespace; the line
+break after a line comment stands for the pipe, as every line break
+at the top level does:
 
 ```qlang
 > [1 2 3 4 5]
   | filter ~(gt 2)
-  |~| keep elements greater than 2 |~|
+  |~| keep elements greater than 2
   count
 3
 ```
 
-The leading `|` of `|~` is the combinator from the previous step;
-the trailing `|` of `~|` is the combinator to the next step. The
-full rule, including doc comments and edge cases, lives alongside
-the BindStep form `:name body` in [Names and modules](#names-and-modules).
+Inside a line, a block comment sits beside the pipe it annotates,
+`[1 2 3] | |~ how many ~| count`. The doc comments, which attach to
+a binding, live alongside the BindStep form `:name body` in [Names
+and modules](#names-and-modules).
 
 ### Precedence
 
@@ -1339,18 +1341,16 @@ name. The effect marker of such a call rides on its verb, `any/@out`.
 
 ### Comments
 
-Verbs declared via a BindStep naturally deserve documentation.
-In qlang, comments serve that role — and they are more than lexer
-tokens: they are first-class pipeline steps with identity semantics.
-They appear in the AST, participate in the pipeline metamodel, and
-are visible to reflection. Four forms cover two orthogonal axes:
-**line vs block** (content terminator) and **plain vs doc** (whether
-the comment attaches as metadata to the following binding):
+Verbs declared via a BindStep naturally deserve documentation, and
+the doc forms carry it; the plain forms are whitespace for the reader
+of the source [D81]. Four forms cover two orthogonal axes: **line vs
+block** (content terminator) and **plain vs doc** (whether the comment
+attaches as metadata to the following binding):
 
 | Form | Role |
 |---|---|
-| `\|~\|` | line plain — content to newline, pure identity |
-| `\|~ ... ~\|` | block plain — content to `~\|`, multi-line, pure identity |
+| `\|~\|` | line plain — content to newline, whitespace |
+| `\|~ ... ~\|` | block plain — content to `~\|`, multi-line, whitespace |
 | `\|~~\|` | line doc — content to newline, attaches to next binding |
 | `\|~~ ... ~~\|` | block doc — content to `~~\|`, multi-line, attaches |
 
@@ -1361,24 +1361,14 @@ overlap-compressed form of the corresponding block form: `|~|` is
 sharing the middle `~~`. Uncompressing expands the line form into
 its block counterpart with content in the middle.
 
-#### Combinator absorption
+#### Plain comments are whitespace
 
-Comment tokens absorb adjacent pipeline combinators into their own
-delimiters, so comments read cleanly inside a dense pipeline without
-requiring explicit `|` around them. All four forms behave uniformly:
-the combinator position immediately before the comment and the
-combinator position immediately after it are both implicit.
-
-- **Block forms** (`|~ ~|`, `|~~ ~~|`) absorb the leading combinator
-  through the `|` in the opener and the trailing combinator through
-  the `|` in the closer.
-- **Line forms** (`|~|`, `|~~|`) absorb the leading combinator
-  through the `|` at the start of the token; the trailing combinator
-  is implicit across the newline, so the next step can follow
-  directly without any prefix `|`.
-
-At the start of a query, the leading `|` of a comment token is
-virtual (no predecessor to connect to).
+A plain comment is whitespace wherever whitespace stands: between the
+steps of a pipeline, between the words of a command, inside a literal
+and inside a quote. It carries no combinator, and a line break inside
+it ends no line [D11], [D81]. A source of comments alone is the blank
+pipeline, which answers the value it is handed, as the empty quote
+does.
 
 ```qlang
 orders | @find | @members
@@ -1390,18 +1380,13 @@ orders | @find | @members
   filter ~(@overriddenBy | empty)
 ```
 
-The leading `|` of `|~` absorbs the combinator from the previous
-filter; the trailing `|` of `~|` absorbs the combinator to the next
-filter. Neither side needs an explicit `|`.
+The comment stands on lines of its own, and the line break after
+the step before it stands for the pipe to the step after it.
 
-A step written with its own combinator after a comment keeps it:
-`(|~ note ~| * add 1)` distributes exactly as `(* add 1)`, and
-`~(|~ note ~| !| /kind)` replays through `apply` as `~(!| /kind)`.
-At the start of a query, a paren-group, or a Quote, the step after
-a comment is the head step — it rides `|` like every other step,
-or the pipeline's leading combinator when one is written before
-the comment. A leading combinator and an explicit
-combinator on that same step is a parse error.
+A comment at the start of a group or a quote leaves the head as it
+finds it: `(|~ note ~| * add 1)` distributes exactly as `(* add
+1)`, and `~(|~ note ~| !| /kind)` replays through `apply` as
+`~(!| /kind)`.
 
 #### Attach-to-next — doc comments
 
@@ -2455,9 +2440,9 @@ Ident             ← [@_\p{ID_Start}] [\p{ID_Continue}_-]*  (same shape, !Reser
 
 Comment productions are matched before bare combinators in the
 ordered-choice sequence, so `|~|`, `|~~|`, `|~`, and `|~~` parse
-as single comment tokens. The leading `|` in each comment token
-serves double duty: it absorbs the pipeline combinator that
-would otherwise have preceded the next step.
+as single comment tokens: a plain one as whitespace [D81], a doc one
+as the doc literal, whose leading `|` draws the pipe to the step it
+is or documents.
 
 Disambiguation:
 - `!{` → Error (same entry syntax as Map)

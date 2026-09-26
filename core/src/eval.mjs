@@ -37,7 +37,7 @@ import {
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
-import { declaredNameOf, isPlainCommentStep, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
+import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
@@ -196,9 +196,14 @@ const AST_NODE_EVALUATORS = {
   OperandCall:       evalOperandCall,
   BindStep:          evalBindStep,
   ParenGroup:        evalParenGroup,
-  LinePlainComment:  evalCommentStep,
-  BlockPlainComment: evalCommentStep
+  Blank:             evalBlank,
 };
+
+// A blank source, comments among it, answers the value it is handed
+// [D81].
+function evalBlank(_node, state) {
+  return state;
+}
 
 async function evalNode(node, state) {
   const evaluator = AST_NODE_EVALUATORS[node.type];
@@ -236,16 +241,6 @@ async function evalNode(node, state) {
 
 // ─── Pipeline ───────────────────────────────────────────────────
 
-// Plain comments are pipeline trivia: `evalPipeline` steps over
-// them on both tracks, so a comment neither fires nor deflects and
-// never lands on the trail — the materialized `:trail` Quote is a
-// pure operand suffix that `apply` replays. The AST keeps every
-// comment for the tools (the highlighter, the language server), and
-// a quote keeps none; `evalCommentStep` stays wired for the
-// direct-dispatch path of a lone comment query. The step-node reading
-// itself lives in `walk.mjs::isPlainCommentStep` beside the rest of
-// the AST-shape knowledge.
-
 async function evalPipeline(node, state) {
   // Pipeline: { steps: [firstStep, { combinator, step }, ...] }
   //
@@ -254,26 +249,8 @@ async function evalPipeline(node, state) {
   // `~(| count)` and `~(count)` run alike, and a pipeline-suffix
   // shape (`~(* add 1)`, `~(!| /trail)`) replays through `apply`
   // with the combinator it was written with.
-  //
-  // A plain comment in head position hands the head to the first
-  // operand step, exactly as with the comment absent: that step
-  // applies through `node.leadingCombinator` when the pipeline
-  // carries one, through its own combinator when the author wrote
-  // one after the comment (`(|~ note ~| * add 1)` reads as
-  // `(* add 1)`), and through `|` when its continuation unit
-  // carries the grammar's absorbed marker (`combinator: null`).
-  // Past the head, an absorbed follower rides the `|` the comment's
-  // closer stands for.
-  let current = state;
-  let leadingCombinator = node.leadingCombinator;
-  for (let i = 0; i < node.steps.length; i++) {
-    const unit = node.steps[i];
-    const stepNode = i === 0 ? unit : unit.step;
-    if (isPlainCommentStep(stepNode)) continue;
-    const combinator = leadingCombinator ?? (i === 0 ? null : unit.combinator) ?? '|';
-    leadingCombinator = null;
-    current = await applyCombinator(combinator, current, stepNode);
-  }
+  let current = await applyCombinator(node.leadingCombinator ?? '|', state, node.steps[0]);
+  for (const unit of node.steps.slice(1)) current = await applyCombinator(unit.combinator, current, unit.step);
   return current;
 }
 
@@ -317,13 +294,10 @@ async function applySuccessTrack(state, stepNode) {
 //
 // Runs a body — a query, a group, a distribute body, a captured
 // argument, a verb's body, an applied quote — so that its head
-// rides `|` like every other step. A pipeline routes its own head; a
-// lone step the parser collapsed rides `|` here, and a lone plain
-// comment stays trivia.
+// rides `|` like every other step. A pipeline routes its own head, and
+// a lone step the parser collapsed rides `|` here.
 function evalBody(node, state) {
-  return node.type === 'Pipeline' || isPlainCommentStep(node)
-    ? evalNode(node, state)
-    : applySuccessTrack(state, node);
+  return node.type === 'Pipeline' ? evalNode(node, state) : applySuccessTrack(state, node);
 }
 
 // The container beneath every tag stacked over a value, which distribute
@@ -944,15 +918,6 @@ export function resolveBinaryReducer(reducerLambda) {
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }
 
-// ─── Comment (plain forms only — doc forms attach during
-// parsing and never appear as standalone steps) ───────────────
-
-function evalCommentStep(_node, state) {
-  // Identity: state passes through unchanged. The comment node is
-  // visible in the AST for reflection/source manipulation but has
-  // no runtime effect.
-  return state;
-}
 
 // ─── ParenGroup ─────────────────────────────────────────────────
 

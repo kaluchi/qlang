@@ -184,30 +184,15 @@ function liftExpectedAlternative(alt) {
   if (alt.type === 'end') return keyword('end-of-input');
   if (alt.type === 'any') return keyword('any-character');
   if (alt.type === 'other') return keyword(alt.description);
-  return classKeyword(alt);
+  return classKeyword();
 }
 
-// Map a peggy char-class to a named keyword when the class shape
-// is a well-known one (whitespace, digits, etc.); fall back to a
-// `:char-class` keyword for ad-hoc classes so the Vec stays
-// uniformly keyword-typed. Inverted char-classes from the grammar
-// (`[^…]`) match greedily as content and stay out of peggy's
-// `expected` set, so no `non-X` keyword path is wired here.
-function classKeyword(cls) {
-  const sig = cls.parts.map(p => Array.isArray(p) ? `${p[0]}-${p[1]}` : p).join('');
-  return keyword(NAMED_CLASS_SIGS[sig] ?? 'char-class');
+// A peggy char-class reads as `:char-class`: the classes a reader would
+// name stand under named rules of the grammar, whitespace among them
+// [D81].
+function classKeyword() {
+  return keyword('char-class');
 }
-
-const NAMED_CLASS_SIGS = {
-  ' \t\n\r':                 'whitespace',
-  '\t\n\r ':                 'whitespace',
-  '0-9':                     'digit',
-  'a-zA-Z':                  'letter',
-  'a-zA-Z0-9':               'alphanumeric',
-  'a-zA-Z_':                 'identifier-start',
-  'a-zA-Z0-9_':              'identifier-continue',
-  'a-zA-Z0-9_-':             'identifier-continue'
-};
 
 // Build the source line + caret marker pair. Stamped as two
 // top-level descriptor entries `:source` / `:marker` — both

@@ -12,62 +12,23 @@
 // post-parse pass in src/parse.mjs adds `.id` and `.parent` on every
 // node and `.source`/`.uri`/`.parseId`/`.schemaVersion` on the root.
 //
-// Comments are steps with identity semantics, in four forms sharing
-// the `|~` family: `|~|` line plain, `|~ … ~|` block plain, `|~~|` line
-// doc, `|~~ … ~~|` block doc. The leading `|` of a comment token
-// absorbs the combinator before it, and the step after a plain comment
-// written without a combinator carries the absorbed marker
-// (`combinator: null`) on its continuation unit.
+// A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
+// whitespace wherever whitespace stands [D81]; the parser records each on
+// the side, `options.commentTrivia`, for the tools. The doc forms,
+// `|~~| …` and `|~~ … ~~|`, are the doc literal and the doc of a
+// declaration [D70].
 
 {{
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
   }
 
-  function withDocs(step, docs) {
-    return { ...step, docs };
-  }
-
-  // A unit may be an array of units when a block comment absorbed the
-  // combinator after it and ate its follower.
-  function flattenUnits(unit) {
-    if (Array.isArray(unit)) return unit.flatMap(flattenUnits);
-    return [unit];
-  }
-
-  function absorbedUnit(step) {
-    return { combinator: null, step };
-  }
-
-  function followerUnitsOf(follower) {
-    return Array.isArray(follower) ? follower : [absorbedUnit(follower)];
-  }
-
-  // A doc-attached sequence in continuation position hands its first
-  // element the pipe its doc comment absorbed.
-  function absorbedSequence(step) {
-    if (Array.isArray(step)) return [{ combinator: '|', step: step[0] }, ...step.slice(1)];
-    return { combinator: '|', step };
-  }
-
-  // The docs of a doc-attached sequence ride the step after them; plain
-  // comments interleaved with them stand as identity steps before it.
+  // The docs of a doc-attached sequence ride the declaration after them.
   function attachDocs(firstDoc, rest, step) {
-    const docs = [];
-    const plainSteps = [];
-    for (const item of [firstDoc, ...rest.map(t => t[1])]) {
-      if (item.type === 'LineDocComment' || item.type === 'BlockDocComment') docs.push(item.content);
-      else plainSteps.push(item);
-    }
     const existingDocs = Array.isArray(step.docs) ? step.docs : [];
-    const bound = withDocs(step, [...docs, ...existingDocs]);
+    const bound = { ...step, docs: [firstDoc.content, ...rest.map(doc => doc.content), ...existingDocs] };
     bound.docPrefixStart = firstDoc.location.start.offset;
-    if (plainSteps.length === 0) return bound;
-    return [
-      plainSteps[0],
-      ...plainSteps.slice(1).map(p => ({ combinator: '|', step: p })),
-      absorbedUnit(bound)
-    ];
+    return bound;
   }
 
   function bindStepNode(key, docs, body, loc, txt) {
@@ -75,29 +36,22 @@
     if (docs && typeof docs._start === 'number') fields.docPrefixStart = docs._start;
     return node('BindStep', fields, loc, txt);
   }
-
-  // The same reading as `walk.mjs::isPlainCommentStep`, spelled here
-  // because the generated parser is its own compilation unit.
-  const PLAIN_COMMENT_STEP_TYPES = new Set(['LinePlainComment', 'BlockPlainComment']);
-  function isPlainCommentStep(astNode) {
-    return PLAIN_COMMENT_STEP_TYPES.has(astNode.type);
-  }
 }}
 
 {
-  function assemblePipeline(leadingComb, headRaw, tail, loc, txt) {
+  const commentTrivia = options.commentTrivia;
+
+  // A plain comment the parser read as whitespace, kept by its offset,
+  // since a branch the parser abandons reads the same comment again.
+  function recordComment(type, content) {
+    const loc = location();
+    commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
+  }
+
+  function assemblePipeline(leadingComb, head, tail, loc, txt) {
     const hasLeadingComb = leadingComb !== null;
-    const headUnits = Array.isArray(headRaw) ? headRaw : [headRaw];
-    const head = headUnits[0];
-    const rest = [...headUnits.slice(1), ...tail.flatMap(flattenUnits)];
-    if (hasLeadingComb && isPlainCommentStep(head)) {
-      const firstOperandUnit = rest.find(u => !isPlainCommentStep(u.step));
-      if (firstOperandUnit !== undefined && firstOperandUnit.combinator !== null) {
-        error('a leading combinator and an explicit combinator both address the first operand step after a comment head');
-      }
-    }
-    if (rest.length === 0 && !hasLeadingComb) return head;
-    const fields = { steps: [head, ...rest.map(u => ({ combinator: u.combinator, step: u.step }))] };
+    if (tail.length === 0 && !hasLeadingComb) return head;
+    const fields = { steps: [head, ...tail] };
     if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
     return node('Pipeline', fields, loc, txt);
   }
@@ -107,8 +61,12 @@
   }
 }
 
+// A source of whitespace alone, comments among it, is the empty
+// pipeline, which answers the value it is handed, as the empty quote
+// does [D81].
 Query
   = _ p:LinePipeline _ { return p; }
+  / _ { return node('Blank', {}, location(), text()); }
 
 // ── Pipelines ──────────────────────────────────────────────────────
 //
@@ -118,12 +76,12 @@ Query
 // for.
 
 Pipeline
-  = leadingComb:(LeadingCombinator __)? headRaw:PipelineHead tail:ContinuationUnit*
-    { return assemblePipeline(leadingComb, headRaw, tail, location(), text()); }
+  = leadingComb:(LeadingCombinator __)? head:PipelineHead tail:ContinuationUnit*
+    { return assemblePipeline(leadingComb, head, tail, location(), text()); }
 
 LinePipeline
-  = leadingComb:(LeadingCombinator __)? headRaw:LinePipelineHead tail:LineContinuationUnit*
-    { return assemblePipeline(leadingComb, headRaw, tail, location(), text()); }
+  = leadingComb:(LeadingCombinator __)? head:LinePipelineHead tail:LineContinuationUnit*
+    { return assemblePipeline(leadingComb, head, tail, location(), text()); }
 
 // The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe.
@@ -136,27 +94,21 @@ Combinator
   / "*"  { return '*'; }
 
 PipelineHead
-  = c:BlockPlainComment _ follower:FollowerUnit { return [c, ...followerUnitsOf(follower)]; }
-  / c:LinePlainComment _ follower:FollowerUnit { return [c, ...followerUnitsOf(follower)]; }
-  / DocAttachedSequence
-  / PlainCommentStep
+  = DocAttachedSequence
   / BindStep
   / Step
   / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
-  = c:BlockPlainComment _ follower:LineFollowerUnit { return [c, ...followerUnitsOf(follower)]; }
-  / c:LinePlainComment _ follower:LineFollowerUnit { return [c, ...followerUnitsOf(follower)]; }
-  / LineDocAttachedSequence
-  / PlainCommentStep
+  = LineDocAttachedSequence
   / LineBindStep
   / LineStep
   / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
+// A doc comment's opening `|` is the pipe to the declaration it
+// documents or to the doc value it is.
 ContinuationUnit
-  = _ c:PlainCommentStep _ follower:FollowerUnit
-    { return [{ combinator: '|', step: c }, ...followerUnitsOf(follower)]; }
-  / _ u:AbsorbedCommentContinuation { return u; }
+  = _ step:DocAttachedSequence { return { combinator: '|', step }; }
   / _ step:DocLit { return { combinator: '|', step }; }
   / __ step:BindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:StepAfterCombinator { return { combinator: c, step }; }
@@ -165,9 +117,7 @@ ContinuationUnit
 // A break with a combinator at neither end stands for `|` at the top
 // level.
 LineContinuationUnit
-  = _ c:PlainCommentStep _ follower:LineFollowerUnit
-    { return [{ combinator: '|', step: c }, ...followerUnitsOf(follower)]; }
-  / _ u:LineAbsorbedCommentContinuation { return u; }
+  = _ step:LineDocAttachedSequence { return { combinator: '|', step }; }
   / _ step:DocLit { return { combinator: '|', step }; }
   / __ step:LineBindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
@@ -184,28 +134,6 @@ SpacingRefusal
   / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
   / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
 
-FollowerUnit
-  = c:PlainCommentStep _ inner:FollowerUnit { return [{ combinator: '|', step: c }, ...followerUnitsOf(inner)]; }
-  / DocAttachedSequence
-  / PlainCommentStep
-  / BindStep
-  / Step
-
-LineFollowerUnit
-  = c:PlainCommentStep _ inner:LineFollowerUnit { return [{ combinator: '|', step: c }, ...followerUnitsOf(inner)]; }
-  / LineDocAttachedSequence
-  / PlainCommentStep
-  / LineBindStep
-  / LineStep
-
-AbsorbedCommentContinuation
-  = step:DocAttachedSequence { return absorbedSequence(step); }
-  / step:PlainCommentStep { return { combinator: '|', step }; }
-
-LineAbsorbedCommentContinuation
-  = step:LineDocAttachedSequence { return absorbedSequence(step); }
-  / step:PlainCommentStep { return { combinator: '|', step }; }
-
 StepAfterCombinator
   = DocAttachedSequence
   / BindStep
@@ -216,27 +144,22 @@ LineStepAfterCombinator
   / LineBindStep
   / LineStep
 
-// One or more doc comments, optionally interleaved with plain ones,
-// attached to the declaration after them [D70]; each doc comment is
-// one entry of the declaration's `docs`. Before any other step a doc
-// comment is a standalone doc value.
+// One or more doc comments attached to the declaration after them
+// [D70]; each doc comment is one entry of the declaration's `docs`.
+// Before any other step a doc comment is a standalone doc value.
 DocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:BindStep
+  = firstDoc:DocComment rest:(_ @DocComment)* _ step:BindStep
     { return attachDocs(firstDoc, rest, step); }
 
 LineDocAttachedSequence
-  = firstDoc:DocComment rest:(_ DocOrPlainItem)* _ step:LineBindStep
+  = firstDoc:DocComment rest:(_ @DocComment)* _ step:LineBindStep
     { return attachDocs(firstDoc, rest, step); }
-
-DocOrPlainItem
-  = DocComment
-  / PlainCommentStep
 
 DocComment
   = LineDocComment
   / BlockDocComment
 
-PlainCommentStep
+PlainComment
   = LinePlainComment
   / BlockPlainComment
 
@@ -256,11 +179,11 @@ BlockDocComment
 
 LinePlainComment
   = "|~|" content:LineCommentContent
-  { return node('LinePlainComment', { content }, location(), text()); }
+  { recordComment('LinePlainComment', content); }
 
 BlockPlainComment
   = "|~" ![|~] content:BlockPlainContent "~|"
-  { return node('BlockPlainComment', { content }, location(), text()); }
+  { recordComment('BlockPlainComment', content); }
 
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
@@ -357,18 +280,12 @@ BindName
   = key:Keyword         { return key; }
   / key:BareTypeKeyword { return key; }
 
-// The doc prefix after the name; plain comments between its docs stay
-// layout. `docs._start` carries the prefix's offset to the tools.
+// The doc prefix after the name. `docs._start` carries the prefix's
+// offset to the tools.
 DocPrefix
-  = first:DocComment rest:(_ DocOrPlainItem)*
+  = first:DocComment rest:(_ @DocComment)*
     {
-      const items = [first, ...rest.map(r => r[1])];
-      const docs = [];
-      for (const item of items) {
-        if (item.type === 'LineDocComment' || item.type === 'BlockDocComment') {
-          docs.push(item.content);
-        }
-      }
+      const docs = [first.content, ...rest.map(doc => doc.content)];
       docs._start = first.location.start.offset;
       return docs;
     }
@@ -533,26 +450,26 @@ DocLit
 // ── Literals ───────────────────────────────────────────────────────
 
 ErrorLit
-  = "!{" _L "}"
+  = "!{" _ "}"
     { return node('ErrorLit', { entries: [] }, location(), text()); }
-  / "!{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
+  / "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     { return node('ErrorLit', { entries: [head, ...tail] }, location(), text()); }
 
 // Braces with string keys and commas are JSON syntax for a map, whose
 // keys read as the keywords of their strings; a literal mixing the two
 // spellings is refused.
 MapLit
-  = "{" _L head:JsonMapEntry tail:(_L "," _L @JsonMapEntry)* _L "}"
+  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ "}"
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
-  / "{" _L head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _L "}"
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
-  / "{" _L "}"
+  / "{" _ "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _L QlangMapEntry (_L QlangMapEntry)* _L !"}" !Keyword Element
+  / "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
     { error('a map entry holds one word; a command with modifiers or a pipeline stands in parentheses there: `{:k (f x)}`'); }
 
 JsonMapEntry
-  = key:StringLit _L ":" _L value:Element
+  = key:StringLit _ ":" _ value:Element
     { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, location(), text()); }
 
 QlangMapEntry
@@ -560,30 +477,30 @@ QlangMapEntry
     { return node('MapEntry', { key, value }, location(), text()); }
 
 SetLit
-  = "#[" _L "]"
+  = "#[" _ "]"
     { return node('SetLit', { elements: [] }, location(), text()); }
-  / "#[" _L elements:ElementList _L "]"
+  / "#[" _ elements:ElementList _ "]"
     { return node('SetLit', { elements }, location(), text()); }
 
 // Brackets with commas are JSON syntax for a vector; whitespace-separated
 // elements are the vector's own.
 VecLit
-  = "[" _L head:Element tail:(_L "," _L @Element)+ _L "]"
+  = "[" _ head:Element tail:(_ "," _ @Element)+ _ "]"
     { return node('VecLit', { elements: [head, ...tail] }, location(), text()); }
-  / "[" _L elements:ElementList _L "]"
+  / "[" _ elements:ElementList _ "]"
     { return node('VecLit', { elements }, location(), text()); }
-  / "[" _L "]"
+  / "[" _ "]"
     { return node('VecLit', { elements: [] }, location(), text()); }
 
 ElementList
   = head:Element tail:(LiteralGap @Element)*
     { return [head, ...tail]; }
 
-// The words of a literal are set off by whitespace or a comment, so a
-// call written by habit, `[mul(2)]`, is refused where it would read as
-// two elements.
+// The words of a literal are set off by whitespace, a comment among it,
+// so a call written by habit, `[mul(2)]`, is refused where it would read
+// as two elements.
 LiteralGap
-  = (Whitespace / PlainCommentStep)+
+  = __
   / &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
 // `/` alone is the identity projection; a segment is a bare key, a
@@ -686,17 +603,18 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 // ── Whitespace ─────────────────────────────────────────────────────
 //
 // `_` is optional whitespace, `__` required whitespace, `_h` and `_h1`
-// optional and required whitespace within a line, `_L` whitespace
-// inside a literal, where a plain comment is whitespace too.
+// optional and required whitespace within a line; a plain comment is
+// whitespace, and its line breaks end no line [D81].
 
 _   = Whitespace*
-_L  = (Whitespace / PlainCommentStep)*
 __  = Whitespace+
-_h  = [ \t]*
-_h1 = [ \t]+
+_h  = InlineSpace*
+_h1 = InlineSpace+
 
 Newline = "\r"? "\n"
 
-Whitespace = [ \t\n\r]
+Whitespace "whitespace" = [ \t\n\r] / PlainComment
+
+InlineSpace "whitespace" = [ \t] / PlainComment
 
 NonSpace = [^ \t\n\r]

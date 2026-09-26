@@ -65,23 +65,6 @@ export function tokenize(src, builtinNames) {
   return interleaveGapTokens(src, semanticSpans);
 }
 
-// Recursive call from QuoteLit handling: tokenise the Quote body
-// the same way as the top-level source, a leading combinator included
-// (`~(| count)`, `~(* mul 2)`). A body that does not read at the top
-// level falls back to a single whitespace span, so the renderer still
-// paints it uniformly italic.
-function subTokenize(src, builtinNames) {
-  if (src.length === 0) return [];
-  let ast;
-  try {
-    ast = parse(src);
-  } catch {
-    return [{ start: 0, end: src.length, kind: 'whitespace' }];
-  }
-  const semanticSpans = collectSemanticSpans(src, ast, builtinNames);
-  return interleaveGapTokens(src, semanticSpans);
-}
-
 // ── AST-driven semantic spans ──────────────────────────────────
 
 // Walk the AST, harvest spans for the leaf nodes that carry
@@ -90,17 +73,15 @@ function subTokenize(src, builtinNames) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  const spans = [];
+  // A plain comment is whitespace the parser keeps on the side [D81].
+  const spans = ast.comments.map(comment =>
+    ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 
   walkAst(ast, (node) => {
     const startOffset = node.location.start.offset;
     const endOffset   = node.location.end.offset;
 
     switch (node.type) {
-      case 'LinePlainComment':
-      case 'LineDocComment':
-      case 'BlockPlainComment':
-      case 'BlockDocComment':
       case 'DocLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'comment' });
         return false;
@@ -136,7 +117,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         const bodyEnd = isShortForm ? endOffset : endOffset - 1;
         spans.push({ start: startOffset, end: bodyStart, kind: 'quote' });
         const innerSource = src.slice(bodyStart, bodyEnd);
-        const innerSpans = subTokenize(innerSource, builtinNames);
+        const innerSpans = tokenize(innerSource, builtinNames);
         for (const inner of innerSpans) {
           spans.push({
             start: bodyStart + inner.start,

@@ -318,12 +318,13 @@ describe('parse — ParenGroup', () => {
 });
 
 describe('parse — comments and whitespace', () => {
-  it('parses inline pipeline line comment as identity step', () => {
+  it('reads a line comment as whitespace and keeps it on the side', () => {
     const ast = parse(`|~| this is a comment
       | [1 2 3] | count`);
     expect(ast.type).toBe('Pipeline');
-    expect(ast.steps[0].type).toBe('LinePlainComment');
-    expect(ast.steps[0].content).toBe(' this is a comment');
+    expect(ast.steps[0].type).toBe('VecLit');
+    expect(ast.comments.map(comment => [comment.type, comment.content]))
+      .toEqual([['LinePlainComment', ' this is a comment']]);
   });
 
   it('handles multi-line pipelines', () => {
@@ -336,20 +337,18 @@ describe('parse — comments and whitespace', () => {
     expect(ast.steps).toHaveLength(3);
   });
 
-  it('stamps the absorbed marker on the follower of a plain comment and keeps an explicit combinator', () => {
-    const absorbedHead = parse('|~ note ~| count');
-    expect(absorbedHead.steps[1].combinator).toBe(null);
-    const explicitHead = parse('(|~ note ~| * add 1)').pipeline;
-    expect(explicitHead.steps[1].combinator).toBe('*');
-    const midPipeline = parse('[1] |~ note ~| count');
-    expect(midPipeline.steps[1].combinator).toBe('|');
-    expect(midPipeline.steps[2].combinator).toBe(null);
-    const nestedChain = parse('|~ one ~| |~ two ~| count');
-    expect(nestedChain.steps[1].combinator).toBe('|');
-    expect(nestedChain.steps[2].combinator).toBe(null);
-    const docAfterPlain = parse('|~ note ~| |~~| about x\n:x 1');
-    expect(docAfterPlain.steps[1].combinator).toBe(null);
-    expect(docAfterPlain.steps[1].step.type).toBe('BindStep');
+  it('reads a comment where a word would touch another as no pipe', () => {
+    expect(parse('|~ note ~| count').type).toBe('OperandCall');
+    expect(parse('(|~ note ~| * add 1)').pipeline.leadingCombinator).toBe('*');
+    expect(() => parse('[1] |~ note ~| count')).toThrow(ParseError);
+    expect(parse('[1] | |~ note ~| count').steps[1].combinator).toBe('|');
+    expect(parse('|~ note ~| |~~| about x\n:x 1').type).toBe('BindStep');
+  });
+
+  it('reads a source of comments alone as the blank pipeline', () => {
+    const ast = parse('|~ only a note ~|');
+    expect(ast.type).toBe('Blank');
+    expect(ast.comments).toHaveLength(1);
   });
 });
 
@@ -687,10 +686,10 @@ describe('parser doc-comment attachment Vec semantics', () => {
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });
 
-  it('comment step is identity on pipeValue', async () => {
+  it('a comment is whitespace between the steps of a pipeline', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
-    expect(await evalQuery('[1 2 3] |~ block annotation ~| count')).toBe(3);
+    expect(await evalQuery('[1 2 3] |~ block annotation ~| | count')).toBe(3);
   });
 });
 
@@ -711,10 +710,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
 // terminates the body; (4) every unbalanced/malformed nesting raises
 // ParseError with a usable location.
 describe('parse — block comment nesting', () => {
-  const blockStep = (src) => {
-    const ast = parse(src);
-    return ast.steps[0];
-  };
+  const blockStep = (src) => parse(src).comments[0];
 
   describe('positive — content captured verbatim', () => {
     it('plain block nests plain block pair', () => {
@@ -771,7 +767,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('plain block empty body', () => {
-      const step = blockStep('|~~|\n| 1');
+      const step = parse('|~~|\n| 1').steps[0];
       expect(step.type).toBe('DocLit');
     });
 
@@ -943,7 +939,7 @@ describe('parse — block comment nesting', () => {
 
     it.each(cases)('reproduces .content from source slice — %s', (src) => {
       const ast = parse(src + '\n| 0');
-      const step = ast.steps[0];
+      const step = src.startsWith('|~~') ? ast.steps[0] : ast.comments[0];
       const opener = src.startsWith('|~~') ? '|~~' : '|~';
       const closer = src.startsWith('|~~') ? '~~|' : '~|';
       const expected = src.slice(opener.length, src.length - closer.length);

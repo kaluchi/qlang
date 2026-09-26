@@ -882,37 +882,25 @@ modifiers the parser gives the command (`lsp/src/features.mjs`,
 `signatureHelpAtOffset`) and labels them from the descriptor's
 `:modifiers`; it reads the slot record once the runtime executes one.
 
-### Comments that are steps
+### A doc in two nodes
 
-Comments are pipeline steps that absorb the combinators on either
-side; a line comment eats to the end of the line, so the closing marker
-shown in the reference is cosmetic and swallows whatever follows it:
-
-```qlang
-> 1 |~| c |~| add(1)
-1
-```
-
-A fifth of the grammar's rules parse four comment forms, their nesting,
-their absorption of combinators, and their attachment to bindings as
-documentation, and both productions of a pipeline, the one inside
-brackets and the one of a line, carry them; the evaluator carries two
-branches to step around them. A doc comment attaches only to a
-declaration [D70]; before any other step it is a parse error. Two
-syntax-tree nodes carry the same doc text depending on where it stands,
-the declaration it documents and the doc literal it is anywhere else.
+A plain comment is whitespace [D81]. The doc forms keep a fifth of the
+grammar's rules, which read the four comment forms, their nesting and
+the attachment of a doc to a declaration, before its name or between
+its name and its body. A doc comment attaches only to a declaration
+[D70]; before any other step it is a parse error. Two syntax-tree nodes
+carry the same doc text depending on where it stands, the declaration
+it documents and the doc literal it is anywhere else.
 
 ```sh
 $ awk '/^[A-Z][A-Za-z0-9_]*[ \t]*$/ || /^[A-Z][A-Za-z0-9_]* *=/{n++; if ($1 ~ /Comment|Doc|Absorbed/) c++} END{print n, c}' core/src/grammar.peggy
-98 20
+92 17
 ```
 
-The repair must make comments trivia at the level of whitespace and
-must give documentation its own slot with its own literal, which doc
-already is: the doc form `|~~ … ~~|` is that literal today, a
+The repair must give documentation its own slot with its own literal,
+which doc already is: the doc form `|~~ … ~~|` is that literal today, a
 standalone doc value anywhere and the documentation of a binding when
-it stands between the name and the body, and only the plain forms
-become whitespace.
+it stands between the name and the body.
 
 ### Modules that dissolve into their clients
 
@@ -1122,7 +1110,7 @@ $ qlang '::vec | spec | add 1' | wc -c
 
 ```qlang
 > [1 2 3] | filter ~(gt 1
-::ParseError!{ … :expected [:whitespace "|~|" "|~" "|~~|" "|~~" "!|" "|" "*" ")"] … }
+::ParseError!{ … :expected [:whitespace "|~~|" "|~~" "|~" "!|" "|" "*" ")"] … }
 ```
 
 The unclosed quote has one sensible continuation, `)`, and the error
@@ -2164,3 +2152,4 @@ maintainer wants to explore it before it is fixed.
 [D78]: decisions/D78.md
 [D79]: decisions/D79.md
 [D80]: decisions/D80.md
+[D81]: decisions/D81.md

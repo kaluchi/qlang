@@ -791,6 +791,12 @@ values, so `*` over a map replaces each value under its key:
 Type error: `*` on a value that is no container (neither Vec, Set nor Map)
 produces an Error value.
 
+The elements are evaluated one after another in their order, as the
+elements of every literal and the modifiers of a command are [D84], so
+an operand of a host with an effect meets them in that order. A host
+whose operand is better served by calls at once takes the whole vector
+and bounds its own calls.
+
 ## Construct
 
 Extract is about taking values apart. Construct is about building

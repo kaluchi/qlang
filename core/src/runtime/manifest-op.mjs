@@ -85,5 +85,7 @@ function recordNamedBy(env, subject) {
 
 bindStateReader('runExamples', async (subject, state) => {
   const quotes = await examplesOfRecord(state, recordNamedBy(state.env, subject));
-  return await Promise.all(quotes.map(q => runQuoteEntry(q, state)));
+  const entries = [];
+  for (const exampleQuote of quotes) entries.push(await runQuoteEntry(exampleQuote, state));
+  return entries;
 });

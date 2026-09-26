@@ -11,7 +11,7 @@ import { parse, ParseError } from './parse.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, envSet, envGet, envHas
 } from './state.mjs';
-import { fork, forkWith } from './fork.mjs';
+import { fork, forkEach } from './fork.mjs';
 import { applyRule10 } from './rule10.mjs';
 import {
   QlangError,
@@ -326,17 +326,10 @@ async function distribute(state, bodyNode) {
   // A map's elements are its values, and the keys travel with them.
   if (isQMap(subjectSeq)) {
     const mapEntries = [...subjectSeq];
-    const valueForks = await Promise.all(
-      mapEntries.map(([, entryValue]) => forkWith(state, entryValue, inner => evalBody(bodyPipeline, inner)))
-    );
-    return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, valueForks[index].pipeValue])));
+    const entryAnswers = await forkEach(state, mapEntries.map(([, entryValue]) => entryValue), inner => evalBody(bodyPipeline, inner));
+    return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, entryAnswers[index]])));
   }
-  const forkResults = await Promise.all(
-    subjectSeq.map(seqElement =>
-      forkWith(state, seqElement, inner => evalBody(bodyPipeline, inner))
-    )
-  );
-  const distributeResults = forkResults.map(forkedState => forkedState.pipeValue);
+  const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
   // A set distributes into the set of its images [D16].
   return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
 }
@@ -406,11 +399,11 @@ function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 
 async function evalVecLit(node, state) {
-  // Each element is a sub-pipeline forked against the outer state.
-  const elementForks = await Promise.all(
-    node.elements.map(elem => fork(state, inner => evalNode(elem, inner)))
-  );
-  return withPipeValue(state, elementForks.map(forkedState => forkedState.pipeValue));
+  // Each element is a sub-pipeline forked against the outer state, one
+  // after another in their order [D84].
+  const elementValues = [];
+  for (const elem of node.elements) elementValues.push((await fork(state, inner => evalNode(elem, inner))).pipeValue);
+  return withPipeValue(state, elementValues);
 }
 
 async function evalMapLit(node, state) {

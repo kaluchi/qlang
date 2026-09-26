@@ -35,3 +35,14 @@ export async function forkWith(state, forkPipeValue, sub) {
   const innerEnd = await sub(withPipeValue(state, forkPipeValue));
   return withPipeValue(state, innerEnd.pipeValue);
 }
+
+// forkEach(state, forkPipeValues, sub) → Promise<values>
+//
+// The forks of a sequence, each seeded with one of its values, run one
+// after another in its order [D84]; answers their pipeValues in that
+// order.
+export async function forkEach(state, forkPipeValues, sub) {
+  const answers = [];
+  for (const forkPipeValue of forkPipeValues) answers.push((await forkWith(state, forkPipeValue, sub)).pipeValue);
+  return answers;
+}

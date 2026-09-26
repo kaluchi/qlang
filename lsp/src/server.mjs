@@ -19,7 +19,7 @@ import {
   SymbolKind,
   SignatureInformation,
   ParameterInformation
-} from 'vscode-languageserver/node.js';
+} from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parse } from '@kaluchi/qlang-core';
 import {

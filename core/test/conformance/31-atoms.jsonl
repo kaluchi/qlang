@@ -1,8 +1,7 @@
-{"name":"a-shape-reads-the-atoms-by-projection","query":"[1 :a \"x\"] | apply ~([/2 [/0 /0] {:b /1}])","expect":"[\"x\" [1 1] {:b :a}]","decision":["D42","D82"]}
-{"name":"a-map-comes-back-from-the-pairs-of-its-atoms","query":"[:a 1] | [[/0 /1]] | indexBy ~(/0) * /1","expect":"{:a 1}","decision":"D42"}
-{"name":"a-tagged-value-comes-back-from-its-tag-and-payload","query":"[::Foo 1] | [/0 /1] | tag","expect":"::Foo(1)","decision":"D42"}
-{"name":"a-set-comes-back-from-its-kind-and-its-elements","query":"[::set 2 1] | [/0 [/1 /2]] | tag","expect":"#[1 2]","decision":"D42"}
-{"name":"code-comes-back-from-the-atoms-of-its-records","query":"[::quote ::call :args 1 :name :add] | ([/0 [([/1 ([[/2 [/3]] [/4 /5]] | indexBy ~(/0) * /1)] | tag)]] | tag)","expect":"~(add 1)","decision":"D42"}
-{"name":"an-error-comes-back-from-the-atoms-of-its-descriptor","query":"[::FooError :k 1 :trail null] | ([/0 ([[/1 /2] [/3 /4]] | indexBy ~(/0) * /1)] | tag | error)","expect":"::FooError!{:k 1}","decision":"D42"}
+{"name":"a-shape-reads-the-set-of-atoms-by-projection","query":"#[1 \"x\" :a :b] | apply ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])","expect":"[\"x\" [1 1] {:b :a}]","decision":["D42","D82"]}
+{"name":"a-map-comes-back-from-the-pairs-of-its-atoms","query":"#[1 :a] | [[/1 /0]] | indexBy ~(first) * last","expect":"{:a 1}","decision":"D42"}
+{"name":"a-tagged-value-comes-back-from-its-tag-and-payload","query":"#[1 ::Foo] | [/1 /0] | tag","expect":"::Foo(1)","decision":"D42"}
+{"name":"a-set-comes-back-from-its-kind-and-its-elements","query":"#[1 2 ::set] | [/2 [/0 /1]] | tag","expect":"#[1 2]","decision":"D42"}
+{"name":"code-comes-back-from-the-atoms-of-its-records","query":"#[1 :add :args :name ::call ::quote] | ([/5 [([/4 ([[/2 [/0]] [/3 /1]] | indexBy ~(first) * last)] | tag)]] | tag)","expect":"~(add 1)","decision":["D42","D82"]}
+{"name":"an-error-comes-back-from-the-atoms-of-its-descriptor","query":"#[null 1 :k :trail ::FooError] | ([/4 ([[/2 /1] [/3 /0]] | indexBy ~(first) * last)] | tag | error)","expect":"::FooError!{:k 1}","decision":["D42","D82"]}
 {"name":"the-step-of-an-error-literal-is-the-error-its-fields-build","query":"~(!{:k 1}) | [(first !| error)] | tag ::quote","expect":"~(!{:k 1})","decision":["D42","D82"]}
-{"name":"code-comes-back-through-the-constructors-of-its-steps","query":"[1 :add] | apply ~(::quote[::call{:args [/0] :name /1}])","expect":"~(add 1)","decision":["D42","D82"]}

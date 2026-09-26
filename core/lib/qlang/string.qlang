@@ -230,3 +230,26 @@
 
       ~("{not json" | parseJson !| type | eq ::ParseJsonInvalidJsonError)
   ~~|
+
+:keyword
+  |~~ The keyword the string names, bridging the world of strings, JSON
+      data and text built from parts, with the world of keywords, the
+      keys of maps and the discriminators of enums.
+
+      ~("foo" | keyword | eq :foo)
+      ~("qlang/error" | keyword | eq :qlang/error)
+      ~("bar" | keyword | keyword | eq "bar")
+  ~~|
+  ::verb~(:returns ::keyword | ::builtin{:impl :qlang/prim/keyword})
+
+:parse
+  |~~ The quote of the steps the source text spells, the reverse of
+      `parse` on a quote. Pair it with `apply /` to evaluate source
+      text without leaving qlang. A source the parser refuses answers a
+      `::ParseError` on the fail-track, which `!|` reads like every
+      other error.
+
+      ~("1 | add 1" | parse | count | eq 2)
+      ~("add 1 2" | parse | eq ~(add 1 2))
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/parse})

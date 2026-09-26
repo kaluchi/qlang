@@ -23,8 +23,9 @@ use [:qlang/runtime-invariants
      :qlang/set
      :qlang/map
      :qlang/boolean
+     :qlang/quote
+     :qlang/tagged
      :qlang/any
      :qlang/operand/typeConversion
      :qlang/operand/reflective
-     :qlang/operand/codeAsData
      :qlang/operand/axis]

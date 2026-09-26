@@ -398,20 +398,20 @@ describe('descriptor Maps in pipeValue round-trip through render', async () => {
 
   it('json on a raw descriptor Map carries :impl as the bare name of its keyword', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('::keyword/keyword | spec | json');
+    const jsonOutput = await evalQuery('::any/tag | spec | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":"qlang/prim/keyword"');
+    expect(jsonOutput).toContain('"impl":"qlang/prim/tag"');
   });
 
   it('projection at :impl lands on the handle keyword', async () => {
-    // `::keyword/keyword | spec | /:impl` reads the descriptor's handle keyword
+    // `::any/tag | spec | /:impl` reads the descriptor's handle keyword
     // (note the namespaced keyword segment `/:impl` — without the
     // colon the slash splits into two bare segments), so the
     // descriptor projects as data all the way down.
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isKeyword } = await import('../../src/types.mjs');
-    const handle = await evalQuery('::keyword/keyword | spec | /:impl');
+    const handle = await evalQuery('::any/tag | spec | /:impl');
     expect(isKeyword(handle)).toBe(true);
-    expect(handle.name).toBe('qlang/prim/keyword');
+    expect(handle.name).toBe('qlang/prim/tag');
   });
 });

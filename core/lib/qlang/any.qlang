@@ -709,3 +709,55 @@
         |  eq [::CondConditionNotBooleanError 1 ::number]
        )
   ~~|
+
+:keyword
+  |~~ The involution of strings and keywords: a string names its
+      keyword, and a keyword answers its name, so `keyword | keyword`
+      round-trips.
+
+      ~("foo" | keyword | eq :foo)
+      ~(:foo | keyword | eq "foo")
+      ~(42 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])
+  ~~|
+  ::verb~()
+
+:parse
+  |~~ The involution of source text and quotes, the way `keyword` flips
+      a string and a keyword: text reads as the quote of its steps, and
+      a quote prints back as its text.
+
+      ~("add 1 2" | parse | eq ~(add 1 2))
+      ~(~(add 1) | parse | eq "add 1")
+      ~(42 | parse !| /addresses | eq #[::quote/parse ::string/parse])
+  ~~|
+  ::verb~()
+
+:apply
+  |~~ The value of the code run against the subject, under the fork
+      rule: the declarations the code makes stay inside it, and only its
+      value comes out. The subject comes first, as for every verb, so
+      `x | apply /` runs a quote held as the subject against itself, and
+      `"src" | parse | apply /` evaluates source text.
+
+      The quote's first step rides `|` against the subject unless the
+      quote carries a leading combinator (`*`, `!|`), which routes it
+      through that combinator, so the pipeline suffix a `:trail` records
+      runs again as it is.
+
+      ~(42 | apply ~(type | eq ::null) | eq false)
+      ~([1 2 3] | apply ~(* mul 2) | eq [2 4 6])
+      ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
+      ~("10 | add 3" | parse | apply / | eq 13)
+  ~~|
+  ::verb~(:code ::quote | ::builtin{:impl :qlang/prim/apply})
+
+::ApplyCodeNotQuoteError
+  |~~ `apply` requires its captured arg to answer a Quote — the
+      code it runs against the subject.
+
+      ~(
+        42 | apply 1
+        !| [type /actualType]
+        |  eq [::ApplyCodeNotQuoteError ::number]
+       )
+  ~~|

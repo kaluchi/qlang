@@ -26,9 +26,10 @@ import vecNounSource           from '@kaluchi/qlang-core/lib/qlang/vec.qlang';
 import setSource               from '@kaluchi/qlang-core/lib/qlang/set.qlang';
 import mapSource               from '@kaluchi/qlang-core/lib/qlang/map.qlang';
 import booleanSource           from '@kaluchi/qlang-core/lib/qlang/boolean.qlang';
+import quoteSource             from '@kaluchi/qlang-core/lib/qlang/quote.qlang';
+import taggedSource            from '@kaluchi/qlang-core/lib/qlang/tagged.qlang';
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
-import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
 
@@ -46,9 +47,10 @@ const CATALOG = new Map([
   ['qlang/set',                     setSource],
   ['qlang/map',                     mapSource],
   ['qlang/boolean',                 booleanSource],
+  ['qlang/quote',                   quoteSource],
+  ['qlang/tagged',                  taggedSource],
   ['qlang/any',                     anySource],
   ['qlang/operand/axis',            axisSource],
-  ['qlang/operand/codeAsData',    codeAsDataSource],
   ['qlang/operand/reflective',      reflectiveSource],
   ['qlang/operand/typeConversion', typeConversionSource]
 ]);

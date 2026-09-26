@@ -51,8 +51,8 @@ describe('the verbs that live on a kind', () => {
     expect(await evalQuery('::qlang/vec/count')).toEqual(makeTagKeyword('vec/count'));
   });
 
-  it('a verb of any tagged value lives beneath every kind', async () => {
-    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/within')).toBe(true);
+  it('a verb of any tagged value lives on the kind of tagged values', async () => {
+    expect(await evalQuery('::tagged | spec | /verbs | has ::tagged/within')).toBe(true);
   });
 
   it('a verb that declares no subject takes any', async () => {

@@ -2097,7 +2097,14 @@ with: «просто если переносить символ !перед тэ
 все что правее это дальше ошибка .. то было не удобно тебе в клод код
 вставлять .. т.к. этот ! переводил поле ввода в режим командной строки»
 (09:46), so the order of its characters says nothing of which layer is
-on top.
+on top. The bang after the tag is the stronger signal as well: «просто
+AddLeftNotNumberError! с восклицательным знаком Error! это более сильный
+сигнал для моделей впервые видящих qlang - что полученное не результат
+успешно исполнения пайплайна, а что-то другое» (09:56). The spelling
+stays, brackets that would put the bang in front, `!(::Tag{…})`, being
+too much for the maintainer, who leaves the reading to the grammar:
+«вероятно да, грамматика такое может наверное отсечь сама и по
+построению исключить любую левую интерпретацию» (09:56).
 
 The model's reading of it is that an error is the outermost layer of its
 value. `::Foo!{…}` is one literal, an error whose content carries the

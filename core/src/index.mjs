@@ -63,8 +63,7 @@
 //   value-class construction   — makeTagKeyword, makeQuote, makeDoc,
 //                                makeErrorValue, errorFromKindDescriptor,
 //                                makeTaggedInstance, stampTagHeader,
-//                                appendTrailNode, materializeTrail, plus
-//                                the identity TagKeyword constants
+//                                plus the identity TagKeyword constants
 //                                (BUILTIN_TAG / ERROR_TAG /
 //                                PARSE_ERROR_TAG / BINDING_TAG /
 //                                TAG_BINDING_TAG) and the
@@ -110,7 +109,6 @@ import {
   triviaBetweenAstNodes
 } from './walk.mjs';
 import { quoteOfSource, printQuoteSource, astOfQuote } from './quote.mjs';
-import { materializeTrail } from './eval-trail.mjs';
 import {
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier
@@ -157,7 +155,6 @@ import {
   PARSE_ERROR_TAG,
   BINDING_TAG,
   TAG_BINDING_TAG,
-  appendTrailNode,
   describeType,
   typeKeyword
 } from './types.mjs';
@@ -243,8 +240,6 @@ export {
   PARSE_ERROR_TAG,
   BINDING_TAG,
   TAG_BINDING_TAG,
-  appendTrailNode,
-  materializeTrail,
   describeType,
   typeKeyword,
   signatureSpecOf,

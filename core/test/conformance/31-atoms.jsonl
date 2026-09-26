@@ -3,5 +3,5 @@
 {"name":"a-tagged-value-comes-back-from-its-tag-and-payload","query":"#[1 ::Foo] | [/1 /0] | tag","expect":"::Foo(1)","decision":"D42"}
 {"name":"a-set-comes-back-from-its-kind-and-its-elements","query":"#[1 2 ::set] | [/2 [/0 /1]] | tag","expect":"#[1 2]","decision":"D42"}
 {"name":"code-comes-back-from-the-atoms-of-its-records","query":"#[1 :add :args :name ::call ::quote] | ([/5 [([/4 ([[/2 [/0]] [/3 /1]] | indexBy ~(first) * last)] | tag)]] | tag)","expect":"~(add 1)","decision":["D42","D82"]}
-{"name":"an-error-comes-back-from-the-atoms-of-its-descriptor","query":"#[null 1 :k :trail ::FooError] | ([/4 ([[/2 /1] [/3 /0]] | indexBy ~(first) * last)] | tag | error)","expect":"::FooError!{:k 1}","decision":["D42","D82"]}
-{"name":"the-step-of-an-error-literal-is-the-error-its-fields-build","query":"~(!{:k 1}) | [(first !| error)] | tag ::quote","expect":"~(!{:k 1})","decision":["D42","D82"]}
+{"name":"an-error-comes-back-from-the-atoms-of-its-descriptor","query":"#[1 :k :trail ::FooError] | [/3 ([[/1 /0] [/2 []]] | indexBy ~(first) * last)] | tag | error","expect":"::FooError!{:k 1}","decision":["D42","D82","D85"]}
+{"name":"the-step-of-an-error-literal-is-the-error-its-fields-build","query":"~(!{:k 1}) | [(first !| union {:trail []} | error)] | tag ::quote","expect":"~(!{:k 1})","decision":["D42","D82","D85"]}

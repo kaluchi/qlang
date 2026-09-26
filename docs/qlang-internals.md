@@ -35,9 +35,9 @@ The state of query evaluation is a pair `(pipeValue, env)`:
   Any of Scalar, Vec, Map, Set, Error, or a function (partial or
   complete). When `pipeValue` is an error value, the combinator at
   each call site decides whether its step fires: `|` and `*`
-  are success-track combinators and deflect (stamping the
-  upcoming step's source slice onto the error's trail as a
-  fragment); `!|` is the
+  are success-track combinators and deflect (recording the
+  upcoming step in the `:skipped` of the error's last stop);
+  `!|` is the
   fail-track combinator and fires its step against the error's
   materialized descriptor. Track dispatch lives exclusively in
   `applyCombinator`; `evalNode` is a pure AST-node-type dispatcher.
@@ -439,9 +439,9 @@ inner ErrorValue without touching its descriptor).
 Three combinators thread state between steps. Two are on the
 success-track (`|`, `*`) and fire their step when
 `pipeValue` is any non-error value; on an error `pipeValue` they
-**deflect** — `trailEntry(stepNode, kind)` stamps the step's source
-slice plus the combinator kind onto the error's `_trailHead` via
-`appendTrailNode` and the error passes downstream unchanged. One is on the fail-track (`!|`) and
+**deflect** — `skipping` (`eval-trail.mjs`) records the step in the
+`:skipped` of the error's last stop and the error passes downstream
+unchanged [D85]. One is on the fail-track (`!|`) and
 fires its step only when `pipeValue` is an error; on a success
 `pipeValue` it deflects as identity pass-through.
 
@@ -454,11 +454,12 @@ fires its step only when `pipeValue` is an error; on a success
 Left-to-right state threading for success-track values.
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
-value, `|` stamps a `trailEntry` fragment — `nextStep`'s source
-slice plus the `|` kind — onto the error's trail (via
-`appendTrailNode`) and returns the error as the new `pipeValue`;
-`nextStep` stays unevaluated. Implementation:
-`applySuccessTrack` in `eval.mjs`.
+value, `|` records the step of `nextStep`, `stepOfNode(nextStep)`, in
+the `:skipped` of the error's last stop (`skipping`) and returns the
+error as the new `pipeValue`; `nextStep` stays unevaluated. When
+`nextStep` runs and answers an error its subject was not,
+`answerOfStep` adds the stop `{:step :subject :skipped}` that names
+it. Implementation: `applySuccessTrack` in `eval.mjs`.
 
 ### `!|` — fail-apply
 
@@ -470,20 +471,19 @@ slice plus the `|` kind — onto the error's trail (via
         (pipeValue, env) unchanged (identity pass-through)
 
 Fail-track dispatch dual of `|`. When `pipeValue` is an error,
-`applyFailTrack` combines the descriptor's existing `:trail` Quote
-with the fragments walked out of `_trailHead` into one Quote,
-forges a fresh descriptor Map carrying every data field plus the
-combined Quote on `:trail`, stamps the error's identity tag onto
+`applyFailTrack` forges a fresh descriptor Map carrying every field,
+the path on `:trail` among them, stamps the error's identity tag onto
 that Map's JS-header slot, and evaluates `nextStep` against it as
 the new `pipeValue` — so `!| type` reads the identity and `!|
-/trail` reads the suffix. The step sees the descriptor as an
+/trail` reads the path. The step sees the descriptor as an
 ordinary Map and may use any Map-oriented operand (`/key`, `has`,
-`keys`, `vals`, `union`, `/trail | apply …`, etc.) without special
+`keys`, `vals`, `union`, `/trail/-1/skipped`, etc.) without special
 error-handling knowledge. Any result the step produces becomes the new
 `pipeValue` — if the step produces a non-error value, the
 pipeline is back on the success-track; if the step re-lifts via
-`| error`, the pipeline stays on the fail-track with trail
-continuity preserved by the `makeErrorValue` invariant.
+`| error` with the `:trail` it read, the pipeline stays on the
+fail-track on the same path, since an `error` whose map writes
+`:trail` resumes it [D85].
 
 On a non-error `pipeValue` the combinator is an identity.
 
@@ -521,8 +521,8 @@ The empty Vec is a valid input: `[] * body → []` without invoking
 finite data structures.
 
 **Deflection on error pipeValue.** When `pipeValue` is an error
-value, `*` stamps `body`'s source slice onto the error's trail as a
-`*` fragment and returns the error unchanged. No per-element fork happens. On any
+value, `*` records its step, the `::each` wrapper of `body`, in the
+`:skipped` of the error's last stop and returns the error unchanged. No per-element fork happens. On any
 other non-sequence `pipeValue` the step raises `DistributeSubjectNotSequenceError`.
 
 ## Fork
@@ -1099,20 +1099,20 @@ At the catch point, `evalNode` stamps the error value's identity tag (a
 `::Tag` built from the throw site's `.name`, `::ForeignFailureError` for
 a foreign error) on the fresh ErrorValue's JS-header `tag` slot via
 `errorFromQlang` / `errorFromForeign` — opaque to descriptor projection,
-read through `result !| type`. The descriptor itself takes two flat
-fields at the head: `:faultStep` (the quote of the failing AST node,
-built by `quoteOfBody`) and `:faultInput` (the `state.pipeValue` the
-step received). No wrapper Map between them — they are the two top-level
-descriptor slots every runtime / foreign error carries. `errorFromQlang`
-additionally applies ref-equality dedup against `:faultInput` when
-stamping per-site `:actualValue` from the `QlangError.context` bag — the
-redundant lift is skipped when the offending value is the same reference
-as `:faultInput`. For `distribute` and `mergeFlat` combinator type-check
-errors, both fields are forged directly inside the combinator function
-(which has access to the correct `state.pipeValue` and `bodyNode`) and
-the error is returned as an error value without throwing — matching the
-existing deflection return pattern those combinators use for error
-pipeValues.
+read through `result !| type`. The descriptor itself holds the facts
+of the site, and the step and its subject go to the path of the error:
+`evalNode` marks the error raised by its node (`raisedBy`), and the
+step that ran the node adds the first stop of `:trail`, the quote of
+the failing step, built by `quoteOfBody`, and the `state.pipeValue`
+the step received [D85]. `errorFromQlang` applies ref-equality dedup
+against that subject when stamping per-site `:actualValue` from the
+`QlangError.context` bag — the redundant lift is skipped when the
+offending value is the same reference as the subject. For the
+`distribute` type-check error, the stop is forged directly inside the
+combinator function (which has access to the correct `state.pipeValue`
+and `bodyNode`) and the error is returned as an error value without
+throwing — matching the deflection return pattern the combinator uses
+for error pipeValues.
 
 ### Combinator-level track dispatch
 
@@ -1121,9 +1121,10 @@ which routes to one of four combinator evaluators. `evalNode` is a
 pure AST-node-type dispatcher with no track awareness.
 
 - **`|`** — `applySuccessTrack(state, stepNode)`. If `pipeValue`
-  is an error, stamps `trailEntry(stepNode, 'pipe')` onto the
-  error's `_trailHead` and returns the error unchanged. Otherwise invokes
-  `evalNode(stepNode, state)`.
+  is an error, records the step in the `:skipped` of its last stop
+  and returns the error. Otherwise invokes `evalNode(stepNode,
+  state)`, and an error the step answers that its subject was not
+  gains the stop of the step (`answerOfStep`).
 - **`!|`** — `applyFailTrack(state, stepNode)`. If `pipeValue` is
   an error, materializes its descriptor (see below) and invokes
   `evalNode(stepNode, state-with-descriptor)`. On a success
@@ -1144,64 +1145,61 @@ body, and an applied quote. The `!|` form is how predicate
 lambdas inside `filter ~(…)` / `when … ~(…)` / `if … ~(…) ~(…)` opt into
 fail-apply for their first step.
 
-### Trail and materialization
+### The path of an error
 
-Each deflection forges a `{ entry, prev }` node onto the error
-value's lazy linked list (`_trailHead`) via `appendTrailNode`.
-Every `entry` is a frozen `{ combinator, text }` fragment record
-— `combinator` is one of the `COMBINATOR_SYNTAX` keys (`pipe` /
-`distribute` / `merge`), `text` is the deflected step's verbatim
-source slice. The fragment shape stays primitive (two strings) so
-deflection itself allocates nothing beyond the cons cell.
+`:trail` is the path of an error, a vector of stops from the step
+where it arose to the step where it is read [D85]. A stop is a
+frozen Map `{:step :subject :skipped}`: the quote of a step that
+raised the error or handed it on, the `pipeValue` that step had, and
+the quote of the steps of its pipeline the error skipped after it, a
+step skipped under `*` wrapped as `::each`. `eval-trail.mjs` writes
+it as the error flows, with no pending state on the error value:
 
-When `!|` fires, `materializeTrail` (`eval-trail.mjs`) walks
-`_trailHead` in chronological order and turns the fragments into
-the quote of the deflected steps, a step deflected under `*`
-wrapped as `::each`. The quote carries the deflected steps as
-**code** — apply it after the fault site and the pipeline tail
-re-runs; `parse` prints it, and every container operand reads its
-steps:
+- `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a
+  step of a pipeline. An error its subject was not gains the stop of
+  the step; an error that resumes a path it was given adds none.
+- `skipping(error, step)` — a step the error skips joins the
+  `:skipped` of the last stop.
+- `answerOfWord(answer, wordNode, subject)` — the answer of an
+  element of a container literal. An error the word raised itself,
+  marked by `raisedBy` at the `evalNode` catch point, gains the stop
+  of the word; an error handed on from inside the word stays as it
+  is until a step takes it out of the container.
+- `resumingItsTrail(error)` — marks an error that an error literal
+  or the `error` operand built from a map that writes `:trail`, so
+  the step that answers it adds no stop and the path continues.
 
-    error !| /trail | parse                    -- the suffix as text
-    error !| /trail | count                    -- step count
-    error !| /trail | last | /name             -- last step's operand
+A stop at every level makes the path of an error the path of the
+computation: the call of a verb, a group and an operand that runs a
+quote each answer an error from inside them and add a stop after the
+stops inside. The last stop belongs to the level that reads the
+error, so its `:skipped` replays there:
 
-The trail folds into `:trail` on a fresh descriptor when `!|`
-fires: `applyFailTrack` reads the descriptor's existing `:trail`
-Quote-or-null, walks `_trailHead` via `materializeTrail` to lift
-deflections accumulated since the last materialization,
-concatenates the two source-strings through `combineTrailQuotes`,
-and forges a fresh descriptor Map carrying the joined Quote on
-`:trail`. The exposed descriptor flows into the step as
-pipeValue.
+    error !| /trail/-1/skipped | parse         -- the steps skipped here, as text
+    error !| /trail | first | /step            -- the step where it arose
+    error !| /trail * /step                    -- a step at every level
 
 Trail continuity across re-lift: when a step running under `!|`
-returns a Map and a later `| error` re-wraps it, the new error's
-descriptor retains the `:trail` Quote the step handed back, and
-subsequent deflections accumulate into a fresh `_trailHead`
-linked list. The next `!|` combines both sources again —
-continuous accumulation through any number of re-lift boundaries
-without losing history. Explicit truncation: `union {:trail null}`
-inside a fail-apply step before re-lift drops the prior suffix
-while letting future deflections re-grow it.
+returns a Map with the `:trail` it read and a later `| error`
+re-wraps it, the new error resumes that path, and the steps it skips
+join its last stop again. A Map without `:trail` starts a path at
+the `error` that lifts it.
 
 ### Descriptor shape and invariant
 
 `makeErrorValue` (in `types.mjs`) enforces a single invariant:
-every error descriptor carries `:trail` as either a Quote-value
-or `null`. Callers supplying an explicit `:trail` in the input
-descriptor (user literal `!{:trail ~(| count)}`, a re-lift under
-`!|`, codec replay via `fromTaggedJSON`) keep that Quote
-unchanged; callers that omit the field get `null` forged in; any
-other value under `:trail` fires `ErrorTrailNotQuoteError` at mint
-time. Hot-path readers under `!|` read `:trail` without defensive
-fallbacks.
+every error descriptor carries `:trail` as a vector of stops, each a
+Map with the quote of its skipped steps under `:skipped`. Callers
+supplying an explicit `:trail` in the input descriptor (a literal
+that writes one, a re-lift under `!|`, codec replay via
+`fromTaggedJSON`) keep that vector unchanged; callers that omit the
+field get the empty path forged in; any other value under `:trail`
+fires `ErrorTrailNotVecError` at mint time. Hot-path readers read
+`:trail` without defensive fallbacks.
 
 Error values produced by the runtime carry the following fields
 in addition to the invariant `:trail`:
 
-| Field | Type | Content |
-|---|---|---|
 Identity for an error value rides on the JS-header `tag` slot
 (`error.tag`, a TagKeyword) — opaque to descriptor projection,
 read directly by `typeKeyword(errorValue)` and through the
@@ -1221,11 +1219,9 @@ consumer sites.
 
 | Field | Type | Content |
 |---|---|---|
-| `:faultStep` | Quote | The quote of the failing step, built by `quoteOfBody(node)` at the `evalNode` catch point. Stamped flat onto the descriptor — no `:fault` wrapper Map. Pair with `:faultInput`. For `*` combinator type-check errors, the pair is forged directly inside `distribute` / `mergeFlat`, where `state.pipeValue` and `bodyNode` are correctly visible |
-| `:faultInput` | any | The `state.pipeValue` at step entry — the context the throw site evaluated against. Stamped flat alongside `:faultStep` |
-| `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /faultInput \| type` walk |
-| `:actualValue` | any | Stamped **only** when the throw site drilled below `:faultInput` (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, `:faultInput` is the outer context». Absent → the fault landed at the top of `:faultInput` and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against `:faultInput`, so per-site code never needs to ask «did I drill?» before stamping |
-| `:trail` | Quote or null | The quote of every step a success-track combinator deflected, one deflected under `*` wrapped as `::each`, built by `materializeTrail` + `combineTrailQuotes`, folded in when `!\|` fires and again by `materializePendingTrail` at the query / cell boundary. `null` until the first deflection; readable through `/source` (raw text) or `/ast` (lazy AST-Map) |
+| `:actualType` | Keyword | The `typeKeyword` of the value the throw site inspected — `:string`, `:vec`, etc. Always stamped: denormalized hint so `result !\| /actualType` lands in one projection instead of `result !\| /trail/0/subject \| type` walk |
+| `:actualValue` | any | Stamped **only** when the throw site drilled below the subject of the step (multi-segment projection intermediate, element-iteration target, full-application captured-arg result). Its presence is a type-level signal: «the offending sub-value is here, the subject is the outer context». Absent → the fault landed at the top of the subject and the latter is itself the offending value. The dedup runs ref-equality in `errorFromQlang` against the subject, so per-site code never needs to ask «did I drill?» before stamping |
+| `:trail` | Vec | The path of the error, a stop `{:step :subject :skipped}` at every step that raised it or handed it on, written by `eval-trail.mjs` as the error flows. The first stop names the failing step, the quote `quoteOfBody(node)` builds, and the `state.pipeValue` it received; the last stop's `:skipped` replays at the level that reads the error. Empty on an error no step has raised |
 
 Per-tag static facts — `:category` (broad bucket: `:typeError` /
 `:arityError` / `:parseError` / `:foreignError` /

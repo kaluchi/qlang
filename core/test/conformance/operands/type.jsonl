@@ -24,7 +24,7 @@
 {"name":"type-set-empty","query":"#[] | type","expect":"::set"}
 {"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::AddLeftNotNumberError"}
 {"name":"type-payload-reads-past-the-identity-overlay","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
-{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq ::null","expect":"::ProjectionKeyNotInMapError!{\n  :faultStep ~(/missing)\n  :faultInput {}\n  :key \"missing\"\n  :trail ~(| type | eq ::null)\n}"}
+{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq ::null","expect":"::ProjectionKeyNotInMapError!{\n  :key \"missing\"\n  :trail [\n    {\n      :step ~(/missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n}"}
 {"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
 {"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
 {"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}

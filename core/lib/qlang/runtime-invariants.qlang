@@ -446,29 +446,29 @@
 
 |~ ── 12. Error-value mint invariants ──────────────────── ~|
 
-::ErrorTrailNotQuoteError
-  |~~ `:trail` on an error descriptor is runtime-owned: a
-      Quote-value carrying the joined pipeline-suffix source, or
-      `null` before any deflection. A literal or a re-lift that
-      stamps any other value under `:trail` fires this error at
-      mint time, so the fail-track never carries a suffix that
-      `apply` cannot replay. To drop an accumulated suffix before
-      re-lift, stamp `:trail null` inside the fail-apply step.
+::ErrorTrailNotVecError
+  |~~ `:trail` on an error descriptor is the path of the error, a
+      vector of stops the runtime writes, `{:step :subject :skipped}`,
+      from the step where it arose to the step where it is read
+      [D85]. A literal or a re-lift that writes a value that is no
+      vector under `:trail` fires this error at mint time. A re-lift
+      that writes the `:trail` it read resumes that path, and one that
+      leaves it out starts a path at the step that lifts it.
 
       ~(
-        !{:kind :oops :trail [1 2]}
+        !{:kind :oops :trail 5}
         !| [type /actualType]
-        |  eq [::ErrorTrailNotQuoteError ::vec]
+        |  eq [::ErrorTrailNotVecError ::number]
        )
       ~(
         !{:kind :oops} | count
-        !| union {:trail []} | error
-        !| type | eq ::ErrorTrailNotQuoteError
+        !| union {:trail 5} | error
+        !| type | eq ::ErrorTrailNotVecError
        )
       ~(
         !{:kind :oops} | count
-        !| union {:trail null} | error | add 1
-        !| /trail | eq ~(| add 1)
+        !| minus #[:trail] | error | add 1
+        !| /trail * /step | eq [~(error)]
        )
   ~~|
 

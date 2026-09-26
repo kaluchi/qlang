@@ -2,8 +2,8 @@
 {"name":"append","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
 {"name":"prepend-empty","query":"\"x\" | prepend \"\"","expect":"\"x\""}
 {"name":"append-empty","query":"\"x\" | append \"\"","expect":"\"x\""}
-{"name":"prepend-non-string","query":"42 | prepend \"x\"","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(prepend \"x\")\n  :faultInput 42\n  :verbName :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n}"}
-{"name":"append-non-string","query":"42 | append \"x\"","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(append \"x\")\n  :faultInput 42\n  :verbName :append\n  :addresses #[::string/append ::vec/append]\n}"}
+{"name":"prepend-non-string","query":"42 | prepend \"x\"","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :verbName :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"append-non-string","query":"42 | append \"x\"","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :verbName :append\n  :addresses #[::string/append ::vec/append]\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"json-number","query":"42 | json","expect":"\"42\""}
 {"name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
 {"name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}

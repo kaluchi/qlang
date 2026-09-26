@@ -158,6 +158,6 @@ x
 [1 "x" 3] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError)
 
 |~| Trail continuity across re-lift — | error re-wraps the
-|~| enriched descriptor and a later !| reads the
-|~| accumulated :trail Quote
-!{:kind :oops} | count !| union {:request "r-1"} | error | add 1 !| /trail
+|~| enriched descriptor on the path it read, and a later !|
+|~| reads the steps the error skipped on it
+!{:kind :oops} | count !| union {:request "r-1"} | error | add 1 !| /trail/-1/skipped

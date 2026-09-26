@@ -24,6 +24,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';
+import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
@@ -71,7 +72,7 @@ describe('conformance: the requirements agree', () => {
     const contradictions = [];
     for (const [query, sameQuery] of Map.groupBy(allCases, test => test.query)) {
       if (sameQuery.length < 2) continue;
-      const answers = await Promise.all(sameQuery.map(test => evalQuery(test.expect)));
+      const answers = await Promise.all(sameQuery.map(test => expectedValueOf(test.expect)));
       if (answers.some(answer => !deepEqual(answer, answers[0]))) {
         contradictions.push(`${query}: ${sameQuery.map(test => `${test.file}#${test.name}`).join(', ')}`);
       }
@@ -96,7 +97,7 @@ for (const { file, cases } of casesByFile) {
         assertLiteralAst(expectedAst, test.name);
 
         const queryResult = await evalQuery(test.query);
-        const expectedValue = await evalQuery(test.expect);
+        const expectedValue = await expectedValueOf(test.expect);
         const answersAsExpected = deepEqual(queryResult, expectedValue);
         if (test.target === true) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();

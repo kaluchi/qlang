@@ -9,7 +9,7 @@
 {"name":"apply-parsed-projection","query":"\"{:name \\\"alice\\\" :age 30} | /name\" | parse | apply /","expect":"\"alice\"","decision":"D9"}
 {"name":"apply-parsed-distribute","query":"\"[1 2 3] * add 10\" | parse | apply /","expect":"[11 12 13]","decision":"D9"}
 {"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply /","expect":"::AddLeftNotNumberError","decision":"D9"}
-{"name":"apply-code-not-quote","query":"42 | apply /","expect":"::ApplyCodeNotQuoteError!{\n  :faultStep ~(apply /)\n  :faultInput 42\n  :actualType ::number\n}","decision":"D9"}
+{"name":"apply-code-not-quote","query":"42 | apply /","expect":"::ApplyCodeNotQuoteError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply /)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}","decision":"D9"}
 {"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10","decision":"D9"}
 {"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError ::number]","decision":"D9"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::UnresolvedIdentifierError","decision":"D9"}

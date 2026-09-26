@@ -131,17 +131,13 @@ describe('withContext — merges a context Map into the descriptor', () => {
     expect(ctxResult).toEqual(keyword('oops'));
   });
 
-  it('trail continuity survives withContext re-lift', async () => {
-    // /trail yields a Quote-value carrying the joined
-    // pipeline-suffix source. The continuity property under test:
-    // `| count` deflects into the trail as a fragment; after
-    // withContext + re-lift via the verb's internal `| error`,
-    // the :trail Quote stays populated; `| add(5)` then deflects
-    // and the outer !| concatenates that into the exposed
-    // materialized descriptor, so the printed trail holds both steps
-    // in chronological order.
-    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext {:ctx 1} | add 5 !| /trail | parse');
-    expect(ctxResult).toBe('count | add 5');
+  it('the path of the error continues through the withContext re-lift', async () => {
+    // The literal's stop keeps the step it skipped, `count`; the
+    // verb's internal `| error` resumes the path the fail track read,
+    // and the call of the verb, a step that answers an error from
+    // inside it, adds its own stop, where `add 5` lands [D85].
+    const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext {:ctx 1} | add 5 !| /trail * [(/step | parse) (/skipped | parse)]');
+    expect(ctxResult).toEqual([['!{:kind :oops}', 'count'], ['withContext {:ctx 1}', 'add 5']]);
   });
 });
 

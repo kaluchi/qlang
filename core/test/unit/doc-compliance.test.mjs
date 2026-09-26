@@ -25,16 +25,17 @@ import { evalQuery } from '../../src/eval.mjs';
 import { printValue } from '../../src/index.mjs';
 import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
+import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const docsDir = join(here, '..', '..', '..', 'docs');
 
-// Lift a documented result into a runtime value by evaluating it as
-// a qlang expression. The parser is the gate: prose trailing a REPL
-// result drops out because it does not parse, while every documented
-// value — the multi-line `::Tag!{…}` error renders and the
-// pretty-printed Map / Vec / Set forms included — parses and is
-// compared. `evalQuery` lifts a parse failure into a `::ParseError`
+// Lift a documented result into a runtime value by reading it as a
+// qlang value, `expectedValueOf`. The parser is the gate: prose
+// trailing a REPL result drops out because it does not parse, while
+// every documented value — the multi-line `::Tag!{…}` error renders
+// and the pretty-printed Map / Vec / Set forms included — parses and
+// is compared. `evalQuery` lifts a parse failure into a `::ParseError`
 // value rather than throwing, so the gate reads `parse` directly.
 function isParseableExpectation(text) {
   try {
@@ -53,7 +54,7 @@ const EXPECTATION_IS_PROSE = Symbol('doc expectation is prose');
 async function parseExpected(text) {
   const trimmed = text.trim();
   if (!isParseableExpectation(trimmed)) return EXPECTATION_IS_PROSE;
-  return await evalQuery(trimmed);
+  return await expectedValueOf(trimmed);
 }
 
 // Extract REPL-session examples from fenced code blocks.

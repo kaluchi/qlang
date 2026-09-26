@@ -31,7 +31,6 @@ import {
 import { makeFn } from '../../src/rule10.mjs';
 import { createSession } from '../../src/session.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
-import { quoteOfSource, printQuoteSource } from '../../src/quote.mjs';
 import { parse } from '../../src/parse.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
@@ -157,13 +156,10 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
 });
 
 describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
-  const coerceFaultStep = quoteOfSource('hostCoerce');
-  const coerceFaultInput = 'coerce-input';
-
   it('coerce passes through a set unchanged', async () => {
     const qset = makeSet([1, 2, 3]);
     const err = Object.assign(new Error('foreign'), { mySet: qset });
-    const errVal = errorFromForeign(err, null, coerceFaultStep, coerceFaultInput);
+    const errVal = errorFromForeign(err, null);
     expect(isErrorValue(errVal)).toBe(true);
     expect(errVal.descriptor.get('mySet')).toBe(qset);
   });
@@ -171,31 +167,9 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   it('coerce passes through an errorValue unchanged', async () => {
     const inner = makeErrorValue(makeTagKeyword('Inner'), new Map(), { originalError: new Error('inner') });
     const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
-    const errVal = errorFromForeign(err, null, coerceFaultStep, coerceFaultInput);
+    const errVal = errorFromForeign(err, null);
     expect(isErrorValue(errVal)).toBe(true);
     expect(errVal.descriptor.get('myErr')).toBe(inner);
-  });
-});
-
-describe('types.mjs — appendTrailNode stamps {combinator, node} fragments on the trail head', async () => {
-  it('stamps the fragment frozen-as-given and materializes into the quote of its steps', async () => {
-    // appendTrailNode stamps the fragment record onto _trailHead in
-    // chronological order. Production callsites in eval.mjs::trailEntry
-    // produce a `{combinator, node}` shape — `combinator` 'pipe' or
-    // 'distribute', `node` the deflected step. materializeTrail walks
-    // the chain into the quote of those steps, a distributed body under
-    // `::each`.
-    const { appendTrailNode, isQuote } = await import('../../src/types.mjs');
-    const { materializeTrail } = await import('../../src/eval-trail.mjs');
-    const errVal = makeErrorValue(makeTagKeyword('TypeError'), new Map());
-    const fragment = Object.freeze({ combinator: 'pipe', node: parse('count') });
-    const trailed = appendTrailNode(errVal, fragment);
-    expect(isErrorValue(trailed)).toBe(true);
-    expect(trailed._trailHead.entry).toBe(fragment);
-    const distributed = appendTrailNode(trailed, Object.freeze({ combinator: 'distribute', node: parse('add 1') }));
-    const quote = materializeTrail(distributed);
-    expect(isQuote(quote)).toBe(true);
-    expect(printQuoteSource(quote)).toBe('count * add 1');
   });
 });
 
@@ -374,17 +348,17 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints error value with tag head and descriptor', async () => {
-    const err = makeErrorValue(makeTagKeyword('Test'), new Map([['faultInput', 1]]));
+    const err = makeErrorValue(makeTagKeyword('Test'), new Map([['index', 1]]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);
-    expect(out).toContain(':faultInput 1');
+    expect(out).toContain(':index 1');
   });
 
   it('pretty-prints error with many descriptor fields', async () => {
     const err = makeErrorValue(makeTagKeyword('Test'), new Map([
       ['actualType', makeTagKeyword('number')],
       ['message', 'boom'],
-      ['faultInput', 1]
+      ['index', 1]
     ]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);

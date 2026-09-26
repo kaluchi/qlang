@@ -238,14 +238,14 @@ export function makeSet(elements) {
 
 // The step an error literal leaves in a quote: an error value whose
 // fields hold the steps that compute them, `:kind` and `:trail`
-// among them, as written, and a null `:trail` where the literal writes
-// none, as every error holds one, so the error its fields build is the
-// step [D42]. It never passes through `makeErrorValue`, whose invariant
-// on `:trail` speaks of the error a step produces.
+// among them, as written, and an empty `:trail` where the literal
+// writes none, as every error holds one, so the error its fields build
+// is the step [D42]. It never passes through `makeErrorValue`, whose
+// invariant on `:trail` speaks of the error a step produces.
 export function makeErrorLiteralStep(fieldSteps) {
-  const descriptor = fieldSteps.has('trail') ? fieldSteps : new Map(fieldSteps).set('trail', null);
+  const descriptor = fieldSteps.has('trail') ? fieldSteps : new Map(fieldSteps).set('trail', Object.freeze([]));
   return Object.freeze(brandValueClass({
-    tag: ERROR_TAG, descriptor, location: null, originalError: null, _trailHead: null
+    tag: ERROR_TAG, descriptor, location: null, originalError: null
   }, 'error'));
 }
 
@@ -477,7 +477,7 @@ export function attachHostImpl(verb, impl) {
 // Identity rides on the `tag` JS-header field (a TagKeyword) —
 // every error value carries one, the kind of errors `::error` for
 // user-created `!{}` literals that omit `:kind`. The descriptor
-// Map is pure data: `:faultStep`, `:faultInput`, `:actualType`,
+// Map is pure data: `:actualType` and the other facts of the site,
 // dynamic per-site fields, and `:trail`. `:kind` never appears in
 // the descriptor — the universal identity slot lives on the
 // header so dataflow against the descriptor stays composable
@@ -485,42 +485,35 @@ export function attachHostImpl(verb, impl) {
 // identity), and the `type` operand reads `error.tag` directly
 // without descriptor projection.
 //
-// `:trail` carries either a Quote-value holding the deflected
-// pipeline suffix — steps the user can splice back into a query — or
-// `null` when no success-track combinator has deflected after the
-// fault. Linked-list nodes hold `{combinator, node}` fragment
-// records; `eval-trail.mjs::materializeTrail` turns them into the
-// quote on demand inside applyFailTrack.
-
-// `:trail` is runtime-owned: a Quote-value carrying the deflected
-// pipeline suffix, or `null` before any deflection. A literal
-// (`!{:trail [1 2]}`) or a re-lift (`!| union {:trail []} | error`)
-// that stamps any other value under `:trail` fires this error at mint
-// time, so `combineTrailQuotes` only ever joins quotes and the
-// fail-track never carries a suffix that `apply` cannot replay.
-// Dropping an accumulated suffix before re-lift stamps `:trail null`.
-export const ErrorTrailNotQuoteError = declareShapeError(
-  'ErrorTrailNotQuoteError',
-  ({ actualType }) => `error descriptor :trail must be a Quote-value or null, got ${actualType.name}`,
-  { operand: '::error', expectedType: ['quote', 'null'] }
+// `:trail` is the path of the error [D85], a vector of stops the
+// runtime writes, `{:step :subject :skipped}`, empty for an error no
+// step has raised or handed on; `eval-trail.mjs` writes it. A literal
+// or a re-lift that stamps a value that is no vector of stops under
+// `:trail` fires this error at mint time, and a re-lift that writes no
+// `:trail` starts a path of its own at the step that lifts it.
+export const ErrorTrailNotVecError = declareShapeError(
+  'ErrorTrailNotVecError',
+  ({ actualType }) => `error descriptor :trail must be a vector of stops, got ${actualType.name}`,
+  { operand: '::error', expectedType: 'vec' }
 );
+
+// A trail is a vector of stops, each a map whose `:skipped` is the quote
+// of the steps the error skipped after it [D85].
+export function isTrail(value) {
+  return isVec(value) && !isQuote(value) && !isQSet(value)
+    && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
+}
 
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
-    if (trail !== null && !isQuote(trail)) throw new ErrorTrailNotQuoteError({ actualType: typeKeyword(trail), actualValue: trail });
+    if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail });
   } else {
     finalDescriptor = new Map(descriptor);
-    finalDescriptor.set('trail', null);
+    finalDescriptor.set('trail', Object.freeze([]));
   }
-  return Object.freeze(brandValueClass({
-    tag,
-    descriptor: finalDescriptor,
-    location,
-    originalError,
-    _trailHead: null
-  }, 'error'));
+  return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }
 
 // Host-facing convenience: build an ErrorValue from a descriptor
@@ -531,19 +524,6 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 // boilerplate at every throw site.
 export function errorFromKindDescriptor(descriptor, opts = {}) {
   return makeErrorValue(descriptor.get('kind'), descriptor, opts);
-}
-
-export function appendTrailNode(errorValue, trailEntry) {
-  return Object.freeze(brandValueClass({
-    tag: errorValue.tag,
-    descriptor: errorValue.descriptor,
-    location: errorValue.location,
-    originalError: errorValue.originalError,
-    _trailHead: Object.freeze({
-      entry: trailEntry,
-      prev: errorValue._trailHead
-    })
-  }, 'error'));
 }
 
 // ── describeType ──────────────────────────────────────────────

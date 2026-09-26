@@ -2091,7 +2091,13 @@ no step opens but `!|`: «как будто тэг Foo не должен был 
 `!|` and `error`, «первый ловит только ошибки но выпускает из себя не
 ошибки... второй ловит все что угодно кроме ошибок, но выпускает только
 ошибку» and «и поэтому оболочка с ошибкой оказывается как будто бы
-всегда наверху» (09:42).
+всегда наверху» (09:42). The literal writes its tag before the bang for
+Claude Code, whose input turns into a shell command at a `!` it opens
+with: «просто если переносить символ !перед тэгами - как бы обозначая что
+все что правее это дальше ошибка .. то было не удобно тебе в клод код
+вставлять .. т.к. этот ! переводил поле ввода в режим командной строки»
+(09:46), so the order of its characters says nothing of which layer is
+on top.
 
 The model's reading of it is that an error is the outermost layer of its
 value. `::Foo!{…}` is one literal, an error whose content carries the

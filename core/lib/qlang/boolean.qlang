@@ -1,0 +1,83 @@
+|~ The verbs of booleans [D62]. Each resides on `::qlang/boolean`, the
+   kind whose module declares it [D72]: the negation, and the two
+   combinators of conditions, which take booleans [D14]. ~|
+
+:not
+  |~~ The negation of a boolean. Null is tested with `eq null`, and a
+      subject of another kind is refused.
+
+      ~(false | not | eq true)
+      ~(true | not | eq false)
+      ~(null | eq null | eq true)
+  ~~|
+  ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/not})
+
+::NotSubjectNotBooleanError
+  |~~ Subject of `not` must be a boolean.
+      ~(
+        0 | not
+        !| [type /actualType]
+        |  eq [::NotSubjectNotBooleanError ::number]
+       )
+  ~~|
+
+:and
+  |~~ Whether the subject and the right condition both hold, each a
+      boolean. Given two conditions, `x | and a b` reads both against
+      the subject, the first as the subject of `and` [D72], so it
+      composes the clauses of a predicate inside `filter`, `every`
+      and `if`.
+
+      ~(true | and false | eq false)
+      ~({:active true :age 25} | and /active (/age | gte 18) | eq true)
+      ~({:active false :age 25} | and /active (/age | gte 18) | eq false)
+  ~~|
+  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/and})
+
+::AndLeftNotBooleanError
+  |~~ The left condition of `and` must answer a boolean.
+      ~(
+        1 | and true
+        !| [type /actualType]
+        |  eq [::AndLeftNotBooleanError ::number]
+       )
+  ~~|
+
+::AndRightNotBooleanError
+  |~~ The right condition of `and` must answer a boolean.
+      ~(
+        true | and 1
+        !| [type /actualType]
+        |  eq [::AndRightNotBooleanError ::number]
+       )
+  ~~|
+
+:or
+  |~~ Whether the subject or the right condition holds, each a boolean.
+      Given two conditions, `x | or a b` reads both against the
+      subject, the first as the subject of `or` [D72].
+
+      ~(false | or true | eq true)
+      ~(5  | or (eq 5) (eq 10) | eq true)
+      ~(7  | or (eq 5) (eq 10) | eq false)
+      ~({:role "admin"} | or (/role | eq "admin") (/role | eq "owner") | eq true)
+  ~~|
+  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/or})
+
+::OrLeftNotBooleanError
+  |~~ The left condition of `or` must answer a boolean.
+      ~(
+        1 | or true
+        !| [type /actualType]
+        |  eq [::OrLeftNotBooleanError ::number]
+       )
+  ~~|
+
+::OrRightNotBooleanError
+  |~~ The right condition of `or` must answer a boolean.
+      ~(
+        false | or 1
+        !| [type /actualType]
+        |  eq [::OrRightNotBooleanError ::number]
+       )
+  ~~|

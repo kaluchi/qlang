@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { discoverModules, resolveModules, installModules } from '../../host/module-resolver.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
+import { makeTagKeyword, TAG_HEADER_SYMBOL, VERB_TAG } from '../../src/types.mjs';
 import { moduleNamespaceKey } from '../../src/env-keys.mjs';
 
 // Compute lib directory at module scope (no top-level await needed —
@@ -117,14 +117,14 @@ describe('installModules', () => {
     // the same stem as the `error` lift operand. The cache key
     // `qlang/namespace/error` is where `resolveNamespaceEnv` probes
     // for a loaded namespace, a key the runtime keeps for itself — so
-    // `error` keeps resolving to the `::builtin` descriptor,
+    // `error` keeps resolving to its verb,
     // `use(:error)` still reaches the exports, and no export Map
     // surfaces as a binding of the scope.
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
 
-    expect(sessionInstance.env.get('error').get('value')[TAG_HEADER_SYMBOL]).toBe(BUILTIN_TAG);
+    expect(sessionInstance.env.get('error').get('value')[TAG_HEADER_SYMBOL]).toBe(VERB_TAG);
 
     const liftCell = await sessionInstance.evalCell('{:kind :x} | error !| type');
     expect(liftCell.error).toBeNull();

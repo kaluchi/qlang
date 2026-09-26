@@ -221,15 +221,15 @@ describe('per-site error triple-assertions', () => {
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('NullaryOpArgsProvidedError on type(1): name, instanceof, context', async () => {
-    // type is registered via nullaryOp; the dispatch-layer arity
+  it('NullaryOpArgsProvidedError on keyword(1): name, instanceof, context', async () => {
+    // keyword is registered via nullaryOp; the dispatch-layer arity
     // error class is NullaryOpArgsProvidedError, shared by every nullary
     // operand that the caller incorrectly passes captured args to.
-    const evalResult = await evalQuery('42 | type 1');
+    const evalResult = await evalQuery(':a | keyword 1');
     const originalErr = evalResult.originalError;
     expect(originalErr.name).toBe('NullaryOpArgsProvidedError');
     expect(originalErr).toBeInstanceOf(ArityError);
-    expect(originalErr.context.operandName).toBe('type');
+    expect(originalErr.context.operandName).toBe('keyword');
     expect(originalErr.context.actualArity).toBe(1);
   });
 });

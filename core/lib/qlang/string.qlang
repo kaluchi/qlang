@@ -197,3 +197,36 @@
         |  eq [::AppendSuffixNotStringError ::number]
        )
   ~~|
+
+:parseJson
+  |~~ The qlang value a string of plain JSON spells, the reverse of
+      `json`: the keys of an object become keywords, an array a vector,
+      and scalars pass through. Lossy for the shapes of qlang alone: a
+      set arriving from JSON reads as a vector, a keyword as a value as
+      a string, and errors have no plain form. It reads input from any
+      producer that speaks JSON.
+
+      ~("42" | parseJson | eq 42)
+      ~("\"hello\"" | parseJson | eq "hello")
+      ~("[1,2,3]" | parseJson | eq [1 2 3])
+      ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/parseJson})
+
+::ParseJsonSubjectNotStringError
+  |~~ Subject of `parseJson` must be a String — the raw JSON text;
+      a value renders to one through `json` first.
+
+      ~(
+        42 | parseJson
+        !| [type /actualType]
+        |  eq [::ParseJsonSubjectNotStringError ::number]
+       )
+  ~~|
+
+::ParseJsonInvalidJsonError
+  |~~ `parseJson` could not parse the subject as JSON. The message
+      of the host's parser rides on `:message`.
+
+      ~("{not json" | parseJson !| type | eq ::ParseJsonInvalidJsonError)
+  ~~|

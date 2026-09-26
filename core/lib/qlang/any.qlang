@@ -557,3 +557,52 @@
       ~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
   ~~|
   ::verb~()
+
+:eq
+  |~~ Whether the subject equals the value, by structural equality deep
+      across maps, vectors, sets and scalars.
+
+      ~(42 | eq 42 | eq true)
+      ~({:a 1} | eq {:a 1} | eq true)
+  ~~|
+  ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/eq})
+
+:type
+  |~~ The value's kind, a tag: the tag of a tagged value, an error, a
+      verb, a binding record, a descriptor of the catalog, a quote and
+      a set among them, and for every other value the kind of the core
+      its literal implies (`::number`, `::string`, `::keyword`,
+      `::tag`, `::vec`, `::map`, …), named under the prefix `qlang/`
+      and written short [D32]. `type | docs` reads the kind's page, and
+      asking what a value is composes `type` with `eq`, `filter ~(type
+      | eq ::string)`.
+
+      `result !| type` names the tag of an error: the descriptor `!|`
+      materializes carries it as every tagged value carries its tag.
+
+      ~(42 | type | eq ::number)
+      ~("hi" | type | eq ::string)
+      ~(:foo | type | eq ::keyword)
+      ~([1 2] | type | eq ::vec)
+      ~(#[1 2] | type | eq ::set)
+      ~(::verb~(42) | type | eq ::verb)
+      ~(
+        "hello" | add 1
+        !| [type /actualType]
+        |  eq [::AddLeftNotNumberError ::string]
+       )
+  ~~|
+  ::verb~(:returns ::tag | ::builtin{:impl :qlang/prim/type})
+
+:json
+  |~~ The subject rendered as a JSON string. The shapes of qlang alone
+      lose their identity at this boundary: a keyword becomes its bare
+      name, a key and a value alike (`:foo` → `"foo"`), a set flattens
+      to an array, and a map writes its keys as the keys of an object.
+      It hands values to consumers that do not read qlang.
+
+      ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
+      ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
+      ~(#[1 2 3] | json | eq "[1,2,3]")
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/json})

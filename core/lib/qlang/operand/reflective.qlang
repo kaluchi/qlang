@@ -6,8 +6,8 @@
    enumerable bindings. Per-binding declarative introspection
    ("what does THIS one do") lives in
    `core/lib/qlang/operand/axis.qlang` (`source` / `docs` /
-   `examples`). Error-track entry / exit lives in
-   `core/lib/qlang/operand/error.qlang`; the codeAsData ring
+   `examples`). The error-track entry, `error`, resides on
+   `::map`; the codeAsData ring
    (`parse` / `apply`) lives in
    `core/lib/qlang/operand/codeAsData.qlang`. Each operand
    BindStep below sits directly under the per-site error tags it

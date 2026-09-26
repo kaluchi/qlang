@@ -1,0 +1,9 @@
+{"name":"not-resides-on-the-boolean","query":"::boolean/not | spec | /subject","expect":"::boolean","decision":["D62","D76"]}
+{"name":"a-full-and-reads-its-first-condition-as-the-subject","query":"{:active true :age 25} | and /active (/age | gte 18)","expect":"true","decision":["D72","D76"]}
+{"name":"and-refuses-a-left-of-another-kind-at-its-subject","query":"1 | and true !| type","expect":"::AndLeftNotBooleanError","decision":"D76"}
+{"name":"eq-takes-any-value","query":"::any/eq | spec | /value","expect":"::any","decision":"D76"}
+{"name":"type-answers-a-tag","query":"::any/type | spec | /returns","expect":"::tag","decision":["D32","D76"]}
+{"name":"json-answers-a-string","query":"::any/json | spec | /returns","expect":"::string","decision":"D76"}
+{"name":"parse-json-resides-on-the-string","query":"::string/parseJson | spec | /subject","expect":"::string","decision":["D62","D76"]}
+{"name":"error-resides-on-the-map","query":"::map/error | spec | /subject","expect":"::map","decision":["D62","D76"]}
+{"name":"an-error-that-describes-an-error-rides-through","query":"error (!{:kind :inner}) !| /kind","expect":":inner","decision":["D13","D76"]}

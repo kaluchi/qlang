@@ -38,7 +38,7 @@
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
 {"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | source | parse | contains \"::builtin{:impl :qlang/prim/count}\"","expect":"true","decision":["D62","D72"]}
-{"name":"builtin-descriptor-renders-without-a-function-leak","query":"::any/type | spec | json | contains \"qlang/prim/type\"","expect":"true","decision":"D62"}
+{"name":"builtin-descriptor-renders-without-a-function-leak","query":"::keyword/keyword | spec | json | contains \"qlang/prim/keyword\"","expect":"true","decision":"D62"}
 {"name":"an-addressed-built-in-answers-its-signature","query":"::number/add | spec | type","expect":"::spec","decision":["D62","D72"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(docs | filter ~(/content | eq \"\" | not) | empty | not)","expect":"true","decision":["D61","D62"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runExamples | every ~(/ok))","expect":"true","decision":"D62"}

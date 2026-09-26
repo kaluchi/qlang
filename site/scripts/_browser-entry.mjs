@@ -25,15 +25,12 @@ import keywordSource           from '@kaluchi/qlang-core/lib/qlang/keyword.qlang
 import vecNounSource           from '@kaluchi/qlang-core/lib/qlang/vec.qlang';
 import setSource               from '@kaluchi/qlang-core/lib/qlang/set.qlang';
 import mapSource               from '@kaluchi/qlang-core/lib/qlang/map.qlang';
+import booleanSource           from '@kaluchi/qlang-core/lib/qlang/boolean.qlang';
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import axisSource              from '@kaluchi/qlang-core/lib/qlang/operand/axis.qlang';
 import codeAsDataSource        from '@kaluchi/qlang-core/lib/qlang/operand/codeAsData.qlang';
 import controlSource           from '@kaluchi/qlang-core/lib/qlang/operand/control.qlang';
-import errorSource             from '@kaluchi/qlang-core/lib/qlang/operand/error.qlang';
-import formatSource            from '@kaluchi/qlang-core/lib/qlang/operand/format.qlang';
-import predicateSource         from '@kaluchi/qlang-core/lib/qlang/operand/predicate.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
-import typeClassifierSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeClassifier.qlang';
 import typeConversionSource    from '@kaluchi/qlang-core/lib/qlang/operand/typeConversion.qlang';
 
 // Logical-name keys here mirror `core.qlang`'s `use([:qlang/<ns>])`
@@ -49,15 +46,12 @@ const CATALOG = new Map([
   ['qlang/vec',                     vecNounSource],
   ['qlang/set',                     setSource],
   ['qlang/map',                     mapSource],
+  ['qlang/boolean',                 booleanSource],
   ['qlang/any',                     anySource],
   ['qlang/operand/axis',            axisSource],
   ['qlang/operand/codeAsData',    codeAsDataSource],
   ['qlang/operand/control',         controlSource],
-  ['qlang/operand/error',           errorSource],
-  ['qlang/operand/format',          formatSource],
-  ['qlang/operand/predicate',       predicateSource],
   ['qlang/operand/reflective',      reflectiveSource],
-  ['qlang/operand/typeClassifier', typeClassifierSource],
   ['qlang/operand/typeConversion', typeConversionSource]
 ]);
 

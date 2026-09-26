@@ -299,14 +299,18 @@ keys.
   element, in the one order, a Map with its entries so ordered by
   their values; elements whose
   keys are equal keep their subject order. A vector serves as a
-  compound key, and the descending order is the sort reversed.
+  compound key, and the descending order is the sort reversed. A key
+  that answers an error answers the call, as the key of `groupBy`
+  does, so a key that misses its field is refused where it is read
+  [D87].
 - **Examples**:
   - `[{:age 30} {:age 20}] | sort ~(/age)` → `[{:age 20} {:age 30}]`.
   - `[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])` → `[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]`.
   - `[3 null 1] | sort ~([(eq null) /])` → `[1 3 null]`, the nulls last.
   - `[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse` → `[{:k 3} {:k 2} {:k 1}]`.
+  - `[{:a 2} {:b 1}] | sort ~(/a) !| type` → `::ProjectionKeyNotInMapError`.
 - **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
-  key not a quote → `SortKeyNotQuoteError`.
+  key not a quote → `SortKeyNotQuoteError`; the error a key answers.
 
 ### `take n`
 

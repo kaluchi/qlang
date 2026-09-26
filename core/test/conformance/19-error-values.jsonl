@@ -48,3 +48,6 @@
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | error | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail/-1/skipped | parse","expect":"\"* add 1\"","decision":"D85"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"a-slot-of-any-hands-an-error-on","query":"[1] | append (!{:k 1}) !| type","expect":"::error","decision":"D87"}
+{"name":"a-slot-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":f ::verb~(:x ::any | [x]) | 1 | f (!{:k 1}) !| /trail * /step","expect":"[~(!{:k 1}) ~((!{:k 1})) ~(f (!{:k 1}))]","decision":"D87"}
+{"name":"sort-without-a-key-ranks-an-error-it-holds","query":"[2 (!{:k 1}) 1] | sort | count","expect":"3","decision":"D87"}

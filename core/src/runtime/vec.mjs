@@ -191,11 +191,17 @@ bindPrim('indexBy', async (sequence, key) => {
 
 // `sort` orders the elements in the one order, or by the value the key
 // answers for each, keeping equal ones in the subject's order; a map
-// orders its entries by their values and keeps the keys.
+// orders its entries by their values and keeps the keys. A key that
+// answers an error answers the call, as the key of `groupBy` does
+// [D87].
 bindPrim('sort', async (container, key) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
   const keyed = [];
-  for (const entry of entries) keyed.push({ entry, sortKey: key === NULL ? entry[1] : await key(entry[1]) });
+  for (const entry of entries) {
+    const sortKey = key === NULL ? entry[1] : await key(entry[1]);
+    if (key !== NULL && isErrorValue(sortKey)) return sortKey;
+    keyed.push({ entry, sortKey });
+  }
   keyed.sort((left, right) => compareValues(left.sortKey, right.sortKey));
   const sorted = keyed.map(({ entry }) => entry);
   return isQMap(container) ? new Map(sorted) : sorted.map(([, element]) => element);

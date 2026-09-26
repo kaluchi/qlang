@@ -46,7 +46,7 @@ import {
 } from './runtime/nouns.mjs';
 import { underPassedTags } from './runtime/dispatch.mjs';
 import {
-  applyVerb, applyVerbOn, callVerb, effectfulNameOfVerb, isContract, takesFullApplication, verbAsCode
+  applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication, verbAsCode
 } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { parseDocSegments } from './doc-segments.mjs';
@@ -937,6 +937,15 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
   const callState = modifierLambda.capturedState;
   if (isVerb(code)) return verbAsCode(code, callState);
   if (!isQuote(code)) throw refusalOf(code);
+  return codeOf(code, callState);
+}
+
+// codeOf(code, callState) → lambda: a quote a slot of code holds, closed
+// at the call [D4], run against each input its operand hands it in the
+// environment the quote carries, or that of the call for a quote held as
+// data [D43]. The lambda keeps the tree it runs, so `reduce` finds the
+// name its quote holds [D56].
+export function codeOf(code, callState) {
   return makeLambda(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
 }
 
@@ -948,14 +957,11 @@ export async function codeOfModifier(modifierLambda, subject, refusalOf) {
 //     or a verb, is called as the pipe calls it, accumulator as subject
 //     and element as its one modifier (`acc | add element`), the verb
 //     that resides on the accumulator among them [D72];
-//   - a verb that is the code itself folds the same way, the element
-//     filling its first slot [D67].
 // Returns null when the captured arg is not such a reference (an inline
 // expression, a literal, or a name of a value), so `reduce` lifts its
 // own per-site error.
 export function resolveBinaryReducer(reducerLambda) {
   const callerState = reducerLambda.capturedState;
-  if (reducerLambda.verb !== undefined) return verbFold(reducerLambda.verb, callerState, null);
   const astNode = reducerLambda.astNode;
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
@@ -964,10 +970,6 @@ export function resolveBinaryReducer(reducerLambda) {
   if (!isVerb(resolved) && !(isQMap(resolved) && isBuiltinDescriptor(resolved))) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
-}
-
-function verbFold(verb, callerState, verbName) {
-  return (acc, item) => callVerb(verb, [async () => item], withPipeValue(callerState, acc), verbName);
 }
 
 // ─── Comment (plain forms only — doc forms attach during

@@ -40,21 +40,16 @@ form), positions 2..n are modifiers (filled by captured args).
 ## Categories — the `:category` keyword partition
 
 Every operand descriptor carries a `:category` keyword that groups it
-with its polymorphism siblings. The taxonomy is first-class data —
-`::vec | manifest | filter ~(spec | /category | eq :containerSelector)`
-returns the three polymorphic container selectors on vectors — so the
-keywords below
-form part of the doc surface and the runtime catalog alike.
+with its polymorphism siblings, so the keywords below form part of the
+doc surface and the runtime catalog alike. A verb on its noun carries
+no category: the noun groups it, `::vec | spec | /verbs` listing the
+verbs of vectors [D72].
 
 | `:category` keyword | Meaning |
 |---|---|
-| `:containerReducer` | Reduce any Vec / Set / Map to a scalar. Polymorphic over all three container shapes; the result is order- and shape-independent. |
-| `:containerSelector` | Keep or test items of a Vec / Set / Map by a predicate; filter preserves the container shape, every / any reduce to boolean. |
-| `:vecReducer` | Reduce a Vec (sometimes Vec or Set — for commutative reductions) to a scalar. |
-| `:vecTransformer` | Reshape or reorder a Vec, or lift a Vec into a Map/Set. |
 | `:control` | Control-flow operand (if / coalesce / cond). |
 | `:mapOp` | Map-only operand (keys / vals / has on Map). |
-| `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
+| `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `distinct`. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
@@ -74,7 +69,7 @@ form part of the doc surface and the runtime catalog alike.
   count).
 - **Examples**: `[1 2 3 4 5] | count` → `5`; `#[:a :b :c] | count` →
   `3`; `{:x 1 :y 2} | count` → `2`; `[] | count` → `0`.
-- **Errors**: subject not Vec/Set/Map → `CountSubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `empty`
 
@@ -84,7 +79,7 @@ form part of the doc surface and the runtime catalog alike.
   otherwise.
 - **Examples**: `[] | empty` → `true`; `#[] | empty` → `true`;
   `{} | empty` → `true`; `[1] | empty` → `false`.
-- **Errors**: subject not Vec/Set/Map → `EmptySubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ## Value reducers — `(Vec / Set / Map) → Scalar`
 
@@ -98,7 +93,7 @@ A map's elements are its values, so the reducers read them.
   `0`. Every element must be a number.
 - **Examples**: `[1 2 3 4] | sum` → `10`; `#[1 2 3] | sum` → `6`;
   `{:a 10 :b 20} | sum` → `30`.
-- **Errors**: subject not a container → `SumSubjectNotContainerError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   element not a number → `SumElementNotNumberError`; running total
   outside the finite-double domain → `SumResultNotFiniteError`, whose
   `:index` names the element the total crossed at. The total is read
@@ -126,7 +121,7 @@ A map's elements are its values, so the reducers read them.
   `[#[1] #[2 3]] | reduce #[] ~(union)` → `#[1 2 3]`;
   `:max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2` → `5`.
   `sum` / `count` / `max` and structure-builders all factor through it.
-- **Errors**: subject not a container → `ReduceSubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   reducer not a binary operand or a verb →
   `ReduceReducerNotBinaryError`.
 
@@ -138,8 +133,7 @@ A map's elements are its values, so the reducers read them.
 - **Examples**: `[3 1 4 1 5] | min` → `1`; `#[3 1 4] | max` → `4`;
   `[:y :a :m] | min` → `:a`; `[3 "a" null] | min` → `null`;
   `[3 "a" null] | max` → `"a"`; `{:a 3 :b 1} | min` → `1`.
-- **Errors**: subject not a container → `MinSubjectNotContainerError` /
-  `MaxSubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ## Ordered-sequence reducers — `Vec / Set / Map → Any`
 
@@ -155,7 +149,7 @@ element, its greatest and its n-th in that order.
   a Map), or `null` if the container is empty.
 - **Example**: `[10 20 30] | first` → `10`; `#[:c :a :b] | first` →
   `:a`; `{:a 1 :b 2} | first` → `1`; `[] | first` → `null`.
-- **Errors**: subject not a container → `FirstSubjectNotSequenceError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `last`
 
@@ -164,7 +158,7 @@ element, its greatest and its n-th in that order.
   Map), or `null` if the container is empty.
 - **Example**: `[10 20 30] | last` → `30`; `#[:c :a :b] | last` →
   `:c`; `{:a 1 :b 2} | last` → `2`; `[] | last` → `null`.
-- **Errors**: subject not a container → `LastSubjectNotSequenceError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `at n`
 
@@ -178,11 +172,12 @@ element, its greatest and its n-th in that order.
   key is known statically.
 - **Example**: `[10 20 30] | at 1` → `20`; `#[:a :b :c] | at -1` →
   `:c`; `{:x 1} | at "x"` → `1`; `{:x 1} | at "z"` → `null`.
-- **Errors**: non-Vec/Set/Map subject → `AtSubjectNotSequenceOrMapError`;
-  non-integer index on Vec/Set → `AtIndexNotIntegerError`; non-string key
-  on Map → `AtKeyNotStringError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`; non-integer index on Vec/Set →
+  `AtIndexNotIntegerError`; a key on a Map that is neither a keyword
+  nor a string → `AtKeyNotKeywordOrStringError`, the refusal of
+  `::map/at` [D73].
 - **See also**: bare-form projection `/n` on a Vec (e.g.
-  `/items/0/name`) — same indexedAccess semantics without the
+  `/items/0/name`) — same indexed-access semantics without the
   operand-call wrapper, polymorphic over Map (keyword lookup) and
   Vec (integer index) so mixed JSON paths like `/users/-1/email`
   descend through nested containers uniformly.
@@ -218,8 +213,7 @@ The joint test of a key with its value reads the keys:
   - `{:a 1 :b 2 :c 3} | filter ~(gt 1)` → `{:b 2 :c 3}` — 0-arity pred, value axis.
   - `{:a 1 :b -2 :c 3} | :positive ::verb~(gt 0) | filter ~positive` → `{:a 1 :c 3}` — a declared verb, the value its subject.
   - `{} | filter ~(gt 0)` → `{}` — empty subject returns empty Map.
-- **Errors**: subject neither Vec nor Set nor Map →
-  `FilterSubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `every ~(pred)`
 
@@ -237,7 +231,7 @@ The joint test of a key with its value reads the keys:
   - `#[2 4 6] | every ~(gt 0)` → `true`.
   - `{:a 1 :b 2 :c 3} | every ~(gt 0)` → `true` — 0-arity, value axis.
   - `{:a 1 :b -2 :c 3} | every ~(gt 0)` → `false`.
-- **Errors**: subject not a container → `EverySubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `any ~(pred)`
 
@@ -254,7 +248,7 @@ The joint test of a key with its value reads the keys:
   - `[] | any ~(gt 0)` → `false`.
   - `#[1 2 3] | any ~(gt 2)` → `true`.
   - `{:a -1 :b 0 :c 2} | any ~(gt 0)` → `true` — 0-arity, value axis.
-- **Errors**: subject not a container → `AnySubjectNotContainerError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ## Ordered-sequence transformers — `Vec / Set → Vec / Set` / `Vec / Set → Map`
 
@@ -275,7 +269,7 @@ keys.
   for Set subject — the bucket inherits the subject's uniqueness
   invariant.
 - **Example**: `[{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name` → `["a" "c"]`.
-- **Errors**: subject not Vec/Set → `GroupBySubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   key not a keyword → `GroupByKeyNotKeywordError`.
 
 ### `indexBy ~(keyFn)`
@@ -285,7 +279,7 @@ keys.
 - Collapses a sequence into a Map keyed by the result of `keyFn`. On
   collision, the last element wins.
 - **Example**: `[{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name` → `"alice"`.
-- **Errors**: subject not Vec/Set → `IndexBySubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   key not a keyword → `IndexByKeyNotKeywordError`.
 
 ### `sort`
@@ -305,7 +299,7 @@ keys.
   `[[2 1] [1 2] [1]] | sort` → `[[1] [1 2] [2 1]]`;
   `[::B :b ::A :a] | sort` → `[:a :b ::A ::B]`;
   `{:a 3 :b 1 :c 2} | sort | vals` → `[1 2 3]`.
-- **Errors**: subject not a container → `SortNaturalSubjectNotSequenceError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ### `sort ~(key)`
 
@@ -321,7 +315,7 @@ keys.
   - `[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b])` → `[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]`.
   - `[3 null 1] | sort ~([(eq null) /])` → `[1 3 null]`, the nulls last.
   - `[{:k 1} {:k 3} {:k 2}] | sort ~(/k) | reverse` → `[{:k 3} {:k 2} {:k 1}]`.
-- **Errors**: subject not a container → `SortByKeySubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   key not a quote → `SortKeyNotQuoteError`.
 
 ### `take n`
@@ -335,7 +329,7 @@ keys.
 - **Example**: `[1 2 3 4 5] | take 3` → `[1 2 3]`;
   `#[:a :b :c :d] | take 2` → `#[:a :b]`;
   `{:a 1 :b 2 :c 3} | take 2` → `{:a 1 :b 2}`.
-- **Errors**: subject not a container → `TakeSubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   non-integer count → `TakeCountNotIntegerError`.
 
 ### `drop n`
@@ -348,7 +342,7 @@ keys.
 - **Example**: `[1 2 3 4 5] | drop 2` → `[3 4 5]`;
   `#[:a :b :c :d] | drop 2` → `#[:c :d]`;
   `{:a 1 :b 2 :c 3} | drop 2` → `{:c 3}`.
-- **Errors**: subject not a container → `DropSubjectNotSequenceError`;
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`;
   non-integer count → `DropCountNotIntegerError`.
 
 ### `distinct`
@@ -392,7 +386,7 @@ keys.
   of Sets flattens into their union.
 - **Example**: `[[1 2] [3] [4 5]] | flat` → `[1 2 3 4 5]`;
   `#[#[1 2] #[2 3]] | flat` → `#[1 2 3]`.
-- **Errors**: subject not Vec/Set → `FlatSubjectNotSequenceError`.
+- **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
 
 ## Map operations
 
@@ -424,9 +418,8 @@ keys.
   binary search in the one order.
 - **Example**: `#[:a :b :c] | has :b` → `true`.
 
-`count` and `empty` on a Set (and on a Map) dispatch through the
-polymorphic `:containerReducer` entries above — one descriptor each
-in the catalog, one doc entry here.
+`count` and `empty` on a Set and on a Map reside on each kind under
+one contract on `::qlang/any` [D72], one doc entry here.
 
 ## Polymorphic set operations — `union`, `minus`, `inter`
 
@@ -1242,10 +1235,6 @@ address.
 
 | `:category` keyword | Names (frequent → specialized) |
 |---|---|
-| `:containerReducer` | `count`, `empty` (polymorphic over Vec / Set / Map) |
-| `:containerSelector` | `filter`, `every`, `any` (polymorphic over Vec / Set / Map) |
-| `:vecReducer` | `sum`, `min`, `max` (Vec / Set — commutative reductions), `first`, `last`, `firstNonZero` (Vec-only — order-dependent) |
-| `:vecTransformer` | `sort`, `take`, `drop`, `distinct`, `reverse`, `flat`, `sortWith`, `groupBy`, `indexBy` |
 | `:comparator` | `asc`, `desc`, `nullsFirst`, `nullsLast` |
 | `:control` | `if`, `coalesce`, `cond` |
 | `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
@@ -1254,7 +1243,6 @@ address.
 | `:predicate` | `not`, `eq`, `and`, `or` |
 | `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
-| `:indexedAccess` | `at` |
 | `:format` | `json` |
 | `:error` | `error` |
 | `:reflective` | `env`, `use`, `manifest`, `runExamples` (plus the `:name body` BindStep grammar production) |

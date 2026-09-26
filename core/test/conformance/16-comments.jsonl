@@ -53,7 +53,7 @@
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | /content","expect":"\" mentions |~~ inner pair ~~| inside \""}
 {"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail","expect":"~(| count)"}
 {"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~ note ~| count !| /trail","expect":"~(| count)"}
-{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | :t / | 42 | apply t !| type","expect":"::CountSubjectNotContainerError"}
+{"name":"trail-materialized-past-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| /trail | :t / | 42 | apply t !| type","expect":"::VerbWithoutBodyError"}
 {"name":"lone-plain-comment-is-identity-on-null","query":"|~ only a note ~|","expect":"null"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}

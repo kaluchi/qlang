@@ -86,7 +86,7 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   it('::vec/count | docs first Doc /content carries the prefix text', async () => {
     const result = await evalQuery('::vec/count | docs | first | /content');
     expect(typeof result).toBe('string');
-    expect(result).toContain('Returns the number of elements');
+    expect(result).toContain('number of elements');
   });
 
   it('a value that is no name reads the page of its kind', async () => {
@@ -317,7 +317,7 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   // raiser spells itself as a TagKeyword the way source writes it.
   it('a numeric position stays a Number and :subject lifts to a Keyword', async () => {
     expect(await evalQuery('::AddLeftNotNumberError | spec | /position')).toBe(1);
-    expect(await evalQuery('::CountSubjectNotContainerError | spec | /position'))
+    expect(await evalQuery('::NotSubjectNotBooleanError | spec | /position'))
       .toEqual(makeKeyword('subject'));
   });
 

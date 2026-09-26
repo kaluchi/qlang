@@ -1,0 +1,136 @@
+|~ The verbs of maps [D62]. Each resides on `::qlang/map`, the kind whose
+   module declares it, under the contract of its name on `::qlang/any`,
+   whose page and laws it answers [D72]. A map's elements are its
+   values, and its keys are the shape that travels with them [D15]: a
+   verb that keeps the kind keeps the keys of the entries it keeps. ~|
+
+:count
+  |~~ The number of entries.
+
+      ~({:x 1 :y 2 :z 3} | count | eq 3)
+  ~~|
+  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
+
+:empty
+  |~~ Whether the map holds no entry.
+
+      ~({} | empty | eq true)
+  ~~|
+  ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/empty})
+
+:first
+  |~~ The value of the first entry, or null for the empty map.
+
+      ~({:a 1 :b 2} | first | eq 1)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/first})
+
+:last
+  |~~ The value of the last entry, or null for the empty map.
+
+      ~({:a 1 :b 2} | last | eq 2)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/last})
+
+:sum
+  |~~ The sum of the values, each a number.
+
+      ~({:a 10 :b 20} | sum | eq 30)
+  ~~|
+  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
+
+:min
+  |~~ The first value in the one order of values.
+
+      ~({:a 3 :b 1} | min | eq 1)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/min})
+
+:max
+  |~~ The last value in the one order of values.
+
+      ~({:a 3 :b 1} | max | eq 3)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/max})
+
+:filter
+  |~~ The entries whose value the predicate answers true for, their keys
+      kept; the joint test of a key with its value reads the keys, `m |
+      keys | filter ~(…)`, and `at` the value of each.
+
+      ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
+  ~~|
+  ::verb~(:predicate ::quote | :returns / | ::builtin{:impl :qlang/prim/filter})
+
+:every
+  |~~ Whether the predicate answers true for every value.
+
+      ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
+  ~~|
+  ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/every})
+
+:any
+  |~~ Whether the predicate answers true for some value.
+
+      ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
+  ~~|
+  ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/any})
+
+:sort
+  |~~ The entries ordered by their values, or by the value the key
+      answers for each, their keys kept.
+
+      ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
+  ~~|
+  ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
+
+:take
+  |~~ The first count entries.
+
+      ~({:a 1 :b 2 :c 3} | take 2 | eq {:a 1 :b 2})
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
+
+:drop
+  |~~ The entries after the first count.
+
+      ~({:a 1 :b 2 :c 3} | drop 2 | eq {:c 3})
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
+
+:at
+  |~~ The value at the key, a keyword or a string, both naming the key
+      as the map stores it, or null for a key the map lacks: the soft
+      counterpart of the strict `/key` projection, which refuses a
+      miss with `::ProjectionKeyNotInMapError`.
+
+      ~({:a 1 :b 2} | at :a | eq 1)
+      ~({:a 1 :b 2} | at "a" | eq 1)
+      ~({:a 1} | at :z | eq null)
+  ~~|
+  ::verb~(:key #[::keyword ::string] | ::builtin{:impl :qlang/prim/at})
+
+::AtKeyNotKeywordOrStringError
+  |~~ The key of `at` on a map is a keyword or a string, both naming the
+      key as the map stores it.
+
+      ~(
+        {:a 1} | at 42
+        !| [type /actualType]
+        |  eq [::AtKeyNotKeywordOrStringError ::number]
+       )
+  ~~|
+
+:reverse
+  |~~ The entries in the reverse order, their keys kept.
+
+      ~({:a 1 :b 2} | reverse | vals | eq [2 1])
+  ~~|
+  ::verb~(:returns / | ::builtin{:impl :qlang/prim/reverse})
+
+:reduce
+  |~~ The seed folded over the values by the reducer.
+
+      ~({:a 1 :b 2} | reduce 0 ~(add) | eq 3)
+  ~~|
+  ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})

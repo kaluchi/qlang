@@ -291,12 +291,6 @@ describe('runtime/string.mjs lines', () => {
 });
 
 describe('dispatch helper arity error paths', () => {
-  it('overloadedOp throws ArityError on unsupported captured-arg count', async () => {
-    // sort accepts 0 or 1 captured args; calling with 2 hits the
-    // overloadedOp dispatch's `if (!impl)` branch.
-    await expectErrorCategory('[1 2] | sort ~(/x) /y', 'arityError');
-  });
-
   it('stateOp throws ArityError when captured-arg count mismatches expected', async () => {
     // env accepts 0 captured args; calling env(arg) fires the
     // stateOp's `lambdas.length !== expected` branch.

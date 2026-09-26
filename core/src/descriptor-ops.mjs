@@ -32,7 +32,7 @@
 
 
 import {
-  BUILTIN_TAG, TAG_HEADER_SYMBOL, isKeyword, typeKeyword, keyword, makeTagKeyword,
+  BUILTIN_TAG, TAG_HEADER_SYMBOL, isFunctionValue, isKeyword, typeKeyword, keyword, makeTagKeyword,
   stampBuiltinImpl, builtinImplOf
 } from './types.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
@@ -137,6 +137,14 @@ function operandIdentifier(operand) {
     : keyword(operand);
 }
 
+// The primitive of a built-in declared as a verb is called through the
+// head of its declaration, which checks what it takes [D72]; a
+// descriptor a query assembled from data names it and is refused [D73].
+const BuiltinImplOfVerbError = declareShapeError('BuiltinImplOfVerbError',
+  ({ impl }) => `::builtin :impl ${impl.literal} names the primitive of a verb, which its declaration calls through its head`,
+  { operand: '::builtin' }
+);
+
 // resolveBuiltinImpl(descriptor) → function value
 //
 // Dispatch-side reader for a `::builtin` descriptor's callable. The
@@ -155,5 +163,7 @@ export function resolveBuiltinImpl(descriptor) {
       actualValue: implHandle
     });
   }
-  return PRIMITIVE_REGISTRY.resolve(implHandle.name);
+  const resolvedImpl = PRIMITIVE_REGISTRY.resolve(implHandle.name);
+  if (!isFunctionValue(resolvedImpl)) throw new BuiltinImplOfVerbError({ impl: implHandle });
+  return resolvedImpl;
 }

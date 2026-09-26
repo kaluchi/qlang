@@ -32,7 +32,7 @@ import {
 } from '../errors.mjs';
 import {
   keyword, isQMap, isErrorValue, makeTaggedInstance, bindingValueOf,
-  TAG_HEADER_SYMBOL, SET_TAG_NAME, stampTagHeader
+  TAG_HEADER_SYMBOL, stampTagHeader
 } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
@@ -57,10 +57,6 @@ const HigherOrderOpArityMismatchError = declareArityError('HigherOrderOpArityMis
 const NullaryOpArgsProvidedError = declareArityError('NullaryOpArgsProvidedError',
   ({ operandName, actualArity }) =>
     `${operandName} takes no arguments, got ${actualArity}`,
-  { operand: '::call' });
-const OverloadedOpUnsupportedArityError = declareArityError('OverloadedOpUnsupportedArityError',
-  ({ operandName, supportedCounts, actualArity }) =>
-    `${operandName} accepts ${supportedCounts} captured args, got ${actualArity}`,
   { operand: '::call' });
 const StateOpArityMismatchError = declareArityError('StateOpArityMismatchError',
   ({ operandName, expectedCaptured, actualArity }) =>
@@ -108,34 +104,24 @@ export async function mintUnderTag(state, tag, value) {
 // tag of its own (`::Box[1 1] | distinct` answers `::Box#[1]`);
 // `:impl`-bearing tags re-invoke the constructor against the
 // post-transform payload (the «invariant re-runs across transforms»
-// contract). An operand that imposes an order declares
-// `{ imposesOrder: true }` beside it, and a set it reorders answers
-// the vector, since the order of a set is its own [D16]. An error the
-// operand answered, a predicate's among them, passes as it is.
+// contract). An error the operand answered, a predicate's among them,
+// passes as it is.
 // Operands opt in because shape-changing reducers (count, every,
 // sum, …) drop the source tag naturally — the operand body knows
 // whether its output is the same value-class as its input.
-async function applyTagPreservation(state, source, result, options) {
+async function applyTagPreservation(state, source, result) {
   // Optional chaining on source handles a `null` pipeValue safely
   // — `null?.[Symbol]` yields undefined and falls through here.
   const sourceTag = source?.[TAG_HEADER_SYMBOL];
   if (sourceTag === undefined || isErrorValue(result)) return result;
-  if (options.imposesOrder && sourceTag.name === SET_TAG_NAME) return result;
   if (tagCarriesConstructor(state, sourceTag.name)) {
     const { mintTaggedInstance } = await import('../eval.mjs');
     return await mintTaggedInstance(sourceTag.name, result, state);
   }
-  // `result[TAG_HEADER_SYMBOL]` reads safely through every
-  // `preservesTag` return shape — those operands (filter / sort
-  // / take / drop / reverse / flat / distinct) always
-  // produce a composite Vec / Map. A preserve-
-  // path operand that returns a primitive surfaces the contract
-  // bug as a TypeError at the operand site.
-  if (result[TAG_HEADER_SYMBOL] === undefined) {
-    stampTagHeader(result, sourceTag);
-    return result;
-  }
-  return makeTaggedInstance(sourceTag, result);
+  // The operands that keep their tag this way, prepend and append,
+  // answer a fresh composite, which takes the identity tag on its header.
+  stampTagHeader(result, sourceTag);
+  return result;
 }
 
 // The tags the walk passed to reach the value a verb serves [D34] come
@@ -172,13 +158,13 @@ export function valueOp(name, n, impl, options = {}) {
       });
     }
     const final = options.preservesTag
-      ? await applyTagPreservation(state, subjectValue, raw, options)
+      ? await applyTagPreservation(state, subjectValue, raw)
       : raw;
     return withPipeValue(state, final);
   }, { captured: [n - 1, n], ...tagFacts(options) });
 }
 
-export function higherOrderOp(name, n, impl, options = {}) {
+export function higherOrderOp(name, n, impl) {
   return makeFn(name, n, async (state, hoLambdas) => {
     const capturedCount = hoLambdas.length;
     if (capturedCount !== n - 1) {
@@ -186,45 +172,24 @@ export function higherOrderOp(name, n, impl, options = {}) {
         operandName: name, expectedCaptured: n - 1, actualArity: capturedCount
       });
     }
-    const raw = await impl(state.pipeValue, ...hoLambdas);
-    const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw, options)
-      : raw;
-    return withPipeValue(state, final);
-  }, { captured: [n - 1, n - 1], ...tagFacts(options) });
+    return withPipeValue(state, await impl(state.pipeValue, ...hoLambdas));
+  }, { captured: [n - 1, n - 1] });
 }
 
-export function nullaryOp(name, impl, options = {}) {
+export function nullaryOp(name, impl) {
   return makeFn(name, 1, async (state, nullaryLambdas) => {
     if (nullaryLambdas.length !== 0) {
       throw new NullaryOpArgsProvidedError({ operandName: name, actualArity: nullaryLambdas.length });
     }
-    const raw = await impl(state.pipeValue);
-    const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw, options)
-      : raw;
-    return withPipeValue(state, final);
-  }, { captured: [0, 0], ...tagFacts(options) });
+    return withPipeValue(state, await impl(state.pipeValue));
+  }, { captured: [0, 0] });
 }
 
-export function overloadedOp(name, maxArity, overloadImpls, options = {}) {
+export function overloadedOp(name, maxArity, overloadImpls) {
   const arityKeys = Object.keys(overloadImpls).map(Number).sort((a, b) => a - b);
-  return makeFn(name, maxArity, async (state, overloadLambdas) => {
-    const capturedCount = overloadLambdas.length;
-    const selectedImpl = overloadImpls[capturedCount];
-    if (!selectedImpl) {
-      throw new OverloadedOpUnsupportedArityError({
-        operandName: name,
-        supportedCounts: Object.keys(overloadImpls).join(' or '),
-        actualArity: capturedCount
-      });
-    }
-    const raw = await selectedImpl(state.pipeValue, ...overloadLambdas);
-    const final = options.preservesTag
-      ? await applyTagPreservation(state, state.pipeValue, raw, options)
-      : raw;
-    return withPipeValue(state, final);
-  }, { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]], ...tagFacts(options) });
+  return makeFn(name, maxArity, async (state, overloadLambdas) =>
+    withPipeValue(state, await overloadImpls[overloadLambdas.length](state.pipeValue, ...overloadLambdas)),
+  { captured: [arityKeys[0], arityKeys[arityKeys.length - 1]] });
 }
 
 export function stateOp(name, arity, impl) {

@@ -92,11 +92,10 @@ describe('filter — container polymorphism', () => {
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
-  it('non-container subject lifts to FilterSubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'FilterSubjectNotContainerError');
+  it('a non-container subject reaches the contract of filter on fail-track [D72]', async () => {
+    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'VerbWithoutBodyError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('FilterSubjectNotContainerError');
-    expect(originalErr.context.actualType.name).toBe('number');
+    expect(originalErr.name).toBe('VerbWithoutBodyError');
   });
 
   it('Vec with a verb handed as the predicate', async () => {
@@ -149,10 +148,10 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('{} | every ~(gt 0)')).toBe(true);
   });
 
-  it('non-container subject lifts to EverySubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'EverySubjectNotContainerError');
+  it('a non-container subject reaches the contract of every on fail-track [D72]', async () => {
+    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'VerbWithoutBodyError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('EverySubjectNotContainerError');
+    expect(originalErr.name).toBe('VerbWithoutBodyError');
   });
 
   it('Vec with a declared verb predicate', async () => {
@@ -193,10 +192,10 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('{} | any ~(gt 0)')).toBe(false);
   });
 
-  it('non-container subject lifts to AnySubjectNotContainerError on fail-track', async () => {
-    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'AnySubjectNotContainerError');
+  it('a non-container subject reaches the contract of any on fail-track [D72]', async () => {
+    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'VerbWithoutBodyError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('AnySubjectNotContainerError');
+    expect(originalErr.name).toBe('VerbWithoutBodyError');
   });
 });
 

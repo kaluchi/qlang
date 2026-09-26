@@ -111,9 +111,12 @@ function dedent(text) {
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
+  // A name several kinds answer has its page on its contract, the verb
+  // without a body on `::qlang/any` [D72]; any other name reads its own
+  // binding's, or the first verb of its name.
   const query = isTagBindingName(name)
     ? `${name} | docs`
-    : `:"${name}" | docs !| (/addresses | first | if (eq null) ~([]) ~(docs))`;
+    : `::any/${name} | docs !| (:"${name}" | docs) !| (/addresses | first | if (eq null) ~([]) ~(docs))`;
   let docs;
   try {
     docs = await evalQuery(query);

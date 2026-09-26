@@ -29,7 +29,7 @@
 {"name":"filter-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2 :c 3} | :above ::verb~(:limit ::number | gt limit) | filter ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}
 {"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
-{"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","error":"typeError","expect":"::FilterSubjectNotContainerError!{\n  :faultStep ~(filter ~(gt 0))\n  :faultInput 42\n  :actualType ::number\n}"}
+{"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :faultStep ~(filter ~(gt 0))\n  :faultInput 42\n  :verbName :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n}"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort ~(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}
@@ -52,7 +52,7 @@
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]","decision":"D43"}
 {"name":"reduce-folds-with-the-quote-of-a-bare-operand","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
 {"name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | /items | take (count | sub 1)","expect":"[1 2]","decision":"D43"}
-{"name":"a-slot-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (gt 1) !| type","expect":"::FilterPredicateNotQuoteError","decision":"D56"}
+{"name":"a-slot-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::FilterPredicateNotQuoteError","decision":"D56"}
 {"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
 {"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
 {"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}

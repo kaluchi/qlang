@@ -578,7 +578,7 @@ the sister project, source text and rendered cards:
 
 ```qlang
 > "hello world" | count
-::CountSubjectNotContainerError!{ … :actualType ::string }
+::VerbWithoutBodyError!{ … :addresses #[::map/count ::set/count ::vec/count] }
 
 > "a\nb\nc\nd" | split "\n" | drop 1 | take 2 | join "\n"
 b
@@ -594,7 +594,7 @@ cannot be read in pieces. On 25 September 2026:
 ~(add 1)
 
 > |~~ a ~(add 1) b ~~| | count !| type
-::CountSubjectNotContainerError
+::VerbWithoutBodyError
 ```
 
 The pageable shape is the vector, and a value that can overflow has to
@@ -757,10 +757,10 @@ slot of code takes a quote [D67], [D68]:
 120
 ```
 
-So does a built-in declared on its noun, the verbs of numbers and the
-comparisons: its head checks the subject and the slots before its
-primitive runs and raises the refusal its site declares at that place,
-and `spec` answers the head [D72]:
+So does a built-in declared on its noun, the verbs of numbers, of the
+comparisons and of the containers: its head checks the subject and the
+slots before its primitive runs and raises the refusal its site
+declares at that place, and `spec` answers the head [D72], [D73]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -783,14 +783,14 @@ the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::vec/at | spec | /modifiers
+> ::map/has | spec | /modifiers
 [:any]
 
-> [1 2] | at "a" !| type
-::AtIndexNotIntegerError
+> {:a 1} | has 1 !| type
+::HasKeyNotKeywordOrStringError
 ```
 
-`at` is declared to take any index and refuses a string on a vector.
+`has` is declared to take any key and refuses a number on a map.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -812,13 +812,14 @@ page of a refusal names the kind it expected with one:
 The kinds move into the declarations with the kinds of the slots
 [D45], [D67].
 
-Whether a transform keeps its subject's tag at all is an option of the
-operand's implementation, `preservesTag`, which `applyTagPreservation`
-in `core/src/runtime/dispatch.mjs` reads, and a second option there,
-`imposesOrder`, lets `sort` and `reverse` answer a vector over a set,
-as D16 asks. Neither is a fact of a declaration, so an edit of a
-tagged map keeps the tag or loses it by which implementation set the
-flag, and the loss is silent:
+A verb on its noun says in its head whether it keeps its subject's
+kind, `:returns /` for `filter` and `::vec` for `sort` over a set
+[D67], [D72]. For the operands not moved yet, whether a transform keeps
+its subject's tag at all is an option of the operand's implementation,
+`preservesTag`, which `applyTagPreservation` in
+`core/src/runtime/dispatch.mjs` reads. It is no fact of a declaration,
+so an edit of a tagged map keeps the tag or loses it by which
+implementation set the flag, and the loss is silent:
 
 ```qlang
 > ::T{:a 1 :b 2} | filter ~(eq 1) | type
@@ -879,14 +880,16 @@ of the runtime is exported for building operands.
 
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
-share [D62], [D67]. Today one descriptor stands for every kind its
-subject lists, and each of those kinds reads the same one:
+share [D62], [D67], as the verbs of containers do [D73]. Where the
+catalog has not moved a verb onto its nouns, one descriptor stands for
+every kind its subject lists, and each of those kinds reads the same
+one:
 
 ```qlang
-> ::set/count | spec | /subject
-[:vec :set :map]
+> ::set/union | spec | /subject
+[:set :map :vec]
 
-> ::set/count | spec | eq (::vec/count | spec)
+> ::set/union | spec | eq (::map/union | spec)
 true
 ```
 
@@ -894,11 +897,8 @@ A call by address reaches that one descriptor as well, so it serves any
 kind the descriptor lists, and the kind in the address checks nothing:
 
 ```qlang
-> {:a 1} | vec/count
-1
-
-> [3 1] | set/sort
-[1 3]
+> {:a 1} | vec/union {:b 2}
+{:a 1 :b 2}
 ```
 
 The vocabulary carries the calling shape as well as the kind. A
@@ -1187,8 +1187,8 @@ so one error nests inside another, where the law of nested errors hands
 it on unchanged [D13], as a verb's slot does [D68]:
 
 ```qlang
-> [1 2] | take (!{:k 1}) !| type
-::TakeCountNotIntegerError
+> "ab" | split (!{:k 1}) !| type
+::SplitSeparatorNotStringError
 
 > 1 | add (!{:k 1}) !| type
 ::error
@@ -1489,7 +1489,7 @@ A descriptor of the catalog prints as a bare map, and the map it prints
 reads back as another value.
 
 ```qlang
-> ::vec/count | spec | type
+> ::map/keys | spec | type
 ::builtin
 
 > ::builtin{:a 1}
@@ -2207,3 +2207,4 @@ maintainer wants to explore it before it is fixed.
 [D69]: decisions/D69.md
 [D70]: decisions/D70.md
 [D72]: decisions/D72.md
+[D73]: decisions/D73.md

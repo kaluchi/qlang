@@ -38,7 +38,7 @@ describe('DocAttachedSequence binds to a declaration alone', () => {
     // lands as a separate pipeline step that the next operand
     // (here `filter`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | filter ~(gt 0) !| type');
-    expect(result).toEqual(makeTagKeyword('FilterSubjectNotContainerError'));
+    expect(result).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 });
 

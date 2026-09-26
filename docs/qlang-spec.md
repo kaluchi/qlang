@@ -1690,18 +1690,21 @@ projects, iteration sees the data plane). Set / Scalar / Keyword /
 Quote / Doc / Error / already-tagged composite
 payloads ride an opaque wrap object that holds the value out of
 reach of `/key` projection — the dedicated `payload` operand is the
-only extractor. A verb reaches the value under the wrap by walking
-the subject's tags from the outside in: past each tag its `:subject`
-does not name it takes the value the tag wraps, and a verb that
-keeps its subject's tag, `filter` or `sort`, keeps each tag it
-passed.
+only extractor. A verb is found by walking the subject's tags from
+the outside in: past each tag no verb of the name resides on, it takes
+the value the tag wraps. A verb that keeps its subject's kind,
+`filter`, keeps each tag it passed, and `sort` over a set imposes an
+order and answers the bare vector [D67], [D72].
 
 ```qlang
 > ::Box#[3 1] | count
 2
 
+> ::Box#[3 1 2] | filter ~(gt 1)
+::Box#[2 3]
+
 > ::Box#[3 1 2] | sort
-::Box[1 2 3]
+[1 2 3]
 ```
 
 `printValue` reads identity off the JS-header and re-emits the

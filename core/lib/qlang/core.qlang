@@ -19,9 +19,10 @@ use [:qlang/runtime-invariants
      :qlang/number
      :qlang/string
      :qlang/keyword
+     :qlang/vec
+     :qlang/set
+     :qlang/map
      :qlang/any
-     :qlang/operand/vec
-     :qlang/operand/container
      :qlang/operand/setOp
      :qlang/operand/mapOp
      :qlang/operand/string

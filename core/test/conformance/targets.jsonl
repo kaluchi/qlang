@@ -10,7 +10,7 @@
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ::verb~(:q ::quote | :x ::any | apply q) | 2 | t ~(add x) 99","expect":"12","decision":["D43","D67"]}
-{"name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true","decision":"D4","target":true}
+{"name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true","decision":"D4"}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34"}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
@@ -37,8 +37,8 @@
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::ParseError","expect":"false","decision":["D61","D62"]}
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
 {"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
-{"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | spec | /impl","expect":":qlang/prim/count","decision":"D62"}
-{"name":"builtin-descriptor-renders-without-a-function-leak","query":"::vec/count | spec | json | contains \"qlang/prim/count\"","expect":"true","decision":"D62"}
+{"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | source | parse | contains \"::builtin{:impl :qlang/prim/count}\"","expect":"true","decision":["D62","D72"]}
+{"name":"builtin-descriptor-renders-without-a-function-leak","query":"::map/keys | spec | json | contains \"qlang/prim/keys\"","expect":"true","decision":"D62"}
 {"name":"an-addressed-built-in-answers-its-signature","query":"::number/add | spec | type","expect":"::spec","decision":["D62","D72"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(docs | filter ~(/content | eq \"\" | not) | empty | not)","expect":"true","decision":["D61","D62"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runExamples | every ~(/ok))","expect":"true","decision":"D62"}
@@ -59,5 +59,5 @@
 {"name":"an-optional-slot-takes-its-default","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
 {"name":"an-optional-slot-takes-a-modifier","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67","target":true}
-{"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::vec/count]","decision":"D67","target":true}
-{"name":"a-verb-answers-its-signature","query":"::vec/sort | spec | type","expect":"::spec","decision":"D67","target":true}
+{"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::vec/count]","decision":"D67"}
+{"name":"a-verb-answers-its-signature","query":"::vec/sort | spec | type","expect":"::spec","decision":"D67"}

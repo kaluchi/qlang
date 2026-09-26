@@ -170,14 +170,9 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     expect(residenceOfVerb(addVerb)).toBe('number');
   });
 
-  it('spot-check — :filter is a higher-order containerSelector', async () => {
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const resolved = await langRuntime();
-    const filterDescriptor = bindingValueOf(resolved.get('filter'));
-    expect(filterDescriptor.get('category')).toEqual(keyword('containerSelector'));
-    expect(filterDescriptor.get('modifiers')).toEqual([keyword('predicateLambda')]);
-    const impl = builtinImplOf(filterDescriptor);
-    expect(impl.name).toBe('filter');
+  it('spot-check — ::vec/filter takes its predicate in a slot of code [D72]', async () => {
+    const { evalQuery } = await import('../../src/eval.mjs');
+    expect(await evalQuery('::vec/filter | spec | /predicate')).toEqual(makeTagKeyword('quote'));
   });
 
   it('spot-check — :env reflective operand lands with :category :reflective', async () => {
@@ -209,15 +204,15 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery('::vec/count | docs');
+    const docs = await evalQuery('::any/count | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('number of elements');
-    expect(joined).toContain('Polymorphic');
+    expect(joined).toContain('vector');
   });
 
   it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const docs = await evalQuery('::vec/filter | docs');
+    const docs = await evalQuery('::any/filter | docs');
     const joined = docs.map(d => d.content).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('boolean');
@@ -287,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(226);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(205);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(59);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(39);
   });
 });
 
@@ -310,11 +305,6 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       const cat = entryVal.get('category');
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
-    expect(categories.get('containerReducer')).toBe(2);  // count + empty (polymorphic Vec/Set/Map)
-    expect(categories.get('containerSelector')).toBe(3);  // filter + every + any (polymorphic Vec/Set/Map)
-    expect(categories.get('vecReducer')).toBe(6);  // first, last, sum, min, max, reduce
-    expect(categories.get('indexedAccess')).toBe(1);  // at (Vec + Map polymorphic)
-    expect(categories.get('vecTransformer')).toBe(8);  // sort, take, drop, distinct, reverse, flat, groupBy, indexBy
     expect(categories.get('control')).toBe(3);
     expect(categories.get('mapOp')).toBe(3);  // keys + vals + has
     expect(categories.get('setOp')).toBe(3);  // union + minus + inter (Vec→Set converter lives on `distinct`)

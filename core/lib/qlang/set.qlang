@@ -1,0 +1,150 @@
+|~ The verbs of sets [D62]. Each resides on `::qlang/set`, the kind
+   whose module declares it, under the contract of its name on
+   `::qlang/any`, whose page and laws it answers [D72]. A set is the
+   vector in the one order without duplicates [D16]: a verb that keeps
+   its subject's kind answers a set through the constructor of `::set`,
+   and one that imposes an order answers the vector. ~|
+
+:count
+  |~~ The number of elements.
+
+      ~(#[:a :b] | count | eq 2)
+  ~~|
+  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
+
+:empty
+  |~~ Whether the set holds no element.
+
+      ~(#[] | empty | eq true)
+  ~~|
+  ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/empty})
+
+:first
+  |~~ The least element, or null for the empty set.
+
+      ~(#[:c :a :b] | first | eq :a)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/first})
+
+:last
+  |~~ The greatest element, or null for the empty set.
+
+      ~(#[:c :a :b] | last | eq :c)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/last})
+
+:sum
+  |~~ The sum of the elements, each a number.
+
+      ~(#[1 2 3] | sum | eq 6)
+  ~~|
+  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
+
+:min
+  |~~ The least element.
+
+      ~(#[3 1 4] | min | eq 1)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/min})
+
+:max
+  |~~ The greatest element.
+
+      ~(#[3 1 4] | max | eq 4)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/max})
+
+:filter
+  |~~ The set of the elements whose predicate answers true.
+
+      ~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
+  ~~|
+  ::verb~(:predicate ::quote | :returns / | ::builtin{:impl :qlang/prim/filter})
+
+:every
+  |~~ Whether the predicate answers true for every element.
+
+      ~(#[2 4] | every ~(gt 0) | eq true)
+  ~~|
+  ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/every})
+
+:any
+  |~~ Whether the predicate answers true for some element.
+
+      ~(#[1 2 3] | any ~(gt 2) | eq true)
+  ~~|
+  ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/any})
+
+:groupBy
+  |~~ The map of sets the key sorts the elements into.
+
+      ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | /big | eq #[2 3])
+  ~~|
+  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
+
+:indexBy
+  |~~ The map of the elements under the key each answers.
+
+      ~(#[{:id :a}] | indexBy ~(/id) | /a | eq {:id :a})
+  ~~|
+  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
+
+:sort
+  |~~ The vector of the elements in the one order, or by the value the
+      key answers for each; the order is imposed, so the answer is the
+      vector [D16], [D67].
+
+      ~(#[:y :x :z] | sort | eq [:x :y :z])
+  ~~|
+  ::verb~(:key #[::quote ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/sort})
+
+:take
+  |~~ The set of the least count elements.
+
+      ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
+
+:drop
+  |~~ The set of the elements after the least count.
+
+      ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
+
+:at
+  |~~ The element at the index in the one order, a negative one
+      counting from the end, or null past either end.
+
+      ~(#[:a :b :c] | at -1 | eq :c)
+  ~~|
+  ::verb~(:index ::number | ::builtin{:impl :qlang/prim/at})
+
+:distinct
+  |~~ The set itself.
+
+      ~(#[1 2 3] | distinct | eq #[1 2 3])
+  ~~|
+  ::verb~(:returns / | ::builtin{:impl :qlang/prim/distinct})
+
+:reverse
+  |~~ The vector of the elements in the reverse of the one order.
+
+      ~(#[:a :b :c] | reverse | eq [:c :b :a])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/reverse})
+
+:flat
+  |~~ The set of the elements with one level of nesting spliced in, so
+      a set of sets flattens into their union.
+
+      ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
+  ~~|
+  ::verb~(:returns / | ::builtin{:impl :qlang/prim/flat})
+
+:reduce
+  |~~ The seed folded over the elements in the one order by the reducer.
+
+      ~(#[1 2 3] | reduce 0 ~(add) | eq 6)
+  ~~|
+  ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})

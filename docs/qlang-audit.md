@@ -2034,6 +2034,25 @@ The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
 
+The site as hypermedia [D19], [D88]. The maintainer pictures the site
+as a browser that runs qlang: a module of a tutorial whose quotes, tags
+and keywords are links, a click writing the snippet into the line of a
+REPL and running it, so that the answer reads as the next page: «что б
+квоты с примерами ~() или ещё какие-то тэги кейворды .. там сделать
+кликабельными и когда нажимаешь на них - то в relp строку вставляется
+этот снипет и исполняется .. но выглядит так как будто просто сменилась
+или открылась ниже новая страница» and «вдруг у кого-то из читающих
+потом щелкнет как это работает .. и что гипертекст возможнет не только
+в вебе, но и в repl-е и просто в баше в аргументах» (maintainer,
+2026-09-26 13:21, session 86982eb5). A link is then a query, the same
+text typed in the REPL or passed on the command line gives the same
+page, and the site is one renderer of it. The tree gives the segments
+of a doc, its prose apart from its runnable quotes, and a name to reach
+a page by [D88]; the prose of a module is a plain comment that no name
+reaches, and a tag or a keyword inside prose is no segment yet [D19].
+The site waits for the syntax: «пока синтаксис не начнет мне самому
+нравиться» (13:23).
+
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
 элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно

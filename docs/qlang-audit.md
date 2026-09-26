@@ -2114,13 +2114,19 @@ stands over an error. A tag laid over an error, by a tagged literal
 whose payload answers one or by `tag` over one taken out of a pair,
 answers the error unchanged, the step of the tag joining the skipped
 steps of its last stop, whatever the constructor. `error` takes any
-value but an error and answers only errors, its tag being the tag its
-value shows, so `!| tag ::Foo | error` renames as the envelope asks; it
-moves from `::map` to `::qlang/any` [D76]. The cost is one alternative
-in the grammar, the branch of the tag's mint that rebrands an error
-leaving, the step of a tagged error literal becoming an error value of
-that tag, and the readers of a tag's occurrences, the editor's among
-them, reading the tag of an error literal.
+value but an error and answers only errors, and the value it takes is a
+map, «т.к. для error легальная нагрузка это только ::map» (09:58), so
+it stays on `::map` [D76]. The walk down the tags [D34] hands it the map
+beneath a tag a step laid over the descriptor, so `!| tag ::Foo | error`
+keeps the tag of the site, as above, and the rename is the idiom of
+`tag` for replacing a tag, `!| payload | tag ::Foo | error`. Open is
+whether `error`, the one verb whose answer is its tag, refuses a map it
+reaches beneath another tag, which makes the lost tag loud at the price
+of a head that sees the tags the walk passed. The cost of the rest is
+one alternative in the grammar, the branch of the tag's mint that
+rebrands an error leaving, the step of a tagged error literal becoming
+an error value of that tag, and the readers of a tag's occurrences, the
+editor's among them, reading the tag of an error literal.
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

@@ -1154,16 +1154,18 @@ verb lists, by the position the refusal declares:
 
 It must hold one law for an error inside a nested evaluation, derived
 from the fork rule [D13]: the error of a fork is its value, handed to
-whatever ran the fork; a place declared for any value keeps it, as an
-element of a literal or of a distribute does today; a place declared
-for a kind, the number slot of `add` or the boolean a predicate must
-return, fails with that same error, unchanged, so a selector still aborts on a failing
-predicate and an arithmetic step stops nesting one error inside another;
-and an operand whose alternatives are pipeline slots, `coalesce` and its
-kin, runs them in order and treats an error result as no value, which is
+whatever ran the fork; the elements of a container keep it, the
+elements and entries of a literal and the results of a distribute; an
+argument of a step hands it on unchanged, whatever the kind of its slot,
+and a key hands it to the operand that runs it [D87], so a selector
+aborts on a failing predicate, a sort on a key that misses its field,
+and an arithmetic step stops nesting one error inside another; and an
+operand whose alternatives are pipeline slots, `coalesce` and its kin,
+runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
-asked.
+asked. The value slot of `use` above is the one place that still
+breaks it.
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which
@@ -1801,13 +1803,14 @@ the ordered vector, the kinds and the strict predicates have landed
 line's default subject and its terminal views [D37], the edit under a
 tag that rewraps through the tag's constructor [D41], the trail of an
 error as the path it took, a stop at every step that handed it on
-[D85], and an error as the envelope on top of its value, with no tag
-over it [D86]. What remains is
-the contracts moving onto the kinds, a tag's declaration being its
-schema or its constructor [D6], [D33]; and the tags of the refusing
-sites as kinds with their schemas and procedures, and the law for
-nested errors [D7], [D13], [D46], which is where the JavaScript classes
-of errors and the prose that restates their facts disappear.
+[D85], an error as the envelope on top of its value, with no tag over
+it [D86], and the law for nested errors, under which a container keeps
+an error and an argument hands it on [D13], [D87]. What remains is the
+contracts moving onto the kinds, a tag's declaration being its schema
+or its constructor [D6], [D33]; and the tags of the refusing sites as
+kinds with their schemas and procedures [D7], [D46], which is where the
+JavaScript classes of errors and the prose that restates their facts
+disappear.
 
 Its answers are the targets of [D13] and [D64] in the conformance
 suite: the error a value slot hands on, whose kind D64 names and whose
@@ -2024,24 +2027,6 @@ The test for null. Whether `eq null | not` earns an operand of its own
 is a question the benchmark answers under the rule of the catalog
 [D22].
 
-The key of a sort that answers an error [D13], [D16]. The one order ranks
-errors, and in the model's reading a sort key is a place declared for
-any value, so a key that answers an error is ranked as a value and a
-key that misses a field sorts its element among the errors. On 25
-September 2026:
-
-```qlang
-> [{:a 2} {:b 1}] | sort ~(/a)
-[{:a 2} {:b 1}]
-```
-
-The alternative is the rule of `filter` and `groupBy`, under which the
-error of a key is the answer of the operand: a misspelled key is then
-loud, at the price of a sort by key over a vector that holds errors,
-which answers the first of them, while a sort without a key still ranks
-them. The review of pull request #46 raised it, and the law for nested
-errors of the third milestone settles it [D13].
-
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
 элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно
@@ -2156,3 +2141,4 @@ maintainer wants to explore it before it is fixed.
 [D84]: decisions/D84.md
 [D85]: decisions/D85.md
 [D86]: decisions/D86.md
+[D87]: decisions/D87.md

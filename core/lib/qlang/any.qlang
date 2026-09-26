@@ -321,7 +321,9 @@
       sorts its entries by their values and keeps the keys. `sort ~(key)`
       orders by the value the key answers for each element, a vector
       serving as a compound key, and keeps elements with equal keys in
-      the subject's order; the descending order is the sort reversed.
+      the subject's order; the descending order is the sort reversed. A
+      key that answers an error answers the call, so a key that misses
+      its field is refused where it is read [D87].
 
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
       ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
@@ -330,6 +332,7 @@
       ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
       ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
       ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
+      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::ProjectionKeyNotInMapError)
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::verb~()

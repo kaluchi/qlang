@@ -72,3 +72,6 @@
 {"name":"a-body-that-declares-a-slot-again-is-refused","query":":f ::verb~(:n 1 | :n (n | add 1) | n) | null | f !| [type /name]","expect":"[::BindNameDeclaredTwiceError :n]","decision":"D71"}
 {"name":"a-verb-body-shadows-a-name-of-its-scope","query":":n 1 | :f ::verb~(:n 2 | n) | null | [f n]","expect":"[2 1]","decision":"D71"}
 {"name":"a-head-that-declares-a-slot-twice-is-refused","query":"::verb~(:n 1 | :n 2 | n) !| [type /name]","expect":"[::BindNameDeclaredTwiceError :n]","decision":"D71"}
+{"name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":pair ::verb~(:a ::any | :b ::any | [a b]) | 5 | pair (add 1) (mul 2)","expect":"[6 10]","decision":"D12"}
+{"name":"a-modifier-sees-no-name-another-declared","query":":pair ::verb~(:a ::any | :b ::any | [a b]) | 5 | pair (:y 1 | y) y !| type","expect":"::UnresolvedIdentifierError","decision":"D12"}
+{"name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17","decision":"D12"}

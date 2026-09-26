@@ -28,3 +28,6 @@
 {"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
 {"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
 {"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
+{"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | [type (payload | type)]","expect":"[::A ::B]","decision":"D20"}
+{"name":"a-tag-stacks-over-a-scalar-as-over-a-container","query":"::A(1) | [type payload]","expect":"[::A 1]","decision":"D20"}
+{"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | spec | /verbs | has ::vec/count","expect":"true","decision":"D20"}

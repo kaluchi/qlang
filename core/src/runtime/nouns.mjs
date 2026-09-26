@@ -128,20 +128,15 @@ function servesKindOf(descriptor, value) {
   return kinds.has('any') || kinds.has(typeKeyword(value).name);
 }
 
-// The value a verb takes from its subject, walking the subject's tags
-// from the outside in [D34]: the subject itself when the verb serves its
-// kind, and past a tag the verb does not serve the value that tag wraps,
-// with the tags passed on the way, so `::Box#[3 1] | count` counts the
-// set. A tag a vector or a map carries rides the value itself, which a
-// verb of vectors or of maps reads as it is.
+// The value a descriptor takes from its subject, walking the subject's
+// tags from the outside in [D34]: the subject itself when the descriptor
+// serves its kind, and past a tag it does not serve the value that tag
+// wraps, so `::Box("[1]") | parseJson` reads the string. A tag a vector
+// or a map carries rides the value itself.
 export function subjectServedBy(descriptor, subject) {
-  const passedTags = [];
   let served = subject;
-  while (isValueClass(served, 'taggedInstance') && !servesKindOf(descriptor, served)) {
-    passedTags.push(served.tag);
-    served = served.payload;
-  }
-  return { served, passedTags };
+  while (isValueClass(served, 'taggedInstance') && !servesKindOf(descriptor, served)) served = served.payload;
+  return served;
 }
 
 export function isNoun(env, tagName) {

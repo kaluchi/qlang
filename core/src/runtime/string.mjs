@@ -1,14 +1,11 @@
-// String operands. Subject-first: position 1 is the subject string,
-// position 2 is the modifier string. Every check throws a class
-// unique to its call site. `prepend` and `append` serve a vector
-// too, taking an element at its head or its end.
+// The verbs of strings, and `join`, `prepend` and `append` of vectors,
+// each a plain function over the values the head of its verb checked
+// [D72]: `prepend` and `append` reside on `::string`, whose prefix and
+// suffix are strings, and on `::vec`, whose element is any value.
 //
-// Meta lives in lib/qlang/operand/string.qlang.
+// The verbs live in lib/qlang/string.qlang and vec.qlang.
 
-import { valueOp, nullaryOp } from './dispatch.mjs';
-import {
-  isVec
-} from '../types.mjs';
+import { isVec } from '../types.mjs';
 import {
   declareModifierError,
   declareSubjectError,
@@ -16,93 +13,47 @@ import {
 } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const PrependSubjectNotStringOrVecError = declareModifierError('PrependSubjectNotStringOrVecError', 'prepend', 1, ['string', 'vec']);
-const PrependPrefixNotStringError     = declareModifierError('PrependPrefixNotStringError',     'prepend',    2, 'string');
-const AppendSubjectNotStringOrVecError  = declareModifierError('AppendSubjectNotStringOrVecError',  'append',  1, ['string', 'vec']);
-const AppendSuffixNotStringError      = declareModifierError('AppendSuffixNotStringError',      'append',     2, 'string');
-const SplitSubjectNotStringError      = declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
-const SplitSeparatorNotStringError    = declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
-const LinesSubjectNotStringError      = declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
-const JoinSubjectNotVecError          = declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
-const JoinElementNotStringError       = declareElementError('JoinElementNotStringError',        'join',       'string');
-const JoinSeparatorNotStringError     = declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
-const ContainsSubjectNotStringError   = declareModifierError('ContainsSubjectNotStringError',   'contains',   1, 'string');
-const ContainsNeedleNotStringError    = declareModifierError('ContainsNeedleNotStringError',    'contains',   2, 'string');
-const StartsWithSubjectNotStringError = declareModifierError('StartsWithSubjectNotStringError', 'startsWith', 1, 'string');
-const StartsWithPrefixNotStringError  = declareModifierError('StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
-const EndsWithSubjectNotStringError   = declareModifierError('EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
-const EndsWithSuffixNotStringError    = declareModifierError('EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
+// The refusals the heads raise at the places they declare; the prefix
+// and the suffix are the string's alone, a vector taking any element
+// [D73].
+declareModifierError('PrependPrefixNotStringError',     '::string/prepend', 2, 'string');
+declareModifierError('AppendSuffixNotStringError',      '::string/append',  2, 'string');
+declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
+declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
+declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
+declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
+declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
+declareModifierError('ContainsSubjectNotStringError',   'contains',   1, 'string');
+declareModifierError('ContainsNeedleNotStringError',    'contains',   2, 'string');
+declareModifierError('StartsWithSubjectNotStringError', 'startsWith', 1, 'string');
+declareModifierError('StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
+declareModifierError('EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
+declareModifierError('EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
+const JoinElementNotStringError = declareElementError('JoinElementNotStringError', 'join', 'string');
 
 // A string takes its prefix or its suffix, a vector its element at the
-// head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`;
-// the tag of a vector stays, its constructor running again on the
-// edited payload [D41].
-export const prepend = valueOp('prepend', 2, (subject, prefix) => {
-  if (isVec(subject)) return [prefix, ...subject];
-  if (typeof subject !== 'string') throw new PrependSubjectNotStringOrVecError(subject);
-  if (typeof prefix  !== 'string') throw new PrependPrefixNotStringError(prefix);
-  return prefix + subject;
-}, { preservesTag: true });
+// head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
+bindPrim('prepend', (subject, prefix) => (isVec(subject) ? [prefix, ...subject] : prefix + subject));
+bindPrim('append',  (subject, suffix) => (isVec(subject) ? [...subject, suffix] : subject + suffix));
 
-export const append = valueOp('append', 2, (subject, suffix) => {
-  if (isVec(subject)) return [...subject, suffix];
-  if (typeof subject !== 'string') throw new AppendSubjectNotStringOrVecError(subject);
-  if (typeof suffix  !== 'string') throw new AppendSuffixNotStringError(suffix);
-  return subject + suffix;
-}, { preservesTag: true });
-
-export const split = valueOp('split', 2, (subject, separator) => {
-  if (typeof subject !== 'string') throw new SplitSubjectNotStringError(subject);
-  if (typeof separator !== 'string') throw new SplitSeparatorNotStringError(separator);
-  return subject.split(separator);
-});
+bindPrim('split', (subject, separator) => subject.split(separator));
 
 // The lines of a text [D49]: a `\n` ends a line and a `\r` before it
 // belongs to the ending; the text after the last ending is a line
 // unless it is empty, so a final newline closes the last line rather
 // than opening one, and the empty text has no lines.
-export const lines = nullaryOp('lines', (subject) => {
-  if (typeof subject !== 'string') throw new LinesSubjectNotStringError(subject);
+bindPrim('lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();
   return pieces;
 });
 
-export const join = valueOp('join', 2, (subject, separator) => {
-  if (!isVec(subject)) throw new JoinSubjectNotVecError(subject);
-  if (typeof separator !== 'string') throw new JoinSeparatorNotStringError(separator);
-  for (let i = 0; i < subject.length; i++) {
-    if (typeof subject[i] !== 'string') {
-      throw new JoinElementNotStringError(i, subject[i]);
-    }
-  }
+bindPrim('join', (subject, separator) => {
+  const stranger = subject.findIndex(element => typeof element !== 'string');
+  if (stranger >= 0) throw new JoinElementNotStringError(stranger, subject[stranger]);
   return subject.join(separator);
 });
 
-export const contains = valueOp('contains', 2, (subject, needle) => {
-  if (typeof subject !== 'string') throw new ContainsSubjectNotStringError(subject);
-  if (typeof needle  !== 'string') throw new ContainsNeedleNotStringError(needle);
-  return subject.includes(needle);
-});
-
-export const startsWith = valueOp('startsWith', 2, (subject, prefix) => {
-  if (typeof subject !== 'string') throw new StartsWithSubjectNotStringError(subject);
-  if (typeof prefix  !== 'string') throw new StartsWithPrefixNotStringError(prefix);
-  return subject.startsWith(prefix);
-});
-
-export const endsWith = valueOp('endsWith', 2, (subject, suffix) => {
-  if (typeof subject !== 'string') throw new EndsWithSubjectNotStringError(subject);
-  if (typeof suffix  !== 'string') throw new EndsWithSuffixNotStringError(suffix);
-  return subject.endsWith(suffix);
-});
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('prepend',    prepend);
-bindPrim('append',     append);
-bindPrim('split',      split);
-bindPrim('lines',      lines);
-bindPrim('join',       join);
-bindPrim('contains',   contains);
-bindPrim('startsWith', startsWith);
-bindPrim('endsWith',   endsWith);
+bindPrim('contains',   (subject, needle) => subject.includes(needle));
+bindPrim('startsWith', (subject, prefix) => subject.startsWith(prefix));
+bindPrim('endsWith',   (subject, suffix) => subject.endsWith(suffix));

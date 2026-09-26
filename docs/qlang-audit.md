@@ -758,10 +758,10 @@ slot of code takes a quote [D67], [D68]:
 ```
 
 So does a built-in declared on its noun, the verbs of numbers, of the
-comparisons, of the containers and of their algebra: its head checks the
-subject and the slots before its primitive runs and raises the refusal
-its site declares at that place, and `spec` answers the head [D72],
-[D73], [D74]:
+comparisons, of strings, of the containers and of their algebra: its
+head checks the subject and the slots before its primitive runs and
+raises the refusal its site declares at that place, and `spec` answers
+the head [D72], [D73], [D74], [D75]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -784,15 +784,14 @@ the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::string/prepend | spec | /modifiers
+> ::any/and | spec | /modifiers
 [:any]
 
-> "a" | prepend 5 !| type
-::PrependPrefixNotStringError
+> true | and 1 !| type
+::AndRightNotBooleanError
 ```
 
-`prepend` is declared to take any prefix and refuses a number before a
-string.
+`and` is declared to take any operand and refuses a number.
 The mission's third requirement, that the shape of an answer can be
 known before it is fetched, reads these declarations, and where they
 are not executed it reads something false. Executing the declaration is
@@ -807,36 +806,12 @@ page of a refusal names the kind it expected with one:
 > 1 | type
 ::number
 
-> ::string/split | spec | /subject
-:string
+> ::any/type | spec | /returns
+:keyword
 ```
 
 The kinds move into the declarations with the kinds of the slots
 [D45], [D67].
-
-A verb on its noun says in its head whether it keeps its subject's
-kind, `:returns /` for `filter` and for `union`, and `::vec` for
-`sort` over a set [D67], [D72], [D74]. For the two edits not moved
-yet, `prepend` and `append`, keeping the subject's tag is an option of
-the operand's implementation, `preservesTag`, which
-`applyTagPreservation` in `core/src/runtime/dispatch.mjs` reads. It is
-no fact of a declaration, which names the kinds of the result with
-keywords, and the tag comes back by the flag:
-
-```qlang
-> ::T{:a 1} | union {:b 2} | type
-::T
-
-> ::string/prepend | spec | /returns
-[:string :vec]
-
-> ::Box[1] | prepend 0
-::Box[0 1]
-```
-
-The kind of an operand's result belongs to its declaration [D4], [D41],
-and a verb that keeps its subject's tag keeps every tag the walk passed
-[D34], which `:returns /` says [D67].
 
 A quote written as a modifier carries the environment of its call
 [D43], and one written as the body of a binding carries none, so a slot
@@ -882,16 +857,16 @@ of the runtime is exported for building operands.
 
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
-share [D62], [D67], as the verbs of containers and of their algebra do
-[D73], [D74]. Where the catalog has not moved a verb onto its nouns, one
-descriptor stands for every kind its subject lists, and each of those
-kinds reads the same one:
+share [D62], [D67], as the verbs of containers, of their algebra and of
+strings do [D73], [D74], [D75]. Where the catalog has not moved a verb
+onto its nouns, one descriptor stands for every kind its subject lists,
+and each of those kinds reads the same one:
 
 ```qlang
-> ::string/prepend | spec | /subject
-[:string :vec]
+> ::string/keyword | spec | /subject
+[:string :keyword]
 
-> ::string/prepend | spec | eq (::vec/prepend | spec)
+> ::string/keyword | spec | eq (::keyword/keyword | spec)
 true
 ```
 
@@ -899,8 +874,8 @@ A call by address reaches that one descriptor as well, so it serves any
 kind the descriptor lists, and the kind in the address checks nothing:
 
 ```qlang
-> [1] | string/prepend 0
-[0 1]
+> "a" | keyword/keyword
+:a
 ```
 
 The vocabulary carries the calling shape as well as the kind. A
@@ -987,8 +962,9 @@ Every kind a module declares reaches the scope of its clients the same
 way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
-The verbs of numbers, of the containers and of their algebra live in
-the module of their noun [D72], [D73], [D74]. The other modules of the
+The verbs of numbers, of strings, of the containers and of their
+algebra live in the module of their noun [D72], [D73], [D74], [D75].
+The other modules of the
 core are the families of the categories the catalog once sorted its
 operands by, where the manifest answers nouns, so the verbs of one noun
 come from several files and one file feeds several nouns, and the
@@ -998,7 +974,6 @@ kinds a descriptor's `:subject` lists (`core/src/runtime/nouns.mjs`,
 
 ```sh
 $ grep -lE ':subject (\[[^]]*)?:vec\b' core/lib/qlang/operand/*.qlang
-core/lib/qlang/operand/string.qlang
 core/lib/qlang/operand/typeConversion.qlang
 ```
 
@@ -1188,8 +1163,8 @@ so one error nests inside another, where the law of nested errors hands
 it on unchanged [D13], as a verb's slot does [D68]:
 
 ```qlang
-> "ab" | split (!{:k 1}) !| type
-::SplitSeparatorNotStringError
+> true | and (!{:k 1}) !| type
+::AndRightNotBooleanError
 
 > 1 | add (!{:k 1}) !| type
 ::error
@@ -1860,8 +1835,8 @@ comments as whitespace and the doc literal in the binding's slot. The
 catalog is written one module per noun, a verb that several kinds
 answer residing in each under the contract on its provider's `any`,
 where one descriptor stands today for every kind its subject lists, and
-`:returns` carries whether the verb keeps its subject's kind, which
-`preservesTag` decides today for the operands not moved [D41], [D67].
+`:returns` carries whether the verb keeps its subject's kind [D41],
+[D67].
 
 The milestone's answers are the targets of [D4], [D43], [D44], [D57],
 [D60], [D65], [D66] and [D67] in the conformance suite, which `node scripts/requirements.mjs`
@@ -2210,3 +2185,4 @@ maintainer wants to explore it before it is fixed.
 [D72]: decisions/D72.md
 [D73]: decisions/D73.md
 [D74]: decisions/D74.md
+[D75]: decisions/D75.md

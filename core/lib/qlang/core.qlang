@@ -23,7 +23,6 @@ use [:qlang/runtime-invariants
      :qlang/set
      :qlang/map
      :qlang/any
-     :qlang/operand/string
      :qlang/operand/predicate
      :qlang/operand/typeClassifier
      :qlang/operand/typeConversion

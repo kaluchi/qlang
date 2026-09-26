@@ -1,13 +1,8 @@
-// Hardening invariants for the dispatch-level
-// `applyTagPreservation` post-pass:
-//
-// - preservesTag operands returning a primitive (a contract
-//   violation today, but a future-proof guard) flow through the
-//   post-pass without a TypeError on `result[TAG_HEADER_SYMBOL]`.
-//
-// Both invariants are JS-side observable only — there is no
-// qlang-surface query that catches them. Unit tests inspect the
-// produced value directly.
+// A tagged vector whose tag the environment does not declare, one a
+// host built with makeTaggedInstance or read back from tagged JSON,
+// keeps its tag through a verb that returns its subject [D67]. Only
+// JavaScript builds such a value, so the tests inspect the answer
+// directly.
 
 import { describe, it, expect } from 'vitest';
 import { evalAst } from '../../src/eval.mjs';
@@ -17,14 +12,10 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { fromTaggedJSON } from '../../src/codec.mjs';
 import { makeTaggedInstance, makeTagKeyword, typeKeyword } from '../../src/types.mjs';
 
-describe('applyTagPreservation — unbound tag survives shape-preserving transforms', () => {
-  // A tagged instance whose tag is NOT bound in env (host-built via
-  // makeTaggedInstance, or deserialized from tagged-JSON) flows
-  // through the identity path of applyTagPreservation — the
-  // `isQMap(resolved) && resolved.has('impl')` gate is false, so the
-  // post-pass stamps the header directly and never calls
-  // mintTaggedInstance. Guards that the auto-declaration moving out of
-  // mintTaggedInstance did not turn an absent binding into a throw.
+describe('an undeclared tag survives a verb that returns its subject', () => {
+  // The tag carries no constructor, so `mintUnderTag` lays it over the
+  // answer without calling mintTaggedInstance, and an absent binding is
+  // no throw.
   async function transform(tagged, src) {
     const state = rootState(tagged, await langRuntime());
     return (await evalAst(parse(src), state)).pipeValue;

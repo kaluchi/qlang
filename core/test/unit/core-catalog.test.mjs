@@ -282,13 +282,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(201);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(199);
   });
 
   it('the value namespace holds every declared operand', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(33);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(25);
   });
 });
 
@@ -306,7 +306,6 @@ describe('lib/qlang/core.qlang — data-level projections across the full catalo
       categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
     }
     expect(categories.get('control')).toBe(3);
-    expect(categories.get('string')).toBe(8);
     expect(categories.get('predicate')).toBe(4);  // not + eq + and + or
     expect(categories.get('typeClassifier')).toBe(1);  // type — every value-class question is `type | eq(:kind)`
     expect(categories.get('typeConversion')).toBe(4);  // keyword + payload + tag + within

@@ -1,6 +1,8 @@
-|~ The comparisons of strings [D65]. Each resides on `::qlang/string`,
-   the kind whose module declares it, and compares two strings by their
-   code units in the one order [D72]. ~|
+|~ The verbs of strings [D62]. Each resides on `::qlang/string`, the
+   kind whose module declares it [D72]: the comparisons, which compare
+   two strings by their code units in the one order [D65], the verbs
+   that read a string, and `prepend` and `append`, under the contracts
+   of their names on `::qlang/any`. ~|
 
 :gt
   |~~ Whether the subject follows the string the call gives.
@@ -29,3 +31,169 @@
       ~("a" | lte "a" | eq true)
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+
+:split
+  |~~ The substrings between the occurrences of the separator, as a
+      vector. Inverse of `join`.
+
+      ~("a,b,c" | split "," | eq ["a" "b" "c"])
+      ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
+  ~~|
+  ::verb~(:separator ::string | :returns ::vec | ::builtin{:impl :qlang/prim/split})
+
+::SplitSubjectNotStringError
+  |~~ Captured argument at position 1 of `split` must be String.
+      ~(
+        42 | split ","
+        !| [type /actualType]
+        |  eq [::SplitSubjectNotStringError ::number]
+       )
+  ~~|
+
+::SplitSeparatorNotStringError
+  |~~ Captured argument at position 2 of `split` must be String.
+      ~(
+        "abc" | split 42
+        !| [type /actualType]
+        |  eq [::SplitSeparatorNotStringError ::number]
+       )
+  ~~|
+
+:lines
+  |~~ The lines of a text, as a vector of strings. A `\n` ends a line
+      and a `\r` before it belongs to the ending; a newline at the end
+      closes the last line rather than opening an empty one, so a text
+      reads alike with and without it, and the empty text has no lines.
+      The text is then worked on as the vector it has become, and
+      `join "\n"` writes it back.
+
+      ~("north\nsouth" | lines | eq ["north" "south"])
+      ~("one\r\ntwo\n" | lines | eq ["one" "two"])
+      ~("" | lines | eq [])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/lines})
+
+::LinesSubjectNotStringError
+  |~~ Subject of `lines` must be String.
+      ~(
+        42 | lines
+        !| [type /actualType]
+        |  eq [::LinesSubjectNotStringError ::number]
+       )
+  ~~|
+
+:contains
+  |~~ Whether the string holds the needle as a substring; the empty
+      needle is always held. Case-sensitive.
+
+      ~("hello world" | contains "world" | eq true)
+      ~("hello" | contains "xyz" | eq false)
+  ~~|
+  ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
+
+::ContainsSubjectNotStringError
+  |~~ Captured argument at position 1 of `contains` must be String.
+      ~(
+        42 | contains "x"
+        !| [type /actualType]
+        |  eq [::ContainsSubjectNotStringError ::number]
+       )
+  ~~|
+
+::ContainsNeedleNotStringError
+  |~~ Captured argument at position 2 of `contains` must be String.
+      ~(
+        "hi" | contains 42
+        !| [type /actualType]
+        |  eq [::ContainsNeedleNotStringError ::number]
+       )
+  ~~|
+
+:startsWith
+  |~~ Whether the string begins with the prefix; the empty prefix
+      always begins it. Case-sensitive.
+
+      ~("hello world" | startsWith "hello" | eq true)
+      ~("hello" | startsWith "world" | eq false)
+  ~~|
+  ::verb~(:prefix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/startsWith})
+
+::StartsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `startsWith` must be String.
+      ~(
+        42 | startsWith "x"
+        !| [type /actualType]
+        |  eq [::StartsWithSubjectNotStringError ::number]
+       )
+  ~~|
+
+::StartsWithPrefixNotStringError
+  |~~ Captured argument at position 2 of `startsWith` must be String.
+      ~(
+        "hi" | startsWith 42
+        !| [type /actualType]
+        |  eq [::StartsWithPrefixNotStringError ::number]
+       )
+  ~~|
+
+:endsWith
+  |~~ Whether the string ends with the suffix; the empty suffix always
+      ends it. Case-sensitive.
+
+      ~("hello world" | endsWith "world" | eq true)
+      ~("hello" | endsWith "xyz" | eq false)
+  ~~|
+  ::verb~(:suffix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/endsWith})
+
+::EndsWithSubjectNotStringError
+  |~~ Captured argument at position 1 of `endsWith` must be String.
+      ~(
+        42 | endsWith "x"
+        !| [type /actualType]
+        |  eq [::EndsWithSubjectNotStringError ::number]
+       )
+  ~~|
+
+::EndsWithSuffixNotStringError
+  |~~ Captured argument at position 2 of `endsWith` must be String.
+      ~(
+        "hi" | endsWith 42
+        !| [type /actualType]
+        |  eq [::EndsWithSuffixNotStringError ::number]
+       )
+  ~~|
+
+:prepend
+  |~~ The string with the prefix in front; a tag over the string comes
+      back on the answer.
+
+      ~("world" | prepend "hello " | eq "hello world")
+      ~(::Box("b") | prepend "a" | eq ::Box("ab"))
+  ~~|
+  ::verb~(:prefix ::string | :returns / | ::builtin{:impl :qlang/prim/prepend})
+
+::PrependPrefixNotStringError
+  |~~ Captured argument at position 2 of `prepend` must be String.
+      ~(
+        "x" | prepend 42
+        !| [type /actualType]
+        |  eq [::PrependPrefixNotStringError ::number]
+       )
+  ~~|
+
+:append
+  |~~ The string with the suffix after it; a tag over the string comes
+      back on the answer.
+
+      ~("hello" | append " world" | eq "hello world")
+  ~~|
+  ::verb~(:suffix ::string | :returns / | ::builtin{:impl :qlang/prim/append})
+
+::AppendSuffixNotStringError
+  |~~ Captured argument at position 2 of `append` must be String.
+      ~(
+        "x" | append 42
+        !| [type /actualType]
+        |  eq [::AppendSuffixNotStringError ::number]
+       )
+  ~~|

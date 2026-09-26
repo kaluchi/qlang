@@ -1,0 +1,7 @@
+{"name":"the-contract-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| /addresses","expect":"#[::string/prepend ::vec/prepend]","decision":"D75"}
+{"name":"an-address-of-a-verb-of-strings-checks-its-subject","query":"[1] | string/prepend 0 !| type","expect":"::StringPayloadNotStringError","decision":["D62","D75"]}
+{"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box(\"b\") | prepend \"a\"","expect":"::Box\"ab\"","decision":["D34","D75"]}
+{"name":"a-verb-of-one-residence-refuses-its-subject-by-its-site","query":"[1] | split \",\" !| type","expect":"::SplitSubjectNotStringError","decision":"D75"}
+{"name":"the-prefix-is-refused-at-its-residence","query":"::PrependPrefixNotStringError | spec | /operand","expect":"::string/prepend","decision":["D73","D75"]}
+{"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]","decision":"D75"}
+{"name":"join-resides-on-the-vector","query":"::vec/join | spec | /subject","expect":"::vec","decision":["D62","D75"]}

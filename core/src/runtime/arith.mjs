@@ -1,14 +1,14 @@
-// Arithmetic operands.
+// Arithmetic primitives, each a plain function over the numbers the head
+// of its verb checked [D72]. The head raises the refusals of the subject
+// and of the slot, declared here at the place each guards, position 1
+// the subject and position 2 the slot; the primitive raises the
+// refusals of the magnitude.
 //
-// Subject-first: position 1 is the subject, position 2 is the
-// modifier. Each type check is inlined at its own throw site so
-// the source file and line number plus the class name together
-// uniquely identify the failing check.
-//
-// Meta lives in lib/qlang/operand/arith.qlang.
+// The verbs live in lib/qlang/number.qlang.
 
-import { valueOp } from './dispatch.mjs';
 import { declareNumericDomainError } from '../errors.mjs';
+import { declareModifierError } from '../operand-errors.mjs';
+import { bindPrim } from '../primitives.mjs';
 
 // `div` refuses two magnitudes: a zero divisor, and a quotient past
 // the finite-double range. Both are the same repair for a reader —
@@ -16,17 +16,15 @@ import { declareNumericDomainError } from '../errors.mjs';
 export const DivisionByZeroError = declareNumericDomainError(
   'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
 );
-import { declareModifierError } from '../operand-errors.mjs';
-import { bindPrim } from '../primitives.mjs';
 
-const AddLeftNotNumberError  = declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
-const AddRightNotNumberError = declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
-const SubLeftNotNumberError  = declareModifierError('SubLeftNotNumberError',  'sub', 1, 'number');
-const SubRightNotNumberError = declareModifierError('SubRightNotNumberError', 'sub', 2, 'number');
-const MulLeftNotNumberError  = declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
-const MulRightNotNumberError = declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
-const DivLeftNotNumberError  = declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
-const DivRightNotNumberError = declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
+declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
+declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
+declareModifierError('SubLeftNotNumberError',  'sub', 1, 'number');
+declareModifierError('SubRightNotNumberError', 'sub', 2, 'number');
+declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
+declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
+declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
+declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
 
 // A qlang Number is a finite double (see `### number` in
 // qlang-spec.md). Both operands are finite by that same rule, so
@@ -59,33 +57,11 @@ function finiteOrLift(arithResult, leftValue, rightValue, ErrorCls) {
   return arithResult;
 }
 
-export const add = valueOp('add', 2, (a, b) => {
-  if (typeof a !== 'number') throw new AddLeftNotNumberError(a);
-  if (typeof b !== 'number') throw new AddRightNotNumberError(b);
-  return finiteOrLift(a + b, a, b, AddResultNotFiniteError);
+bindPrim('add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, AddResultNotFiniteError));
+bindPrim('sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, SubResultNotFiniteError));
+bindPrim('mul', (multiplicand, multiplier) =>
+  finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, MulResultNotFiniteError));
+bindPrim('div', (dividend, divisor) => {
+  if (divisor === 0) throw new DivisionByZeroError();
+  return finiteOrLift(dividend / divisor, dividend, divisor, DivResultNotFiniteError);
 });
-
-export const sub = valueOp('sub', 2, (a, b) => {
-  if (typeof a !== 'number') throw new SubLeftNotNumberError(a);
-  if (typeof b !== 'number') throw new SubRightNotNumberError(b);
-  return finiteOrLift(a - b, a, b, SubResultNotFiniteError);
-});
-
-export const mul = valueOp('mul', 2, (a, b) => {
-  if (typeof a !== 'number') throw new MulLeftNotNumberError(a);
-  if (typeof b !== 'number') throw new MulRightNotNumberError(b);
-  return finiteOrLift(a * b, a, b, MulResultNotFiniteError);
-});
-
-export const div = valueOp('div', 2, (a, b) => {
-  if (typeof a !== 'number') throw new DivLeftNotNumberError(a);
-  if (typeof b !== 'number') throw new DivRightNotNumberError(b);
-  if (b === 0) throw new DivisionByZeroError();
-  return finiteOrLift(a / b, a, b, DivResultNotFiniteError);
-});
-
-// Bind into PRIMITIVE_REGISTRY under qlang/prim/<name> at module-load time.
-bindPrim('add', add);
-bindPrim('sub', sub);
-bindPrim('mul', mul);
-bindPrim('div', div);

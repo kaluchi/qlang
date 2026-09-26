@@ -757,35 +757,44 @@ slot of code takes a quote [D67], [D68]:
 120
 ```
 
-A built-in executes none of its own. Its modifiers are evaluated at the
-call as a verb's are [D56], and its implementation checks them in code
-of its own, around which sit seven dispatch wrappers in
+So does a built-in declared on its noun, the verbs of numbers and the
+comparisons: its head checks the subject and the slots before its
+primitive runs and raises the refusal its site declares at that place,
+and `spec` answers the head [D72]:
+
+```qlang
+> "a" | add 1 !| type
+::AddLeftNotNumberError
+
+> ::number/add | spec | /throws
+[::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]
+```
+
+Every other built-in executes none of its own. Its modifiers are
+evaluated at the call as a verb's are [D56], and its implementation
+checks them in code of its own, around which sit seven dispatch
+wrappers in
 `core/src/runtime/dispatch.mjs`, one per calling shape, the arity
 classes of Rule 10, and `codeOfModifier` in `core/src/eval.mjs`, which
 each slot of code asks for its quote.
 
-The catalog declares a slot vocabulary for every operand, and the
-runtime reads none of it, so the declarations are free to be wrong,
+The catalog declares a slot vocabulary for every other operand, and
+the runtime reads none of it, so the declarations are free to be wrong,
 and they are:
 
 ```qlang
-> ::number/gt | spec | [/subject /modifiers]
-[:number [:number]]
+> ::vec/at | spec | /modifiers
+[:any]
 
-> "a" | gt "b"
-false
+> [1 2] | at "a" !| type
+::AtIndexNotIntegerError
 ```
 
-`gt` is declared for numbers and compares strings. The mission's third
-requirement, that the shape of an answer can be known before it is
-fetched, reads these declarations, and today it reads something false.
-Executing the declaration is the only thing that keeps it true. Here
-the declaration is the false party, since the page of `gt` asks for
-“comparable scalars of the same type”
-(`core/lib/qlang/operand/predicate.qlang`); `gt` is to be declared on
-each kind it compares, each with its own head, the refusal of a number
-compared with a string, `::GtOperandsNotComparableError` today, becoming
-the refusal of the head [D65].
+`at` is declared to take any index and refuses a string on a vector.
+The mission's third requirement, that the shape of an answer can be
+known before it is fetched, reads these declarations, and where they
+are not executed it reads something false. Executing the declaration is
+the only thing that keeps it true.
 
 The declarations speak keywords where the values speak kinds: `type`
 answers a tag for every value [D32], while the catalog declares the
@@ -796,8 +805,8 @@ page of a refusal names the kind it expected with one:
 > 1 | type
 ::number
 
-> ::number/add | spec | /subject
-:number
+> ::string/split | spec | /subject
+:string
 ```
 
 The kinds move into the declarations with the kinds of the slots
@@ -1127,7 +1136,7 @@ the facts:
 {:category :typeError :operand :add :position 1 :expectedType :number}
 
 > "hello" | add 1 !| type | docs | first | /content
- Captured argument at position 1 of `add` must be Number. …
+ The subject of `add` must be a number. …
 ```
 
 The cord from the alert to its document exists and works; what hangs
@@ -1172,13 +1181,17 @@ The unclosed quote has one sensible continuation, `)`, and the error
 names every token the parser could have taken there, among them the
 markers of comments.
 
-A value slot, a condition computed at the call among them, refuses an
-error value by the tag of its own site, so one error nests inside
-another, where the law of nested errors hands it on unchanged [D13]:
+A value slot of a built-in outside its noun, a condition computed at
+the call among them, refuses an error value by the tag of its own site,
+so one error nests inside another, where the law of nested errors hands
+it on unchanged [D13], as a verb's slot does [D68]:
 
 ```qlang
+> [1 2] | take (!{:k 1}) !| type
+::TakeCountNotIntegerError
+
 > 1 | add (!{:k 1}) !| type
-::AddRightNotNumberError
+::error
 ```
 
 A library of error-handling pipelines, retry and recover and assert
@@ -2193,3 +2206,4 @@ maintainer wants to explore it before it is fixed.
 [D68]: decisions/D68.md
 [D69]: decisions/D69.md
 [D70]: decisions/D70.md
+[D72]: decisions/D72.md

@@ -16,7 +16,10 @@
 
 use [:qlang/runtime-invariants
      :qlang/tag
-     :qlang/operand/arith
+     :qlang/number
+     :qlang/string
+     :qlang/keyword
+     :qlang/any
      :qlang/operand/vec
      :qlang/operand/container
      :qlang/operand/setOp

@@ -1,0 +1,31 @@
+|~ The comparisons of strings [D65]. Each resides on `::qlang/string`,
+   the kind whose module declares it, and compares two strings by their
+   code units in the one order [D72]. ~|
+
+:gt
+  |~~ Whether the subject follows the string the call gives.
+
+      ~("b" | gt "a" | eq true)
+  ~~|
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+
+:gte
+  |~~ Whether the subject follows or equals the string the call gives.
+
+      ~("b" | gte "b" | eq true)
+  ~~|
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+
+:lt
+  |~~ Whether the subject precedes the string the call gives.
+
+      ~("a" | lt "b" | eq true)
+  ~~|
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+
+:lte
+  |~~ Whether the subject precedes or equals the string the call gives.
+
+      ~("a" | lte "a" | eq true)
+  ~~|
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})

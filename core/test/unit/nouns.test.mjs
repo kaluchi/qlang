@@ -44,7 +44,7 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('an address the listing answers leads the axes to its verb', async () => {
-    expect(await evalQuery('::number | spec | /verbs | every ~(spec | /subject | eq :number)')).toBe(true);
+    expect(await evalQuery('::number | spec | /verbs | every ~(spec | /subject | eq ::number)')).toBe(true);
   });
 
   it('an address under a kind of the core goes by its short name', async () => {

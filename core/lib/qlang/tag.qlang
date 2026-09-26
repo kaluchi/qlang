@@ -164,13 +164,14 @@
   ~~|
 
 ::VerbModifiersBeyondSlotsError
-  |~~ A verb takes as many modifiers as it has slots, unless `*`
-      gathers the ones that remain.
+  |~~ A verb takes as many modifiers as it has slots, one more when
+      the first is its subject [D72], unless `*` gathers the ones that
+      remain.
 
       ~(
-        :m ::verb~(:x ::number | add x) | 5 | m 1 2
+        :m ::verb~(:x ::number | add x) | 5 | m 1 2 3
         !| [type /slotCount /actualCount]
-        |  eq [::VerbModifiersBeyondSlotsError 1 2]
+        |  eq [::VerbModifiersBeyondSlotsError 1 3]
        )
   ~~|
 
@@ -655,3 +656,39 @@
         |  eq [::GroupReadBackDiffersError "()"]
        )
   ~~|
+
+|~ The comparisons of tag names [D65]. Each resides on `::qlang/tag`,
+   the kind of the module that declares it, and compares two tag names
+   by their names in the one order [D72]. ~|
+
+:gt
+  |~~ Whether the subject's name follows the name of the tag the call
+      gives.
+
+      ~(::b | gt ::a | eq true)
+  ~~|
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+
+:gte
+  |~~ Whether the subject's name follows or equals the name of the tag
+      the call gives.
+
+      ~(::b | gte ::b | eq true)
+  ~~|
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+
+:lt
+  |~~ Whether the subject's name precedes the name of the tag the call
+      gives.
+
+      ~(::a | lt ::b | eq true)
+  ~~|
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+
+:lte
+  |~~ Whether the subject's name precedes or equals the name of the
+      tag the call gives.
+
+      ~(::a | lte ::a | eq true)
+  ~~|
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})

@@ -1,0 +1,35 @@
+|~ The comparisons of keywords [D65]. Each resides on
+   `::qlang/keyword`, the kind whose module declares it, and compares
+   two keywords by their names in the one order [D72]. ~|
+
+:gt
+  |~~ Whether the subject's name follows the name of the keyword the
+      call gives.
+
+      ~(:b | gt :a | eq true)
+  ~~|
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+
+:gte
+  |~~ Whether the subject's name follows or equals the name of the
+      keyword the call gives.
+
+      ~(:b | gte :b | eq true)
+  ~~|
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+
+:lt
+  |~~ Whether the subject's name precedes the name of the keyword the
+      call gives.
+
+      ~(:a | lt :b | eq true)
+  ~~|
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+
+:lte
+  |~~ Whether the subject's name precedes or equals the name of the
+      keyword the call gives.
+
+      ~(:a | lte :a | eq true)
+  ~~|
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})

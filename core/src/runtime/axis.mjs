@@ -20,7 +20,7 @@ import { withPipeValue, envHas } from '../state.mjs';
 import {
   isKeyword, isQuote, isTagKeyword, isBinding, isVerb, typeKeyword, stampTagHeader, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { signatureSpecOf } from './verb.mjs';
+import { refusalsOfVerb, signatureSpecOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 import { addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, verbsOfKind } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
@@ -174,7 +174,7 @@ function withVerbsOfNoun(env, record) {
   if (!isTagKeyword(recordName) || !isNoun(env, recordName.name)) return declaration;
   const withVerbs = new Map(declaration);
   withVerbs.set('verbs', verbsOfKind(env, recordName.name));
-  withVerbs.set('throws', refusalsOfNoun(env, recordName.name, declaration.get('throws') ?? []));
+  withVerbs.set('throws', refusalsOfNoun(env, recordName.name, declaration.get('throws') ?? [], refusalsOfVerb));
   stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
   return withVerbs;
 }

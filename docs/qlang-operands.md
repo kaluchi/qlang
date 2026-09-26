@@ -55,7 +55,6 @@ form part of the doc surface and the runtime catalog alike.
 | `:control` | Control-flow operand (if / coalesce / cond). |
 | `:mapOp` | Map-only operand (keys / vals / has on Map). |
 | `:setOp` | Polymorphic union / minus / inter over Set and Map. Vec→Set conversion lives on `:distinct` (vecTransformer). |
-| `:arith` | Binary numeric operand. |
 | `:string` | String operand. |
 | `:predicate` | Subject-first boolean operand or combinator. |
 | `:typeClassifier` | Identity-tag reader — answers the value's `::Tag` for a tagged value, its plain `:kind` Keyword for a scalar or base container. |
@@ -489,15 +488,19 @@ and takes values from `M₁`.
 
 ## Arithmetic — `Scalar → Scalar`
 
-Every arithmetic operand answers a finite double or lifts: a
-result that leaves the range fires the operand's own
-`…ResultNotFiniteError` carrying both finite operands under
+The arithmetic verbs reside on `::number`, declared in
+`lib/qlang/number.qlang` [D72]: the head of each checks its subject
+and its slot before the primitive runs, raising the verb's own
+`…LeftNotNumberError` / `…RightNotNumberError`, and `::number/add |
+spec` answers the head. Every arithmetic operand answers a finite
+double or lifts: a result that leaves the range fires the operand's
+own `…ResultNotFiniteError` carrying both finite operands under
 `:leftValue` / `:rightValue`. See [number](qlang-spec.md#number)
 for the rule and the two other seams that enforce it.
 
 ### `add n` / `add a b`
 
-- **Arity** 2. **Subject** `a`, **modifier** `b`.
+- **Arity** 2. **Subject** `a`, **modifier** `b`, the slot `:addend`.
 - Unary partial form: `a | add b` = `a + b`.
 - Full form: `add a b` — both captured, `pipeValue` is context.
 - **Example**: `10 | add 3` → `13`; `{:x 10 :y 3} | add /x /y` → `13`.
@@ -635,10 +638,12 @@ round-trips to `"a,b,c"`.
 
 ### `gt n`, `lt n`
 
-- **Arity** 2. Subject-first: `a | gt b` = `a > b`. Same matched-type
-  comparability rule as `sort` / `min` / `max`: Number↔Number,
-  String↔String, Keyword↔Keyword (lexicographic by `.name`), or
-  TagKeyword↔TagKeyword.
+- **Arity** 2. Subject-first: `a | gt b` = `a > b`, in the one order
+  of `sort` / `min` / `max`. Each resides on the kind it compares,
+  Number, String, Keyword (lexicographic by `.name`) and TagKeyword,
+  whose head takes a value of the same kind, `:than` [D65], [D72]; a
+  subject of any other kind reaches the contract on `::qlang/any` and
+  is refused with the addresses of the residences.
 - **Example**: `10 | gt 5` → `true`; `:b | gt :a` → `true`;
   `::B | lt ::C` → `true`.
 
@@ -1245,9 +1250,8 @@ address.
 | `:control` | `if`, `coalesce`, `cond` |
 | `:mapOp` | `keys`, `vals`, `has` (polymorphic with Set) |
 | `:setOp` | `union`, `minus`, `inter` |
-| `:arith` | `add`, `sub`, `mul`, `div` |
 | `:string` | `split`, `lines`, `join`, `contains`, `startsWith`, `endsWith`, `prepend`, `append` |
-| `:predicate` | `not`, `eq`, `gt`, `lt`, `gte`, `lte`, `and`, `or` |
+| `:predicate` | `not`, `eq`, `and`, `or` |
 | `:typeClassifier` | `type` |
 | `:typeConversion` | `keyword`, `payload`, `tag`, `within` |
 | `:indexedAccess` | `at` |

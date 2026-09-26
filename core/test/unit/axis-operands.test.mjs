@@ -302,8 +302,8 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 });
 
 describe(':name | spec returns the env-side declaration descriptor', () => {
-  it('::number/add | spec surfaces the operand descriptor Map with :category :arith', async () => {
-    expect(await evalQuery('::number/add | spec | /category')).toEqual(makeKeyword('arith'));
+  it('::number/add | spec answers the signature of the verb, its noun the subject [D72]', async () => {
+    expect(await evalQuery('::number/add | spec | /subject')).toEqual(makeTagKeyword('number'));
   });
 
   it('::AddLeftNotNumberError | spec surfaces per-tag static :operand', async () => {

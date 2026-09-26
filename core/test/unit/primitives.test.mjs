@@ -304,10 +304,10 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
 
   it('resolve returns a function value with fn / arity / meta shape', async () => {
     await import('../../src/runtime/index.mjs');
-    const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/add');
+    const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/take');
     expect(impl).toBeDefined();
     expect(isFunctionValue(impl)).toBe(true);
-    expect(impl.name).toBe('add');
+    expect(impl.name).toBe('take');
     expect(impl.arity).toBe(2);
     expect(typeof impl.fn).toBe('function');
   });

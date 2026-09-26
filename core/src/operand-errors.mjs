@@ -1,6 +1,6 @@
 // Per-site error class factories for the operand slot checks — a
 // subject, a captured argument at a numeric position, an element of
-// a collection subject, a comparability pair. Each one spells the
+// a collection subject, a pair of shapes. Each one spells the
 // operand, the slot it guards and the value-class it requires, and
 // lowers that triple into both halves of the diagnostic: the
 // human wording the message carries and the structured
@@ -30,6 +30,7 @@
 import {
   QlangTypeError,
   brand,
+  recordPlaceRefusal,
   recordThrowSiteSpec
 } from './errors.mjs';
 import { typeKeyword } from './types.mjs';
@@ -76,6 +77,7 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
       this.name = className;
     }
   };
+  recordPlaceRefusal(className, Cls);
   return brand(Cls, className);
 }
 
@@ -96,6 +98,7 @@ export function declareModifierError(className, operand, position, expectedTypeI
       this.name = className;
     }
   };
+  recordPlaceRefusal(className, Cls);
   return brand(Cls, className);
 }
 
@@ -119,8 +122,8 @@ export function declareElementError(className, operand, expectedTypeInput) {
   return brand(Cls, className);
 }
 
-// declareComparabilityError — thrown when an ordering or
-// shape-matching check fails. The recorded spec carries `:operand`;
+// declareComparabilityError — thrown when a shape-matching check of
+// a pair fails. The recorded spec carries `:operand`;
 // JS context carries the pairwise dynamic types.
 export function declareComparabilityError(className, operand) {
   recordThrowSiteSpec(className, 'typeError', { operand });

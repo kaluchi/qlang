@@ -1,6 +1,7 @@
 |~ qlang operand catalog — predicate family. Subject-first
-   boolean operators (`eq`, ordering family `gt`/`lt`/`gte`/`lte`,
-   logical combinators `and`/`or`/`not`). The shape stays uniform:
+   boolean operators (`eq`, logical combinators `and`/`or`/`not`); the
+   ordering family `gt`/`lt`/`gte`/`lte` resides on the kinds it
+   compares under its contracts in `core/lib/qlang/any.qlang`. The shape stays uniform:
    each fires per-call as a pure value test answering a boolean, the
    condition the higher-order `filter` / `every` / `any` / `if` /
    `cond` chain composes over [D14]. The identity-tag reader `type` and the `keyword`
@@ -45,87 +46,6 @@
             :returns :boolean
             :modifiers [:any]
    }
-
-:gt
-  |~~ Subject-first ordering: `a | gt b` computes a > b. Both
-      operands must be comparable scalars of the same type.
-
-      ~(10 | gt 5 | eq true)
-  ~~|
-  ::builtin{:impl :qlang/prim/gt
-            :category :predicate
-            :subject :number
-            :returns :boolean
-            :modifiers [:number]}
-
-::GtOperandsNotComparableError
-  |~~ Operands of `gt` are not pairwise-comparable scalars.
-      ~(
-        1 | gt "x"
-        !| [type /leftType /rightType]
-        |  eq [::GtOperandsNotComparableError ::number ::string]
-       )
-  ~~|
-
-:lt
-  |~~ Subject-first ordering: `a | lt b` computes a < b.
-
-      ~(5 | lt 10 | eq true)
-  ~~|
-  ::builtin{:impl :qlang/prim/lt
-            :category :predicate
-            :subject :number
-            :returns :boolean
-            :modifiers [:number]}
-
-::LtOperandsNotComparableError
-  |~~ Operands of `lt` are not pairwise-comparable scalars.
-      ~(
-        1 | lt "x"
-        !| [type /leftType /rightType]
-        |  eq [::LtOperandsNotComparableError ::number ::string]
-       )
-  ~~|
-
-:gte
-  |~~ Subject-first ordering: `a | gte b` computes a >= b.
-
-      ~(10 | gte 10 | eq true)
-  ~~|
-  ::builtin{:impl :qlang/prim/gte
-            :category :predicate
-            :subject :number
-            :returns :boolean
-            :modifiers [:number]}
-
-::GteOperandsNotComparableError
-  |~~ Operands of `gte` are not pairwise-comparable scalars.
-      ~(
-        1 | gte "x"
-        !| [type /leftType /rightType]
-        |  eq [::GteOperandsNotComparableError ::number ::string]
-       )
-  ~~|
-
-:lte
-  |~~ Subject-first ordering: `a | lte b` computes a <= b.
-
-      ~(10 | lte 10 | eq true)
-  ~~|
-  ::builtin{:impl :qlang/prim/lte
-            :category :predicate
-            :subject :number
-            :returns :boolean
-            :modifiers [:number]}
-
-::LteOperandsNotComparableError
-  |~~ Operands of `lte` are not pairwise-comparable scalars.
-      ~(
-        1 | lte "x"
-        !| [type /leftType /rightType]
-        |  eq [::LteOperandsNotComparableError ::number ::string]
-       )
-  ~~|
 
 :and
   |~~ Conjunction across captured sub-pipelines: each fires

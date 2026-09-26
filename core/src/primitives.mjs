@@ -225,6 +225,20 @@ export function readsState(impl) {
   return STATE_READERS.has(impl);
 }
 
+// A primitive whose answer names the tags its subject stood beneath takes
+// the tags the walk of its head passed, from the outside in, after its
+// values [D34]: `error` names its error by the outermost [D86].
+const READERS_OF_PASSED_TAGS = new WeakSet();
+
+export function bindReaderOfPassedTags(name, impl) {
+  READERS_OF_PASSED_TAGS.add(impl);
+  return bindPrim(name, impl);
+}
+
+export function readsPassedTags(impl) {
+  return READERS_OF_PASSED_TAGS.has(impl);
+}
+
 // bindTypeConstructor(tagName, ctor) — bind a tag-namespace
 // constructor under the `qlang/type/<tag>` key. Pairs with the
 // `:impl :qlang/type/<tag>` slot the catalog tag-binding

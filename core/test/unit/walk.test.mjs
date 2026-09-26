@@ -189,6 +189,14 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
+    // `::Foo!{…}` names the tag of its content, and an error literal
+    // that writes none names no tag [D86].
+    const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
+    const refs = findIdentifierOccurrences(ast, '::Foo');
+    expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
+  });
+
   it('finds Projection segments by name', () => {
     const ast = parse('/foo/bar | count');
     const refs = findIdentifierOccurrences(ast, 'foo');

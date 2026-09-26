@@ -10,7 +10,7 @@
 import { makeFn } from '../rule10.mjs';
 import { envGet } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
-import { isQMap, makeTaggedInstance, bindingValueOf } from '../types.mjs';
+import { isQMap, isErrorValue, makeTaggedInstance, bindingValueOf } from '../types.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 
 // `mintTaggedInstance` lives in `eval.mjs`, which depends on
@@ -38,8 +38,10 @@ function tagCarriesConstructor(state, tagName) {
 
 // mintUnderTag(state, tag, value) — the value under the tag: through
 // the tag's constructor when it carries one, as a bare overlay when
-// the tag names an identity alone.
+// the tag names an identity alone. A tag laid over an error answers
+// the error, since no tag stands over one [D86].
 export async function mintUnderTag(state, tag, value) {
+  if (isErrorValue(value)) return value;
   if (!tagCarriesConstructor(state, tag.name)) return makeTaggedInstance(tag, value);
   const { mintTaggedInstance } = await import('../eval.mjs');
   return await mintTaggedInstance(tag.name, value, state);

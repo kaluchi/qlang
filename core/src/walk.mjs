@@ -203,7 +203,8 @@ export function findAstNodeAtOffset(ast, offset) {
 //
 //   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
 //     `'::Tag'`):
-//       - TaggedLit whose .tag matches (constructor invocation)
+//       - TaggedLit whose .tag matches (constructor invocation), and
+//         the ErrorLit that writes the tag before its bang [D86]
 //       - BareTypeKeyword whose .tag matches (identifier reference)
 //       - BindStep whose BareTypeKeyword key names the identifier
 //         (declaration site — `::Tag body`)
@@ -228,10 +229,17 @@ export function findIdentifierOccurrences(ast, name) {
   return occurrences;
 }
 
+// writesTag(node) — a node whose head is a tag it writes: a tagged
+// literal, `::Tag(…)`, or an error literal that writes the tag of its
+// content before its bang, `::Tag!{…}` [D86].
+export function writesTag(node) {
+  return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
+}
+
 function findTagNamespaceOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'TaggedLit' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
+    if (writesTag(node) && canonicalTagName(node.tag) === tagName) occurrences.push(node);
     else if (node.type === 'BareTypeKeyword' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
     else if (node.type === 'BindStep'
              && node.key.type === 'BareTypeKeyword' && canonicalTagName(node.key.tag) === tagName) {

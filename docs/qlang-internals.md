@@ -321,7 +321,10 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
    and `payload` (Primary AST). The payload evaluates in a fork
    that inherits the outer `pipeValue` — the same fork rule that
    governs Map / Vec / Set literal entries. The result is the
-   **payload-value**.
+   **payload-value**. A payload-value that is an error ends the
+   flow: the literal answers it unchanged, the step `tag ::Tag`
+   joining the skipped steps of its last stop, since no tag stands
+   over an error and no constructor meets one [D86].
 2. **Look up the tag binding.** `'::' + node.tag` is the env key.
    Absent → auto-declare the record of an identity-only Map
    binding carrying `:declarationOrigin :implicit` in the
@@ -343,14 +346,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
      (cached as `.ast` after the first parse), build a fresh
      state with `pipeValue = payloadValue` and the surrounding
      env, evaluate the body AST, ascend the result.
-   - **Undefined** + payload is an **ErrorValue** — rebrand
-     the JS-header `tag` slot to `::Tag` and return a fresh
-     ErrorValue carrying the promoted identity. Lets every error
-     tag work as a literal constructor (`::Tag!{…}`) without
-     per-tag JS, mirroring the shape `errorFromQlang` produces
-     from a runtime throw site. The descriptor passes through
-     unchanged — identity-stamping touches the header alone.
-   - **Undefined** + any other payload — `makeTaggedInstance`
+   - **Undefined** — `makeTaggedInstance`
      builds a success-track **TaggedInstance** with identity
      overlay on the payload's JS-header `TAG_HEADER_SYMBOL`
      slot. Two payload shapes:
@@ -429,10 +425,9 @@ The named-error promotion piggybacks on the same round-trip:
 `errorFromQlang` stamps `::Tag` on the error value's JS-header
 `tag` slot, `printErrorValue` reads the header field straight
 into the literal head and emits `::Tag!{…}` with the descriptor
-fields as payload, and a literal `::Tag!{…}` source re-creates
-the same identity through the ErrorLit-payload branch of
-`evalTaggedLit` (which rebrands the JS-header tag on the
-inner ErrorValue without touching its descriptor).
+fields as payload, and a literal `::Tag!{…}` source, one error
+literal whose tag is written before its bang, re-creates the same
+identity in `evalErrorLit` [D86].
 
 ## Combinators
 

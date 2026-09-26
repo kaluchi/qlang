@@ -70,6 +70,12 @@ export function stepOfNode(node) {
   return STEP_OF_NODE[node.type](node);
 }
 
+// tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
+// stands for [D86].
+export function tagCallStepOf(tag) {
+  return record(CALL_TAG, [['name', keyword('tag')], ['args', Object.freeze([tag])]]);
+}
+
 // eachStepOf(bodyNode) → the `::each` wrapper a `*` step leaves; the
 // parentheses after `*` delimit its body [D52].
 export function eachStepOf(bodyNode) {
@@ -148,7 +154,7 @@ const STEP_OF_NODE = {
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
-  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries))),
+  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag)),
   TaggedLit:       node => record(TAGGED_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
   OperandCall:     callStepOf,
@@ -183,15 +189,15 @@ export function isStep(value) {
 }
 
 // isElementStep(value) — a literal, a quote, a doc, a container of
-// element steps, an error literal's step, of the kind `::error`, a group, or a
-// record, which counts by its tag since its constructor already read it
-// back from its own text. A declaration and a command with modifiers
+// element steps, an error literal's step, of its tag or of the kind
+// `::error` [D86], a group, or a record, which counts by its tag since
+// its constructor already read it back from its own text. A declaration and a command with modifiers
 // stand in a pipeline alone: inside a container the grammar reads each
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
-  if (isErrorValue(value)) return value.tag.name === ERROR_TAG.name && [...value.descriptor.values()].every(isElementStep);
+  if (isErrorValue(value)) return [...value.descriptor.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('args'));
@@ -247,10 +253,16 @@ function printStep(step) {
     case 'tagged': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
-  if (isErrorValue(step)) return `!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || !isEmptyVector(value)))}}`;
+  if (isErrorValue(step)) return `${errorHeadOf(step)}!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || !isEmptyVector(value)))}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
+}
+
+// The tag an error literal writes before its bang, none for the kind of
+// errors [D86].
+function errorHeadOf(step) {
+  return step.tag.name === ERROR_TAG.name ? '' : step.tag.literal;
 }
 
 // The empty vector a literal's `:trail` is unless it writes one [D85].

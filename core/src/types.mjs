@@ -236,16 +236,17 @@ export function makeSet(elements) {
   return Object.freeze(set);
 }
 
-// The step an error literal leaves in a quote: an error value whose
-// fields hold the steps that compute them, `:kind` and `:trail`
-// among them, as written, and an empty `:trail` where the literal
-// writes none, as every error holds one, so the error its fields build
-// is the step [D42]. It never passes through `makeErrorValue`, whose
-// invariant on `:trail` speaks of the error a step produces.
-export function makeErrorLiteralStep(fieldSteps) {
+// The step an error literal leaves in a quote: an error value of the
+// tag written before its bang, or of the kind of errors [D86], whose
+// fields hold the steps that compute them, `:kind` and `:trail` among
+// them, as written, and an empty `:trail` where the literal writes
+// none, as every error holds one, so the error its fields build is the
+// step [D42]. It never passes through `makeErrorValue`, whose invariant
+// on `:trail` speaks of the error a step produces.
+export function makeErrorLiteralStep(fieldSteps, tag = ERROR_TAG) {
   const descriptor = fieldSteps.has('trail') ? fieldSteps : new Map(fieldSteps).set('trail', Object.freeze([]));
   return Object.freeze(brandValueClass({
-    tag: ERROR_TAG, descriptor, location: null, originalError: null
+    tag, descriptor, location: null, originalError: null
   }, 'error'));
 }
 
@@ -409,7 +410,7 @@ export function makeTaggedInstance(tag, payload) {
     stampTagHeader(m, tag);
     return m;
   }
-  // Scalar / Keyword / TagKeyword / Doc / Error /
+  // Scalar / Keyword / TagKeyword / Doc /
   // already-tagged composite — wrap in an
   // opaque frozen JS object with `tag` and `payload` fields.
   // The opaque shape keeps `/payload` projection out of reach

@@ -29,8 +29,9 @@
 //                 opener and `)` closer, and the `~` of the short
 //                 form `~add` (DocLit `|~~ … ~~|` falls under
 //                 'comment')
-//   'tag'         `::tag` head of a TaggedLit or a BareTypeKeyword —
-//                 the tag-namespace identifier sigil + name
+//   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
+//                 writes one, or a BareTypeKeyword — the
+//                 tag-namespace identifier sigil + name
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator
@@ -103,9 +104,14 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return false;
       }
 
-      case 'ErrorLit':
-        emitBracketSpans(startOffset, endOffset, 2, 1, 'err', spans);
+      case 'ErrorLit': {
+        // The tag an error literal writes before its bang paints as
+        // every tag head does, then the `!{` / `}` of the error [D86].
+        const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
+        if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
+        emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);
         return;
+      }
 
       case 'QuoteLit': {
         // Quote literal — paint the `~(` / `)` delimiters, or the

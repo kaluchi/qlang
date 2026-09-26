@@ -29,7 +29,7 @@
 //                                deserializeSession
 //   AST traversal              — walkAst, astChildrenOf,
 //                                findAstNodeAtOffset,
-//                                findIdentifierOccurrences,
+//                                findIdentifierOccurrences, writesTag,
 //                                bindingNamesVisibleAt,
 //                                astNodeSpan, astNodeContainsOffset,
 //                                triviaBetweenAstNodes
@@ -100,6 +100,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
+  writesTag,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
   TAG_NAMESPACE,
@@ -186,6 +187,7 @@ export {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
+  writesTag,
   bindingNamesVisibleAt,
   VALUE_NAMESPACE,
   TAG_NAMESPACE,

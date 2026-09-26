@@ -84,8 +84,11 @@ describe('assembling steps by hand', () => {
       .toEqual(await evalQuery('[::TaggedPayloadNotSchemaError :payload]'));
   });
 
-  it('an error under another tag is no step', async () => {
-    expect(await refusal('[("x" | add 1)] | tag ::quote')).toEqual(await tagOf('::QuoteElementNotStepError'));
+  it('an error of a tag is the step of the literal that spells it', async () => {
+    // The tag an error literal writes before its bang is the tag of the
+    // error it spells, so an error of any tag stands in a quote [D86].
+    expect(await evalQuery('[("x" | add 1)] | tag ::quote | parse'))
+      .toBe('::AddLeftNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });
 
   it('a required field left out does not fit the schema', async () => {

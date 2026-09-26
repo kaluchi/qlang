@@ -11,20 +11,22 @@
 
 import { isTagKeyword, makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { bindReaderOfPassedTags } from '../primitives.mjs';
 import { resumingItsTrail } from '../eval-trail.mjs';
 
 declareSubjectError('ErrorDescriptorNotMapError', 'error', 'map');
 
-// The tag of the error is the one the map carries on its header, the
-// `!|`-materialized descriptor's among them, so `error !| … | error`
-// keeps it; then a `:kind` entry that names a tag, lifted off the
-// descriptor, `{:kind ::Foo …} | error`; then the kind of errors,
-// `::error`. A `:kind` of another value stays in the descriptor as data.
-// A map that writes `:trail` resumes that path; one that writes none
-// raises an error whose path starts at the call [D85].
-bindPrim('error', sourceMap => {
-  let tag = sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
+// The tag of the error is the one its value shows [D86]: the outermost
+// tag the walk of the head passed on its way to the map, so
+// `!| tag ::Foo | error` renames an error; then the one the map carries
+// on its header, the `!|`-materialized descriptor's among them, so
+// `error !| … | error` keeps it; then a `:kind` entry that names a tag,
+// lifted off the descriptor, `{:kind ::Foo …} | error`; then the kind of
+// errors, `::error`. A `:kind` of another value stays in the descriptor
+// as data. A map that writes `:trail` resumes that path; one that writes
+// none raises an error whose path starts at the call [D85].
+bindReaderOfPassedTags('error', (sourceMap, passedTags) => {
+  let tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
   const descriptor = new Map();
   for (const [k, v] of sourceMap) {
     if (k === 'kind' && isTagKeyword(v) && tag === ERROR_TAG) {

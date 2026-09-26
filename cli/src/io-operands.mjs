@@ -1,100 +1,44 @@
-// Effectful I/O operand impls for the `:cli/io` host catalog —
+// Effectful I/O implementations for the `:cli/io` host catalog —
 // `@in` reads stdin, `@out` writes stdout, `@err` writes stderr,
-// `@tap :label` mirrors pipeValue to stderr with a labelled
-// prefix. Catalog declaration lives in `cli/lib/qlang/io.qlang`;
-// the locator at `cli/src/cli-locator.mjs` hands these impls
-// alongside the source through `runtime/use-op.mjs`'s
-// resolveNamespaceEnv path — same surface every catalog-loaded
-// namespace rides on.
+// `@tap :label` mirrors pipeValue to stderr with a labelled prefix.
+// Each is a plain function over the values the head of its verb checks
+// [D80]; the catalog declaration lives in `cli/lib/qlang/io.qlang`, and
+// the locator at `cli/src/cli-locator.mjs` hands these beside the
+// source.
 
-import {
-  nullaryOp,
-  overloadedOp,
-  stateOp
-} from '@kaluchi/qlang-core/dispatch';
 import {
   declareSubjectError,
   declareModifierError
 } from '@kaluchi/qlang-core/operand-errors';
-import { declareShapeError } from '@kaluchi/qlang-core/errors';
-import {
-  isKeyword,
-  typeKeyword,
-  printValue
-} from '@kaluchi/qlang-core';
+import { printValue } from '@kaluchi/qlang-core';
 
-const OutSubjectNotStringError =
-  declareSubjectError('OutSubjectNotStringError', '@out', 'string');
-const OutRendererResultNotStringError =
-  declareShapeError('OutRendererResultNotStringError',
-    ({ actualType }) =>
-      `@out renderer must produce a String, got ${actualType.name}`,
-  { operand: '@out', expectedType: 'string' }
-);
+const OutSubjectNotStringError = declareSubjectError('OutSubjectNotStringError', '@out', 'string');
+declareModifierError('OutRendererResultNotStringError', '@out', 2, 'string');
+const ErrSubjectNotStringError = declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
+declareModifierError('ErrRendererResultNotStringError', '@err', 2, 'string');
+declareModifierError('TapLabelNotKeywordError', '@tap', 2, 'keyword');
 
-const ErrSubjectNotStringError =
-  declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
-const ErrRendererResultNotStringError =
-  declareShapeError('ErrRendererResultNotStringError',
-    ({ actualType }) =>
-      `@err renderer must produce a String, got ${actualType.name}`,
-  { operand: '@err', expectedType: 'string' }
-);
-
-const TapLabelNotKeywordError =
-  declareModifierError('TapLabelNotKeywordError', '@tap', 2, 'keyword');
-
-function makeInOperand(stdinReader) {
-  return nullaryOp('@in', async () => stdinReader());
-}
-
-function makeWriterOperand(operandName, writer, recordEffect, SubjectError, RendererError) {
-  return overloadedOp(operandName, 2, {
-    0: (subject) => {
-      if (typeof subject !== 'string') {
-        throw new SubjectError(subject);
-      }
-      writer(subject + '\n');
-      recordEffect();
-      return subject;
-    },
-    1: async (subject, rendererLambda) => {
-      const rendered = await rendererLambda(subject);
-      if (typeof rendered !== 'string') {
-        throw new RendererError({
-          actualType: typeKeyword(rendered),
-          actualValue: rendered
-        });
-      }
-      writer(rendered + '\n');
-      recordEffect();
-      return subject;
-    }
-  });
-}
-
-function makeTapOperand(stderrWrite) {
-  return stateOp('@tap', 2, async (state, lambdas) => {
-    const labelValue = await lambdas[0](state.pipeValue);
-    if (!isKeyword(labelValue)) {
-      throw new TapLabelNotKeywordError(labelValue);
-    }
-    stderrWrite(`[tap ${labelValue.name}] ${printValue(state.pipeValue)}\n`);
-    return state;
-  });
+// A writer takes the text the call gives, or bare, its subject, which is
+// then a string; the subject passes on either way.
+function makeWriter(writer, recordEffect, SubjectError) {
+  return (subject, text) => {
+    const written = text === null ? subject : text;
+    if (typeof written !== 'string') throw new SubjectError(subject);
+    writer(written + '\n');
+    recordEffect();
+    return subject;
+  };
 }
 
 export function makeIoImpls(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
-  const noopEffect = () => {};
   return {
-    '@in':  makeInOperand(ioContext.stdinReader),
-    '@out': makeWriterOperand(
-      '@out', ioContext.stdoutWrite, recordStdoutEffect,
-      OutSubjectNotStringError, OutRendererResultNotStringError),
-    '@err': makeWriterOperand(
-      '@err', ioContext.stderrWrite, noopEffect,
-      ErrSubjectNotStringError, ErrRendererResultNotStringError),
-    '@tap': makeTapOperand(ioContext.stderrWrite)
+    '@in':  async () => ioContext.stdinReader(),
+    '@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, OutSubjectNotStringError),
+    '@err': makeWriter(ioContext.stderrWrite, () => {}, ErrSubjectNotStringError),
+    '@tap': (subject, label) => {
+      ioContext.stderrWrite(`[tap ${label.name}] ${printValue(subject)}\n`);
+      return subject;
+    }
   };
 }

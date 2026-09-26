@@ -144,12 +144,8 @@ describe('count and friends on a Map subject', async () => {
   });
 });
 
-describe('valueOp arity overflow', async () => {
-  it('add with zero captured args throws ArityError', async () => {
-    // Bare `add` returns add's descriptor for REPL introspection
-    // because its minCaptured is 1. The empty-call form `add()`
-    // forces actual application with zero lambdas and triggers
-    // ValueOpArityMismatchError.
+describe('a slot left without its modifier', async () => {
+  it('add without its addend is refused', async () => {
     expect(isErrorValue(await evalQuery('5 | add'))).toBe(true);
   });
 });

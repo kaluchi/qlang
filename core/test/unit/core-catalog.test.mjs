@@ -234,9 +234,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
     expect(await evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('bare `sort` fires the nullary overload branch', async () => {
-    // sort is overloaded at 0 or 1 captured args. overloadedOp
-    // emits captured [0, 1], so the nullary form sorts naturally.
+  it('bare `sort` sorts in the one order, its key left out', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
@@ -282,7 +280,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(192);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(190);
   });
 
   it('the value namespace holds every declared operand', async () => {

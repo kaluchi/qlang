@@ -15,10 +15,10 @@ I/O (`@in`, `@out`, `@err`, `@tap`), value formatters (`pretty`,
 are host-scope additions; their contracts
 live in [`cli/README.md`](../cli/README.md). Another host (a
 browser playground, a server-side evaluator) is free to bind a
-different operand set — every binding uses the same
-dispatch wrappers from `@kaluchi/qlang-core/dispatch` and the same
-per-site error factories from `@kaluchi/qlang-core/operand-errors`
-and `@kaluchi/qlang-core/errors`.
+different operand set — every host declares its verbs in the source
+its locator hands, their primitives plain functions beside it [D80],
+and uses the same per-site error factories from
+`@kaluchi/qlang-core/operand-errors` and `@kaluchi/qlang-core/errors`.
 
 ## Convention
 

@@ -85,3 +85,10 @@
       identifier the namespace does not export. Host-boundary
       error: requires a host-installed namespace Map.
   ~~|
+
+::UseImplNamesNoVerbError
+  |~~ A host handed an implementation for a name its module's source
+      declares as no verb: the implementations a locator hands beside
+      a source are the primitives of the verbs the source declares
+      [D80]. `:namespaceName` names the module and `:implName` the name.
+  ~~|

@@ -35,8 +35,8 @@ function dispatchPlainValue(v, handlers, path) {
 // with plain-JS data structures.
 //
 // `toPlain` is exported for direct unit-level coverage of the
-// exotic-value fallback path — the public `json` operand feeds
-// this function from inside nullaryOp, but no qlang-level path
+// exotic-value fallback path — the `json` verb feeds this function
+// the value its head checked, but no qlang-level path
 // reaches the `String(v)` branch because raw function values
 // never enter pipeValue.
 const TO_PLAIN_HANDLERS = {

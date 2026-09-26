@@ -25,13 +25,10 @@
 //
 //   2. src/runtime/*.mjs — the JS-level primitive impls. Each
 //      module binds its impls into PRIMITIVE_REGISTRY at import
-//      time under namespaced :qlang/prim/<name> keys. The
-//      dispatch wrappers in src/runtime/dispatch.mjs (valueOp,
-//      nullaryOp, overloadedOp, stateOp, stateOpVariadic) attach a tiny
-//      meta object carrying only the `captured` range — the rest
-//      of the metadata lives in the operand-family catalog files
-//      and is addressed by descriptor-Map projection, or by the
-//      axis-operands over the binding's record.
+//      time under namespaced :qlang/prim/<name> keys, each a plain
+//      function over the values the head of its verb checks [D72],
+//      a reader of the scope taking the state after them [D79], and
+//      the loader's `use` a function value `stateOpVariadic` builds.
 //
 // langRuntime() ties the two together by parsing core.qlang once
 // (which threads through `use …` to load every family via the

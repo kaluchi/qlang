@@ -2,9 +2,9 @@
    the CLI binds into every freshly-seeded session: @in reads
    stdin, @out writes stdout, @err writes stderr, @tap mirrors
    pipeValue to stderr with a labelled prefix. JS impls live in
-   `cli/src/io-operands.mjs`; this file is the declarative surface
-   (`spec` / `docs` / `examples` axes). Each operand BindStep sits
-   directly under the per-site error tags it raises. ~|
+   `cli/src/io-operands.mjs`, plain functions over the values the head
+   of each verb checks [D80]. Each verb sits directly under the per-site
+   error tags it raises. ~|
 
 :@in
   |~~ Reads stdin to completion and returns it as a String,
@@ -15,32 +15,21 @@
 
       Pattern: `echo '{"x":42}' | qlang '@in | parseJson | /x'`
       reads the JSON payload, parses it, and projects `:x`. ~~|
-  ::builtin{:impl :qlang/cli/prim/@in
-            :category :io
-            :subject :any
-            :returns :string
-            :modifiers []
-   }
+  ::verb~(:returns ::string | ::builtin{:impl :cli/io/@in})
 
 :@out
   |~~ Writes a String to stdout followed by `\n` and passes the
       original pipeValue through unchanged on the success track.
-      Overloaded by captured-arg count:
-      bare form requires String subject;
-      one-arg form runs the renderer against pipeValue and writes
-      its String result. The pipeValue itself stays put either
-      way — `@out` is identity on the success track regardless of
-      what bytes left the channel.
+      Bare, it writes the subject, a String; given a text, a
+      renderer computed against the subject, it writes that. The
+      pipeValue itself stays put either way — `@out` is identity on
+      the success track regardless of what bytes left the channel.
 
       Pattern: `"hello" | @out` writes "hello\n", value continues
       as "hello". With a renderer: `42 | @out json` writes "42\n",
       value continues as 42 — the rest of the pipeline still sees
       the number, not the string. ~~|
-  ::builtin{:impl :qlang/cli/prim/@out
-            :category :io
-            :subject :any
-            :returns :any
-            :modifiers [:string]}
+  ::verb~(:text #[::string ::null] | ::builtin{:impl :cli/io/@out})
 
 ::OutSubjectNotStringError
   |~~ Bare `@out` requires a String subject — the bytes
@@ -62,11 +51,7 @@
       Pattern: `:result fetch :fqn | @err "looked up" | @out` —
       a trace breadcrumb on stderr alongside the data result on
       stdout. ~~|
-  ::builtin{:impl :qlang/cli/prim/@err
-            :category :io
-            :subject :any
-            :returns :any
-            :modifiers [:string]}
+  ::verb~(:text #[::string ::null] | ::builtin{:impl :cli/io/@err})
 
 ::ErrSubjectNotStringError
   |~~ Bare `@err` requires a String subject. Wrap non-String
@@ -86,11 +71,7 @@
       Pattern: `data | @tap :before | filter ~(active) | @tap :after | count`
       prints both pre- and post-filter snapshots to stderr,
       then returns the count. ~~|
-  ::builtin{:impl :qlang/cli/prim/@tap
-            :category :io
-            :subject :any
-            :returns :any
-            :modifiers [:keyword]}
+  ::verb~(:label ::keyword | ::builtin{:impl :cli/io/@tap})
 
 ::TapLabelNotKeywordError
   |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`

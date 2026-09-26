@@ -758,10 +758,11 @@ slot of code takes a quote [D67], [D68]:
 ```
 
 So does a built-in declared on its noun, which every operand of the core
-is but the loader's `use`: its head checks the subject and the slots
-before its primitive runs and raises the refusal its site declares at
-that place, and `spec` answers the head [D72], [D73], [D74], [D75],
-[D76], [D77], [D78], [D79]:
+is but the loader's `use`, and so does the verb of a host, whose
+primitive the host hands beside its source: its head checks the subject
+and the slots before its primitive runs and raises the refusal its site
+declares at that place, and `spec` answers the head [D72], [D73], [D74],
+[D75], [D76], [D77], [D78], [D79], [D80]:
 
 ```qlang
 > "a" | add 1 !| type
@@ -771,12 +772,11 @@ that place, and `spec` answers the head [D72], [D73], [D74], [D75],
 [::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]
 ```
 
-The loader's `use` and every operand of a host execute none of their
-own. Their modifiers are evaluated at the call as a verb's are [D56],
-and the implementation of each
-checks them in code of its own, around which sit the dispatch wrappers
-in `core/src/runtime/dispatch.mjs`, one per calling shape, and the arity
-classes of Rule 10.
+The loader's `use` alone executes none of its own. Its modifiers are
+evaluated at the call as a verb's are [D56], and its implementation
+checks them in code of its own, beside the one dispatch wrapper left,
+`stateOpVariadic` in `core/src/runtime/dispatch.mjs`, and the arity
+classes of Rule 10 [D79].
 
 Such an operand declares a slot vocabulary, and the runtime reads none
 of it, so the declarations are free to be wrong, and they are:
@@ -824,16 +824,12 @@ A quote written as the body of a binding carries the environment of
 its declaration, so code handed to another pipeline sees the names of
 its author wherever it is applied [D44].
 
-The wrappers are also the host's interface. The command line's I/O
-operands and every operand of the sister project are built from
-`nullaryOp`, `valueOp`, `overloadedOp` and `stateOp` and from the per-site error
-factories, imported through the `dispatch` and `operand-errors`
-subpaths of the core (`cli/src/io-operands.mjs`, and
-`cli/lib/jdt/graph.impl.mjs` in the sister project, which also carries
-its own copy of `fromPlain`, named `jsonToQlang`). Deleting the
-wrappers is therefore a change to every host, and the argument model is
-where the interface of a host operand gets designed rather than
-inherited.
+A host builds its refusals from the per-site error factories, imported
+through the `operand-errors` and `errors` subpaths of the core
+(`cli/src/io-operands.mjs`, and `cli/lib/jdt/graph.impl.mjs` in the
+sister project, which also carries its own copy of `fromPlain`, named
+`jsonToQlang`), so the factories stay an interface of the runtime a
+host builds on.
 
 The repair must make a parameter bind a value, make code an explicit
 quote at the call site, and make the kind of every slot a declaration
@@ -856,19 +852,7 @@ of the runtime is exported for building operands.
 A verb that several kinds answer resides in the module of each of them,
 under the contract on its provider's `any` whose page and laws they
 share [D62], [D67], as the verbs of the core that several kinds answer
-do [D73], [D74], [D75], [D78], [D79]. Where a host has not moved a verb
-onto its nouns, one descriptor stands for every kind its subject lists,
-each of those kinds reads the same one, and a call by address reaches
-that one descriptor as well, so the kind in the address checks nothing.
-In the sister project:
-
-```sh
-$ node cli/bin/jdt q '::string/@type | spec | /subject'
-[:string :map]
-
-$ node cli/bin/jdt q '::string/@type | spec | eq (::map/@type | spec)'
-true
-```
+do [D73], [D74], [D75], [D78], [D79].
 
 The vocabulary carries the calling shape as well as the kind. A
 predicate, a key and a pipeline slot run their code against one subject.
@@ -956,18 +940,13 @@ a client's `env` shows until a module's surface is its own.
 
 The verbs of the core live in the module of their noun, and the loader's
 `use` in the one family left, `core/lib/qlang/operand/reflective.qlang`
-[D72], [D79]. The modules of a host are the families of its operands,
-where the manifest answers nouns, so the verbs of one noun come from
-several files and one file feeds several nouns, and the runtime joins a
-kind to a host's verbs by scanning every provider for the kinds a
-descriptor's `:subject` lists (`core/src/runtime/nouns.mjs`,
-`verbsOfKind`). In the sister project:
+[D72], [D79]. A host's verbs reside on no noun: the module of a host
+lands them in its client's scope beside the client's own names, where
+the manifest answers nouns [D80]. In the sister project:
 
 ```sh
-$ grep -lE ':subject (\[[^]]*)?:map\b' cli/lib/jdt/*.qlang
-cli/lib/jdt/coverage.qlang
-cli/lib/jdt/graph.qlang
-cli/lib/jdt/render.qlang
+$ node cli/bin/jdt q 'env | has :@type'
+true
 ```
 
 What the merge leaves behind is the runtime's housekeeping in the
@@ -1490,14 +1469,14 @@ part:
 - An embedding surface that was never designed. The package's entry
   point re-exports the runtime's internals by name, the Symbol slots of
   the headers and the prefixes of the environment's housekeeping keys
-  among them, and the package exposes subpaths for the dispatch
-  wrappers and the error factories, which is what hosts build on:
+  among them, and the package exposes subpaths for the error
+  factories, which is what hosts build on:
 
   ```sh
   $ node --input-type=module -e "console.log(Object.keys(await import('./core/src/index.mjs')).length)"
-  81
+  85
   $ node -p "Object.keys(require('./core/package.json').exports).length"
-  16
+  15
   ```
 - Surface without users. The session keeps a history of cells with the
   environment after each, and offers to take and restore snapshots;
@@ -2184,3 +2163,4 @@ maintainer wants to explore it before it is fixed.
 [D77]: decisions/D77.md
 [D78]: decisions/D78.md
 [D79]: decisions/D79.md
+[D80]: decisions/D80.md

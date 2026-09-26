@@ -42,7 +42,7 @@ import { quoteOfBody, quoteOfLiteral, astOfQuote } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf, subjectServedBy
+  addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
@@ -876,20 +876,13 @@ async function callByAddress(node, state) {
 
 // applyBuiltinDescriptor(descriptor, builtinLambdas, state) → state'
 //
-// Dispatch core for built-in operands. Reads the callable through
-// `resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp the bootstrap
-// resolution pass in runtime/index.mjs left, or the descriptor's
-// `:impl` handle keyword walked through the registry when a query
-// assembled the descriptor from data — and delegates
-// to applyRule10. Bare lookup fires the operand against the current
-// pipeValue regardless of arity — non-nullary operands without
-// captured args hit Rule 10's arity check and surface a per-site
-// arityError. The introspection surface for "what does this operand
-// do" is the axes on its address, `::vec/count | source` / `| docs` /
-// `| examples`, not a bare-name shortcut into the descriptor Map.
+// The loader's descriptor, and one a query assembled from data, run the
+// function value `resolveBuiltinImpl` reads — the stamp the bootstrap
+// left, or the `:impl` handle walked through the registry — under
+// Rule 10, whose arity check refuses a count of modifiers it does not
+// take [D79].
 async function applyBuiltinDescriptor(descriptor, builtinLambdas, state) {
-  const resolvedImpl = resolveBuiltinImpl(descriptor);
-  return await applyRule10(resolvedImpl, builtinLambdas, withPipeValue(state, subjectServedBy(descriptor, state.pipeValue)));
+  return await applyRule10(resolveBuiltinImpl(descriptor), builtinLambdas, state);
 }
 
 // makeLambda(astNode, capturedState) → (input) → value

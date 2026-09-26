@@ -186,14 +186,10 @@ export function createPrimitiveRegistry() {
 // stays a single-source-of-truth string here:
 //
 //     import { bindPrim } from '../primitives.mjs';
-//     export const add = valueOp('add', 2, (a, b) => a + b);
-//     bindPrim('add', add);
+//     bindPrim('add', (augend, addend) => augend + addend);
 //
-// The catalog file (`core/lib/qlang/operand/arith.qlang`) declares
-// the same name under `:impl :qlang/prim/add` on the `:add`
-// descriptor Map, completing the descriptor → registry → impl
-// handoff `langRuntime`'s bootstrap pass resolves at construction
-// time.
+// The module of the noun (`core/lib/qlang/number.qlang`) declares the
+// verb whose `::builtin{:impl :qlang/prim/add}` step names it [D72].
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
 
 // ── Namespace prefixes for impl-key minting ───────────────────

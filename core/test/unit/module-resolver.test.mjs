@@ -180,21 +180,6 @@ describe('installModules', () => {
 });
 
 describe('locator exports that are not builtin descriptors', () => {
-  it('leaves the record of a plain Map alone and stamps no impl onto it', async () => {
-    // The impls pass reads the value of every record a locator-loaded
-    // module exports and finds no builtin descriptor under that name,
-    // so it stamps nothing and the binding keeps its authored value.
-    const sessionInstance = await createSession({
-      locator: async (namespaceName) => namespaceName === 'tests/plain-map'
-        ? { source: ':cfg {:a 1}', impls: { cfg: () => 'never dispatched' } }
-        : null
-    });
-
-    const cellEntry = await sessionInstance.evalCell('use :tests/plain-map | cfg | /a');
-    expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toBe(1);
-  });
-
   it('leaves a `::Tag` bound to a literal alone rather than stamping a throw-site spec onto it', async () => {
     // `stampThrowSiteSpec` reads the recorded facts for the class the
     // tag names, and a module binding that name to a literal holds a

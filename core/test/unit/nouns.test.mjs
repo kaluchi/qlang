@@ -6,7 +6,6 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
-import { nullaryOp } from '../../src/runtime/dispatch.mjs';
 
 describe('the nouns of the core', () => {
   it('the core answers the nouns beneath it, itself and its refusals apart', async () => {
@@ -66,12 +65,12 @@ describe('the verbs that live on a kind', () => {
     expect(cellEntry.result).toBe(true);
   });
 
-  it('a host descriptor serves the kind its subject lists beneath a tag', async () => {
+  it('a host verb serves the kind its head names beneath a tag', async () => {
     const session = await createSession({
       locator: async nsName => (nsName === 'tests/typed'
         ? {
-            source: ':shout ::builtin{:impl :tests/shout :subject [:string :number]}',
-            impls: { shout: nullaryOp('shout', text => text.toUpperCase()) }
+            source: ':shout ::verb~(:subject ::string | ::builtin{:impl :tests/typed/shout})',
+            impls: { shout: text => text.toUpperCase() }
           }
         : null)
     });

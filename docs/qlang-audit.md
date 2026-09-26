@@ -2041,6 +2041,26 @@ which answers the first of them, while a sort without a key still ranks
 them. The review of pull request #46 raised it, and the law for nested
 errors of the third milestone settles it [D13].
 
+A tag over a payload that failed [D13], [D46]. A tagged literal over a
+payload that is an error gives the error its tag, so `::Foo!{:k 1}`
+names an error of its own kind, and a payload that failed takes the tag
+as well, losing the one its site gave it:
+
+```qlang
+> [(nosuch)] * (!| type)
+[::UnresolvedIdentifierError]
+
+> [::Foo(nosuch)] * (!| type)
+[::Foo]
+```
+
+The path keeps the failing step, `~(nosuch)`, and no stop keeps the
+site's tag [D85]. The alternatives are the tag over the error its
+payload spells, a failure passing through unchanged, which asks the
+tagged literal to tell a raised error from a value as an element of a
+literal does; and the tag over any error, as the tree has it, the
+payload being a place declared for any value, which keeps what it gets.
+
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
 элизии .. что можно коллапсить а что нет .. что б как-то рекурсивно оно

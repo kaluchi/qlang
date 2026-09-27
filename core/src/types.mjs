@@ -186,21 +186,26 @@ export function makeQuote(steps, ast = undefined) {
 }
 
 // A quote written as a modifier carries the environment of its call
-// [D43] on a JS-internal slot, so code handed to another pipeline sees
-// the names of its author wherever it is applied; a quote held as data
-// carries none and runs in the environment where it is applied.
+// [D43], and one written as the body of a declaration that of its
+// declaration [D44], on a JS-internal slot; a quote held as data carries
+// none and runs where it is applied.
 const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
 
 export function quoteInEnv(quote, env) {
   const carried = [...quote];
   stampTagHeader(carried, QUOTE_TAG);
   stampSlot(carried, QUOTE_AST_SLOT, quote[QUOTE_AST_SLOT]);
-  stampSlot(carried, QUOTE_ENV_SLOT, env);
+  stampSlot(carried, QUOTE_ENV_SLOT, { env });
   return Object.freeze(carried);
 }
 
+// The holder a declaration fills with the scope it writes.
+export function quoteEnvRef(quote) {
+  return quote[QUOTE_ENV_SLOT];
+}
+
 export function envToRun(quote, envWhereApplied) {
-  return quote[QUOTE_ENV_SLOT] ?? envWhereApplied;
+  return quote[QUOTE_ENV_SLOT]?.env ?? envWhereApplied;
 }
 
 // Set — the vector in the one order without duplicates, under the

@@ -7,6 +7,7 @@ import { parse, ParseError } from './parse.mjs';
 import { evalAst, evalQuery } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
+import { verbsReaching } from './runtime/nouns.mjs';
 import {
   createSession,
   serializeSession,
@@ -167,6 +168,7 @@ export {
   signatureSpecOf,
   slotLabelsOf,
   verbShownFor,
+  verbsReaching,
   TAG_BINDING_PREFIX,
   MODULE_NAMESPACE_PREFIX,
   RUNTIME_LOCATOR_KEY,

@@ -1,10 +1,12 @@
 // The head of a verb as the tooling reads it [D72]: the slots as the
-// head writes them, and the verb a tool shows for a name.
+// head writes them, the verb a tool shows for a name, and the verbs a
+// value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
+import { verbsReaching } from '../../src/runtime/nouns.mjs';
 import { bindingValueOf, residenceOfVerb } from '../../src/types.mjs';
 
 describe('the head of a verb as the tooling reads it', () => {
@@ -30,5 +32,31 @@ describe('the head of a verb as the tooling reads it', () => {
     const lonelyContract = await evalQuery('::verb~()');
     env.set('lonely', lonelyContract);
     expect(verbShownFor(env, 'lonely')).toBe(lonelyContract);
+  });
+});
+
+describe('the verbs a value of a kind reaches [D34]', () => {
+  it('reaches the verbs of its kind, then those of any value', async () => {
+    const reached = verbsReaching(await langRuntime(), ['number']);
+    expect(reached.get('add').address.name).toBe('number/add');
+    expect(reached.get('type').address.name).toBe('any/type');
+    expect(slotLabelsOf(reached.get('add').verb)).toEqual([':addend ::number']);
+  });
+
+  it('leaves out a contract of any value its kind does not answer', async () => {
+    const env = await langRuntime();
+    expect(verbsReaching(env, ['number']).has('count')).toBe(false);
+    expect(verbsReaching(env, ['vec']).get('count').address.name).toBe('vec/count');
+  });
+
+  it('takes the verb of the outermost kind a name lives on', async () => {
+    const reached = verbsReaching(await langRuntime(), ['tag', 'number']);
+    expect(reached.get('gt').address.name).toBe('tag/gt');
+  });
+
+  it('reaches only the verbs of any value for a kind no module declares', async () => {
+    const reached = verbsReaching(await langRuntime(), ['Width']);
+    expect(reached.has('type')).toBe(true);
+    expect(reached.has('add')).toBe(false);
   });
 });

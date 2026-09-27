@@ -1,11 +1,5 @@
-// LSP feature implementations — pure functions over qlang's public
-// API. No vscode-languageserver imports, no node: imports. The
-// server.mjs wiring layer translates between LSP protocol types
-// and these returns.
-//
-// Each function takes a parsed state and returns plain objects that
-// server.mjs maps to LSP responses. This split keeps the logic
-// testable without LSP transport.
+// The features of the language server, pure functions over the public
+// API of the core that `server.mjs` maps to the protocol.
 
 import {
   parse, ParseError,
@@ -25,25 +19,23 @@ import {
   canonicalTagName,
   tokenize,
   isKeyword,
+  isTagKeyword,
   isVerb,
+  typeKeyword,
   bindingValueOf,
   printQuoteSource,
   signatureSpecOf,
   slotLabelsOf,
-  verbShownFor
+  verbShownFor,
+  verbsReaching
 } from '@kaluchi/qlang-core';
 
-// Interned keyword references for descriptor-Map field projection.
+// The fields of a descriptor, which the loader's `use` alone is [D79].
 const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
 const F_MODIFIERS = 'modifiers';
 
-// Strip `~(...)` Quote segments from doc content, leaving only
-// prose. A balanced-parenthesis scan handles nesting and string
-// literals inside the Quote body. The result is the human-readable
-// description without executable examples — hover and completion
-// show prose; examples surface through `| examples` in the detail
-// view.
+// The prose of a doc without its quotes, which hover and completion show.
 function stripQuoteSegments(content) {
   const parts = [];
   let cursor = 0;
@@ -76,22 +68,16 @@ function stripQuoteSegments(content) {
   return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim());
 }
 
-// Append Markdown hard line breaks (trailing double-space) to every
-// line so single \n renders as a real break in hover popups.
+// Every line ends in a Markdown hard break, so a line break of a doc
+// breaks the line of a hover.
 function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
-// Remove the common leading whitespace from every non-empty line.
-// Doc content carries the catalog-file indent (6 spaces for
-// B+I convention); hover/completion output reads as prose, so the
-// indent must go. Markdown renders 4+ leading spaces as a code
-// block — dedenting prevents accidental code-block promotion.
+// A doc without the indent of its source, measured on the lines after the
+// first, which Markdown would otherwise read as a block of code.
 function dedent(text) {
   const lines = text.split('\n');
-  // Compute indent from continuation lines (index 1+) — the first
-  // line often sits right after `|~~ ` with less indent than the
-  // body. Empty lines do not contribute.
   const continuationNonEmpty = lines.slice(1).filter(l => l.trim().length > 0);
   const minIndent = continuationNonEmpty.length > 0
     ? Math.min(...continuationNonEmpty.map(l => l.match(/^( *)/)[1].length))
@@ -100,21 +86,12 @@ function dedent(text) {
   return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
-// Cached docs lookup — `:name | docs` (or `::Tag | docs`) axis-call
-// returns a Vec of Doc-values. LSP wants the raw content strings;
-// pull them once on first request and reuse the array on subsequent
-// hovers / completions for the same binding. Cache key is the full
-// binding name including the `::` prefix for tag-namespace lookups
-// so value/tag-namespace entries do not collide. A keyword names a
-// binding of its scope, so the name of a verb of the core is refused
-// with the addresses where the verb lives, and the first of them is
-// read [D62].
+// The contents of the docs a name reads, once per name: a tag's own, the
+// page of a verb several kinds answer on its contract on any value [D72],
+// or the page of the first address where a verb of the name lives [D62].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  // A name several kinds answer has its page on its contract, the verb
-  // without a body on `::qlang/any` [D72]; any other name reads its own
-  // binding's, or the first verb of its name.
   const query = isTagBindingName(name)
     ? `${name} | docs`
     : `::any/${name} | docs !| (:"${name}" | docs) !| (/addresses | first | if (eq null) ~([]) ~(docs))`;
@@ -159,19 +136,9 @@ export function parseDocument(source, uri) {
 }
 
 // ── Catalog context ───────────────────────────────────────────
-//
-// Parsed lib/qlang/core.qlang AST + its file URI, provided by
-// the server at startup. Used as fallback for go-to-definition
-// on builtin operands that have no in-document declaration.
-//
-// core.qlang is a series of `BindStep` declarations — one per
-// builtin operand or tag-binding — so the index walks for
-// `BindStep` nodes and records the entire BindStep span as the
-// jump-target (the keyword key plus the docs of its slot plus descriptor
-// body). Both value-namespace keys (`:count {…}`) and tag-
-// namespace keys (`::AddLeftNotNumberError {…}`) land in the index
-// under the canonical name a `definitionAtOffset` lookup builds.
 
+// The declarations of a module of the catalog by name, a verb's and a
+// tag's alike, each with the span goto-definition jumps to.
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
@@ -190,15 +157,8 @@ export function buildCatalogIndex(catalogAst) {
 }
 
 // ── Completion ────────────────────────────────────────────────
-//
-// Two catalogs cached at startup: value-namespace builtins
-// (`count`, `filter`, `parse`, ...) and tag-namespace bindings
-// (`::AddLeftNotNumberError`, `::verb`, ...). Walked from
-// `langRuntime` directly because the namespace partitioning runs
-// off `isTagBindingName` on the env key; the catalog index built
-// in `buildCatalogIndex` covers the same surface and carries the
-// source-range info goto-definition needs.
 
+// The names of the runtime, its verbs and its tags, read once.
 let _valueCompletions = null;
 let _tagCompletions = null;
 
@@ -240,62 +200,98 @@ async function tagNamespaceCompletions() {
   return _tagCompletions;
 }
 
-// `source.substring(offset - 2, offset)` tells the completion path
-// whether the cursor sits right after a `::` prefix — that picks
-// the tag-namespace catalog alone. Without a source slice the
-// default merges both catalogs so hover-style discovery works
-// inside `filter ::` / `eq ::` / first-token contexts.
+// After `::` the cursor completes a tag name alone.
 function justTypedDoubleColon(source, offset) {
   if (typeof source !== 'string' || offset < 2) return false;
   return source[offset - 2] === ':' && source[offset - 1] === ':';
 }
 
+// After a value the cursor completes the verbs that accept it and the
+// names the document declares; where the kind of the value is no
+// declaration's, every name.
 export async function completionsAtOffset(ast, offset, source = null) {
-  const tagOnly = justTypedDoubleColon(source, offset);
-
-  let items;
-  if (tagOnly) {
-    items = [...(await tagNamespaceCompletions())];
-    if (ast) {
-      for (const tagName of bindingNamesVisibleAt(ast, offset, TAG_NAMESPACE)) {
-        if (!items.some(i => i.label === tagName)) {
-          items.push({
-            label: tagName,
-            kind: 'tag',
-            detail: 'in-document tag-binding',
-            documentation: null
-          });
-        }
-      }
-    }
-    return items;
+  if (justTypedDoubleColon(source, offset)) {
+    return withDeclaredNames([...(await tagNamespaceCompletions())], ast, offset, [TAG_NAMESPACE]);
   }
+  const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
+  if (subject !== null) {
+    const reached = verbsReaching(await langRuntime(), subject.kinds);
+    const verbs = (await valueNamespaceCompletions()).filter(item => reached.has(item.label));
+    return withDeclaredNames(verbs, subject.pipeline, subject.end, [VALUE_NAMESPACE]);
+  }
+  const everyName = [...(await valueNamespaceCompletions()), ...(await tagNamespaceCompletions())];
+  return withDeclaredNames(everyName, ast, offset, [VALUE_NAMESPACE, TAG_NAMESPACE]);
+}
 
-  items = [...(await valueNamespaceCompletions()), ...(await tagNamespaceCompletions())];
-  if (ast) {
-    for (const name of bindingNamesVisibleAt(ast, offset, VALUE_NAMESPACE)) {
-      if (!items.some(i => i.label === name)) {
-        items.push({
-          label: name,
-          kind: 'variable',
-          detail: 'BindStep binding',
-          documentation: null
-        });
-      }
-    }
-    for (const tagName of bindingNamesVisibleAt(ast, offset, TAG_NAMESPACE)) {
-      if (!items.some(i => i.label === tagName)) {
-        items.push({
-          label: tagName,
-          kind: 'tag',
-          detail: 'in-document tag-binding',
-          documentation: null
-        });
-      }
+function withDeclaredNames(items, ast, offset, namespaces) {
+  if (!ast) return items;
+  for (const namespace of namespaces) {
+    for (const name of bindingNamesVisibleAt(ast, offset, namespace)) {
+      if (items.some(item => item.label === name)) continue;
+      items.push(namespace === TAG_NAMESPACE
+        ? { label: name, kind: 'tag', detail: 'in-document tag-binding', documentation: null }
+        : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
     }
   }
-
   return items;
+}
+
+// The kind of the value a literal step answers [D32].
+const KIND_OF_LITERAL = {
+  NumberLit: 'number', StringLit: 'string', BooleanLit: 'boolean', NullLit: 'null',
+  Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
+  QuoteLit: 'quote', DocLit: 'doc', BareTypeKeyword: 'tag'
+};
+const CONTAINER_KINDS = new Set(['vec', 'set', 'map']);
+
+// The subject of the step at the cursor, the word being typed aside: the
+// pipeline it continues after `|` or a line break, where that pipeline
+// parses and its value has kinds its declarations name; a step after `*`
+// or `!|` takes an element or an error, and has none.
+async function subjectAt(source, offset) {
+  const before = source.slice(0, offset).replace(/[@_\p{ID_Continue}-]*$/u, '');
+  const continued = before.match(/\s(!\||\||\*)\s*$/) ?? before.match(/\n\s*$/);
+  if (continued === null || continued[1] === '*' || continued[1] === '!|') return null;
+  let pipeline;
+  try {
+    pipeline = parse(before.slice(0, continued.index));
+  } catch {
+    return null;
+  }
+  const kinds = await kindsOfSteps(stepsOf(pipeline), null);
+  return kinds === null ? null : { kinds, pipeline, end: continued.index };
+}
+
+function stepsOf(pipelineNode) {
+  if (pipelineNode.type !== 'Pipeline') return [{ combinator: '|', step: pipelineNode }];
+  return [{ combinator: pipelineNode.leadingCombinator ?? '|', step: pipelineNode.steps[0] }, ...pipelineNode.steps.slice(1)];
+}
+
+// The kinds of the value the steps answer from a subject of the kinds: a
+// literal's own, the subject's through a declaration and a `!|` step, a
+// container's through `*`, and a verb's `:returns`, `/` for its
+// subject's own [D67]; null where a step answers no declared kind.
+async function kindsOfSteps(steps, subjectKinds) {
+  let kinds = subjectKinds;
+  for (const { combinator, step } of steps) {
+    if (combinator === '!|') continue;
+    if (combinator === '*') kinds = CONTAINER_KINDS.has(kinds?.[0]) ? kinds : null;
+    else kinds = await kindsAfterStep(step, kinds);
+  }
+  return kinds;
+}
+
+async function kindsAfterStep(step, kinds) {
+  if (Object.hasOwn(KIND_OF_LITERAL, step.type)) return [KIND_OF_LITERAL[step.type]];
+  if (step.type === 'BindStep') return kinds;
+  if (step.type === 'ParenGroup') return await kindsOfSteps(stepsOf(step.pipeline), kinds);
+  if (step.type !== 'OperandCall' || kinds === null) return null;
+  const runtime = await langRuntime();
+  const reached = verbsReaching(runtime, kinds).get(step.name);
+  if (reached === undefined) return null;
+  const returns = await evalQuery(`${reached.address.literal} | spec | /returns`, runtime);
+  if (isTagKeyword(returns)) return [returns.name];
+  return typeKeyword(returns).name === 'proj' ? kinds : null;
 }
 
 // ── Hover ─────────────────────────────────────────────────────
@@ -348,8 +344,6 @@ async function hoverForOperand(node, documentAst) {
       endOffset: node.location.end.offset
     };
   }
-  // User-defined binding — search the in-document AST for a
-  // BindStep declaration that carries docs.
   const docStrings = findInDocumentDocs(documentAst, node.name);
   if (docStrings.length === 0) return null;
   const prose = stripQuoteSegments(docStrings.join('\n'));
@@ -364,9 +358,7 @@ async function hoverForOperand(node, documentAst) {
   };
 }
 
-// Walk the document AST for a BindStep whose key matches `name` and
-// return its `.docs` string Vec. Last-match wins (shadowing
-// semantics).
+// The docs of the last declaration of the name in the document.
 function findInDocumentDocs(ast, name) {
   if (!ast) return [];
   let lastDocs = null;
@@ -385,17 +377,7 @@ function isOnTagHead(node, offset) {
   return writesTag(node) && offset < node.location.start.offset + 2 + node.tag.length;
 }
 
-// Tag-namespace hover — `::Tag` reference (BareTypeKeyword),
-// `::Tag<payload>` constructor invocation (TaggedLit) or the tag an
-// error literal writes before its bang. All resolve
-// the same way: lookup `::Tag` in env, pull `:docs` via the docs
-// axis-operand, render a markdown popup with the tag's identity
-// banner plus the joined doc content.
-//
-// `::Tag` head span (the two `::` chars + the tag identifier) is
-// what reads as the hover range — for a TaggedLit the payload
-// sits outside the popup region so the editor highlights the tag
-// head alone.
+// The page of a tag a node names or writes, over the span of its head.
 async function hoverForTag(node) {
   const tagKey = tagBindingKey(node.tag);
   const runtime = await langRuntime();
@@ -437,42 +419,25 @@ function formatMetaValue(value) {
 }
 
 // ── Go to Definition ──────────────────────────────────────────
-//
-// Three-tier resolution:
-//   1. In-document BindStep declaration visible at
-//      the cursor — last-write-wins with fork isolation
-//      (shadowing-aware)
-//   2. Catalog declaration for builtins, walked across every
-//      `core/lib/qlang/**/*.qlang` module
-//   3. null (identifier has no reachable declaration)
 
+// The declaration a name, a tag name or the head of a tag a node writes
+// resolves to: the last one the document makes visible at the cursor,
+// else the catalog's.
 export function definitionAtOffset(ast, offset, catalogCtx) {
   if (!ast) return null;
 
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  // Resolve the click position to a binding name. Three click-shapes
-  // navigate to a declaration:
-  //   * `OperandCall` — its own `.name` (read site, e.g. `count`).
-  //   * `BareTypeKeyword` — `::` + `.tag` (type identifier reference).
-  //   * `TaggedLit` — `::` + `.tag` (type constructor invocation),
-  //     and the error literal that writes its tag, `::Tag!{…}` [D86].
   let name;
   if (node.type === 'OperandCall')        name = node.name;
   else if (node.type === 'BareTypeKeyword') name = tagBindingKey(node.tag);
   else if (isOnTagHead(node, offset))       name = tagBindingKey(node.tag);
   else return null;
 
-  // Tier 1: last visible in-document declaration — only offsets;
-  // the caller maps them through the current document's
-  // positionAt for line/column resolution.
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
   if (localDecl) return localDecl;
 
-  // Tier 2: catalog fallback. The index entry carries
-  // `{ startOffset, endOffset, fileUri, source }` so the caller
-  // can resolve offsets in the originating catalog file.
   if (catalogCtx?.index?.has(name)) {
     return catalogCtx.index.get(name);
   }
@@ -480,18 +445,8 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   return null;
 }
 
-// bindingDeclarationOf(node) → { name, kind } | null
-//
-// Single recogniser for every AST shape that introduces a binding
-// in env: `BindStep` with a Keyword key (`:name body`) or with a
-// BareTypeKeyword key (`::Tag body` — tag-binding). The user-facing
-// symbol kind tracks what the binding will hold once `evalBindStep`
-// runs:
-//   * `tag`      — BareTypeKeyword head (descriptor under `::Tag`)
-//   * `value`    — Keyword head with any body but a verb literal, or
-//                  a doc-only declaration (no body)
-//   * `verb`     — Keyword head whose body is a verb literal,
-//                  `::verb~(…)` [D67]
+// The name a declaration binds and the symbol it shows as: a tag, a verb
+// for the verb literal as its body [D67], a value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type === 'BindStep') {
     if (node.key.type === 'BareTypeKeyword') {
@@ -511,12 +466,8 @@ function bindingKindForKeywordHead(bindStepNode) {
   return body?.type === 'TaggedLit' && canonicalTagName(body.tag) === 'verb' ? 'verb' : 'value';
 }
 
-// findLastVisibleDeclaration(ast, name, offset) — walks the AST
-// collecting BindStep declarations for `name` that
-// are lexically visible at `offset` (before the cursor, in a
-// fork-reachable ancestor). Returns the LAST one (closest to
-// cursor = most recent shadowing), or null if no in-document
-// declaration is visible.
+// The span of the last declaration of the name that stands before the
+// cursor in a scope that encloses it, or null.
 function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 
@@ -524,13 +475,7 @@ function findLastVisibleDeclaration(ast, name, offset) {
     const decl = bindingDeclarationOf(node);
     if (decl === null || decl.name !== name) return;
     if (!node.location || node.location.end.offset > offset) return;
-
-    // Fork-isolation check: walk ancestors from the declaration
-    // up to the root. If any fork-isolating ancestor does NOT
-    // contain the cursor offset, the declaration is invisible.
     if (!isVisibleAcrossForks(node, offset)) return;
-
-    // This declaration is visible — keep it (last-write-wins).
     lastVisible = {
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
@@ -540,6 +485,7 @@ function findLastVisibleDeclaration(ast, name, offset) {
   return lastVisible;
 }
 
+// A declaration is visible when every fork above it encloses the cursor.
 function isVisibleAcrossForks(declNode, cursorOffset) {
   let current = declNode;
   let parent = current.parent;
@@ -565,14 +511,7 @@ export function referencesAtOffset(ast, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return [];
 
-  // Four click-positions resolve to a binding name:
-  //   1. OperandCall (`count`) — its own name is the lookup target.
-  //   2. BindStep wrapper (cursor between key and body) — the
-  //      declared name from `node.key`.
-  //   3. Keyword node whose parent is a BindStep key — the name of
-  //      the keyword.
-  //   4. BareTypeKeyword either standalone or as a BindStep key —
-  //      the tag-namespace identifier `::tag`.
+  // A call, a declaration or the keyword of its name, and a tag name.
   let name = null;
   if (node.type === 'OperandCall') {
     name = node.name;
@@ -663,31 +602,9 @@ function findEnclosingOperandCall(node) {
 }
 
 // ── Semantic tokens ───────────────────────────────────────────
-//
-// Bridges the AST-driven `tokenize` from core into LSP's
-// semantic-tokens encoding. Each qlang highlight kind maps to an
-// LSP standard semantic-token type chosen for visual differentiation
-// under default editor themes:
-//
-//   operand  → function   (built-in operand name)
-//   atom     → variable   (user-bound identifier reference)
-//   effect   → decorator  (`@`-prefixed effectful operand)
-//   keyword  → keyword    (BindStep key)
-//   tag      → struct     (`::Tag` head, matching CompletionItemKind)
-//   string   → string     (String literal)
-//   quote    → string     (Quote literal — source-as-data)
-//   number   → number     (Number / Boolean / Null literal)
-//   comment  → comment    (line / block / doc comment)
-//   err      → keyword    (`!{` / `!|` fail-track sigil)
-//
-// Bracket / punctuation kinds (`vec`, `set`, `punct`, `whitespace`)
-// have no LSP semantic-token type; the tmLanguage grammar paints
-// them as a fallback.
-//
-// Builtin names come from `langRuntime()` and are cached per server
-// process; they drive the operand-vs-atom classification inside
-// `tokenize`.
 
+// The kinds of `tokenize` as the semantic-token types of the protocol; a
+// bracket has none, and the editor's grammar paints it.
 export const SEMANTIC_TOKEN_TYPES = [
   'function',
   'variable',
@@ -712,6 +629,7 @@ const KIND_TO_TYPE_INDEX = {
   err:     3
 };
 
+// The names of the runtime, which `tokenize` paints as operands.
 let _builtinNamesCache = null;
 async function builtinNamesForTokenize() {
   if (_builtinNamesCache) return _builtinNamesCache;
@@ -726,28 +644,19 @@ async function builtinNamesForTokenize() {
   return _builtinNamesCache;
 }
 
-// semanticTokensFor(source) → { data: Uint32Array }
-//
-// Five-int encoding per token (LSP spec): [deltaLine, deltaStart,
-// length, tokenType, tokenModifiers]. deltaLine is relative to the
-// previous token's line; deltaStart is relative to the previous
-// token's start on the same line, or absolute on a new line.
-// Multi-line tokens (block comments, multi-line Quote bodies) split
-// per line because the LSP encoding has no length-spans-newlines
-// representation — each line slice emits its own token entry.
+// semanticTokensFor(source) → { data: Uint32Array }, five integers per
+// token as the protocol encodes them, a token that spans lines split
+// into one per line.
 export async function semanticTokensFor(source) {
   const builtinNames = await builtinNamesForTokenize();
   const tokens = tokenize(source, builtinNames);
   const data = [];
   let prevLine = 0;
   let prevChar = 0;
-  // Pre-compute per-offset (line, char) — single linear scan
-  // outperforms repeated indexOf walks across the line table.
   const offsetToLineChar = buildLineCharIndex(source);
   for (const tok of tokens) {
     const typeIndex = KIND_TO_TYPE_INDEX[tok.kind];
     if (typeIndex === undefined) continue;
-    // Split multi-line span into per-line entries.
     let segStart = tok.start;
     while (segStart < tok.end) {
       const { line: segLine, char: segChar } = offsetToLineChar(segStart);
@@ -761,7 +670,6 @@ export async function semanticTokensFor(source) {
         prevLine = segLine;
         prevChar = segChar;
       }
-      // Advance past the newline (if any) to the next line's offset 0.
       segStart = segEnd + (segEnd < tok.end ? 1 : 0);
     }
   }

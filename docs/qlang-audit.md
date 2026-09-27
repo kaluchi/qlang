@@ -798,19 +798,10 @@ runtime a host builds on. The sister project no longer imports them,
 and carries its own copy of `fromPlain`, named `jsonToQlang`
 (`cli/lib/jdt/coverage.impl.mjs`).
 
-The declaration is also where help comes from, the way TOPS-20 derived
-its `?` and its guide words from the syntax a program declared. The
-language server labels the modifiers of a call from the slots its
-verb's head declares (`lsp/src/features.mjs`, `signatureHelpAtOffset`),
-and a refusal names the slot it guards; the completion of the editor
-still offers every name the runtime holds, where the declarations know
-the verbs that accept the value before the cursor.
-
 The repair must make `use` a verb whose declaration the runtime
-executes, which the one loader brings [D5], [D36]; make the refusals of
-a host kinds its catalog declares, so that nothing of the runtime is
-exported for building operands [D46]; and derive the completion of the
-editor from the kind of the subject and the heads of its verbs.
+executes, which the one loader brings [D5], [D36]; and make the refusals
+of a host kinds its catalog declares, so that nothing of the runtime is
+exported for building operands [D46].
 
 ### Modules that dissolve into their clients
 
@@ -1398,8 +1389,7 @@ part:
   ```
 - Consumers that carry spellings of the language. The language server
   tells a verb from a value by the tag of the literal a binding's body
-  is, and scans doc text with its own loop, and the TextMate grammar hard-codes
-  the names of the catalog's operands.
+  is, and scans doc text with its own loop.
 
 The repair is a property of every branch [D30]. A branch leaves every
 file it touches with comments that state what holds in one sentence,

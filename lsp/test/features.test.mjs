@@ -111,6 +111,59 @@ describe('completionsAtOffset', () => {
   });
 });
 
+describe('completionsAtOffset after a value offers the verbs that accept it', () => {
+  const labelsAt = async (src) => {
+    const { ast } = parseDocument(src, 'test.qlang');
+    return (await completionsAtOffset(ast, src.length, src)).map(item => item.label);
+  };
+
+  it('offers the verbs of a vector and of any value after a vector', async () => {
+    const labels = await labelsAt('[1 2 3] | ');
+    expect(labels).toContain('count');
+    expect(labels).toContain('type');
+    expect(labels).not.toContain('add');
+  });
+
+  it('reads the subject before the word being typed', async () => {
+    const labels = await labelsAt('1 | ad');
+    expect(labels).toContain('add');
+    expect(labels).not.toContain('count');
+  });
+
+  it('follows the kind a verb declares it returns', async () => {
+    const labels = await labelsAt('[1 2 3] | count | ');
+    expect(labels).toContain('add');
+    expect(labels).not.toContain('filter');
+  });
+
+  it('keeps the kind of a subject a verb returns as its own', async () => {
+    const labels = await labelsAt('[1 2 3] | filter ~(gt 1) | ');
+    expect(labels).toContain('count');
+    expect(labels).not.toContain('add');
+  });
+
+  it('reads a line break at the top level as a pipe', async () => {
+    const labels = await labelsAt('[1 2 3]\n');
+    expect(labels).toContain('count');
+    expect(labels).not.toContain('add');
+  });
+
+  it('reads through a declaration, a group and a distribute over a vector', async () => {
+    const labels = await labelsAt(':twice ::verb~(mul 2) | ([1 2] * add 1) | ');
+    expect(labels).toContain('twice');
+    expect(labels).toContain('count');
+    expect(labels).not.toContain('add');
+  });
+
+  it('offers every name where no declaration names the kind of the subject', async () => {
+    for (const src of [':x 1 | x | ', '[1 2 3] * ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(']) {
+      const labels = await labelsAt(src);
+      expect(labels).toContain('count');
+      expect(labels).toContain('add');
+    }
+  });
+});
+
 describe('hoverAtOffset', () => {
   it('returns hover for a builtin operand', async () => {
     const src = '[1 2 3] | count';

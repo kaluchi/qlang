@@ -1893,8 +1893,9 @@ that holds the page of its site above the error itself [D98]:
 ```
 
 The explanation answers by verbs of its own: `doc` the page, `error`
-the error, a value on the success track that `raise` raises again, and
-`quotes` the quotes of the page, which are its examples.
+the error, a value on the success track that `raise` raises again, and the
+page answers its quotes, which are its examples, by the verb of the
+doc, `explain | doc | quotes` [D99].
 
 Whether a value is an error reads as `false !| true`: the head
 `false` rides `|` like every other step and deflects on an error,

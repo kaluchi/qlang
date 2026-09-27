@@ -259,8 +259,8 @@
   |~~ The kind of what `explain` answers [D98]: the page of an error's
       site under `:doc`, then the error itself under `:error`, so it
       prints as the page above the error it explains. It answers them
-      by `doc` and `error`, and the quotes of the page, its examples,
-      by `quotes`.
+      by `doc` and `error`, and its page the quotes, its examples,
+      by `quotes` [D99].
 
       ~("x" | add 1 !| explain | type | eq ::explanation)
       ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
@@ -434,7 +434,7 @@
   |~~ The kind of a doc, the value of a doc literal: prose that carries
       quotes of qlang, which are its examples. It answers its text by
       `content` and its parts by `segments`, and `tag ::doc` builds one
-      from its parts.
+      from its parts; `quotes` answers its examples [D99].
 
       ~(::number/add | docs | first | type | eq ::doc)
       ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)

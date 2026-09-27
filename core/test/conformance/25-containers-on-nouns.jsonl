@@ -25,3 +25,4 @@
 {"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::SetPayloadNotVecError]","decision":["D73","D74"]}
 {"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::MapPayloadNotMapError ::AtKeyNotKeywordOrStringError]","decision":"D74"}
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::VerbSlotNotOfKindsError) | count","expect":"1","decision":"D74"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | spec | /throws | filter ~(eq ::VecPayloadNotVecError) | count","expect":"1","decision":"D64"}

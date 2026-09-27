@@ -17,7 +17,7 @@ declareSubjectError('RaiseSubjectNotMapError', 'raise', 'map');
 // another value stays in the map as data. A map that writes `:trail`
 // resumes that path; one that writes none raises an error whose path
 // starts at the call [D85].
-bindReaderOfPassedTags('raise', (sourceMap, passedTags) => {
+export function raisedFrom(sourceMap, passedTags) {
   let tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
   const descriptor = new Map();
   for (const [k, v] of sourceMap) {
@@ -29,4 +29,6 @@ bindReaderOfPassedTags('raise', (sourceMap, passedTags) => {
   }
   const minted = makeErrorValue(tag, descriptor);
   return descriptor.has('trail') ? resumingItsTrail(minted) : minted;
-});
+}
+
+bindReaderOfPassedTags('raise', raisedFrom);

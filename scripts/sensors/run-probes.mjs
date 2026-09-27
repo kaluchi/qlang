@@ -1,7 +1,8 @@
 // Runs the probes of a document against the tree. A probe is a line
 // beginning with "> " inside a fenced block, followed by the answer the
 // document records; under a fence marked `target` the answer is one the
-// tree must not give yet. Answers compare as the printer writes them,
+// tree must not give yet, and a target that states none is met when its
+// query answers no error. Answers compare as the printer writes them,
 // because a probe records what was printed: a literal answer is read
 // and printed again, an answer with … matches piece by piece in order,
 // and a query that names an `@` operand runs on the command line, then
@@ -28,6 +29,7 @@ const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
 const { parse } = await core('parse.mjs');
 const { deepEqual } = await core('equality.mjs');
+const { isErrorValue } = await core('types.mjs');
 const squash = text => text.replace(/\s+/g, ' ').trim();
 
 function probesOf(source) {
@@ -35,7 +37,7 @@ function probesOf(source) {
   let fence = null;
   let open = null;
   const close = () => {
-    if (open?.answer.length) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
+    if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
     open = null;
   };
   source.split('\n').forEach((line, index) => {
@@ -72,6 +74,7 @@ async function printedByCore(query) {
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints.
 async function answersAsRecorded({ query, answer }) {
+  if (answer === '') return !isErrorValue(await evalQuery(query));
   if (answer.includes('…')) {
     const printed = squash(onCommandLine(query));
     let from = 0;

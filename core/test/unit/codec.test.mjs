@@ -89,19 +89,24 @@ describe('toTaggedJSON / fromTaggedJSON round-trip', () => {
   });
 
   it('round-trips a Doc via $doc tag', () => {
-    const original = makeDoc(' note ');
+    const original = makeDoc([' note ', quoteOfSource('add 1')]);
     const encoded = toTaggedJSON(original);
-    expect(encoded).toEqual({ $doc: ' note ' });
+    expect(encoded).toEqual({ $doc: [' note ', { $quote: 'add 1' }] });
     const restored = fromTaggedJSON(encoded);
     expect(isDoc(restored)).toBe(true);
-    expect(restored.content).toBe(' note ');
+    expect(deepEqual(restored, original)).toBe(true);
+  });
+
+  it('refuses a $doc envelope that holds no list of segments', () => {
+    expect(() => fromTaggedJSON({ $doc: ' note ' })).toThrow(MalformedTaggedJSONError);
+    expect(() => fromTaggedJSON({ $doc: [' note ', 1] })).toThrow(MalformedTaggedJSONError);
   });
 
   it('round-trips a Doc with multi-line content preserving newlines', () => {
-    const original = makeDoc('\n  one\n  two\n');
+    const original = makeDoc(['\n  one\n  two\n']);
     const restored = roundTrip(original);
     expect(isDoc(restored)).toBe(true);
-    expect(restored.content).toBe('\n  one\n  two\n');
+    expect([...restored]).toEqual(['\n  one\n  two\n']);
   });
 
   it('round-trips a nested Vec', () => {

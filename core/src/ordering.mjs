@@ -84,7 +84,7 @@ function compareKinded(leftKind, left, rightKind, right) {
     case MAP_KIND:
       return compareMaps(left, right);
     case DOC_KIND:
-      return compareCodeUnits(left.content, right.content);
+      return compareSequences(left, right);
     case ERROR_KIND: {
       const byErrorTag = compareCodeUnits(left.tag.name, right.tag.name);
       return byErrorTag !== 0 ? byErrorTag : compareMaps(left.descriptor, right.descriptor);

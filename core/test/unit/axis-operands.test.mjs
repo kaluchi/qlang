@@ -42,7 +42,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
-      ':foo |~~ a note ~~| | :foo | docs * /content');
+      ':foo |~~ a note ~~| | :foo | docs * join');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([' a note ']);
   });
@@ -53,7 +53,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
-    const cellEntry = await sessionInstance.evalCell(':foo | docs * /content');
+    const cellEntry = await sessionInstance.evalCell(':foo | docs * join');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([' first cell ']);
   });
@@ -66,7 +66,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
-      ':landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | docs * /content');
+      ':landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | docs * join');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([' Глава из лендинг пейджа ']);
   });
@@ -83,8 +83,8 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  it('::vec/count | docs first Doc /content carries the prefix text', async () => {
-    const result = await evalQuery('::vec/count | docs | first | /content');
+  it('the join of the first doc of ::vec/count carries its prose', async () => {
+    const result = await evalQuery('::vec/count | docs | first | join');
     expect(typeof result).toBe('string');
     expect(result).toContain('number of elements');
   });
@@ -141,7 +141,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
   });
 
   it('::verb | docs returns the attached Doc-prefix on the type BindStep', async () => {
-    const result = await evalQuery('::verb | docs | first | /content');
+    const result = await evalQuery('::verb | docs | first | join');
     expect(typeof result).toBe('string');
     expect(result).toContain('A verb, a quote under this tag');
   });
@@ -191,7 +191,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/demo | :demo | docs | first | /content');
+    const cellEntry = await session.evalCell('use :tests/demo | :demo | docs | first | join');
     expect(cellEntry.result).toBe(' A short note. ');
   });
 
@@ -232,7 +232,7 @@ describe('a value that is no name reads the declaration of its kind', () => {
   // reads the page of its tag, and a `manifest` entry, a map, reads
   // the page of `::map` whatever its `:kind` field holds.
   it('a materialized error reaches its own tag docs', async () => {
-    expect(await evalQuery('10 | div 0 !| docs | first | /content'))
+    expect(await evalQuery('10 | div 0 !| docs | first | join'))
       .toContain('Division by zero');
   });
 
@@ -269,7 +269,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
-      '[contested, (:contested | source | parse), (:contested | docs | first | /content)]');
+      '[contested, (:contested | source | parse), (:contested | docs | first | join)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       222, ':contested |~~ from the cell ~~| 222', ' from the cell '
@@ -293,7 +293,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
-      '[contested, (:contested | source | parse), (:contested | docs | first | /content)]');
+      '[contested, (:contested | source | parse), (:contested | docs | first | join)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
       111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '

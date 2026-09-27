@@ -81,13 +81,21 @@ if (askedDecisions.length > 0) {
     for (const name of record.met) console.log(`  met     ${name}`);
   }
 } else {
-  const routed = new Set(milestones.flatMap(milestone => milestone.decisions));
-  let focusPrinted = false;
-  for (const milestone of milestones) {
-    const openTargets = new Map();
-    for (const decision of milestone.decisions) {
-      for (const name of decisions.get(decision).targets) openTargets.set(name, [...(openTargets.get(name) ?? []), decision]);
+  const decisionsOfTarget = new Map();
+  for (const [decision, record] of decisions) {
+    for (const name of record.targets) decisionsOfTarget.set(name, [...(decisionsOfTarget.get(name) ?? []), decision]);
+  }
+  // A target of several decisions is reached with the last milestone
+  // that names one of them.
+  const milestoneOfTarget = new Map();
+  milestones.forEach((milestone, milestoneIndex) => {
+    for (const [name, targetDecisions] of decisionsOfTarget) {
+      if (targetDecisions.some(decision => milestone.decisions.includes(decision))) milestoneOfTarget.set(name, milestoneIndex);
     }
+  });
+  let focusPrinted = false;
+  for (const [milestoneIndex, milestone] of milestones.entries()) {
+    const openTargets = new Map([...decisionsOfTarget].filter(([name]) => milestoneOfTarget.get(name) === milestoneIndex));
     if (openTargets.size === 0) continue;
     if (focusPrinted) {
       console.log(`later · ${milestone.title}: ${openTargets.size} open`);
@@ -99,7 +107,9 @@ if (askedDecisions.length > 0) {
   }
   const decisionsWhere = holds => [...decisions].filter(([, record]) => holds(record)).map(([decision]) => decision);
   const printList = (label, list) => { if (list.length > 0) console.log(`${label}: ${list.join(' ')}`); };
-  printList('outside the route', decisionsWhere(record => record.targets.length > 0).filter(decision => !routed.has(decision)));
+  printList('outside the route', [...new Set([...decisionsOfTarget]
+    .filter(([name]) => !milestoneOfTarget.has(name))
+    .flatMap(([, targetDecisions]) => targetDecisions))]);
   printList('carried out', decisionsWhere(record => record.met.length > 0 && record.targets.length === 0));
   printList('being decided', decisionsWhere(record => record.domain === 'language' && !replacedWhole(record)
     && record.met.length + record.targets.length === 0));

@@ -113,7 +113,7 @@ export function isBinding(v) {
 export function makeBinding({ name, docs = [], value, source = null, module = null }) {
   const record = new Map();
   record.set('name', name);
-  record.set('docs', Object.freeze(docs.map(content => makeDoc(content))));
+  record.set('docs', Object.freeze([...docs]));
   record.set('value', value);
   record.set('source', source);
   record.set('module', module);
@@ -201,14 +201,29 @@ export function makeErrorLiteralStep(fieldSteps, tag = ERROR_TAG) {
   }, 'error'));
 }
 
-// A doc carries its text with its line breaks read as one, whatever bytes
-// the source wrote.
+// A doc is the vector of its prose strings and quotes under `::doc`
+// [D19], [D94], each run of prose one string that reads a line break as
+// one whatever bytes the source wrote.
+export const DOC_TAG_NAME = 'doc';
+
 export function isDoc(v) {
-  return isValueClass(v, 'doc');
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === DOC_TAG_NAME;
 }
 
-export function makeDoc(content) {
-  return Object.freeze(brandValueClass({ content: content.replace(/\r\n?/g, '\n') }, 'doc'));
+export function isDocSegment(v) {
+  return typeof v === 'string' || isQuote(v);
+}
+
+export function makeDoc(segments) {
+  const doc = [];
+  for (const segment of segments) {
+    const piece = typeof segment === 'string' ? segment.replace(/\r\n?/g, '\n') : segment;
+    if (piece === '') continue;
+    if (typeof piece === 'string' && typeof doc[doc.length - 1] === 'string') doc[doc.length - 1] += piece;
+    else doc.push(piece);
+  }
+  stampTagHeader(doc, DOC_TAG);
+  return Object.freeze(doc);
 }
 
 // The tag of a vector or a map rides a hidden slot, out of the way of its
@@ -241,6 +256,7 @@ export function stampBuiltinImpl(descriptor, fn) {
 // The tags the runtime names.
 export const BINDING_TAG     = makeTagKeyword(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTagKeyword(BUILTIN_TAG_NAME);
+export const DOC_TAG         = makeTagKeyword(DOC_TAG_NAME);
 export const ERROR_TAG       = makeTagKeyword('error');
 export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
@@ -262,7 +278,7 @@ export const CORE_KIND = Object.freeze({
   map:     makeTagKeyword('map'),
   set:     SET_TAG,
   quote:   QUOTE_TAG,
-  doc:     makeTagKeyword('doc')
+  doc:     DOC_TAG
 });
 
 // The tags of a quote's steps [D47]: the records of what computes,
@@ -386,10 +402,10 @@ export function describeType(v) {
   if (isKeyword(v)) return 'Keyword';
   if (isTagKeyword(v)) return 'TagKeyword';
   if (isQuote(v)) return 'Quote';
+  if (isDoc(v)) return 'Doc';
   if (isQSet(v)) return 'Set';
   if (isTaggedInstance(v)) return 'TaggedInstance';
   if (isVec(v)) return 'Vec';
-  if (isDoc(v)) return 'Doc';
   if (isQMap(v)) return 'Map';
   if (isErrorValue(v)) return 'Error';
   if (isFunctionValue(v)) return 'Function';
@@ -410,7 +426,6 @@ export function typeKeyword(v) {
     if (headerTag !== undefined) return headerTag;
   }
   if (isVec(v)) return CORE_KIND.vec;
-  if (isDoc(v)) return CORE_KIND.doc;
   if (isQMap(v)) return CORE_KIND.map;
   if (isErrorValue(v)) return v.tag;
   if (isFunctionValue(v)) return FUNCTION_KIND;

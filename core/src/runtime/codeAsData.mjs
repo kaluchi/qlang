@@ -1,11 +1,12 @@
 // The primitives of `parse`, which reads source text into a quote and
-// prints a quote as its text, and `apply`, which runs a quote against the
-// subject [D43], [D72].
+// prints a quote as its text, of `apply`, which runs a quote against the
+// subject [D43], [D72], and of a doc's `join`, which writes its quotes as
+// text among its prose [D94].
 
 import { bindPrim } from '../primitives.mjs';
 import { isQuote } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
-import { quoteOfSource, printQuoteSource } from '../quote.mjs';
+import { quoteOfSource, printQuoteSource, docText } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 
 // The refusal the head of `apply` raises at the code it declares.
@@ -23,3 +24,5 @@ bindPrim('parse', subject => {
 });
 
 bindPrim('apply', async (subject, code) => await code(subject));
+
+bindPrim('docText', docText);

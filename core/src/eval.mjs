@@ -27,12 +27,12 @@ import {
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
-  BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
+  BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
-import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope, slotDocContentsOf } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
+import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
+import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -42,7 +42,6 @@ import {
   applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
 } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
-import { parseDocSegments } from './doc-segments.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
 } from './eval-trail.mjs';
@@ -311,7 +310,7 @@ function evalQuoteLit(node, state) {
 }
 
 function evalDocLit(node, state) {
-  return withPipeValue(state, makeDoc(node.content));
+  return withPipeValue(state, docOfNode(node));
 }
 
 // The elements run in the order they are written, and the set holds
@@ -419,7 +418,7 @@ async function evalBindStep(node, state) {
       stampTagHeader(tagBinding, BUILTIN_TAG);
       return withEnv(state, envSet(state.env, name, declarationRecord(node, tagBinding)));
     }
-    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocContentsOf(node).join('\n')))));
+    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc])))));
   }
 
   const answered = (await evalNode(node.body, state)).pipeValue;
@@ -453,7 +452,7 @@ function declaredKeywordOf(node) {
 function declarationRecord(node, value) {
   return makeBinding({
     name: declaredKeywordOf(node),
-    docs: slotDocContentsOf(node),
+    docs: slotDocsOf(node),
     value,
     source: quoteOfBody(node),
     module: keyword(moduleUriOf(node))
@@ -462,28 +461,17 @@ function declarationRecord(node, value) {
 
 // ─── Projection ─────────────────────────────────────────────────
 
-// A projection walks its path segment by segment: a map by key, a vector
-// by an index counted from the end when negative, a doc and a signature by
-// the fields they publish; a miss is a refusal that names its `:key`,
-// where `at` answers null.
+// A projection walks its path segment by segment: a map by key, a vector,
+// a quote and a doc among them, by an index counted from the end when
+// negative, and a signature by the names it declares; a miss is a refusal
+// that names its `:key`, where `at` answers null.
 const INTEGER_SEGMENT_RE = /^-?\d+$/;
 
-async function evalProjection(node, state) {
+function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
-  for (const projKey of node.keys) {
-    projectionCurrent = await projectSegment(projectionCurrent, projKey, state);
-  }
+  for (const projKey of node.keys) projectionCurrent = projectSegment(projectionCurrent, projKey);
   return withPipeValue(state, projectionCurrent);
 }
-
-// The fields a doc publishes to a projection; a quote is a vector of steps
-// and projects by index.
-const PROJECTABLE_BY_TYPE = {
-  doc: {
-    content:  d => d.content,
-    segments: (d, state) => parseDocSegments(d.content, state)
-  }
-};
 
 // A signature is read by the names it declares: `/throws` of a
 // built-in's, `/subject`, or a slot's kind [D72].
@@ -500,23 +488,9 @@ function projectSignature(signatureSpec, projKey) {
   return declared.get('body');
 }
 
-function projectSegment(subject, projKey, state) {
+function projectSegment(subject, projKey) {
   if (isValueClass(subject, 'taggedInstance') && subject.tag.name === SPEC_TAG.name) {
     return projectSignature(subject, projKey);
-  }
-  if (typeof subject === 'object' && subject !== null) {
-    const valueClass = subject[VALUE_CLASS_TAG];
-    const handlers = PROJECTABLE_BY_TYPE[valueClass];
-    if (handlers) {
-      if (!Object.hasOwn(handlers, projKey)) {
-        throw new ProjectionFieldNotOnValueClassError({
-          key: projKey,
-          valueClass,
-          availableFields: Object.keys(handlers)
-        });
-      }
-      return handlers[projKey](subject, state);
-    }
   }
   if (isQMap(subject)) {
     if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });

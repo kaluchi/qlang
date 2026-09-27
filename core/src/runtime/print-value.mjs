@@ -15,7 +15,7 @@
 // consumer's intent as a `kind → handler` table.
 
 import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
-import { printQuoteSource } from '../quote.mjs';
+import { printQuoteSource, docText } from '../quote.mjs';
 import {
   isVec,
   isQMap,
@@ -88,7 +88,7 @@ const PRINT_HANDLERS = {
   Map:        (m, indent) => printMapLike('{', m, indent),
   Set:        (s, indent) => printListLike('#[', ']', ' ', s,      indent),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + d.content + '~~|',
+  Doc:        d => '|~~' + docText(d) + '~~|',
   TaggedInstance: printTaggedInstance
 };
 

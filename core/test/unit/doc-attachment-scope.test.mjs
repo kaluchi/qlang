@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
 
 describe('doc-prefix inside MapEntry literal is a parse error', () => {
   it('rejects a doc-comment ahead of a MapEntry key', () => {
@@ -25,12 +24,12 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
 
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('documents a declaration', async () => {
-    const result = await evalQuery(':x |~~ note ~~| 42 | :x | docs * /content');
+    const result = await evalQuery(':x |~~ note ~~| 42 | :x | docs * join');
     expect(result).toEqual([' note ']);
   });
 
   it('documents a freeze', async () => {
-    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | docs * /content');
+    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | docs * join');
     expect(result).toEqual([' note ']);
   });
 
@@ -48,9 +47,9 @@ describe('a doc documents the declaration whose slot it stands in', () => {
 
   it('a doc ahead of any other step chains explicitly with `|`', async () => {
     // The doc value lands as a separate pipeline step that the next
-    // operand (here `filter`) sees as its subject.
-    const result = await evalQuery('|~~ inline note ~~| | filter ~(gt 0) !| type');
-    expect(result).toEqual(makeTagKeyword('VerbWithoutBodyError'));
+    // operand (here `count`, over its one segment) sees as its subject.
+    const result = await evalQuery('|~~ inline note ~~| | count');
+    expect(result).toBe(1);
   });
 });
 

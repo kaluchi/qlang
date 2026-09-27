@@ -248,7 +248,7 @@
 ::JoinSubjectNotVecError
   |~~ Subject of `join` must be Vec.
       ~(
-        42 | join ","
+        42 | vec/join ","
         !| [type /actualType]
         |  eq [::JoinSubjectNotVecError ::number]
        )

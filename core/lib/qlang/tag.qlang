@@ -262,7 +262,7 @@
       without a doc and without a source.
 
       ~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
-      ~(:x |~~ One. ~~| 1 | env | /x | docs | first | /content | eq " One. ")
+      ~(:x |~~ One. ~~| 1 | env | /x | docs | first | join | eq " One. ")
       ~(:x 1 | env | /x | /name | eq :x)
       ~({:k 2} | use | env | /k | /source | eq null)
   ~~|
@@ -416,19 +416,35 @@
   ~~|
 
 ::doc
-  |~~ The kind of a doc, the value of a doc literal, prose that
-      carries quotes of qlang.
+  |~~ The kind of a doc, the value of a doc literal: the vector of
+      its segments, each run of prose a string and each span that
+      reads as code a quote, which are its examples. Its text is its
+      `join`, and `tag ::doc` builds one from its segments.
 
       ~(::number/add | docs | first | type | eq ::doc)
+      ~(|~~ a ~(add 1) b ~~| | count | eq 3)
+      ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
   ~~|
   ::builtin{:impl :qlang/type/doc}
 
-::DocPayloadNotDocError
-  |~~ `::doc…` payload must be a doc.
+::DocPayloadNotVecError
+  |~~ `::doc` payload must be a Vec of segments.
+
       ~(
         ::doc"x"
         !| [type /actualType]
-        |  eq [::DocPayloadNotDocError ::string]
+        |  eq [::DocPayloadNotVecError ::string]
+       )
+  ~~|
+
+::DocElementNotSegmentError
+  |~~ Every element of a doc is a segment, a string of prose or a
+      quote, and another value is refused at the index it stands at.
+
+      ~(
+        ["a" 1] | tag ::doc
+        !| [type /index]
+        |  eq [::DocElementNotSegmentError 1]
        )
   ~~|
 

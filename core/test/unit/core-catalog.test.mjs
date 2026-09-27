@@ -45,7 +45,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isKeyword, isQMap, isVec, makeTagKeyword, builtinImplOf, bindingValueOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
+import { keyword, isKeyword, isQMap, isVec, isDoc, makeTagKeyword, builtinImplOf, bindingValueOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
 import { isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
@@ -197,23 +197,25 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
       const docs = await evalQuery(`:"${entryKey}" | docs !| /addresses | first | docs`);
       expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
       for (const doc of docs) {
-        expect(typeof doc.content).toBe('string');
+        expect(isDoc(doc)).toBe(true);
       }
     }
   });
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
+    const { docText } = await import('../../src/quote.mjs');
     const docs = await evalQuery('::any/count | docs');
-    const joined = docs.map(d => d.content).join(' ');
+    const joined = docs.map(docText).join(' ');
     expect(joined).toContain('number of elements');
     expect(joined).toContain('vector');
   });
 
   it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
+    const { docText } = await import('../../src/quote.mjs');
     const docs = await evalQuery('::any/filter | docs');
-    const joined = docs.map(d => d.content).join(' ');
+    const joined = docs.map(docText).join(' ');
     expect(joined).toContain('predicate');
     expect(joined).toContain('boolean');
   });
@@ -280,7 +282,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(190);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(191);
   });
 
   it('the value namespace holds every declared operand', async () => {

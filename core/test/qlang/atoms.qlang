@@ -7,9 +7,9 @@
    The shape is a quote of projections into the set and of the steps
    that build the value from what they read: a vector is the vector of
    the shapes of its elements; a map is built from the pairs of its keys
-   and values by `indexBy`; a tagged value, the set and the quote among
-   them, from its tag and its payload by `tag`; an error from its
-   descriptor by `error`; and a doc from its text by `parse`.
+   and values by `indexBy`; a tagged value, the set, the quote and the
+   doc among them, from its tag and its payload by `tag` [D94]; and an
+   error from its descriptor by `error`.
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
    `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])`. The verbs
    are the language's own, and the test of the ring runs them over every
@@ -37,8 +37,8 @@
 :partsOf
   |~~ The parts a value that is no atom is built from, and the steps
       that build it from them: a vector from its elements by none, a map
-      from the pairs of its keys and values, a doc from its text, and a
-      tagged value from its tag and its payload, an error from its
+      from the pairs of its keys and values, and a tagged value, a doc
+      among them, from its tag and its payload, an error from its
       descriptor among them. ~~|
   ::verb~(
     :failed ::boolean
@@ -46,7 +46,6 @@
     | cond
         ~(kind | eq ::vec) ~({:parts / :glue ~()})
         ~(kind | eq ::map) ~(:entries / | {:parts (keys | sort * (:key / | [key (entries | at key)])) :glue ~(indexBy ~(first) * last)})
-        ~(kind | eq ::doc) ~({:parts [(json | parseJson)] :glue ~(first | parse | first)})
         ~({:parts [kind (payload)] :glue (if failed ~(~(tag | error)) ~(~(tag)))}))
 
 :intoAtoms

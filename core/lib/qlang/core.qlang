@@ -11,6 +11,7 @@ use [:qlang/runtime-invariants
      :qlang/map
      :qlang/boolean
      :qlang/quote
+     :qlang/doc
      :qlang/tagged
      :qlang/any
      :qlang/operand/reflective]

@@ -77,11 +77,11 @@
 |~ ── 1. Projection segment-miss family ──────────────────── ~|
 
 ::ProjectionFieldNotOnValueClassError
-  |~~ Projection segment is not a publicly-projectable field
-      on the subject, a doc.
+  |~~ Projection segment names no declaration of the signature it
+      reads.
 
       ~(
-        |~~ prose ~~| | /missing
+        ::vec/join | spec | /missing
         !| [type /key]
         |  eq [::ProjectionFieldNotOnValueClassError "missing"]
        )

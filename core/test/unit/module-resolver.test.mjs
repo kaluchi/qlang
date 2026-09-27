@@ -172,7 +172,7 @@ describe('installModules', () => {
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
     await sessionInstance.evalCell('use :error');
-    const docsCell = await sessionInstance.evalCell(':retry | docs | first | /content');
+    const docsCell = await sessionInstance.evalCell(':retry | docs | first | join');
     expect(docsCell.error).toBeNull();
     expect(typeof docsCell.result).toBe('string');
     expect(docsCell.result).toContain('Retry');

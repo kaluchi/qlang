@@ -29,7 +29,7 @@ import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declarePerSiteError } from './errors.mjs';
 
-const SESSION_SCHEMA_VERSION = 3;
+const SESSION_SCHEMA_VERSION = 4;
 
 // Per-site session deserialization errors.
 const SessionPayloadInvalidError = declarePerSiteError(
@@ -159,13 +159,13 @@ function bindingNameKeyword(name) {
 // values are not serialized — `deserializeSession` reconstructs
 // them by seeding a fresh langRuntime() on restore. A binding
 // serializes as `{ name, value, docs }`, its value encoded via
-// toTaggedJSON, a verb as its quote under its tag.
+// toTaggedJSON, a verb as its quote under its tag, and its docs alike.
 export async function serializeSession(session) {
   const userBindings = [];
   for (const [name, record] of scopeBindingsOf(session.env)) {
     const value = record.get('value');
     if (isFunctionValue(value)) continue; // user-installed functions are not portable
-    userBindings.push({ name, value: toTaggedJSON(value), docs: record.get('docs').map(doc => doc.content) });
+    userBindings.push({ name, value: toTaggedJSON(value), docs: record.get('docs').map(toTaggedJSON) });
   }
   return {
     schemaVersion: SESSION_SCHEMA_VERSION,
@@ -197,7 +197,7 @@ export async function deserializeSession(json) {
   for (const binding of json.bindings) {
     const value = fromTaggedJSON(binding.value);
     session.bind(binding.name, makeBinding({
-      name: bindingNameKeyword(binding.name), docs: binding.docs,
+      name: bindingNameKeyword(binding.name), docs: binding.docs.map(doc => fromTaggedJSON(doc)),
       value: isVerb(value) ? makeVerb(value.payload, restoredScope) : value
     }));
   }

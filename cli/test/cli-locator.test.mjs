@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createCliLocator, CLI_NAMESPACES, installCliCatalog } from '../src/cli-locator.mjs';
+import { createCliLocator, installCliCatalog } from '../src/cli-locator.mjs';
 import { createSession } from '@kaluchi/qlang-core/session';
 
 const noopCtx = {
@@ -9,37 +9,37 @@ const noopCtx = {
 };
 
 describe('createCliLocator', () => {
-  it('returns source + impls for each :cli/* namespace', async () => {
-    const locator = createCliLocator(noopCtx);
-    for (const ns of ['cli/io', 'cli/format', 'cli/parse']) {
-      const result = await locator(ns);
-      expect(result).toBeDefined();
-      expect(typeof result.source).toBe('string');
-      expect(result.source.length).toBeGreaterThan(0);
-      expect(result.impls).toBeDefined();
-      expect(Object.keys(result.impls).length).toBeGreaterThan(0);
-    }
+  it('answers the module of the noun of the command line with its primitives', async () => {
+    const result = await createCliLocator(noopCtx)('qlang/cli');
+    expect(result.source).toContain('::qlang/cli');
+    expect(Object.keys(result.impls)).toEqual(expect.arrayContaining(['@in', '@out', '@err', '@tap', 'pretty', 'tjson', 'table', 'parseTjson']));
   });
 
-  it('returns null for any namespace outside the :cli/* family', async () => {
+  it('answers no other namespace', async () => {
     const locator = createCliLocator(noopCtx);
-    expect(await locator('not/a/cli/namespace')).toBeNull();
-    expect(await locator('qlang/operand/arith')).toBeNull();
+    expect(await locator('cli/io')).toBeNull();
+    expect(await locator('qlang/number')).toBeNull();
     expect(await locator('')).toBeNull();
   });
 });
 
-describe('installCliCatalog', () => {
-  it('binds every cli/* operand into the session env', async () => {
+describe('installCliCatalog [D92]', () => {
+  const evalInCli = async (query) => {
     const session = await createSession({ locator: createCliLocator(noopCtx) });
     await installCliCatalog(session);
-    const { result } = await session.evalCell('env | has :@out');
-    expect(result).toBe(true);
-  });
-});
+    return (await session.evalCell(query)).result;
+  };
 
-describe('CLI_NAMESPACES', () => {
-  it('lists every advertised cli host namespace', () => {
-    expect(CLI_NAMESPACES).toEqual([':cli/io', ':cli/format', ':cli/parse']);
+  it('lets a query call the verbs of the command line by their names', async () => {
+    expect(await evalInCli('[1 2] | pretty')).toBe('[1 2]');
+  });
+
+  it('keeps them out of the names the session declares', async () => {
+    expect(await evalInCli(':x 1 | env | keys')).toEqual(await evalInCli('#[:x]'));
+  });
+
+  it('lists them under the noun of the command line', async () => {
+    expect(await evalInCli('::qlang | manifest | has ::cli')).toBe(true);
+    expect(await evalInCli('::cli | manifest | has ::cli/pretty')).toBe(true);
   });
 });

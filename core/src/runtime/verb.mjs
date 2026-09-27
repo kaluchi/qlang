@@ -327,8 +327,10 @@ function callsPrimitive(signature, verb) {
   return signature.primitiveKey !== null && (residenceOfVerb(verb) !== null || hostImplOfVerb(verb) !== null);
 }
 
+// A host's primitive, handed with the module that declared the verb, a
+// verb of its noun among them [D92], else the core's.
 function primitiveOfVerb(signature, verb) {
-  return residenceOfVerb(verb) === null ? hostImplOfVerb(verb) : PRIMITIVE_REGISTRY.resolve(signature.primitiveKey);
+  return hostImplOfVerb(verb) ?? PRIMITIVE_REGISTRY.resolve(signature.primitiveKey);
 }
 
 // The scope of the body: the verb's own with each slot bound to the

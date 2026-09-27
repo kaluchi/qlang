@@ -1,11 +1,11 @@
 // Throw-site ↔ catalog drift guard for the CLI host operands.
 //
 // The core suite pins the same contract for `core/src` against the
-// language catalog; this file pins the host half — the `:cli/io`,
-// `:cli/format` and `:cli/parse` namespaces the locator installs.
+// language catalog; this file pins the host half — the module of the
+// noun `::qlang/cli` the locator installs [D92].
 // A host operand's per-site error class records its structural facts
 // where the factory call builds it, and names itself again as a
-// `::Tag` binding in `cli/lib/qlang/*.qlang` that carries the prose
+// `::Tag` binding in `cli/lib/qlang/cli.qlang` that carries the prose
 // and the `~(…)` examples. The namespace-resolution pass stamps the
 // recorded facts onto that binding, so each fact has one spelling.
 //

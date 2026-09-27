@@ -1866,15 +1866,35 @@ bang writes the raise in a literal, `!{…}` [D97]:
 
 `!|` opens a raised error to the error itself, where every step works
 as on any value; the verbs of `::error` reach every error, `trail` its
-path and `explain` the page of its site:
+path and `explain` its explanation, a value of the kind `::explanation`
+that holds the page of its site above the error itself [D98]:
 
 ```qlang
 > "hello" | add 1 !| trail | count
 1
 
-> "hello" | add 1 !| explain | content | contains "must be a number"
-true
+> "hello" | add 1 !| explain
+::explanation{
+  :doc |~~ The subject of `add` must be a number.
+
+      ~("hello" | add 1 !| [type /actualType] | eq [::AddLeftNotNumberError ::string])
+  ~~|
+  :error ::AddLeftNotNumberError::error{
+    :actualType ::string
+    :trail [
+      {
+        :step ~(add 1)
+        :subject "hello"
+        :skipped ~()
+      }
+    ]
+  }
+}
 ```
+
+The explanation answers by verbs of its own: `doc` the page, `error`
+the error, a value on the success track that `raise` raises again, and
+`quotes` the quotes of the page, which are its examples.
 
 Whether a value is an error reads as `false !| true`: the head
 `false` rides `|` like every other step and deflects on an error,

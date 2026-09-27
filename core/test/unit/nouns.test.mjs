@@ -97,7 +97,7 @@ describe('a tag name that no tag binds addresses a verb', () => {
   });
 
   it('an address reads the provider\'s verb whatever the scope binds under its name', async () => {
-    expect(await evalQuery(':count 5 | ::vec/count | docs | first | join | contains "number of elements"'))
+    expect(await evalQuery(':count 5 | ::vec/count | docs | first | content | contains "number of elements"'))
       .toBe(true);
   });
 

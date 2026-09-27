@@ -597,14 +597,15 @@ b
 c
 ```
 
-A quote has all three, being the vector of its steps [D53], and so has a
-doc, being the vector of its prose and its quotes [D19], [D94]:
+A quote has all three, being the vector of its steps [D53], and a doc
+answers its parts by its `segments`, the vector of its prose and its
+quotes [D19], [D95]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
 ~(add 1)
 
-> |~~ a ~(add 1) b ~~| | count
+> |~~ a ~(add 1) b ~~| | segments | count
 3
 ```
 
@@ -983,7 +984,7 @@ the facts:
 > "hello" | add 1 !| type | spec
 {:category :typeError :operand :add :position 1 :expectedType :number}
 
-> "hello" | add 1 !| type | docs | first | join
+> "hello" | add 1 !| type | docs | first | content
  The subject of `add` must be a number. …
 ```
 
@@ -1740,9 +1741,10 @@ gone; host categories of error are declared by hosts.
 
 ### Milestone 4 · One spelling
 
-Every fact has one spelling. The doc read as its segments has landed, a
-vector of prose and quotes the parser reads once, whose text is its
-`join` [D19], [D94], so strings, quotes and docs read in pieces. One
+Every fact has one spelling. The doc read as its segments has landed,
+prose and quotes the parser reads once, which the doc answers by its
+own verbs, its text by `content` and its parts by `segments` [D19],
+[D94], [D95], so strings, quotes and docs read in pieces. One
 loader remains [D5], [D36], which runs
 a module once, a pipeline whose value is what it exposes, so helpers
 stay in their module [D63]; mounted namespaces arrive with it [D24],
@@ -2006,6 +2008,34 @@ scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the third
 milestone moves the constructors onto the kinds [D6], [D33].
 
+The contract of an error on the fail track [D46], [D64]. «потом напомни
+рассмотреть с ошибками как быть .. потому что у нас перехват их есть !|
+а вот здесь уже просто тэгированный мэп .. хорошо что тегированное .. но
+все равно .. на такой дескриптор особо не повесить ни trail ни какой-то
+ещё глагол.. т.к. там просто сотни тэгированных мэпов и это плохо ..
+банально там !| explain - не сделать или ещё какой-то единый контракт
+кроме  того что от  any/docs идет...» (maintainer, 2026-09-27 08:40,
+session d427ce7e). After `!|` the subject is the descriptor under the
+tag of the site that refused, and its walk passes that tag, which is no
+noun, then the map, then any value, so a verb declared on `::error`,
+the kind of every error, is never reached:
+
+```qlang
+> "x" | add 1 !| type
+::AddLeftNotNumberError
+
+> "x" | add 1 !| trail !| type
+::UnresolvedIdentifierError
+```
+
+The alternatives are the walk of a refusal's tag passing `::error`, each
+refusal declared a kind of errors, which is the third milestone's move
+of the refusing sites onto kinds [D46] and asks nothing more; the
+descriptor materialized under `::error` with the tag of its site as a
+field, which gives every error one walk at the price of what `!| type`
+answers today; and contracts of any value, which put the words of
+errors on every value.
+
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed
@@ -2099,3 +2129,4 @@ maintainer wants to explore it before it is fixed.
 [D92]: decisions/D92.md
 [D93]: decisions/D93.md
 [D94]: decisions/D94.md
+[D95]: decisions/D95.md

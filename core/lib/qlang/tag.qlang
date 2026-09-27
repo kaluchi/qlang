@@ -262,7 +262,7 @@
       without a doc and without a source.
 
       ~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
-      ~(:x |~~ One. ~~| 1 | env | /x | docs | first | join | eq " One. ")
+      ~(:x |~~ One. ~~| 1 | env | /x | docs | first | content | eq " One. ")
       ~(:x 1 | env | /x | /name | eq :x)
       ~({:k 2} | use | env | /k | /source | eq null)
   ~~|
@@ -416,13 +416,13 @@
   ~~|
 
 ::doc
-  |~~ The kind of a doc, the value of a doc literal: the vector of
-      its segments, each run of prose a string and each span that
-      reads as code a quote, which are its examples. Its text is its
-      `join`, and `tag ::doc` builds one from its segments.
+  |~~ The kind of a doc, the value of a doc literal: prose that carries
+      quotes of qlang, which are its examples. It answers its text by
+      `content` and its parts by `segments`, and `tag ::doc` builds one
+      from its parts.
 
       ~(::number/add | docs | first | type | eq ::doc)
-      ~(|~~ a ~(add 1) b ~~| | count | eq 3)
+      ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
       ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
   ~~|
   ::builtin{:impl :qlang/type/doc}

@@ -990,7 +990,7 @@ positive:
 
 ```sh
 $ git diff --shortstat f5e8ec8 -- core/lib cli/lib
- 35 files changed, 3414 insertions(+), 3408 deletions(-)
+ 36 files changed, 3584 insertions(+), 3408 deletions(-)
 ```
 
 Keeping the class names and the catalog in agreement requires a registry

@@ -14,14 +14,15 @@ the maintainer, drove the repairs that landed as the pull requests
 from #42 to #52, and is frozen in commit `32db75c`. The third held the
 text against the tree those repairs left, drove the first milestone
 through the pull requests from #54 to #65, and is frozen in commit
-`4f529c5`. This fourth version holds the text against the tree the
-first milestone left and weighs again the decisions not yet carried
-out, since the milestone decided and taught more than they foresaw: a
+`4f529c5`. The fourth weighed again the decisions not yet carried out,
+drove the second milestone and part of the third through the pull
+requests from #66 to #104, and is frozen in commit `bba9606`. This fifth
+version holds the text against the tree the second milestone left: a
 scar the tree no longer shows has left the document, what remains of a
-scar is stated as it stands, and the route orders what remains by what
-each part needs. `git diff 4f529c5 -- docs/qlang-audit.md` shows what
-changed, and the message of the commit that wrote this version tells
-why.
+scar is stated as it stands, and every probe answers as the tree
+answered on the day this version was written. `git diff bba9606 --
+docs/qlang-audit.md` shows what changed, and the message of the commit
+that wrote this version tells why.
 
 The design of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`. This document treats
@@ -732,8 +733,22 @@ names, and a declaration writes the record of its binding into its
 scope, which the axes read; a refusal lives on the place it guards, and
 errors are of the kind `::error`. Beside them `within` came to edit
 under a tag, a name that does not resolve to name its nearest
-neighbours, and a text to read as its lines. What those repairs left is
-what the scars below describe.
+neighbours, and a text to read as its lines.
+
+The fourth version drove the second milestone. An operand became a
+verb, a quote under `::verb` whose leading declarations are its
+signature, and the runtime came to execute the head of every verb of
+the core and of every host before its body or its primitive runs, a
+host handing the primitives of its verbs beside their source. A
+declaration came to name the value its body answers once, `as` left,
+and a name came to be declared once in a scope; a comment became
+whitespace and a doc the literal in the slot of the declaration it
+documents; every value came to come apart into its atoms and back. The
+third milestone began: the trail of an error became the path it took,
+an error the envelope on top of its value, an argument came to hand an
+error on while a container keeps it, the forks of a sequence to run in
+its order, and a tag in the subject position to dispatch to the noun
+it names. What those repairs left is what the scars below describe.
 
 ## The scars
 
@@ -741,46 +756,19 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 26 September 2026
+shell with the `qlang` command or in its REPL, and on 27 September 2026
 every probe of this chapter answered as its block records.
 
 ### Declarations the runtime does not read
 
-A verb executes its declaration: a slot binds its modifier, evaluated
-at the call against the subject and checked by the slot's kind, and a
-slot of code takes a quote [D67], [D68]:
-
-```qlang
-> :m ::verb~(:x ::number | mul 10 | add x) | 2 | m /
-22
-
-> :fact ::verb~(:n ::number | if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /
-120
-```
-
-So does a built-in declared on its noun, which every operand of the core
-is but the loader's `use`, and so does the verb of a host, whose
-primitive the host hands beside its source: its head checks the subject
-and the slots before its primitive runs and raises the refusal its site
-declares at that place, and `spec` answers the head [D72], [D73], [D74],
-[D75], [D76], [D77], [D78], [D79], [D80]:
-
-```qlang
-> "a" | add 1 !| type
-::AddLeftNotNumberError
-
-> ::number/add | spec | /throws
-[::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]
-```
-
-The loader's `use` alone executes none of its own. Its modifiers are
-evaluated at the call as a verb's are [D56], and its implementation
-checks them in code of its own, beside the one dispatch wrapper left,
-`stateOpVariadic` in `core/src/runtime/dispatch.mjs`, and the arity
-classes of Rule 10 [D79].
-
-Such an operand declares a slot vocabulary, and the runtime reads none
-of it, so the declarations are free to be wrong, and they are:
+Every operand of the core is a verb whose head the runtime executes,
+and so is every verb of a host, whose primitive the host hands beside
+its source [D67], [D72]–[D80]. The loader's `use` alone executes none of
+its own declaration. Its modifiers are evaluated at the call as a
+verb's are [D56], and its implementation checks them in code of its
+own, beside the one dispatch wrapper left, `stateOpVariadic` in
+`core/src/runtime/dispatch.mjs`, and the arity classes of Rule 10 [D79].
+Its declaration is free to be wrong, and it is:
 
 ```qlang
 > ::any/use | spec | /modifiers
@@ -790,85 +778,39 @@ of it, so the declarations are free to be wrong, and they are:
 ::UseNamespaceNotKeywordError
 ```
 
-`use` is declared to take any operand and refuses a number.
-The mission's third requirement, that the shape of an answer can be
-known before it is fetched, reads these declarations, and where they
-are not executed it reads something false. Executing the declaration is
-the only thing that keeps it true.
-
-The declarations speak keywords where the values speak kinds: `type`
-answers a tag for every value [D32], while the catalog declares the
-subject, the slots and the result of an operand with keywords, and the
-page of a refusal names the kind it expected with one:
+`use` is declared to take any operand and refuses a number, and its
+declaration speaks keywords where every other speaks kinds:
 
 ```qlang
-> 1 | type
-::number
-
 > ::any/use | spec | /subject
 :any
 ```
 
-The kinds move into the declarations with the kinds of the slots
-[D45], [D67].
+The mission's third requirement, that the shape of an answer can be
+known before it is fetched, reads the declarations, and where one is
+not executed it reads something false. Executing the declaration is the
+only thing that keeps it true.
 
 A host builds its refusals from the per-site error factories, imported
 through the `operand-errors` and `errors` subpaths of the core
-(`cli/src/io-operands.mjs`, and `cli/lib/jdt/graph.impl.mjs` in the
-sister project, which also carries its own copy of `fromPlain`, named
-`jsonToQlang`), so the factories stay an interface of the runtime a
-host builds on.
+(`cli/src/io-operands.mjs`), so the factories stay an interface of the
+runtime a host builds on. The sister project no longer imports them,
+and carries its own copy of `fromPlain`, named `jsonToQlang`
+(`cli/lib/jdt/coverage.impl.mjs`).
 
-The repair must make a parameter bind a value, make code an explicit
-quote at the call site, and make the kind of every slot a declaration
-the runtime reads, so that the catalog's slot vocabulary stops being
-decoration [D4], [D43], [D45]. An operand is then a declaration, whatever
-implements it: the tag or the type of its subject, its slots with their
-kinds, code among them, the tag or the type of its result, and its doc,
-written as the leading declarations of its quote under `::verb` [D67].
-The runtime executes the
-declaration: it checks the subject and every slot before the
-implementation runs, a slot of kind code taking a quote or a verb and
-nothing else, and it checks the result, each by the walk of the value's
-tags and the constructor of the kind [D68]. A built-in, a host's operand and a
-declared pipeline share one convention, and the wrappers go with
-the arity classes. A host operand becomes a plain function over values
-the runtime has already checked, handed to the core as `{ source, impls
-}` where the source is the catalog module that declares it; nothing else
-of the runtime is exported for building operands.
+The declaration is also where help comes from, the way TOPS-20 derived
+its `?` and its guide words from the syntax a program declared. The
+language server labels the modifiers of a call from the slots its
+verb's head declares (`lsp/src/features.mjs`, `signatureHelpAtOffset`),
+and a refusal names the slot it guards; the completion of the editor
+still offers every name the runtime holds, where the declarations know
+the verbs that accept the value before the cursor.
 
-A verb that several kinds answer resides in the module of each of them,
-under the contract on its provider's `any` whose page and laws they
-share [D62], [D67], as the verbs of the core that several kinds answer
-do [D73], [D74], [D75], [D78], [D79].
-
-The vocabulary carries the calling shape as well as the kind. A
-predicate, a key and a pipeline slot run their code against one subject.
-A reducer slot holds two values for the code it runs: it runs it against
-the accumulator and supplies the element as a trailing modifier to the
-code's last step, the way `xargs` completes the command it was given,
-or as the first slot of the verb the quote names [D68]. The completed
-step is always applied with the subject as its first operand, so code
-that has already spent its modifiers is refused by arity and never
-turns into a full application; the canonical fold is `reduce 0 ~(add)`
-[D43], whose slot finds `add` by the name its quote holds [D56]. A
-verb's slots are values, and its body applies one that holds code,
-`:twice ::verb~(:f ::quote | apply f | apply f)`, so the tilde says one
-thing wherever it stands: this is code, and only `apply` runs it; a key
-function handed down through several layers of verbs,
-`:@topBy ::verb~(:keyFn ::quote | :n ::number | sort keyFn | reverse |
-take n)`, receives its key as a quote that carries its caller's
-environment and hands it on as a value.
-
-The declaration is also where help comes from. Once the runtime reads
-the slots, completion in the editor, the list of verbs that accept a
-value, the name and kind of the next modifier, and the wording of an
-arity or kind refusal are all derived from the same record, the way
-TOPS-20 derived its `?` and its guide words from the syntax a program
-declared. The language server finds the active parameter among the
-modifiers the parser gives the command (`lsp/src/features.mjs`,
-`signatureHelpAtOffset`) and labels them from the descriptor's
-`:modifiers`; it reads the slot record once the runtime executes one.
+The repair must make `use` a verb whose declaration the runtime
+executes, which the one loader brings [D5], [D36]; make the refusals of
+a host kinds its catalog declares, so that nothing of the runtime is
+exported for building operands [D46]; and derive the completion of the
+editor from the kind of the subject and the heads of its verbs.
 
 ### Modules that dissolve into their clients
 
@@ -905,6 +847,18 @@ $ node cli/bin/jdt q 'env | has :@type'
 true
 ```
 
+The command line does the same with its own verbs, so `env`, which
+answers the session's own names [D61], answers the host's there, and
+the law the catalog writes for `env` fails on the command line while
+the suite, which runs the catalog without a host, holds it:
+
+```sh
+$ qlang 'env | keys'
+#[:@err :@in :@out :@tap :parseTjson :pretty :table :tjson]
+$ qlang '::any/env | runExamples * /ok'
+[false true true true]
+```
+
 What the merge leaves behind is the runtime's housekeeping in the
 environment: the export map of every namespace under a prefix of its
 own, and the host's locator, a raw JavaScript function, under another,
@@ -913,7 +867,7 @@ runtime's own namespace of tags reaches what `env` answers, since a
 kind the scope declares is keyed by it:
 
 ```qlang
-> ::Width |~~ How many characters a line holds. ~~| | env | keys
+> ::Width |~~ How many characters a line holds. ~~| | env | keys | filter ~(eq :"::Width")
 #[:"::Width"]
 ```
 
@@ -1053,7 +1007,7 @@ positive:
 
 ```sh
 $ git diff --shortstat f5e8ec8 -- core/lib cli/lib
- 25 files changed, 2087 insertions(+), 1786 deletions(-)
+ 35 files changed, 3484 insertions(+), 3309 deletions(-)
 ```
 
 Keeping the class names and the catalog in agreement requires a registry
@@ -1175,7 +1129,7 @@ declaration of a kind answers its verbs beside every refusal they raise.
 
 ```sh
 $ qlang '::vec | spec' | wc -c
-2263
+1805
 ```
 
 The descriptor's category, subject, return, and slot fields are an
@@ -1244,9 +1198,9 @@ and a hand-written TextMate copy for the editor.
 
 ```sh
 $ cat docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md | awk 'NF{k++} END{print k}'
-4691
+4751
 $ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{next} /^[ \t]*$/{next} {k++} END{print k}'
-5234
+4841
 ```
 
 The reference is a tutorial rather than a specification, as the
@@ -1369,7 +1323,7 @@ September master:
 
 ```sh
 $ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 6525   comment 3388   blank 1005
+code 6534   comment 3388   blank 1006
 $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
 code 7529   comment 4644   blank 1025
 ```
@@ -1427,7 +1381,7 @@ part:
 
   ```sh
   $ node --input-type=module -e "console.log(Object.keys(await import('./core/src/index.mjs')).length)"
-  85
+  84
   $ node -p "Object.keys(require('./core/package.json').exports).length"
   15
   ```
@@ -1445,7 +1399,7 @@ part:
 - Consumers that carry spellings of the language. The language server
   tells a verb from a value by the tag of the literal a binding's body
   is, and scans doc text with its own loop, and the TextMate grammar hard-codes
-  the slot vocabulary of the catalog.
+  the names of the catalog's operands.
 
 The repair is a property of every branch [D30]. A branch leaves every
 file it touches with comments that state what holds in one sentence,
@@ -1762,8 +1716,7 @@ host; the one binding form closes the milestone [D5], [D44], with
 comments as whitespace and the doc literal in the binding's slot [D81],
 [D83]. The
 catalog is written one module per noun, a verb that several kinds
-answer residing in each under the contract on its provider's `any`,
-where one descriptor stands today for every kind its subject lists, and
+answer residing in each under the contract on its provider's `any`, and
 `:returns` carries whether the verb keeps its subject's kind [D41],
 [D67].
 
@@ -1800,8 +1753,9 @@ JavaScript classes of errors and the prose that restates their facts
 disappear.
 
 Its answers are the targets of [D13] and [D64] in the conformance
-suite: the error a value slot hands on, whose kind D64 names and whose
-passage D13 settles. Beside it: no factory-declared error class remains; every
+suite, the error a value slot hands on, whose kind D64 names and whose
+passage D13 settles, and the targets that [D6], [D33] and [D46] leave
+when they are decided. Beside them: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; host categories of error are declared by hosts.

@@ -45,33 +45,29 @@ describe('BootstrapRootMissingError', () => {
 });
 
 describe('BootstrapCatalogNotLoadedError', () => {
-  // The catalog root is one `use([…])` step. When a family source
-  // the locator resolves fails to parse, `use` answers on the
-  // fail-track and the env comes back without that family — the
-  // pipeValue is the only place the failure shows, so the bootstrap
-  // reads it rather than handing every session an env whose first
-  // `count` surfaces `::UnresolvedIdentifierError`.
-  const brokenFamilyLocator = async (namespaceName) => {
+  // A module of the catalog that fails to parse shows only in the
+  // answer of the root's `use […]`, which the bootstrap reads.
+  const brokenModuleLocator = async (namespaceName) => {
     if (namespaceName === 'qlang/core') return { source: 'use [:qlang/broken]' };
     if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
     return null;
   };
 
-  it('fires when a family source the locator resolves fails to parse', async () => {
+  it('fires when a module the locator resolves fails to parse', async () => {
     let thrown = null;
-    try { await buildLangRuntime(brokenFamilyLocator); } catch (caught) { thrown = caught; }
+    try { await buildLangRuntime(brokenModuleLocator); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
     expect(thrown.name).toBe('BootstrapCatalogNotLoadedError');
 
     expect(thrown.context.tagName).toBe('::ParseError');
-    expect(thrown.message).toContain('operand families');
+    expect(thrown.message).toContain('the modules of the catalog');
   });
 
   it('names the tag the root answered with, whichever it is', async () => {
-    const missingFamilyLocator = async (namespaceName) =>
+    const missingModuleLocator = async (namespaceName) =>
       namespaceName === 'qlang/core' ? { source: 'use [:qlang/absent]' } : null;
     let thrown = null;
-    try { await buildLangRuntime(missingFamilyLocator); } catch (caught) { thrown = caught; }
+    try { await buildLangRuntime(missingModuleLocator); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
     expect(thrown.context.tagName).toBe('::UseNamespaceNotFoundError');
   });

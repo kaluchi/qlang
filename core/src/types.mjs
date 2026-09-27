@@ -6,22 +6,13 @@ import {
 import { TAG_BINDING_PREFIX, canonicalTagName } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
-// Function values (`makeFn` output) are runtime-internal: a catalog
-// descriptor carries its callable on the `BUILTIN_IMPL_SLOT`
-// JS-header slot. They have no grammatical literal — the only
-// candidate render form (`:qlang/prim/${name}`) parses back as a
-// keyword value when read back. Surfacing a function value in
-// pipeValue therefore violates printValue's round-trip theorem. The
-// invariant fires at render time, so a host binding mounted through
-// `session.bind` carrying a raw callable surfaces by name and routes
-// through the locator's `impls` map instead.
+// A function value has no literal, so none reaches the printer.
 export const FunctionValueLeakedToPrintError = declareInvariantError(
   'FunctionValueLeakedToPrintError',
   () => 'printValue/toPlain: function value reached render — function values must not ' +
-    'surface in pipeValue. Install a host operand through a locator returning ' +
-    "{ source, impls } so the namespace pass stamps the callable onto the descriptor's " +
-    'BUILTIN_IMPL_SLOT (see cli/src/cli-locator.mjs); a raw callable handed to ' +
-    'session.bind carries no qlang literal.',
+    'surface in pipeValue. Declare a host operand as a verb of the module the locator ' +
+    'returns as { source, impls }, its primitive among the impls; a raw callable handed ' +
+    'to session.bind carries no qlang literal.',
   { operand: '::qlang' }
 );
 
@@ -112,15 +103,8 @@ export function keyword(name) {
   return Object.freeze(brandValueClass({ name, literal: canonicalKeywordLiteral(name) }, 'keyword'));
 }
 
-// TagKeyword — `::tag` reference value. Tagged-instance Maps
-// stamp `:kind` with a TagKeyword so the discriminator
-// reads as "this is an instance of ::tag" — a tighter
-// classification than the plain-keyword `:tag` symbol carries.
-// `.name` mirrors the keyword shape so a single
-// `kind.name === '<discriminator>'` check reads both Keyword
-// (`:builtin`, `:tag` declarative kinds) and TagKeyword
-// (`::binding`, user-defined ::tag instances) uniformly.
-
+// A tag name, `::Kind`, a value of its own whose `.name` a keyword's
+// shares.
 export function makeTagKeyword(tag) {
   const name = canonicalTagName(tag);
   return Object.freeze(brandValueClass({ name, literal: TAG_BINDING_PREFIX + name }, 'tagKeyword'));
@@ -296,9 +280,7 @@ function stampSlot(target, slot, value) {
   });
 }
 
-// Resolved function value of a catalog `::builtin` descriptor,
-// stamped by `stampStructuralFacts` at bootstrap (and by the
-// `use`-locator namespace pass for host-supplied impls).
+// The function value bootstrap stamps on a descriptor, `use`'s [D79].
 export function builtinImplOf(descriptor) {
   return descriptor[BUILTIN_IMPL_SLOT];
 }

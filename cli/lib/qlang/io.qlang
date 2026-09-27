@@ -1,10 +1,9 @@
-|~ qlang operand catalog — CLI io family. Four effectful operands
-   the CLI binds into every freshly-seeded session: @in reads
-   stdin, @out writes stdout, @err writes stderr, @tap mirrors
-   pipeValue to stderr with a labelled prefix. JS impls live in
-   `cli/src/io-operands.mjs`, plain functions over the values the head
-   of each verb checks [D80]. Each verb sits directly under the per-site
-   error tags it raises. ~|
+|~ The input and output of the command line: `@in` reads stdin, `@out`
+   writes stdout, `@err` writes stderr, and `@tap` mirrors its subject
+   to stderr under a label; their primitives, in
+   `cli/src/io-operands.mjs`, are plain functions over the values the
+   head of each verb checks [D80], and the refusals of a verb sit under
+   it. ~|
 
 :@in
   |~~ Reads stdin to completion and returns it as a String,

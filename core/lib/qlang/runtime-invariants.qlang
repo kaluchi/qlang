@@ -1,51 +1,18 @@
-|~ Cross-family invariant tag-bindings. Each error tag below is
-   stamped on the error value's JS-header `tag` slot by a runtime
-   site that no single operand family owns — the parser, the AST
-   codec, the evaluator
-   dispatcher, the primitive registry, the session lifecycle, the
-   projection segment-walker, the combinator track-dispatcher,
-   the render-path round-trip guards. Per-operand errors live
-   inline in the operand's own family file
-   (lib/qlang/operand/<family>.qlang); the errors of the kinds'
-   constructors (::verb / ::quote / ::builtin) live next to their
-   constructors in lib/qlang/tag.qlang.
-
-   Section layout, top to bottom:
-     0. ::builtin — the primordial tag
-     1. Projection segment-miss family
-     2. Distribute / merge combinator subject mismatches
-     3. Tag-binding constructor invariants
-     4. Effect-laundering at parse and call seams
-     5. Identifier-lookup and parse-time failures
-     6. AST codec invariants
-     7. JSON codec invariants — plain and tagged
-     8. Dispatch wrapper invariants
-     9. Evaluator dispatch invariants
-    10. Primitive registry invariants
-    11. Session lifecycle invariants
-    12. Render-path invariants
-    13. Error-value mint invariants
-    14. Evaluation depth budget
-    15. Catalog source loading ~|
+|~ `::builtin` and the refusals of the kernel that no verb of a noun
+   owns: the steps of the language, the parser, the codecs, the table
+   of primitives, the session and the printer. The refusals of a verb
+   sit under it in the module of its noun, and those of a kind's
+   constructor under the kind in the module of tags. ~|
 
 |~ ── 0. ::builtin — the primordial tag ─────────────────── ~|
 
 ::builtin
-  |~~ Tag-binding declaration shape. Every catalog entry — operand
-      declarations, the declarations of kinds, error
-      tag-binding declarations — uses ::builtin{…} as its body.
-
-        :name ::builtin{:impl :qlang/prim/<name> …catalog metadata}
-          binds a runtime callback under the impl handle.
-
-        ::Name ::builtin{…tag-side metadata}
-          declares an identity (an error tag, a kind) carrying
-          docs / category / position / expectedType metadata that
-          downstream `::Name | source / docs / examples` exposes.
-
-        ::Name (docs only, no body)
-          equivalent to `::Name ::builtin{}` — declares an identity
-          whose only payload is the docs of its slot.
+  |~~ The descriptor, a map of fields under this tag. A built-in verb
+      ends its head with one, `::builtin{:impl :qlang/prim/add}`, which
+      names the primitive the head calls; a kind declares its
+      constructor with one, `::builtin{:impl :qlang/type/vec}`; a tag
+      declared with a doc alone holds an empty one; and the loader's
+      `use` is the one operand still declared as one.
   ~~|
   ::builtin{:impl :qlang/type/builtin}
 
@@ -68,14 +35,9 @@
   ~~|
 
 ::BuiltinImplNotPrimitiveKeyError
-  |~~ A descriptor a query assembled from data dispatches through
-      its `:impl` handle keyword — `::builtin{:impl
-      :qlang/prim/use}` binds and fires like a catalog entry.
-      Catalog descriptors carry the resolved callable on the
-      `BUILTIN_IMPL_SLOT` JS-header slot instead, so the handle
-      reading below fires only for the data-assembled shape, and
-      only when `:impl` holds something the primitive registry
-      cannot be keyed by.
+  |~~ A descriptor a query assembled applies the primitive its `:impl`
+      handle names, `::builtin{:impl :qlang/prim/use}` as the
+      catalog's `use` does, and an `:impl` of another kind is refused.
 
       ~(
         ::builtin{:impl :qlang/prim/use} | :u / | {:x 1} | u | x
@@ -394,10 +356,8 @@
   ~~|
 
 ::PrimitiveRegistrySealedError
-  |~~ Primitive registry — bind() invoked against a sealed
-      registry. langRuntime seals at bootstrap completion;
-      later bind sites must split into a fresh
-      createPrimitiveRegistry() instance.
+  |~~ The table of primitives is sealed when the bootstrap completes,
+      and a primitive bound after it is refused.
   ~~|
 
 |~ ── 10. Session lifecycle invariants ──────────────────── ~|
@@ -415,14 +375,11 @@
 |~ ── 11. Render-path invariants ───────────────────────── ~|
 
 ::FunctionValueLeakedToPrintError
-  |~~ `printValue` / `toPlain` invariant — a raw function
-      value reached render. Install a host operand through a
-      locator returning `{ source, impls }` so the namespace pass
-      stamps the callable onto the catalog descriptor's
-      `BUILTIN_IMPL_SLOT` JS-header slot
-      (`cli/src/cli-locator.mjs` is the reference shape); a
-      callable handed straight to `session.bind` carries no qlang
-      literal, which is what this tag reports.
+  |~~ A function value reached the printer, where no literal spells
+      it. A host declares its operand as a verb of the module its
+      locator returns, the primitive among the `impls` [D80]; a
+      function bound straight into a session is what this tag
+      reports.
   ~~|
 
 ::NumberNotFiniteLeakedToPrintError
@@ -506,12 +463,9 @@
   ~~|
 
 ::BootstrapCatalogNotLoadedError
-  |~~ The catalog root is one `use […]` step, so a family source
-      the locator resolves but the parser refuses leaves the env
-      without that family while the failure rides out as the root's
-      pipeValue. The bootstrap reads that pipeValue, so the failing
-      family source is the diagnostic and `:tagName` names what the
-      root answered with.
+  |~~ The root of the catalog answered an error, so a module of the
+      catalog the locator resolved did not load; `:tagName` names what
+      the root answered with.
   ~~|
 
 ::BootstrapRootMissingError

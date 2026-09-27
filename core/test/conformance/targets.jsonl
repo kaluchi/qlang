@@ -5,7 +5,7 @@
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter 5 | ::vec/filter | docs | count","expect":"1","decision":["D5","D36"]}
-{"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/operand/container","decision":"D5","target":true}
+{"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/vec","decision":"D5","target":true}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | docs | first * type | distinct","expect":"#[::string]","decision":"D19","target":true}
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}

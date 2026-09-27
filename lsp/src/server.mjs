@@ -43,15 +43,10 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Every operand-family file under `core/lib/qlang/operand/*.qlang`
-// plus `runtime-invariants.qlang` and `tag.qlang` participate in
-// goto-definition. Each declares operand descriptors (value-namespace)
-// and per-site error tag-bindings (tag-namespace) inline. The LSP
-// startup walk parses all of them, merging into one `name →
-// { uri, source, range }` lookup table so a single
-// `definitionAtOffset` lookup serves both value-namespace
-// identifiers (`count`) and tag-namespace identifiers
-// (`::AddLeftNotNumberError`).
+// Every module under `core/lib/qlang/` takes part in goto-definition:
+// its declarations, verbs and tags alike, merge into one `name →
+// { uri, source, range }` table, so `count` and
+// `::AddLeftNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 

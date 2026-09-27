@@ -886,36 +886,16 @@
   ~~|
 
 :spec
-  |~~ `:name | spec` — env-side declaration descriptor Map for the
-      named binding. Operand declarations surface as
-      `{:impl :qlang/prim/<name> :category … :subject …
-      :modifiers … :returns … :throws … :captured … :effectful …}`
-      with identity `::builtin` on the JS-header slot (reachable
-      through `:name | spec | type`). `:captured` and `:effectful`
-      are stamped from the resolved primitive at bootstrap, and
-      `:throws` is read back off the sites that record this binding
-      as their `:operand`; the rest is authored in the catalog
-      body. Error tags surface as
-      `{:category :typeError :operand … :position … :expectedType
-      …}`, every field of it stamped at bootstrap from the throw
-      site that records it — the catalog side of an error tag
-      carries the prose and the example segments `docs` and
-      `examples` answer with. The constructors of kinds surface as
-      `{:impl :qlang/type/<tag> :throws […]}`. All three carry the
-      same `::builtin` header identity.
-      A declared verb surfaces as its signature, a `::spec~(…)`;
-      any other binding as the value its record holds. Any other
-      value reads the descriptor of its kind. A built-in declared as a
-      verb on its noun surfaces as its signature too, its noun the
-      subject and its refusals `:throws`, and a projection of a
-      signature reads the body of the declaration it names [D72].
-
-      The discriminator path for per-tag static facts attached
-      to any tagged value — `result !| spec | /category`
-      reads `:typeError` off the error tag the error carries;
-      `::number/add | spec | /throws` lists the per-site error
-      classes `add` raises, and each of those names `:add` back on
-      its own `/operand`.
+  |~~ The declaration a name reads. A verb, a built-in among them,
+      answers its signature, a `::spec~(…)` whose subject is its noun
+      and whose `:throws` lists its refusals, and a projection of the
+      signature reads the body of the declaration it names [D72]. A
+      refusal answers the facts of its site, `:category`, `:operand`,
+      `:position` and `:expectedType`, and an error reads the facts
+      of its tag. A kind answers its constructor, `:impl`, its
+      refusals and its verbs; the loader's `use` its descriptor
+      [D79]; any other binding the value its record holds. Any other
+      value reads the declaration of its kind.
 
       ~(::number/add | spec | /subject | eq ::number)
       ~(::AddLeftNotNumberError | spec | /operand | eq :add)

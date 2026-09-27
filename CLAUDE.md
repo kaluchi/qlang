@@ -41,8 +41,8 @@ on, the probe the audit cites rerun with `qlang` in script mode.
 
 Tier 1, every session, whole, before any claim about the language is
 argued or the audit is touched: `core/src/grammar.peggy` for the syntax,
-`core/src/eval.mjs` for the semantics, `core/src/rule10.mjs` for
-application, `core/src/types.mjs` for the values, and
+`core/src/eval.mjs` for the semantics, `core/src/runtime/verb.mjs`
+for application, `core/src/types.mjs` for the values, and
 `core/lib/qlang/core.qlang` with one module of a noun such as
 `core/lib/qlang/number.qlang` for the shape of the catalog.
 Read source with the file-reading tool, whole; the persistence limit
@@ -50,11 +50,11 @@ below applies to shell output, so a large file is never `cat`-ed.
 
 Tier 2, by topic, only the files the topic names:
 
-- arguments and dispatch: `core/src/rule10.mjs`,
-  `core/src/runtime/dispatch.mjs`, `core/src/runtime/verb.mjs`, and
-  `core/lib/qlang/operand/container.qlang`
-  for the slot vocabulary the catalog declares and the runtime does
-  not read
+- arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
+  from a subject's tags to the verb a name calls,
+  `core/lib/qlang/any.qlang` for the contracts several kinds answer,
+  and `core/src/rule10.mjs` with `core/src/runtime/dispatch.mjs` for
+  `use`, the one operand left a descriptor
 - names, scope, modules, sessions: `core/src/state.mjs`,
   `core/src/fork.mjs`, `core/src/env-keys.mjs`,
   `core/src/runtime/use-op.mjs`, `core/src/runtime/env-op.mjs`,

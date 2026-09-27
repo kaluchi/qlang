@@ -473,13 +473,20 @@
   ::verb~()
 
 ::ReduceReducerNotBinaryError
-  |~~ `reduce` reducer must be a binary operand or a verb whose first
-      slot takes the element. An inline expression, a literal or an
-      unbound name carries no (accumulator, element) binding.
+  |~~ The quote of `reduce` names one verb, which the fold calls with the
+      accumulator as its subject and the element in its first slot,
+      `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
+      no verb is refused [D90]. A fold of several steps is a verb
+      declared first, whose slot names the element.
       ~(
-        [1 2 3] | reduce 0 ~(42)
+        [1 2 3] | reduce 0 ~(mul 2 | add)
         !| type
         |  eq ::ReduceReducerNotBinaryError
+       )
+      ~(
+        :step ::verb~(:el ::number | mul 2 | add el)
+        | [1 2 3] | reduce 0 ~(step)
+        | eq 11
        )
   ~~|
 

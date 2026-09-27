@@ -245,8 +245,9 @@
       of its own, named for what failed, `::AddLeftNotNumberError`,
       stacked over the error, and lives on the place it guards, which
       lists it in its `/throws`. `!|` opens a raised error to that
-      stack, so `!| type` reads the site, and the verbs of this kind,
-      `trail` and `explain`, reach every error.
+      stack, so `!| type` reads the site, the verbs of this kind,
+      `trail` among them, reach every error, and `explain` answers the
+      page of the site above the error [D100].
 
       ~(!{:detail "boom"} !| type | eq ::error)
       ~(::qlang/error | eq ::error)
@@ -256,14 +257,14 @@
   ~~|
 
 ::explanation
-  |~~ The kind of what `explain` answers [D98]: the page of an error's
-      site under `:doc`, then the error itself under `:error`, so it
-      prints as the page above the error it explains. It answers them
-      by `doc` and `error`, and its page the quotes, its examples,
+  |~~ The kind of what `explain` answers [D98]: the page `docs` reads
+      for a value under `:doc`, then the value itself under `:value`, so
+      it prints as the page above what it explains [D100]. It answers
+      them by `doc` and `value`, and its page the quotes, its examples,
       by `quotes` [D99].
 
       ~("x" | add 1 !| explain | type | eq ::explanation)
-      ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| explain | value | raise !| type | eq ::AddLeftNotNumberError)
   ~~|
 
 ::binding

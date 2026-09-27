@@ -1204,8 +1204,8 @@ nothing executes them:
 
 - The chapter on modules shows `use :qlang/error` loading the error
   library, retry and recover and assert, where the name loads the
-  module of the kind of errors, which declares `trail` and `explain`
-  [D97], so the call loads it and answers its subject:
+  module of the kind of errors, which declares `trail` [D97], so the
+  call loads it and answers its subject:
 
   ```qlang
   > 1 | use :qlang/error

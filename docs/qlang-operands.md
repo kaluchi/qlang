@@ -1256,12 +1256,15 @@ deflects on an error that `!| true` then answers.
 
 ### `explain`
 
-- **Arity** 0. **Subject** `error`; the verb resides on `::error`
-  [D97].
-- The explanation of the error [D98], `::explanation{:doc … :error …}`:
-  the page of its site [D7], the doc of the tag it shows, then the
-  error itself, so it prints as the page above the error.
-- **Examples**: `"x" | add 1 !| explain | doc | content | contains "must be a number"` → `true`.
+- **Arity** 0. **Subject** any value; the verb resides on `::any`
+  [D100].
+- The explanation of the value [D98], `::explanation{:doc … :value …}`:
+  the page `docs` reads for it, a name its own, a value the page of
+  its kind and an error the page of its site [D7], then the value
+  itself, so it prints as the page above what it explains.
+- **Examples**: `"x" | add 1 !| explain | doc | content | contains "must be a number"` → `true`;
+  `42 | explain | value` → `42`.
+- **Errors**: a name that names nothing → `ExplainBindingNotFoundError`.
 
 ### `doc`
 
@@ -1270,13 +1273,13 @@ deflects on an error that `!| true` then answers.
 - The page the explanation holds.
 - **Examples**: `"x" | add 1 !| explain | doc | type` → `::doc`.
 
-### `error`
+### `value`
 
 - **Arity** 0. **Subject** `explanation`; the verb resides on
-  `::explanation` [D98].
-- The error the explanation explains, a value on the success track
-  that `raise` raises again.
-- **Examples**: `"x" | add 1 !| explain | error | /actualType` → `::string`.
+  `::explanation` [D100].
+- The value the explanation explains; an error among them is a value
+  on the success track that `raise` raises again.
+- **Examples**: `"x" | add 1 !| explain | value | /actualType` → `::string`.
 
 ### `quotes`
 

@@ -22,7 +22,8 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, typeKeyword, stampTagHeader, makeSet, TAG_HEADER_SYMBOL
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
+  makeTagKeyword, TAG_HEADER_SYMBOL, NULL
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -55,6 +56,10 @@ export const ExamplesBindingNotFoundError = declareShapeError('ExamplesBindingNo
   ({ bindingName }) =>
     `examples: no binding found for '${bindingName}'`,
   { operand: 'examples' });
+export const ExplainBindingNotFoundError = declareShapeError('ExplainBindingNotFoundError',
+  ({ bindingName }) =>
+    `explain: no binding found for '${bindingName}'`,
+  { operand: 'explain' });
 export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundError',
   ({ bindingName }) =>
     `spec: no binding found for '${bindingName}'`,
@@ -155,6 +160,15 @@ bindStateReader('docs', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, DocsBindingNotFoundError).get('docs'));
 bindStateReader('examples', (subject, memberName, state) =>
   Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
+
+// The explanation of a value [D100]: the first page `docs` reads for it,
+// null for a declaration without one, above the value itself, so an
+// explanation prints as the page above what it explains [D98].
+const EXPLANATION_TAG = makeTagKeyword('explanation');
+bindStateReader('explain', (subject, state) => {
+  const [page = NULL] = recordReadBy(subject, NULL, state, ExplainBindingNotFoundError).get('docs');
+  return makeTaggedInstance(EXPLANATION_TAG, new Map([['doc', page], ['value', subject]]));
+});
 
 // `spec` — the value the record holds: the structured Map that a
 // catalog `::builtin{…}` body declared, after `langRuntime`'s

@@ -17,6 +17,7 @@ import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
   isRuntimeKey, moduleNamespaceKey, MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
+import { isContract } from './verb.mjs';
 
 const ROOT_NOUN_NAME = 'qlang';
 
@@ -156,7 +157,8 @@ export function scopeBindingsOf(env) {
 }
 
 // The addresses where the verbs of a name live, one for each kind a verb
-// of that name serves, which a refusal of the name hands on [D62].
+// of that name serves, any value among them when the verb there has a
+// body, which a refusal of the name hands on [D62].
 export function addressesOf(env, verbName) {
   const addresses = [];
   for (const [, exportsMap] of providerExports(env)) {
@@ -165,6 +167,8 @@ export function addressesOf(env, verbName) {
     for (const kindName of DESCRIPTOR_KINDS) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
   }
   for (const [kindName] of residencesOf(env, verbName)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
+  const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
+  if (onAnyValue !== null && !isContract(bindingValueOf(onAnyValue))) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
   return makeSet(addresses);
 }
 

@@ -259,12 +259,13 @@
 ::explanation
   |~~ The kind of what `explain` answers [D98]: the page `docs` reads
       for a value under `:doc`, then the value itself under `:value`, so
-      it prints as the page above what it explains [D100]. It answers
+      it prints as the page above what it explains [D100], an error
+      raised, with its bang [D101]. It answers
       them by `doc` and `value`, and its page the quotes, its examples,
       by `quotes` [D99].
 
       ~("x" | add 1 !| explain | type | eq ::explanation)
-      ~("x" | add 1 !| explain | value | raise !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
   ~~|
 
 ::binding

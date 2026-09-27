@@ -1277,9 +1277,9 @@ deflects on an error that `!| true` then answers.
 
 - **Arity** 0. **Subject** `explanation`; the verb resides on
   `::explanation` [D100].
-- The value the explanation explains; an error among them is a value
-  on the success track that `raise` raises again.
-- **Examples**: `"x" | add 1 !| explain | value | /actualType` → `::string`.
+- The value the explanation explains; an error among them raised, as
+  it arrived before `!|` opened it [D101].
+- **Examples**: `"x" | add 1 !| explain | value !| /actualType` → `::string`.
 
 ### `quotes`
 

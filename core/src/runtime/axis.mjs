@@ -23,7 +23,7 @@ import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
   isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
-  makeTagKeyword, TAG_HEADER_SYMBOL, NULL
+  makeTagKeyword, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -31,6 +31,7 @@ import {
   addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, residenceOnSubject, verbsOfKind
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
+import { raisedFrom } from './raise.mjs';
 
 // `bindingName` (a value-namespace identifier or a `::`-prefixed
 // tag-binding reference) is an identifier-shaped string at the JS
@@ -161,13 +162,26 @@ bindStateReader('docs', (subject, memberName, state) =>
 bindStateReader('examples', (subject, memberName, state) =>
   Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
+// The value as an explanation holds it: an error, a map under `::error`
+// beneath the tags stacked over it, raised under the tag it shows, as it
+// arrived before `!|` opened it [D101]; any other value as it is.
+function heldByExplanation(subject) {
+  const passedTags = [];
+  let beneath = subject;
+  while (isValueClass(beneath, 'taggedInstance')) {
+    passedTags.push(beneath.tag);
+    beneath = beneath.payload;
+  }
+  return isQMap(beneath) && beneath[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? raisedFrom(beneath, passedTags) : subject;
+}
+
 // The explanation of a value [D100]: the first page `docs` reads for it,
 // null for a declaration without one, above the value itself, so an
 // explanation prints as the page above what it explains [D98].
 const EXPLANATION_TAG = makeTagKeyword('explanation');
 bindStateReader('explain', (subject, state) => {
   const [page = NULL] = recordReadBy(subject, NULL, state, ExplainBindingNotFoundError).get('docs');
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['doc', page], ['value', subject]]));
+  return makeTaggedInstance(EXPLANATION_TAG, new Map([['doc', page], ['value', heldByExplanation(subject)]]));
 });
 
 // `spec` — the value the record holds: the structured Map that a

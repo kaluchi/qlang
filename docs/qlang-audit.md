@@ -1719,12 +1719,12 @@ kinds with their schemas and procedures [D7], [D46], which is where the
 JavaScript classes of errors and the prose that restates their facts
 disappear.
 
-Its answers are the targets of [D13], [D64], [D97], [D98], [D99] and
-[D100] in the conformance suite: the error a site refuses with as a value of the
+Its answers are the targets of [D13], [D64], [D97], [D98], [D99],
+[D100] and [D101] in the conformance suite: the error a site refuses with as a value of the
 kind of errors, which D97 settles; the explanation of an error as a
 value of its own kind, which D98 settles, its page answering its
 quotes by the verb of the doc, D99, and every value explaining
-itself so, D100; the error a value slot hands
+itself so, D100, an error in it raised, D101; the error a value slot hands
 on, whose kind D64 names and whose passage D13 settles; and the
 targets that [D6], [D33] and [D46] leave when they are decided. Beside them: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
@@ -2102,3 +2102,4 @@ maintainer wants to explore it before it is fixed.
 [D98]: decisions/D98.md
 [D99]: decisions/D99.md
 [D100]: decisions/D100.md
+[D101]: decisions/D101.md

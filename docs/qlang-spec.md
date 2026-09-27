@@ -1881,7 +1881,7 @@ it above the value itself, and for an error the page of its site
 
       ~("hello" | add 1 !| [type /actualType] | eq [::AddLeftNotNumberError ::string])
   ~~|
-  :value ::AddLeftNotNumberError::error{
+  :value ::AddLeftNotNumberError!{
     :actualType ::string
     :trail [
       {
@@ -1895,8 +1895,8 @@ it above the value itself, and for an error the page of its site
 ```
 
 The explanation answers by verbs of its own: `doc` the page, `value`
-what it explains, an error among them a value on the success track that
-`raise` raises again, and the
+what it explains, an error among them raised, as it arrived before `!|`
+opened it [D101], and the
 page answers its quotes, which are its examples, by the verb of the
 doc, `explain | doc | quotes` [D99].
 

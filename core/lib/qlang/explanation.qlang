@@ -13,11 +13,10 @@
   ::verb~(:returns #[::doc ::null] | /doc)
 
 :value
-  |~~ The value the explanation explains; an error among them is the one
-      `!|` opened, a value on the success track that `raise` raises
-      again [D97].
+  |~~ The value the explanation explains; an error among them raised, as
+      it arrived before `!|` opened it [D101].
 
       ~(42 | explain | value | eq 42)
-      ~("x" | add 1 !| explain | value | raise !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
   ~~|
   ::verb~(/value)

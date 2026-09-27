@@ -812,19 +812,6 @@ page of a refusal names the kind it expected with one:
 The kinds move into the declarations with the kinds of the slots
 [D45], [D67].
 
-A quote written as a modifier carries the environment of its call
-[D43], and one written as the body of a binding carries none, so a slot
-of the verb that applies it captures a name of the caller:
-
-```qlang
-> :x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99
-101
-```
-
-A quote written as the body of a binding carries the environment of
-its declaration, so code handed to another pipeline sees the names of
-its author wherever it is applied [D44].
-
 A host builds its refusals from the per-site error factories, imported
 through the `operand-errors` and `errors` subpaths of the core
 (`cli/src/io-operands.mjs`, and `cli/lib/jdt/graph.impl.mjs` in the

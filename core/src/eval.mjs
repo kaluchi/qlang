@@ -32,7 +32,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, envToRun,
+  isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
   BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader, VALUE_CLASS_TAG
 } from './types.mjs';
 import { resolveBuiltinImpl } from './descriptor-ops.mjs';
@@ -548,8 +548,8 @@ async function evalBareTypeKeyword(node, state) {
 // [D63], whose value is the body evaluated once, at declaration,
 // against the current value, so `42 | :x / | add 1 | x` answers 42.
 // A doc alone binds a Doc value, and under a tag name an empty tag
-// binding. A verb written as the body resolves in the scope the
-// declaration writes, so its body sees its own name [D67].
+// binding. A verb or a quote written as the body resolves in the scope
+// the declaration writes, so it sees its own name [D44], [D67].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   if (repeatsDeclarationInScope(node)) throw new BindNameDeclaredTwiceError({ name });
@@ -571,12 +571,13 @@ async function evalBindStep(node, state) {
     return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocContentsOf(node).join('\n')))));
   }
 
-  const value = (await evalNode(node.body, state)).pipeValue;
-  if (isVerb(value)) refuseVerbLaunderedByName(name, value, node);
+  const answered = (await evalNode(node.body, state)).pipeValue;
+  if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
+  const writtenQuote = node.body.type === 'QuoteLit';
+  const value = writtenQuote ? quoteInEnv(answered, null) : answered;
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
-  // A tag literal that answers a verb is the verb literal, whose verb
-  // this declaration made.
   if (isVerb(value) && node.body.type === 'TaggedLit') verbEnvRef(value).env = nextEnv;
+  if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
 }
 

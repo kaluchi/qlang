@@ -15,4 +15,5 @@ use [:qlang/runtime-invariants
      :qlang/tagged
      :qlang/any
      :qlang/error
+     :qlang/explanation
      :qlang/operand/reflective]

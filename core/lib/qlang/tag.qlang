@@ -255,6 +255,17 @@
       ~(::error{:k 1} | /k | eq 1)
   ~~|
 
+::explanation
+  |~~ The kind of what `explain` answers [D98]: the page of an error's
+      site under `:doc`, then the error itself under `:error`, so it
+      prints as the page above the error it explains. It answers them
+      by `doc` and `error`, and the quotes of the page, its examples,
+      by `quotes`.
+
+      ~("x" | add 1 !| explain | type | eq ::explanation)
+      ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
+  ~~|
+
 ::binding
   |~~ The kind of the record a declaration writes into its scope:
       `:name`, the keyword or the tag it binds, `:docs`, one Doc per

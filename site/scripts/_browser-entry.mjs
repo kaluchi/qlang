@@ -29,6 +29,7 @@ import booleanSource           from '@kaluchi/qlang-core/lib/qlang/boolean.qlang
 import quoteSource             from '@kaluchi/qlang-core/lib/qlang/quote.qlang';
 import docSource               from '@kaluchi/qlang-core/lib/qlang/doc.qlang';
 import errorSource             from '@kaluchi/qlang-core/lib/qlang/error.qlang';
+import explanationSource       from '@kaluchi/qlang-core/lib/qlang/explanation.qlang';
 import taggedSource            from '@kaluchi/qlang-core/lib/qlang/tagged.qlang';
 import anySource               from '@kaluchi/qlang-core/lib/qlang/any.qlang';
 import reflectiveSource        from '@kaluchi/qlang-core/lib/qlang/operand/reflective.qlang';
@@ -50,6 +51,7 @@ const CATALOG = new Map([
   ['qlang/quote',                   quoteSource],
   ['qlang/doc',                     docSource],
   ['qlang/error',                   errorSource],
+  ['qlang/explanation',             explanationSource],
   ['qlang/tagged',                  taggedSource],
   ['qlang/any',                     anySource],
   ['qlang/operand/reflective',      reflectiveSource]

@@ -15,10 +15,12 @@
   ::verb~(:returns ::vec | /trail)
 
 :explain
-  |~~ The page of the error's site [D7]: the doc of the tag it shows,
-      which says what failed and holds the examples of the failure.
+  |~~ The explanation of the error [D98]: the page of its site [D7],
+      the doc of the tag it shows, which says what failed and holds the
+      examples of the failure, then the error itself, so it prints as
+      the page above the error.
 
-      ~("x" | add 1 !| explain | content | contains "must be a number")
-      ~(!{:k 1} !| explain | eq (::error | docs | first))
+      ~("x" | add 1 !| explain | doc | content | contains "must be a number")
+      ~(!{:k 1} !| explain | doc | eq (::error | docs | first))
   ~~|
-  ::verb~(:subject ::any | :returns ::doc | type | docs | first)
+  ::verb~(:subject ::any | :returns ::explanation | {:doc (type | docs | first) :error /} | tag ::explanation)

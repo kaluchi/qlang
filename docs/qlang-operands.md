@@ -1258,8 +1258,32 @@ deflects on an error that `!| true` then answers.
 
 - **Arity** 0. **Subject** `error`; the verb resides on `::error`
   [D97].
-- The page of the error's site [D7]: the doc of the tag it shows.
-- **Examples**: `"x" | add 1 !| explain | content | contains "must be a number"` → `true`.
+- The explanation of the error [D98], `::explanation{:doc … :error …}`:
+  the page of its site [D7], the doc of the tag it shows, then the
+  error itself, so it prints as the page above the error.
+- **Examples**: `"x" | add 1 !| explain | doc | content | contains "must be a number"` → `true`.
+
+### `doc`
+
+- **Arity** 0. **Subject** `explanation`; the verb resides on
+  `::explanation` [D98].
+- The page the explanation holds.
+- **Examples**: `"x" | add 1 !| explain | doc | type` → `::doc`.
+
+### `error`
+
+- **Arity** 0. **Subject** `explanation`; the verb resides on
+  `::explanation` [D98].
+- The error the explanation explains, a value on the success track
+  that `raise` raises again.
+- **Examples**: `"x" | add 1 !| explain | error | /actualType` → `::string`.
+
+### `quotes`
+
+- **Arity** 0. **Subject** `explanation`; the verb resides on
+  `::explanation` [D98].
+- The quotes of the page, in their order, which are its examples [D95].
+- **Examples**: `"x" | add 1 !| explain | quotes | count` → `1`.
 
 Asking each element whether it is an error:
 

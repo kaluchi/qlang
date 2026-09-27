@@ -1,0 +1,28 @@
+|~ The verbs of explanations [D98]. Each resides on
+   `::qlang/explanation`, the kind of what `explain` answers: the page of
+   an error's site and the error itself. ~|
+
+:doc
+  |~~ The page of the error's site [D7], the doc of the tag it shows.
+
+      ~("x" | add 1 !| explain | doc | eq (::AddLeftNotNumberError | docs | first))
+  ~~|
+  ::verb~(:returns ::doc | /doc)
+
+:error
+  |~~ The error the explanation explains, the one `!|` opened, a value
+      on the success track that `raise` raises again [D97].
+
+      ~("x" | add 1 !| explain | error | /actualType | eq ::string)
+      ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
+  ~~|
+  ::verb~(/error)
+
+:quotes
+  |~~ The quotes of the page, in their order, which are its examples
+      [D95].
+
+      ~("x" | add 1 !| explain | quotes | count | eq 1)
+      ~("x" | add 1 !| explain | quotes | first | type | eq ::quote)
+  ~~|
+  ::verb~(:returns ::vec | /doc | segments | filter ~(type | eq ::quote))

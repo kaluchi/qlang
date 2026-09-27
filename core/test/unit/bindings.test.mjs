@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, makeTagKeyword, describeType } from '../../src/types.mjs';
+import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
@@ -14,14 +15,14 @@ describe('BindStep — docs-only form', () => {
   });
 
   it('the bound value content matches the attached doc', async () => {
-    const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | /content');
+    const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | join');
     expect(result).toBe(' A guide. ');
   });
 
   it(':name |~~| short-doc-only binds the joined doc-content as a Doc value', async () => {
     const doc = await evalQuery(':forward |~~| placeholder note\n| forward');
     expect(describeType(doc)).toBe('Doc');
-    expect(doc.content).toBe(' placeholder note');
+    expect(docText(doc)).toBe(' placeholder note');
   });
 
   it('::Tag |~~ ~~| doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
@@ -34,7 +35,7 @@ describe('BindStep — docs-only form', () => {
     // Subsequent `::Tag | docs` axis lookup resolves the attached
     // prose, and `::Tag | spec | type` surfaces the ::builtin
     // identity through the JS-header tag slot.
-    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | /content');
+    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | join');
     expect(doc).toContain('short tag prose');
     const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
     expect(spec).toEqual(makeTagKeyword('builtin'));

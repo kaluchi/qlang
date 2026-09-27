@@ -5,11 +5,12 @@
 import { mintUnderTag } from './dispatch.mjs';
 import { bindPrim, bindStateReader, bindTypeConstructor } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDoc,
+  isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
   isTagKeyword, makeSet, typeKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import {
   declareSubjectError,
+  declareElementError,
   declareModifierError
 } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
@@ -39,7 +40,6 @@ const KeywordPayloadNotKeywordError = declareSubjectError('KeywordPayloadNotKeyw
 const TagPayloadNotTagError         = declareSubjectError('TagPayloadNotTagError',         '::tag',     'tag');
 const VecPayloadNotVecError         = declareSubjectError('VecPayloadNotVecError',         '::vec',     'vec');
 const MapPayloadNotMapError         = declareSubjectError('MapPayloadNotMapError',         '::map',     'map');
-const DocPayloadNotDocError         = declareSubjectError('DocPayloadNotDocError',         '::doc',     'doc');
 
 function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
   return payload => {
@@ -59,7 +59,21 @@ bindTypeConstructor('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotK
 bindTypeConstructor('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
 bindTypeConstructor('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
 bindTypeConstructor('map',     coreKindConstructor(isQMap, MapPayloadNotMapError, bareMapOf));
-bindTypeConstructor('doc',     coreKindConstructor(isDoc, DocPayloadNotDocError));
+
+// `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
+// a doc comes apart into its segments and back by `tag`.
+const DocPayloadNotVecError     = declareSubjectError('DocPayloadNotVecError', '::doc', 'vec');
+const DocElementNotSegmentError = declareElementError('DocElementNotSegmentError', '::doc', 'segment');
+
+function docConstructor(payload) {
+  if (!isVec(payload)) throw new DocPayloadNotVecError(payload);
+  payload.forEach((element, index) => {
+    if (!isDocSegment(element)) throw new DocElementNotSegmentError(index, element);
+  });
+  return makeDoc(payload);
+}
+
+bindTypeConstructor('doc', docConstructor);
 
 // `::builtin{…}` — the descriptor: the step of a built-in verb that names
 // its primitive [D72], the declaration of a kind that names its

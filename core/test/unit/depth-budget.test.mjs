@@ -44,9 +44,7 @@ describe('depth budget — every re-entry seam', () => {
     ['captured-arg lambda naming its own verb',     ':p ::verb~([/] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':r ::verb~(:el ::any | [1] | reduce 0 ~r) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':k ::verb~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', '::T {:impl ~(::T(/))} | ::T(1)'],
-    ['doc-segment literal whose constructor reads its own docs',
-      '::S |~~ ::S{:n 1} ~~| {:impl ~(::S | docs | first | /segments | at 1)} | ::S | docs | first | /segments | at 1']
+    ['Quote-bodied tag constructor minting itself', '::T {:impl ~(::T(/))} | ::T(1)']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {

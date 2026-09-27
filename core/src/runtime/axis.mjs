@@ -30,7 +30,6 @@ import {
   addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, residenceOnSubject, verbsOfKind
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
-import { parseDocSegments } from '../doc-segments.mjs';
 
 // `bindingName` (a value-namespace identifier or a `::`-prefixed
 // tag-binding reference) is an identifier-shaped string at the JS
@@ -112,15 +111,8 @@ export function declaringRecordOf(env, subject) {
 
 // Every quote among the segments of a record's docs, what `examples`
 // answers and `runExamples` runs.
-export async function examplesOfRecord(state, record) {
-  const collected = [];
-  for (const doc of record.get('docs')) {
-    const segments = await parseDocSegments(doc.content, state);
-    for (const seg of segments) {
-      if (isQuote(seg)) collected.push(seg);
-    }
-  }
-  return collected;
+export function examplesOfRecord(record) {
+  return record.get('docs').flatMap(doc => doc.filter(isQuote));
 }
 
 // The record of the member the subject holds under a name [D88], or
@@ -161,8 +153,8 @@ bindStateReader('source', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
 bindStateReader('docs', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, DocsBindingNotFoundError).get('docs'));
-bindStateReader('examples', async (subject, memberName, state) =>
-  Object.freeze(await examplesOfRecord(state, recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
+bindStateReader('examples', (subject, memberName, state) =>
+  Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
 // `spec` — the value the record holds: the structured Map that a
 // catalog `::builtin{…}` body declared, after `langRuntime`'s

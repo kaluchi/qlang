@@ -206,7 +206,7 @@ import { deserializeSession } from '../../src/session.mjs';
 describe('session deserialization edge cases', async () => {
   it('deserializes a verb binding from its quote under its tag', async () => {
     const payload = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       bindings: [{ name: 'x', value: { $tagged: { $tag: 'verb', payload: { $quote: 'mul 2' } } }, docs: [] }],
       cells: []
     };

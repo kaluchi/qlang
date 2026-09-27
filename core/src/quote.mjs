@@ -65,6 +65,24 @@ export function quoteOfLiteral(node) {
   return quote;
 }
 
+// A doc literal's value, the prose the parser read and a quote for each
+// span of it that read as code [D94], read once per node as a quote is.
+const DOC_OF_LITERAL = new WeakMap();
+
+export function docOfNode(node) {
+  let doc = DOC_OF_LITERAL.get(node);
+  if (doc === undefined) {
+    doc = makeDoc(node.segments.map(segment => typeof segment === 'string' ? segment : quoteOfLiteral(segment)));
+    DOC_OF_LITERAL.set(node, doc);
+  }
+  return doc;
+}
+
+// The docs a declaration writes in the slot before its body [D83].
+export function slotDocsOf(bindStep) {
+  return (bindStep.docs ?? []).map(docOfNode);
+}
+
 // stepOfNode(node) → step — the step a single node leaves.
 export function stepOfNode(node) {
   return STEP_OF_NODE[node.type](node);
@@ -150,7 +168,7 @@ const STEP_OF_NODE = {
   Keyword:         node => keyword(node.name),
   BareTypeKeyword: node => makeTagKeyword(node.tag),
   QuoteLit:        quoteOfLiteral,
-  DocLit:          node => makeDoc(node.content),
+  DocLit:          docOfNode,
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
@@ -221,6 +239,12 @@ export function printQuoteSource(quote) {
   return printSteps(quote);
 }
 
+// docText(doc) → its prose with each quote written where it stands, the
+// text a doc's `join` answers [D94].
+export function docText(doc) {
+  return doc.map(segment => typeof segment === 'string' ? segment : `~(${printQuoteSource(segment)})`).join('');
+}
+
 function stepTagOf(step) {
   return step?.[TAG_HEADER_SYMBOL]?.name;
 }
@@ -245,6 +269,7 @@ function printEachBody(quote) {
 
 function printStep(step) {
   if (isQuote(step)) return `~(${printSteps(step)})`;
+  if (isDoc(step)) return printValue(step);
   if (isQSet(step)) return `#[${step.map(printStep).join(' ')}]`;
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);

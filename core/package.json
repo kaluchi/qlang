@@ -61,6 +61,7 @@
     "#qlang/map": "./lib/qlang/map.qlang",
     "#qlang/boolean": "./lib/qlang/boolean.qlang",
     "#qlang/quote": "./lib/qlang/quote.qlang",
+    "#qlang/doc": "./lib/qlang/doc.qlang",
     "#qlang/tagged": "./lib/qlang/tagged.qlang",
     "#qlang/any": "./lib/qlang/any.qlang",
     "#qlang/operand/reflective": "./lib/qlang/operand/reflective.qlang",

@@ -182,7 +182,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
 
-    expect((await restored.evalCell(':rate | docs | first | /content')).result).toBe(' The tax rate. ');
+    expect((await restored.evalCell(':rate | docs | first | join')).result).toBe(' The tax rate. ');
     expect((await restored.evalCell('rate')).result).toBe(0.07);
   });
 
@@ -212,7 +212,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
 
   it('rejects payload with missing bindings array', async () => {
     let thrown;
-    try { await deserializeSession({ schemaVersion: 3 }); } catch (thrownErr) { thrown = thrownErr; }
+    try { await deserializeSession({ schemaVersion: 4 }); } catch (thrownErr) { thrown = thrownErr; }
     expect(thrown.name).toBe('SessionPayloadInvalidError');
   });
 

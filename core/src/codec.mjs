@@ -24,7 +24,7 @@
 //   { "$tagKeyword": "Name" }                 → TagKeyword (`::Name`)
 //   { "$map": [[k, v], …] }                   → Map (entries pairs)
 //   { "$quote": "source" }                    → Quote-value
-//   { "$doc": "content" }                     → Doc-value
+//   { "$doc": ["prose", { "$quote": … }] }    → Doc-value
 //   { "$tagged": { "$tag": "Name", "payload": <encoded> } }
 //                                             → TaggedInstance with tag
 //                                               on JS-header, payload
@@ -57,6 +57,7 @@ import {
   isFunctionValue,
   isQuote,
   isDoc,
+  isDocSegment,
   isErrorValue,
   isTaggedInstance,
   makeErrorValue,
@@ -104,6 +105,8 @@ export function toTaggedJSON(value) {
   if (isTagKeyword(value)) return { $tagKeyword: value.name };
   // A quote is a tagged vector; its envelope carries its text.
   if (isQuote(value)) return { $quote: printQuoteSource(value) };
+  // A doc's envelope carries its segments, each quote by its text [D94].
+  if (isDoc(value)) return { $doc: value.map(toTaggedJSON) };
   // TaggedInstance check before generic Vec / Map branches — a
   // tagged Vec, the set among them, is still `isVec(true)`, but the
   // bare Vec encoder strips identity. The envelope below recovers identity through
@@ -128,7 +131,6 @@ export function toTaggedJSON(value) {
     };
   }
   if (isVec(value)) return value.map(toTaggedJSON);
-  if (isDoc(value)) return { $doc: value.content };
   if (isQMap(value)) {
     return {
       $map: Array.from(value, ([k, v]) => [toTaggedJSON(k), toTaggedJSON(v)])
@@ -223,7 +225,11 @@ export function fromTaggedJSON(json, path = []) {
         );
       }
       case '$quote': return quoteOfSource(json.$quote, 'tagged-json');
-      case '$doc':   return makeDoc(json.$doc);
+      case '$doc': {
+        const segments = Array.isArray(json.$doc) ? fromTaggedJSON(json.$doc, [...path, '$doc']) : null;
+        if (segments === null || !segments.every(isDocSegment)) throw new MalformedTaggedJSONError({ payload: json });
+        return makeDoc(segments);
+      }
     }
     // Catch-all: bare JSON object → Map (recursively decoded).
     const decodedMap = new Map();

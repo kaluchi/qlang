@@ -24,11 +24,7 @@ const parserSource = peggy.generate(source, {
   output: 'source',
   format: 'es',
   trace: false,
-  // Query is the default start rule for full-source qlang queries.
-  // TaggedLit is exposed for the sub-parser (the
-  // Doc-content tokenizer in src/doc-segments.mjs) that needs to
-  // match a single TaggedLit inside surrounding text.
-  allowedStartRules: ['Query', 'TaggedLit']
+  allowedStartRules: ['Query']
 });
 
 writeFileSync(outputPath, parserSource);

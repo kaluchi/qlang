@@ -742,6 +742,17 @@
   ~~|
   ::verb~()
 
+:join
+  |~~ The text a sequence makes: a vector's strings with a separator
+      between consecutive ones, and a doc's prose with each quote
+      written where it stands [D94].
+
+      ~(["a" "b"] | join "," | eq "a,b")
+      ~(|~~ a ~(add 1) b ~~| | join | eq " a ~(add 1) b ")
+      ~(42 | join "," !| /addresses | eq #[::doc/join ::vec/join])
+  ~~|
+  ::verb~()
+
 :apply
   |~~ The value of the code run against the subject, under the fork
       rule: the declarations the code makes stay inside it, and only its
@@ -825,12 +836,11 @@
   ~~|
 
 :docs
-  |~~ `:name | docs` — Vec of Doc-values, one per doc in the slot of
-      the `BindStep` that binds `:name` in its scope, and
-      `::vec/filter | docs` the page of a verb by its address. Each
-      Doc-value `/segments`
-      surfaces TaggedLit and Quote inline structure for navigation;
-      Quote segments are the evaluable examples `runExamples` runs.
+  |~~ `:name | docs` — the docs in the slot of the declaration that
+      binds `:name` in its scope, and `::vec/filter | docs` the page of
+      a verb by its address. A doc is the vector of its prose and its
+      quotes, which are the examples `runExamples` runs, and its text
+      is its `join` [D94].
       Any other value reads the page of its kind, and the `:kind`
       field of a map names nothing: the map reads the page of
       `::map`. Given a name, it reads the docs of the member the
@@ -839,13 +849,13 @@
       a vector calls, and `::vec/take | docs :count` the docs the head
       of `take` writes on its slot.
 
-      ~(::vec/filter | docs | first | /content | contains "predicate")
+      ~(::vec/filter | docs | first | join | contains "predicate")
       ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
       ~(5 | docs | eq (::number | docs))
       ~({:kind ::set} | docs | eq (::map | docs))
       ~(::map | docs :minus | eq (::map/minus | docs))
       ~([1 2] | docs :count | eq (::vec/count | docs))
-      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | /content | eq " how many ")
+      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | join | eq " how many ")
   ~~|
   ::verb~(:name #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/docs})
 

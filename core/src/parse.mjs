@@ -66,7 +66,7 @@ export function parse(source, opts = {}) {
   const commentTrivia = new Map();
   let ast;
   try {
-    ast = peggyParse(source, opts.startRule ? { startRule: opts.startRule, commentTrivia } : { commentTrivia });
+    ast = peggyParse(source, { commentTrivia });
   } catch (err) {
     throw new ParseError(err.message, err.location, opts.uri ?? null, {
       expected: err.expected,

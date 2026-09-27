@@ -1,0 +1,12 @@
+|~ The verbs of docs [D94]. Each resides on `::qlang/doc`, the kind
+   whose module declares it [D72]; a doc is also the vector of its
+   segments, so the verbs of vectors read it as one. ~|
+
+:join
+  |~~ The text of the doc: its prose with each quote written where it
+      stands.
+
+      ~(|~~ a ~(add 1) b ~~| | join | eq " a ~(add 1) b ")
+      ~(::vec/join | docs | first | join | contains "separator")
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/docText})

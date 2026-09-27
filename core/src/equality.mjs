@@ -7,7 +7,7 @@
 // are, index by index.
 
 import {
-  isKeyword, isTagKeyword, isErrorValue, isDoc, TAG_HEADER_SYMBOL,
+  isKeyword, isTagKeyword, isErrorValue, TAG_HEADER_SYMBOL,
   isValueClass, isQMap
 } from './types.mjs';
 
@@ -37,9 +37,6 @@ export function deepEqual(a, b) {
     if (!Array.isArray(b) || a.length !== b.length) return false;
     if (!tagHeadersEqual(a, b)) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
-  }
-  if (isDoc(a)) {
-    return isDoc(b) && a.content === b.content;
   }
   if (isQMap(a)) {
     if (!isQMap(b) || a.size !== b.size) return false;

@@ -597,21 +597,20 @@ b
 c
 ```
 
-A quote has all three, being the vector of its steps [D53], and a doc
-offers its content and its segments and no more, so the guide itself
-cannot be read in pieces. On 25 September 2026:
+A quote has all three, being the vector of its steps [D53], and so has a
+doc, being the vector of its prose and its quotes [D19], [D94]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
 ~(add 1)
 
-> |~~ a ~(add 1) b ~~| | count !| type
-::VerbWithoutBodyError
+> |~~ a ~(add 1) b ~~| | count
+3
 ```
 
 The pageable shape is the vector, and a value that can overflow has to
-break into one, as the quote has: a string through its lines, a doc as
-the vector of its segments [D19].
+break into one, as the quote and the doc have, and a string does
+through its lines.
 
 Next, every tag and keyword inside a value is an anchor that resolves to
 its document. A tag is one. A keyword resolves only as the name of a
@@ -984,7 +983,7 @@ the facts:
 > "hello" | add 1 !| type | spec
 {:category :typeError :operand :add :position 1 :expectedType :number}
 
-> "hello" | add 1 !| type | docs | first | /content
+> "hello" | add 1 !| type | docs | first | join
  The subject of `add` must be a number. …
 ```
 
@@ -1142,32 +1141,13 @@ the operand document, with three test runners and a script that copies
 from the first plane into the second. The catalog's own examples run
 in under a second and are the only plane the language can reach.
 
-The content of a doc is tokenized by a second, character-level parser
-that recognizes quotes and tag literals, and it executes the tag
-literals it finds:
-
-```qlang
-> |~~ note ::Box[1] here ~~| | /segments * type
-[::map ::Box ::map]
-```
-
-A tag literal written outside a code span runs when its doc is read, as
-above, and no documentation in the catalog uses one on purpose. The
-language server scans the same text a third time, with its own loop over
-braces and strings, to strip the quotes for a hover
-(`lsp/src/features.mjs`, `stripQuoteSegments`).
-
 The repair must give the language views sized to a budget, the cheap
 view the default [D27]. It must reduce catalog prose to what the facts
 do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
-must make examples live on one plane; reduce doc segments to prose and
-quotes, the doc being the vector of those segments under its own tag
-[D19], parsed once by the language's own parser, so that it counts,
-addresses and slices as every vector does, its literal `|~~ … ~~|` is
-the fourth sigil over the one mechanism, and its text is the join of
-its segments; and print errors and parse failures economically, with
-the full value reachable by projection rather than dumped.
+must make examples live on one plane, and print errors and parse
+failures economically, with the full value reachable by projection
+rather than dumped.
 
 ### Three documents that retell the catalog
 
@@ -1760,7 +1740,10 @@ gone; host categories of error are declared by hosts.
 
 ### Milestone 4 · One spelling
 
-Every fact has one spelling. One loader remains [D5], [D36], which runs
+Every fact has one spelling. The doc read as its segments has landed, a
+vector of prose and quotes the parser reads once, whose text is its
+`join` [D19], [D94], so strings, quotes and docs read in pieces. One
+loader remains [D5], [D36], which runs
 a module once, a pipeline whose value is what it exposes, so helpers
 stay in their module [D63]; mounted namespaces arrive with it [D24],
 each a subtree answered by its provider, a tag in the subject position
@@ -1768,16 +1751,13 @@ dispatching to its noun [D36], [D88]; the loader holds the rest of the
 rule of collisions, a
 verb and a kind joined only by whoever owns one of them [D23]; the
 literal becomes the one lossless format and tagged JSON and the session
-envelope go [D30]; the doc becomes the vector of its segments, and
-strings, quotes and docs read in pieces [D19]; the documents are
-generated or deleted, the examples live on one plane, the keyword's
+envelope go [D30]; the documents are generated or deleted, the examples live on one plane, the keyword's
 form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5], [D19] and [D94] in the conformance
-suite, the last the reading of a doc as its segments and of its text as
-its `join`. The name `binding` there stands for the operand the branch names, the
+Its answers are the targets of [D5] in the conformance suite. The name
+`binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
 shape is the requirement.

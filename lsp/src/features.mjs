@@ -35,37 +35,13 @@ const F_CATEGORY  = 'category';
 const F_SUBJECT   = 'subject';
 const F_MODIFIERS = 'modifiers';
 
-// The prose of a doc without its quotes, which hover and completion show.
-function stripQuoteSegments(content) {
-  const parts = [];
-  let cursor = 0;
-  while (cursor < content.length) {
-    const tildePos = content.indexOf('~(', cursor);
-    if (tildePos === -1) {
-      parts.push(content.slice(cursor));
-      break;
-    }
-    parts.push(content.slice(cursor, tildePos));
-    let depth = 1;
-    let i = tildePos + 2;
-    while (i < content.length && depth > 0) {
-      const ch = content[i];
-      if (ch === '"') {
-        i++;
-        while (i < content.length && content[i] !== '"') {
-          if (content[i] === '\\') i++;
-          i++;
-        }
-        i++;
-        continue;
-      }
-      if (ch === '(') { depth++; i++; continue; }
-      if (ch === ')') { depth--; i++; continue; }
-      i++;
-    }
-    cursor = i;
-  }
-  return dedent(parts.join('').replace(/\n{3,}/g, '\n\n').trim());
+// The prose of a doc, its segments without its quotes [D94], which hover
+// and completion show; a doc the runtime answers is its segments, and a
+// doc of the document's tree holds them as the parser read them.
+const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');
+
+function tidyProse(prose) {
+  return dedent(prose.replace(/\n{3,}/g, '\n\n').trim());
 }
 
 // Every line ends in a Markdown hard break, so a line break of a doc
@@ -101,7 +77,7 @@ async function fetchDocsContents(name) {
   } catch {
     docs = [];
   }
-  const contents = Array.isArray(docs) ? docs.map(d => d.content) : [];
+  const contents = Array.isArray(docs) ? docs.map(proseOfSegments) : [];
   docsCache.set(name, contents);
   return contents;
 }
@@ -143,6 +119,8 @@ export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
   walkAst(catalogAst, (node) => {
+    // The declarations of a doc's examples belong to the examples.
+    if (node.type === 'DocLit') return false;
     if (node.type !== 'BindStep') return;
     let name;
     if (node.key.type === 'Keyword') name = node.key.name;
@@ -177,7 +155,7 @@ async function valueNamespaceCompletions() {
       label: k,
       kind: 'function',
       detail: isVerb(descriptor) ? signatureTextOf(runtime, k) : formatMetaValue(descriptor.get(F_CATEGORY)),
-      documentation: stripQuoteSegments(docContents[0] ?? '')
+      documentation: tidyProse(docContents[0] ?? '')
     });
   }
   return _valueCompletions;
@@ -194,7 +172,7 @@ async function tagNamespaceCompletions() {
       label: k,
       kind: 'tag',
       detail: 'tag-binding',
-      documentation: stripQuoteSegments(docContents[0] ?? '')
+      documentation: tidyProse(docContents[0] ?? '')
     });
   }
   return _tagCompletions;
@@ -331,7 +309,7 @@ async function hoverForOperand(node, documentAst) {
   if (runtime.has(node.name)) {
     const descriptor = bindingValueOf(runtime.get(node.name));
     const docContents = await fetchDocsContents(node.name);
-    const prose = stripQuoteSegments(docContents.join('\n'));
+    const prose = tidyProse(docContents.join('\n'));
     const heading = isVerb(descriptor)
       ? [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`]
       : [
@@ -346,7 +324,7 @@ async function hoverForOperand(node, documentAst) {
   }
   const docStrings = findInDocumentDocs(documentAst, node.name);
   if (docStrings.length === 0) return null;
-  const prose = stripQuoteSegments(docStrings.join('\n'));
+  const prose = tidyProse(docStrings.join('\n'));
   return {
     content: markdownHardBreaks([
       `**${node.name}** — user binding`,
@@ -363,8 +341,9 @@ function findInDocumentDocs(ast, name) {
   if (!ast) return [];
   let lastDocs = null;
   walkAst(ast, (step) => {
+    if (step.type === 'DocLit') return false;
     if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
-      lastDocs = (step.docs ?? []).map(doc => doc.content);
+      lastDocs = (step.docs ?? []).map(doc => proseOfSegments(doc.segments));
     }
   });
   return lastDocs ?? [];
@@ -387,7 +366,7 @@ async function hoverForTag(node) {
   const headStart = node.location.start.offset;
   const headEnd = headStart + 2 + node.tag.length;
 
-  const prose = stripQuoteSegments(docContents.join('\n'));
+  const prose = tidyProse(docContents.join('\n'));
   return {
     content: markdownHardBreaks([
       `**${tagKey}** — tag-binding`,
@@ -472,6 +451,7 @@ function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 
   walkAst(ast, (node) => {
+    if (node.type === 'DocLit') return false;
     const decl = bindingDeclarationOf(node);
     if (decl === null || decl.name !== name) return;
     if (!node.location || node.location.end.offset > offset) return;
@@ -545,6 +525,7 @@ export function documentSymbols(ast) {
 
   const symbols = [];
   walkAst(ast, (node) => {
+    if (node.type === 'DocLit') return false;
     const decl = bindingDeclarationOf(node);
     if (decl === null || !node.location) return;
 
@@ -584,7 +565,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
 
   return {
     label: [operandCall.name, ...modifiers].join(' '),
-    documentation: stripQuoteSegments(docContents[0] ?? ''),
+    documentation: tidyProse(docContents[0] ?? ''),
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };

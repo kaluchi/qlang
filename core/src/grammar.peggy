@@ -22,6 +22,17 @@
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
   }
+
+  // The segments of a doc: its prose, each run of it one string, and the
+  // quote nodes among it.
+  function proseJoined(parts) {
+    const segments = [];
+    for (const part of parts) {
+      if (typeof part === 'string' && typeof segments[segments.length - 1] === 'string') segments[segments.length - 1] += part;
+      else segments.push(part);
+    }
+    return segments;
+  }
 }}
 
 {
@@ -45,6 +56,11 @@
   function refuseCombinatorSpacing(combinator) {
     error(`a combinator is set off by whitespace on both sides: write \` ${combinator} \``);
   }
+
+  // How deep the parser is in a `~(…)` of a doc it tries as code: there
+  // a shape it refuses elsewhere fails the try, and the span reads as
+  // prose [D94].
+  let docQuoteDepth = 0;
 }
 
 // A source of whitespace alone, comments among it, is the empty
@@ -83,13 +99,13 @@ PipelineHead
   = DocBeforeDeclaration
   / BindStep
   / Step
-  / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
   = LineDocBeforeDeclaration
   / LineBindStep
   / LineStep
-  / c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
 
 // A doc literal's opening `|` is the pipe to the doc value it is.
 ContinuationUnit
@@ -114,10 +130,12 @@ LineContinuationUnit
 // before it; a slash written against a word is the dangling segment of
 // a projection, which the parser names by the key it expected.
 SpacingRefusal
-  = _ "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
-  / c:Combinator { refuseCombinatorSpacing(c); }
-  / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
-  / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
+  = &{ return docQuoteDepth === 0; }
+    ( _ "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
+    / c:Combinator { refuseCombinatorSpacing(c); }
+    / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
+    / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
+    )
 
 StepAfterCombinator
   = DocBeforeDeclaration
@@ -133,11 +151,11 @@ LineStepAfterCombinator
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [D83].
 DocBeforeDeclaration
-  = DocLit (_ DocLit)* _ &BindStep
+  = &{ return docQuoteDepth === 0; } DocLit (_ DocLit)* _ &BindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 LineDocBeforeDeclaration
-  = DocLit (_ DocLit)* _ &LineBindStep
+  = &{ return docQuoteDepth === 0; } DocLit (_ DocLit)* _ &LineBindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 PlainComment
@@ -344,7 +362,7 @@ TagName
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
-  / "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
+  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
 // included (`~(* inc | sort)`, `~(!| /trail)`); `~()` is the empty
@@ -406,13 +424,44 @@ QuoteLinePlainSpan
 QuoteChar
   = ![()] c:. { return c; }
 
-// A doc value, in a line form and a block form; the printer writes the
-// block form.
+// A doc value, in a line form and a block form, read as its segments: a
+// `~(…)` that reads as code is a quote, a span between backquotes is
+// prose whole, and the rest is prose [D43], [D94]; a line doc's quote
+// stays on its line. The printer writes the block form.
 DocLit
-  = "|~~|" content:LineCommentContent
-    { return node('DocLit', { content }, location(), text()); }
-  / "|~~" !"|" content:BlockDocContent "~~|"
-    { return node('DocLit', { content }, location(), text()); }
+  = "|~~|" segments:LineDocSegments
+    { return node('DocLit', { segments, content: text().slice(4) }, location(), text()); }
+  / "|~~" !"|" segments:BlockDocSegments "~~|"
+    { return node('DocLit', { segments, content: text().slice(3, -3) }, location(), text()); }
+
+LineDocSegments
+  = parts:LineDocPart* { return proseJoined(parts); }
+
+LineDocPart
+  = quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
+  / "`" [^`\n]* "`" { return text(); }
+  / [^\n]
+
+BlockDocSegments
+  = parts:BlockDocPart* { return proseJoined(parts); }
+
+BlockDocPart
+  = DocQuote
+  / "`" (!"`" !"~~|" .)* "`" { return text(); }
+  / QuoteSpan
+  / NestedLineDocSpan
+  / NestedLinePlainSpan
+  / NestedBlockDocSpan
+  / NestedBlockPlainSpan
+  / "~|"
+  / !"~~|" c:. { return c; }
+
+// A quote of a doc: the try counts its depth on the way in and gives it
+// back on the way out, having read a quote or not; the second branch
+// fails always, after its predicate gave the depth back.
+DocQuote
+  = &{ docQuoteDepth++; return true; } quote:QuoteLit &{ docQuoteDepth--; return true; } { return quote; }
+  / &{ docQuoteDepth--; return false; } "~("
 
 // ── Literals ───────────────────────────────────────────────────────
 
@@ -438,7 +487,7 @@ MapLit
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
+  / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
     { error('a map entry holds one word; a command with modifiers or a pipeline stands in parentheses there: `{:k (f x)}`'); }
 
 JsonMapEntry
@@ -474,7 +523,7 @@ ElementList
 // as two elements.
 LiteralGap
   = __
-  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
+  / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
 // `/` alone is the identity projection; a segment is a bare key, a
 // quoted key, a namespaced keyword after `:`, or an index.

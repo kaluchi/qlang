@@ -4,9 +4,10 @@
 // argument it prints the focus, the open targets of the first milestone
 // of the route that has any, then the milestones after it, the
 // decisions carried out, the decisions of the language no case names,
-// which are still being decided, and the decisions a case does not
-// hold, by their domain. With decision numbers it prints their cases,
-// open and met.
+// which are still being decided, the decisions later records replaced
+// in part, and the decisions a case does not hold, by their domain.
+// With decision numbers it prints the records that replace each and
+// that each replaces, whole or in part, and its cases, open and met.
 //
 // Usage: node scripts/requirements.mjs [D<n> ...]
 
@@ -27,13 +28,17 @@ const decisions = new Map(readdirSync(decisionsDir)
   .sort((left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
   .map(name => {
     const recordText = readText(join(decisionsDir, `${name}.md`));
+    const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
+      .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
     return [name, {
       domain: recordText.match(/^Domain\. (\w+)\./m)[1].toLowerCase(),
-      replaced: /^Replaced by \[D\d+\]/m.test(recordText),
+      replacedBy: replacing(false),
+      replacedInPartBy: replacing(true),
       met: [],
       targets: [],
     }];
   }));
+const replacedWhole = record => record.replacedBy.length > 0;
 
 for (const caseFile of readdirSync(conformanceDir, { recursive: true }).map(String).filter(name => name.endsWith('.jsonl'))) {
   for (const line of readText(join(conformanceDir, caseFile)).split('\n')) {
@@ -66,6 +71,12 @@ if (askedDecisions.length > 0) {
     const record = decisions.get(decision);
     if (record === undefined) throw new Error(`${decision} has no file in docs/decisions`);
     console.log(`${decision} · ${record.domain}`);
+    const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
+      .map(([other]) => other);
+    if (record.replacedBy.length > 0) console.log(`  replaced by          ${record.replacedBy.join(' ')}`);
+    if (record.replacedInPartBy.length > 0) console.log(`  replaced in part by  ${record.replacedInPartBy.join(' ')}`);
+    if (replaces(false).length > 0) console.log(`  replaces             ${replaces(false).join(' ')}`);
+    if (replaces(true).length > 0) console.log(`  replaces in part     ${replaces(true).join(' ')}`);
     for (const name of record.targets) console.log(`  target  ${name}`);
     for (const name of record.met) console.log(`  met     ${name}`);
   }
@@ -90,9 +101,10 @@ if (askedDecisions.length > 0) {
   const printList = (label, list) => { if (list.length > 0) console.log(`${label}: ${list.join(' ')}`); };
   printList('outside the route', decisionsWhere(record => record.targets.length > 0).filter(decision => !routed.has(decision)));
   printList('carried out', decisionsWhere(record => record.met.length > 0 && record.targets.length === 0));
-  printList('being decided', decisionsWhere(record => record.domain === 'language' && !record.replaced
+  printList('being decided', decisionsWhere(record => record.domain === 'language' && !replacedWhole(record)
     && record.met.length + record.targets.length === 0));
-  printList('replaced', decisionsWhere(record => record.replaced));
+  printList('replaced', decisionsWhere(replacedWhole));
+  printList('replaced in part', decisionsWhere(record => !replacedWhole(record) && record.replacedInPartBy.length > 0));
   printList("held by a host's tests", decisionsWhere(record => record.domain === 'host'));
   printList('rules of work', decisionsWhere(record => record.domain === 'process'));
 }

@@ -10,11 +10,14 @@
 //
 // A case may name the decision that left it as a requirement,
 // `"decision": "D14"` or a vector of them, and a requirement the tree
-// does not meet yet is a target, `"target": true`, which must answer
-// otherwise; a target that answers as expected fails until the branch
-// that met it drops the mark [D58]. The requirements agree with each
-// other in the one form a runner can see: no two cases hold one query
-// to different answers, and every decision a case names has its record.
+// does not meet yet is a target, `"target": true`, which answers its
+// present, `"now"`, an error by its tag and any other value as its
+// literal: a target that answers as expected fails until the branch
+// that met it drops the mark [D58], and one that answers neither fails
+// until a reader tells a repair from a broken case [D91]. The
+// requirements agree with each other in the one form a runner can see:
+// no two cases hold one query to different answers, and every decision
+// a case names has its record.
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -24,6 +27,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';
+import { isErrorValue, isTagKeyword } from '../../src/types.mjs';
 import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -54,6 +58,12 @@ function assertLiteralAst(ast, testName) {
       );
     }
   });
+}
+
+async function answersAsPresent(queryResult, now) {
+  const present = await expectedValueOf(now);
+  if (isErrorValue(queryResult) && isTagKeyword(present)) return queryResult.tag.name === present.name;
+  return deepEqual(queryResult, present);
 }
 
 const casesByFile = files.map(file => ({
@@ -102,6 +112,10 @@ for (const { file, cases } of casesByFile) {
         if (test.target === true) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
           expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
+          expect(test.now, `${test.name}: a target records the answer the tree gives today as "now"`).toBeDefined();
+          assertLiteralAst(parse(test.now), test.name);
+          expect(await answersAsPresent(queryResult, test.now),
+            `${test.name}: the target answers neither its goal nor its present "now"; tell whether a repair moved it or the case broke, then rewrite "now" or the case`).toBe(true);
         } else {
           expect(answersAsExpected, `${test.name}: result !== expected`).toBe(true);
         }

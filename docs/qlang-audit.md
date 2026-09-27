@@ -1717,9 +1717,10 @@ kinds with their schemas and procedures [D7], [D46], which is where the
 JavaScript classes of errors and the prose that restates their facts
 disappear.
 
-Its answers are the targets of [D13] and [D64] in the conformance
-suite, the error a value slot hands on, whose kind D64 names and whose
-passage D13 settles, and the targets that [D6], [D33] and [D46] leave
+Its answers are the targets of [D13], [D64] and [D97] in the
+conformance suite: the error a site refuses with as a value of the
+kind of errors, which D97 settles, and the error a value slot hands on,
+whose kind D64 names and whose passage D13 settles, and the targets that [D6], [D33] and [D46] leave
 when they are decided. Beside them: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
@@ -2120,3 +2121,4 @@ maintainer wants to explore it before it is fixed.
 [D94]: decisions/D94.md
 [D95]: decisions/D95.md
 [D96]: decisions/D96.md
+[D97]: decisions/D97.md

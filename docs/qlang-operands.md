@@ -1280,10 +1280,10 @@ deflects on an error that `!| true` then answers.
 
 ### `quotes`
 
-- **Arity** 0. **Subject** `explanation`; the verb resides on
-  `::explanation` [D98].
-- The quotes of the page, in their order, which are its examples [D95].
-- **Examples**: `"x" | add 1 !| explain | quotes | count` → `1`.
+- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D99].
+- The quotes of the doc, in their order, which are its examples.
+- **Examples**: `|~~ a ~(add 1) b ~~| | quotes` → `[~(add 1)]`;
+  `"x" | add 1 !| explain | doc | quotes | count` → `1`.
 
 Asking each element whether it is an error:
 

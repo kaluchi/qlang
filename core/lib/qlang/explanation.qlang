@@ -17,12 +17,3 @@
       ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
   ~~|
   ::verb~(/error)
-
-:quotes
-  |~~ The quotes of the page, in their order, which are its examples
-      [D95].
-
-      ~("x" | add 1 !| explain | quotes | count | eq 1)
-      ~("x" | add 1 !| explain | quotes | first | type | eq ::quote)
-  ~~|
-  ::verb~(:returns ::vec | /doc | segments | filter ~(type | eq ::quote))

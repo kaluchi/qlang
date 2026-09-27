@@ -15,6 +15,15 @@
       and each span that reads as code a quote, which are its examples.
 
       ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
-      ~(|~~ see ~(add 1) ~~| | segments | filter ~(type | eq ::quote) | eq [~(add 1)])
+      ~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docSegments})
+
+:quotes
+  |~~ The quotes of the doc in their order, which are its examples
+      [D99].
+
+      ~(|~~ a ~(add 1) b ~(mul 2) ~~| | quotes | eq [~(add 1) ~(mul 2)])
+      ~("x" | add 1 !| explain | doc | quotes | count | eq 1)
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docQuotes})

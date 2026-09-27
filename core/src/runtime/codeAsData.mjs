@@ -32,6 +32,7 @@ bindPrim('apply', async (subject, code) => await code(subject));
 
 bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
+bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
 
 // printAnswer(value, env, state?) → the print of a value: a part under a
 // tag whose kind answers a `print` of its own prints through it, and the

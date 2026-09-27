@@ -3,5 +3,5 @@
 {"name":"an-explanation-answers-the-error-it-explains","query":"\"x\" | add 1 !| explain | error | type","expect":"::AddLeftNotNumberError","decision":"D98"}
 {"name":"the-error-of-an-explanation-rides-the-success-track","query":"\"x\" | add 1 !| explain | error | /actualType","expect":"::string","decision":"D98"}
 {"name":"the-error-of-an-explanation-raises-again","query":"\"x\" | add 1 !| explain | error | raise !| type","expect":"::AddLeftNotNumberError","decision":"D98"}
-{"name":"an-explanation-answers-the-quotes-through-its-page","query":"\"x\" | add 1 !| explain | doc | quotes | count","expect":"1","decision":["D98","D99"],"target":true,"now":"::ProjectionSequenceKeyNotIntegerError"}
+{"name":"an-explanation-answers-the-quotes-through-its-page","query":"\"x\" | add 1 !| explain | doc | quotes | count","expect":"1","decision":["D98","D99"]}
 {"name":"an-explanation-prints-its-page-first","query":"\"x\" | add 1 !| explain | print | contains \"::explanation{\n  :doc |~~\"","expect":"true","decision":"D98"}

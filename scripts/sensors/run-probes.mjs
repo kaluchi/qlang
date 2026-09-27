@@ -102,12 +102,19 @@ async function printedByCore(query) {
   try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
+// The print of an error begins with its literal, `::Tag!{` or `!{`.
+const readsAsError = text => /^(::[\w/.-]+)?!\{/.test(text);
+
 // An answer that is no literal, a raw string the command line printed,
-// compares as the text the command line prints.
+// compares as the text the command line prints. An answer with … holds
+// only where the print is an error exactly when the answer is one, so
+// the words of a page do not match inside the error that carries the
+// page as its subject [D93].
 async function answersAsRecorded({ query, answer }) {
   if (answer === '') return !isErrorValue(await evalQuery(query));
   if (answer.includes('…')) {
     const printed = squash(onCommandLine(query));
+    if (readsAsError(printed) !== readsAsError(answer)) return false;
     let from = 0;
     for (const piece of answer.split(/\s*…\s*/).filter(Boolean)) {
       const at = printed.indexOf(piece, from);

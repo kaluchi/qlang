@@ -228,7 +228,8 @@ export function refusalsOfNoun(env, tagName, ownRefusals, refusalsOfVerb) {
     const declared = addressedVerb(env, address.name).descriptor;
     return isVerb(declared) ? refusalsOfVerb(declared) : declared.get('throws') ?? [];
   });
-  return Object.freeze([...new Set([...ownRefusals, ...verbRefusals])]);
+  const refusalsByName = new Map([...ownRefusals, ...verbRefusals].map(refusal => [refusal.name, refusal]));
+  return Object.freeze([...refusalsByName.values()]);
 }
 
 // What lies below a noun in the tree of names [D62]: the nouns under its

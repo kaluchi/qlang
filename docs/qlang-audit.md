@@ -1050,12 +1050,12 @@ errors hands it on unchanged [D13], as a verb's slot does [D68]:
 ```
 
 The ring of atoms [D42] stays open at one example of the catalog: an
-error literal whose trail is no vector of stops is a step that `error`,
+error literal whose trail is no vector of stops is a step that `raise`,
 the one verb that builds an error from its fields, refuses to build,
 since the error a step produces carries its path there [D82], [D85].
 
 ```qlang
-> ~(!{:kind :oops :trail 5}) * (!| error !| type)
+> ~(!{:kind :oops :trail 5}) * (!| raise !| type)
 [::ErrorTrailNotVecError]
 ```
 
@@ -1203,11 +1203,13 @@ nothing executes them:
   ```
 
 - The chapter on modules shows `use :qlang/error` loading the error
-  library, which the command line cannot load:
+  library, retry and recover and assert, where the name loads the
+  module of the kind of errors, which declares `trail` and `explain`
+  [D97], so the call loads it and answers its subject:
 
   ```qlang
-  > use :qlang/error
-  ::UseNamespaceNotFoundError!{ :namespaceName :qlang/error … }
+  > 1 | use :qlang/error
+  1
   ```
 
 - The example of a quote-bodied constructor, `::cond`, calls `first`
@@ -1997,34 +1999,6 @@ same tag stamping without running it again, which is a rule of dynamic
 scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the third
 milestone moves the constructors onto the kinds [D6], [D33].
-
-The contract of an error on the fail track [D46], [D64]. «потом напомни
-рассмотреть с ошибками как быть .. потому что у нас перехват их есть !|
-а вот здесь уже просто тэгированный мэп .. хорошо что тегированное .. но
-все равно .. на такой дескриптор особо не повесить ни trail ни какой-то
-ещё глагол.. т.к. там просто сотни тэгированных мэпов и это плохо ..
-банально там !| explain - не сделать или ещё какой-то единый контракт
-кроме  того что от  any/docs идет...» (maintainer, 2026-09-27 08:40,
-session d427ce7e). After `!|` the subject is the descriptor under the
-tag of the site that refused, and its walk passes that tag, which is no
-noun, then the map, then any value, so a verb declared on `::error`,
-the kind of every error, is never reached:
-
-```qlang
-> "x" | add 1 !| type
-::AddLeftNotNumberError
-
-> "x" | add 1 !| trail !| type
-::UnresolvedIdentifierError
-```
-
-The alternatives are the walk of a refusal's tag passing `::error`, each
-refusal declared a kind of errors, which is the third milestone's move
-of the refusing sites onto kinds [D46] and asks nothing more; the
-descriptor materialized under `::error` with the tag of its site as a
-field, which gives every error one walk at the price of what `!| type`
-answers today; and contracts of any value, which put the words of
-errors on every value.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

@@ -1,10 +1,10 @@
-{"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error","decision":"D97","target":true,"now":"::map"}
-{"name":"every-error-answers-its-trail","query":"\"x\" | add 1 !| trail | count","expect":"1","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"the-trail-starts-where-the-error-arose","query":"\"x\" | add 1 !| trail | first | /step","expect":"~(add 1)","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"explain-reads-the-page-of-the-site","query":"\"x\" | add 1 !| explain | eq (::AddLeftNotNumberError | docs | first)","expect":"true","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"raise-puts-a-map-on-the-fail-track-as-an-error","query":"{:k 1} | raise !| type","expect":"::error","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"raise-keeps-the-tag-the-value-shows","query":"::Site::error{:k 1} | raise !| type","expect":"::Site","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"an-opened-error-raised-again-is-the-error","query":"\"x\" | add 1 !| raise !| type","expect":"::AddLeftNotNumberError","decision":"D97","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"a-projection-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | /a","expect":"1","decision":"D97","target":true,"now":"::ProjectionSubjectNotProjectableError"}
+{"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error","decision":"D97"}
+{"name":"every-error-answers-its-trail","query":"\"x\" | add 1 !| trail | count","expect":"1","decision":"D97"}
+{"name":"the-trail-starts-where-the-error-arose","query":"\"x\" | add 1 !| trail | first | /step","expect":"~(add 1)","decision":"D97"}
+{"name":"explain-reads-the-page-of-the-site","query":"\"x\" | add 1 !| explain | eq (::AddLeftNotNumberError | docs | first)","expect":"true","decision":"D97"}
+{"name":"raise-puts-a-map-on-the-fail-track-as-an-error","query":"{:k 1} | raise !| type","expect":"::error","decision":"D97"}
+{"name":"raise-keeps-the-tag-the-value-shows","query":"::Site::error{:k 1} | raise !| type","expect":"::Site","decision":"D97"}
+{"name":"an-opened-error-raised-again-is-the-error","query":"\"x\" | add 1 !| raise !| type","expect":"::AddLeftNotNumberError","decision":"D97"}
+{"name":"a-projection-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | /a","expect":"1","decision":"D97"}
 {"name":"an-error-value-is-no-raised-error","query":"::error{:k 1} | count","expect":"1","decision":"D97"}
 {"name":"the-bang-raises-an-error","query":"!{:k 1} | count !| type","expect":"::error","decision":"D97"}

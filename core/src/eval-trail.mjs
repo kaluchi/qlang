@@ -12,7 +12,7 @@
 //     the word, any other waits in the container as it is.
 //   `skipping(error, skippedStep)` — the error that skipped a step.
 //   `resumingItsTrail(error)` — marks an error whose maker, an error
-//     literal or `error`, wrote its `:trail`.
+//     literal or `raise`, wrote its `:trail`.
 //   `raisedBy(error, node)` — marks the error a node's own fault raised.
 //
 // Every error the runtime makes carries a path. The one value of the

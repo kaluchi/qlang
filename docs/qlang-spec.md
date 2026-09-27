@@ -1558,7 +1558,7 @@ from inside any query or library module.
   {:allowed #[:read :write :delete]
    :impl ~(:p /
      | every ~(:permissions/allowed | has)
-     | if not ~(error {:kind :PermissionUnknown}) ~()
+     | if not ~(raise {:kind :PermissionUnknown}) ~()
      | p)}
 
 |~| → returns the Set unchanged on valid input,
@@ -1799,7 +1799,7 @@ step where it arose to the step where it is read. A stop is
 it on, the subject that step had, and the steps of its pipeline the
 error skipped after it, a step skipped under `*` wrapped as
 `::each`. A step whose answer is an error its subject was not adds a
-stop: a step that fails, a call of `error`, an error literal written
+stop: a step that fails, a call of `raise`, an error literal written
 as a step, and a step that answers an error from inside it, the call
 of a verb, a group, an operand running a quote. `trail | first` is
 where the error arose, `trail | last` the stop of the level that
@@ -1850,14 +1850,30 @@ carries a path whose skipped steps have no stop to join:
 The `!{}` literal from Part 1 can seed an error directly — the
 example above uses it to bypass the need for a failing step.
 
-### The `error` operand
+### The `raise` operand
 
-`error` lifts a Map into an error value — bare form (`map | error`)
-or full form (`error map`):
+An error is a value of the kind `::error`, a map of facts under it,
+`::error{:kind :oops}`, and the error a site refuses with is the tag
+of its site stacked over that value, `::AddLeftNotNumberError::error{…}`.
+Raising is the act that puts it on the fail track: `raise` raises a
+Map, bare form (`map | raise`) or full form (`raise map`), and the
+bang writes the raise in a literal, `!{…}` [D97]:
 
 ```qlang
-> error {:kind :oops} !| /kind
+> raise {:kind :oops} !| /kind
 :oops
+```
+
+`!|` opens a raised error to the error itself, where every step works
+as on any value; the verbs of `::error` reach every error, `trail` its
+path and `explain` the page of its site:
+
+```qlang
+> "hello" | add 1 !| trail | count
+1
+
+> "hello" | add 1 !| explain | content | contains "must be a number"
+true
 ```
 
 Whether a value is an error reads as `false !| true`: the head
@@ -1893,13 +1909,13 @@ literals name this slot at construction, `::Tag!{…}` by the tag
 written before its bang and `!{:kind ::Tag …}` by its `:kind`;
 errors without either are of the kind of errors, `::error`. The
 descriptor Map below carries only data — no `:kind` field — so
-`result !| union … | error` re-lift round-trips preserve identity
-automatically. `error` names the error it lifts by the tag its value
+`result !| union … | raise` re-lift round-trips preserve identity
+automatically. `raise` names the error it raises by the tag its value
 shows, so a tag a step lays over the descriptor renames the error
 [D86]:
 
 ```qlang
-> "hello" | add 1 !| tag ::Greeting | error !| type
+> "hello" | add 1 !| tag ::Greeting | raise !| type
 ::Greeting
 ```
 
@@ -1955,7 +1971,7 @@ The stops of `:trail` enable pipeline-level diagnostic inspection:
 
 ### Trail continuity across re-lift
 
-When a step under `!|` returns a Map and a later `| error` re-wraps
+When a step under `!|` returns a Map and a later `| raise` re-wraps
 it, a Map that writes the `:trail` it read resumes that path: the new
 error adds no stop, and the steps it skips join the last stop again.
 An error printed and read back, or built back from its atoms, is the
@@ -1963,19 +1979,19 @@ error it was. This is the mechanism behind MDC-style context
 enrichment:
 
 ```qlang
-!| union {:request @requestId} | error
+!| union {:request @requestId} | raise
 |~| adds fields to the descriptor and re-lifts without losing the trail
 ```
 
 A verb that re-lifts inside its body hands the error on from inside
 it, so its call adds a stop of its own after the path it resumed. To
 start the path over at the re-lift, leave `:trail` out of the Map;
-the `error` that lifts it adds the first stop, and the steps past it
+the `raise` that lifts it adds the first stop, and the steps past it
 join that stop:
 
 ```qlang
-> !{:kind :oops} | count !| minus #[:trail] | error | add 1 !| /trail * /step
-[~(error)]
+> !{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step
+[~(raise)]
 ```
 
 ---

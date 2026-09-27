@@ -94,7 +94,7 @@ the language, described here in meta-notation for clarity.
 ## Step types
 
 Five kinds of steps. Every syntactic form in the language reduces
-to one of them. `use`, `env`, `manifest`, and `error` parse as
+to one of them. `use`, `env`, `manifest`, and `raise` parse as
 ordinary identifiers (Step 3) that resolve to built-ins in the
 language runtime.
 
@@ -476,8 +476,8 @@ ordinary Map and may use any Map-oriented operand (`/key`, `has`,
 error-handling knowledge. Any result the step produces becomes the new
 `pipeValue` — if the step produces a non-error value, the
 pipeline is back on the success-track; if the step re-lifts via
-`| error` with the `:trail` it read, the pipeline stays on the
-fail-track on the same path, since an `error` whose map writes
+`| raise` with the `:trail` it read, the pipeline stays on the
+fail-track on the same path, since a `raise` whose map writes
 `:trail` resumes it [D85].
 
 On a non-error `pipeValue` the combinator is an identity.
@@ -715,7 +715,7 @@ indistinguishable from built-ins.
 | `\|~\|`, `\|~ ~\|`                   | Step 5 — plain comment (identity)     |
 | `\|~~\|`, `\|~~ ~~\|`                | the doc literal, or a doc of a declaration's slot |
 | `use`, `env`, `manifest`   | Step 3 — reflective built-in          |
-| `error`                             | Step 3 — error built-in               |
+| `raise`                             | Step 3 — raising built-in             |
 | `\|`, `!\|`, `*`                    | Combinators                           |
 | `(...)` grouping                    | Fork                                  |
 | Vec / Map / Set entry evaluation    | Fork per entry                        |
@@ -1161,7 +1161,7 @@ it as the error flows, with no pending state on the error value:
   of the word; an error handed on from inside the word stays as it
   is until a step takes it out of the container.
 - `resumingItsTrail(error)` — marks an error that an error literal
-  or the `error` operand built from a map that writes `:trail`, so
+  or the `raise` operand built from a map that writes `:trail`, so
   the step that answers it adds no stop and the path continues.
 
 A stop at every level makes the path of an error the path of the
@@ -1175,10 +1175,10 @@ error, so its `:skipped` replays there:
     error !| /trail * /step                    -- a step at every level
 
 Trail continuity across re-lift: when a step running under `!|`
-returns a Map with the `:trail` it read and a later `| error`
+returns a Map with the `:trail` it read and a later `| raise`
 re-wraps it, the new error resumes that path, and the steps it skips
 join its last stop again. A Map without `:trail` starts a path at
-the `error` that lifts it.
+the `raise` that lifts it.
 
 ### Descriptor shape and invariant
 
@@ -1205,7 +1205,7 @@ identity-overlay channel TaggedInstance / binding record /
 catalog builtin descriptor all use), so `result !| type` reads
 the same identity, and the `payload` operand strips it cleanly.
 No redundant `:kind <tag>` Map field — any user-stamped `:kind`
-slot on the source descriptor (`{:kind :oops :…} | error`)
+slot on the source descriptor (`{:kind :oops :…} | raise`)
 rides through verbatim as ordinary data without identity-
 slot collision. Errors without an explicit `:kind ::Foo`
 literal entry are of the kind of errors, `::error`, so
@@ -1237,7 +1237,7 @@ overwrite. The runtime instance descriptor itself carries only the
 dynamic fields above so each fault stays compact and consumers go
 through hypertext for tag-binding metadata.
 
-User-created error values (`!{...}` or `error map`) carry
+User-created error values (`!{...}` or `raise map`) carry
 whatever fields the author provides — no mandatory schema beyond
 the `:trail` invariant. The runtime guarantees the other fields
 only for its own errors.

@@ -72,8 +72,8 @@
 {"name":"a-constructor-of-the-core-never-meets-a-failure","query":"[::set(nosuch)] * (!| type)","expect":"[::UnresolvedIdentifierError]","decision":"D86"}
 {"name":"the-tag-of-a-literal-over-a-failure-joins-its-skipped-steps","query":"::P {:impl ~(add 1)} | [::P(nosuch)] * (!| /trail * /skipped)","expect":"[[~(tag ::P)]]","decision":"D86"}
 {"name":"tag-over-an-error-it-takes-out-of-a-pair-answers-the-error","query":"[::Foo (!{:k 1})] | tag !| [type (/trail * /step)]","expect":"[::error [~(!{:k 1}) ~(tag)]]","decision":"D86"}
-{"name":"the-tag-a-step-lays-over-the-descriptor-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| [type (/trail * /step)]","expect":"[::Foo [~(add 1)]]","decision":["D86","D97"],"target":true,"now":"[::UnresolvedIdentifierError [~(raise)]]"}
-{"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar","decision":["D86","D97"],"target":true,"now":"::UnresolvedIdentifierError"}
+{"name":"the-tag-a-step-lays-over-the-descriptor-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| [type (/trail * /step)]","expect":"[::Foo [~(add 1)]]","decision":["D86","D97"]}
+{"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar","decision":["D86","D97"]}
 {"name":"the-step-of-a-tagged-error-literal-is-the-error-it-spells","query":"~(::Foo!{:k 1}) | first !| [type /k]","expect":"[::Foo 1]","decision":"D86"}
 {"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::ErrorTrailNotVecError]","decision":"D86"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::ProjectionKeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}

@@ -239,16 +239,20 @@
   ~~|
 
 ::error
-  |~~ The kind of errors, the kind a bare error literal implies, as
-      `[…]` implies the vector: an error that no refusal names is of
-      it, and prints without it, `!{:k 1}`. Every refusal is a tag of
-      its own, named for what failed, `::AddLeftNotNumberError`, and
-      lives on the place it guards, which lists it in its `/throws`;
-      `!| type` reads the tag, and `!| type | docs` its page.
+  |~~ The kind of errors [D97]: an error is a map of facts under it,
+      `::error{:k 1}`, a value like any other until it is raised, and
+      the bang of a literal raises it, `!{:k 1}`. Every refusal is a tag
+      of its own, named for what failed, `::AddLeftNotNumberError`,
+      stacked over the error, and lives on the place it guards, which
+      lists it in its `/throws`. `!|` opens a raised error to that
+      stack, so `!| type` reads the site, and the verbs of this kind,
+      `trail` and `explain`, reach every error.
 
       ~(!{:detail "boom"} !| type | eq ::error)
       ~(::qlang/error | eq ::error)
       ~("x" | add 1 !| type | eq ::error | not)
+      ~("x" | add 1 !| payload | type | eq ::error)
+      ~(::error{:k 1} | /k | eq 1)
   ~~|
 
 ::binding

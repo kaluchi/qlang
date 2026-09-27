@@ -792,7 +792,7 @@ binding of the tag holds its constructor [D79].
   - `42 | tag ::Box | payload | eq 42` → `true`.
   - `[1 2 3] | tag ::Triple | type` → `::Triple`.
   - `::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3]` → `true` — split/assemble round-trip.
-  - `1 | add "1" !| [type payload] | tag | error !| type` → `::AddRightNotNumberError` — short rebuild of a fail-track error from its `[tag, descriptor]` projection.
+  - `1 | add "1" !| [type payload] | tag | raise !| type` → `::AddRightNotNumberError` — short rebuild of a fail-track error from its `[tag, descriptor]` projection.
   - `[::Box (!{:k 1})] | tag !| type` → `::error` — the error the pair holds answers the call.
 - **Errors**: captured arg / first Vec element not a TagKeyword →
   `TagModifierNotTagKeywordError`; bare-form subject not a 2-element
@@ -1216,38 +1216,50 @@ its own eval handler in `eval.mjs`.
 
 Error inspection and transformation ride through the `!|`
 combinator (fail-apply), which owns the track-dispatch decision.
-`!|` fires its step against a materialized error descriptor —
-ordinary Map operations (`/key`, `has`, `keys`, `vals`, `union`,
-`minus`, `inter`, `eq`, `filter` over `:trail`, etc.) apply
-directly to the descriptor exactly as they would on any other
-Map. The operand below is the entry of the fail-track: `error`
-lifts a Map into it, and whether `pipeValue` already rides there
+`!|` opens a raised error to the error itself, `::error{…}` under
+the tag of its site [D97]: projections read its facts, ordinary Map
+operations (`has`, `keys`, `vals`, `union`, `minus`, `inter`, `eq`)
+apply as on any other Map, and the verbs of `::error` below reach
+every error. The operand `raise` is the entry of the fail-track: it
+puts a Map on it, and whether `pipeValue` already rides there
 reads as `false !| true`, since the head `false` rides `|` and
 deflects on an error that `!| true` then answers.
 
-### `error`
+### `raise`
 
-- **Arity** 1. **Subject** `map` (the descriptor); the verb resides on
-  `::map` [D76].
-- Lifts a Map into an error value — the sole constructor for the
-  5th type at the language level alongside the `!{…}` literal.
-  Bare form `map | error` uses pipeValue as the descriptor; full
-  form `error map` evaluates the captured Map against pipeValue
-  as context. The resulting error rides the fail-track: `|` and
-  `*` deflect it into the trail, `!|` fires its step against
-  the materialized descriptor.
+- **Arity** 1. **Subject** `map` (the facts of the error); the verb
+  resides on `::map` [D76].
+- Puts a Map on the fail track as an error, the act the `!{…}`
+  literal writes with its bang [D97]. Bare form `map | raise` raises
+  pipeValue; full form `raise map` evaluates the captured Map against
+  pipeValue as context. `|` and `*` step around the raised error
+  into its trail, and `!|` opens it to the error itself.
 - Identity sources, in priority order: the tag its value shows
   over the map, the outermost the walk passed [D86]; then the
   source Map's `TAG_HEADER_SYMBOL` JS-header slot (the channel
-  `!|`-materialization and `tag ::Foo` use); then a `:kind ::Tag`
+  `::error{…}` and `tag ::Foo` use); then a `:kind ::Tag`
   field if the header is absent (qlang-level rebrand); falling
   back to the kind of errors, `::error`. The header branch makes
-  `error !| [type payload] | tag | error` recover the original
-  per-site tag without a manual `:kind` field stamp, and the first
-  makes a tag a step lays over the descriptor rename the error.
-- **Examples**: `error {:kind :oops} !| /kind` → `:oops`;
-  `"x" | add 1 !| tag ::Renamed | error !| type` → `::Renamed`.
-- **Errors**: subject not a Map → `ErrorDescriptorNotMapError`.
+  `x !| raise` the error `x` it opened, and a tag a step lays over
+  the error renames it.
+- **Examples**: `raise {:kind :oops} !| /kind` → `:oops`;
+  `"x" | add 1 !| tag ::Renamed | raise !| type` → `::Renamed`.
+- **Errors**: subject not a Map → `RaiseSubjectNotMapError`.
+
+### `trail`
+
+- **Arity** 0. **Subject** `error`; the verb resides on `::error`
+  [D97].
+- The path of the error [D85]: each stop from the step that raised
+  it, with the subject that step met and the steps skipped after it.
+- **Examples**: `"x" | add 1 !| trail | count` → `1`.
+
+### `explain`
+
+- **Arity** 0. **Subject** `error`; the verb resides on `::error`
+  [D97].
+- The page of the error's site [D7]: the doc of the tag it shows.
+- **Examples**: `"x" | add 1 !| explain | content | contains "must be a number"` → `true`.
 
 Asking each element whether it is an error:
 

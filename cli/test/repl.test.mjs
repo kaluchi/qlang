@@ -175,7 +175,7 @@ describe('runRepl — error rendering', () => {
     // The path of an error is written as it flows [D85], so the value
     // the cell answers already holds every stop and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
-    const query = '!{:kind :first} | count !| union {:k 1} | error | add 1 | mul 2';
+    const query = '!{:kind :first} | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);

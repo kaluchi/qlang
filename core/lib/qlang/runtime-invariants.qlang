@@ -419,13 +419,13 @@
        )
       ~(
         !{:kind :oops} | count
-        !| union {:trail 5} | error
+        !| union {:trail 5} | raise
         !| type | eq ::ErrorTrailNotVecError
        )
       ~(
         !{:kind :oops} | count
-        !| minus #[:trail] | error | add 1
-        !| /trail * /step | eq [~(error)]
+        !| minus #[:trail] | raise | add 1
+        !| /trail * /step | eq [~(raise)]
        )
   ~~|
 

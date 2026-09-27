@@ -26,7 +26,7 @@ const RING_TIMEOUT = 120_000;
 
 const OPEN_EXAMPLES = new Map([
   // The step of an error literal whose trail is no vector of stops:
-  // `error`, the one verb that builds an error from its fields, refuses
+  // `raise`, the one verb that builds an error from its fields, refuses
   // that trail, since the error a step produces holds its path there.
   ['!{:kind :oops :trail 5} !| [type /actualType] | eq [::ErrorTrailNotVecError ::number]',
     'no verb builds an error step whose trail is no vector of stops'],

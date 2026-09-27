@@ -1,0 +1,24 @@
+|~ The verbs of errors [D97]. Each resides on `::qlang/error`, the kind
+   every error is a value of: the error `!|` opens is `::error{…}`, or
+   the tag of the site that refused stacked over it, and its walk passes
+   `::error` on its way to the map, so a verb declared here reaches every
+   error. ~|
+
+:trail
+  |~~ The path of the error [D85]: each step it passed, from the one
+      that raised it, with the subject that step met and the steps
+      skipped after it.
+
+      ~("x" | add 1 !| trail | count | eq 1)
+      ~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
+  ~~|
+  ::verb~(:returns ::vec | /trail)
+
+:explain
+  |~~ The page of the error's site [D7]: the doc of the tag it shows,
+      which says what failed and holds the examples of the failure.
+
+      ~("x" | add 1 !| explain | content | contains "must be a number")
+      ~(!{:k 1} !| explain | eq (::error | docs | first))
+  ~~|
+  ::verb~(:subject ::any | :returns ::doc | type | docs | first)

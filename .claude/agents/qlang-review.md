@@ -42,7 +42,7 @@ The principle propagates:
 | function, method (in a runtime value context) | `function value`, `operand`, `built-in` |
 | field, attribute (when describing a node) | `descriptor field`, `meta entry`, `node property` named explicitly |
 | token, symbol (when describing source) | `comment token`, `identifier`, `keyword`, `combinator`, `MapEntry key` |
-| error handling, exception, try/catch (in qlang contexts) | `fail-track`, `success-track`, `fail-apply` (`!|`), `deflect`, `fire`, `trail`, `materialize descriptor`, `lift via \`error\` operand` |
+| error handling, exception, try/catch (in qlang contexts) | `fail-track`, `success-track`, `fail-apply` (`!|`), `deflect`, `fire`, `trail`, `materialize descriptor`, `raise via \`raise\` operand` |
 | skip, propagate (of errors through a pipeline) | `deflect` (success-track combinator bypassing an error, appending to trail), `fire` (combinator applying its step because pipeValue is on its track) |
 
 The qlang vocabulary you must absorb from reading the codebase before reviewing covers (non-exhaustively):
@@ -62,9 +62,9 @@ qlang's error model is **two-track**: pipeline values flow on either the **succe
 - Every error value's descriptor carries `:trail`, the path of the error, a vector of stops, by **invariant** — enforced once by `makeErrorValue` in `types.mjs`. The last stop's `:skipped` holds as code the steps skipped at the level that reads the error; `parse` prints it, `apply` replays it. Hot-path readers read `:trail` unconditionally; no defensive fallback.
 - A verb called via `!|` receives the materialized descriptor as its body's first pipeValue; the body is an ordinary sub-pipeline that composes through `|`, `!|`, `*` like any other.
 - The first operand step of every body — a query, a group, a distribute body, a captured argument, a verb's body, an applied quote — rides `|` like every other step. A leading combinator (captured in `Pipeline.leadingCombinator`, one of `!|` / `|` / `*`) routes it through that combinator instead, even though there is no preceding step. The `!|` form is used inside `filter(…)` / `when(…)` / `if(…)` lambdas where the per-element pipeValue may be on either track. A plain comment in head position hands the head to the first operand step; the follower's continuation unit carries the absorbed marker (`combinator: null`) unless the author wrote a combinator after the comment.
-- A re-lift whose Map writes the `:trail` it read resumes the path; one that leaves it out (`minus #[:trail]`) starts a path at its `error`. Any value under `:trail` other than a vector of stops fires `ErrorTrailNotVecError` at mint time (`makeErrorValue`).
+- A re-lift whose Map writes the `:trail` it read resumes the path; one that leaves it out (`minus #[:trail]`) starts a path at its `raise`. Any value under `:trail` other than a vector of stops fires `ErrorTrailNotVecError` at mint time (`makeErrorValue`).
 - Whether a value is an error reads as `false !| true`: the head `false` deflects on an error and `!| true` answers it, so the combinator alone decides the track.
-- `error` is the lift operand: `Map | error` or `error Map` wraps a Map into a fresh error value. `!{…}` literal is the syntactic short form.
+- `raise` puts a Map on the fail track: `Map | raise` or `raise Map` raises it as a fresh error value. The bang of the `!{…}` literal writes the same act [D97].
 
 Any finding about error handling must be written in this vocabulary — `fire`, `deflect`, `materialize`, `expose`, `fail-apply`, `lift`, `trail continuity`, `fail-track`, `success-track`. "Error propagation" as a catch-all term is forbidden drift; see Section 2.
 
@@ -87,7 +87,7 @@ Documentation, code comments, commit messages, and error strings must read as if
 - `PROPAGATION_ENTER`, `PROPAGATION_SILENT`, "propagation check", "propagation block", "error propagation" used as a mechanism name: the mechanism is **deflect** (a success-track combinator bypassing its step on an error pipeValue) and **fire** (a combinator applying its step because pipeValue is on the combinator's track). "Propagation" survives only as a descriptive noun for the observable behavior ("the error propagates past `|` steps"), never as a code-level machinery name.
 - "Transparent verb" as a dispatch category: verbs are ordinary OperandCalls; `!|` routes them into the fail-track, `|` routes them into the success-track with deflection on an error.
 - `| catch | /…` patterns in tests, docs, or lib modules: replace with `!| /…`.
-- `catch (as :_err | … | error _err)` patterns in `core/lib/extras/error*.qlang` verbs: replace with `!| … | error`.
+- `catch (as :_err | … | raise _err)` patterns in `core/lib/extras/error*.qlang` verbs: replace with `!| … | raise`.
 
 Any match above is blocker-grade drift regardless of context.
 

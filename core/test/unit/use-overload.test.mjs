@@ -214,10 +214,10 @@ describe('per-site error triple-assertions', () => {
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('ErrorDescriptorNotMapError: name, instanceof', async () => {
-    const evalResult = await evalQuery('42 | error');
+  it('RaiseSubjectNotMapError: name, instanceof', async () => {
+    const evalResult = await evalQuery('42 | raise');
     const originalErr = evalResult.originalError;
-    expect(originalErr.name).toBe('ErrorDescriptorNotMapError');
+    expect(originalErr.name).toBe('RaiseSubjectNotMapError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 });

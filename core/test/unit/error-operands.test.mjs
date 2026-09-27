@@ -8,21 +8,21 @@ import { createSession } from '../../src/session.mjs';
 import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
-// ── error operand ──────────────────────────────────────────────
+// ── raise operand ──────────────────────────────────────────────
 
-describe('error operand', () => {
+describe('raise operand', () => {
   it('bare form wraps pipeValue Map', async () => {
-    const evalResult = await evalQuery('{:kind :oops} | error !| /kind');
+    const evalResult = await evalQuery('{:kind :oops} | raise !| /kind');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('bare form on non-Map produces ErrorDescriptorNotMapError', async () => {
-    const evalResult = await evalQuery('42 | error !| type');
-    expect(evalResult).toEqual(makeTagKeyword('ErrorDescriptorNotMapError'));
+  it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
+    const evalResult = await evalQuery('42 | raise !| type');
+    expect(evalResult).toEqual(makeTagKeyword('RaiseSubjectNotMapError'));
   });
 
   it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
-    const evalResult = await evalQuery('null | error ("not-a-number" | add 1) !| type');
+    const evalResult = await evalQuery('null | raise ("not-a-number" | add 1) !| type');
     expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 });
@@ -276,7 +276,7 @@ describe('per-site error classes carry unique identity', () => {
     // the resulting error's `tag` slot and drops the field from
     // the descriptor — the same identity invariant the
     // `evalErrorLit` literal path enforces.
-    const result = await evalQuery('::MyTag {} | {:kind ::MyTag :detail "x"} | error');
+    const result = await evalQuery('::MyTag {} | {:kind ::MyTag :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
     expect(result.descriptor.has('kind')).toBe(false);
     expect(result.descriptor.get('detail')).toBe('x');

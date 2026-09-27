@@ -240,17 +240,19 @@ async function distribute(state, bodyNode) {
   return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
 }
 
-// `!|` runs the step on an error alone, against its descriptor, a map of
-// every field, `:trail` among them, under the error's tag, so `!| type`
-// reads the tag; a value passes. A re-lift that writes the `:trail` it
-// read resumes that path [D85].
+// `!|` runs the step on a raised error alone, opened to the error
+// itself: the map of its facts, `:trail` among them, under `::error`,
+// with the tag of the site that refused stacked over it, so `!| type`
+// reads the site and a verb of `::error` reaches every error [D97]; a
+// value passes. A raise that writes the `:trail` it read resumes that
+// path [D85].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
-  const errorVal = state.pipeValue;
-  const descriptorView = new Map(errorVal.descriptor);
-  stampTagHeader(descriptorView, errorVal.tag);
-  const answered = await evalNode(stepNode, withPipeValue(state, descriptorView));
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), descriptorView));
+  const raised = state.pipeValue;
+  const errorOfKind = makeTaggedInstance(ERROR_TAG, new Map(raised.descriptor));
+  const opened = raised.tag === ERROR_TAG ? errorOfKind : makeTaggedInstance(raised.tag, errorOfKind);
+  const answered = await evalNode(stepNode, withPipeValue(state, opened));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -488,24 +490,27 @@ function projectSignature(signatureSpec, projKey) {
   return declared.get('body');
 }
 
+// A projection reads the map or the vector beneath the tags stacked over
+// its subject, so the facts of an opened error read by name [D97].
 function projectSegment(subject, projKey) {
   if (isValueClass(subject, 'taggedInstance') && subject.tag.name === SPEC_TAG.name) {
     return projectSignature(subject, projKey);
   }
-  if (isQMap(subject)) {
-    if (!subject.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
-    return subject.get(projKey);
+  const projected = containerBeneathTags(subject);
+  if (isQMap(projected)) {
+    if (!projected.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
+    return projected.get(projKey);
   }
-  if (isVec(subject)) {
+  if (isVec(projected)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
       throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
     }
     const segmentIndex = parseInt(projKey, 10);
-    const resolvedIndex = segmentIndex < 0 ? subject.length + segmentIndex : segmentIndex;
-    if (resolvedIndex < 0 || resolvedIndex >= subject.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: subject.length, actualValue: subject });
+    const resolvedIndex = segmentIndex < 0 ? projected.length + segmentIndex : segmentIndex;
+    if (resolvedIndex < 0 || resolvedIndex >= projected.length) {
+      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: projected.length, actualValue: subject });
     }
-    return subject[resolvedIndex];
+    return projected[resolvedIndex];
   }
   throw new ProjectionSubjectNotProjectableError({
     key: projKey,

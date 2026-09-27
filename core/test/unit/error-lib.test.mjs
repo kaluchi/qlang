@@ -92,7 +92,7 @@ describe('recover — kind-matching rewrites the error, non-matching re-lifts', 
   });
 
   it('re-lifts the descriptor when the predicate does not match and the next !| reads through', async () => {
-    // Non-matching recover runs its else-branch `error` quote
+    // Non-matching recover runs its else-branch `raise` quote
     // against the materialized descriptor, lifting it back into a
     // fresh error. The next `!|` then projects :code off that
     // re-lifted error's descriptor, round-tripping the original
@@ -133,7 +133,7 @@ describe('withContext — merges a context Map into the descriptor', () => {
 
   it('the path of the error continues through the withContext re-lift', async () => {
     // The literal's stop keeps the step it skipped, `count`; the
-    // verb's internal `| error` resumes the path the fail track read,
+    // verb's internal `| raise` resumes the path the fail track read,
     // and the call of the verb, a step that answers an error from
     // inside it, adds its own stop, where `add 5` lands [D85].
     const ctxResult = await runOk(sessionInstance, '!{:kind :oops} | count !| withContext {:ctx 1} | add 5 !| /trail * [(/step | parse) (/skipped | parse)]');

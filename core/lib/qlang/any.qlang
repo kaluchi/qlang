@@ -907,6 +907,31 @@
       ~(:filter | examples !| /addresses | has ::vec/filter)
   ~~|
 
+:explain
+  |~~ The explanation of the value [D100], `::explanation{:doc … :value …}`:
+      the page `docs` reads for it, then the value itself, so it prints
+      as the page above what it explains [D98]. A name reads its own
+      page, a value the page of the kind it shows, and an error `!|`
+      opened the page of its site, which says what failed.
+
+      ~(42 | explain | doc | eq (::number | docs | first))
+      ~(::number/add | explain | doc | content | contains "Adds two numbers")
+      ~("x" | add 1 !| explain | doc | content | contains "must be a number")
+  ~~|
+  ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
+
+::ExplainBindingNotFoundError
+  |~~ `explain` — no declaration found for the page of its subject: a
+      keyword that names no binding of its scope, or a tag name that
+      names nothing.
+
+      ~(
+        :nonexistent-binding | explain
+        !| [type /bindingName]
+        |  eq [::ExplainBindingNotFoundError :nonexistent-binding]
+       )
+  ~~|
+
 :spec
   |~~ The declaration a name reads. A verb, a built-in among them,
       answers its signature, a `::spec~(…)` whose subject is its noun

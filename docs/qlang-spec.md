@@ -1866,8 +1866,10 @@ bang writes the raise in a literal, `!{…}` [D97]:
 
 `!|` opens a raised error to the error itself, where every step works
 as on any value; the verbs of `::error` reach every error, `trail` its
-path and `explain` its explanation, a value of the kind `::explanation`
-that holds the page of its site above the error itself [D98]:
+path among them. `explain` answers the explanation of any value, a
+value of the kind `::explanation` that holds the page `docs` reads for
+it above the value itself, and for an error the page of its site
+[D98], [D100]:
 
 ```qlang
 > "hello" | add 1 !| trail | count
@@ -1879,7 +1881,7 @@ that holds the page of its site above the error itself [D98]:
 
       ~("hello" | add 1 !| [type /actualType] | eq [::AddLeftNotNumberError ::string])
   ~~|
-  :error ::AddLeftNotNumberError::error{
+  :value ::AddLeftNotNumberError::error{
     :actualType ::string
     :trail [
       {
@@ -1892,8 +1894,9 @@ that holds the page of its site above the error itself [D98]:
 }
 ```
 
-The explanation answers by verbs of its own: `doc` the page, `error`
-the error, a value on the success track that `raise` raises again, and the
+The explanation answers by verbs of its own: `doc` the page, `value`
+what it explains, an error among them a value on the success track that
+`raise` raises again, and the
 page answers its quotes, which are its examples, by the verb of the
 doc, `explain | doc | quotes` [D99].
 

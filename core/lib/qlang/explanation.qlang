@@ -1,19 +1,23 @@
 |~ The verbs of explanations [D98]. Each resides on
-   `::qlang/explanation`, the kind of what `explain` answers: the page of
-   an error's site and the error itself. ~|
+   `::qlang/explanation`, the kind of what `explain` answers: the page
+   `docs` reads for a value and the value itself [D100]. ~|
 
 :doc
-  |~~ The page of the error's site [D7], the doc of the tag it shows.
+  |~~ The page of what the explanation explains: of a name its own, of
+      a value the page of the kind it shows, of an error the page of its
+      site [D7]; null for a declaration without one.
 
       ~("x" | add 1 !| explain | doc | eq (::AddLeftNotNumberError | docs | first))
+      ~(42 | explain | doc | eq (::number | docs | first))
   ~~|
-  ::verb~(:returns ::doc | /doc)
+  ::verb~(:returns #[::doc ::null] | /doc)
 
-:error
-  |~~ The error the explanation explains, the one `!|` opened, a value
-      on the success track that `raise` raises again [D97].
+:value
+  |~~ The value the explanation explains; an error among them is the one
+      `!|` opened, a value on the success track that `raise` raises
+      again [D97].
 
-      ~("x" | add 1 !| explain | error | /actualType | eq ::string)
-      ~("x" | add 1 !| explain | error | raise !| type | eq ::AddLeftNotNumberError)
+      ~(42 | explain | value | eq 42)
+      ~("x" | add 1 !| explain | value | raise !| type | eq ::AddLeftNotNumberError)
   ~~|
-  ::verb~(/error)
+  ::verb~(/value)

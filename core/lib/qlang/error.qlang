@@ -13,14 +13,3 @@
       ~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
   ~~|
   ::verb~(:returns ::vec | /trail)
-
-:explain
-  |~~ The explanation of the error [D98]: the page of its site [D7],
-      the doc of the tag it shows, which says what failed and holds the
-      examples of the failure, then the error itself, so it prints as
-      the page above the error.
-
-      ~("x" | add 1 !| explain | doc | content | contains "must be a number")
-      ~(!{:k 1} !| explain | doc | eq (::error | docs | first))
-  ~~|
-  ::verb~(:subject ::any | :returns ::explanation | {:doc (type | docs | first) :error /} | tag ::explanation)

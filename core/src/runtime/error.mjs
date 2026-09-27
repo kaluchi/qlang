@@ -1,13 +1,5 @@
-// `error` lifts a map into an error value, a plain function over the map
-// the head of its verb checked [D72]; the verb resides on `::map`, and
-// `error map` reads its first modifier as the subject.
-//
-// Error-track dispatch is owned by the `!|` combinator in eval.mjs.
-// The verb carries no flag distinguishing "error aware" from ordinary
-// verbs; the combinator alone decides which track fires its step, so
-// whether a value is an error reads as `false !| true`.
-//
-// The verb lives in lib/qlang/map.qlang.
+// The primitive of `error`, a verb of `::map` that lifts a map into an
+// error value [D72].
 
 import { isTagKeyword, makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';

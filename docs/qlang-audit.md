@@ -1321,9 +1321,8 @@ $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | 
 [D30] asks the ratio to fall, and it has begun to fall from the September
 master.
 
-In several files of the core the comments still outweigh the code, the
-error roots, the keys of the environment, the effect marker and the
-bootstrap among them:
+In the error roots, the keys of the environment and the effect marker
+the comments still outweigh the code:
 
 ```sh
 $ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
@@ -1331,11 +1330,6 @@ core/src/effect-check.mjs
 core/src/effect.mjs
 core/src/env-keys.mjs
 core/src/errors.mjs
-core/src/runtime/bootstrap.mjs
-core/src/runtime/codeAsData.mjs
-core/src/runtime/env-op.mjs
-core/src/runtime/error.mjs
-core/src/source-load-error.mjs
 ```
 
 Most of those comments justify, and none states an invariant in a

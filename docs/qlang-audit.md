@@ -1756,8 +1756,8 @@ form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5] in the conformance suite. The name
-`binding` there stands for the operand the branch names, the
+Its answers are the targets of [D5] and [D95] in the conformance
+suite. The name `binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
 shape is the requirement.
@@ -2006,6 +2006,34 @@ scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the third
 milestone moves the constructors onto the kinds [D6], [D33].
 
+The contract of an error on the fail track [D46], [D64]. «потом напомни
+рассмотреть с ошибками как быть .. потому что у нас перехват их есть !|
+а вот здесь уже просто тэгированный мэп .. хорошо что тегированное .. но
+все равно .. на такой дескриптор особо не повесить ни trail ни какой-то
+ещё глагол.. т.к. там просто сотни тэгированных мэпов и это плохо ..
+банально там !| explain - не сделать или ещё какой-то единый контракт
+кроме  того что от  any/docs идет...» (maintainer, 2026-09-27 08:40,
+session d427ce7e). After `!|` the subject is the descriptor under the
+tag of the site that refused, and its walk passes that tag, which is no
+noun, then the map, then any value, so a verb declared on `::error`,
+the kind of every error, is never reached:
+
+```qlang
+> "x" | add 1 !| type
+::AddLeftNotNumberError
+
+> "x" | add 1 !| trail !| type
+::UnresolvedIdentifierError
+```
+
+The alternatives are the walk of a refusal's tag passing `::error`, each
+refusal declared a kind of errors, which is the third milestone's move
+of the refusing sites onto kinds [D46] and asks nothing more; the
+descriptor materialized under `::error` with the tag of its site as a
+field, which gives every error one walk at the price of what `!| type`
+answers today; and contracts of any value, which put the words of
+errors on every value.
+
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed
@@ -2099,3 +2127,4 @@ maintainer wants to explore it before it is fixed.
 [D92]: decisions/D92.md
 [D93]: decisions/D93.md
 [D94]: decisions/D94.md
+[D95]: decisions/D95.md

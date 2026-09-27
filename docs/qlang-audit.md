@@ -1812,7 +1812,9 @@ answers name the workspace they came from [D38]; a host's command is
 the language's with its noun as the first value [D37]; and the
 benchmark runs [D26].
 
-Its answers stand beside the conformance suite: one start command
+Its answer in the conformance suite is the target of [D7], a parse
+error that names no marker of a comment among the continuations of a
+quote left open; the others stand beside the suite: one start command
 returns the root doc within four kilobytes; a host answers within a
 budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the

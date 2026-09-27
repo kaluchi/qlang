@@ -1839,8 +1839,11 @@ baseline's copy of `node scripts/gate-diff.mjs --task Dnn` names for
 the review every move it made on them [D59]. A design question that appears during a branch is decided in
 this document on master before the branch goes on; an implementation
 session decides nothing silently, since a decision taken in code is a
-decision no one will find. The sister project receives every breaking
-change in the same move.
+decision no one will find. What confuses a session on the way is
+settled where it is met, fixed when the decisions already choose the
+fix and otherwise recorded with its probe as a target, a decision or a
+question [D89]. The sister project receives every breaking change in
+the same move.
 
 A session is one of three kinds. A design session talks, decides, and
 updates this document; it reads this document, the sources the
@@ -2101,3 +2104,4 @@ maintainer wants to explore it before it is fixed.
 [D86]: decisions/D86.md
 [D87]: decisions/D87.md
 [D88]: decisions/D88.md
+[D89]: decisions/D89.md

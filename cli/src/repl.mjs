@@ -1,5 +1,5 @@
 // REPL for the qlang CLI. Persistent session across cells —
-// a BindStep `:x 42` followed by `x | pretty | @out` works inside
+// a BindStep `:x 42` followed by `x | print | @out` works inside
 // one session.
 //
 // Built on `cli/src/line-editor.mjs`:
@@ -16,7 +16,7 @@
 //     events identically.
 //
 // Contract differences from the script-mode runner:
-//   * Each cell's success-track value auto-prints (printValue +
+//   * Each cell's success-track value auto-prints (print +
 //     ANSI), the way every interactive REPL surfaces results;
 //     script mode stays silent without `@out` by design.
 //   * `@in` resolves to the empty String — interactive stdin is
@@ -31,7 +31,7 @@
 
 import { createSession } from '@kaluchi/qlang-core/session';
 import {
-  printValue,
+  printAnswer,
   isErrorValue,
   langRuntime
 } from '@kaluchi/qlang-core';
@@ -150,18 +150,18 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic);
+      await writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic);
       lineEditor.prompt();
     }
   });
 }
 
-function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
+async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
   // Parse failures and runtime fail-track errors both surface as
   // `isErrorValue(cellEntry.result)` — session.evalCell lifts
   // ParseError through `errorFromParse` so the same structured
   // `::Tag!{…}` print path covers both, the path of the error in its
   // `:trail` [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
-  sink(highlightAnsi(printValue(cellEntry.result), builtinNames) + '\n');
+  sink(highlightAnsi(await printAnswer(cellEntry.result, cellEntry.envAfterCell), builtinNames) + '\n');
 }

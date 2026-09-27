@@ -443,16 +443,15 @@ its list of files fails where a pattern matches none, so a file that
 moved reads as a failure and never as a repair.
 
 Its first version compared by value, as the compliance test does, and
-disagreed with a probe whose print agreed. The disagreement was a
-finding: a descriptor of the catalog prints without its `::builtin`
-tag and reads back as another value, which the audit now records among
-its false comments. The runner keeps both comparisons, so a probe that
-prints alike and is another value is reported as lossy. A string prints
-raw on the command line, and its text may read as words of the command
-form, so the runner holds a string's answer against its raw print first.
-The lossy probes are the descriptor's, and they pass, since their print
-agrees; every target that a literal can state is a conformance case
-naming its decision, which the runner of the suite holds [D58].
+disagreed with a probe whose print agreed: a descriptor of the catalog
+printed without its `::builtin` tag and read back as another value,
+until the print of a value wrote the tag [D96]. The runner keeps both
+comparisons, so a probe that prints alike and is another value is
+reported as lossy. A string prints raw on the command line, and its
+text may read as words of the command form, so the runner holds a
+string's answer against its raw print first. Every target that a
+literal can state is a conformance case naming its decision, which the
+runner of the suite holds [D58].
 
 ## What the maintainer repeats
 
@@ -690,6 +689,7 @@ entrypoint's first screen has to say how to ask.
 [D35]: decisions/D35.md
 [D58]: decisions/D58.md
 [D93]: decisions/D93.md
+[D96]: decisions/D96.md
 [E1]: decisions/E1.md
 [E2]: decisions/E2.md
 [E3]: decisions/E3.md

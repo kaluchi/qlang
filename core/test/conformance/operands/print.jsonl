@@ -1,8 +1,8 @@
-{"name":"print-writes-an-atom-as-its-literal","query":"42 | print","expect":"\"42\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~a ~(add 1)~~|\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\"","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v / | print | parse | :q / | apply q | eq v","expect":"true","decision":"D96","target":true,"now":"::UnresolvedIdentifierError"}
+{"name":"print-writes-an-atom-as-its-literal","query":"42 | print","expect":"\"42\"","decision":"D96"}
+{"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\"","decision":"D96"}
+{"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\"","decision":"D96"}
+{"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~a ~(add 1)~~|\"","decision":"D96"}
+{"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\"","decision":"D96"}
+{"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\"","decision":"D96"}
+{"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\"","decision":"D96"}
+{"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v / | print | parse | :q / | apply q | eq v","expect":"true","decision":"D96"}

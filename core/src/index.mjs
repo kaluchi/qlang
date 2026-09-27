@@ -8,6 +8,7 @@ import { evalAst, evalQuery } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
 import { verbsReaching } from './runtime/nouns.mjs';
+import { printAnswer } from './runtime/codeAsData.mjs';
 import {
   createSession,
   serializeSession,
@@ -124,6 +125,7 @@ export {
   toTaggedJSON,
   fromTaggedJSON,
   printValue,
+  printAnswer,
   toPlain,
   fromPlain,
   FromPlainNumberNotFiniteError,

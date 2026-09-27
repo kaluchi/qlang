@@ -22,14 +22,14 @@
 // the success-channel render path. Agent harnesses parallelise
 // `qlang` invocations and rely on exit-0 for a completed run; a
 // non-zero exit on a fail-track result would cancel sibling tool
-// calls. `printValue` renders the descriptor in qlang-rich form
-// (`!{:kind ... :trail ...}`); `toPlain` lifts it to tagged JSON
+// calls. `print` renders the descriptor in qlang-rich form
+// (`!{:kind ... :trail ...}`) [D96]; `toPlain` lifts it to tagged JSON
 // (`{$error: {...}}`) for the json channel.
 //
 // REPL mode has its own renderer inline in repl.mjs — the per-cell
-// auto-print there stays qlang-native (printValue + ANSI).
+// auto-print there stays qlang-native (print + ANSI).
 
-import { isErrorValue, printValue, langRuntime } from '@kaluchi/qlang-core';
+import { isErrorValue, printAnswer, langRuntime } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
@@ -62,11 +62,11 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
     // Parse failures land both as a host-error marker (so the exit
     // code reflects the syntactic failure) AND as a structured
     // `::ParseError!{…}` ErrorValue on the result channel. Render
-    // the ErrorValue when present — `printValue` produces the
+    // the ErrorValue when present — `print` produces the
     // caret-pointer-aware diagnostic; fall back to the raw JS
     // message for non-lifted host failures (setup errors, etc.).
     const diagnostic = isErrorValue(cellEntry.result)
-      ? await maybePaint(printValue(cellEntry.result), shouldColorize)
+      ? await maybePaint(await printAnswer(cellEntry.result, cellEntry.envAfterCell), shouldColorize)
       : `qlang: ${cellEntry.error.message}`;
     return {
       stdoutText: '',
@@ -77,8 +77,8 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (didExplicitStdoutEffect) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
-  const encoded = encodeSuccessValueForFormat(cellEntry.result, resolvedFormat);
-  // Only the qlang-form output (printValue, used when the input
+  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell);
+  // Only the qlang-form output (the print, used when the input
   // format is `raw`) gets colorized — JSON output stays raw so
   // downstream readers (jq, et al.) see the structured payload
   // without ANSI escapes even when piped to a TTY.

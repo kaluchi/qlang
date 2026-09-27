@@ -4,8 +4,8 @@
 // filter — JSON in → JSON out, text in → text out — without the
 // `@in | parseJson | … | json | @out` ceremony.
 //
-// REPL mode keeps using printValue for cell auto-output (qlang-
-// native display); this module is the script-mode encoder only.
+// REPL mode prints each cell's value through `print` (qlang-native
+// display); this module is the script-mode encoder only.
 // `@out`/`@err`/`@tap` remain available in both modes as explicit
 // dump channels.
 //
@@ -25,17 +25,17 @@
 //     surfaces as `parseError` for the caller to report as a host-
 //     level error and exit 1. `raw` skips parsing entirely.
 //
-//   `encodeSuccessValueForFormat(value, resolvedFormat)`
+//   `encodeSuccessValueForFormat(value, resolvedFormat, env)`
 //     → String bytes for stdout (no trailing newline — caller adds)
 //
 //     Symmetric to liftStdinToPipeValue. `json` input → JSON output
 //     via `toPlain` + `JSON.stringify(_, null, 2)`. `raw` input →
-//     raw pass-through for String success values, printValue
-//     fallback for anything else (qlang-native composites). The
+//     raw pass-through for String success values, and the `print` of
+//     anything else in the environment the query left [D96]. The
 //     input format is the contract the user established; the output
 //     honours it.
 
-import { fromPlain, toPlain, printValue, makeTagKeyword } from '@kaluchi/qlang-core';
+import { fromPlain, toPlain, printAnswer, makeTagKeyword } from '@kaluchi/qlang-core';
 
 const JSON_PRETTY_INDENT = 2;
 
@@ -93,13 +93,12 @@ function liftParsedDocument(parsed, resolvedFormat) {
   }
 }
 
-export function encodeSuccessValueForFormat(value, resolvedFormat) {
+export async function encodeSuccessValueForFormat(value, resolvedFormat, env) {
   if (resolvedFormat === 'json') {
     return JSON.stringify(toPlain(value), null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
-  // (the raw-in-raw-out contract); anything else falls back to the
-  // qlang literal so the user still sees something meaningful.
+  // (the raw-in-raw-out contract); anything else goes out as its print.
   if (typeof value === 'string') return value;
-  return printValue(value);
+  return printAnswer(value, env);
 }

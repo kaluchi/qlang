@@ -1,13 +1,18 @@
 // The primitives of `parse`, which reads source text into a quote and
 // prints a quote as its text, of `apply`, which runs a quote against the
-// subject [D43], [D72], and of a doc's `content`, which writes its quotes
-// as text among its prose, and `segments`, its parts [D95].
+// subject [D43], [D72], of a doc's `content`, which writes its quotes as
+// text among its prose, and `segments`, its parts [D95], and of `print`,
+// the text that reads back as any value [D96].
 
-import { bindPrim } from '../primitives.mjs';
-import { isQuote } from '../types.mjs';
+import { bindPrim, bindStateReader } from '../primitives.mjs';
+import { isQuote, isVerb, isErrorValue, bindingValueOf, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { quoteOfSource, printQuoteSource, docText } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
+import { rootState } from '../state.mjs';
+import { printValue } from './print-value.mjs';
+import { addressedVerb, residenceOnSubject } from './nouns.mjs';
+import { applyVerbOn } from './verb.mjs';
 
 // The refusal the head of `apply` raises at the code it declares.
 declareModifierError('ApplyCodeNotQuoteError', 'apply', 2, 'quote');
@@ -27,3 +32,31 @@ bindPrim('apply', async (subject, code) => await code(subject));
 
 bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
+
+// printAnswer(value, env, state?) → the print of a value: a part under a
+// tag whose kind answers a `print` of its own prints through it, and the
+// forms of the core print the rest [D96].
+export async function printAnswer(value, env, state = rootState(value, env)) {
+  const printedByKind = new Map();
+  await collectPrintsOfKinds(value, env, state, addressedVerb(env, 'any/print')?.descriptor, printedByKind);
+  return printValue(value, 0, part => printedByKind.get(part));
+}
+
+async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind) {
+  if (part === null || typeof part !== 'object') return;
+  if (part[TAG_HEADER_SYMBOL] !== undefined) {
+    const printOfKind = bindingValueOf(residenceOnSubject(env, 'print', part));
+    if (isVerb(printOfKind) && printOfKind !== printOfAny) {
+      const printed = (await applyVerbOn(printOfKind, part, [], state, 'print')).pipeValue;
+      printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
+      return;
+    }
+  }
+  const parts = isErrorValue(part) ? part.descriptor.values()
+    : part instanceof Map ? part.values()
+    : Array.isArray(part) ? part
+    : 'payload' in part ? [part.payload] : [];
+  for (const inner of parts) await collectPrintsOfKinds(inner, env, state, printOfAny, printedByKind);
+}
+
+bindStateReader('print', (subject, state) => printAnswer(subject, state.env, state));

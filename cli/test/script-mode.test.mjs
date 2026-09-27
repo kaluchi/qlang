@@ -4,6 +4,7 @@
 // success value back.
 
 import { describe, it, expect } from 'vitest';
+import { langRuntime } from '@kaluchi/qlang-core';
 import {
   DEFAULT_SUBJECT,
   liftStdinToPipeValue,
@@ -52,25 +53,25 @@ describe('liftStdinToPipeValue — explicit formats', () => {
 });
 
 describe('encodeSuccessValueForFormat', () => {
-  it('encodes a qlang Map as pretty JSON under json format', () => {
+  it('encodes a qlang Map as pretty JSON under json format', async () => {
     const value = new Map([
       ['a', 1],
       ['b', 2]
     ]);
-    const text = encodeSuccessValueForFormat(value, 'json');
+    const text = await encodeSuccessValueForFormat(value, 'json');
     expect(text).toBe('{\n  "a": 1,\n  "b": 2\n}');
   });
 
-  it('encodes a String as a JSON string literal under json format', () => {
-    expect(encodeSuccessValueForFormat('hi', 'json')).toBe('"hi"');
+  it('encodes a String as a JSON string literal under json format', async () => {
+    expect(await encodeSuccessValueForFormat('hi', 'json')).toBe('"hi"');
   });
 
-  it('passes a String through raw under raw format (no quotes)', () => {
-    expect(encodeSuccessValueForFormat('hi', 'raw')).toBe('hi');
+  it('passes a String through raw under raw format (no quotes)', async () => {
+    expect(await encodeSuccessValueForFormat('hi', 'raw')).toBe('hi');
   });
 
-  it('falls back to printValue for a non-String composite under raw format', () => {
+  it('prints a non-String composite under raw format', async () => {
     const value = new Map([['k', 1]]);
-    expect(encodeSuccessValueForFormat(value, 'raw')).toBe('{:k 1}');
+    expect(await encodeSuccessValueForFormat(value, 'raw', await langRuntime())).toBe('{:k 1}');
   });
 });

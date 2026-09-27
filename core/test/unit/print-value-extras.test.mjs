@@ -249,3 +249,42 @@ describe('the finite-double domain holds at every render seam', () => {
     expect(toPlain(0.1)).toBe(0.1);
   });
 });
+
+// A kind a module declares prints its parts through its own `print`,
+// and the forms of the core print the rest of the value [D96].
+describe('print — the print a kind of a module answers', () => {
+  const BADGE_SOURCE = [
+    '::qlang/badge |~~ A badge. ~~|',
+    '',
+    ':print',
+    '  |~~ A badge as its name. ~~|',
+    '  ::verb~(:returns ::string | /name)'
+  ].join('\n');
+
+  async function badgeSession() {
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession({ locator: async name => (name === 'qlang/badge' ? { source: BADGE_SOURCE } : null) });
+    await session.evalCell('use :qlang/badge');
+    return session;
+  }
+
+  it('takes the print of a part from the kind of that part', async () => {
+    const session = await badgeSession();
+    const printed = await session.evalCell('[::badge{:name "ok"} {:k ::badge{:name "no"}} 1] | print');
+    expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
+  });
+
+  it('reaches a part inside an error and under a tag over a scalar', async () => {
+    const session = await badgeSession();
+    const inError = await session.evalCell('[!{:k ::badge{:name "in"}}] | print');
+    expect(inError.result).toContain(':k in');
+    const underTag = await session.evalCell('::Box |~~ a box ~~| | [::Box(5) :kw] | print');
+    expect(underTag.result).toBe('[::Box(5) :kw]');
+  });
+
+  it('prints what a kind answers that is no string as the value it is', async () => {
+    const session = await badgeSession();
+    const printed = await session.evalCell('[(5 | tag ::badge)] | print');
+    expect(printed.result).toContain('::ProjectionSubjectNotProjectableError!{');
+  });
+});

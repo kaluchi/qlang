@@ -196,7 +196,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
   it('routes `@out` emissions to stdout and skips the auto-encode', async () => {
     const s = captureStreams();
     const exitCode = await main(
-      ['[1 2 3] | count | pretty | @out'],
+      ['[1 2 3] | count | print | @out'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);

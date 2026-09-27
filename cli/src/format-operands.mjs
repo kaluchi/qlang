@@ -1,6 +1,6 @@
-// The primitives of the renderers of the command line, `pretty`, `tjson`
-// and `table`, verbs of the noun `::qlang/cli` [D92], each a plain
-// function over the value the head of its verb checks [D80].
+// The primitives of the renderers of the command line, `tjson` and
+// `table`, verbs of the noun `::qlang/cli` [D92], each a plain function
+// over the value the head of its verb checks [D80].
 
 import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue, toTaggedJSON } from '@kaluchi/qlang-core';
@@ -44,7 +44,6 @@ function table(subject) {
 }
 
 export const formatImpls = {
-  pretty: subject => printValue(subject),
-  tjson:  subject => JSON.stringify(toTaggedJSON(subject)),
+  tjson: subject => JSON.stringify(toTaggedJSON(subject)),
   table
 };

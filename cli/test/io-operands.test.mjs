@@ -56,7 +56,7 @@ describe('@out — bare form (0 captured)', () => {
 describe('@out — full-application form (1 captured)', () => {
   it('runs the renderer against pipeValue and writes its String result', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('42 | @out pretty', io);
+    const cellEntry = await runQuery('42 | @out print', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('42\n');
     expect(cellEntry.result).toBe(42);
@@ -103,7 +103,7 @@ describe('@err — bare form', () => {
 describe('@err — full-application form', () => {
   it('runs the renderer and writes the result to stderr', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('[1 2 3] | @err pretty', io);
+    const cellEntry = await runQuery('[1 2 3] | @err print', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });

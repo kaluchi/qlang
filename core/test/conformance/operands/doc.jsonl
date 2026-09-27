@@ -5,8 +5,8 @@
 {"name":"doc-line-form-renders-as-block","query":"|~~| oneliner","expect":"|~~ oneliner~~|"}
 {"name":"doc-line-form-empty","query":"|~~|","expect":"|~~~~|"}
 {"name":"doc-replaces-pipevalue","query":"42 | |~~ replaced ~~|","expect":"|~~ replaced ~~|"}
-{"name":"doc-content-projection","query":"|~~ x ~~| | /content","expect":"\" x \""}
-{"name":"doc-content-projection-empty","query":"|~~~~| | /content","expect":"\"\""}
+{"name":"doc-content-projection","query":"|~~ x ~~| | join","expect":"\" x \"","decision":"D94","target":true,"now":"::JoinSubjectNotVecError"}
+{"name":"doc-content-projection-empty","query":"|~~~~| | join","expect":"\"\"","decision":"D94","target":true,"now":"::JoinSubjectNotVecError"}
 {"name":"doc-type-answers-doc","query":"|~~ x ~~| | type | eq ::doc","expect":"true"}
 {"name":"doc-type-doc-false-string","query":"\"x\" | type | eq ::doc","expect":"false"}
 {"name":"doc-type-doc-false-quote","query":"~(x) | type | eq ::doc","expect":"false"}
@@ -18,8 +18,8 @@
 {"name":"doc-eq-doc-vs-quote","query":"eq (|~~ x ~~|) ~(x)","expect":"false"}
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
-{"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | /content","expect":"\" second \""}
-{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionFieldNotOnValueClassError!{\n  :key \"unknownKey\"\n  :valueClass \"doc\"\n  :availableFields [\"content\" \"segments\"]\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | join","expect":"\" second \"","decision":"D94","target":true,"now":"::JoinSubjectNotVecError"}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::ProjectionSequenceKeyNotIntegerError!{:key \"unknownKey\" :trail [{:step ~(/unknownKey) :subject |~~ x ~~| :skipped ~()}]}","decision":"D94","target":true,"now":"::ProjectionFieldNotOnValueClassError"}
 {"name":"doc-type-is-not-vec","query":"|~~ x ~~| | type | eq ::vec","expect":"false"}
 {"name":"doc-type-is-not-map","query":"|~~ x ~~| | type | eq ::map","expect":"false"}
 {"name":"doc-type-is-not-string","query":"|~~ x ~~| | type | eq ::string","expect":"false"}
@@ -27,5 +27,13 @@
 {"name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
 {"name":"doc-with-backticks-in-content","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
 {"name":"doc-eq-self","query":"|~~ same ~~| | :d / | eq d","expect":"true"}
-{"name":"doc-bound-by-a-freeze","query":"|~~ note ~~| | :n / | n | /content","expect":"\" note \""}
+{"name":"doc-bound-by-a-freeze","query":"|~~ note ~~| | :n / | n | join","expect":"\" note \"","decision":"D94","target":true,"now":"::JoinSubjectNotVecError"}
 {"name":"keyword-naming-a-binding-type-is-not-doc","query":":isDoc | type | eq ::doc","expect":"false"}
+{"name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | count","expect":"3","decision":"D94","target":true,"now":"::VerbWithoutBodyError"}
+{"name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | /1","expect":"~(add 1)","decision":"D94","target":true,"now":"::ProjectionFieldNotOnValueClassError"}
+{"name":"the-text-of-a-doc-is-its-join","query":"|~~ a ~(add 1) b ~~| | join","expect":"\" a ~(add 1) b \"","decision":"D94","target":true,"now":"::JoinSubjectNotVecError"}
+{"name":"a-span-that-reads-as-no-code-is-prose","query":"|~~ x ~(a |) y ~~| | count","expect":"1","decision":"D94","target":true,"now":"::VerbWithoutBodyError"}
+{"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | count","expect":"1","decision":"D94","target":true,"now":"::VerbWithoutBodyError"}
+{"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | count","expect":"1","decision":"D94","target":true,"now":"::VerbWithoutBodyError"}
+{"name":"a-doc-comes-back-from-its-segments-by-tag","query":"[\"a\" ~(add 1)] | tag ::doc | join","expect":"\"a~(add 1)\"","decision":"D94","target":true,"now":"::DocPayloadNotDocError"}
+{"name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| type","expect":"::DocElementNotSegmentError","decision":"D94","target":true,"now":"::DocPayloadNotDocError"}

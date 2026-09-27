@@ -1314,7 +1314,7 @@ September master:
 
 ```sh
 $ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 6534   comment 3388   blank 1006
+code 6575   comment 2918   blank 999
 $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
 code 7529   comment 4644   blank 1025
 ```
@@ -1323,7 +1323,7 @@ The ratio of comment lines to code lines, which D30 asks to fall, has
 begun to fall from the September master.
 
 In several files the comments still outweigh the code: the error roots,
-the keys of the environment, the effect marker and the fork carry more
+the keys of the environment, the effect marker and the bootstrap carry more
 lines of prose than of statements. Most of those comments justify, and
 none states an invariant in a sentence: the keys of the environment
 excuse the scan of their prefixes as “justified by the flat-Map model”

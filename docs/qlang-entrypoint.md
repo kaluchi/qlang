@@ -433,8 +433,9 @@ the command line.
 
 The sensor is `scripts/sensors/run-probes.mjs`, and without an
 argument it reads the audit and this document. A probe whose line
-begins with `$` is a record of the machine it ran on, and the runner
-leaves it unrun.
+begins with `$` runs in a shell when it reads the repository alone, and
+one that reads a machine, the sister project or the environment is
+listed as `machine` and left to be run by hand.
 
 Its first version compared by value, as the compliance test does, and
 disagreed with a probe whose print agreed. The disagreement was a

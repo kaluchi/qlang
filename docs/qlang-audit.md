@@ -42,7 +42,9 @@ Evidence is a fact about the tree. Its handle is a probe or an anchor.
 A probe is a fenced block whose lines beginning with `>` are queries
 typed into `qlang` and whose other lines are what the tree answered on
 the date written before the block; a probe that begins with `$` is a
-shell command, run by hand, since it reads the machine it ran on. A
+shell command, which the runner of probes runs when it reads the
+repository alone and leaves to be run by hand when it reads a machine,
+the sister project or the environment. A
 target, the answer a repair must produce, is a
 conformance case that names its decision [D58]; a block fenced as
 `qlang target` holds one whose answer no literal states yet, and it
@@ -998,7 +1000,7 @@ positive:
 
 ```sh
 $ git diff --shortstat f5e8ec8 -- core/lib cli/lib
- 35 files changed, 3484 insertions(+), 3309 deletions(-)
+ 35 files changed, 3491 insertions(+), 3309 deletions(-)
 ```
 
 Keeping the class names and the catalog in agreement requires a registry
@@ -1191,7 +1193,7 @@ and a hand-written TextMate copy for the editor.
 $ cat docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md | awk 'NF{k++} END{print k}'
 4751
 $ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{next} /^[ \t]*$/{next} {k++} END{print k}'
-4841
+4854
 ```
 
 The reference is a tutorial rather than a specification, as the
@@ -1211,7 +1213,7 @@ nothing executes them:
 
   ```qlang
   > {:a 1} | /b
-  ::ProjectionKeyNotInMapError!{ … :key "b" }
+  ::ProjectionKeyNotInMapError!{ :key "b" … }
   ```
 
 - The chapter on reflection says a built-in without arguments
@@ -1219,7 +1221,7 @@ nothing executes them:
 
   ```qlang
   > [1 2 3] | filter
-  ::VerbSlotMissingError!{ … :verbName :filter :slot :predicate }
+  ::VerbSlotMissingError!{ :verbName :filter :slot :predicate … }
   ```
 
 - The chapter on modules shows `use :qlang/error` loading the error
@@ -1227,7 +1229,7 @@ nothing executes them:
 
   ```qlang
   > use :qlang/error
-  ::UseNamespaceNotFoundError!{ … :namespaceName :qlang/error }
+  ::UseNamespaceNotFoundError!{ :namespaceName :qlang/error … }
   ```
 
 - The example of a quote-bodied constructor, `::cond`, calls `first`
@@ -1322,10 +1324,25 @@ code 7529   comment 4644   blank 1025
 The ratio of comment lines to code lines, which D30 asks to fall, has
 begun to fall from the September master.
 
-In several files the comments still outweigh the code: the error roots,
-the keys of the environment, the effect marker and the bootstrap carry more
-lines of prose than of statements. Most of those comments justify, and
-none states an invariant in a sentence: the keys of the environment
+In several files of the core the comments still outweigh the code, the
+error roots, the keys of the environment, the effect marker and the
+bootstrap among them:
+
+```sh
+$ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
+core/src/effect-check.mjs
+core/src/effect.mjs
+core/src/env-keys.mjs
+core/src/errors.mjs
+core/src/runtime/bootstrap.mjs
+core/src/runtime/codeAsData.mjs
+core/src/runtime/env-op.mjs
+core/src/runtime/error.mjs
+core/src/source-load-error.mjs
+```
+
+Most of those comments justify, and none states an invariant in a
+sentence: the keys of the environment
 excuse the scan of their prefixes as “justified by the flat-Map model”
 (`core/src/env-keys.mjs`).
 Each is a decision that has no record, written where it will be read by
@@ -1372,7 +1389,7 @@ part:
 
   ```sh
   $ node --input-type=module -e "console.log(Object.keys(await import('./core/src/index.mjs')).length)"
-  84
+  85
   $ node -p "Object.keys(require('./core/package.json').exports).length"
   15
   ```

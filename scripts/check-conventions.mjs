@@ -20,12 +20,10 @@
 //       grep — those stay under human review.
 //
 //   (2) Doc-drift between the operand catalog and the published
-//       operand docs. Every `:name … ::builtin{:impl …}` entry
-//       across the per-family catalog files in
-//       `core/lib/qlang/operand/<family>.qlang` must appear as an
-//       `### name` (or equivalent) section in
-//       `docs/qlang-operands.md`. A new operand that lands without
-//       its doc section is caught here before review.
+//       operand docs. Every operand a module of the catalog declares,
+//       a verb `:name … ::verb~(…)` or the loader's descriptor, must
+//       be named in `docs/qlang-operands.md`, until the document
+//       leaves with this check.
 //
 //   (3) Per-site error class `Error` suffix. Every concrete class
 //       introduced by a `declare*Error(...)` factory call or by a
@@ -49,6 +47,13 @@
 //       resolves it for real. Every declaration naming a sibling
 //       workspace — in any dependency map — must read
 //       `^<that workspace's version>`.
+//
+//   (6) Anchors of the documents that hold the work: a path the
+//       audit, the entrypoint document or the instruction file names
+//       exists, and words they quote from the tree, “…” beside the
+//       path of their file, stand in that file. A path under a folder
+//       the repository lacks is the sister project's, checked where
+//       its checkout sits beside this one.
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -146,15 +151,10 @@ function scanForbiddenWords() {
 
 // ── (2) Operand catalog ↔ operand docs drift ───────────────────
 
-// Each operand BindStep in a family file (`core/lib/qlang/operand/
-// <family>.qlang`) declares `:name |~~ … ~~| ::builtin{:impl …}` —
-// keyword head at column 0, optional doc-prefix between, TaggedLit
-// descriptor body (`::builtin{…}`) closing the form. The regex
-// matches the head + descriptor shape across the doc-prefix gap so
-// the family files (and any future runtime-invariants entries that
-// grow the same head shape) all flow through one drift check.
+// An operand's declaration opens a line with its keyword, the doc of its
+// slot between it and a body that is a verb or a descriptor.
 const BUILTIN_OPERAND_DECL_RE =
-  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?::builtin\{/gm;
+  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?(?:::builtin\{|::verb~\()/gm;
 
 function parseOperandCatalog(catalogText) {
   const names = [];
@@ -357,6 +357,44 @@ function workspaceRangeDrift() {
   return violations;
 }
 
+// ── (6) Anchors of the documents that hold the work ────────────
+
+const ANCHOR_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md'];
+const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro))`/g;
+const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
+const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
+
+// The checkout that holds a path: this one when its folder is here, the
+// sister project's where it sits beside this one, and none otherwise.
+function anchorRootOf(anchorPath) {
+  const folder = anchorPath.split('/').slice(0, -1).join('/');
+  if (existsSync(join(repoRoot, folder))) return repoRoot;
+  return existsSync(sisterRoot) ? sisterRoot : null;
+}
+
+function anchorDrift() {
+  const violations = [];
+  for (const documentPath of ANCHOR_DOCUMENTS) {
+    const text = readFileSync(join(repoRoot, documentPath), 'utf8');
+    for (const [, anchorPath] of text.matchAll(ANCHOR_PATH_RE)) {
+      if (/\/(?:Dnn|En)\.md$/.test(anchorPath)) continue;
+      const root = anchorRootOf(anchorPath);
+      if (root !== null && !existsSync(join(root, anchorPath))) {
+        violations.push({ file: documentPath, anchor: anchorPath, problem: 'names a file the tree lacks' });
+      }
+    }
+    for (const [, quoted, anchorPath] of text.replace(/\s+/g, ' ').matchAll(TREE_QUOTE_RE)) {
+      const root = anchorRootOf(anchorPath);
+      if (root === null || !existsSync(join(root, anchorPath))) continue;
+      const anchored = readFileSync(join(root, anchorPath), 'utf8').replace(/\s+/g, ' ');
+      if (!anchored.includes(quoted.trim())) {
+        violations.push({ file: documentPath, anchor: anchorPath, problem: `quotes “${quoted}”, which the file no longer holds` });
+      }
+    }
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -364,12 +402,14 @@ const driftMissing = catalogDocDrift();
 const errorSuffixViolations = errorSuffixDrift();
 const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
+const anchors = anchorDrift();
 
 if (forbidden.length === 0
     && driftMissing.length === 0
     && errorSuffixViolations.length === 0
     && proseTallies.length === 0
-    && workspaceRanges.length === 0) {
+    && workspaceRanges.length === 0
+    && anchors.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -410,5 +450,12 @@ if (workspaceRanges.length > 0) {
     process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
     process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two.\n');
   }
+}
+if (anchors.length > 0) {
+  process.stdout.write(`\nAnchors the tree no longer holds (${anchors.length}):\n`);
+  for (const v of anchors) {
+    process.stdout.write(`  ${v.file}  \`${v.anchor}\` ${v.problem}\n`);
+  }
+  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [D89].\n');
 }
 process.exit(1);

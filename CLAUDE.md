@@ -126,8 +126,15 @@ compatibility, and the TODO, FIXME, and HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on drift between the operand document and the
-catalog, and on error-class suffixes. The audit deletes the last two
-checks together with the duplicates they guard.
+catalog, on error-class suffixes, and on a path the audit, the
+entrypoint document or this file names that the tree lacks or on words
+they quote from the tree that their file no longer holds. The audit
+deletes the drift and suffix checks together with the duplicates they
+guard. `node scripts/sensors/run-probes.mjs` runs every probe of the
+audit and the entrypoint document, the shell ones that read the
+repository alone included, and names the ones that answer otherwise;
+a target case records the answer the tree gives today, so the suite
+tells a repair from a broken case [D91].
 
 Coverage thresholds of one hundred on every axis are pinned in the
 `vitest.config.mjs` of `core/` and `cli/`; the audit keeps a threshold

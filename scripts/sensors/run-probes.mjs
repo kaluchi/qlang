@@ -9,9 +9,13 @@
 // in the core, which answers an `@` operand the query declares. A
 // literal answer that prints alike and is another value is lossy: the
 // printer dropped something the value had. A probe whose line begins
-// with `$` is a record of the machine it ran on and is not run. Runs
-// wherever the checkout is, CI included, through the core and the
-// command line of the checkout.
+// with `$` is a shell command: one that reads the repository alone,
+// through `git`, `qlang`, `cat` or `node` outside the sensors, runs in
+// bash from the root of the checkout, and one that reads a machine, the
+// sister project or the environment is listed as `machine` and left to
+// be run by hand. A block indented inside an item of a list is read as
+// it stands. Runs wherever the checkout is, CI included, through the
+// core and the command line of the checkout.
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the audit and the entrypoint.
@@ -35,19 +39,23 @@ const squash = text => text.replace(/\s+/g, ' ').trim();
 function probesOf(source) {
   const probes = [];
   let fence = null;
+  let fenceIndent = 0;
   let open = null;
   const close = () => {
     if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
     open = null;
   };
-  source.split('\n').forEach((line, index) => {
+  source.split('\n').forEach((rawLine, index) => {
+    const indent = rawLine.length - rawLine.trimStart().length;
+    const line = rawLine.slice(Math.min(indent, fence === null ? indent : fenceIndent));
     if (line.startsWith('```')) {
       close();
       fence = fence === null ? line.slice(3).trim() : null;
-    } else if (fence !== null && line.startsWith('> ')) {
+      fenceIndent = indent;
+    } else if (fence !== null && (line.startsWith('> ') || line.startsWith('$ '))) {
       close();
-      open = { target: /\btarget\b/.test(fence), line: index + 1, query: line.slice(2).trim(), answer: [] };
-    } else if (open && open.answer.length === 0 && line.startsWith('  ')) {
+      open = { shell: line.startsWith('$ '), target: /\btarget\b/.test(fence), line: index + 1, query: line.slice(2).trim(), answer: [] };
+    } else if (open && !open.shell && open.answer.length === 0 && line.startsWith('  ')) {
       open.query += '\n' + line.trim();
     } else if (open && line.trim() === '') {
       close();
@@ -65,6 +73,24 @@ function onCommandLine(query) {
   } catch (failed) {
     return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
   }
+}
+
+const readsTheRepositoryAlone = command =>
+  /^(?:git|qlang|cat|node)\s/.test(command) && !/cli\/bin\/jdt|scripts\/sensors/.test(command);
+
+function printedByShell(command) {
+  const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
+  try {
+    return execFileSync('bash', ['-c', `qlang() { node "${commandLine}" "$@"; }\n${command}`],
+      { cwd: repoRoot, encoding: 'utf8', input: '', env: { ...process.env, MSYS_NO_PATHCONV: '1' } });
+  } catch (failed) {
+    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
+  }
+}
+
+function shellVerdict({ query, answer }) {
+  if (!readsTheRepositoryAlone(query)) return 'machine';
+  return squash(printedByShell(query)) === answer ? 'ok' : 'STALE';
 }
 
 async function printedByCore(query) {
@@ -98,8 +124,12 @@ async function answersAsRecorded({ query, answer }) {
 for (const documentPath of documents) {
   const shownPath = relative(repoRoot, documentPath).split(/[\\/]/).join('/');
   for (const probe of probesOf(readFileSync(documentPath, 'utf8').replace(/\r\n/g, '\n'))) {
-    const agrees = await answersAsRecorded(probe);
-    const verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
-    console.log(`${verdict.padEnd(7)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
+    let verdict;
+    if (probe.shell) verdict = shellVerdict(probe);
+    else {
+      const agrees = await answersAsRecorded(probe);
+      verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
+    }
+    console.log(`${verdict.padEnd(8)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
   }
 }

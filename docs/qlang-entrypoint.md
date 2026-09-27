@@ -432,10 +432,15 @@ matches piece by piece, and a query that names an `@` operand runs on
 the command line.
 
 The sensor is `scripts/sensors/run-probes.mjs`, and without an
-argument it reads the audit and this document. A probe whose line
-begins with `$` runs in a shell when it reads the repository alone, and
-one that reads a machine, the sister project or the environment is
-listed as `machine` and left to be run by hand.
+argument it reads the audit and this document. `npm run ci` and the
+checks of every push run it, so a probe whose answer changed, or a
+target the tree now answers, fails them, and the branch that moved the
+answer rewrites the sentence around it [D93]. A probe whose line begins
+with `$` runs in a shell unless it names the sister project, the
+sensors or the environment, which make it a probe of a machine, left to
+be run by hand; its pipeline fails where any command of it fails, and
+its list of files fails where a pattern matches none, so a file that
+moved reads as a failure and never as a repair.
 
 Its first version compared by value, as the compliance test does, and
 disagreed with a probe whose print agreed. The disagreement was a
@@ -445,18 +450,9 @@ its false comments. The runner keeps both comparisons, so a probe that
 prints alike and is another value is reported as lossy. A string prints
 raw on the command line, and its text may read as words of the command
 form, so the runner holds a string's answer against its raw print first.
-
-```
-$ node scripts/sensors/run-probes.mjs | awk '{print $1}' | sort | uniq -c
-      2 LOSSY
-     43 ok
-      1 target
-```
-
-The two lossy probes are the descriptor's; every other probe of both
-documents gives the recorded answer, and a target the tree now answers
-is reported as met; every target that a literal can state is a
-conformance case naming its decision, which the runner holds [D58].
+The lossy probes are the descriptor's, and they pass, since their print
+agrees; every target that a literal can state is a conformance case
+naming its decision, which the runner of the suite holds [D58].
 
 ## What the maintainer repeats
 
@@ -693,6 +689,7 @@ entrypoint's first screen has to say how to ask.
 [D34]: decisions/D34.md
 [D35]: decisions/D35.md
 [D58]: decisions/D58.md
+[D93]: decisions/D93.md
 [E1]: decisions/E1.md
 [E2]: decisions/E2.md
 [E3]: decisions/E3.md

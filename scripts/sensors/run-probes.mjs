@@ -9,13 +9,16 @@
 // in the core, which answers an `@` operand the query declares. A
 // literal answer that prints alike and is another value is lossy: the
 // printer dropped something the value had. A probe whose line begins
-// with `$` is a shell command: one that reads the repository alone,
-// through `git`, `qlang`, `cat` or `node` outside the sensors, runs in
-// bash from the root of the checkout, and one that reads a machine, the
-// sister project or the environment is listed as `machine` and left to
-// be run by hand. A block indented inside an item of a list is read as
-// it stands. Runs wherever the checkout is, CI included, through the
-// core and the command line of the checkout.
+// with `$` is a shell command. One that names the sister project, the
+// sensors, which read the transcripts of a machine, or the environment
+// is listed as `machine` and left to be run by hand; any other reads the
+// repository alone and runs in bash from the root of the checkout, where
+// its pipeline fails if any command of it fails and its list of files,
+// `git ls-files`, carries `--error-unmatch`, so a file gone from under
+// it reads as a failure and never as a repair. A block indented inside
+// an item of a list is read as it stands. A probe whose answer changed,
+// a target the tree meets, and a list of files without the flag fail the
+// run, which `npm run ci` and the checks of a push make [D93].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the audit and the entrypoint.
@@ -75,21 +78,23 @@ function onCommandLine(query) {
   }
 }
 
-const readsTheRepositoryAlone = command =>
-  /^(?:git|qlang|cat|node)\s/.test(command) && !/cli\/bin\/jdt|scripts\/sensors/.test(command);
+const readsTheRepositoryAlone = command => !/\bjdt\b|scripts\/sensors|^env\b|\$[A-Z]/.test(command);
 
 function printedByShell(command) {
   const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
   try {
-    return execFileSync('bash', ['-c', `qlang() { node "${commandLine}" "$@"; }\n${command}`],
+    return execFileSync('bash', ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
       { cwd: repoRoot, encoding: 'utf8', input: '', env: { ...process.env, MSYS_NO_PATHCONV: '1' } });
   } catch (failed) {
     return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
   }
 }
 
+const listsFilesUnguarded = command => /\bgit ls-files\b(?![^|]*--error-unmatch)/.test(command);
+
 function shellVerdict({ query, answer }) {
   if (!readsTheRepositoryAlone(query)) return 'machine';
+  if (listsFilesUnguarded(query)) return 'UNGUARDED';
   return squash(printedByShell(query)) === answer ? 'ok' : 'STALE';
 }
 
@@ -131,5 +136,6 @@ for (const documentPath of documents) {
       verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
     }
     console.log(`${verdict.padEnd(8)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
+    if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }

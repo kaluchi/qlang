@@ -6,10 +6,10 @@
 
 ::qlang/cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
-      and write the streams of the process, `pretty`, `tjson` and
-      `table` render a value as text, and `parseTjson` reads back what
-      `tjson` wrote. Every query the command line runs calls them by
-      their names, and `::cli | manifest` lists them.
+      and write the streams of the process, `tjson` and `table` render
+      a value as text, and `parseTjson` reads back what `tjson` wrote.
+      An answer shows as its `print` [D96]. Every query the command line
+      runs calls them by their names, and `::cli | manifest` lists them.
   ~~|
 
 :@in
@@ -41,13 +41,13 @@
   |~~ Bare `@out` requires a String subject — the bytes
       written to stdout must already be a String. Wrap a
       non-String value in a renderer:
-      `42 | @out json` or `{:x 1} | @out pretty`. ~~|
+      `42 | @out json` or `{:x 1} | @out print`. ~~|
 
 ::OutRendererResultNotStringError
   |~~ `@out renderer` requires the renderer to produce a
       String. A renderer that returns a Number / Map / null
       cannot be written to stdout — wrap it through `json` or
-      `pretty`. ~~|
+      `print`. ~~|
 
 :@err
   |~~ Same shape as `@out` but writes to stderr — the diagnostic
@@ -60,7 +60,7 @@
 
 ::ErrSubjectNotStringError
   |~~ Bare `@err` requires a String subject. Wrap non-String
-      values through a renderer, `json` or `pretty`. ~~|
+      values through a renderer, `json` or `print`. ~~|
 
 ::ErrRendererResultNotStringError
   |~~ `@err renderer` requires the renderer to produce a
@@ -68,7 +68,7 @@
 
 :@tap
   |~~ Passes its subject on and writes
-      `[tap <label>] <printValue(pipeValue)>\n` to stderr,
+      `[tap <label>] <the literal of the pipeValue>\n` to stderr,
       keyword label included verbatim for grep'ability. Use
       to peek at intermediate values without altering the
       pipeline shape.
@@ -83,20 +83,6 @@
       so the prefix renders as `[tap foo]` consistent with the
       keyword's grammatical form. ~~|
 
-:pretty
-  |~~ Renders any value as its canonical qlang-literal display
-      form — the same bytes `printValue` produces. Round-trips
-      through `parse | apply /` back to the same value, so
-      `pretty | parse | apply / | pretty` is an identity for any
-      qlang-shaped subject.
-
-      ~(42 | pretty | eq "42")
-      ~("hi" | pretty | eq "\"hi\"")
-      ~([1 2 3] | pretty | eq "[1 2 3]")
-      ~({:a 1} | pretty | eq "{:a 1}")
-      ~(:foo | pretty | eq ":foo")
-  ~~|
-  ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/pretty})
 
 :tjson
   |~~ Renders any value as the tagged-JSON wire format from core's

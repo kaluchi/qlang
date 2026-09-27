@@ -617,6 +617,22 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/json})
 
+:print
+  |~~ The text that reads back as the subject, which the command line
+      shows for an answer: an atom as its literal, a vector and a map by
+      their brackets around the print of each part, the set, the quote,
+      the doc and the error by their own brackets, and any other value
+      under a tag as its tag before the print of its payload. A kind a
+      module declares may answer `print` of its own, and the print of a
+      value takes it for each part of that kind [D96].
+
+      ~(42 | print | eq "42")
+      ~(#[2 1] | print | eq "#[1 2]")
+      ~(::builtin{:a 1} | print | eq "::builtin{:a 1}")
+      ~({:a [1 "x"]} | :v / | print | parse | :q / | apply q | eq v)
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/print})
+
 :if
   |~~ The branch the condition chooses, run against the subject: `if
       cond ~(then) ~(else)`. The condition is a boolean computed at the

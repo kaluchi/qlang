@@ -188,9 +188,9 @@ describe('runRepl — error rendering', () => {
 
 describe('runRepl — @in / @out behaviour', () => {
   it('binds `@in` to return the empty String so the cell does not deadlock against the prompt', async () => {
-    const replHarness = captureRepl('@in | pretty | @out\n.exit\n');
+    const replHarness = captureRepl('@in | print | @out\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
-    // `@in` resolves to ''. pretty renders it as the qlang String
+    // `@in` resolves to ''. print renders it as the qlang String
     // literal `""`. @out writes that to stdout, then the REPL
     // auto-prints the cell's success-track value (also `""`). The
     // captured output therefore contains the empty-String literal.

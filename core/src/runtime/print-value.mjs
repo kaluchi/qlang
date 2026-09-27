@@ -1,18 +1,6 @@
-// Canonical qlang-literal printer.
-//
-// `printValue(v, indent?)` is the round-trip surface — every value
-// V that can land in pipeValue renders into a source string that
-// `eval(parse(...))` brings back to a deepEqual value. The contract is
-// pinned by `core/test/unit/round-trip-invariant.test.mjs`; a raw
-// function value sits outside it by design and lifts
-// `FunctionValueLeakedToPrintError`.
-//
-// `dispatchQlangValue` is the per-value-class lookup-table walker
-// every render-time consumer (this file, `format.mjs`'s
-// `renderCell` / `renderInline`, `toPlain`) routes through. The
-// "what kind is this?" probe lives once in `types.mjs::describeType`
-// and the "what to do per kind?" decision sits next to each
-// consumer's intent as a `kind → handler` table.
+// The printer of the core: the text that reads back as a value [D30], a
+// part a kind of a module prints its own way taken from that kind before
+// the forms of the core write the rest [D96].
 
 import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { printQuoteSource, docText } from '../quote.mjs';
@@ -27,26 +15,16 @@ import {
   FunctionValueLeakedToPrintError
 } from '../types.mjs';
 
-// `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`
-// — shared kind-dispatcher. Guards against raw qlang function
-// values reaching any render path; downstream handlers can rely
-// on the input being a renderable value-class.
+// `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
+// handler of the value's class, which the views of `format.mjs` share; a
+// raw function reaches none.
 export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
   if (isFunctionValue(pipeValue)) throw new FunctionValueLeakedToPrintError();
   const handler = handlers[describeType(pipeValue)];
   return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
 }
 
-// Raw JS function reaching a render path comes from a host-bound
-// env entry — `:qlang/locator` is the canonical example, but
-// embedders may install others via `session.bind(name, jsFn)`.
-// The host-marker string parses back as a String value, keeping
-// the env's surface display round-trippable.
-export function hostFunctionLiteral(fn) {
-  return escapeQlangStringLiteral(`<host-fn ${fn.name}>`);
-}
-
-export function escapeQlangStringLiteral(s) {
+function escapeQlangStringLiteral(s) {
   return `"${s
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
@@ -57,25 +35,11 @@ export function escapeQlangStringLiteral(s) {
     .replace(/\f/g, '\\f')}"`;
 }
 
-export function literalOfKeyword(k) { return k.literal; }
+const literalOfKeyword = k => k.literal;
 
-// printValue(v, indent?) → qlang literal string
-//
-// Canonical implementer of the round-trip invariant
-// (qlang-spec.md § "Round-trip invariant"):
-//
-//     eval(parse(printValue(V)))  deepEqual  V
-//
-// for every value V that can land in pipeValue — Number, String,
-// Boolean, Null, Keyword, TagKeyword, Vec, Map, Set, Error, Quote,
-// Doc, TaggedInstance (user-defined `::tag` instances, a verb and
-// the `::binding` records `env` answers). The shape is enforced by
-// `core/test/unit/round-trip-invariant.test.mjs`.
-//
-// Maps and errors with more than 2 entries (or any entry whose
-// value is itself a composite) pretty-print with one entry per
-// line for readability — the parser's whitespace-tolerant Map
-// grammar means the multi-line form still round-trips.
+// A value under a tag writes its tag before its payload, a descriptor's
+// `::builtin` among them [D96]; the set, the quote, the doc and the error
+// write their own brackets.
 const PRINT_HANDLERS = {
   Null:       () => 'null',
   Boolean:    v => String(v),
@@ -84,62 +48,46 @@ const PRINT_HANDLERS = {
   Keyword:    literalOfKeyword,
   TagKeyword: literalOfKeyword,
   Error:      printErrorValue,
-  Vec:        (v, indent) => printListLike('[', ']', ' ',  v,      indent),
-  Map:        (m, indent) => printMapLike('{', m, indent),
-  Set:        (s, indent) => printListLike('#[', ']', ' ', s,      indent),
+  Vec:        (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
+  Map:        (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
+  Set:        (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
   Doc:        d => '|~~' + docText(d) + '~~|',
   TaggedInstance: printTaggedInstance
 };
 
-export function printValue(v, indent = 0) {
-  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent);
+const printedByNoKind = () => undefined;
+
+// printValue(v, indent?, printedOf?) → the text that reads back as `v`;
+// `printedOf(part)` answers the print a kind of a module gives a part, or
+// undefined where the forms of the core write it, and a print of several
+// lines keeps the indent of the place it stands in.
+export function printValue(v, indent = 0, printedOf = printedByNoKind) {
+  const printed = printedOf(v);
+  if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
+  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent, printedOf);
 }
 
-// Fallback for values `describeType` classifies as `Unknown`. A
-// raw JS function (typically `:qlang/locator` or other host-bound
-// env entries) renders as a host-marker string literal so the
-// surface display round-trips through the parser as a String
-// value. Any other unknown shape stringifies via `String(v)` so
-// the host-marker handles the function case and the generic
-// stringifier covers shapes describeType does not classify.
+// A function a host bound in the environment prints as a string that
+// names it.
 function printFallback(v) {
-  if (typeof v === 'function') return hostFunctionLiteral(v);
+  if (typeof v === 'function') return escapeQlangStringLiteral(`<host-fn ${v.name}>`);
   return String(v);
 }
 
-// Vec and Set share one renderer: print every element
-// via printValue, then decide inline vs multi-line. Multi-line
-// fires whenever any rendered element already contains a `\n` —
-// a single multi-line entry would otherwise drag every subsequent
-// entry onto the trailing line of the previous one (the "ladder"
-// layout users complained about for `[~(multi-line) ~(multi-line)]`).
-// One element per row, indented by the surrounding depth, restores
-// the columnar shape.
-function printListLike(open, close, inlineSep, elements, indent) {
-  const rendered = elements.map(el => printValue(el, indent + 1));
-  const anyMultiLine = rendered.some(s => s.includes('\n'));
-  if (!anyMultiLine) {
-    return `${open}${rendered.join(inlineSep)}${close}`;
-  }
+// A vector or a set stands on one line unless a part takes several, and
+// then each part stands on a line of its own.
+function printListLike(open, elements, indent, printedOf) {
+  const rendered = elements.map(el => printValue(el, indent + 1, printedOf));
+  if (!rendered.some(s => s.includes('\n'))) return `${open}${rendered.join(' ')}]`;
   const pad = '  '.repeat(indent + 1);
-  const closePad = '  '.repeat(indent);
-  return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${closePad}${close}`;
+  return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// Print a TaggedLit-style head `::Tag` ahead of the `!{…}` map —
-// the tag identity rides at the structural front-position of the
-// literal, the same shape `printTaggedInstance` produces for
-// non-error tagged-instances. `error.tag` is always a TagKeyword
-// (universal identity invariant for the value-class), and the kind
-// the brackets imply, `::error`, goes unwritten, as a vector's does
-// [D32], [D64]. The payload-Map drops the empty path `:trail []`
-// (makeErrorValue's invariant restores it on reconstruction — see
-// types.mjs::makeErrorValue); every other descriptor field —
-// `:message`, per-site dynamic context, user-stamped slots, a path
-// that holds stops — rides through verbatim, so the print form read
-// where a value stands is the value it printed [D85].
-function printErrorValue(e, indent) {
+// An error writes the tag of its site before its bang, and none for the
+// kind of errors [D64]; an empty path goes unwritten, as the literal
+// leaves it [D85].
+function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const payload = new Map();
   for (const [k, v] of e.descriptor) {
@@ -147,68 +95,30 @@ function printErrorValue(e, indent) {
     payload.set(k, v);
   }
   if (payload.size === 0) return tagHead + '!{}';
-  return tagHead + printMapLike('!{', payload, indent);
+  return tagHead + printMapLike('!{', payload, indent, printedOf);
 }
 
-// Round-trip a tagged-instance Map back into the TaggedLit literal
-// that produced it. The constructor stamps the original payload
-// value under `:payload`; the renderer concatenates the tag
-// literal with the printed payload directly. ParenGroup wrap
-// fires only when the payload's print form opens with an
-// identifier character (letter, digit, or leading `-` for
-// negative numbers) — those would otherwise fuse into the tag's
-// TagName tail in the grammar's atomic `"::" TagName Primary`
-// production. Every other Primary opens with a distinguishing
-// sigil (`"`, `:`, `[`, `{`, `#`, `~`, `|`, `!`, `/`) that the
-// parser splits on cleanly, so no wrap is needed.
-export const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
-// Render shape mirrors the payload shape — the identity-overlay
-// design preserves the payload's native type through the header
-// stamp on composites, and uses an opaque wrap object for
-// payloads that cannot carry the header themselves:
-//
-//   Tagged Vec (Array + header) → `::Tag[…elements…]`.
-//   Tagged Map (Map + header)   → `::Tag{:field value …}`.
-//   Tagged wrap (opaque frozen `{type, tag, payload}` object)
-//     → `::Tag<payload>` where `<payload>` is the payload's
-//     printed form, a set's `#[…]` among them (`::Tag#[1 2]`),
-//     with ParenGroup wrap for identifier-shaped
-//     scalars (`::Tag(42)`, `::Tag(true)`) so the parser splits
-//     cleanly at the tag boundary.
-//
-// `isTaggedInstance(instance)` always holds at this entry —
-// `dispatchQlangValue` routes through the `TaggedInstance`
-// handler off `describeType`.
-function printTaggedInstance(instance, indent) {
+// A payload that opens with a letter, a digit or a minus stands in
+// parentheses after the tag, where it would read as the tag's name.
+const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
+
+function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(instance)) {
-    return tagLiteral + printListLike('[', ']', ' ', [...instance], indent);
-  }
-  if (instance instanceof Map) {
-    return tagLiteral + printMapLike('{', instance, indent);
-  }
-  // Opaque wrap object — read `.payload` directly.
-  const payloadPrint = printValue(instance.payload, indent);
-  if (TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint)) {
-    return `${tagLiteral}(${payloadPrint})`;
-  }
-  return tagLiteral + payloadPrint;
+  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
+  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
+  const payloadPrint = printValue(instance.payload, indent, printedOf);
+  return TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint) ? `${tagLiteral}(${payloadPrint})` : tagLiteral + payloadPrint;
 }
 
-function printMapLike(open, m, indent) {
+// A map of two entries or fewer, none a container, stands on one line;
+// any other puts each entry on a line of its own.
+function printMapLike(open, m, indent, printedOf) {
   const entries = [...m];
-  // Inline only when the Map is small AND every value is a flat
-  // scalar — a nested Map / Vec / Set / Error forces multi-line
-  // so deeply-nested structures unfold one entry per row instead
-  // of slamming the trailing close-braces onto a single line.
-  const hasComposite = entries.some(([_k, v]) =>
-    isQMap(v) || isVec(v) || isErrorValue(v));
+  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v) || isErrorValue(v));
   if (entries.length <= 2 && !hasComposite) {
-    const inner = entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent)}`).join(' ');
-    return `${open}${inner}}`;
+    return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf)}`).join(' ')}}`;
   }
   const pad = '  '.repeat(indent + 1);
-  const closePad = '  '.repeat(indent);
-  const lines = entries.map(([k, v]) => `${pad}${canonicalKeywordLiteral(k)} ${printValue(v, indent + 1)}`);
-  return `${open}\n${lines.join('\n')}\n${closePad}}`;
+  const lines = entries.map(([k, v]) => `${pad}${canonicalKeywordLiteral(k)} ${printValue(v, indent + 1, printedOf)}`);
+  return `${open}\n${lines.join('\n')}\n${'  '.repeat(indent)}}`;
 }

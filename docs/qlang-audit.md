@@ -982,7 +982,7 @@ the facts:
 
 ```qlang
 > "hello" | add 1 !| type | spec
-{:category :typeError :operand :add :position 1 :expectedType :number}
+::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
 
 > "hello" | add 1 !| type | docs | first | content
  The subject of `add` must be a number. …
@@ -1319,20 +1319,6 @@ excuse the scan of their prefixes as “justified by the flat-Map model”
 (`core/src/env-keys.mjs`).
 Each is a decision that has no record, written where it will be read by
 whoever touches the line and by nobody who decides.
-
-A descriptor of the catalog prints as a bare map, and the map it prints
-reads back as another value.
-
-```qlang
-> ::any/use | spec | type
-::builtin
-
-> ::builtin{:a 1}
-{:a 1}
-
-> ::builtin{:a 1} | eq {:a 1}
-false
-```
 
 The rest of the scar is duplication the other sections name only in
 part:
@@ -1744,7 +1730,10 @@ gone; host categories of error are declared by hosts.
 Every fact has one spelling. The doc read as its segments has landed,
 prose and quotes the parser reads once, which the doc answers by its
 own verbs, its text by `content` and its parts by `segments` [D19],
-[D94], [D95], so strings, quotes and docs read in pieces. One
+[D94], [D95], so strings, quotes and docs read in pieces; and so has
+the print of a value, a verb whose default writes the literal of the
+core, a descriptor under its tag among it, and which a kind a module
+declares answers its own way [D96]. One
 loader remains [D5], [D36], which runs
 a module once, a pipeline whose value is what it exposes, so helpers
 stay in their module [D63]; mounted namespaces arrive with it [D24],
@@ -2130,3 +2119,4 @@ maintainer wants to explore it before it is fixed.
 [D93]: decisions/D93.md
 [D94]: decisions/D94.md
 [D95]: decisions/D95.md
+[D96]: decisions/D96.md

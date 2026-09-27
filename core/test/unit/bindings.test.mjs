@@ -15,7 +15,7 @@ describe('BindStep — docs-only form', () => {
   });
 
   it('the bound value content matches the attached doc', async () => {
-    const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | join');
+    const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | content');
     expect(result).toBe(' A guide. ');
   });
 
@@ -35,7 +35,7 @@ describe('BindStep — docs-only form', () => {
     // Subsequent `::Tag | docs` axis lookup resolves the attached
     // prose, and `::Tag | spec | type` surfaces the ::builtin
     // identity through the JS-header tag slot.
-    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | join');
+    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | docs | first | content');
     expect(doc).toContain('short tag prose');
     const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
     expect(spec).toEqual(makeTagKeyword('builtin'));

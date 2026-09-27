@@ -1,7 +1,7 @@
 // The primitives of `parse`, which reads source text into a quote and
 // prints a quote as its text, of `apply`, which runs a quote against the
-// subject [D43], [D72], and of a doc's `join`, which writes its quotes as
-// text among its prose [D94].
+// subject [D43], [D72], and of a doc's `content`, which writes its quotes
+// as text among its prose, and `segments`, its parts [D95].
 
 import { bindPrim } from '../primitives.mjs';
 import { isQuote } from '../types.mjs';
@@ -25,4 +25,5 @@ bindPrim('parse', subject => {
 
 bindPrim('apply', async (subject, code) => await code(subject));
 
-bindPrim('docText', docText);
+bindPrim('docContent', docText);
+bindPrim('docSegments', doc => Object.freeze([...doc]));

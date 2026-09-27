@@ -240,7 +240,7 @@ export function printQuoteSource(quote) {
 }
 
 // docText(doc) → its prose with each quote written where it stands, the
-// text a doc's `join` answers [D94].
+// text a doc's `content` answers [D95].
 export function docText(doc) {
   return doc.map(segment => typeof segment === 'string' ? segment : `~(${printQuoteSource(segment)})`).join('');
 }

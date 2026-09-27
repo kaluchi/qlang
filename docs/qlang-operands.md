@@ -1017,7 +1017,7 @@ its own eval handler in `eval.mjs`.
   declarations the slots its modifiers fill.
 - Doc-only form: a BindStep with docs in its slot and no body binds a
   Doc value under the name; an identifier lookup returns the
-  Doc-value the record holds (`:guide | /content`).
+  Doc-value the record holds (`:guide | content`).
 - **Examples**:
   - `42 | :x / | add 1 | x` → `42`.
   - `:double ::verb~(mul 2) | 10 | double` → `20`.
@@ -1069,6 +1069,16 @@ its own eval handler in `eval.mjs`.
 - **Errors**: a subject of another kind → the contract's `VerbWithoutBodyError` with `:addresses`.
   Malformed source → error value with `:kind ::ParseError`
   (not thrown; passes onto fail-track as `pipeValue`).
+
+### `content`, `segments`
+
+- **Arity** 1. **Subject** `doc`. Verbs of `::doc` [D95].
+- `content` answers the text of the doc, its prose with each quote
+  written where it stands; `segments` the vector of its parts, each
+  run of prose a string and each span that reads as code a quote.
+- **Examples**:
+  - `|~~ a ~(add 1) b ~~| | content` → `" a ~(add 1) b "`.
+  - `|~~ a ~(add 1) b ~~| | segments` → `[" a " ~(add 1) " b "]`.
 
 ### `apply code`
 

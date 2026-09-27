@@ -597,14 +597,15 @@ b
 c
 ```
 
-A quote has all three, being the vector of its steps [D53], and so has a
-doc, being the vector of its prose and its quotes [D19], [D94]:
+A quote has all three, being the vector of its steps [D53], and a doc
+answers its parts by its `segments`, the vector of its prose and its
+quotes [D19], [D95]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
 ~(add 1)
 
-> |~~ a ~(add 1) b ~~| | count
+> |~~ a ~(add 1) b ~~| | segments | count
 3
 ```
 
@@ -983,7 +984,7 @@ the facts:
 > "hello" | add 1 !| type | spec
 {:category :typeError :operand :add :position 1 :expectedType :number}
 
-> "hello" | add 1 !| type | docs | first | join
+> "hello" | add 1 !| type | docs | first | content
  The subject of `add` must be a number. …
 ```
 
@@ -1740,9 +1741,10 @@ gone; host categories of error are declared by hosts.
 
 ### Milestone 4 · One spelling
 
-Every fact has one spelling. The doc read as its segments has landed, a
-vector of prose and quotes the parser reads once, whose text is its
-`join` [D19], [D94], so strings, quotes and docs read in pieces. One
+Every fact has one spelling. The doc read as its segments has landed,
+prose and quotes the parser reads once, which the doc answers by its
+own verbs, its text by `content` and its parts by `segments` [D19],
+[D94], [D95], so strings, quotes and docs read in pieces. One
 loader remains [D5], [D36], which runs
 a module once, a pipeline whose value is what it exposes, so helpers
 stay in their module [D63]; mounted namespaces arrive with it [D24],
@@ -1756,8 +1758,8 @@ form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5] and [D95] in the conformance
-suite. The name `binding` there stands for the operand the branch names, the
+Its answers are the targets of [D5] in the conformance suite. The name
+`binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
 shape is the requirement.

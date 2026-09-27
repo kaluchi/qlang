@@ -1,12 +1,20 @@
-|~ The verbs of docs [D94]. Each resides on `::qlang/doc`, the kind
-   whose module declares it [D72]; a doc is also the vector of its
-   segments, so the verbs of vectors read it as one. ~|
+|~ The verbs of docs [D95]. Each resides on `::qlang/doc`, the kind whose
+   module declares it [D72], and reads the doc's shape for the query. ~|
 
-:join
+:content
   |~~ The text of the doc: its prose with each quote written where it
       stands.
 
-      ~(|~~ a ~(add 1) b ~~| | join | eq " a ~(add 1) b ")
-      ~(::vec/join | docs | first | join | contains "separator")
+      ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
+      ~(::vec/join | docs | first | content | contains "separator")
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/docText})
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/docContent})
+
+:segments
+  |~~ The parts of the doc in their order: each run of prose a string
+      and each span that reads as code a quote, which are its examples.
+
+      ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
+      ~(|~~ see ~(add 1) ~~| | segments | filter ~(type | eq ::quote) | eq [~(add 1)])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docSegments})

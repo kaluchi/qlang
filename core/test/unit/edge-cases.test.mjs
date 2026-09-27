@@ -238,7 +238,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('join on non-Vec subject → JoinSubjectNotVecError', async () => {
-    const caughtErr = await catchOriginalError('42 | vec/join ","');
+    const caughtErr = await catchOriginalError('42 | join ","');
     expect(caughtErr.name).toBe('JoinSubjectNotVecError');
   });
 

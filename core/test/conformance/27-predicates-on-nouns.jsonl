@@ -5,5 +5,5 @@
 {"name":"type-answers-a-tag","query":"::any/type | spec | /returns","expect":"::tag","decision":["D32","D76"]}
 {"name":"json-answers-a-string","query":"::any/json | spec | /returns","expect":"::string","decision":"D76"}
 {"name":"parse-json-resides-on-the-string","query":"::string/parseJson | spec | /subject","expect":"::string","decision":["D62","D76"]}
-{"name":"error-resides-on-the-map","query":"::map/error | spec | /subject","expect":"::map","decision":["D62","D76"]}
-{"name":"an-error-that-describes-an-error-rides-through","query":"error (!{:kind :inner}) !| /kind","expect":":inner","decision":["D13","D76"]}
+{"name":"raise-resides-on-the-map","query":"::map/raise | spec | /subject","expect":"::map","decision":["D62","D76"]}
+{"name":"an-error-that-describes-an-error-rides-through","query":"raise (!{:kind :inner}) !| /kind","expect":":inner","decision":["D13","D76","D97"]}

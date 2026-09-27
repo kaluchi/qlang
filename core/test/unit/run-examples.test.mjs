@@ -147,14 +147,14 @@ describe('runExamples Quote-as-test outcomes', () => {
   });
 
   it('Quote that lifts a user-built error → :error reads :message from descriptor', async () => {
-    // User-built errors (via `error(map)` operand) carry no
+    // User-built errors (via `raise(map)` operand) carry no
     // `.originalError` on the JS-level ErrorValue wrapper —
     // `errorMessageOf` falls through to the descriptor's :message
     // entry. Distinct from finding #41's "Quote that lifts an error"
     // case where the JS throw routed through `errorFromQlang` and
     // the wrapper retained `.originalError`.
     const moduleSource =
-      ':demo |~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | error)\n    ~~|\n' +
+      ':demo |~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | raise)\n    ~~|\n' +
       '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })

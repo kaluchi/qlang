@@ -212,31 +212,31 @@
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
 
-:error
-  |~~ The error the map describes, the one constructor of an error in
-      the language beside the `!{…}` literal. `map | error` lifts the
-      subject; `error map` reads the map against the subject, its first
-      modifier being its subject [D72]. The error rides the fail-track:
-      `|` and `*` deflect it into the trail, and `!|` runs its step
-      against the materialized descriptor. Its tag is the one its value
-      shows [D86]: the outermost tag over the map, then the one the map
-      carries, then a `:kind` that names a tag, then `::error`; so a
-      step that lays a tag over the descriptor renames the error, and
-      the tags beneath the one it shows leave with their layers.
+:raise
+  |~~ Puts the map on the fail track as an error [D97], the act the
+      `!{…}` literal writes with its bang. `map | raise` raises the
+      subject; `raise map` reads the map against the subject, its first
+      modifier being its subject [D72]. `|` and `*` step around the
+      raised error into its trail, and `!|` opens it to the error
+      itself. Its tag is the one its value shows [D86]: the outermost tag
+      over the map, the site's of an opened error among them, then the
+      one the map carries, then a `:kind` that names a tag, then
+      `::error`; so an opened error raised again is itself, and a step
+      that lays a tag over it renames the error.
 
-      ~({:kind :oops :message "boom"} | error !| /kind | eq :oops)
-      ~(error {:kind :oops} !| /kind | eq :oops)
-      ~("x" | add 1 !| tag ::Renamed | error !| type | eq ::Renamed)
+      ~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
+      ~(raise {:kind :oops} !| /kind | eq :oops)
+      ~("x" | add 1 !| raise !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/error})
+  ::verb~(::builtin{:impl :qlang/prim/raise})
 
-::ErrorDescriptorNotMapError
-  |~~ `error` lift requires a Map descriptor (the error's
-      payload).
+::RaiseSubjectNotMapError
+  |~~ `raise` puts a map on the fail track.
 
       ~(
-        42 | error
+        42 | raise
         !| [type /actualType]
-        |  eq [::ErrorDescriptorNotMapError ::number]
+        |  eq [::RaiseSubjectNotMapError ::number]
        )
   ~~|

@@ -157,7 +157,7 @@ x
 |~| per-element dispatch into the fail-track
 [1 "x" 3] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError)
 
-|~| Trail continuity across re-lift — | error re-wraps the
+|~| Trail continuity across re-lift — | raise re-wraps the
 |~| enriched descriptor on the path it read, and a later !|
 |~| reads the steps the error skipped on it
-!{:kind :oops} | count !| union {:request "r-1"} | error | add 1 !| /trail/-1/skipped
+!{:kind :oops} | count !| union {:request "r-1"} | raise | add 1 !| /trail/-1/skipped

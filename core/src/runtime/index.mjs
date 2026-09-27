@@ -12,7 +12,7 @@ import './string.mjs';
 import './format.mjs';
 import './predicates.mjs';
 import './control.mjs';
-import './error.mjs';
+import './raise.mjs';
 import './keyword-op.mjs';
 import './tagged.mjs';
 import './quote-steps.mjs';

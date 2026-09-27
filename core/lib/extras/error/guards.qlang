@@ -1,6 +1,6 @@
 |~ User-error tag identifiers raised by the guards in this
    module. Both ride the universal identity-on-JS-header invariant
-   that every ErrorValue carries: `error {:kind ::FooError …}`
+   that every ErrorValue carries: `raise {:kind ::FooError …}`
    lifts the TagKeyword to the value's tag slot, and `result !|
    type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps
    below give axis-operands (`::AssertionFailedError | docs`,
@@ -16,7 +16,7 @@
       ~(
         42
         |  (:_v / | if (gt 100) ~(_v)
-              ~(error {:kind ::AssertionFailedError :message "must exceed 100" :value _v}))
+              ~(raise {:kind ::AssertionFailedError :message "must exceed 100" :value _v}))
         !| type | eq ::AssertionFailedError
        )
   ~~|
@@ -34,7 +34,7 @@
     if the predicate fails. pipeValue passes through
     unchanged on success. ~~|
   ::verb~(:pred ::quote | :msg ::string | :_v / | if (apply pred) ~(_v)
-      ~(error {:kind ::AssertionFailedError :message msg :value _v}))
+      ~(raise {:kind ::AssertionFailedError :message msg :value _v}))
 
 :ensure
   |~~ Postcondition: check predicate on pipeValue after
@@ -42,4 +42,4 @@
     for intent — verify the output contract at the
     end of a pipeline section. ~~|
   ::verb~(:pred ::quote | :msg ::string | :_v / | if (apply pred) ~(_v)
-      ~(error {:kind ::PostconditionFailedError :message msg :value _v}))
+      ~(raise {:kind ::PostconditionFailedError :message msg :value _v}))

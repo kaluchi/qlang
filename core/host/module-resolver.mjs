@@ -109,7 +109,7 @@ export async function resolveModules(libDir, opts = {}) {
 // produces for locator-loaded modules — install-path and locator-
 // path stay symmetric on the axis-operand discoverability surface,
 // and a namespace whose stem coincides with an operand name
-// (`lib/extras/error.qlang` next to the `error` lift operand) stays
+// (`lib/extras/error.qlang` next to the `raise` operand) stays
 // off the identifier-lookup plane.
 export function installModules(session, catalog) {
   for (const [nsName, entry] of catalog) {

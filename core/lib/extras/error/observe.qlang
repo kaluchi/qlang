@@ -14,7 +14,7 @@
     ~(:original) snapshot before being re-lifted into a
     fresh error. Trail continues via the makeErrorValue
     invariant. Call via `!|` on fail-track. ~~|
-  ::verb~(:observer ::quote | :original / | apply observer | original | error)
+  ::verb~(:observer ::quote | :original / | apply observer | original | raise)
 
 :finally
   |~~ Cleanup/finalization on a success-track pipeValue.
@@ -30,4 +30,4 @@
     intent — the ~(action) must run before the error
     continues down the fail-track. Call via `!|` on
     fail-track. ~~|
-  ::verb~(:action ::quote | :original / | apply action | original | error)
+  ::verb~(:action ::quote | :original / | apply action | original | raise)

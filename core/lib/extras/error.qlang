@@ -13,14 +13,14 @@
     ~(if) body against the materialized descriptor. When
     `n > 0` the recursive retry call restores ~(start)
     and tries action again with `n - 1`. When ~(n) hits
-    zero the ~(error) branch re-lifts the descriptor and
+    zero the ~(raise) branch re-lifts the descriptor and
     the error flows out.
 
     Call via `|` on success-track input. ~~|
   ::verb~(:action ::quote | :n ::number | :start / | apply action
     !| if (n | gt 0)
           ~(start | retry action (n | sub 1))
-          ~(error))
+          ~(raise))
 
 :recover
   |~~ Conditional recovery. On fail-track, if the error's
@@ -29,7 +29,7 @@
     become the new pipeValue. Otherwise re-lift the
     descriptor into a fresh error and continue on the
     fail-track. Call via `!|` on fail-track. ~~|
-  ::verb~(:pred ::quote | :handler ::quote | if (apply pred) handler ~(error))
+  ::verb~(:pred ::quote | :handler ::quote | if (apply pred) handler ~(raise))
 
 :mapError
   |~~ Transform an error's materialized descriptor via
@@ -38,7 +38,7 @@
     the returned Map becomes the new error's descriptor
     (trail continues via the makeErrorValue invariant).
     Call via `!|` on fail-track. ~~|
-  ::verb~(:fn ::quote | apply fn | error)
+  ::verb~(:fn ::quote | apply fn | raise)
 
 :withContext
   |~~ Enrich an error's materialized descriptor with
@@ -48,4 +48,4 @@
     result becomes the new error's descriptor. Used for
     MDC-style context accumulation as an error flows
     through a pipeline. Call via `!|` on fail-track. ~~|
-  ::verb~(:ctx ::map | union ctx | error)
+  ::verb~(:ctx ::map | union ctx | raise)

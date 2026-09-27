@@ -297,9 +297,9 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
     }
   });
 
-  it('holds the error primitives', async () => {
+  it('holds the raise primitive', async () => {
     await import('../../src/runtime/index.mjs');
-    expect(PRIMITIVE_REGISTRY.has('qlang/prim/error')).toBe(true);
+    expect(PRIMITIVE_REGISTRY.has('qlang/prim/raise')).toBe(true);
   });
 
   it('resolve returns a function value with fn / arity / meta shape', async () => {

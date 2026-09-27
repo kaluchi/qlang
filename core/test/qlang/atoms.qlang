@@ -9,7 +9,7 @@
    the shapes of its elements; a map is built from the pairs of its keys
    and values by `indexBy`; a tagged value, the set, the quote and the
    doc among them, from its tag and its payload by `tag` [D94]; and an
-   error from its descriptor by `error`.
+   error from its descriptor by `raise`.
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
    `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])`. The verbs
    are the language's own, and the test of the ring runs them over every
@@ -25,7 +25,7 @@
       fail track reads, any other value as it is. The error rides a
       second error past the step that pairs a value, which leaves its
       trail on the second. ~~|
-  ::verb~(* (!| error {:failed /} | [false /] !| [true /failed]))
+  ::verb~(* (!| raise {:failed /} | [false /] !| [true /failed]))
 
 :groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the
@@ -46,7 +46,7 @@
     | cond
         ~(kind | eq ::vec) ~({:parts / :glue ~()})
         ~(kind | eq ::map) ~(:entries / | {:parts (keys | sort * (:key / | [key (entries | at key)])) :glue ~(indexBy ~(first) * last)})
-        ~({:parts [kind (payload)] :glue (if failed ~(~(tag | error)) ~(~(tag)))}))
+        ~({:parts [kind (payload)] :glue (if failed ~(~(tag | raise)) ~(~(tag)))}))
 
 :intoAtoms
   |~~ The atoms gathered so far with those of one pair after them.

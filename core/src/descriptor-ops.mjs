@@ -1,35 +1,6 @@
-// Shared shape primitives for builtin descriptor Maps.
-//
-// A raw builtin descriptor is what the env Map stores after
-// `langRuntime` bootstrap: a Map carrying the author's
-// `:impl :qlang/prim/<name>` handle keyword alongside `:category`
-// … `:subject` … `:captured [min max]` … `:effectful <boolean>`,
-// with identity (`::builtin`) on the Map's JS-header
-// `TAG_HEADER_SYMBOL` slot (stamped by the `::builtin{…}`
-// constructor in `runtime/tagged.mjs`) and the resolved callable on
-// the `BUILTIN_IMPL_SLOT` JS-header slot. The reader sites
-// (`isBuiltinDescriptor` in `eval.mjs`, the stamp passes of
-// `runtime/use-op.mjs` and `runtime/index.mjs`) probe the header — no
-// `:kind` field on the descriptor — and dispatch reads the callable through
-// `resolveBuiltinImpl`, so every field the data plane exposes to
-// `keys` / `/key` / `printValue` is a qlang value.
-//
-// `stampStructuralFacts(descriptor, fn, bindingName)` is the single mint-site
-// that stamps the callable onto the slot and backfills
-// `:captured` / `:effectful` from the resolved function plus the
-// empty-fallback Vec for `:modifiers` / `:throws`. Both bootstrap
-// surfaces — the langRuntime core-catalog pass in
-// `runtime/index.mjs` and the `use`-locator namespace-resolution
-// pass in `runtime/use-op.mjs` — go through here, so env entries
-// carry the full runtime shape uniformly and the `spec` axis can
-// return them without further projection.
-//
-// `resolveBuiltinImpl(descriptor)` is the dispatch-side reader:
-// the stamped callable when bootstrap resolved it, otherwise the
-// `:impl` handle keyword walked through `PRIMITIVE_REGISTRY` so a
-// descriptor a query assembled from data dispatches like any
-// catalog entry.
-
+// The descriptors under `::builtin` that bootstrap stamps: the loader's
+// `use`, the one operand left a descriptor [D79], and the bindings of
+// tags, which take the facts their throw sites recorded.
 
 import {
   BUILTIN_TAG, TAG_HEADER_SYMBOL, isFunctionValue, isKeyword, typeKeyword, keyword, makeTagKeyword,
@@ -43,31 +14,16 @@ import {
 } from './errors.mjs';
 import { stripTagBindingPrefix, isTagBindingName } from './env-keys.mjs';
 
-// A descriptor assembled inside a query (`::builtin{:impl
-// :qlang/prim/count}`) reaches dispatch without the bootstrap
-// stamp, so `resolveBuiltinImpl` walks its `:impl` handle through
-// the registry. A handle of any other shape fires this site rather
-// than handing `PRIMITIVE_REGISTRY.resolve` a nameless value.
+// The `:impl` of a descriptor a query assembled is a handle keyword.
 const BuiltinImplNotPrimitiveKeyError = declareShapeError('BuiltinImplNotPrimitiveKeyError',
   ({ actualType }) =>
     `::builtin descriptor :impl must be a :qlang/prim/<name> handle keyword, got ${actualType.name}`,
   { operand: '::builtin', expectedType: 'keyword' }
 );
 
-// stampStructuralFacts(descriptor, fn) → descriptor (mutated in place)
-//
-// Mint-site shared between every site that resolves a `::builtin{
-// :impl :qlang/prim/<name>}` descriptor against a JS function
-// value: stamps the callable onto the `BUILTIN_IMPL_SLOT` slot,
-// leaves the author's handle keyword on `:impl` for readers, stamps
-// `:captured` / `:effectful` straight off the resolved function's
-// meta, stamps the `:throws` Vec through `stampRaisedTags`, and
-// backfills an empty `:modifiers` Vec when the catalog author
-// omitted it. The descriptor Map is a freshly-built
-// JS-layer construction-site value at this point (still inside
-// the bootstrap fill loop, not yet observable via any other env
-// key), so direct `.set` ceremony is the qlang-side equivalent
-// of stamping a fresh value at the factory boundary.
+// stampStructuralFacts(descriptor, fn, bindingName) — the primitive of a
+// descriptor beside its `:impl` handle, with the arity and the effect it
+// declares and the refusals its sites record.
 export function stampStructuralFacts(descriptor, fn, bindingName) {
   stampBuiltinImpl(descriptor, fn);
   descriptor.set('captured', [...fn.meta.captured]);
@@ -76,35 +32,19 @@ export function stampStructuralFacts(descriptor, fn, bindingName) {
   return descriptor;
 }
 
-// `:throws` is the reverse of the `:operand` each throw site
-// records; the stamp reads it back off the registry. An operand
-// always carries the field — `stampStructuralFacts` calls this for
-// every one, so a consumer projects it unconditionally there — while
-// a tag carries it only when something raises through it, which is
-// the value-class constructors and nothing else.
-export function stampRaisedTags(descriptor, bindingName, whenEmpty = 'stamp') {
+// `:throws` is the reverse of the `:operand` each throw site records; a
+// tag carries it only when something raises through it.
+function stampRaisedTags(descriptor, bindingName, whenEmpty = 'stamp') {
   const raised = throwSiteTagsRaisedBy(bindingName).map(makeTagKeyword);
   if (raised.length === 0 && whenEmpty === 'omit') return descriptor;
   descriptor.set('throws', Object.freeze(raised));
   return descriptor;
 }
 
-// stampThrowSiteSpec(binding, envKey) → binding
-//
-// A per-site error's structural facts — `:category`, `:operand`,
-// `:position`, `:expectedType` — are properties of the throw site,
-// recorded there by the factory that builds the class. This stamps
-// them onto the `::Tag` binding the catalog declares under the same
-// name, so `result !| type | spec` reads one Map while the facts
-// have one spelling. A tag with no throw site (`::ParseError`, the
-// kinds of the core, the value-class constructors) keeps whatever body
-// the catalog authored.
-//
-// Both stamp sites — the core-catalog pass in `runtime/index.mjs`
-// and the namespace-resolution pass in `runtime/use-op.mjs` — hand
-// the value of every record here, so the shape check lives at this
-// one mint: a `::Tag` whose body is another literal, `::Box {}`,
-// holds no descriptor to stamp.
+// stampThrowSiteSpec(binding, envKey) — the facts a refusal's throw site
+// recorded, `:category`, `:operand`, `:position` and `:expectedType`, on
+// the binding of its tag, so `!| type | spec` reads them; a tag whose
+// body is another literal, `::Box {}`, holds no descriptor to stamp.
 export function stampThrowSiteSpec(binding, envKey) {
   if (!isTagBindingName(envKey)) return binding;
   if (binding[TAG_HEADER_SYMBOL]?.name !== BUILTIN_TAG.name) return binding;
@@ -127,9 +67,8 @@ export function stampThrowSiteSpec(binding, envKey) {
   return tagDescriptor;
 }
 
-// `:operand` spells a value-namespace operand as a Keyword (`:add`,
-// `:@tap`) and a value-class constructor as a TagKeyword
-// (`::verb`), matching how each is written in source.
+// `:operand` names an operand by its keyword, `:add`, and a constructor
+// by its tag, `::verb`.
 function operandIdentifier(operand) {
   return isTagBindingName(operand)
     ? makeTagKeyword(stripTagBindingPrefix(operand))
@@ -144,14 +83,9 @@ const BuiltinImplOfVerbError = declareShapeError('BuiltinImplOfVerbError',
   { operand: '::builtin' }
 );
 
-// resolveBuiltinImpl(descriptor) → function value
-//
-// Dispatch-side reader for a `::builtin` descriptor's callable. The
-// bootstrap stamp answers for every catalog entry and every
-// host-supplied impl the `use`-locator pass resolved; a descriptor a
-// query assembled from data (`::builtin{:impl :qlang/prim/count} |
-// :c /`) carries the handle keyword alone and walks the registry
-// here, so a descriptor built as data dispatches like a catalog one.
+// resolveBuiltinImpl(descriptor) → the function value a descriptor
+// applies: the one bootstrap stamped, or the one its handle names in
+// the registry for a descriptor a query assembled.
 export function resolveBuiltinImpl(descriptor) {
   const stampedImpl = builtinImplOf(descriptor);
   if (stampedImpl !== undefined) return stampedImpl;

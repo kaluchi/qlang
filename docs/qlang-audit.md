@@ -1197,16 +1197,14 @@ arguments scar shows. The root doc says what a kind is and uses the
 word tag without saying what it is, where the first screen was to say
 it in one sentence [D20].
 
-The catalog itself speaks the vocabulary of its implementation. The
-prose a session reads to learn the language names JavaScript files,
-symbols and services: the entry of `spec` names a descriptor's
-identity “`::builtin` on the JS-header slot”
-(`core/lib/qlang/any.qlang`), and the invariants
-module speaks of the `BUILTIN_IMPL_SLOT` and of
-`createPrimitiveRegistry()` and sends the reader to
-`cli/src/cli-locator.mjs` (`core/lib/qlang/runtime-invariants.qlang`).
-A session learning qlang from its catalog meets the names of the files
-that implement it.
+The catalog itself speaks the vocabulary of its implementation where
+it documents the refusals of the kernel. The prose a session reads to
+learn the language names JavaScript files and symbols: the page of an
+unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”, and the
+page of the depth budget sends the reader to “`EVAL_DEPTH_LIMIT`
+(state.mjs)” (`core/lib/qlang/runtime-invariants.qlang`). A session
+learning qlang from its catalog meets the names of the files that
+implement it.
 
 Examples live on four planes: the conformance suite, the `~(…)` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in
@@ -1384,22 +1382,21 @@ September master:
 
 ```sh
 $ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 7046   comment 4212   blank 1012
+code 6525   comment 3388   blank 1005
 $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
 code 7529   comment 4644   blank 1025
 ```
 
 The ratio of comment lines to code lines, which D30 asks to fall, has
-barely moved from the September master.
+begun to fall from the September master.
 
-In several files the comments outweigh the code: the bootstrap of the
-runtime, the primitive registry, the error roots and the descriptor
-stamping carry more lines of prose than of statements. Most of the
-comments justify, and none states an invariant in a sentence: the
-bootstrap calls its seeding of `::builtin` “Chicken-and-egg” and
-explains it (`core/src/runtime/index.mjs`); the registry explains why
-its verb is “seal” and not “freeze” (`core/src/primitives.mjs`). Each
-is a decision that has no record, written where it will be read by
+In several files the comments still outweigh the code: the error roots,
+the keys of the environment, the effect marker and the fork carry more
+lines of prose than of statements. Most of those comments justify, and
+none states an invariant in a sentence: the keys of the environment
+excuse the scan of their prefixes as “justified by the flat-Map model”
+(`core/src/env-keys.mjs`).
+Each is a decision that has no record, written where it will be read by
 whoever touches the line and by nobody who decides.
 
 A descriptor of the catalog prints as a bare map, and the map it prints

@@ -7,15 +7,8 @@
 // The one operand of the core built on it is the loader's `use`,
 // through `stateOpVariadic` in runtime/dispatch.mjs: the impl receives
 // the full state and returns a full state, writing the scope [D79];
-// every other operand is a verb whose head the runtime executes.
-//
-// Captured arguments are LAMBDAS: each captured expression becomes
-// an `(input) → value` closure that the operand impl can invoke
-// zero, one, or many times, with whatever input the operand
-// chooses. Higher-order operands like
-// `filter` invoke the lambda per element; value operands like
-// `mul` invoke it once against the subject (or the context, in
-// full application).
+// every other operand is a verb whose head the runtime executes. Each
+// modifier reaches the impl as a lambda, `(input) → value`.
 
 import { declareArityError } from './errors.mjs';
 import { classifyEffect } from './effect.mjs';
@@ -43,18 +36,9 @@ export async function applyRule10(fn, appliedLambdas, state) {
   return await fn.fn(state, appliedLambdas);
 }
 
-// makeFn(name, arity, impl, meta) → function value
-//
-// Wraps a state-transformer impl with the metadata Rule 10 needs.
-// The impl signature is `(state, lambdas) → state`.
-//
-// `meta` carries only the per-impl structural fields the runtime
-// itself reads, `{ captured: [min, max] }` — the [min, max] count of
-// captured arg slots the operand accepts. Catalog-bound builtin descriptors keep
-// their `category` / `subject` / `modifiers` / `returns` / `throws`
-// fields on the authored `core/lib/qlang/**/*.qlang` Map; `manifest`
-// reads them through descriptor projection at enumeration time, so
-// the JS layer holds no duplicated authored meta.
+// makeFn(name, arity, impl, meta) → a function value over
+// `(state, lambdas) → state`, `meta.captured` the [min, max] count of
+// modifiers it takes.
 export function makeFn(name, arity, impl, meta) {
   return Object.freeze(brandValueClass({
     name,
@@ -64,7 +48,3 @@ export function makeFn(name, arity, impl, meta) {
     effectful: classifyEffect(name)
   }, 'function'));
 }
-
-// `isFunctionValue` lives in types.mjs alongside the other
-// value-class predicates. Callers that need it import it from
-// there directly.

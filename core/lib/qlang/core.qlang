@@ -1,18 +1,5 @@
-|~ Root qlang catalog — pulls in every operand family plus shared
-   runtime-invariant tag-bindings and the constructors of the kinds
-   (::verb / ::quote / ::set / ::builtin). The actual catalog content lives
-   in lib/qlang/operand/<family>.qlang, lib/qlang/runtime-invariants.qlang,
-   and lib/qlang/tag.qlang. Each family file declares its operands
-   and their per-site error tags inline; runtime-invariants carries
-   shared/cross-family errors plus the parser / codec / dispatch
-   invariant tags.
-
-   Type vocabulary (flat keywords) used in :subject / :returns /
-   :modifiers across every family:
-     :number :string :boolean :keyword :null :any
-     :vec :map :set
-     :predicateLambda :keyLambda :reducerLambda
-     :pipeline (captured sub-pipeline, lazy) ~|
+|~ The root of the catalog: the refusals of the kernel, the kinds, the
+   module of each noun, and the loader. ~|
 
 use [:qlang/runtime-invariants
      :qlang/tag

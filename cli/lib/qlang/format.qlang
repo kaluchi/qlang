@@ -1,10 +1,8 @@
-|~ qlang operand catalog — CLI format family. Pure value-to-String
-   formatters the CLI binds alongside the io operands. Each takes a
-   pipeValue subject and returns a rendered String; chaining them
-   in front of `@out` is how a query produces stdout. JS impls live
-   in `cli/src/format-operands.mjs`, plain functions over the values
-   the head of each verb checks [D80]. Each verb sits directly under
-   the per-site error tags it raises. ~|
+|~ The formatters of the command line, each rendering its subject as
+   a string for `@out`; their primitives, in
+   `cli/src/format-operands.mjs`, are plain functions over the values
+   the head of each verb checks [D80], and the refusals of a verb sit
+   under it. ~|
 
 :pretty
   |~~ Renders any value as its canonical qlang-literal display

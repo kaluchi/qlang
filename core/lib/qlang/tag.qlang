@@ -1,13 +1,7 @@
-|~ The tag-bindings of the kinds — ::verb, ::quote, ::set, ::builtin,
-   and the tags of a quote's steps. Each constructor declares its
-   identity through ::builtin{…} with an :impl keyword pointing
-   into PRIMITIVE_REGISTRY at the JS-side constructor that mints
-   the corresponding value from a payload; a step's
-   tag names an identity alone. Per-tag error sites sit directly under the
-   constructor BindStep they belong to (so axis-operand walks
-   stay one-pass within this file); the constructor's `:throws`
-   Vec references each error tag by name. The first two declare the
-   core itself as a noun and the kind beneath every kind. ~|
+|~ The module of tag names: the core as a noun and the kind beneath
+   every kind, the kinds with their constructors and the refusals of
+   each, the tags of a quote's steps, and the verbs that live on a tag
+   name. ~|
 
 ::qlang
   |~~ qlang, a pipeline of values: each step is a command on the value

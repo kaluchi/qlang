@@ -750,9 +750,9 @@ async function callResidence(verb, lookupName, lambdas, state) {
 }
 
 // A name reads the value its record holds [D63], so `:x / | x` sees the
-// raw data: a verb runs [D67], a `::builtin` descriptor applies its host
-// code, a function value a host bound applies through Rule 10, and any
-// other value is itself.
+// raw data: a verb runs [D67], a `::builtin` descriptor, the loader's,
+// applies its primitive, a function value, the seed of `use` among
+// them, applies through Rule 10, and any other value is itself.
 async function applyBinding(entry, lookupName, lambdas, state) {
   const resolved = bindingValueOf(entry);
   if (isVerb(resolved)) return await applyVerb(resolved, lambdas, state, lookupName);

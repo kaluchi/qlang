@@ -1758,8 +1758,8 @@ form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5] in the conformance suite. The name
-`binding` there stands for the operand the branch names, the
+Its answers are the targets of [D5] and [D96] in the conformance
+suite. The name `binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
 shape is the requirement.
@@ -2130,3 +2130,4 @@ maintainer wants to explore it before it is fixed.
 [D93]: decisions/D93.md
 [D94]: decisions/D94.md
 [D95]: decisions/D95.md
+[D96]: decisions/D96.md

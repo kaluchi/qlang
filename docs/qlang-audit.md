@@ -40,20 +40,27 @@ means by which a later reader re-verifies it.
 
 Evidence is a fact about the tree. Its handle is a probe or an anchor.
 A probe is a fenced block whose lines beginning with `>` are queries
-typed into `qlang` and whose other lines are what the tree answered on
-the date written before the block; a probe that begins with `$` is a
-shell command, which the runner of probes runs when it reads the
-repository alone and leaves to be run by hand when it reads a machine,
-the sister project or the environment. A
+typed into `qlang` and whose other lines are what the tree answers; a
+probe that begins with `$` is a shell command, which the runner of
+probes runs when it reads the repository alone and leaves to be run by
+hand, with the date of its answer written before the block, when it
+reads a machine, the sister project or the environment. A probe answers
+the sentence it stands under, a verdict, the things the sentence names,
+or a quantity to the precision the sentence states, so its answer
+changes when the sentence stops being true and only then; and it reads
+what the sentence names in a way that fails when that is gone, so a
+file that moved reads as a failure and never as a repair [D93]. A
 target, the answer a repair must produce, is a
 conformance case that names its decision [D58]; a block fenced as
 `qlang target` holds one whose answer no literal states yet, and it
 disagrees with the tree until the repair lands. An anchor names a file
 and a symbol, `core/src/runtime/verb.mjs` and
 `callVerb`; line numbers drift and are avoided. Evidence goes
-stale, and the only defence is to run it: a probe whose answer changed
-means the sentence around it is wrong, and the sentence is replaced by
-the new fact with its new probe.
+stale, and the only defence is to run it: `npm run ci` and the checks
+of every push run the probes, a probe whose answer changed means the
+sentence around it is wrong and fails them, and the branch that changed
+the answer replaces the sentence with the new fact and its new probe
+[D93].
 
 A decision is the discussion that ends in a choice between
 alternatives. Decisions are numbered, `D1` to the last, and recorded
@@ -99,9 +106,10 @@ Some rules for whoever edits the document, each learnt at a cost:
   conditions, or comments in code. The September sessions did that
   twice, and both times the maintainer had to strip the result out.
 - A number that a command answers is not written into prose. It goes
-  stale the week after, as the weight of `manifest` did. The number
-  lives in a probe next to the command that recomputes it, and the
-  prose states what the number shows.
+  stale the week after, as the weight of `manifest` did. A probe prints
+  it to the precision the sentence needs, a sign, a ratio to a tenth,
+  or the list it counts, since a count that moves with every commit
+  fails the checks of every branch while the sentence stays true [D93].
 - The maintainer's words are quoted, never paraphrased. A paraphrase
   replaces the maintainer's intention with the model's reading of it,
   and the next session cannot tell the two apart.
@@ -985,12 +993,14 @@ at its end is the alert said again, followed by an example that
 produces the same error. What the reader should do, the procedure,
 is absent.
 
-The catalog is the one area whose diff against the September master is
-positive:
+Of the code, the catalog is the one area whose diff against the
+September master is positive:
 
 ```sh
-$ git diff --shortstat f5e8ec8 -- core/lib cli/lib
- 36 files changed, 3584 insertions(+), 3408 deletions(-)
+$ for area in 'core/src cli/src lsp/src' 'core/test cli/test lsp/test' 'core/lib cli/lib'; do git diff --numstat f5e8ec8 -- $area | awk -v area="$area" '{n += $1 - $2} END {print area, (n > 0 ? "grew" : "shrank")}'; done
+core/src cli/src lsp/src shrank
+core/test cli/test lsp/test shrank
+core/lib cli/lib grew
 ```
 
 Keeping the class names and the catalog in agreement requires a registry
@@ -1006,14 +1016,10 @@ error carries its whole input, so one failing step over a large value
 prints the value, and a parse error lists the alternatives of the
 parser in the parser's own vocabulary:
 
-```sh
-$ qlang '::vec | spec' | wc -c
-1805
-$ qlang '::vec | spec | add 1' | wc -c
-1963
-```
-
 ```qlang
+> ::vec | spec | add 1 !| /trail * /subject * eq (::vec | spec)
+[true]
+
 > [1 2 3] | filter ~(gt 1
 ::ParseError!{ … :expected [:whitespace "|~~|" "|~~" "|~" "!|" "|" "*" ")"] … }
 ```
@@ -1025,9 +1031,9 @@ markers of comments.
 The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:
 
-```sh
-$ qlang ':g ::verb~(add 1) | ::vec | spec | g' | wc -c
-3855
+```qlang
+> :g ::verb~(add 1) | ::vec | spec | g !| /trail * /subject * eq (::vec | spec)
+[true true]
 ```
 
 A value slot of a built-in outside its noun, the namespace `use`
@@ -1110,9 +1116,9 @@ The full view is the default one, where the terminals of the paper age
 made the cheap path the default and the full view a flag: the
 declaration of a kind answers its verbs beside every refusal they raise.
 
-```sh
-$ qlang '::vec | spec' | wc -c
-1805
+```qlang
+> ::vec | spec | keys
+#[:impl :throws :verbs]
 ```
 
 The descriptor's category, subject, return, and slot fields are an
@@ -1179,11 +1185,12 @@ grammar of comments dictated the order of concepts. The reference's
 grammar chapter is a third spelling of the grammar, beside the parser
 and a hand-written TextMate copy for the editor.
 
+The lines of the three documents to the lines of code of the core,
+comments and blank lines left out:
+
 ```sh
-$ cat docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md | awk 'NF{k++} END{print k}'
-4751
-$ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{next} /^[ \t]*$/{next} {k++} END{print k}'
-4854
+$ git ls-files --error-unmatch docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md 'core/src/*.mjs' | xargs awk '/^[ \t]*$/ {next} FILENAME ~ /^docs/ {d++; next} /^[ \t]*\/\// {next} {c++} END {printf "%.1f\n", d / c}'
+1.0
 ```
 
 The reference is a tutorial rather than a specification, as the
@@ -1300,26 +1307,26 @@ sister project a guide generated from the catalog.
 
 ### Code that explains itself
 
-The code is more commentary than design. Over the JavaScript of the
-core, the command line and the language server, the tree and then the
-September master:
+The code is more commentary than design. The ratio of comment lines to
+code lines over the JavaScript of the core, the command line and the
+language server, in the tree and then in the September master:
 
 ```sh
-$ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 6566   comment 2909   blank 997
-$ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 7529   comment 4644   blank 1025
+$ git ls-files --error-unmatch 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\// {c++; next} /^[ \t]*$/ {next} {k++} END {printf "%.1f\n", c / k}'
+0.4
+$ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\// {c++; next} /^[ \t]*$/ {next} {k++} END {printf "%.1f\n", c / k}'
+0.6
 ```
 
-The ratio of comment lines to code lines, which D30 asks to fall, has
-begun to fall from the September master.
+[D30] asks the ratio to fall, and it has begun to fall from the September
+master.
 
 In several files of the core the comments still outweigh the code, the
 error roots, the keys of the environment, the effect marker and the
 bootstrap among them:
 
 ```sh
-$ git ls-files 'core/src/*.mjs' 'core/src/**/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
+$ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
 core/src/effect-check.mjs
 core/src/effect.mjs
 core/src/env-keys.mjs
@@ -1378,10 +1385,10 @@ part:
   factories, which is what hosts build on:
 
   ```sh
-  $ node --input-type=module -e "console.log(Object.keys(await import('./core/src/index.mjs')).length)"
-  85
-  $ node -p "Object.keys(require('./core/package.json').exports).length"
-  15
+  $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
+  EFFECT_MARKER_PREFIX MODULE_NAMESPACE_PREFIX RUNTIME_LOCATOR_KEY TAG_BINDING_PREFIX TAG_HEADER_SYMBOL
+  $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
+  ./errors ./operand-errors
   ```
 - Surface without users. The session keeps a history of cells with the
   environment after each, and offers to take and restore snapshots;
@@ -2113,3 +2120,4 @@ maintainer wants to explore it before it is fixed.
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
 [D92]: decisions/D92.md
+[D93]: decisions/D93.md

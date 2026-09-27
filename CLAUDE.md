@@ -111,9 +111,9 @@ install` at the root links the workspaces; the Node floor is the
 
 - `npm test`: every workspace's suite. Use it in the inner loop.
 - `npm run ci`: the gate for anything meant to be pushed. Build,
-  eslint, `check:conventions`, every suite, coverage thresholds, CLI
-  integration, site build, in that order. Judge it by its real exit
-  code, captured to a file, never through a pipe.
+  eslint, `check:conventions`, `check:probes`, every suite, coverage
+  thresholds, CLI integration, site build, in that order. Judge it by
+  its real exit code, captured to a file, never through a pipe.
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.
@@ -130,10 +130,11 @@ catalog, on error-class suffixes, and on a path the audit, the
 entrypoint document or this file names that the tree lacks or on words
 they quote from the tree that their file no longer holds. The audit
 deletes the drift and suffix checks together with the duplicates they
-guard. `node scripts/sensors/run-probes.mjs` runs every probe of the
-audit and the entrypoint document, the shell ones that read the
-repository alone included, and names the ones that answer otherwise;
-a target case records the answer the tree gives today, so the suite
+guard. `npm run check:probes` runs every probe of the audit and the
+entrypoint document, the shell ones that read the repository alone
+included, and fails on one whose answer changed, which the branch that
+changed it answers by rewriting the sentence with its probe [D93]; a
+target case records the answer the tree gives today, so the suite
 tells a repair from a broken case [D91].
 
 Coverage thresholds of one hundred on every axis are pinned in the

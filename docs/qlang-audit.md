@@ -831,25 +831,15 @@ a client's `env` shows until a module's surface is its own.
 
 The verbs of the core live in the module of their noun, and the loader's
 `use` in the one family left, `core/lib/qlang/operand/reflective.qlang`
-[D72], [D79]. A host's verbs reside on no noun: the module of a host
-lands them in its client's scope beside the client's own names, where
-the manifest answers nouns [D80]. In the sister project:
+[D72], [D79]. The command line's verbs live on its noun, `::qlang/cli`
+[D92], and a host whose prefix is its own has no noun yet: the module
+of that host lands its verbs in its client's scope beside the client's
+own names, where the manifest answers nouns [D80]. In the sister
+project:
 
 ```sh
 $ node cli/bin/jdt q 'env | has :@type'
 true
-```
-
-The command line does the same with its own verbs, so `env`, which
-answers the session's own names [D61], answers the host's there, and
-the law the catalog writes for `env` fails on the command line while
-the suite, which runs the catalog without a host, holds it:
-
-```sh
-$ qlang 'env | keys'
-#[:@err :@in :@out :@tap :parseTjson :pretty :table :tjson]
-$ qlang '::any/env | runExamples * /ok'
-[false true true true]
 ```
 
 What the merge leaves behind is the runtime's housekeeping in the
@@ -860,7 +850,7 @@ runtime's own namespace of tags reaches what `env` answers, since a
 kind the scope declares is keyed by it:
 
 ```qlang
-> ::Width |~~ How many characters a line holds. ~~| | env | keys | filter ~(eq :"::Width")
+> ::Width |~~ How many characters a line holds. ~~| | env | keys
 #[:"::Width"]
 ```
 
@@ -1000,7 +990,7 @@ positive:
 
 ```sh
 $ git diff --shortstat f5e8ec8 -- core/lib cli/lib
- 35 files changed, 3491 insertions(+), 3309 deletions(-)
+ 36 files changed, 3584 insertions(+), 3408 deletions(-)
 ```
 
 Keeping the class names and the catalog in agreement requires a registry
@@ -1316,7 +1306,7 @@ September master:
 
 ```sh
 $ git ls-files 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
-code 6575   comment 2918   blank 999
+code 6566   comment 2909   blank 997
 $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\//{c++; next} /^[ \t]*$/{b++; next} {k++} END{print "code", k, "  comment", c, "  blank", b}'
 code 7529   comment 4644   blank 1025
 ```
@@ -2122,3 +2112,4 @@ maintainer wants to explore it before it is fixed.
 [D87]: decisions/D87.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
+[D92]: decisions/D92.md

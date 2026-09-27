@@ -1,10 +1,6 @@
-// Effectful I/O implementations for the `:cli/io` host catalog —
-// `@in` reads stdin, `@out` writes stdout, `@err` writes stderr,
-// `@tap :label` mirrors pipeValue to stderr with a labelled prefix.
-// Each is a plain function over the values the head of its verb checks
-// [D80]; the catalog declaration lives in `cli/lib/qlang/io.qlang`, and
-// the locator at `cli/src/cli-locator.mjs` hands these beside the
-// source.
+// The primitives of the streams of the command line, `@in`, `@out`,
+// `@err` and `@tap`, verbs of the noun `::qlang/cli` [D92], each a plain
+// function over the values the head of its verb checks [D80].
 
 import {
   declareSubjectError,

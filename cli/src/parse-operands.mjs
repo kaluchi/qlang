@@ -1,8 +1,7 @@
-// String → qlang-value parser for the `:cli/parse` host catalog —
-// `parseTjson` for the tagged-JSON wire format, where the core's
-// `parseJson` reads plain JSON — a plain function over the string the
-// head of its verb checks [D80]. Catalog declaration lives in
-// `cli/lib/qlang/parse.qlang`.
+// The primitive of `parseTjson`, a verb of the noun `::qlang/cli` [D92]
+// that reads the tagged JSON `tjson` writes, where the core's `parseJson`
+// reads plain JSON; a plain function over the string its head checks
+// [D80].
 
 import { declareSubjectError } from '@kaluchi/qlang-core/operand-errors';
 import { declareShapeError } from '@kaluchi/qlang-core/errors';

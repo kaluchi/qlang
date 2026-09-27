@@ -172,6 +172,22 @@ export function addressesOf(env, verbName) {
   return makeSet(addresses);
 }
 
+// The verbs a value of the kinds reaches by name, each with its address,
+// from the outside in [D34]: those that reside on each kind, then those
+// of any value that have a body, a contract there answering only
+// through its residences.
+export function verbsReaching(env, kindNames) {
+  const reached = new Map();
+  for (const kindName of [...kindNames, ANY_KIND_NAME]) {
+    for (const [name, record] of residencesOnKind(env, kindName)) {
+      const verb = bindingValueOf(record);
+      if (reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
+      reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
+    }
+  }
+  return reached;
+}
+
 // The nouns under a noun, the whole set for the core's own noun.
 function nounsUnder(env, tagName) {
   const under = canonicalTagName(tagName);

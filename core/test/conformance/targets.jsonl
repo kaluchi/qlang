@@ -82,3 +82,6 @@
 {"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | /content","expect":"\" how many \"","decision":"D88"}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | docs :nosuch !| [type /bindingName]","expect":"[::DocsBindingNotFoundError ::map/nosuch]","decision":"D88"}
 {"name":"a-tag-name-meets-the-verbs-of-its-noun-at-their-heads","query":"::vec | count !| type","expect":"::VecPayloadNotVecError","decision":"D88"}
+{"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99","expect":"12","decision":"D44","target":true}
+{"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::UnresolvedIdentifierError \"lim\"]","decision":"D44","target":true}
+{"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | docs !| /addresses","expect":"#[::any/type]","decision":"D62","target":true}

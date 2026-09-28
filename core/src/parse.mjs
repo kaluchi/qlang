@@ -64,11 +64,12 @@ export function parse(source, opts = {}) {
     ast = peggyParse(source, { commentTrivia });
   } catch (err) {
     const unclosed = err.found === null ? bracketLeftOpen(source) : null;
-    throw new ParseError(unclosed?.message ?? err.message, err.location, opts.uri ?? null, {
+    const sentence = unclosed?.message ?? formMeantAt(source, err.location);
+    throw new ParseError(sentence ?? err.message, err.location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
       found: err.found,
       source,
-      sentence: unclosed?.message
+      sentence
     });
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
@@ -105,6 +106,14 @@ function treeOf(candidate) {
   } catch {
     return null;
   }
+}
+
+// The form a reader meant where the parse stopped at a spelling of
+// another language: a set written with braces, `#{…}`, is `#[…]`.
+function formMeantAt(source, location) {
+  return source.startsWith('#{', location.start.offset)
+    ? 'a set is written `#[…]`, the vector in the one order without duplicates; `{…}` is a map'
+    : undefined;
 }
 
 // The shortest run of closers that completes a source, with the tree the

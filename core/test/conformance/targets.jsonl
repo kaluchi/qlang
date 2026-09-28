@@ -99,3 +99,4 @@
 {"name":"a-step-without-its-quote-is-refused-by-the-slot-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::FilterPredicateNotQuoteError ::ProjectionSequenceKeyNotIntegerError]","decision":"D129"}
 {"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::VerbCodeNotQuoteError","decision":"D129"}
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::ProjectionSequenceKeyNotIntegerError","decision":"D129"}
+{"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}

@@ -836,6 +836,19 @@ binding of the tag holds its constructor [D79].
 
 ## Formatting
 
+### `elide`
+
+- **Arity** 2. **Subject** any value; the verb resides on `::any` [D109].
+- Returns the value within a budget of characters of its print: while
+  the print exceeds it, the largest part beneath the top gives way to an
+  `::elision` marker, a vector keeping the first half of its elements and
+  ending with a marker of the rest, a string or a map giving way whole. A
+  marker holds `:size`, what it stands for, `:read`, the quote that
+  applied to the value taken answers the part left out, and for a string
+  `:head`. A value whose print fits is answered as it is; the command
+  line applies `elide` to the answer it prints.
+- **Examples**: `[1 2] | elide 100` → `[1 2]`.
+
 ### `json`
 
 - **Arity** 1. **Subject** any value.

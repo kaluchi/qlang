@@ -4,7 +4,7 @@
 // node binary already stripped by the caller) and returns a
 // `cliInvocation` describing the user's intent — five shapes today:
 //
-//   { kind: 'evalQuery', queryText, inputFormat, colorMode }
+//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
 //   { kind: 'repl' }
 //   { kind: 'help' }
 //   { kind: 'version' }
@@ -32,12 +32,16 @@
 // dispatch into the rest of the runtime.
 
 import { createRequire } from 'node:module';
+// The characters an answer prints within unless `--full` lifts the
+// budget, an error, an alert, within fewer [D109].
+export const ANSWER_BUDGET = { value: 4000, error: 1000 };
+
 const _cliPackage = createRequire(import.meta.url)('../package.json');
 
 export const HELP_TEXT = `qlang \u2014 pipeline query language
 
-Usage:  qlang [--json | --raw] [--color=MODE] <query>
-        qlang -i | --repl
+Usage:  qlang [--json | --raw] [--color=MODE] [--full] <query>
+        qlang [--full] -i | --repl
         qlang -h | --help
         qlang -V | --version
 
@@ -58,6 +62,14 @@ Input mode (script):
   --json      force JSON.parse on stdin; exit 1 on parse failure
   --raw       skip parsing — stdin is the String subject, and the
               answer is written as its print
+
+Output budget:
+  (default)   an answer prints within ${ANSWER_BUDGET.value} characters, an error
+              within ${ANSWER_BUDGET.error}; what does not fit gives way to
+              ::elision markers whose :read continues the query to
+              the part left out; under JSON an error alone is cut,
+              data answering whole
+  --full      print the answer whole
 
 Output colour:
   --color=auto    (default) paint if stdout is a terminal, raw
@@ -82,16 +94,19 @@ export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;
 
 const COLOR_MODES = new Set(['auto', 'always', 'never']);
 
+
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';
+  let budget = ANSWER_BUDGET;
   let cursor = 0;
 
   while (cursor < argvSlice.length) {
     const head = argvSlice[cursor];
     if (head === '-h' || head === '--help')    return { kind: 'help' };
     if (head === '-V' || head === '--version') return { kind: 'version' };
-    if (head === '-i' || head === '--repl')    return { kind: 'repl' };
+    if (head === '-i' || head === '--repl')    return { kind: 'repl', budget };
+    if (head === '--full') { budget = null; cursor += 1; continue; }
     if (head === '--json') { inputFormat = 'json'; cursor += 1; continue; }
     if (head === '--raw')  { inputFormat = 'raw';  cursor += 1; continue; }
     if (head.startsWith('--color=')) {
@@ -106,7 +121,7 @@ export function parseArgv(argvSlice) {
       cursor += 1;
       continue;
     }
-    return { kind: 'evalQuery', queryText: head, inputFormat, colorMode };
+    return { kind: 'evalQuery', queryText: head, inputFormat, colorMode, budget };
   }
 
   return {

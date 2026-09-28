@@ -77,7 +77,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite);
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget });
   }
 
   const stdinText = await readStdinToString(stdinStream);
@@ -110,7 +110,8 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const cliOutcome = await renderCellOutcome(cellEntry, {
     resolvedFormat: lifted.resolvedFormat,
     didExplicitStdoutEffect,
-    shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env)
+    shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
+    budget: cliInvocation.budget
   });
 
   if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);

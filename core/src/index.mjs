@@ -9,6 +9,7 @@ import { langRuntime } from './runtime/index.mjs';
 import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
 import { verbsReaching } from './runtime/nouns.mjs';
 import { printAnswer } from './runtime/codeAsData.mjs';
+import { elide, elideAnswer } from './elide.mjs';
 import {
   createSession,
   serializeSession,
@@ -126,6 +127,8 @@ export {
   fromTaggedJSON,
   printValue,
   printAnswer,
+  elide,
+  elideAnswer,
   toPlain,
   fromPlain,
   FromPlainNumberNotFiniteError,

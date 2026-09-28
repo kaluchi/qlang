@@ -36,7 +36,7 @@
 //     honours it.
 
 import {
-  fromPlain, toPlain, printAnswer, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword
+  fromPlain, toPlain, printAnswer, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
 } from '@kaluchi/qlang-core';
 import { recordThrowSiteSpec } from '@kaluchi/qlang-core/errors';
 
@@ -130,12 +130,21 @@ function liftParsedDocument(parsed, resolvedFormat) {
   }
 }
 
-export async function encodeSuccessValueForFormat(value, resolvedFormat, env) {
+// The budget of an answer: an error's, an alert, or a value's.
+const budgetOf = (value, budget) => (isErrorValue(value) ? budget.error : budget.value);
+
+// The answer a channel writes within the budget [D109]: under JSON an
+// error alone gives way, data answering whole for the tools that read
+// it; the print gives way within the budget; a null budget writes the
+// answer whole.
+export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null) {
   if (resolvedFormat === 'json') {
-    return JSON.stringify(toPlain(answerForJson(value)), null, JSON_PRETTY_INDENT);
+    const answer = answerForJson(value);
+    const shown = budget !== null && isErrorValue(answer) ? elideAnswer(answer, budget.error) : answer;
+    return JSON.stringify(toPlain(shown), null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
   // (the raw-in-raw-out contract); anything else goes out as its print.
   if (typeof value === 'string') return value;
-  return printAnswer(value, env);
+  return printAnswer(budget === null ? value : elideAnswer(value, budgetOf(value, budget)), env);
 }

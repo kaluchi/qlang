@@ -1,9 +1,9 @@
 {"name":"a-tagged-quote-in-a-doc-is-a-segment-of-its-own","query":"|~~ see ::link~(::qlang | manifest) ~~| | segments | count","expect":"3","decision":"D108"}
-{"name":"a-link-is-no-law","query":"|~~ see ::link~(::qlang | manifest) ~~| | laws | count","expect":"0","decision":["D108","D123"],"target":true,"now":"::UnresolvedIdentifierError"}
+{"name":"a-link-is-no-law","query":"|~~ see ::link~(::qlang | manifest) ~~| | laws | count","expect":"0","decision":["D108","D123"]}
 {"name":"links-answers-the-links-of-a-doc","query":"|~~ see ::link~(::qlang | manifest) and ~(eq 1) ~~| | links | count","expect":"1","decision":"D108"}
 {"name":"a-link-is-of-the-kind-link","query":"|~~ ::link~(::qlang | manifest) ~~| | links | first | type","expect":"::link","decision":"D108"}
 {"name":"a-link-is-followed-by-apply","query":"|~~ ::link~(::qlang | manifest) ~~| | links | first | :l / | null | apply l | has ::number","expect":"true","decision":"D108"}
 {"name":"a-link-under-a-host-tag-is-a-link","query":"|~~ ::Host::link~(1) ~~| | links | first | type","expect":"::Host","decision":"D108"}
-{"name":"any-tag-takes-a-quote-out-of-the-laws","query":"|~~ ::other~(eq 1) ~~| | laws | count","expect":"0","decision":["D108","D123"],"target":true,"now":"::UnresolvedIdentifierError"}
+{"name":"any-tag-takes-a-quote-out-of-the-laws","query":"|~~ ::other~(eq 1) ~~| | laws | count","expect":"0","decision":["D108","D123"]}
 {"name":"the-content-of-a-doc-writes-the-stack-before-its-quote","query":"|~~ a ::link~(add 1) b ~~| | content","expect":"\" a ::link~(add 1) b \"","decision":"D108"}
 {"name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | :d / | print | parse | first | eq d","expect":"true","decision":"D108"}

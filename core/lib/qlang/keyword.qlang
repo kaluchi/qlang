@@ -43,10 +43,10 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/keyword})
 
-:runExamples
-  |~~ The results of the examples of the binding the keyword names in
-      its scope.
+:runLaws
+  |~~ The results of the laws of the page of the binding the keyword
+      names in its scope, one `{:law :actual :ok :error}` per law.
 
-      ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runExamples * /ok | eq [true])
+      ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runLaws * /ok | eq [true])
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runExamples})
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runLaws})

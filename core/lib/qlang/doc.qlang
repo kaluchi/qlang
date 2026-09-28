@@ -12,20 +12,23 @@
 
 :segments
   |~~ The parts of the doc in their order: each run of prose a string
-      and each span that reads as code a quote, which are its examples.
+      and each span that reads as code a quote, bare or under the tags
+      of its role.
 
       ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
       ~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docSegments})
 
-:quotes
-  |~~ The quotes of the doc in their order, which are its examples.
+:laws
+  |~~ The laws of the doc in their order: each quote with no tag, which
+      `runLaws` holds to answer true; a quote under a tag, a link or a
+      snippet, is no law.
 
-      ~(|~~ a ~(add 1) b ~(mul 2) ~~| | quotes | eq [~(add 1) ~(mul 2)])
-      ~("x" | add 1 !| explain | page | quotes | count | eq 1)
+      ~(|~~ a ~(add 1) b ~(mul 2) ~~| | laws | eq [~(add 1) ~(mul 2)])
+      ~("x" | add 1 !| explain | page | laws | count | eq 1)
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docQuotes})
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docLaws})
 
 :links
   |~~ The links of the doc in their order: each quote under a stack of

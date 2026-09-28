@@ -1,35 +1,35 @@
-// `manifest`, `runExamples` — reflective operands over the tree of
+// `manifest`, `runLaws` — reflective operands over the tree of
 // names and the declarations it holds.
 //
 // `manifest` is asked of a noun and answers what lies below it in the
 // tree of names, the nouns under its path and the verbs that live on
 // it [D62], so `::qlang | manifest` lists the nouns of the core and of
 // the hosts; a refusal is reached from the place it guards, its `/throws`
-// [D64]. `runExamples` pulls every Quote segment from the docs of a
-// named binding and evaluates each as a self-test, yielding
-// `{:snippet :actual :ok :error}` per Quote, so `::number | manifest *
-// (runExamples * /ok)` runs the examples of the verbs of numbers.
+// [D64]. `runLaws` runs every law of the page of a named binding,
+// yielding `{:law :actual :ok :error}` per law, so `::number | spec |
+// /verbs * (runLaws * /ok)` runs the laws of the verbs of numbers
+// [D123].
 //
 // The introspection surface for "what does THIS one binding do" is the
-// axis trio in `axis.mjs` (`::vec/count | source` / `| docs` /
-// `| examples`), which reads the declaration where it was written.
+// axes in `axis.mjs` (`::vec/count | source` / `| doc` / `| spec`),
+// which read the declaration where it was written.
 
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { declaringRecordOf, examplesOfRecord, refusalOf } from './axis.mjs';
+import { declaringRecordOf, lawsOfRecord, refusalOf } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-// `manifest` resides on `::tag` and `runExamples` on `::keyword` and
+// `manifest` resides on `::tag` and `runLaws` on `::keyword` and
 // `::tag`, each primitive reading the state of the call [D79].
 declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
-const RunExamplesBindingNotFoundError = declareShapeError('RunExamplesBindingNotFoundError',
+const RunLawsBindingNotFoundError = declareShapeError('RunLawsBindingNotFoundError',
   ({ bindingName }) =>
-    `runExamples: no binding-step found for '${bindingName}' across loaded modules`,
-  { operand: 'runExamples' });
+    `runLaws: no binding-step found for '${bindingName}' across loaded modules`,
+  { operand: 'runLaws' });
 
 // Extract a human-readable message from an error value — runtime
 // errors carry `.originalError`, user-created errors carry
@@ -43,10 +43,10 @@ function errorMessageOf(errorValue) {
 // tree of names [D62].
 bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
 
-// `runExamples` — execute every Quote segment in a binding's docs
+// `runLaws` — execute every Quote segment in a binding's docs
 // as a self-test expression.
 //
-// Each example evaluates one frame below the `runExamples` step,
+// Each example evaluates one frame below the `runLaws` step,
 // against the caller's env, with a null initial pipeValue: the
 // snippet sees every module loaded through `use :ns` in the
 // surrounding session, so `"no.such.Type" | @type !| type` under
@@ -59,7 +59,7 @@ bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.na
 // Maps, one per Quote segment.
 async function runQuoteEntry(quote, callerState) {
   const result = new Map();
-  result.set('snippet', quote);
+  result.set('law', quote);
   const actualValue = await evalQuery(printQuoteSource(quote), callerState.env, callerState);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
@@ -75,16 +75,16 @@ async function runQuoteEntry(quote, callerState) {
 
 // A name reads the record of its binding as the axes do, a tag name
 // that no tag binds the record of the verb it addresses [D62], and a
-// name that names no binding is refused as `examples` refuses it,
+// name that names no binding is refused as `doc` refuses it,
 // with the addresses where the verbs of that name live.
 function recordNamedBy(env, subject) {
   const record = declaringRecordOf(env, subject);
-  if (record === null) throw new RunExamplesBindingNotFoundError(refusalOf(env, subject));
+  if (record === null) throw new RunLawsBindingNotFoundError(refusalOf(env, subject));
   return record;
 }
 
-bindStateReader('runExamples', async (subject, state) => {
-  const quotes = examplesOfRecord(recordNamedBy(state.env, subject));
+bindStateReader('runLaws', async (subject, state) => {
+  const quotes = lawsOfRecord(recordNamedBy(state.env, subject));
   const entries = [];
   for (const exampleQuote of quotes) entries.push(await runQuoteEntry(exampleQuote, state));
   return entries;

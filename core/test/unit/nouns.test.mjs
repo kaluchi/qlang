@@ -88,7 +88,7 @@ describe('a tag name that no tag binds addresses a verb', () => {
   it('an address with a kind reads the verb that lives on that kind', async () => {
     expect(await evalQuery('::qlang/vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":count"')).toBe(true);
-    expect(await evalQuery('::vec/count | examples | count | gt 0')).toBe(true);
+    expect(await evalQuery('::vec/count | doc | laws | count | gt 0')).toBe(true);
     expect(await evalQuery('::vec/count | spec | /subject')).toEqual(makeTagKeyword('vec'));
   });
 

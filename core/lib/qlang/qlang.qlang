@@ -114,7 +114,7 @@
       an absolute one, `::vec/sort`, and a verb passes from an address
       into one of its projections, as a path reaches a file: `doc` into
       its page, `spec` into its declaration, `source` into the code that
-      declared it, `examples` into its laws. An address holds no one
+      declared it, and `runLaws` runs the laws of its page. An address holds no one
       entity but a set of values, and each passage reads one of them; the
       address, the verb and what it reaches are all values, so the
       pipeline goes on from a projection as from any value, and a tag
@@ -122,7 +122,7 @@
       A keyword after `doc` is an anchor within the page of its subject,
       `::qlang | doc :pipeline`, a vector of anchors a path, a set of
       anchors several pages at once. A page is a doc, prose that holds
-      code: a quote with no tag is a law, which `runExamples` holds to
+      code: a quote with no tag is a law, which `runLaws` holds to
       answer true, a quote under `::link` is a link to another page, and
       a quote under `::snippet` a query a reader runs to see what it
       shows; `open` runs either. So a page leads on to the pages that go deeper,

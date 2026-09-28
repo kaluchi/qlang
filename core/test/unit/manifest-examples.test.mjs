@@ -1,8 +1,8 @@
 // Regression catcher for core.qlang examples.
 //
 // Every operand in core.qlang carries a docs prefix whose Quote
-// segments are executable test cases. runExamples evaluates each
-// Quote in isolation and reports {:snippet :actual :ok :error}; a
+// segments are executable test cases. runLaws evaluates each
+// Quote in isolation and reports {:law :actual :ok :error}; a
 // Quote whose eval result is truthy passes, otherwise it fails.
 //
 // This walks every verb of the core by its address, the nouns
@@ -20,7 +20,7 @@ import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
 const OK_KW      = 'ok';
-const SNIPPET_KW = 'snippet';
+const SNIPPET_KW = 'law';
 const ERROR_KW   = 'error';
 const ACTUAL_KW  = 'actual';
 
@@ -31,7 +31,7 @@ function safeprint(v) {
 
 // The readers of the catalog's examples: the address of every verb of
 // the core, `::vec/count`, and the name of every tag it declares,
-// `::AddLeftNotNumberError`, each a subject `runExamples` and
+// `::AddLeftNotNumberError`, each a subject `runLaws` and
 // `examples` read.
 async function catalogReaders() {
   const verbAddresses = await evalQuery('::qlang | manifest * manifest | flat');
@@ -42,9 +42,9 @@ async function catalogReaders() {
 async function walkCatalogExamples() {
   const failures = [];
   for (const reader of await catalogReaders()) {
-    const exampleResults = await evalQuery(`${reader} | runExamples`);
+    const exampleResults = await evalQuery(`${reader} | runLaws`);
     if (!Array.isArray(exampleResults)) {
-      failures.push({ reader, snippet: 'runExamples', printed: safeprint(exampleResults) });
+      failures.push({ reader, snippet: 'runLaws', printed: safeprint(exampleResults) });
       continue;
     }
     for (const exampleResult of exampleResults) {
@@ -60,7 +60,7 @@ async function walkCatalogExamples() {
   return failures;
 }
 
-describe('catalog self-test via runExamples', () => {
+describe('catalog self-test via runLaws', () => {
   it('every Quote example evaluates truthy', async () => {
     const failures = await walkCatalogExamples();
     if (failures.length > 0) {
@@ -77,7 +77,7 @@ describe('catalog self-test via runExamples', () => {
     // that loses code.
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | examples | filter ~(:example / | parse | parse | eq example | not)`);
+      const changed = await evalQuery(`${reader} | doc | laws | filter ~(:example / | parse | parse | eq example | not)`);
       if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
@@ -91,7 +91,7 @@ describe('catalog self-test via runExamples', () => {
   });
 
   it('the /ok distribution over every verb is {true}', async () => {
-    const distinctOkValues = await evalQuery('::qlang | manifest * manifest | flat * (runExamples * /ok) | flat | distinct');
+    const distinctOkValues = await evalQuery('::qlang | manifest * manifest | flat * (runLaws * /ok) | flat | distinct');
     expect(isErrorValue(distinctOkValues)).toBe(false);
     expect(isQSet(distinctOkValues)).toBe(true);
     expect([...distinctOkValues]).toEqual([true]);

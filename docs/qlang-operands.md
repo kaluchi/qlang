@@ -940,10 +940,10 @@ of `coalesce` or `cond` that is no quote is refused with
 
 ## Reflective built-ins
 
-`env`, `manifest` and `runExamples` read the scope of their call, the
+`env`, `manifest` and `runLaws` read the scope of their call, the
 primitive of each taking the state of the call after its values [D79]:
 `env` and the axes `source`, `docs`, `examples` and `spec` reside on
-`::qlang/any`, `manifest` on `::tag`, and `runExamples` on `::keyword`
+`::qlang/any`, `manifest` on `::tag`, and `runLaws` on `::keyword`
 and `::tag` under one contract. `use`, the loader, writes the scope and
 keeps its descriptor [D79]. Each looks up like any other identifier and
 can be shadowed by a `:name body` BindStep.
@@ -1000,7 +1000,7 @@ its own eval handler in `eval.mjs`.
   verbs of numbers. A tag the session declares is its own and stays
   out, and a refusal is reached from the place it guards,
   `::number/add | spec | /throws`. For what one binding does reach for
-  the axis trio (`::vec/count | source` / `| doc` / `| examples`).
+  the axis trio (`::vec/count | source` / `| doc` / `| doc | laws`).
 - **Examples**:
   - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
   - `::number | manifest | has ::number/add` → `true`.
@@ -1009,7 +1009,7 @@ its own eval handler in `eval.mjs`.
 - **Errors**: a subject other than a tag name →
   `ManifestSubjectNotTagError`.
 
-### `runExamples`
+### `runLaws`
 
 - **Arity** 1. **Subject** Keyword (binding name) or tag name, the
   address of a verb among them.
@@ -1019,11 +1019,11 @@ its own eval handler in `eval.mjs`.
   against the caller's env and a null pipeValue; an example passes
   when it answers `true`, and every other answer, an ErrorValue
   among them, counts as `:ok false`. Returns a Vec of
-  `{:snippet :actual :error :ok}` Maps — one per Quote segment.
-- **Example**: `::vec/count | runExamples | first | /ok` → `true`.
+  `{:law :actual :error :ok}` Maps — one per law.
+- **Example**: `::vec/count | runLaws | first | /ok` → `true`.
 - **Errors**: subject neither Keyword nor tag name → the contract's
   `VerbWithoutBodyError` with `:addresses`; a name no step declares, a verb a
-  provider keeps among them → `RunExamplesBindingNotFoundError`,
+  provider keeps among them → `RunLawsBindingNotFoundError`,
   whose `:addresses` holds the addresses where the verbs of that
   name live.
 
@@ -1192,19 +1192,19 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
   (`::Tag`) reads the binding it names; every other value reads the
-  declaration of its kind, the kind `type` answers, so `5 | examples`
-  reads `::number` and `{:kind ::set} | examples` reads `::map`.
+  declaration of its kind, the kind `type` answers, so `5 | doc | laws`
+  reads `::number` and `{:kind ::set} | doc | laws` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | examples` reads the verb `count` that lives on vectors, a
+  `::vec/count | doc | laws` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
 - Returns a Vec of Quote-values extracted from the docs of the
   binding's record — every `~(…)` Quote segment in the doc-content
-  stream is a candidate test case for `runExamples`.
+  stream is a candidate test case for `runLaws`.
 - **Examples**:
-  - `::vec/count | examples` → Vec of `~(…)` Quotes from the docs of
+  - `::vec/count | doc | laws` → Vec of `~(…)` Quotes from the docs of
     `count` on vectors.
-  - `::number/add | examples | count` → number of inline Quote examples
+  - `::number/add | doc | laws | count` → number of inline Quote examples
     on `add`.
 - **Errors**: the subject names no binding → `ExamplesBindingNotFoundError`.
 
@@ -1313,8 +1313,8 @@ deflects on an error that `!| true` then answers.
 
 - **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D99].
 - The quotes of the doc, in their order, which are its examples.
-- **Examples**: `|~~ a ~(add 1) b ~~| | quotes` → `[~(add 1)]`;
-  `"x" | add 1 !| explain | page | quotes | count` → `1`.
+- **Examples**: `|~~ a ~(add 1) b ~~| | laws` → `[~(add 1)]`;
+  `"x" | add 1 !| explain | page | laws | count` → `1`.
 
 ### `links`
 

@@ -11,8 +11,6 @@
 //            step declared, a value `use` or a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `examples` every quote among the segments of its docs, the cases
-//            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.
 //
 // Given a name, each axis reads the member the subject holds under it
@@ -59,10 +57,6 @@ export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundErro
 const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
-export const ExamplesBindingNotFoundError = declareShapeError('ExamplesBindingNotFoundError',
-  ({ bindingName }) =>
-    `examples: no binding found for '${bindingName}'`,
-  { operand: 'examples' });
 export const ExplainBindingNotFoundError = declareShapeError('ExplainBindingNotFoundError',
   ({ bindingName }) =>
     `explain: no binding found for '${bindingName}'`,
@@ -118,7 +112,7 @@ function nearestOfSubject(env, subject) {
 }
 
 // The record a subject names, the one record every axis and
-// `runExamples` read, or null when it names none: a value a host bound
+// `runLaws` read, or null when it names none: a value a host bound
 // under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
@@ -129,9 +123,9 @@ export function declaringRecordOf(env, subject) {
   return isBinding(entry) ? entry : null;
 }
 
-// Every quote among the segments of a record's docs, what `examples`
-// answers and `runExamples` runs.
-export function examplesOfRecord(record) {
+// Every law of a record's page, a quote with no tag among the segments of
+// its docs, what `runLaws` runs [D123].
+export function lawsOfRecord(record) {
   return record.get('docs').flatMap(doc => doc.filter(isQuote));
 }
 
@@ -201,8 +195,6 @@ function pageAt(subject, anchor, state) {
 // A set of anchors reads a page at each, in the order of the set.
 bindStateReader('doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
-bindStateReader('examples', (subject, memberName, state) =>
-  Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
 // The value as an explanation holds it: an error, a map under `::error`
 // beneath the tags stacked over it, raised under the tag it shows, as it

@@ -1,8 +1,8 @@
 // Per-binding stall detector. For every value-namespace binding in
 // `manifest`, spawns a child node process that runs
-// `:NAME | runExamples` under a 10-second budget; prints the names
+// `:NAME | runLaws` under a 10-second budget; prints the names
 // whose run did not finish in time (the rest get a one-line "ok"
-// with timing). Use when `runExamples` catalog-self-test takes
+// with timing). Use when `runLaws` catalog-self-test takes
 // longer than expected — isolates which binding's doc-prefix carries
 // a Quote whose evaluation diverges (recursion, super-slow eval,
 // fail-track storm, …).
@@ -21,7 +21,7 @@ function probeBinding(bindingName) {
     const childProcess = spawn(process.execPath, [
       '-e',
       `import('./core/src/eval.mjs').then(({evalQuery}) =>
-         evalQuery(':"${bindingName}" | runExamples | count').then(n =>
+         evalQuery(':"${bindingName}" | runLaws | count').then(n =>
            process.stdout.write(String(n))));`
     ], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'] });
 

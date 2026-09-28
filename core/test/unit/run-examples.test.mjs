@@ -1,55 +1,55 @@
-// runExamples — execute each Quote segment in a binding's attached
+// runLaws — execute each Quote segment in a binding's attached
 // docs as an executable test case. An example passes when it answers
 // `true`. The subject is a keyword (binding name) or a tag name, the
 // address of a verb among them, so `::qlang | manifest * manifest |
-// flat * runExamples` walks the whole catalog.
+// flat * runLaws` walks the whole catalog.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
-describe('runExamples reads a name as examples does', () => {
-  it('address subject — ::vec/count | runExamples', async () => {
-    const result = await evalQuery('::vec/count | runExamples * /ok | distinct');
+describe('runLaws reads a name as examples does', () => {
+  it('address subject — ::vec/count | runLaws', async () => {
+    const result = await evalQuery('::vec/count | runLaws * /ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });
 
-  it('a binding without a doc runs no example, as examples finds none', async () => {
+  it('a binding without a doc runs no law, its page null', async () => {
     // A host-installed binding (via `session.bind`) is the record of a
     // binding without a doc [D63].
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
-    const cellEntry = await sessionInstance.evalCell(':hostInjected | runExamples');
+    const cellEntry = await sessionInstance.evalCell(':hostInjected | runLaws');
     expect(cellEntry.result).toEqual([]);
-    const examplesEntry = await sessionInstance.evalCell(':hostInjected | examples');
-    expect(examplesEntry.result).toEqual([]);
+    const pageEntry = await sessionInstance.evalCell(':hostInjected | doc');
+    expect(pageEntry.result).toBeNull();
   });
 
-  it('a name that names no binding is refused as examples refuses it', async () => {
-    const refusal = await evalQuery(':nothingBound | runExamples');
-    expect(refusal.tag).toEqual(makeTagKeyword('RunExamplesBindingNotFoundError'));
+  it('a name that names no binding is refused as doc refuses it', async () => {
+    const refusal = await evalQuery(':nothingBound | runLaws');
+    expect(refusal.tag).toEqual(makeTagKeyword('RunLawsBindingNotFoundError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
-    const addresses = await evalQuery(':count | runExamples !| /addresses');
+    const addresses = await evalQuery(':count | runLaws !| /addresses');
     expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'vec/count']);
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {
-    const bindingName = await evalQuery('::Nonexistent | runExamples !| /bindingName');
+    const bindingName = await evalQuery('::Nonexistent | runLaws !| /bindingName');
     expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 
   it('a subject no residence takes reaches the contract, which refuses it', async () => {
-    const err = await evalQuery('42 | runExamples');
+    const err = await evalQuery('42 | runLaws');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('VerbWithoutBodyError'));
   });
 });
 
-describe('runExamples Quote-as-test outcomes', () => {
+describe('runLaws Quote-as-test outcomes', () => {
   it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
       ':demo |~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
@@ -57,14 +57,14 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/broken | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/broken | :demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
 
   it('Quote that evaluates falsy → ok:false with no error', async () => {
     // 5 | mul(2) = 10, eq(99) = false. The Quote eval'd cleanly
-    // but produced a falsy result, so runExamples reports ok:false
+    // but produced a falsy result, so runLaws reports ok:false
     // with :error nil — there is no error message, the assertion
     // just did not hold.
     const moduleSource =
@@ -73,7 +73,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/falsy | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/falsy | :demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBeNull();
     expect(cellEntry.result.get('actual')).toBe(false);
@@ -85,7 +85,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/passing | :demo | runExamples | first | /ok');
+    const cellEntry = await session.evalCell('use :tests/passing | :demo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -93,14 +93,14 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: ':bare 42' })
     });
-    const cellEntry = await session.evalCell('use :tests/bare | :bare | runExamples | count');
+    const cellEntry = await session.evalCell('use :tests/bare | :bare | runLaws | count');
     expect(cellEntry.result).toBe(0);
   });
 
   it('example sees module bindings loaded through the calling session', async () => {
     // The Quote inside `:fortytwo`'s doc references `add` —
     // an operand pulled in via `use(:qlang/operand/arith)` inside
-    // the test's transient module. runExamples must evaluate the
+    // the test's transient module. runLaws must evaluate the
     // Quote against the calling session's env so the operand
     // resolves; falling back to a fresh `langRuntime()` env would
     // leak the example into an isolated runtime that already has
@@ -113,22 +113,22 @@ describe('runExamples Quote-as-test outcomes', () => {
     // verifies the documented fail-track tag. Coverage here uses
     // bare-qlang `add` to keep the test runtime-free.
     const moduleSource =
-      ':fortytwo |~~ tracks env propagation through runExamples.\n' +
+      ':fortytwo |~~ tracks env propagation through runLaws.\n' +
       '    ~(40 | add 2 | eq 42)\n ~~|\n' +
       '1';
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
     const cellEntry = await session.evalCell(
-      'use :tests/env-propagation | :fortytwo | runExamples | first | /ok');
+      'use :tests/env-propagation | :fortytwo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
   it('example does not leak BindStep writes back into the calling session', async () => {
     // The Quote in `:writer`'s doc runs a BindStep — the
     // session-env copy isolates the write so the calling session
-    // still sees no `:scratch` after runExamples completes. Reading
-    // `:scratch` on the session after `runExamples` therefore lifts
+    // still sees no `:scratch` after runLaws completes. Reading
+    // `:scratch` on the session after `runLaws` therefore lifts
     // ::UnresolvedIdentifierError.
     const moduleSource =
       ':writer |~~ leaks BindStep into session env.\n' +
@@ -138,7 +138,7 @@ describe('runExamples Quote-as-test outcomes', () => {
       locator: async () => ({ source: moduleSource })
     });
     const cellRun = await session.evalCell(
-      'use :tests/isolation | :writer | runExamples | first | /ok');
+      'use :tests/isolation | :writer | runLaws | first | /ok');
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
@@ -159,7 +159,7 @@ describe('runExamples Quote-as-test outcomes', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/user-error | :demo | runExamples | first');
+    const cellEntry = await session.evalCell('use :tests/user-error | :demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBe('hand-built failure');
   });

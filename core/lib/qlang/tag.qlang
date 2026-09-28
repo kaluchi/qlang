@@ -37,7 +37,7 @@
       kinds; ::snippet~(::vec | spec | /verbs) lists the verbs of a kind by
       address, and ::snippet~(::qlang/any | spec | /verbs) those of every
       value; a verb in neither does not exist. `::vec/sort | doc` reads
-      the page of one verb, `::vec/sort | runExamples` runs its laws,
+      the page of one verb, `::vec/sort | runLaws` runs its laws,
       and `x !| explain` shows the page of what refused above an error.
       An answer prints whole; `x | elide 4000` bounds it to that many
       characters of its print, each part left out an `::elision` whose
@@ -593,7 +593,7 @@
       it is: every page is a doc, `doc` answers the page of a name, and
       because a doc is a value its code is checked and the next step can
       take it apart. A quote with no tag is a law of the page, which
-      `runExamples` holds to answer true; a quote under `::link` is a
+      `runLaws` holds to answer true; a quote under `::link` is a
       link, a query a reader follows. `content` answers its text,
       `segments` its parts, `quotes` its laws and `links` its links.
       ::snippet~(::doc | spec | /verbs) lists its verbs. ::link~(::link | doc)
@@ -919,7 +919,7 @@
       manifest` the verbs of numbers, and a refusal is reached
       from the place it guards, `::number/add | spec | /throws`.
       For what one binding does reach for the axis trio
-      (`::vec/count | source` / `| doc` / `| examples`).
+      (`::vec/count | source` / `| doc` / `| doc | laws`).
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::vec)
@@ -938,10 +938,11 @@
        )
   ~~|
 
-:runExamples
-  |~~ The results of the examples of the declaration the tag name
-      reads, a verb by its address among them.
+:runLaws
+  |~~ The results of the laws of the page of the declaration the tag
+      name reads, a verb by its address among them, one `{:law :actual
+      :ok :error}` per law.
 
-      ~(::number/add | runExamples | first | /ok | eq true)
+      ~(::number/add | runLaws | first | /ok | eq true)
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runExamples})
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runLaws})

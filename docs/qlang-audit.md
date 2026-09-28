@@ -398,7 +398,7 @@ quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every operand is a binding with prose and
 examples, four axis operands read a binding's source, prose, examples,
-and declared facts, `manifest` enumerates what exists, and `runExamples`
+and declared facts, `manifest` enumerates what exists, and `runLaws`
 executes a binding's examples as tests. The self-test over the whole
 catalog runs in under a second.
 

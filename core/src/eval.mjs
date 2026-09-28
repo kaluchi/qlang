@@ -95,7 +95,7 @@ const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError'
 );
 // evalQuery(source, env?, callerState?) → the value a query answers from
 // null, in the runtime's environment unless `env` is given, one frame
-// below `callerState` when a running query evaluates it, `runExamples`
+// below `callerState` when a running query evaluates it, `runLaws`
 // among them, so the depth budget counts it.
 export async function evalQuery(source, env, callerState = null) {
   const initialEnv = env ?? await langRuntime();

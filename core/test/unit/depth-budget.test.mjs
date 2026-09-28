@@ -1,7 +1,7 @@
 // The evaluation depth budget across every re-entry seam: a
 // runaway recursion through any seam the evaluator descends —
 // verb body, captured-arg lambda, a verb run as code or as a fold,
-// `apply`, Quote-bodied tag constructor, `runExamples`,
+// `apply`, Quote-bodied tag constructor, `runLaws`,
 // locator-loaded module — terminates on the fail-track as
 // `::EvaluationDepthExceededError` with `:depth` and `:limit`.
 
@@ -56,12 +56,12 @@ describe('depth budget — every re-entry seam', () => {
 });
 
 describe('depth budget — host seams', () => {
-  it('runExamples evaluates each example one frame below the step, so an example running its own examples terminates', async () => {
+  it('runLaws evaluates each example one frame below the step, so an example running its own examples terminates', async () => {
     // Example outcomes are data: every frame that ran its example
     // answers `:ok` for it, and the depth error sits on the frame
     // the budget refused. The host-bound tally counts the frames
-    // whose `runExamples` step returned — the root and every frame
-    // below it up to the budget; the refused frame's `runExamples`
+    // whose `runLaws` step returned — the root and every frame
+    // below it up to the budget; the refused frame's `runLaws`
     // step lifts the error and the tally deflects.
     const sessionInstance = await createSession();
     let frameTally = 0;
@@ -70,7 +70,7 @@ describe('depth budget — host seams', () => {
       return state;
     }, { captured: [0, 0] }));
     const cellEntry = await sessionInstance.evalCell(
-      ':x |~~ ~(:x | runExamples | tallyFrame | count | eq 1) ~~| 1 | :x | runExamples | tallyFrame'
+      ':x |~~ ~(:x | runLaws | tallyFrame | count | eq 1) ~~| 1 | :x | runLaws | tallyFrame'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);

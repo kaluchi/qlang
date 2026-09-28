@@ -34,7 +34,7 @@ bindPrim('apply', async (subject, code) => await code(subject));
 
 bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
-bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
+bindPrim('docLaws', doc => Object.freeze(doc.filter(isQuote)));
 bindPrim('docLinks', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'link'))));
 bindPrim('docSnippets', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'snippet'))));
 bindPrim('elide', (subject, budget) => elide(subject, budget));

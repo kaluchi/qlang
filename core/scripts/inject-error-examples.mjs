@@ -3,7 +3,7 @@
 // examples into the catalog's `::Tag` doc-only declaration's
 // attached doc-prefix.
 //
-// `runExamples ::Tag` consumes these — each Quote evaluates to a
+// `runLaws ::Tag` consumes these — each Quote evaluates to a
 // boolean (true iff the query produces an error whose identity
 // tag — `:kind` TagKeyword on the descriptor, surfaced through
 // `type` — matches the catalog declaration). Conformance and
@@ -66,7 +66,7 @@ function pickRepros(tagName, queries) {
   const pool = direct.length > 0 ? direct : queries;
   pool.sort((a, b) => a.length - b.length);
   // The wrapped Quote `<query> !| type | eq ::Tag` must
-  // itself parse cleanly — runExamples evaluates the Quote, and
+  // itself parse cleanly — runLaws evaluates the Quote, and
   // a Quote with unparseable body throws on entry. Test-parse
   // each candidate and drop the unparseable ones. ::ParseError
   // repros (sources like `"[1 2 3"` that ARE the parse error)

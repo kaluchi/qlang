@@ -1,7 +1,7 @@
 |~ The verbs of any value, and the contracts of the verbs that
    several kinds answer, each residing on `::qlang/any`, the kind beneath
    every kind. A contract is a verb without a body: its page and its
-   examples are the laws of every verb of its name, what a residence
+   laws hold for every verb of its name, what a residence
    leaves out it says, and a call whose subject no residence serves
    reaches it and is refused with `:addresses`, the residences of the
    name. ~|
@@ -907,34 +907,6 @@
       ~(::vec | doc [:take 1] !| [type /index] | eq [::DocAnchorNotKeywordError 1])
   ~~|
 
-:examples
-  |~~ `:name | examples` — Vec of Quote-values extracted from the
-      binding's docs. `runExamples` consumes this Vec to evaluate
-      each Quote against an isolated env; `:ok` is true iff the
-      example answers true. Any other value reads the examples of
-      its kind.
-
-      ~(::vec/filter | examples | count | gt 0)
-      ~(::vec/filter | examples | first | parse | contains "filter")
-      ~(5 | examples | eq (::number | examples))
-  ~~|
-  ::verb~(:name #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/examples})
-
-::ExamplesBindingNotFoundError
-  |~~ `examples` — no declaration found for the name it read: a
-      keyword that names no binding of its scope, the name of a
-      verb a provider keeps among them, or a tag name that names
-      nothing. `:addresses` holds the addresses where the verbs of
-      that name live.
-
-      ~(
-        :nonexistent-binding | examples
-        !| [type /bindingName]
-        |  eq [::ExamplesBindingNotFoundError :nonexistent-binding]
-       )
-      ~(:filter | examples !| /addresses | has ::vec/filter)
-  ~~|
-
 :explain
   |~~ The explanation of the value, `::explanation{:page … :value …}`:
       the page `doc` reads for it, then the value itself, so it prints
@@ -995,36 +967,36 @@
       ~(:filter | spec !| /addresses | has ::vec/filter)
   ~~|
 
-:runExamples
+:runLaws
   |~~ Walks every quote among the segments of the docs of the binding a
       name reads, a keyword or a tag name, the address of a verb among
       them, and answers a vector of result maps shaped `{:snippet
       :actual :ok :error}`. Each quote runs in an isolated scope; `:ok`
       is true iff the example answers true, every other answer, an
       error value among them, failing it. The composition `::number |
-      spec | /verbs | every ~(runExamples | every ~(/ok))` runs every
+      spec | /verbs | every ~(runLaws | every ~(/ok))` runs every
       example of the verbs of numbers and must answer true.
 
-      ~(::number/add | runExamples * /ok | distinct | eq #[true])
-      ~(::number/gt | runExamples | count | gte 1)
-      ~(42 | runExamples !| /addresses | eq #[::keyword/runExamples ::tag/runExamples])
+      ~(::number/add | runLaws * /ok | distinct | eq #[true])
+      ~(::number/gt | runLaws | count | gte 1)
+      ~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
   ~~|
   ::verb~()
 
-::RunExamplesBindingNotFoundError
-  |~~ `runExamples` — no declaration found for the name it read, as
-      `examples` finds none: a keyword that names no binding of its
+::RunLawsBindingNotFoundError
+  |~~ `runLaws` — no declaration found for the name it read, as
+      `doc` finds none: a keyword that names no binding of its
       scope, the name of a verb a provider keeps among them, or a
       tag name that names nothing. `:addresses` holds the addresses
       where the verbs of that name live.
 
       ~(
-        :nonexistent-binding | runExamples
+        :nonexistent-binding | runLaws
         !| [type /bindingName]
-        |  eq [::RunExamplesBindingNotFoundError :nonexistent-binding]
+        |  eq [::RunLawsBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | runExamples !| /addresses | has ::vec/filter)
-      ~(::Nonexistent | runExamples !| /bindingName | eq ::Nonexistent)
+      ~(:filter | runLaws !| /addresses | has ::vec/filter)
+      ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
   ~~|
 
 :tag

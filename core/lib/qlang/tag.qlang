@@ -7,20 +7,48 @@
   |~~ qlang, a pipeline of values: each step is a command on the value
       the step before it answered, `S | verb object`. Every value has a
       kind, the outermost tag of its stack or the kind its literal
-      implies, and its verbs live on its kind, so what can be done with
-      a value is asked of its kind.
+      implies, a tag being the name of a kind, and its verbs live on
+      its kind, so what can be done with a value is asked of its kind.
 
-      `::qlang | manifest` lists the nouns; `x | docs` reads the page of
-      a value by its kind; `::number | spec | /verbs` lists by address
-      what lives on a kind; `::vec/count | docs` reads one verb by its
-      address, and its examples are its laws. An error is a value too,
-      and `!| type | docs` reads the page of the site that refused.
+      The forms. `a | b` runs `b` on `a`. `a * b` runs `b` on each
+      element of a vector or each value of a map, a body of several
+      steps in parentheses, `* (add 1 | mul 2)`, and the first failure
+      is its answer; `*` stands in the place of `|`, never after it.
+      `/k` reads the field of a map and `/0` an element of a vector, so
+      the field of every element is `* /k`. `a !| b` runs `b` on an
+      error alone. `~(…)` is a quote, code held as a value, which
+      `filter`, `sort` and their kin take, and which `*` hands each
+      element as it is. `{:k v}`, `[a b]`, `#[a b]`, `"s"` and `:k` are
+      a map, a vector, a set, a string and a keyword, and `:n v` names
+      a value for the steps after it.
 
+      The command line. JSON on stdin is the subject: an object is a
+      map whose keys are keywords, a string a string, and a JSON input
+      answers JSON, which refuses a value JSON has no form for.
+      `--raw` reads text and answers its print, and `| json` writes
+      JSON text. A string keys a group or an index as a keyword,
+      `| keyword`.
+
+      Asking. `::qlang | manifest` lists the nouns; `x | docs` reads the
+      page of a value by its kind, a doc that answers its text by
+      `content` and its examples by `quotes`; `::number | spec | /verbs`
+      lists by address everything that lives on a kind, so a verb
+      missing there does not exist; `::vec/count | docs` reads one verb
+      by its address, and its examples are its laws. An error is a
+      value too, and `x !| explain` shows the page of the site that
+      refused above it.
+
+      ~([{:k 1} {:k 2}] * /k | eq [1 2])
+      ~([1 2] * (add 1 | mul 2) | eq [4 6])
+      ~([1 "x"] * (mul 2) !| type | eq ::MulLeftNotNumberError)
+      ~([1 2] * ~(add 1) | first | eq ~(add 1))
+      ~(:n 2 | [1 2] * (mul n) | eq [2 4])
+      ~([{:s "a"} {:s "b"} {:s "a"}] | groupBy ~(/s | keyword) * count | eq {:a 2 :b 1})
       ~(::qlang | manifest | filter ~(eq ::number) | count | eq 1)
       ~(5 | docs | eq (::number | docs))
       ~(::string | spec | /verbs | has ::string/split)
-      ~(::vec/count | docs | count | eq 1)
-      ~("x" | add 1 !| type | docs | count | eq 1)
+      ~(::vec/count | docs | first | content | contains "elements")
+      ~("x" | add 1 !| explain | doc | eq (::AddLeftNotNumberError | docs | first))
   ~~|
 
 ::qlang/any

@@ -22,7 +22,7 @@ import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isFunctionValue, isErrorValue,
+  isVec, isQMap, isKeyword, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
@@ -239,8 +239,9 @@ async function distribute(state, bodyNode) {
   }
   const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
   if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state.pipeValue));
-  // A set distributes into the set of its images [D16].
-  return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
+  // A set distributes into the vector of its images, one per element in
+  // the one order [D116].
+  return withPipeValue(state, distributeResults);
 }
 
 // The error an element of a distribute answered, which answers the

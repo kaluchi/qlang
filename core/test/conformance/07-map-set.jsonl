@@ -14,14 +14,14 @@
 {"name":"set-literal-with-projections","query":"{:name \"Alice\" :age 30} | #[/name /age]","expect":"#[\"Alice\" 30]"}
 {"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
 {"name":"map-empty-vals","query":"{} | vals","expect":"[]"}
-{"name":"distribute-over-set","query":"#[1 2 3] * add 1","expect":"[2 3 4]","decision":["D116"],"target":true,"now":"#[2 3 4]"}
-{"name":"distribute-over-set-in-the-one-order","query":"#[3 1 2] * add 1","expect":"[2 3 4]","decision":["D116"],"target":true,"now":"#[2 3 4]"}
-{"name":"distribute-over-set-keeps-an-image-per-element","query":"#[1 2 3] * mul 0","expect":"[0 0 0]","decision":["D116"],"target":true,"now":"#[0]"}
+{"name":"distribute-over-set","query":"#[1 2 3] * add 1","expect":"[2 3 4]","decision":["D116"]}
+{"name":"distribute-over-set-in-the-one-order","query":"#[3 1 2] * add 1","expect":"[2 3 4]","decision":["D116"]}
+{"name":"distribute-over-set-keeps-an-image-per-element","query":"#[1 2 3] * mul 0","expect":"[0 0 0]","decision":["D116"]}
 {"name":"distribute-over-set-redistinct","query":"#[1 2 3] * add 1 | distinct","expect":"#[2 3 4]"}
-{"name":"distribute-reaches-the-set-beneath-a-tag","query":"::Box#[1 2] * add 1","expect":"[2 3]","decision":["D116"],"target":true,"now":"#[2 3]"}
+{"name":"distribute-reaches-the-set-beneath-a-tag","query":"::Box#[1 2] * add 1","expect":"[2 3]","decision":["D116"]}
 {"name":"distribute-reaches-the-vector-beneath-two-tags","query":"::A::B[1 2] * add 1","expect":"[2 3]"}
 {"name":"distribute-reaches-the-quote-beneath-a-tag","query":"::Box~(add 1 | mul 2) * type","expect":"[::call ::call]"}
 {"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]","decision":"D18"}
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]","decision":"D18"}
 {"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true","decision":"D18"}
-{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | spec | /verbs * (examples | count) | sum | eq (::vec | spec | /verbs | sort * (examples | count) | sum)","expect":"true","decision":"D116","target":true,"now":"false"}
+{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | spec | /verbs * (examples | count) | sum | eq (::vec | spec | /verbs | sort * (examples | count) | sum)","expect":"true","decision":"D116"}

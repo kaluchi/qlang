@@ -255,11 +255,11 @@
   |~~ The set, the vector in the one order without duplicates, the value
       of a `#[…]` literal, of `distinct` and of `keys`; `has` asks it
       for membership. A set is read as a vector wherever a vector is
-      read; `filter`, `take`, `drop`, `flat` and `*` keep it, since
-      its constructor re-runs after them, and an operand that imposes an
+      read; `filter`, `take`, `drop` and `flat` keep it, since its
+      constructor re-runs after them, and an operand that imposes an
       order, `sort` or `reverse`, answers a vector. `*` over a set answers
-      the set of its images, so equal images become one; `sort` first
-      keeps an image per element.
+      the vector of its images, one per element, and `distinct` after it
+      makes a set of them again.
       ::link~(::vec | docs)
       ::link~(:qlang/values | docs | first)
 

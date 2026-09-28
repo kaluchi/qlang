@@ -129,8 +129,8 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error"))',
-    answer: '#[::error ::explanation ::fail]'
+    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
+    answer: '#[::explanation ::fail]'
   },
   {
     id: 'N4',

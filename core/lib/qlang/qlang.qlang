@@ -19,7 +19,7 @@
       pipeline reads. Every value prints as a literal that reads back as
       itself. Rests on nothing; the pipeline, the verbs and the
       hypertext rest on it.
-      ::link~(::qlang | manifest) ::link~(::tag | doc)
+      `::qlang | manifest` lists the kinds. ::link~(::tag | doc)
       ::link~(::qlang | doc :pipeline)
 
       ~(::Box::Crate{:a 1} | type | eq ::Box)
@@ -64,7 +64,8 @@
       constructor checks or builds each value put under it and answers
       an error for one it refuses. Rests on
       values and the pipeline; errors name the verb that refused.
-      ::link~(::vec | spec | /verbs) ::link~(::qlang/any | spec | /verbs)
+      `::vec | spec | /verbs` lists the verbs of a kind and
+      `::qlang/any | spec | /verbs` those of every value.
       ::link~(::verb | doc) ::link~(::qlang | doc :errors)
 
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
@@ -146,9 +147,8 @@
       reader asks for a budget, by `elide` in the query or by the host's
       flag, the command line's `--budget=N`: what a budget left out is
       an `::elision` marker, whose `:read` continues the query to the
-      part. The
-      command line reads JSON or text from stdin and writes its answer
-      back in the same form. Rests on values and the hypertext.
+      part. The command line reads JSON or text from stdin and writes
+      its answer back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)
 
       ~([1 2] | elide 100 | eq [1 2])

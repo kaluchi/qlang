@@ -1779,7 +1779,7 @@ names win [D62]; the sister project's workspaces become nouns and its
 answers name the workspace they came from [D38]; a host's command is
 the language's with its noun as the first value [D37]; and the
 benchmark runs [D26], each run recorded with the frictions it met and
-the first screen written against them [D104].
+the first screen written against them [D104], [D105], [D106].
 
 Its answer in the conformance suite is the target of [D7], a parse
 error that names no marker of a comment among the continuations of a
@@ -2117,3 +2117,5 @@ maintainer wants to explore it before it is fixed.
 [D102]: decisions/D102.md
 [D103]: decisions/D103.md
 [D104]: decisions/D104.md
+[D105]: decisions/D105.md
+[D106]: decisions/D106.md

@@ -71,6 +71,7 @@ Examples:
   curl -s api/users | qlang '/data * /name'
   cat data.json     | qlang '/glossary/title'
   echo hi           | qlang --raw 'append " world"'
+  cat app.log       | qlang --raw 'lines | filter ~(contains "ERROR") | json'
   qlang '[1 2 3] | filter ~(gt 1) | count'
   qlang -i
 

@@ -128,7 +128,7 @@
       "query": "… | distinct",
       "expected": "a JSON list",
       "got": "`#[\"db timeout\"]`: under --raw the answer prints as qlang, and the text of --raw speaks of input alone; `| json` writes JSON text",
-      "repairedBy": "D105"
+      "repairedBy": "D104"
     }
   ]
 }

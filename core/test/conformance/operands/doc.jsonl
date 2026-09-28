@@ -42,5 +42,5 @@
 {"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2","decision":["D94","D95"]}
 {"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\"","decision":["D83","D94","D95"]}
 {"name":"the-parts-of-a-doc-are-its-segments","query":"|~~ a ~(add 1) b ~~| | segments","expect":"[\" a \" ~(add 1) \" b \"]","decision":"D95"}
-{"name":"a-doc-answers-its-quotes","query":"|~~ a ~(add 1) b ~(mul 2) ~~| | quotes","expect":"[~(add 1) ~(mul 2)]","decision":"D99"}
-{"name":"a-doc-of-prose-alone-has-no-quotes","query":"|~~ a b ~~| | quotes","expect":"[]","decision":"D99"}
+{"name":"a-doc-answers-its-quotes","query":"|~~ a ~(add 1) b ~(mul 2) ~~| | laws","expect":"[~(add 1) ~(mul 2)]","decision":["D99","D123"],"target":true,"now":"::UnresolvedIdentifierError"}
+{"name":"a-doc-of-prose-alone-has-no-quotes","query":"|~~ a b ~~| | laws","expect":"[]","decision":["D99","D123"],"target":true,"now":"::UnresolvedIdentifierError"}

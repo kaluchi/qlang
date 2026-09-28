@@ -3,7 +3,7 @@
 {"name":"an-explanation-answers-the-error-it-explains","query":"\"x\" | add 1 !| explain | value !| type","expect":"::AddLeftNotNumberError","decision":["D100","D101"]}
 {"name":"the-error-of-an-explanation-rides-the-fail-track","query":"\"x\" | add 1 !| explain | value !| /actualType","expect":"::string","decision":["D100","D101"]}
 {"name":"an-explanation-prints-the-error-with-its-bang","query":"\"x\" | add 1 !| explain | print | contains \":value ::AddLeftNotNumberError!{\"","expect":"true","decision":"D101"}
-{"name":"an-explanation-answers-the-quotes-through-its-page","query":"\"x\" | add 1 !| explain | page | quotes | count","expect":"1","decision":["D98","D99","D119"]}
+{"name":"an-explanation-answers-the-quotes-through-its-page","query":"\"x\" | add 1 !| explain | page | laws | count","expect":"1","decision":["D98","D99","D119","D123"],"target":true,"now":"::UnresolvedIdentifierError"}
 {"name":"an-explanation-prints-its-page-first","query":"\"x\" | add 1 !| explain | print | contains \"::explanation{\n  :page |~~\"","expect":"true","decision":["D98","D119"]}
 {"name":"a-number-explains-by-the-page-of-its-kind","query":"42 | explain | page | eq (::number | doc)","expect":"true","decision":["D100","D119"]}
 {"name":"an-explanation-holds-the-value-it-explains","query":"42 | explain | value","expect":"42","decision":"D100"}

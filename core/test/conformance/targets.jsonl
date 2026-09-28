@@ -85,4 +85,4 @@
 {"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99","expect":"12","decision":"D44"}
 {"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::UnresolvedIdentifierError \"lim\"]","decision":"D44"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | doc !| /addresses","expect":"#[::any/type]","decision":["D62","D119"]}
-{"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7","target":true,"now":"true"}
+{"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}

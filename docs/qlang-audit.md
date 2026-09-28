@@ -1003,12 +1003,12 @@ parser in the parser's own vocabulary:
 [true]
 
 > [1 2 3] | filter ~(gt 1
-::ParseError!{ … :expected [:whitespace "|~~|" "|~~" "|~" "!|" "|" "*" ")"] … }
+::ParseError!{ … :expected [:whitespace :doc "!|" "|" "*" ")"] … }
 ```
 
 The unclosed quote has one sensible continuation, `)`, and the error
-names every token the parser could have taken there, among them the
-markers of comments.
+names every token the parser could have taken there; the markers of
+comments stand under `:whitespace` and a doc under `:doc` [D7].
 
 The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:

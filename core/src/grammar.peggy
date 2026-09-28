@@ -131,7 +131,7 @@ LineContinuationUnit
 // a projection, which the parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
-    ( _ "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
+    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
     / c:Combinator { refuseCombinatorSpacing(c); }
     / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
@@ -427,12 +427,20 @@ QuoteChar
 // A doc value, in a line form and a block form, read as its segments: a
 // `~(…)` that reads as code is a quote, a span between backquotes is
 // prose whole, and the rest is prose [D43], [D94]; a line doc's quote
-// stays on its line. The printer writes the block form.
+// stays on its line. The printer writes the block form. A parse error
+// names its opening `doc` among the continuations, where its markers
+// would read as a comment's [D7].
 DocLit
-  = "|~~|" segments:LineDocSegments
+  = LineDocOpen segments:LineDocSegments
     { return node('DocLit', { segments, content: text().slice(4) }, location(), text()); }
-  / "|~~" !"|" segments:BlockDocSegments "~~|"
+  / BlockDocOpen segments:BlockDocSegments "~~|"
     { return node('DocLit', { segments, content: text().slice(3, -3) }, location(), text()); }
+
+LineDocOpen "doc"
+  = "|~~|"
+
+BlockDocOpen "doc"
+  = "|~~" !"|"
 
 LineDocSegments
   = parts:LineDocPart* { return proseJoined(parts); }

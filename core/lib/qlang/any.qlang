@@ -1,16 +1,16 @@
-|~ The verbs of any value [D62], and the contracts of the verbs that
+|~ The verbs of any value, and the contracts of the verbs that
    several kinds answer, each residing on `::qlang/any`, the kind beneath
    every kind. A contract is a verb without a body: its page and its
    examples are the laws of every verb of its name, what a residence
    leaves out it says, and a call whose subject no residence serves
    reaches it and is refused with `:addresses`, the residences of the
-   name [D67], [D72]. ~|
+   name. ~|
 
 :gt
   |~~ Whether the subject follows the value the call gives in the one
       order of their kind. Numbers, strings, keywords and tag names each
       compare with a value of their own kind, a residence on each of
-      them checking both [D65]; a subject of another kind reaches this
+      them checking both; a subject of another kind reaches this
       contract.
 
       ~(10 | gt 5 | eq true)
@@ -323,7 +323,7 @@
       serving as a compound key, and keeps elements with equal keys in
       the subject's order; the descending order is the sort reversed. A
       key that answers an error answers the call, so a key that misses
-      its field is refused where it is read [D87].
+      its field is refused where it is read.
 
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
       ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
@@ -416,7 +416,7 @@
 
 :distinct
   |~~ The constructor of the set: the elements of a vector in the one
-      order of values, each once [D16], so a downstream verb receives a
+      order of values, each once, so a downstream verb receives a
       value whose kind says «no duplicates»; a set passes through as it
       is. Duplication is decided by structural equality, the axiom of
       `eq`, so two maps, vectors or sets of the same content collapse;
@@ -476,7 +476,7 @@
   |~~ The quote of `reduce` names one verb, which the fold calls with the
       accumulator as its subject and the element in its first slot,
       `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
-      no verb is refused [D90]. A fold of several steps is a verb
+      no verb is refused. A fold of several steps is a verb
       declared first, whose slot names the element.
       ~(
         [1 2 3] | reduce 0 ~(mul 2 | add)
@@ -583,7 +583,7 @@
       a set among them, and for every other value the kind of the core
       its literal implies (`::number`, `::string`, `::keyword`,
       `::tag`, `::vec`, `::map`, …), named under the prefix `qlang/`
-      and written short [D32]. `type | docs` reads the kind's page, and
+      and written short. `type | docs` reads the kind's page, and
       asking what a value is composes `type` with `eq`, `filter ~(type
       | eq ::string)`.
 
@@ -624,7 +624,7 @@
       the doc and the error by their own brackets, and any other value
       under a tag as its tag before the print of its payload. A kind a
       module declares may answer `print` of its own, and the print of a
-      value takes it for each part of that kind [D96].
+      value takes it for each part of that kind.
 
       ~(42 | print | eq "42")
       ~(#[2 1] | print | eq "#[1 2]")
@@ -635,7 +635,7 @@
 
 :elide
   |~~ The value within a budget of characters of its print, what does
-      not fit given way to `::elision` markers [D109]: the largest part
+      not fit given way to `::elision` markers: the largest part
       beneath the top gives way first, a vector keeping the first half of
       its elements and ending with a marker of the rest, a string or a map
       giving way whole. A marker's `:read` applied to the value `elide`
@@ -660,7 +660,7 @@
       ~(5 | if (gt 0) ~(add 100) ~() | eq 105)
 
       A condition that is not a boolean is refused, since it has no
-      second reading [D14]. The empty quote `~()` is the branch that
+      second reading. The empty quote `~()` is the branch that
       leaves the subject as it is. ~~|
   ::verb~(:condition ::boolean | :then ::quote | :else ::quote | ::builtin{:impl :qlang/prim/if})
 
@@ -830,7 +830,7 @@
       prints as its text; `::Tag | source` the tag's. A binding no
       step declared, a value `use` or a host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
-      it reads the member the subject holds under it [D88]: the slot a
+      it reads the member the subject holds under it: the slot a
       verb's head declares, and for any other subject the verb the name
       calls after it.
 
@@ -861,11 +861,11 @@
       binds `:name` in its scope, and `::vec/filter | docs` the page of
       a verb by its address. A doc answers its text by `content` and
       its parts by `segments`, the quotes among them the examples
-      `runExamples` runs [D95].
+      `runExamples` runs.
       Any other value reads the page of its kind, and the `:kind`
       field of a map names nothing: the map reads the page of
       `::map`. Given a name, it reads the docs of the member the
-      subject holds under it [D88]: `::map | docs :minus` the page of
+      subject holds under it: `::map | docs :minus` the page of
       `::map/minus`, `[1 2] | docs :count` the page of the `count`
       a vector calls, and `::vec/take | docs :count` the docs the head
       of `take` writes on its slot.
@@ -924,9 +924,9 @@
   ~~|
 
 :explain
-  |~~ The explanation of the value [D100], `::explanation{:doc … :value …}`:
+  |~~ The explanation of the value, `::explanation{:doc … :value …}`:
       the page `docs` reads for it, then the value itself, so it prints
-      as the page above what it explains [D98]. A name reads its own
+      as the page above what it explains. A name reads its own
       page, a value the page of the kind it shows, and an error `!|`
       opened the page of its site, which says what failed.
 
@@ -952,12 +952,12 @@
   |~~ The declaration a name reads. A verb, a built-in among them,
       answers its signature, a `::spec~(…)` whose subject is its noun
       and whose `:throws` lists its refusals, and a projection of the
-      signature reads the body of the declaration it names [D72]. A
+      signature reads the body of the declaration it names. A
       refusal answers the facts of its site, `:category`, `:operand`,
       `:position` and `:expectedType`, and an error reads the facts
       of its tag. A kind answers its constructor, `:impl`, its
-      refusals and its verbs; the loader's `use` its descriptor
-      [D79]; any other binding the value its record holds. Any other
+      refusals and its verbs; the loader's `use` its descriptor;
+      any other binding the value its record holds. Any other
       value reads the declaration of its kind.
 
       ~(::number/add | spec | /subject | eq ::number)
@@ -1041,7 +1041,7 @@
       `tagged | payload | tag ::Other`. A tag laid over an error
       answers the error unchanged, since no tag stands over one;
       the fail track opens the error to its descriptor, which a
-      tag and `raise` rename [D86].
+      tag and `raise` rename.
 
       ~(42 | tag ::Box | payload | eq 42)
       ~([1 2 3] | tag ::Triple | type | eq ::Triple)

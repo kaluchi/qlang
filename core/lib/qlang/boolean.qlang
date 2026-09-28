@@ -1,6 +1,6 @@
-|~ The verbs of booleans [D62]. Each resides on `::qlang/boolean`, the
-   kind whose module declares it [D72]: the negation, and the two
-   combinators of conditions, which take booleans [D14]. ~|
+|~ The verbs of booleans. Each resides on `::qlang/boolean`, the
+   kind whose module declares it: the negation, and the two
+   combinators of conditions, which take booleans. ~|
 
 :not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
@@ -24,7 +24,7 @@
 :and
   |~~ Whether the subject and the right condition both hold, each a
       boolean. Given two conditions, `x | and a b` reads both against
-      the subject, the first as the subject of `and` [D72], so it
+      the subject, the first as the subject of `and`, so it
       composes the clauses of a predicate inside `filter`, `every`
       and `if`.
 
@@ -55,7 +55,7 @@
 :or
   |~~ Whether the subject or the right condition holds, each a boolean.
       Given two conditions, `x | or a b` reads both against the
-      subject, the first as the subject of `or` [D72].
+      subject, the first as the subject of `or`.
 
       ~(false | or true | eq true)
       ~(5  | or (eq 5) (eq 10) | eq true)

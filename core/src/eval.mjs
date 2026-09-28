@@ -22,7 +22,7 @@ import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isQSet, isKeyword, isFunctionValue, isErrorValue,
+  isVec, isQMap, isKeyword, isFunctionValue, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
@@ -36,7 +36,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf
+  addressedVerb, addressesOf, isNounMember, isProviderBinding, residenceOnSubject, residencesOf
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
@@ -239,8 +239,9 @@ async function distribute(state, bodyNode) {
   }
   const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
   if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state.pipeValue));
-  // A set distributes into the set of its images [D16].
-  return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
+  // A set distributes into the vector of its images, one per element in
+  // the one order [D116].
+  return withPipeValue(state, distributeResults);
 }
 
 // The error an element of a distribute answered, which answers the
@@ -541,10 +542,11 @@ async function evalOperandCall(node, state) {
 
 // A bare name resolves nearest first [D62]: the declaration of the scope,
 // then the verb that resides on the subject, found by the walk of its
-// tags [D72], then the core's binding of the name.
+// tags [D72], then the core's binding of the name; a member of a noun is
+// read through its noun and is no name a query calls [D117].
 async function callByName(lookupName, lambdas, state) {
   const lookupEnv = state.env;
-  const entry = envGet(lookupEnv, lookupName);
+  const entry = isNounMember(lookupEnv, lookupName) ? undefined : envGet(lookupEnv, lookupName);
   if (entry !== undefined && !isProviderBinding(lookupEnv, lookupName)) {
     return await applyBinding(entry, lookupName, lambdas, state);
   }

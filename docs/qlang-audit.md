@@ -372,7 +372,7 @@ through steps, and every step returns a fresh pair; the only bookkeeping
 beyond the pair is a depth counter that stops runaway recursion. The `|`
 combinator applies a step and deflects on an error, recording the
 skipped step on the error's trail; `*` forks a step over each element
-and keeps a per-element error as a value inside the result; `!|` is the
+and answers the first error an element answers [D103]; `!|` is the
 only combinator that fires on an error, and `|` and `*` step around it
 [D51]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
@@ -1708,8 +1708,9 @@ JavaScript classes of errors and the prose that restates their facts
 disappear.
 
 Its answers are the targets of [D13], [D64], [D97], [D98], [D99],
-[D100], [D101] and [D103] in the conformance suite: the first failure
-of `*` as its answer, which D103 settles; the error a site refuses with
+[D100], [D101], [D103] and [D116] in the conformance suite: the first
+failure of `*` as its answer, which D103 settles, and an image per
+element of a set, which D116 settles; the error a site refuses with
 as a value of the kind of errors, which D97 settles; the explanation of
 an error as a value of its own kind, which D98 settles, its page
 answering its quotes by the verb of the doc, D99, and every value
@@ -1743,7 +1744,10 @@ form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5] in the conformance suite. The name
+Its answers are the targets of [D5], [D112], [D113], [D114] and [D115]
+in the conformance suite: the loader one verb of any value, every
+refusal under the place it guards, every kind whole in the module of its
+noun, and the step of a constructor apart from the kind of tagged values. The name
 `binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
@@ -1779,13 +1783,16 @@ names win [D62]; the sister project's workspaces become nouns and its
 answers name the workspace they came from [D38]; a host's command is
 the language's with its noun as the first value [D37]; and the
 benchmark runs [D26], each run recorded with the frictions it met and
-the first screen written against them [D104], [D105], [D106], [D107].
+the first screen written against them [D104], [D105], [D106], [D107],
+and telling the language with the page of every kind saying why it is
+there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108] and [D109]: a parse error that names no marker of a comment
+[D108], [D109], [D111], [D117] and [D118]: a parse error that names no marker of a comment
 among the continuations of a quote left open, the verbs the runs of the
 benchmark missed, the link a page names for a reader to follow, and an
-answer within a budget whose markers read what it left out; the others stand beside the suite: one start command
+answer within a budget whose markers read what it left out, and a first
+screen that opens the pages of the concepts in one query; the others stand beside the suite: one start command
 returns the root doc within four kilobytes; a host answers within a
 budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the
@@ -2124,3 +2131,12 @@ maintainer wants to explore it before it is fixed.
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
+[D110]: decisions/D110.md
+[D111]: decisions/D111.md
+[D112]: decisions/D112.md
+[D113]: decisions/D113.md
+[D114]: decisions/D114.md
+[D115]: decisions/D115.md
+[D116]: decisions/D116.md
+[D117]: decisions/D117.md
+[D118]: decisions/D118.md

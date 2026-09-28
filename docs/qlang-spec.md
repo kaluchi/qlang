@@ -376,16 +376,16 @@ drives `eq`); a literal therefore reorders when printed.
 
 A Set is read as a vector wherever a vector is read — `count`,
 `first`, `/0`, `*`, `filter`, `table` — and answers `::set` from
-`type`; the reverse does not hold. `filter`, `take`, `drop`, `flat`
-and `*` keep the Set, since its constructor re-runs after them, and
+`type`; the reverse does not hold. `filter`, `take`, `drop` and
+`flat` keep the Set, since its constructor re-runs after them, and
 an operand that imposes an order, `sort` or `reverse`, answers a
-Vec. `distinct` and `::set[…]` mint the same value, and `payload`
+Vec; `*` answers the Vec of its images, one per element [D116]. `distinct` and `::set[…]` mint the same value, and `payload`
 answers its vector. Membership is a binary search in the one order,
 and two Sets combine by a merge.
 
 ```qlang
-> #[3 1 2] * add 1
-#[2 3 4]
+> #[3 1 2] * mul 0
+[0 0 0]
 
 > #[3 1 2] | reverse
 [3 2 1]

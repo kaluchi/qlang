@@ -111,5 +111,31 @@ export const TASKS = [
     question: 'answer the map {:a 1 :b 2 :c 3} without its key b.',
     reference: "{:a 1 :b 2 :c 3} | minus #[:b]",
     answer: "{:a 1 :c 3}"
+  },
+  // Navigation: reading the pages of the language several at a time,
+  // in the shape the reader names, by one query each.
+  {
+    id: 'N1',
+    question: 'in one query, the text of the page of every kind the language lists.',
+    reference: '::qlang | manifest * (docs | first | content)',
+    answer: '::qlang | manifest * (docs | first | content)'
+  },
+  {
+    id: 'N2',
+    question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
+    reference: '::string | spec | /verbs | sort * [/ (docs | first | content)]',
+    answer: '::string | spec | /verbs | sort * [/ (docs | first | content)]'
+  },
+  {
+    id: 'N3',
+    question: 'in one query, the kinds whose page links to the page of errors.',
+    reference: '::qlang | manifest | filter ~(docs | first | links * (payload | parse) | any ~(contains "::error"))',
+    answer: '#[::error ::explanation ::fail]'
+  },
+  {
+    id: 'N4',
+    question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
+    reference: '::vec | spec | /verbs | sort * (runExamples | count) | sum',
+    answer: '::vec | spec | /verbs | sort * (examples | count) | sum'
   }
 ];

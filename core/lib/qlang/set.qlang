@@ -1,7 +1,7 @@
-|~ The verbs of sets [D62]. Each resides on `::qlang/set`, the kind
+|~ The verbs of sets. Each resides on `::qlang/set`, the kind
    whose module declares it, under the contract of its name on
-   `::qlang/any`, whose page and laws it answers [D72]. A set is the
-   vector in the one order without duplicates [D16]: a verb that keeps
+   `::qlang/any`, whose page and laws it answers. A set is the
+   vector in the one order without duplicates: a verb that keeps
    its subject's kind answers a set through the constructor of `::set`,
    and one that imposes an order answers the vector. ~|
 
@@ -92,7 +92,7 @@
 :sort
   |~~ The vector of the elements in the one order, or by the value the
       key answers for each; the order is imposed, so the answer is the
-      vector [D16], [D67].
+      vector.
 
       ~(#[:y :x :z] | sort | eq [:x :y :z])
   ~~|

@@ -130,9 +130,11 @@ compatibility, and the TODO, FIXME, and HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on drift between the operand document and the
-catalog, on error-class suffixes, and on a path the audit, the
-entrypoint document or this file names that the tree lacks or on words
-they quote from the tree that their file no longer holds. The audit
+catalog, on error-class suffixes, on a decision named in a page of the
+catalog, which a reader of the language cannot follow, and on a path
+the audit, the entrypoint document or this file names that the tree
+lacks or on words they quote from the tree that their file no longer
+holds. The audit
 deletes the drift and suffix checks together with the duplicates they
 guard. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone

@@ -10,7 +10,7 @@
 // the module named by the noun's path, resides on that noun [D72].
 
 import {
-  isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
+  isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -145,13 +145,30 @@ export function isProviderBinding(env, name) {
   return false;
 }
 
+// A declaration a noun's module makes that is no verb is a member of the
+// noun, read through it, `::qlang | docs :pipeline`, and no name of a
+// reader's scope [D117].
+export function isNounMember(env, name) {
+  const entry = env.get(name);
+  if (!isBinding(entry) || isVerb(bindingValueOf(entry)) || isTagBindingName(name)) return false;
+  const moduleName = entry.get('module')?.name;
+  return typeof moduleName === 'string' && moduleName.startsWith(`${ROOT_NOUN_NAME}/`)
+    && isNoun(env, moduleName.slice(ROOT_NOUN_NAME.length + 1));
+}
+
+// The member a noun holds under a name that is no verb of it, or null.
+export function nounMemberOf(env, kindName, memberName) {
+  const record = exportsOfNoun(env, kindName)?.get(memberName);
+  return isBinding(record) && !isVerb(bindingValueOf(record)) ? record : null;
+}
+
 // The bindings the scope holds, the names the query, the session and a
-// module's `use` wrote, with the verbs and the tags of the providers and
-// the keys of the runtime's own apart [D61].
+// module's `use` wrote, with the verbs, the tags and the members of the
+// providers and the keys of the runtime's own apart [D61], [D117].
 export function scopeBindingsOf(env) {
   const scopeBindings = new Map();
   for (const [name, value] of env) {
-    if (!isRuntimeKey(name) && !isProviderBinding(env, name)) scopeBindings.set(name, value);
+    if (!isRuntimeKey(name) && !isProviderBinding(env, name) && !isNounMember(env, name)) scopeBindings.set(name, value);
   }
   return scopeBindings;
 }

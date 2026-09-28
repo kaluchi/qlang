@@ -1,0 +1,144 @@
+|~ The module of the noun `::qlang`, the language itself: its members are
+   the concepts of the language, each a page read through the noun,
+   `::qlang | docs :pipeline`, in the order they rest on each other:
+   values, the pipeline, verbs, errors, code, the hypertext and the
+   hosts. The first screen names them all. ~|
+
+:values
+  |~~ Values. Everything qlang handles is a value, and a value never
+      changes: a step answers a new value and the old one stays as it
+      was. Each value has a kind. A literal implies one, `42` a number,
+      `"s"` a string, `:k` a keyword, `[a b]` a vector, `{:k v}` a map
+      whose keys are keywords, `#[a b]` a set, `true`, `null`; a tag
+      written over a value names another, `::Box{:k 1}`. A tag is the
+      name of a kind: it tells how to read the value it stands on, tags
+      stack and read from the outside in, and the tag taken as a value,
+      `::Box`, is the kind itself, which a query asks for its page and
+      its verbs. Code, prose and failures are values of kinds of their
+      own, so everything the language says about itself is a value the
+      pipeline reads. Every value prints as a literal that reads back as
+      itself. Rests on nothing; the pipeline, the verbs and the
+      hypertext rest on it.
+      ::link~(::qlang | manifest) ::link~(::tag | docs | first)
+      ::link~(::qlang/pipeline | docs | first)
+
+      ~(::Box::Crate{:a 1} | type | eq ::Box)
+      ~([1 2] | :v / | append 3 | [v /] | eq [[1 2] [1 2 3]])
+  ~~|
+  #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set]
+
+:pipeline
+  |~~ The pipeline. A query is a subject and its steps; each step is a
+      command on the value the step before it answered, `S | verb
+      object`, and the answer is the last value. `a | b` runs `b` on
+      `a`. `a * b`, written in the place of `|`, runs `b` on each element
+      of a vector or each value of a map, several steps in parentheses,
+      and answers the first failure. `/k`, `/0`, `/-1`, `/a/b` read a
+      part, a miss being an error. `(…)` runs steps on the value in the
+      pipe and answers their result, and each part of a literal is such
+      a group, so a literal is the shape an answer takes,
+      `{:id /id :n (/tags | count)}`. `:n v` names a value for the steps
+      after it, in the scope where it stands. Rests on values; the verbs
+      are its commands, and code holds its steps as a value.
+      ::link~(::each | docs | first) ::link~(::proj | docs | first)
+      ::link~(::group | docs | first) ::link~(::qlang/verbs | docs | first)
+
+      ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      ~(5 | :n / | [n (n | add 1)] | eq [5 6])
+  ~~|
+  #[::each ::proj ::group ::bind ::call ::construct]
+
+:verbs
+  |~~ Verbs. A verb lives on a kind, the one whose values it serves, and
+      has an address, `::vec/sort`. A name in a query finds its verb
+      through the kind of its subject: the tags from the outside in,
+      then the shape beneath them, then the verbs every value answers,
+      on `::qlang/any`; so what can be done with a value is asked of its
+      kind, and one word serves many kinds. The verbs of a kind and those
+      of every value are the whole of them: a verb in neither list does
+      not exist. A verb declares its slots and the kinds it takes, which
+      `spec` answers before a call. A reader declares verbs and kinds of
+      its own in the form the catalog is written in: a name over `::verb`
+      and a quote whose head declares its slots is a verb, and a tag
+      named over a map whose `:impl` is a quote is a kind, whose
+      constructor checks or builds each value put under it and answers
+      an error for one it refuses. Rests on
+      values and the pipeline; errors name the verb that refused.
+      ::link~(::vec | spec | /verbs) ::link~(::qlang/any | spec | /verbs)
+      ::link~(::verb | docs | first) ::link~(::qlang/errors | docs | first)
+
+      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      ~(::vec/sort | spec | type | eq ::spec)
+      ~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
+  ~~|
+  #[::verb ::spec ::qlang/any]
+
+:errors
+  |~~ Errors. A failure does not throw: a step that fails answers an
+      error, a value that carries the facts of the failure, the path it
+      took and the tag of the site that refused, which names the page of
+      its procedure. `|` passes an error by and `*` stops on one;
+      `a !| b` runs `b` on an error alone, opened to its facts, so a query
+      reads a failure, recovers from it or raises it again where it is
+      read. `!| type` names the site, and `!| explain` shows its page
+      above the error. A reader learning a tool fails often, and the
+      failure is where what it needs is cheapest to give. Rests on
+      values, the pipeline and verbs; the hypertext holds the pages the
+      sites name.
+      ::link~(::error | docs | first) ::link~(::fail | docs | first)
+      ::link~(::explanation | docs | first)
+
+      ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
+      ~([1 "x"] * (mul 2 !| 0) | eq [2 0])
+  ~~|
+  #[::error ::fail ::explanation]
+
+:code
+  |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb takes
+      one where it needs code, `filter`, `sort`, `if`, `apply` runs one on
+      a subject, and a quote is taken apart and built like any vector of
+      steps. Because code is a value, a page holds laws that run and
+      links that open, and the trail of an error holds the steps it
+      skipped, ready to replay. Rests on values and the pipeline; the
+      hypertext is written in it.
+      ::link~(::quote | docs | first) ::link~(::qlang/hypertext | docs | first)
+
+      ~(~(add 1 | mul 2) | :q / | 5 | apply q | eq 12)
+      ~(~(add 1 | mul 2) | count | eq 2)
+  ~~|
+  #[::quote]
+
+:hypertext
+  |~~ The hypertext. The language describes itself in its own values:
+      every name has a page, and `docs` answers the pages of a name or of
+      the kind of a value. A page is a doc, prose that holds code: a
+      quote with no tag is a law, which `runExamples` holds to answer
+      true, and a quote under `::link` is a link, a query a reader
+      follows by `open`. So a page leads on to the pages that go deeper,
+      and the pipeline moves through them as through any data:
+      `manifest` lists the kinds, `spec | /verbs` the verbs of a kind,
+      `links * open` opens every page a page names in one query, and a
+      filter over pages by `content | contains` searches them. Nothing
+      is read that was not asked for, and a query names the shape of
+      what it reads. Rests on every concept before it.
+      ::link~(::doc | docs | first) ::link~(::link | docs | first)
+      ::link~(::qlang/hosts | docs | first)
+
+      ~(::qlang | docs | first | links * open | count | gt 0)
+      ~(::vec | spec | /verbs | filter ~(docs | first | content | contains "after the first") | eq #[::vec/drop])
+  ~~|
+  #[::doc ::link]
+
+:hosts
+  |~~ Hosts. The language runs inside a host, a tool that embeds it and
+      brings verbs of its own; the command line is one. A value is whole
+      in the language, and the host answers within a budget: what it
+      left out is an `::elision` marker, whose `:read` continues the
+      query to the part, and `elide` gives a reader the same view. The
+      command line reads JSON or text from stdin and writes its answer
+      back in the same form. Rests on values and the hypertext.
+      ::link~(::elision | docs | first) ::link~(::any/elide | docs | first)
+
+      ~([1 2] | elide 100 | eq [1 2])
+  ~~|
+  #[::elision]

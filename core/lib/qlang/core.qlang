@@ -16,4 +16,6 @@ use [:qlang/runtime-invariants
      :qlang/any
      :qlang/error
      :qlang/explanation
+     :qlang/link
+     :qlang/qlang
      :qlang/operand/reflective]

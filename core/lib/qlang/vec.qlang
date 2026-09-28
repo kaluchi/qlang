@@ -1,6 +1,6 @@
-|~ The verbs of vectors [D62]. Each resides on `::qlang/vec`, the kind
+|~ The verbs of vectors. Each resides on `::qlang/vec`, the kind
    whose module declares it, under the contract of its name on
-   `::qlang/any`, whose page and laws it answers [D72]; a quote reads as
+   `::qlang/any`, whose page and laws it answers; a quote reads as
    the vector of its steps. The head of each is its declaration, which
    the runtime executes before the primitive runs. ~|
 
@@ -76,7 +76,7 @@
 
 :has
   |~~ Whether the vector holds the element, an element equal to it; the
-      membership of a JSON array [D107].
+      membership of a JSON array.
 
       ~(["ops" "db"] | has "ops" | eq true)
       ~([1 [2]] | has [2] | eq true)
@@ -86,7 +86,7 @@
 :groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
       map is a keyword, so a key that answers a string, the field of a
-      JSON object, is made one first [D104].
+      JSON object, is made one first.
 
       ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
       ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s | keyword) * count | eq {:paid 2 :open 1})
@@ -104,8 +104,7 @@
 
 :sort
   |~~ The elements in the one order of values, or by the value the key
-      answers for each, ascending; `| reverse` answers them descending
-      [D104].
+      answers for each, ascending; `| reverse` answers them descending.
 
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
       ~([{:age 30} {:age 40}] | sort ~(/age) | reverse | first | /age | eq 40)
@@ -168,7 +167,7 @@
 :union
   |~~ The union of the operands the vector holds, sets merged in the one
       order or maps merged with the last value winning a key. A vector is
-      no set for the algebra [D16], so another operand beside it is
+      no set for the algebra, so another operand beside it is
       refused with the pair.
 
       ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])

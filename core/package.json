@@ -64,6 +64,8 @@
     "#qlang/doc": "./lib/qlang/doc.qlang",
     "#qlang/error": "./lib/qlang/error.qlang",
     "#qlang/explanation": "./lib/qlang/explanation.qlang",
+    "#qlang/link": "./lib/qlang/link.qlang",
+    "#qlang/qlang": "./lib/qlang/qlang.qlang",
     "#qlang/tagged": "./lib/qlang/tagged.qlang",
     "#qlang/any": "./lib/qlang/any.qlang",
     "#qlang/operand/reflective": "./lib/qlang/operand/reflective.qlang",

@@ -4,7 +4,7 @@
 {"name":"tag-takes-a-pair-apart-without-a-name","query":"[::Foo 1] | tag","expect":"::Foo(1)","decision":"D79"}
 {"name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::ManifestSubjectNotTagError","decision":["D62","D79"]}
 {"name":"the-contract-of-run-examples-names-its-residences","query":"42 | runExamples !| /addresses","expect":"#[::keyword/runExamples ::tag/runExamples]","decision":"D79"}
-{"name":"the-loader-stays-a-descriptor","query":"::any/use | spec | type","expect":"::builtin","decision":"D79"}
+{"name":"the-loader-is-a-verb-of-any-value","query":"::any/use | spec | type","expect":"::spec","decision":["D79","D113"],"target":true,"now":"::builtin"}
 {"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type /actualType]","expect":"[::TagModifierNotTagKeywordError ::keyword]","decision":"D79"}
 {"name":"an-axis-reads-a-default-and-a-rest-slot-by-name","query":":f ::verb~(:n 3 * :rest ::number | [n rest]) | :f | [(spec :n) (spec :rest)]","expect":"[3 ::number]","decision":"D88"}
 {"name":"an-axis-reads-a-set-of-kinds-a-slot-admits","query":":f ::verb~(:limit #[::number ::null] | [limit]) | :f | spec :limit","expect":"#[::null ::number]","decision":"D88"}

@@ -93,6 +93,6 @@
 {"name":"a-doc-after-a-step-is-refused","query":"\"5 | add 1 |~~ why ~~|\" | parse !| /message | contains \"|~ … ~|\"","expect":"true","decision":"D125"}
 {"name":"a-doc-piped-to-is-a-value","query":"5 | |~~ note ~~| | type","expect":"::doc","decision":"D125"}
 {"name": "a-source-no-short-run-of-closers-completes-lists-the-continuations", "query": "\"[[[[[ |~~ a\" | parse !| /expected | has :any-character", "expect": "true", "decision": "D125"}
-{"name":"a-combinator-after-a-pipe-names-its-place","query":"\"[1 2] | * add 1\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127","target":true,"now":"::ProjectionKeyNotInMapError"}
-{"name":"a-fail-track-after-a-pipe-names-its-place","query":"\"[1] | !| 0\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127","target":true,"now":"::ProjectionKeyNotInMapError"}
-{"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127","target":true,"now":"#[]"}
+{"name":"a-combinator-after-a-pipe-names-its-place","query":"\"[1 2] | * add 1\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
+{"name":"a-fail-track-after-a-pipe-names-its-place","query":"\"[1] | !| 0\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
+{"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}

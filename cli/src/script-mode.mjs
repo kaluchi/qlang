@@ -44,12 +44,13 @@ const JSON_PRETTY_INDENT = 2;
 
 // Under JSON, the channel a JSON input chose, an answer holding a value
 // JSON has no form for is refused, naming the path of map keys and
-// indices to that value and its kind [D103].
+// indices to that value and its kind [D103]; a set is written as the
+// array of its elements in the one order [D126].
 // The refusal is minted as a value where the answer is written, so its
 // site records its facts without a factory.
 recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::qlang/cli' });
 
-const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'vec', 'map']);
+const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'vec', 'set', 'map']);
 
 // The first value beneath the answer that JSON has no form for, an
 // error among them, with the path to it, or null.
@@ -57,7 +58,7 @@ function firstNotJson(value, path) {
   if (isErrorValue(value)) return { value, path };
   const kindName = typeKeyword(value).name;
   if (!JSON_KINDS.has(kindName)) return { value, path };
-  const parts = kindName === 'vec' ? value.map((element, index) => [index, element])
+  const parts = kindName === 'vec' || kindName === 'set' ? value.map((element, index) => [index, element])
     : kindName === 'map' ? [...value].map(([key, entryValue]) => [keyword(key), entryValue])
     : [];
   for (const [pathStep, part] of parts) {

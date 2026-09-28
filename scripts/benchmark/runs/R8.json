@@ -123,7 +123,8 @@
       "kind": "syntax",
       "query": "… | reverse | * /name",
       "expected": "a distribute after a pipe",
-      "got": "ParseError: * stands in the place of |; the first screen says so only in the positive"
+      "got": "ParseError: * stands in the place of |; the first screen says so only in the positive",
+      "repairedBy": "D127"
     },
     {
       "id": "F2",
@@ -131,7 +132,8 @@
       "kind": "surprise",
       "query": ":small ::Small{:impl …} | ::Small(12)",
       "expected": "a refusal of 12",
-      "got": "::Small(12) built: the page of verbs says a name declares no kind, which the reader connected only after the miss"
+      "got": "::Small(12) built: the page of verbs says a name declares no kind, which the reader connected only after the miss",
+      "repairedBy": "D127"
     },
     {
       "id": "F3",
@@ -139,7 +141,8 @@
       "kind": "missing-hint",
       "query": "::any/links | doc",
       "expected": "the page of links",
-      "got": "DocBindingNotFoundError with :nearest [::any], which does not lead to ::doc/links"
+      "got": "DocBindingNotFoundError with :nearest [::any], which does not lead to ::doc/links",
+      "repairedBy": "D127"
     }
   ]
 }

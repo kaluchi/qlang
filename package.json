@@ -19,7 +19,8 @@
     "lint": "eslint .",
     "check:conventions": "node scripts/check-conventions.mjs",
     "check:probes": "node scripts/sensors/run-probes.mjs",
-    "ci": "npm run build && npm run lint && npm run check:conventions && npm run check:probes && npm test && npm run test:coverage && npm run test:integration && npm run build:site"
+    "check:benchmark": "node scripts/benchmark.mjs check",
+    "ci": "npm run build && npm run lint && npm run check:conventions && npm run check:probes && npm run check:benchmark && npm test && npm run test:coverage && npm run test:integration && npm run build:site"
   },
   "engines": {
     "node": ">=24"

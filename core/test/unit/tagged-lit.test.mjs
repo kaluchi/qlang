@@ -416,9 +416,9 @@ describe('within edits under one tag and rewraps it', () => {
     expect(await evalQuery('#[1 2] | within ~(:k 5 | [/0 /1]) | env | has :k')).toBe(false);
   });
 
-  it('an error the edit or the code answers passes as it is', async () => {
+  it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2}) !| /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| /k')).toBe(1);
+    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| type')).toEqual(makeTagKeyword('WithinCodeNotQuoteError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {

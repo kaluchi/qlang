@@ -109,7 +109,8 @@
 
 ::VerbCodeNotQuoteError
   |~~ A slot of code takes a quote `~(…)` or a verb and nothing else,
-      since a value is never read as code.
+      since a value is never read as code, nor the error a modifier
+      answered when it ran at the call.
 
       ~(
         :run ::verb~(:code ::quote | apply code) | 5 | run 1

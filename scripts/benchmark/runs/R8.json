@@ -1,0 +1,145 @@
+{
+  "id": "R8",
+  "date": "2026-09-28",
+  "model": "claude-sonnet-5",
+  "screen": "b934a596e30f",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7, L1–L10 and N1–N4, and the questions of understanding U1–U5",
+  "calls": 41,
+  "toolUses": 42,
+  "tokens": 80748,
+  "minutes": 5,
+  "tasks": {
+    "T1": {
+      "calls": 3,
+      "solved": true,
+      "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name"
+    },
+    "T2": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * (/email | lower) | distinct | count"
+    },
+    "T3": {
+      "calls": 2,
+      "solved": true,
+      "query": "groupBy ~(/status | keyword) * count"
+    },
+    "T4": {
+      "calls": 2,
+      "solved": true,
+      "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)"
+    },
+    "T5": {
+      "calls": 2,
+      "solved": true,
+      "query": "lines | filter ~(contains \"ERROR\") * (split \" \" | drop 3 | join \" \") | distinct | json"
+    },
+    "T6": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * {:id /id :tagCount (/tags | count)}"
+    },
+    "T7": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data | filter ~(/tags | has \"ops\") * /email"
+    },
+    "L1": {
+      "calls": 1,
+      "solved": true,
+      "query": ":triple ::verb~(mul 3) | [1 2 3] * triple"
+    },
+    "L2": {
+      "calls": 3,
+      "solved": true,
+      "query": "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) | false !| true)]"
+    },
+    "L3": {
+      "calls": 1,
+      "solved": true,
+      "query": ":q ~(sub 3 | mul 4) | [(q | count) (10 | apply q)]"
+    },
+    "L4": {
+      "calls": 1,
+      "solved": true,
+      "query": "\"a\" | mul 2 !| [type /actualType]"
+    },
+    "L5": {
+      "calls": 1,
+      "solved": true,
+      "query": "::string | spec | /verbs | filter ~(doc | content | contains \"begins with\")"
+    },
+    "L6": {
+      "calls": 1,
+      "solved": true,
+      "query": "[7 8] | tag ::Inner | tag ::Outer | [type (payload | payload | /1)]"
+    },
+    "L7": {
+      "calls": 1,
+      "solved": true,
+      "query": "[10 -1 \"y\"] * (add 5 !| null)"
+    },
+    "L8": {
+      "calls": 2,
+      "solved": true,
+      "query": "(|~~ two laws ~(eq 2) and ~(gt 1) here ~~|) | laws | count"
+    },
+    "L9": {
+      "calls": 2,
+      "solved": true,
+      "query": "::vec/groupBy | runLaws * /ok | every ~(eq true)"
+    },
+    "L10": {
+      "calls": 2,
+      "solved": true,
+      "query": "{:a 1 :b 2 :c 3} | minus #[:b]"
+    },
+    "N1": {
+      "calls": 1,
+      "solved": true,
+      "query": "::qlang | manifest * (doc | content)"
+    },
+    "N2": {
+      "calls": 1,
+      "solved": true,
+      "query": "::string | spec | /verbs * [(/) (doc | content)]"
+    },
+    "N3": {
+      "calls": 4,
+      "solved": true,
+      "query": "::qlang | manifest | filter ~(doc | links * (:l / | null | apply l) | has (::error | doc))"
+    },
+    "N4": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec | spec | /verbs * (doc | laws | count) | sum"
+    }
+  },
+  "understanding": "U1–U5 answered in the terms of the pages, accurately and in more detail than R7: the forms of a tag, the declaration of a kind and why a name declares none, the facts of an error, and the hypertext read several pages at once by a set of anchors, manifest * (doc | content) and links * open.",
+  "frictions": [
+    {
+      "id": "F1",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "… | reverse | * /name",
+      "expected": "a distribute after a pipe",
+      "got": "ParseError: * stands in the place of |; the first screen says so only in the positive"
+    },
+    {
+      "id": "F2",
+      "task": "L2",
+      "kind": "surprise",
+      "query": ":small ::Small{:impl …} | ::Small(12)",
+      "expected": "a refusal of 12",
+      "got": "::Small(12) built: the page of verbs says a name declares no kind, which the reader connected only after the miss"
+    },
+    {
+      "id": "F3",
+      "task": "N3",
+      "kind": "missing-hint",
+      "query": "::any/links | doc",
+      "expected": "the page of links",
+      "got": "DocBindingNotFoundError with :nearest [::any], which does not lead to ::doc/links"
+    }
+  ]
+}

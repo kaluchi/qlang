@@ -78,7 +78,7 @@ RULES (strict):
 TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):
 ${taskLines}
 
-Budget: about 60 qlang invocations in total. A task that seems impossible: say so and why, and move on.
+Budget: about 90 qlang invocations in total. A task that seems impossible: say so and why, and move on.
 
 REPORT, plain text:
 1. For each task: the final query, its output (abbreviated), and the invocations spent on it.

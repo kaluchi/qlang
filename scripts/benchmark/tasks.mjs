@@ -57,62 +57,62 @@ export const TASKS = [
   // with. Each runs on no input, and its answer is a qlang literal.
   {
     id: 'L1',
-    question: 'declare a verb of your own named double that multiplies a number by two, and answer the vector [1 2 3] with every element doubled.',
-    reference: ':double ::verb~(mul 2) | [1 2 3] * double',
-    answer: '[2 4 6]'
+    question: 'declare a verb of your own named triple that multiplies a number by three, and answer the vector [1 2 3] with every element tripled.',
+    reference: ":triple ::verb~(mul 3) | [1 2 3] * triple",
+    answer: "[3 6 9]"
   },
   {
     id: 'L2',
-    question: 'declare a kind ::Pos whose values are positive numbers, so that building one from a non-positive number fails; answer a vector of the kind of ::Pos built from 5, and whether building it from -1 fails.',
-    reference: '::Pos {:impl ~(if (gt 0) ~(/) ~(!{:reason :notPositive}))} | [(::Pos(5) | type) (::Pos(-1) | false !| true)]',
-    answer: '[::Pos true]'
+    question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
+    reference: "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) | false !| true)]",
+    answer: "[::Small true]"
   },
   {
     id: 'L3',
-    question: 'hold the code "add 1, then multiply by 2" as a value, and answer a vector of the number of its steps and what it answers when run on 5.',
-    reference: '~(add 1 | mul 2) | :q / | [(q | count) (5 | apply q)]',
-    answer: '[2 12]'
+    question: 'hold the code "subtract 3, then multiply by 4" as a value, and answer a vector of the number of its steps and what it answers when run on 10.',
+    reference: "~(sub 3 | mul 4) | :q / | [(q | count) (10 | apply q)]",
+    answer: "[2 28]"
   },
   {
     id: 'L4',
-    question: 'adding 1 to the string "a" fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
-    reference: '"a" | add 1 !| [type /actualType]',
-    answer: '[::AddLeftNotNumberError ::string]'
+    question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
+    reference: "\"a\" | mul 2 !| [type /actualType]",
+    answer: "[::MulLeftNotNumberError ::string]"
   },
   {
     id: 'L5',
-    question: 'by searching the pages of the verbs that live on vectors, find the verb whose page says it answers the elements after the first count, and answer its address.',
-    reference: '::vec | spec | /verbs | filter ~(docs | first | content | contains "after the first") | first',
-    answer: '::vec/drop'
+    question: 'by searching the pages of the verbs that live on strings, find the verb whose page says it tells whether a string begins with a prefix, and answer its address.',
+    reference: "::string | spec | /verbs | filter ~(docs | first | content | contains \"begins\") | first",
+    answer: "::string/startsWith"
   },
   {
     id: 'L6',
-    question: 'put the map {:a 1} under the tag ::Crate and that under the tag ::Box, and answer a vector of the kind of the result and its field a.',
-    reference: '::Box::Crate{:a 1} | [type /a]',
-    answer: '[::Box 1]'
+    question: 'put the vector [7 8] under the tag ::Inner and that under the tag ::Outer, and answer a vector of the kind of the result and its second element.',
+    reference: "::Outer::Inner[7 8] | [type /1]",
+    answer: "[::Outer 8]"
   },
   {
     id: 'L7',
-    question: 'multiply every element of [1 "x" 3] by 2, where an element that fails answers 0.',
-    reference: '[1 "x" 3] * (mul 2 !| 0)',
-    answer: '[2 0 6]'
+    question: 'add 5 to every element of [10 -1 "y"], where an element that fails answers null.',
+    reference: "[10 -1 \"y\"] * (add 5 !| null)",
+    answer: "[15 4 null]"
   },
   {
     id: 'L8',
-    question: 'write a doc of your own whose prose holds one example, the code "eq 1", and answer the examples of that doc.',
-    reference: '|~~ one ~(eq 1) ~~| | quotes',
-    answer: '[~(eq 1)]'
+    question: 'write a doc of your own whose prose holds two examples, the code "eq 2" and the code "gt 1", and answer how many examples that doc has.',
+    reference: "|~~ two ~(eq 2) and ~(gt 1) ~~| | quotes | count",
+    answer: "2"
   },
   {
     id: 'L9',
-    question: 'run the examples of the page of the verb that sorts a vector, and answer whether every one of them holds.',
-    reference: '::vec/sort | runExamples * /ok | every ~(eq true)',
-    answer: 'true'
+    question: 'run the examples of the page of the verb that groups the elements of a vector by a key, and answer whether every one of them holds.',
+    reference: "::vec/groupBy | runExamples * /ok | every ~(eq true)",
+    answer: "true"
   },
   {
     id: 'L10',
-    question: 'answer the map {:a 1 :b 2} without its key a.',
-    reference: '{:a 1 :b 2} | minus #[:a]',
-    answer: '{:b 2}'
+    question: 'answer the map {:a 1 :b 2 :c 3} without its key b.',
+    reference: "{:a 1 :b 2 :c 3} | minus #[:b]",
+    answer: "{:a 1 :c 3}"
   }
 ];

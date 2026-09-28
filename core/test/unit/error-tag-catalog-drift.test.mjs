@@ -185,7 +185,7 @@ describe('per-site error classes — every throw site carries a catalog tag', ()
     it(`::${className} is declared in the catalog`, () => {
       expect(catalogTags.has(`::${className}`),
         `${className} records a throw-site spec with no \`::${className}\` tag-binding — ` +
-        'add one so `result !| type | docs / spec` resolves'
+        'add one so `result !| type | doc / spec` resolves'
       ).toBe(true);
     });
   }

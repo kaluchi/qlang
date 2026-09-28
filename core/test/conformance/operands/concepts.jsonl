@@ -9,3 +9,6 @@
 {"name":"a-member-of-the-root-has-no-address-of-its-own","query":"::qlang/pipeline | doc !| type","expect":"::DocBindingNotFoundError","decision":"D119"}
 {"name":"docs-leaves-for-doc","query":"5 | docs | type !| type","expect":"::UnresolvedIdentifierError","decision":"D119"}
 {"name": "every-link-of-the-first-screen-opens-a-page", "query": "::qlang | doc | links * open | every ~(type | eq ::doc)", "expect": "true", "decision": "D121"}
+{"name": "the-empty-path-reads-the-page-of-the-subject", "query": "::qlang | doc [] | eq (::qlang | doc)", "expect": "true", "decision": "D119"}
+{"name": "an-anchor-of-a-set-that-is-no-keyword-is-refused", "query": "::qlang | doc #[1] !| type", "expect": "::DocAnchorNotKeywordError", "decision": "D119"}
+{"name": "a-value-that-is-no-quote-opens-nothing", "query": "5 | open !| [type /slot]", "expect": "[::VerbCodeNotQuoteError :subject]", "decision": "D122"}

@@ -21,7 +21,7 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
@@ -176,21 +176,24 @@ function pageOfRecord(record) {
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
 }
 
+// The anchors of a path: null the empty one, a keyword a path of one,
+// a vector its elements, and any other value a path of one the walk
+// refuses [D119].
+const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anchor]);
+
 // The record a path of anchors reaches, each anchor the name of a member
-// of the record the one before it reached [D119].
+// of the record the one before it reached, the empty path the record of
+// the subject itself [D119].
 function recordAlongPath(subject, anchors, state) {
+  if (anchors.length === 0) return recordReadBy(subject, NULL, state, DocBindingNotFoundError);
   return anchors.reduce((reached, anchor, index) => {
     if (!isKeyword(anchor)) throw new DocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
     return recordReadBy(reached, anchor, state, DocBindingNotFoundError);
   }, subject);
 }
 
-// The page an anchor reads: a keyword the member under it, a vector the
-// member at the end of its path.
-function pageAt(subject, anchor, state) {
-  if (isKeyword(anchor) || isNull(anchor)) return pageOfRecord(recordReadBy(subject, anchor, state, DocBindingNotFoundError));
-  return pageOfRecord(recordAlongPath(subject, anchor, state));
-}
+// The page an anchor reads, the page of the member at the end of its path.
+const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set.
 bindStateReader('doc', (subject, anchor, state) =>

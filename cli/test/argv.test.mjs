@@ -125,6 +125,10 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '::qlang | doc'])).toEqual({ kind: 'repl', budget: null, initialQuery: '::qlang | doc' });
   });
 
+  it('reads a flag after -i as a flag, the query after it as the first cell', () => {
+    expect(parseArgv(['-i', '--budget=500', '::qlang | doc'])).toEqual({ kind: 'repl', budget: 500, initialQuery: '::qlang | doc' });
+  });
+
   it('reports a usageError when only an input-mode flag is supplied without a query', () => {
     const cliInvocation = parseArgv(['--json']);
     expect(cliInvocation.kind).toBe('usageError');

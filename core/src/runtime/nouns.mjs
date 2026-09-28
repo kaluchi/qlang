@@ -146,7 +146,7 @@ export function isProviderBinding(env, name) {
 }
 
 // A declaration a noun's module makes that is no verb is a member of the
-// noun, read through it, `::qlang | docs :pipeline`, and no name of a
+// noun, read through it, `::qlang | doc :pipeline`, and no name of a
 // reader's scope [D117].
 export function isNounMember(env, name) {
   const entry = env.get(name);

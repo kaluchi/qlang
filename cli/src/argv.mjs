@@ -100,13 +100,14 @@ export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';
   let budget = null;
+  let isRepl = false;
   let cursor = 0;
 
   while (cursor < argvSlice.length) {
     const head = argvSlice[cursor];
     if (head === '-h' || head === '--help')    return { kind: 'help' };
     if (head === '-V' || head === '--version') return { kind: 'version' };
-    if (head === '-i' || head === '--repl')    return { kind: 'repl', budget, initialQuery: argvSlice[cursor + 1] ?? null };
+    if (head === '-i' || head === '--repl') { isRepl = true; cursor += 1; continue; }
     if (head.startsWith('--budget=')) {
       const value = head.slice('--budget='.length);
       if (!/^[1-9][0-9]*$/.test(value)) {
@@ -130,9 +131,11 @@ export function parseArgv(argvSlice) {
       cursor += 1;
       continue;
     }
+    if (isRepl) return { kind: 'repl', budget, initialQuery: head };
     return { kind: 'evalQuery', queryText: head, inputFormat, colorMode, budget };
   }
 
+  if (isRepl) return { kind: 'repl', budget, initialQuery: null };
   return {
     kind: 'usageError',
     message: 'qlang: missing query. See `qlang --help` for usage.\n'

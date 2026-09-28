@@ -40,13 +40,10 @@ bindPrim('docSnippets', doc => Object.freeze(doc.filter(segment => holdsRole(seg
 bindPrim('elide', (subject, budget) => elide(subject, budget));
 
 // A quote opens to the answer of its query, run in the scope of the
-// reader that opens it beneath the tags over it, so a page names what its
-// reader's scope holds [D111], [D122].
-bindStateReader('quoteOpen', async (segment, state) => {
-  let query = segment;
-  while (isValueClass(query, 'taggedInstance')) query = query.payload;
-  return await codeOf(query, state)(null);
-});
+// reader that opens it; its slot of subject hands the quote beneath the
+// tags of a link or a snippet, so a page names what its reader's scope
+// holds [D111], [D122].
+bindStateReader('quoteOpen', async (query, state) => await codeOf(query, state)(null));
 
 // A segment in a role: a quote under a stack of tags that holds the tag
 // of the role, `::link` or `::snippet`, a host's tag over it among them

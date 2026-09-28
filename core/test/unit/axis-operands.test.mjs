@@ -1,4 +1,4 @@
-// Axis-operands — `source`, `docs`, `examples` project the record a
+// Axis-operands — `source`, `doc`, `spec` project the record a
 // declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
@@ -77,10 +77,10 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 });
 
-describe(':name | docs returns Vec of Doc-values from attached prefixes', () => {
-  it('::vec/count | docs returns at least one Doc-value', async () => {
-    const result = await evalQuery('::vec/count | doc | count');
-    expect(result).toBeGreaterThanOrEqual(1);
+describe(':name | doc returns the page its attached prefixes make', () => {
+  it('::vec/count | doc returns a page', async () => {
+    const result = await evalQuery('::vec/count | doc | type');
+    expect(result).toEqual(makeTagKeyword('doc'));
   });
 
   it('the content of the first doc of ::vec/count carries its prose', async () => {
@@ -134,7 +134,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(printQuoteSource(result).startsWith('::verb')).toBe(true);
   });
 
-  it('::verb | docs returns the attached Doc-prefix on the type BindStep', async () => {
+  it('::verb | doc returns the attached Doc-prefix on the type BindStep', async () => {
     const result = await evalQuery('::verb | doc | content');
     expect(typeof result).toBe('string');
     expect(result).toContain('A verb, a quote under this tag');
@@ -179,7 +179,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     expect(cellEntry.result).toBe(1);
   });
 
-  it('docs of the loaded module carries the prefix as a Doc-value', async () => {
+  it('the page of the loaded module carries its prefix', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const moduleSource = ':demo |~~ A short note. ~~|\n1';
     const session = await createSession({

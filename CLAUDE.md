@@ -74,10 +74,9 @@ Tier 2, by topic, only the files the topic names:
 - tests: `core/test/unit/conformance.test.mjs` for the runner, then
   only the conformance or unit file of the topic
 
-Never wholesale: `core/test/`, the documents under `docs/` other than
-the audit and the entrypoint document, `.claude/agents/qlang-review.md`,
-the memory directory. Open
-a reference chapter only for the wording under dispute.
+Never wholesale: `core/test/`, the records under `docs/decisions/`,
+`.claude/agents/qlang-review.md`, the memory directory. Open a record
+where the audit cites it.
 
 The audit is the maintainer's memory between sessions. A session
 validates it against the code: a wrong sentence is replaced by the

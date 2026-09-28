@@ -89,13 +89,10 @@ describe('describeType for a verb and a binding record', async () => {
     expect(plainTagged.payload).toEqual([42, 'inner']);
   });
 
-  it('isTaggedInstance rejects a builtin descriptor without checking :kind field shape', async () => {
-    // A descriptor's identity rides on the Map's JS-header
-    // `TAG_HEADER_SYMBOL` slot under the reserved `::builtin`, so the
-    // generic tagged-instance render path stays disjoint from the
-    // descriptor's, whatever a bystander Map carries as `:kind`.
+  it('isTaggedInstance takes a descriptor under ::builtin as the value under a tag it is', async () => {
     const { isTaggedInstance } = await import('../../src/types.mjs');
-    expect(isTaggedInstance(await evalQuery('::builtin{:a 1}'))).toBe(false);
+    expect(isTaggedInstance(await evalQuery('::builtin{:a 1}'))).toBe(true);
+    expect(isTaggedInstance(await evalQuery('{:kind ::builtin}'))).toBe(false);
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {

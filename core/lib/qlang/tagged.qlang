@@ -28,12 +28,15 @@
       ~(::Pair {} | ::Pair[1 2] | payload | eq [1 2])
       ~(::Note {} | ::Note"hello" | payload | eq "hello")
       ~(#[2 1] | payload | eq [1 2])
+      The declaration of a kind is a map under `::builtin`, taken apart
+      the same way:
+      ~(::vec | spec | payload | keys | has :verbs)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/payload})
 
 ::PayloadSubjectNotTaggedInstanceError
-  |~~ `payload` requires a TaggedInstance subject (a value built
-      through a `::Tag<payload>` constructor invocation).
+  |~~ `payload` takes a value under a tag; a value of a kind of the
+      core, a number or a plain map, stands under none.
       ~(
         42 | payload
         !| [type /actualType]

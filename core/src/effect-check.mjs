@@ -1,32 +1,11 @@
-// Effect-marker AST decoration.
-//
-// Pairs with src/effect.mjs (which owns the EFFECT_MARKER_PREFIX
-// constant and the `classifyEffect` effect-marker classifier) and
-// src/eval.mjs (which hosts the runtime call-site safety net).
-//
-// Exports:
-//
-//   decorateAstWithEffectMarkers(ast) — post-parse pass that stamps
-//     a boolean `.effectful` field on every OperandCall and Projection
-//     node. Downstream consumers (editor highlight, refactor,
-//     autocomplete, manifest descriptors, runtime safety net) read
-//     `.effectful` and never re-derive the property from the source
-//     name.
-//
-//   findFirstEffectfulIdentifier(node) — returns the first effectful
-//     identifier in a subtree, or null. Used by `evalBindStep` in
-//     `eval.mjs` to refuse a BindStep declaration whose body
-//     references an `@`-effectful identifier under a non-`@`
-//     binding name.
+// The effect marker on the parser's tree: every call and projection is
+// stamped with whether it names an effect, and a declaration finds the
+// first effectful name its body calls [D69].
 
 import { walkAst } from './walk.mjs';
 import { classifyEffect } from './effect.mjs';
 
-// decorateAstWithEffectMarkers(ast) → ast
-//
-// Walks the AST and stamps `.effectful` (boolean) on every node
-// whose surface form admits an effect marker. Mutates the tree
-// and returns the same reference for chaining.
+// Stamps `.effectful` on every call and projection of the tree.
 export function decorateAstWithEffectMarkers(ast) {
   walkAst(ast, (node) => {
     switch (node.type) {
@@ -45,13 +24,7 @@ export function decorateAstWithEffectMarkers(ast) {
   return ast;
 }
 
-// findFirstEffectfulIdentifier(node) → string | null
-//
-// Recursively walks `node` and returns the first effectful identifier
-// name encountered, or null if the subtree is effect-clean. Used by
-// the validator to embed the offending name in the diagnostic message.
-// Walking stops at the first hit. For Projection nodes the offender
-// is the first segment whose classifyEffect returns true.
+// The first effectful name a subtree calls, or null.
 export function findFirstEffectfulIdentifier(node) {
   let offender = null;
   walkAst(node, (n) => {

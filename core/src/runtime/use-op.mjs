@@ -1,28 +1,5 @@
-// `use`, the loader, a verb of any value that writes the scope of its
-// call [D113]. Its forms, by what its slots hold:
-//
-//   bare `pipeValue | use`            — pipeValue must be a Map.
-//                                        Every entry is merged into
-//                                        env (incoming wins on
-//                                        collisions).
-//   `use :ns`                        — namespace import. The
-//                                        keyword resolves to a
-//                                        module Map already in env
-//                                        (or loaded on demand
-//                                        through the
-//                                        `:qlang/locator` host
-//                                        callback).
-//   `use [:ns1 :ns2 …]`               — Vec-form namespace import.
-//                                        Later namespaces shadow
-//                                        earlier on conflict.
-//   `use #[:ns1 :ns2 …]`              — Set-form namespace import.
-//                                        Collisions raise a
-//                                        `UseNamespaceCollisionError`
-//                                        so the host disambiguates.
-//   `use :ns #[:nameA :nameB]`      — selective import. Only the
-//                                        named identifiers land in
-//                                        env; everything else stays
-//                                        out of scope.
+// `use`, the loader, a verb of any value whose primitive writes the scope
+// of its call [D113]; its forms are told by its page, `::any/use | doc`.
 
 import { bindScopeWriter } from '../primitives.mjs';
 import { nestState, envMerge } from '../state.mjs';
@@ -95,39 +72,18 @@ bindScopeWriter('use', async (subject, namespace, names, state) => {
   return await importOrderedNamespaces(state, namespace);
 });
 
-// resolveNamespaceEnv(callerState, outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
-//
-// Looks up the namespace keyword in env. When absent, falls back
-// to the host-provided locator (stored under `:qlang/locator` in
-// env by `createSession`). The locator parses and evals the module
-// source one frame below `callerState` — a module that `use`s itself
-// descends a frame per load until the depth budget lifts
-// `EvaluationDepthExceededError` — patches `:impl` on builtin
-// descriptors with the impls from the locator result, and installs
-// the namespace keyword in env for subsequent lookups. Returns the
-// resolved `moduleEnv`, a Map of the records the module exports,
-// paired with the env that holds the freshly-installed namespace
-// binding so the caller threads it forward; `outerEnv` is that
-// evolving env, which walks ahead of `callerState.env` across a
-// multi-namespace import.
+// The records a module exports and the env that holds its export map
+// from then on. A module is read once: from the export map a load left,
+// from a map a host bound under the bare name, or through the host's
+// locator, which hands its source and the implementations of its verbs.
+// The source runs one frame below the caller, so a module that loads
+// itself meets the depth budget.
 async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
-  // Two lookup keys for a namespace. A host `session.bind(:ns, map)`
-  // lands under the bare keyword name (`<ns>`); the language-level
-  // locator and `installModules(catalog)` both write under the
-  // namespace cache key (`qlang/namespace/<ns>`), which `manifest`
-  // filters out of its enumeration and which never collides with an
-  // operand name on the identifier-lookup plane.
   const cacheKey = moduleNamespaceKey(nsKeyword.name);
   if (outerEnv.has(cacheKey)) return [outerEnv.get(cacheKey), outerEnv];
 
-  // A host-installed namespace is a header-less Map bound under the
-  // bare name with no declaration behind it, its entries brought in as
-  // bindings. Every other binding there — one a step declared, `:cfg
-  // /` among them, a verb (`use :count`, `use :double`), a scalar or
-  // function a host bound — sits on the
-  // identifier plane, so the probe walks past it to the locator:
-  // merging a tagged Map would spill its `:impl` slot into env as a
-  // binding.
+  // Any other binding under the bare name, one a step declared among
+  // them, is a name and no module.
   const hostRecord = outerEnv.get(nsKeyword.name);
   if (isHostNamespace(hostRecord)) return [bindingsOf(hostRecord.get('value')), outerEnv];
 
@@ -140,21 +96,12 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     throw new UseNamespaceNotFoundError({ namespaceName: nsKeyword.name });
   }
 
-  // Parse and eval the module source. A module exports what its
-  // steps write into the environment, the difference taken below;
-  // the value its last step answers is left unread.
+  // A module exports the records its steps wrote, every key it added or
+  // bound again [D63].
   const moduleAst = parseSource(locatorResult.source, { uri: nsKeyword.name });
   const moduleEvalState = nestState(callerState, outerEnv, outerEnv);
   const moduleResultState = await evalAst(moduleAst, moduleEvalState);
 
-  // Export surface = env delta. A module exports any binding it
-  // ADDED (key absent from outerEnv) or MODIFIED (key present but
-  // pointing to a different record — the module's BindStep replaced
-  // the entry). Identity-compare on the record separates
-  // inherited-unchanged from override. Modules using `| use` to
-  // install descriptor Maps into env work through this path. Pure
-  // Map-expression modules (no `| use`) pipe through `use` to land
-  // their entries in env.
   const loadedExports = new Map();
   for (const [exportKey, exportVal] of moduleResultState.env) {
     if (!outerEnv.has(exportKey) || outerEnv.get(exportKey) !== exportVal) {
@@ -162,11 +109,8 @@ async function resolveNamespaceEnv(callerState, outerEnv, nsKeyword) {
     }
   }
 
-  // A host catalog declares its per-site error tags as prose, the
-  // same way the language catalog does; the structural facts come
-  // from the factory call in the host's own JS. Stamping here is
-  // what `buildLangRuntime` does for the language catalog, at the
-  // seam a locator-loaded namespace arrives through.
+  // A host's refusals take the facts their throw sites recorded, as the
+  // core's do at bootstrap.
   for (const [exportKey, exportVal] of loadedExports) {
     stampThrowSiteSpec(bindingValueOf(exportVal), exportKey);
   }

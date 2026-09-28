@@ -1012,8 +1012,7 @@ is absent.
 Keeping the class names and the catalog in agreement requires a registry
 of throw-site specifications, a stamping pass at bootstrap that runs
 twice because there are two bootstrap paths, a test that checks six axes
-of agreement, an injection script that copies example queries from the
-conformance suite into the catalog, and two tables in the error
+of agreement, and two tables in the error
 converter that spell the descriptor's field order and which fields are
 identifiers.
 
@@ -1122,9 +1121,7 @@ unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”
 catalog meets the names of the files that implement it.
 
 Examples live on three planes: the conformance suite, the laws of the
-catalog and the REPL pairs in the reference, with a runner for each and
-a script that copies from the first plane into the second
-(`core/scripts/inject-error-examples.mjs`).
+catalog and the REPL pairs in the reference, with a runner for each.
 The catalog's own laws run in under a second and are the only plane the
 language can reach, and most of them still stand under no caption of
 the claim they prove [D124].
@@ -1280,22 +1277,12 @@ $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | 
 [D30] asks the ratio to fall, and it has begun to fall from the September
 master.
 
-In the keys of the environment and the effect marker the comments still
-outweigh the code:
+No module of the core carries more comment than code:
 
 ```sh
-$ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
-core/src/effect-check.mjs
-core/src/effect.mjs
-core/src/env-keys.mjs
+$ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}' | wc -l
+0
 ```
-
-Most of those comments justify, and none states an invariant in a
-sentence: the keys of the environment
-excuse the scan of their prefixes as “justified by the flat-Map model”
-(`core/src/env-keys.mjs`).
-Each is a decision that has no record, written where it will be read by
-whoever touches the line and by nobody who decides.
 
 The rest of the scar is duplication the other sections name only in
 part:
@@ -1556,8 +1543,8 @@ session envelope; the effect marker and its checks; the character
 scanner of doc text; the housekeeping keys of the environment; the
 history of cells; the resolver of module directories; the call to the
 parser from outside `parse`; the error prose of the catalog that
-restates the facts; the drift tests, the injection script and the
-document-compliance runner for the documents that go.
+restates the facts; the drift tests and the document-compliance runner
+for the documents that go.
 
 The documents at the finish are few. This audit and the entrypoint
 document, which are the measure. The reference, reduced to the
@@ -1635,8 +1622,7 @@ design is the entrypoint document's.
 Its answers are the targets of [D115] in the conformance suite, and
 those [D6], [D33] and [D46] leave when they are decided. Beside them:
 no factory-declared error class remains; no operand contract is spelled
-outside the catalog; the injection script and the document-compliance
-runner are gone; no parser call exists outside `parse`; one query shows
+outside the catalog; the document-compliance runner is gone; no parser call exists outside `parse`; one query shows
 every definition of a name and which one wins; a module's value is its
 surface, so the sister project's helpers leave its client's `env`; and
 the environment holds no key of the runtime's own.

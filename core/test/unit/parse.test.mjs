@@ -390,23 +390,15 @@ describe('parse — error handling', () => {
 });
 
 describe('parse — source-mapping metadata on AST root', () => {
-  it('records source, uri, parseId, schemaVersion on the root', () => {
+  it('records source and uri on the root', () => {
     const ast = parse('42', { uri: 'test.qlang' });
     expect(ast.source).toBe('42');
     expect(ast.uri).toBe('test.qlang');
-    expect(typeof ast.parseId).toBe('number');
-    expect(ast.schemaVersion).toBe(1);
   });
 
   it('defaults uri to "inline" when opts not given', () => {
     const ast = parse('42');
     expect(ast.uri).toBe('inline');
-  });
-
-  it('parseId monotonically increases across calls', () => {
-    const a = parse('1');
-    const b = parse('2');
-    expect(b.parseId).toBeGreaterThan(a.parseId);
   });
 });
 

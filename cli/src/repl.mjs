@@ -25,6 +25,9 @@
 //   * `@out` / `@err` / `@tap` keep their normal contracts; their
 //     side-effects appear before the auto-printed result line.
 //
+// A query given after `-i` runs as the first cell, echoed after the
+// prompt, before the REPL waits for the next [D120].
+//
 // Meta commands (single dot prefix, exact match):
 //   .help    list meta commands
 //   .exit    close the REPL (Ctrl+D on an empty line works too)
@@ -76,7 +79,7 @@ Bindings introduced via BindStep (\`:name body\`, the freeze
 session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null } = {}) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null } = {}) {
   const builtinNames = new Set(
     [...(await langRuntime()).keys()]
   );
@@ -131,7 +134,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
     });
 
     lineEditor.start();
-    lineEditor.prompt();
+    if (initialQuery === null) lineEditor.prompt();
+    else lineEditor.submit(initialQuery);
 
     async function handleLine(rawLine) {
       const line = rawLine.trim();
@@ -157,8 +161,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
   });
 }
 
-// An answer prints within the budget, what does not fit given way to
-// markers that read it [D109].
+// An answer prints whole, or within the budget the caller asked for,
+// what does not fit given way to markers that read it [D120].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
   // Parse failures and runtime fail-track errors both surface as
   // `isErrorValue(cellEntry.result)` — session.evalCell lifts
@@ -166,7 +170,6 @@ async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrit
   // `::Tag!{…}` print path covers both, the path of the error in its
   // `:trail` [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
-  const shown = budget === null ? cellEntry.result
-    : elideAnswer(cellEntry.result, isErrorValue(cellEntry.result) ? budget.error : budget.value);
+  const shown = budget === null ? cellEntry.result : elideAnswer(cellEntry.result, budget);
   sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
 }

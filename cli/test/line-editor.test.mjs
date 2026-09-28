@@ -68,6 +68,13 @@ describe('createLineEditor — non-TTY (piped) mode', () => {
     expect(out.text()).toBe('qlang> ');
   });
 
+  it('shows a submitted line after the prompt and emits it', () => {
+    const { editor, out, capture } = makePipedSetup();
+    editor.submit('1 | add 1');
+    expect(out.text()).toBe('qlang> 1 | add 1\n');
+    expect(capture.lines).toEqual(['1 | add 1']);
+  });
+
   it('removes its data listener on close', () => {
     const { stdinStream, editor } = makePipedSetup();
     editor.start();
@@ -327,6 +334,15 @@ describe('createLineEditor — TTY escape sequence handling', () => {
 });
 
 describe('createLineEditor — TTY history navigation', () => {
+  it('a submitted line is shown, emitted and recalled by Up', () => {
+    const { stdinStream, editor, out, capture } = makeTtySetup();
+    editor.start();
+    editor.submit('first');
+    expect(out.text()).toContain('> first\r\n');
+    feed(stdinStream, ESC + '[A', SUBMIT);
+    expect(capture.lines).toEqual(['first', 'first']);
+  });
+
   it('Up walks back through submitted cells', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

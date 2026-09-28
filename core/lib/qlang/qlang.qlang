@@ -142,9 +142,11 @@
 :hosts
   |~~ Hosts. The language runs inside a host, a tool that embeds it and
       brings verbs of its own; the command line is one. A value is whole
-      in the language, and the host answers within a budget: what it
-      left out is an `::elision` marker, whose `:read` continues the
-      query to the part, and `elide` gives a reader the same view. The
+      in the language, and the host prints an answer whole unless a
+      reader asks for a budget, by `elide` in the query or by the host's
+      flag, the command line's `--budget=N`: what a budget left out is
+      an `::elision` marker, whose `:read` continues the query to the
+      part. The
       command line reads JSON or text from stdin and writes its answer
       back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)

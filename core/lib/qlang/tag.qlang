@@ -38,6 +38,9 @@
       value; a verb in neither does not exist. `::vec/sort | doc` reads
       the page of one verb, `::vec/sort | runExamples` runs its laws,
       and `x !| explain` shows the page of what refused above an error.
+      An answer prints whole; `x | elide 4000` bounds it to that many
+      characters of its print, each part left out an `::elision` whose
+      `:read` continues the query to it.
 
       The concepts, in the order they rest on each other, each page
       naming its neighbours and the kinds that are it:
@@ -317,8 +320,9 @@
 ::elision
   |~~ The kind of the marker of what a view left out. A
       reader's context only grows, and whatever an answer adds is read
-      again on every later step, so a host answers within a budget, and
-      the marker keeps the way back: `:size` counts the elements, the
+      again on every later step, so a reader asks for a budget, by
+      `elide` in the query or by the host's flag, and the marker keeps
+      the way back; an answer nobody bounded prints whole: `:size` counts the elements, the
       entries or the characters it stands for, `:read` is the quote that
       applied to the value taken answers the part left out, and `:head`
       holds the first characters of a string. `elide` writes markers,

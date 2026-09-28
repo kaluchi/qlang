@@ -640,8 +640,8 @@
       its elements and ending with a marker of the rest, a string or a map
       giving way whole. A marker's `:read` applied to the value `elide`
       took answers the part left out, and a value whose print fits is
-      answered as it is. The command line applies it to the answer it
-      prints.
+      answered as it is. The command line applies it to every answer
+      it prints when `--budget=N` asks it to.
 
       ~([1 2] | elide 100 | eq [1 2])
       ~({:s "a long line of text to leave out" :n 1} | elide 40 | /s | type | eq ::elision)

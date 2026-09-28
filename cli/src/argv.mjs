@@ -5,7 +5,7 @@
 // `cliInvocation` describing the user's intent — five shapes today:
 //
 //   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
-//   { kind: 'repl' }
+//   { kind: 'repl', budget, initialQuery }
 //   { kind: 'help' }
 //   { kind: 'version' }
 //   { kind: 'usageError', message }
@@ -16,6 +16,9 @@
 // JSON.parse stdin if it looks parseable, otherwise hand it to the
 // query as a String. `--json` forces the parse (and fails loudly
 // on malformed input); `--raw` skips parsing entirely.
+//
+// `budget` is null, an answer printing whole, or the characters every
+// answer prints within that `--budget=N` asked for [D120].
 //
 // `colorMode` is one of 'auto' | 'always' | 'never' and decides
 // whether script-mode output runs through `highlightAnsi`. Default
@@ -32,16 +35,13 @@
 // dispatch into the rest of the runtime.
 
 import { createRequire } from 'node:module';
-// The characters an answer prints within unless `--full` lifts the
-// budget, an error, an alert, within fewer [D109].
-export const ANSWER_BUDGET = { value: 4000, error: 1000 };
 
 const _cliPackage = createRequire(import.meta.url)('../package.json');
 
 export const HELP_TEXT = `qlang \u2014 pipeline query language
 
-Usage:  qlang [--json | --raw] [--color=MODE] [--full] <query>
-        qlang [--full] -i | --repl
+Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
+        qlang [--budget=N] -i | --repl [<query>]
         qlang -h | --help
         qlang -V | --version
 
@@ -51,7 +51,8 @@ subject as values, an object a map whose keys are keywords, and the
 answer is written as JSON, where a value JSON has no form for, a
 quote, a set, a keyword or a tag, is refused as ::AnswerNotJsonError.
 Text input is a String, and the answer is written as its print;
-'| json' writes JSON text. Use -i for an interactive REPL. Quote
+'| json' writes JSON text. Use -i for an interactive REPL, a query
+after it run as its first cell. Quote
 the query so the shell does not split on whitespace or pipe
 characters. qlang '::qlang | doc' reads the language, and
 qlang '::cli | doc' this command line.
@@ -64,12 +65,12 @@ Input mode (script):
               answer is written as its print
 
 Output budget:
-  (default)   an answer prints within ${ANSWER_BUDGET.value} characters, an error
-              within ${ANSWER_BUDGET.error}; what does not fit gives way to
-              ::elision markers whose :read continues the query to
-              the part left out; under JSON an error alone is cut,
-              data answering whole
-  --full      print the answer whole
+  (default)   an answer prints whole
+  --budget=N  print every answer within N characters; what does not
+              fit gives way to ::elision markers whose :read continues
+              the query to the part left out; under JSON an error alone
+              is cut, data answering whole. A query bounds its own
+              answer the same way by '| elide N'.
 
 Output colour:
   --color=auto    (default) paint if stdout is a terminal, raw
@@ -85,7 +86,7 @@ Examples:
   echo hi           | qlang --raw 'append " world"'
   cat app.log       | qlang --raw 'lines | filter ~(contains "ERROR") | json'
   qlang '[1 2 3] | filter ~(gt 1) | count'
-  qlang -i
+  qlang -i '::qlang | doc | links * open'
 
 See https://github.com/kaluchi/qlang for the language reference.
 `;
@@ -98,15 +99,23 @@ const COLOR_MODES = new Set(['auto', 'always', 'never']);
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';
-  let budget = ANSWER_BUDGET;
+  let budget = null;
   let cursor = 0;
 
   while (cursor < argvSlice.length) {
     const head = argvSlice[cursor];
     if (head === '-h' || head === '--help')    return { kind: 'help' };
     if (head === '-V' || head === '--version') return { kind: 'version' };
-    if (head === '-i' || head === '--repl')    return { kind: 'repl', budget };
-    if (head === '--full') { budget = null; cursor += 1; continue; }
+    if (head === '-i' || head === '--repl')    return { kind: 'repl', budget, initialQuery: argvSlice[cursor + 1] ?? null };
+    if (head.startsWith('--budget=')) {
+      const value = head.slice('--budget='.length);
+      if (!/^[1-9][0-9]*$/.test(value)) {
+        return { kind: 'usageError', message: `qlang: --budget expects a positive count of characters, got '${value}'\n` };
+      }
+      budget = Number(value);
+      cursor += 1;
+      continue;
+    }
     if (head === '--json') { inputFormat = 'json'; cursor += 1; continue; }
     if (head === '--raw')  { inputFormat = 'raw';  cursor += 1; continue; }
     if (head.startsWith('--color=')) {

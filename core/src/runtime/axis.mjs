@@ -1,10 +1,10 @@
-// Axis-operands — reflective navigation to a binding's declaration
+// The axes, each a passage from a name to its declaration
 // [D61], the record the declaration wrote into its scope [D63]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
 // name `::Foo` the tag's, a tag name that no tag binds the record of
 // the verb it addresses from the root, `::vec/count` [D62], a record
 // the binding it records, and every other value the record of its
-// kind, the kind `type` answers. Each operand projects a field of the
+// kind, the kind `type` answers. Each axis projects a field of the
 // record:
 //
 // `source`   the quote of the declaring step, null for a binding no

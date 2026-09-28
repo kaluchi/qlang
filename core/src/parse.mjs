@@ -1,19 +1,13 @@
-// Parser entry point. Wraps the peggy-generated parser to give us
-// a small, stable API and a uniform `ParseError` type, plus
-// source-mapping metadata on the AST root and per-node ids/parents
-// that downstream tooling (editor hover, autocomplete, refactor,
-// session restore) consumes via walk.mjs.
-//
-// Every parse:
-//   - assigns each node a stable .id (counter, monotonic per parse)
-//   - attaches a .parent pointer to each non-root node
-//   - records the original source string on the root as .source
-//   - records the source uri (file path or 'inline'/'repl-cell-N')
-//     as .uri
-//   - records a per-process .parseId for cross-parse identity
-//   - records .schemaVersion for forward-compat AST evolution
-//   - records .comments, the plain comments the grammar read as
-//     whitespace [D81], in the order of the source, for the tools
+// The one caller of the generated parser: `parse` answers the tree of a
+// source or throws a `ParseError`, and the tools that read the tree
+// through walk.mjs, the editor's hover, completion and references among
+// them, find on it:
+//   - an .id on each node, counted within the parse
+//   - a .parent on each node but the root
+//   - the source on the root as .source, and its name as .uri, a file
+//     path, 'inline' or 'cell-N'
+//   - .comments on the root, the plain comments the grammar read as
+//     whitespace [D81], in the order of the source
 
 import {
   parse as peggyParse
@@ -21,8 +15,6 @@ import {
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
 import { decorateAstWithEffectMarkers } from './effect-check.mjs';
 
-let parseCounter = 0;
-const AST_SCHEMA_VERSION = 1;
 
 // ParseError mirrors peggy's syntactic-failure shape into a qlang
 // surface. `expected` is the Vec of `{ type, description, text }`
@@ -57,7 +49,7 @@ export class ParseError extends Error {
 // plain JS objects with a `type` field; see grammar.peggy for the
 // catalog of node types. Every node carries .location, .text, .id,
 // and (except the root) .parent. The root additionally carries
-// .source, .uri, .parseId, .schemaVersion.
+// .source, .uri and .comments.
 export function parse(source, opts = {}) {
   if (typeof source !== 'string') {
     throw new ParseError(
@@ -90,8 +82,6 @@ export function parse(source, opts = {}) {
   decorateAstWithEffectMarkers(ast);
   ast.source = source;
   ast.uri = opts.uri ?? 'inline';
-  ast.parseId = ++parseCounter;
-  ast.schemaVersion = AST_SCHEMA_VERSION;
   ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return ast;
 }

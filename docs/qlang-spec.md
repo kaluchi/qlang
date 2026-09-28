@@ -230,8 +230,8 @@ restriction; nesting is allowed.
 > :qlang/error
 :qlang/error
 
-> :qlang/error/guards
-:qlang/error/guards
+> :domain/tax/vat
+:domain/tax/vat
 ```
 
 Namespaces are an architectural feature. Every host module
@@ -1202,8 +1202,8 @@ namespace keyword as a captured argument, and the module's
 exports merge into scope:
 
 ```qlang
-use :qlang/error
-|~| pulls the :qlang/error module's exports into scope
+use :domain/tax
+|~| pulls the :domain/tax module's exports into scope
 ```
 
 The namespace machinery has the same shape regardless of where
@@ -1211,7 +1211,7 @@ the module came from — built-in (`:qlang/error`), host-provided
 (`:domain/tax`), or user-installed for the session
 (`:my/helpers`). Module keywords are the namespaced keywords
 introduced in [Atomic values](#atomic-values), and their nested
-forms work too: `use :qlang/error/guards` loads a sub-module.
+forms work too: `use :domain/tax/vat` loads a sub-module.
 
 A namespace is a header-less Map a host bound under the namespace
 name, with no declaration behind it, or the Map under the runtime's
@@ -1225,18 +1225,18 @@ captured-arg shapes:
 
 ```qlang
 |~| Vec — ordered list, later entries override earlier conflicts
-use [:qlang/error :domain/tax]
+use [:domain/tax :domain/rates]
 
 |~| Set — collision-raising, when shadowing is NOT what you want.
 |~| Two namespaces exporting the same name raise an error so the
 |~| host disambiguates explicitly instead of letting one silently
 |~| overwrite the other.
-use #[:qlang/error :domain/tax]
+use #[:domain/tax :domain/rates]
 
 |~| Two captured args — namespace plus selection filter.
 |~| Only the named identifiers are imported; everything else
 |~| stays out of scope.
-use :qlang/error #[:guard :assert]
+use :domain/tax #[:vat :rate]
 ```
 
 The host-side mechanism that installs module Maps into env under
@@ -2808,12 +2808,12 @@ subpath to load them into a session.
 
 The path of a `.qlang` file relative to the library root determines
 its namespace keyword. The `.qlang` extension is stripped and path
-separators become `/`. For a `libDir` of `lib/extras`:
+separators become `/`. For a `libDir` of `lib`:
 
 ```
-lib/extras/error.qlang         → keyword :error
-lib/extras/error/guards.qlang  → keyword :error/guards
-lib/extras/domain/tax.qlang    → keyword :domain/tax
+lib/domain.qlang          → keyword :domain
+lib/domain/tax.qlang      → keyword :domain/tax
+lib/domain/tax/vat.qlang  → keyword :domain/tax/vat
 ```
 
 A module's source is pure qlang — only BindStep declarations.
@@ -2836,7 +2836,7 @@ const session = await createSession();
 installModules(session, catalog);
 
 // User code can import namespaces:
-// use :qlang/error | :guard ...
+// use :domain/tax | :vat ...
 ```
 
 - **`discoverModules(libDir)`** — scans `libDir` recursively for
@@ -2874,8 +2874,8 @@ When modules depend on each other, pass a `dependencies` map:
 ```js
 const catalog = resolveModules('./lib', {
   dependencies: new Map([
-    ['qlang/error/guards', ['qlang/error']],  // guards depends on error
-    ['domain/tax',         ['qlang/error']]
+    ['domain/tax/vat', ['domain/tax']],  // vat depends on tax
+    ['domain/tax',     ['domain']]
   ])
 });
 ```

@@ -86,3 +86,10 @@
 {"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::UnresolvedIdentifierError \"lim\"]","decision":"D44"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | doc !| /addresses","expect":"#[::any/type]","decision":["D62","D119"]}
 {"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}
+{"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected","expect":"[\")\"]","decision":"D125"}
+{"name":"an-unclosed-bracket-names-where-it-opened","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /message | contains \"line 1, column 18\"","expect":"true","decision":"D125"}
+{"name":"an-unclosed-map-names-its-closer","query":"\"{:a 1\" | parse !| /expected","expect":"[\"}\"]","decision":"D125"}
+{"name":"a-flush-combinator-is-no-continuation","query":"\"(1 | add(2\" | parse !| /expected","expect":"[\")\"]","decision":"D125"}
+{"name":"a-doc-after-a-step-is-refused","query":"\"5 | add 1 |~~ why ~~|\" | parse !| /message | contains \"|~ … ~|\"","expect":"true","decision":"D125"}
+{"name":"a-doc-piped-to-is-a-value","query":"5 | |~~ note ~~| | type","expect":"::doc","decision":"D125"}
+{"name": "a-source-no-short-run-of-closers-completes-lists-the-continuations", "query": "\"[[[[[ |~~ a\" | parse !| /expected | has :any-character", "expect": "true", "decision": "D125"}

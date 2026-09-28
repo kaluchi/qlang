@@ -1003,12 +1003,12 @@ parser in the parser's own vocabulary:
 [true]
 
 > [1 2 3] | filter ~(gt 1
-::ParseError!{ … :expected [:whitespace :doc "!|" "|" "*" ")"] … }
+::ParseError!{ … :message "`~(` opened at line 1, column 18 is never closed; `)` completes the source" :expected [")"] … }
 ```
 
 The unclosed quote has one sensible continuation, `)`, and the error
-names every token the parser could have taken there; the markers of
-comments stand under `:whitespace` and a doc under `:doc` [D7].
+names it with the bracket it closes and where that opened, found by
+the parser completing the source [D7], [D125].
 
 The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:
@@ -1770,8 +1770,9 @@ and telling the language with the page of every kind saying why it is
 there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123] and [D124]: a parse error that names no marker of a comment
-among the continuations of a quote left open, the verbs the runs of the
+[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124] and [D125]: a parse error that names no marker of a comment
+among the continuations of a quote left open, and the bracket left
+open with the closer that completes it, the verbs the runs of the
 benchmark missed, the link a page names for a reader to follow, which opens a page, the
 snippet it shows to run and see, the laws named laws wherever they are
 read, each claim of a page captioned above the laws that prove it, and an
@@ -2133,3 +2134,4 @@ maintainer wants to explore it before it is fixed.
 [D122]: decisions/D122.md
 [D123]: decisions/D123.md
 [D124]: decisions/D124.md
+[D125]: decisions/D125.md

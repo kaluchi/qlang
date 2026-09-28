@@ -99,18 +99,17 @@ PipelineHead
   = DocBeforeDeclaration
   / BindStep
   / Step
-  / &{ return docQuoteDepth === 0; } c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
   = LineDocBeforeDeclaration
   / LineBindStep
   / LineStep
-  / &{ return docQuoteDepth === 0; } c:LeadingCombinator &NonSpace { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
-// A doc literal's opening `|` is the pipe to the doc value it is.
 ContinuationUnit
   = _ DocBeforeDeclaration
-  / _ step:DocLit { return { combinator: '|', step }; }
+  / _ DocAfterStep
   / __ step:BindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:StepAfterCombinator { return { combinator: c, step }; }
   / SpacingRefusal
@@ -119,7 +118,7 @@ ContinuationUnit
 // level.
 LineContinuationUnit
   = _ LineDocBeforeDeclaration
-  / _ step:DocLit { return { combinator: '|', step }; }
+  / _ DocAfterStep
   / __ step:LineBindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
   / _h Newline _ !Combinator step:LineStepAfterCombinator { return { combinator: '|', step }; }
@@ -132,8 +131,8 @@ LineContinuationUnit
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
     ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
-    / c:Combinator { refuseCombinatorSpacing(c); }
-    / __ c:Combinator &NonSpace { refuseCombinatorSpacing(c); }
+    / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
+    / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
     )
 
@@ -151,12 +150,22 @@ LineStepAfterCombinator
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [D83].
 DocBeforeDeclaration
-  = &{ return docQuoteDepth === 0; } DocLit (_ DocLit)* _ &BindStep
+  = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &BindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 LineDocBeforeDeclaration
-  = &{ return docQuoteDepth === 0; } DocLit (_ DocLit)* _ &LineBindStep
+  = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &LineBindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
+
+// A doc written after a step with no combinator is refused: a note in a
+// pipeline is a comment, which is whitespace, and a doc as a value is
+// piped to [D125].
+DocAfterStep
+  = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
+    { error('a doc after a step is a value, piped to as `| |~~ … ~~|`; a note inside a pipeline is a comment, `|~ … ~|`'); }
+
+DocOpen
+  = LineDocOpen / BlockDocOpen
 
 PlainComment
   = LinePlainComment

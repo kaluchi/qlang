@@ -44,9 +44,7 @@
 // `$`-prefixed keys outside the known set, or multiple keys) decodes
 // as a Map, since a JSON document is one.
 //
-// A function value has no reading as JSON, and toTaggedJSON throws on
-// one via TaggedJSONUnencodableValueError; a verb rides as its quote
-// under its tag.
+// A verb rides as its quote under its tag.
 
 import {
   keyword,
@@ -54,7 +52,6 @@ import {
   isTagKeyword,
   isVec,
   isQMap,
-  isFunctionValue,
   isQuote,
   isDoc,
   isDocSegment,
@@ -144,7 +141,6 @@ export function toTaggedJSON(value) {
       }
     };
   }
-  if (isFunctionValue(value)) throw new TaggedJSONUnencodableValueError({ typeName: 'function' });
   throw new TaggedJSONUnencodableValueError({ typeName: t });
 }
 

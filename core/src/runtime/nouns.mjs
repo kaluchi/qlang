@@ -21,7 +21,8 @@ import { isContract } from './verb.mjs';
 
 const ROOT_NOUN_NAME = 'qlang';
 
-function carriesBuiltinShape(value) {
+// The declaration a tag binding holds, a descriptor under `::builtin`.
+function isTagDescriptor(value) {
   return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin';
 }
 
@@ -123,10 +124,6 @@ export function residencesOf(env, verbName) {
   return residences;
 }
 
-// A descriptor, the loader's alone among the operands of the core, takes
-// any subject and lives beneath every kind [D79].
-const DESCRIPTOR_KINDS = new Set([ANY_KIND_NAME]);
-
 export function isNoun(env, tagName) {
   return isProviderNoun(env, tagBindingKey(tagName));
 }
@@ -138,7 +135,7 @@ export function isNoun(env, tagName) {
 export function isProviderBinding(env, name) {
   const entry = env.get(name);
   const declared = bindingValueOf(entry);
-  if (!carriesBuiltinShape(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
+  if (!isTagDescriptor(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
   for (const [, exportsMap] of providerExports(env)) {
     if (exportsMap.get(name) === entry) return true;
   }
@@ -178,11 +175,6 @@ export function scopeBindingsOf(env) {
 // body, which a refusal of the name hands on [D62].
 export function addressesOf(env, verbName) {
   const addresses = [];
-  for (const [, exportsMap] of providerExports(env)) {
-    const descriptor = bindingValueOf(exportsMap.get(verbName));
-    if (!carriesBuiltinShape(descriptor) || isTagBindingName(verbName)) continue;
-    for (const kindName of DESCRIPTOR_KINDS) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
-  }
   for (const [kindName] of residencesOf(env, verbName)) addresses.push(makeTagKeyword(`${kindName}/${verbName}`));
   const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
   if (onAnyValue !== null && !isContract(bindingValueOf(onAnyValue))) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
@@ -223,14 +215,6 @@ function nounsUnder(env, tagName) {
 export function verbsOfKind(env, tagName) {
   const kindName = canonicalTagName(tagName);
   const addresses = [];
-  for (const [, exportsMap] of providerExports(env)) {
-    for (const [name, entry] of exportsMap) {
-      const descriptor = bindingValueOf(entry);
-      if (!isTagBindingName(name) && carriesBuiltinShape(descriptor) && DESCRIPTOR_KINDS.has(kindName)) {
-        addresses.push(makeTagKeyword(`${kindName}/${name}`));
-      }
-    }
-  }
   for (const [name] of residencesOnKind(env, kindName)) addresses.push(makeTagKeyword(`${kindName}/${name}`));
   return makeSet(addresses);
 }
@@ -238,13 +222,9 @@ export function verbsOfKind(env, tagName) {
 // The refusals a query provokes on a noun: its own, then those of each
 // verb that lives on it, in the order of the verbs [D64], a verb's read by
 // `refusalsOfVerb`, each listed once, since the refusal of a kind guards
-// the places of several verbs; a descriptor a module assembled from
-// data, its `:impl` a handle of the core, names none.
+// the places of several verbs.
 export function refusalsOfNoun(env, tagName, ownRefusals, refusalsOfVerb) {
-  const verbRefusals = [...verbsOfKind(env, tagName)].flatMap(address => {
-    const declared = addressedVerb(env, address.name).descriptor;
-    return isVerb(declared) ? refusalsOfVerb(declared) : declared.get('throws') ?? [];
-  });
+  const verbRefusals = [...verbsOfKind(env, tagName)].flatMap(address => refusalsOfVerb(addressedVerb(env, address.name).descriptor));
   const refusalsByName = new Map([...ownRefusals, ...verbRefusals].map(refusal => [refusal.name, refusal]));
   return Object.freeze([...refusalsByName.values()]);
 }
@@ -257,9 +237,8 @@ export function namesUnder(env, tagName) {
   return makeSet([...nounsUnder(env, tagName), ...verbsOfKind(env, tagName)]);
 }
 
-// The verb a tag name addresses, what its provider declared, a verb or
-// a descriptor, and the record its declaration wrote, or null when the
-// address names none. A tag name comes written short, so the path of an
+// The verb a tag name addresses, what its provider declared, and the
+// record its declaration wrote, or null when the address names none. A tag name comes written short, so the path of an
 // address under the core starts at its kind.
 export function addressedVerb(env, tagName) {
   const cut = tagName.lastIndexOf('/');
@@ -267,13 +246,5 @@ export function addressedVerb(env, tagName) {
   const verbName = tagName.slice(cut + 1);
   const kindName = tagName.slice(0, cut);
   const residence = residenceOf(env, kindName, verbName);
-  if (residence !== null) return { verbName, descriptor: bindingValueOf(residence), record: residence };
-  for (const [, exportsMap] of providerExports(env)) {
-    const record = exportsMap.get(verbName);
-    const descriptor = bindingValueOf(record);
-    if (carriesBuiltinShape(descriptor) && DESCRIPTOR_KINDS.has(kindName)) {
-      return { verbName, descriptor, record };
-    }
-  }
-  return null;
+  return residence === null ? null : { verbName, descriptor: bindingValueOf(residence), record: residence };
 }

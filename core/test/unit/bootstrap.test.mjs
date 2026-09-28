@@ -45,10 +45,10 @@ describe('BootstrapRootMissingError', () => {
 });
 
 describe('BootstrapCatalogNotLoadedError', () => {
-  // A module of the catalog that fails to parse shows only in the
-  // answer of the root's `use […]`, which the bootstrap reads.
+  // A module of the catalog that fails to parse refuses the load of the
+  // modules the root lists.
   const brokenModuleLocator = async (namespaceName) => {
-    if (namespaceName === 'qlang/core') return { source: 'use [:qlang/broken]' };
+    if (namespaceName === 'qlang/core') return { source: '[:qlang/broken]' };
     if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
     return null;
   };
@@ -63,13 +63,24 @@ describe('BootstrapCatalogNotLoadedError', () => {
     expect(thrown.message).toContain('the modules of the catalog');
   });
 
-  it('names the tag the root answered with, whichever it is', async () => {
+  it('names the refusal the load met, whichever it is', async () => {
     const missingModuleLocator = async (namespaceName) =>
-      namespaceName === 'qlang/core' ? { source: 'use [:qlang/absent]' } : null;
+      namespaceName === 'qlang/core' ? { source: '[:qlang/absent]' } : null;
     let thrown = null;
     try { await buildLangRuntime(missingModuleLocator); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
     expect(thrown.context.tagName).toBe('::UseNamespaceNotFoundError');
+  });
+});
+
+describe('a module a query loads that fails to parse', () => {
+  it('answers the parse error as the value of the step that loaded it', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({
+      locator: async namespaceName => (namespaceName === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
+    });
+    const cellEntry = await sessionInstance.evalCell('use :tests/broken !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('ParseError'));
   });
 });
 

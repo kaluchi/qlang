@@ -12,11 +12,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createPrimitiveRegistry,
-  PRIMITIVE_REGISTRY
+  PRIMITIVE_REGISTRY,
+  writesScope
 } from '../../src/primitives.mjs';
 
 import { QlangError, QlangInvariantError } from '../../src/errors.mjs';
-import { isFunctionValue } from '../../src/types.mjs';
 
 describe('createPrimitiveRegistry — lifecycle', () => {
   let registry;
@@ -302,13 +302,10 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
     expect(PRIMITIVE_REGISTRY.has('qlang/prim/raise')).toBe(true);
   });
 
-  it('resolve returns a function value with fn / arity / meta shape', async () => {
+  it('resolve returns the loader as a primitive that writes the scope [D113]', async () => {
     await import('../../src/runtime/index.mjs');
     const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/use');
-    expect(impl).toBeDefined();
-    expect(isFunctionValue(impl)).toBe(true);
-    expect(impl.name).toBe('use');
-    expect(impl.arity).toBe(2);
-    expect(typeof impl.fn).toBe('function');
+    expect(typeof impl).toBe('function');
+    expect(writesScope(impl)).toBe(true);
   });
 });

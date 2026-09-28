@@ -47,6 +47,7 @@
       naming its neighbours and the kinds that are it:
       ::link~(::qlang | doc :values) values, kinds and tags;
       ::link~(::qlang | doc :pipeline) the steps of a query;
+      ::link~(::qlang | doc :names) names and their records;
       ::link~(::qlang | doc :verbs) the verbs that live on kinds;
       ::link~(::qlang | doc :errors) the failure as a value;
       ::link~(::qlang | doc :code) code as a value;

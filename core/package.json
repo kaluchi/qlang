@@ -67,7 +67,6 @@
     "#qlang/qlang": "./lib/qlang/qlang.qlang",
     "#qlang/tagged": "./lib/qlang/tagged.qlang",
     "#qlang/any": "./lib/qlang/any.qlang",
-    "#qlang/operand/reflective": "./lib/qlang/operand/reflective.qlang",
     "#qlang/load-source": {
       "node": "./host/load-source-node.mjs",
       "default": "./src/load-source-web.mjs"

@@ -17,11 +17,10 @@
 // primitive its `::builtin{:impl}` step names over the checked values. A
 // verb without a body is a contract, which answers no call.
 
-import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags } from '../primitives.mjs';
-import { codeOf, evalAst } from '../eval.mjs';
-import { mintUnderTag } from './dispatch.mjs';
+import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags, writesScope } from '../primitives.mjs';
+import { codeOf, evalAst, mintTaggedInstance } from '../eval.mjs';
 import { addressesOf, residencesOf } from './nouns.mjs';
-import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
+import { envGet, envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, slotDocsOf, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
 import { canonicalTagName, tagBindingKey } from '../env-keys.mjs';
@@ -39,6 +38,23 @@ import {
   verbEnvRef,
   BIND_TAG, BUILTIN_TAG, SPEC_TAG
 } from '../types.mjs';
+
+// Whether a tag's binding carries a constructor, the `:impl` that
+// re-establishes the tag's invariant on a payload.
+function tagCarriesConstructor(state, tagName) {
+  const resolved = bindingValueOf(envGet(state.env, tagBindingKey(tagName)));
+  return isQMap(resolved) && resolved.has('impl');
+}
+
+// The value under a tag: through the tag's constructor when it carries
+// one, as a bare overlay when the tag names an identity alone; the verbs
+// that keep a kind and `tag` share it. A tag laid over an error answers
+// the error, since no tag stands over one [D86].
+export async function mintUnderTag(state, tag, value) {
+  if (isErrorValue(value)) return value;
+  if (!tagCarriesConstructor(state, tag.name)) return makeTaggedInstance(tag, value);
+  return await mintTaggedInstance(tag.name, value, state);
+}
 
 const VerbPayloadNotQuoteError = declareSubjectError('VerbPayloadNotQuoteError', '::verb', 'quote');
 const VerbSlotNameNotKeywordError = declareShapeError('VerbSlotNameNotKeywordError',
@@ -441,11 +457,25 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   if (isErrorValue(served)) return served;
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
-  const answer = callsPrimitive(signature, verb)
-    ? await runPrimitive(primitiveOfVerb(signature, verb), served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
+  const primitive = callsPrimitive(signature, verb) ? primitiveOfVerb(signature, verb) : null;
+  if (primitive !== null && writesScope(primitive)) {
+    return scopeWritten(await primitive(served, ...primitiveArgumentsOf(signature, slotValues, state), state));
+  }
+  const answer = primitive !== null
+    ? await runPrimitive(primitive, served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
     : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
+
+// The scope a verb that writes it leaves, which the step that called the
+// verb takes, the value in its pipe going on unchanged [D113].
+const WRITTEN_SCOPES = new WeakSet();
+function scopeWritten(env) {
+  const written = Object.freeze({ env });
+  WRITTEN_SCOPES.add(written);
+  return written;
+}
+const stateAfter = (state, answer) => (WRITTEN_SCOPES.has(answer) ? withEnv(state, answer.env) : withPipeValue(state, answer));
 
 // A primitive runs over the values its head checked, a reader of the
 // scope over the state of the call after them [D79], and a reader of the
@@ -478,14 +508,14 @@ function refuseLaunderedVerb(verb, lookupName) {
 // A name bound to a verb runs it when mentioned [D44].
 export async function applyVerb(verb, modifierLambdas, state, lookupName) {
   refuseLaunderedVerb(verb, lookupName);
-  return withPipeValue(state, await callVerb(verb, modifierLambdas, state, keyword(lookupName)));
+  return stateAfter(state, await callVerb(verb, modifierLambdas, state, keyword(lookupName)));
 }
 
 // A name whose verb was found from a subject the call already read runs
 // it against that subject.
 export async function applyVerbOn(verb, subject, slotLambdas, state, lookupName) {
   refuseLaunderedVerb(verb, lookupName);
-  return withPipeValue(state, await callVerbOn(verb, subject, slotLambdas, state, keyword(lookupName)));
+  return stateAfter(state, await callVerbOn(verb, subject, slotLambdas, state, keyword(lookupName)));
 }
 
 // ── the signature as a value ───────────────────────────────────

@@ -79,8 +79,7 @@ export class ArityError extends QlangError {
 // incomplete or malformed metadata. These fire when langRuntime is
 // assembled and signal that a runtime-module author forgot to
 // provide a required meta field.
-// Per-site subclasses live next to the dispatch wrapper that enforces
-// the invariant (see runtime/dispatch.mjs).
+// Per-site subclasses live next to the site that enforces the invariant.
 export class QlangInvariantError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'invariantError', context);

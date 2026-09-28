@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeFn } from '../../src/rule10.mjs';
 import { EVAL_DEPTH_LIMIT } from '../../src/state.mjs';
 import { QlangError, EvaluationDepthExceededError } from '../../src/errors.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
@@ -63,12 +62,16 @@ describe('depth budget — host seams', () => {
     // whose `runLaws` step returned — the root and every frame
     // below it up to the budget; the refused frame's `runLaws`
     // step lifts the error and the tally deflects.
-    const sessionInstance = await createSession();
     let frameTally = 0;
-    sessionInstance.bind('tallyFrame', makeFn('tallyFrame', 1, async state => {
-      frameTally++;
-      return state;
-    }, { captured: [0, 0] }));
+    const sessionInstance = await createSession({
+      locator: async namespaceName => (namespaceName === 'tests/tally'
+        ? {
+            source: ':tallyFrame ::verb~(::builtin{:impl :tests/tally/tallyFrame})',
+            impls: { tallyFrame: subject => { frameTally++; return subject; } }
+          }
+        : null)
+    });
+    await sessionInstance.evalCell('use :tests/tally');
     const cellEntry = await sessionInstance.evalCell(
       ':x |~~ ~(:x | runLaws | tallyFrame | count | eq 1) ~~| 1 | :x | runLaws | tallyFrame'
     );

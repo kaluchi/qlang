@@ -1,13 +1,7 @@
 // Per-site arity and subject-type checks across the runtime
-// catalog plus the dispatch-wrapper registration invariants every
-// `runtime/*.mjs` operand flows through. Each `describe` block
-// names one runtime module and the specific arity / subject /
-// shape branch it pins:
+// catalog. Each `describe` block names one runtime module and the
+// specific arity / subject / shape branch it pins:
 //
-//   * dispatch.mjs — `stateOpVariadic`
-//     refusing to mint a wrapper without a captured-range argument
-//     (the JS-side invariant fires at module-load time, not at
-//     dispatch).
 //   * arith.mjs — right-operand type checks for `sub` / `mul` /
 //     `div` (left-operand path is covered by the per-site error
 //     factory tests; this file pins the right-operand sibling).
@@ -28,8 +22,6 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
-import { stateOpVariadic } from '../../src/runtime/dispatch.mjs';
-import { QlangInvariantError } from '../../src/errors.mjs';
 
 describe('arith right-operand type checks', () => {
   it('sub with non-numeric right operand throws', async () => {
@@ -48,16 +40,6 @@ describe('arith right-operand type checks', () => {
 describe('vec.flat non-Vec elements', async () => {
   it('flat preserves non-Vec elements alongside Vec elements', async () => {
     expect(await evalQuery('[1 [2 3] 4] | flat')).toEqual([1, 2, 3, 4]);
-  });
-});
-
-describe('dispatch variadic registration invariants', async () => {
-  it('stateOpVariadic without captured throws QlangInvariantError', async () => {
-    expect(() => stateOpVariadic('badOp', (s) => s)).toThrow(QlangInvariantError);
-  });
-
-  it('stateOpVariadic with null captured throws QlangInvariantError', async () => {
-    expect(() => stateOpVariadic('badOp', (s) => s, null)).toThrow(QlangInvariantError);
   });
 });
 

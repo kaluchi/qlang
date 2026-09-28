@@ -43,7 +43,7 @@
       after it, in the scope where it stands. Rests on values; the verbs
       are its commands, and code holds its steps as a value.
       ::link~(::each | doc) ::link~(::proj | doc)
-      ::link~(::group | doc) ::link~(::qlang | doc :verbs)
+      ::link~(::group | doc) ::link~(::qlang | doc :names)
 
       `*` runs its step on each element:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
@@ -51,6 +51,31 @@
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
   ~~|
   #[::each ::proj ::group ::bind ::call ::construct]
+
+:names
+  |~~ Names. A name holds a value for the steps after it, the one way a
+      query remembers: `:n v` declares it in the scope where it stands,
+      and a verb, a kind and a module's declarations are names alike. A
+      name is a record, `::binding`, with its page, its source, its value
+      and the module it came from, so where a thing was declared is read
+      as data. The scope of a step is what the steps before it wrote; a
+      step inside `(…)` or `*` writes a scope that closes with it. Rests
+      on values and the pipeline; the verbs are names that run.
+      ::link~(::binding | doc) ::link~(::bind | doc)
+      ::link~(::any/use | doc) ::link~(::qlang | doc :verbs)
+
+      `env` lists the names a query and a session wrote:
+      ~(:limit 10 | env | keys | eq #[:limit])
+      A name reads its record by `binding`:
+      ~(:x 1 | :x | binding | /value | eq 1)
+      ~(::vec/filter | binding | /module | eq :qlang/vec)
+      A name declared inside a group closes with it:
+      ~(1 | (:inner 2 | inner) | env | has :inner | not)
+      `use` brings the declarations of a map or a module into the names
+      of a reader:
+      ~({:x 1} | use | x | add 2 | eq 3)
+  ~~|
+  #[::binding]
 
 :verbs
   |~~ Verbs. A verb lives on a kind, the one whose values it serves, and

@@ -8,7 +8,6 @@ import {
 } from '../../src/session.mjs';
 import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
-import { makeFn } from '../../src/rule10.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -238,15 +237,6 @@ describe('serializeSession / deserializeSession round-trip', () => {
     expect((await restored.evalCell('answer')).result).toBe(42);
   });
 
-  it('skips user-installed function values during serialization', async () => {
-    const sessionInstance = await createSession();
-    // Inject a function value directly. serializeSession should
-    // refuse to encode it but should not throw — it just omits.
-    sessionInstance.bind('userFn', makeFn('userFn', 1, async state => state, { captured: [0, 0] }));
-    const payload = await serializeSession(sessionInstance);
-    expect(payload.bindings.find(b => b.name === 'userFn')).toBeUndefined();
-  });
-
   it('runs a host verb through the implementation its module was handed with', async () => {
     const sessionInstance = await createSession({
       locator: async nsName => (nsName === 'tests/host'
@@ -381,12 +371,16 @@ describe('session cells that carry more than a parse failure', () => {
     // QlangInvariantError, which travels as a host-level throw. The
     // cell records it on the error channel; only a ParseError also
     // lands a structured value on the result channel.
-    const sessionInstance = await createSession();
-    sessionInstance.bind('collapse', makeFn('collapse', 1, async () => {
-      throw new QlangInvariantError('catalog bootstrap left no root module');
-    }, { captured: [0, 0] }));
+    const sessionInstance = await createSession({
+      locator: async namespaceName => (namespaceName === 'tests/collapse'
+        ? {
+            source: ':collapse ::verb~(::builtin{:impl :tests/collapse/collapse})',
+            impls: { collapse: () => { throw new QlangInvariantError('catalog bootstrap left no root module'); } }
+          }
+        : null)
+    });
 
-    const cellEntry = await sessionInstance.evalCell('42 | collapse');
+    const cellEntry = await sessionInstance.evalCell('use :tests/collapse | 42 | collapse');
     expect(cellEntry.result).toBeNull();
     expect(cellEntry.error).toBeInstanceOf(QlangInvariantError);
     expect(cellEntry.error.name).toBe('QlangInvariantError');

@@ -28,7 +28,6 @@ import {
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
-import { makeFn } from '../../src/rule10.mjs';
 import { createSession } from '../../src/session.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
@@ -116,10 +115,6 @@ describe('describeType for a verb and a binding record', async () => {
 });
 
 describe('typeKeyword covers all value kinds', () => {
-  it('typeKeyword returns :function for a function value', () => {
-    const fnValue = makeFn('probe', 1, () => {});
-    expect(typeKeyword(fnValue).name).toBe('function');
-  });
 
   it('typeKeyword returns :unknown for an unrecognized object', () => {
     expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');

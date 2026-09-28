@@ -46,12 +46,11 @@ describe('a map whose data key "type" collides with a value-class name', () => {
   });
 
   it('value-class predicates reject a map that forges their .type tag', async () => {
-    const { isKeyword, isQuote, isDoc, isErrorValue, isFunctionValue, isTagKeyword } = await import('../../src/types.mjs');
+    const { isKeyword, isQuote, isDoc, isErrorValue, isTagKeyword } = await import('../../src/types.mjs');
     expect(isKeyword(fromPlain({ type: 'keyword', name: 'x' }))).toBe(false);
     expect(isQuote(fromPlain({ type: 'quote', source: 'x' }))).toBe(false);
     expect(isDoc(fromPlain({ type: 'doc', content: 'x' }))).toBe(false);
     expect(isErrorValue(fromPlain({ type: 'error' }))).toBe(false);
-    expect(isFunctionValue(fromPlain({ type: 'function' }))).toBe(false);
     expect(isTagKeyword(fromPlain({ type: 'tagKeyword', name: 'X' }))).toBe(false);
   });
 

@@ -6,7 +6,7 @@
 {"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]","decision":["D34","D72"]}
 {"name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2","decision":"D72"}
 {"name":"a-builtin-step-in-a-declared-verb-is-a-step","query":":c ::verb~(::builtin{:impl :qlang/prim/count}) | 42 | c | type","expect":"::builtin","decision":"D73"}
-{"name":"a-descriptor-naming-the-primitive-of-a-verb-is-refused","query":"::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c !| [type /impl]","expect":"[::BuiltinImplOfVerbError :qlang/prim/count]","decision":"D73"}
+{"name": "a-descriptor-naming-the-primitive-of-a-verb-runs-nothing", "query": "::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c | /impl", "expect": ":qlang/prim/count", "decision": ["D73", "D113"]}
 {"name":"a-slot-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(at k)","expect":"[{:b 1} {:b 2}]","decision":["D43","D73"]}
 {"name":"an-address-reaches-an-operand-not-moved-onto-its-noun","query":"{:x 1} | any/use | x","expect":"1","decision":"D62"}
 {"name":"a-tag-over-a-name-passes-to-manifest","query":"::Box(::vec) | manifest | type","expect":"::set","decision":["D34","D79"]}

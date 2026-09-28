@@ -55,16 +55,6 @@ describe('the verbs that live on a kind', () => {
     expect(await evalQuery('::tagged | spec | /verbs | has ::tagged/within')).toBe(true);
   });
 
-  it('a verb that declares no subject takes any', async () => {
-    const session = await createSession({
-      locator: async nsName => (nsName === 'tests/bare'
-        ? { source: ':shrug ::builtin{:impl :qlang/prim/use}' }
-        : null)
-    });
-    const cellEntry = await session.evalCell('use :tests/bare | ::qlang/any | spec | /verbs | has ::any/shrug');
-    expect(cellEntry.result).toBe(true);
-  });
-
   it('a host verb serves the kind its head names beneath a tag', async () => {
     const session = await createSession({
       locator: async nsName => (nsName === 'tests/typed'

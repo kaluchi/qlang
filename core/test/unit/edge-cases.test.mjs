@@ -4,7 +4,7 @@
 //
 // What lives here vs in per-source test files: edge-cases stays a
 // staging ground for tests whose source module has no dedicated
-// `<module>.test.mjs` (`types.mjs`, `rule10.mjs`,
+// `<module>.test.mjs` (`types.mjs`,
 // `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
 // `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
 // `runtime/string.mjs`, `runtime/control.mjs`, `runtime/manifest-op.mjs`,
@@ -27,7 +27,6 @@ import {
 import {
   keyword,
   describeType,
-  isFunctionValue,
   isKeyword,
   isQMap,
   isQSet,
@@ -41,12 +40,6 @@ import {
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
 import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
-import { rootState } from '../../src/state.mjs';
-import {
-  applyRule10,
-  makeFn
-} from '../../src/rule10.mjs';
-import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('types.mjs', () => {
   it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
@@ -68,13 +61,10 @@ describe('types.mjs', () => {
     expect(describeType([])).toBe('Vec');
     expect(describeType(new Map())).toBe('Map');
     expect(describeType(makeSet([]))).toBe('Set');
-    expect(describeType(makeFn('probe', 1, () => {}))).toBe('Function');
     expect(describeType(Symbol('weird'))).toBe('Unknown');
   });
 
   it('value-class predicates', () => {
-    expect(isFunctionValue(makeFn('probe', 1, () => {}))).toBe(true);
-    expect(isFunctionValue(() => {})).toBe(false);
     expect(isKeyword(keyword('x'))).toBe(true);
     expect(isQMap(new Map())).toBe(true);
     expect(isQSet(makeSet([]))).toBe(true);
@@ -90,30 +80,6 @@ describe('types.mjs', () => {
     expect(printQuoteSource(doubleVerb.payload)).toBe('mul 2');
     expect(astOfQuote(doubleVerb.payload).type).toBe('OperandCall');
     expect(Object.keys(doubleVerb)).toEqual(['tag', 'payload']);
-  });
-});
-
-describe('rule10.mjs', () => {
-  it('rejects too many captured args', async () => {
-    const fn = makeFn('mul', 2, (state) => state);
-    const lambdas = [() => 1, () => 2, () => 3];
-    const runtimeEnv = await langRuntime();
-    await expect(applyRule10(fn, lambdas, rootState(null, runtimeEnv)))
-      .rejects.toThrow(ArityError);
-  });
-
-  it('makeFn stores metadata on a frozen object', () => {
-    const fn = makeFn('identity', 1, (state) => state);
-    expect(isFunctionValue(fn)).toBe(true);
-    expect(fn.name).toBe('identity');
-    expect(fn.arity).toBe(1);
-    expect(typeof fn.fn).toBe('function');
-    expect(Object.isFrozen(fn)).toBe(true);
-  });
-
-  it('makeFn carries no pseudo flag', () => {
-    const fn = makeFn('identity', 1, (state) => state);
-    expect('pseudo' in fn).toBe(false);
   });
 });
 

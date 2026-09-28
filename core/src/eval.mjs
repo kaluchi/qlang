@@ -6,13 +6,11 @@ import {
   rootState, withPipeValue, withEnv, nestState, envSet, envGet, envHas
 } from './state.mjs';
 import { fork, forkEach } from './fork.mjs';
-import { applyRule10 } from './rule10.mjs';
 import {
   QlangError,
   QlangInvariantError,
   UnresolvedIdentifierError,
   UnresolvedAddressError,
-  EffectLaunderingAtCallError,
   EffectLaunderingAtBindStepParseError,
   BindNameDeclaredTwiceError,
   declareInvariantError,
@@ -22,14 +20,13 @@ import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isKeyword, isFunctionValue, isErrorValue,
+  isVec, isQMap, isKeyword, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet, isQuote,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
   BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader
 } from './types.mjs';
-import { resolveBuiltinImpl } from './descriptor-ops.mjs';
 import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
 import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
@@ -531,10 +528,6 @@ function projectSegment(subject, projKey) {
 
 // ─── Identifier lookup ─────────────────────────────────────────
 
-function isBuiltinDescriptor(descriptor) {
-  return descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin';
-}
-
 async function evalOperandCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
   return await callByName(node.name, node.args.map(argNode => makeLambda(argNode, state)), state);
@@ -573,25 +566,10 @@ async function callResidence(verb, lookupName, lambdas, state) {
 }
 
 // A name reads the value its record holds [D63], so `:x / | x` sees the
-// raw data: a verb runs [D67], a `::builtin` descriptor, the loader's,
-// applies its primitive, a function value, the seed of `use` among
-// them, applies through Rule 10, and any other value is itself.
+// raw data: a verb runs [D67], and any other value is itself.
 async function applyBinding(entry, lookupName, lambdas, state) {
   const resolved = bindingValueOf(entry);
   if (isVerb(resolved)) return await applyVerb(resolved, lambdas, state, lookupName);
-  if (isQMap(resolved) && isBuiltinDescriptor(resolved)) return await applyBuiltinDescriptor(resolved, lambdas, state);
-
-  if (isFunctionValue(resolved)) {
-    // An effectful function value answers only under a name that carries
-    // the effect marker [D69].
-    if (resolved.effectful && !classifyEffect(lookupName)) {
-      throw new EffectLaunderingAtCallError({
-        bindingName: lookupName,
-        effectfulName: resolved.name
-      });
-    }
-    return await applyRule10(resolved, lambdas, state);
-  }
 
   // A value takes no modifiers; its refusal names where a verb of the
   // name lives, one a declaration shadows among them [D62].
@@ -615,15 +593,7 @@ async function callByAddress(node, state) {
   const address = addressedVerb(state.env, addressName);
   if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(addressName) });
   const lambdas = node.args.map(argNode => makeLambda(argNode, state));
-  if (isVerb(address.descriptor)) return await applyVerb(address.descriptor, lambdas, state, address.verbName);
-  return await applyBuiltinDescriptor(address.descriptor, lambdas, state);
-}
-
-// A descriptor, the loader's or one a query assembled, applies its
-// primitive under Rule 10, which refuses more modifiers than it takes
-// [D79].
-async function applyBuiltinDescriptor(descriptor, builtinLambdas, state) {
-  return await applyRule10(resolveBuiltinImpl(descriptor), builtinLambdas, state);
+  return await applyVerb(address.descriptor, lambdas, state, address.verbName);
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run

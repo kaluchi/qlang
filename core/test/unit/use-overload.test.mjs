@@ -120,10 +120,10 @@ describe('use(:name) walks past identifier-plane bindings under the bare name', 
 
 // ── use(non-keyword) ────────────────────────────────────────────
 
-describe('use(non-keyword) → typeError', () => {
+describe('use(non-keyword) → the slot refuses it', () => {
   it('produces UseNamespaceNotKeywordError error for numeric argument', async () => {
     const evalResult = await evalQuery('use 42 !| type');
-    expect(evalResult).toEqual(makeTagKeyword('UseNamespaceNotKeywordError'));
+    expect(evalResult).toEqual(makeTagKeyword('VerbSlotNotOfKindsError'));
   });
 });
 
@@ -150,7 +150,7 @@ describe('use Set without collision succeeds', () => {
 
 describe('use arity-2 with non-keyword namespace', () => {
   it('produces UseNamespaceNotKeywordError', async () => {
-    const evalResult = await evalQuery('use 42 #[:x] !| type');
+    const evalResult = await evalQuery('use [:a] #[:x] !| type');
     expect(evalResult.name).toBe('UseNamespaceNotKeywordError');
   });
 });
@@ -208,7 +208,7 @@ describe('per-site error triple-assertions', () => {
   });
 
   it('UseNamespaceNotKeywordError: name, instanceof, context', async () => {
-    const evalResult = await evalQuery('use 42 #[:x]');
+    const evalResult = await evalQuery('use [:a] #[:x]');
     const originalErr = evalResult.originalError;
     expect(originalErr.name).toBe('UseNamespaceNotKeywordError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);

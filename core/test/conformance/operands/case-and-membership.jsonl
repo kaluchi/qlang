@@ -1,6 +1,6 @@
-{"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\"","decision":"D107","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\"","decision":"D107","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] * lower | distinct | count","expect":"2","decision":"D107","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"lower-refuses-a-subject-that-is-no-string","query":"42 | lower !| type","expect":"::LowerSubjectNotStringError","decision":"D107","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"a-vector-has-an-element-equal-to-one","query":"[\"ops\" \"db\"] | has \"ops\"","expect":"true","decision":"D107","target":true,"now":"::VerbWithoutBodyError"}
-{"name":"a-vector-lacks-an-element-it-does-not-hold","query":"[1 [2]] | has [3]","expect":"false","decision":"D107","target":true,"now":"::VerbWithoutBodyError"}
+{"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\"","decision":"D107"}
+{"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\"","decision":"D107"}
+{"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] * lower | distinct | count","expect":"2","decision":"D107"}
+{"name":"lower-refuses-a-subject-that-is-no-string","query":"42 | lower !| type","expect":"::LowerSubjectNotStringError","decision":"D107"}
+{"name":"a-vector-has-an-element-equal-to-one","query":"[\"ops\" \"db\"] | has \"ops\"","expect":"true","decision":"D107"}
+{"name":"a-vector-lacks-an-element-it-does-not-hold","query":"[1 [2]] | has [3]","expect":"false","decision":"D107"}

@@ -82,6 +82,40 @@
        )
   ~~|
 
+:lower
+  |~~ The string with every letter in lower case, so two strings that
+      differ in case alone compare equal once lowered [D107].
+
+      ~("Ann@Example.COM" | lower | eq "ann@example.com")
+      ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/lower})
+
+::LowerSubjectNotStringError
+  |~~ Subject of `lower` must be String.
+      ~(
+        42 | lower
+        !| [type /actualType]
+        |  eq [::LowerSubjectNotStringError ::number]
+       )
+  ~~|
+
+:upper
+  |~~ The string with every letter in upper case [D107].
+
+      ~("ok, go" | upper | eq "OK, GO")
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/upper})
+
+::UpperSubjectNotStringError
+  |~~ Subject of `upper` must be String.
+      ~(
+        42 | upper
+        !| [type /actualType]
+        |  eq [::UpperSubjectNotStringError ::number]
+       )
+  ~~|
+
 :contains
   |~~ Whether the string holds the needle as a substring; the empty
       needle is always held. Case-sensitive.

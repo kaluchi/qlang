@@ -1781,9 +1781,10 @@ the language's with its noun as the first value [D37]; and the
 benchmark runs [D26], each run recorded with the frictions it met and
 the first screen written against them [D104], [D105], [D106], [D107].
 
-Its answer in the conformance suite is the target of [D7], a parse
-error that names no marker of a comment among the continuations of a
-quote left open; the others stand beside the suite: one start command
+Its answers in the conformance suite are the targets of [D7] and
+[D107]: a parse error that names no marker of a comment among the
+continuations of a quote left open, and the verbs the runs of the
+benchmark missed; the others stand beside the suite: one start command
 returns the root doc within four kilobytes; a host answers within a
 budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the

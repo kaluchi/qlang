@@ -563,6 +563,21 @@ at the subject, or, for `prepend` and `append`, by the contract's
 - **Errors**: subject not a string → `SplitSubjectNotStringError`; separator not a
   string → `SplitSeparatorNotStringError`.
 
+### `lower`
+
+- **Arity** 1. **Subject** `string`.
+- Returns the string with every letter in lower case, so two strings
+  that differ in case alone compare equal once lowered [D107].
+- **Examples**: `"Ann@Example.COM" | lower` → `"ann@example.com"`.
+- **Errors**: subject not a String → `LowerSubjectNotStringError`.
+
+### `upper`
+
+- **Arity** 1. **Subject** `string`.
+- Returns the string with every letter in upper case [D107].
+- **Examples**: `"ok, go" | upper` → `"OK, GO"`.
+- **Errors**: subject not a String → `UpperSubjectNotStringError`.
+
 ### `lines`
 
 - **Arity** 1. **Subject** `string`.

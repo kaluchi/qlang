@@ -16,10 +16,8 @@
   ::builtin{:impl :qlang/type/builtin}
 
 ::BuiltinPayloadNotMapError
-  |~~ `::builtin<payload>` payload must be a Map descriptor.
-      User-site invocations on a String / Vec / Scalar payload
-      fire this tag rather than silently destructure-iterating
-      the payload into a garbage descriptor.
+  |~~ `::builtin` holds the fields of a declaration as a map,
+      `::builtin{:impl …}`; a payload of another kind is refused.
 
       ~(
         ::builtin"hello"
@@ -34,36 +32,36 @@
   ~~|
 
 ::UnknownAstNodeTypeError
-  |~~ Evaluator dispatch — encountered an AST node whose `.type`
-      is not in `AST_NODE_EVALUATORS`. Runtime invariant
-      violation.
+  |~~ The evaluator met a node of the parser's tree it has no rule for:
+      a defect of the runtime, and no failure of the query.
   ~~|
 
 ::UnknownCombinatorKindError
-  |~~ Combinator dispatch — encountered a combinator kind not
-      in `COMBINATOR_EVALUATORS`. Runtime invariant violation.
+  |~~ The evaluator met a combinator it has no rule for: a defect of the
+      runtime, and no failure of the query.
   ~~|
 
 ::PrimitiveKeyAlreadyBoundError
-  |~~ Primitive registry — two runtime modules tried to bind
-      the same primitive name.
+  |~~ Two modules of the runtime bound one primitive name, a defect of
+      the runtime found as it loads.
   ~~|
 
 ::ThrowSiteSpecAlreadyRecordedError
-  |~~ Throw-site spec registry — two per-site error classes were
-      declared under one name. The name is the identity this
-      catalog's `::Tag` binding and the stamped `spec` both read,
-      so the second declaration would speak for both sites.
+  |~~ Two sites of the runtime declared one refusal under one name, a
+      defect of the runtime found as it loads: the name is the identity
+      the page and the `spec` of the refusal read, so one site would
+      speak for both.
   ~~|
 
 ::PrimitiveKeyNotStringError
-  |~~ Primitive registry — bind() received a non-string
-      handle.
+  |~~ A module of the runtime bound a primitive under a name that is no
+      string, a defect of the runtime found as it loads.
   ~~|
 
 ::PrimitiveKeyUnboundError
-  |~~ Primitive registry — `:impl` handle on a descriptor
-      Map points to a primitive that was never bound.
+  |~~ The `:impl` of a declaration names a primitive no module bound: a
+      verb or a kind declared by a module whose implementation was not
+      handed with it.
   ~~|
 
 ::PrimitiveRegistrySealedError
@@ -74,12 +72,11 @@
 ::NumberNotFiniteLeakedToPrintError
   |~~ A qlang Number is a finite double. Source cannot mint an
       infinity or a NaN — the parser refuses the literal and every
-      arithmetic site lifts a numericDomain error — so this tag
-      reports a value a host installed through `session.bind` or a
-      locator's `impls` map. Render and the JSON boundary are where
-      such a value becomes observable: `printValue` would answer
-      `Infinity`, which no production reads back, and `json` would
-      answer `null`. `:actualValue` carries the offending magnitude
+      arithmetic site answers an error of its domain — so this tag
+      reports a value a host installed. The print and the JSON of the
+      boundary are where such a value shows: the print would be
+      `Infinity`, which no literal reads back, and JSON would write
+      `null`. `:actualValue` carries the offending magnitude
       as a String, the one shape that renders.
   ~~|
 

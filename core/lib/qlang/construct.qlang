@@ -38,17 +38,17 @@
   ~~|
 
 ::TagBindingHasNoConstructorError
-  |~~ Tag-binding has no registered constructor — `:impl`
-      carries an unexpected value (neither a `:qlang/prim/*`
-      keyword nor a Quote-impl body). Descriptor fields:
-      `:payloadValue` / `:payloadType`, `:actualValue` /
-      `:actualType`, `:expectedType [:keyword :quote]`.
+  |~~ The declaration of a kind names its constructor under `:impl`,
+      a quote, `::T {:impl ~(…)}`; one whose `:impl` is neither a quote
+      nor the name of a primitive builds nothing. `:payloadValue` holds
+      the payload it was handed and `:actualValue` the `:impl`.
       ::link~(::construct | doc)
   ~~|
 
 ::TaggedLitNotTagBindingError
-  |~~ `::tag` constructor invocation — the env binding under
-      `::tag` is not a tag-binding descriptor Map.
+  |~~ The tag before a payload names a kind, whose declaration is a
+      map; a tag bound to another value, `::T 42`, declares no kind to
+      build by.
       ::link~(::construct | doc)
 
       ~(

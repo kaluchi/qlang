@@ -217,7 +217,7 @@ describe('a value that is no name reads the declaration of its kind', () => {
   // the page of `::map` whatever its `:kind` field holds.
   it('a materialized error reaches its own tag docs', async () => {
     expect(await evalQuery('10 | div 0 !| doc | content'))
-      .toContain('Division by zero');
+      .toContain('A division by zero');
   });
 
 });

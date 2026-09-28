@@ -54,16 +54,13 @@
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@out})
 
 ::OutSubjectNotStringError
-  |~~ Bare `@out` requires a String subject — the bytes
-      written to stdout must already be a String. Wrap a
-      non-String value in a renderer:
+  |~~ `@out` alone writes its subject, a string, as a line; another
+      value is written as the text a modifier computes from it,
       `42 | @out json` or `{:x 1} | @out print`. ~~|
 
 ::OutRendererResultNotStringError
-  |~~ `@out renderer` requires the renderer to produce a
-      String. A renderer that returns a Number / Map / null
-      cannot be written to stdout — wrap it through `json` or
-      `print`. ~~|
+  |~~ The text `@out` writes is a string; a modifier that answers
+      another kind is refused, and `json` or `print` makes the text. ~~|
 
 :@err
   |~~ Same shape as `@out` but writes to stderr — the diagnostic
@@ -75,12 +72,13 @@
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@err})
 
 ::ErrSubjectNotStringError
-  |~~ Bare `@err` requires a String subject. Wrap non-String
-      values through a renderer, `json` or `print`. ~~|
+  |~~ `@err` alone writes its subject, a string, as a line on stderr;
+      another value is written as the text a modifier computes, `@err
+      json` or `@err print`. ~~|
 
 ::ErrRendererResultNotStringError
-  |~~ `@err renderer` requires the renderer to produce a
-      String. ~~|
+  |~~ The text `@err` writes is a string; `json` or `print` makes one
+      of any value. ~~|
 
 :@tap
   |~~ Passes its subject on and writes
@@ -95,9 +93,8 @@
   ::verb~(:subject ::any | :label ::keyword | ::builtin{:impl :qlang/cli/@tap})
 
 ::TapLabelNotKeywordError
-  |~~ `@tap` label must be a Keyword — use `:foo` not `"foo"`
-      so the prefix renders as `[tap foo]` consistent with the
-      keyword's grammatical form. ~~|
+  |~~ The label of `@tap` is a keyword, `@tap :before`, written before
+      the value as `[tap before]`. ~~|
 
 
 :table
@@ -115,7 +112,8 @@
   ::verb~(:subject ::vec | :returns ::string | ::builtin{:impl :qlang/cli/table})
 
 ::TableSubjectNotVecError
-  |~~ Subject of `table` must be Vec.
+  |~~ `table` draws a vector of maps, a row each; a single map goes in a
+      vector first, `[/] | table`.
       ~(
         42 | table
         !| [type /actualType]
@@ -124,7 +122,8 @@
   ~~|
 
 ::TableRowNotMapError
-  |~~ Element of `table` input collection must be Map.
+  |~~ Every row of `table` is a map, its keys the columns; `:index`
+      names the first that is not.
       ~(
         [42 "hello"] | table
         !| [type /index /actualType]

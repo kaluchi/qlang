@@ -23,7 +23,8 @@
   ::builtin{:impl :qlang/type/string}
 
 ::StringPayloadNotStringError
-  |~~ `::string…` payload must be a string.
+  |~~ `::string` reads its payload as the string it is; a value of
+      another kind becomes text by `print`.
       ~(
         ::string(1)
         !| [type /actualType]
@@ -81,7 +82,8 @@
   ::verb~(:separator ::string | :returns ::vec | ::builtin{:impl :qlang/prim/split})
 
 ::SplitSubjectNotStringError
-  |~~ Captured argument at position 1 of `split` must be String.
+  |~~ The subject of `split` is the string it cuts; a vector of strings
+      is cut element by element, `* split ","`.
       ~(
         42 | split ","
         !| [type /actualType]
@@ -90,7 +92,7 @@
   ~~|
 
 ::SplitSeparatorNotStringError
-  |~~ Captured argument at position 2 of `split` must be String.
+  |~~ The separator of `split` is a string, `split ","`.
       ~(
         "abc" | split 42
         !| [type /actualType]
@@ -113,7 +115,8 @@
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/lines})
 
 ::LinesSubjectNotStringError
-  |~~ Subject of `lines` must be String.
+  |~~ `lines` breaks a string, the text the command line reads with
+      `--raw`; a vector of texts is broken element by element, `* lines`.
       ~(
         42 | lines
         !| [type /actualType]
@@ -131,7 +134,8 @@
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/lower})
 
 ::LowerSubjectNotStringError
-  |~~ Subject of `lower` must be String.
+  |~~ `lower` works on a string; a vector of strings takes it element by
+      element, `* lower`, and a field is read first, `/email | lower`.
       ~(
         42 | lower
         !| [type /actualType]
@@ -147,7 +151,8 @@
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/upper})
 
 ::UpperSubjectNotStringError
-  |~~ Subject of `upper` must be String.
+  |~~ `upper` works on a string; a vector of strings takes it element by
+      element, `* upper`.
       ~(
         42 | upper
         !| [type /actualType]
@@ -165,7 +170,8 @@
   ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
 
 ::ContainsSubjectNotStringError
-  |~~ Captured argument at position 1 of `contains` must be String.
+  |~~ The subject of `contains` is the string searched; a vector is asked
+      for an element by `has`.
       ~(
         42 | contains "x"
         !| [type /actualType]
@@ -174,7 +180,8 @@
   ~~|
 
 ::ContainsNeedleNotStringError
-  |~~ Captured argument at position 2 of `contains` must be String.
+  |~~ The needle of `contains` is a string, `contains "x"`; a keyword
+      gives its name by `keyword`.
       ~(
         "hi" | contains 42
         !| [type /actualType]
@@ -192,7 +199,8 @@
   ::verb~(:prefix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/startsWith})
 
 ::StartsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `startsWith` must be String.
+  |~~ The subject of `startsWith` is the string whose beginning is read;
+      a field is read first, `/name | startsWith "a"`.
       ~(
         42 | startsWith "x"
         !| [type /actualType]
@@ -201,7 +209,7 @@
   ~~|
 
 ::StartsWithPrefixNotStringError
-  |~~ Captured argument at position 2 of `startsWith` must be String.
+  |~~ The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
         "hi" | startsWith 42
         !| [type /actualType]
@@ -219,7 +227,8 @@
   ::verb~(:suffix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/endsWith})
 
 ::EndsWithSubjectNotStringError
-  |~~ Captured argument at position 1 of `endsWith` must be String.
+  |~~ The subject of `endsWith` is the string whose end is read; a field
+      is read first, `/file | endsWith ".json"`.
       ~(
         42 | endsWith "x"
         !| [type /actualType]
@@ -228,7 +237,7 @@
   ~~|
 
 ::EndsWithSuffixNotStringError
-  |~~ Captured argument at position 2 of `endsWith` must be String.
+  |~~ The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
         "hi" | endsWith 42
         !| [type /actualType]
@@ -246,7 +255,8 @@
   ::verb~(:prefix ::string | :returns / | ::builtin{:impl :qlang/prim/prepend})
 
 ::PrependPrefixNotStringError
-  |~~ Captured argument at position 2 of `prepend` must be String.
+  |~~ The prefix a string takes is a string; a value of another kind
+      becomes one by `print`, `prepend (n | print)`.
       ~(
         "x" | prepend 42
         !| [type /actualType]
@@ -263,7 +273,8 @@
   ::verb~(:suffix ::string | :returns / | ::builtin{:impl :qlang/prim/append})
 
 ::AppendSuffixNotStringError
-  |~~ Captured argument at position 2 of `append` must be String.
+  |~~ The suffix a string takes is a string; a value of another kind
+      becomes one by `print`, `append (n | print)`.
       ~(
         "x" | append 42
         !| [type /actualType]
@@ -287,8 +298,8 @@
   ::verb~(::builtin{:impl :qlang/prim/parseJson})
 
 ::ParseJsonSubjectNotStringError
-  |~~ Subject of `parseJson` must be a String — the raw JSON text;
-      a value renders to one through `json` first.
+  |~~ `parseJson` reads a string of JSON text; a value becomes such text
+      by `json`.
 
       ~(
         42 | parseJson

@@ -27,7 +27,8 @@
   ::builtin{:impl :qlang/type/number}
 
 ::NumberPayloadNotNumberError
-  |~~ `::number(…)` payload must be a number.
+  |~~ `::number` reads its payload as the number it is; a payload of
+      another kind is refused, and text is read by `parseJson`.
       ~(
         ::number"5"
         !| [type /actualType]
@@ -45,7 +46,8 @@
   ::verb~(:addend ::number | :returns ::number | ::builtin{:impl :qlang/prim/add})
 
 ::AddLeftNotNumberError
-  |~~ The subject of `add` must be a number.
+  |~~ `add` adds numbers: a vector adds element by element, `* add 1`,
+      and sums by `sum`; a string is joined by `append`.
 
       ~(
         "hello" | add 1
@@ -55,7 +57,8 @@
   ~~|
 
 ::AddRightNotNumberError
-  |~~ The addend of `add` must be a number.
+  |~~ The addend of `add` is a number; two fields of one map add by
+      `add /price /tax`, both read from it.
 
       ~(
         1 | add "x"
@@ -86,7 +89,8 @@
   ::verb~(:subtrahend ::number | :returns ::number | ::builtin{:impl :qlang/prim/sub})
 
 ::SubLeftNotNumberError
-  |~~ The subject of `sub` must be a number.
+  |~~ `sub` subtracts from a number; a vector subtracts element by
+      element, `* sub 1`.
 
       ~(
         "hello" | sub 1
@@ -96,7 +100,8 @@
   ~~|
 
 ::SubRightNotNumberError
-  |~~ The subtrahend of `sub` must be a number.
+  |~~ The subtrahend of `sub` is a number; two fields of one map
+      subtract by `sub /total /paid`.
 
       ~(
         1 | sub "x"
@@ -127,7 +132,8 @@
   ::verb~(:multiplier ::number | :returns ::number | ::builtin{:impl :qlang/prim/mul})
 
 ::MulLeftNotNumberError
-  |~~ The subject of `mul` must be a number.
+  |~~ `mul` multiplies numbers; a vector multiplies element by element,
+      `* mul 2`.
 
       ~(
         "hello" | mul 2
@@ -137,7 +143,8 @@
   ~~|
 
 ::MulRightNotNumberError
-  |~~ The multiplier of `mul` must be a number.
+  |~~ The multiplier of `mul` is a number; two fields of one map
+      multiply by `mul /price /qty`.
 
       ~(
         1 | mul "x"
@@ -169,7 +176,8 @@
   ::verb~(:divisor ::number | :returns ::number | ::builtin{:impl :qlang/prim/div})
 
 ::DivLeftNotNumberError
-  |~~ The subject of `div` must be a number.
+  |~~ `div` divides a number; a vector divides element by element,
+      `* div 2`.
 
       ~(
         "hello" | div 2
@@ -179,7 +187,8 @@
   ~~|
 
 ::DivRightNotNumberError
-  |~~ The divisor of `div` must be a number.
+  |~~ The divisor of `div` is a number; two fields of one map divide by
+      `div /sum /count`.
 
       ~(
         1 | div "x"
@@ -202,7 +211,8 @@
   ~~|
 
 ::DivisionByZeroError
-  |~~ Division by zero — `div _ 0` fires this error.
+  |~~ A division by zero has no finite answer; a divisor that may be
+      zero is tested first, `if (/count | eq 0) ~(0) ~(div /sum /count)`.
 
       ~(
         10 | div 0

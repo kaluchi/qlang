@@ -21,10 +21,9 @@
   ~~|
 
 ::ToPlainUnencodableValueError
-  |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
-      with no JSON form, a host value an embedder installed. `print`
-      writes the literal, which reads back through `parse | open`, or
-      project around the slot.
+  |~~ JSON has no form for a value a host installed, a function among
+      them; `print` writes its literal, which reads back through
+      `parse | open`, or the query projects around it.
   ~~|
 
 ::SourceLoadError
@@ -132,7 +131,8 @@
   ::verb~()
 
 ::SumElementNotNumberError
-  |~~ An element `sum` adds must be a number; `:index` names it.
+  |~~ `sum` adds numbers; `:index` names the first element that is
+      none, and a field is read first, `* /amount | sum`.
       ~(
         [1 "two" 3] | sum
         !| [type /actualType /index]
@@ -310,7 +310,10 @@
   ::verb~()
 
 ::GroupByKeyNotKeywordError
-  |~~ `groupBy ~(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
+  |~~ The key `groupBy` files an element under is a keyword, since the
+      keys of a map are keywords; a string or a number becomes one by
+      `keyword`, `groupBy ~(/status | keyword)`. `:index` names the
+      element.
       ~(
         [{:k 1} {:k 2}] | groupBy ~(/k)
         !| [type /actualType /index]
@@ -338,7 +341,10 @@
   ::verb~()
 
 ::IndexByKeyNotKeywordError
-  |~~ `indexBy ~(/key)` — the key sub-pipeline must produce a Keyword for every element; one element produced a non-keyword.
+  |~~ The key `indexBy` files an element under is a keyword, since the
+      keys of a map are keywords; a string or a number becomes one by
+      `keyword`, `indexBy ~(/id | print | keyword)`. `:index` names the
+      element.
       ~(
         [{:k 1}] | indexBy ~(/k)
         !| [type /actualType /index]
@@ -763,7 +769,8 @@
   ::verb~(* :alternatives ::quote | ::builtin{:impl :qlang/prim/coalesce})
 
 ::CoalesceNoAlternativesError
-  |~~ `coalesce` requires at least one captured alternative sub-pipeline.
+  |~~ `coalesce` answers the first of its alternatives that answers a
+      value, so it takes one at least, `coalesce ~(/nickname) ~("anonymous")`.
       ~(
         {} | coalesce
         !| [type]
@@ -785,7 +792,9 @@
   ::verb~(* :clauses ::quote | ::builtin{:impl :qlang/prim/cond})
 
 ::CondNoBranchesError
-  |~~ `cond` requires at least one (predicate, branch) pair plus an optional trailing default.
+  |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
+      last clause alone the default; a call with none has nothing to
+      answer.
       ~(
         5 | cond
         !| [type]
@@ -846,8 +855,9 @@
   ::verb~(:code ::quote | ::builtin{:impl :qlang/prim/apply})
 
 ::ApplyCodeNotQuoteError
-  |~~ `apply` requires its captured arg to answer a Quote — the
-      code it runs against the subject.
+  |~~ The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
+      or a name that holds one; a value computed at the call is refused,
+      the error a step answered there among them.
 
       ~(
         42 | apply 1
@@ -857,17 +867,13 @@
   ~~|
 
 :env
-  |~~ Replaces pipeValue with the bindings the scope holds — a Map
-      keyed by binding name carrying what the query, the session and
-      a module's `use` wrote at this point in the pipeline, each the
-      record of its binding, `::binding` with its name, docs, value,
-      source and module. The verbs
-      and the nouns of the core and of the hosts stay with their
-      providers, listed from `::qlang | manifest`. Inside a fork,
-      returns the fork-local scope, including the declarations
-      that landed in the same branch. Use it for
-      introspection or for forwarding a specific binding to another
-      step (`env | /myFlag`).
+  |~~ The names the scope holds where it stands, a map from each name
+      to the record of its binding, `::binding` with its name, docs,
+      value, source and module: what the query, the session and a
+      module's `use` wrote, a fork's own declarations among them inside
+      the fork. The verbs and the nouns of the core and of the hosts
+      stay with their providers, listed from `::qlang | manifest`.
+      `env | /flag` hands one record to the next step.
 
       ~(:limit 10 | env | keys | eq #[:limit])
       ~(env | has :count | not)
@@ -896,8 +902,8 @@
   ::verb~(:namespace #[::keyword ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
 
 ::UseSubjectNotMapError
-  |~~ `use` (bare form) requires a Map subject — its entries
-      become the merged bindings.
+  |~~ `use` alone brings the entries of a map into the scope, so its
+      subject is a map; a module is loaded by its name, `use :ns`.
 
       ~(
         42 | use
@@ -918,13 +924,9 @@
   ~~|
 
 ::UseNamespaceNotFoundError
-  |~~ `use :ns` — namespace not in env and no host-provided
-      locator can resolve it. A namespace is a header-less Map
-      bound under the namespace name or under the runtime's
-      `qlang/namespace/<ns>` cache key; an operand descriptor, a
-      verb, or a scalar a host bound under the same bare name is
-      an identifier-plane binding, and `use` walks past it to the
-      locator.
+  |~~ `use :ns` found no module of the name: none was loaded under it
+      and the host's locator answers none. A name the scope holds, a
+      verb or a value, is no module, so `use :count` is refused too.
 
       ~(
         use :absolutely-nonexistent-namespace
@@ -936,8 +938,8 @@
   ~~|
 
 ::UseNamespaceElementNotKeywordError
-  |~~ `use [:ns1 :ns2 …]` — every element of the namespace
-      Vec must be a Keyword.
+  |~~ `use [:a :b]` loads modules by their names, each a keyword;
+      `:index` names the first that is not.
 
       ~(
         use [42 :foo]
@@ -947,16 +949,14 @@
   ~~|
 
 ::UseNamespaceCollisionError
-  |~~ `use #[:ns1 :ns2 …]` — two namespaces export a name
-      under the same identifier; Set-form rejects collisions.
-      Host-boundary error: requires two host-installed namespace
-      Maps with overlapping keys.
+  |~~ `use #[:a :b]` loads modules that must not share a name, and two
+      that export one are refused; a vector, `use [:a :b]`, lets the
+      later win.
   ~~|
 
 ::UseNameNotExportedError
-  |~~ `use :ns #[:name1 …]` — selection filter names an
-      identifier the namespace does not export. Host-boundary
-      error: requires a host-installed namespace Map.
+  |~~ `use :ns #[:name]` brings the named declarations of a module, and
+      a name the module does not declare is refused.
   ~~|
 
 ::UseImplNamesNoVerbError
@@ -998,9 +998,8 @@
   ~~|
 
 :source
-  |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
-      in its scope, the `:source` of its record, which `parse`
-      prints as its text; `::Tag | source` the tag's. A binding no
+  |~~ The code of the declaration that binds a name in its scope, the
+      `:source` of its record, which `parse` prints as its text; `::Tag | source` the tag's. A binding no
       step declared, a value `use` or a host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
       it reads the member the subject holds under it: the slot a
@@ -1090,7 +1089,7 @@
 
       ~(42 | explain | page | eq (::number | doc))
       ~(::number/add | explain | page | content | contains "Adds two numbers")
-      ~("x" | add 1 !| explain | page | content | contains "must be a number")
+      ~("x" | add 1 !| explain | page | content | contains "adds numbers")
   ~~|
   ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
 
@@ -1200,7 +1199,8 @@
   ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
 
 ::TagModifierNotTagKeywordError
-  |~~ Captured argument at position 2 of `tag` must be a TagKeyword.
+  |~~ The tag `tag` lays is a tag name, `tag ::Box`; a keyword, `:box`,
+      names a field and no kind.
       ~(
         42 | tag :foo
         !| [type /actualType]
@@ -1209,9 +1209,9 @@
   ~~|
 
 ::TagBareSubjectShapeError
-  |~~ `tag` (bare form) requires a 2-element Vec `[tagKeyword,
-      value]` subject. Non-Vec subject or Vec of length != 2 fires
-      this error.
+  |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
+      value it goes over; a subject of another shape is refused, and
+      `:actualLength` counts a vector of another length.
       ~(
         42 | tag
         !| [type /actualType]

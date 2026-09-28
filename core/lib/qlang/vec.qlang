@@ -25,7 +25,8 @@
   ::builtin{:impl :qlang/type/vec}
 
 ::VecPayloadNotVecError
-  |~~ `::vec[…]` payload must be a Vec.
+  |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
+      payload of another kind is refused.
       ~(
         ::vec{:a 1}
         !| [type /actualType]
@@ -292,7 +293,8 @@
   ::verb~(:separator ::string | :returns ::string | ::builtin{:impl :qlang/prim/join})
 
 ::JoinSubjectNotVecError
-  |~~ Subject of `join` must be Vec.
+  |~~ The subject of `join` is the vector of strings it writes as one; a
+      map's values are read first, `vals | join ","`.
       ~(
         42 | join ","
         !| [type /actualType]
@@ -301,7 +303,8 @@
   ~~|
 
 ::JoinElementNotStringError
-  |~~ Element of `join` input collection must be String.
+  |~~ Every element `join` writes is a string; `:index` names the first
+      that is not, and `* print` makes each value its text first.
       ~(
         ["a" 42 "c"] | join ","
         !| [type /actualType /index]
@@ -310,7 +313,7 @@
   ~~|
 
 ::JoinSeparatorNotStringError
-  |~~ Captured argument at position 2 of `join` must be String.
+  |~~ The separator of `join` is a string, `join ", "`.
       ~(
         ["a" "b"] | join 42
         !| [type /actualType]

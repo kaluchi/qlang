@@ -40,8 +40,9 @@
   ~~|
 
 ::DistributeSubjectNotSequenceError
-  |~~ Distribute combinator (`*`) — subject must be a Vec or Set
-      for per-element forking; a Set distributes into a Vec result.
+  |~~ `*` runs its step on each element of a vector or a set, or on each
+      value of a map; a value of another kind has no elements, and `|`
+      runs a step on it whole.
       ::link~(::each | doc)
 
       ~(

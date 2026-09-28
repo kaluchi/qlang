@@ -991,23 +991,22 @@ Every throw site in the runtime declares its own error class, and the
 class name is a function of the facts the site records:
 `AddLeftNotNumberError` is the operand `add`, position 1, expected type
 number, and nothing else. There are more such classes than there are
-operands, and the catalog carries a prose entry for every one of them,
-so the prose about errors outweighs the prose about the operands
-themselves. The prose is formulaic because it has nothing to add to
-the facts:
+operands, and the catalog carries a page for every one of them, so the
+prose about errors outweighs the prose about the operands themselves.
+The facts ride the declaration's `spec`, and the page says what they do
+not, the procedure, what the place takes and how a reader writes it:
 
 ```qlang
 > "hello" | add 1 !| type | spec
 ::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
 
 > "hello" | add 1 !| type | doc | content
- The subject of `add` must be a number. …
+ `add` adds numbers: a vector adds element by element, `* add 1`, …
 ```
 
-The cord from the alert to its document exists and works; what hangs
-at its end is the alert said again, followed by an example that
-produces the same error. What the reader should do, the procedure,
-is absent.
+The facts still spell the vocabulary of the runtime, `:operand`, a
+position counted from one and a type as a keyword where a kind is a
+tag.
 
 Keeping the class names and the catalog in agreement requires a registry
 of throw-site specifications, a stamping pass at bootstrap that runs
@@ -1113,12 +1112,13 @@ declaration of a kind answers its verbs beside every refusal they raise.
 #[:impl :throws :verbs]
 ```
 
-The catalog itself speaks the vocabulary of its implementation where
-it documents the refusals of the kernel. The prose a session reads to
-learn the language names JavaScript files and symbols: the page of an
-unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”
-(`core/lib/qlang/builtin.qlang`). A session learning qlang from its
-catalog meets the names of the files that implement it.
+The pages of the refusals of the kernel speak the language's words:
+the page of an unknown node of the tree says it is “a defect of the
+runtime, and no failure of the query” (`core/lib/qlang/builtin.qlang`).
+The names of some refusals still carry the runtime's,
+`::PayloadSubjectNotTaggedInstanceError` and
+`::EffectLaunderingAtBindStepParseError` among them, which the tags of
+the sites as kinds rename [D46].
 
 Examples live on two planes: the conformance suite and the laws of the
 catalog, with a runner for each.

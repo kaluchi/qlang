@@ -23,7 +23,8 @@
   ::builtin{:impl :qlang/type/keyword}
 
 ::KeywordPayloadNotKeywordError
-  |~~ `::keyword…` payload must be a keyword.
+  |~~ `::keyword` reads its payload as the keyword it is; a string
+      becomes one by `keyword`.
       ~(
         ::keyword"k"
         !| [type /actualType]

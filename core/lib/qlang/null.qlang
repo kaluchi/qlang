@@ -15,7 +15,8 @@
   ::builtin{:impl :qlang/type/null}
 
 ::NullPayloadNotNullError
-  |~~ `::null(…)` payload must be null.
+  |~~ `::null` reads its payload as null; a payload of another kind is
+      refused.
       ~(
         ::null(1)
         !| [type /actualType]

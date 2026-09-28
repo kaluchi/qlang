@@ -40,9 +40,9 @@
   ~~|
 
 ::EffectLaunderingAtBindStepParseError
-  |~~ BindStep declaration body references an `@`-effectful
-      identifier, but the binding name is not `@`-prefixed —
-      laundering caught at parse time.
+  |~~ A verb whose body calls a name marked `@` reaches outside the
+      language, and its own name carries the mark, `:@fetchAll
+      ::verb~(@fetch …)`, so every reader of the name sees it.
       ::link~(::bind | doc)
 
       ~(

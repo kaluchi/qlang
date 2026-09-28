@@ -58,8 +58,9 @@
   ~~|
 
 ::ProjectionIndexOutOfBoundsError
-  |~~ Projection `/n` — the integer index resolves outside
-      the Vec or Set subject's `[0, length)` range.
+  |~~ An index reads within a vector or a set, from `/0` to the last,
+      `/-1`; `take` and `drop` answer the part there is without refusing.
+      `:length` holds the length of the subject.
       ::link~(::proj | doc)
 
       ~(
@@ -70,9 +71,9 @@
   ~~|
 
 ::ProjectionKeyNotInMapError
-  |~~ Projection `/key` — the named key is absent from the
-      Map subject (strict-miss). Use `at :key` for
-      null-coalescing access.
+  |~~ A projection names a key the map holds, so a misspelled field is
+      found where it is read; `keys` lists the keys there are, and
+      `at :key` answers null for a key that may be absent.
       ::link~(::proj | doc)
 
       ~(
@@ -83,8 +84,9 @@
   ~~|
 
 ::ProjectionSubjectNotProjectableError
-  |~~ Projection `/key` requires a map, a vector, a set or a tagged
-      value as its subject; null and other shapes lift to this error.
+  |~~ A projection reads a part of a map, a vector or a set, one under a
+      tag among them; a number, a string or null has no parts, and a map
+      that may lack a key is read by `at`, which answers null for it.
       ::link~(::proj | doc)
 
       ~(
@@ -95,9 +97,9 @@
   ~~|
 
 ::ProjectionSequenceKeyNotIntegerError
-  |~~ Projection segment is a non-numeric string but the
-      subject is a Vec or Set — sequence indices must be integer
-      offsets, a set's in its one order.
+  |~~ A vector is read by an index, `/0`, a set's in its one order; a
+      field of each element is read under `*`, `* /name`, and the
+      elements a field picks are found by `filter`.
       ::link~(::proj | doc)
 
       ~(

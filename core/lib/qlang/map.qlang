@@ -25,7 +25,8 @@
   ::builtin{:impl :qlang/type/map}
 
 ::MapPayloadNotMapError
-  |~~ `::map{…}` payload must be a Map.
+  |~~ `::map` reads its payload as the map it is; a payload of another
+      kind is refused.
       ~(
         ::map[1]
         !| [type /actualType]
@@ -175,7 +176,9 @@
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/keys})
 
 ::KeysSubjectNotMapError
-  |~~ The subject of `keys` must be a map.
+  |~~ `keys` answers the keys of a map; a vector of maps answers them
+      element by element, `* keys`, and a vector's own places are its
+      indices, `/0`.
       ~(
         42 | keys
         !| [type /actualType]
@@ -191,7 +194,8 @@
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/vals})
 
 ::ValsSubjectNotMapError
-  |~~ The subject of `vals` must be a map.
+  |~~ `vals` answers the values of a map; a vector of maps answers them
+      element by element, `* vals`.
       ~(
         [1 2] | vals
         !| [type /actualType]

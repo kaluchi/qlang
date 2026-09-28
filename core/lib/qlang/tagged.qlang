@@ -62,8 +62,8 @@
   ::verb~(:code ::quote | :returns / | ::builtin{:impl :qlang/prim/within})
 
 ::WithinSubjectNotTaggedInstanceError
-  |~~ `within` requires a TaggedInstance subject, a value that has a
-      tag to edit under.
+  |~~ `within` edits the value beneath a tag and puts the tag back; a
+      value under no tag is edited by `apply`.
       ~(
         [1 2] | within ~(reverse)
         !| [type /actualType]
@@ -72,8 +72,9 @@
   ~~|
 
 ::WithinCodeNotQuoteError
-  |~~ `within` requires its captured arg to answer a Quote — the
-      edit it runs against the payload.
+  |~~ The edit `within` runs is a quote, `within ~(reverse)`; a value
+      computed at the call is refused, the error a step answered there
+      among them.
       ~(
         #[3 1] | within 1
         !| [type /actualType]

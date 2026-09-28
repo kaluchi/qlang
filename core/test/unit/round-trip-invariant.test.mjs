@@ -1,5 +1,5 @@
-// Round-trip invariant pin
-// (qlang-spec.md § "Round-trip invariant"):
+// Round-trip invariant pin, the law of the page of values that every
+// value prints as a literal that reads back as itself:
 //
 //     eval(parse(printValue(V)))  deepEqual  V
 //

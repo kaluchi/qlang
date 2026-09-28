@@ -10,12 +10,17 @@
       keywords, the shape a JSON object arrives in. A map literal is also
       the shape an answer takes, each value a group run on the subject,
       `{:id /id :n (/tags | count)}`; `/k` reads a field, and `*` over
-      a map runs a step on each value under its key.
+      a map runs a step on each value under its key. A JSON object is a
+      map literal too, its string keys read as keywords, so JSON pastes
+      into a query as it is; one literal is written in one of the two
+      forms, and a key written twice holds its last value.
       ::snippet~(::map | spec | /verbs) lists its verbs. ::link~(::proj | doc)
       ::link~(::qlang | doc :values)
 
       ~({:a 1} | type | eq ::map)
       ~(::map{:a 1} | eq {:a 1})
+      ~({"a": 1, "b": [true, null]} | eq {:a 1 :b [true null]})
+      ~({:a 1 :a 2} | eq {:a 2})
   ~~|
   ::builtin{:impl :qlang/type/map}
 

@@ -380,8 +380,8 @@ and answers the first error an element answers [D103]; `!|` is the
 only combinator that fires on an error, and `|` and `*` step around it
 [D51]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
-only its value, which is where every scoping rule in the reference comes
-from. A literal is a step that replaces the value, and the values it
+only its value, which is where every scoping rule of the page of the
+pipeline comes from. A literal is a step that replaces the value, and the values it
 builds fork against the outer value, which is what makes reshaping a
 matter of writing the shape you want. Projection walks a path with
 strict misses. Application is subject-first.
@@ -1120,8 +1120,8 @@ unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”
 (`core/lib/qlang/builtin.qlang`). A session learning qlang from its
 catalog meets the names of the files that implement it.
 
-Examples live on three planes: the conformance suite, the laws of the
-catalog and the REPL pairs in the reference, with a runner for each.
+Examples live on two planes: the conformance suite and the laws of the
+catalog, with a runner for each.
 The catalog's own laws run in under a second and are the only plane the
 language can reach, and most of them still stand under no caption of
 the claim they prove [D124].
@@ -1134,81 +1134,38 @@ must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
 rather than dumped.
 
-### Two documents that retell the catalog
+### The documents that retold the catalog
 
-The reference and the evaluation-model document together hold more
-than half as many lines as the code of the core, and each restates the
-catalog: an operand's contract is spelled in the catalog, in a chapter
-of the reference, and in a chapter of the evaluation model. The operand
-document that retold it a third time has left with the check that
-guarded it. The documentation site links to the reference on GitHub
-and renders none of it; the language server reads the catalog directly
-and never the documents. The reference opens with a screen and a half
-on comments before it has shown a value or a pipeline, because the
-grammar of comments dictated the order of concepts. The reference's
-grammar chapter is a third spelling of the grammar, beside the parser
-and a hand-written TextMate copy for the editor.
+The reference and the evaluation-model document held more than half as
+many lines as the code of the core and restated the catalog, their
+REPL pairs true because a runner executed them and their prose and
+tables false in places, because nothing did: a missing key answering
+`null`, a built-in without arguments answering its descriptor, a
+grammar with no quote, tag, doc or binding in it. The executable half
+was true and the narrated half false, inside one document, which is
+the argument for the principle of executable over narrated in the
+project's own text. The reference was a tutorial rather than a
+specification, as the maintainer put it: «это не спецификация, а скорее
+референс, туториал» (maintainer, 2026-09-23 00:47, session 86982eb5).
 
-The lines of the two documents to the lines of code of the core,
-comments and blank lines left out:
+Both left the tree with their runner [D128]. What they said that the
+catalog did not stands as laws of its pages: the lexicon of each
+literal on the page of its kind, and on the pages of `::qlang`, in the
+order the concepts rest on each other, the layout of lines and
+comments, the fork rule and the scopes, application and the slots of
+code, the effect marker, the recursion of a verb and its budget, and
+the path of an error across a raise. The embedding API is the page of
+the package, `core/README.md`. The documents left are the measure and
+the decisions:
 
 ```sh
-$ git ls-files --error-unmatch docs/qlang-spec.md docs/qlang-internals.md 'core/src/*.mjs' | xargs awk '/^[ \t]*$/ {next} FILENAME ~ /^docs/ {d++; next} /^[ \t]*\/\// {next} {c++} END {printf "%.1f\n", d / c}'
-0.8
+$ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
+docs/qlang-audit.md
+docs/qlang-entrypoint.md
 ```
 
-The reference is a tutorial rather than a specification, as the
-maintainer put it: «это не спецификация, а скорее референс, туториал»
-(maintainer, 2026-09-23 00:47, session 86982eb5). It introduces the
-concepts in order on REPL pairs, and its normative parts ride behind:
-the grammar chapter, the table of evaluation rules, the tables of the
-codecs, the embedding API. The two halves fare differently against the
-tree. The REPL pairs are true, because the document-compliance runner
-executes them; the prose and the tables are false in places, because
-nothing executes them:
-
-- The chapter on null says a missing map key produces `null`, and the
-  table of evaluation rules says a projection answers `null` if the key
-  is missing; the REPL pair a few chapters earlier shows the strict
-  miss correctly:
-
-  ```qlang
-  > {:a 1} | /b
-  ::ProjectionKeyNotInMapError!{ :key "b" … }
-  ```
-
-- The chapter on reflection says a built-in without arguments
-  evaluates to its own descriptor rather than an arity error:
-
-  ```qlang
-  > [1 2 3] | filter
-  ::VerbSlotMissingError!{ :verbName :filter :slot :predicate … }
-  ```
-
-- The example of a quote-bodied constructor, `::cond`, calls `first`
-  with a modifier, and fails.
-- The grammar chapter has no quote, no tag, no doc and no binding form.
-- The table of the plain JSON codec says that an error is unencodable
-  and makes `toPlain` throw, while `json` writes it:
-
-  ```qlang
-  > [!{:a 1}] | json
-  [{"$error":{"$tag":"error","descriptor":{"a":1,"trail":[]}}}]
-  ```
-- The embedding API tells a host to install its operands with
-  `session.bind(name, fn)`, which binds a value the language never
-  calls.
-
-The executable half is true and the narrated half false, inside one
-document. That is the argument for the principle of executable over
-narrated, in the project's own text.
-
-The repair must leave each document either generated from the catalog
-or deleted, with the reference reduced to what the catalog cannot say:
-the evaluation model, the combinators, the fork rule, and the reading
-protocol. The tutorial's order of concepts and its REPL session are
-worth keeping, as a page generated from executable examples in that
-order.
+What remains of the scar is the editor's hand-written TextMate grammar,
+a second spelling of the grammar beside the parser.
 
 ### Host concerns inside the core
 
@@ -1542,15 +1499,12 @@ tables; the primitive registry with its sealing; the effect marker and its check
 scanner of doc text; the housekeeping keys of the environment; the
 resolver of module directories; the call to the
 parser from outside `parse`; the error prose of the catalog that
-restates the facts; the drift tests and the document-compliance runner
-for the documents that go.
+restates the facts; the drift tests.
 
 The documents at the finish are few. This audit and the entrypoint
-document, which are the measure. The reference, reduced to the
-evaluation model, the combinators, the fork rule and the reading
-protocol, with the tutorial's order of concepts kept as a page built
-from executable examples. Everything that retells an operand is
-generated from the catalog or gone.
+document, which are the measure, and the records of the decisions; the
+language says the rest of itself in its catalog, the concepts in the
+order they rest on each other on the pages of `::qlang`.
 
 The tests at the finish follow what they test. The catalog's examples
 are the tests of the operands. The conformance cases, each a query and
@@ -1610,8 +1564,7 @@ their factories, the registry of throw sites and the drift tests leave
 is what it exposes, so helpers stay in their module [D63], with mounted
 namespaces, each a subtree answered by its provider [D24], [D36], and
 the rest of the rule of collisions, a verb and a kind joined only by
-whoever owns one of them [D23]; the documents
-generated or deleted, the examples on one plane, the keyword's form
+whoever owns one of them [D23]; the examples on one plane, the keyword's form
 from the parser, and the editor's grammar generated or reduced; and the
 entrypoint of the work in its first version, the command that measures
 the tree and prints the state of the work as a dark cockpit, whose
@@ -1620,7 +1573,7 @@ design is the entrypoint document's.
 Its answers are the targets of [D115] in the conformance suite, and
 those [D6], [D33] and [D46] leave when they are decided. Beside them:
 no factory-declared error class remains; no operand contract is spelled
-outside the catalog; the document-compliance runner is gone; no parser call exists outside `parse`; one query shows
+outside the catalog; no parser call exists outside `parse`; one query shows
 every definition of a name and which one wins; a module's value is its
 surface, so the sister project's helpers leave its client's `env`; and
 the environment holds no key of the runtime's own.
@@ -1826,7 +1779,9 @@ The site waits for the syntax: «пока синтаксис не начнет �
 that retell the catalog leave: «и если интерактивный туториал
 действительно станет хорош, то тогда все эти референсы и прочие md
 файлы наконец можно будет удалить за ненадобностью», and «но сперва UIX
-в вебе и UIX в терминале нас должен удовлетворять» (13:26).
+в вебе и UIX в терминале нас должен удовлетворять» (13:26). The
+documents left before such a tutorial, by the maintainer's later word,
+their facts moved into laws of the catalog's pages [D128].
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику
@@ -2001,3 +1956,4 @@ maintainer wants to explore it before it is fixed.
 [D125]: decisions/D125.md
 [D126]: decisions/D126.md
 [D127]: decisions/D127.md
+[D128]: decisions/D128.md

@@ -10,12 +10,15 @@
       string, and `keyword` makes one a keyword where a key is wanted,
       since the keys of a map are keywords. Its verbs work on the text
       whole or by its lines, and `lines` breaks it into the vector a
-      pipeline reads in pieces.
+      pipeline reads in pieces. Its literal is written in double quotes
+      with the escapes of JSON.
       ::snippet~(::string | spec | /verbs) lists its verbs. ::link~(::keyword | doc)
       ::link~(::qlang | doc :values)
 
       ~("x" | type | eq ::string)
       ~(::string"x" | eq "x")
+      The escapes of JSON, `\"`, `\\`, `\n`, `\t` and `\uXXXX` among them:
+      ~("A\t\"" | eq "A	\"")
   ~~|
   ::builtin{:impl :qlang/type/string}
 

@@ -5,13 +5,19 @@
   |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
       the pipe by keys and indices, a negative index from the end, and a
       miss answers an error, never null, so a misspelled field is found
-      where it is read. `/` is the value itself. As a record, `:path` is
-      the keys and indices it walks, `[]` for `/`.
+      where it is read. `/` is the value itself. A key is written as a
+      keyword is, bare, in quotes, `/"foo bar"`, or with its colon when it
+      is a path, `/:qlang/error`, which is one key where `/qlang/error`
+      is two. As a record, `:path` is the keys and indices it walks,
+      `[]` for `/`.
       ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
       ::link~(::qlang | doc :pipeline)
 
       ~(~(/items/0/name) | first | /path | eq [:items 0 :name])
       ~(~(/) | first | /path | eq [])
+      ~({:"foo bar" {:qlang/error 1}} | /"foo bar"/:qlang/error | eq 1)
+      ~({:qlang {:error 2}} | /qlang/error | eq 2)
+      ~(5 | mul / | eq 25)
   ~~|
   ::builtin{:impl :qlang/type/proj}
 
@@ -91,8 +97,7 @@
 ::ProjectionSequenceKeyNotIntegerError
   |~~ Projection segment is a non-numeric string but the
       subject is a Vec or Set — sequence indices must be integer
-      offsets (insertion-order on a Set per §Set in
-      qlang-spec.md).
+      offsets, a set's in its one order.
       ::link~(::proj | doc)
 
       ~(

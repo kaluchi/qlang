@@ -12,13 +12,15 @@
       with a tail, and `*` runs a step on each element. A set, a quote
       and a doc are vectors under their tags, read as vectors wherever a
       vector is read; over them the constructor answers the vector of
-      their elements, and `::vec[1 2]` reads as `[1 2]`.
+      their elements, and `::vec[1 2]` reads as `[1 2]`. A comma between
+      elements is whitespace, as JSON writes them.
       ::snippet~(::vec | spec | /verbs) lists its verbs. ::link~(::each | doc)
       ::link~(::qlang | doc :values)
 
       ~([1 2] | type | eq ::vec)
       ~(::qlang/vec[1 2] | eq [1 2])
       ~(#[2 1] | tag ::vec | eq [1 2])
+      ~([1, 2] | eq [1 2])
   ~~|
   ::builtin{:impl :qlang/type/vec}
 

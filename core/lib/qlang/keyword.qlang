@@ -8,11 +8,17 @@
       apart from the string so that no name is read by its look: every
       key of a map is a keyword, `/k` reads a field by it, and a keyword
       names a binding of the scope; `keyword` makes one of a string and
-      a string of one. ::link~(::map | doc) ::link~(::binding | doc)
+      a string of one. A bare keyword is a name of letters of any script,
+      digits, `_` and `-`; a slash joins names into a path, `:domain/user`;
+      any other text is written in quotes, `:"foo bar"`, and the quotes
+      around a bare name change nothing. ::link~(::map | doc) ::link~(::binding | doc)
       ::link~(::qlang | doc :values)
 
       ~(:k | type | eq ::keyword)
       ~(::keyword:k | eq :k)
+      The three forms, and the quoted form of a bare name:
+      ~([:данные :domain/user :"$ref"] * keyword | eq ["данные" "domain/user" "$ref"])
+      ~(:"foo" | eq :foo)
   ~~|
   ::builtin{:impl :qlang/type/keyword}
 

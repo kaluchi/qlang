@@ -10,7 +10,9 @@
       names the page of the kind, so `type | doc` reads the page of a
       value's kind. Tags stack over any payload and read from the outside
       in; behaviour does not travel with a value, it is found again
-      through the tag wherever the value goes.
+      through the tag wherever the value goes. A tag names apart from a
+      keyword, so `:d` and `::d` are two names; a tag no step declared is
+      declared where it is first used, and its declaration says so.
       ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
       ::snippet~(::qlang | manifest) lists the kinds.
       ::link~(::qlang | doc :values)
@@ -19,6 +21,8 @@
       ~(::Even {:impl ~(if (eq 2) ~(/) ~(!{:reason :odd}))} | ::Even(3) !| /reason | eq :odd)
       ~(::tag::Box | eq ::Box)
       ~(5 | type | doc | type | eq ::doc)
+      ~(:d ::verb~(mul 60) | ::d {:impl ~({:s /})} | [(10 | d) (::d(10) | payload)] | eq [600 {:s 10}])
+      ~(::Unbound[1] | type | spec | /declarationOrigin | eq :implicit)
   ~~|
   ::builtin{:impl :qlang/type/tag}
 

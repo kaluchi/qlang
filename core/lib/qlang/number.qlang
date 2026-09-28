@@ -10,12 +10,19 @@
   |~~ The kind of a number, a finite double: an infinity or NaN is no
       value, so a step whose result leaves the domain answers an error.
       No kind reads text, so `::number(5)` is `5` and `::number"5"` is
-      refused; `parseJson` reads a number out of a string.
+      refused; `parseJson` reads a number out of a string. Its literal
+      is JSON's, and its precision the double's own.
       ::snippet~(::number | spec | /verbs) lists its verbs.
       ::link~(::qlang | doc :values)
 
       ~(5 | type | eq ::number)
       ~(::qlang/number(5) | eq 5)
+      A literal past the range is no number the parser reads:
+      ~("1e400" | parse !| type | eq ::ParseError)
+      A step whose result leaves the range answers an error:
+      ~(1e308 | mul 10 !| type | eq ::MulResultNotFiniteError)
+      An integer and a decimal are one kind, rounded as a double rounds:
+      ~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
   ~~|
   ::builtin{:impl :qlang/type/number}
 

@@ -1,180 +1,36 @@
 // @kaluchi/qlang-core — the package root, free of `node:*` for the
-// browser; the `host/` subpaths, which import it, stay out, and
-// `package.json#sideEffects` keeps the runtime modules, which bind their
-// primitives as they load.
+// browser, and what a host builds on; `package.json#sideEffects` keeps
+// the runtime modules, which bind their primitives as they load.
 
-import { parse, ParseError } from './parse.mjs';
-import { evalAst, evalQuery } from './eval.mjs';
-import { langRuntime } from './runtime/index.mjs';
-import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
-import { verbsReaching } from './runtime/nouns.mjs';
-import { printAnswer } from './runtime/print.mjs';
-import { elide, elideAnswer } from './elide.mjs';
-import { createSession } from './session.mjs';
-import {
-  walkAst,
-  astChildrenOf,
-  isPureLiteralAst,
-  assignAstNodeIds,
-  attachAstParents,
-  findAstNodeAtOffset,
-  findIdentifierOccurrences,
-  writesTag,
-  bindingNamesVisibleAt,
-  VALUE_NAMESPACE,
-  TAG_NAMESPACE,
-  FORK_ISOLATING_AST_TYPES,
-  astNodeSpan,
-  astNodeContainsOffset,
-  triviaBetweenAstNodes
+export { parse, ParseError } from './parse.mjs';
+export { evalQuery } from './eval.mjs';
+export { langRuntime } from './runtime/index.mjs';
+export { createSession } from './session.mjs';
+export {
+  walkAst, findAstNodeAtOffset, findIdentifierOccurrences, writesTag,
+  bindingNamesVisibleAt, VALUE_NAMESPACE, TAG_NAMESPACE,
+  FORK_ISOLATING_AST_TYPES
 } from './walk.mjs';
-import { quoteOfSource, printQuoteSource, astOfQuote } from './quote.mjs';
-import {
-  decorateAstWithEffectMarkers,
-  findFirstEffectfulIdentifier
-} from './effect-check.mjs';
-import {
+export { printQuoteSource } from './quote.mjs';
+export { decorateAstWithEffectMarkers } from './effect-check.mjs';
+export {
   printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
 } from './runtime/format.mjs';
-import { tokenize } from './highlight.mjs';
-import { isNameStart, isNameContinue } from './name-chars.mjs';
-import {
-  QlangError,
-  QlangTypeError,
-  ArityError,
-  NumericDomainError,
-  UnresolvedIdentifierError,
-  EffectLaunderingError,
-  EffectLaunderingAtBindStepParseError,
-  EffectLaunderingAtCallError,
-  EvaluationDepthExceededError,
-  QlangInvariantError
-} from './errors.mjs';
-import { DivisionByZeroError } from './runtime/arith.mjs';
-import { EVAL_DEPTH_LIMIT } from './state.mjs';
-import { classifyEffect, EFFECT_MARKER_PREFIX } from './effect.mjs';
-import {
-  keyword,
-  isKeyword,
-  makeTagKeyword,
-  isTagKeyword,
-  isErrorValue,
-  isQuote,
-  isDoc,
-  isVerb,
-  bindingValueOf,
-  makeErrorValue,
-  errorFromKindDescriptor,
-  makeQuote,
-  makeDoc,
-  TAG_HEADER_SYMBOL,
-  stampTagHeader,
-  makeTaggedInstance,
-  BUILTIN_TAG,
-  ERROR_TAG,
-  PARSE_ERROR_TAG,
-  BINDING_TAG,
-  TAG_BINDING_TAG,
-  describeType,
-  typeKeyword
-} from './types.mjs';
-import {
-  TAG_BINDING_PREFIX,
-  MODULE_NAMESPACE_PREFIX,
-  RUNTIME_LOCATOR_KEY,
-  isTagBindingName,
-  isModuleNamespaceKey,
-  moduleNamespaceKey,
-  tagBindingKey,
-  canonicalTagName,
-  stripTagBindingPrefix
-} from './env-keys.mjs';
-
+export { printAnswer } from './runtime/print.mjs';
+export { elide, elideAnswer } from './elide.mjs';
+export { tokenize } from './highlight.mjs';
+export { isNameStart, isNameContinue } from './name-chars.mjs';
+export { QlangTypeError } from './errors.mjs';
 export {
-  parse,
-  ParseError,
-  evalAst,
-  evalQuery,
-  langRuntime,
-  createSession,
-  walkAst,
-  astChildrenOf,
-  isPureLiteralAst,
-  assignAstNodeIds,
-  attachAstParents,
-  findAstNodeAtOffset,
-  findIdentifierOccurrences,
-  writesTag,
-  bindingNamesVisibleAt,
-  VALUE_NAMESPACE,
-  TAG_NAMESPACE,
-  FORK_ISOLATING_AST_TYPES,
-  astNodeSpan,
-  astNodeContainsOffset,
-  triviaBetweenAstNodes,
-  quoteOfSource,
-  printQuoteSource,
-  astOfQuote,
-  decorateAstWithEffectMarkers,
-  findFirstEffectfulIdentifier,
-  printValue,
-  printAnswer,
-  elide,
-  elideAnswer,
-  toPlain,
-  fromPlain,
-  FromPlainNumberNotFiniteError,
-  tokenize,
-  isNameStart,
-  isNameContinue,
-  QlangError,
-  QlangTypeError,
-  ArityError,
-  NumericDomainError,
-  UnresolvedIdentifierError,
-  DivisionByZeroError,
-  EffectLaunderingError,
-  EffectLaunderingAtBindStepParseError,
-  EffectLaunderingAtCallError,
-  EvaluationDepthExceededError,
-  QlangInvariantError,
-  EVAL_DEPTH_LIMIT,
-  classifyEffect,
-  EFFECT_MARKER_PREFIX,
-  keyword,
-  isKeyword,
-  makeTagKeyword,
-  isTagKeyword,
-  isErrorValue,
-  isQuote,
-  isDoc,
-  isVerb,
-  bindingValueOf,
-  makeErrorValue,
-  errorFromKindDescriptor,
-  makeQuote,
-  makeDoc,
-  TAG_HEADER_SYMBOL,
-  stampTagHeader,
-  makeTaggedInstance,
-  BUILTIN_TAG,
-  ERROR_TAG,
-  PARSE_ERROR_TAG,
-  BINDING_TAG,
-  TAG_BINDING_TAG,
-  describeType,
-  typeKeyword,
-  signatureSpecOf,
-  slotLabelsOf,
-  verbShownFor,
-  verbsReaching,
-  TAG_BINDING_PREFIX,
-  MODULE_NAMESPACE_PREFIX,
-  RUNTIME_LOCATOR_KEY,
-  isTagBindingName,
-  isModuleNamespaceKey,
-  moduleNamespaceKey,
-  tagBindingKey,
-  canonicalTagName,
-  stripTagBindingPrefix
-};
+  keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
+  isVerb, bindingValueOf, makeErrorValue, errorFromKindDescriptor,
+  TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
+} from './types.mjs';
+export {
+  signatureSpecOf, slotLabelsOf, verbShownFor
+} from './runtime/verb.mjs';
+export { verbsReaching } from './runtime/nouns.mjs';
+export {
+  RUNTIME_LOCATOR_KEY, isTagBindingName, isModuleNamespaceKey,
+  tagBindingKey, canonicalTagName
+} from './env-keys.mjs';

@@ -1,100 +1,41 @@
-// Public-API smoke test for src/index.mjs.
+// The surface of the package root: what a host, the command line, the
+// language server and the site build on.
 
 import { describe, it, expect } from 'vitest';
-import {
-  parse,
-  ParseError,
-  evalQuery,
-  evalAst,
-  langRuntime,
-  createSession,
-  walkAst,
-  astChildrenOf,
-  findAstNodeAtOffset,
-  findIdentifierOccurrences,
-  bindingNamesVisibleAt,
-  astNodeSpan,
-  astNodeContainsOffset,
-  triviaBetweenAstNodes,
-  QlangError,
-  QlangTypeError,
-  ArityError,
-  UnresolvedIdentifierError,
-  DivisionByZeroError,
-  EffectLaunderingError,
-  EffectLaunderingAtBindStepParseError,
-  EffectLaunderingAtCallError,
-  QlangInvariantError,
-  classifyEffect,
-  EFFECT_MARKER_PREFIX,
-  keyword
-} from '../../src/index.mjs';
+import * as core from '../../src/index.mjs';
 
-describe('public API', () => {
-  it('exports parse', () => {
-    expect(typeof parse).toBe('function');
-    const ast = parse('42');
-    expect(ast.type).toBe('NumberLit');
-    expect(ast.value).toBe(42);
+describe('the package root', () => {
+  it('parses a source and evaluates a query', async () => {
+    expect(core.parse('42').type).toBe('NumberLit');
+    expect(await core.evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('exports evalQuery', async () => {
-    expect(typeof evalQuery).toBe('function');
-    expect(await evalQuery('[1 2 3] | count')).toBe(3);
+  it('keeps a session whose cells share their names', async () => {
+    const session = await core.createSession();
+    await session.evalCell(':x 2');
+    expect((await session.evalCell('x | add 1')).result).toBe(3);
   });
 
-  it('exports evalAst', () => {
-    expect(typeof evalAst).toBe('function');
+  it('prints a value as the literal that reads back as it', async () => {
+    const value = await core.evalQuery('{:a #[1 2] :t ::Box[3]}');
+    expect(await core.evalQuery(core.printValue(value))).toEqual(value);
   });
 
-  it('exports langRuntime as a Map factory', async () => {
-    expect(typeof langRuntime).toBe('function');
-    const runtimeEnv = await langRuntime();
-    expect(runtimeEnv).toBeInstanceOf(Map);
-    expect(runtimeEnv.size).toBeGreaterThan(20);
+  it('crosses the JSON boundary both ways', () => {
+    const lifted = core.fromPlain({ name: 'alice' });
+    expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
   });
 
-  it('exports createSession', () => {
-    expect(typeof createSession).toBe('function');
+  it('hands the tools the tree, the tokens and the letters of a name', () => {
+    const ast = core.parse(':x 1 | x');
+    expect(core.findIdentifierOccurrences(ast, 'x').length).toBeGreaterThan(0);
+    expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
+    expect(core.isNameStart('@')).toBe(true);
   });
 
-  it('exports the AST traversal primitives from walk.mjs', () => {
-    expect(typeof walkAst).toBe('function');
-    expect(typeof astChildrenOf).toBe('function');
-    expect(typeof findAstNodeAtOffset).toBe('function');
-    expect(typeof findIdentifierOccurrences).toBe('function');
-    expect(typeof bindingNamesVisibleAt).toBe('function');
-    expect(typeof astNodeSpan).toBe('function');
-    expect(typeof astNodeContainsOffset).toBe('function');
-    expect(typeof triviaBetweenAstNodes).toBe('function');
-  });
-
-  it('exports the error hierarchy for instanceof checks', () => {
-    expect(typeof QlangError).toBe('function');
-    expect(typeof QlangTypeError).toBe('function');
-    expect(typeof ArityError).toBe('function');
-    expect(typeof UnresolvedIdentifierError).toBe('function');
-    expect(typeof DivisionByZeroError).toBe('function');
-    expect(typeof ParseError).toBe('function');
-    expect(typeof EffectLaunderingError).toBe('function');
-    expect(typeof EffectLaunderingAtBindStepParseError).toBe('function');
-    expect(typeof EffectLaunderingAtCallError).toBe('function');
-    expect(typeof QlangInvariantError).toBe('function');
-  });
-
-  it('exports the effect-marker classification surface', () => {
-    expect(typeof classifyEffect).toBe('function');
-    expect(EFFECT_MARKER_PREFIX).toBe('@');
-  });
-
-  it('exports keyword as the interning constructor', async () => {
-    expect(typeof keyword).toBe('function');
-    const kwA = keyword('count');
-    const kwB = keyword('count');
-    expect(kwA).toEqual(kwB);
-    expect(kwA.name).toBe('count');
-    // langRuntime() Map can be queried with the interned keyword.
-    const runtimeEnv = await langRuntime();
-    expect(runtimeEnv.has('count')).toBe(true);
+  it('exports no symbol of the runtime a consumer does not read', () => {
+    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'classifyEffect', 'makeTaggedInstance', 'describeType', 'EVAL_DEPTH_LIMIT']) {
+      expect(core[internal], internal).toBeUndefined();
+    }
   });
 });

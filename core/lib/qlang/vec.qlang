@@ -12,8 +12,8 @@
       with a tail, and `*` runs a step on each element. A set, a quote
       and a doc are vectors under their tags, read as vectors wherever a
       vector is read; over them the constructor answers the vector of
-      their elements, and `::vec[1 2]` reads as `[1 2]`. A comma between
-      elements is whitespace, as JSON writes them.
+      their elements, and `::vec[1 2]` reads as `[1 2]`. One comma may
+      stand between two elements, as JSON writes them.
       ::snippet~(::vec | spec | /verbs) lists its verbs. ::link~(::each | doc)
       ::link~(::qlang | doc :values)
 

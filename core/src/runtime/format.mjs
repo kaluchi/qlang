@@ -34,11 +34,6 @@ function dispatchPlainValue(v, handlers, path) {
 // stdin and writing of an answer, and a host that hands values across
 // the boundary.
 //
-// `toPlain` is exported for direct unit-level coverage of the
-// exotic-value fallback path — the `json` verb feeds this function
-// the value its head checked, but no qlang-level path
-// reaches the `String(v)` branch because a host's raw callable never
-// enters pipeValue.
 const TO_PLAIN_HANDLERS = {
   Null:           () => null,
   Number:         finiteNumberOrLift,
@@ -72,12 +67,9 @@ export function toPlain(v) {
   return dispatchQlangValue(v, TO_PLAIN_HANDLERS, toPlainFallback);
 }
 
-// Fallback for values `describeType` classifies as `Unknown`. The
-// only live consumer reaching this branch is the host-bound raw
-// JS function slot (`:qlang/locator` and any embedder
-// `session.bind(name, fn)` installs); those render as a
-// host-marker string so `env | json` produces a parseable plain
-// shape.
+// A value of none of the kinds of qlang: a function a host bound writes
+// as `<host-fn name>`, so `env | json` stays plain JSON, and any other
+// is refused.
 function toPlainFallback(v) {
   if (typeof v === 'function') return `<host-fn ${v.name}>`;
   throw new ToPlainUnencodableValueError({ actualType: typeof v, actualValue: v });
@@ -85,8 +77,8 @@ function toPlainFallback(v) {
 
 export const ToPlainUnencodableValueError = declareInvariantError(
   'ToPlainUnencodableValueError',
-  ({ actualType }) => `toPlain: unencodable ${actualType} value — print it as a literal ` +
-    'or project around the slot',
+  ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value; ` +
+    'project around the slot',
   { operand: 'json' }
 );
 

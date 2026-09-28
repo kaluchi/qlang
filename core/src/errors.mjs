@@ -226,8 +226,7 @@ export function throwSiteSpecNames() {
 // instead, and cover every site the slot checks leave: a custom
 // diagnostic, an arity refusal, a magnitude outside the
 // finite-double domain, a runtime invariant, an @-marker laundered
-// past a name, a codec seam, the session envelope, the primitive
-// registry, the bootstrap, a source the host cannot read.
+// past a name, the primitive registry, the bootstrap, a source the host cannot read.
 
 // `name` is a non-writable own property of a class object, so a
 // class built inside a factory reports the factory's local binding

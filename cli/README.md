@@ -27,7 +27,7 @@ written as its print. `qlang -h` tells the flags.
 
 ```
 curl -s api/users | qlang '/data * /name'
-echo hi           | qlang --raw 'append " world"'
+printf hi         | qlang --raw 'append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
 qlang -i '::qlang | doc | links * open'
 ```

@@ -11,7 +11,7 @@
       value, so a step whose result leaves the domain answers an error.
       No kind reads text, so `::number(5)` is `5` and `::number"5"` is
       refused; `parseJson` reads a number out of a string. Its literal
-      is JSON's, and its precision the double's own.
+      is JSON's, a leading zero allowed, and its precision the double's own.
       ::snippet~(::number | spec | /verbs) lists its verbs.
       ::link~(::qlang | doc :values)
 

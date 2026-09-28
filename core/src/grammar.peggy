@@ -10,7 +10,7 @@
 // Every produced node carries `.location` (peggy's start/end offsets,
 // lines and columns) and `.text` (the matched source slice). The
 // post-parse pass in src/parse.mjs adds `.id` and `.parent` on every
-// node and `.source`/`.uri`/`.parseId`/`.schemaVersion` on the root.
+// node and `.source`, `.uri` and `.comments` on the root.
 //
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [D81]; the parser records each on

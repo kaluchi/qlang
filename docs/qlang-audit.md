@@ -372,7 +372,7 @@ through steps, and every step returns a fresh pair; the only bookkeeping
 beyond the pair is a depth counter that stops runaway recursion. The `|`
 combinator applies a step and deflects on an error, recording the
 skipped step on the error's trail; `*` forks a step over each element
-and keeps a per-element error as a value inside the result; `!|` is the
+and answers the first error an element answers [D103]; `!|` is the
 only combinator that fires on an error, and `|` and `*` step around it
 [D51]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
@@ -1779,7 +1779,9 @@ names win [D62]; the sister project's workspaces become nouns and its
 answers name the workspace they came from [D38]; a host's command is
 the language's with its noun as the first value [D37]; and the
 benchmark runs [D26], each run recorded with the frictions it met and
-the first screen written against them [D104], [D105], [D106], [D107].
+the first screen written against them [D104], [D105], [D106], [D107],
+and telling the language with the page of every kind saying why it is
+there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
 [D108] and [D109]: a parse error that names no marker of a comment
@@ -2124,3 +2126,4 @@ maintainer wants to explore it before it is fixed.
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
+[D110]: decisions/D110.md

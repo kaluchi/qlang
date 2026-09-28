@@ -1,6 +1,6 @@
-|~ The verbs of strings [D62]. Each resides on `::qlang/string`, the
-   kind whose module declares it [D72]: the comparisons, which compare
-   two strings by their code units in the one order [D65], the verbs
+|~ The verbs of strings. Each resides on `::qlang/string`, the
+   kind whose module declares it: the comparisons, which compare
+   two strings by their code units in the one order, the verbs
    that read a string, and `prepend` and `append`, under the contracts
    of their names on `::qlang/any`. ~|
 
@@ -84,7 +84,7 @@
 
 :lower
   |~~ The string with every letter in lower case, so two strings that
-      differ in case alone compare equal once lowered [D107].
+      differ in case alone compare equal once lowered.
 
       ~("Ann@Example.COM" | lower | eq "ann@example.com")
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
@@ -101,7 +101,7 @@
   ~~|
 
 :upper
-  |~~ The string with every letter in upper case [D107].
+  |~~ The string with every letter in upper case.
 
       ~("ok, go" | upper | eq "OK, GO")
   ~~|

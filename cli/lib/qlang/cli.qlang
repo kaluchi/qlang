@@ -1,8 +1,8 @@
 |~ The module of the command line, a noun of the core, `::qlang/cli`,
-   written short `::cli`: its verbs live on it [D92], and their
+   written short `::cli`: its verbs live on it, and their
    primitives, in `cli/src/io-operands.mjs`, `format-operands.mjs` and
    `parse-operands.mjs`, are plain functions over the values the head of
-   each verb checks [D80]; the refusals of a verb sit under it. ~|
+   each verb checks; the refusals of a verb sit under it. ~|
 
 ::qlang/cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
@@ -10,9 +10,9 @@
       a value as text, and `parseTjson` reads back what `tjson` wrote.
       A query runs on what stdin holds: JSON read as values, an object
       a map whose keys are keywords, whose answer is written as JSON,
-      where a value JSON has no form for is refused [D103]; text read
-      as a string, whose answer is written as its `print` [D96]; and
-      `| json` writes JSON text [D105]. Every query the command line
+      where a value JSON has no form for is refused; text read
+      as a string, whose answer is written as its `print`; and
+      `| json` writes JSON text. Every query the command line
       runs calls its verbs by their names, and `::cli | manifest` lists
       them.
   ~~|

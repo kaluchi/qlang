@@ -1,5 +1,5 @@
-|~ The verbs of docs [D95]. Each resides on `::qlang/doc`, the kind whose
-   module declares it [D72], and reads the doc's shape for the query. ~|
+|~ The verbs of docs. Each resides on `::qlang/doc`, the kind whose
+   module declares it, and reads the doc's shape for the query. ~|
 
 :content
   |~~ The text of the doc: its prose with each quote written where it
@@ -21,7 +21,7 @@
 
 :quotes
   |~~ The quotes of the doc in their order, which are its examples
-      [D99].
+     .
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | quotes | eq [~(add 1) ~(mul 2)])
       ~("x" | add 1 !| explain | doc | quotes | count | eq 1)
@@ -30,7 +30,7 @@
 
 :links
   |~~ The links of the doc in their order: each quote under a stack of
-      tags that holds `::link`, a query a reader follows [D108].
+      tags that holds `::link`, a query a reader follows.
 
       ~(|~~ see ::link~(::qlang | manifest) ~~| | links | count | eq 1)
       ~(|~~ ::link~(::qlang | manifest) ~~| | links | first | :l / | null | apply l | has ::number)

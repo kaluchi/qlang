@@ -53,7 +53,7 @@
 ::BuiltinImplOfVerbError
   |~~ The primitive of a built-in declared as a verb on its noun is
       called through the head of its declaration, which checks what it
-      takes [D72]; a descriptor a query assembled from data that names
+      takes; a descriptor a query assembled from data that names
       it is refused, and the verb is called by its name or its address.
 
       ~(
@@ -377,7 +377,7 @@
 ::FunctionValueLeakedToPrintError
   |~~ A function value reached the printer, where no literal spells
       it. A host declares its operand as a verb of the module its
-      locator returns, the primitive among the `impls` [D80]; a
+      locator returns, the primitive among the `impls`; a
       function bound straight into a session is what this tag
       reports.
   ~~|
@@ -407,7 +407,7 @@
   |~~ `:trail` on an error descriptor is the path of the error, a
       vector of stops the runtime writes, `{:step :subject :skipped}`,
       from the step where it arose to the step where it is read
-      [D85]. A literal or a re-lift that writes a value that is no
+     . A literal or a re-lift that writes a value that is no
       vector under `:trail` fires this error at mint time. A re-lift
       that writes the `:trail` it read resumes that path, and one that
       leaves it out starts a path at the step that lifts it.

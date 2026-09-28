@@ -1,6 +1,6 @@
-|~ The comparisons of keywords [D65]. Each resides on
+|~ The comparisons of keywords. Each resides on
    `::qlang/keyword`, the kind whose module declares it, and compares
-   two keywords by their names in the one order [D72]. ~|
+   two keywords by their names in the one order. ~|
 
 :gt
   |~~ Whether the subject's name follows the name of the keyword the

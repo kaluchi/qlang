@@ -395,6 +395,32 @@ function anchorDrift() {
   return violations;
 }
 
+// ── (7) Decisions kept out of the catalog ──────────────────────
+//
+// A page of the catalog is read by a reader of the language, which
+// follows what the page names by a query; a decision of the process is
+// no page of the language, so a reference to one is a link that leads
+// nowhere, and the reason of a sentence lives with its decision [D110].
+
+const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
+
+function catalogFiles(dir) {
+  return readdirSync(join(repoRoot, dir), { withFileTypes: true }).flatMap(entry =>
+    entry.isDirectory() ? catalogFiles(join(dir, entry.name))
+      : entry.name.endsWith('.qlang') ? [join(dir, entry.name)] : []);
+}
+
+function decisionsInCatalog() {
+  const violations = [];
+  for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
+    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      const reference = line.match(/\[D\d+\]/);
+      if (reference) violations.push({ file: file.replace(/\\/g, '/'), line: index + 1, reference: reference[0] });
+    });
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -403,13 +429,15 @@ const errorSuffixViolations = errorSuffixDrift();
 const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
 const anchors = anchorDrift();
+const catalogDecisions = decisionsInCatalog();
 
 if (forbidden.length === 0
     && driftMissing.length === 0
     && errorSuffixViolations.length === 0
     && proseTallies.length === 0
     && workspaceRanges.length === 0
-    && anchors.length === 0) {
+    && anchors.length === 0
+    && catalogDecisions.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -457,5 +485,10 @@ if (anchors.length > 0) {
     process.stdout.write(`  ${v.file}  \`${v.anchor}\` ${v.problem}\n`);
   }
   process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [D89].\n');
+}
+if (catalogDecisions.length > 0) {
+  process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
+  for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
+  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D110].\n');
 }
 process.exit(1);

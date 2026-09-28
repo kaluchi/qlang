@@ -1,11 +1,11 @@
-|~ The verbs of explanations [D98]. Each resides on
+|~ The verbs of explanations. Each resides on
    `::qlang/explanation`, the kind of what `explain` answers: the page
-   `docs` reads for a value and the value itself [D100]. ~|
+   `docs` reads for a value and the value itself. ~|
 
 :doc
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
-      site [D7]; null for a declaration without one.
+      site; null for a declaration without one.
 
       ~("x" | add 1 !| explain | doc | eq (::AddLeftNotNumberError | docs | first))
       ~(42 | explain | doc | eq (::number | docs | first))
@@ -14,7 +14,7 @@
 
 :value
   |~~ The value the explanation explains; an error among them raised, as
-      it arrived before `!|` opened it [D101].
+      it arrived before `!|` opened it.
 
       ~(42 | explain | value | eq 42)
       ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)

@@ -1,7 +1,7 @@
-|~ The verbs of maps [D62]. Each resides on `::qlang/map`, the kind whose
+|~ The verbs of maps. Each resides on `::qlang/map`, the kind whose
    module declares it, under the contract of its name on `::qlang/any`,
-   whose page and laws it answers [D72]. A map's elements are its
-   values, and its keys are the shape that travels with them [D15]: a
+   whose page and laws it answers. A map's elements are its
+   values, and its keys are the shape that travels with them: a
    verb that keeps the kind keeps the keys of the entries it keeps. ~|
 
 :count
@@ -92,9 +92,11 @@
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
 
 :drop
-  |~~ The entries after the first count.
+  |~~ The entries after the first count, in the order of the map; a
+      key leaves a map by `minus`, which takes the keys to leave out.
 
       ~({:a 1 :b 2 :c 3} | drop 2 | eq {:c 3})
+      ~({:a 1 :b 2 :c 3} | minus #[:b] | eq {:a 1 :c 3})
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
 
@@ -213,17 +215,17 @@
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
 
 :raise
-  |~~ Puts the map on the fail track as an error [D97], the act the
+  |~~ Puts the map on the fail track as an error, the act the
       `!{…}` literal writes with its bang. `map | raise` raises the
       subject; `raise map` reads the map against the subject, its first
-      modifier being its subject [D72]. `|` and `*` step around the
+      modifier being its subject. `|` and `*` step around the
       raised error into its trail, and `!|` opens it to the error
-      itself. Its tag is the one its value shows [D86]: the outermost tag
+      itself. Its tag is the one its value shows: the outermost tag
       over the map, the site's of an opened error among them, then the
       one the map carries, then a `:kind` that names a tag, then
       `::error`; so an opened error raised again is itself, and a step
       that lays a tag over it renames the error. A guard raises an
-      error of its own tag when a value fails its check [D102].
+      error of its own tag when a value fails its check.
 
       ~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
       ~(raise {:kind :oops} !| /kind | eq :oops)

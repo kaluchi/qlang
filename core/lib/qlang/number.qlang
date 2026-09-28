@@ -1,7 +1,7 @@
-|~ The verbs of numbers [D62]. Each resides on `::qlang/number`, the
+|~ The verbs of numbers. Each resides on `::qlang/number`, the
    kind whose module declares it, so its subject is a number, and its
    head is its declaration, which the runtime executes before the
-   primitive runs [D72]. The refusals of a verb sit under it: the head
+   primitive runs. The refusals of a verb sit under it: the head
    raises the one its site declares at the place it checks, and the
    primitive the rest. ~|
 

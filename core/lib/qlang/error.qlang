@@ -1,11 +1,11 @@
-|~ The verbs of errors [D97]. Each resides on `::qlang/error`, the kind
+|~ The verbs of errors. Each resides on `::qlang/error`, the kind
    every error is a value of: the error `!|` opens is `::error{…}`, or
    the tag of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a verb declared here reaches every
    error. ~|
 
 :trail
-  |~~ The path of the error [D85]: each step it passed, from the one
+  |~~ The path of the error: each step it passed, from the one
       that raised it, with the subject that step met and the steps
       skipped after it.
 

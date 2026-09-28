@@ -1,6 +1,6 @@
-|~ The verbs of tagged values [D62]. Each resides on `::qlang/tagged`,
+|~ The verbs of tagged values. Each resides on `::qlang/tagged`,
    the kind of every value under a tag, which the walk of a tagged value
-   reaches after its own tag [D72], [D78]. ~|
+   reaches after its own tag. ~|
 
 :payload
   |~~ The value the tag holds, the reverse of `tag`: `value | tag ::Foo
@@ -29,7 +29,7 @@
       against the payload as `apply` runs it, a fork whose declarations
       stay inside, and the answer returns the subject's kind, minted
       back under its tag, whose constructor runs once, at the rewrap
-      [D41], [D67]. The steps between may break the tag's invariant,
+     . The steps between may break the tag's invariant,
       since an invariant holds of the result: a set's constructor
       normalizes the vector the edit answers, where a record's refuses
       it. An error the edit answers passes as it is, and a deeper stack

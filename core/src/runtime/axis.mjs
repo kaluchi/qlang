@@ -33,6 +33,7 @@ import {
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
+import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
 // `bindingName` (a value-namespace identifier or a `::`-prefixed
 // tag-binding reference) is an identifier-shaped string at the JS
@@ -109,7 +110,14 @@ function nameOf(subject) {
 // What a refusal of an axis holds: the name it read and the addresses
 // where the verbs of that name live [D62].
 export function refusalOf(env, subject) {
-  return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)) };
+  return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
+}
+
+// The names near the one a subject reads, tags for a tag name and the
+// names of the scope for a keyword [D118].
+function nearestOfSubject(env, subject) {
+  if (isTagKeyword(subject)) return nearestTagNames(env, subject.name);
+  return isKeyword(subject) ? nearestNames(env, subject.name) : Object.freeze([]);
 }
 
 // The record a subject names, the one record every axis and

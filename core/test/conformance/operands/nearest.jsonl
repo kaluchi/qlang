@@ -1,4 +1,4 @@
-{"name":"a-longer-guess-meets-the-name-it-begins-with","query":"5 | multiply 2 !| /nearest | has :mul","expect":"true","decision":"D118","target":true,"now":"false"}
+{"name":"a-longer-guess-meets-the-name-it-begins-with","query":"5 | multiply 2 !| /nearest | has :mul","expect":"true","decision":"D118"}
 {"name":"a-slip-of-the-hand-meets-its-name","query":"5 | ad 2 !| /nearest | has :add","expect":"true","decision":"D118"}
-{"name":"an-axis-refusal-names-the-tags-near-its-name","query":"::str | spec !| /nearest | has ::string","expect":"true","decision":"D118","target":true,"now":"::ProjectionKeyNotInMapError"}
-{"name":"a-docs-refusal-names-the-tags-near-its-name","query":"::strng | docs !| /nearest | has ::string","expect":"true","decision":"D118","target":true,"now":"::ProjectionKeyNotInMapError"}
+{"name":"an-axis-refusal-names-the-tags-near-its-name","query":"::str | spec !| /nearest | has ::string","expect":"true","decision":"D118"}
+{"name":"a-docs-refusal-names-the-tags-near-its-name","query":"::strng | docs !| /nearest | has ::string","expect":"true","decision":"D118"}

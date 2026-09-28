@@ -1,0 +1,169 @@
+{
+  "id": "R10",
+  "date": "2026-09-29",
+  "model": "claude-haiku-4-5",
+  "screen": "8ddd07f4f5da",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7, L1–L10 and N1–N4, and the questions of understanding U1–U5, run on a smaller model",
+  "calls": 69,
+  "toolUses": 80,
+  "tokens": 92856,
+  "minutes": 9,
+  "tasks": {
+    "T1": {
+      "calls": 10,
+      "solved": true,
+      "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name"
+    },
+    "T2": {
+      "calls": 3,
+      "solved": true,
+      "query": "/data * /email * lower | distinct | count"
+    },
+    "T3": {
+      "calls": 3,
+      "solved": true,
+      "query": "groupBy ~(/status | keyword) * count"
+    },
+    "T4": {
+      "calls": 2,
+      "solved": true,
+      "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)"
+    },
+    "T5": {
+      "calls": 7,
+      "solved": true,
+      "query": "lines | filter ~(contains \"ERROR\") * (split \" ERROR \" | at 1) | distinct | json"
+    },
+    "T6": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * {:id /id :tagCount (/tags | count)}"
+    },
+    "T7": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data | filter ~(/tags | filter ~(eq \"ops\") | count | gt 0) * /email"
+    },
+    "L1": {
+      "calls": 10,
+      "solved": true,
+      "query": "{:triple ~(mul 3)} | use | [1 2 3] * apply triple"
+    },
+    "L2": {
+      "calls": 13,
+      "solved": false
+    },
+    "L3": {
+      "calls": 2,
+      "solved": true,
+      "query": ":code ~(sub 3 | mul 4) | [(code | count) (10 | apply code)]"
+    },
+    "L4": {
+      "calls": 1,
+      "solved": true,
+      "query": "\"a\" | mul 2 !| [type /actualType]"
+    },
+    "L5": {
+      "calls": 1,
+      "solved": true,
+      "query": "::string/startsWith"
+    },
+    "L6": {
+      "calls": 1,
+      "solved": true,
+      "query": "[7 8] | tag ::Inner | tag ::Outer | [type (payload | payload | at 1)]"
+    },
+    "L7": {
+      "calls": 2,
+      "solved": true,
+      "query": "[10 -1 \"y\"] * (add 5 !| null)"
+    },
+    "L8": {
+      "calls": 3,
+      "solved": true,
+      "query": "(|~~ a ~(eq 2) b ~(gt 1) c ~~|) | laws | count"
+    },
+    "L9": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec/groupBy | runLaws * /ok | distinct | eq #[true]"
+    },
+    "L10": {
+      "calls": 1,
+      "solved": true,
+      "query": "{:a 1 :b 2 :c 3} | minus #[:b]"
+    },
+    "N1": {
+      "calls": 1,
+      "solved": true,
+      "query": "::qlang | manifest * (doc | content)"
+    },
+    "N2": {
+      "calls": 1,
+      "solved": true,
+      "query": "::string | spec | /verbs * [/ (/ | doc | content)]"
+    },
+    "N3": {
+      "calls": 3,
+      "solved": false,
+      "query": "::qlang | manifest | filter ~(doc | links * (parse | contains \"error\") | count | gt 0)"
+    },
+    "N4": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec | spec | /verbs * (doc | laws | count) | sum"
+    }
+  },
+  "understanding": "U1, U2, U4 and U5 answered in the terms of the pages; U3 half: the walk through the kinds named, the verb of the scope confused with a keyword. The calls per task are read from a running count the run reported, the exploration of T1 and L1 inside them.",
+  "frictions": [
+    {
+      "id": "F1",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "filter /role eq \"admin\"",
+      "expected": "a filter by a field",
+      "got": "VerbModifiersBeyondSlotsError; the quote found on the page of filter"
+    },
+    {
+      "id": "F2",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "… | * /name",
+      "expected": "a distribute after a pipe",
+      "got": "ParseError whose sentence names `a * b`"
+    },
+    {
+      "id": "F3",
+      "task": "T7",
+      "kind": "missing-verb",
+      "query": "/tags | contains \"ops\"",
+      "expected": "membership in a vector",
+      "got": "ContainsSubjectNotStringError; the page points to `has`, which the run did not follow"
+    },
+    {
+      "id": "F4",
+      "task": "L10",
+      "kind": "syntax",
+      "query": "#{:b}",
+      "expected": "a set",
+      "got": "ParseError listing every token",
+      "repairedBy": "D127"
+    },
+    {
+      "id": "F5",
+      "task": "L2",
+      "kind": "undocumented",
+      "query": "::Small(3) | tag ::Small",
+      "expected": "a kind that checks its values",
+      "got": "values under a tag that check nothing; the page of verbs, which declares a kind, was not read"
+    },
+    {
+      "id": "F6",
+      "task": "N3",
+      "kind": "wording",
+      "query": "doc | links * (parse | contains \"error\")",
+      "expected": "the pages that link to the page of errors",
+      "got": "a set of 27 kinds: the text of a link read in place of the page it opens"
+    }
+  ]
+}

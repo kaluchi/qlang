@@ -6,6 +6,7 @@ of the language core plus tooling workspaces.
 ```
 qlang/                  ← this repo
 ├── core/               @kaluchi/qlang-core   — language core, pure JS, zero runtime deps
+├── cli/                @kaluchi/qlang-cli    — command line and REPL, `qlang` and `ql`
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
 ├── vscode/             qlang-vscode          — VS Code Marketplace package
@@ -22,9 +23,9 @@ every workspace.
 
 ```
 npm install                              # symlinks every workspace via npm workspaces
-npm run build                            # generate parser + core catalog (core workspace)
+npm run build                            # generate the parser from core/src/grammar.peggy
 npm test                                 # run every workspace's test suite
-npm run test:coverage                    # verify 100/100/100/100 thresholds on the core
+npm run ci                               # every gate a push must pass
 ```
 
 ## Documentation
@@ -40,9 +41,9 @@ whose laws run. A host embedding the core reads
 node scripts/release.mjs <version>
 ```
 
-Bumps `@kaluchi/qlang-core`, rebuilds, runs every workspace test, tags,
-and pushes. The Deploy workflow takes over from the pushed tag —
-publishes to npm and creates the GitHub Release.
+Bumps every workspace and the sibling ranges, rebuilds, runs the tests,
+commits, pushes, waits for CI and tags; the Deploy workflow publishes
+from the pushed tag to npm and creates the GitHub Release.
 
 ## License
 

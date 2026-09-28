@@ -16,14 +16,14 @@
 // first time it runs (`astOfQuote`).
 
 import { parse } from './parse.mjs';
-import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
   keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
   makeTaggedInstance, makeErrorLiteralStep,
   isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
   isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
-  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
+  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG,
+  canonicalKeywordLiteral
 } from './types.mjs';
 
 // The steps of code that stand in a pipeline alone, those that stand

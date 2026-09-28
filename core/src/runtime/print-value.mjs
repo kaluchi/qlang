@@ -2,7 +2,6 @@
 // part a kind of a module prints its own way taken from that kind before
 // the forms of the core write the rest [D96].
 
-import { canonicalKeywordLiteral } from '../keyword-literal.mjs';
 import { printQuoteSource, docText } from '../quote.mjs';
 import {
   isVec,
@@ -10,7 +9,8 @@ import {
   isErrorValue, ERROR_TAG,
   describeType,
   finiteNumberOrLift,
-  TAG_HEADER_SYMBOL
+  TAG_HEADER_SYMBOL,
+  canonicalKeywordLiteral
 } from '../types.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the

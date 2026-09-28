@@ -13,11 +13,11 @@
 
 import {
   isVec, isQMap, isQuote, isQSet, isDoc, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTagKeyword, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL
+  makeTaggedInstance, makeTagKeyword, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
+  canonicalKeywordLiteral
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { quoteOfSource } from './quote.mjs';
-import { canonicalKeywordLiteral } from './keyword-literal.mjs';
 
 const ELISION_TAG = makeTagKeyword('elision');
 const HEAD_CHARACTERS = 40;

@@ -117,6 +117,13 @@ function treeOf(candidate) {
   }
 }
 
+// Whether a name reads back as the bare keyword `:name`, the form its
+// literal takes when the parser reads that text as the keyword itself.
+export function readsAsBareKeyword(name) {
+  const tree = treeOf(':' + name);
+  return tree?.type === 'Keyword' && tree.name === name;
+}
+
 // The shortest run of closers that completes a source, with the tree the
 // completed source parses to, or null when none within CLOSER_DEPTH does.
 function completionOf(source) {

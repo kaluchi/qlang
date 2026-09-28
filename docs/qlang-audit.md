@@ -1497,8 +1497,7 @@ their factories, the
 registry of throw sites, the stamping passes and the converter's
 tables; the primitive registry with its sealing; the effect marker and its checks; the character
 scanner of doc text; the housekeeping keys of the environment; the
-resolver of module directories; the call to the
-parser from outside `parse`; the error prose of the catalog that
+resolver of module directories; the error prose of the catalog that
 restates the facts; the drift tests.
 
 The documents at the finish are few. This audit and the entrypoint
@@ -1564,8 +1563,8 @@ their factories, the registry of throw sites and the drift tests leave
 is what it exposes, so helpers stay in their module [D63], with mounted
 namespaces, each a subtree answered by its provider [D24], [D36], and
 the rest of the rule of collisions, a verb and a kind joined only by
-whoever owns one of them [D23]; the examples on one plane, the keyword's form
-from the parser, and the editor's grammar generated or reduced; and the
+whoever owns one of them [D23]; the examples on one plane, and the
+editor's grammar generated or reduced; and the
 entrypoint of the work in its first version, the command that measures
 the tree and prints the state of the work as a dark cockpit, whose
 design is the entrypoint document's.
@@ -1573,7 +1572,7 @@ design is the entrypoint document's.
 Its answers are the targets of [D115] in the conformance suite, and
 those [D6], [D33] and [D46] leave when they are decided. Beside them:
 no factory-declared error class remains; no operand contract is spelled
-outside the catalog; no parser call exists outside `parse`; one query shows
+outside the catalog; one query shows
 every definition of a name and which one wins; a module's value is its
 surface, so the sister project's helpers leave its client's `env`; and
 the environment holds no key of the runtime's own.

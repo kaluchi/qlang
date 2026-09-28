@@ -9,10 +9,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
-  bindingNamesVisibleAt,
-  astNodeSpan,
-  astNodeContainsOffset,
-  triviaBetweenAstNodes
+  bindingNamesVisibleAt
 } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
@@ -336,28 +333,6 @@ describe('bindingNamesVisibleAt', () => {
   });
 });
 
-describe('astNodeSpan and astNodeContainsOffset', () => {
-  it('astNodeSpan equals end.offset - start.offset', () => {
-    const ast = parse('42');
-    expect(astNodeSpan(ast)).toBe(2);
-  });
-
-  it('astNodeSpan returns +Infinity for nodes without location', () => {
-    expect(astNodeSpan({ type: 'Synth' })).toBe(Number.POSITIVE_INFINITY);
-  });
-
-  it('astNodeContainsOffset is half-open [start, end)', () => {
-    const ast = parse('hello');
-    expect(astNodeContainsOffset(ast, 0)).toBe(true);
-    expect(astNodeContainsOffset(ast, 4)).toBe(true);
-    expect(astNodeContainsOffset(ast, 5)).toBe(false); // end excluded
-  });
-
-  it('astNodeContainsOffset returns false for nodes without location', () => {
-    expect(astNodeContainsOffset({ type: 'Synth' }, 0)).toBe(false);
-  });
-});
-
 describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
   it('findAstNodeAtOffset skips synthesized nodes that lack a location', () => {
     // Build a synth Pipeline whose direct child is a real parsed
@@ -385,23 +360,6 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 });
-
-describe('triviaBetweenAstNodes', () => {
-  it('returns the source slice between two adjacent steps', () => {
-    const source = '42  |  count';
-    //              012345678901
-    const ast = parse(source);
-    const head = ast.steps[0];
-    const tail = ast.steps[1].step;
-    const trivia = triviaBetweenAstNodes(head, tail, ast);
-    expect(trivia).toBe('  |  ');
-  });
-
-  it('returns empty string when nodes lack location', () => {
-    expect(triviaBetweenAstNodes({}, {}, { source: 'x' })).toBe('');
-  });
-});
-
 
 describe('astChildrenOf on a stepless Pipeline', () => {
   it('yields no children', () => {

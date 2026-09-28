@@ -340,30 +340,3 @@ function positionToQlangMap(pos) {
   return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
 }
 
-// astNodeSpan(node) — number of UTF-16 code units the node spans
-// in the source. Used as the narrowest-wins tiebreaker inside
-// findAstNodeAtOffset.
-export function astNodeSpan(node) {
-  if (!node.location) return Number.POSITIVE_INFINITY;
-  return node.location.end.offset - node.location.start.offset;
-}
-
-// astNodeContainsOffset(node, offset) — true if `offset` falls
-// inside the node's source range.
-export function astNodeContainsOffset(node, offset) {
-  if (!node.location) return false;
-  return node.location.start.offset <= offset && offset < node.location.end.offset;
-}
-
-// triviaBetweenAstNodes(nodeA, nodeB, ast) — returns the source
-// slice between two adjacent AST nodes (whitespace, punctuation,
-// plain comments). Lets a qlang formatter preserve original
-// spacing without the grammar having to capture trivia tokens
-// explicitly: as long as both nodes carry .location and the AST
-// root carries .source, the original characters between them are
-// recoverable on demand.
-export function triviaBetweenAstNodes(nodeA, nodeB, ast) {
-  if (!nodeA.location || !nodeB.location || !ast.source) return '';
-  return ast.source.substring(nodeA.location.end.offset, nodeB.location.start.offset);
-}
-

@@ -125,6 +125,12 @@ export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
 }
 
+// A descriptor, the map under `::builtin` that declares a built-in verb
+// or a kind of the core.
+export function isBuiltinDescriptor(v) {
+  return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
+}
+
 // A value under a tag of its own.
 export function isTaggedInstance(v) {
   return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;

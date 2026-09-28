@@ -956,8 +956,8 @@
       refusal answers the facts of its site, `:category`, `:operand`,
       `:position` and `:expectedType`, and an error reads the facts
       of its tag. A kind answers its constructor, `:impl`, its
-      refusals and its verbs; the loader's `use` its descriptor
-     ; any other binding the value its record holds. Any other
+      refusals and its verbs; the loader's `use` its descriptor;
+      any other binding the value its record holds. Any other
       value reads the declaration of its kind.
 
       ~(::number/add | spec | /subject | eq ::number)

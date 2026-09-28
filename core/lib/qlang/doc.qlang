@@ -20,8 +20,7 @@
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docSegments})
 
 :quotes
-  |~~ The quotes of the doc in their order, which are its examples
-     .
+  |~~ The quotes of the doc in their order, which are its examples.
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | quotes | eq [~(add 1) ~(mul 2)])
       ~("x" | add 1 !| explain | doc | quotes | count | eq 1)

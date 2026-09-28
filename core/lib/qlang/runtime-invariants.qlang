@@ -406,8 +406,8 @@
 ::ErrorTrailNotVecError
   |~~ `:trail` on an error descriptor is the path of the error, a
       vector of stops the runtime writes, `{:step :subject :skipped}`,
-      from the step where it arose to the step where it is read
-     . A literal or a re-lift that writes a value that is no
+      from the step where it arose to the step where it is read.
+      A literal or a re-lift that writes a value that is no
       vector under `:trail` fires this error at mint time. A re-lift
       that writes the `:trail` it read resumes that path, and one that
       leaves it out starts a path at the step that lifts it.

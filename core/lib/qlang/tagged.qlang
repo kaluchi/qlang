@@ -28,8 +28,8 @@
   |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
       against the payload as `apply` runs it, a fork whose declarations
       stay inside, and the answer returns the subject's kind, minted
-      back under its tag, whose constructor runs once, at the rewrap
-     . The steps between may break the tag's invariant,
+      back under its tag, whose constructor runs once, at the rewrap.
+      The steps between may break the tag's invariant,
       since an invariant holds of the result: a set's constructor
       normalizes the vector the edit answers, where a record's refuses
       it. An error the edit answers passes as it is, and a deeper stack

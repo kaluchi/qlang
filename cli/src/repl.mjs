@@ -32,6 +32,7 @@
 import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printAnswer,
+  elideAnswer,
   isErrorValue,
   langRuntime
 } from '@kaluchi/qlang-core';
@@ -75,7 +76,7 @@ Bindings introduced via BindStep (\`:name body\`, the freeze
 session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null } = {}) {
   const builtinNames = new Set(
     [...(await langRuntime()).keys()]
   );
@@ -150,18 +151,22 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite) {
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic);
+      await writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic, budget);
       lineEditor.prompt();
     }
   });
 }
 
-async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite) {
+// An answer prints within the budget, what does not fit given way to
+// markers that read it [D109].
+async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
   // Parse failures and runtime fail-track errors both surface as
   // `isErrorValue(cellEntry.result)` — session.evalCell lifts
   // ParseError through `errorFromParse` so the same structured
   // `::Tag!{…}` print path covers both, the path of the error in its
   // `:trail` [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
-  sink(highlightAnsi(await printAnswer(cellEntry.result, cellEntry.envAfterCell), builtinNames) + '\n');
+  const shown = budget === null ? cellEntry.result
+    : elideAnswer(cellEntry.result, isErrorValue(cellEntry.result) ? budget.error : budget.value);
+  sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
 }

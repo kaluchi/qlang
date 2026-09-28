@@ -57,7 +57,7 @@ async function maybePaint(text, shouldColorize) {
 }
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
-  const { resolvedFormat, didExplicitStdoutEffect, shouldColorize } = outcomeOpts;
+  const { resolvedFormat, didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
 
   if (cellEntry.error !== null) {
     // Parse failures land both as a host-error marker (so the exit
@@ -78,7 +78,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (didExplicitStdoutEffect) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
-  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell);
+  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell, budget);
   // Only the qlang-form output (the print, used when the input
   // format is `raw`) gets colorized — JSON output stays raw so
   // downstream readers (jq, et al.) see the structured payload

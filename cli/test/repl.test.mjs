@@ -197,3 +197,21 @@ describe('runRepl — @in / @out behaviour', () => {
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
   });
 });
+
+// A cell prints within the budget of the command line, an error within
+// its own [D109].
+describe('runRepl — the budget of an answer', () => {
+  const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
+
+  it('prints a value past its budget with a marker that reads the rest', async () => {
+    const replHarness = captureRepl(`${forty}\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: { value: 80, error: 200 } });
+    expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
+  });
+
+  it('prints an error within the budget of an error', async () => {
+    const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: { value: 4000, error: 200 } });
+    expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/');
+  });
+});

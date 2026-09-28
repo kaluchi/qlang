@@ -109,3 +109,31 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   });
 });
 
+
+// An answer prints within the budget of the command line, and the JSON
+// channel cuts an error alone [D109].
+describe('encodeSuccessValueForFormat — the budget of the answer', () => {
+  const budget = { value: 80, error: 200 };
+  const forty = Array.from({ length: 40 }, (_, index) => index + 1);
+
+  it('prints a value past its budget with a marker that reads the rest', async () => {
+    const text = await encodeSuccessValueForFormat(forty, 'raw', await langRuntime(), budget);
+    expect(text).toContain('::elision{');
+    expect(text).toContain(':read ~(drop ');
+  });
+
+  it('writes JSON data whole, whatever its size', async () => {
+    expect(JSON.parse(await encodeSuccessValueForFormat(forty, 'json', undefined, budget))).toEqual(forty);
+  });
+
+  it('cuts an error under JSON within the budget of an error', async () => {
+    const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
+    const text = await encodeSuccessValueForFormat(failing, 'json', undefined, budget);
+    expect(text).toContain('"$tag": "elision"');
+  });
+
+  it('writes the answer whole under a lifted budget', async () => {
+    const text = await encodeSuccessValueForFormat(forty, 'raw', await langRuntime(), null);
+    expect(text).not.toContain('::elision');
+  });
+});

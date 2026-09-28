@@ -633,6 +633,22 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/print})
 
+:elide
+  |~~ The value within a budget of characters of its print, what does
+      not fit given way to `::elision` markers [D109]: the largest part
+      beneath the top gives way first, a vector keeping the first half of
+      its elements and ending with a marker of the rest, a string or a map
+      giving way whole. A marker's `:read` applied to the value `elide`
+      took answers the part left out, and a value whose print fits is
+      answered as it is. The command line applies it to the answer it
+      prints.
+
+      ~([1 2] | elide 100 | eq [1 2])
+      ~({:s "a long line of text to leave out" :n 1} | elide 40 | /s | type | eq ::elision)
+      ~({:s "a long line of text to leave out" :n 1} | :v / | elide 40 | /s/read | :r / | v | apply r | eq (v | /s))
+  ~~|
+  ::verb~(:budget ::number | ::builtin{:impl :qlang/prim/elide})
+
 :if
   |~~ The branch the condition chooses, run against the subject: `if
       cond ~(then) ~(else)`. The condition is a boolean computed at the

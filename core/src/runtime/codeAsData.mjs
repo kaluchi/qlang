@@ -9,6 +9,7 @@ import { isQuote, isVerb, isErrorValue, isValueClass, bindingValueOf, TAG_HEADER
 import { declareModifierError } from '../operand-errors.mjs';
 import { quoteOfSource, printQuoteSource, docText } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
+import { elide } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
 import { addressedVerb, residenceOnSubject } from './nouns.mjs';
@@ -34,6 +35,7 @@ bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
 bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
 bindPrim('docLinks', doc => Object.freeze(doc.filter(isLink)));
+bindPrim('elide', (subject, budget) => elide(subject, budget));
 
 // A segment a reader follows: a quote under a stack of tags that holds
 // `::link`, a host's tag over it among them [D108].

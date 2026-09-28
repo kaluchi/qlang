@@ -64,7 +64,10 @@
       Descending: `sort | reverse`. A key leaves a map by `minus #[:k]`,
       `drop` counting entries in their order. A string keys a group by
       `keyword`. Case: `lower`, `upper`. Membership: `has` on a vector, a
-      set or a map.
+      set or a map. A view within a budget of characters: `elide 400`;
+      an answer too long for its host ends in `::elision` markers, and
+      the `:read` of a marker, written after the query, answers the part
+      left out.
 
       ~([{:k 1} {:k 2}] * /k | eq [1 2])
       ~([1 2] * (add 1 | mul 2) | eq [4 6])
@@ -86,6 +89,7 @@
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
       ~(["ops" "db"] | has "ops")
       ~(::vec/sort | runExamples * /ok | every ~(eq true))
+      ~([1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40] | :v / | elide 60 | last | /read | :r / | v | apply r | count | gt 0)
   ~~|
 
 ::qlang/any
@@ -325,6 +329,19 @@
       ~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
       ~("x" | add 1 !| if (type | eq ::AddLeftNotNumberError) ~(0) ~(raise) | eq 0)
       ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::AddLeftNotNumberError)
+  ~~|
+
+::elision
+  |~~ The kind of the marker of what a view left out [D21], [D109]: a
+      map of `:size`, the elements, the entries or the characters it
+      stands for, and `:read`, the quote that applied to the value the
+      view took answers the part left out, with `:head`, the first
+      characters, when it stands for a string. `elide` writes it, and a
+      host writes it in the answers it prints; a reader continues its
+      query by `:read` to see the rest.
+
+      ~(::elision | docs | count | eq 1)
+      ~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
   ~~|
 
 ::link

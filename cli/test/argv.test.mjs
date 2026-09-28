@@ -3,7 +3,7 @@
 // branch fires.
 
 import { describe, it, expect } from 'vitest';
-import { parseArgv, HELP_TEXT, VERSION_LINE } from '../src/argv.mjs';
+import { parseArgv, HELP_TEXT, VERSION_LINE, ANSWER_BUDGET } from '../src/argv.mjs';
 
 describe('parseArgv', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
@@ -29,11 +29,11 @@ describe('parseArgv', () => {
   });
 
   it('recognises -i as the short repl flag', () => {
-    expect(parseArgv(['-i'])).toEqual({ kind: 'repl' });
+    expect(parseArgv(['-i'])).toEqual({ kind: 'repl', budget: ANSWER_BUDGET });
   });
 
   it('recognises --repl as the long repl flag', () => {
-    expect(parseArgv(['--repl'])).toEqual({ kind: 'repl' });
+    expect(parseArgv(['--repl'])).toEqual({ kind: 'repl', budget: ANSWER_BUDGET });
   });
 
   it('returns an evalQuery cliInvocation carrying the first positional argument and auto inputFormat', () => {
@@ -42,7 +42,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: '[1 2 3] | count',
       inputFormat: 'auto',
-      colorMode: 'auto'
+      colorMode: 'auto',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -52,7 +53,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: '1 | add 2',
       inputFormat: 'auto',
-      colorMode: 'auto'
+      colorMode: 'auto',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -61,7 +63,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: '/key',
       inputFormat: 'json',
-      colorMode: 'auto'
+      colorMode: 'auto',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -70,7 +73,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: 'append " world"',
       inputFormat: 'raw',
-      colorMode: 'auto'
+      colorMode: 'auto',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -79,7 +83,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: '42',
       inputFormat: 'auto',
-      colorMode: 'always'
+      colorMode: 'always',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -88,7 +93,8 @@ describe('parseArgv', () => {
       kind: 'evalQuery',
       queryText: '42',
       inputFormat: 'auto',
-      colorMode: 'never'
+      colorMode: 'never',
+      budget: ANSWER_BUDGET
     });
   });
 
@@ -96,6 +102,17 @@ describe('parseArgv', () => {
     const result = parseArgv(['--color=rainbow', '42']);
     expect(result.kind).toBe('usageError');
     expect(result.message).toMatch(/--color expects auto \/ always \/ never/);
+  });
+
+  it('parses --full as the lifted budget of the answer [D109]', () => {
+    expect(parseArgv(['--full', '42'])).toEqual({
+      kind: 'evalQuery',
+      queryText: '42',
+      inputFormat: 'auto',
+      colorMode: 'auto',
+      budget: null
+    });
+    expect(parseArgv(['--full', '-i'])).toEqual({ kind: 'repl', budget: null });
   });
 
   it('reports a usageError when only an input-mode flag is supplied without a query', () => {

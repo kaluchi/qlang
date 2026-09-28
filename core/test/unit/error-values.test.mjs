@@ -1,10 +1,9 @@
-// Tests for error value type and its trail, deepEqual, codec, error-convert.mjs.
+// Tests for error value type and its trail, deepEqual, the literal, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
 import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, describeType, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
-import { toTaggedJSON, fromTaggedJSON } from '../../src/codec.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { QlangTypeError, UnresolvedIdentifierError } from '../../src/errors.mjs';
 import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
@@ -135,65 +134,30 @@ describe('deepEqual for error values', () => {
   });
 });
 
-// ── codec ───────────────────────────────────────────────────────
+// ── the literal ─────────────────────────────────────────────────
 
-describe('codec round-trips error values through tagged JSON', () => {
-  it('round-trips an error value with tag preserved on the envelope', () => {
-    const tag = makeTagKeyword('Oops');
-    const descriptor = new Map([['message', 'something went wrong']]);
-    const errorVal = makeErrorValue(tag, descriptor);
-    const tagged = toTaggedJSON(errorVal);
-    expect(tagged.$error.$tag).toBe('Oops');
-    const restored = fromTaggedJSON(tagged);
-    expect(isErrorValue(restored)).toBe(true);
-    expect(deepEqual(errorVal, restored)).toBe(true);
-    expect(restored.tag.name).toBe('Oops');
-  });
-});
-
-describe('codec round-trips TaggedInstance through $tagged envelope', () => {
-  // The TaggedInstance encoder envelopes identity on `$tag` and
-  // recurses on the payload, so every overlay shape (Vec / Set /
-  // Map) plus the opaque wrap-object scalar shape survives a
-  // `JSON.stringify` round-trip. Each shape exercises a distinct
-  // encoder branch — listed compactly here so coverage hits the
-  // full quartet.
-  it('round-trips tagged Vec (overlay on Array)', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]);
-    const envelope = toTaggedJSON(tagged);
-    expect(envelope.$tagged.$tag).toBe('Box');
-    const restored = fromTaggedJSON(envelope);
-    expect(deepEqual(restored, tagged)).toBe(true);
-  });
-
-  it('round-trips a tag over a set, the set its payload', async () => {
+describe('the literal reads back error values and tagged instances', () => {
+  // `printValue` writes the literal the parser reads, so every value
+  // the host builds survives the trip; each shape exercises a distinct
+  // branch of the printer.
+  it('reads back an error value, and a tag over each payload shape', async () => {
     const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Keys'), makeSet([keyword('b'), keyword('a')]));
-    const envelope = toTaggedJSON(tagged);
-    expect(envelope.$tagged.$tag).toBe('Keys');
-    const restored = fromTaggedJSON(envelope);
-    expect(deepEqual(restored, tagged)).toBe(true);
-  });
-
-  it('round-trips tagged Map (overlay on Map)', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']]));
-    const envelope = toTaggedJSON(tagged);
-    expect(envelope.$tagged.$tag).toBe('User');
-    const restored = fromTaggedJSON(envelope);
-    expect(deepEqual(restored, tagged)).toBe(true);
-  });
-
-  it('round-trips tagged scalar (wrap-object shape)', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Count'), 42);
-    const envelope = toTaggedJSON(tagged);
-    expect(envelope.$tagged.$tag).toBe('Count');
-    expect(envelope.$tagged.payload).toBe(42);
-    const restored = fromTaggedJSON(envelope);
-    expect(deepEqual(restored, tagged)).toBe(true);
-    expect(restored.payload).toBe(42);
+    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { evalQuery } = await import('../../src/eval.mjs');
+    const errorVal = makeErrorValue(makeTagKeyword('Oops'), new Map([['message', 'something went wrong']]));
+    const restoredError = await evalQuery(printValue(errorVal));
+    expect(isErrorValue(restoredError)).toBe(true);
+    expect(restoredError.tag.name).toBe('Oops');
+    expect(restoredError.descriptor.get('message')).toBe('something went wrong');
+    const hostBuilt = [
+      makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]),
+      makeTaggedInstance(makeTagKeyword('Keys'), makeSet([keyword('b'), keyword('a')])),
+      makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']])),
+      makeTaggedInstance(makeTagKeyword('Count'), 42)
+    ];
+    for (const value of hostBuilt) {
+      expect(deepEqual(await evalQuery(printValue(value)), value)).toBe(true);
+    }
   });
 });
 

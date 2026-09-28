@@ -33,23 +33,6 @@
        )
   ~~|
 
-::MalformedTaggedJSONError
-  |~~ `fromTaggedJSON` received a JSON shape it does not
-      recognise as a tagged-value envelope.
-  ~~|
-
-::TaggedJSONNumberNotFiniteError
-  |~~ Same reading on the tagged-JSON wire: a decoded number past
-      the finite double range refuses rather than restoring a
-      session or a fixture around a value no literal renders back.
-  ~~|
-
-::TaggedJSONUnencodableValueError
-  |~~ `toTaggedJSON` cannot encode a function value, nor the record
-      of a binding that holds one, since a function a host bound has no
-      reading as data.
-  ~~|
-
 ::UnknownAstNodeTypeError
   |~~ Evaluator dispatch — encountered an AST node whose `.type`
       is not in `AST_NODE_EVALUATORS`. Runtime invariant
@@ -86,16 +69,6 @@
 ::PrimitiveRegistrySealedError
   |~~ The table of primitives is sealed when the bootstrap completes,
       and a primitive bound after it is refused.
-  ~~|
-
-::SessionPayloadInvalidError
-  |~~ Session deserialization — payload is malformed (missing
-      required fields).
-  ~~|
-
-::SessionSchemaVersionMismatchError
-  |~~ Session deserialization — payload `:schemaVersion` does
-      not match SESSION_SCHEMA_VERSION.
   ~~|
 
 ::NumberNotFiniteLeakedToPrintError

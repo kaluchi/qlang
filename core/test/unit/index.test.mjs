@@ -8,8 +8,6 @@ import {
   evalAst,
   langRuntime,
   createSession,
-  serializeSession,
-  deserializeSession,
   walkAst,
   astChildrenOf,
   findAstNodeAtOffset,
@@ -18,8 +16,6 @@ import {
   astNodeSpan,
   astNodeContainsOffset,
   triviaBetweenAstNodes,
-  toTaggedJSON,
-  fromTaggedJSON,
   QlangError,
   QlangTypeError,
   ArityError,
@@ -58,10 +54,8 @@ describe('public API', () => {
     expect(runtimeEnv.size).toBeGreaterThan(20);
   });
 
-  it('exports createSession / serializeSession / deserializeSession', () => {
+  it('exports createSession', () => {
     expect(typeof createSession).toBe('function');
-    expect(typeof serializeSession).toBe('function');
-    expect(typeof deserializeSession).toBe('function');
   });
 
   it('exports the AST traversal primitives from walk.mjs', () => {
@@ -73,11 +67,6 @@ describe('public API', () => {
     expect(typeof astNodeSpan).toBe('function');
     expect(typeof astNodeContainsOffset).toBe('function');
     expect(typeof triviaBetweenAstNodes).toBe('function');
-  });
-
-  it('exports the tagged-JSON value codec', () => {
-    expect(typeof toTaggedJSON).toBe('function');
-    expect(typeof fromTaggedJSON).toBe('function');
   });
 
   it('exports the error hierarchy for instanceof checks', () => {

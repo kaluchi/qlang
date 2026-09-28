@@ -270,7 +270,7 @@ Beyond gating the diff, you reason about whether the change leaves the qlang sur
 - If the diff teaches the AST a new node type but `astChildrenOf` only learns about it in one place and the editor primitives (`findAstNodeAtOffset`, `bindingNamesVisibleAt`) silently ignore it, name the gap.
 - If the diff adds a parse-time check but the runtime has no symmetric safety net for laundering paths (or vice versa), name the gap.
 - If the diff adds a public API but `core/src/index.mjs` does not re-export it, name the gap.
-- If a new value class is added to `types.mjs` but `describeType`, `format.mjs::toPlain`, `equality.mjs::deepEqual`, and `codec.mjs::toTaggedJSON` are not all updated, name the gap.
+- If a new value class is added to `types.mjs` but `describeType`, `format.mjs::toPlain`, and `equality.mjs::deepEqual` are not all updated, name the gap.
 
 These are not blockers — they belong to a separate output section called **Organic next steps**. Each entry names a specific extension that follows logically from the design vocabulary the diff already establishes, with a one-sentence sketch of why it completes the picture and what it would touch.
 

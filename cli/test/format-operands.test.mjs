@@ -1,6 +1,5 @@
-// format-operands coverage. Three operands, each round-tripped
-// through runQuery so the bind reaches the runtime correctly and
-// every per-site error site fires through real eval.
+// format-operands coverage: `table` runs through runQuery, so the bind
+// reaches the runtime and every refusal fires through real eval.
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
@@ -11,28 +10,6 @@ const noopIo = {
   stdoutWrite: () => {},
   stderrWrite: () => {}
 };
-
-describe('tjson', () => {
-  it('renders a number as its plain JSON form', async () => {
-    const cellEntry = await runQuery('42 | tjson', noopIo);
-    expect(cellEntry.result).toBe('42');
-  });
-
-  it('renders a keyword as the $keyword tagged form', async () => {
-    const cellEntry = await runQuery(':role | tjson', noopIo);
-    expect(cellEntry.result).toBe('{"$keyword":"role"}');
-  });
-
-  it('renders a Set as the vector under its tag in the $tagged form', async () => {
-    const cellEntry = await runQuery('#[:b :a] | tjson', noopIo);
-    expect(cellEntry.result).toBe('{"$tagged":{"$tag":"set","payload":[{"$keyword":"a"},{"$keyword":"b"}]}}');
-  });
-
-  it('renders a Map with keyword keys as the $map tagged form', async () => {
-    const cellEntry = await runQuery('{:role :admin} | tjson', noopIo);
-    expect(cellEntry.result).toBe('{"$map":[["role",{"$keyword":"admin"}]]}');
-  });
-});
 
 describe('table — a view for a terminal', () => {
   it('draws a column per key, in the order of first occurrence across the rows', async () => {

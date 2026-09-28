@@ -269,13 +269,10 @@ export const FAIL_TAG   = makeTagKeyword('fail');
 export const GROUP_TAG  = makeTagKeyword('group');
 
 // A tag over a payload: an untagged vector or map keeps its shape under
-// the tag, a vector under `::quote` or `::set` minted as a quote or a set,
-// so every verb of the container reads it; any other payload, a tagged one
-// among them, is held by a wrapper, which `payload` opens.
+// the tag, so every verb of the container reads it; any other payload, a
+// tagged one among them, is held by a wrapper, which `payload` opens.
 export function makeTaggedInstance(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
-    if (tag.name === QUOTE_TAG_NAME) return makeQuote(payload);
-    if (tag.name === SET_TAG_NAME) return makeSet(payload);
     const arr = [...payload];
     stampTagHeader(arr, tag);
     return Object.freeze(arr);
@@ -293,7 +290,7 @@ export function makeTaggedInstance(tag, payload) {
 
 // A verb is a tag over a quote [D67], with a holder of the scope its body
 // resolves in, the one it was made in, which the declaration that binds
-// it extends by its own name; a verb a codec assembled holds none.
+// it extends by its own name.
 const VERB_ENV_REF_SLOT = Symbol('qlang/verbEnvRef');
 
 export function makeVerb(quote, envRef) {

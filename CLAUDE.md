@@ -67,7 +67,7 @@ Tier 2, by topic, only the files the topic names:
 - code as data: `core/src/quote.mjs`,
   `core/src/runtime/codeAsData.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,
-  `core/src/runtime/format.mjs`, `core/src/codec.mjs`
+  `core/src/runtime/format.mjs`
 - host boundary: `core/src/effect.mjs`, `core/src/effect-check.mjs`,
   `core/src/runtime/bootstrap.mjs`, `core/host/`, `cli/src/main.mjs`,
   `cli/src/script-mode.mjs`, `cli/src/cli-locator.mjs`

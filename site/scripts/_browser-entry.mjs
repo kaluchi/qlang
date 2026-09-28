@@ -100,7 +100,5 @@ export {
   printValue,
   langRuntime,
   parse,
-  createSession,
-  serializeSession,
-  deserializeSession
+  createSession
 } from '@kaluchi/qlang-core';

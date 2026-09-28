@@ -2,9 +2,7 @@
 // family (`union` / `minus` / `inter` Set×Set, Map×Set), the
 // `has` operand on Sets with non-keyword members, and the
 // `deepEqual` Set comparator that all rely on the same
-// name-based keyword identity. Plus two adjacent fixtures: the
-// tagged-JSON codec's `$map` decoder accepting old-format
-// `{$keyword: name}`-keyed entries, and the
+// name-based keyword identity. Plus an adjacent fixture: the
 // `canonicalKeywordLiteral` printer that mints the bare-vs-quoted
 // form `printValue` and projection round-trip rely on.
 //
@@ -98,16 +96,6 @@ describe('has on Set with non-keyword values', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('#[1 2 3] | has 2')).toBe(true);
     expect(await evalQuery('#[1 2 3] | has 9')).toBe(false);
-  });
-});
-
-describe('codec $map with keyword-tagged keys decodes to string-keyed Map', async () => {
-  it('decodes old-format $map entries with $keyword keys to string-keyed Maps', async () => {
-    const { fromTaggedJSON } = await import('../../src/codec.mjs');
-    const oldFormat = { $map: [[{$keyword: 'name'}, 'alice'], [{$keyword: 'age'}, 30]] };
-    const result = fromTaggedJSON(oldFormat);
-    expect(result.get('name')).toBe('alice');
-    expect(result.get('age')).toBe(30);
   });
 });
 

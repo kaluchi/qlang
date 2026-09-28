@@ -2,14 +2,10 @@
 // has to be full by the time `buildLangRuntime` runs.
 //
 // A per-site class records its spec as a side effect of its module
-// loading. `runtime/index.mjs` pulls in every module that declares
-// one — the operand impls by way of the primitive registry, the two
-// host-boundary seams (`codec.mjs`, `session.mjs`) by an import of
-// their own. A third seam added without that import would record
+// loading, and `runtime/index.mjs` has to pull in every module that
+// declares one. A seam of `core/src/` it does not reach would record
 // nothing before the stamp pass, and its `::Tag` bindings would reach
-// env with no `:category` to answer `spec` with — for a host that
-// imported the `./runtime` subpath, while a host coming through the
-// package entry saw the full reading.
+// env with no `:category` to answer `spec` with.
 //
 // This file imports the runtime alone, then reads every factory call
 // out of `core/src/**` by source and asks the registry for each name.

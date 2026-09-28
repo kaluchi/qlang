@@ -24,11 +24,6 @@ import './manifest-op.mjs';
 import './codeAsData.mjs';
 import './axis.mjs';
 
-// The codec and the session declare refusals whose facts the stamp
-// pass below reads.
-import '../codec.mjs';
-import '../session.mjs';
-
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';

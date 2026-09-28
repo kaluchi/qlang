@@ -68,13 +68,6 @@ describe('a map whose data key "type" collides with a value-class name', () => {
     const result = await evalQuery('{"type": "error", "msg": "boom"} | type');
     expect(result).toEqual(makeTagKeyword('map'));
   });
-
-  it('toTaggedJSON round-trips a {"type":"keyword"} document as a map', async () => {
-    const { toTaggedJSON, fromTaggedJSON } = await import('../../src/codec.mjs');
-    const back = fromTaggedJSON(toTaggedJSON(fromPlain({ type: 'keyword', name: 'x' })));
-    expect(describeType(back)).toBe('Map');
-    expect(back.get('type')).toBe('keyword');
-  });
 });
 
 describe('fromPlain refuses a JSON number past the finite double range', () => {

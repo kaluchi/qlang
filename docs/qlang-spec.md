@@ -143,14 +143,14 @@ mint one:
   second answer `div` gives alongside `::DivisionByZeroError`.
   `sum` reads its running total at every element and answers
   `::SumResultNotFiniteError` with `:index`.
-- `parseJson` and the tagged-JSON decoder refuse an out-of-range
+- `parseJson` refuses an out-of-range
   magnitude, which `JSON.parse` hands over as an infinity, and
   carry `:path` — the keys and indices walked to the refused slot.
 
 A host reaches further: `session.bind` and a locator's `impls` map
 install JS values the language never parsed. Such a value meets the
 domain rule at the seams where it becomes observable —
-`printValue`, `toPlain` and the tagged-JSON encoder answer
+`printValue` and `toPlain` answer
 `::NumberNotFiniteLeakedToPrintError`.
 
 Three guarantees rest on that rule: every number renders back to a
@@ -2731,70 +2731,30 @@ imports.
 
 ### Sessions
 
-A `Session` is a persistent `(env, cellHistory)` pair that threads
-across multiple `evalCell` invocations. Each cell sees the bindings
-written by previous cells, mirroring the REPL/notebook execution
-model.
+A `Session` keeps the env its cells write across `evalCell`
+invocations, so each cell sees the bindings the cells before it
+declared, the execution model of the REPL.
 
 ```js
 import { createSession } from '@kaluchi/qlang-core';
 
 const session = await createSession();
 
-await session.evalCell(':double mul 2');
+await session.evalCell(':double ::verb~(mul 2)');
 await session.evalCell('5 | double');
 // → { source: '5 | double', uri: 'cell-2', ast: ..., result: 10,
 //     error: null, envAfterCell: <Map> }
 ```
 
-Session methods:
+| Member | Behavior |
+|---|---|
+| `evalCell(source, opts?)` | Parse and evaluate one cell and answer its entry. `opts.uri` defaults to `cell-N`; `opts.initialPipeValue` is the subject of its first step. |
+| `bind(name, value)` | Install a binding into env without a parse, the way a host injects values. |
+| `env` | The current env. |
 
-| Method | Returns | Behavior |
-|---|---|---|
-| `evalCell(source, opts?)` | cell entry | Parse and evaluate one cell. `opts.uri` defaults to `cell-N`. The returned entry is also pushed onto `session.cellHistory`. |
-| `bind(name, value)` | undefined | Install a binding directly into env (no parse). Used by `deserializeSession` and by host integrations injecting effectful operands. |
-| `takeSnapshot()` | `{ env, cellHistoryLength }` | Cheap save for restore. |
-| `restoreSnapshot(snap)` | undefined | Rewind env and cell history. |
-
-Properties:
-
-- `session.env` — current env (read-only Map view).
-- `session.cellHistory` — array of cell entries in execution order.
-
-A new session is seeded with a fresh `langRuntime()`. To inject
-host operands (e.g. the Eclipse plugin's `@callers`, `@refs`,
-`@hierarchy`), the host calls `session.bind(name, fn)` for each
-operand at session construction.
-
-### Save and restore
-
-`serializeSession(session)` produces a JSON-serializable payload
-capturing user-defined bindings (those not in `langRuntime()`) plus
-the source of every cell ever executed. The payload's `schemaVersion`
-field guards against forward-incompatible deserialization.
-
-```js
-import { serializeSession, deserializeSession } from '@kaluchi/qlang-core';
-
-const payload = await serializeSession(session);
-const json = JSON.stringify(payload);
-
-// later, possibly in another process or browser tab:
-const restored = await deserializeSession(JSON.parse(json));
-await restored.evalCell('5 | double'); // → 10, double is read back from its stored quote
-```
-
-A binding serializes as `{ name, value, docs }`, the value encoded
-via the tagged-JSON form, a verb as its quote under its tag, which the
-restored session reads back as a verb resolving its names in the
-restored session.
-
-Built-in verbs are not serialized; the host re-installs them by
-re-creating a fresh `langRuntime()`-seeded session and
-re-binding any host operands. Cell history is restored without
-re-evaluation — entries carry only `source` and `uri`. A notebook
-layer that wants the original AST or result can call
-`session.evalCell(cell.source)` to re-run.
+A value leaves a session and comes back as its literal: `printValue`
+writes it and `evalQuery` of that text reads it back, a verb as its
+quote under its tag.
 
 ### Module resolution
 
@@ -2943,8 +2903,7 @@ const findImpl = async (subject, pattern) =>
 `toPlain(value)` and `fromPlain(json)` are the lossy bridge between
 qlang runtime values and *ordinary* JSON shapes — the kind of JSON
 a user produces with `curl`, `jq`, `kubectl`, or a hand-written
-`.json` file. Unlike the tagged-JSON codec below, plain JSON has
-no representation for qlang-only types; the codec pair trades
+`.json` file. Plain JSON has no representation for qlang-only types; the codec pair trades
 fidelity for interoperability.
 
 | qlang value | plain JSON form |
@@ -2978,44 +2937,8 @@ lifted.get(keyword('items'));     // [1 2 3]
 The core's `parseJson` operand runs `JSON.parse` then `fromPlain`,
 and the command line's implicit script-mode stdin lift walks the
 same path.
-Use `toTaggedJSON` / `fromTaggedJSON` below when both endpoints
-speak qlang and identity must survive the round-trip.
-
-### Tagged-JSON value codec
-
-`toTaggedJSON(value)` and `fromTaggedJSON(json)` are the canonical
-encoder/decoder pair between qlang runtime values and a JSON form
-that survives `JSON.stringify` round-trips. The same wire format
-is used by the conformance test runner, by the session serializer,
-and by any host that ships qlang values across a JSON boundary.
-
-| qlang value | tagged JSON form |
-|---|---|
-| number / string / boolean | itself |
-| null | `null` |
-| Vec | JSON array of recursively-encoded elements |
-| keyword | `{ "$keyword": "name" }` |
-| Map | `{ "$map": [[k v], ...] }` (entries pairs, recursively encoded) |
-| Set | `{ "$tagged": { "$tag": "set", "payload": [v1, v2, ...] } }`, read back through the set's constructor |
-
-Example:
-
-```js
-import { toTaggedJSON, fromTaggedJSON, evalQuery } from '@kaluchi/qlang-core';
-
-const value = await evalQuery('{:name "alice" :tags #[:admin :ops]}');
-const wire = JSON.stringify(toTaggedJSON(value));
-// '{"$map":[["name","alice"],["tags",{"$tagged":{"$tag":"set","payload":[{"$keyword":"admin"},{"$keyword":"ops"}]}}]]}'
-
-const restored = fromTaggedJSON(JSON.parse(wire));
-// equivalent Map with the same keyword identity (interned)
-```
-
-`toTaggedJSON` throws `TaggedJSONUnencodableValueError` for a function
-value, and for the record of a binding that holds one, since a
-function a host bound has no reading as data.
-`fromTaggedJSON` throws `MalformedTaggedJSONError` on unrecognized
-tagged objects.
+When both endpoints speak qlang, the literal carries every value
+across: `printValue` writes it and `evalQuery` reads it back.
 
 ### AST traversal primitives
 

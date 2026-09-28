@@ -10,11 +10,7 @@ import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs'
 import { verbsReaching } from './runtime/nouns.mjs';
 import { printAnswer } from './runtime/codeAsData.mjs';
 import { elide, elideAnswer } from './elide.mjs';
-import {
-  createSession,
-  serializeSession,
-  deserializeSession
-} from './session.mjs';
+import { createSession } from './session.mjs';
 import {
   walkAst,
   astChildrenOf,
@@ -37,7 +33,6 @@ import {
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier
 } from './effect-check.mjs';
-import { toTaggedJSON, fromTaggedJSON } from './codec.mjs';
 import {
   printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
 } from './runtime/format.mjs';
@@ -101,8 +96,6 @@ export {
   evalQuery,
   langRuntime,
   createSession,
-  serializeSession,
-  deserializeSession,
   walkAst,
   astChildrenOf,
   isPureLiteralAst,
@@ -123,8 +116,6 @@ export {
   astOfQuote,
   decorateAstWithEffectMarkers,
   findFirstEffectfulIdentifier,
-  toTaggedJSON,
-  fromTaggedJSON,
   printValue,
   printAnswer,
   elide,

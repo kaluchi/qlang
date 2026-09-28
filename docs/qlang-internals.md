@@ -1145,8 +1145,7 @@ the `raise` that lifts it.
 every error descriptor carries `:trail` as a vector of stops, each a
 Map with the quote of its skipped steps under `:skipped`. Callers
 supplying an explicit `:trail` in the input descriptor (a literal
-that writes one, a re-lift under `!|`, codec replay via
-`fromTaggedJSON`) keep that vector unchanged; callers that omit the
+that writes one, a re-lift under `!|`) keep that vector unchanged; callers that omit the
 field get the empty path forged in; any other value under `:trail`
 fires `ErrorTrailNotVecError` at mint time. Hot-path readers read
 `:trail` without defensive fallbacks.
@@ -1291,10 +1290,9 @@ which extends `QlangError` so a hand-crafted descriptor Map
 with a bad `:impl` handle lifts to an error value on the
 fail-track.
 
-### `session.mjs` — REPL / notebook session lifecycle
+### `session.mjs` — the session of the REPL
 
-Persistent `(env, cellHistory)` pair across multiple `evalCell`
-invocations.
+The env the cells write, kept across `evalCell` invocations.
 
 - `await createSession(opts?)` — fresh session seeded with
   `langRuntime()`. Options:
@@ -1305,16 +1303,8 @@ invocations.
     `:qlang/locator` keyword in env. See the spec's "Lazy module
     loading via locator" section for the full contract.
 - `await session.evalCell(source, opts?)` — parse + evaluate one cell.
-- `session.cellHistory` — read-only array of executed cells.
 - `session.bind(name, value)` — install a binding directly into env,
   the record of a binding without a doc for any value but a record.
-- `session.takeSnapshot()` / `session.restoreSnapshot(snap)` —
-  cheap save/restore for "step back" features.
-- `await serializeSession(session)` — JSON-serializable payload of
-  user bindings (every value via tagged JSON, a verb as its quote under
-  its tag, each with its docs) plus cell history.
-- `await deserializeSession(json)` — rebuilds a session from a
-  serialized payload. Cell history is restored without re-evaluation.
 
 ### `runtime/format.mjs` — value formatters and plain-JSON codec
 
@@ -1347,8 +1337,8 @@ Three public entries, all kind-table dispatches keyed off
   string keys, arrays become Vecs, scalars pass through.
 
 The round-trip `fromPlain(toPlain(v))` is identity only when `v`
-contains no lossy shape. For bijective round-trips use
-`codec.mjs::toTaggedJSON` / `fromTaggedJSON` below.
+contains no lossy shape; `printValue` writes the literal, which reads
+back every value.
 
 ### `highlight.mjs` — AST-driven syntax tokenizer
 
@@ -1366,26 +1356,6 @@ Effect-marker classification (`atom` vs `effect`) routes through
 for the `@`-prefix surface convention. On a parse failure, the
 whole source is returned as one `whitespace` token so live-typing
 render paths never throw between keystrokes.
-
-### `codec.mjs` — tagged-JSON value codec
-
-Canonical encoder/decoder pair for qlang runtime values across
-JSON boundaries (HTTP, postMessage, IndexedDB, files).
-
-| qlang value | tagged JSON form |
-|---|---|
-| number / string / boolean | itself |
-| null | `null` |
-| Vec | JSON array of recursively-encoded elements |
-| keyword | `{ "$keyword": "name" }` |
-| Map | `{ "$map": [[k v], ...] }` (entry pairs, recursively encoded) |
-| Set | `{ "$tagged": { "$tag": "set", "payload": [v1, v2, ...] } }` |
-| Error | `{ "$error": <recursively-encoded descriptor Map> }` |
-
-`toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for a
-value no envelope reads back.
-`fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
-unrecognized tagged objects.
 
 ### `effect.mjs` and `effect-check.mjs` — @-effect markers
 
@@ -1413,11 +1383,10 @@ name but the lookup name is clean, the call is refused with
 ```js
 import {
   parse, evalAst, evalQuery, langRuntime,
-  createSession, serializeSession, deserializeSession,
+  createSession,
   walkAst, astChildrenOf, findAstNodeAtOffset,
   findIdentifierOccurrences, bindingNamesVisibleAt,
   astNodeSpan, astNodeContainsOffset, triviaBetweenAstNodes,
-  toTaggedJSON, fromTaggedJSON,
   printValue, toPlain, fromPlain,
   tokenize,
   keyword, isKeyword, isErrorValue, describeType, typeKeyword,
@@ -1436,7 +1405,6 @@ Subpath exports (tree-shaking-friendly):
 - `@kaluchi/qlang-core/session` — `createSession` without the full
   runtime bootstrap.
 - `@kaluchi/qlang-core/walk` — AST traversal + AST ↔ Map codec.
-- `@kaluchi/qlang-core/codec` — tagged-JSON value codec.
 - `@kaluchi/qlang-core/errors` — error category hierarchy plus the
   generic per-site factories (`declareShapeError`,
   `declareArityError`, `declareNumericDomainError`,

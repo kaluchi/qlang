@@ -860,7 +860,7 @@
   |~~ `:name | doc` — the page of the declaration that binds `:name`
       in its scope, and `::vec/filter | doc` the page of a verb by
       its address; null for a declaration without one. A page answers
-      its text by `content`, its laws by `quotes` and the pages it
+      its text by `content`, its laws by `laws` and the pages it
       names by `links`. Any other value reads the page of its kind,
       and the `:kind` field of a map names nothing: the map reads the
       page of `::map`.

@@ -1518,7 +1518,7 @@ counts, transforms, and assembles code without leaving the language.
 
 The catalog is the documentation. A root doc is the first thing a
 session reads: what the language is in a sentence, what a tag is in a
-sentence, how to discover with `manifest`, `docs`, `examples`, and
+sentence, how to discover with `manifest`, `doc`, `doc | laws`, and
 `spec`, how to read an error, and a few seed pipelines that a grep
 would not suggest. Every other question is answered at the point of
 need, in views sized to a budget, the cheap view first. Examples live
@@ -1727,7 +1727,7 @@ gone; host categories of error are declared by hosts.
 Every fact has one spelling. The doc read as its segments has landed,
 prose and quotes the parser reads once, which the doc answers by its
 own verbs, its text by `content`, its parts by `segments` and its
-quotes by `quotes` [D19], [D94], [D95], [D99], so strings, quotes and docs read in pieces; and so has
+laws by `laws` [D19], [D94], [D95], [D99], [D123], so strings, quotes and docs read in pieces; and so has
 the print of a value, a verb whose default writes the literal of the
 core, a descriptor under its tag among it, and which a kind a module
 declares answers its own way [D96]. One

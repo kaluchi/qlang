@@ -32,7 +32,7 @@
       held as a value.
 
       Asking. `x | doc` answers the page of a name or of the kind of a
-      value, a doc whose text is `content`, whose laws are `quotes` and
+      value, a doc whose text is `content`, whose laws are `laws` and
       whose links are `links`. ::snippet~(::qlang | manifest) lists the
       kinds; ::snippet~(::vec | spec | /verbs) lists the verbs of a kind by
       address, and ::snippet~(::qlang/any | spec | /verbs) those of every
@@ -595,7 +595,8 @@
       take it apart. A quote with no tag is a law of the page, which
       `runLaws` holds to answer true; a quote under `::link` is a
       link, a query a reader follows. `content` answers its text,
-      `segments` its parts, `quotes` its laws and `links` its links.
+      `segments` its parts, `laws` its laws, `links` its links and
+      `snippets` its snippets.
       ::snippet~(::doc | spec | /verbs) lists its verbs. ::link~(::link | doc)
       ::link~(::qlang | doc :hypertext)
 

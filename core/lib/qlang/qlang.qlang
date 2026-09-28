@@ -1,9 +1,10 @@
-|~ The concepts of the language, each a page of its own under a keyword
-   of the language's namespace, read in the order they rest on each
-   other: values, the pipeline, verbs, errors, code, the hypertext and
-   the hosts. The first screen names them all. ~|
+|~ The module of the noun `::qlang`, the language itself: its members are
+   the concepts of the language, each a page read through the noun,
+   `::qlang | docs :pipeline`, in the order they rest on each other:
+   values, the pipeline, verbs, errors, code, the hypertext and the
+   hosts. The first screen names them all. ~|
 
-:qlang/values
+:values
   |~~ Values. Everything qlang handles is a value, and a value never
       changes: a step answers a new value and the old one stays as it
       was. Each value has a kind. A literal implies one, `42` a number,
@@ -19,14 +20,14 @@
       itself. Rests on nothing; the pipeline, the verbs and the
       hypertext rest on it.
       ::link~(::qlang | manifest) ::link~(::tag | docs | first)
-      ::link~(:qlang/pipeline | docs | first)
+      ::link~(::qlang/pipeline | docs | first)
 
       ~(::Box::Crate{:a 1} | type | eq ::Box)
       ~([1 2] | :v / | append 3 | [v /] | eq [[1 2] [1 2 3]])
   ~~|
-  :qlang/values
+  #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set]
 
-:qlang/pipeline
+:pipeline
   |~~ The pipeline. A query is a subject and its steps; each step is a
       command on the value the step before it answered, `S | verb
       object`, and the answer is the last value. `a | b` runs `b` on
@@ -40,14 +41,14 @@
       after it, in the scope where it stands. Rests on values; the verbs
       are its commands, and code holds its steps as a value.
       ::link~(::each | docs | first) ::link~(::proj | docs | first)
-      ::link~(::group | docs | first) ::link~(:qlang/verbs | docs | first)
+      ::link~(::group | docs | first) ::link~(::qlang/verbs | docs | first)
 
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
   ~~|
-  :qlang/pipeline
+  #[::each ::proj ::group ::bind ::call ::construct]
 
-:qlang/verbs
+:verbs
   |~~ Verbs. A verb lives on a kind, the one whose values it serves, and
       has an address, `::vec/sort`. A name in a query finds its verb
       through the kind of its subject: the tags from the outside in,
@@ -60,14 +61,14 @@
       its own in the same form the catalog is written in. Rests on
       values and the pipeline; errors name the verb that refused.
       ::link~(::vec | spec | /verbs) ::link~(::qlang/any | spec | /verbs)
-      ::link~(::verb | docs | first) ::link~(:qlang/errors | docs | first)
+      ::link~(::verb | docs | first) ::link~(::qlang/errors | docs | first)
 
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
       ~(::vec/sort | spec | type | eq ::spec)
   ~~|
-  :qlang/verbs
+  #[::verb ::spec ::qlang/any]
 
-:qlang/errors
+:errors
   |~~ Errors. A failure does not throw: a step that fails answers an
       error, a value that carries the facts of the failure, the path it
       took and the tag of the site that refused, which names the page of
@@ -85,9 +86,9 @@
       ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
       ~([1 "x"] * (mul 2 !| 0) | eq [2 0])
   ~~|
-  :qlang/errors
+  #[::error ::fail ::explanation]
 
-:qlang/code
+:code
   |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb takes
       one where it needs code, `filter`, `sort`, `if`, `apply` runs one on
       a subject, and a quote is taken apart and built like any vector of
@@ -95,14 +96,14 @@
       links that open, and the trail of an error holds the steps it
       skipped, ready to replay. Rests on values and the pipeline; the
       hypertext is written in it.
-      ::link~(::quote | docs | first) ::link~(:qlang/hypertext | docs | first)
+      ::link~(::quote | docs | first) ::link~(::qlang/hypertext | docs | first)
 
       ~(~(add 1 | mul 2) | :q / | 5 | apply q | eq 12)
       ~(~(add 1 | mul 2) | count | eq 2)
   ~~|
-  :qlang/code
+  #[::quote]
 
-:qlang/hypertext
+:hypertext
   |~~ The hypertext. The language describes itself in its own values:
       every name has a page, and `docs` answers the pages of a name or of
       the kind of a value. A page is a doc, prose that holds code: a
@@ -116,14 +117,14 @@
       is read that was not asked for, and a query names the shape of
       what it reads. Rests on every concept before it.
       ::link~(::doc | docs | first) ::link~(::link | docs | first)
-      ::link~(:qlang/hosts | docs | first)
+      ::link~(::qlang/hosts | docs | first)
 
       ~(::qlang | docs | first | links * open | count | gt 0)
       ~(::vec | spec | /verbs | filter ~(docs | first | content | contains "after the first") | eq #[::vec/drop])
   ~~|
-  :qlang/hypertext
+  #[::doc ::link]
 
-:qlang/hosts
+:hosts
   |~~ Hosts. The language runs inside a host, a tool that embeds it and
       brings verbs of its own; the command line is one. A value is whole
       in the language, and the host answers within a budget: what it
@@ -135,4 +136,4 @@
 
       ~([1 2] | elide 100 | eq [1 2])
   ~~|
-  :qlang/hosts
+  #[::elision]

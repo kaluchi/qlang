@@ -17,5 +17,5 @@ use [:qlang/runtime-invariants
      :qlang/error
      :qlang/explanation
      :qlang/link
-     :qlang/concepts
+     :qlang/qlang
      :qlang/operand/reflective]

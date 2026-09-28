@@ -28,7 +28,8 @@ import {
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
 import {
-  addressedVerb, addressesOf, isNoun, isProviderBinding, refusalsOfNoun, residenceOnSubject, verbsOfKind
+  addressedVerb, addressesOf, isNoun, isNounMember, isProviderBinding, nounMemberOf, refusalsOfNoun,
+  residenceOnSubject, verbsOfKind
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -78,17 +79,25 @@ function bindingNameOf(subject) {
 // A tag name that no tag binds addresses a verb from the root of the
 // tree of names through the noun it lives on, `::vec/count` [D62], and
 // reads what the verb's provider declared, whatever the scope binds
-// under its name.
+// under its name; a tag name that addresses no verb addresses the member
+// of a noun that is no verb [D117].
 function addressOf(env, subject) {
   if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
-  return addressedVerb(env, subject.name);
+  const verb = addressedVerb(env, subject.name);
+  if (verb !== null) return verb;
+  // A member of the root noun is written short, as a kind of the core is,
+  // `::qlang/pipeline` reading as `::pipeline` [D117].
+  const cut = subject.name.lastIndexOf('/');
+  const member = cut < 0 ? nounMemberOf(env, 'qlang', subject.name)
+    : nounMemberOf(env, subject.name.slice(0, cut), subject.name.slice(cut + 1));
+  return member === null ? null : { record: member };
 }
 
 // A keyword names a binding of the scope where it stands, so under the
 // name of a verb a provider exports it names nothing, and the verb is
 // read through the noun it lives on [D62].
 function namesNoScopeBinding(env, subject) {
-  return isKeyword(subject) && isProviderBinding(env, subject.name);
+  return isKeyword(subject) && (isProviderBinding(env, subject.name) || isNounMember(env, subject.name));
 }
 
 // The name a subject reads, a keyword's, a tag's or its kind's.
@@ -123,11 +132,14 @@ export function examplesOfRecord(record) {
 
 // The record of the member the subject holds under a name [D88], or
 // null: the slot a verb declares, and for any other subject the verb its
-// walk reaches under the name, the noun's own after a tag name.
+// walk reaches under the name, the noun's own after a tag name, else the
+// member a noun holds under it that is no verb [D117].
 function memberRecordOf(env, subject, memberName) {
   const declared = declaringRecordOf(env, subject)?.get('value');
   if (isVerb(declared)) return slotMemberOf(declared, memberName);
-  return residenceOnSubject(env, memberName, subject);
+  const residence = residenceOnSubject(env, memberName, subject);
+  if (residence !== null || !isTagKeyword(subject) || !isNoun(env, subject.name)) return residence;
+  return nounMemberOf(env, subject.name, memberName);
 }
 
 // What the refusal of a member holds: the address the name would have

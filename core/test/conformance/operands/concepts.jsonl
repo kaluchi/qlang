@@ -1,6 +1,6 @@
 {"name":"a-link-opens-to-the-answer-of-its-query","query":"|~~ ::link~(1 | add 1) ~~| | links | first | open","expect":"2","decision":"D111"}
 {"name":"open-lives-on-the-kind-of-a-link","query":"::link | spec | /verbs | has ::link/open","expect":"true","decision":"D111"}
-{"name":"a-concept-is-a-member-of-the-root-noun","query":"::qlang | docs :pipeline | first | type","expect":"::doc","decision":["D111","D117"],"target":true,"now":"::DocsBindingNotFoundError"}
+{"name":"a-concept-is-a-member-of-the-root-noun","query":"::qlang | docs :pipeline | first | type","expect":"::doc","decision":["D111","D117"]}
 {"name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | docs | first | links * open | every ~(false !| true | not)","expect":"true","decision":"D111"}
 {"name":"the-first-screen-names-the-concepts","query":"::qlang | docs | first | links * open | filter ~(type | eq ::doc) | count | gt 5","expect":"true","decision":"D111"}
 {"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::UnresolvedIdentifierError","decision":"D117"}

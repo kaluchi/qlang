@@ -36,7 +36,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, isProviderBinding, residenceOnSubject, residencesOf
+  addressedVerb, addressesOf, isNounMember, isProviderBinding, residenceOnSubject, residencesOf
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
@@ -542,10 +542,11 @@ async function evalOperandCall(node, state) {
 
 // A bare name resolves nearest first [D62]: the declaration of the scope,
 // then the verb that resides on the subject, found by the walk of its
-// tags [D72], then the core's binding of the name.
+// tags [D72], then the core's binding of the name; a member of a noun is
+// read through its noun and is no name a query calls [D117].
 async function callByName(lookupName, lambdas, state) {
   const lookupEnv = state.env;
-  const entry = envGet(lookupEnv, lookupName);
+  const entry = isNounMember(lookupEnv, lookupName) ? undefined : envGet(lookupEnv, lookupName);
   if (entry !== undefined && !isProviderBinding(lookupEnv, lookupName)) {
     return await applyBinding(entry, lookupName, lambdas, state);
   }

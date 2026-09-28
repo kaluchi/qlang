@@ -254,9 +254,9 @@ bindStateReader('explain', (subject, state) => {
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
 
-// `spec` — the value the record holds: the structured Map that a
-// catalog `::builtin{…}` body declared, after `langRuntime`'s
-// impl-resolution pass, for an operand and a value-class constructor;
+// `spec` — the value the record holds: the map a catalog
+// `::builtin{…}` body declared for a built-in verb and a kind's
+// constructor;
 // the throw-site spec the bootstrap stamps for an error tag, since
 // what raises the error is what knows the category and the slot; the
 // signature of a verb as a `::spec~(…)` [D67]; and the value itself
@@ -275,7 +275,7 @@ bindStateReader('spec', (subject, memberName, state) => {
 });
 
 // The declaration of a provider's noun lists the verbs that live on it
-// [D61], computed from the subjects its providers' operands declare,
+// [D61], computed from the subjects its providers' verbs declare,
 // and the refusals a query provokes on it, its own and its verbs' [D64].
 function withVerbsOfNoun(env, record) {
   const declaration = record.get('value');

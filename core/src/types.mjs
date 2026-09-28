@@ -55,7 +55,7 @@ export function isQMap(v) {
   return v instanceof Map;
 }
 // The set is the vector in the one order without duplicates, under
-// the `::set` tag [D16], so every operand that reads a vector reads a
+// the `::set` tag [D16], so every verb that reads a vector reads a
 // set: `isVec` holds for it, and this predicate tells it apart.
 export function isQSet(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === SET_TAG_NAME;

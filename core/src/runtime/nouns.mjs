@@ -1,7 +1,7 @@
 // The nouns a session can reach and the verbs that live on a kind
 // [D61], [D62], read from what the providers declared. A provider's
 // noun is a tag binding it declared with the `::builtin` shape, the
-// refusals of its sites apart; the verbs of a kind are the operands a
+// refusals of its sites apart; the verbs of a kind are the verbs a
 // provider exported whose subject names the kind, a subject of any value
 // or of any tagged value naming `::qlang/any`. A tag name that no tag
 // binds is an address from the root of the tree of names, the path of a

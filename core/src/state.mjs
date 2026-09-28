@@ -4,7 +4,7 @@
 // Users never see or construct it. Within the evaluator we model
 // it as a frozen object carrying the semantic pair — `pipeValue`,
 // `env` — and one bookkeeping field, `depth`: how many nested
-// evaluation frames (verb bodies, captured-arg lambdas, `apply`
+// evaluation frames (verb bodies, modifiers run at a call, `apply`
 // re-entry, Quote-bodied tag constructors, doc-segment
 // literals, locator-loaded modules) sit between the root and this
 // state. Every step returns a fresh State carrying the next

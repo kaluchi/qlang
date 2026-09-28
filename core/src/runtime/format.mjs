@@ -30,9 +30,9 @@ function dispatchPlainValue(v, handlers, path) {
 // plain JS shape back into qlang (object → Map keyed by interned
 // keywords, array → Vec, scalars pass through). Together they
 // bridge the language with any external system that speaks JSON —
-// the `parseJson` / `json` operands, the script-mode auto-pipe of
-// stdin in the CLI, and any future host that bridges qlang values
-// with plain-JS data structures.
+// the verbs `parseJson` and `json`, the command line's reading of
+// stdin and writing of an answer, and a host that hands values across
+// the boundary.
 //
 // `toPlain` is exported for direct unit-level coverage of the
 // exotic-value fallback path — the `json` verb feeds this function

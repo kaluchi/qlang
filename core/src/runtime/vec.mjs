@@ -243,7 +243,7 @@ bindPrim('reverse', container => (isQMap(container) ? new Map([...container].rev
 bindPrim('flat', sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
 
 // `reduce seed ~(reducer)` — the universal left-fold: the reducer is
-// applied as `reducer(acc, element)`, a binary operand through its bound
+// applied as `reducer(acc, element)`, a verb of two places through its bound
 // form (`acc | add element`) and a verb with the element in its first
 // slot [D67]; `seed` answers for an empty subject, and a reducer error
 // stops the fold.

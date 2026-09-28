@@ -78,8 +78,8 @@ export function astChildrenOf(node) {
 
 // isPureLiteralAst(node) — recursive purity predicate over an AST
 // subtree. Returns true when evaluation of the subtree depends on
-// neither the surrounding pipeValue nor env nor any side-effect
-// operand, which is what the head of a verb holds [D67], a group
+// neither the surrounding pipeValue nor env nor any effect, which is
+// what the head of a verb holds [D67], a group
 // around one such step among them, the payload of `::Depth(3)`; a
 // subtree with an OperandCall, a Projection or a Pipeline computes.
 export function isPureLiteralAst(node) {

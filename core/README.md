@@ -1,4 +1,4 @@
-# @kaluchi/qlang
+# @kaluchi/qlang-core
 
 Expression language for transforming immutable values through
 pipelines. Domain-agnostic. Pure. Composable.

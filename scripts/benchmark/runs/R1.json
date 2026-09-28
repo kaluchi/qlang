@@ -6,24 +6,129 @@
   "prompt": "ad hoc, the prompt `benchmark.mjs prompt` writes less its note on MSYS_NO_PATHCONV",
   "calls": 63,
   "tasks": {
-    "T1": { "calls": 4, "solved": true, "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name" },
-    "T2": { "calls": 30, "solved": true, "query": ":fold ::verb~(split \"\" * cond ~(eq \"A\") ~(\"a\") … ~(/) | join \"\") | /data * /email * fold | distinct | count" },
-    "T3": { "calls": 2, "solved": true, "query": "groupBy ~(/status | keyword) * count" },
-    "T4": { "calls": 7, "solved": true, "query": ":tot ::verb~(* /amount | sum) | filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * tot" },
-    "T5": { "calls": 4, "solved": true, "query": ":msg ::verb~(split \"ERROR \" | last) | lines | filter ~(contains \"ERROR\") * msg | distinct | json" },
-    "T6": { "calls": 2, "solved": true, "query": "/data * {:id /id :tagCount (/tags | count)}" },
-    "T7": { "calls": 3, "solved": true, "query": "/data | filter ~(/tags | any ~(eq \"ops\")) * /email" }
+    "T1": {
+      "calls": 4,
+      "solved": true,
+      "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name"
+    },
+    "T2": {
+      "calls": 30,
+      "solved": true,
+      "query": ":fold ::verb~(split \"\" * cond ~(eq \"A\") ~(\"a\") … ~(/) | join \"\") | /data * /email * fold | distinct | count"
+    },
+    "T3": {
+      "calls": 2,
+      "solved": true,
+      "query": "groupBy ~(/status | keyword) * count"
+    },
+    "T4": {
+      "calls": 7,
+      "solved": true,
+      "query": ":tot ::verb~(* /amount | sum) | filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * tot"
+    },
+    "T5": {
+      "calls": 4,
+      "solved": true,
+      "query": ":msg ::verb~(split \"ERROR \" | last) | lines | filter ~(contains \"ERROR\") * msg | distinct | json"
+    },
+    "T6": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data * {:id /id :tagCount (/tags | count)}"
+    },
+    "T7": {
+      "calls": 3,
+      "solved": true,
+      "query": "/data | filter ~(/tags | any ~(eq \"ops\")) * /email"
+    }
   },
   "frictions": [
-    { "id": "F1", "task": "T1", "kind": "environment", "query": "qlang '/data | filter …' < users.json", "expected": "the query run", "got": "Git Bash rewrote /data into a Windows path; a ParseError at column 2" },
-    { "id": "F2", "task": "T1", "kind": "syntax", "query": "/data | /name", "expected": "the name of every element", "got": "ProjectionSequenceKeyNotIntegerError: /name on a vector reads an index; `* /name` maps, shown only by an example of --help" },
-    { "id": "F3", "task": "T1", "kind": "syntax", "query": "… | reverse | * /name", "expected": "a step after a pipe", "got": "ParseError at `*`; `*` is a combinator in the place of `|`, which the error does not say" },
-    { "id": "F4", "task": "T4", "kind": "silent-answer", "query": "groupBy ~(/customer | keyword) * ~(* /amount | sum)", "expected": "the sums", "got": "the source of the quote as a string under every key; a quote after `*` is a value, the body is written in parentheses", "repairedBy": "D103" },
-    { "id": "F5", "task": "T2", "kind": "missing-verb", "query": "\"Ann@Example.com\" | lower", "expected": "a lowercase string", "got": "UnresolvedIdentifierError with :nearest []; no case verb on ::string, and no way to learn that one is missing short of reading every /verbs" },
-    { "id": "F6", "task": "T7", "kind": "helped", "query": "/tags | has \"ops\"", "expected": "membership", "got": "VerbWithoutBodyError whose :addresses named ::map/has and ::set/has, which led to `any ~(eq \"ops\")`" },
-    { "id": "F7", "task": "T3", "kind": "undocumented", "query": "groupBy ~(/status)", "expected": "groups by a JSON string", "got": "GroupByKeyNotKeywordError; the page of groupBy groups by keywords only and never says a string key needs `| keyword`" },
-    { "id": "F8", "task": "T1", "kind": "undocumented", "query": "sort ~(/age)", "expected": "a way to sort descending", "got": "ascending only; `| reverse`, which the page of sort does not name" },
-    { "id": "F9", "task": "T1", "kind": "syntax", "query": "::qlang | docs * /title", "expected": "the title of the page", "got": "a doc is no map of fields; the first screen speaks of a page and never of the doc and its verbs" },
-    { "id": "F10", "task": "T5", "kind": "channel", "query": "… | distinct", "expected": "a JSON list", "got": "`#[\"db timeout\"]`: under --raw the answer prints as qlang, and the text of --raw speaks of input alone; `| json` writes JSON text" }
+    {
+      "id": "F1",
+      "task": "T1",
+      "kind": "environment",
+      "query": "qlang '/data | filter …' < users.json",
+      "expected": "the query run",
+      "got": "Git Bash rewrote /data into a Windows path; a ParseError at column 2"
+    },
+    {
+      "id": "F2",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "/data | /name",
+      "expected": "the name of every element",
+      "got": "ProjectionSequenceKeyNotIntegerError: /name on a vector reads an index; `* /name` maps, shown only by an example of --help",
+      "repairedBy": "D104"
+    },
+    {
+      "id": "F3",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "… | reverse | * /name",
+      "expected": "a step after a pipe",
+      "got": "ParseError at `*`; `*` is a combinator in the place of `|`, which the error does not say",
+      "repairedBy": "D104"
+    },
+    {
+      "id": "F4",
+      "task": "T4",
+      "kind": "silent-answer",
+      "query": "groupBy ~(/customer | keyword) * ~(* /amount | sum)",
+      "expected": "the sums",
+      "got": "the source of the quote as a string under every key; a quote after `*` is a value, the body is written in parentheses",
+      "repairedBy": "D103"
+    },
+    {
+      "id": "F5",
+      "task": "T2",
+      "kind": "missing-verb",
+      "query": "\"Ann@Example.com\" | lower",
+      "expected": "a lowercase string",
+      "got": "UnresolvedIdentifierError with :nearest []; no case verb on ::string, and no way to learn that one is missing short of reading every /verbs"
+    },
+    {
+      "id": "F6",
+      "task": "T7",
+      "kind": "helped",
+      "query": "/tags | has \"ops\"",
+      "expected": "membership",
+      "got": "VerbWithoutBodyError whose :addresses named ::map/has and ::set/has, which led to `any ~(eq \"ops\")`"
+    },
+    {
+      "id": "F7",
+      "task": "T3",
+      "kind": "undocumented",
+      "query": "groupBy ~(/status)",
+      "expected": "groups by a JSON string",
+      "got": "GroupByKeyNotKeywordError; the page of groupBy groups by keywords only and never says a string key needs `| keyword`",
+      "repairedBy": "D104"
+    },
+    {
+      "id": "F8",
+      "task": "T1",
+      "kind": "undocumented",
+      "query": "sort ~(/age)",
+      "expected": "a way to sort descending",
+      "got": "ascending only; `| reverse`, which the page of sort does not name",
+      "repairedBy": "D104"
+    },
+    {
+      "id": "F9",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "::qlang | docs * /title",
+      "expected": "the title of the page",
+      "got": "a doc is no map of fields; the first screen speaks of a page and never of the doc and its verbs",
+      "repairedBy": "D104"
+    },
+    {
+      "id": "F10",
+      "task": "T5",
+      "kind": "channel",
+      "query": "… | distinct",
+      "expected": "a JSON list",
+      "got": "`#[\"db timeout\"]`: under --raw the answer prints as qlang, and the text of --raw speaks of input alone; `| json` writes JSON text",
+      "repairedBy": "D104"
+    }
   ]
 }

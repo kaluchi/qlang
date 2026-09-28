@@ -1003,12 +1003,12 @@ parser in the parser's own vocabulary:
 [true]
 
 > [1 2 3] | filter ~(gt 1
-::ParseError!{ … :expected [:whitespace :doc "!|" "|" "*" ")"] … }
+::ParseError!{ … :message "`~(` opened at line 1, column 18 is never closed; `)` completes the source" :expected [")"] … }
 ```
 
 The unclosed quote has one sensible continuation, `)`, and the error
-names every token the parser could have taken there; the markers of
-comments stand under `:whitespace` and a doc under `:doc` [D7].
+names it with the bracket it closes and where that opened, found by
+the parser completing the source [D7], [D125].
 
 The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:

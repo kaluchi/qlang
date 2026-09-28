@@ -31,7 +31,9 @@ const AST_SCHEMA_VERSION = 1;
 // substring at the offset (one character for char-class mismatches,
 // `null` for end-of-input); `source` is the verbatim input text
 // so that downstream consumers (CLI caret-pointer, LSP diagnostic)
-// can quote the offending span without re-reading the file.
+// can quote the offending span without re-reading the file;
+// `sentence` is what a source cut short with a bracket left open is
+// told, beside the closers in `expected` [D125].
 export class ParseError extends Error {
   constructor(message, location, uri = null, opts = {}) {
     super(message);
@@ -41,6 +43,7 @@ export class ParseError extends Error {
     this.expected = opts.expected ?? null;
     this.found = opts.found ?? null;
     this.source = opts.source ?? null;
+    this.sentence = opts.sentence ?? null;
   }
 }
 
@@ -68,10 +71,12 @@ export function parse(source, opts = {}) {
   try {
     ast = peggyParse(source, { commentTrivia });
   } catch (err) {
-    throw new ParseError(err.message, err.location, opts.uri ?? null, {
-      expected: err.expected,
+    const unclosed = err.found === null ? bracketLeftOpen(source) : null;
+    throw new ParseError(unclosed?.message ?? err.message, err.location, opts.uri ?? null, {
+      expected: unclosed?.expected ?? err.expected,
       found: err.found,
-      source
+      source,
+      sentence: unclosed?.message
     });
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
@@ -89,4 +94,73 @@ export function parse(source, opts = {}) {
   ast.schemaVersion = AST_SCHEMA_VERSION;
   ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return ast;
+}
+
+// ── the bracket a source left open [D125] ─────────────────────────
+
+// Each closer with the openers it closes.
+const OPENERS_BY_CLOSER = new Map([
+  [')', ['~(', '(']],
+  [']', ['#[', '[']],
+  ['}', ['!{', '{']],
+  ['~~|', ['|~~']],
+  ['"', ['"']]
+]);
+const CLOSER_DEPTH = 4;
+
+// The tree of a source, or null when it does not parse.
+function treeOf(candidate) {
+  try {
+    return peggyParse(candidate, { commentTrivia: new Map() });
+  } catch {
+    return null;
+  }
+}
+
+// The shortest run of closers that completes a source, with the tree the
+// completed source parses to, or null when none within CLOSER_DEPTH does.
+function completionOf(source) {
+  let runs = [[]];
+  for (let depth = 1; depth <= CLOSER_DEPTH; depth++) {
+    runs = runs.flatMap(run => [...OPENERS_BY_CLOSER.keys()].map(closer => [...run, closer]));
+    for (const run of runs) {
+      const tree = treeOf(source + run.join(''));
+      if (tree !== null) return { closers: run, tree };
+    }
+  }
+  return null;
+}
+
+// The innermost node that ends at `offset` and opens with one of
+// `openers`: nodes that end together nest, and the walk meets the outer
+// before the inner.
+function nodeClosedAt(tree, offset, openers) {
+  let found = null;
+  const visit = node => {
+    if (node === null || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(visit); return; }
+    if (typeof node.text === 'string' && node.location.end.offset === offset
+      && openers.some(opener => node.text.startsWith(opener))) found = node;
+    for (const value of Object.values(node)) visit(value);
+  };
+  visit(tree);
+  return found;
+}
+
+// The bracket a source cut short left open: the closers that complete
+// it, the first of them the one a reader writes next, and where the
+// innermost opened; null when no run of closers completes it.
+function bracketLeftOpen(source) {
+  const completion = completionOf(source);
+  if (completion === null) return null;
+  const [innermostCloser] = completion.closers;
+  const openers = OPENERS_BY_CLOSER.get(innermostCloser);
+  const opened = nodeClosedAt(completion.tree, source.length + innermostCloser.length, openers);
+  if (opened === null) return null;
+  const opener = openers.find(candidate => opened.text.startsWith(candidate));
+  const { line, column } = opened.location.start;
+  return {
+    message: `\`${opener}\` opened at line ${line}, column ${column} is never closed; \`${completion.closers.join('')}\` completes the source`,
+    expected: [{ type: 'literal', text: innermostCloser }]
+  };
 }

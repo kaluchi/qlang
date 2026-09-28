@@ -144,7 +144,9 @@ export function errorFromParse(parseError) {
     d.set('marker', excerpt.marker);
   }
   // A refusal the grammar names itself carries its sentence, which says
-  // the fix; any other failure lists what the parser expected there.
+  // the fix, and a bracket left open its sentence beside its closers
+  // [D125]; any other failure lists what the parser expected there.
+  if (parseError.sentence) d.set('message', parseError.sentence);
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);

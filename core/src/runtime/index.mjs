@@ -27,8 +27,8 @@ import './axis.mjs';
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { keyword, bindingValueOf, BUILTIN_TAG, stampTagHeader, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { RUNTIME_LOCATOR_KEY, tagBindingKey, isTagBindingName } from '../env-keys.mjs';
+import { keyword, bindingValueOf, BUILTIN_TAG, stampTagHeader } from '../types.mjs';
+import { RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampThrowSiteSpec } from '../descriptor-ops.mjs';
 import { importOrderedNamespaces } from './use-op.mjs';
@@ -83,12 +83,7 @@ export async function buildLangRuntime(locator) {
   }
 
   // A tag binding takes the facts its throw site recorded.
-  for (const [envKey, entry] of templateEnv) {
-    const descriptor = bindingValueOf(entry);
-    if (isTagBindingName(envKey) && descriptor instanceof Map && descriptor[TAG_HEADER_SYMBOL]?.name === 'builtin') {
-      stampThrowSiteSpec(descriptor, envKey);
-    }
-  }
+  for (const [envKey, entry] of templateEnv) stampThrowSiteSpec(bindingValueOf(entry), envKey);
 
   PRIMITIVE_REGISTRY.seal();
 

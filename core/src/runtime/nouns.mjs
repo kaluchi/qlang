@@ -11,7 +11,7 @@
 
 import {
   isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
-  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
+  typeKeyword, bindingValueOf, isBuiltinDescriptor, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
   isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
@@ -21,11 +21,6 @@ import { isContract } from './verb.mjs';
 import { namespaceDerivedOf } from '../state.mjs';
 
 const ROOT_NOUN_NAME = 'qlang';
-
-// The declaration a tag binding holds, a descriptor under `::builtin`.
-function isTagDescriptor(value) {
-  return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin';
-}
 
 // A refusal is a tag whose declaration names the category of its
 // failure, stamped from the site that raises it or written in the
@@ -148,7 +143,7 @@ export function isNoun(env, tagName) {
 export function isProviderBinding(env, name) {
   const entry = env.get(name);
   const declared = bindingValueOf(entry);
-  if (!isTagDescriptor(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
+  if (!isBuiltinDescriptor(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
   return namespaceDerivedOf(env, indexProviders).recordsByName.get(name)?.has(entry) === true;
 }
 

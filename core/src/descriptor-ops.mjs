@@ -1,7 +1,7 @@
 // The descriptors under `::builtin` that bootstrap stamps: the bindings
 // of tags, which take the facts their throw sites recorded.
 
-import { BUILTIN_TAG, TAG_HEADER_SYMBOL, keyword, makeTagKeyword } from './types.mjs';
+import { isBuiltinDescriptor, keyword, makeTagKeyword } from './types.mjs';
 import { throwSiteSpecOf, throwSiteTagsRaisedBy } from './errors.mjs';
 import { stripTagBindingPrefix, isTagBindingName } from './env-keys.mjs';
 
@@ -18,8 +18,7 @@ function stampRaisedTags(descriptor, bindingName) {
 // the binding of its tag, so `!| type | spec` reads them; a tag whose
 // body is another literal, `::Box {}`, holds no descriptor to stamp.
 export function stampThrowSiteSpec(binding, envKey) {
-  if (!isTagBindingName(envKey)) return binding;
-  if (binding[TAG_HEADER_SYMBOL]?.name !== BUILTIN_TAG.name) return binding;
+  if (!isTagBindingName(envKey) || !isBuiltinDescriptor(binding)) return binding;
   const tagDescriptor = binding;
   stampRaisedTags(tagDescriptor, envKey);
   const spec = throwSiteSpecOf(stripTagBindingPrefix(envKey));

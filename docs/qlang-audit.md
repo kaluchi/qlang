@@ -1788,7 +1788,7 @@ and telling the language with the page of every kind saying why it is
 there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108], [D109], [D111] and [D117]: a parse error that names no marker of a comment
+[D108], [D109], [D111], [D117] and [D118]: a parse error that names no marker of a comment
 among the continuations of a quote left open, the verbs the runs of the
 benchmark missed, the link a page names for a reader to follow, and an
 answer within a budget whose markers read what it left out, and a first
@@ -2139,3 +2139,4 @@ maintainer wants to explore it before it is fixed.
 [D115]: decisions/D115.md
 [D116]: decisions/D116.md
 [D117]: decisions/D117.md
+[D118]: decisions/D118.md

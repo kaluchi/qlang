@@ -58,13 +58,18 @@
       of every value are the whole of them: a verb in neither list does
       not exist. A verb declares its slots and the kinds it takes, which
       `spec` answers before a call. A reader declares verbs and kinds of
-      its own in the same form the catalog is written in. Rests on
+      its own in the form the catalog is written in: a name over `::verb`
+      and a quote whose head declares its slots is a verb, and a tag
+      named over a map whose `:impl` is a quote is a kind, whose
+      constructor checks or builds each value put under it and answers
+      an error for one it refuses. Rests on
       values and the pipeline; errors name the verb that refused.
       ::link~(::vec | spec | /verbs) ::link~(::qlang/any | spec | /verbs)
       ::link~(::verb | docs | first) ::link~(::qlang/errors | docs | first)
 
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
       ~(::vec/sort | spec | type | eq ::spec)
+      ~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
   ~~|
   #[::verb ::spec ::qlang/any]
 

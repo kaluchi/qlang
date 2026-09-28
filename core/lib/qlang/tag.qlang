@@ -498,6 +498,7 @@
       ::link~(::qlang/values | docs | first)
 
       ~(::Box | type | eq ::tag)
+      ~(::Even {:impl ~(if (eq 2) ~(/) ~(!{:reason :odd}))} | ::Even(3) !| /reason | eq :odd)
       ~(::tag::Box | eq ::Box)
       ~(5 | type | docs | count | gt 0)
   ~~|

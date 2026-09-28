@@ -456,12 +456,17 @@ BlockDocPart
   / "~|"
   / !"~~|" c:. { return c; }
 
-// A quote of a doc: the try counts its depth on the way in and gives it
-// back on the way out, having read a quote or not; the second branch
-// fails always, after its predicate gave the depth back.
+// A quote of a doc, under the stack of tags written before it, which
+// gives it its role [D108]: the try counts its depth on the way in and
+// gives it back on the way out, having read a quote or not; the second
+// branch fails always, after its predicate gave the depth back.
 DocQuote
-  = &{ docQuoteDepth++; return true; } quote:QuoteLit &{ docQuoteDepth--; return true; } { return quote; }
+  = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
+    { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, location(), text()); }
   / &{ docQuoteDepth--; return false; } "~("
+
+DocQuoteTag
+  = "::" @TagName
 
 // ── Literals ───────────────────────────────────────────────────────
 

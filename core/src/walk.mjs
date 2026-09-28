@@ -58,6 +58,9 @@ export function astChildrenOf(node) {
     case 'QuoteLit':
       if (node.pipeline !== null) out.push(node.pipeline);
       break;
+    case 'DocTaggedQuote':
+      out.push(node.quote);
+      break;
     case 'BindStep':
       out.push(node.key);
       for (const doc of node.docs ?? []) out.push(doc);

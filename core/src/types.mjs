@@ -210,8 +210,12 @@ export function isDoc(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === DOC_TAG_NAME;
 }
 
+// A segment of a doc: a run of its prose, a quote, or a quote under a
+// stack of tags, which gives the quote its role [D108].
 export function isDocSegment(v) {
-  return typeof v === 'string' || isQuote(v);
+  let beneath = v;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  return typeof v === 'string' || isQuote(beneath);
 }
 
 export function makeDoc(segments) {

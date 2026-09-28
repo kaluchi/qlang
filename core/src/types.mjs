@@ -1,4 +1,4 @@
-import { canonicalKeywordLiteral } from './keyword-literal.mjs';
+import { readsAsBareKeyword } from './parse.mjs';
 import {
   declareInvariantError,
   declareShapeError
@@ -65,6 +65,19 @@ export function isQSet(v) {
 
 export function isErrorValue(v) {
   return isValueClass(v, 'error');
+}
+
+// The literal of a keyword of a name, bare where the name reads back
+// bare and quoted with the escapes of a string otherwise.
+const keywordLiterals = new Map();
+
+export function canonicalKeywordLiteral(name) {
+  let literal = keywordLiterals.get(name);
+  if (literal === undefined) {
+    literal = readsAsBareKeyword(name) ? ':' + name : ':' + JSON.stringify(name);
+    keywordLiterals.set(name, literal);
+  }
+  return literal;
 }
 
 // A keyword, with the literal that spells it; a map keys its entries by

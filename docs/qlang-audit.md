@@ -1784,10 +1784,11 @@ and telling the language with the page of every kind saying why it is
 there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108] and [D109]: a parse error that names no marker of a comment
+[D108], [D109] and [D111]: a parse error that names no marker of a comment
 among the continuations of a quote left open, the verbs the runs of the
 benchmark missed, the link a page names for a reader to follow, and an
-answer within a budget whose markers read what it left out; the others stand beside the suite: one start command
+answer within a budget whose markers read what it left out, and a first
+screen that opens the pages of the concepts in one query; the others stand beside the suite: one start command
 returns the root doc within four kilobytes; a host answers within a
 budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the
@@ -2127,3 +2128,4 @@ maintainer wants to explore it before it is fixed.
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
 [D110]: decisions/D110.md
+[D111]: decisions/D111.md

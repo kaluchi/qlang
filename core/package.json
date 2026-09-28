@@ -51,7 +51,6 @@
   },
   "imports": {
     "#qlang/core": "./lib/qlang/core.qlang",
-    "#qlang/runtime-invariants": "./lib/qlang/runtime-invariants.qlang",
     "#qlang/tag": "./lib/qlang/tag.qlang",
     "#qlang/number": "./lib/qlang/number.qlang",
     "#qlang/string": "./lib/qlang/string.qlang",
@@ -70,7 +69,21 @@
     "#qlang/load-source": {
       "node": "./host/load-source-node.mjs",
       "default": "./src/load-source-web.mjs"
-    }
+    },
+    "#qlang/builtin": "./lib/qlang/builtin.qlang",
+    "#qlang/verb": "./lib/qlang/verb.qlang",
+    "#qlang/null": "./lib/qlang/null.qlang",
+    "#qlang/spec": "./lib/qlang/spec.qlang",
+    "#qlang/binding": "./lib/qlang/binding.qlang",
+    "#qlang/elision": "./lib/qlang/elision.qlang",
+    "#qlang/link": "./lib/qlang/link.qlang",
+    "#qlang/snippet": "./lib/qlang/snippet.qlang",
+    "#qlang/call": "./lib/qlang/call.qlang",
+    "#qlang/proj": "./lib/qlang/proj.qlang",
+    "#qlang/bind": "./lib/qlang/bind.qlang",
+    "#qlang/each": "./lib/qlang/each.qlang",
+    "#qlang/fail": "./lib/qlang/fail.qlang",
+    "#qlang/group": "./lib/qlang/group.qlang"
   },
   "sideEffects": [
     "./src/runtime/*.mjs"

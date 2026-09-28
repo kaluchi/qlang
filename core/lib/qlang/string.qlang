@@ -1,8 +1,44 @@
-|~ The verbs of strings. Each resides on `::qlang/string`, the
+|~ `::string`, the kind of strings, its constructor and its refusal,
+   and the verbs of strings. Each resides on `::qlang/string`, the
    kind whose module declares it: the comparisons, which compare
    two strings by their code units in the one order, the verbs
    that read a string, and `prepend` and `append`, under the contracts
    of their names on `::qlang/any`. ~|
+
+::string
+  |~~ The kind of a string, text as it came. A JSON string arrives as a
+      string, and `keyword` makes one a keyword where a key is wanted,
+      since the keys of a map are keywords. Its verbs work on the text
+      whole or by its lines, and `lines` breaks it into the vector a
+      pipeline reads in pieces.
+      ::snippet~(::string | spec | /verbs) lists its verbs. ::link~(::keyword | doc)
+      ::link~(::qlang | doc :values)
+
+      ~("x" | type | eq ::string)
+      ~(::string"x" | eq "x")
+  ~~|
+  ::builtin{:impl :qlang/type/string}
+
+::StringPayloadNotStringError
+  |~~ `::string…` payload must be a string.
+      ~(
+        ::string(1)
+        !| [type /actualType]
+        |  eq [::StringPayloadNotStringError ::number]
+       )
+  ~~|
+
+::FromPlainNumberNotFiniteError
+  |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
+      magnitude past the double range as one (`1e400` lifts to
+      Infinity). The plain-JSON lift refuses it, so a piped document
+      cannot seed a pipeline with a value the language does not
+      admit. Reached through `parseJson` or a host's lift of its
+      input, the command line's stdin among them, never from a qlang
+      literal, which the parser refuses at its own site.
+
+      ~("1e400" | parseJson !| type | eq ::FromPlainNumberNotFiniteError)
+  ~~|
 
 :gt
   |~~ Whether the subject follows the string the call gives.

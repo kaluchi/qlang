@@ -9,20 +9,20 @@ import { declareInvariantError, declarePerSiteError } from './errors.mjs';
 const PrimitiveKeyNotStringError = declareInvariantError(
   'PrimitiveKeyNotStringError',
   ({ actualType }) => `bind: primitive key must be a string, got ${actualType}`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 const PrimitiveKeyAlreadyBoundError = declareInvariantError(
   'PrimitiveKeyAlreadyBoundError',
   ({ keyName }) => `bind: primitive key :${keyName} is already bound; ` +
     'duplicate binding indicates two runtime modules claim the same primitive name',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 const PrimitiveRegistrySealedError = declareInvariantError(
   'PrimitiveRegistrySealedError',
   ({ keyLabel }) => `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // A handle that names no primitive, which a descriptor a query

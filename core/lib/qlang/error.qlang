@@ -1,8 +1,64 @@
-|~ The verbs of errors. Each resides on `::qlang/error`, the kind
+|~ `::error`, the kind of every error, the refusal of an error whose
+   path is no vector of stops, and the verbs of errors. Each resides on `::qlang/error`, the kind
    every error is a value of: the error `!|` opens is `::error{…}`, or
    the tag of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a verb declared here reaches every
    error. ~|
+
+::error
+  |~~ The kind of errors. A reader learning a tool fails often, and
+      a failure is the moment when the knowledge it needs is cheapest to
+      give, so a failure is a value that carries it: the facts of the
+      failure, the path it took, and the tag of the site that refused,
+      which names the page of the procedure. An error is a map of facts
+      under `::error`, `::error{:k 1}`, a value like any other until it
+      is raised, and the bang of a literal raises it, `!{:k 1}`. Every
+      refusal is a tag of its own, named for what failed,
+      `::AddLeftNotNumberError`, stacked over the error. `|` passes a
+      raised error by, `*` stops on one, and `!|` opens it to that
+      stack, so `!| type` reads the site, the verbs of this kind reach
+      every error, and every step works on it as on any value: a fact is
+      added and the error raised again, or it is recovered by the tag of
+      its site. ::snippet~(::error | spec | /verbs) lists its verbs.
+      ::link~(::explanation | doc) ::link~(::fail | doc)
+      ::link~(::qlang | doc :errors)
+
+      ~(!{:detail "boom"} !| type | eq ::error)
+      ~(::qlang/error | eq ::error)
+      ~("x" | add 1 !| type | eq ::error | not)
+      ~("x" | add 1 !| payload | type | eq ::error)
+      ~(::error{:k 1} | /k | eq 1)
+      ~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
+      ~("x" | add 1 !| if (type | eq ::AddLeftNotNumberError) ~(0) ~(raise) | eq 0)
+      ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::AddLeftNotNumberError)
+  ~~|
+
+::ErrorTrailNotVecError
+  |~~ `:trail` on an error descriptor is the path of the error, a
+      vector of stops the runtime writes, `{:step :subject :skipped}`,
+      from the step where it arose to the step where it is read.
+      A literal or a re-lift that writes a value that is no
+      vector under `:trail` fires this error at mint time. A re-lift
+      that writes the `:trail` it read resumes that path, and one that
+      leaves it out starts a path at the step that lifts it.
+      ::link~(::error | doc)
+
+      ~(
+        !{:kind :oops :trail 5}
+        !| [type /actualType]
+        |  eq [::ErrorTrailNotVecError ::number]
+       )
+      ~(
+        !{:kind :oops} | count
+        !| union {:trail 5} | raise
+        !| type | eq ::ErrorTrailNotVecError
+       )
+      ~(
+        !{:kind :oops} | count
+        !| minus #[:trail] | raise | add 1
+        !| /trail * /step | eq [~(raise)]
+       )
+  ~~|
 
 :trail
   |~~ The path of the error: each step it passed, from the one

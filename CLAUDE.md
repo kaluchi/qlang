@@ -63,7 +63,7 @@ Tier 2, by topic, only the files the topic names:
   `core/src/error-convert.mjs`, `core/src/eval-trail.mjs`
 - self-description: `core/src/runtime/axis.mjs`,
   `core/src/runtime/manifest-op.mjs`, `core/lib/qlang/doc.qlang`,
-  `core/lib/qlang/runtime-invariants.qlang`
+  `core/lib/qlang/builtin.qlang`
 - code as data: `core/src/quote.mjs`,
   `core/src/runtime/codeAsData.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,

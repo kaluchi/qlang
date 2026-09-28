@@ -1,8 +1,35 @@
-|~ The verbs of vectors. Each resides on `::qlang/vec`, the kind
+|~ `::vec`, the kind of vectors, its constructor and its refusal,
+   and the verbs of vectors. Each resides on `::qlang/vec`, the kind
    whose module declares it, under the contract of its name on
    `::qlang/any`, whose page and laws it answers; a quote reads as
    the vector of its steps. The head of each is its declaration, which
    the runtime executes before the primitive runs. ~|
+
+::vec
+  |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
+      long value takes: its parts have an index, a size and a slice,
+      `drop` and `take`, so the rest of a long answer is the same query
+      with a tail, and `*` runs a step on each element. A set, a quote
+      and a doc are vectors under their tags, read as vectors wherever a
+      vector is read; over them the constructor answers the vector of
+      their elements, and `::vec[1 2]` reads as `[1 2]`.
+      ::snippet~(::vec | spec | /verbs) lists its verbs. ::link~(::each | doc)
+      ::link~(::qlang | doc :values)
+
+      ~([1 2] | type | eq ::vec)
+      ~(::qlang/vec[1 2] | eq [1 2])
+      ~(#[2 1] | tag ::vec | eq [1 2])
+  ~~|
+  ::builtin{:impl :qlang/type/vec}
+
+::VecPayloadNotVecError
+  |~~ `::vec[…]` payload must be a Vec.
+      ~(
+        ::vec{:a 1}
+        !| [type /actualType]
+        |  eq [::VecPayloadNotVecError ::map]
+       )
+  ~~|
 
 :count
   |~~ The number of elements.

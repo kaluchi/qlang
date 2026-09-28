@@ -1,7 +1,66 @@
-|~ The verbs of quotes. Each resides on `::qlang/quote`, the kind
+|~ `::quote`, the kind of code held as a value, its constructor and
+   its refusals, the refusal of text read as code, and the verbs of
+   quotes. Each resides on `::qlang/quote`, the kind
    whose module declares it; a quote is also the vector of its
    steps, so the verbs of vectors read it as one, and a quote under a
    tag, a link or a snippet of a page, reads them through its shape. ~|
+
+::quote
+  |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
+      under the code tag. Code is a value so that a verb takes code as its
+      slot, `filter`, `sort`, `if`; a page holds laws that run and links
+      that lead on; the trail of an error holds the steps it skipped,
+      ready to replay; and a query is read, printed and built like any
+      data. A literal step is the literal itself; a step that computes is
+      a record, `::call`, `::proj`, `::bind` or `::tagged`; `*`, `!|`
+      and parentheses wrap their step as `::each`, `::fail` and
+      `::group`. `apply` runs a quote on the subject and `parse` prints
+      it back. ::link~(::each | doc) ::link~(::call | doc)
+      ::link~(::verb | doc)
+      ::link~(::qlang | doc :code)
+
+      ~(~(1 | add 1 | mul 2) | count | eq 3)
+      ~(~(add 1) | eq ~(add 1))
+      ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
+      ~(~(add 1 | mul 2) | filter ~(/name | eq :mul) | parse | eq "mul 2")
+  ~~|
+  ::builtin{:impl :qlang/type/quote}
+
+::QuotePayloadNotVecError
+  |~~ `::quote` payload must be a Vec of steps.
+      ::link~(::quote | doc)
+
+      ~(
+        ::quote{:not :steps}
+        !| [type /actualType]
+        |  eq [::QuotePayloadNotVecError ::map]
+       )
+  ~~|
+
+::QuoteElementNotStepError
+  |~~ Every element of a quote is a step: a literal, a quote, a
+      container of steps, or a record or wrapper of code. A value
+      with no reading as code, such as a tagged instance of
+      another tag, is refused at the index it stands at.
+      ::link~(::quote | doc)
+
+      ~(
+        [::Box[1]] | tag ::quote
+        !| [type /index]
+        |  eq [::QuoteElementNotStepError 0]
+       )
+  ~~|
+
+::ParseError
+  |~~ Parser failure — source did not match the grammar.
+      ::link~(::quote | doc)
+
+      ~(
+        "42 |" | parse
+        !| type | spec | /category
+        |  eq :parseError
+       )
+  ~~|
 
 :parse
   |~~ The source text of the quote, the reverse of `parse` on a string.

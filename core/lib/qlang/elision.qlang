@@ -1,0 +1,18 @@
+|~ `::elision`, the kind of the marker of what a view left out. ~|
+
+::elision
+  |~~ The kind of the marker of what a view left out. A
+      reader's context only grows, and whatever an answer adds is read
+      again on every later step, so a reader asks for a budget, by
+      `elide` in the query or by the host's flag, and the marker keeps
+      the way back; an answer nobody bounded prints whole: `:size` counts the elements, the
+      entries or the characters it stands for, `:read` is the quote that
+      applied to the value taken answers the part left out, and `:head`
+      holds the first characters of a string. `elide` writes markers,
+      and a reader continues its query by `:read` to see the rest.
+      ::link~(::any/elide | doc)
+      ::link~(::qlang | doc :hosts)
+
+      ~(::elision | doc | type | eq ::doc)
+      ~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
+  ~~|

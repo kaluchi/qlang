@@ -70,7 +70,7 @@ import { quoteOfSource, printQuoteSource } from './quote.mjs';
 export const TaggedJSONUnencodableValueError = declarePerSiteError(
   'TaggedJSONUnencodableValueError', 'codecError',
   ({ typeName }) => `cannot encode ${typeName} value to tagged JSON; use serializeSession`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // The wire carries plain JSON numbers, and `JSON.parse` reads a
@@ -83,13 +83,13 @@ export const TaggedJSONUnencodableValueError = declarePerSiteError(
 export const TaggedJSONNumberNotFiniteError = declarePerSiteError(
   'TaggedJSONNumberNotFiniteError', 'codecError',
   () => 'fromTaggedJSON: a number outside the finite-double domain cannot decode into a qlang Number',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 export const MalformedTaggedJSONError = declarePerSiteError(
   'MalformedTaggedJSONError', 'codecError',
   ({ payload }) => `fromTaggedJSON: unrecognized payload shape: ${JSON.stringify(payload)}`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // toTaggedJSON(value) → JSON-serializable plain value

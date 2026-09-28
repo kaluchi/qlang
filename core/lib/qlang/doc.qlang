@@ -1,5 +1,46 @@
-|~ The verbs of docs. Each resides on `::qlang/doc`, the kind whose
+|~ `::doc`, the kind of a doc, its constructor and its refusals, and
+   the verbs of docs. Each resides on `::qlang/doc`, the kind whose
    module declares it, and reads the doc's shape for the query. ~|
+
+::doc
+  |~~ The kind of a doc, prose as a value, the value of a doc literal:
+      text that carries quotes of qlang. It is how the language says what
+      it is: every page is a doc, `doc` answers the page of a name, and
+      because a doc is a value its code is checked and the next step can
+      take it apart. A quote with no tag is a law of the page, which
+      `runLaws` holds to answer true; a quote under `::link` is a
+      link, a query a reader follows. `content` answers its text,
+      `segments` its parts, `laws` its laws, `links` its links and
+      `snippets` its snippets.
+      ::snippet~(::doc | spec | /verbs) lists its verbs. ::link~(::link | doc)
+      ::link~(::qlang | doc :hypertext)
+
+      ~(::number/add | doc | type | eq ::doc)
+      ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
+      ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
+  ~~|
+  ::builtin{:impl :qlang/type/doc}
+
+::DocPayloadNotVecError
+  |~~ `::doc` payload must be a Vec of segments.
+
+      ~(
+        ::doc"x"
+        !| [type /actualType]
+        |  eq [::DocPayloadNotVecError ::string]
+       )
+  ~~|
+
+::DocElementNotSegmentError
+  |~~ Every element of a doc is a segment, a string of prose or a
+      quote, and another value is refused at the index it stands at.
+
+      ~(
+        ["a" 1] | tag ::doc
+        !| [type /index]
+        |  eq [::DocElementNotSegmentError 1]
+       )
+  ~~|
 
 :content
   |~~ The text of the doc: its prose with each quote written where it

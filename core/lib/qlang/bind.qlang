@@ -1,0 +1,71 @@
+|~ `::bind`, the step that declares a name, and the refusals of a
+   declaration. ~|
+
+::bind
+  |~~ The step of a declaration, `:name body`: it names a value for the
+      steps after it, in the scope where it stands, and a group, an
+      element of a literal and the body of `*` each open a scope of their
+      own, so a name never leaks out of the fork that declared it. As a
+      record, `:name` is the keyword or tag it binds, `:docs` its prose
+      and `:body` the step of its body. ::link~(::binding | doc)
+      ::link~(::qlang | doc :pipeline)
+
+      ~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
+  ~~|
+  ::builtin{:impl :qlang/type/bind}
+
+::BindPayloadNotSchemaError
+  |~~ A ::bind payload is a Map of `:name` a keyword or a tag,
+      `:docs` a Vec of strings and `:body` a step.
+      ::link~(::bind | doc)
+
+      ~(
+        ::bind{:name :inc :docs [1]}
+        !| [type /field]
+        |  eq [::BindPayloadNotSchemaError :docs]
+       )
+  ~~|
+
+::BindReadBackDiffersError
+  |~~ The ::bind prints as text that reads back as another step: a
+      declaration binds a body or docs, and a body that is a keyword
+      or a tag is written as a group.
+      ::link~(::bind | doc)
+
+      ~(
+        ::bind{:name :inc}
+        !| [type /printed]
+        |  eq [::BindReadBackDiffersError ":inc"]
+       )
+  ~~|
+
+::EffectLaunderingAtBindStepParseError
+  |~~ BindStep declaration body references an `@`-effectful
+      identifier, but the binding name is not `@`-prefixed —
+      laundering caught at parse time.
+      ::link~(::bind | doc)
+
+      ~(
+        1 | (:bad ::verb~(@callers) | bad)
+        !| [type /bindingName /effectfulName]
+        |  eq [::EffectLaunderingAtBindStepParseError
+                :bad :@callers]
+       )
+  ~~|
+
+::BindNameDeclaredTwiceError
+  |~~ A name is declared once in a scope: the steps of a pipeline
+      that the pipe or the fail track joins share one env, and a
+      declaration of a name one of them declared before is refused
+      where it stands. A group, an element, a modifier, a quote and
+      a step joined by `*` open scopes of their own, where a name
+      of the scope around them is shadowed.
+      ::link~(::bind | doc)
+
+      ~(
+        :k 1 | :k 2
+        !| [type /name]
+        |  eq [::BindNameDeclaredTwiceError :k]
+       )
+      ~(:k 1 | (:k 2 | k) | eq 2)
+  ~~|

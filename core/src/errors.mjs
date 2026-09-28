@@ -339,7 +339,7 @@ export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
   'ThrowSiteSpecAlreadyRecordedError',
   ({ className }) => `${className} records a second throw-site spec; two classes under ` +
     'one name share a catalog tag and a stamped spec',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // ── Per-site classes under QlangError ──────────────────────────
@@ -366,7 +366,7 @@ export const UnresolvedAddressError = declarePerSiteError(
 export const EvaluationDepthExceededError = declarePerSiteError(
   'EvaluationDepthExceededError', 'resourceLimit',
   ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`,
-  { operand: '::qlang' }
+  { operand: '::call' }
 );
 
 // BindNameDeclaredTwiceError — a declaration of a name an earlier step

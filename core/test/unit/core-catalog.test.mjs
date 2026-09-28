@@ -1,22 +1,11 @@
 // Tests for the qlang catalog under lib/qlang/ — the source
 // `langRuntime` parses at bootstrap.
 //
-// The catalog lives across `lib/qlang/core.qlang` (orchestrator that
-// pulls in every family through `use(...)`), `lib/qlang/operand/<family>.qlang`
-// (per-family operand + per-site error-tag declarations), plus
-// `lib/qlang/runtime-invariants.qlang` (shared / runtime tag-bindings)
-// and `lib/qlang/tag.qlang` (value-class constructors ::verb /
-// ::quote / ::set, the kinds of the core, the tags of a quote's
-// steps). Each operand is a `BindStep` whose body is a
-// descriptor Map carrying :kind ::builtin, a :impl
-// `:qlang/prim/*` keyword pointing into PRIMITIVE_REGISTRY, plus
-// authored metadata (category / subject / returns / modifiers /
-// throws) and doc-comment-prefix-attached `.docs`. `langRuntime()`
-// evaluates the chain once at startup, resolves every `:impl
-// :qlang/prim/<name>` handle through the JS-side registry bound at
-// module load onto the descriptor's `BUILTIN_IMPL_SLOT` JS-header
-// slot, and seals the registry. This is the single source
-// of truth for the bound env.
+// The catalog lives in the modules `lib/qlang/core.qlang` lists, the
+// kernel's `builtin.qlang` first, then the module of each kind, whole:
+// its page, its constructor, the refusals of its place and its verbs
+// [D112], [D114]. `langRuntime()` loads them once at startup and seals
+// the registry of primitives the verbs name.
 //
 // (The descriptor Map's identity rides on the JS-header
 // `TAG_HEADER_SYMBOL` slot — stamped to `::builtin` by the

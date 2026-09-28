@@ -1,6 +1,20 @@
-|~ The verbs of explanations. Each resides on
+|~ `::explanation`, the kind of what `explain` answers, and the verbs
+   of explanations. Each resides on
    `::qlang/explanation`, the kind of what `explain` answers: the page
    `doc` reads for a value and the value itself. ~|
+
+::explanation
+  |~~ The kind of what `explain` answers: the page `doc` reads
+      for a value under `:page`, then the value itself under `:value`, so
+      it prints as the page above what it explains, an error
+      raised, with its bang. It is the cord from a value to its
+      procedure in one answer; `page` and `value` answer its parts.
+      ::link~(::error | doc)
+      ::link~(::qlang | doc :errors)
+
+      ~("x" | add 1 !| explain | type | eq ::explanation)
+      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
+  ~~|
 
 :page
   |~~ The page of what the explanation explains: of a name its own, of

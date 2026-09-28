@@ -48,13 +48,13 @@ import {
 const UnknownAstNodeTypeError = declareInvariantError(
   'UnknownAstNodeTypeError',
   ({ nodeType }) => `unknown AST node type: ${nodeType}`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 const UnknownCombinatorKindError = declareInvariantError(
   'UnknownCombinatorKindError',
   ({ kind }) => `unknown combinator: ${kind}`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',

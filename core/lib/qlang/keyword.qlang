@@ -1,6 +1,29 @@
-|~ The comparisons of keywords. Each resides on
+|~ `::keyword`, the kind of keywords, its constructor and its
+   refusal, and the comparisons of keywords. Each resides on
    `::qlang/keyword`, the kind whose module declares it, and compares
    two keywords by their names in the one order. ~|
+
+::keyword
+  |~~ The kind of a keyword, `:k`, a name that stands for itself. It is
+      apart from the string so that no name is read by its look: every
+      key of a map is a keyword, `/k` reads a field by it, and a keyword
+      names a binding of the scope; `keyword` makes one of a string and
+      a string of one. ::link~(::map | doc) ::link~(::binding | doc)
+      ::link~(::qlang | doc :values)
+
+      ~(:k | type | eq ::keyword)
+      ~(::keyword:k | eq :k)
+  ~~|
+  ::builtin{:impl :qlang/type/keyword}
+
+::KeywordPayloadNotKeywordError
+  |~~ `::keyword…` payload must be a keyword.
+      ~(
+        ::keyword"k"
+        !| [type /actualType]
+        |  eq [::KeywordPayloadNotKeywordError ::string]
+       )
+  ~~|
 
 :gt
   |~~ Whether the subject's name follows the name of the keyword the

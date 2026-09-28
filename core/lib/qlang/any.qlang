@@ -1,10 +1,40 @@
-|~ The verbs of any value, and the contracts of the verbs that
+|~ `::qlang/any`, the kind beneath every kind: the verbs of any value, and the contracts of the verbs that
    several kinds answer, each residing on `::qlang/any`, the kind beneath
    every kind. A contract is a verb without a body: its page and its
    laws hold for every verb of its name, what a residence
    leaves out it says, and a call whose subject no residence serves
    reaches it and is refused with `:addresses`, the residences of the
    name. ~|
+
+::qlang/any
+  |~~ The kind beneath every kind, where the verbs every value answers
+      live: `type`, `eq`, `doc`, `print`, `explain`, `elide` and
+      their kin. A verb that means the same for any value is written once
+      here, and the walk from a name to its verb ends here, after the
+      kinds of the subject. No value answers it as its `type`, since each
+      has a kind of its own above it.
+      ::snippet~(::qlang/any | spec | /verbs) lists the verbs of every value.
+      ::link~(::qlang | doc :verbs)
+
+      ~(::qlang/any | spec | /verbs | has ::any/type)
+      ~(5 | type | eq ::qlang/any | not)
+  ~~|
+
+::ToPlainUnencodableValueError
+  |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
+      with no JSON form, a host value an embedder installed. Route the
+      value through `tjson` / `toTaggedJSON` when the round-trip has
+      to stay lossless, or project around the slot.
+  ~~|
+
+::SourceLoadError
+  |~~ The platform resolved a `#qlang/<ns>` logical name to a path
+      or URL the host could not read. The descriptor carries
+      `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
+      and either the underlying `:cause` or the HTTP `:status`. A
+      host that ships its own catalog answers the `:qlang/locator`
+      contract and never reaches the platform loader.
+  ~~|
 
 :gt
   |~~ Whether the subject follows the value the call gives in the one

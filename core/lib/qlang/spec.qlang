@@ -1,0 +1,14 @@
+|~ `::spec`, the kind of what `spec` answers for a verb, its
+   signature. ~|
+
+::spec
+  |~~ The signature of a verb, its leading declarations as a quote under
+      this tag with its subject filled, which `spec` answers for a verb:
+      what a verb takes and answers is known before it is called, which is
+      how a reader writes a call right the first time.
+      ::snippet~(::vec/sort | spec) shows one.
+      ::link~(::qlang | doc :verbs)
+
+      ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)
+      ~(:m ::verb~(:x ::number | add x) | :m | spec | payload * /name | eq [:subject :x])
+  ~~|

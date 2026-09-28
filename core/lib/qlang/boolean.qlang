@@ -1,6 +1,28 @@
-|~ The verbs of booleans. Each resides on `::qlang/boolean`, the
+|~ `::boolean`, the kind of booleans, its constructor and its
+   refusal, and the verbs of booleans. Each resides on `::qlang/boolean`, the
    kind whose module declares it: the negation, and the two
    combinators of conditions, which take booleans. ~|
+
+::boolean
+  |~~ The kind of `true` and `false`, the answer of a question about a
+      value: `filter`, `every` and `if` take a quote that answers one,
+      and `false !| true` after steps answers whether they failed.
+      ::snippet~(::boolean | spec | /verbs) lists its verbs.
+      ::link~(::qlang | doc :values)
+
+      ~(true | type | eq ::boolean)
+      ~(::boolean(false) | eq false)
+  ~~|
+  ::builtin{:impl :qlang/type/boolean}
+
+::BooleanPayloadNotBooleanError
+  |~~ `::boolean(…)` payload must be a boolean.
+      ~(
+        ::boolean(1)
+        !| [type /actualType]
+        |  eq [::BooleanPayloadNotBooleanError ::number]
+       )
+  ~~|
 
 :not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a

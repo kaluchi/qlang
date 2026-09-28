@@ -136,7 +136,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   });
 });
 
-describe('parse / apply — the codeAsData ring closer', () => {
+describe('parse / apply — code read, printed and run', () => {
   // The `parse` operand reads a source string into the quote of its
   // steps and prints a quote back; `apply(/)` runs the quote against
   // the subject. Together they round-trip

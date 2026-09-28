@@ -8,7 +8,7 @@ import { evalAst, evalQuery } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { signatureSpecOf, slotLabelsOf, verbShownFor } from './runtime/verb.mjs';
 import { verbsReaching } from './runtime/nouns.mjs';
-import { printAnswer } from './runtime/codeAsData.mjs';
+import { printAnswer } from './runtime/print.mjs';
 import { elide, elideAnswer } from './elide.mjs';
 import { createSession } from './session.mjs';
 import {

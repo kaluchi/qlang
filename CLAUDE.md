@@ -53,21 +53,22 @@ Tier 2, by topic, only the files the topic names:
 - arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls,
   `core/lib/qlang/any.qlang` for the contracts several kinds answer,
-  and `core/src/runtime/use-op.mjs` for `use`, the verb that writes
+  and `core/src/runtime/use.mjs` for `use`, the verb that writes
   the scope
 - names, scope, modules, sessions: `core/src/state.mjs`,
   `core/src/fork.mjs`, `core/src/env-keys.mjs`,
-  `core/src/runtime/use-op.mjs`, `core/src/runtime/env-op.mjs`,
+  `core/src/runtime/use.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/operand-errors.mjs`,
   `core/src/error-convert.mjs`, `core/src/eval-trail.mjs`
 - self-description: `core/src/runtime/axis.mjs`,
-  `core/src/runtime/manifest-op.mjs`, `core/lib/qlang/doc.qlang`,
+  `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
+  `core/lib/qlang/doc.qlang`,
   `core/lib/qlang/builtin.qlang`
 - code as data: `core/src/quote.mjs`,
-  `core/src/runtime/codeAsData.mjs`, `core/src/walk.mjs`
+  `core/src/runtime/code.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,
-  `core/src/runtime/format.mjs`
+  `core/src/runtime/print.mjs`, `core/src/runtime/format.mjs`
 - host boundary: `core/src/effect.mjs`, `core/src/effect-check.mjs`,
   `core/src/runtime/bootstrap.mjs`, `core/host/`, `cli/src/main.mjs`,
   `cli/src/script-mode.mjs`, `cli/src/cli-locator.mjs`

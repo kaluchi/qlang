@@ -9,7 +9,7 @@
 {"name":"a-set-joins-as-the-vector-it-is","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\"","decision":"D16"}
 {"name":"a-set-indexes-in-the-one-order","query":"#[:z :x :y] | at 1","expect":":y","decision":"D16"}
 {"name":"filter-keeps-the-set","query":"#[3 1 2] | filter ~(gt 1)","expect":"#[2 3]","decision":"D16"}
-{"name":"a-set-distributes-into-the-set-of-its-images","query":"#[-1 1] * mul 0","expect":"#[0]","decision":"D16"}
+{"name":"a-set-distributes-into-the-vector-of-its-images","query":"#[-1 1] * mul 0","expect":"[0 0]","decision":["D16","D116"],"target":true,"now":"#[0]"}
 {"name":"flat-of-sets-is-their-union","query":"#[#[3 1] #[2 1]] | flat","expect":"#[1 2 3]","decision":"D16"}
 {"name":"sort-of-a-set-answers-a-vector","query":"#[3 1 2] | sort | type","expect":"::vec","decision":"D16"}
 {"name":"reverse-of-a-set-answers-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]","decision":"D16"}

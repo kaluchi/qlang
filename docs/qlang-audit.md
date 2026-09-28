@@ -1708,8 +1708,9 @@ JavaScript classes of errors and the prose that restates their facts
 disappear.
 
 Its answers are the targets of [D13], [D64], [D97], [D98], [D99],
-[D100], [D101] and [D103] in the conformance suite: the first failure
-of `*` as its answer, which D103 settles; the error a site refuses with
+[D100], [D101], [D103] and [D116] in the conformance suite: the first
+failure of `*` as its answer, which D103 settles, and an image per
+element of a set, which D116 settles; the error a site refuses with
 as a value of the kind of errors, which D97 settles; the explanation of
 an error as a value of its own kind, which D98 settles, its page
 answering its quotes by the verb of the doc, D99, and every value
@@ -2136,3 +2137,4 @@ maintainer wants to explore it before it is fixed.
 [D113]: decisions/D113.md
 [D114]: decisions/D114.md
 [D115]: decisions/D115.md
+[D116]: decisions/D116.md

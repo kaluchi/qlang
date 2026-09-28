@@ -1261,14 +1261,15 @@ part:
   that tests alone used has left the package. It computes a module's
   surface as a delta of the environment.
 - An embedding surface that was never designed. The package's entry
-  point re-exports the runtime's internals by name, the Symbol slots of
-  the headers and the prefixes of the environment's housekeeping keys
-  among them, and the package exposes subpaths for the error
+  point exports what the command line, the language server, the site
+  and the sister project read, and no name besides; among them are still
+  the Symbol slot of the headers and the key of the host's locator in
+  the environment, and the package exposes subpaths for the error
   factories, which is what hosts build on:
 
   ```sh
   $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
-  EFFECT_MARKER_PREFIX MODULE_NAMESPACE_PREFIX RUNTIME_LOCATOR_KEY TAG_BINDING_PREFIX TAG_HEADER_SYMBOL
+  RUNTIME_LOCATOR_KEY TAG_HEADER_SYMBOL
   $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
   ./errors ./operand-errors
   ```

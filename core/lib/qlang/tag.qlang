@@ -247,13 +247,19 @@
       lists it in its `/throws`. `!|` opens a raised error to that
       stack, so `!| type` reads the site, the verbs of this kind,
       `trail` among them, reach every error, and `explain` answers the
-      page of the site above the error [D100].
+      page of the site above the error [D100]. After `!|` every step
+      works on the error as on any value, so handling it is a line of
+      the core [D102]: a fact added before it is raised again, a
+      recovery by the tag of its site, the rest raised on.
 
       ~(!{:detail "boom"} !| type | eq ::error)
       ~(::qlang/error | eq ::error)
       ~("x" | add 1 !| type | eq ::error | not)
       ~("x" | add 1 !| payload | type | eq ::error)
       ~(::error{:k 1} | /k | eq 1)
+      ~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
+      ~("x" | add 1 !| if (type | eq ::AddLeftNotNumberError) ~(0) ~(raise) | eq 0)
+      ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::AddLeftNotNumberError)
   ~~|
 
 ::explanation

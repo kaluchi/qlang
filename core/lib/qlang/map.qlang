@@ -222,12 +222,14 @@
       over the map, the site's of an opened error among them, then the
       one the map carries, then a `:kind` that names a tag, then
       `::error`; so an opened error raised again is itself, and a step
-      that lays a tag over it renames the error.
+      that lays a tag over it renames the error. A guard raises an
+      error of its own tag when a value fails its check [D102].
 
       ~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
       ~(raise {:kind :oops} !| /kind | eq :oops)
       ~("x" | add 1 !| raise !| type | eq ::AddLeftNotNumberError)
       ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
+      ~(42 | if (gt 100) ~(/) ~(raise {:kind ::TooSmall :value /}) !| [type /value] | eq [::TooSmall 42])
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/raise})
 

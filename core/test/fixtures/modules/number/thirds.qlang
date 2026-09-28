@@ -1,0 +1,3 @@
+:triple
+  |~~ Multiplies the number by three. ~~|
+  ::verb~(mul 3)

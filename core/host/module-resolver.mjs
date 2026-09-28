@@ -3,9 +3,9 @@
 // keyword → resolved-module entries ready to install into a session.
 //
 // Convention: filesystem path under the caller-supplied `libDir`
-// maps to a namespace keyword. With `libDir = "lib/extras"`:
-//   lib/extras/error.qlang         → :error
-//   lib/extras/error/guards.qlang  → :error/guards
+// maps to a namespace keyword. With `libDir = "lib"`:
+//   lib/domain.qlang      → :domain
+//   lib/domain/tax.qlang  → :domain/tax
 //
 // The .qlang extension is stripped; slashes are namespace separators.
 // Module source is pure qlang — BindStep declarations. The module's
@@ -108,9 +108,9 @@ export async function resolveModules(libDir, opts = {}) {
 // This matches the env shape `runtime/use-op.mjs::resolveNamespaceEnv`
 // produces for locator-loaded modules — install-path and locator-
 // path stay symmetric on the axis-operand discoverability surface,
-// and a namespace whose stem coincides with an operand name
-// (`lib/extras/error.qlang` next to the `raise` operand) stays
-// off the identifier-lookup plane.
+// and a namespace whose stem coincides with the name of a kind
+// (`lib/number.qlang` beside `::number`) stays off the
+// identifier-lookup plane.
 export function installModules(session, catalog) {
   for (const [nsName, entry] of catalog) {
     session.bind(moduleNamespaceKey(nsName), entry.exports);

@@ -1,0 +1,3 @@
+:tenfold
+  |~~ Multiplies the number by ten. ~~|
+  ::verb~(mul 10)

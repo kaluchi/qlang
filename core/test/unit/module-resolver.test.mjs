@@ -1,4 +1,4 @@
-// Tests for module-resolver.mjs using the actual lib/ directory.
+// Tests for module-resolver.mjs over the modules of test/fixtures/modules.
 // NOTE: No top-level await. libDir computed at module scope via fileURLToPath.
 
 import { describe, it, expect } from 'vitest';
@@ -9,11 +9,11 @@ import { createSession } from '../../src/session.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
 import { moduleNamespaceKey } from '../../src/env-keys.mjs';
 
-// Compute lib directory at module scope (no top-level await needed —
-// fileURLToPath/dirname/join are synchronous).
+// Compute the fixture directory at module scope (no top-level await
+// needed — fileURLToPath/dirname/join are synchronous).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const libDir = join(__dirname, '..', '..', 'lib', 'extras');
+const libDir = join(__dirname, '..', 'fixtures', 'modules');
 
 // ── discoverModules ─────────────────────────────────────────────
 
@@ -35,9 +35,9 @@ describe('discoverModules', () => {
 
   it('discovered namespaces include known modules', () => {
     const discovered = discoverModules(libDir);
-    expect(discovered.has('error')).toBe(true);
-    expect(discovered.has('error/guards')).toBe(true);
-    expect(discovered.has('error/observe')).toBe(true);
+    expect(discovered.has('number')).toBe(true);
+    expect(discovered.has('number/scale')).toBe(true);
+    expect(discovered.has('number/thirds')).toBe(true);
   });
 });
 
@@ -58,30 +58,18 @@ describe('resolveModules', () => {
     }
   });
 
-  it('resolved error module exports retry, recover, mapError, withContext', async () => {
+  it('resolved number module exports double and halve', async () => {
     const catalog = await resolveModules(libDir);
-    const errorEntry = catalog.get('error');
-    expect(errorEntry.exports instanceof Map).toBe(true);
-    expect(errorEntry.exports.has('retry')).toBe(true);
-    expect(errorEntry.exports.has('recover')).toBe(true);
-    expect(errorEntry.exports.has('mapError')).toBe(true);
-    expect(errorEntry.exports.has('withContext')).toBe(true);
+    const numberEntry = catalog.get('number');
+    expect(numberEntry.exports instanceof Map).toBe(true);
+    expect(numberEntry.exports.has('double')).toBe(true);
+    expect(numberEntry.exports.has('halve')).toBe(true);
   });
 
-  it('resolved error/guards module exports assert and ensure', async () => {
+  it('resolved sub-modules export their own verbs', async () => {
     const catalog = await resolveModules(libDir);
-    const guardsEntry = catalog.get('error/guards');
-    expect(guardsEntry.exports instanceof Map).toBe(true);
-    expect(guardsEntry.exports.has('assert')).toBe(true);
-    expect(guardsEntry.exports.has('ensure')).toBe(true);
-  });
-
-  it('resolved error/observe module exports tap and finally', async () => {
-    const catalog = await resolveModules(libDir);
-    const observeEntry = catalog.get('error/observe');
-    expect(observeEntry.exports instanceof Map).toBe(true);
-    expect(observeEntry.exports.has('tap')).toBe(true);
-    expect(observeEntry.exports.has('finally')).toBe(true);
+    expect(catalog.get('number/scale').exports.has('tenfold')).toBe(true);
+    expect(catalog.get('number/thirds').exports.has('triple')).toBe(true);
   });
 });
 
@@ -92,7 +80,7 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    const cellEntry = await sessionInstance.evalCell('use :error | :retry 5 | retry 1 !| /addresses | count');
+    const cellEntry = await sessionInstance.evalCell('use :number | :double 5 | double 1 !| /addresses | count');
     expect(cellEntry.result).toBe(0);
   });
 
@@ -101,32 +89,31 @@ describe('installModules', () => {
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
 
-    // After installModules, the :error export Map sits under its
+    // After installModules, the :number export Map sits under its
     // namespace cache key
-    expect(sessionInstance.env.has(moduleNamespaceKey('error'))).toBe(true);
+    expect(sessionInstance.env.has(moduleNamespaceKey('number'))).toBe(true);
 
-    // use(:error) imports retry into current env, a verb whose spec is
-    // its signature
-    const cellEntry = await sessionInstance.evalCell('use :error | :retry | spec | type');
+    // use(:number) imports double into current env, a verb whose spec
+    // is its signature
+    const cellEntry = await sessionInstance.evalCell('use :number | :double | spec | type');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual(makeTagKeyword('spec'));
   });
 
   it('keeps the export Map off the identifier-lookup plane, so a module sharing a stem with a kind of the core leaves its verbs intact', async () => {
-    // `lib/extras/error.qlang` resolves to the namespace `error`,
-    // the stem of the kind `::error` whose module declares `trail`.
-    // The cache key `qlang/namespace/error` is where
-    // `resolveNamespaceEnv` probes for a loaded namespace, a key the
-    // runtime keeps for itself — so the verbs of errors keep resolving,
-    // `use(:error)` still reaches the exports, and no export Map
-    // surfaces as a binding of the scope.
+    // `number.qlang` resolves to the namespace `number`, the stem of the
+    // kind `::number` whose module declares `add`. The cache key
+    // `qlang/namespace/number` is where `resolveNamespaceEnv` probes for
+    // a loaded namespace, a key the runtime keeps for itself — so the
+    // verbs of numbers keep resolving, `use(:number)` still reaches the
+    // exports, and no export Map surfaces as a binding of the scope.
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
 
-    const trailCell = await sessionInstance.evalCell('{:kind :x} | raise !| trail | count');
-    expect(trailCell.error).toBeNull();
-    expect(trailCell.result).toBe(1);
+    const addCell = await sessionInstance.evalCell('5 | add 1');
+    expect(addCell.error).toBeNull();
+    expect(addCell.result).toBe(6);
 
     const scopeCell = await sessionInstance.evalCell('env | keys | count');
     expect(scopeCell.error).toBeNull();
@@ -134,31 +121,32 @@ describe('installModules', () => {
   });
 
   it('resolveModules with explicit dependencies uses topo sort', async () => {
-    // libDir points to lib/qlang/, so module names are error, error/guards, etc.
     const deps = new Map();
-    deps.set('error/guards', ['error']);
-    deps.set('error/observe', ['error']);
+    deps.set('number/scale', ['number']);
+    deps.set('number/thirds', ['number']);
     const catalog = await resolveModules(libDir, { dependencies: deps });
     expect(catalog.size).toBeGreaterThanOrEqual(3);
     const names = [...catalog.keys()].sort();
-    expect(names).toContain('error');
-    expect(names).toContain('error/guards');
-    expect(names).toContain('error/observe');
+    expect(names).toContain('number');
+    expect(names).toContain('number/scale');
+    expect(names).toContain('number/thirds');
   });
 
-  it('imported verbs (retry, recover, assert, tap) answer their signatures', async () => {
+  it('imported verbs answer their signatures and run', async () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('use :error');
-    await sessionInstance.evalCell('use :error/guards');
-    await sessionInstance.evalCell('use :error/observe');
+    await sessionInstance.evalCell('use :number');
+    await sessionInstance.evalCell('use :number/scale');
+    await sessionInstance.evalCell('use :number/thirds');
 
-    for (const name of ['retry', 'recover', 'assert', 'tap']) {
+    for (const name of ['double', 'halve', 'tenfold', 'triple']) {
       const cellEntry = await sessionInstance.evalCell(`:${name} | spec | type`);
       expect(cellEntry.error).toBeNull();
       expect(cellEntry.result).toEqual(makeTagKeyword('spec'));
     }
+    const runCell = await sessionInstance.evalCell('2 | double | tenfold | triple');
+    expect(runCell.result).toBe(120);
   });
 
   it('install-loaded module AST is stamped under qlang/ast/<ns> so axis-operands reach the BindStep', async () => {
@@ -169,11 +157,11 @@ describe('installModules', () => {
     const catalog = await resolveModules(libDir);
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
-    await sessionInstance.evalCell('use :error');
-    const docsCell = await sessionInstance.evalCell(':retry | docs | first | content');
+    await sessionInstance.evalCell('use :number');
+    const docsCell = await sessionInstance.evalCell(':double | docs | first | content');
     expect(docsCell.error).toBeNull();
     expect(typeof docsCell.result).toBe('string');
-    expect(docsCell.result).toContain('Retry');
+    expect(docsCell.result).toContain('Doubles');
   });
 });
 

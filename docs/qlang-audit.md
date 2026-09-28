@@ -1059,11 +1059,10 @@ since the error a step produces carries its path there [D82], [D85].
 [::ErrorTrailNotVecError]
 ```
 
-A library of error-handling pipelines, retry and recover and assert
-and their kin, ships in the core package, is reachable only through
-the Node module resolver used by tests, and cannot be loaded from the
-command line at all; the reference nonetheless shows `use :qlang/error`
-as if it could.
+The library of error-handling pipelines, retry and recover and assert
+and their kin, left the package: after `!|` each of its verbs is a line
+of the core, and the pages of `::error` and `raise` hold those lines as
+examples [D102].
 
 The repair must keep error identity per site and declare it once [D7],
 [D46]: each site's tag is a kind declared in the catalog beside its
@@ -1107,8 +1106,7 @@ It must print an error the way the cockpit shows an alert: the tag, the
 facts of the site in the order of its schema, a short excerpt of the
 input, and the rest one projection away, the tail being what elision
 takes first. A parse error names the continuations a reader could have
-meant, in the reader's vocabulary. And it must decide whether the error
-library enters the catalog with examples or leaves the package.
+meant, in the reader's vocabulary.
 
 ### Self-description at full size
 
@@ -1200,16 +1198,6 @@ nothing executes them:
   ```qlang
   > [1 2 3] | filter
   ::VerbSlotMissingError!{ :verbName :filter :slot :predicate … }
-  ```
-
-- The chapter on modules shows `use :qlang/error` loading the error
-  library, retry and recover and assert, where the name loads the
-  module of the kind of errors, which declares `trail` [D97], so the
-  call loads it and answers its subject:
-
-  ```qlang
-  > 1 | use :qlang/error
-  1
   ```
 
 - The example of a quote-bodied constructor, `::cond`, calls `first`
@@ -2103,3 +2091,4 @@ maintainer wants to explore it before it is fixed.
 [D99]: decisions/D99.md
 [D100]: decisions/D100.md
 [D101]: decisions/D101.md
+[D102]: decisions/D102.md

@@ -16,5 +16,5 @@ export function createCliLocator(ioContext) {
 }
 
 export async function installCliCatalog(session) {
-  await session.evalCell('use :qlang/cli');
+  await session.evalCell('use :qlang/cli', { uri: 'qlang/cli' });
 }

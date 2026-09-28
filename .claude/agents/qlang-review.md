@@ -180,12 +180,12 @@ Operand metadata (`:throws`, `:category`, `:subject`, `:modifiers`, `:returns`) 
 
 ### 8. Spec / model / runtime documentation alignment
 
-The language specification lives in `docs/qlang-spec.md`, the formal evaluation model in `docs/qlang-internals.md`, and the operand catalog in `docs/qlang-operands.md`. Every public-facing change to behavior must be reflected in the relevant doc.
+The language specification lives in `docs/qlang-spec.md`, the formal evaluation model in `docs/qlang-internals.md`, and every verb's contract in its page in the catalog, which the language answers by `doc`. Every public-facing change to behavior must be reflected in the relevant page.
 
 For each diff:
 
 - New AST node type → grammar production in spec, evaluator handler note in internals, dispatch entry in runtime
-- New operand → BindStep entry in the per-family catalog file under `core/lib/qlang/operand/<family>.qlang` (`::builtin{:impl :qlang/prim/<name> :category … :subject … …}` TaggedLit body), `PRIMITIVE_REGISTRY.bind` call in the corresponding `core/src/runtime/*.mjs` module, catalog entry in `qlang-operands.md`, size bump in `core/test/unit/core-catalog.test.mjs` catalog-count pins
+- New verb → a `::verb~(…)` declaration with its page and captioned laws in the module of its kind, `core/lib/qlang/<kind>.qlang`, its built-in body a `::builtin{:impl :qlang/prim/<name>}` step, and the primitive bound by `bindPrim` in the corresponding `core/src/runtime/*.mjs` module
 - New error class kind → error conditions table in spec
 - New surface syntax → lexical structure table in spec, grammar production updated
 - Renamed identifier → grep the docs for the old name and verify it's gone

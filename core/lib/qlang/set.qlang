@@ -26,7 +26,8 @@
   ::builtin{:impl :qlang/type/set}
 
 ::SetPayloadNotVecError
-  |~~ `::set[…]` payload must be a Vec.
+  |~~ `::set` builds a set from a vector, `::set[3 1 3]`; a payload of
+      another kind is refused.
 
       ~(
         ::set{:not :a-vec}

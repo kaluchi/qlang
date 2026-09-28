@@ -45,8 +45,8 @@
 
 ::ForeignFailureError
   |~~ A failure of the host's implementation: an error of the language
-      the runtime is written in escaped an operand, which is a defect
-      of that operand's host. `:name` carries the host's class name,
+      the runtime is written in escaped a verb, which is a defect of
+      that verb's host. `:name` carries the host's class name,
       `:message` its text, `:operand` the step that ran it and
       `:causes` the chain of host errors behind it, each with its own
       `:name` and `:message`. The step and the input are those of
@@ -70,18 +70,16 @@
   ~~|
 
 ::EffectLaunderingAtCallError
-  |~~ Identifier resolves to an `@`-effectful function, but the
-      lookup name is not `@`-prefixed — laundering caught at the
-      call site. Host-boundary error: fires through env-installed
-      bindings (`use`, `session.bind`) that bypass the parse-time
-      AST scan.
+  |~~ A verb whose body calls a name marked `@` was called by a name
+      without the mark, one `use` or a host bound where no declaration
+      was read; the name that calls it carries the mark.
       ::link~(::call | doc)
   ~~|
 
 ::UnresolvedIdentifierError
-  |~~ Identifier lookup failed — no env binding under that name.
-      `:identifierName` holds the name as typed, and `:nearest` the
-      names of the value namespace it was likely meant to be: those
+  |~~ No name of the scope and no verb of the kinds of the subject
+      answers the name. `:identifierName` holds the name as typed, and
+      `:nearest` the names it was likely meant to be: those
       within an edit distance of a third of its length, one at least,
       and of those the nearest alone, in the order of their spelling.
       An edit is an insertion, a deletion, a substitution or a swap of

@@ -22,7 +22,8 @@
   ::builtin{:impl :qlang/type/doc}
 
 ::DocPayloadNotVecError
-  |~~ `::doc` payload must be a Vec of segments.
+  |~~ `::doc` builds a doc from the vector of its segments, prose
+      strings and quotes; a payload of another kind is refused.
 
       ~(
         ::doc"x"

@@ -16,7 +16,8 @@
   ::builtin{:impl :qlang/type/boolean}
 
 ::BooleanPayloadNotBooleanError
-  |~~ `::boolean(…)` payload must be a boolean.
+  |~~ `::boolean` reads its payload as the boolean it is; a payload of
+      another kind is refused.
       ~(
         ::boolean(1)
         !| [type /actualType]
@@ -35,7 +36,8 @@
   ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/not})
 
 ::NotSubjectNotBooleanError
-  |~~ Subject of `not` must be a boolean.
+  |~~ `not` turns a boolean; a value is asked whether it is absent by
+      `eq null`, and a container whether it is empty by `empty`.
       ~(
         0 | not
         !| [type /actualType]

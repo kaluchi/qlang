@@ -27,7 +27,8 @@
   ::builtin{:impl :qlang/type/quote}
 
 ::QuotePayloadNotVecError
-  |~~ `::quote` payload must be a Vec of steps.
+  |~~ `::quote` builds code from the vector of its steps; a payload of
+      another kind is refused.
       ::link~(::quote | doc)
 
       ~(
@@ -52,7 +53,9 @@
   ~~|
 
 ::ParseError
-  |~~ Parser failure — source did not match the grammar.
+  |~~ The source does not read as qlang: `:marker` points where the
+      reading stopped, `:expected` lists what could stand there, and a
+      source cut short names the bracket it left open.
       ::link~(::quote | doc)
 
       ~(

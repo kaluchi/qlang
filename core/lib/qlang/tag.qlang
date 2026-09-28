@@ -27,7 +27,8 @@
   ::builtin{:impl :qlang/type/tag}
 
 ::TagPayloadNotTagError
-  |~~ `::tag…` payload must be a tag name.
+  |~~ `::tag` reads its payload as the tag name it is; a value's own
+      tag is read by `type`.
       ~(
         ::tag:k
         !| [type /actualType]

@@ -78,13 +78,21 @@ RULES (strict):
 TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):
 ${taskLines}
 
-Budget: about 90 qlang invocations in total. A task that seems impossible: say so and why, and move on.
+Budget: about 120 qlang invocations in total. A task that seems impossible: say so and why, and move on.
+
+UNDERSTANDING (answer in your report, in your own words, from what the language told you, before and while solving):
+U1. What is qlang, and what is it for?
+U2. What is a value, a kind and a tag, and how are they related?
+U3. How does a name in a query find the verb it runs?
+U4. What happens when a step fails, and how does a query deal with it?
+U5. How is the description of the language organized, and how do you move through it? Which queries did you use to read several pages at once?
 
 REPORT, plain text:
 1. For each task: the final query, its output (abbreviated), and the invocations spent on it.
 2. The total invocations, exploration included.
 3. Every friction, each with the exact query run, what was expected and what came: wrong guesses of names, unhelpful errors, missing or misleading docs, surprising output. Be concrete and exhaustive.
-4. What in the first screen helped, and what it should have said.`;
+4. What in the first screen helped, and what it should have said.
+5. The answers to U1–U5.`;
 }
 
 function report() {

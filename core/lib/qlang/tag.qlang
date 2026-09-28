@@ -4,15 +4,15 @@
    name. ~|
 
 ::qlang
-  |~~ qlang is a pipeline language for a reader that arrives knowing
-      nothing and has no time to learn a language first, a model in the
-      middle of a task. It teaches from inside itself: everything it is
-      made of, data, code, prose and failures, is one thing, a value, so
-      the pipeline that reshapes data also walks the description of the
-      language. That description is a hypertext rooted on this page:
-      every name has a page, a page is a doc whose code runs as its laws
-      and whose links are queries to follow, and a reader asks for a page
-      at the moment it needs one.
+  |~~ qlang is a pipeline language over values, and a language that
+      describes itself in the same values: data, code, prose and
+      failures are all values, so the pipeline that reshapes data also
+      reads, searches and composes the description of the language. That
+      description is a hypertext rooted on this page: every name has a
+      page, a page is a doc whose code runs as its laws and whose links
+      are queries to follow, and one query can fetch many pages at once,
+      `::qlang | manifest * (docs | first | content)` every page of every
+      kind, in the shape the reader names.
 
       Values. A value never changes. Each has a kind, the one its literal
       implies, `42`, `"s"`, `true`, `null`, `:k` a keyword, `[a b]` a
@@ -275,7 +275,9 @@
       for membership. A set is read as a vector wherever a vector is
       read; `filter`, `take`, `drop`, `flat` and `*` keep it, since
       its constructor re-runs after them, and an operand that imposes an
-      order, `sort` or `reverse`, answers a vector.
+      order, `sort` or `reverse`, answers a vector. `*` over a set answers
+      the set of its images, so equal images become one; `sort` first
+      keeps an image per element.
       ::link~(::vec | docs)
 
       ~(#[3 1 3] | eq #[1 3])

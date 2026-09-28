@@ -5,3 +5,5 @@
 {"name":"code-comes-back-from-the-atoms-of-its-records","query":"#[1 :add :args :name ::call ::quote] | ([/5 [([/4 ([[/2 [/0]] [/3 /1]] | indexBy ~(first) * last)] | tag)]] | tag)","expect":"~(add 1)","decision":["D42","D82"]}
 {"name":"an-error-comes-back-from-the-atoms-of-its-descriptor","query":"#[1 :k :trail ::FooError] | [/3 ([[/1 /0] [/2 []]] | indexBy ~(first) * last)] | tag | raise","expect":"::FooError!{:k 1}","decision":["D42","D82","D85","D97"]}
 {"name":"the-step-of-an-error-literal-is-the-error-its-fields-build","query":"~(!{:k 1}) | [(first !| union {:trail []} | raise)] | tag ::quote","expect":"~(!{:k 1})","decision":["D42","D82","D85","D97"]}
+{"name":"a-descriptor-comes-apart-by-payload-as-any-tagged-value","query":"::builtin{:a 1} | [type payload]","expect":"[::builtin {:a 1}]","decision":"D42"}
+{"name":"the-declaration-of-a-kind-comes-back-from-its-tag-and-payload","query":"::vec | spec | :d / | [type payload] | tag | eq d","expect":"true","decision":"D42"}

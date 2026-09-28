@@ -125,12 +125,9 @@ export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
 }
 
-// A value under a tag of its own, a descriptor under `::builtin` apart.
+// A value under a tag of its own.
 export function isTaggedInstance(v) {
-  if (v === null || typeof v !== 'object') return false;
-  const tag = v[TAG_HEADER_SYMBOL];
-  if (tag === undefined) return false;
-  return tag.name !== BUILTIN_TAG_NAME;
+  return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;
 }
 
 export function isQuote(v) {

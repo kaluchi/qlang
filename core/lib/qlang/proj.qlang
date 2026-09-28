@@ -22,7 +22,7 @@
   ::builtin{:impl :qlang/type/proj}
 
 ::ProjPayloadNotSchemaError
-  |~~ A ::proj payload is a Map of `:path` a Vec of keys and
+  |~~ A `::proj` is a map of `:path`, a vector of keys and
       integers.
       ::link~(::proj | doc)
 

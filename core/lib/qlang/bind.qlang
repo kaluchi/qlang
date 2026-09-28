@@ -15,8 +15,8 @@
   ::builtin{:impl :qlang/type/bind}
 
 ::BindPayloadNotSchemaError
-  |~~ A ::bind payload is a Map of `:name` a keyword or a tag,
-      `:docs` a Vec of strings and `:body` a step.
+  |~~ A `::bind` is a map of `:name`, a keyword or a tag, `:docs`, a
+      vector of docs, and `:body`, a step.
       ::link~(::bind | doc)
 
       ~(

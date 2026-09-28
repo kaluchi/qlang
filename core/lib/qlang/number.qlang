@@ -68,10 +68,10 @@
   ~~|
 
 ::AddResultNotFiniteError
-  |~~ `add` answered outside the finite-double domain a qlang
-      Number lives in. Both operands are of the right kind
-      and ride the descriptor as `:leftValue` / `:rightValue`; the
-      magnitude is what the site refuses.
+  |~~ `add` answered outside the finite doubles a number of qlang
+      is: both operands are numbers, held as `:leftValue` and
+      `:rightValue`, and the size of the answer is what the site
+      refuses.
 
       ~(
         1e308 | add 1e308
@@ -111,10 +111,10 @@
   ~~|
 
 ::SubResultNotFiniteError
-  |~~ `sub` answered outside the finite-double domain a qlang
-      Number lives in. Both operands are of the right kind
-      and ride the descriptor as `:leftValue` / `:rightValue`; the
-      magnitude is what the site refuses.
+  |~~ `sub` answered outside the finite doubles a number of qlang
+      is: both operands are numbers, held as `:leftValue` and
+      `:rightValue`, and the size of the answer is what the site
+      refuses.
 
       ~(
         -1e308 | sub 1e308
@@ -154,10 +154,10 @@
   ~~|
 
 ::MulResultNotFiniteError
-  |~~ `mul` answered outside the finite-double domain a qlang
-      Number lives in. Both operands are of the right kind
-      and ride the descriptor as `:leftValue` / `:rightValue`; the
-      magnitude is what the site refuses.
+  |~~ `mul` answered outside the finite doubles a number of qlang
+      is: both operands are numbers, held as `:leftValue` and
+      `:rightValue`, and the size of the answer is what the site
+      refuses.
 
       ~(
         1e308 | mul 10
@@ -198,10 +198,10 @@
   ~~|
 
 ::DivResultNotFiniteError
-  |~~ `div` answered outside the finite-double domain a qlang
-      Number lives in. Both operands are of the right kind
-      and ride the descriptor as `:leftValue` / `:rightValue`; the
-      magnitude is what the site refuses.
+  |~~ `div` answered outside the finite doubles a number of qlang
+      is: both operands are numbers, held as `:leftValue` and
+      `:rightValue`, and the size of the answer is what the site
+      refuses.
 
       ~(
         1e308 | div 0.0001

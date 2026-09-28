@@ -84,11 +84,11 @@
 
 
 :table
-  |~~ Renders a Vec of Maps as a fixed-width tabular string, a view
+  |~~ A vector of maps drawn as a table of fixed-width columns, a view
       for a terminal. Columns are derived from keys in first-occurrence
       order across all rows; missing keys render as empty cells. A
-      String cell prints bare, null as an empty cell, and every other
-      value as its literal on one line. Empty Vec yields the marker
+      string cell prints bare, null as an empty cell, and every other
+      value as its literal on one line. The empty vector yields the marker
       "(empty)".
 
       ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")

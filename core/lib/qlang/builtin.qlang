@@ -70,14 +70,14 @@
   ~~|
 
 ::NumberNotFiniteLeakedToPrintError
-  |~~ A qlang Number is a finite double. Source cannot mint an
+  |~~ A number of qlang is a finite double. Source cannot mint an
       infinity or a NaN — the parser refuses the literal and every
       arithmetic site answers an error of its domain — so this tag
       reports a value a host installed. The print and the JSON of the
       boundary are where such a value shows: the print would be
       `Infinity`, which no literal reads back, and JSON would write
-      `null`. `:actualValue` carries the offending magnitude
-      as a String, the one shape that renders.
+      `null`. `:actualValue` holds the magnitude as a string, the one
+      form that prints.
   ~~|
 
 ::BootstrapCatalogNotLoadedError

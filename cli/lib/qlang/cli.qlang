@@ -14,9 +14,10 @@
       a map whose keys are keywords, whose answer is written as JSON,
       where a value JSON has no form for is refused; text read
       as a string, whose answer is written as its `print`; and
-      `| json` writes JSON text. Every query the command line
-      runs calls its verbs by their names, and `::cli | manifest` lists
-      them.
+      `| json` writes JSON text. A query that writes to stdout itself,
+      by `@out`, holds the channel, and its answer is left unwritten.
+      Every query the command line runs calls its verbs by their names,
+      and `::cli | manifest` lists them.
   ~~|
 
 ::AnswerNotJsonError
@@ -29,28 +30,19 @@
       name of a keyword, and `payload` a value without its tag. ~~|
 
 :@in
-  |~~ Reads stdin to completion and returns it as a String,
-      ignoring the incoming pipeValue. A TTY-attached stdin (no
-      piped input) yields the empty string immediately so a
-      prompt-less `qlang '@in | ...'` does not hang. Producer —
-      use as the head of a pipeline.
-
-      Pattern: `echo '{"x":42}' | qlang '@in | parseJson | /x'`
-      reads the JSON payload, parses it, and projects `:x`. ~~|
+  |~~ The text stdin holds, read to its end whatever the subject, the
+      text the command line also lifts into the subject; a terminal with
+      nothing piped answers the empty string. It heads a query that reads
+      the text as it came: ::snippet~(@in | lines | count) counts the
+      lines piped in. ~~|
   ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/@in})
 
 :@out
-  |~~ Writes a String to stdout followed by `\n` and passes the
-      original pipeValue through unchanged on the success track.
-      Bare, it writes the subject, a String; given a text, a
-      renderer computed against the subject, it writes that. The
-      pipeValue itself stays put either way — `@out` is identity on
-      the success track regardless of what bytes left the channel.
-
-      Pattern: `"hello" | @out` writes "hello\n", value continues
-      as "hello". With a renderer: `42 | @out json` writes "42\n",
-      value continues as 42 — the rest of the pipeline still sees
-      the number, not the string. ~~|
+  |~~ Writes a line to stdout and answers its subject as it came: the
+      subject when it is a string, `"hi" | @out`, or the text a modifier
+      computes from it, `42 | @out json`, the steps after still reading
+      `42`. A query that writes by `@out` leaves its answer unwritten.
+      ::snippet~([1 2] | @out json | count) writes `[1,2]`. ~~|
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@out})
 
 ::OutSubjectNotStringError
@@ -63,12 +55,11 @@
       another kind is refused, and `json` or `print` makes the text. ~~|
 
 :@err
-  |~~ Same shape as `@out` but writes to stderr — the diagnostic
-      channel. Use for log lines, traces, progress indicators
-      that should not enter the program's data output.
-
-      Pattern: `[1 2 3] | @err "counting" | count` writes
-      "counting" to stderr and answers 3 on stdout. ~~|
+  |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
+      writes to stdout, and answers its subject; the answer of the query
+      is written as ever.
+      ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
+      stderr and answers 3. ~~|
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@err})
 
 ::ErrSubjectNotStringError
@@ -81,15 +72,10 @@
       of any value. ~~|
 
 :@tap
-  |~~ Passes its subject on and writes
-      `[tap <label>] <the literal of the pipeValue>\n` to stderr,
-      keyword label included verbatim for grep'ability. Use
-      to peek at intermediate values without altering the
-      pipeline shape.
-
-      Pattern: `data | @tap :before | filter ~(active) | @tap :after | count`
-      prints both pre- and post-filter snapshots to stderr,
-      then returns the count. ~~|
+  |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
+      answers the subject, a look at a value halfway through a query:
+      ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
+      shows both vectors and answers 1. ~~|
   ::verb~(:subject ::any | :label ::keyword | ::builtin{:impl :qlang/cli/@tap})
 
 ::TapLabelNotKeywordError

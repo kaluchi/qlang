@@ -166,7 +166,8 @@
       "kind": "syntax",
       "query": "lines | filter ~(…) | * (…)",
       "expected": "a distribute after a pipe",
-      "got": "ParseError: * stands in the place of |, never after it"
+      "got": "ParseError: * stands in the place of |, never after it",
+      "repairedBy": "D127"
     },
     {
       "id": "F7",
@@ -174,7 +175,8 @@
       "kind": "surprise",
       "query": "… | distinct",
       "expected": "a JSON list",
-      "got": "a set, which the JSON channel refuses; | json wrote it"
+      "got": "a set, which the JSON channel refuses; | json wrote it",
+      "repairedBy": "D126"
     },
     {
       "id": "F8",

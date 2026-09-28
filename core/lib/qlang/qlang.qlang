@@ -31,8 +31,9 @@
       `a !| b` runs `b` on an error alone. `42`, `"s"`, `:k`, `[a b]`,
       `{:k v}`, `#[a b]`, `null`, `true` are literals, each a step that
       replaces the value; `::T` before `{…}`, `[…]`, `(…)` or `"…"` puts
-      a payload under the tag `::T`, the name of its kind, and `x | tag
-      ::T` puts `x` under it; `~(…)` is code held as a value.
+      a payload under the tag `::T`, the name of its kind, `::T {…}`, with
+      a space, declares the kind, and `x | tag ::T` puts `x` under it;
+      `~(…)` is code held as a value.
 
       Asking. `x | doc` answers the page of a name or of the kind of a
       value, a doc whose text is `content`, whose laws are `laws` and
@@ -174,13 +175,13 @@
       A reader's verb is a name over `::verb` and a quote whose head
       declares its slots, and it takes its arguments after its name:
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
-      A kind is declared by the step `::T` over a map whose `:impl` is a
-      quote, the constructor that checks or builds each value put under
-      it and answers an error for one it refuses:
+      A kind is declared by the step `::T body`, the tag, a space and a
+      map whose `:impl` is a quote, the constructor that checks or builds
+      each value put under it and answers an error for one it refuses:
       ~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
-      A name bound to a map under a tag holds a value and declares no
-      kind, so the tag checks nothing:
-      ~(:small ::Small{:impl ~(!{:reason :no})} | ::Small(12) | payload | eq 12)
+      Written close, `::T{…}` is a value under the tag and declares
+      nothing, so the tag checks nothing:
+      ~(::Small{:impl ~(!{:reason :no})} | ::Small(12) | payload | eq 12)
   ~~|
   #[::verb ::spec ::qlang/any]
 

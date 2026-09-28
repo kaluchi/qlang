@@ -48,8 +48,9 @@ Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
 Script mode evaluates the query against piped stdin and writes the
 answer to stdout in the form the input came in. JSON input is the
 subject as values, an object a map whose keys are keywords, and the
-answer is written as JSON, where a value JSON has no form for, a
-quote, a set, a keyword or a tag, is refused as ::AnswerNotJsonError.
+answer is written as JSON, a set as an array, where a value JSON has
+no form for, a quote, a keyword or a tag, is refused as
+::AnswerNotJsonError.
 Text input is a String, and the answer is written as its print;
 '| json' writes JSON text. Use -i for an interactive REPL, a query
 after it run as its first cell. Quote

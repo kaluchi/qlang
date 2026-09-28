@@ -98,9 +98,11 @@ function namesNoScopeBinding(env, subject) {
   return isKeyword(subject) && (isProviderBinding(env, subject.name) || isNounMember(env, subject.name));
 }
 
-// The name a subject reads, a keyword's, a tag's or its kind's.
+// The name whose verbs a refusal lists: a keyword's, the last name of a
+// tag name's path, `::any/links` naming `links` [D127], or its kind's.
 function nameOf(subject) {
-  if (isKeyword(subject) || isTagKeyword(subject)) return subject.name;
+  if (isKeyword(subject)) return subject.name;
+  if (isTagKeyword(subject)) return subject.name.slice(subject.name.lastIndexOf('/') + 1);
   return typeKeyword(subject).name;
 }
 

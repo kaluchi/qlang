@@ -57,6 +57,12 @@
     error(`a combinator is set off by whitespace on both sides: write \` ${combinator} \``);
   }
 
+  // A combinator after a combinator is the habit of a pipe before every
+  // step: the second stands in the place of the first [D127].
+  function refuseCombinatorAfterCombinator(first, second) {
+    error(`\`${second}\` stands in the place of \`${first}\`, not after it: write \`a ${second} b\``);
+  }
+
   // How deep the parser is in a `~(…)` of a doc it tries as code: there
   // a shape it refuses elsewhere fails the try, and the span reads as
   // prose [D94].
@@ -131,6 +137,7 @@ LineContinuationUnit
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
     ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
+    / __ &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }

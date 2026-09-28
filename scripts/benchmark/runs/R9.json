@@ -1,0 +1,145 @@
+{
+  "id": "R9",
+  "date": "2026-09-29",
+  "model": "claude-sonnet-5",
+  "screen": "8ddd07f4f5da",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7, L1–L10 and N1–N4, and the questions of understanding U1–U5",
+  "calls": 37,
+  "toolUses": 39,
+  "tokens": 81124,
+  "minutes": 4,
+  "tasks": {
+    "T1": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name"
+    },
+    "T2": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data * (/email | lower) | distinct | count"
+    },
+    "T3": {
+      "calls": 1,
+      "solved": true,
+      "query": "groupBy ~(/status | keyword) * count"
+    },
+    "T4": {
+      "calls": 1,
+      "solved": true,
+      "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)"
+    },
+    "T5": {
+      "calls": 2,
+      "solved": true,
+      "query": "lines | filter ~(contains \"ERROR\") * (split \" \" | drop 3 | join \" \") | distinct | json"
+    },
+    "T6": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * {:id /id :tagCount (/tags | count)}"
+    },
+    "T7": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data | filter ~(/tags | has \"ops\") * /email"
+    },
+    "L1": {
+      "calls": 1,
+      "solved": true,
+      "query": ":triple ::verb~(mul 3) | [1 2 3] * triple"
+    },
+    "L2": {
+      "calls": 1,
+      "solved": true,
+      "query": "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) | false !| true)]"
+    },
+    "L3": {
+      "calls": 1,
+      "solved": true,
+      "query": ":c ~(sub 3 | mul 4) | [(c | count) (10 | apply c)]"
+    },
+    "L4": {
+      "calls": 1,
+      "solved": true,
+      "query": "\"a\" | mul 2 !| [type /actualType]"
+    },
+    "L5": {
+      "calls": 2,
+      "solved": true,
+      "query": "::string | spec | /verbs | filter ~(doc | content | contains \"begins with\") | first"
+    },
+    "L6": {
+      "calls": 1,
+      "solved": true,
+      "query": "[7 8] | tag ::Inner | tag ::Outer | [type /1]"
+    },
+    "L7": {
+      "calls": 1,
+      "solved": true,
+      "query": "[10 -1 \"y\"] * (add 5 !| null)"
+    },
+    "L8": {
+      "calls": 1,
+      "solved": true,
+      "query": "|~~ two laws ~(eq 2) and ~(gt 1) ~~| | laws | count"
+    },
+    "L9": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec/groupBy | runLaws | every ~(/ok)"
+    },
+    "L10": {
+      "calls": 1,
+      "solved": true,
+      "query": "{:a 1 :b 2 :c 3} | minus #[:b]"
+    },
+    "N1": {
+      "calls": 1,
+      "solved": true,
+      "query": "::qlang | manifest * (doc | content)"
+    },
+    "N2": {
+      "calls": 1,
+      "solved": true,
+      "query": "::string | spec | /verbs * [/ (doc | content)]"
+    },
+    "N3": {
+      "calls": 1,
+      "solved": true,
+      "query": "::qlang | manifest | filter ~(doc | links * open | has (::error | doc))"
+    },
+    "N4": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec | spec | /verbs * (doc | laws | count) | sum"
+    }
+  },
+  "understanding": "U1–U5 answered in the terms of the pages: the eight concepts read in two queries by sets of anchors, the walk from tags to shape to any, the kind declared by the step with a space and a value put close under a tag, the trail and false !| true, and links * open named as the page's own idiom.",
+  "frictions": [
+    {
+      "id": "F1",
+      "task": "T1",
+      "kind": "syntax",
+      "query": "… | reverse | * /name",
+      "expected": "a distribute after a pipe",
+      "got": "ParseError whose sentence says `*` stands in the place of `|`; fixed on the next call"
+    },
+    {
+      "id": "F2",
+      "task": "T5",
+      "kind": "surprise",
+      "query": "lines | filter ~(contains \"ERROR\") * (…) | distinct",
+      "expected": "JSON",
+      "got": "#[\"db timeout\"], the print text input answers, as --help says; | json needed"
+    },
+    {
+      "id": "F3",
+      "task": "L5",
+      "kind": "wording",
+      "query": "::string | spec | /verbs | filter ~(doc | content | contains \"begins with\")",
+      "expected": "the address",
+      "got": "a set of one address; | first unwrapped it"
+    }
+  ]
+}

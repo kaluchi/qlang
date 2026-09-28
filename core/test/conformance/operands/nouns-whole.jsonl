@@ -1,0 +1,5 @@
+{"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::ProjectionKeyNotInMapError | docs | first | links * open | any ~(eq (::proj | docs))","expect":"true","decision":"D112","target":true,"now":"false"}
+{"name":"the-refusal-of-a-distribute-links-its-step","query":"::DistributeSubjectNotSequenceError | docs | first | links * open | any ~(eq (::each | docs))","expect":"true","decision":"D112","target":true,"now":"false"}
+{"name":"names-are-a-concept-of-their-own","query":":qlang/names | docs | first | type","expect":"::doc","decision":"D113","target":true,"now":"::DocsBindingNotFoundError"}
+{"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct","decision":"D115","target":true,"now":"::tagged"}
+{"name":"the-kind-of-tagged-values-is-no-step","query":"::qlang/tagged | docs | first | content | contains \"every value under a tag\"","expect":"true","decision":"D115","target":true,"now":"false"}

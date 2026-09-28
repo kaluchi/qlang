@@ -1743,7 +1743,10 @@ form comes from the parser, the error library is decided, and the
 editor's grammar is generated or reduced; the consumers lose the rules
 they carry of their own.
 
-Its answers are the targets of [D5] in the conformance suite. The name
+Its answers are the targets of [D5], [D112], [D113], [D114] and [D115]
+in the conformance suite: the loader one verb of any value, every
+refusal under the place it guards, every kind whole in the module of its
+noun, and the step of a constructor apart from the kind of tagged values. The name
 `binding` there stands for the operand the branch names, the
 reader of the record an address names; where a target uses a name or a
 field no decision fixes, the name is a placeholder and the answer's
@@ -2129,3 +2132,7 @@ maintainer wants to explore it before it is fixed.
 [D109]: decisions/D109.md
 [D110]: decisions/D110.md
 [D111]: decisions/D111.md
+[D112]: decisions/D112.md
+[D113]: decisions/D113.md
+[D114]: decisions/D114.md
+[D115]: decisions/D115.md

@@ -1,4 +1,4 @@
-// Axis-operands — `source`, `docs`, `examples` project the record a
+// Axis-operands — `source`, `doc`, `spec` project the record a
 // declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
@@ -77,10 +77,10 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 });
 
-describe(':name | docs returns Vec of Doc-values from attached prefixes', () => {
-  it('::vec/count | docs returns at least one Doc-value', async () => {
-    const result = await evalQuery('::vec/count | doc | count');
-    expect(result).toBeGreaterThanOrEqual(1);
+describe(':name | doc returns the page its attached prefixes make', () => {
+  it('::vec/count | doc returns a page', async () => {
+    const result = await evalQuery('::vec/count | doc | type');
+    expect(result).toEqual(makeTagKeyword('doc'));
   });
 
   it('the content of the first doc of ::vec/count carries its prose', async () => {
@@ -106,21 +106,15 @@ describe(':name | docs returns Vec of Doc-values from attached prefixes', () => 
   });
 });
 
-describe(':name | examples extracts Quote segments from docs', () => {
-  it('::vec/count | examples returns Vec of Quotes', async () => {
-    const result = await evalQuery('::vec/count | examples | count');
+describe(':name | doc | laws extracts Quote segments from docs', () => {
+  it('::vec/count | doc | laws returns Vec of Quotes', async () => {
+    const result = await evalQuery('::vec/count | doc | laws | count');
     expect(typeof result).toBe('number');
     expect(result).toBeGreaterThanOrEqual(0);
   });
 
   it('a value that is no name reads the examples of its kind', async () => {
-    expect(await evalQuery('42 | examples | eq (::number | examples)')).toBe(true);
-  });
-
-  it('unknown binding raises ExamplesBindingNotFoundError', async () => {
-    const err = await evalQuery(':totallyMadeUp | examples');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('ExamplesBindingNotFoundError'));
+    expect(await evalQuery('42 | doc | laws | eq (::number | doc | laws)')).toBe(true);
   });
 });
 
@@ -140,14 +134,14 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(printQuoteSource(result).startsWith('::verb')).toBe(true);
   });
 
-  it('::verb | docs returns the attached Doc-prefix on the type BindStep', async () => {
+  it('::verb | doc returns the attached Doc-prefix on the type BindStep', async () => {
     const result = await evalQuery('::verb | doc | content');
     expect(typeof result).toBe('string');
     expect(result).toContain('A verb, a quote under this tag');
   });
 
-  it('::verb | examples extracts the Quote segments from the type docstring', async () => {
-    const result = await evalQuery('::verb | examples | count');
+  it('::verb | doc | laws extracts the Quote segments from the type docstring', async () => {
+    const result = await evalQuery('::verb | doc | laws | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
@@ -181,11 +175,11 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
-    const cellEntry = await session.evalCell('use :tests/demo | :demo | examples | count');
+    const cellEntry = await session.evalCell('use :tests/demo | :demo | doc | laws | count');
     expect(cellEntry.result).toBe(1);
   });
 
-  it('docs of the loaded module carries the prefix as a Doc-value', async () => {
+  it('the page of the loaded module carries its prefix', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const moduleSource = ':demo |~~ A short note. ~~|\n1';
     const session = await createSession({
@@ -203,16 +197,6 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     });
     const cellEntry = await session.evalCell('use :tests/bare | :bare | doc');
     expect(cellEntry.result).toBeNull();
-  });
-
-  it('examples on a binding without an attached doc-prefix returns an empty Vec', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = ':bare 42';
-    const session = await createSession({
-      locator: async () => ({ source: moduleSource })
-    });
-    const cellEntry = await session.evalCell('use :tests/bare | :bare | examples | count');
-    expect(cellEntry.result).toBe(0);
   });
 
   it('a name a loaded module does not declare names no binding', async () => {
@@ -249,9 +233,8 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add ::verb~(mul 100)');
   });
 
-  it('doc and examples answer for the shadowing binding, which carries neither', async () => {
+  it('doc answers null for the shadowing binding, which carries no page', async () => {
     expect(await evalQuery(shadowed + ':add | doc')).toBeNull();
-    expect(await evalQuery(shadowed + ':add | examples | count')).toBe(0);
   });
 
   it('spec answers the signature of the verb source reports', async () => {

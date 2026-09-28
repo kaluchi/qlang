@@ -77,7 +77,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget });
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: cliInvocation.initialQuery });
   }
 
   const stdinText = await readStdinToString(stdinStream);

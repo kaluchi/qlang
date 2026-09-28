@@ -1915,7 +1915,7 @@ The explanation answers by verbs of its own: `doc` the page, `value`
 what it explains, an error among them raised, as it arrived before `!|`
 opened it [D101], and the
 page answers its quotes, which are its examples, by the verb of the
-doc, `explain | page | quotes` [D99].
+doc, `explain | page | laws` [D99].
 
 Whether a value is an error reads as `false !| true`: the head
 `false` rides `|` like every other step and deflects on an error,
@@ -1994,7 +1994,7 @@ throw site, stamped onto the tag-binding at bootstrap, and reach the
 reader through the `spec` axis: `result !| type | spec | /category`
 returns the broad-bucket keyword; `result !| type | spec | /operand`
 returns the per-site origin. The catalog side of the same binding
-carries the prose and the `~(…)` examples that `docs` and `examples`
+carries the prose and the `~(…)` laws that `doc` and `doc | laws`
 answer with. The runtime instance descriptor itself stays compact at
 the dynamic facts above; consumers go through hypertext for
 tag-binding metadata.
@@ -2130,11 +2130,11 @@ verbs of the core live on its nouns, listed from
 env | keys | count          |~| how many names the scope holds
 ```
 
-### Axis-operands — `source` / `docs` / `examples`
+### Axis-operands — `source` / `doc` / `spec`
 
-The canonical "what does this binding do" surface. The three
+The canonical "what does this binding do" surface. The
 **axis-operands** read declarative metadata from the binding's
-**source AST** — the docs of the declaration's slot and the
+**source AST** — the page of the declaration's slot and the
 source-text the parser captured at declaration time. Subject is a
 Keyword (value-namespace binding name) or a TagKeyword (tag-
 namespace tag), and the axis returns the named field as a fresh
@@ -2171,8 +2171,7 @@ compose with the axis trio on its address (`::vec/filter | source`).
 | Axis | Subject | Returns |
 |---|---|---|
 | `source` | any value | The quote of the declaring step, null for a binding no step declared |
-| `docs` | any value | Vec of Doc-values, one per doc of the declaration's slot |
-| `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
+| `doc` | any value | The page of the declaration, its docs as one doc, null for none; a keyword, a path or a set of anchors reads within it |
 
 ```qlang
 > ::vec/filter | doc | type | eq ::doc
@@ -2181,7 +2180,7 @@ true
 > ::ParseError | source | parse | startsWith "::ParseError"
 true
 
-> ::vec/count | examples | first | type | eq ::quote
+> ::vec/count | doc | laws | first | type | eq ::quote
 true
 ```
 
@@ -2239,11 +2238,11 @@ true
 ":count ::number"
 ```
 
-### `runExamples` — execute Quote segments from a binding's docs
+### `runLaws` — execute Quote segments from a binding's docs
 
 The docs of every catalog binding's slot may carry inline
 `~(…)` Quote segments — each Quote is an executable self-test
-expression. `runExamples` is the self-test driver: given a
+expression. `runLaws` is the self-test driver: given a
 binding name (Keyword or a descriptor Map carrying a `:name`
 string) as `pipeValue`, it walks the loaded modules' AST,
 collects the docs of the binding's slot, parses each through the
@@ -2253,13 +2252,13 @@ state. A Quote that answers `true` reports `:ok true`; every other
 answer, an ErrorValue among them, reports `:ok false`.
 
 ```qlang
-:count | runExamples
+:count | runLaws
 |~| → [{:snippet ~([1 2 3] | count | eq 3)     :actual true :error null :ok true}
 |~|    {:snippet ~(#[:a :b] | count | eq 2)    :actual true :error null :ok true}
 |~|    ...]
 
 env | manifest * /name
-              * (runExamples * /ok)
+              * (runLaws * /ok)
               | flat | distinct
 |~| catalog-wide self-test: every Quote, every operand, one
 |~| Vec of booleans showing whether the doc still matches the runtime
@@ -2267,7 +2266,7 @@ env | manifest * /name
 
 Bindings without a source-located BindStep (host-installed
 bindings via `session.bind`, runtime-seeded built-ins) return an
-empty Vec — `runExamples` makes no claims about their
+empty Vec — `runLaws` makes no claims about their
 behaviour. Documentation lives in the source; bindings without
 source contribute zero examples.
 
@@ -2352,7 +2351,7 @@ Five step types:
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runExamples` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
+| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runLaws` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
 | 4 | `:name expr` (BindStep) | → `(pipeValue, env[:name := Binding(name, docs, expr evaluated against pipeValue)])`. Names the value of its body, computed once, at declaration. A body `::verb~(…)` names a verb, which runs when `name` is later looked up: its slots take the modifiers, evaluated at the call, and its body runs in a fork with the declaration-time env, which includes the verb itself, so it recurses by name. Any doc comments immediately preceding the BindStep attach to the record. |
 | 5 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (a BindStep), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 

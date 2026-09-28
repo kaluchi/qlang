@@ -1,6 +1,7 @@
 |~ The verbs of quotes. Each resides on `::qlang/quote`, the kind
    whose module declares it; a quote is also the vector of its
-   steps, so the verbs of vectors read it as one. ~|
+   steps, so the verbs of vectors read it as one, and a quote under a
+   tag, a link or a snippet of a page, reads them through its shape. ~|
 
 :parse
   |~~ The source text of the quote, the reverse of `parse` on a string.
@@ -8,3 +9,15 @@
       ~(~(add 1) | parse | eq "add 1")
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/parse})
+
+:open
+  |~~ The answer of the query the quote holds, run as it stands in the
+      scope of the reader, beneath whatever tags stand over it: a link
+      opens to the page it names, so `links * open` reads every page a
+      page names in one query, and a snippet to the answer it shows.
+
+      ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
+      ~(::qlang | doc | links * open | every ~(type | eq ::doc))
+      ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
+  ~~|
+  ::verb~(:subject ::quote | ::builtin{:impl :qlang/prim/quoteOpen})

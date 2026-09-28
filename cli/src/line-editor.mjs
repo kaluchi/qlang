@@ -663,6 +663,14 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   };
 
   emitter.prompt = redrawCurrentLine;
+  // A line the caller submits as if typed: shown after the prompt, kept
+  // in the history, and emitted as a line.
+  emitter.submit = function submit(lineText) {
+    stdoutWrite(prompt + render(lineText).replace(/(?<!\r)\n/g, '\r\n') + '\r\n');
+    pushHistoryEntry(lineText);
+    historyIndex = history.length;
+    emitter.emit('line', lineText);
+  };
   return emitter;
 }
 
@@ -703,6 +711,11 @@ function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
 
   emitter.prompt = function showPrompt() {
     stdoutWrite(prompt);
+  };
+
+  emitter.submit = function submit(lineText) {
+    stdoutWrite(prompt + lineText + '\n');
+    emitter.emit('line', lineText);
   };
 
   return emitter;

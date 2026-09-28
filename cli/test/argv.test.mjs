@@ -3,7 +3,7 @@
 // branch fires.
 
 import { describe, it, expect } from 'vitest';
-import { parseArgv, HELP_TEXT, VERSION_LINE, ANSWER_BUDGET } from '../src/argv.mjs';
+import { parseArgv, HELP_TEXT, VERSION_LINE } from '../src/argv.mjs';
 
 describe('parseArgv', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
@@ -29,11 +29,11 @@ describe('parseArgv', () => {
   });
 
   it('recognises -i as the short repl flag', () => {
-    expect(parseArgv(['-i'])).toEqual({ kind: 'repl', budget: ANSWER_BUDGET });
+    expect(parseArgv(['-i'])).toEqual({ kind: 'repl', budget: null, initialQuery: null });
   });
 
   it('recognises --repl as the long repl flag', () => {
-    expect(parseArgv(['--repl'])).toEqual({ kind: 'repl', budget: ANSWER_BUDGET });
+    expect(parseArgv(['--repl'])).toEqual({ kind: 'repl', budget: null, initialQuery: null });
   });
 
   it('returns an evalQuery cliInvocation carrying the first positional argument and auto inputFormat', () => {
@@ -43,7 +43,7 @@ describe('parseArgv', () => {
       queryText: '[1 2 3] | count',
       inputFormat: 'auto',
       colorMode: 'auto',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -54,7 +54,7 @@ describe('parseArgv', () => {
       queryText: '1 | add 2',
       inputFormat: 'auto',
       colorMode: 'auto',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -64,7 +64,7 @@ describe('parseArgv', () => {
       queryText: '/key',
       inputFormat: 'json',
       colorMode: 'auto',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -74,7 +74,7 @@ describe('parseArgv', () => {
       queryText: 'append " world"',
       inputFormat: 'raw',
       colorMode: 'auto',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -84,7 +84,7 @@ describe('parseArgv', () => {
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'always',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -94,7 +94,7 @@ describe('parseArgv', () => {
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'never',
-      budget: ANSWER_BUDGET
+      budget: null
     });
   });
 
@@ -104,15 +104,29 @@ describe('parseArgv', () => {
     expect(result.message).toMatch(/--color expects auto \/ always \/ never/);
   });
 
-  it('parses --full as the lifted budget of the answer [D109]', () => {
-    expect(parseArgv(['--full', '42'])).toEqual({
+  it('parses --budget=N as the characters every answer prints within [D120]', () => {
+    expect(parseArgv(['--budget=4000', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'auto',
-      budget: null
+      budget: 4000
     });
-    expect(parseArgv(['--full', '-i'])).toEqual({ kind: 'repl', budget: null });
+    expect(parseArgv(['--budget=500', '-i'])).toEqual({ kind: 'repl', budget: 500, initialQuery: null });
+  });
+
+  it('rejects a --budget that is no positive count as a usageError', () => {
+    const result = parseArgv(['--budget=0', '42']);
+    expect(result.kind).toBe('usageError');
+    expect(result.message).toMatch(/--budget expects a positive count of characters, got '0'/);
+  });
+
+  it('takes the query after -i as the first cell of the REPL [D120]', () => {
+    expect(parseArgv(['-i', '::qlang | doc'])).toEqual({ kind: 'repl', budget: null, initialQuery: '::qlang | doc' });
+  });
+
+  it('reads a flag after -i as a flag, the query after it as the first cell', () => {
+    expect(parseArgv(['-i', '--budget=500', '::qlang | doc'])).toEqual({ kind: 'repl', budget: 500, initialQuery: '::qlang | doc' });
   });
 
   it('reports a usageError when only an input-mode flag is supplied without a query', () => {

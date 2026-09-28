@@ -130,21 +130,18 @@ function liftParsedDocument(parsed, resolvedFormat) {
   }
 }
 
-// The budget of an answer: an error's, an alert, or a value's.
-const budgetOf = (value, budget) => (isErrorValue(value) ? budget.error : budget.value);
-
-// The answer a channel writes within the budget [D109]: under JSON an
-// error alone gives way, data answering whole for the tools that read
-// it; the print gives way within the budget; a null budget writes the
-// answer whole.
+// The answer a channel writes, whole unless the caller asked for a
+// budget [D120]: under JSON an error alone gives way within it, data
+// answering whole for the tools that read it; the print gives way
+// within it.
 export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null) {
   if (resolvedFormat === 'json') {
     const answer = answerForJson(value);
-    const shown = budget !== null && isErrorValue(answer) ? elideAnswer(answer, budget.error) : answer;
+    const shown = budget !== null && isErrorValue(answer) ? elideAnswer(answer, budget) : answer;
     return JSON.stringify(toPlain(shown), null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
   // (the raw-in-raw-out contract); anything else goes out as its print.
   if (typeof value === 'string') return value;
-  return printAnswer(budget === null ? value : elideAnswer(value, budgetOf(value, budget)), env);
+  return printAnswer(budget === null ? value : elideAnswer(value, budget), env);
 }

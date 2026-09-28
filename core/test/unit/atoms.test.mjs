@@ -55,8 +55,8 @@ async function unbuiltOf(valuesBySource) {
 async function catalogExamples() {
   const tagNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
   const examples = [
-    ...await evalQuery('::qlang | manifest * manifest | flat * examples | flat'),
-    ...await evalQuery(`[${tagNames.join(' ')}] * examples | flat`),
+    ...await evalQuery('::qlang | manifest * manifest | flat * (doc | laws) | flat'),
+    ...await evalQuery(`[${tagNames.join(' ')}] * (doc | laws) | flat`),
   ];
   return new Map(examples.map(example => [printQuoteSource(example), example]));
 }
@@ -75,7 +75,7 @@ async function conformanceLiterals() {
 
 describe('the ring of atoms [D42]', () => {
   it('keeps the examples of its own verbs true', async () => {
-    expect((await ringSession.evalCell(':apart | runExamples * /ok')).result).toEqual([true]);
+    expect((await ringSession.evalCell(':apart | runLaws * /ok')).result).toEqual([true]);
   });
 
   it('builds every example of the catalog back from its atoms but the open ones', async () => {

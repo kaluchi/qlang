@@ -83,7 +83,7 @@ describe('every refusal names the place it guards [D64]', () => {
 // of the marker of what a view left out declare a page alone, and
 // neither constructs nor refuses [D62], [D63], [D64], [D67], [D98],
 // [D108], [D109].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding', '::spec', '::explanation', '::link', '::elision']);
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding', '::spec', '::explanation', '::link', '::snippet', '::elision']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds
@@ -185,7 +185,7 @@ describe('per-site error classes — every throw site carries a catalog tag', ()
     it(`::${className} is declared in the catalog`, () => {
       expect(catalogTags.has(`::${className}`),
         `${className} records a throw-site spec with no \`::${className}\` tag-binding — ` +
-        'add one so `result !| type | docs / spec` resolves'
+        'add one so `result !| type | doc / spec` resolves'
       ).toBe(true);
     });
   }

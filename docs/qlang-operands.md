@@ -940,10 +940,10 @@ of `coalesce` or `cond` that is no quote is refused with
 
 ## Reflective built-ins
 
-`env`, `manifest` and `runExamples` read the scope of their call, the
+`env`, `manifest` and `runLaws` read the scope of their call, the
 primitive of each taking the state of the call after its values [D79]:
-`env` and the axes `source`, `docs`, `examples` and `spec` reside on
-`::qlang/any`, `manifest` on `::tag`, and `runExamples` on `::keyword`
+`env` and the axes `source`, `doc` and `spec` reside on
+`::qlang/any`, `manifest` on `::tag`, and `runLaws` on `::keyword`
 and `::tag` under one contract. `use`, the loader, writes the scope and
 keeps its descriptor [D79]. Each looks up like any other identifier and
 can be shadowed by a `:name body` BindStep.
@@ -1000,7 +1000,7 @@ its own eval handler in `eval.mjs`.
   verbs of numbers. A tag the session declares is its own and stays
   out, and a refusal is reached from the place it guards,
   `::number/add | spec | /throws`. For what one binding does reach for
-  the axis trio (`::vec/count | source` / `| doc` / `| examples`).
+  the axis trio (`::vec/count | source` / `| doc` / `| doc | laws`).
 - **Examples**:
   - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
   - `::number | manifest | has ::number/add` → `true`.
@@ -1009,21 +1009,23 @@ its own eval handler in `eval.mjs`.
 - **Errors**: a subject other than a tag name →
   `ManifestSubjectNotTagError`.
 
-### `runExamples`
+### `runLaws`
 
-- **Arity** 1. **Subject** Keyword (binding name) or tag name, the
-  address of a verb among them.
-- Reads the step that declares the name as `examples` does, and
-  pulls every Quote segment from each doc of the declaration's slot through
-  `parseDocSegments`. Each Quote evaluates one frame below the step,
-  against the caller's env and a null pipeValue; an example passes
+- **Arity** 1 or 2. **Subject** Keyword (binding name) or tag name, the
+  address of a verb among them; an optional keyword reads the member
+  the name holds under it, `::qlang | runLaws :values` [D124].
+- Reads the step that declares the name as `doc` does, and runs every
+  law of its page [D123]. Each law evaluates one frame below the step,
+  against the caller's env and a null pipeValue; a law passes
   when it answers `true`, and every other answer, an ErrorValue
   among them, counts as `:ok false`. Returns a Vec of
-  `{:snippet :actual :error :ok}` Maps — one per Quote segment.
-- **Example**: `::vec/count | runExamples | first | /ok` → `true`.
+  `{:law :says :actual :error :ok}` Maps — one per law, `:says` the
+  caption of the claim the law proves, the last sentence before it
+  when it ends in a colon, or null [D124].
+- **Example**: `::vec/count | runLaws | first | /ok` → `true`.
 - **Errors**: subject neither Keyword nor tag name → the contract's
   `VerbWithoutBodyError` with `:addresses`; a name no step declares, a verb a
-  provider keeps among them → `RunExamplesBindingNotFoundError`,
+  provider keeps among them → `RunLawsBindingNotFoundError`,
   whose `:addresses` holds the addresses where the verbs of that
   name live.
 
@@ -1158,55 +1160,35 @@ its own eval handler in `eval.mjs`.
   - `::verb | source | parse` → the `::verb` tag-binding as text.
 - **Errors**: the subject names no binding → `SourceBindingNotFoundError`.
 
-### `docs`
+### `doc`
 
-- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
-  (`::Tag`) reads the binding it names; every other value reads the
-  declaration of its kind, the kind `type` answers, so `5 | doc`
-  reads `::number` and `{:kind ::set} | doc` reads `::map`.
+- **Arity** 0 or 1. **Subject** any value. A Keyword (`:name`) or
+  TagKeyword (`::Tag`) reads the binding it names; every other value
+  reads the declaration of its kind, the kind `type` answers, so `5 |
+  doc` reads `::number` and `{:kind ::set} | doc` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
   `::vec/count | doc` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
-- Returns the `:docs` of the binding's record, a Vec of Doc-values
-  from the doc literals of its slot, one Doc per literal, empty for a
-  binding without a doc.
-- Given a name, `docs :name` reads the docs of the member the subject
-  holds under it [D88]: the slot a verb's head declares,
-  `::vec/take | doc :count`, and for any other subject the verb the
-  name calls after it, `::map | doc :minus` the page of
-  `::map/minus`; `source`, `examples` and `spec` take the name
-  alike.
+- Returns the page of the binding, its docs as one doc, null for a
+  binding without one [D119].
+- Given an anchor, a keyword reads the page of the member the subject
+  holds under it [D88]: the slot a verb's head declares, `::vec/take |
+  doc :count`, the verb the name calls after any other subject, `::map
+  | doc :minus` the page of `::map/minus`, and a member of a noun,
+  `::qlang | doc :pipeline`. A vector of anchors is a path, `::vec |
+  doc [:take :count]`, and a set of anchors answers a vector of pages;
+  `source` and `spec` take a keyword alike.
 - **Examples**:
-  - `::vec/count | doc` → Vec of Doc-values from the `count` catalog
-    entry, read by its address.
-  - `::verb | doc` → Vec of Doc-values from the `::verb` tag-binding.
+  - `::vec/count | doc | type` → `::doc`, read by its address.
   - `:count | doc !| /addresses` → `#[::map/count ::set/count
     ::vec/count]`: a keyword names a binding of its scope, and the
     refusal names where the verbs of the name live.
   - `::map | doc :minus | eq (::map/minus | doc)` → `true`.
+  - `::qlang | doc #[:pipeline :errors] | count` → `2`.
 - **Errors**: the subject names no binding → `DocBindingNotFoundError`,
-  carrying `:addresses`.
-
-### `examples`
-
-- **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
-  (`::Tag`) reads the binding it names; every other value reads the
-  declaration of its kind, the kind `type` answers, so `5 | examples`
-  reads `::number` and `{:kind ::set} | examples` reads `::map`.
-- A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | examples` reads the verb `count` that lives on vectors, a
-  verb being addressed through the noun it lives on, and an address reads
-  what the verb's provider declared, whatever the scope binds under the name.
-- Returns a Vec of Quote-values extracted from the docs of the
-  binding's record — every `~(…)` Quote segment in the doc-content
-  stream is a candidate test case for `runExamples`.
-- **Examples**:
-  - `::vec/count | examples` → Vec of `~(…)` Quotes from the docs of
-    `count` on vectors.
-  - `::number/add | examples | count` → number of inline Quote examples
-    on `add`.
-- **Errors**: the subject names no binding → `ExamplesBindingNotFoundError`.
+  carrying `:addresses`; an anchor of a path that is no keyword →
+  `DocAnchorNotKeywordError`.
 
 ### `spec`
 
@@ -1287,17 +1269,17 @@ deflects on an error that `!| true` then answers.
 - **Arity** 0. **Subject** any value; the verb resides on `::any`
   [D100].
 - The explanation of the value [D98], `::explanation{:page … :value …}`:
-  the page `docs` reads for it, a name its own, a value the page of
+  the page `doc` reads for it, a name its own, a value the page of
   its kind and an error the page of its site [D7], then the value
   itself, so it prints as the page above what it explains.
 - **Examples**: `"x" | add 1 !| explain | page | content | contains "must be a number"` → `true`;
   `42 | explain | value` → `42`.
 - **Errors**: a name that names nothing → `ExplainBindingNotFoundError`.
 
-### `doc`
+### `page`
 
 - **Arity** 0. **Subject** `explanation`; the verb resides on
-  `::explanation` [D98].
+  `::explanation` [D98], [D119].
 - The page the explanation holds.
 - **Examples**: `"x" | add 1 !| explain | page | type` → `::doc`.
 
@@ -1309,20 +1291,30 @@ deflects on an error that `!| true` then answers.
   it arrived before `!|` opened it [D101].
 - **Examples**: `"x" | add 1 !| explain | value !| /actualType` → `::string`.
 
-### `quotes`
+### `laws`
 
-- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D99].
-- The quotes of the doc, in their order, which are its examples.
-- **Examples**: `|~~ a ~(add 1) b ~~| | quotes` → `[~(add 1)]`;
-  `"x" | add 1 !| explain | page | quotes | count` → `1`.
+- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D99],
+  [D123].
+- The laws of the doc, in their order: each quote with no tag, which
+  `runLaws` holds to answer true.
+- **Examples**: `|~~ a ~(add 1) b ~~| | laws` → `[~(add 1)]`;
+  `"x" | add 1 !| explain | page | laws | count` → `1`.
 
 ### `links`
 
 - **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D108].
 - The links of the doc, in their order: each quote under a stack of
-  tags that holds `::link`, a query a reader follows, which answers
-  without an error.
-- **Examples**: `|~~ see ::link~(::qlang | manifest) ~~| | links | count` → `1`.
+  tags that holds `::link`, a query a reader follows, which opens a
+  page [D121].
+- **Examples**: `|~~ see ::link~(::qlang | doc :values) ~~| | links | count` → `1`.
+
+### `snippets`
+
+- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D122].
+- The snippets of the doc, in their order: each quote under a stack of
+  tags that holds `::snippet`, a query a reader runs to see what it
+  shows, which answers without an error.
+- **Examples**: `|~~ ::snippet~([2 1] | sort) ~~| | snippets * open` → `[[1 2]]`.
 
 Asking each element whether it is an error:
 

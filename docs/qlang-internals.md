@@ -292,7 +292,7 @@ Typical call pattern:
     ::qlang | manifest * manifest | flat * (spec | /category) | distinct
 
 `manifest` walks the tree of names. For what one binding does reach
-for the axis trio (`::vec/count | source` / `| doc` / `| examples`),
+for the axis trio (`::vec/count | source` / `| doc` / `| doc | laws`),
 which reads the catalog AST directly.
 
 ## Tag bindings and TaggedLit dispatch
@@ -640,9 +640,9 @@ co-located sources:
   (`:count |~~ ... ~~| ...`) live on the record the BindStep
   writes, as its `:docs`, and are
   reachable through axis-operands (`::vec/count | doc` returns a
-  Vec of Doc-values, `::vec/count | examples` returns a Vec of every
+  Vec of Doc-values, `::vec/count | doc | laws` returns a Vec of every
   `~(…)` Quote segment extracted by `parseDocSegments`). Each
-  Quote is a self-test expression `runExamples` evaluates.
+  Quote is a self-test expression `runLaws` evaluates.
   `runtime-invariants.qlang` carries shared and cross-family
   tag-bindings (parser, codec, dispatch, projection, combinator
   track-dispatch invariants); `tag.qlang` carries the value-class
@@ -692,7 +692,7 @@ the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
 per-site arityError. The introspection surface for "what does this
 operand do" is the axes on its address, `::vec/count | source` /
-`| doc` / `| examples`, not a bare-name shortcut into the
+`| doc` / `| doc | laws`, not a bare-name shortcut into the
 descriptor Map.
 
 Additional runtimes and user libraries are loaded anywhere in a query

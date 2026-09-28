@@ -223,7 +223,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   // surface a per-site arityError; nullary operands fire because
   // bare application IS their valid call shape. The introspection
   // surface for "what does this operand do" is `:name | source` /
-  // `:name | doc` / `:name | examples`, not a bare-name descriptor
+  // `:name | doc` / `:name | doc | laws`, not a bare-name descriptor
   // shortcut.
 
   it('bare `count` fires against the inbound Vec', async () => {

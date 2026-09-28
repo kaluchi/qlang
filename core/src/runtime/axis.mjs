@@ -11,8 +11,6 @@
 //            step declared, a value `use` or a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `examples` every quote among the segments of its docs, the cases
-//            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.
 //
 // Given a name, each axis reads the member the subject holds under it
@@ -23,7 +21,7 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
@@ -59,10 +57,6 @@ export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundErro
 const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
-export const ExamplesBindingNotFoundError = declareShapeError('ExamplesBindingNotFoundError',
-  ({ bindingName }) =>
-    `examples: no binding found for '${bindingName}'`,
-  { operand: 'examples' });
 export const ExplainBindingNotFoundError = declareShapeError('ExplainBindingNotFoundError',
   ({ bindingName }) =>
     `explain: no binding found for '${bindingName}'`,
@@ -118,7 +112,7 @@ function nearestOfSubject(env, subject) {
 }
 
 // The record a subject names, the one record every axis and
-// `runExamples` read, or null when it names none: a value a host bound
+// `runLaws` read, or null when it names none: a value a host bound
 // under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
@@ -129,10 +123,33 @@ export function declaringRecordOf(env, subject) {
   return isBinding(entry) ? entry : null;
 }
 
-// Every quote among the segments of a record's docs, what `examples`
-// answers and `runExamples` runs.
-export function examplesOfRecord(record) {
-  return record.get('docs').flatMap(doc => doc.filter(isQuote));
+// The caption a run of prose gives the laws after it [D124]: the last
+// sentence of its last paragraph when that sentence ends in a colon and
+// no blank line stands between it and the law, its lines joined as one.
+// A run of whitespace alone keeps the caption above it unless it holds a
+// blank line.
+const BLANK_LINE = /\n[ \t]*\n/;
+function captionAfter(prose, captionAbove) {
+  const paragraphs = prose.split(BLANK_LINE);
+  const lastParagraph = paragraphs.at(-1).trim().replace(/\s+/g, ' ');
+  if (lastParagraph === '') return paragraphs.length > 1 ? null : captionAbove;
+  if (!lastParagraph.endsWith(':')) return null;
+  return lastParagraph.slice(0, -1).split(/(?<=[.!?])\s+/).at(-1);
+}
+
+// Every claim of a record's page: each law, a quote with no tag among the
+// segments of its docs, with the caption it proves, what `runLaws` runs
+// [D123], [D124].
+export function claimsOfRecord(record) {
+  const claims = [];
+  for (const doc of record.get('docs')) {
+    let caption = null;
+    for (const segment of doc) {
+      if (typeof segment === 'string') caption = captionAfter(segment, caption);
+      else if (isQuote(segment)) claims.push({ law: segment, says: caption ?? NULL });
+    }
+  }
+  return claims;
 }
 
 // The record of the member the subject holds under a name [D88], or
@@ -161,7 +178,7 @@ function memberRefusalOf(env, subject, memberName) {
 // it holds under a name, or the refusal of the axis that read it; each
 // axis resides on `::qlang/any`, and its primitive reads the state of
 // the call [D79].
-function recordReadBy(subject, memberName, state, NotFoundError) {
+export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
     if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
@@ -182,27 +199,28 @@ function pageOfRecord(record) {
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
 }
 
+// The anchors of a path: null the empty one, a keyword a path of one,
+// a vector its elements, and any other value a path of one the walk
+// refuses [D119].
+const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anchor]);
+
 // The record a path of anchors reaches, each anchor the name of a member
-// of the record the one before it reached [D119].
+// of the record the one before it reached, the empty path the record of
+// the subject itself [D119].
 function recordAlongPath(subject, anchors, state) {
+  if (anchors.length === 0) return recordReadBy(subject, NULL, state, DocBindingNotFoundError);
   return anchors.reduce((reached, anchor, index) => {
     if (!isKeyword(anchor)) throw new DocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
     return recordReadBy(reached, anchor, state, DocBindingNotFoundError);
   }, subject);
 }
 
-// The page an anchor reads: a keyword the member under it, a vector the
-// member at the end of its path.
-function pageAt(subject, anchor, state) {
-  if (isKeyword(anchor) || isNull(anchor)) return pageOfRecord(recordReadBy(subject, anchor, state, DocBindingNotFoundError));
-  return pageOfRecord(recordAlongPath(subject, anchor, state));
-}
+// The page an anchor reads, the page of the member at the end of its path.
+const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set.
 bindStateReader('doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
-bindStateReader('examples', (subject, memberName, state) =>
-  Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
 // The value as an explanation holds it: an error, a map under `::error`
 // beneath the tags stacked over it, raised under the tag it shows, as it

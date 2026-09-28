@@ -398,7 +398,7 @@ quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every operand is a binding with prose and
 examples, four axis operands read a binding's source, prose, examples,
-and declared facts, `manifest` enumerates what exists, and `runExamples`
+and declared facts, `manifest` enumerates what exists, and `runLaws`
 executes a binding's examples as tests. The self-test over the whole
 catalog runs in under a second.
 
@@ -1518,7 +1518,7 @@ counts, transforms, and assembles code without leaving the language.
 
 The catalog is the documentation. A root doc is the first thing a
 session reads: what the language is in a sentence, what a tag is in a
-sentence, how to discover with `manifest`, `docs`, `examples`, and
+sentence, how to discover with `manifest`, `doc`, `doc | laws`, and
 `spec`, how to read an error, and a few seed pipelines that a grep
 would not suggest. Every other question is answered at the point of
 need, in views sized to a budget, the cheap view first. Examples live
@@ -1727,7 +1727,7 @@ gone; host categories of error are declared by hosts.
 Every fact has one spelling. The doc read as its segments has landed,
 prose and quotes the parser reads once, which the doc answers by its
 own verbs, its text by `content`, its parts by `segments` and its
-quotes by `quotes` [D19], [D94], [D95], [D99], so strings, quotes and docs read in pieces; and so has
+laws by `laws` [D19], [D94], [D95], [D99], [D123], so strings, quotes and docs read in pieces; and so has
 the print of a value, a verb whose default writes the literal of the
 core, a descriptor under its tag among it, and which a kind a module
 declares answers its own way [D96]. One
@@ -1768,8 +1768,10 @@ a budget arrive beside the root doc, the cheap view the default [D27],
 and a view takes its options beyond a few positional modifiers as one
 map whose keys it declares [D40];
 the catalog's prose is reduced to what the facts do not say and written
-in the language's own vocabulary; answers stay within a budget and
-replace what exceeds it with `::elision` markers [D21], [D109]; errors print as
+in the language's own vocabulary; an answer stays within a budget a
+reader asks for, by `elide` or by the host's flag, and replaces what
+exceeds it with `::elision` markers, while an answer nobody bounded
+prints whole [D21], [D109], [D120]; errors print as
 alerts, and a parse error names the continuations a reader meant [D7];
 enrichment happens once per session; fields are documented by their
 records' tags and shared values by their own [D50]; the sister
@@ -1788,16 +1790,19 @@ and telling the language with the page of every kind saying why it is
 there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108], [D109], [D111], [D117], [D118] and [D119]: a parse error that names no marker of a comment
+[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123] and [D124]: a parse error that names no marker of a comment
 among the continuations of a quote left open, the verbs the runs of the
-benchmark missed, the link a page names for a reader to follow, and an
+benchmark missed, the link a page names for a reader to follow, which opens a page, the
+snippet it shows to run and see, the laws named laws wherever they are
+read, each claim of a page captioned above the laws that prove it, and an
 answer within a budget whose markers read what it left out, and a first
 screen that opens the pages of the concepts in one query, and a name
 that answers one page, its anchors read by a keyword, a path or a set;
 the others stand beside the suite: one start command
-returns the root doc within four kilobytes; a host answers within a
-budget and marks what it left out with its size and the query that
-reads it, an error's input included; a parse error prints without the
+returns the root doc within four kilobytes; a host answers whole
+unless a caller asks for a budget, and within one it marks what it
+left out with its size and the query that reads it, an error's input
+included; `qlang -i` runs the query after it as the first cell; a parse error prints without the
 parser's list of alternatives; `:trail` prints the same way on an error
 value and on its materialized descriptor, where the error literal hides
 an empty trail and the descriptor shows it; a renderer loads the
@@ -2143,3 +2148,8 @@ maintainer wants to explore it before it is fixed.
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
+[D120]: decisions/D120.md
+[D121]: decisions/D121.md
+[D122]: decisions/D122.md
+[D123]: decisions/D123.md
+[D124]: decisions/D124.md

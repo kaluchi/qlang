@@ -79,7 +79,7 @@ export function errorFromQlang(qlangError, subject) {
   // tag-binding, stamped there from the throw site, and reach the
   // reader through hypertext navigation: `result !| type | spec`
   // returns the stamped descriptor; `result !| type | source` walks
-  // the BindStep source; `result !| type | docs` returns the
+  // the BindStep source; `result !| type | doc` returns the
   // canonical prose the catalog authored.
   //
   // `:actualValue` ref-eq dedup against the subject — when the

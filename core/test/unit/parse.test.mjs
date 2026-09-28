@@ -861,7 +861,7 @@ describe('parse — block comment nesting', () => {
         "   lifts the TagKeyword to the value's tag slot, and `result !|",
         '   type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps',
         '   below give axis-operands (`::AssertionFailedError | doc`,',
-        '   `| source`, `| examples`) a discoverable declaration through',
+        '   `| source`, `| doc | laws`) a discoverable declaration through',
         "   the loaded module's AST, symmetric with catalog error tags. ~|",
         '| 42'
       ].join('\n');

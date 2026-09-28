@@ -96,14 +96,14 @@ export const TASKS = [
   },
   {
     id: 'L8',
-    question: 'write a doc of your own whose prose holds two examples, the code "eq 2" and the code "gt 1", and answer how many examples that doc has.',
-    reference: "|~~ two ~(eq 2) and ~(gt 1) ~~| | quotes | count",
+    question: 'write a doc of your own whose prose holds two laws, the code "eq 2" and the code "gt 1", and answer how many laws that doc has.',
+    reference: "|~~ two ~(eq 2) and ~(gt 1) ~~| | laws | count",
     answer: "2"
   },
   {
     id: 'L9',
-    question: 'run the examples of the page of the verb that groups the elements of a vector by a key, and answer whether every one of them holds.',
-    reference: "::vec/groupBy | runExamples * /ok | every ~(eq true)",
+    question: 'run the laws of the page of the verb that groups the elements of a vector by a key, and answer whether every one of them holds.',
+    reference: "::vec/groupBy | runLaws * /ok | every ~(eq true)",
     answer: "true"
   },
   {
@@ -129,13 +129,13 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error"))',
-    answer: '#[::error ::explanation ::fail]'
+    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
+    answer: '#[::explanation ::fail]'
   },
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | spec | /verbs | sort * (runExamples | count) | sum',
-    answer: '::vec | spec | /verbs | sort * (examples | count) | sum'
+    reference: '::vec | spec | /verbs | sort * (runLaws | count) | sum',
+    answer: '::vec | spec | /verbs | sort * (doc | laws | count) | sum'
   }
 ];

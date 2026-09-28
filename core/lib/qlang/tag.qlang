@@ -9,8 +9,9 @@
       failures are all values, so the pipeline that reshapes data also
       reads the description of the language. That description is a
       hypertext rooted here. Every name has a page; a page is a doc,
-      prose whose quotes with no tag are laws that run and whose quotes
-      under `::link` are links, queries to follow; `open` runs a link,
+      prose whose quotes with no tag are laws that run, whose quotes
+      under `::link` are links to other pages and whose quotes under
+      `::snippet` are queries to run and see; `open` runs either,
       so `::qlang | doc | links * open` answers every page this
       one names, in one query. `::` begins an absolute name, and a
       keyword is an anchor within the page of its subject, as `#` within
@@ -31,13 +32,16 @@
       held as a value.
 
       Asking. `x | doc` answers the page of a name or of the kind of a
-      value, a doc whose text is `content`, whose laws are `quotes` and
-      whose links are `links`. ::link~(::qlang | manifest) lists the
-      kinds; ::link~(::vec | spec | /verbs) lists the verbs of a kind by
-      address, and ::link~(::qlang/any | spec | /verbs) those of every
+      value, a doc whose text is `content`, whose laws are `laws` and
+      whose links are `links`. ::snippet~(::qlang | manifest) lists the
+      kinds; ::snippet~(::vec | spec | /verbs) lists the verbs of a kind by
+      address, and ::snippet~(::qlang/any | spec | /verbs) those of every
       value; a verb in neither does not exist. `::vec/sort | doc` reads
-      the page of one verb, `::vec/sort | runExamples` runs its laws,
+      the page of one verb, `::vec/sort | runLaws` runs its laws,
       and `x !| explain` shows the page of what refused above an error.
+      An answer prints whole; `x | elide 4000` bounds it to that many
+      characters of its print, each part left out an `::elision` whose
+      `:read` continues the query to it.
 
       The concepts, in the order they rest on each other, each page
       naming its neighbours and the kinds that are it:
@@ -50,11 +54,16 @@
       through them; ::link~(::qlang | doc :hosts) the tool the
       language runs in and the budget of an answer.
 
+      The links of a page open the pages it names, in one query:
       ~(::qlang | doc | links * open | count | gt 5)
       ~(::qlang | doc :pipeline | links * open | count | gt 0)
+      A set of anchors reads several pages at once:
       ~(::qlang | doc #[:pipeline :errors] * content | count | eq 2)
+      A map literal after `*` reshapes each element:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      The outermost of stacked tags names the kind:
       ~(::Box::Crate{:a 1} | type | eq ::Box)
+      A failed step answers an error the tag of its site names:
       ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
   ~~|
 
@@ -65,7 +74,7 @@
       here, and the walk from a name to its verb ends here, after the
       kinds of the subject. No value answers it as its `type`, since each
       has a kind of its own above it.
-      ::link~(::qlang/any | spec | /verbs)
+      ::snippet~(::qlang/any | spec | /verbs) lists the verbs of every value.
       ::link~(::qlang | doc :verbs)
 
       ~(::qlang/any | spec | /verbs | has ::any/type)
@@ -250,7 +259,7 @@
       this tag with its subject filled, which `spec` answers for a verb:
       what a verb takes and answers is known before it is called, which is
       how a reader writes a call right the first time.
-      ::link~(::vec/sort | spec)
+      ::snippet~(::vec/sort | spec) shows one.
       ::link~(::qlang | doc :verbs)
 
       ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)
@@ -300,7 +309,7 @@
       stack, so `!| type` reads the site, the verbs of this kind reach
       every error, and every step works on it as on any value: a fact is
       added and the error raised again, or it is recovered by the tag of
-      its site. ::link~(::error | spec | /verbs)
+      its site. ::snippet~(::error | spec | /verbs) lists its verbs.
       ::link~(::explanation | doc) ::link~(::fail | doc)
       ::link~(::qlang | doc :errors)
 
@@ -317,8 +326,9 @@
 ::elision
   |~~ The kind of the marker of what a view left out. A
       reader's context only grows, and whatever an answer adds is read
-      again on every later step, so a host answers within a budget, and
-      the marker keeps the way back: `:size` counts the elements, the
+      again on every later step, so a reader asks for a budget, by
+      `elide` in the query or by the host's flag, and the marker keeps
+      the way back; an answer nobody bounded prints whole: `:size` counts the elements, the
       entries or the characters it stands for, `:read` is the quote that
       applied to the value taken answers the part left out, and `:head`
       holds the first characters of a string. `elide` writes markers,
@@ -334,16 +344,32 @@
   |~~ The kind of a link, a query a page names for its reader to follow,
       written in the prose of a doc as a quote under `::link`.
       Links are what make the pages a hypertext: a page names the pages
-      and the answers that go deeper, and a reader reaches them by running
-      the query the link holds, or by `apply` over the link. A quote with
-      no tag is a law, which answers true; a link answers without an
-      error, and the suite follows every link of the catalog, so none
-      goes dead. A host may stack its own tag over a link.
-      ::link~(::qlang | doc | links)
+      that go deeper, and a reader reaches them by `open`, which runs the
+      query the link holds. A quote with no tag is a law, which answers
+      true; a link opens a page, so `links * open` answers pages alone,
+      and a query that lists or shows something is a snippet. The suite
+      follows every link of the catalog, so none goes dead. A host may
+      stack its own tag over a link.
+      ::snippet~(::qlang | doc | links) lists the links of the first page.
       ::link~(::qlang | doc :hypertext)
 
-      ~(|~~ ::link~(::qlang | manifest) ~~| | links | first | type | eq ::link)
+      ~(|~~ ::link~(::qlang | doc :values) ~~| | links | first | type | eq ::link)
+      ~(::qlang | doc | links * open | every ~(type | eq ::doc))
       ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
+  ~~|
+
+::snippet
+  |~~ The kind of a snippet, a query a page shows its reader to run and
+      see, written in the prose of a doc as a quote under `::snippet`: a
+      listing, ::snippet~(::vec | spec | /verbs), or a demonstration of
+      a form, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
+      link opens a page; a snippet answers whatever it shows, which
+      `open` runs, and `snippets` reads the snippets of a doc. The suite
+      runs every snippet of the catalog, so none answers an error.
+      ::link~(::link | doc) ::link~(::qlang | doc :hypertext)
+
+      ~(|~~ ::snippet~(::qlang | manifest) ~~| | snippets | first | open | has ::number)
+      ~(::vec | doc | snippets | count | gt 0)
   ~~|
 
 ::explanation
@@ -404,7 +430,7 @@
   |~~ The kind of `true` and `false`, the answer of a question about a
       value: `filter`, `every` and `if` take a quote that answers one,
       and `false !| true` after steps answers whether they failed.
-      ::link~(::boolean | spec | /verbs)
+      ::snippet~(::boolean | spec | /verbs) lists its verbs.
       ::link~(::qlang | doc :values)
 
       ~(true | type | eq ::boolean)
@@ -426,7 +452,7 @@
       value, so a step whose result leaves the domain answers an error.
       No kind reads text, so `::number(5)` is `5` and `::number"5"` is
       refused; `parseJson` reads a number out of a string.
-      ::link~(::number | spec | /verbs)
+      ::snippet~(::number | spec | /verbs) lists its verbs.
       ::link~(::qlang | doc :values)
 
       ~(5 | type | eq ::number)
@@ -449,7 +475,7 @@
       since the keys of a map are keywords. Its verbs work on the text
       whole or by its lines, and `lines` breaks it into the vector a
       pipeline reads in pieces.
-      ::link~(::string | spec | /verbs) ::link~(::keyword | doc)
+      ::snippet~(::string | spec | /verbs) lists its verbs. ::link~(::keyword | doc)
       ::link~(::qlang | doc :values)
 
       ~("x" | type | eq ::string)
@@ -497,7 +523,8 @@
       value's kind. Tags stack over any payload and read from the outside
       in; behaviour does not travel with a value, it is found again
       through the tag wherever the value goes.
-      ::link~(::Box::Crate{:a 1} | type) ::link~(::qlang | manifest)
+      ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
+      ::snippet~(::qlang | manifest) lists the kinds.
       ::link~(::qlang | doc :values)
 
       ~(::Box | type | eq ::tag)
@@ -524,7 +551,7 @@
       and a doc are vectors under their tags, read as vectors wherever a
       vector is read; over them the constructor answers the vector of
       their elements, and `::vec[1 2]` reads as `[1 2]`.
-      ::link~(::vec | spec | /verbs) ::link~(::each | doc)
+      ::snippet~(::vec | spec | /verbs) lists its verbs. ::link~(::each | doc)
       ::link~(::qlang | doc :values)
 
       ~([1 2] | type | eq ::vec)
@@ -548,7 +575,7 @@
       the shape an answer takes, each value a group run on the subject,
       `{:id /id :n (/tags | count)}`; `/k` reads a field, and `*` over
       a map runs a step on each value under its key.
-      ::link~(::map | spec | /verbs) ::link~(::proj | doc)
+      ::snippet~(::map | spec | /verbs) lists its verbs. ::link~(::proj | doc)
       ::link~(::qlang | doc :values)
 
       ~({:a 1} | type | eq ::map)
@@ -571,10 +598,11 @@
       it is: every page is a doc, `doc` answers the page of a name, and
       because a doc is a value its code is checked and the next step can
       take it apart. A quote with no tag is a law of the page, which
-      `runExamples` holds to answer true; a quote under `::link` is a
+      `runLaws` holds to answer true; a quote under `::link` is a
       link, a query a reader follows. `content` answers its text,
-      `segments` its parts, `quotes` its laws and `links` its links.
-      ::link~(::doc | spec | /verbs) ::link~(::link | doc)
+      `segments` its parts, `laws` its laws, `links` its links and
+      `snippets` its snippets.
+      ::snippet~(::doc | spec | /verbs) lists its verbs. ::link~(::link | doc)
       ::link~(::qlang | doc :hypertext)
 
       ~(::number/add | doc | type | eq ::doc)
@@ -649,7 +677,7 @@
       miss answers an error, never null, so a misspelled field is found
       where it is read. `/` is the value itself. As a record, `:path` is
       the keys and indices it walks, `[]` for `/`.
-      ::link~({:a {:b [5 6]}} | /a/b/-1)
+      ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
       ::link~(::qlang | doc :pipeline)
 
       ~(~(/items/0/name) | first | /path | eq [:items 0 :name])
@@ -892,12 +920,12 @@
 :manifest
   |~~ Asked of a noun, answers the set of what lies below it in
       the tree of names: the nouns under its path and the
-      addresses of the verbs that live on it. `::qlang | manifest`
-      lists the nouns of the core and of the hosts, `::number |
+      addresses of the verbs that live on it.
+      ::snippet~(::qlang | manifest) lists the nouns of the core and of the hosts, `::number |
       manifest` the verbs of numbers, and a refusal is reached
       from the place it guards, `::number/add | spec | /throws`.
       For what one binding does reach for the axis trio
-      (`::vec/count | source` / `| doc` / `| examples`).
+      (`::vec/count | source` / `| doc` / `| doc | laws`).
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::vec)
@@ -916,10 +944,14 @@
        )
   ~~|
 
-:runExamples
-  |~~ The results of the examples of the declaration the tag name
-      reads, a verb by its address among them.
+:runLaws
+  |~~ The results of the laws of the page of the declaration the tag
+      name reads, a verb by its address among them, one `{:law :says
+      :actual :ok :error}` per law, `:says` the caption of the claim the
+      law proves. A keyword after it runs the laws of the member the
+      name holds under it, a concept of the language among them.
 
-      ~(::number/add | runExamples | first | /ok | eq true)
+      ~(::number/add | runLaws | first | /ok | eq true)
+      ~(::qlang | runLaws :values | every ~(/ok))
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runExamples})
+  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/runLaws})

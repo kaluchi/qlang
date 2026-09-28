@@ -198,20 +198,32 @@ describe('runRepl — @in / @out behaviour', () => {
   });
 });
 
-// A cell prints within the budget of the command line, an error within
-// its own [D109].
+// A query given after `-i` runs as the first cell, its bindings staying
+// for the cells after it [D120].
+describe('runRepl — the first cell given on the command line', () => {
+  it('runs the query before the typed cells, in the same session', async () => {
+    const replHarness = captureRepl('x | add 1\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41' });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain('qlang> :x 41');
+    expect(printed).toContain('42');
+  });
+});
+
+// A cell prints within the budget a caller asked for, an error among
+// them [D120].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
   it('prints a value past its budget with a marker that reads the rest', async () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: { value: 80, error: 200 } });
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80 });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
   });
 
-  it('prints an error within the budget of an error', async () => {
+  it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: { value: 4000, error: 200 } });
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200 });
     expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/');
   });
 });

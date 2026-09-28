@@ -24,4 +24,4 @@
 {"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]","decision":"D18"}
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]","decision":"D18"}
 {"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true","decision":"D18"}
-{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | spec | /verbs * (examples | count) | sum | eq (::vec | spec | /verbs | sort * (examples | count) | sum)","expect":"true","decision":"D116"}
+{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | spec | /verbs * (doc | laws | count) | sum | eq (::vec | spec | /verbs | sort * (doc | laws | count) | sum)","expect":"true","decision":["D116","D123"]}

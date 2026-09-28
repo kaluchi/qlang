@@ -41,9 +41,6 @@
     "./highlight": {
       "import": "./src/highlight.mjs"
     },
-    "./host/module-resolver": {
-      "import": "./host/module-resolver.mjs"
-    },
     "./lib/qlang/*.qlang": "./lib/qlang/*.qlang"
   },
   "imports": {

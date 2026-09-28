@@ -1255,11 +1255,11 @@ part:
   $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /TaggedJSON|serialize/i.test(name)).length)"
   0
   ```
-- Two loaders of modules: `use` through a locator
+- One loader of modules: `use` through a locator
   (`core/src/runtime/use-op.mjs`, `resolveNamespaceEnv`), which the
-  bootstrap of the catalog calls too, and a resolver of module
-  directories used by tests alone (`core/host/module-resolver.mjs`).
-  Each computes a module's surface as a delta of the environment.
+  bootstrap of the catalog calls too; the resolver of module directories
+  that tests alone used has left the package. It computes a module's
+  surface as a delta of the environment.
 - An embedding surface that was never designed. The package's entry
   point re-exports the runtime's internals by name, the Symbol slots of
   the headers and the prefixes of the environment's housekeeping keys
@@ -1496,8 +1496,7 @@ What leaves the tree, as the repairs land: the classes of errors with
 their factories, the
 registry of throw sites, the stamping passes and the converter's
 tables; the primitive registry with its sealing; the effect marker and its checks; the character
-scanner of doc text; the housekeeping keys of the environment; the
-resolver of module directories; the error prose of the catalog that
+scanner of doc text; the housekeeping keys of the environment; the error prose of the catalog that
 restates the facts; the drift tests.
 
 The documents at the finish are few. This audit and the entrypoint

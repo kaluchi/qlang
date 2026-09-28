@@ -203,6 +203,26 @@ describe('createSession with locator — lazy module loading', () => {
   });
 });
 
+describe('locator exports that are no descriptors of the core', () => {
+  it('leaves a `::Tag` bound to a literal alone rather than stamping a throw-site spec onto it', async () => {
+    const sessionInstance = await createSession({
+      locator: async (namespaceName) => namespaceName === 'tests/literal-tag'
+        ? { source: '::AsNameNotKeywordError 42' }
+        : null
+    });
+    expect((await sessionInstance.evalCell('use :tests/literal-tag | ::AsNameNotKeywordError | spec')).result).toBe(42);
+  });
+
+  it('leaves the verb of a module named as a noun that declares no kind off the residences of its name', async () => {
+    const sessionInstance = await createSession({
+      locator: async (namespaceName) => namespaceName === 'qlang/widget'
+        ? { source: ':count ::verb~(add 1) | :other 1' }
+        : null
+    });
+    expect((await sessionInstance.evalCell('use :qlang/widget #[:other] | count [1 2]')).result).toBe(2);
+  });
+});
+
 describe('a cell whose failure is no error value', () => {
   it('leaves an invariant failure on the error channel with no result value', async () => {
     // `evalAst` converts every failure into an ErrorValue except

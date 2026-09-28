@@ -1537,8 +1537,7 @@ which answer otherwise until the work lands [D58].
 
 ### Milestone 4 · One spelling
 
-Every fact has one spelling. What remains of it: the step of a
-constructor apart from the kind of tagged values [D115]; the contracts
+Every fact has one spelling. What remains of it: the contracts
 moving onto the kinds, a tag's declaration being its schema or its
 constructor [D6], [D33]; the tags of the refusing sites as kinds with
 their schemas and procedures, where the JavaScript classes of errors,
@@ -1553,8 +1552,9 @@ entrypoint of the work in its first version, the command that measures
 the tree and prints the state of the work as a dark cockpit, whose
 design is the entrypoint document's.
 
-Its answers are the targets of [D115] in the conformance suite, and
-those [D6], [D33] and [D46] leave when they are decided. Beside them:
+Its answers are the targets [D6], [D33] and [D46] leave in the
+conformance suite when they are decided, the step of a constructor
+apart from the kind of tagged values having landed [D115]. Beside them:
 no factory-declared error class remains; no operand contract is spelled
 outside the catalog; one query shows
 every definition of a name and which one wins; a module's value is its
@@ -1584,9 +1584,8 @@ screen written against them [D104], [D105], [D106].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
 [D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
-[D124], [D125], [D127] and [D129]: the first screen and the hypertext it opens, every
-one met but the page of the kind of tagged values, which waits on the
-step of a constructor [D115]. The others stand beside the suite: one
+[D124], [D125], [D127] and [D129]: the first screen and the
+hypertext it opens, every one met. The others stand beside the suite: one
 start command returns the root doc within four kilobytes; `:trail`
 prints the same way on an error value and on its materialized
 descriptor, where the error literal hides an empty trail and the

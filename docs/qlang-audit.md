@@ -1765,7 +1765,7 @@ and a view takes its options beyond a few positional modifiers as one
 map whose keys it declares [D40];
 the catalog's prose is reduced to what the facts do not say and written
 in the language's own vocabulary; answers stay within a budget and
-replace what exceeds it with `::elision` markers [D21]; errors print as
+replace what exceeds it with `::elision` markers [D21], [D109]; errors print as
 alerts, and a parse error names the continuations a reader meant [D7];
 enrichment happens once per session; fields are documented by their
 records' tags and shared values by their own [D50]; the sister
@@ -1781,10 +1781,11 @@ the language's with its noun as the first value [D37]; and the
 benchmark runs [D26], each run recorded with the frictions it met and
 the first screen written against them [D104], [D105], [D106], [D107].
 
-Its answers in the conformance suite are the targets of [D7], [D107]
-and [D108]: a parse error that names no marker of a comment among the
-continuations of a quote left open, the verbs the runs of the benchmark
-missed, and the link a page names for a reader to follow; the others stand beside the suite: one start command
+Its answers in the conformance suite are the targets of [D7], [D107],
+[D108] and [D109]: a parse error that names no marker of a comment
+among the continuations of a quote left open, the verbs the runs of the
+benchmark missed, the link a page names for a reader to follow, and an
+answer within a budget whose markers read what it left out; the others stand beside the suite: one start command
 returns the root doc within four kilobytes; a host answers within a
 budget and marks what it left out with its size and the query that
 reads it, an error's input included; a parse error prints without the
@@ -2122,3 +2123,4 @@ maintainer wants to explore it before it is fixed.
 [D106]: decisions/D106.md
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
+[D109]: decisions/D109.md

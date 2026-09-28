@@ -615,7 +615,7 @@ function makeLambda(astNode, capturedState) {
 }
 
 // codeOf(code, callState) → lambda: a quote a slot of code holds, closed
-// at the call [D4], run against each input its operand hands it in the
+// at the call [D4], run against each input its verb hands it in the
 // environment the quote carries, or that of the call for a quote held as
 // data [D43]. The lambda keeps the tree it runs, so `reduce` finds the
 // name its quote holds [D56].

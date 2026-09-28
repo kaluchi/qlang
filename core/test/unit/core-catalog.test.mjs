@@ -282,7 +282,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(193);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(195);
   });
 
   it('the value namespace holds every declared operand', async () => {

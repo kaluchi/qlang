@@ -21,6 +21,8 @@ declareModifierError('AppendSuffixNotStringError',      '::string/append',  2, '
 declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
 declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
 declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
+declareSubjectError('LowerSubjectNotStringError',       'lower',      'string');
+declareSubjectError('UpperSubjectNotStringError',       'upper',      'string');
 declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
 declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
 declareModifierError('ContainsSubjectNotStringError',   'contains',   1, 'string');
@@ -53,6 +55,11 @@ bindPrim('join', (subject, separator) => {
   if (stranger >= 0) throw new JoinElementNotStringError(stranger, subject[stranger]);
   return subject.join(separator);
 });
+
+// The case of a text, folded letter by letter as Unicode maps it, so
+// two texts that differ in case alone compare equal once folded [D107].
+bindPrim('lower', subject => subject.toLowerCase());
+bindPrim('upper', subject => subject.toUpperCase());
 
 bindPrim('contains',   (subject, needle) => subject.includes(needle));
 bindPrim('startsWith', (subject, prefix) => subject.startsWith(prefix));

@@ -1,11 +1,12 @@
 // The verbs of the keys of a map and of membership, each a plain
 // function over the value the head of its verb checked [D72]: `keys`
 // and `vals` reside on `::map`, and `has` on `::map`, whose key is a
-// keyword or a string, and on `::set`, whose element is any value.
+// keyword or a string, and on `::set` and `::vec`, whose element is any
+// value.
 //
 // The verbs live in lib/qlang/map.qlang and set.qlang.
 
-import { keyword, isKeyword, isQMap, makeSet } from '../types.mjs';
+import { keyword, isKeyword, isQMap, isQSet, makeSet } from '../types.mjs';
 import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -25,7 +26,8 @@ bindPrim('vals', map => [...map.values()]);
 // name the key as the map stores it, so the `keys | first | :k / | src |
 // has k` chain composes without a coercion; over a set, membership is a
 // binary search in the one order, which ranks two values alike exactly
-// when they are equal [D16].
+// when they are equal [D16]; over a vector, an element equal to it in
+// that order, found by a walk [D107].
 function setHas(set, value) {
   let low = 0;
   let high = set.length - 1;
@@ -40,4 +42,6 @@ function setHas(set, value) {
 }
 
 bindPrim('has', (container, place) =>
-  (isQMap(container) ? container.has(isKeyword(place) ? place.name : place) : setHas(container, place)));
+  isQMap(container) ? container.has(isKeyword(place) ? place.name : place)
+    : isQSet(container) ? setHas(container, place)
+      : container.some(element => compareValues(element, place) === 0));

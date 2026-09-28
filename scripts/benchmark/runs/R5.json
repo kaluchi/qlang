@@ -1,0 +1,34 @@
+{
+  "id": "R5",
+  "date": "2026-09-28",
+  "model": "claude-sonnet-5",
+  "screen": "576cce3c5121",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7 and L1–L10",
+  "calls": 37,
+  "tasks": {
+    "T1": { "calls": 2, "solved": true, "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name" },
+    "T2": { "calls": 1, "solved": true, "query": "/data * /email * lower | distinct | count" },
+    "T3": { "calls": 1, "solved": true, "query": "groupBy ~(/status | keyword) * count" },
+    "T4": { "calls": 1, "solved": true, "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)" },
+    "T5": { "calls": 3, "solved": true, "query": "lines | filter ~(contains \"ERROR\") * (split \"ERROR \" | /1) | distinct | json" },
+    "T6": { "calls": 1, "solved": true, "query": "/data * {:id /id :tagCount (/tags | count)}" },
+    "T7": { "calls": 1, "solved": true, "query": "/data | filter ~(/tags | has \"ops\") * /email" },
+    "L1": { "calls": 1, "solved": true, "query": ":triple ::verb~(mul 3) | [1 2 3] * triple" },
+    "L2": { "calls": 1, "solved": true, "query": "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) | false !| true)]" },
+    "L3": { "calls": 4, "solved": true, "query": "~(sub 3 | mul 4) | :q / | [(q | count) (10 | apply q)]" },
+    "L4": { "calls": 1, "solved": true, "query": "\"a\" | mul 2 !| [type /actualType]" },
+    "L5": { "calls": 2, "solved": true, "query": "::string | spec | /verbs | filter ~(docs | first | content | contains \"begins with\") | first" },
+    "L6": { "calls": 6, "solved": true, "query": "[7 8] | tag ::Inner | tag ::Outer | :r / | [(r | type) (r | /1)]" },
+    "L7": { "calls": 1, "solved": true, "query": "[10 -1 \"y\"] * (add 5 !| null)" },
+    "L8": { "calls": 1, "solved": true, "query": "|~~ two examples ~(eq 2) ~(gt 1) ~~| | quotes | count" },
+    "L9": { "calls": 1, "solved": true, "query": "::vec/groupBy | runExamples * /ok | every ~(eq true)" },
+    "L10": { "calls": 1, "solved": true, "query": "{:a 1 :b 2 :c 3} | minus #[:b]" }
+  },
+  "frictions": [
+    { "id": "F1", "task": "T1", "kind": "syntax", "query": "… | reverse | * /name", "expected": "a step after a pipe", "got": "ParseError at `*` with no hint to drop the pipe, the friction of R1.F3 and R4.F1 met again" },
+    { "id": "F2", "task": "T5", "kind": "channel", "query": "lines | … | distinct", "expected": "a JSON list", "got": "`#[\"db timeout\"]`, the print of a text input, the friction of R3.F3 met again" },
+    { "id": "F3", "task": "L3", "kind": "misleading", "query": "::quote | spec | /verbs", "expected": "every verb a quote answers, as the first screen says of the list", "got": "`#[::quote/parse]`, while `count` of any value answers a quote too; the first screen says a verb missing from the list of a kind does not exist, which the verbs of any value and of the vector a quote reads as belie" },
+    { "id": "F4", "task": "L6", "kind": "syntax", "query": "tag | docs | first | content", "expected": "the page of the verb tag", "got": "TagBareSubjectShapeError: a name alone calls its verb; the page of a verb is read by its address, `::any/tag | docs`, which the first screen does not say" },
+    { "id": "F5", "task": "L5", "kind": "helped", "query": "::string | spec | /verbs | filter ~(docs | first | content | contains \"prefix\")", "expected": "one verb", "got": "two, prepend and startsWith, told apart by a narrower phrase" }
+  ]
+}

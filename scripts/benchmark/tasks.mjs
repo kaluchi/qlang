@@ -6,9 +6,6 @@
 // the task solvable and names the price the language asks, so a
 // reference that shrinks is a repair the runs can be held against.
 
-const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const caseFolds = [...UPPER].map(letter => `~(eq "${letter}") ~("${letter.toLowerCase()}")`).join(' ');
-
 export const TASKS = [
   {
     id: 'T1', input: 'users.json',
@@ -19,7 +16,7 @@ export const TASKS = [
   {
     id: 'T2', input: 'users.json',
     question: 'how many distinct email addresses there are when compared case-insensitively. Expected shape: a number.',
-    reference: `:fold ::verb~(split "" * cond ${caseFolds} ~(/) | join "") | /data * (/email | fold) | distinct | count`,
+    reference: '/data * (/email | lower) | distinct | count',
     answer: '4'
   },
   {

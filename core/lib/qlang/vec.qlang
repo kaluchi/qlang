@@ -74,6 +74,15 @@
   ~~|
   ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/any})
 
+:has
+  |~~ Whether the vector holds the element, an element equal to it; the
+      membership of a JSON array [D107].
+
+      ~(["ops" "db"] | has "ops" | eq true)
+      ~([1 [2]] | has [2] | eq true)
+  ~~|
+  ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
+
 :groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
       map is a keyword, so a key that answers a string, the field of a

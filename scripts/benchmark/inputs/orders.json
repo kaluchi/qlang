@@ -1,0 +1,1 @@
+[{"id":"o1","customer":"acme","status":"paid","amount":120.5},{"id":"o2","customer":"globex","status":"pending","amount":80},{"id":"o3","customer":"acme","status":"paid","amount":40},{"id":"o4","customer":"initech","status":"cancelled","amount":15},{"id":"o5","customer":"globex","status":"paid","amount":300},{"id":"o6","customer":"acme","status":"pending","amount":9.5}]

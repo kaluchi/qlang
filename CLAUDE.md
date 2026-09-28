@@ -111,9 +111,13 @@ install` at the root links the workspaces; the Node floor is the
 
 - `npm test`: every workspace's suite. Use it in the inner loop.
 - `npm run ci`: the gate for anything meant to be pushed. Build,
-  eslint, `check:conventions`, `check:probes`, every suite, coverage
-  thresholds, CLI integration, site build, in that order. Judge it by
-  its real exit code, captured to a file, never through a pipe.
+  eslint, `check:conventions`, `check:probes`, `check:benchmark`, every
+  suite, coverage thresholds, CLI integration, site build, in that
+  order. Judge it by its real exit code, captured to a file, never
+  through a pipe.
+- `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
+  run of a fresh model, the hash of the first screen it reads, and the
+  runs recorded side by side [D104].
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.

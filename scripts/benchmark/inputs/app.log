@@ -1,0 +1,5 @@
+2026-09-28 10:00:01 INFO start
+2026-09-28 10:00:02 ERROR db timeout
+2026-09-28 10:00:03 WARN slow query
+2026-09-28 10:00:04 ERROR db timeout
+2026-09-28 10:00:05 INFO done

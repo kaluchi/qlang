@@ -75,14 +75,14 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
   { operand: '::proj' });
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
   ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`,
-  { operand: '::tagged', expectedType: 'map' }
+  { operand: '::construct', expectedType: 'map' }
 );
 // A tag binding whose `:impl` is neither a primitive's handle nor a quote
 // constructs nothing.
 const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
   ({ tag, payloadType }) =>
     `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`,
-  { operand: '::tagged' });
+  { operand: '::construct' });
 // The combinator names its qlang kind, `distribute`, so the message
 // and the catalog tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);

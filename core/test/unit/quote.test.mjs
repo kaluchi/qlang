@@ -71,12 +71,12 @@ describe('assembling steps by hand', () => {
   });
 
   it('a payload that opens with a digit reads back into the tag name', async () => {
-    expect(await evalQuery('::tagged{:tag ::T :payload 42} !| /printed')).toBe('::T42');
+    expect(await evalQuery('::construct{:tag ::T :payload 42} !| /printed')).toBe('::T42');
   });
 
   it('a value of another tag is no step', async () => {
-    expect(await evalQuery('::tagged{:tag ::T :payload ::Box[1]} !| [type /field]'))
-      .toEqual(await evalQuery('[::TaggedPayloadNotSchemaError :payload]'));
+    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| [type /field]'))
+      .toEqual(await evalQuery('[::ConstructPayloadNotSchemaError :payload]'));
   });
 
   it('an error of a tag is the step of the literal that spells it', async () => {

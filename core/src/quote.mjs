@@ -6,7 +6,7 @@
 // that literal itself, a nested quote included, and a container literal
 // holds the steps of its elements, a pipeline element as its group;
 // where the syntax computes, the step is a record, `::call`, `::proj`,
-// `::bind` or `::tagged`; the fail track, the distribute and the
+// `::bind` or `::construct`; the fail track, the distribute and the
 // parentheses wrap the quote of their step as `::fail`, `::each` and
 // `::group` [D47, D52]. A comment leaves no step. A command's modifier
 // is one word and is stored as its step [D10, D47].
@@ -23,13 +23,13 @@ import {
   makeTaggedInstance, makeErrorLiteralStep,
   isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
   isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
-  CALL_TAG, PROJ_TAG, BIND_TAG, TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
+  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG
 } from './types.mjs';
 
 // The steps of code that stand in a pipeline alone, those that stand
 // inside a container too, and the wrappers.
 const PIPELINE_STEP_TAG_NAMES  = new Set(['each', 'fail', 'bind', 'call']);
-const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'proj', 'tagged', 'group']);
+const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'proj', 'construct', 'group']);
 const WRAPPER_TAG_NAMES        = new Set(['each', 'fail', 'group']);
 
 // ── the tree into steps ────────────────────────────────────────
@@ -181,7 +181,7 @@ const STEP_OF_NODE = {
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
   ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag)),
-  TaggedLit:       node => record(TAGGED_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
+  TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
   OperandCall:     callStepOf,
   BindStep:        bindStepOf,
@@ -285,7 +285,7 @@ function printStep(step) {
     case 'call':   return printCall(step);
     case 'proj':   return printProj(step);
     case 'bind':   return printBind(step);
-    case 'tagged': return step.get('tag').literal + printStep(step.get('payload'));
+    case 'construct': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
   if (isErrorValue(step)) return `${errorHeadOf(step)}!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || !isEmptyVector(value)))}}`;

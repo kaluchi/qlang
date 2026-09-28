@@ -83,7 +83,8 @@
     "#qlang/bind": "./lib/qlang/bind.qlang",
     "#qlang/each": "./lib/qlang/each.qlang",
     "#qlang/fail": "./lib/qlang/fail.qlang",
-    "#qlang/group": "./lib/qlang/group.qlang"
+    "#qlang/group": "./lib/qlang/group.qlang",
+    "#qlang/construct": "./lib/qlang/construct.qlang"
   },
   "sideEffects": [
     "./src/runtime/*.mjs"

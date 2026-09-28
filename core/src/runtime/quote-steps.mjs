@@ -18,7 +18,7 @@ import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource }
 import {
   keyword, typeKeyword, isQMap, isQuote, isKeyword, isTagKeyword,
   isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
-  TAGGED_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
+  CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
 const QuotePayloadNotVecError = declareSubjectError('QuotePayloadNotVecError', '::quote', 'vec');
@@ -100,10 +100,10 @@ bindTypeConstructor('bind', recordConstructor(BIND_TAG,
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 
-bindTypeConstructor('tagged', recordConstructor(TAGGED_TAG,
+bindTypeConstructor('construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
-  declareShapeError('TaggedPayloadNotSchemaError', schemaMessage('::tagged'), { operand: '::tagged' }),
-  declareShapeError('TaggedReadBackDiffersError', readBackMessage('::tagged'), { operand: '::tagged' })));
+  declareShapeError('ConstructPayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
+  declareShapeError('ConstructReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
 
 // ── wrappers ───────────────────────────────────────────────────
 

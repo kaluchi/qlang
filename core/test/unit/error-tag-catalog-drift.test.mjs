@@ -67,7 +67,7 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::builtin', '::set',
   '::null', '::boolean', '::number', '::string', '::keyword', '::tag', '::vec', '::map', '::doc',
-  '::quote', '::call', '::proj', '::bind', '::tagged', '::each', '::fail', '::group', '::verb'
+  '::quote', '::call', '::proj', '::bind', '::construct', '::each', '::fail', '::group', '::verb'
 ]);
 
 describe('every refusal names the place it guards [D64]', () => {
@@ -83,7 +83,7 @@ describe('every refusal names the place it guards [D64]', () => {
 // of the marker of what a view left out declare a page alone, and
 // neither constructs nor refuses [D62], [D63], [D64], [D67], [D98],
 // [D108], [D109].
-const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding', '::spec', '::explanation', '::link', '::snippet', '::elision']);
+const CORE_NOUNS_OF_A_PAGE_ALONE = new Set(['::qlang', '::any', '::error', '::binding', '::spec', '::explanation', '::link', '::snippet', '::elision', '::tagged']);
 
 // `core.qlang` is the orchestrator — one `use([…])` step and no
 // BindStep of its own — so it is the one catalog file that binds

@@ -1,8 +1,8 @@
 {"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::ProjectionKeyNotInMapError | doc | links * open | any ~(eq (::proj | doc))","expect":"true","decision":["D112","D119"]}
 {"name":"the-refusal-of-a-distribute-links-its-step","query":"::DistributeSubjectNotSequenceError | doc | links * open | any ~(eq (::each | doc))","expect":"true","decision":["D112","D119"]}
 {"name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc","decision":["D113","D119"]}
-{"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct","decision":"D115","target":true,"now":"::tagged"}
-{"name":"the-kind-of-tagged-values-is-no-step","query":"::qlang/tagged | doc | content | contains \"every value under a tag\"","expect":"true","decision":["D115","D119"],"target":true,"now":"false"}
+{"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct","decision":"D115"}
+{"name":"the-kind-of-tagged-values-is-no-step","query":"::qlang/tagged | doc | content | contains \"every value under a tag\"","expect":"true","decision":["D115","D119"]}
 {"name": "a-kind-lives-in-the-module-of-its-noun", "query": "::vec | binding | /module", "expect": ":qlang/vec", "decision": "D114"}
 {"name": "a-step-kind-lives-in-a-module-of-its-own", "query": "::proj | binding | /module", "expect": ":qlang/proj", "decision": "D114"}
 {"name": "the-kind-of-a-tag-name-keeps-the-module-of-tags", "query": "::tag | binding | /module", "expect": ":qlang/tag", "decision": "D114"}

@@ -1768,8 +1768,10 @@ a budget arrive beside the root doc, the cheap view the default [D27],
 and a view takes its options beyond a few positional modifiers as one
 map whose keys it declares [D40];
 the catalog's prose is reduced to what the facts do not say and written
-in the language's own vocabulary; answers stay within a budget and
-replace what exceeds it with `::elision` markers [D21], [D109]; errors print as
+in the language's own vocabulary; an answer stays within a budget a
+reader asks for, by `elide` or by the host's flag, and replaces what
+exceeds it with `::elision` markers, while an answer nobody bounded
+prints whole [D21], [D109], [D120]; errors print as
 alerts, and a parse error names the continuations a reader meant [D7];
 enrichment happens once per session; fields are documented by their
 records' tags and shared values by their own [D50]; the sister
@@ -1795,9 +1797,10 @@ answer within a budget whose markers read what it left out, and a first
 screen that opens the pages of the concepts in one query, and a name
 that answers one page, its anchors read by a keyword, a path or a set;
 the others stand beside the suite: one start command
-returns the root doc within four kilobytes; a host answers within a
-budget and marks what it left out with its size and the query that
-reads it, an error's input included; a parse error prints without the
+returns the root doc within four kilobytes; a host answers whole
+unless a caller asks for a budget, and within one it marks what it
+left out with its size and the query that reads it, an error's input
+included; `qlang -i` runs the query after it as the first cell; a parse error prints without the
 parser's list of alternatives; `:trail` prints the same way on an error
 value and on its materialized descriptor, where the error literal hides
 an empty trail and the descriptor shows it; a renderer loads the
@@ -2143,3 +2146,4 @@ maintainer wants to explore it before it is fixed.
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
+[D120]: decisions/D120.md

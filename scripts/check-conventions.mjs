@@ -19,12 +19,6 @@
 //       as part of a legitimate reference, etc.) for a cheap
 //       grep — those stay under human review.
 //
-//   (2) Doc-drift between the operand catalog and the published
-//       operand docs. Every operand a module of the catalog declares,
-//       a verb `:name … ::verb~(…)` or the loader's descriptor, must
-//       be named in `docs/qlang-operands.md`, until the document
-//       leaves with this check.
-//
 //   (3) Per-site error class `Error` suffix. Every concrete class
 //       introduced by a `declare*Error(...)` factory call or by a
 //       direct `class Foo extends QlangError` declaration across
@@ -147,51 +141,6 @@ function scanForbiddenWords() {
     }
   }
   return violations;
-}
-
-// ── (2) Operand catalog ↔ operand docs drift ───────────────────
-
-// An operand's declaration opens a line with its keyword, the doc of its
-// slot between it and a body that is a verb or a descriptor.
-const BUILTIN_OPERAND_DECL_RE =
-  /^:([@a-zA-Z][\w-]*)\s+(?:\|~~[\s\S]*?~~\|\s+)?(?:::builtin\{|::verb~\()/gm;
-
-function parseOperandCatalog(catalogText) {
-  const names = [];
-  let match;
-  BUILTIN_OPERAND_DECL_RE.lastIndex = 0;
-  while ((match = BUILTIN_OPERAND_DECL_RE.exec(catalogText)) !== null) {
-    names.push(match[1]);
-  }
-  return names;
-}
-
-function* walkCatalogFiles() {
-  const root = join(repoRoot, 'core/lib/qlang');
-  for (const entry of readdirSync(root, { recursive: true })) {
-    if (!entry.endsWith('.qlang')) continue;
-    yield join(root, entry);
-  }
-}
-
-function catalogDocDrift() {
-  const docsBody = readFileSync(
-    join(repoRoot, 'docs/qlang-operands.md'), 'utf8');
-
-  const missing = [];
-  for (const catalogFile of walkCatalogFiles()) {
-    const source = readFileSync(catalogFile, 'utf8');
-    for (const operandName of parseOperandCatalog(source)) {
-      // The docs use `### name` or `#### name` section headers; the
-      // simplest robust probe is to ensure the bare name appears in
-      // the doc at all. Flags only operands that land in any catalog
-      // file but leave zero footprint in the published doc.
-      if (!docsBody.includes(operandName)) {
-        missing.push(operandName);
-      }
-    }
-  }
-  return missing;
 }
 
 // ── (3) Per-site error class `Error` suffix convention ─────────
@@ -424,7 +373,6 @@ function decisionsInCatalog() {
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
-const driftMissing = catalogDocDrift();
 const errorSuffixViolations = errorSuffixDrift();
 const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
@@ -432,7 +380,6 @@ const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
 
 if (forbidden.length === 0
-    && driftMissing.length === 0
     && errorSuffixViolations.length === 0
     && proseTallies.length === 0
     && workspaceRanges.length === 0
@@ -446,13 +393,6 @@ if (forbidden.length > 0) {
   process.stdout.write(`\nForbidden framing / markers (${forbidden.length}):\n`);
   for (const v of forbidden) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
-  }
-}
-if (driftMissing.length > 0) {
-  process.stdout.write(
-    `\nOperand catalog ↔ docs drift (${driftMissing.length}):\n`);
-  for (const name of driftMissing) {
-    process.stdout.write(`  :${name} — present in operand catalog, missing from docs/qlang-operands.md\n`);
   }
 }
 if (errorSuffixViolations.length > 0) {

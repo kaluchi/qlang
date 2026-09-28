@@ -1121,10 +1121,10 @@ unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”
 (`core/lib/qlang/builtin.qlang`). A session learning qlang from its
 catalog meets the names of the files that implement it.
 
-Examples live on four planes: the conformance suite, the laws of the
-catalog, the REPL pairs in the reference, and the arrow pairs in the
-operand document, with three test runners and a script that copies from
-the first plane into the second (`core/scripts/inject-error-examples.mjs`).
+Examples live on three planes: the conformance suite, the laws of the
+catalog and the REPL pairs in the reference, with a runner for each and
+a script that copies from the first plane into the second
+(`core/scripts/inject-error-examples.mjs`).
 The catalog's own laws run in under a second and are the only plane the
 language can reach, and most of them still stand under no caption of
 the claim they prove [D124].
@@ -1137,15 +1137,14 @@ must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
 rather than dumped.
 
-### Three documents that retell the catalog
+### Two documents that retell the catalog
 
-The reference, the evaluation-model document, and the operand document
-together hold nearly as many lines as the code of the core, and each
-restates the catalog: an operand's contract is spelled in the catalog, in the
-operand document, in a chapter of the reference, and in a chapter of
-the evaluation model. A convention check exists to keep the operand
-document from drifting against the catalog, which is machinery guarding
-a duplicate. The documentation site links to the reference on GitHub
+The reference and the evaluation-model document together hold more
+than half as many lines as the code of the core, and each restates the
+catalog: an operand's contract is spelled in the catalog, in a chapter
+of the reference, and in a chapter of the evaluation model. The operand
+document that retold it a third time has left with the check that
+guarded it. The documentation site links to the reference on GitHub
 and renders none of it; the language server reads the catalog directly
 and never the documents. The reference opens with a screen and a half
 on comments before it has shown a value or a pipeline, because the
@@ -1153,12 +1152,12 @@ grammar of comments dictated the order of concepts. The reference's
 grammar chapter is a third spelling of the grammar, beside the parser
 and a hand-written TextMate copy for the editor.
 
-The lines of the three documents to the lines of code of the core,
+The lines of the two documents to the lines of code of the core,
 comments and blank lines left out:
 
 ```sh
-$ git ls-files --error-unmatch docs/qlang-spec.md docs/qlang-internals.md docs/qlang-operands.md 'core/src/*.mjs' | xargs awk '/^[ \t]*$/ {next} FILENAME ~ /^docs/ {d++; next} /^[ \t]*\/\// {next} {c++} END {printf "%.1f\n", d / c}'
-1.0
+$ git ls-files --error-unmatch docs/qlang-spec.md docs/qlang-internals.md 'core/src/*.mjs' | xargs awk '/^[ \t]*$/ {next} FILENAME ~ /^docs/ {d++; next} /^[ \t]*\/\// {next} {c++} END {printf "%.1f\n", d / c}'
+0.7
 ```
 
 The reference is a tutorial rather than a specification, as the

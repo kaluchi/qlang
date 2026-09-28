@@ -9,7 +9,7 @@ qlang/                  ← this repo
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
 ├── vscode/             qlang-vscode          — VS Code Marketplace package
-├── docs/               qlang-spec.md, qlang-operands.md, qlang-internals.md
+├── docs/               qlang-spec.md, qlang-internals.md
 ├── scripts/            release.mjs           — release orchestration
 └── package.json        npm workspaces shell
 ```
@@ -32,7 +32,6 @@ npm run test:coverage                    # verify 100/100/100/100 thresholds on 
 | Audience | Doc |
 |---|---|
 | query authors | [docs/qlang-spec.md](docs/qlang-spec.md) — values, pipeline, verbs, scoping, grammar |
-| query authors | [docs/qlang-operands.md](docs/qlang-operands.md) — full catalog of built-in operands |
 | evaluator implementors | [docs/qlang-internals.md](docs/qlang-internals.md) — formal `(pipeValue, env)` model, AST, codec |
 
 ## Releasing

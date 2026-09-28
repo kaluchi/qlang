@@ -7,8 +7,10 @@ language is domain-agnostic — a host application provides
 additional functions for its domain.
 
 For the full formal evaluation model, see
-[qlang-internals.md](qlang-internals.md). For the catalog of
-built-in operands, see [qlang-operands.md](qlang-operands.md).
+[qlang-internals.md](qlang-internals.md). The verbs are described
+by the language itself: `::qlang | manifest` lists the kinds,
+`::vec | spec | /verbs` the verbs of one, and `doc` reads the page
+of any, `::vec/count | doc`.
 
 ## Reading conventions
 
@@ -472,9 +474,9 @@ input and produces the next `pipeValue` as output.
 ```
 
 `count` is an **operand** — a built-in function that takes a Vec
-and returns its length. The full catalog of built-in operands lives
-in [qlang-operands.md](qlang-operands.md); this chapter only
-explains how operands hook into the pipeline.
+and returns its length. Every verb's page is its `doc`,
+`::vec/count | doc`; this chapter only explains how operands hook
+into the pipeline.
 
 ```qlang
 > [5 3 1 4 2] | sort
@@ -2725,8 +2727,7 @@ because `[] * renameLabel = []` without invoking the verb.
 This section documents the public surface a host application uses
 to embed qlang. The reference implementation under `qlang/core/src/`
 exposes everything from the package root and through subpath
-imports; see [qlang-operands.md](qlang-operands.md#tooling-primitives)
-for the per-module breakdown.
+imports.
 
 ### Sessions
 

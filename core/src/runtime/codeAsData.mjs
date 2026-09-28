@@ -10,6 +10,7 @@ import { declareModifierError } from '../operand-errors.mjs';
 import { quoteOfSource, printQuoteSource, docText } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { elide } from '../elide.mjs';
+import { codeOf } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
 import { addressedVerb, residenceOnSubject } from './nouns.mjs';
@@ -36,6 +37,14 @@ bindPrim('docSegments', doc => Object.freeze([...doc]));
 bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
 bindPrim('docLinks', doc => Object.freeze(doc.filter(isLink)));
 bindPrim('elide', (subject, budget) => elide(subject, budget));
+
+// A link opens to the answer of its query, run in the scope of the reader
+// that opens it, so a page names what its reader's scope holds [D111].
+bindStateReader('linkOpen', async (link, state) => {
+  let query = link;
+  while (isValueClass(query, 'taggedInstance')) query = query.payload;
+  return await codeOf(query, state)(null);
+});
 
 // A segment a reader follows: a quote under a stack of tags that holds
 // `::link`, a host's tag over it among them [D108].

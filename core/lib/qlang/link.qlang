@@ -1,0 +1,12 @@
+|~ The verbs of links. Each resides on `::qlang/link`, the kind of a
+   query a page names for its reader to follow. ~|
+
+:open
+  |~~ The answer of the query the link holds, run as it stands: a link
+      opens to the page or the value it names, so `links * open` reads
+      every page a page names in one query.
+
+      ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
+      ~(::qlang | docs | first | links * open | filter ~(type | eq ::doc) | count | gt 0)
+  ~~|
+  ::verb~(:subject ::any | ::builtin{:impl :qlang/prim/linkOpen})

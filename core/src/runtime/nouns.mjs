@@ -10,7 +10,7 @@
 // the module named by the noun's path, resides on that noun [D72].
 
 import {
-  isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
+  isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
@@ -146,14 +146,19 @@ export function isProviderBinding(env, name) {
 }
 
 // The bindings the scope holds, the names the query, the session and a
-// module's `use` wrote, with the verbs and the tags of the providers and
-// the keys of the runtime's own apart [D61].
+// module's `use` wrote, with the verbs and the tags of the providers, the
+// declarations the catalog of the language wrote, the concepts among
+// them [D111], and the keys of the runtime's own apart [D61].
 export function scopeBindingsOf(env) {
   const scopeBindings = new Map();
   for (const [name, value] of env) {
-    if (!isRuntimeKey(name) && !isProviderBinding(env, name)) scopeBindings.set(name, value);
+    if (!isRuntimeKey(name) && !isProviderBinding(env, name) && !isCatalogConcept(value)) scopeBindings.set(name, value);
   }
   return scopeBindings;
+}
+
+function isCatalogConcept(record) {
+  return isBinding(record) && record.get('module')?.name === 'qlang/concepts';
 }
 
 // The addresses where the verbs of a name live, one for each kind a verb

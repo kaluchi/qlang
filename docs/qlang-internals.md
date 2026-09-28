@@ -292,7 +292,7 @@ Typical call pattern:
     ::qlang | manifest * manifest | flat * (spec | /category) | distinct
 
 `manifest` walks the tree of names. For what one binding does reach
-for the axis trio (`::vec/count | source` / `| docs` / `| examples`),
+for the axis trio (`::vec/count | source` / `| doc` / `| examples`),
 which reads the catalog AST directly.
 
 ## Tag bindings and TaggedLit dispatch
@@ -375,7 +375,7 @@ tags stamp `::builtin` on the Map's JS-header slot; a user
 `::tag` without a following Primary parses as a `BareTypeKeyword`
 AST node. Evaluation looks the binding up the same way (step 2
 above) and returns a `TagKeyword` value (`makeTagKeyword(tag)`).
-This is how `::ParseError | docs` works — the `BareTypeKeyword`
+This is how `::ParseError | doc` works — the `BareTypeKeyword`
 produces a TagKeyword pipeValue, and the axis-operand projects the
 record the tag's declaration wrote, under the env key
 `bindingNameOf` computes.
@@ -639,7 +639,7 @@ co-located sources:
   probe the header directly. The docs of each BindStep's slot
   (`:count |~~ ... ~~| ...`) live on the record the BindStep
   writes, as its `:docs`, and are
-  reachable through axis-operands (`::vec/count | docs` returns a
+  reachable through axis-operands (`::vec/count | doc` returns a
   Vec of Doc-values, `::vec/count | examples` returns a Vec of every
   `~(…)` Quote segment extracted by `parseDocSegments`). Each
   Quote is a self-test expression `runExamples` evaluates.
@@ -692,7 +692,7 @@ the current `pipeValue` regardless of arity — non-nullary operands
 without captured args hit Rule 10's arity check and surface a
 per-site arityError. The introspection surface for "what does this
 operand do" is the axes on its address, `::vec/count | source` /
-`| docs` / `| examples`, not a bare-name shortcut into the
+`| doc` / `| examples`, not a bare-name shortcut into the
 descriptor Map.
 
 Additional runtimes and user libraries are loaded anywhere in a query

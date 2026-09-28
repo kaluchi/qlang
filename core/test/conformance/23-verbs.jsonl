@@ -28,7 +28,7 @@
 {"name":"a-code-slot-refuses-a-verb-whose-slot-is-required","query":"[1 2 3] | filter ::verb~(:n ::number | gt n) !| [type /slot]","expect":"[::VerbSlotMissingError :n]","decision":["D67","D68"]}
 {"name":"a-verb-folds-with-its-slot-taking-the-element","query":":plus ::verb~(:elem ::number | add elem) | [1 2 3] | reduce 0 ~plus","expect":"6","decision":["D67","D68"]}
 {"name":"a-verb-answers-its-signature-with-its-subject-filled","query":":m ::verb~(:x ::number | add x) | :m | spec | payload | parse","expect":"\":subject ::any | :x ::number\"","decision":"D67"}
-{"name":"a-slot-carries-the-doc-of-its-declaration","query":":m ::verb~(:x |~~ How many. ~~| ::number | :x | docs | first | content) | null | m 1","expect":"\" How many. \"","decision":["D67","D94","D95"]}
+{"name":"a-slot-carries-the-doc-of-its-declaration","query":":m ::verb~(:x |~~ How many. ~~| ::number | :x | doc | content) | null | m 1","expect":"\" How many. \"","decision":["D67","D94","D95","D119"]}
 {"name":"the-declarations-of-a-verb-body-stay-inside-it","query":":m ::verb~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false","decision":"D67"}
 {"name":"a-verb-resolves-its-names-where-it-is-declared","query":":k 1 | :f ::verb~(add k) | :g ::verb~(:k ::any | 5 | f) | g 100","expect":"6","decision":["D67","D68"]}
 {"name":"a-verb-under-a-clean-name-refuses-an-effectful-body","query":":f ::verb~(@callers) !| type","expect":"::EffectLaunderingAtBindStepParseError","decision":["D67","D68"]}

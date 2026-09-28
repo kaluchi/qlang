@@ -60,7 +60,7 @@ async function check() {
 }
 
 function firstScreen() {
-  return execFileSync(process.execPath, [commandLine, '::qlang | docs | first | content'], { input: '', encoding: 'utf8' });
+  return execFileSync(process.execPath, [commandLine, '::qlang | doc | content'], { input: '', encoding: 'utf8' });
 }
 
 function prompt() {
@@ -73,7 +73,7 @@ RULES (strict):
 - Do NOT read, list, grep or open any file outside that directory, and no documentation, source or README of qlang. Do not use web search.
 - You may \`cat\` the input files of that directory to see the data.
 - Always pass stdin: either \`< file\` or \`< /dev/null\`. Use \`qlang --raw '<query>' < app.log\` for the text file. In Git Bash prefix a query that begins with \`/\` with MSYS_NO_PATHCONV=1.
-- Start with \`qlang --help < /dev/null\` and \`qlang '::qlang | docs | first | content' < /dev/null\`, the language's own first screen, then explore the language by asking it.
+- Start with \`qlang --help < /dev/null\` and \`qlang '::qlang | doc | content' < /dev/null\`, the language's own first screen, then explore the language by asking it.
 
 TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):
 ${taskLines}

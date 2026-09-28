@@ -79,7 +79,7 @@ export const TASKS = [
   {
     id: 'L5',
     question: 'by searching the pages of the verbs that live on strings, find the verb whose page says it tells whether a string begins with a prefix, and answer its address.',
-    reference: "::string | spec | /verbs | filter ~(docs | first | content | contains \"begins\") | first",
+    reference: "::string | spec | /verbs | filter ~(doc | content | contains \"begins\") | first",
     answer: "::string/startsWith"
   },
   {
@@ -117,19 +117,19 @@ export const TASKS = [
   {
     id: 'N1',
     question: 'in one query, the text of the page of every kind the language lists.',
-    reference: '::qlang | manifest * (docs | first | content)',
-    answer: '::qlang | manifest * (docs | first | content)'
+    reference: '::qlang | manifest * (doc | content)',
+    answer: '::qlang | manifest * (doc | content)'
   },
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | spec | /verbs | sort * [/ (docs | first | content)]',
-    answer: '::string | spec | /verbs | sort * [/ (docs | first | content)]'
+    reference: '::string | spec | /verbs | sort * [/ (doc | content)]',
+    answer: '::string | spec | /verbs | sort * [/ (doc | content)]'
   },
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::qlang | manifest | filter ~(docs | first | links * (payload | parse) | any ~(contains "::error"))',
+    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error"))',
     answer: '#[::error ::explanation ::fail]'
   },
   {

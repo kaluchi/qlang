@@ -9,21 +9,22 @@
 //
 // `source`   the quote of the declaring step, null for a binding no
 //            step declared, a value `use` or a host bound.
-// `docs`     a Vec of Doc-values, one per doc of the step's slot.
-// `examples` every quote among the segments of those docs, the cases
+// `doc`      the page of the step's slot, its docs as one, null for
+//            a slot without one [D119].
+// `examples` every quote among the segments of its docs, the cases
 //            `runExamples` runs.
 // `spec`     the value the binding holds, a verb's signature for a verb.
 //
 // Given a name, each axis reads the member the subject holds under it
-// [D88]: the slot a verb's head declares, `::vec/take | docs :count`,
+// [D88]: the slot a verb's head declares, `::vec/take | doc :count`,
 // and for any other subject the verb the name calls after it,
-// `::map | docs :minus` the page of `::map/minus`.
+// `::map | doc :minus` the page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
 import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
-  makeTagKeyword, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
+  makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagBindingKey } from '../env-keys.mjs';
@@ -51,10 +52,13 @@ export const SourceBindingNotFoundError = declareShapeError('SourceBindingNotFou
   ({ bindingName }) =>
     `source: no binding found for '${bindingName}'`,
   { operand: 'source' });
-export const DocsBindingNotFoundError = declareShapeError('DocsBindingNotFoundError',
+export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundError',
   ({ bindingName }) =>
-    `docs: no binding found for '${bindingName}'`,
-  { operand: 'docs' });
+    `doc: no binding found for '${bindingName}'`,
+  { operand: 'doc' });
+const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
+  ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
+  { operand: 'doc', expectedType: 'keyword' });
 export const ExamplesBindingNotFoundError = declareShapeError('ExamplesBindingNotFoundError',
   ({ bindingName }) =>
     `examples: no binding found for '${bindingName}'`,
@@ -80,18 +84,11 @@ function bindingNameOf(subject) {
 // A tag name that no tag binds addresses a verb from the root of the
 // tree of names through the noun it lives on, `::vec/count` [D62], and
 // reads what the verb's provider declared, whatever the scope binds
-// under its name; a tag name that addresses no verb addresses the member
-// of a noun that is no verb [D117].
+// under its name; a member of a noun that is no verb is read through
+// the noun, `::qlang | doc :pipeline` [D119].
 function addressOf(env, subject) {
   if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
-  const verb = addressedVerb(env, subject.name);
-  if (verb !== null) return verb;
-  // A member of the root noun is written short, as a kind of the core is,
-  // `::qlang/pipeline` reading as `::pipeline` [D117].
-  const cut = subject.name.lastIndexOf('/');
-  const member = cut < 0 ? nounMemberOf(env, 'qlang', subject.name)
-    : nounMemberOf(env, subject.name.slice(0, cut), subject.name.slice(cut + 1));
-  return member === null ? null : { record: member };
+  return addressedVerb(env, subject.name);
 }
 
 // A keyword names a binding of the scope where it stands, so under the
@@ -177,8 +174,33 @@ function recordReadBy(subject, memberName, state, NotFoundError) {
 
 bindStateReader('source', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
-bindStateReader('docs', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, DocsBindingNotFoundError).get('docs'));
+// The one page of a record: its docs joined, a line break between two,
+// null for a declaration without one [D119].
+function pageOfRecord(record) {
+  const docs = record.get('docs');
+  if (docs.length <= 1) return docs[0] ?? NULL;
+  return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
+}
+
+// The record a path of anchors reaches, each anchor the name of a member
+// of the record the one before it reached [D119].
+function recordAlongPath(subject, anchors, state) {
+  return anchors.reduce((reached, anchor, index) => {
+    if (!isKeyword(anchor)) throw new DocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
+    return recordReadBy(reached, anchor, state, DocBindingNotFoundError);
+  }, subject);
+}
+
+// The page an anchor reads: a keyword the member under it, a vector the
+// member at the end of its path.
+function pageAt(subject, anchor, state) {
+  if (isKeyword(anchor) || isNull(anchor)) return pageOfRecord(recordReadBy(subject, anchor, state, DocBindingNotFoundError));
+  return pageOfRecord(recordAlongPath(subject, anchor, state));
+}
+
+// A set of anchors reads a page at each, in the order of the set.
+bindStateReader('doc', (subject, anchor, state) =>
+  isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 bindStateReader('examples', (subject, memberName, state) =>
   Object.freeze(examplesOfRecord(recordReadBy(subject, memberName, state, ExamplesBindingNotFoundError))));
 
@@ -195,13 +217,13 @@ function heldByExplanation(subject) {
   return isQMap(beneath) && beneath[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? raisedFrom(beneath, passedTags) : subject;
 }
 
-// The explanation of a value [D100]: the first page `docs` reads for it,
+// The explanation of a value [D100]: the page `doc` reads for it,
 // null for a declaration without one, above the value itself, so an
 // explanation prints as the page above what it explains [D98].
 const EXPLANATION_TAG = makeTagKeyword('explanation');
 bindStateReader('explain', (subject, state) => {
-  const [page = NULL] = recordReadBy(subject, NULL, state, ExplainBindingNotFoundError).get('docs');
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['doc', page], ['value', heldByExplanation(subject)]]));
+  const page = pageOfRecord(recordReadBy(subject, NULL, state, ExplainBindingNotFoundError));
+  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
 
 // `spec` — the value the record holds: the structured Map that a

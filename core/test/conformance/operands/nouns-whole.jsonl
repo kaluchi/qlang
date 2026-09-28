@@ -1,5 +1,5 @@
-{"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::ProjectionKeyNotInMapError | docs | first | links * open | any ~(eq (::proj | docs))","expect":"true","decision":"D112","target":true,"now":"false"}
-{"name":"the-refusal-of-a-distribute-links-its-step","query":"::DistributeSubjectNotSequenceError | docs | first | links * open | any ~(eq (::each | docs))","expect":"true","decision":"D112","target":true,"now":"false"}
-{"name":"names-are-a-concept-of-their-own","query":"::qlang | docs :names | first | type","expect":"::doc","decision":"D113","target":true,"now":"::DocsBindingNotFoundError"}
+{"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::ProjectionKeyNotInMapError | doc | links * open | any ~(eq (::proj | doc))","expect":"true","decision":["D112","D119"],"target":true,"now":"false"}
+{"name":"the-refusal-of-a-distribute-links-its-step","query":"::DistributeSubjectNotSequenceError | doc | links * open | any ~(eq (::each | doc))","expect":"true","decision":["D112","D119"],"target":true,"now":"false"}
+{"name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc","decision":["D113","D119"],"target":true,"now":"::DocBindingNotFoundError"}
 {"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct","decision":"D115","target":true,"now":"::tagged"}
-{"name":"the-kind-of-tagged-values-is-no-step","query":"::qlang/tagged | docs | first | content | contains \"every value under a tag\"","expect":"true","decision":"D115","target":true,"now":"false"}
+{"name":"the-kind-of-tagged-values-is-no-step","query":"::qlang/tagged | doc | content | contains \"every value under a tag\"","expect":"true","decision":["D115","D119"],"target":true,"now":"false"}

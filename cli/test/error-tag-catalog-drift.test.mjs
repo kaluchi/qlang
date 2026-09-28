@@ -10,7 +10,7 @@
 // recorded facts onto that binding, so each fact has one spelling.
 //
 // The two halves drift silently: a renamed class leaves `result !|
-// type | docs` unresolvable, and a `::builtin{…}` body restating a
+// type | doc` unresolvable, and a `::builtin{…}` body restating a
 // recorded fact disagrees with the stamp that overwrites it.
 //
 // Three axes, one describe each:

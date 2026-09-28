@@ -53,8 +53,8 @@ quote, a set, a keyword or a tag, is refused as ::AnswerNotJsonError.
 Text input is a String, and the answer is written as its print;
 '| json' writes JSON text. Use -i for an interactive REPL. Quote
 the query so the shell does not split on whitespace or pipe
-characters. qlang '::qlang | docs' reads the language, and
-qlang '::cli | docs' this command line.
+characters. qlang '::qlang | doc' reads the language, and
+qlang '::cli | doc' this command line.
 
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure

@@ -25,7 +25,7 @@ async function catalogLinks() {
   const pageNames = [...await evalQuery('::qlang | manifest * manifest | flat'), ...await evalQuery(`[${tagNames.join(' ')}]`)];
   const links = [];
   for (const pageName of pageNames) {
-    const pageLinks = await evalQuery(`${printValue(pageName)} | docs * links | flat`);
+    const pageLinks = await evalQuery(`${printValue(pageName)} | doc | links`);
     for (const link of pageLinks) links.push({ page: printValue(pageName), query: queryOfLink(link) });
   }
   return links;

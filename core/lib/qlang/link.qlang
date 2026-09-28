@@ -7,6 +7,6 @@
       every page a page names in one query.
 
       ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
-      ~(::qlang | docs | first | links * open | filter ~(type | eq ::doc) | count | gt 0)
+      ~(::qlang | doc | links * open | filter ~(type | eq ::doc) | count | gt 0)
   ~~|
   ::verb~(:subject ::any | ::builtin{:impl :qlang/prim/linkOpen})

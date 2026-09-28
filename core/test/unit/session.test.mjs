@@ -182,7 +182,7 @@ describe('serializeSession / deserializeSession round-trip', () => {
     const payload = await serializeSession(sessionInstance);
     const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
 
-    expect((await restored.evalCell(':rate | docs | first | content')).result).toBe(' The tax rate. ');
+    expect((await restored.evalCell(':rate | doc | content')).result).toBe(' The tax rate. ');
     expect((await restored.evalCell('rate')).result).toBe(0.07);
   });
 

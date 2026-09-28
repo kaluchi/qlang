@@ -54,11 +54,16 @@
       through them; ::link~(::qlang | doc :hosts) the tool the
       language runs in and the budget of an answer.
 
+      The links of a page open the pages it names, in one query:
       ~(::qlang | doc | links * open | count | gt 5)
       ~(::qlang | doc :pipeline | links * open | count | gt 0)
+      A set of anchors reads several pages at once:
       ~(::qlang | doc #[:pipeline :errors] * content | count | eq 2)
+      A map literal after `*` reshapes each element:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      The outermost of stacked tags names the kind:
       ~(::Box::Crate{:a 1} | type | eq ::Box)
+      A failed step answers an error the tag of its site names:
       ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
   ~~|
 
@@ -941,9 +946,12 @@
 
 :runLaws
   |~~ The results of the laws of the page of the declaration the tag
-      name reads, a verb by its address among them, one `{:law :actual
-      :ok :error}` per law.
+      name reads, a verb by its address among them, one `{:law :says
+      :actual :ok :error}` per law, `:says` the caption of the claim the
+      law proves. A keyword after it runs the laws of the member the
+      name holds under it, a concept of the language among them.
 
       ~(::number/add | runLaws | first | /ok | eq true)
+      ~(::qlang | runLaws :values | every ~(/ok))
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/runLaws})
+  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/runLaws})

@@ -22,7 +22,9 @@
       ::snippet~(::qlang | manifest) lists the kinds. ::link~(::tag | doc)
       ::link~(::qlang | doc :pipeline)
 
+      Tags stack and read from the outside in:
       ~(::Box::Crate{:a 1} | type | eq ::Box)
+      A step answers a new value and the old one stays as it was:
       ~([1 2] | :v / | append 3 | [v /] | eq [[1 2] [1 2 3]])
   ~~|
   #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set]
@@ -43,7 +45,9 @@
       ::link~(::each | doc) ::link~(::proj | doc)
       ::link~(::group | doc) ::link~(::qlang | doc :verbs)
 
+      `*` runs its step on each element:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      A name holds the value in the pipe for the steps after it:
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
   ~~|
   #[::each ::proj ::group ::bind ::call ::construct]
@@ -68,8 +72,11 @@
       ::snippet~(::qlang/any | spec | /verbs) those of every value.
       ::link~(::verb | doc) ::link~(::qlang | doc :errors)
 
+      A verb declared with a slot takes its argument after its name:
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      A verb answers its signature by `spec`:
       ~(::vec/sort | spec | type | eq ::spec)
+      A kind declared with a constructor checks its values:
       ~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
   ~~|
   #[::verb ::spec ::qlang/any]
@@ -89,7 +96,9 @@
       ::link~(::error | doc) ::link~(::fail | doc)
       ::link~(::explanation | doc)
 
+      A failed step answers an error the tag of its site names:
       ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
+      `!|` recovers each failure where it is read:
       ~([1 "x"] * (mul 2 !| 0) | eq [2 0])
   ~~|
   #[::error ::fail ::explanation]
@@ -104,7 +113,9 @@
       hypertext is written in it.
       ::link~(::quote | doc) ::link~(::qlang | doc :hypertext)
 
+      A quote held as a value runs by `apply`:
       ~(~(add 1 | mul 2) | :q / | 5 | apply q | eq 12)
+      A quote is the vector of its steps:
       ~(~(add 1 | mul 2) | count | eq 2)
   ~~|
   #[::quote]
@@ -135,8 +146,11 @@
       ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang | doc :hosts)
 
+      The links of a page open in one query:
       ~(::qlang | doc | links * open | count | gt 0)
+      One address passes into its page, its declaration and its source:
       ~(::vec/take | [(doc | type) (spec | type) (source | type)] | eq [::doc ::spec ::quote])
+      A filter over pages searches them:
       ~(::vec | spec | /verbs | filter ~(doc | content | contains "after the first") | eq #[::vec/drop])
   ~~|
   #[::doc ::link ::snippet]
@@ -152,6 +166,7 @@
       its answer back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)
 
+      A value whose print fits its budget is answered as it is:
       ~([1 2] | elide 100 | eq [1 2])
   ~~|
   #[::elision]

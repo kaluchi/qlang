@@ -29,20 +29,26 @@ function safeprint(v) {
   catch { return JSON.stringify(v); }
 }
 
-// The readers of the catalog's examples: the address of every verb of
-// the core, `::vec/count`, and the name of every tag it declares,
-// `::AddLeftNotNumberError`, each a subject `runLaws` and
-// `examples` read.
+// The readers of the catalog's laws: the address of every verb of the
+// core, `::vec/count`, the name of every tag it declares,
+// `::AddLeftNotNumberError`, and every concept of the root noun,
+// `::qlang :values`, each read by `runLaws` [D124].
 async function catalogReaders() {
   const verbAddresses = await evalQuery('::qlang | manifest * manifest | flat');
   const tagNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
-  return [...[...verbAddresses].map(address => address.literal), ...tagNames];
+  const concepts = await evalQuery('::qlang | doc | links * (payload | parse) | filter ~(startsWith "::qlang | doc :")');
+  return [
+    ...[...verbAddresses].map(address => address.literal),
+    ...tagNames,
+    ...[...concepts].map(query => `::qlang ${query.slice('::qlang | doc '.length)}`)
+  ];
 }
 
 async function walkCatalogExamples() {
   const failures = [];
   for (const reader of await catalogReaders()) {
-    const exampleResults = await evalQuery(`${reader} | runLaws`);
+    const [readerName, anchor = ''] = reader.split(' ');
+    const exampleResults = await evalQuery(`${readerName} | runLaws ${anchor}`);
     if (!Array.isArray(exampleResults)) {
       failures.push({ reader, snippet: 'runLaws', printed: safeprint(exampleResults) });
       continue;

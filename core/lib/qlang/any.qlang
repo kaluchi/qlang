@@ -150,15 +150,18 @@
   ::verb~()
 
 :filter
-  |~~ Keeps the elements of a container whose predicate answers true,
-      in a container of the same kind; the predicate runs against each
-      element as its subject, a map's value among them, and answers a
-      boolean. A verb runs against each element as a quote does.
+  |~~ Keeps the elements of a container a predicate accepts, in a
+      container of the same kind, the way a query narrows what it found
+      before it reads it.
 
+      The predicate answers a boolean, and what it answers true for stays:
       ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
+      The predicate reads each element as its subject:
       ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
+      A verb stands where a quote would:
       ~([1 -2 3] | :positive ::verb~(gt 0) | filter ~positive | eq [1 3])
       ~(#[1 -2 3] | filter ::verb~(gt 0) | eq #[1 3])
+      A map keeps the entries whose values the predicate accepts:
       ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
       ~({} | filter ~(gt 0) | eq {})
   ~~|
@@ -185,16 +188,20 @@
   ~~|
 
 :every
-  |~~ Whether the predicate answers true for every element of a
-      container, a map's elements being its values; it stops at the
-      first false, and an empty container answers true.
+  |~~ Whether a predicate holds for every element of a container, a
+      map's elements being its values: the question a law asks of a
+      listing, `every ~(…)`. It stops at the first false.
 
+      True when every element passes, false at the first that fails:
       ~([2 4 6 8] | every ~(gt 0) | eq true)
       ~([1 2 3] | every ~(gt 2) | eq false)
+      A verb stands where a quote would:
       ~([2 4 6] | :positive ::verb~(gt 0) | every ~positive | eq true)
-      ~([] | every ~(gt 0) | eq true)
-      ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
       ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
+      An empty container answers true:
+      ~([] | every ~(gt 0) | eq true)
+      A map is asked of its values:
+      ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
   ~~|
   ::verb~()
 
@@ -219,16 +226,19 @@
   ~~|
 
 :any
-  |~~ Whether the predicate answers true for some element of a
-      container, a map's elements being its values; it stops at the
-      first true, and an empty container answers false.
+  |~~ Whether a predicate holds for some element of a container, a map's
+      elements being its values. It stops at the first true.
 
+      True at the first element that passes, false when none does:
       ~([1 2 3] | any ~(gt 2) | eq true)
       ~([1 2 3] | any ~(gt 99) | eq false)
+      A verb stands where a quote would:
       ~([1 2 3] | :big ::verb~(gt 2) | any ~big | eq true)
-      ~([] | any ~(gt 0) | eq false)
-      ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
       ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
+      An empty container answers false:
+      ~([] | any ~(gt 0) | eq false)
+      A map is asked of its values:
+      ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
   ~~|
   ::verb~()
 
@@ -310,29 +320,33 @@
   ~~|
 
 :sort
-  |~~ The elements in the one order of values: by kind first, null,
-      boolean, number, string, keyword, tag name, vector, set, map,
-      quote, doc, error and elision, then every other tag by its name;
-      within a kind numbers by value, strings by their code units,
-      keywords and tag names by their names, vectors element by element,
-      a set as its vector, maps by their keys and then their values, and
-      a tagged value by its payload. A vector and a set sort into a
-      vector, since the order is imposed and a set keeps its own; a map
-      sorts its entries by their values and keeps the keys. `sort ~(key)`
-      orders by the value the key answers for each element, a vector
-      serving as a compound key, and keeps elements with equal keys in
-      the subject's order; the descending order is the sort reversed. A
-      key that answers an error answers the call, so a key that misses
-      its field is refused where it is read.
+  |~~ The elements in the one order of values, the order every value of
+      the language takes against every other, so a listing can be ranked
+      before it is read; `sort ~(key)` ranks by what the key answers for
+      each element. Within a kind strings order by their code units,
+      vectors element by element, a set as its vector, maps by their keys
+      and then their values, and a tagged value by its payload.
 
+      Numbers ascend by value, equal ones side by side:
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+      Kinds come first, null, boolean, number, string, keyword, tag name,
+      vector, set, map, quote, doc, error and elision, then every other
+      tag by its name:
       ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
+      Keywords and tag names order by their names, and a set sorts into a
+      vector, since the order is imposed and a set keeps its own:
       ~(#[:y :x :z] | sort | eq [:x :y :z])
       ~([::B ::A] | sort | eq [::A ::B])
+      A vector the key answers is a compound key, and elements with equal
+      keys keep the order of the subject:
       ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
       ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
+      The descending order is the sort reversed:
       ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
+      A key that answers an error answers the call, so a key that misses
+      its field is refused where it is read:
       ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::ProjectionKeyNotInMapError)
+      A map sorts its entries by their values and keeps the keys:
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::verb~()
@@ -452,22 +466,24 @@
   ::verb~()
 
 :reduce
-  |~~ The universal left-fold: threads an accumulator across the
+  |~~ The universal left fold, which threads an accumulator across the
       elements of a vector, a set in its order, or the values of a map,
-      and collapses them to one value. The seed is the first accumulator,
-      returned as it is for an empty subject; the reducer is applied as
-      `reducer accumulator element` — an operand of two places folded
-      through its bound form (`acc | add element`), or a verb with the
-      accumulator as its subject and the element in its first slot.
-      `sum`, `count`, `max` and the builders of structures all factor
-      through it.
+      and collapses them to one value; `sum`, `count`, `max` and the
+      builders of structures all factor through it. The reducer is
+      applied as `reducer accumulator element`.
 
+      An operand of two places folds through its bound form, `acc | add
+      element`:
       ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
       ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
       ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
       ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+      A verb takes the accumulator as its subject and the element in its
+      first slot:
       ~(:max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
       ~(:tally ::verb~(:_ ::any | add 1) | [10 20 30] | reduce 0 ~tally | eq 3)
+      The seed is the first accumulator, answered as it is for an empty
+      subject:
       ~([] | reduce 42 ~(add) | eq 42)
   ~~|
   ::verb~()
@@ -578,24 +594,23 @@
   ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/eq})
 
 :type
-  |~~ The value's kind, a tag: the tag of a tagged value, an error, a
-      verb, a binding record, a descriptor of the catalog, a quote and
-      a set among them, and for every other value the kind of the core
-      its literal implies (`::number`, `::string`, `::keyword`,
-      `::tag`, `::vec`, `::map`, …), named under the prefix `qlang/`
-      and written short. `type | doc` reads the kind's page, and
-      asking what a value is composes `type` with `eq`, `filter ~(type
-      | eq ::string)`.
+  |~~ The value's kind, a tag, which names the page of the value and the
+      verbs it answers: `type | doc` reads the kind's page, and asking
+      what a value is composes `type` with `eq`, `filter ~(type | eq
+      ::string)`. A kind of the core is named under the prefix `qlang/`
+      and written short.
 
-      `result !| type` names the tag of an error: the descriptor `!|`
-      materializes carries it as every tagged value carries its tag.
-
+      The literal of a value of the core implies its kind:
       ~(42 | type | eq ::number)
       ~("hi" | type | eq ::string)
       ~(:foo | type | eq ::keyword)
       ~([1 2] | type | eq ::vec)
       ~(#[1 2] | type | eq ::set)
+      A verb, a binding record, a descriptor of the catalog, a quote and a
+      tagged value answer the tag they carry:
       ~(::verb~(42) | type | eq ::verb)
+      An error answers the tag of its site, which `!|` keeps on the
+      descriptor it opens:
       ~(
         "hello" | add 1
         !| [type /actualType]
@@ -857,31 +872,32 @@
   ~~|
 
 :doc
-  |~~ `:name | doc` — the page of the declaration that binds `:name`
-      in its scope, and `::vec/filter | doc` the page of a verb by
-      its address; null for a declaration without one. A page answers
-      its text by `content`, its laws by `laws` and the pages it
-      names by `links`. Any other value reads the page of its kind,
-      and the `:kind` field of a map names nothing: the map reads the
-      page of `::map`.
-      A keyword is an anchor within the page of its subject: `::map |
-      doc :minus` the page of `::map/minus`, `[1 2] | doc :count` the
-      page of the `count` a vector calls, `::vec/take | doc :count` the
-      page the head of `take` writes on its slot, and `::qlang | doc
-      :pipeline` the page of a concept of the language. A vector of
-      anchors is a path, each read within the page the one before it
-      reached, and a set of anchors reads a vector of pages, one per
-      anchor, several pages in one query.
+  |~~ The page of a name, the passage from an address into its
+      description: `::vec/filter | doc` the page of a verb by its
+      address, `:name | doc` the page of the declaration that binds
+      `:name` in its scope, null for a declaration without one. A page
+      answers its text by `content`, its laws by `laws`, its links by
+      `links` and its snippets by `snippets`. A keyword after `doc` is an
+      anchor within the page of its subject, a vector of anchors a path,
+      each read within the page the one before it reached, and a set of
+      anchors several pages in one query.
 
+      A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
       ~(::AddLeftNotNumberError | doc | type | eq ::doc)
+      Any other value reads the page of its kind, and the `:kind` field
+      of a map names nothing:
       ~(5 | doc | eq (::number | doc))
       ~({:kind ::set} | doc | eq (::map | doc))
+      A keyword reads the page of the member the subject holds under it,
+      the verb it calls or the slot a verb's head declares:
       ~(::map | doc :minus | eq (::map/minus | doc))
       ~([1 2] | doc :count | eq (::vec/count | doc))
-      ~(::vec | doc [:take :count] | eq (::vec/take | doc :count))
-      ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
       ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content | eq " how many ")
+      A vector of anchors walks a path, and a set of anchors reads a page
+      at each:
+      ~(::vec | doc [:take] | eq (::vec/take | doc))
+      ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
   ~~|
   ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
 
@@ -933,22 +949,23 @@
   ~~|
 
 :spec
-  |~~ The declaration a name reads. A verb, a built-in among them,
-      answers its signature, a `::spec~(…)` whose subject is its noun
-      and whose `:throws` lists its refusals, and a projection of the
-      signature reads the body of the declaration it names. A
-      refusal answers the facts of its site, `:category`, `:operand`,
-      `:position` and `:expectedType`, and an error reads the facts
-      of its tag. A kind answers its constructor, `:impl`, its
-      refusals and its verbs; the loader's `use` its descriptor;
-      any other binding the value its record holds. Any other
-      value reads the declaration of its kind.
+  |~~ The declaration a name reads, what a reader checks before a call:
+      what a verb takes and answers, what a refusal knows of its site,
+      what a kind is made of. A projection of a signature reads the body
+      of the declaration it names; the loader's `use` answers its
+      descriptor, any other binding the value its record holds, and any
+      other value the declaration of its kind.
 
+      A verb answers its signature, a `::spec~(…)` whose subject is its
+      noun and whose `:throws` lists its refusals:
       ~(::number/add | spec | /subject | eq ::number)
-      ~(::AddLeftNotNumberError | spec | /operand | eq :add)
-      ~(::verb | spec | /impl | eq :qlang/type/verb)
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
+      A refusal answers the facts of its site, `:category`, `:operand`,
+      `:position` and `:expectedType`, and an error the facts of its tag:
+      ~(::AddLeftNotNumberError | spec | /operand | eq :add)
       ~("x" | add 1 !| spec | /category | eq :typeError)
+      A kind answers its constructor, `:impl`, its refusals and its verbs:
+      ~(::verb | spec | /impl | eq :qlang/type/verb)
   ~~|
   ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
 
@@ -1000,39 +1017,27 @@
   ~~|
 
 :tag
-  |~~ TaggedInstance assemble — mints `::Tag<value>` at runtime
-      from a value and a TagKeyword. Three call shapes form the
-      symmetric partner to the `[type, payload]` split:
+  |~~ Lays a tag over a value, the name of the kind it is read as, the
+      partner of the split `[type payload]`: a value is minted under a
+      tag at run time as a literal `::Tag{…}` mints it where it is
+      written. `value | tag ::Foo` tags its subject, `[tag value] | tag`
+      reads the pair `[type payload]` answers, and `tag value tag` takes
+      both, so `pair | tag /1 /0` reorders a pair into its place.
 
-        bare  `[tag, value] | tag` — subject is a 2-element Vec
-              `[tagKeyword, value]` (exactly the shape
-              `[type payload]` projects from any tagged value).
-              Round-trip pair: `tagged | [type payload] | tag`
-              recovers the same TaggedInstance for composite-
-              shape payloads.
-
-        bound `value | tag ::Foo` — subject becomes the wrapped
-              value, captured TagKeyword becomes identity.
-
-        full  `tag value-expr tag-expr` — both args captured,
-              pipeValue is context. Compact rebuild patterns:
-              `pair | tag /1 /0` reorders Vec elements into
-              the operand's `value, tag` order.
-
-      A TaggedInstance subject (bound form) wraps into a nested
-      layer (`tagged | tag ::Outer` → `::Outer[tagged]`); to
-      replace identity rather than nest, route through
-      `tagged | payload | tag ::Other`. A tag laid over an error
-      answers the error unchanged, since no tag stands over one;
-      the fail track opens the error to its descriptor, which a
-      tag and `raise` rename.
-
+      A tag stands over the value, which its payload answers:
       ~(42 | tag ::Box | payload | eq 42)
       ~([1 2 3] | tag ::Triple | type | eq ::Triple)
+      A tagged value split into its type and payload tags back into
+      itself:
       ~(::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
-      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::AddRightNotNumberError)
+      A tag over a tagged value nests it; replacing the tag goes through
+      the payload, `tagged | payload | tag ::Other`:
       ~(::Inner {} | ::Outer {} | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
+      A tag laid over an error answers the error unchanged, since no tag
+      stands over one; the fail track opens an error to its descriptor,
+      which a tag and `raise` rename:
       ~([::Box (!{:k 1})] | tag !| type | eq ::error)
+      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::AddRightNotNumberError)
   ~~|
   ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
 

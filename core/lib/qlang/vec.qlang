@@ -103,12 +103,15 @@
   ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
 
 :sort
-  |~~ The elements in the one order of values, or by the value the key
-      answers for each, ascending; `| reverse` answers them descending.
+  |~~ The elements in the one order of values, the way a reader ranks
+      what a query found.
 
+      Numbers ascend, equal ones side by side:
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
-      ~([{:age 30} {:age 40}] | sort ~(/age) | reverse | first | /age | eq 40)
+      A key orders by what it answers for each element:
       ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
+      `reverse` after it orders descending:
+      ~([{:age 30} {:age 40}] | sort ~(/age) | reverse | first | /age | eq 40)
   ~~|
   ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
 

@@ -123,10 +123,33 @@ export function declaringRecordOf(env, subject) {
   return isBinding(entry) ? entry : null;
 }
 
-// Every law of a record's page, a quote with no tag among the segments of
-// its docs, what `runLaws` runs [D123].
-export function lawsOfRecord(record) {
-  return record.get('docs').flatMap(doc => doc.filter(isQuote));
+// The caption a run of prose gives the laws after it [D124]: the last
+// sentence of its last paragraph when that sentence ends in a colon and
+// no blank line stands between it and the law, its lines joined as one.
+// A run of whitespace alone keeps the caption above it unless it holds a
+// blank line.
+const BLANK_LINE = /\n[ \t]*\n/;
+function captionAfter(prose, captionAbove) {
+  const paragraphs = prose.split(BLANK_LINE);
+  const lastParagraph = paragraphs.at(-1).trim().replace(/\s+/g, ' ');
+  if (lastParagraph === '') return paragraphs.length > 1 ? null : captionAbove;
+  if (!lastParagraph.endsWith(':')) return null;
+  return lastParagraph.slice(0, -1).split(/(?<=[.!?])\s+/).at(-1);
+}
+
+// Every claim of a record's page: each law, a quote with no tag among the
+// segments of its docs, with the caption it proves, what `runLaws` runs
+// [D123], [D124].
+export function claimsOfRecord(record) {
+  const claims = [];
+  for (const doc of record.get('docs')) {
+    let caption = null;
+    for (const segment of doc) {
+      if (typeof segment === 'string') caption = captionAfter(segment, caption);
+      else if (isQuote(segment)) claims.push({ law: segment, says: caption ?? NULL });
+    }
+  }
+  return claims;
 }
 
 // The record of the member the subject holds under a name [D88], or
@@ -155,7 +178,7 @@ function memberRefusalOf(env, subject, memberName) {
 // it holds under a name, or the refusal of the axis that read it; each
 // axis resides on `::qlang/any`, and its primitive reads the state of
 // the call [D79].
-function recordReadBy(subject, memberName, state, NotFoundError) {
+export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
     if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));

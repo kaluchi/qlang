@@ -215,22 +215,23 @@
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
 
 :raise
-  |~~ Puts the map on the fail track as an error, the act the
-      `!{…}` literal writes with its bang. `map | raise` raises the
-      subject; `raise map` reads the map against the subject, its first
-      modifier being its subject. `|` and `*` step around the
-      raised error into its trail, and `!|` opens it to the error
-      itself. Its tag is the one its value shows: the outermost tag
-      over the map, the site's of an opened error among them, then the
-      one the map carries, then a `:kind` that names a tag, then
-      `::error`; so an opened error raised again is itself, and a step
-      that lays a tag over it renames the error. A guard raises an
-      error of its own tag when a value fails its check.
+  |~~ Puts the map on the fail track as an error, the act the `!{…}`
+      literal writes with its bang, so a query fails where its own check
+      fails. `|` and `*` step around the raised error into its trail, and
+      `!|` opens it to the error itself.
 
+      `map | raise` raises the subject, and `raise map` reads the map
+      against the subject:
       ~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
       ~(raise {:kind :oops} !| /kind | eq :oops)
+      Its tag is the one its value shows, the outermost tag over the
+      map, then the one the map carries, then a `:kind` that names a
+      tag, then `::error`, so an opened error raised again is itself:
       ~("x" | add 1 !| raise !| type | eq ::AddLeftNotNumberError)
+      A step that lays a tag over an opened error renames it:
       ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
+      A guard raises an error of its own tag when a value fails its
+      check:
       ~(42 | if (gt 100) ~(/) ~(raise {:kind ::TooSmall :value /}) !| [type /value] | eq [::TooSmall 42])
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/raise})

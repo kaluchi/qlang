@@ -1011,14 +1011,17 @@ its own eval handler in `eval.mjs`.
 
 ### `runLaws`
 
-- **Arity** 1. **Subject** Keyword (binding name) or tag name, the
-  address of a verb among them.
+- **Arity** 1 or 2. **Subject** Keyword (binding name) or tag name, the
+  address of a verb among them; an optional keyword reads the member
+  the name holds under it, `::qlang | runLaws :values` [D124].
 - Reads the step that declares the name as `doc` does, and runs every
   law of its page [D123]. Each law evaluates one frame below the step,
   against the caller's env and a null pipeValue; a law passes
   when it answers `true`, and every other answer, an ErrorValue
   among them, counts as `:ok false`. Returns a Vec of
-  `{:law :actual :error :ok}` Maps — one per law.
+  `{:law :says :actual :error :ok}` Maps — one per law, `:says` the
+  caption of the claim the law proves, the last sentence before it
+  when it ends in a colon, or null [D124].
 - **Example**: `::vec/count | runLaws | first | /ok` → `true`.
 - **Errors**: subject neither Keyword nor tag name → the contract's
   `VerbWithoutBodyError` with `:addresses`; a name no step declares, a verb a

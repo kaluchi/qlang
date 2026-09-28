@@ -19,9 +19,9 @@
   ::builtin{:impl :qlang/type/call}
 
 ::CallPayloadNotSchemaError
-  |~~ A ::call payload is a Map of `:name` a keyword and `:args`
-      a Vec of quotes; `:field` names the field that does not fit,
-      null when the payload is no Map.
+  |~~ A `::call` is a map of `:name`, a keyword, and `:args`, a vector
+      of quotes; `:field` names the field that does not fit, null when
+      the payload is no map.
       ::link~(::call | doc)
 
       ~(

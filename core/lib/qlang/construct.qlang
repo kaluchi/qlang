@@ -13,7 +13,7 @@
   ::builtin{:impl :qlang/type/construct}
 
 ::ConstructPayloadNotSchemaError
-  |~~ A ::construct payload is a Map of `:tag` a tag and `:payload` a
+  |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
       ::link~(::construct | doc)
 

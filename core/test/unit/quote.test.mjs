@@ -5,8 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isStep, printQuoteSource, quoteOfSource } from '../../src/quote.mjs';
-import { makeFn } from '../../src/rule10.mjs';
+import { printQuoteSource, quoteOfSource } from '../../src/quote.mjs';
 import { isQuote } from '../../src/types.mjs';
 
 describe('the empty quote', () => {
@@ -35,10 +34,6 @@ describe('isStep — the invariant of a quote', () => {
       expect(await evalQuery(`[${container}] | tag(::quote) !| type`))
         .toEqual(await evalQuery('::QuoteElementNotStepError'));
     }
-  });
-
-  it('refuses a function value', () => {
-    expect(isStep(makeFn('host', 1, async state => state, { captured: [0, 0] }))).toBe(false);
   });
 });
 

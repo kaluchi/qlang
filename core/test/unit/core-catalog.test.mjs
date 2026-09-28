@@ -45,42 +45,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isKeyword, isQMap, isVec, isDoc, makeTagKeyword, builtinImplOf, bindingValueOf, TAG_HEADER_SYMBOL, BUILTIN_TAG } from '../../src/types.mjs';
-import { isModuleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
-import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
+import { keyword, isQMap, isVec, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
-
-// Evaluate the catalog through a real `langRuntime()` — the chain
-// of `use(...)` calls in `core.qlang` plus every family's BindSteps
-// lands the record of every descriptor Map in env. Reading the
-// resolved env returns the catalog as a Map keyed by operand name.
-// Reserved housekeeping keys (`qlang/namespace/<ns>`,
-// `qlang/locator`, anything without a `::builtin` header on its
-// descriptor Map) are filtered so the returned Map carries only
-// operand descriptors — the surface the rest of this suite
-// asserts against.
-async function evalCore() {
-  const { langRuntime } = await import('../../src/runtime/index.mjs');
-  const { isTagBindingName } = await import('../../src/env-keys.mjs');
-  const fullEnv = await langRuntime();
-  const catalog = new Map();
-  for (const [k, record] of fullEnv) {
-    const v = bindingValueOf(record);
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    if (isTagBindingName(k)) continue;       // skip ::Tag declarations
-    if (!isQMap(v)) continue;
-    if (v[TAG_HEADER_SYMBOL]?.name !== 'builtin') continue;
-    catalog.set(k, v);
-  }
-  return catalog;
-}
-
-// Force runtime/*.mjs import so PRIMITIVE_REGISTRY gets populated
-// before we cross-check :impl handles.
-async function primeRegistry() {
-  await import('../../src/runtime/index.mjs');
-}
 
 describe('lib/qlang/core.qlang — shape and content', () => {
   it('parses without errors', async () => {
@@ -90,76 +56,9 @@ describe('lib/qlang/core.qlang — shape and content', () => {
     expect(ast.type).toBeDefined();
   });
 
-  it('evaluates to a Map', async () => {
-    const coreEnv = await evalCore();
-    expect(isQMap(coreEnv)).toBe(true);
-  });
-
-  it('every entry has a unique keyword identifier and non-empty name', async () => {
-    // Size is not pinned to a literal — the catalog grows as the
-    // language gains operands, and hard-coding the count here would
-    // force a churn-commit on every addition. What IS invariant: the
-    // evaluated env is a non-empty Map whose keys are all keywords
-    // with non-empty names, and keys are unique by Map contract.
-    const coreEnv = await evalCore();
-    expect(coreEnv.size).toBeGreaterThan(0);
-    for (const entryKey of coreEnv.keys()) {
-      expect(typeof entryKey === "string").toBe(true);
-      expect(entryKey.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('every entry value is a Map with ::builtin identity on the JS-header tag slot', async () => {
-    // The catalog descriptor carries its identity on the
-    // JS-header TAG_HEADER_SYMBOL slot. `evalCore` already
-    // filters by that slot; this test pins the invariant
-    // explicitly per entry so a single drifted descriptor
-    // (catalog authoring bug, host integration that bypasses
-    // `::builtin{…}`) surfaces with its env key in the failure
-    // message.
-    const coreEnv = await evalCore();
-    for (const [entryKey, entryVal] of coreEnv) {
-      expect(isQMap(entryVal), `entry :${entryKey} value is not a Map`).toBe(true);
-      expect(entryVal[TAG_HEADER_SYMBOL], `entry :${entryKey} missing ::builtin JS-header tag`)
-        .toBe(BUILTIN_TAG);
-    }
-  });
-
-  it('every entry keeps its :impl handle keyword and carries the resolved callable on the JS-header slot', async () => {
-    // langRuntime() runs the resolution pass over every builtin
-    // descriptor before returning: the callable lands on the
-    // `BUILTIN_IMPL_SLOT` JS-header slot while `:impl` keeps the
-    // author's `:qlang/prim/<name>` handle keyword, so the data
-    // plane a query projects stays qlang-only. The naming
-    // convention — callable's .name matches the operand name —
-    // keeps the dispatch target identifiable.
-    const coreEnv = await evalCore();
-
-    for (const [entryKey, entryVal] of coreEnv) {
-      const implHandle = entryVal.get('impl');
-      expect(isKeyword(implHandle), `entry :${entryKey} :impl is not a handle keyword`).toBe(true);
-      expect(implHandle.name, `entry :${entryKey} :impl handle names another primitive`)
-        .toBe(`qlang/prim/${entryKey}`);
-      const callable = builtinImplOf(entryVal);
-      expect(callable, `entry :${entryKey} carries no callable on BUILTIN_IMPL_SLOT`).toBeDefined();
-      expect(callable.name, `entry :${entryKey} callable has a mismatched name`)
-        .toBe(entryKey);
-    }
-  });
-
 });
 
 describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
-  it('every catalog operand has a backing primitive in PRIMITIVE_REGISTRY', async () => {
-    await primeRegistry();
-    const coreEnv = await evalCore();
-
-    for (const entryKey of coreEnv.keys()) {
-      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${entryKey}`),
-        `entry :${entryKey} has no backing primitive at qlang/prim/${entryKey}`
-      ).toBe(true);
-    }
-  });
 
   it('spot-check — :add is a verb that resides on ::number [D72]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
@@ -174,30 +73,9 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::vec/filter | spec | /predicate')).toEqual(makeTagKeyword('quote'));
   });
-
-  it('spot-check — :use reflective operand lands with :category :reflective', async () => {
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const resolved = await langRuntime();
-    const useDescriptor = bindingValueOf(resolved.get('use'));
-    expect(useDescriptor.get('category')).toEqual(keyword('reflective'));
-    const useImpl = builtinImplOf(useDescriptor);
-    expect(useImpl.name).toBe('use');
-  });
 });
 
 describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | doc` axis', () => {
-  it('every cataloged binding has a page on the axis', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const coreEnv = await evalCore();
-    for (const entryKey of coreEnv.keys()) {
-      // Skip section-divider plain comments / non-binding env entries.
-      if (!isQMap(coreEnv.get(entryKey))) continue;
-      // A keyword names a binding of the scope, so the verb is read by
-      // the first address its refusal hands on [D62].
-      const page = await evalQuery(`:"${entryKey}" | doc !| /addresses | first | doc`);
-      expect(isDoc(page), `entry :${entryKey} has no page reachable via axis`).toBe(true);
-    }
-  });
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -216,7 +94,7 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | doc` axi
   });
 });
 
-describe('bare-name operand dispatch — uniform Rule 10 path', () => {
+describe('bare-name verb call', () => {
   // Bare operand identifier (no captured args) fires the operand
   // against the current pipeValue regardless of arity. Non-nullary
   // operands without captured args hit Rule 10's arity check and
@@ -247,24 +125,6 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   });
 });
 
-describe('format.toPlain refuses a raw function value — round-trip invariant', () => {
-  // Function values have no grammatical literal: emitting any string
-  // for one would falsely round-trip through parse / eval into a
-  // different value-class. toPlain shares this round-trip discipline
-  // with printValue and raises FunctionValueLeakedToPrintError when a
-  // function surfaces — the leak surface (typically a JS-level
-  // caller piping a raw makeFn product through toPlain instead of
-  // wrapping it in a descriptor Map) gets named at the boundary.
-
-  it('toPlain on a raw function value throws FunctionValueLeakedToPrintError', async () => {
-    const { toPlain } = await import('../../src/runtime/format.mjs');
-    const { makeFn } = await import('../../src/rule10.mjs');
-    const { FunctionValueLeakedToPrintError } = await import('../../src/types.mjs');
-    const fn = makeFn('exoticFn', 1, (state) => state, { captured: [0, 0] });
-    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
-  });
-});
-
 describe('lib/qlang/core.qlang — namespace sizes', () => {
   // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
   // throw site with its tag and each tag with its throw site, but the
@@ -277,32 +137,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(198);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(194);
   });
 
-  it('the value namespace holds every declared operand', async () => {
+  it('no name of the value namespace is left a descriptor [D113]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(1);
-  });
-});
-
-describe('lib/qlang/core.qlang — data-level projections across the full catalog', () => {
-  it('groupBy category — full catalog is addressable as data', async () => {
-    // A miniature exercise of the self-describing nature: run a
-    // qlang query against the catalog itself to count operands per
-    // category, iterating the evaluated Map directly — the reading
-    // `::qlang | manifest * manifest | flat * (spec | /category)`
-    // gives at the qlang level, verb by address.
-    const coreEnv = await evalCore();
-    const categories = new Map();
-    for (const [, entryVal] of coreEnv) {
-      const cat = entryVal.get('category');
-      categories.set(cat.name, (categories.get(cat.name) ?? 0) + 1);
-    }
-    expect(categories.get('reflective')).toBe(1);   // use
-    const sum = [...categories.values()].reduce((a, b) => a + b, 0);
-    expect(sum).toBe(coreEnv.size);
+    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(0);
   });
 });
 

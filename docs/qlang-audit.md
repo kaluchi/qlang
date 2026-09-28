@@ -772,34 +772,19 @@ every probe of this chapter answered as its block records.
 ### Declarations the runtime does not read
 
 Every operand of the core is a verb whose head the runtime executes,
-and so is every verb of a host, whose primitive the host hands beside
-its source [D67], [D72]–[D80]. The loader's `use` alone executes none of
-its own declaration. Its modifiers are evaluated at the call as a
-verb's are [D56], and its implementation checks them in code of its
-own, beside the one dispatch wrapper left, `stateOpVariadic` in
-`core/src/runtime/dispatch.mjs`, and the arity classes of Rule 10 [D79].
-Its declaration is free to be wrong, and it is:
+the loader's `use` among them, and so is every verb of a host, whose
+primitive the host hands beside its source [D67], [D72]–[D80]. `use` is
+a verb of any value whose primitive writes the scope of its call, its
+slots the namespace and the names to take, and its declaration is read
+and executed as every other [D113]:
 
 ```qlang
-> ::any/use | spec | /modifiers
-[:any]
+> ::any/use | spec | /namespace
+#[::keyword ::null ::vec]
 
 > use 5 !| type
-::UseNamespaceNotKeywordError
+::VerbSlotNotOfKindsError
 ```
-
-`use` is declared to take any operand and refuses a number, and its
-declaration speaks keywords where every other speaks kinds:
-
-```qlang
-> ::any/use | spec | /subject
-:any
-```
-
-The mission's third requirement, that the shape of an answer can be
-known before it is fetched, reads the declarations, and where one is
-not executed it reads something false. Executing the declaration is the
-only thing that keeps it true.
 
 A host builds its refusals from the per-site error factories, imported
 through the `operand-errors` and `errors` subpaths of the core
@@ -808,10 +793,8 @@ runtime a host builds on. The sister project no longer imports them,
 and carries its own copy of `fromPlain`, named `jsonToQlang`
 (`cli/lib/jdt/coverage.impl.mjs`).
 
-The repair must make `use` a verb whose declaration the runtime
-executes, which the one loader brings [D5], [D36]; and make the refusals
-of a host kinds its catalog declares, so that nothing of the runtime is
-exported for building operands [D46].
+The repair must make the refusals of a host kinds its catalog declares,
+so that nothing of the runtime is exported for building operands [D46].
 
 ### Modules that dissolve into their clients
 
@@ -838,8 +821,7 @@ way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
 The verbs of the core live in the module of their noun, and the loader's
-`use` in the one family left, `core/lib/qlang/operand/reflective.qlang`
-[D72], [D79]. The command line's verbs live on its noun, `::qlang/cli`
+`use` among the verbs of any value [D72], [D113]. The command line's verbs live on its noun, `::qlang/cli`
 [D92], and a host whose prefix is its own has no noun yet: the module
 of that host lands its verbs in its client's scope beside the client's
 own names, where the manifest answers nouns [D80]. In the sister
@@ -1036,14 +1018,13 @@ The path of an error carries the subject of every level it left
 [true true]
 ```
 
-A value slot of a built-in outside its noun, the namespace `use`
-computes at the call among them, refuses an error value by the tag of
-its own site, so one error nests inside another, where the law of nested
-errors hands it on unchanged [D13], as a verb's slot does [D68]:
+A slot of a verb that meets an error hands it on unchanged, as the law
+of nested errors asks [D13], [D68], the namespace `use` computes at the
+call among them, since the loader is a verb [D113]:
 
 ```qlang
 > use (!{:k 1}) !| type
-::UseNamespaceNotKeywordError
+::error
 
 > 1 | add (!{:k 1}) !| type
 ::error
@@ -1211,8 +1192,8 @@ nothing executes them:
   [{"$error":{"$tag":"error","descriptor":{"a":1,"trail":[]}}}]
   ```
 - The embedding API tells a host to install its operands with
-  `session.bind(name, fn)`, which the runtime's own render guard calls
-  a leak of a function value.
+  `session.bind(name, fn)`, which binds a value the language never
+  calls.
 
 The executable half is true and the narrated half false, inside one
 document. That is the argument for the principle of executable over
@@ -1292,15 +1273,14 @@ $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | 
 [D30] asks the ratio to fall, and it has begun to fall from the September
 master.
 
-In the error roots, the keys of the environment and the effect marker
-the comments still outweigh the code:
+In the keys of the environment and the effect marker the comments still
+outweigh the code:
 
 ```sh
 $ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>k) print f; c=0; k=0} {f=FILENAME} /^[ \t]*\/\//{c++; next} /^[ \t]*$/{next} {k++} END{if (c>k) print f}'
 core/src/effect-check.mjs
 core/src/effect.mjs
 core/src/env-keys.mjs
-core/src/errors.mjs
 ```
 
 Most of those comments justify, and none states an invariant in a

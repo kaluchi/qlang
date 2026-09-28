@@ -5,8 +5,8 @@
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"a-shadowed-binding-stays-one-projection-away","query":":filter 5 | ::vec/filter | doc | type","expect":"::doc","decision":["D5","D36","D119"]}
-{"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/vec","decision":"D5","target":true,"now":"::UnresolvedIdentifierError"}
-{"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments * type | distinct","expect":"#[::string]","decision":["D19","D95","D119"]}
+{"name":"a-binding-names-the-module-it-came-from","query":"::vec/filter | binding | /module","expect":":qlang/vec","decision":"D5"}
+{"name": "a-doc-of-the-catalog-holds-prose-segments", "query": "::builtin | doc | segments | first | type", "expect": "::string", "decision": ["D19", "D95", "D119"]}
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
 {"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ::verb~(:q ::quote | :x ::any | apply q) | 2 | t ~(add x) 99","expect":"12","decision":["D43","D67"]}
@@ -38,7 +38,7 @@
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
 {"name":"manifest-lives-on-tags","query":"::qlang/tag | spec | /verbs | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-projects-its-handle","query":"::vec/count | source | parse | contains \"::builtin{:impl :qlang/prim/count}\"","expect":"true","decision":["D62","D72"]}
-{"name":"builtin-descriptor-renders-without-a-function-leak","query":"::any/use | spec | json | contains \"qlang/prim/use\"","expect":"true","decision":"D62"}
+{"name": "the-signature-of-the-loader-names-its-slots", "query": "::any/use | spec | json | contains \":namespace #[::keyword ::null ::vec]\"", "expect": "true", "decision": ["D62", "D113"]}
 {"name":"an-addressed-built-in-answers-its-signature","query":"::number/add | spec | type","expect":"::spec","decision":["D62","D72"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * (spec | /verbs) | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}

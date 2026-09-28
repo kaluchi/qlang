@@ -248,13 +248,17 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
   it('wraps a plain JS Error from an operand as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const { makeFn } = await import('../../src/rule10.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
-    // Create a function value that throws a raw Error (not QlangError)
-    const bombFn = makeFn('bomb', 1, () => { throw new Error('raw boom'); }, { captured: [0, 0] });
-    const s = await createSession();
-    s.bind('bomb', bombFn);
-    const entry = await s.evalCell('42 | bomb');
+    // A host verb whose implementation throws a raw Error, no QlangError.
+    const s = await createSession({
+      locator: async namespaceName => (namespaceName === 'tests/bomb'
+        ? {
+            source: ':bomb ::verb~(::builtin{:impl :tests/bomb/bomb})',
+            impls: { bomb: () => { throw new Error('raw boom'); } }
+          }
+        : null)
+    });
+    const entry = await s.evalCell('use :tests/bomb | 42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
     expect(entry.result.tag.name).toBe('ForeignFailureError');
     expect(entry.result.descriptor.get('name')).toBe('Error');

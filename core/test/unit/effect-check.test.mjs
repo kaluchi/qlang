@@ -11,7 +11,6 @@ import { evalQuery } from '../../src/eval.mjs';
 import {
   EffectLaunderingError,
   EffectLaunderingAtBindStepParseError,
-  EffectLaunderingAtCallError,
   QlangError
 } from '../../src/errors.mjs';
 import {
@@ -21,21 +20,7 @@ import {
 import { classifyEffect, EFFECT_MARKER_PREFIX } from '../../src/effect.mjs';
 import { createSession } from '../../src/session.mjs';
 import { isErrorValue } from '../../src/types.mjs';
-import { makeFn } from '../../src/rule10.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
-
-function fakeEffectfulOperand(name = '@callers') {
-  return makeFn(name, 1, (state, _lambdas) => state, {
-    category: 'effectful-host',
-    subject: 'any',
-    modifiers: [],
-    returns: 'any',
-    captured: [0, 0],
-    docs: ['fake test double for an effectful host operand'],
-    examples: [],
-    throws: []
-  });
-}
 
 describe('effect.mjs classifyEffect', () => {
   it('returns true for an @-prefixed name', () => {
@@ -209,48 +194,7 @@ describe('eval-time effect validation in evalBindStep', () => {
 
 });
 
-describe('runtime call-site safety net (evalOperandCall)', () => {
-  it('catches Map → use → clean-name laundering', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cellEntry = await sessionInstance.evalCell(
-      '{:helper (env | /@callers)} | use | :foo ::verb~(helper) | foo'
-    );
-    // EffectLaunderingAtCallError produces an error value.
-    expect(isErrorValue(cellEntry.result)).toBe(true);
-    const originalErr = cellEntry.result.originalError;
-    expect(originalErr).toBeInstanceOf(EffectLaunderingAtCallError);
-    expect(originalErr.context.bindingName).toBe('helper');
-    expect(originalErr.context.effectfulName).toBe('@callers');
-  });
-
-  it('catches a freeze of a function value under a clean name', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cellEntry = await sessionInstance.evalCell(
-      '(env | /@callers | /value) | :snap / | snap'
-    );
-    expect(isErrorValue(cellEntry.result)).toBe(true);
-    const originalErr = cellEntry.result.originalError;
-    expect(originalErr).toBeInstanceOf(EffectLaunderingAtCallError);
-    expect(originalErr.context.bindingName).toBe('snap');
-  });
-
-  it('does NOT fire when looking up the @-name directly', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cellEntry = await sessionInstance.evalCell('@callers');
-    expect(cellEntry.error).toBeNull();
-  });
-
-  it('does NOT fire when the laundered binding name is also @-prefixed', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('@callers', fakeEffectfulOperand('@callers'));
-    const cellEntry = await sessionInstance.evalCell(
-      '{:@helper (env | /@callers)} | use | @helper'
-    );
-    expect(cellEntry.error).toBeNull();
-  });
+describe('a pure call runs clean', () => {
 
   it('does NOT fire on a normal pure function lookup', async () => {
     const sessionInstance = await createSession();
@@ -259,16 +203,7 @@ describe('runtime call-site safety net (evalOperandCall)', () => {
   });
 });
 
-describe('function and verb effectful field', () => {
-  it('makeFn(@name, ...) sets effectful=true on the function value', () => {
-    const fn = makeFn('@callers', 1, (state) => state, { captured: [0, 0] });
-    expect(fn.effectful).toBe(true);
-  });
-
-  it('makeFn(cleanName, ...) sets effectful=false on the function value', () => {
-    const fn = makeFn('count', 1, (state) => state, { captured: [0, 0] });
-    expect(fn.effectful).toBe(false);
-  });
+describe('the effect a verb names', () => {
 
   it('a verb whose body calls an @-name names it as its effect', async () => {
     const { effectfulNameOfVerb } = await import('../../src/runtime/verb.mjs');

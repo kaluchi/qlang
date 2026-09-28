@@ -11,8 +11,10 @@
       ends its head with one, `::builtin{:impl :qlang/prim/add}`, which
       names the primitive the head calls; a kind declares its
       constructor with one, `::builtin{:impl :qlang/type/vec}`; a tag
-      declared with a doc alone holds an empty one; and the loader's
-      `use` is the one operand still declared as one.
+      declared with a doc alone holds an empty one. A descriptor is
+      data and runs nothing by itself: a name bound to one reads it.
+
+      ~(::builtin{:impl :qlang/prim/count} | :c / | [1 2] | c | /impl | eq :qlang/prim/count)
   ~~|
   ::builtin{:impl :qlang/type/builtin}
 
@@ -31,35 +33,6 @@
         ::builtin[1 2 3]
         !| [type /actualType]
         |  eq [::BuiltinPayloadNotMapError ::vec]
-       )
-  ~~|
-
-::BuiltinImplNotPrimitiveKeyError
-  |~~ A descriptor a query assembled applies the primitive its `:impl`
-      handle names, `::builtin{:impl :qlang/prim/use}` as the
-      catalog's `use` does, and an `:impl` of another kind is refused.
-
-      ~(
-        ::builtin{:impl :qlang/prim/use} | :u / | {:x 1} | u | x
-        |  eq 1
-       )
-      ~(
-        ::builtin{:impl 42} | :bogus / | 1 | bogus
-        !| [type /actualType]
-        |  eq [::BuiltinImplNotPrimitiveKeyError ::number]
-       )
-  ~~|
-
-::BuiltinImplOfVerbError
-  |~~ The primitive of a built-in declared as a verb on its noun is
-      called through the head of its declaration, which checks what it
-      takes; a descriptor a query assembled from data that names
-      it is refused, and the verb is called by its name or its address.
-
-      ~(
-        ::builtin{:impl :qlang/prim/count} | :c / | [1 2 3] | c
-        !| [type /impl]
-        |  eq [::BuiltinImplOfVerbError :qlang/prim/count]
        )
   ~~|
 
@@ -268,7 +241,6 @@
        )
   ~~|
 
-
 |~ ── 6. JSON codec invariants — plain and tagged ──────── ~|
 
 ::MalformedTaggedJSONError
@@ -300,14 +272,7 @@
       reading as data.
   ~~|
 
-|~ ── 7. Dispatch wrapper invariants ───────────────────── ~|
-
-::StateOpVariadicMissingCapturedError
-  |~~ Dispatch invariant — `stateOpVariadic` registration is
-      missing the `captured` range argument.
-  ~~|
-
-|~ ── 8. Evaluator dispatch invariants ─────────────────── ~|
+|~ ── 7. Evaluator dispatch invariants ─────────────────── ~|
 
 ::UnknownAstNodeTypeError
   |~~ Evaluator dispatch — encountered an AST node whose `.type`
@@ -320,18 +285,7 @@
       in `COMBINATOR_EVALUATORS`. Runtime invariant violation.
   ~~|
 
-::Rule10ArityOverflowError
-  |~~ Operand call supplied more captured arguments than the
-      operand's declared maximum arity.
-
-      ~(
-        use :a :b :c
-        !| [type /operandName]
-        |  eq [::Rule10ArityOverflowError :use]
-       )
-  ~~|
-
-|~ ── 9. Primitive registry invariants ─────────────────── ~|
+|~ ── 8. Primitive registry invariants ─────────────────── ~|
 
 ::PrimitiveKeyAlreadyBoundError
   |~~ Primitive registry — two runtime modules tried to bind
@@ -360,7 +314,7 @@
       and a primitive bound after it is refused.
   ~~|
 
-|~ ── 10. Session lifecycle invariants ──────────────────── ~|
+|~ ── 9. Session lifecycle invariants ──────────────────── ~|
 
 ::SessionPayloadInvalidError
   |~~ Session deserialization — payload is malformed (missing
@@ -372,15 +326,7 @@
       not match SESSION_SCHEMA_VERSION.
   ~~|
 
-|~ ── 11. Render-path invariants ───────────────────────── ~|
-
-::FunctionValueLeakedToPrintError
-  |~~ A function value reached the printer, where no literal spells
-      it. A host declares its operand as a verb of the module its
-      locator returns, the primitive among the `impls`; a
-      function bound straight into a session is what this tag
-      reports.
-  ~~|
+|~ ── 10. Render-path invariants ───────────────────────── ~|
 
 ::NumberNotFiniteLeakedToPrintError
   |~~ A qlang Number is a finite double. Source cannot mint an
@@ -401,7 +347,7 @@
       to stay lossless, or project around the slot.
   ~~|
 
-|~ ── 12. Error-value mint invariants ──────────────────── ~|
+|~ ── 11. Error-value mint invariants ──────────────────── ~|
 
 ::ErrorTrailNotVecError
   |~~ `:trail` on an error descriptor is the path of the error, a
@@ -429,7 +375,7 @@
        )
   ~~|
 
-|~ ── 13. Evaluation depth budget ───────────────────────── ~|
+|~ ── 12. Evaluation depth budget ───────────────────────── ~|
 
 ::EvaluationDepthExceededError
   |~~ The evaluator descends one frame per verb body,
@@ -451,7 +397,7 @@
        )
   ~~|
 
-|~ ── 14. Catalog source loading ────────────────────────── ~|
+|~ ── 13. Catalog source loading ────────────────────────── ~|
 
 ::SourceLoadError
   |~~ The platform resolved a `#qlang/<ns>` logical name to a path

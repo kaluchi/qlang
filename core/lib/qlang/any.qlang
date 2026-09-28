@@ -839,6 +839,127 @@
   ~~|
   ::verb~(:returns ::map | ::builtin{:impl :qlang/prim/env})
 
+:use
+  |~~ The loader, the one verb that writes the scope of its call: it
+      brings declarations into the names of a reader, where every other
+      verb answers a value, and the value in the pipe goes on unchanged.
+      Inside a fork the names it brings evaporate on close.
+
+      A map brings its entries in, a record as the binding it is and any
+      other value as a binding without a doc:
+      ~({:limit 10 :role "admin"} | use | env | /limit | /value | eq 10)
+      ~({:x 1} | use | x | add 2 | eq 3)
+      A keyword loads the module it names, a vector several in order, a
+      later one shadowing an earlier, and a set several refusing a name
+      two of them export:
+      ~(use :absolutely-nonexistent-namespace !| type | eq ::UseNamespaceNotFoundError)
+      A second slot takes only the names it lists:
+      ~(use :absolutely-nonexistent-namespace #[:a] !| type | eq ::UseNamespaceNotFoundError)
+  ~~|
+  ::verb~(:namespace #[::keyword ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
+
+::UseSubjectNotMapError
+  |~~ `use` (bare form) requires a Map subject — its entries
+      become the merged bindings.
+
+      ~(
+        42 | use
+        !| [type /actualType]
+        |  eq [::UseSubjectNotMapError ::number]
+       )
+  ~~|
+
+::UseNamespaceNotKeywordError
+  |~~ `use :ns #[:name …]` takes the names of one namespace, so the
+      namespace a selection reads from is a keyword.
+
+      ~(
+        use [:a] #[:x]
+        !| [type /actualType]
+        |  eq [::UseNamespaceNotKeywordError ::vec]
+       )
+  ~~|
+
+::UseNamespaceNotFoundError
+  |~~ `use :ns` — namespace not in env and no host-provided
+      locator can resolve it. A namespace is a header-less Map
+      bound under the namespace name or under the runtime's
+      `qlang/namespace/<ns>` cache key; an operand descriptor, a
+      verb, or a scalar a host bound under the same bare name is
+      an identifier-plane binding, and `use` walks past it to the
+      locator.
+
+      ~(
+        use :absolutely-nonexistent-namespace
+        !| [type /namespaceName]
+        |  eq [::UseNamespaceNotFoundError
+                :absolutely-nonexistent-namespace]
+       )
+      ~(use :count !| type | eq ::UseNamespaceNotFoundError)
+  ~~|
+
+::UseNamespaceElementNotKeywordError
+  |~~ `use [:ns1 :ns2 …]` — every element of the namespace
+      Vec must be a Keyword.
+
+      ~(
+        use [42 :foo]
+        !| [type /index /actualType]
+        |  eq [::UseNamespaceElementNotKeywordError 0 ::number]
+       )
+  ~~|
+
+::UseNamespaceCollisionError
+  |~~ `use #[:ns1 :ns2 …]` — two namespaces export a name
+      under the same identifier; Set-form rejects collisions.
+      Host-boundary error: requires two host-installed namespace
+      Maps with overlapping keys.
+  ~~|
+
+::UseNameNotExportedError
+  |~~ `use :ns #[:name1 …]` — selection filter names an
+      identifier the namespace does not export. Host-boundary
+      error: requires a host-installed namespace Map.
+  ~~|
+
+::UseImplNamesNoVerbError
+  |~~ A host handed an implementation for a name its module's source
+      declares as no verb: the implementations a locator hands beside
+      a source are the primitives of the verbs the source declares.
+      `:namespaceName` names the module and `:implName` the name.
+  ~~|
+
+:binding
+  |~~ The record of a name, what a declaration wrote into its scope:
+      `::binding` with its `:name`, its `:docs`, its `:value`, its
+      `:source` and the `:module` it came from, so where a name was
+      declared is read as data. The other axes project it: `doc` its
+      page, `source` its quote, `spec` its value. A keyword after it
+      reads the record of the member the subject holds under it.
+
+      A verb by its address reads the record its module declared:
+      ~(::vec/filter | binding | /module | eq :qlang/vec)
+      ~(::vec/filter | binding | type | eq ::binding)
+      A name of the scope reads the record its declaration wrote:
+      ~(:x 1 | :x | binding | /value | eq 1)
+      Any other value reads the record of its kind:
+      ~(5 | binding | /name | eq ::number)
+  ~~|
+  ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{:impl :qlang/prim/binding})
+
+::BindingNotFoundError
+  |~~ `binding` — no declaration found for the name it read: a keyword
+      that names no binding of its scope, the name of a verb a provider
+      keeps among them, or a tag name that names nothing. `:addresses`
+      holds the addresses where the verbs of that name live.
+
+      ~(
+        :nonexistent-binding | binding
+        !| [type /bindingName]
+        |  eq [::BindingNotFoundError :nonexistent-binding]
+       )
+  ~~|
+
 :source
   |~~ `:name | source` — Quote of the `BindStep` that binds `:name`
       in its scope, the `:source` of its record, which `parse`

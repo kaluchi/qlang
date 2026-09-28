@@ -6,16 +6,6 @@ import {
 import { TAG_BINDING_PREFIX, canonicalTagName } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
-// A function value has no literal, so none reaches the printer.
-export const FunctionValueLeakedToPrintError = declareInvariantError(
-  'FunctionValueLeakedToPrintError',
-  () => 'printValue/toPlain: function value reached render — function values must not ' +
-    'surface in pipeValue. Declare a host operand as a verb of the module the locator ' +
-    'returns as { source, impls }, its primitive among the impls; a raw callable handed ' +
-    'to session.bind carries no qlang literal.',
-  { operand: '::qlang' }
-);
-
 // A number is a finite double, and one a host hands otherwise has no
 // literal, so none reaches the printer or the codec.
 export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
@@ -34,8 +24,7 @@ export function finiteNumberOrLift(numberValue) {
 
 export const NULL = null;
 
-// The keyword, the tag name, the doc, the error, the function value and
-// the wrapper of a tag are objects branded on a hidden slot, so data never
+// The keyword, the tag name, the doc, the error and the wrapper of a tag are objects branded on a hidden slot, so data never
 // forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
@@ -73,10 +62,6 @@ export function isQSet(v) {
 }
 
 // ── language value-class predicates ────────────────────────────
-
-export function isFunctionValue(v) {
-  return isValueClass(v, 'function');
-}
 
 export function isErrorValue(v) {
   return isValueClass(v, 'error');
@@ -238,23 +223,10 @@ export function stampTagHeader(m, tag) {
   stampSlot(m, TAG_HEADER_SYMBOL, tag);
 }
 
-// A descriptor's primitive rides a hidden slot beside its `:impl` handle,
-// which the data plane reads.
-export const BUILTIN_IMPL_SLOT     = Symbol('qlang/builtinImpl');
-
 function stampSlot(target, slot, value) {
   Object.defineProperty(target, slot, {
     value, enumerable: false, configurable: false, writable: false
   });
-}
-
-// The function value bootstrap stamps on a descriptor, `use`'s [D79].
-export function builtinImplOf(descriptor) {
-  return descriptor[BUILTIN_IMPL_SLOT];
-}
-
-export function stampBuiltinImpl(descriptor, fn) {
-  stampSlot(descriptor, BUILTIN_IMPL_SLOT, fn);
 }
 
 // The tags the runtime names.
@@ -412,7 +384,6 @@ export function describeType(v) {
   if (isVec(v)) return 'Vec';
   if (isQMap(v)) return 'Map';
   if (isErrorValue(v)) return 'Error';
-  if (isFunctionValue(v)) return 'Function';
   return 'Unknown';
 }
 
@@ -432,11 +403,9 @@ export function typeKeyword(v) {
   if (isVec(v)) return CORE_KIND.vec;
   if (isQMap(v)) return CORE_KIND.map;
   if (isErrorValue(v)) return v.tag;
-  if (isFunctionValue(v)) return FUNCTION_KIND;
   return UNKNOWN_KIND;
 }
 
 // What the runtime finds where no value of the language stands: a
-// function value in flight, and a host's raw object.
-const FUNCTION_KIND = makeTagKeyword('function');
+// host's raw object.
 const UNKNOWN_KIND  = makeTagKeyword('unknown');

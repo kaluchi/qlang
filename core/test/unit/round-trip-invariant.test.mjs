@@ -389,29 +389,22 @@ describe('toPlain refuses unencodable values', async () => {
 });
 
 describe('descriptor Maps in pipeValue round-trip through render', async () => {
-  // A builtin descriptor Map carries the author's `:impl
-  // :qlang/prim/<name>` handle keyword on its data plane and the
-  // resolved callable on the `BUILTIN_IMPL_SLOT` JS-header slot, so
-  // every field a render path walks is already a qlang value — the
-  // Map's literal round-trips through parse → MapLit → eval with
-  // dispatchability reconstituted at host bootstrap time.
+  // A `::builtin` descriptor is data: its `:impl :qlang/prim/<name>`
+  // handle is a keyword, so every field a render path walks is a qlang
+  // value and the Map's literal round-trips [D113].
 
-  it('json on a raw descriptor Map carries :impl as the bare name of its keyword', async () => {
+  it('json on a descriptor Map carries :impl as the bare name of its keyword', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('::any/use | spec | json');
+    const jsonOutput = await evalQuery('::builtin{:impl :qlang/prim/count} | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":"qlang/prim/use"');
+    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
   });
 
   it('projection at :impl lands on the handle keyword', async () => {
-    // `::any/use | spec | /:impl` reads the descriptor's handle keyword
-    // (note the namespaced keyword segment `/:impl` — without the
-    // colon the slash splits into two bare segments), so the
-    // descriptor projects as data all the way down.
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isKeyword } = await import('../../src/types.mjs');
-    const handle = await evalQuery('::any/use | spec | /:impl');
+    const handle = await evalQuery('::builtin{:impl :qlang/prim/count} | /impl');
     expect(isKeyword(handle)).toBe(true);
-    expect(handle.name).toBe('qlang/prim/use');
+    expect(handle.name).toBe('qlang/prim/count');
   });
 });

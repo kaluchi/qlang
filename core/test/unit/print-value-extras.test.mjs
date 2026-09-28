@@ -13,10 +13,8 @@ import {
   makeTagKeyword,
   makeErrorValue,
   isDoc,
-  isQMap,
-  FunctionValueLeakedToPrintError
+  isQMap
 } from '../../src/types.mjs';
-import { makeFn } from '../../src/rule10.mjs';
 
 describe('printValue — binding record / Function branches', () => {
   it('renders a binding record as the tagged Map it is', () => {
@@ -29,19 +27,6 @@ describe('printValue — binding record / Function branches', () => {
     const doc = makeDoc(' hello ');
     expect(isDoc(doc)).toBe(true);
     expect(printValue(doc)).toBe('|~~ hello ~~|');
-  });
-
-  it('printValue refuses a Function value — invariant', () => {
-    // Function values have no grammatical literal. Surfacing one in
-    // pipeValue means a host-binding ceremony skipped the descriptor
-    // Map wrapper; printValue fires the invariant so the leak site
-    // gets named and fixed rather than silently emitting a keyword-
-    // shaped string that round-trips to the wrong value-class.
-    const fn = makeFn('myOperand', 1, async (state) => state, {
-      category: 'test', subject: 'any', modifiers: [],
-      returns: 'any', docs: [], examples: [], throws: []
-    });
-    expect(() => printValue(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
@@ -130,16 +115,6 @@ describe('toPlain encodes every TaggedInstance shape through the $tag envelope',
     const plainStr = toPlain(taggedStr);
     expect(plainStr.$tag).toBe('Note');
     expect(plainStr.payload).toBe('hello');
-  });
-});
-
-describe('toPlain refuses a Function value — same invariant', () => {
-  it('throws FunctionValueLeakedToPrintError when a function-value surfaces', () => {
-    const fn = makeFn('myExotic', 1, async (state) => state, {
-      category: 'test', subject: 'any', modifiers: [],
-      returns: 'any', docs: [], examples: [], throws: []
-    });
-    expect(() => toPlain(fn)).toThrow(FunctionValueLeakedToPrintError);
   });
 });
 

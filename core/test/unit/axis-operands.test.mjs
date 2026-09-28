@@ -305,7 +305,7 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   });
 
   it('a single expected type lifts to a Keyword and several to a Vec', async () => {
-    expect(await evalQuery('::BuiltinImplNotPrimitiveKeyError | spec | /expectedType'))
+    expect(await evalQuery('::UseNamespaceNotKeywordError | spec | /expectedType'))
       .toEqual(makeKeyword('keyword'));
     expect(await evalQuery('::HasKeyNotKeywordOrStringError | spec | /expectedType'))
       .toEqual([makeKeyword('keyword'), makeKeyword('string')]);

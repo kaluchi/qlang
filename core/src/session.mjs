@@ -16,7 +16,6 @@ import { scopeBindingsOf } from './runtime/nouns.mjs';
 import { rootState } from './state.mjs';
 import {
   isBinding,
-  isFunctionValue,
   isVerb,
   keyword,
   makeBinding,
@@ -164,7 +163,6 @@ export async function serializeSession(session) {
   const userBindings = [];
   for (const [name, record] of scopeBindingsOf(session.env)) {
     const value = record.get('value');
-    if (isFunctionValue(value)) continue; // user-installed functions are not portable
     userBindings.push({ name, value: toTaggedJSON(value), docs: record.get('docs').map(toTaggedJSON) });
   }
   return {

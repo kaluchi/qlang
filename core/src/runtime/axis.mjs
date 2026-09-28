@@ -12,6 +12,8 @@
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
 // `spec`     the value the binding holds, a verb's signature for a verb.
+// `binding`  the record itself, `::binding` with its name, docs, value,
+//            source and module [D5].
 //
 // Given a name, each axis reads the member the subject holds under it
 // [D88]: the slot a verb's head declares, `::vec/take | doc :count`,
@@ -54,6 +56,10 @@ export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundErro
   ({ bindingName }) =>
     `doc: no binding found for '${bindingName}'`,
   { operand: 'doc' });
+const BindingNotFoundError = declareShapeError('BindingNotFoundError',
+  ({ bindingName }) =>
+    `binding: no binding found for '${bindingName}'`,
+  { operand: 'binding' });
 const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
@@ -189,6 +195,8 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
   return record;
 }
 
+bindStateReader('binding', (subject, memberName, state) =>
+  recordReadBy(subject, memberName, state, BindingNotFoundError));
 bindStateReader('source', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
 // The one page of a record: its docs joined, a line break between two,

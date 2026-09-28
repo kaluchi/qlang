@@ -105,6 +105,20 @@ export function readsState(impl) {
   return STATE_READERS.has(impl);
 }
 
+// A primitive that writes the scope of its call takes the state of the
+// call after its values and answers the scope it leaves, the value in the
+// pipe going on unchanged: the loader's `use` [D113].
+const SCOPE_WRITERS = new WeakSet();
+
+export function bindScopeWriter(name, impl) {
+  SCOPE_WRITERS.add(impl);
+  return bindPrim(name, impl);
+}
+
+export function writesScope(impl) {
+  return SCOPE_WRITERS.has(impl);
+}
+
 // A primitive whose answer names the tags its subject stood beneath takes
 // the tags the walk of its head passed, from the outside in, after its
 // values [D34]: `raise` names its error by the outermost [D86].
@@ -123,9 +137,4 @@ export function readsPassedTags(impl) {
 // under `qlang/type/<tag>`.
 export function bindTypeConstructor(tagName, ctor) {
   return PRIMITIVE_REGISTRY.bind(TYPE_KEY_PREFIX + tagName, ctor);
-}
-
-// primKey(name) — the handle of a primitive, `qlang/prim/<name>`.
-export function primKey(name) {
-  return PRIM_KEY_PREFIX + name;
 }

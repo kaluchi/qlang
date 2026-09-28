@@ -972,22 +972,27 @@ its own eval handler in `eval.mjs`.
 
 ### `use`
 
-- **Arity** 1. **Subject** `map` — the Map whose entries become
-  new bindings in `env`.
-- Merges `pipeValue` (a Map) into `env`, returning a new state
-  with the enlarged env; `pipeValue` is unchanged, so the merged
-  Map can be inspected further or discarded by the next step.
-  On conflict, the incoming Map wins.
+- **Arity** 0 to 2. **Subject** any value; the verb resides on `::any`
+  and writes the scope of its call, the one verb that does [D113].
+- Bare, the subject is a Map whose entries become bindings, a record as
+  the binding it is and any other value as a binding without a doc; on
+  a conflict the incoming Map wins. `use :ns` loads the module a
+  keyword names, `use [:a :b]` several in order, a later one shadowing
+  an earlier, `use #[:a :b]` several refusing a name two of them
+  export, and `use :ns #[:x :y]` only the names listed. `pipeValue` is
+  unchanged.
 - **Examples**:
   - Install constants: `{:pi 3.14159 :e 2.71828} | use | [pi e]`
     → `[3.14159 2.71828]`.
-  - Shadow a built-in: `:use ::verb~(mul 2) | 5 | use` → `10`
-    (the user's BindStep shadows the reflective `use`).
+  - Shadow a built-in: `:use ::verb~(mul 2) | 5 | use` → `10`.
 - Inside a fork (paren-group, compound literal, distribute
   iteration), the merged bindings evaporate when the fork closes,
   matching the documented fork rule — only the final `pipeValue`
   of the sub-pipeline escapes.
-- **Errors**: subject not a Map → `UseSubjectNotMapError`.
+- **Errors**: a bare subject not a Map → `UseSubjectNotMapError`; a
+  namespace of no kind the slot takes → `VerbSlotNotOfKindsError`; a
+  namespace no locator resolves → `UseNamespaceNotFoundError`; a
+  selection read from no keyword → `UseNamespaceNotKeywordError`.
 
 ### `manifest`
 

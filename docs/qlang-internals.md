@@ -135,17 +135,13 @@ Rule 10.
 
 Let `resolved = env[:name]`:
 
-- If `resolved` is a **function**: apply it via Rule 10. Every
-  function value shares a uniform signature `(state, lambdas) →
-  state`. Most built-ins are pure value transformers (they project
-  `state.pipeValue`, compute a result, and ascend back into a new
-  state), but the same interface also accommodates **reflective
-  operands** (`use`, `env`, `manifest`) that read or
-  write the full state directly. The distinction stays internal:
-  both kinds are invoked the same way at the call site.
-- If `resolved` is a **non-function value** (Scalar/Vec/Map/Set):
+- If `resolved` is a **verb**: apply it via Rule 10, its head
+  checking the subject and its slots. Most verbs answer a value, the
+  new `pipeValue`; `env`, `manifest` and `runLaws` read the state of
+  the call, and `use` writes its scope [D113].
+- If `resolved` is any **other value** (Scalar/Vec/Map/Set):
   replace `pipeValue` with `resolved`. Captured args (if any) are
-  an error — non-functions cannot be applied.
+  an error — a value that is no verb cannot be applied.
 - If `:name` is not in `env`: unresolved identifier error.
 
 `env` is unchanged by pure operands. Reflective operands may
@@ -618,82 +614,43 @@ langRuntime` to match the conceptual model exactly.)
 The reference implementation assembles `langRuntime()` from two
 co-located sources:
 
-- **`lib/qlang/core.qlang`** — the orchestrator. One `use […]`
-  call that imports the catalog modules in order:
-  `runtime-invariants`, `tag`, the modules of the nouns
-  (`number`, `string`, `keyword`, `any`), whose verbs reside on
-  their noun [D72], then every `operand/<family>`.
-  Each family file (`lib/qlang/operand/vec.qlang`,
-  `operand/container.qlang`, etc.) is a series of BindStep
-  declarations: per-site error tag-bindings inline followed
-  by the operand BindSteps that reference those tags in their
-  `:throws` Vec. Each operand binds a keyword identifier
-  (`:count`, `:filter`, `:sort`, `:parse`, …) to a
-  descriptor Map carrying a namespaced `:impl :qlang/prim/<name>`
-  keyword that points into the primitive registry, plus
-  authored metadata (`:category`, `:subject`, `:modifiers`,
-  `:returns`, `:throws`). Identity (`::builtin`) rides on the
-  descriptor's JS-header `TAG_HEADER_SYMBOL` slot, stamped by
-  the `::builtin{…}` constructor in `runtime/tagged.mjs`; the
-  reader sites (`isBuiltinDescriptor`, `manifest`-op routing)
-  probe the header directly. The docs of each BindStep's slot
-  (`:count |~~ ... ~~| ...`) live on the record the BindStep
-  writes, as its `:docs`, and are
-  reachable through axis-operands (`::vec/count | doc` returns a
-  Vec of Doc-values, `::vec/count | doc | laws` returns a Vec of every
-  `~(…)` Quote segment extracted by `parseDocSegments`). Each
-  Quote is a self-test expression `runLaws` evaluates.
-  `runtime-invariants.qlang` carries shared and cross-family
-  tag-bindings (parser, codec, dispatch, projection, combinator
-  track-dispatch invariants); `tag.qlang` carries the value-class
-  constructors (`::verb`, `::quote`, `::builtin`).
+- **`lib/qlang/core.qlang`** — the root: the vector of the catalog's
+  modules in the order the bootstrap loads them, `runtime-invariants`,
+  `tag`, then the module of each noun (`number`, `string`, `vec`,
+  `any`, …), whose verbs reside on their noun [D72], [D113]. Each
+  module is a series of BindStep declarations: the refusals of its
+  sites as tag bindings and its verbs as `::verb~(…)`, a built-in's
+  body a `::builtin{:impl :qlang/prim/<name>}` step naming its
+  primitive.
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-
-  load time under their `:qlang/prim/<name>` keys. The dispatch
-  wrapper in `core/src/runtime/dispatch.mjs`, `stateOpVariadic`, the
-  loader's alone, attaches a tiny
-  `meta` object carrying only the `captured` range — the rest
-  of the metadata lives in the operand-family catalog files
-  and is addressable via `manifest` enumeration or the axis trio
-  (`:name | source / docs / examples`).
+  load time under their `:qlang/prim/<name>` keys; the metadata of
+  each lives in the catalog, in the head of its verb, addressable via
+  `manifest` enumeration or the axes (`:name | source / doc / spec`).
 
-`langRuntime()` in `core/src/runtime/index.mjs` ties the two together
-by parsing `core.qlang` once (which threads through `use …` to
-load every family via the `:qlang/locator`-resolved sources),
-evaluating it against a seed env carrying just `:use` and the
-locator, and returning a shallow copy of the resulting template on
-every call so each session can write its own bindings without
-mutating the template. The root is one `use […]` step and `use`
-answers on the fail-track like any other operand, so the bootstrap
-reads the root's pipeValue before the env: an error value there
-means a family source the locator resolved failed to load, and
-`BootstrapCatalogNotLoadedError` names the tag it answered with, so
-the failing family source is the diagnostic. The inner descriptor Maps are frozen and shared
-between copies — safe because qlang values are immutable at the
-language level.
+`langRuntime()` in `core/src/runtime/index.mjs` ties the two together:
+it evaluates `core.qlang` to its vector of modules against a seed env
+carrying the locator and the constructor of `::builtin`, loads each
+module in order through the loader the `use` verb calls, and returns a
+shallow copy of the resulting template on every call, so each session
+writes its own bindings without mutating the template. A module the
+locator cannot resolve or parse refuses the load, and
+`BootstrapCatalogNotLoadedError` names the refusal it met, so the
+failing module is the diagnostic. The inner declarations are frozen
+and shared between copies — safe because qlang values are immutable at
+the language level.
 
 Dispatch at an operand call site is straightforward under this
-shape. `eval.mjs::evalOperandCall` looks up the identifier in
-`env`; if the resolved value is a descriptor Map carrying
-`::builtin` identity on its JS-header slot, control flows through
-`applyBuiltinDescriptor`, which reads the callable through
-`resolveBuiltinImpl` — the `BUILTIN_IMPL_SLOT` stamp bootstrap left
-on the descriptor, or the `:impl` handle keyword walked through
-`PRIMITIVE_REGISTRY.resolve` when a query assembled the descriptor
-from data — and invokes it via Rule 10. Before the call it walks the
-subject's tags [D34] through `nouns.mjs::subjectServedBy`: past each
-opaque wrap whose tag the descriptor's `:subject` does not name, the
-operand takes the value the wrap holds and answers as it answers. A
-tag stamped
-on a Vec or a Map rides the value itself, which the operand reads as
-it is. Bare lookup fires the operand against
-the current `pipeValue` regardless of arity — non-nullary operands
-without captured args hit Rule 10's arity check and surface a
-per-site arityError. The introspection surface for "what does this
-operand do" is the axes on its address, `::vec/count | source` /
-`| doc` / `| doc | laws`, not a bare-name shortcut into the
-descriptor Map.
+shape. `eval.mjs::evalOperandCall` looks up the identifier in `env`
+and walks the subject's tags to the verb the name calls [D34]; the verb
+applies by Rule 10 through `runtime/verb.mjs::callVerb`, its head
+checking the subject and each slot, and its body or its primitive
+answering. A primitive that reads the state of the call takes it after
+its values, and the loader's, the one that writes the scope, answers
+the scope it leaves [D113]. The introspection surface for "what does
+this operand do" is the axes on its address, `::vec/count | source` /
+`| doc` / `| binding`.
 
 Additional runtimes and user libraries are loaded anywhere in a query
 by providing a Map and applying `use`:
@@ -1304,12 +1261,12 @@ and the parentheses wrap the quote of their step as `::fail`,
 
 ### `primitives.mjs` — the built-in primitive registry
 
-Canonical bridge between the catalog-authored descriptor Maps
-(under `lib/qlang/operand/<family>.qlang`) and the executable
-JS impls in `runtime/*.mjs`.
+Canonical bridge between the verbs the catalog declares and the
+executable JS impls in `runtime/*.mjs`, which a verb's
+`::builtin{:impl}` step names.
 Lives at the `core/src/` root (not under `core/src/runtime/`) because both
-the core evaluator (`core/src/eval.mjs::applyBuiltinDescriptor`) and
-every runtime impl module consume it, and a `core/src/runtime/`
+the application of a verb (`core/src/runtime/verb.mjs`) and every
+runtime impl module consume it, and a `core/src/runtime/`
 placement would force downward imports across the core/runtime
 layering boundary.
 
@@ -1427,7 +1384,7 @@ JSON boundaries (HTTP, postMessage, IndexedDB, files).
 | Error | `{ "$error": <recursively-encoded descriptor Map> }` |
 
 `toTaggedJSON(value)` throws `TaggedJSONUnencodableValueError` for a
-function value, and for the record of a binding that holds one.
+value no envelope reads back.
 `fromTaggedJSON(json)` throws `MalformedTaggedJSONError` on
 unrecognized tagged objects.
 
@@ -1447,9 +1404,10 @@ unrecognized tagged objects.
   identifier in a subtree, used by `evalBindStep` for eval-time
   effectLaundering validation.
 
-The runtime call-site safety net lives in `eval.mjs::evalOperandCall`:
-when an identifier resolves to an effectful function value but the
-lookup name is clean, the call is refused with `EffectLaunderingAtCallError`.
+The runtime call-site safety net lives in `runtime/verb.mjs::applyVerb`:
+when an identifier resolves to a verb whose body calls an effectful
+name but the lookup name is clean, the call is refused with
+`EffectLaunderingAtCallError`.
 
 ### Public entry point — `core/src/index.mjs`
 

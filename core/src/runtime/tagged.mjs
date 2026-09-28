@@ -2,7 +2,7 @@
 // `qlang/type/<tag>`, and the verbs that lay a tag over a value and
 // take it off.
 
-import { mintUnderTag } from './dispatch.mjs';
+import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,

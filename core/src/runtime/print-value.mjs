@@ -8,18 +8,14 @@ import {
   isVec,
   isQMap,
   isErrorValue, ERROR_TAG,
-  isFunctionValue,
   describeType,
   finiteNumberOrLift,
-  TAG_HEADER_SYMBOL,
-  FunctionValueLeakedToPrintError
+  TAG_HEADER_SYMBOL
 } from '../types.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
-// handler of the value's class, which the views of `format.mjs` share; a
-// raw function reaches none.
+// handler of the value's class, which the views of `format.mjs` share.
 export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
-  if (isFunctionValue(pipeValue)) throw new FunctionValueLeakedToPrintError();
   const handler = handlers[describeType(pipeValue)];
   return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
 }

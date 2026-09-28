@@ -1,7 +1,7 @@
-|~ The root of the catalog: the refusals of the kernel, the kinds, the
-   module of each noun, and the loader. ~|
+|~ The root of the catalog: the modules the bootstrap loads in order,
+   the refusals of the kernel, the kinds, and the module of each noun. ~|
 
-use [:qlang/runtime-invariants
+[:qlang/runtime-invariants
      :qlang/tag
      :qlang/number
      :qlang/string
@@ -16,5 +16,4 @@ use [:qlang/runtime-invariants
      :qlang/any
      :qlang/error
      :qlang/explanation
-     :qlang/qlang
-     :qlang/operand/reflective]
+     :qlang/qlang]

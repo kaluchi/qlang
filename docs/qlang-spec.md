@@ -1201,9 +1201,9 @@ On conflict, the **incoming Map wins** — later writes override
 earlier ones, so a constants table with `:pi 3.14` followed by
 another with `:pi 3.14159` ends up with `pi → 3.14159`.
 
-`use` installs **data and host-resolved function values** from
-the given Map; Map literal values evaluate eagerly against
-`pipeValue` (the same Rule 10 every container literal follows),
+`use`, a verb of any value that writes the scope of its call
+[D113], installs the values of the given Map; Map literal values
+evaluate eagerly against `pipeValue`,
 so `{:double (mul 2)}` writes `{:double <pipeValue * 2>}` into
 env, with the captured-arg expression already fired. To declare
 a callable from inside a query, write a BindStep (`:name body`).
@@ -1361,9 +1361,8 @@ BindStep declaration.
 bindings and the language attaches nothing to it. `@` carries the
 effect-marker invariant described in
 [Effect markers](#effect-markers): a binding whose body reaches an
-`@`-prefixed identifier must itself be `@`-prefixed, and an
-effectful function value refuses to fire through a clean lookup
-name. Domain authors prefix the operands their runtime installs
+`@`-prefixed identifier must itself be `@`-prefixed, and a verb
+whose body calls one refuses to fire through a clean lookup name. Domain authors prefix the operands their runtime installs
 (`@callers`, `@resolve`) so the marker propagates through every
 alias.
 
@@ -2066,16 +2065,14 @@ structured `.effectful` boolean computed once by `classifyEffect`:
    direct calls (`@callers`) and projection-based extraction
    (`env | /@callers`) are caught.
 
-2. **Runtime call site** (`core/src/eval.mjs::evalOperandCall` and
-   `core/src/runtime/verb.mjs::applyVerb`). When an identifier
-   resolves through env to a function value or a verb, the call-site
-   safety net checks: if it is effectful but the lookup name does not
-   classify as effectful, the call is refused with
-   `EffectLaunderingAtCallError`. This catches every laundering path
-   the declaration cannot see — installation through `use`, a freeze
-   of a function value, or programmatic injection via the embedding host —
-   because every effectful invocation ultimately funnels through
-   identifier lookup.
+2. **Runtime call site** (`core/src/runtime/verb.mjs::applyVerb`).
+   When an identifier resolves through env to a verb whose body calls
+   an effectful name and the lookup name does not classify as
+   effectful, the call is refused with `EffectLaunderingAtCallError`.
+   This catches the laundering paths the declaration cannot see, a
+   verb installed through `use` or handed on as a value under a clean
+   name, because every call of a verb funnels through identifier
+   lookup.
 
 A binding whose body is a value is exempt from the effect invariant:
 `:result @callers` and `@callers | :result /` capture the *call
@@ -2083,11 +2080,6 @@ result* — the frozen value the host operand produced. The effect
 already fired by the time the binding is written, so the named value
 is pure data that downstream pipelines can reference under any name
 without re-triggering the host call.
-
-The runtime safety net does still fire on a freeze that holds a
-function value (e.g. `(env | /@callers | /value) | :snap / |
-snap`), because in that path the frozen value is the function
-reference and `snap` would invoke it on lookup.
 
 ---
 
@@ -2351,7 +2343,7 @@ Five step types:
 |---|---|---|
 | 1 | literal (string, number, boolean, null, keyword, Vec, Map, Set, Error) | → `(lit, env)`. Compound literals (`[a b]`, `{:k v}`, `#[a b]`, `!{:k v}`) fork per element/entry and evaluate each as a sub-pipeline against the outer state. `!{...}` produces an error value. |
 | 2 | `/key` projection | → `(pipeValue[:key], env)`. `null` if missing. **Type error** if `pipeValue` is not a Map. Nested `/a/b` = `/a \| /b`. |
-| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. If function, apply via Rule 10 (see below). If non-function value, replace `pipeValue`. If absent, unresolvedIdentifier error. Reflective operands `use`, `env`, `manifest`, `runLaws` resolve through this same path and may read or write the full state. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
+| 3 | command `name` or `name mod₁ … modₖ` | → lookup `env[:name]`. A verb applies by Rule 10 (see below); any other value replaces `pipeValue`. If absent, unresolvedIdentifier error. `env`, `manifest` and `runLaws` read the state of the call through this same path, and `use` writes its scope [D113]. Control-flow operands `if`, `cond` and `coalesce` also resolve here, taking their branches as quotes and applying only the selected one. |
 | 4 | `:name expr` (BindStep) | → `(pipeValue, env[:name := Binding(name, docs, expr evaluated against pipeValue)])`. Names the value of its body, computed once, at declaration. A body `::verb~(…)` names a verb, which runs when `name` is later looked up: its slots take the modifiers, evaluated at the call, and its body runs in a fork with the declaration-time env, which includes the verb itself, so it recurses by name. Any doc comments immediately preceding the BindStep attach to the record. |
 | 5 | comment (`\|~\|`, `\|~ ~\|`, `\|~~\|`, `\|~~ ~~\|`) | → `(pipeValue, env)`. Pure identity on both tracks: the evaluator steps over a plain comment without track dispatch, so a comment never deflects and never enters `:trail`; a comment in head position hands the head to the first operand step — the pipeline's leading combinator, else the combinator written after the comment, else identity. Plain forms are standalone PipeSteps; doc forms attach as `docs` metadata to the immediately following binding step (a BindStep), accumulating as a Vec across multiple doc comments before the same binding. Doc comments must be followed by a binding step; preceding any other Primary form, the grammar falls through to non-doc alternatives. |
 
@@ -2378,7 +2370,7 @@ scoping rules listed in [Scoping rules](#scoping-rules).
 
 ### Rule 10 — operand application
 
-For `op mod₁ … modₖ` where `op` resolves to a function of arity `n`:
+For `op mod₁ … modₖ` where `op` resolves to a verb of `n` places, its subject and its slots:
 
 - **Partial** (`k < n`): the modifiers fill positions `(n-k+1)..n`
   (the trailing slots). `pipeValue` fills positions `1..(n-k)`
@@ -2411,12 +2403,12 @@ filter ~(/age | gt 18)
 
 | Condition | Error |
 |---|---|
-| `/key` on non-Map (Scalar, Vec, Set, null, function) | type error |
+| `/key` on non-Map (Scalar, Vec, Set, null) | type error |
 | `* expr` on non-sequence | type error |
 | `use` on non-Map | type error |
 | Identifier `name` not in `env` | unresolved identifier |
-| Captured args applied to a non-function value | type error |
-| Too many captured args for operand arity | arity error |
+| Captured args applied to a value that is no verb | type error |
+| More modifiers than a verb has slots | arity error |
 | `union`/`minus`/`inter` on incompatible types | type error |
 | `div 0` | division by zero |
 | Arithmetic whose result leaves the finite double range | type error |
@@ -2424,7 +2416,7 @@ filter ~(/age | gt 18)
 | Number literal whose magnitude lies past the finite double range | parse error |
 | JSON lift of a number past the finite double range | codec error |
 | `:cleanName …@effectful…` | effect laundering |
-| Identifier resolved to effectful function via clean name | effect laundering |
+| A verb whose body calls an effectful name, called by a clean one | effect laundering |
 | `:trail` written with anything but a vector of stops | type error |
 | Evaluation frames nested past the depth budget | resource limit |
 
@@ -2466,28 +2458,17 @@ A verb prints as the literal it was written as, `::verb~(…)`, and
 reads back as a verb over the same quote; the scope it resolves in is
 the one it is read back in.
 
-Two guards enforce the invariant at the construction and
-rendering boundaries:
+A guard enforces the invariant at the construction boundary; a host
+installs its verbs through a locator returning `{ source, impls }`,
+each implementation recorded beside its verb, so every value in the
+pipe has a literal:
 
-- **`FunctionValueLeakedToPrintError`** — `printValue` and
-  `toPlain` refuse a raw function value because no grammatical
-  literal renders back to one. A host installs its operands
-  through a locator returning `{ source, impls }`, which stamps
-  each callable onto the catalog descriptor's `BUILTIN_IMPL_SLOT`
-  JS-header slot while `:impl` keeps the author's
-  `:qlang/prim/<name>` handle keyword, so the descriptor's data
-  plane round-trips as ordinary qlang data.
 - **`TagBindingHasNoConstructorError`** — `evalTaggedLit` refuses
   a `::Tag<payload>` invocation when the tag-binding's
   `:impl` is missing or wrong-shaped, surfacing
   `:payloadValue` / `:payloadType` / `:expectedType` on the
   descriptor so the diagnostic itself follows the same shape
   contract.
-
-Function values sit **outside** the invariant by design: they live
-only on `:impl` of a descriptor Map, projected back to keyword
-handle on render, and any leak to `pipeValue` raises the guard
-above.
 
 Implementation: `runtime/format.mjs::printValue` is the canonical
 implementer; `core/test/unit/round-trip-invariant.test.mjs` pins
@@ -2807,8 +2788,8 @@ via the tagged-JSON form, a verb as its quote under its tag, which the
 restored session reads back as a verb resolving its names in the
 restored session.
 
-Built-in function values are not serialized; the host re-installs
-them by re-creating a fresh `langRuntime()`-seeded session and
+Built-in verbs are not serialized; the host re-installs them by
+re-creating a fresh `langRuntime()`-seeded session and
 re-binding any host operands. Cell history is restored without
 re-evaluation — entries carry only `source` and `uri`. A notebook
 layer that wants the original AST or result can call

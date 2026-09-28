@@ -1,5 +1,5 @@
-// `use` operand — merges a Map of bindings into env. Arity-1
-// dispatches by captured-arg shape:
+// `use`, the loader, a verb of any value that writes the scope of its
+// call [D113]. Its forms, by what its slots hold:
 //
 //   bare `pipeValue | use`            — pipeValue must be a Map.
 //                                        Every entry is merged into
@@ -24,13 +24,12 @@
 //                                        env; everything else stays
 //                                        out of scope.
 
-import { stateOpVariadic } from './dispatch.mjs';
-import { bindPrim } from '../primitives.mjs';
-import { withEnv, nestState, envMerge } from '../state.mjs';
+import { bindScopeWriter } from '../primitives.mjs';
+import { nestState, envMerge } from '../state.mjs';
 import { parse as parseSource } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import {
-  isQMap, isKeyword, isVec, isQSet, isBinding, isVerb, keyword, makeBinding, bindingValueOf, resideVerbOn,
+  isQMap, isKeyword, isVec, isQSet, isNull, isBinding, isVerb, keyword, makeBinding, bindingValueOf, resideVerbOn,
   attachHostImpl, typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { canonicalTagName, moduleNamespaceKey, tagBindingKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
@@ -82,29 +81,19 @@ function bindingsOf(entries) {
   return bindings;
 }
 
-export const use = stateOpVariadic('use', async (state, useLambdas) => {
-  if (useLambdas.length === 0) {
-    if (!isQMap(state.pipeValue)) {
-      throw new UseSubjectNotMapError(state.pipeValue);
-    }
-    return withEnv(state, envMerge(state.env, bindingsOf(state.pipeValue)));
+bindScopeWriter('use', async (subject, namespace, names, state) => {
+  if (isNull(namespace)) {
+    if (!isQMap(subject)) throw new UseSubjectNotMapError(subject);
+    return envMerge(state.env, bindingsOf(subject));
   }
-
-  const useArg = await useLambdas[0](state.pipeValue);
-
-  if (useLambdas.length === 1) {
-    if (isKeyword(useArg))  return await importSingleNamespace(state, useArg);
-    if (isQSet(useArg))     return await importCollisionStrictNamespaces(state, useArg);
-    if (isVec(useArg))      return await importOrderedNamespaces(state, useArg);
-    throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
+  if (!isNull(names)) {
+    if (!isKeyword(namespace)) throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(namespace), actualValue: namespace });
+    return await importSelectiveNamespace(state, namespace, names);
   }
-
-  if (!isKeyword(useArg)) {
-    throw new UseNamespaceNotKeywordError({ actualType: typeKeyword(useArg), actualValue: useArg });
-  }
-  const useSelection = await useLambdas[1](state.pipeValue);
-  return await importSelectiveNamespace(state, useArg, useSelection);
-}, [0, 2]);
+  if (isKeyword(namespace)) return await importSingleNamespace(state, namespace);
+  if (isQSet(namespace)) return await importCollisionStrictNamespaces(state, namespace);
+  return await importOrderedNamespaces(state, namespace);
+});
 
 // resolveNamespaceEnv(callerState, outerEnv, nsKeyword) → [moduleEnv, updatedOuterEnv]
 //
@@ -212,10 +201,12 @@ function resideVerbsOnNoun(moduleName, loadedExports, moduleEnv) {
 
 async function importSingleNamespace(state, nsKeyword) {
   const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, state.env, nsKeyword);
-  return withEnv(state, envMerge(updatedEnv, moduleEnv));
+  return envMerge(updatedEnv, moduleEnv);
 }
 
-async function importOrderedNamespaces(state, namespaces) {
+// The scope the modules a vector names leave, loaded in order, a later
+// one shadowing an earlier: the catalog loads so from its root [D113].
+export async function importOrderedNamespaces(state, namespaces) {
   let currentEnv = state.env;
   for (let i = 0; i < namespaces.length; i++) {
     const ns = namespaces[i];
@@ -225,7 +216,7 @@ async function importOrderedNamespaces(state, namespaces) {
     const [moduleEnv, updatedEnv] = await resolveNamespaceEnv(state, currentEnv, ns);
     currentEnv = envMerge(updatedEnv, moduleEnv);
   }
-  return withEnv(state, currentEnv);
+  return currentEnv;
 }
 
 async function importCollisionStrictNamespaces(state, namespaces) {
@@ -246,7 +237,7 @@ async function importCollisionStrictNamespaces(state, namespaces) {
       origins.set(k, ns.name);
     }
   }
-  return withEnv(state, envMerge(accumulatedEnv, merged));
+  return envMerge(accumulatedEnv, merged);
 }
 
 async function importSelectiveNamespace(state, nsKeyword, selection) {
@@ -263,7 +254,5 @@ async function importSelectiveNamespace(state, nsKeyword, selection) {
     }
     filtered.set(nameStr, moduleEnv.get(nameStr));
   }
-  return withEnv(state, envMerge(updatedEnv, filtered));
+  return envMerge(updatedEnv, filtered);
 }
-
-bindPrim('use', use);

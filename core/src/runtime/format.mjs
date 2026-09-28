@@ -37,8 +37,8 @@ function dispatchPlainValue(v, handlers, path) {
 // `toPlain` is exported for direct unit-level coverage of the
 // exotic-value fallback path — the `json` verb feeds this function
 // the value its head checked, but no qlang-level path
-// reaches the `String(v)` branch because raw function values
-// never enter pipeValue.
+// reaches the `String(v)` branch because a host's raw callable never
+// enters pipeValue.
 const TO_PLAIN_HANDLERS = {
   Null:           () => null,
   Number:         finiteNumberOrLift,
@@ -79,8 +79,7 @@ export function toPlain(v) {
 // JS function slot (`:qlang/locator` and any embedder
 // `session.bind(name, fn)` installs); those render as a
 // host-marker string so `env | json` produces a parseable plain
-// shape. `dispatchQlangValue` already routes qlang function-values
-// (the `makeFn` shape) through `FunctionValueLeakedToPrintError`.
+// shape.
 function toPlainFallback(v) {
   if (typeof v === 'function') return `<host-fn ${v.name}>`;
   throw new ToPlainUnencodableValueError({ actualType: typeof v, actualValue: v });

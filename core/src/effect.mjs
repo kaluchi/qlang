@@ -20,7 +20,6 @@
 // runs at:
 //   - parse-time effect decoration (once per OperandCall and
 //     Projection node — i.e. once per identifier in source)
-//   - function-value construction (once per langRuntime registration)
 //
 // The result is stored as a precomputed boolean on every node and
 // runtime value. The hot path — eval.mjs::evalOperandCall — reads

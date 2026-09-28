@@ -14,14 +14,16 @@ import './format.mjs';
 import './predicates.mjs';
 import './control.mjs';
 import './raise.mjs';
-import './keyword-op.mjs';
+import './keyword.mjs';
 import './tagged.mjs';
 import './quote-steps.mjs';
 import './verb.mjs';
-import './env-op.mjs';
-import './use-op.mjs';
-import './manifest-op.mjs';
-import './codeAsData.mjs';
+import './env.mjs';
+import './use.mjs';
+import './manifest.mjs';
+import './code.mjs';
+import './doc.mjs';
+import './print.mjs';
 import './axis.mjs';
 
 import { parse } from '../parse.mjs';
@@ -31,7 +33,7 @@ import { keyword, bindingValueOf, BUILTIN_TAG, stampTagHeader } from '../types.m
 import { RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
 import { PRIMITIVE_REGISTRY, TYPE_KEY_PREFIX } from '../primitives.mjs';
 import { stampThrowSiteSpec } from '../descriptor-ops.mjs';
-import { importOrderedNamespaces } from './use-op.mjs';
+import { importOrderedNamespaces } from './use.mjs';
 import {
   platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
 } from './bootstrap.mjs';

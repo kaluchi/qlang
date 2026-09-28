@@ -221,9 +221,9 @@ describe('walk.mjs — locationToQlangMap', async () => {
   });
 });
 
-// ── runtime/use-op.mjs uncovered branches ─────────────────────
+// ── runtime/use.mjs uncovered branches ─────────────────────
 
-describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
+describe('use.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
   it('keyword-keyed collision uses k.name in error context', async () => {
     // importCollisionStrictNamespaces — collision on a keyword key.
     // isKeyword(k) is true → k.name branch taken (existing coverage).
@@ -247,7 +247,7 @@ describe('use-op.mjs — UseNamespaceCollisionError keyword vs raw-key collision
   });
 });
 
-describe('use-op.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
+describe('use.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
   it('selective use(:ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
     s.bind('myNs', new Map([['x', 99]]));

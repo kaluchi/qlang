@@ -1256,7 +1256,7 @@ part:
   0
   ```
 - One loader of modules: `use` through a locator
-  (`core/src/runtime/use-op.mjs`, `resolveNamespaceEnv`), which the
+  (`core/src/runtime/use.mjs`, `resolveNamespaceEnv`), which the
   bootstrap of the catalog calls too; the resolver of module directories
   that tests alone used has left the package. It computes a module's
   surface as a delta of the environment.

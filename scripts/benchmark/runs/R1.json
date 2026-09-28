@@ -84,7 +84,8 @@
       "kind": "missing-verb",
       "query": "\"Ann@Example.com\" | lower",
       "expected": "a lowercase string",
-      "got": "UnresolvedIdentifierError with :nearest []; no case verb on ::string, and no way to learn that one is missing short of reading every /verbs"
+      "got": "UnresolvedIdentifierError with :nearest []; no case verb on ::string, and no way to learn that one is missing short of reading every /verbs",
+      "repairedBy": "D107"
     },
     {
       "id": "F6",

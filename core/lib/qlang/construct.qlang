@@ -1,0 +1,59 @@
+|~ `::construct`, the step that puts a value under a tag through the
+   tag's constructor, `::T<payload>`, and the refusals of that step. ~|
+
+::construct
+  |~~ The step of a constructor invocation, `::T<payload>`: it puts a
+      payload under the tag `::T` through the tag's constructor, which
+      checks or builds the value. As a record, `:tag` is the tag and
+      `:payload` the step of its payload. ::link~(::tag | doc)
+      ::link~(::qlang | doc :pipeline)
+
+      ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
+  ~~|
+  ::builtin{:impl :qlang/type/construct}
+
+::ConstructPayloadNotSchemaError
+  |~~ A ::construct payload is a Map of `:tag` a tag and `:payload` a
+      step.
+      ::link~(::construct | doc)
+
+      ~(
+        ::construct{:tag :Box :payload [1]}
+        !| [type /field]
+        |  eq [::ConstructPayloadNotSchemaError :tag]
+       )
+  ~~|
+
+::ConstructReadBackDiffersError
+  |~~ The ::construct prints as text that reads back as another step: a
+      payload that opens with a name, a digit or a slash is written
+      as a group.
+      ::link~(::construct | doc)
+
+      ~(
+        ::construct{:tag ::Box :payload 42}
+        !| [type /printed]
+        |  eq [::ConstructReadBackDiffersError "::Box42"]
+       )
+  ~~|
+
+::TagBindingHasNoConstructorError
+  |~~ Tag-binding has no registered constructor — `:impl`
+      carries an unexpected value (neither a `:qlang/prim/*`
+      keyword nor a Quote-impl body). Descriptor fields:
+      `:payloadValue` / `:payloadType`, `:actualValue` /
+      `:actualType`, `:expectedType [:keyword :quote]`.
+      ::link~(::construct | doc)
+  ~~|
+
+::TaggedLitNotTagBindingError
+  |~~ `::tag` constructor invocation — the env binding under
+      `::tag` is not a tag-binding descriptor Map.
+      ::link~(::construct | doc)
+
+      ~(
+        ::badType 42 | ::badType[]
+        !| [type /tag /actualType]
+        |  eq [::TaggedLitNotTagBindingError :badType ::number]
+       )
+  ~~|

@@ -23,6 +23,7 @@
  :qlang/snippet
  :qlang/explanation
  :qlang/tagged
+ :qlang/construct
  :qlang/call
  :qlang/proj
  :qlang/bind

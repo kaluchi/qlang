@@ -1,63 +1,22 @@
-|~ `::tagged`, the step that puts a value under a tag, the refusals
-   of a tag without a constructor, and the verbs of tagged values. Each resides on `::qlang/tagged`,
-   the kind of every value under a tag, which the walk of a tagged value
-   reaches after its own tag. ~|
+|~ `::tagged`, the kind of every value under a tag, and the verbs of
+   tagged values. Each resides on `::qlang/tagged`, which the walk of a
+   tagged value reaches after its own tags. ~|
 
 ::tagged
-  |~~ The step of a constructor invocation, `::T<payload>`: it puts a
-      payload under the tag `::T` through the tag's constructor, which
-      checks or builds the value. As a record, `:tag` is the tag and
-      `:payload` the step of its payload. ::link~(::tag | doc)
-      ::link~(::qlang | doc :pipeline)
+  |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
+      whatever the payload: the walk from a tagged value to its verb
+      passes its own tags, then this kind, then the kind of its payload's
+      shape. The verbs that take a tag apart live here, `payload`, which
+      answers the value beneath, and `within`, which edits it and puts
+      the tag back through its constructor. A value is put under a tag
+      by a literal, `::T<payload>`, a step of its own kind, or by `tag`.
+      ::link~(::tag | doc) ::link~(::construct | doc)
+      ::link~(::qlang | doc :values)
 
-      ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
-  ~~|
-  ::builtin{:impl :qlang/type/tagged}
-
-::TaggedPayloadNotSchemaError
-  |~~ A ::tagged payload is a Map of `:tag` a tag and `:payload` a
-      step.
-      ::link~(::tagged | doc)
-
-      ~(
-        ::tagged{:tag :Box :payload [1]}
-        !| [type /field]
-        |  eq [::TaggedPayloadNotSchemaError :tag]
-       )
-  ~~|
-
-::TaggedReadBackDiffersError
-  |~~ The ::tagged prints as text that reads back as another step: a
-      payload that opens with a name, a digit or a slash is written
-      as a group.
-      ::link~(::tagged | doc)
-
-      ~(
-        ::tagged{:tag ::Box :payload 42}
-        !| [type /printed]
-        |  eq [::TaggedReadBackDiffersError "::Box42"]
-       )
-  ~~|
-
-::TagBindingHasNoConstructorError
-  |~~ Tag-binding has no registered constructor — `:impl`
-      carries an unexpected value (neither a `:qlang/prim/*`
-      keyword nor a Quote-impl body). Descriptor fields:
-      `:payloadValue` / `:payloadType`, `:actualValue` /
-      `:actualType`, `:expectedType [:keyword :quote]`.
-      ::link~(::tagged | doc)
-  ~~|
-
-::TaggedLitNotTagBindingError
-  |~~ `::tag` constructor invocation — the env binding under
-      `::tag` is not a tag-binding descriptor Map.
-      ::link~(::tagged | doc)
-
-      ~(
-        ::badType 42 | ::badType[]
-        !| [type /tag /actualType]
-        |  eq [::TaggedLitNotTagBindingError :badType ::number]
-       )
+      Every value under a tag reaches the verbs of this kind:
+      ~(::Box {} | ::Box[1 2] | payload | eq [1 2])
+      The step that builds one is no value of this kind:
+      ~(~(::Box[1 2]) | first | type | eq ::construct)
   ~~|
 
 :payload

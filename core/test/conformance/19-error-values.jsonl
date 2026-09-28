@@ -44,7 +44,7 @@
 {"name":"a-tagged-literal-whose-payload-raises-passes-a-stop-at-its-word","query":"[::Foo::Bar!{:trail 5}] * (!| [type (/trail * (/step | parse))])","expect":"[[::ErrorTrailNotVecError [\"::Foo::Bar!{:trail 5}\"]]]","decision":["D85","D86"]}
 {"name":"the-tag-a-tagged-literal-over-a-failure-skips-is-its-call","query":"[::Foo(nosuch)] * (!| /trail * [(/step | parse) (/skipped | parse)])","expect":"[[[\"nosuch\" \"tag ::Foo\"]]]","decision":"D86"}
 {"name":"a-tagged-literal-over-an-error-literal-that-writes-its-path-resumes-it","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail * [(/step | parse) (/skipped | parse)]","expect":"[[\"pre\" \"tag ::Foo\"]]","decision":["D85","D86"]}
-{"name":"a-tagged-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::tagged !| type","expect":"::TaggedReadBackDiffersError","decision":"D86"}
+{"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::ConstructReadBackDiffersError","decision":["D86","D115"]}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail/-1/skipped | parse","expect":"\"* add 1\"","decision":"D85"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::AddLeftNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}

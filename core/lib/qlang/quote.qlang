@@ -12,7 +12,7 @@
       that lead on; the trail of an error holds the steps it skipped,
       ready to replay; and a query is read, printed and built like any
       data. A literal step is the literal itself; a step that computes is
-      a record, `::call`, `::proj`, `::bind` or `::tagged`; `*`, `!|`
+      a record, `::call`, `::proj`, `::bind` or `::construct`; `*`, `!|`
       and parentheses wrap their step as `::each`, `::fail` and
       `::group`. `apply` runs a quote on the subject and `parse` prints
       it back. ::link~(::each | doc) ::link~(::call | doc)

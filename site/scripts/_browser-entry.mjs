@@ -38,6 +38,7 @@ import linkCatalogSource from '@kaluchi/qlang-core/lib/qlang/link.qlang';
 import snippetCatalogSource from '@kaluchi/qlang-core/lib/qlang/snippet.qlang';
 import explanationCatalogSource from '@kaluchi/qlang-core/lib/qlang/explanation.qlang';
 import taggedCatalogSource from '@kaluchi/qlang-core/lib/qlang/tagged.qlang';
+import constructCatalogSource from '@kaluchi/qlang-core/lib/qlang/construct.qlang';
 import callCatalogSource from '@kaluchi/qlang-core/lib/qlang/call.qlang';
 import projCatalogSource from '@kaluchi/qlang-core/lib/qlang/proj.qlang';
 import bindCatalogSource from '@kaluchi/qlang-core/lib/qlang/bind.qlang';
@@ -72,6 +73,7 @@ const CATALOG = new Map([
   ['qlang/snippet', snippetCatalogSource],
   ['qlang/explanation', explanationCatalogSource],
   ['qlang/tagged', taggedCatalogSource],
+  ['qlang/construct', constructCatalogSource],
   ['qlang/call', callCatalogSource],
   ['qlang/proj', projCatalogSource],
   ['qlang/bind', bindCatalogSource],

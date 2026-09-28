@@ -253,9 +253,9 @@ describe('default constructor — tag-binding without :impl', () => {
 });
 
 describe('TaggedLit / BareTypeKeyword steps', () => {
-  it('TaggedLit leaves a ::tagged step over the step of its payload', async () => {
+  it('TaggedLit leaves a ::construct step over the step of its payload [D115]', async () => {
     expect(await evalQuery('~(::verb~(mul 2)) | first | [type /tag /payload]'))
-      .toEqual(await evalQuery('[::tagged ::verb ~(mul 2)]'));
+      .toEqual(await evalQuery('[::construct ::verb ~(mul 2)]'));
   });
 
   it('BareTypeKeyword leaves the tag name itself', async () => {

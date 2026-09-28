@@ -1,0 +1,193 @@
+{
+  "id": "R7",
+  "date": "2026-09-28",
+  "model": "claude-sonnet-5",
+  "screen": "0ca25772ff17",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7, L1–L10 and N1–N4, and the questions of understanding U1–U5",
+  "calls": 52,
+  "toolUses": 56,
+  "tokens": 84341,
+  "minutes": 7,
+  "tasks": {
+    "T1": {
+      "calls": 2,
+      "solved": true,
+      "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name"
+    },
+    "T2": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * (/email | lower) | distinct | count"
+    },
+    "T3": {
+      "calls": 1,
+      "solved": true,
+      "query": "groupBy ~(/status | keyword) * count"
+    },
+    "T4": {
+      "calls": 1,
+      "solved": true,
+      "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)"
+    },
+    "T5": {
+      "calls": 3,
+      "solved": true,
+      "query": "lines | filter ~(contains \"ERROR\") * (split \"ERROR \" | /1) | distinct | json"
+    },
+    "T6": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data * {:id /id :tagCount (/tags | count)}"
+    },
+    "T7": {
+      "calls": 1,
+      "solved": true,
+      "query": "/data | filter ~(/tags | has \"ops\") * /email"
+    },
+    "L1": {
+      "calls": 1,
+      "solved": true,
+      "query": ":triple ::verb~(mul 3) | [1 2 3] * triple"
+    },
+    "L2": {
+      "calls": 3,
+      "solved": true,
+      "query": "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) ((::Small(12) | false) !| true)]"
+    },
+    "L3": {
+      "calls": 1,
+      "solved": true,
+      "query": ":q ~(sub 3 | mul 4) | [(q | count) (10 | apply q)]"
+    },
+    "L4": {
+      "calls": 3,
+      "solved": true,
+      "query": "\"a\" | mul 2 !| [type (payload | /trail/0/subject | type)]"
+    },
+    "L5": {
+      "calls": 6,
+      "solved": true,
+      "query": "::string | spec | /verbs | filter ~(doc | content | contains \"begins with the prefix\") | /0"
+    },
+    "L6": {
+      "calls": 5,
+      "solved": true,
+      "query": "[7 8] | tag ::Inner | tag ::Outer | :r / | [(r | type) (r | /1)]"
+    },
+    "L7": {
+      "calls": 2,
+      "solved": true,
+      "query": "[10 -1 \"y\"] * (add 5 !| null)"
+    },
+    "L8": {
+      "calls": 2,
+      "solved": true,
+      "query": "|~~ Two laws hold. ~(eq 2) ~(gt 1) ~~| | laws | count"
+    },
+    "L9": {
+      "calls": 3,
+      "solved": true,
+      "query": "::vec/groupBy | runLaws * /ok | every ~(/)"
+    },
+    "L10": {
+      "calls": 3,
+      "solved": true,
+      "query": "{:a 1 :b 2 :c 3} | minus #[:b]"
+    },
+    "N1": {
+      "calls": 2,
+      "solved": true,
+      "query": "::qlang | manifest * (doc | content)"
+    },
+    "N2": {
+      "calls": 2,
+      "solved": true,
+      "query": "::string | spec | /verbs * [/ (doc | content)]"
+    },
+    "N3": {
+      "calls": 3,
+      "solved": true,
+      "query": "::qlang | manifest | filter ~(doc | links * open | has (::error | doc))"
+    },
+    "N4": {
+      "calls": 1,
+      "solved": true,
+      "query": "::vec | spec | /verbs * (doc | laws | count) | sum"
+    }
+  },
+  "understanding": "U1–U5 answered in the terms of the pages, accurately: values, kinds and tags, the walk of a name from the tags through the shape to any value, errors as values opened by !|, and the hypertext of pages with laws, links and snippets, read several at once by links * open, manifest * (doc | content) and a set of anchors.",
+  "frictions": [
+    {
+      "id": "F1",
+      "task": "L5",
+      "kind": "missing-verb",
+      "query": "… | filter ~(ne null)",
+      "expected": "a negation of eq",
+      "got": "UnresolvedIdentifierError: no ne; and a quote after * held the quotes as values instead of running them"
+    },
+    {
+      "id": "F2",
+      "task": "L6",
+      "kind": "undocumented",
+      "query": "::Outer::Inner{[7 8]}",
+      "expected": "a vector under a stack of tags",
+      "got": "ParseError after {: the first screen shows only the map form ::T{…}, not ::T[…] or ::T(…)"
+    },
+    {
+      "id": "F3",
+      "task": "L6",
+      "kind": "surprise",
+      "query": "[7 8] | ::Inner | ::Outer",
+      "expected": "the vector tagged",
+      "got": "::Outer: a tag name as a step is a literal that replaces the subject, in silence"
+    },
+    {
+      "id": "F4",
+      "task": "L2",
+      "kind": "surprise",
+      "query": ":Small ::Small{:impl …} | ::Small(12)",
+      "expected": "a refusal of 12",
+      "got": "::Small(12): binding the descriptor to a name declares no kind; only the step ::Small {…} does"
+    },
+    {
+      "id": "F5",
+      "task": "L5",
+      "kind": "wording",
+      "query": "… | contains \"begins with a prefix\"",
+      "expected": "the page of startsWith",
+      "got": "nothing: the page says \"begins with the prefix\""
+    },
+    {
+      "id": "F6",
+      "task": "T5",
+      "kind": "syntax",
+      "query": "lines | filter ~(…) | * (…)",
+      "expected": "a distribute after a pipe",
+      "got": "ParseError: * stands in the place of |, never after it"
+    },
+    {
+      "id": "F7",
+      "task": "T5",
+      "kind": "surprise",
+      "query": "… | distinct",
+      "expected": "a JSON list",
+      "got": "a set, which the JSON channel refuses; | json wrote it"
+    },
+    {
+      "id": "F8",
+      "task": "L4",
+      "kind": "undocumented",
+      "query": "\"a\" | mul 2 !| payload",
+      "expected": "a field naming the culprit",
+      "got": "the culprit read from /trail/0/subject; the page of the refusal names no field for it"
+    },
+    {
+      "id": "F9",
+      "task": "L7",
+      "kind": "anchoring",
+      "query": "[10 -1 \"y\"] * (add 5 !| 0)",
+      "expected": "null for a failure",
+      "got": "the example of a page copied, !| 0, against the task"
+    }
+  ]
+}

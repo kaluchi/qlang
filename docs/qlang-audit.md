@@ -1708,13 +1708,15 @@ JavaScript classes of errors and the prose that restates their facts
 disappear.
 
 Its answers are the targets of [D13], [D64], [D97], [D98], [D99],
-[D100] and [D101] in the conformance suite: the error a site refuses with as a value of the
-kind of errors, which D97 settles; the explanation of an error as a
-value of its own kind, which D98 settles, its page answering its
-quotes by the verb of the doc, D99, and every value explaining
-itself so, D100, an error in it raised, D101; the error a value slot hands
-on, whose kind D64 names and whose passage D13 settles; and the
-targets that [D6], [D33] and [D46] leave when they are decided. Beside them: no factory-declared error class remains; every
+[D100], [D101] and [D103] in the conformance suite: the first failure
+of `*` as its answer, which D103 settles; the error a site refuses with
+as a value of the kind of errors, which D97 settles; the explanation of
+an error as a value of its own kind, which D98 settles, its page
+answering its quotes by the verb of the doc, D99, and every value
+explaining itself so, D100, an error in it raised, D101; the error a
+value slot hands on, whose kind D64 names and whose passage D13
+settles; and the targets that [D6], [D33] and [D46] leave when they are
+decided. Beside them: no factory-declared error class remains; every
 refusal's tag is declared once in the catalog and prints its facts in
 its schema's order; the throw-site registry and both drift tests are
 gone; host categories of error are declared by hosts.
@@ -1991,6 +1993,26 @@ scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the third
 milestone moves the constructors onto the kinds [D6], [D33].
 
+A literal that holds an error a word answers [D87], [D103]. `*` answers
+its first failure, and a literal still keeps one, so
+`[1 ("x" | add 1)] | count` answers `2`, and a failure inside a map a
+step builds reaches the answer as data:
+
+```qlang
+> [1 ("x" | add 1)] | count
+2
+```
+
+The alternatives are a literal that answers the first word that fails,
+which refuses the step of an error literal inside a quote, since a
+quote read as its steps holds that step as the error it spells [D86],
+and the ring of atoms builds a quote from the vector of its steps
+[D42], so it waits on what such a step is as data; the step of an error
+literal read as the error unraised, `::error{…}`, which lets a literal
+fail and a quote be built from its steps at the price of what `first`
+answers on a quote today; and the literal as it is, whose failure
+reaches the command line, which refuses it under JSON [D103].
+
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed
@@ -2092,3 +2114,4 @@ maintainer wants to explore it before it is fixed.
 [D100]: decisions/D100.md
 [D101]: decisions/D101.md
 [D102]: decisions/D102.md
+[D103]: decisions/D103.md

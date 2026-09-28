@@ -24,7 +24,8 @@
 // non-zero exit on a fail-track result would cancel sibling tool
 // calls. `print` renders the descriptor in qlang-rich form
 // (`!{:kind ... :trail ...}`) [D96]; `toPlain` lifts it to tagged JSON
-// (`{$error: {...}}`) for the json channel.
+// (`{$error: {...}}`) for the json channel, which refuses any other
+// value JSON has no form for [D103].
 //
 // REPL mode has its own renderer inline in repl.mjs — the per-cell
 // auto-print there stays qlang-native (print + ANSI).

@@ -55,9 +55,9 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('distribute of add(10) over mixed elements produces per-element errors a fail-track predicate selects', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] * add 10 | filter ~(false !| true) | count');
-    expect(evalResult).toBe(1);
+  it('distribute of add(10) over mixed elements answers the first failure [D103]', async () => {
+    const evalResult = await evalQuery('[1 "x" 3] * add 10 !| type');
+    expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
@@ -122,8 +122,8 @@ describe('source axis prints the declaration for rare body shapes', () => {
 
 describe('json operand on error values inside containers', () => {
   it('renders error value as $error wrapper when inside Vec', async () => {
-    // [1 "x" 3] * add(10) produces [11 error 13]; json renders the Vec
-    const evalResult = await evalQuery('[1 "x" 3] * add 10 | json');
+    // A literal holds the error a word answers [D87]; json renders the Vec
+    const evalResult = await evalQuery('[11 ("x" | add 10) 13] | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('$error');
   });

@@ -21,9 +21,10 @@
   ~~|
 
 ::ToPlainUnencodableValueError
-  |~~ JSON has no form for a value a host installed, a function among
-      them; `print` writes its literal, which reads back through
-      `parse | open`, or the query projects around it.
+  |~~ JSON has no form for a value a host installed that is none of the
+      kinds of qlang; a function a host bound is written as
+      `<host-fn name>`, and any other such value is refused, so the query
+      projects around it.
   ~~|
 
 ::SourceLoadError
@@ -311,8 +312,8 @@
 
 ::GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, since the
-      keys of a map are keywords; a string or a number becomes one by
-      `keyword`, `groupBy ~(/status | keyword)`. `:index` names the
+      keys of a map are keywords; a string becomes one by `keyword`,
+      `groupBy ~(/status | keyword)`, and a number by `print | keyword`. `:index` names the
       element.
       ~(
         [{:k 1} {:k 2}] | groupBy ~(/k)
@@ -342,8 +343,8 @@
 
 ::IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, since the
-      keys of a map are keywords; a string or a number becomes one by
-      `keyword`, `indexBy ~(/id | print | keyword)`. `:index` names the
+      keys of a map are keywords; a string becomes one by `keyword`, and
+      a number by `print | keyword`, `indexBy ~(/id | print | keyword)`. `:index` names the
       element.
       ~(
         [{:k 1}] | indexBy ~(/k)
@@ -793,8 +794,8 @@
 
 ::CondNoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
-      last clause alone the default; a call with none has nothing to
-      answer.
+      last clause alone the default; a call without one pair, a lone
+      default among them, has nothing to answer.
       ~(
         5 | cond
         !| [type]

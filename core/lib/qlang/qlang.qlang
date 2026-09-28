@@ -171,7 +171,7 @@
       name whose call reaches outside the language, and a verb whose body
       calls one carries it too, while a name over the value a call
       answered is plain:
-      ~(:@io ::verb~(@out) | :fine 1 | fine | eq 1)
+      ~(:@io ::verb~(1) | :fine (@io) | fine | eq 1)
       ~(:quiet ::verb~(@out) !| type | eq ::EffectLaunderingAtBindStepParseError)
       The docs in the slot of a declaration, between its name and its
       body, are its page, one doc each:
@@ -210,7 +210,7 @@
       A modifier is evaluated at the call against the subject, and when
       the call writes every place of the verb, the subject among them,
       the value in the pipe is only where they are read; a slot that runs
-      code later takes a quote, `~name` the quote of one name, and a
+      code later takes a quote, `~name` or `~/path` the quote of one step, and a
       condition is a boolean:
       ~({:price 100 :qty 3} | mul /price /qty | eq 300)
       ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
@@ -255,6 +255,7 @@
       ~("x" | add 1 | mul 2 !| /trail/-1/skipped | parse | eq "mul 2")
       A map raised again after `!|` resumes the trail it holds, and one
       without `:trail` starts it over:
+      ~(!{:kind :oops} | count !| raise | add 1 !| /trail * /step | eq [~(!{:kind :oops})])
       ~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step | eq [~(raise)])
       Whether a value is an error is `false !| true`:
       ~([!{:kind :oops} 42] * (false !| true) | eq [true false])

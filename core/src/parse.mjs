@@ -43,7 +43,7 @@ export class ParseError extends Error {
 //
 // opts:
 //   uri — string identifier for the source (file path,
-//         'inline', 'repl-cell-N', etc.). Defaults to 'inline'.
+//         'inline', 'cell-N'). Defaults to 'inline'.
 //
 // Throws ParseError on syntactic failure. The AST is a tree of
 // plain JS objects with a `type` field; see grammar.peggy for the

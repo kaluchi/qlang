@@ -42,15 +42,22 @@ Usage:  qlang [--json | --raw] [--color=MODE] <query>
         qlang -V | --version
 
 Script mode evaluates the query against piped stdin and writes the
-result to stdout: JSON in → JSON out, text in → text out. Use -i
-for an interactive REPL. Quote the query so the shell does not
-split on whitespace or pipe characters.
+answer to stdout in the form the input came in. JSON input is the
+subject as values, an object a map whose keys are keywords, and the
+answer is written as JSON, where a value JSON has no form for, a
+quote, a set, a keyword or a tag, is refused as ::AnswerNotJsonError.
+Text input is a String, and the answer is written as its print;
+'| json' writes JSON text. Use -i for an interactive REPL. Quote
+the query so the shell does not split on whitespace or pipe
+characters. qlang '::qlang | docs' reads the language, and
+qlang '::cli | docs' this command line.
 
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure
               hand the raw text to the query as a String
   --json      force JSON.parse on stdin; exit 1 on parse failure
-  --raw       skip parsing — stdin is the literal String subject
+  --raw       skip parsing — stdin is the String subject, and the
+              answer is written as its print
 
 Output colour:
   --color=auto    (default) paint if stdout is a terminal, raw

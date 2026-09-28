@@ -8,10 +8,13 @@
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
       and write the streams of the process, `tjson` and `table` render
       a value as text, and `parseTjson` reads back what `tjson` wrote.
-      An answer shows as its `print` [D96], and as JSON when the input
-      was JSON, where a value JSON has no form for is refused
-      [D103]. Every query the command line runs calls them by their
-      names, and `::cli | manifest` lists them.
+      A query runs on what stdin holds: JSON read as values, an object
+      a map whose keys are keywords, whose answer is written as JSON,
+      where a value JSON has no form for is refused [D103]; text read
+      as a string, whose answer is written as its `print` [D96]; and
+      `| json` writes JSON text [D105]. Every query the command line
+      runs calls its verbs by their names, and `::cli | manifest` lists
+      them.
   ~~|
 
 ::AnswerNotJsonError

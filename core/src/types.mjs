@@ -1,4 +1,4 @@
-import { readsAsBareKeyword } from './parse.mjs';
+import { readsAsBareKeyword } from './name-chars.mjs';
 import {
   declareInvariantError,
   declareShapeError

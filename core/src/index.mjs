@@ -37,6 +37,7 @@ import {
   printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
 } from './runtime/format.mjs';
 import { tokenize } from './highlight.mjs';
+import { isNameStart, isNameContinue } from './name-chars.mjs';
 import {
   QlangError,
   QlangTypeError,
@@ -124,6 +125,8 @@ export {
   fromPlain,
   FromPlainNumberNotFiniteError,
   tokenize,
+  isNameStart,
+  isNameContinue,
   QlangError,
   QlangTypeError,
   ArityError,

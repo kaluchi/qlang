@@ -18,6 +18,8 @@ import {
   tagBindingKey,
   canonicalTagName,
   tokenize,
+  isNameStart,
+  isNameContinue,
   isKeyword,
   isTagKeyword,
   isVerb,
@@ -222,12 +224,19 @@ const KIND_OF_LITERAL = {
 };
 const CONTAINER_KINDS = new Set(['vec', 'set', 'map']);
 
+// Where the name being typed before the cursor begins.
+function wordStartBefore(source, offset) {
+  let start = offset;
+  while (start > 0 && (isNameContinue(source[start - 1]) || isNameStart(source[start - 1]))) start--;
+  return start;
+}
+
 // The subject of the step at the cursor, the word being typed aside: the
 // pipeline it continues after `|` or a line break, where that pipeline
 // parses and its value has kinds its declarations name; a step after `*`
 // or `!|` takes an element or an error, and has none.
 async function subjectAt(source, offset) {
-  const before = source.slice(0, offset).replace(/[@_\p{ID_Continue}-]*$/u, '');
+  const before = source.slice(0, wordStartBefore(source, offset));
   const continued = before.match(/\s(!\||\||\*)\s*$/) ?? before.match(/\n\s*$/);
   if (continued === null || continued[1] === '*' || continued[1] === '!|') return null;
   let pipeline;

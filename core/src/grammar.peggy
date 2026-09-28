@@ -19,6 +19,8 @@
 // declaration whose slot it stands in [D83].
 
 {{
+  import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
+
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
   }
@@ -644,12 +646,11 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-// UAX #31 `ID_Start` / `ID_Continue`, with `@` starting a name and `_`
-// and `-` continuing one.
+// The letters of a name, `core/src/name-chars.mjs`.
 IdentStart "identifier start (letter, underscore, or @-sigil)"
-  = c:. &{ return /^[@_\p{ID_Start}]$/u.test(c); } { return c; }
+  = c:. &{ return isNameStart(c); } { return c; }
 IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
-  = c:. &{ return /^[\p{ID_Continue}_\-]$/u.test(c); } { return c; }
+  = c:. &{ return isNameContinue(c); } { return c; }
 
 // ── Whitespace ─────────────────────────────────────────────────────
 //

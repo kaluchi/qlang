@@ -423,11 +423,11 @@ paragraph: the rule was known, the intention was honest, and the prior
 toward correct spelling edited the source anyway; only a measurement
 sees that.
 
-The third runs the probes of a document. It reads fenced blocks the
-way `extractReplExamples` in `core/test/unit/doc-compliance.test.mjs`
-does, with the two changes the audit's notation asks for: a fence
-marked `target` inverts the verdict, and answers compare as the printer
-writes them, since a probe records what was printed. An answer with …
+The third runs the probes of a document. It reads its fenced blocks, a
+line after `>` a query and the lines under it the answer, with the two
+readings the audit's notation asks for: a fence marked `target` inverts
+the verdict, and answers compare as the printer writes them, since a
+probe records what was printed. An answer with …
 matches piece by piece, and a query that names an `@` operand runs on
 the command line.
 

@@ -180,7 +180,7 @@ Operand metadata (`:throws`, `:category`, `:subject`, `:modifiers`, `:returns`) 
 
 ### 8. Spec / model / runtime documentation alignment
 
-The language specification lives in `docs/qlang-spec.md`, the formal evaluation model in `docs/qlang-internals.md`, and every verb's contract in its page in the catalog, which the language answers by `doc`. Every public-facing change to behavior must be reflected in the relevant page.
+The language describes itself in its catalog: the concepts in the pages of `::qlang` (`core/lib/qlang/qlang.qlang`), every kind and verb in its page, which the language answers by `doc`. Every public-facing change to behavior must be reflected in the relevant page.
 
 For each diff:
 
@@ -288,7 +288,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
 2. **Build context**:
    - Read `core/src/grammar.peggy` to know the current AST shape.
    - Read `core/src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
-   - Read `docs/qlang-spec.md` for the current public surface.
+   - Read `core/lib/qlang/qlang.qlang` for the concepts of the public surface.
    - Read the module of each kind the change touches under `core/lib/qlang/<kind>.qlang` for the authoritative catalog: the kind's page, its constructor, the refusals of its place and its verbs, a built-in's body a `::builtin{:impl :qlang/prim/<name>}` step naming its primitive in `PRIMITIVE_REGISTRY`. `core/lib/qlang/core.qlang` lists the modules in the order the bootstrap loads them.
    - For added files, also read what they import from to verify the contract assumed at the call site.
 

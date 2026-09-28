@@ -26,8 +26,8 @@ declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
 declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
 declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
 
-// A qlang Number is a finite double (see `### number` in
-// qlang-spec.md). Both operands are finite by that same rule, so
+// A qlang Number is a finite double, as the page of `::number` says.
+// Both operands are finite by that same rule, so
 // the operation itself is the only way out of the domain, and each
 // site lifts its own class onto the fail-track — the second answer
 // `div` gives alongside `DivisionByZeroError`.

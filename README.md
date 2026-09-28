@@ -9,7 +9,7 @@ qlang/                  ← this repo
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
 ├── vscode/             qlang-vscode          — VS Code Marketplace package
-├── docs/               qlang-spec.md, qlang-internals.md
+├── docs/               the audit, the entrypoint design, the decisions
 ├── scripts/            release.mjs           — release orchestration
 └── package.json        npm workspaces shell
 ```
@@ -29,10 +29,10 @@ npm run test:coverage                    # verify 100/100/100/100 thresholds on 
 
 ## Documentation
 
-| Audience | Doc |
-|---|---|
-| query authors | [docs/qlang-spec.md](docs/qlang-spec.md) — values, pipeline, verbs, scoping, grammar |
-| evaluator implementors | [docs/qlang-internals.md](docs/qlang-internals.md) — formal `(pipeValue, env)` model, AST, codec |
+The language documents itself: `qlang '::qlang | doc'` opens the root
+page, whose links lead to every concept, kind and verb, each page a doc
+whose laws run. A host embedding the core reads
+[core/README.md](core/README.md).
 
 ## Releasing
 

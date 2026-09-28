@@ -124,6 +124,18 @@
       steps in parentheses run on the value in the pipe and answer their
       result:
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
+      At the top level a line is a step, joined to the next by `|` unless
+      one of them carries its combinator, and inside brackets a line
+      break is a space; a comment, `|~ … ~|`, nesting, or `|~|` to the
+      end of its line, is whitespace wherever a space stands:
+      ~("[3 1 2]\n|~| the order\nsort\n| first" | parse | apply / | eq 1)
+      ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | apply / | eq 2)
+      `|`, `*` and `!|` bind alike, from left to right. Each part of a
+      literal, a group and the body of `*` is a fork: it starts from the
+      value and the names outside it, and only its answer leaves it, so
+      the parts of one literal see nothing of each other:
+      ~(:n 10 | [1 2] * (add n) | eq [11 12])
+      ~([(:a 1 | a) (a)] | /1 !| type | eq ::UnresolvedIdentifierError)
   ~~|
   #[::each ::proj ::group ::bind ::call ::construct]
 
@@ -149,6 +161,26 @@
       `use` brings the declarations of a map or a module into the names
       of a reader:
       ~({:x 1} | use | x | add 2 | eq 3)
+      A name is declared once in a scope and again in a scope inside it,
+      which shadows it for the steps after, a verb of the core staying
+      one address away:
+      ~(:k 1 | :k 2 !| type | eq ::BindNameDeclaredTwiceError)
+      ~(:k 1 | (:k 2 | k) | eq 2)
+      ~(:count 5 | [1 2 3] | vec/count | eq 3)
+      A name begins with a letter of any script, `_` or `@`; `@` marks a
+      name whose call reaches outside the language, and a verb whose body
+      calls one carries it too, while a name over the value a call
+      answered is plain:
+      ~(:@io ::verb~(@out) | :fine 1 | fine | eq 1)
+      ~(:quiet ::verb~(@out) !| type | eq ::EffectLaunderingAtBindStepParseError)
+      The docs in the slot of a declaration, between its name and its
+      body, are its page, one doc each:
+      ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | /x | /docs | count | eq 2)
+      A verb resolves its names in the scope of its declaration, itself
+      among them, so it recurses by name, and the frames of a runaway
+      meet a budget:
+      ~(:walk ::verb~({:n /n :kids (/kids * walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | /kids/0/n | eq 2)
+      ~(:inf ::verb~(add 1 | inf) | 0 | inf !| type | eq ::EvaluationDepthExceededError)
   ~~|
   #[::binding]
 
@@ -175,6 +207,15 @@
       A reader's verb is a name over `::verb` and a quote whose head
       declares its slots, and it takes its arguments after its name:
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      A modifier is evaluated at the call against the subject, and when
+      the call writes every place of the verb, the subject among them,
+      the value in the pipe is only where they are read; a slot that runs
+      code later takes a quote, `~name` the quote of one name, and a
+      condition is a boolean:
+      ~({:price 100 :qty 3} | mul /price /qty | eq 300)
+      ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
+      ~([{:age 3}] | sort ~/age | first | /age | eq 3)
+      ~([1 2] | filter ~(1) !| type | eq ::FilterConditionNotBooleanError)
       A kind is declared by the step `::T body`, the tag, a space and a
       map whose `:impl` is a quote, the constructor that checks or builds
       each value put under it and answers an error for one it refuses:
@@ -208,6 +249,15 @@
       ~("a" | mul 2 !| [/actualType /trail/0/subject] | eq [::string "a"])
       `explain` shows the page of the site above the error:
       ~("x" | add 1 !| explain | type | eq ::explanation)
+      The trail holds a stop for each level the error left, and the last
+      stop the steps it skipped, a quote ready to replay:
+      ~(:f ::verb~(:n ::number | add n | mul n) | "x" | f 2 | sub 3 !| /trail * /step | eq [~(add n) ~(f 2)])
+      ~("x" | add 1 | mul 2 !| /trail/-1/skipped | parse | eq "mul 2")
+      A map raised again after `!|` resumes the trail it holds, and one
+      without `:trail` starts it over:
+      ~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step | eq [~(raise)])
+      Whether a value is an error is `false !| true`:
+      ~([!{:kind :oops} 42] * (false !| true) | eq [true false])
   ~~|
   #[::error ::fail ::explanation]
 

@@ -48,17 +48,21 @@
         ~(kind | eq ::map) ~(:entries / | {:parts (keys | sort * (:key / | [key (entries | at key)])) :glue ~(indexBy ~(first) * last)})
         ~({:parts [kind (payload)] :glue (if failed ~(~(tag | raise)) ~(~(tag)))}))
 
-:intoAtoms
-  |~~ The atoms gathered so far with those of one pair after them.
-      `reduce` folds it over the pairs of a vector, and it folds itself
-      over the parts of each value it meets. ~~|
+:atomsOf
+  |~~ The atoms of one pair, its value's own when it is an atom and
+      otherwise those of its parts, each part's gathered by the same
+      verb. ~~|
   ::verb~(
-    :pair ::vec
-    | :gathered /
+    :pair /
     | pair | /1
     | if (atomKinds | has (pair | /1 | type))
-        ~(gathered | append (pair | /1))
-        ~(partsOf (pair | /0) | /parts | asPairs | reduce gathered ~(intoAtoms)))
+        ~([(pair | /1)])
+        ~(partsOf (pair | /0) | /parts | asPairs * atomsOf | flat))
+
+:placeKey
+  |~~ The key an atom's place is read by, the keyword of its print, which
+      tells `1` from `"1"`. ~~|
+  ::verb~(print | keyword)
 
 :numberedWith
   |~~ The atoms numbered so far, `{:next … :pairs …}`, with one more. ~~|
@@ -70,8 +74,8 @@
 :intoShape
   |~~ The steps built so far, `{:numbered … :steps …}`, with the step of
       one pair after them: the projection of an atom's place in the set,
-      which the pairs of `:numbered` hold, or the step that builds a
-      value from the steps of its parts. ~~|
+      which `:numbered` holds under the atom's key, or the step that
+      builds a value from the steps of its parts. ~~|
   ::verb~(
     :pair ::vec
     | :acc /
@@ -79,7 +83,7 @@
     | if (atomKinds | has (pair | /1 | type))
         ~(:atom /
           | {:numbered (acc | /numbered)
-             :steps (acc | /steps | append ({:path [(acc | /numbered | filter ~(first | eq atom) | first | last)]} | tag ::proj))})
+             :steps (acc | /steps | append ({:path [(acc | /numbered | at (atom | placeKey) | last)]} | tag ::proj))})
         ~(partsOf (pair | /0) | :built /
           | built | /parts | asPairs | reduce {:numbered (acc | /numbered) :steps []} ~(intoShape) | :inner /
           | {:numbered (acc | /numbered) :steps (acc | /steps | append (inner | /steps | groupBefore (built | /glue)))}))
@@ -91,8 +95,8 @@
   ~~|
   ::verb~(
     :held [/]
-    | :atoms (held | asPairs | reduce [] ~(intoAtoms) | tag ::set)
-    | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | /pairs)
+    | :atoms (held | asPairs * atomsOf | flat | tag ::set)
+    | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | /pairs | indexBy ~(first | placeKey))
     | {:atoms atoms :shape (held | asPairs | reduce {:numbered numbered :steps []} ~(intoShape) | /steps | tag ::quote)})
 
 :rebuilt

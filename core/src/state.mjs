@@ -16,6 +16,7 @@
 // names). Identifier lookup passes the name string directly.
 
 import { EvaluationDepthExceededError } from './errors.mjs';
+import { isModuleNamespaceKey } from './env-keys.mjs';
 
 // EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
 // that calls itself without a base case, a Quote that applies
@@ -66,14 +67,35 @@ export function envHas(env, name) {
   return env.has(name);
 }
 
+// What an env's module namespaces derive, computed once and shared by
+// every env a step wrote from it without touching a namespace, so a
+// lookup reads it instead of scanning the env.
+const NAMESPACE_DERIVED = new WeakMap();
+const NAMESPACES_FROM = new WeakMap();
+
+export function namespaceDerivedOf(env, derive) {
+  let derived = NAMESPACE_DERIVED.get(env);
+  if (derived === undefined) {
+    const source = NAMESPACES_FROM.get(env);
+    derived = source === undefined ? derive(env) : namespaceDerivedOf(source, derive);
+    NAMESPACE_DERIVED.set(env, derived);
+  }
+  return derived;
+}
+
+function keepingDerived(from, to, writtenKeys) {
+  if (!writtenKeys.some(isModuleNamespaceKey)) NAMESPACES_FROM.set(to, from);
+  return to;
+}
+
 // envSet(env, name, value) → new env Map
 export function envSet(env, name, value) {
-  return new Map(env).set(name, value);
+  return keepingDerived(env, new Map(env).set(name, value), [name]);
 }
 
 // envMerge(env, otherMap) → new env Map
 export function envMerge(env, otherMap) {
   const next = new Map(env);
   for (const [key, value] of otherMap) next.set(key, value);
-  return next;
+  return keepingDerived(env, next, [...otherMap.keys()]);
 }

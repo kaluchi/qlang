@@ -14,7 +14,7 @@
 {"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72"]}
 {"name":"a-name-several-kinds-answer-is-found-again-from-a-full-application","query":"{:a 2 :b 1} | gt /a /b","expect":"true","decision":"D72"}
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | spec | /verbs | has ::number/gt","expect":"true","decision":"D72"}
-{"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119"],"target":true,"now":"::ProjectionSubjectNotProjectableError"}
+{"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119"]}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
 {"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::NumberPayloadNotNumberError","decision":"D72"}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}

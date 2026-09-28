@@ -40,8 +40,8 @@
 //   5. Doc-comment prefixes have folded into `.docs` Vecs on each
 //      `BindStep`'s AST node attached by grammar's `DocPrefix` /
 //      `DocAttachedSequence` rules and reachable through the
-//      axis-operand `:name | docs` (one Doc-value per attached
-//      prefix).
+//      axis-operand `:name | doc` (the one page its attached
+//      prefixes make).
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
@@ -185,8 +185,8 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` axis', () => {
-  it('every cataloged binding has at least one Doc-value on the axis', async () => {
+describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | doc` axis', () => {
+  it('every cataloged binding has a page on the axis', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const coreEnv = await evalCore();
     for (const entryKey of coreEnv.keys()) {
@@ -194,19 +194,15 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
       if (!isQMap(coreEnv.get(entryKey))) continue;
       // A keyword names a binding of the scope, so the verb is read by
       // the first address its refusal hands on [D62].
-      const docs = await evalQuery(`:"${entryKey}" | docs !| /addresses | first | docs`);
-      expect(docs.length, `entry :${entryKey} has no docs reachable via axis`).toBeGreaterThan(0);
-      for (const doc of docs) {
-        expect(isDoc(doc)).toBe(true);
-      }
+      const page = await evalQuery(`:"${entryKey}" | doc !| /addresses | first | doc`);
+      expect(isDoc(page), `entry :${entryKey} has no page reachable via axis`).toBe(true);
     }
   });
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
-    const docs = await evalQuery('::any/count | docs');
-    const joined = docs.map(docText).join(' ');
+    const joined = docText(await evalQuery('::any/count | doc'));
     expect(joined).toContain('number of elements');
     expect(joined).toContain('vector');
   });
@@ -214,8 +210,7 @@ describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | docs` ax
   it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
-    const docs = await evalQuery('::any/filter | docs');
-    const joined = docs.map(docText).join(' ');
+    const joined = docText(await evalQuery('::any/filter | doc'));
     expect(joined).toContain('predicate');
     expect(joined).toContain('boolean');
   });
@@ -228,7 +223,7 @@ describe('bare-name operand dispatch — uniform Rule 10 path', () => {
   // surface a per-site arityError; nullary operands fire because
   // bare application IS their valid call shape. The introspection
   // surface for "what does this operand do" is `:name | source` /
-  // `:name | docs` / `:name | examples`, not a bare-name descriptor
+  // `:name | doc` / `:name | examples`, not a bare-name descriptor
   // shortcut.
 
   it('bare `count` fires against the inbound Vec', async () => {
@@ -282,7 +277,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(197);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(198);
   });
 
   it('the value namespace holds every declared operand', async () => {

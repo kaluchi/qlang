@@ -90,10 +90,10 @@ describe('CLI: script mode — query argument', () => {
     // `qlang/ast/<cellUri>` so axis-operands find the inline
     // `:foo |~~ note ~~|` BindStep declared by the same query.
     const { stdout, exitCode } = await runCli(
-      [':foo |~~ note ~~| | :foo | docs * content'],
+      [':foo |~~ note ~~| | :foo | doc | content'],
       { stdin: '' });
     expect(exitCode).toBe(0);
-    expect(stdout.trim()).toBe('[" note "]');
+    expect(stdout.trim()).toBe('note');
   });
 });
 

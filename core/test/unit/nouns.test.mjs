@@ -39,8 +39,8 @@ describe('the nouns of the core', () => {
 describe('the verbs that live on a kind', () => {
   it('a kind lists by address the operands whose subject names it, and any value lists its own', async () => {
     expect(await evalQuery('::number | spec | /verbs | has ::number/add')).toBe(true);
-    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/docs')).toBe(true);
-    expect(await evalQuery('::string | spec | /verbs | has ::string/docs')).toBe(false);
+    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/doc')).toBe(true);
+    expect(await evalQuery('::string | spec | /verbs | has ::string/doc')).toBe(false);
   });
 
   it('an address the listing answers leads the axes to its verb', async () => {
@@ -86,23 +86,23 @@ describe('the verbs that live on a kind', () => {
 
 describe('a tag name that no tag binds addresses a verb', () => {
   it('an address with a kind reads the verb that lives on that kind', async () => {
-    expect(await evalQuery('::qlang/vec/count | docs | count')).toBe(1);
+    expect(await evalQuery('::qlang/vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":count"')).toBe(true);
     expect(await evalQuery('::vec/count | examples | count | gt 0')).toBe(true);
     expect(await evalQuery('::vec/count | spec | /subject')).toEqual(makeTagKeyword('vec'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {
-    expect(await evalQuery('::count | docs !| type')).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
+    expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
   });
 
   it('an address reads the provider\'s verb whatever the scope binds under its name', async () => {
-    expect(await evalQuery(':count 5 | ::vec/count | docs | first | content | contains "number of elements"'))
+    expect(await evalQuery(':count 5 | ::vec/count | doc | content | contains "number of elements"'))
       .toBe(true);
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
-    expect(await evalQuery('::string/count | docs !| type')).toEqual(makeTagKeyword('DocsBindingNotFoundError'));
+    expect(await evalQuery('::string/count | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
     expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 });
@@ -112,8 +112,8 @@ describe('the scope holds the names it wrote', () => {
     expect(await evalQuery('{:c (::vec/count | spec)} | use | env | has :c')).toBe(true);
   });
 
-  it('a value whose kind has no declaration is refused with no address', async () => {
-    expect([...await evalQuery('::Box#[3 1] | docs !| /addresses')]).toEqual([]);
+  it('a value whose tag no declaration pages reads no page', async () => {
+    expect(await evalQuery('::Box#[3 1] | doc')).toBeNull();
   });
 });
 

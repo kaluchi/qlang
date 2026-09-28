@@ -6,7 +6,7 @@
       stands.
 
       ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
-      ~(::vec/join | docs | first | content | contains "separator")
+      ~(::vec/join | doc | content | contains "separator")
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/docContent})
 
@@ -23,7 +23,7 @@
   |~~ The quotes of the doc in their order, which are its examples.
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | quotes | eq [~(add 1) ~(mul 2)])
-      ~("x" | add 1 !| explain | doc | quotes | count | eq 1)
+      ~("x" | add 1 !| explain | page | quotes | count | eq 1)
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docQuotes})
 

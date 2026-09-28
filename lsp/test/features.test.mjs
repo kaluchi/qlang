@@ -218,7 +218,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for BareTypeKeyword tag reference', async () => {
-    const src = '::AddLeftNotNumberError | docs';
+    const src = '::AddLeftNotNumberError | doc';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::AddLeftNotNumberError') + 5;
     const hover = await hoverAtOffset(ast, src, tagOffset);
@@ -492,7 +492,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a `::Tag` head as `struct`', async () => {
-    const { data } = await semanticTokensFor('::AddLeftNotNumberError | docs');
+    const { data } = await semanticTokensFor('::AddLeftNotNumberError | doc');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     const tagTok = tokens.find(t => t.type === 'struct');
     expect(tagTok).toBeTruthy();

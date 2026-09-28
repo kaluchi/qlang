@@ -158,7 +158,7 @@ describe('installModules', () => {
     const sessionInstance = await createSession();
     installModules(sessionInstance, catalog);
     await sessionInstance.evalCell('use :number');
-    const docsCell = await sessionInstance.evalCell(':double | docs | first | content');
+    const docsCell = await sessionInstance.evalCell(':double | doc | content');
     expect(docsCell.error).toBeNull();
     expect(typeof docsCell.result).toBe('string');
     expect(docsCell.result).toContain('Doubles');

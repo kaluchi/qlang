@@ -984,7 +984,7 @@ the facts:
 > "hello" | add 1 !| type | spec
 ::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
 
-> "hello" | add 1 !| type | docs | first | content
+> "hello" | add 1 !| type | doc | content
  The subject of `add` must be a number. …
 ```
 

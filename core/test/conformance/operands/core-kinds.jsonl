@@ -12,5 +12,5 @@
 {"name":"the-vector-kind-reads-a-quote-as-its-vector","query":"::vec~(a | b) | type","expect":"::vec","decision":"D32"}
 {"name":"the-map-kind-reads-a-tagged-map-as-the-bare-one","query":"::map::Box{:a 1} | type","expect":"::map","decision":"D32"}
 {"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D32"}
-{"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true","decision":["D32","D119"],"target":true,"now":"::ProjectionSubjectNotProjectableError"}
+{"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true","decision":["D32","D119"]}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| /actualType","expect":"::string","decision":"D32"}

@@ -713,7 +713,7 @@ Map where the value's kind is the predicate axis.
   `::keyword`, `::tag` for a tag name, `::vec`, `::map`, `::set`,
   `::quote`, `::doc`. The kinds of the core are named under the
   prefix `qlang/` and written short, `::qlang/number` reading as
-  `::number`, and `type | docs` reads the kind's page. Tagged values
+  `::number`, and `type | doc` reads the kind's page. Tagged values
   (verb, binding record, TaggedInstance, materialized error,
   catalog builtin descriptor) produce their tag (`::verb`,
   `::binding`, `::Foo`, `::builtin`); error values produce the
@@ -1000,7 +1000,7 @@ its own eval handler in `eval.mjs`.
   verbs of numbers. A tag the session declares is its own and stays
   out, and a refusal is reached from the place it guards,
   `::number/add | spec | /throws`. For what one binding does reach for
-  the axis trio (`::vec/count | source` / `| docs` / `| examples`).
+  the axis trio (`::vec/count | source` / `| doc` / `| examples`).
 - **Examples**:
   - `::qlang | manifest | filter ~(eq ::number) | count` → `1`.
   - `::number | manifest | has ::number/add` → `true`.
@@ -1162,10 +1162,10 @@ its own eval handler in `eval.mjs`.
 
 - **Arity** 1. **Subject** any value. A Keyword (`:name`) or TagKeyword
   (`::Tag`) reads the binding it names; every other value reads the
-  declaration of its kind, the kind `type` answers, so `5 | docs`
-  reads `::number` and `{:kind ::set} | docs` reads `::map`.
+  declaration of its kind, the kind `type` answers, so `5 | doc`
+  reads `::number` and `{:kind ::set} | doc` reads `::map`.
 - A tag name that no tag binds is the address of a verb from the root:
-  `::vec/count | docs` reads the verb `count` that lives on vectors, a
+  `::vec/count | doc` reads the verb `count` that lives on vectors, a
   verb being addressed through the noun it lives on, and an address reads
   what the verb's provider declared, whatever the scope binds under the name.
 - Returns the `:docs` of the binding's record, a Vec of Doc-values
@@ -1173,19 +1173,19 @@ its own eval handler in `eval.mjs`.
   binding without a doc.
 - Given a name, `docs :name` reads the docs of the member the subject
   holds under it [D88]: the slot a verb's head declares,
-  `::vec/take | docs :count`, and for any other subject the verb the
-  name calls after it, `::map | docs :minus` the page of
+  `::vec/take | doc :count`, and for any other subject the verb the
+  name calls after it, `::map | doc :minus` the page of
   `::map/minus`; `source`, `examples` and `spec` take the name
   alike.
 - **Examples**:
-  - `::vec/count | docs` → Vec of Doc-values from the `count` catalog
+  - `::vec/count | doc` → Vec of Doc-values from the `count` catalog
     entry, read by its address.
-  - `::verb | docs` → Vec of Doc-values from the `::verb` tag-binding.
-  - `:count | docs !| /addresses` → `#[::map/count ::set/count
+  - `::verb | doc` → Vec of Doc-values from the `::verb` tag-binding.
+  - `:count | doc !| /addresses` → `#[::map/count ::set/count
     ::vec/count]`: a keyword names a binding of its scope, and the
     refusal names where the verbs of the name live.
-  - `::map | docs :minus | eq (::map/minus | docs)` → `true`.
-- **Errors**: the subject names no binding → `DocsBindingNotFoundError`,
+  - `::map | doc :minus | eq (::map/minus | doc)` → `true`.
+- **Errors**: the subject names no binding → `DocBindingNotFoundError`,
   carrying `:addresses`.
 
 ### `examples`
@@ -1286,11 +1286,11 @@ deflects on an error that `!| true` then answers.
 
 - **Arity** 0. **Subject** any value; the verb resides on `::any`
   [D100].
-- The explanation of the value [D98], `::explanation{:doc … :value …}`:
+- The explanation of the value [D98], `::explanation{:page … :value …}`:
   the page `docs` reads for it, a name its own, a value the page of
   its kind and an error the page of its site [D7], then the value
   itself, so it prints as the page above what it explains.
-- **Examples**: `"x" | add 1 !| explain | doc | content | contains "must be a number"` → `true`;
+- **Examples**: `"x" | add 1 !| explain | page | content | contains "must be a number"` → `true`;
   `42 | explain | value` → `42`.
 - **Errors**: a name that names nothing → `ExplainBindingNotFoundError`.
 
@@ -1299,7 +1299,7 @@ deflects on an error that `!| true` then answers.
 - **Arity** 0. **Subject** `explanation`; the verb resides on
   `::explanation` [D98].
 - The page the explanation holds.
-- **Examples**: `"x" | add 1 !| explain | doc | type` → `::doc`.
+- **Examples**: `"x" | add 1 !| explain | page | type` → `::doc`.
 
 ### `value`
 
@@ -1314,7 +1314,7 @@ deflects on an error that `!| true` then answers.
 - **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D99].
 - The quotes of the doc, in their order, which are its examples.
 - **Examples**: `|~~ a ~(add 1) b ~~| | quotes` → `[~(add 1)]`;
-  `"x" | add 1 !| explain | doc | quotes | count` → `1`.
+  `"x" | add 1 !| explain | page | quotes | count` → `1`.
 
 ### `links`
 

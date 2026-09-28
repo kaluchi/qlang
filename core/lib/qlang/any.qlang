@@ -583,7 +583,7 @@
       a set among them, and for every other value the kind of the core
       its literal implies (`::number`, `::string`, `::keyword`,
       `::tag`, `::vec`, `::map`, …), named under the prefix `qlang/`
-      and written short. `type | docs` reads the kind's page, and
+      and written short. `type | doc` reads the kind's page, and
       asking what a value is composes `type` with `eq`, `filter ~(type
       | eq ::string)`.
 
@@ -856,43 +856,55 @@
       ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
 
-:docs
-  |~~ `:name | docs` — the docs in the slot of the declaration that
-      binds `:name` in its scope, and `::vec/filter | docs` the page of
-      a verb by its address. A doc answers its text by `content` and
-      its parts by `segments`, the quotes among them the examples
-      `runExamples` runs.
-      Any other value reads the page of its kind, and the `:kind`
-      field of a map names nothing: the map reads the page of
-      `::map`. Given a name, it reads the docs of the member the
-      subject holds under it: `::map | docs :minus` the page of
-      `::map/minus`, `[1 2] | docs :count` the page of the `count`
-      a vector calls, and `::vec/take | docs :count` the docs the head
-      of `take` writes on its slot.
+:doc
+  |~~ `:name | doc` — the page of the declaration that binds `:name`
+      in its scope, and `::vec/filter | doc` the page of a verb by
+      its address; null for a declaration without one. A page answers
+      its text by `content`, its laws by `quotes` and the pages it
+      names by `links`. Any other value reads the page of its kind,
+      and the `:kind` field of a map names nothing: the map reads the
+      page of `::map`.
+      A keyword is an anchor within the page of its subject: `::map |
+      doc :minus` the page of `::map/minus`, `[1 2] | doc :count` the
+      page of the `count` a vector calls, `::vec/take | doc :count` the
+      page the head of `take` writes on its slot, and `::qlang | doc
+      :pipeline` the page of a concept of the language. A vector of
+      anchors is a path, each read within the page the one before it
+      reached, and a set of anchors reads a vector of pages, one per
+      anchor, several pages in one query.
 
-      ~(::vec/filter | docs | first | content | contains "predicate")
-      ~(::AddLeftNotNumberError | docs | first | type | eq ::doc)
-      ~(5 | docs | eq (::number | docs))
-      ~({:kind ::set} | docs | eq (::map | docs))
-      ~(::map | docs :minus | eq (::map/minus | docs))
-      ~([1 2] | docs :count | eq (::vec/count | docs))
-      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | docs :n | first | content | eq " how many ")
+      ~(::vec/filter | doc | content | contains "predicate")
+      ~(::AddLeftNotNumberError | doc | type | eq ::doc)
+      ~(5 | doc | eq (::number | doc))
+      ~({:kind ::set} | doc | eq (::map | doc))
+      ~(::map | doc :minus | eq (::map/minus | doc))
+      ~([1 2] | doc :count | eq (::vec/count | doc))
+      ~(::vec | doc [:take :count] | eq (::vec/take | doc :count))
+      ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
+      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content | eq " how many ")
   ~~|
-  ::verb~(:name #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/docs})
+  ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
 
-::DocsBindingNotFoundError
-  |~~ `docs` — no declaration found for the name it read: a
-      keyword that names no binding of its scope, the name of a
-      verb a provider keeps among them, or a tag name that names
-      nothing. `:addresses` holds the addresses where the verbs of
-      that name live.
+::DocBindingNotFoundError
+  |~~ `doc` — no declaration found for the name it read: a keyword
+      that names no binding of its scope, the name of a verb a provider
+      keeps among them, a tag name that names nothing, or an anchor that
+      names no member of the page before it. `:addresses` holds the
+      addresses where the verbs of that name live.
 
       ~(
-        :nonexistent-binding | docs
+        :nonexistent-binding | doc
         !| [type /bindingName]
-        |  eq [::DocsBindingNotFoundError :nonexistent-binding]
+        |  eq [::DocBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | docs !| /addresses | has ::vec/filter)
+      ~(:filter | doc !| /addresses | has ::vec/filter)
+  ~~|
+
+::DocAnchorNotKeywordError
+  |~~ `doc` — an anchor of a path is no keyword: each step of the path
+      names a member by a keyword.
+
+      ~(::vec | doc [:take 1] !| [type /index] | eq [::DocAnchorNotKeywordError 1])
   ~~|
 
 :examples
@@ -924,15 +936,15 @@
   ~~|
 
 :explain
-  |~~ The explanation of the value, `::explanation{:doc … :value …}`:
-      the page `docs` reads for it, then the value itself, so it prints
+  |~~ The explanation of the value, `::explanation{:page … :value …}`:
+      the page `doc` reads for it, then the value itself, so it prints
       as the page above what it explains. A name reads its own
       page, a value the page of the kind it shows, and an error `!|`
       opened the page of its site, which says what failed.
 
-      ~(42 | explain | doc | eq (::number | docs | first))
-      ~(::number/add | explain | doc | content | contains "Adds two numbers")
-      ~("x" | add 1 !| explain | doc | content | contains "must be a number")
+      ~(42 | explain | page | eq (::number | doc))
+      ~(::number/add | explain | page | content | contains "Adds two numbers")
+      ~("x" | add 1 !| explain | page | content | contains "must be a number")
   ~~|
   ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
 

@@ -1370,7 +1370,7 @@ alias.
 A name may carry a path, as a keyword and a tag name do: the path of
 a noun and the name of a verb that lives on it. `vec/count` calls the
 `count` that lives on vectors, from the root of the tree of names and
-past every binding of the scope, `::vec/count | docs` reads its page,
+past every binding of the scope, `::vec/count | doc` reads its page,
 and an address that names no verb is refused with
 `::UnresolvedAddressError`, whose `:address` holds the address as a tag
 name. The effect marker of such a call rides on its verb, `any/@out`.
@@ -1463,7 +1463,7 @@ documents `x`. A doc ahead of any other step is a doc value, chained
 with `|`.
 
 A binding's docs are preserved in the AST, as the doc literals of its
-slot, and reachable through the `:name | docs` axis-operand
+slot, and reachable through the `:name | doc` axis-operand
 introduced in [Reflection](#reflection). The takeaway here is that
 docs are addressable.
 
@@ -1915,7 +1915,7 @@ The explanation answers by verbs of its own: `doc` the page, `value`
 what it explains, an error among them raised, as it arrived before `!|`
 opened it [D101], and the
 page answers its quotes, which are its examples, by the verb of the
-doc, `explain | doc | quotes` [D99].
+doc, `explain | page | quotes` [D99].
 
 Whether a value is an error reads as `false !| true`: the head
 `false` rides `|` like every other step and deflects on an error,
@@ -2175,7 +2175,7 @@ compose with the axis trio on its address (`::vec/filter | source`).
 | `examples` | any value | Vec of Quote-values pulled from every `~(…)` segment in the docs |
 
 ```qlang
-> ::vec/filter | docs | first | type | eq ::doc
+> ::vec/filter | doc | type | eq ::doc
 true
 
 > ::ParseError | source | parse | startsWith "::ParseError"
@@ -2191,7 +2191,7 @@ by its address; a keyword spelling the name of such a verb is refused
 with the addresses where the verb lives:
 
 ```qlang
-> :count | docs !| /addresses
+> :count | doc !| /addresses
 #[::map/count ::set/count ::vec/count]
 ```
 
@@ -2214,10 +2214,10 @@ tag, and a map the page of `::map` whatever its `:kind` field holds,
 since a field of a map names nothing.
 
 ```qlang
-> 5 | docs | eq (::number | docs)
+> 5 | doc | eq (::number | doc)
 true
 
-> {:kind ::set} | docs | eq (::map | docs)
+> {:kind ::set} | doc | eq (::map | doc)
 true
 ```
 
@@ -2225,14 +2225,14 @@ Given a name, each axis reads the member the subject holds under it
 [D88]: the slot a verb's head declares, and for any other subject the
 verb the name calls after it. A tag name in the subject position is
 dispatched to the noun it names after the verbs of tag names, so
-`::map | docs :minus` reads the page of `::map/minus`, and a vector
+`::map | doc :minus` reads the page of `::map/minus`, and a vector
 reads the page of the `count` it calls:
 
 ```qlang
-> ::map | docs :minus | eq (::map/minus | docs)
+> ::map | doc :minus | eq (::map/minus | doc)
 true
 
-> [1 2] | docs :count | eq (::vec/count | docs)
+> [1 2] | doc :count | eq (::vec/count | doc)
 true
 
 > ::vec/take | source :count | parse

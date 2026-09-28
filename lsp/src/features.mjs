@@ -62,22 +62,22 @@ function dedent(text) {
   return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
-// The contents of the docs a name reads, once per name: a tag's own, the
+// The contents of the page a name reads, once per name: a tag's own, the
 // page of a verb several kinds answer on its contract on any value [D72],
 // or the page of the first address where a verb of the name lives [D62].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
   const query = isTagBindingName(name)
-    ? `${name} | docs`
-    : `::any/${name} | docs !| (:"${name}" | docs) !| (/addresses | first | if (eq null) ~([]) ~(docs))`;
-  let docs;
+    ? `${name} | doc`
+    : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
+  let page;
   try {
-    docs = await evalQuery(query);
+    page = await evalQuery(query);
   } catch {
-    docs = [];
+    page = null;
   }
-  const contents = Array.isArray(docs) ? docs.map(proseOfSegments) : [];
+  const contents = Array.isArray(page) ? [proseOfSegments(page)] : [];
   docsCache.set(name, contents);
   return contents;
 }

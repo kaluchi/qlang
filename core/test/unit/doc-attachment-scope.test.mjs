@@ -24,13 +24,13 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
 
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('documents a declaration', async () => {
-    const result = await evalQuery(':x |~~ note ~~| 42 | :x | docs * content');
-    expect(result).toEqual([' note ']);
+    const result = await evalQuery(':x |~~ note ~~| 42 | :x | doc | content');
+    expect(result).toBe(' note ');
   });
 
   it('documents a freeze', async () => {
-    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | docs * content');
-    expect(result).toEqual([' note ']);
+    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | doc | content');
+    expect(result).toBe(' note ');
   });
 
   it('holds the doc literals of the slot as the tree holds any doc', () => {

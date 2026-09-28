@@ -1,0 +1,124 @@
+|~ `::builtin`, the kind of a descriptor, and the refusals of the kernel
+   no reader reaches by a query: the table of primitives, the tree the
+   evaluator does not know, the session, the printer and the loading of
+   the catalog. ~|
+
+::builtin
+  |~~ The descriptor, a map of fields under this tag. A built-in verb
+      ends its head with one, `::builtin{:impl :qlang/prim/add}`, which
+      names the primitive the head calls; a kind declares its
+      constructor with one, `::builtin{:impl :qlang/type/vec}`; a tag
+      declared with a doc alone holds an empty one. A descriptor is
+      data and runs nothing by itself: a name bound to one reads it.
+
+      ~(::builtin{:impl :qlang/prim/count} | :c / | [1 2] | c | /impl | eq :qlang/prim/count)
+  ~~|
+  ::builtin{:impl :qlang/type/builtin}
+
+::BuiltinPayloadNotMapError
+  |~~ `::builtin<payload>` payload must be a Map descriptor.
+      User-site invocations on a String / Vec / Scalar payload
+      fire this tag rather than silently destructure-iterating
+      the payload into a garbage descriptor.
+
+      ~(
+        ::builtin"hello"
+        !| [type /actualType]
+        |  eq [::BuiltinPayloadNotMapError ::string]
+       )
+      ~(
+        ::builtin[1 2 3]
+        !| [type /actualType]
+        |  eq [::BuiltinPayloadNotMapError ::vec]
+       )
+  ~~|
+
+::MalformedTaggedJSONError
+  |~~ `fromTaggedJSON` received a JSON shape it does not
+      recognise as a tagged-value envelope.
+  ~~|
+
+::TaggedJSONNumberNotFiniteError
+  |~~ Same reading on the tagged-JSON wire: a decoded number past
+      the finite double range refuses rather than restoring a
+      session or a fixture around a value no literal renders back.
+  ~~|
+
+::TaggedJSONUnencodableValueError
+  |~~ `toTaggedJSON` cannot encode a function value, nor the record
+      of a binding that holds one, since a function a host bound has no
+      reading as data.
+  ~~|
+
+::UnknownAstNodeTypeError
+  |~~ Evaluator dispatch — encountered an AST node whose `.type`
+      is not in `AST_NODE_EVALUATORS`. Runtime invariant
+      violation.
+  ~~|
+
+::UnknownCombinatorKindError
+  |~~ Combinator dispatch — encountered a combinator kind not
+      in `COMBINATOR_EVALUATORS`. Runtime invariant violation.
+  ~~|
+
+::PrimitiveKeyAlreadyBoundError
+  |~~ Primitive registry — two runtime modules tried to bind
+      the same primitive name.
+  ~~|
+
+::ThrowSiteSpecAlreadyRecordedError
+  |~~ Throw-site spec registry — two per-site error classes were
+      declared under one name. The name is the identity this
+      catalog's `::Tag` binding and the stamped `spec` both read,
+      so the second declaration would speak for both sites.
+  ~~|
+
+::PrimitiveKeyNotStringError
+  |~~ Primitive registry — bind() received a non-string
+      handle.
+  ~~|
+
+::PrimitiveKeyUnboundError
+  |~~ Primitive registry — `:impl` handle on a descriptor
+      Map points to a primitive that was never bound.
+  ~~|
+
+::PrimitiveRegistrySealedError
+  |~~ The table of primitives is sealed when the bootstrap completes,
+      and a primitive bound after it is refused.
+  ~~|
+
+::SessionPayloadInvalidError
+  |~~ Session deserialization — payload is malformed (missing
+      required fields).
+  ~~|
+
+::SessionSchemaVersionMismatchError
+  |~~ Session deserialization — payload `:schemaVersion` does
+      not match SESSION_SCHEMA_VERSION.
+  ~~|
+
+::NumberNotFiniteLeakedToPrintError
+  |~~ A qlang Number is a finite double. Source cannot mint an
+      infinity or a NaN — the parser refuses the literal and every
+      arithmetic site lifts a numericDomain error — so this tag
+      reports a value a host installed through `session.bind` or a
+      locator's `impls` map. Render and the JSON boundary are where
+      such a value becomes observable: `printValue` would answer
+      `Infinity`, which no production reads back, and `json` would
+      answer `null`. `:actualValue` carries the offending magnitude
+      as a String, the one shape that renders.
+  ~~|
+
+::BootstrapCatalogNotLoadedError
+  |~~ The root of the catalog answered an error, so a module of the
+      catalog the locator resolved did not load; `:tagName` names what
+      the root answered with.
+  ~~|
+
+::BootstrapRootMissingError
+  |~~ `#qlang/core` resolved to nothing, so the bootstrap has no
+      root module to evaluate. The host adds the entry to
+      `package.json#imports` (Node) or to the import map (browser),
+      or hands `langRuntime({ locator })` a locator of its own.
+  ~~|

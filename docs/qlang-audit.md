@@ -1109,11 +1109,9 @@ it in one sentence [D20].
 The catalog itself speaks the vocabulary of its implementation where
 it documents the refusals of the kernel. The prose a session reads to
 learn the language names JavaScript files and symbols: the page of an
-unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”, and the
-page of the depth budget sends the reader to “`EVAL_DEPTH_LIMIT`
-(state.mjs)” (`core/lib/qlang/runtime-invariants.qlang`). A session
-learning qlang from its catalog meets the names of the files that
-implement it.
+unknown node of the tree speaks of “`AST_NODE_EVALUATORS`”
+(`core/lib/qlang/builtin.qlang`). A session learning qlang from its
+catalog meets the names of the files that implement it.
 
 Examples live on four planes: the conformance suite, the `~(…)` quotes
 in the catalog, the REPL pairs in the reference, and the arrow pairs in

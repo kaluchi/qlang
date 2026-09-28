@@ -1,0 +1,35 @@
+|~ `::fail`, the step `!|` runs on an error alone, and its refusals. ~|
+
+::fail
+  |~~ The step `!| step`, the fail track: it runs its step on an error
+      alone, opened to its facts, and passes any other value by, so it is
+      where a failure is read, recovered or raised again, while `|`
+      passes the error by. As a record it wraps the quote of that one
+      step. ::link~(::error | doc)
+      ::link~(::qlang | doc :errors)
+
+      ~(~(!| /kind) | first | payload | eq ~(/kind))
+  ~~|
+  ::builtin{:impl :qlang/type/fail}
+
+::FailPayloadNotQuoteError
+  |~~ The payload of ::fail is the quote of the step it wraps.
+
+      ~(
+        42 | tag ::fail
+        !| [type /actualType]
+        |  eq [::FailPayloadNotQuoteError ::number]
+       )
+  ~~|
+
+::FailReadBackDiffersError
+  |~~ The ::fail prints as text that reads back as another step: it
+      wraps one step, and a pipeline under `!|` is written as a
+      group.
+
+      ~(
+        ~(a | b) | tag ::fail
+        !| [type /printed]
+        |  eq [::FailReadBackDiffersError "!| a | b"]
+       )
+  ~~|

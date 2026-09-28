@@ -1,9 +1,32 @@
-|~ The verbs of numbers. Each resides on `::qlang/number`, the
+|~ `::number`, the kind of numbers, its constructor and its refusal,
+   and the verbs of numbers. Each resides on `::qlang/number`, the
    kind whose module declares it, so its subject is a number, and its
    head is its declaration, which the runtime executes before the
    primitive runs. The refusals of a verb sit under it: the head
    raises the one its site declares at the place it checks, and the
    primitive the rest. ~|
+
+::number
+  |~~ The kind of a number, a finite double: an infinity or NaN is no
+      value, so a step whose result leaves the domain answers an error.
+      No kind reads text, so `::number(5)` is `5` and `::number"5"` is
+      refused; `parseJson` reads a number out of a string.
+      ::snippet~(::number | spec | /verbs) lists its verbs.
+      ::link~(::qlang | doc :values)
+
+      ~(5 | type | eq ::number)
+      ~(::qlang/number(5) | eq 5)
+  ~~|
+  ::builtin{:impl :qlang/type/number}
+
+::NumberPayloadNotNumberError
+  |~~ `::number(…)` payload must be a number.
+      ~(
+        ::number"5"
+        !| [type /actualType]
+        |  eq [::NumberPayloadNotNumberError ::string]
+       )
+  ~~|
 
 :add
   |~~ Adds two numbers: `a | add b` computes a + b, and the full form

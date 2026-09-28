@@ -1,8 +1,32 @@
-|~ The verbs of maps. Each resides on `::qlang/map`, the kind whose
+|~ `::map`, the kind of maps, its constructor and its refusal, and
+   the verbs of maps. Each resides on `::qlang/map`, the kind whose
    module declares it, under the contract of its name on `::qlang/any`,
    whose page and laws it answers. A map's elements are its
    values, and its keys are the shape that travels with them: a
    verb that keeps the kind keeps the keys of the entries it keeps. ~|
+
+::map
+  |~~ The kind of a map, the value of a `{…}` literal: named facts under
+      keywords, the shape a JSON object arrives in. A map literal is also
+      the shape an answer takes, each value a group run on the subject,
+      `{:id /id :n (/tags | count)}`; `/k` reads a field, and `*` over
+      a map runs a step on each value under its key.
+      ::snippet~(::map | spec | /verbs) lists its verbs. ::link~(::proj | doc)
+      ::link~(::qlang | doc :values)
+
+      ~({:a 1} | type | eq ::map)
+      ~(::map{:a 1} | eq {:a 1})
+  ~~|
+  ::builtin{:impl :qlang/type/map}
+
+::MapPayloadNotMapError
+  |~~ `::map{…}` payload must be a Map.
+      ~(
+        ::map[1]
+        !| [type /actualType]
+        |  eq [::MapPayloadNotMapError ::vec]
+       )
+  ~~|
 
 :count
   |~~ The number of entries.

@@ -1,0 +1,35 @@
+|~ `::group`, the steps in parentheses run on the value in the pipe,
+   and its refusals. ~|
+
+::group
+  |~~ The step `(pipeline)`, a group: it runs its steps on the value in
+      the pipe and answers their result, its names left inside. Each part
+      of a literal is such a group, which is why a literal is the shape an
+      answer takes, `[(add 1) (mul 2)]`. As a record it wraps the quote
+      of its pipeline. ::link~(::bind | doc)
+      ::link~(::qlang | doc :pipeline)
+
+      ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
+  ~~|
+  ::builtin{:impl :qlang/type/group}
+
+::GroupPayloadNotQuoteError
+  |~~ The payload of ::group is the quote of its pipeline.
+
+      ~(
+        42 | tag ::group
+        !| [type /actualType]
+        |  eq [::GroupPayloadNotQuoteError ::number]
+       )
+  ~~|
+
+::GroupReadBackDiffersError
+  |~~ The ::group prints as text that reads back as another step, or
+      as none: a group holds at least one step.
+
+      ~(
+        ~() | tag ::group
+        !| [type /printed]
+        |  eq [::GroupReadBackDiffersError "()"]
+       )
+  ~~|

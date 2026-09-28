@@ -615,13 +615,14 @@ The reference implementation assembles `langRuntime()` from two
 co-located sources:
 
 - **`lib/qlang/core.qlang`** — the root: the vector of the catalog's
-  modules in the order the bootstrap loads them, `runtime-invariants`,
-  `tag`, then the module of each noun (`number`, `string`, `vec`,
-  `any`, …), whose verbs reside on their noun [D72], [D113]. Each
-  module is a series of BindStep declarations: the refusals of its
-  sites as tag bindings and its verbs as `::verb~(…)`, a built-in's
-  body a `::builtin{:impl :qlang/prim/<name>}` step naming its
-  primitive.
+  modules in the order the bootstrap loads them, `builtin`, the
+  kernel's, first, then the module of each kind (`verb`, `tag`,
+  `number`, `vec`, `proj`, `any`, …), whole: its page, its
+  constructor, the refusals of its place and its verbs, which reside
+  on it [D72], [D112], [D113], [D114]. Each module is a series of
+  BindStep declarations: the refusals as tag bindings and the verbs as
+  `::verb~(…)`, a built-in's body a
+  `::builtin{:impl :qlang/prim/<name>}` step naming its primitive.
 
 - **`core/src/runtime/*.mjs`** — the JS impls. Each module registers
   its executable primitives into `PRIMITIVE_REGISTRY` at module-

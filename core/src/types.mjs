@@ -13,7 +13,7 @@ export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or a locator's " +
     'impls map, where source cannot mint one',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // Reads the guard at every seam where a Number becomes observable.

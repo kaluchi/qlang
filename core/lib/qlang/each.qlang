@@ -1,0 +1,52 @@
+|~ `::each`, the step `*` runs on each element, and its refusals. ~|
+
+::each
+  |~~ The step `* body`, the distribute: it runs its body on each
+      element of a vector or each value of a map and answers the results
+      in their place, the map of other languages; the first element whose
+      body fails is its answer, the elements after it left unrun,
+      and a body that recovers, `* (f !| 0)`, keeps every element. `*`
+      stands in the place of `|`, and several steps of a body stand in
+      parentheses. As a record it wraps the quote of its body.
+      ::link~(::vec | doc)
+      ::link~(::qlang | doc :pipeline)
+
+      ~(~(* add 1) | first | payload | eq ~(add 1))
+      ~(~(* (add 1 | mul 2)) | first | payload | count | eq 2)
+  ~~|
+  ::builtin{:impl :qlang/type/each}
+
+::EachPayloadNotQuoteError
+  |~~ The payload of ::each is the quote of its body.
+      ::link~(::each | doc)
+
+      ~(
+        42 | tag ::each
+        !| [type /actualType]
+        |  eq [::EachPayloadNotQuoteError ::number]
+       )
+  ~~|
+
+::EachReadBackDiffersError
+  |~~ The ::each prints as text that reads back as another step, or
+      as none: a body holds at least one step.
+      ::link~(::each | doc)
+
+      ~(
+        ~() | tag ::each
+        !| [type /printed]
+        |  eq [::EachReadBackDiffersError "* ()"]
+       )
+  ~~|
+
+::DistributeSubjectNotSequenceError
+  |~~ Distribute combinator (`*`) — subject must be a Vec or Set
+      for per-element forking; a Set distributes into a Vec result.
+      ::link~(::each | doc)
+
+      ~(
+        42 * add 1
+        !| [type /actualType]
+        |  eq [::DistributeSubjectNotSequenceError ::number]
+       )
+  ~~|

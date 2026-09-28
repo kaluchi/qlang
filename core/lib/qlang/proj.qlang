@@ -1,0 +1,108 @@
+|~ `::proj`, the step that reads a part of a value, and the refusals of
+   a read that misses. ~|
+
+::proj
+  |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
+      the pipe by keys and indices, a negative index from the end, and a
+      miss answers an error, never null, so a misspelled field is found
+      where it is read. `/` is the value itself. As a record, `:path` is
+      the keys and indices it walks, `[]` for `/`.
+      ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
+      ::link~(::qlang | doc :pipeline)
+
+      ~(~(/items/0/name) | first | /path | eq [:items 0 :name])
+      ~(~(/) | first | /path | eq [])
+  ~~|
+  ::builtin{:impl :qlang/type/proj}
+
+::ProjPayloadNotSchemaError
+  |~~ A ::proj payload is a Map of `:path` a Vec of keys and
+      integers.
+      ::link~(::proj | doc)
+
+      ~(
+        ::proj{:path "items"}
+        !| [type /field]
+        |  eq [::ProjPayloadNotSchemaError :path]
+       )
+  ~~|
+
+::ProjReadBackDiffersError
+  |~~ The ::proj prints as text that reads back as another step: a
+      key that reads as an index is written as the index.
+      ::link~(::proj | doc)
+
+      ~(
+        ::proj{:path [:"0"]}
+        !| [type /printed]
+        |  eq [::ProjReadBackDiffersError "/\"0\""]
+       )
+  ~~|
+
+::ProjectionFieldNotOnValueClassError
+  |~~ Projection segment names no declaration of the signature it
+      reads.
+      ::link~(::proj | doc)
+
+      ~(
+        ::vec/join | spec | /missing
+        !| [type /key]
+        |  eq [::ProjectionFieldNotOnValueClassError "missing"]
+       )
+  ~~|
+
+::ProjectionIndexOutOfBoundsError
+  |~~ Projection `/n` — the integer index resolves outside
+      the Vec or Set subject's `[0, length)` range.
+      ::link~(::proj | doc)
+
+      ~(
+        [10 20 30] | /99
+        !| [type /index /length]
+        |  eq [::ProjectionIndexOutOfBoundsError 99 3]
+       )
+  ~~|
+
+::ProjectionKeyNotInMapError
+  |~~ Projection `/key` — the named key is absent from the
+      Map subject (strict-miss). Use `at :key` for
+      null-coalescing access.
+      ::link~(::proj | doc)
+
+      ~(
+        {:a 1} | /b
+        !| [type /key]
+        |  eq [::ProjectionKeyNotInMapError "b"]
+       )
+  ~~|
+
+::ProjectionSubjectNotProjectableError
+  |~~ Projection `/key` requires a map, a vector, a set or a tagged
+      value as its subject; null and other shapes lift to this error.
+      ::link~(::proj | doc)
+
+      ~(
+        42 | /foo
+        !| [type /key /actualType]
+        |  eq [::ProjectionSubjectNotProjectableError "foo" ::number]
+       )
+  ~~|
+
+::ProjectionSequenceKeyNotIntegerError
+  |~~ Projection segment is a non-numeric string but the
+      subject is a Vec or Set — sequence indices must be integer
+      offsets (insertion-order on a Set per §Set in
+      qlang-spec.md).
+      ::link~(::proj | doc)
+
+      ~(
+        [10 20 30] | /name
+        !| [type /key]
+        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
+       )
+       ~(
+        #[:a :b :c] | /name
+        !| [type /key]
+        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
+       )
+  ~~|

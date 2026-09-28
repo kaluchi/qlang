@@ -289,7 +289,7 @@ Stay inside the qlang surface. Do not propose changes outside the repository.
    - Read `core/src/grammar.peggy` to know the current AST shape.
    - Read `core/src/walk.mjs::astChildrenOf` to know the canonical traversal contract.
    - Read `docs/qlang-spec.md` for the current public surface.
-   - Read the per-family catalog files under `core/lib/qlang/operand/<family>.qlang` plus `core/lib/qlang/runtime-invariants.qlang` and `core/lib/qlang/tag.qlang` for the authoritative operand catalog (a series of `BindStep` declarations whose bodies are `::builtin{:impl :qlang/prim/<name> …}` TaggedLit descriptors that fold into Maps carrying `:impl` plus authored metadata, with `::builtin` identity on the Map's JS-header slot; the `:impl` handle resolves through `PRIMITIVE_REGISTRY`). `core/lib/qlang/core.qlang` is the orchestrator that loads every family via `use([…])`.
+   - Read the module of each kind the change touches under `core/lib/qlang/<kind>.qlang` for the authoritative catalog: the kind's page, its constructor, the refusals of its place and its verbs, a built-in's body a `::builtin{:impl :qlang/prim/<name>}` step naming its primitive in `PRIMITIVE_REGISTRY`. `core/lib/qlang/core.qlang` lists the modules in the order the bootstrap loads them.
    - For added files, also read what they import from to verify the contract assumed at the call site.
 
 3. **Run the checks** in order, recording findings as you go:

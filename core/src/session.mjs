@@ -34,12 +34,12 @@ const SESSION_SCHEMA_VERSION = 4;
 const SessionPayloadInvalidError = declarePerSiteError(
   'SessionPayloadInvalidError', 'sessionError',
   () => 'deserializeSession: invalid session payload',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 const SessionSchemaVersionMismatchError = declarePerSiteError(
   'SessionSchemaVersionMismatchError', 'sessionError',
   ({ actual, expected }) => `deserializeSession: unsupported schemaVersion ${actual} (expected ${expected})`,
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // createSession(opts?) → Session

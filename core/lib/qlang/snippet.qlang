@@ -1,0 +1,16 @@
+|~ `::snippet`, the kind of a quote a page shows its reader to run and
+   see. ~|
+
+::snippet
+  |~~ The kind of a snippet, a query a page shows its reader to run and
+      see, written in the prose of a doc as a quote under `::snippet`: a
+      listing, ::snippet~(::vec | spec | /verbs), or a demonstration of
+      a form, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
+      link opens a page; a snippet answers whatever it shows, which
+      `open` runs, and `snippets` reads the snippets of a doc. The suite
+      runs every snippet of the catalog, so none answers an error.
+      ::link~(::link | doc) ::link~(::qlang | doc :hypertext)
+
+      ~(|~~ ::snippet~(::qlang | manifest) ~~| | snippets | first | open | has ::number)
+      ~(::vec | doc | snippets | count | gt 0)
+  ~~|

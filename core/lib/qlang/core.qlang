@@ -1,19 +1,33 @@
 |~ The root of the catalog: the modules the bootstrap loads in order,
-   the refusals of the kernel, the kinds, and the module of each noun. ~|
+   the kernel's first, then the module of each kind, whole: its page,
+   its constructor, its refusals and its verbs. ~|
 
-[:qlang/runtime-invariants
-     :qlang/tag
-     :qlang/number
-     :qlang/string
-     :qlang/keyword
-     :qlang/vec
-     :qlang/set
-     :qlang/map
-     :qlang/boolean
-     :qlang/quote
-     :qlang/doc
-     :qlang/tagged
-     :qlang/any
-     :qlang/error
-     :qlang/explanation
-     :qlang/qlang]
+[:qlang/builtin
+ :qlang/verb
+ :qlang/tag
+ :qlang/null
+ :qlang/boolean
+ :qlang/number
+ :qlang/string
+ :qlang/keyword
+ :qlang/vec
+ :qlang/set
+ :qlang/map
+ :qlang/quote
+ :qlang/doc
+ :qlang/spec
+ :qlang/binding
+ :qlang/error
+ :qlang/elision
+ :qlang/link
+ :qlang/snippet
+ :qlang/explanation
+ :qlang/tagged
+ :qlang/call
+ :qlang/proj
+ :qlang/bind
+ :qlang/each
+ :qlang/fail
+ :qlang/group
+ :qlang/any
+ :qlang/qlang]

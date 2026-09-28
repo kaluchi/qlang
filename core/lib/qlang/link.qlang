@@ -1,0 +1,20 @@
+|~ `::link`, the kind of a quote a page names for its reader to
+   follow. ~|
+
+::link
+  |~~ The kind of a link, a query a page names for its reader to follow,
+      written in the prose of a doc as a quote under `::link`.
+      Links are what make the pages a hypertext: a page names the pages
+      that go deeper, and a reader reaches them by `open`, which runs the
+      query the link holds. A quote with no tag is a law, which answers
+      true; a link opens a page, so `links * open` answers pages alone,
+      and a query that lists or shows something is a snippet. The suite
+      follows every link of the catalog, so none goes dead. A host may
+      stack its own tag over a link.
+      ::snippet~(::qlang | doc | links) lists the links of the first page.
+      ::link~(::qlang | doc :hypertext)
+
+      ~(|~~ ::link~(::qlang | doc :values) ~~| | links | first | type | eq ::link)
+      ~(::qlang | doc | links * open | every ~(type | eq ::doc))
+      ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
+  ~~|

@@ -1,0 +1,20 @@
+|~ `::binding`, the kind of the record a declaration writes into its
+   scope. ~|
+
+::binding
+  |~~ The kind of the record a declaration writes into its scope. A name
+      is a record that carries its page and its source, so what is named
+      can be listed and asked: `:name`, the keyword or the tag it binds,
+      `:docs`, one doc per doc of its slot, `:value`, `:source`, the
+      quote of the declaring step, and `:module`, the source it came
+      from. `env` answers the records of the scope, a name reads the value
+      its record holds, and the axes project the record, so `env | /x |
+      doc` answers the page of `x`. A value `use` or a host binds is a
+      binding without a doc and without a source. ::link~(::bind | doc)
+      ::link~(::qlang | doc :verbs)
+
+      ~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
+      ~(:x |~~ One. ~~| 1 | env | /x | doc | content | eq " One. ")
+      ~(:x 1 | env | /x | /name | eq :x)
+      ~({:k 2} | use | env | /k | /source | eq null)
+  ~~|

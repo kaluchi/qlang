@@ -10,7 +10,7 @@ export const BootstrapRootMissingError = declareInvariantError(
   'BootstrapRootMissingError',
   () => "qlang bootstrap: '#qlang/core' must resolve to the catalog root module — " +
     'add an entry to package.json#imports or the import map',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // A catalog root that answers an error left a module of the catalog
@@ -20,7 +20,7 @@ export const BootstrapCatalogNotLoadedError = declareInvariantError(
   ({ tagName }) => `qlang bootstrap: the catalog root answered ${tagName}; the modules ` +
     'of the catalog load through the sources the locator resolves for qlang/core and for ' +
     'each namespace it uses',
-  { operand: '::qlang' }
+  { operand: '::builtin' }
 );
 
 // platformLocator(namespaceName) → Promise<{ source } | null>: the

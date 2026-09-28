@@ -1790,9 +1790,10 @@ and telling the language with the page of every kind saying why it is
 there [D110].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
-[D108], [D109], [D111], [D117], [D118], [D119] and [D121]: a parse error that names no marker of a comment
+[D108], [D109], [D111], [D117], [D118], [D119], [D121] and [D122]: a parse error that names no marker of a comment
 among the continuations of a quote left open, the verbs the runs of the
-benchmark missed, the link a page names for a reader to follow, which opens a page, and an
+benchmark missed, the link a page names for a reader to follow, which opens a page, the
+snippet it shows to run and see, and an
 answer within a budget whose markers read what it left out, and a first
 screen that opens the pages of the concepts in one query, and a name
 that answers one page, its anchors read by a keyword, a path or a set;
@@ -2148,3 +2149,4 @@ maintainer wants to explore it before it is fixed.
 [D119]: decisions/D119.md
 [D120]: decisions/D120.md
 [D121]: decisions/D121.md
+[D122]: decisions/D122.md

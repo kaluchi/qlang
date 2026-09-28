@@ -35,22 +35,25 @@ bindPrim('apply', async (subject, code) => await code(subject));
 bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
 bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
-bindPrim('docLinks', doc => Object.freeze(doc.filter(isLink)));
+bindPrim('docLinks', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'link'))));
+bindPrim('docSnippets', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'snippet'))));
 bindPrim('elide', (subject, budget) => elide(subject, budget));
 
-// A link opens to the answer of its query, run in the scope of the reader
-// that opens it, so a page names what its reader's scope holds [D111].
-bindStateReader('linkOpen', async (link, state) => {
-  let query = link;
+// A quote opens to the answer of its query, run in the scope of the
+// reader that opens it beneath the tags over it, so a page names what its
+// reader's scope holds [D111], [D122].
+bindStateReader('quoteOpen', async (segment, state) => {
+  let query = segment;
   while (isValueClass(query, 'taggedInstance')) query = query.payload;
   return await codeOf(query, state)(null);
 });
 
-// A segment a reader follows: a quote under a stack of tags that holds
-// `::link`, a host's tag over it among them [D108].
-function isLink(segment) {
+// A segment in a role: a quote under a stack of tags that holds the tag
+// of the role, `::link` or `::snippet`, a host's tag over it among them
+// [D108], [D122].
+function holdsRole(segment, roleName) {
   for (let beneath = segment; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
-    if (beneath.tag.name === 'link') return true;
+    if (beneath.tag.name === roleName) return true;
   }
   return false;
 }

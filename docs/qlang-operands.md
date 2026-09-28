@@ -1320,9 +1320,17 @@ deflects on an error that `!| true` then answers.
 
 - **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D108].
 - The links of the doc, in their order: each quote under a stack of
-  tags that holds `::link`, a query a reader follows, which answers
-  without an error.
-- **Examples**: `|~~ see ::link~(::qlang | manifest) ~~| | links | count` → `1`.
+  tags that holds `::link`, a query a reader follows, which opens a
+  page [D121].
+- **Examples**: `|~~ see ::link~(::qlang | doc :values) ~~| | links | count` → `1`.
+
+### `snippets`
+
+- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D122].
+- The snippets of the doc, in their order: each quote under a stack of
+  tags that holds `::snippet`, a query a reader runs to see what it
+  shows, which answers without an error.
+- **Examples**: `|~~ ::snippet~([2 1] | sort) ~~| | snippets * open` → `[[1 2]]`.
 
 Asking each element whether it is an error:
 

@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
-import { isDoc, isValueClass } from '../../src/types.mjs';
+import { isDoc, isErrorValue, isValueClass } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
 
@@ -29,20 +29,32 @@ async function catalogLinks() {
     if (query.startsWith('::qlang | doc :')) pageQueries.push(query);
   }
   const links = [];
+  const snippets = [];
   for (const pageQuery of pageQueries) {
     for (const link of await evalQuery(`${pageQuery} | links`)) links.push({ page: pageQuery, query: queryOfLink(link) });
+    for (const snippet of await evalQuery(`${pageQuery} | snippets`)) snippets.push({ page: pageQuery, query: queryOfLink(snippet) });
   }
-  return links;
+  return { links, snippets };
 }
 
 describe('the links of the catalog [D108]', () => {
   it('every link opens a page', async () => {
-    const links = await catalogLinks();
+    const { links } = await catalogLinks();
     const dead = [];
     for (const link of links) {
       if (!isDoc(await evalQuery(link.query))) dead.push(`${link.page}: ${link.query}`);
     }
     expect(dead).toEqual([]);
     expect(links.length).toBeGreaterThan(0);
+  }, 60_000);
+
+  it('every snippet answers without an error [D122]', async () => {
+    const { snippets } = await catalogLinks();
+    const failing = [];
+    for (const snippet of snippets) {
+      if (isErrorValue(await evalQuery(snippet.query))) failing.push(`${snippet.page}: ${snippet.query}`);
+    }
+    expect(failing).toEqual([]);
+    expect(snippets.length).toBeGreaterThan(0);
   }, 60_000);
 });

@@ -35,3 +35,13 @@
       ~(|~~ ::link~(::qlang | manifest) ~~| | links | first | :l / | null | apply l | has ::number)
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docLinks})
+
+:snippets
+  |~~ The snippets of the doc in their order: each quote under a stack
+      of tags that holds `::snippet`, a query a reader runs to see what
+      it shows.
+
+      ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
+      ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/docSnippets})

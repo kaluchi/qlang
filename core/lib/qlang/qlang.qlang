@@ -19,7 +19,7 @@
       pipeline reads. Every value prints as a literal that reads back as
       itself. Rests on nothing; the pipeline, the verbs and the
       hypertext rest on it.
-      `::qlang | manifest` lists the kinds. ::link~(::tag | doc)
+      ::snippet~(::qlang | manifest) lists the kinds. ::link~(::tag | doc)
       ::link~(::qlang | doc :pipeline)
 
       ~(::Box::Crate{:a 1} | type | eq ::Box)
@@ -64,8 +64,8 @@
       constructor checks or builds each value put under it and answers
       an error for one it refuses. Rests on
       values and the pipeline; errors name the verb that refused.
-      `::vec | spec | /verbs` lists the verbs of a kind and
-      `::qlang/any | spec | /verbs` those of every value.
+      ::snippet~(::vec | spec | /verbs) lists the verbs of a kind and
+      ::snippet~(::qlang/any | spec | /verbs) those of every value.
       ::link~(::verb | doc) ::link~(::qlang | doc :errors)
 
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
@@ -123,22 +123,23 @@
       `::qlang | doc :pipeline`, a vector of anchors a path, a set of
       anchors several pages at once. A page is a doc, prose that holds
       code: a quote with no tag is a law, which `runExamples` holds to
-      answer true, and a quote under `::link` is a link, a query a reader
-      follows by `open`. So a page leads on to the pages that go deeper,
+      answer true, a quote under `::link` is a link to another page, and
+      a quote under `::snippet` a query a reader runs to see what it
+      shows; `open` runs either. So a page leads on to the pages that go deeper,
       and the pipeline moves through them as through any data:
       `manifest` lists the kinds, `spec | /verbs` the verbs of a kind,
       `links * open` opens every page a page names in one query, and a
       filter over pages by `content | contains` searches them. Nothing
       is read that was not asked for, and a query names the shape of
       what it reads. Rests on every concept before it.
-      ::link~(::doc | doc) ::link~(::link | doc)
+      ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang | doc :hosts)
 
       ~(::qlang | doc | links * open | count | gt 0)
       ~(::vec/take | [(doc | type) (spec | type) (source | type)] | eq [::doc ::spec ::quote])
       ~(::vec | spec | /verbs | filter ~(doc | content | contains "after the first") | eq #[::vec/drop])
   ~~|
-  #[::doc ::link]
+  #[::doc ::link ::snippet]
 
 :hosts
   |~~ Hosts. The language runs inside a host, a tool that embeds it and

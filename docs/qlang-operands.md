@@ -1303,6 +1303,14 @@ deflects on an error that `!| true` then answers.
 - **Examples**: `|~~ a ~(add 1) b ~~| | quotes` → `[~(add 1)]`;
   `"x" | add 1 !| explain | doc | quotes | count` → `1`.
 
+### `links`
+
+- **Arity** 0. **Subject** `doc`; the verb resides on `::doc` [D108].
+- The links of the doc, in their order: each quote under a stack of
+  tags that holds `::link`, a query a reader follows, which answers
+  without an error.
+- **Examples**: `|~~ see ::link~(::qlang | manifest) ~~| | links | count` → `1`.
+
 Asking each element whether it is an error:
 
 ```qlang

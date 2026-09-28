@@ -5,7 +5,7 @@
 // the text that reads back as any value [D96].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
-import { isQuote, isVerb, isErrorValue, bindingValueOf, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isQuote, isVerb, isErrorValue, isValueClass, bindingValueOf, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareModifierError } from '../operand-errors.mjs';
 import { quoteOfSource, printQuoteSource, docText } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
@@ -33,6 +33,16 @@ bindPrim('apply', async (subject, code) => await code(subject));
 bindPrim('docContent', docText);
 bindPrim('docSegments', doc => Object.freeze([...doc]));
 bindPrim('docQuotes', doc => Object.freeze(doc.filter(isQuote)));
+bindPrim('docLinks', doc => Object.freeze(doc.filter(isLink)));
+
+// A segment a reader follows: a quote under a stack of tags that holds
+// `::link`, a host's tag over it among them [D108].
+function isLink(segment) {
+  for (let beneath = segment; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
+    if (beneath.tag.name === 'link') return true;
+  }
+  return false;
+}
 
 // printAnswer(value, env, state?) → the print of a value: a part under a
 // tag whose kind answers a `print` of its own prints through it, and the

@@ -16,8 +16,7 @@
       `[a b]` a vector, `{:k v}` a map, `#[a b]` a set; `::T{…}`,
       `::T[…]`, `::T(x)` a value under the tag `::T`, the name of a
       kind, and tags stack, `::A::B{…}`; `~(…)` a quote, code held as a
-      value; `|~~ prose ~(code) ~~|` a doc, prose whose quotes are its
-      examples; `!{:k v}` an error, raised.
+      value; |~~ prose ~~| a doc, prose whose quotes are its laws; `!{:k v}` an error, raised.
 
       Steps. `a | b` runs `b` on `a`. `a * b` runs `b` on each element
       of a vector or each value of a map, a body of several steps in
@@ -44,17 +43,18 @@
       `raise` raises a map, and a failure is recovered where it is read,
       `* (mul 2 !| 0)`.
 
-      Asking. `::qlang | manifest` lists the kinds; `::string | spec |
-      /verbs` lists by address the verbs of a kind, and `::qlang/any |
-      spec | /verbs` the verbs every value answers, `count`, `type`,
-      `tag` and `apply` among them, so a verb missing from both does not
-      exist. A name alone calls its verb, and the page of a verb is read
-      by its address, `::any/tag | docs`; `x | docs` answers the vector
-      of the pages of a name, `::vec/sort`, or of the kind of a value,
-      each a doc whose text is `content` and whose code, the laws it
-      states, is `quotes`; `examples` and `runExamples` take the name
-      itself, `::vec/sort | runExamples`, and list or run the laws of
-      all its pages; a `filter` over a list of verbs by `docs | first |
+      Asking. ::link~(::qlang | manifest) lists the kinds;
+      ::link~(::string | spec | /verbs) lists by address the verbs of a
+      kind, and ::link~(::qlang/any | spec | /verbs) the verbs every
+      value answers, `count`, `type`, `tag` and `apply` among them, so a
+      verb missing from both does not exist. A name alone calls its
+      verb, and the page of a verb is read by its address,
+      ::link~(::any/tag | docs); `x | docs` answers the vector of the
+      pages of a name, `::vec/sort`, or of the kind of a value, each a
+      doc whose text is `content` and whose code, the laws it states, is
+      `quotes`; `examples` and `runExamples` take the name itself,
+      ::link~(::vec/sort | runExamples), and list or run the laws of all
+      its pages; a `filter` over a list of verbs by `docs | first |
       content | contains` searches their pages; `x | explain` shows the
       page of a value above it, and the error of a verb missing on a
       kind names the addresses where it lives.
@@ -325,6 +325,17 @@
       ~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
       ~("x" | add 1 !| if (type | eq ::AddLeftNotNumberError) ~(0) ~(raise) | eq 0)
       ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::AddLeftNotNumberError)
+  ~~|
+
+::link
+  |~~ The kind of a link, a query a page names for its reader to follow,
+      written in the prose of a doc as a quote under `::link` [D108].
+      A quote with no tag is a law of the page, which answers true; a
+      link answers without an error, and the suite follows every link of
+      the catalog. A host may stack its own tag over a link.
+
+      ~(|~~ ::link~(::qlang | manifest) ~~| | links | first | type | eq ::link)
+      ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
   ~~|
 
 ::explanation

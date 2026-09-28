@@ -69,10 +69,18 @@ export function quoteOfLiteral(node) {
 // span of it that read as code [D94], read once per node as a quote is.
 const DOC_OF_LITERAL = new WeakMap();
 
+// The segment a part of a doc literal is: its prose, a quote, or a quote
+// under the stack of tags written before it, held as data [D108].
+function docSegmentOfPart(part) {
+  if (typeof part === 'string') return part;
+  if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
+  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTagKeyword(tagName), inner), quoteOfLiteral(part.quote));
+}
+
 export function docOfNode(node) {
   let doc = DOC_OF_LITERAL.get(node);
   if (doc === undefined) {
-    doc = makeDoc(node.segments.map(segment => typeof segment === 'string' ? segment : quoteOfLiteral(segment)));
+    doc = makeDoc(node.segments.map(docSegmentOfPart));
     DOC_OF_LITERAL.set(node, doc);
   }
   return doc;
@@ -239,10 +247,12 @@ export function printQuoteSource(quote) {
   return printSteps(quote);
 }
 
-// docText(doc) → its prose with each quote written where it stands, the
-// text a doc's `content` answers [D95].
+// docText(doc) → its prose with each quote written where it stands, a
+// quote under tags with its stack before it, the text a doc's `content`
+// answers [D95], [D108].
 export function docText(doc) {
-  return doc.map(segment => typeof segment === 'string' ? segment : `~(${printQuoteSource(segment)})`).join('');
+  return doc.map(segment => typeof segment === 'string' ? segment
+    : isQuote(segment) ? `~(${printQuoteSource(segment)})` : printValue(segment)).join('');
 }
 
 function stepTagOf(step) {

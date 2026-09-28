@@ -1,0 +1,37 @@
+{
+  "id": "R4",
+  "date": "2026-09-28",
+  "model": "claude-sonnet-5",
+  "screen": "7ebefe0f33ed",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7 and L1–L10",
+  "calls": 53,
+  "tasks": {
+    "T1": { "calls": 5, "solved": true, "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name" },
+    "T2": { "calls": 9, "solved": false, "query": null },
+    "T3": { "calls": 1, "solved": true, "query": "/ | groupBy ~(/status | keyword) * count" },
+    "T4": { "calls": 1, "solved": true, "query": "/ | filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)" },
+    "T5": { "calls": 3, "solved": true, "query": "lines | filter ~(contains \"ERROR\") * (split \"ERROR \" | last) | distinct | payload | json" },
+    "T6": { "calls": 1, "solved": true, "query": "/data * {:id /id :tagCount (/tags | count)}" },
+    "T7": { "calls": 2, "solved": true, "query": "/data | filter ~(/tags | any ~(eq \"ops\")) * /email" },
+    "L1": { "calls": 1, "solved": true, "query": ":triple ::verb~(mul 3) | [1 2 3] * triple" },
+    "L2": { "calls": 7, "solved": true, "query": "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :notBelowTen}))} | [(::Small(3) | type) (::Small(12) | eq :never !| true)]" },
+    "L3": { "calls": 4, "solved": true, "query": "[(~(sub 3 | mul 4) | count) (10 | apply ~(sub 3 | mul 4))]" },
+    "L4": { "calls": 1, "solved": true, "query": "\"a\" | mul 2 !| [type /actualType]" },
+    "L5": { "calls": 4, "solved": true, "query": "::string | spec | /verbs | filter ~(docs | first | content | contains \"begins with the prefix\") | first" },
+    "L6": { "calls": 1, "solved": true, "query": ":x ::Outer(::Inner[7 8]) | [(x | type) (x | /1)]" },
+    "L7": { "calls": 1, "solved": true, "query": "[10 -1 \"y\"] * (add 5 !| null)" },
+    "L8": { "calls": 3, "solved": true, "query": "|~~ two examples ~(eq 2) and ~(gt 1) ~~| | quotes | count" },
+    "L9": { "calls": 3, "solved": true, "query": "::vec/groupBy | runExamples * /ok | every ~(eq true)" },
+    "L10": { "calls": 4, "solved": true, "query": "{:a 1 :b 2 :c 3} | minus #[:b]" }
+  },
+  "frictions": [
+    { "id": "F1", "task": "T1", "kind": "syntax", "query": "filter ~(…) | * /name", "expected": "a step after a pipe", "got": "ParseError at `*`, the friction of R1.F3 met again though the first screen says `*` stands in the place of `|`" },
+    { "id": "F2", "task": "L9", "kind": "noise", "query": "::vec/sort | docs | content", "expected": "the text of the page", "got": "DocElementNotSegmentError, `docs` answering a vector of docs, whose print repeats the doc three times in the error" },
+    { "id": "F3", "task": "T2", "kind": "missing-verb", "query": "::string | spec | /verbs | filter ~(docs | first | content | contains \"case\")", "expected": "a verb that folds the case of a string", "got": "#[]; declared impossible after nine calls, the friction of R1.F5, R2.F2 and R3.F4 met again" },
+    { "id": "F4", "task": "L10", "kind": "naming", "query": "{:a 1 :b 2 :c 3} | drop …", "expected": "a verb that drops a key", "got": "::map/drop drops the entries after a count; the key goes by `minus`, which reads as arithmetic of sets" },
+    { "id": "F5", "task": "L9", "kind": "asymmetry", "query": "::vec/groupBy | docs | first | runExamples", "expected": "the examples of the page run", "got": "VerbWithoutBodyError naming ::keyword/runExamples and ::tag/runExamples: `runExamples` takes the name of a declaration where `quotes` takes the doc" },
+    { "id": "F6", "task": "L8", "kind": "silent-answer", "query": "|~~ two examples ~(eq 2) and ~(gt 1) ~~| | examples", "expected": "the examples of the doc", "got": "the examples of the page of ::doc, since `examples` of any value reads the examples of its kind; the first screen calls both the examples of a page and the quotes of a doc its examples" },
+    { "id": "F7", "task": "L2", "kind": "missing-idiom", "query": "::Small(12) | eq :never !| true", "expected": "an idiom for whether a step fails", "got": "none on the first screen; `false !| true` is on the page of the error kinds alone" },
+    { "id": "F8", "task": "T7", "kind": "noise", "query": "/data | filter ~(/tags | has \"ops\") * /email", "expected": "membership in a vector", "got": "VerbWithoutBodyError naming ::map/has and ::set/has, with the whole input printed twice in its trail; the frictions of R2.F1, R3.F1 and R3.F2 met again" }
+  ]
+}

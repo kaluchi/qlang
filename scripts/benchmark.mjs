@@ -14,6 +14,7 @@
 //   node scripts/benchmark.mjs report   the runs side by side
 
 import { readFileSync, readdirSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -26,6 +27,11 @@ const inputsDir = join(benchDir, 'inputs');
 const runsDir = join(benchDir, 'runs');
 const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
 
+const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
+const { evalQuery } = await core('eval.mjs');
+const { printValue } = await core('index.mjs');
+const { deepEqual } = await core('equality.mjs');
+
 const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
 
 function answerOf(query, task) {
@@ -34,9 +40,21 @@ function answerOf(query, task) {
     { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8' });
 }
 
-function check() {
-  const wrong = TASKS.filter(task => !isDeepStrictEqual(JSON.parse(answerOf(task.reference, task)), JSON.parse(task.answer)));
-  for (const task of wrong) console.log(`${task.id}: the reference answers ${answerOf(task.reference, task).trim()}, the task ${task.answer}`);
+// A task over an input answers JSON or text through the command line;
+// a task of the language alone answers a value, held against the literal
+// of its answer.
+async function referenceHolds(task) {
+  if (task.input === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
+  return isDeepStrictEqual(JSON.parse(answerOf(task.reference, task)), JSON.parse(task.answer));
+}
+
+async function check() {
+  const wrong = [];
+  for (const task of TASKS) if (!(await referenceHolds(task))) wrong.push(task);
+  for (const task of wrong) {
+    const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : answerOf(task.reference, task).trim();
+    console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
+  }
   if (wrong.length > 0) process.exit(1);
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);
 }
@@ -46,7 +64,8 @@ function firstScreen() {
 }
 
 function prompt() {
-  const taskLines = TASKS.map(task => `${task.id} (${task.input}${task.raw ? ', raw text' : ''}): ${task.question}`).join('\n');
+  const whereOf = task => task.input === undefined ? 'no input, the answer a qlang value' : `${task.input}${task.raw ? ', raw text' : ''}`;
+  const taskLines = TASKS.map(task => `${task.id} (${whereOf(task)}): ${task.question}`).join('\n');
   return `You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Your only sources of knowledge are the language itself, queried through its command-line tool.
 
 RULES (strict):
@@ -56,10 +75,10 @@ RULES (strict):
 - Always pass stdin: either \`< file\` or \`< /dev/null\`. Use \`qlang --raw '<query>' < app.log\` for the text file. In Git Bash prefix a query that begins with \`/\` with MSYS_NO_PATHCONV=1.
 - Start with \`qlang --help < /dev/null\` and \`qlang '::qlang | docs | first | content' < /dev/null\`, the language's own first screen, then explore the language by asking it.
 
-TASKS (each answer is a single qlang query printing exactly the requested JSON):
+TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):
 ${taskLines}
 
-Budget: about 60 qlang invocations in total. A task that seems impossible: say so and why, and move on.
+Budget: about 90 qlang invocations in total. A task that seems impossible: say so and why, and move on.
 
 REPORT, plain text:
 1. For each task: the final query, its output (abbreviated), and the invocations spent on it.
@@ -72,7 +91,8 @@ function report() {
   const runs = readdirSync(runsDir).filter(name => name.endsWith('.json')).sort()
     .map(name => JSON.parse(readFileSync(join(runsDir, name), 'utf8')));
   for (const run of runs) {
-    const perTask = TASKS.map(task => `${task.id} ${run.tasks[task.id]?.calls ?? '–'}${run.tasks[task.id]?.solved ? '' : '✗'}`).join('  ');
+    const perTask = TASKS.filter(task => task.id in run.tasks)
+      .map(task => `${task.id} ${run.tasks[task.id].calls}${run.tasks[task.id].solved ? '' : '✗'}`).join('  ');
     console.log(`${run.id}  ${run.date}  ${run.model}  screen ${run.screen}  calls ${run.calls}  ${perTask}`);
     for (const friction of run.frictions) {
       console.log(`  ${run.id}.${friction.id}  ${friction.task}  ${friction.kind}${friction.repairedBy ? `  repaired by ${friction.repairedBy}` : ''}`);
@@ -81,7 +101,7 @@ function report() {
 }
 
 const COMMANDS = {
-  check,
+  check: () => check(),
   prompt: () => console.log(prompt()),
   screen: () => console.log(shortHash(firstScreen())),
   report

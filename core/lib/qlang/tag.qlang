@@ -4,51 +4,73 @@
    name. ~|
 
 ::qlang
-  |~~ qlang, a pipeline of values: each step is a command on the value
-      the step before it answered, `S | verb object`. Every value has a
-      kind, the outermost tag of its stack or the kind its literal
-      implies, a tag being the name of a kind, and its verbs live on
-      its kind, so what can be done with a value is asked of its kind.
+  |~~ qlang is a pipeline of values. A query is a subject and its steps;
+      each step is a command on the value the step before it answered,
+      `S | verb object`, and the answer is the last value. Every value
+      has a kind, the one its literal implies or the tag written over it,
+      and the verbs live on the kinds: what can be done with a value is
+      asked of its kind.
 
-      The forms. `a | b` runs `b` on `a`. `a * b` runs `b` on each
-      element of a vector or each value of a map, a body of several
-      steps in parentheses, `* (add 1 | mul 2)`, and the first failure
-      is its answer; `*` stands in the place of `|`, never after it.
-      `/k` reads the field of a map and `/0` an element of a vector, so
-      the field of every element is `* /k`. `a !| b` runs `b` on an
-      error alone. `~(…)` is a quote, code held as a value, which
-      `filter`, `sort` and their kin take, and which `*` hands each
-      element as it is. `{:k v}`, `[a b]`, `#[a b]`, `"s"` and `:k` are
-      a map, a vector, a set, a string and a keyword, and `:n v` names
-      a value for the steps after it.
+      Values. `42`, `-1.5`, `"s"`, `true`, `false`, `null`; `:k`, a
+      keyword, the key of every map, which `keyword` makes of a string;
+      `[a b]` a vector, `{:k v}` a map, `#[a b]` a set; `::T{…}`,
+      `::T[…]`, `::T(x)` a value under the tag `::T`, the name of a
+      kind, and tags stack, `::A::B{…}`; `~(…)` a quote, code held as a
+      value; `|~~ prose ~(code) ~~|` a doc, prose whose quotes are its
+      examples; `!{:k v}` an error, raised.
 
-      The command line. JSON on stdin is the subject: an object is a
-      map whose keys are keywords, a string a string, and a JSON input
-      answers JSON, which refuses a value JSON has no form for.
-      `--raw` reads text and answers its print, and `| json` writes
-      JSON text. A string keys a group or an index as a keyword,
-      `| keyword`.
+      Steps. `a | b` runs `b` on `a`. `a * b` runs `b` on each element
+      of a vector or each value of a map, a body of several steps in
+      parentheses, `* (add 1 | mul 2)`; it is the map of other
+      languages, stands in the place of `|`, and answers the first
+      failure. `/k` reads a field, `/0` an element, `/-1` the last,
+      `/a/b` a path and `/` the value itself, so `* /k` is the field of
+      every element. `(…)` runs steps on the value in the pipe, and the
+      parts of a literal are such groups, `[(add 1) (mul 2)]`. `:n v`
+      names a value for the steps after it, `:n /` the value in the
+      pipe, and `n` reads it. `filter`, `sort`, `if` and their kin take
+      a quote, `apply` runs one, and after `*` a quote is a value every
+      element answers as it is.
 
-      Asking. `::qlang | manifest` lists the nouns; `x | docs` reads the
-      page of a value by its kind, a doc that answers its text by
-      `content` and its examples by `quotes`; `::number | spec | /verbs`
-      lists by address everything that lives on a kind, so a verb
-      missing there does not exist; `::vec/count | docs` reads one verb
-      by its address, and its examples are its laws. An error is a
-      value too, and `x !| explain` shows the page of the site that
-      refused above it.
+      Your own. `:inc` named over `::verb` and a quote whose head
+      declares its slots, `:by ::number`, declares a verb called
+      `5 | inc 2`, and `::Pos` named over a map whose `:impl` is a quote
+      declares a tag whose constructor checks or builds each value put
+      under it; the examples below write both.
+
+      Errors. A step that fails answers an error, which `|` and `*`
+      pass by; `a !| b` runs `b` on an error alone, opened to its facts,
+      so `!| type` names what refused and `!| /actualType` reads a fact;
+      `raise` raises a map, and a failure is recovered where it is read,
+      `* (mul 2 !| 0)`.
+
+      Asking. `::qlang | manifest` lists the kinds; `::string | spec |
+      /verbs` lists by address every verb of a kind, so a verb missing
+      there does not exist; `::vec/sort | docs` reads the page of one,
+      whose examples are its laws, which `examples` lists and
+      `runExamples` runs; `x | docs` reads the page of the kind of a
+      value, a doc whose text is `content` and whose examples are
+      `quotes`; a `filter` over a list of verbs by `docs | first | content
+      | contains` searches their pages; `x | explain` shows the page
+      of a value above it, and the error of a verb missing on a kind
+      names the addresses where it lives.
 
       ~([{:k 1} {:k 2}] * /k | eq [1 2])
       ~([1 2] * (add 1 | mul 2) | eq [4 6])
-      ~([1 "x"] * (mul 2) !| type | eq ::MulLeftNotNumberError)
-      ~([1 2] * ~(add 1) | first | eq ~(add 1))
-      ~(:n 2 | [1 2] * (mul n) | eq [2 4])
-      ~([{:s "a"} {:s "b"} {:s "a"}] | groupBy ~(/s | keyword) * count | eq {:a 2 :b 1})
-      ~(::qlang | manifest | filter ~(eq ::number) | count | eq 1)
-      ~(5 | docs | eq (::number | docs))
+      ~([1 "x"] * (mul 2 !| 0) | eq [2 0])
+      ~(5 | :n / | [n (n | add 1)] | eq [5 6])
+      ~(::Box::Crate{:a 1} | [type /a] | eq [::Box 1])
+      ~(~(add 1 | mul 2) | :q / | 5 | apply q | eq 12)
+      ~(|~~ one ~(eq 1) ~~| | quotes | eq [~(eq 1)])
+      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      ~(::Pos {:impl ~(if (gt 0) ~(/) ~(!{:reason :notPositive}))} | ::Pos(-1) !| /reason | eq :notPositive)
+      ~([{:s "a"} {:s "a"}] | groupBy ~(/s | keyword) * count | eq {:a 2})
+      ~("a" | add 1 !| [type /actualType] | eq [::AddLeftNotNumberError ::string])
+      ~({:k 1} | raise !| /k | eq 1)
       ~(::string | spec | /verbs | has ::string/split)
-      ~(::vec/count | docs | first | content | contains "elements")
-      ~("x" | add 1 !| explain | doc | eq (::AddLeftNotNumberError | docs | first))
+      ~(::vec | spec | /verbs | filter ~(docs | first | content | contains "after the first") | eq #[::vec/drop])
+      ~(5 | docs | eq (::number | docs))
+      ~([1 2] | has 1 !| /addresses | has ::set/has)
   ~~|
 
 ::qlang/any

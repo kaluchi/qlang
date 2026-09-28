@@ -1,0 +1,23 @@
+{
+  "id": "R3",
+  "date": "2026-09-28",
+  "model": "claude-sonnet-5",
+  "screen": "961fd9a180f2",
+  "prompt": "benchmark.mjs prompt, the tasks T1–T7",
+  "calls": 33,
+  "tasks": {
+    "T1": { "calls": 3, "solved": true, "query": "/data | filter ~(/role | eq \"admin\") | sort ~(/age) | reverse * /name" },
+    "T2": { "calls": 10, "solved": false, "query": null },
+    "T3": { "calls": 2, "solved": true, "query": "groupBy ~(/status | keyword) * count" },
+    "T4": { "calls": 2, "solved": true, "query": "filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) * (* /amount | sum)" },
+    "T5": { "calls": 4, "solved": true, "query": "lines | filter ~(contains \" ERROR \") * (split \" ERROR \" | /1) | distinct | json" },
+    "T6": { "calls": 2, "solved": true, "query": "/data * {:id /id :tagCount (/tags | count)}" },
+    "T7": { "calls": 3, "solved": true, "query": "/data | filter ~(/tags | any ~(eq \"ops\")) * /email" }
+  },
+  "frictions": [
+    { "id": "F1", "task": "T1", "kind": "noise", "query": "::qlang | docs | /2 | content", "expected": "an index out of range in a line", "got": "ProjectionIndexOutOfBoundsError whose trail printed the whole first screen again as the subject of its stop" },
+    { "id": "F2", "task": "T7", "kind": "missing-verb", "query": "/data | filter ~(/tags | has \"ops\") * /email", "expected": "membership in a vector", "got": "VerbWithoutBodyError naming ::map/has and ::set/has, the friction of R2.F1 met again" },
+    { "id": "F3", "task": "T5", "kind": "channel", "query": "lines | … | distinct", "expected": "a JSON list", "got": "`#[\"db timeout\"]`: the channel of a text input said by a clause of --help alone, the friction of R1.F10 met again once D105 moved it off the first screen" },
+    { "id": "F4", "task": "T2", "kind": "missing-verb", "query": "::string | spec | /verbs", "expected": "a verb that folds the case of a string", "got": "none; the task declared impossible after ten calls, the friction of R1.F5 and R2.F2 met again" }
+  ]
+}

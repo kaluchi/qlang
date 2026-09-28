@@ -13,6 +13,6 @@
 {"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10","decision":"D9"}
 {"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError ::number]","decision":"D9"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::UnresolvedIdentifierError","decision":"D9"}
-{"name":"apply-code-that-fails-is-that-error","query":"5 | apply /nope !| type","expect":"::ProjectionSubjectNotProjectableError","decision":"D9"}
+{"name":"apply-code-that-fails-is-refused-by-its-slot","query":"5 | apply /nope !| [type /actualType]","expect":"[::ApplyCodeNotQuoteError ::ProjectionSubjectNotProjectableError]","decision":["D9","D129"]}
 {"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12","decision":"D9"}
 {"name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6","decision":"D44"}

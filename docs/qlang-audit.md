@@ -1601,7 +1601,7 @@ screen written against them [D104], [D105], [D106].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
 [D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
-[D124], [D125] and [D127]: the first screen and the hypertext it opens, every
+[D124], [D125], [D127] and [D129]: the first screen and the hypertext it opens, every
 one met but the page of the kind of tagged values, which waits on the
 step of a constructor [D115]. The others stand beside the suite: one
 start command returns the root doc within four kilobytes; `:trail`
@@ -1957,3 +1957,4 @@ maintainer wants to explore it before it is fixed.
 [D126]: decisions/D126.md
 [D127]: decisions/D127.md
 [D128]: decisions/D128.md
+[D129]: decisions/D129.md

@@ -215,6 +215,13 @@
         !| [type /actualType]
         |  eq [::FilterPredicateNotQuoteError ::boolean]
        )
+      A step written without its quote runs on the whole subject at the
+      call, and the error it answers is refused alike:
+      ~(
+        [{:a true}] | filter /a
+        !| [type /actualType]
+        |  eq [::FilterPredicateNotQuoteError ::ProjectionSequenceKeyNotIntegerError]
+       )
   ~~|
 
 :every

@@ -307,6 +307,13 @@ function slotRecord(slot, value) {
   return makeBinding({ name: keyword(slot.name), docs: slot.docs, value, source: slot.source });
 }
 
+// A slot of code alone takes no value the call computed, the error of
+// a step that ran on the subject by mistake among them, so its refusal
+// names the quote it wanted.
+function takesCodeAlone(kindNames) {
+  return kindNames.every(kindName => CODE_KIND_NAMES.has(kindName));
+}
+
 // A slot of code takes a verb as the quote that runs it with its
 // defaults [D67], the slot's name mentioned where that name is the
 // verb, so the slot holds code whatever the call handed it and `apply`
@@ -360,7 +367,7 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
   const scopeState = withPipeValue(withEnv(state, scopeEnv), null);
   const takeModifier = async (slot, kindNames, modifierLambda, positions, place) => {
     const modifier = await modifierLambda(state.pipeValue);
-    if (isErrorValue(modifier)) return modifier;
+    if (isErrorValue(modifier) && !takesCodeAlone(kindNames)) return modifier;
     const { served } = await servedByKinds(modifier, kindNames, scopeState, place, () => siteRefusalAt(signature, verb, positions));
     return asCodeOfSlot(slot, kindNames, served, scopeEnv);
   };

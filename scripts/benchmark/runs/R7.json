@@ -131,7 +131,8 @@
       "kind": "undocumented",
       "query": "::Outer::Inner{[7 8]}",
       "expected": "a vector under a stack of tags",
-      "got": "ParseError after {: the first screen shows only the map form ::T{…}, not ::T[…] or ::T(…)"
+      "got": "ParseError after {: the first screen shows only the map form ::T{…}, not ::T[…] or ::T(…)",
+      "repairedBy": "D124"
     },
     {
       "id": "F3",
@@ -139,7 +140,8 @@
       "kind": "surprise",
       "query": "[7 8] | ::Inner | ::Outer",
       "expected": "the vector tagged",
-      "got": "::Outer: a tag name as a step is a literal that replaces the subject, in silence"
+      "got": "::Outer: a tag name as a step is a literal that replaces the subject, in silence",
+      "repairedBy": "D124"
     },
     {
       "id": "F4",
@@ -147,7 +149,8 @@
       "kind": "surprise",
       "query": ":Small ::Small{:impl …} | ::Small(12)",
       "expected": "a refusal of 12",
-      "got": "::Small(12): binding the descriptor to a name declares no kind; only the step ::Small {…} does"
+      "got": "::Small(12): binding the descriptor to a name declares no kind; only the step ::Small {…} does",
+      "repairedBy": "D124"
     },
     {
       "id": "F5",
@@ -179,7 +182,8 @@
       "kind": "undocumented",
       "query": "\"a\" | mul 2 !| payload",
       "expected": "a field naming the culprit",
-      "got": "the culprit read from /trail/0/subject; the page of the refusal names no field for it"
+      "got": "the culprit read from /trail/0/subject; the page of the refusal names no field for it",
+      "repairedBy": "D124"
     },
     {
       "id": "F9",

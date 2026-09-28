@@ -18,6 +18,7 @@ import {
   isRuntimeKey, moduleNamespaceKey, MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
 import { isContract } from './verb.mjs';
+import { namespaceDerivedOf } from '../state.mjs';
 
 const ROOT_NOUN_NAME = 'qlang';
 
@@ -37,12 +38,24 @@ function isProviderNoun(env, envKey) {
     && !bindingValueOf(env.get(envKey)).has('category');
 }
 
-function* providerExports(env) {
+// The export maps of an env's providers by module name, and the records
+// each name is exported under, read once per env [D63].
+function indexProviders(env) {
+  const exports = [];
+  const recordsByName = new Map();
   for (const [envKey, exportsMap] of env) {
-    if (isModuleNamespaceKey(envKey) && isQMap(exportsMap)) {
-      yield [envKey.slice(MODULE_NAMESPACE_PREFIX.length), exportsMap];
+    if (!isModuleNamespaceKey(envKey) || !isQMap(exportsMap)) continue;
+    exports.push([envKey.slice(MODULE_NAMESPACE_PREFIX.length), exportsMap]);
+    for (const [name, record] of exportsMap) {
+      if (!recordsByName.has(name)) recordsByName.set(name, new Set());
+      recordsByName.get(name).add(record);
     }
   }
+  return { exports, recordsByName };
+}
+
+function providerExports(env) {
+  return namespaceDerivedOf(env, indexProviders).exports;
 }
 
 const ANY_KIND_NAME = 'any';
@@ -136,10 +149,7 @@ export function isProviderBinding(env, name) {
   const entry = env.get(name);
   const declared = bindingValueOf(entry);
   if (!isTagDescriptor(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
-  for (const [, exportsMap] of providerExports(env)) {
-    if (exportsMap.get(name) === entry) return true;
-  }
-  return false;
+  return namespaceDerivedOf(env, indexProviders).recordsByName.get(name)?.has(entry) === true;
 }
 
 // A declaration a noun's module makes that is no verb is a member of the

@@ -29,9 +29,10 @@
       steps in parentheses; `/k`, `/0`, `/a/b` read a part; `(…)`
       groups steps on the value in the pipe; `:n v` names a value;
       `a !| b` runs `b` on an error alone. `42`, `"s"`, `:k`, `[a b]`,
-      `{:k v}`, `#[a b]`, `null`, `true` are literals; `::T{…}` puts a
-      value under the tag `::T`, the name of its kind; `~(…)` is code
-      held as a value.
+      `{:k v}`, `#[a b]`, `null`, `true` are literals, each a step that
+      replaces the value; `::T` before `{…}`, `[…]`, `(…)` or `"…"` puts
+      a payload under the tag `::T`, the name of its kind, and `x | tag
+      ::T` puts `x` under it; `~(…)` is code held as a value.
 
       Asking. `x | doc` answers the page of a name or of the kind of a
       value, a doc whose text is `content`, whose laws are `laws` and
@@ -71,49 +72,56 @@
   ~~|
 
 :values
-  |~~ Values. Everything qlang handles is a value, and a value never
-      changes: a step answers a new value and the old one stays as it
-      was. Each value has a kind. A literal implies one, `42` a number,
-      `"s"` a string, `:k` a keyword, `[a b]` a vector, `{:k v}` a map
-      whose keys are keywords, `#[a b]` a set, `true`, `null`; a tag
-      written over a value names another, `::Box{:k 1}`. A tag is the
-      name of a kind: it tells how to read the value it stands on, tags
-      stack and read from the outside in, and the tag taken as a value,
-      `::Box`, is the kind itself, which a query asks for its page and
-      its verbs. Code, prose and failures are values of kinds of their
-      own, so everything the language says about itself is a value the
-      pipeline reads. Every value prints as a literal that reads back as
-      itself. Rests on nothing; the pipeline, the verbs and the
-      hypertext rest on it.
+  |~~ Values. Everything qlang handles is a value, data, code, prose and
+      failures alike, so everything the language says about itself is a
+      value the pipeline reads. A value never changes, and each has a
+      kind, the name of which is a tag: it tells how to read the value it
+      stands on, and the tag taken as a value, `::Box`, is the kind
+      itself, which a query asks for its page and its verbs. Rests on
+      nothing; the pipeline, the verbs and the hypertext rest on it.
       ::snippet~(::qlang | manifest) lists the kinds. ::link~(::tag | doc)
       ::link~(::qlang | doc :pipeline)
 
-      Tags stack and read from the outside in:
+      A literal implies its kind:
+      ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
+      A tag written before a payload puts it under the tag, whatever
+      brackets the payload takes, `::T{…}`, `::T[…]`, `::T(…)` or `::T"…"`:
+      ~([::Box{:a 1} ::Box[1 2] ::Box(1 | add 2) ::Box"s"] * payload | eq [{:a 1} [1 2] 3 "s"])
+      `tag` puts the value in the pipe under a tag, tags stack and read
+      from the outside in, and `payload` takes one off:
+      ~([7 8] | tag ::Inner | tag ::Outer | [type (payload | type) (payload | payload)] | eq [::Outer ::Inner [7 8]])
       ~(::Box::Crate{:a 1} | type | eq ::Box)
       A step answers a new value and the old one stays as it was:
       ~([1 2] | :v / | append 3 | [v /] | eq [[1 2] [1 2 3]])
+      Every value prints as a literal that reads back as itself:
+      ~({:a [1 #[2]] :t ::Box[3]} | :v / | print | parse | :q / | apply q | eq v)
   ~~|
   #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set]
 
 :pipeline
-  |~~ The pipeline. A query is a subject and its steps; each step is a
-      command on the value the step before it answered, `S | verb
-      object`, and the answer is the last value. `a | b` runs `b` on
-      `a`. `a * b`, written in the place of `|`, runs `b` on each element
-      of a vector or each value of a map, several steps in parentheses,
-      and answers the first failure. `/k`, `/0`, `/-1`, `/a/b` read a
-      part, a miss being an error. `(…)` runs steps on the value in the
-      pipe and answers their result, and each part of a literal is such
-      a group, so a literal is the shape an answer takes,
-      `{:id /id :n (/tags | count)}`. `:n v` names a value for the steps
-      after it, in the scope where it stands. Rests on values; the verbs
+  |~~ The pipeline. A query is a subject and its steps, each a command
+      on the value the step before it answered, and the answer is the
+      last value; the shape of an answer is written as the literal it
+      takes, so a query names what it reads. Rests on values; the verbs
       are its commands, and code holds its steps as a value.
       ::link~(::each | doc) ::link~(::proj | doc)
       ::link~(::group | doc) ::link~(::qlang | doc :names)
 
-      `*` runs its step on each element:
+      `|` runs the next step on the answer of the one before:
+      ~(5 | add 1 | mul 2 | eq 12)
+      A literal is a step that replaces the value in the pipe, a tag name
+      among them, so a value goes under a tag by `tag`:
+      ~(5 | [1 2] | eq [1 2])
+      ~([7 8] | ::Box | eq ::Box)
+      `*` stands in the place of `|` and runs its step on each element of
+      a vector or each value of a map, a literal among its steps:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
-      A name holds the value in the pipe for the steps after it:
+      `/k`, `/0`, `/-1`, `/a/b` read a part, and a miss is an error:
+      ~({:a {:b 1}} | /a/b | eq 1)
+      ~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)
+      A name holds the value in the pipe for the steps after it, and
+      steps in parentheses run on the value in the pipe and answer their
+      result:
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
   ~~|
   #[::each ::proj ::group ::bind ::call ::construct]
@@ -145,30 +153,34 @@
 
 :verbs
   |~~ Verbs. A verb lives on a kind, the one whose values it serves, and
-      has an address, `::vec/sort`. A name in a query finds its verb
-      through the kind of its subject: the tags from the outside in,
-      then the shape beneath them, then the verbs every value answers,
-      on `::qlang/any`; so what can be done with a value is asked of its
-      kind, and one word serves many kinds. The verbs of a kind and those
-      of every value are the whole of them: a verb in neither list does
-      not exist. A verb declares its slots and the kinds it takes, which
-      `spec` answers before a call. A reader declares verbs and kinds of
-      its own in the form the catalog is written in: a name over `::verb`
-      and a quote whose head declares its slots is a verb, and a tag
-      named over a map whose `:impl` is a quote is a kind, whose
-      constructor checks or builds each value put under it and answers
-      an error for one it refuses. Rests on
-      values and the pipeline; errors name the verb that refused.
+      has an address, `::vec/sort`; so what can be done with a value is
+      asked of its kind, and one word serves many kinds. The verbs of a
+      kind and those of every value are the whole of them: a verb in
+      neither list does not exist. Rests on values and the pipeline;
+      errors name the verb that refused.
       ::snippet~(::vec | spec | /verbs) lists the verbs of a kind and
       ::snippet~(::qlang/any | spec | /verbs) those of every value.
       ::link~(::verb | doc) ::link~(::qlang | doc :errors)
 
-      A verb declared with a slot takes its argument after its name:
-      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
-      A verb answers its signature by `spec`:
+      A name finds its verb through the kind of its subject: its tags
+      from the outside in, then the shape beneath them, then the verbs
+      every value answers, on `::qlang/any`; a verb of vectors reaches a
+      vector under a tag and keeps the tag:
+      ~([3 1 2] | sort | eq [1 2 3])
+      ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
+      A verb declares its slots and the kinds it takes, which `spec`
+      answers before a call:
       ~(::vec/sort | spec | type | eq ::spec)
-      A kind declared with a constructor checks its values:
+      A reader's verb is a name over `::verb` and a quote whose head
+      declares its slots, and it takes its arguments after its name:
+      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      A kind is declared by the step `::T` over a map whose `:impl` is a
+      quote, the constructor that checks or builds each value put under
+      it and answers an error for one it refuses:
       ~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
+      A name bound to a map under a tag holds a value and declares no
+      kind, so the tag checks nothing:
+      ~(:small ::Small{:impl ~(!{:reason :no})} | ::Small(12) | payload | eq 12)
   ~~|
   #[::verb ::spec ::qlang/any]
 
@@ -176,11 +188,7 @@
   |~~ Errors. A failure does not throw: a step that fails answers an
       error, a value that carries the facts of the failure, the path it
       took and the tag of the site that refused, which names the page of
-      its procedure. `|` passes an error by and `*` stops on one;
-      `a !| b` runs `b` on an error alone, opened to its facts, so a query
-      reads a failure, recovers from it or raises it again where it is
-      read. `!| type` names the site, and `!| explain` shows its page
-      above the error. A reader learning a tool fails often, and the
+      its procedure. A reader learning a tool fails often, and the
       failure is where what it needs is cheapest to give. Rests on
       values, the pipeline and verbs; the hypertext holds the pages the
       sites name.
@@ -189,8 +197,16 @@
 
       A failed step answers an error the tag of its site names:
       ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
-      `!|` recovers each failure where it is read:
+      `|` passes an error by and `*` answers the first an element answers:
+      ~([1 "x" 3] * (mul 2) !| type | eq ::MulLeftNotNumberError)
+      `a !| b` runs `b` on an error alone, opened to its facts, and
+      recovers each failure where it is read:
       ~([1 "x"] * (mul 2 !| 0) | eq [2 0])
+      The facts name what refused, and the first stop of the trail holds
+      the value the step refused:
+      ~("a" | mul 2 !| [/actualType /trail/0/subject] | eq [::string "a"])
+      `explain` shows the page of the site above the error:
+      ~("x" | add 1 !| explain | type | eq ::explanation)
   ~~|
   #[::error ::fail ::explanation]
 

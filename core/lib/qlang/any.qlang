@@ -22,9 +22,9 @@
 
 ::ToPlainUnencodableValueError
   |~~ `toPlain` invariant — the lossy plain-JSON codec met a shape
-      with no JSON form, a host value an embedder installed. Route the
-      value through `tjson` / `toTaggedJSON` when the round-trip has
-      to stay lossless, or project around the slot.
+      with no JSON form, a host value an embedder installed. `print`
+      writes the literal, which reads back through `parse | open`, or
+      project around the slot.
   ~~|
 
 ::SourceLoadError

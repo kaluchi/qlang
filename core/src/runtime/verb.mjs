@@ -447,8 +447,7 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   if (signature.rest === null && slotLambdas.length > signature.slots.length) {
     throw new VerbModifiersBeyondSlotsError({ verbName, slotCount: signature.slots.length, actualCount: slotLambdas.length });
   }
-  // A verb a codec assembled holds no scope and resolves where it runs.
-  const scopeEnv = verbEnvRef(verb)?.env ?? state.env;
+  const scopeEnv = verbEnvRef(verb).env;
   const scopeState = withEnv(state, scopeEnv);
   const subjectKinds = signature.subjectKinds ?? residenceKindsOf(verb);
   const { served, passedTags } = subjectKinds === null

@@ -26,9 +26,6 @@
     "./session": {
       "import": "./src/session.mjs"
     },
-    "./codec": {
-      "import": "./src/codec.mjs"
-    },
     "./errors": {
       "import": "./src/errors.mjs"
     },

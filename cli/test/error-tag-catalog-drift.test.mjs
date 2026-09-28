@@ -31,7 +31,6 @@ import { throwSiteSpecOf } from '@kaluchi/qlang-core/errors';
 import { createCliLocator, installCliCatalog } from '../src/cli-locator.mjs';
 import '../src/io-operands.mjs';
 import '../src/format-operands.mjs';
-import '../src/parse-operands.mjs';
 import '../src/script-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));

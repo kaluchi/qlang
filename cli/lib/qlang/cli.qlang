@@ -1,13 +1,15 @@
 |~ The module of the command line, a noun of the core, `::qlang/cli`,
    written short `::cli`: its verbs live on it, and their
-   primitives, in `cli/src/io-operands.mjs`, `format-operands.mjs` and
-   `parse-operands.mjs`, are plain functions over the values the head of
+   primitives, in `cli/src/io-operands.mjs` and `format-operands.mjs`,
+   are plain functions over the values the head of
    each verb checks; the refusals of a verb sit under it. ~|
 
 ::qlang/cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
-      and write the streams of the process, `tjson` and `table` render
-      a value as text, and `parseTjson` reads back what `tjson` wrote.
+      and write the streams of the process, and `table` renders a
+      vector of maps as text. A value one query hands another over a
+      pipe keeps its kinds as its literal: `print | @out` writes it and
+      `@in | parse | open` reads it back.
       A query runs on what stdin holds: JSON read as values, an object
       a map whose keys are keywords, whose answer is written as JSON,
       where a value JSON has no form for is refused; text read
@@ -98,22 +100,6 @@
       keyword's grammatical form. ~~|
 
 
-:tjson
-  |~~ Renders any value as the tagged-JSON wire format from core's
-      `codec.mjs`. Round-trips through `parseTjson`, so two qlang
-      processes chained over a Unix pipe preserve identity for
-      keyword / Set / Map / TaggedInstance / error values that
-      plain JSON cannot represent. Use it for qlang-to-qlang IPC;
-      use `json`, a verb of any value, for talking to non-qlang
-      consumers.
-
-      ~(42 | tjson | parseTjson | eq 42)
-      ~([1 :foo "hi"] | tjson | parseTjson | eq [1 :foo "hi"])
-      ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
-      ~({:a 1 :b :keyword} | tjson | parseTjson | eq {:a 1 :b :keyword})
-  ~~|
-  ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/tjson})
-
 :table
   |~~ Renders a Vec of Maps as a fixed-width tabular string, a view
       for a terminal. Columns are derived from keys in first-occurrence
@@ -145,26 +131,3 @@
         |  eq [::TableRowNotMapError 0 ::number]
        )
   ~~|
-
-:parseTjson
-  |~~ Parses a String of tagged-JSON into a qlang value. The
-      tagged-JSON envelope ($keyword / $map / $tagged / $error
-      markers) preserves every qlang-only type — Sets, Maps with
-      Keyword keys, error values, tagged instances — so
-      `value | tjson | parseTjson` is identity. Use it as the
-      symmetric pair for `tjson` when piping qlang process to
-      qlang process.
-
-      ~(42 | tjson | parseTjson | eq 42)
-      ~([1 :foo "hi"] | tjson | parseTjson | eq [1 :foo "hi"])
-      ~(#[1 2 3] | tjson | parseTjson | eq #[1 2 3])
-  ~~|
-  ::verb~(:subject ::string | ::builtin{:impl :qlang/cli/parseTjson})
-
-::ParseTjsonSubjectNotStringError
-  |~~ Subject of `parseTjson` must be a String — the tagged-JSON
-      text. ~~|
-
-::ParseTjsonInvalidJsonError
-  |~~ `parseTjson` could not parse the subject as tagged-JSON.
-      The original `JSON.parse` message rides on `:message`. ~~|

@@ -211,11 +211,9 @@ describe('the finite-double domain holds at every render seam', () => {
     }
   });
 
-  it('toPlain and toTaggedJSON refuse the same values', async () => {
+  it('toPlain refuses the values the printer refuses', async () => {
     const { NumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
-    const { toTaggedJSON } = await import('../../src/codec.mjs');
     expect(() => toPlain(Infinity)).toThrow(NumberNotFiniteLeakedToPrintError);
-    expect(() => toTaggedJSON(NaN)).toThrow(NumberNotFiniteLeakedToPrintError);
   });
 
   it('every in-domain magnitude renders unchanged', () => {

@@ -3,7 +3,7 @@
 // the specific branch / path it exercises (right-operand checks
 // in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
 // `UseNamespaceCollisionError` site, binding-record classifier in
-// `types.mjs::describeType`, codec round-trip through
+// `types.mjs::describeType`,
 // `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
 // topical test files (`error-values.test.mjs`,
 // `print-value-extras.test.mjs`, `effect-check.test.mjs`,
@@ -192,22 +192,6 @@ describe('a slot takes no modifiers', async () => {
     const e = result.originalError;
     expect(e.name).toBe('ApplyToNonFunctionError');
     expect(e.context.name).toBe('n');
-  });
-});
-
-
-import { deserializeSession } from '../../src/session.mjs';
-
-describe('session deserialization edge cases', async () => {
-  it('deserializes a verb binding from its quote under its tag', async () => {
-    const payload = {
-      schemaVersion: 4,
-      bindings: [{ name: 'x', value: { $tagged: { $tag: 'verb', payload: { $quote: 'mul 2' } } }, docs: [] }],
-      cells: []
-    };
-    const s = await deserializeSession(payload);
-    const r = await s.evalCell('5 | x');
-    expect(r.result).toBe(10);
   });
 });
 

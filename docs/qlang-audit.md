@@ -1154,7 +1154,7 @@ comments and blank lines left out:
 
 ```sh
 $ git ls-files --error-unmatch docs/qlang-spec.md docs/qlang-internals.md 'core/src/*.mjs' | xargs awk '/^[ \t]*$/ {next} FILENAME ~ /^docs/ {d++; next} /^[ \t]*\/\// {next} {c++} END {printf "%.1f\n", d / c}'
-0.7
+0.8
 ```
 
 The reference is a tutorial rather than a specification, as the
@@ -1287,15 +1287,17 @@ $ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>
 The rest of the scar is duplication the other sections name only in
 part:
 
-- Three codecs for one value. The literal and its parser; a tagged JSON
-  with envelopes for keywords, maps and tagged values
-  (`core/src/codec.mjs`), exposed on the command line as `tjson` and
-  `parseTjson`; and a lossy JSON (`core/src/runtime/format.mjs`,
-  `toPlain` and `fromPlain`). A fourth format is the session envelope,
-  a JSON with a schema version and binding kinds
-  (`core/src/session.mjs`, `serializeSession`). The literal is lossless
-  for every value; the tagged JSON cannot even encode a named pipeline,
-  which the literal prints.
+- Two codecs for one value, and no third. The literal and its parser
+  carry every value, which one query hands another over a pipe as
+  `print | @out` and `@in | parse | open`; the lossy JSON of the
+  boundary is `toPlain` and `fromPlain` in
+  `core/src/runtime/format.mjs`. The tagged JSON and the session
+  envelope left the package:
+
+  ```sh
+  $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /TaggedJSON|serialize/i.test(name)).length)"
+  0
+  ```
 - Two loaders of modules: `use` through a locator
   (`core/src/runtime/use-op.mjs`, `resolveNamespaceEnv`), which the
   bootstrap of the catalog calls too, and a resolver of module
@@ -1313,10 +1315,8 @@ part:
   $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
   ./errors ./operand-errors
   ```
-- Surface without users. The session keeps a history of cells with the
-  environment after each, and offers to take and restore snapshots;
-  nothing outside the tests calls any of it, and the counter of cells
-  leaks into what a user sees, `:uri "cell-2"` on a parse error of the
+- A counter without a reader. The session numbers its cells, and the
+  counter leaks into what a user sees, `:uri "cell-2"` on a parse error of the
   command line and the module of every binding a query of the command
   line declares:
 
@@ -1538,10 +1538,9 @@ them may name them otherwise.
 What leaves the tree, as the repairs land: the classes of errors with
 their factories, the
 registry of throw sites, the stamping passes and the converter's
-tables; the primitive registry with its sealing; tagged JSON and the
-session envelope; the effect marker and its checks; the character
+tables; the primitive registry with its sealing; the effect marker and its checks; the character
 scanner of doc text; the housekeeping keys of the environment; the
-history of cells; the resolver of module directories; the call to the
+resolver of module directories; the call to the
 parser from outside `parse`; the error prose of the catalog that
 restates the facts; the drift tests and the document-compliance runner
 for the documents that go.
@@ -1611,8 +1610,7 @@ their factories, the registry of throw sites and the drift tests leave
 is what it exposes, so helpers stay in their module [D63], with mounted
 namespaces, each a subtree answered by its provider [D24], [D36], and
 the rest of the rule of collisions, a verb and a kind joined only by
-whoever owns one of them [D23]; the literal the one lossless format,
-tagged JSON and the session envelope gone [D30]; the documents
+whoever owns one of them [D23]; the documents
 generated or deleted, the examples on one plane, the keyword's form
 from the parser, and the editor's grammar generated or reduced; and the
 entrypoint of the work in its first version, the command that measures

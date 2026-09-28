@@ -1,9 +1,9 @@
-// The primitives of the renderers of the command line, `tjson` and
-// `table`, verbs of the noun `::qlang/cli` [D92], each a plain function
-// over the value the head of its verb checks [D80].
+// The primitive of `table`, the renderer of the command line, a verb of
+// the noun `::qlang/cli` [D92] and a plain function over the vector the
+// head of its verb checks [D80].
 
 import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
-import { printValue, toTaggedJSON } from '@kaluchi/qlang-core';
+import { printValue } from '@kaluchi/qlang-core';
 
 declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
 const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
@@ -44,6 +44,5 @@ function table(subject) {
 }
 
 export const formatImpls = {
-  tjson: subject => JSON.stringify(toTaggedJSON(subject)),
   table
 };

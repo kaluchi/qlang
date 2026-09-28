@@ -1,11 +1,7 @@
 // Tests for session.mjs — REPL/notebook session lifecycle.
 
 import { describe, it, expect } from 'vitest';
-import {
-  createSession,
-  serializeSession,
-  deserializeSession
-} from '../../src/session.mjs';
+import { createSession } from '../../src/session.mjs';
 import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
 import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
 
@@ -17,12 +13,11 @@ describe('createSession lifecycle', () => {
     expect(sessionInstance.env.has('filter')).toBe(true);
   });
 
-  it('evalCell returns an entry with result and updates history', async () => {
+  it('evalCell returns an entry with its result', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42');
     expect(cellEntry.result).toBe(42);
     expect(cellEntry.error).toBeNull();
-    expect(sessionInstance.cellHistory).toHaveLength(1);
   });
 
   it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
@@ -86,31 +81,14 @@ describe('createSession lifecycle', () => {
 
   it('evalCell uri defaults to cell-N', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell('1');
-    await sessionInstance.evalCell('2');
-    expect(sessionInstance.cellHistory[0].uri).toBe('cell-1');
-    expect(sessionInstance.cellHistory[1].uri).toBe('cell-2');
+    expect((await sessionInstance.evalCell('1')).uri).toBe('cell-1');
+    expect((await sessionInstance.evalCell('2')).uri).toBe('cell-2');
   });
 
   it('evalCell uri respects evalOpts.uri', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('1', { uri: 'notebook.qlang#cell-foo' });
     expect(cellEntry.uri).toBe('notebook.qlang#cell-foo');
-  });
-
-  it('takeSnapshot/restoreSnapshot round-trips env and history length', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':x 1');
-    const snap = sessionInstance.takeSnapshot();
-    await sessionInstance.evalCell(':y 2');
-    expect(sessionInstance.cellHistory).toHaveLength(2);
-    sessionInstance.restoreSnapshot(snap);
-    expect(sessionInstance.cellHistory).toHaveLength(1);
-    // x is still bound, y is gone
-    expect((await sessionInstance.evalCell('x')).result).toBe(1);
-    const yLookup = await sessionInstance.evalCell('y');
-    // Unresolved identifier produces an error value.
-    expect(isErrorValue(yLookup.result)).toBe(true);
   });
 
   it('bind installs a raw value into env', async () => {
@@ -120,123 +98,7 @@ describe('createSession lifecycle', () => {
   });
 });
 
-describe('serializeSession / deserializeSession round-trip', () => {
-  it('preserves user BindStep verbs via their quotes', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double ::verb~(mul 2)');
-    await sessionInstance.evalCell(':triple ::verb~(mul 3)');
-
-    const payload = await serializeSession(sessionInstance);
-    const jsonText = JSON.stringify(payload);
-    const restored = await deserializeSession(JSON.parse(jsonText));
-
-    expect((await restored.evalCell('5 | double')).result).toBe(10);
-    expect((await restored.evalCell('5 | triple')).result).toBe(15);
-  });
-
-  it('keeps a binding that shadows a verb of the core, and no key of the runtime', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':count 5');
-    const payload = await serializeSession(sessionInstance);
-    expect(payload.bindings.map(binding => binding.name)).toEqual(['count']);
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-    expect((await restored.evalCell('[1 2 3] | count')).result).toBe(5);
-    expect((await restored.evalCell('[1 2 3] | vec/count')).result).toBe(3);
-  });
-
-  it('restored verbs honor lexical scope (immune to caller-side shadowing)', async () => {
-    // A declared verb resolves in the scope its declaration wrote, so
-    // a later cell that shadows `mul` does not affect the restored
-    // verb's body resolution. deserializeSession gives every restored
-    // verb the restored session's scope; a verb without one would
-    // resolve where it runs and the shadow would leak into the body.
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double ::verb~(mul 2)');
-    const payload = await serializeSession(sessionInstance);
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-    // Shadow mul AFTER restore. Lexical scope means double's body
-    // still resolves mul through the env captured at deserialize
-    // time (the original builtin), not the call-site env carrying
-    // the shadow.
-    await restored.evalCell(':mul ::verb~(sub 1)');
-    expect((await restored.evalCell('5 | double')).result).toBe(10);
-  });
-
-  it('preserves user freezes via tagged-JSON value replay', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell('42 | :answer /');
-    await sessionInstance.evalCell('[1 2 3] | :nums /');
-
-    const payload = await serializeSession(sessionInstance);
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-
-    expect((await restored.evalCell('answer')).result).toBe(42);
-    expect((await restored.evalCell('nums | count')).result).toBe(3);
-  });
-
-  it('preserves the docs of a binding through the round trip', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':rate |~~ The tax rate. ~~| 0.07');
-
-    const payload = await serializeSession(sessionInstance);
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-
-    expect((await restored.evalCell(':rate | doc | content')).result).toBe(' The tax rate. ');
-    expect((await restored.evalCell('rate')).result).toBe(0.07);
-  });
-
-  it('preserves cell history sources without re-running them', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':x 1');
-    await sessionInstance.evalCell(':y 2');
-    const payload = await serializeSession(sessionInstance);
-    const restored = await deserializeSession(payload);
-    expect(restored.cellHistory).toHaveLength(2);
-    expect(restored.cellHistory[0].source).toBe(':x 1');
-    expect(restored.cellHistory[1].source).toBe(':y 2');
-  });
-
-  it('does not serialize built-in functions', async () => {
-    const sessionInstance = await createSession();
-    const payload = await serializeSession(sessionInstance);
-    expect(payload.bindings).toEqual([]);
-  });
-
-  it('rejects payload with wrong schemaVersion', async () => {
-    let thrown;
-    try { await deserializeSession({ schemaVersion: 999, bindings: [], cells: [] }); } catch (thrownErr) { thrown = thrownErr; }
-    expect(thrown.name).toBe('SessionSchemaVersionMismatchError');
-    expect(thrown.context.actual).toBe(999);
-  });
-
-  it('rejects payload with missing bindings array', async () => {
-    let thrown;
-    try { await deserializeSession({ schemaVersion: 4 }); } catch (thrownErr) { thrown = thrownErr; }
-    expect(thrown.name).toBe('SessionPayloadInvalidError');
-  });
-
-  it('rejects null payload', async () => {
-    let thrown;
-    try { await deserializeSession(null); } catch (thrownErr) { thrown = thrownErr; }
-    expect(thrown.name).toBe('SessionPayloadInvalidError');
-  });
-
-  it('serializes a raw value bound via session.bind as its value', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('answer', 42);
-    const payload = await serializeSession(sessionInstance);
-    const valueBinding = payload.bindings.find(b => b.name === 'answer');
-    expect(valueBinding).toBeDefined();
-    expect(valueBinding.value).toBe(42);
-  });
-
-  it('round-trips a raw value binding', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('answer', 42);
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(await serializeSession(sessionInstance))));
-    expect((await restored.evalCell('answer')).result).toBe(42);
-  });
-
+describe('a module a locator hands', () => {
   it('runs a host verb through the implementation its module was handed with', async () => {
     const sessionInstance = await createSession({
       locator: async nsName => (nsName === 'tests/host'
@@ -259,18 +121,6 @@ describe('serializeSession / deserializeSession round-trip', () => {
     });
     expect((await sessionInstance.evalCell('use :tests/stray !| [type /implName]')).result)
       .toEqual([makeTagKeyword('UseImplNamesNoVerbError'), keyword('limit')]);
-  });
-
-  it('round-trips a user-defined tag-binding installed via ::tag ...', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(
-      '::wrap {:impl ~(prepend "[" | append "]")}'
-    );
-    const restored = await deserializeSession(
-      JSON.parse(JSON.stringify(await serializeSession(sessionInstance)))
-    );
-    const cellEntry = await restored.evalCell('"x" | ::wrap"x" | payload');
-    expect(cellEntry.result).toBe('[x]');
   });
 });
 
@@ -353,19 +203,7 @@ describe('createSession with locator — lazy module loading', () => {
   });
 });
 
-describe('session cells that carry more than a parse failure', () => {
-  it('serializes a verb as its quote under its tag', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':scaled ::verb~(:factor ::number | mul factor)');
-
-    const payload = await serializeSession(sessionInstance);
-    const scaled = payload.bindings.find(b => b.name === 'scaled');
-    expect(scaled.value).toEqual({ $tagged: { $tag: 'verb', payload: { $quote: ':factor ::number | mul factor' } } });
-
-    const restored = await deserializeSession(JSON.parse(JSON.stringify(payload)));
-    expect((await restored.evalCell('5 | scaled 3')).result).toBe(15);
-  });
-
+describe('a cell whose failure is no error value', () => {
   it('leaves an invariant failure on the error channel with no result value', async () => {
     // `evalAst` converts every failure into an ErrorValue except
     // QlangInvariantError, which travels as a host-level throw. The

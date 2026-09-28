@@ -1,10 +1,9 @@
-// parseJson / parseTjson coverage. Each parser is exercised through
+// parseJson coverage. The parser is exercised through
 // runQuery so the bound operand path, the per-site error sites, and
 // the qlang-shape conversion all fire against a real session.
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { keyword } from '@kaluchi/qlang-core';
 import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
 
 const noopIo = {
@@ -50,43 +49,6 @@ describe('parseJson — error sites', () => {
   it('lifts ParseJsonInvalidJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
     const thrown = expectOperandErrorThrown(cellEntry, 'ParseJsonInvalidJsonError', {});
-    expect(typeof thrown.context.message).toBe('string');
-    expect(thrown.context.message.length).toBeGreaterThan(0);
-  });
-});
-
-describe('parseTjson — happy path', () => {
-  it('round-trips a qlang Set through tjson | parseTjson', async () => {
-    const cellEntry = await runQuery('#[:admin :user] | tjson | parseTjson | count', noopIo);
-    expect(cellEntry.result).toBe(2);
-  });
-
-  it('round-trips a Map with keyword values, restoring keyword identity', async () => {
-    const cellEntry = await runQuery(
-      '{:role :admin} | tjson | parseTjson | /role',
-      noopIo);
-    expect(cellEntry.result).toEqual(keyword('admin'));
-  });
-
-  it('round-trips a Vec of mixed scalars verbatim', async () => {
-    const cellEntry = await runQuery(
-      '[1 "two" :three null] | tjson | parseTjson',
-      noopIo);
-    expect(cellEntry.result).toEqual([1, 'two', keyword('three'), null]);
-  });
-});
-
-describe('parseTjson — error sites', () => {
-  it('lifts ParseTjsonSubjectNotStringError when the subject is not a String', async () => {
-    const cellEntry = await runQuery('42 | parseTjson', noopIo);
-    expectOperandErrorThrown(cellEntry, 'ParseTjsonSubjectNotStringError', {
-      actualType: { name: 'number' }
-    });
-  });
-
-  it('lifts ParseTjsonInvalidJsonError when the subject is not valid JSON', async () => {
-    const cellEntry = await runQuery('"{not json" | parseTjson', noopIo);
-    const thrown = expectOperandErrorThrown(cellEntry, 'ParseTjsonInvalidJsonError', {});
     expect(typeof thrown.context.message).toBe('string');
     expect(thrown.context.message.length).toBeGreaterThan(0);
   });

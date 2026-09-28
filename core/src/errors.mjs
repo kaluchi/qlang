@@ -4,8 +4,7 @@
 // A per-site class names its throw site and nothing else: one site,
 // one class. The factories below build them, and each concrete class
 // lives next to the site that raises it — an operand impl in
-// runtime/*.mjs, a codec seam in codec.mjs, the session envelope in
-// session.mjs. `operand-errors.mjs` narrows the same shape for the
+// runtime/*.mjs or a seam of the host. `operand-errors.mjs` narrows the same shape for the
 // sites that check a slot's value-class, where the operand, the
 // position and the expected type spell the diagnostic.
 //

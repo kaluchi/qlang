@@ -63,10 +63,8 @@ const TO_PLAIN_HANDLERS = {
   Quote:          q => `~(${printQuoteSource(q)})`,
   Doc:            d => `|~~${docText(d)}~~|`,
   Set:            s => s.map(toPlain),
-  // Error → `$error: {$tag, descriptor}` — the tag sits at the
-  // head of the envelope so the lossy plain-JSON form carries
-  // the identity slot explicitly. Round-trip is one-way at this
-  // codec; `toTaggedJSON` is the bijective pair.
+  // An error writes its tag beside its descriptor; the literal, not
+  // JSON, is the form that reads back.
   Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } })
 };
 
@@ -85,15 +83,10 @@ function toPlainFallback(v) {
   throw new ToPlainUnencodableValueError({ actualType: typeof v, actualValue: v });
 }
 
-// `toPlain` refuses to silently coerce unknown shapes to garbage
-// strings (the `String([object Object])` path the previous
-// fallback took). Per-site class so a caller can recover by
-// projecting around the offending slot or by using the
-// lossless `toTaggedJSON` codec instead.
 export const ToPlainUnencodableValueError = declareInvariantError(
   'ToPlainUnencodableValueError',
-  ({ actualType }) => `toPlain: unencodable ${actualType} value — use toTaggedJSON for ` +
-    'lossless JSON or project around the slot',
+  ({ actualType }) => `toPlain: unencodable ${actualType} value — print it as a literal ` +
+    'or project around the slot',
   { operand: 'json' }
 );
 

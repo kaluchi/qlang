@@ -12,7 +12,7 @@ describe('createCliLocator', () => {
   it('answers the module of the noun of the command line with its primitives', async () => {
     const result = await createCliLocator(noopCtx)('qlang/cli');
     expect(result.source).toContain('::qlang/cli');
-    expect(Object.keys(result.impls)).toEqual(expect.arrayContaining(['@in', '@out', '@err', '@tap', 'tjson', 'table', 'parseTjson']));
+    expect(Object.keys(result.impls)).toEqual(expect.arrayContaining(['@in', '@out', '@err', '@tap', 'table']));
   });
 
   it('answers no other namespace', async () => {
@@ -31,7 +31,7 @@ describe('installCliCatalog [D92]', () => {
   };
 
   it('lets a query call the verbs of the command line by their names', async () => {
-    expect(await evalInCli('[1 2] | tjson')).toBe('[1,2]');
+    expect(await evalInCli('[{:a 1}] | table')).toContain('| a |');
   });
 
   it('keeps them out of the names the session declares', async () => {
@@ -40,6 +40,6 @@ describe('installCliCatalog [D92]', () => {
 
   it('lists them under the noun of the command line', async () => {
     expect(await evalInCli('::qlang | manifest | has ::cli')).toBe(true);
-    expect(await evalInCli('::cli | manifest | has ::cli/tjson')).toBe(true);
+    expect(await evalInCli('::cli | manifest | has ::cli/table')).toBe(true);
   });
 });

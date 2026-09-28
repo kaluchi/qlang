@@ -1185,7 +1185,7 @@ leak
 
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
-session although the core can serialize one. The noun of a project's
+session, which is to save as the source of its declarations [D30]. The noun of a project's
 `.qlang/` folder waits for the modules [D37]. The sister project's query
 command reimplements the parse-error descriptor by hand
 (`cli/src/commands/query.mjs`, `parseErrorToValue`), and it onboards its

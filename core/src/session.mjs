@@ -21,7 +21,8 @@ import { errorFromParse } from './error-convert.mjs';
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
 //     entry { source, uri, ast, result, error, envAfterCell } its
 //     answer; `evalOpts.initialPipeValue` is the subject of its first
-//     step, null when absent, and `evalOpts.uri` its name.
+//     step, null when absent, and `evalOpts.uri` its name, a cell
+//     without one numbered among the cells without one.
 //   env — the current env Map
 //   bind(name, value) — install a binding into env
 export async function createSession(opts = {}) {
@@ -33,8 +34,7 @@ export async function createSession(opts = {}) {
 
   return {
     async evalCell(source, evalOpts = {}) {
-      cellCount += 1;
-      const cellUri = evalOpts.uri ?? `cell-${cellCount}`;
+      const cellUri = evalOpts.uri ?? `cell-${++cellCount}`;
       let cellAst = null;
       let cellResult = null;
       let cellError = null;

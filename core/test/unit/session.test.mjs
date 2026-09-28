@@ -82,7 +82,8 @@ describe('createSession lifecycle', () => {
   it('evalCell uri defaults to cell-N', async () => {
     const sessionInstance = await createSession();
     expect((await sessionInstance.evalCell('1')).uri).toBe('cell-1');
-    expect((await sessionInstance.evalCell('2')).uri).toBe('cell-2');
+    expect((await sessionInstance.evalCell('2', { uri: 'named' })).uri).toBe('named');
+    expect((await sessionInstance.evalCell('3')).uri).toBe('cell-2');
   });
 
   it('evalCell uri respects evalOpts.uri', async () => {

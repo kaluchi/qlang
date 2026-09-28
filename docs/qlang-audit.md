@@ -1272,15 +1272,6 @@ part:
   $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
   ./errors ./operand-errors
   ```
-- A counter without a reader. The session numbers its cells, and the
-  counter leaks into what a user sees, `:uri "cell-2"` on a parse error of the
-  command line and the module of every binding a query of the command
-  line declares:
-
-  ```sh
-  $ qlang ':x 1 | env | /x | /module'
-  :cell-2
-  ```
 - Consumers that carry spellings of the language. The language server
   tells a verb from a value by the tag of the literal a binding's body
   is, and scans doc text with its own loop.

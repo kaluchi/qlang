@@ -347,8 +347,8 @@ first stable release. A change answers the question "what became
 shorter"; a replacement is radical and lands in every consumer at once.
 
 The hierarchy of texts. This audit and its principles come first, then
-the language reference, then the catalog and the conformance cases,
-then the tools, then the process. A lower text does not contradict a
+the catalog and the conformance cases, which are the reference of the
+language [D128], then the tools, then the process. A lower text does not contradict a
 higher one; when they conflict, the lower one changes. Process does not
 introduce entities into the language.
 
@@ -1293,12 +1293,10 @@ branch against the baseline and falls.
 
 ### A process that grows text
 
-Several of the review rules generate additions by construction, one by
-demanding a
-distinct class per throw site, one by requiring that the documents be
-kept in step with code they duplicate, one by asking the reviewer to
-propose sibling operands, one by requiring retroactive fixes in every
-diff. The coverage threshold of one hundred percent on every axis has
+The review rules are written from the principles, each a principle and
+the check that enforces it (`.claude/agents/qlang-review.md`), one of
+them the distinct class at every throw site that [D46] replaces. The
+coverage threshold of one hundred percent on every axis has
 produced a test corpus heavier than the code it covers, and most of it
 tests the mechanism rather than the language: almost every unit test
 imports the internals it checks, so it dies with them, while the
@@ -1306,10 +1304,9 @@ conformance cases, each a query and the literal it must answer, state
 what the language does and survive any rewrite of how. The drift tests
 and three of the five convention checks exist to guard duplicates.
 
-The repair must derive every process rule from a principle, with each
-rule reading as the principle plus the check that enforces it; must
-replace the coverage number with a policy that keeps the threshold for
-the language core and a no-number rule elsewhere; must treat the
+The repair must replace the coverage number with a policy that keeps
+the threshold for the language core and a no-number rule elsewhere;
+must treat the
 conformance cases as the requirements of the language and the unit
 tests as scaffolding that goes with what it scaffolds; and must delete
 each guard together with the duplicate it guards.

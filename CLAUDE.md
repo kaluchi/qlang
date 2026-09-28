@@ -145,8 +145,8 @@ Coverage thresholds of one hundred on every axis are pinned in the
 for the language core alone.
 
 `.claude/agents/qlang-review.md` is the ruleset the review subagent
-applies. The audit schedules its rewriting from the principles; until
-that lands, where a rule and the audit disagree, the audit wins.
+applies, each rule a principle of the audit and the check that enforces
+it; where a rule and the audit disagree, the audit wins.
 
 ## Change workflow
 

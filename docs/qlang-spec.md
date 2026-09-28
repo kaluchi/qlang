@@ -809,6 +809,23 @@ an operand of a host with an effect meets them in that order. A host
 whose operand is better served by calls at once takes the whole vector
 and bounds its own calls.
 
+The first element whose step fails is the answer of `*`, and the
+elements after it are not evaluated [D103]; a consumer that wants every
+element writes what a failure becomes in the body, which the
+parentheses after `*` delimit:
+
+```qlang
+> [1 "x" 3] * add 10 !| type
+::AddLeftNotNumberError
+
+> [1 "x" 3] * (add 10 !| 0)
+[11 0 13]
+```
+
+The body is a step, or a pipeline in parentheses; a quote after `*`
+is a value, which every element answers as it is, `[1 2] * ~(add 1)`
+being `[~(add 1) ~(add 1)]`.
+
 ## Construct
 
 Extract is about taking values apart. Construct is about building

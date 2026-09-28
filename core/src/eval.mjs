@@ -227,17 +227,26 @@ async function distribute(state, bodyNode) {
     return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue));
   }
   // The parentheses after `*` delimit its body, whose head takes the
-  // track, so `[e 1] * (!| 0)` recovers an error element; an error the
-  // body answers waits in the result. A map's elements are its values.
+  // track, so `[e 1] * (!| 0)` recovers an error element; the first error
+  // the body answers answers the distribute, the elements after it left
+  // unrun [D103]. A map's elements are its values.
   const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
   if (isQMap(subjectSeq)) {
     const mapEntries = [...subjectSeq];
     const entryAnswers = await forkEach(state, mapEntries.map(([, entryValue]) => entryValue), inner => evalBody(bodyPipeline, inner));
+    if (isErrorValue(entryAnswers)) return withPipeValue(state, failedInside(entryAnswers, bodyNode, state.pipeValue));
     return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, entryAnswers[index]])));
   }
   const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
+  if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state.pipeValue));
   // A set distributes into the set of its images [D16].
   return withPipeValue(state, isQSet(subjectSeq) ? makeSet(distributeResults) : distributeResults);
+}
+
+// The error an element of a distribute answered, which answers the
+// distribute with a stop of its own after the stops inside [D85].
+function failedInside(elementError, bodyNode, subject) {
+  return answerOfStep(elementError, () => makeQuote([eachStepOf(bodyNode)]), subject);
 }
 
 // `!|` runs the step on a raised error alone, opened to the error

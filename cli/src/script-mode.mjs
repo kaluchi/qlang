@@ -35,9 +35,46 @@
 //     input format is the contract the user established; the output
 //     honours it.
 
-import { fromPlain, toPlain, printAnswer, makeTagKeyword } from '@kaluchi/qlang-core';
+import {
+  fromPlain, toPlain, printAnswer, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword
+} from '@kaluchi/qlang-core';
+import { recordThrowSiteSpec } from '@kaluchi/qlang-core/errors';
 
 const JSON_PRETTY_INDENT = 2;
+
+// Under JSON, the channel a JSON input chose, an answer holding a value
+// JSON has no form for is refused, naming the path of map keys and
+// indices to that value and its kind [D103].
+// The refusal is minted as a value where the answer is written, so its
+// site records its facts without a factory.
+recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::qlang/cli' });
+
+const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'vec', 'map']);
+
+// The first value beneath the answer that JSON has no form for, an
+// error among them, with the path to it, or null.
+function firstNotJson(value, path) {
+  if (isErrorValue(value)) return { value, path };
+  const kindName = typeKeyword(value).name;
+  if (!JSON_KINDS.has(kindName)) return { value, path };
+  const parts = kindName === 'vec' ? value.map((element, index) => [index, element])
+    : kindName === 'map' ? [...value].map(([key, entryValue]) => [keyword(key), entryValue])
+    : [];
+  for (const [pathStep, part] of parts) {
+    const found = firstNotJson(part, [...path, pathStep]);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+// The answer the JSON channel writes: the answer itself, an error it
+// holds, or the refusal of a value JSON has no form for.
+function answerForJson(value) {
+  const notJson = firstNotJson(value, []);
+  if (notJson === null || isErrorValue(notJson.value)) return notJson?.value ?? value;
+  return makeErrorValue(makeTagKeyword('AnswerNotJsonError'),
+    new Map([['path', notJson.path], ['actualType', typeKeyword(notJson.value)]]));
+}
 
 // The noun the command line starts from when standard input carries no
 // bytes, outside any project [D37]; the noun of the nearest `.qlang/`
@@ -95,7 +132,7 @@ function liftParsedDocument(parsed, resolvedFormat) {
 
 export async function encodeSuccessValueForFormat(value, resolvedFormat, env) {
   if (resolvedFormat === 'json') {
-    return JSON.stringify(toPlain(value), null, JSON_PRETTY_INDENT);
+    return JSON.stringify(toPlain(answerForJson(value)), null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
   // (the raw-in-raw-out contract); anything else goes out as its print.

@@ -4,7 +4,7 @@
 // success value back.
 
 import { describe, it, expect } from 'vitest';
-import { langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 import {
   DEFAULT_SUBJECT,
   liftStdinToPipeValue,
@@ -75,3 +75,37 @@ describe('encodeSuccessValueForFormat', () => {
     expect(await encodeSuccessValueForFormat(value, 'raw', await langRuntime())).toBe('{:k 1}');
   });
 });
+
+// Under JSON, the channel a JSON input chose, an answer holding a value
+// JSON has no form for is refused by an error naming its path and kind
+// [D103].
+describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => {
+  const refusalOf = async query => JSON.parse(await encodeSuccessValueForFormat(await evalQuery(query), 'json')).$error;
+
+  it('refuses a quote, naming its place and its kind', async () => {
+    const refusal = await refusalOf('[1 ~(add 1)]');
+    expect(refusal.$tag).toBe('AnswerNotJsonError');
+    expect(refusal.descriptor.path).toEqual([1]);
+    expect(refusal.descriptor.actualType).toBe('::quote');
+  });
+
+  it('refuses a set, a keyword and a tagged value by the path of map keys and indices', async () => {
+    expect((await refusalOf('#[1 2]')).descriptor).toMatchObject({ path: [], actualType: '::set' });
+    expect((await refusalOf('{:a [{:b :k}]}')).descriptor).toMatchObject({ path: ['a', 0, 'b'], actualType: '::keyword' });
+    expect((await refusalOf('::Box {} | {:a ::Box{:k 1}}')).descriptor).toMatchObject({ path: ['a'], actualType: '::Box' });
+  });
+
+  it('answers an error a container holds as that error', async () => {
+    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('AddLeftNotNumberError');
+  });
+
+  it('keeps the form of an answer that is itself an error', async () => {
+    expect((await refusalOf('"x" | add 1')).$tag).toBe('AddLeftNotNumberError');
+  });
+
+  it('writes JSON values as they are', async () => {
+    const text = await encodeSuccessValueForFormat(await evalQuery('{:a [1 "x" null true {:b 2.5}]}'), 'json');
+    expect(JSON.parse(text)).toEqual({ a: [1, 'x', null, true, { b: 2.5 }] });
+  });
+});
+

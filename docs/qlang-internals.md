@@ -505,7 +505,10 @@ into a Map under the same keys):
    parentheses of `* (…)` delimit the body, so a body that opens
    with `!|` recovers an error element and any other body hands
    it on with its trail
-3. Take the resulting `nextPipeValue` from the fork
+3. Take the resulting `nextPipeValue` from the fork; the first error a
+   body answers is the answer of `*`, with a stop of its own, and the
+   elements after it stay unrun [D103], so a consumer that wants every
+   element writes the recovery in the body, `* (f !| null)`
 
 Collect all results into a new Vec. Final state:
 `(collectedVec, env)` with original `env` preserved. Each iteration's

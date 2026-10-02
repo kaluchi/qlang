@@ -230,6 +230,7 @@
       ~(2.5 | round | eq 3)
       ~(-2.5 | round | eq -3)
       ~(1234 | round -2 | eq 1200)
+      ~(-0.4 | round | print | eq "0")
   ~~|
   ::verb~(:digits 0 | :returns ::number | ::builtin{:impl :qlang/prim/round})
 

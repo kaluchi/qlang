@@ -610,6 +610,16 @@
   ~~|
   ::verb~()
 
+:contains
+  |~~ Whether the subject holds the value: a string a substring, a
+      vector or a set an element equal to it, the membership `has` asks.
+
+      ~("hello" | contains "ell" | eq true)
+      ~(["ops" "db"] | contains "ops" | eq true)
+      ~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
+  ~~|
+  ::verb~()
+
 :prepend
   |~~ The subject with the operand in front: a string takes a string as
       its prefix, a vector any value as its first element. The subject

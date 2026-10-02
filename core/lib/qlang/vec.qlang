@@ -114,13 +114,23 @@
   ~~|
   ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
 
+:contains
+  |~~ Whether the vector holds an element equal to the value, the
+      membership `has` asks, under the word a string answers for its
+      substrings.
+
+      ~(["ops" "db"] | contains "ops" | eq true)
+  ~~|
+  ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
+
 :groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
-      map is a keyword, so a key that answers a string, the field of a
-      JSON object, is made one first.
+      map is a keyword, and a key that answers a string, the field of a
+      JSON object, or a number files its element under the keyword of
+      its text.
 
       ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
-      ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s | keyword) * count | eq {:paid 2 :open 1})
+      ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
   ~~|
   ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
 

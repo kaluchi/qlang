@@ -212,3 +212,11 @@
       ~(#[:a :b :c] | has :b | eq true)
   ~~|
   ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
+
+:contains
+  |~~ Whether the set holds the element, the membership `has` asks,
+      under the word a string answers for its substrings.
+
+      ~(#[:a :b :c] | contains :b | eq true)
+  ~~|
+  ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})

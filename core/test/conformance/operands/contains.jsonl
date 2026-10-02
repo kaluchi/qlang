@@ -7,7 +7,9 @@
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
 {"name":"case-sensitive","query":"\"Hello\" | contains \"hello\"","expect":"false"}
 {"name":"needle-equals-subject","query":"\"foo\" | contains \"foo\"","expect":"true"}
-{"name":"subject-not-string-throws","query":"42 | contains \"x\"","error":"typeError","expect":"::ContainsSubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"subject-not-string-by-address-throws","query":"42 | string/contains \"x\"","error":"typeError","expect":"::ContainsSubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(string/contains \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"needle-not-string-throws","query":"\"hi\" | contains 42","error":"typeError","expect":"::ContainsNeedleNotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-projection-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(/name | contains \"al\") * /name","expect":"[\"alice\" \"alex\"]"}
+{"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true","decision":"D130"}
+{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| /addresses","expect":"#[::set/contains ::string/contains ::vec/contains]","decision":"D130"}

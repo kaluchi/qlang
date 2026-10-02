@@ -172,10 +172,11 @@
   ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
 
 ::ContainsSubjectNotStringError
-  |~~ The subject of `contains` is the string searched; a vector is asked
-      for an element by `has`.
+  |~~ The subject of `::string/contains` is the string searched, where the
+      address calls it; the name `contains` reaches a vector and a set by
+      their elements.
       ~(
-        42 | contains "x"
+        42 | string/contains "x"
         !| [type /actualType]
         |  eq [::ContainsSubjectNotStringError ::number]
        )

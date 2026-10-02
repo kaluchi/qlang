@@ -117,6 +117,8 @@
       `*` stands in the place of `|` and runs its step on each element of
       a vector or each value of a map, a literal among its steps:
       ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      A pipe written before `*` or `!|` stands for the combinator after it:
+      ~([1 2] | * (add 1) | eq [2 3])
       `/k`, `/0`, `/-1`, `/a/b` read a part, and a miss is an error:
       ~({:a {:b 1}} | /a/b | eq 1)
       ~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)

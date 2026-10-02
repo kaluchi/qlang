@@ -120,7 +120,13 @@ ContinuationUnit
   / _ DocAfterStep
   / __ step:BindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:StepAfterCombinator { return { combinator: c, step }; }
+  / __ c:PipedCombinator __ step:StepAfterCombinator { return { combinator: c, step }; }
   / SpacingRefusal
+
+// A pipe written before `*` or `!|`, the habit of a pipe before every
+// step, stands for the combinator after it [D130].
+PipedCombinator
+  = "|" __ c:("*" { return '*'; } / "!|" { return '!|'; }) { return c; }
 
 // A break with a combinator at neither end stands for `|` at the top
 // level.
@@ -129,6 +135,7 @@ LineContinuationUnit
   / _ DocAfterStep
   / __ step:LineBindStep { return { combinator: '|', step }; }
   / __ c:Combinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
+  / __ c:PipedCombinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
   / _h Newline _ !Combinator step:LineStepAfterCombinator { return { combinator: '|', step }; }
   / SpacingRefusal
 

@@ -453,6 +453,42 @@ string's answer against its raw print first. Every target that a
 literal can state is a conformance case naming its decision, which the
 runner of the suite holds [D58].
 
+The fourth lists what reached the window besides the conversation. A
+text the harness adds to a turn is a record of kind `attachment` that
+keeps what the model saw under `rendered`: the instruction files with
+the index of the memory under `instructions`, the git status with the
+messages of the last commits under `session_context`, what a hook
+added, the listings of skills, tools and agents, the notices of files
+changed on disk and the reminders of a turn. The system prompt rides a
+`prompt_snapshot`, and the transcript of a subagent lies in the
+`subagents/` directory of its session, beside the type, the model and
+the description of its spawn.
+
+The sensor is `scripts/sensors/context-inventory.mjs`, and without an
+argument it reads the running session and every subagent it spawned;
+`--start` lists in order what arrived before the model's first answer,
+and `--show` prints every text of one kind.
+
+The maintainer named what it measures before it existed: «как будто бы
+давление родительского контекста прошивает границу и залетает в
+детсткий контекст» (maintainer, 2026-10-02 16:28 UTC, session
+87118b06). Its first runs, in the session of 2 October 2026, found the
+pressure in channels no rule looked at. The index of the memory opened
+with a description of the language that its own first screen
+contradicts, and every session and every subagent read it before the
+first word of its task. The documentation of subagents says that the
+main conversation's auto memory stays out of a subagent
+(https://code.claude.com/docs/en/sub-agents, What loads at startup),
+and the transcripts show it inside, in the `instructions` of a
+subagent's first second. A hook of the local settings, outside the
+tree, added a sentence to every subagent. And a fresh agent of the
+experiments of 29 September, told that nothing but its prompt existed,
+received beside the prompt more text from the harness than the prompt
+held, by an order of magnitude, as `--start` over session b80c288e
+shows: «в общем, шум он оказывается не только в коде репозитория, но
+ещё и в неявных обвязках клод кода...» (maintainer, 2026-10-02 22:14
+UTC, session 87118b06).
+
 ## What the maintainer repeats
 
 A repetition is a candidate fact, sensor or mode. On 23 September 2026

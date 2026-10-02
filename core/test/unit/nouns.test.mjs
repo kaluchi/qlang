@@ -92,7 +92,7 @@ describe('a tag name that no tag binds addresses a verb', () => {
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
-    expect(await evalQuery('::string/count | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
+    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
     expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
   });
 });

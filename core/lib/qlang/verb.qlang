@@ -127,6 +127,6 @@
       ~(
         :count ::verb~(:x ::number) | [1] | count 1
         !| [type /addresses]
-        |  eq [::VerbWithoutBodyError #[::map/count ::set/count ::vec/count]]
+        |  eq [::VerbWithoutBodyError #[::map/count ::set/count ::string/count ::vec/count]]
        )
   ~~|

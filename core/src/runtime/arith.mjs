@@ -25,6 +25,8 @@ declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
 declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
 declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
 declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
+declareModifierError('RoundSubjectNotNumberError', 'round', 1, 'number');
+const RoundDigitsNotIntegerError = declareModifierError('RoundDigitsNotIntegerError', 'round', 2, 'integer');
 
 // A qlang Number is a finite double, as the page of `::number` says.
 // Both operands are finite by that same rule, so
@@ -64,4 +66,13 @@ bindPrim('mul', (multiplicand, multiplier) =>
 bindPrim('div', (dividend, divisor) => {
   if (divisor === 0) throw new DivisionByZeroError();
   return finiteOrLift(dividend / divisor, dividend, divisor, DivResultNotFiniteError);
+});
+
+// A number rounds half away from zero to the digits after the point the
+// call gives, a negative count rounding to tens and beyond [D132].
+bindPrim('round', (subject, digits) => {
+  if (!Number.isInteger(digits)) throw new RoundDigitsNotIntegerError(digits);
+  const factor = 10 ** digits;
+  const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;
+  return rounded === 0 ? 0 : rounded;
 });

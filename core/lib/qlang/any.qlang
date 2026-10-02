@@ -653,6 +653,15 @@
   ~~|
   ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/eq})
 
+:ne
+  |~~ Whether the subject differs from the value, by the structural
+      equality of `eq`, whose negation it is.
+
+      ~(1 | ne 2 | eq true)
+      ~({:a 1} | ne {:a 1} | eq false)
+  ~~|
+  ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/ne})
+
 :type
   |~~ The value's kind, a tag, which names the page of the value and the
       verbs it answers: `type | doc` reads the kind's page, and asking

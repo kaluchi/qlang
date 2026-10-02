@@ -21,7 +21,7 @@
 {"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":inc ::verb~(:subject ::number | :returns / | add 1) | ::Width(5) | inc | [type payload]","expect":"[::Width 6]","decision":"D67"}
 {"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":grow ::verb~(:returns / | union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T","decision":"D67"}
 {"name":"a-verb-that-returns-a-kind-checks-its-answer","query":":n ::verb~(:returns ::string | count) | [1 2] | n !| type","expect":"::StringPayloadNotStringError","decision":"D67"}
-{"name":"a-verb-without-a-body-names-the-residences-of-its-name","query":":count ::verb~(:x ::number) | [1] | count 1 !| [type /addresses]","expect":"[::VerbWithoutBodyError #[::map/count ::set/count ::vec/count]]","decision":"D67"}
+{"name":"a-verb-without-a-body-names-the-residences-of-its-name","query":":count ::verb~(:x ::number) | [1] | count 1 !| [type /addresses]","expect":"[::VerbWithoutBodyError #[::map/count ::set/count ::string/count ::vec/count]]","decision":"D67"}
 {"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":big ::verb~(gt 2) | [1 2 3] | filter ~big","expect":"[3]","decision":"D67"}
 {"name":"a-code-slot-runs-a-verb-with-its-defaults","query":"[1 2 3] | filter ::verb~(:n 2 | gt n)","expect":"[3]","decision":"D67"}
 {"name":"apply-runs-a-verb-with-its-defaults","query":"5 | apply ::verb~(:n 1 | add n)","expect":"6","decision":"D67"}

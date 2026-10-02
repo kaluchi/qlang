@@ -126,7 +126,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(190);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(192);
   });
 
   it('no name of the value namespace is left a descriptor [D113]', async () => {

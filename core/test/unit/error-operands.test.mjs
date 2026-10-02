@@ -146,7 +146,7 @@ describe('per-site error classes carry unique identity', () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('VerbWithoutBodyError');
-    expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'vec/count']);
+    expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
   it('keys on non-Map → KeysSubjectNotMapError', async () => {

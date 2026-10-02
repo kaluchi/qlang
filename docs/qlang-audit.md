@@ -1580,14 +1580,16 @@ names meet the core's in a client's scope, where a module's names win
 [D62]; the sister project's workspaces become nouns and its answers
 name the workspace they came from [D38]; a host's command is the
 language's with its noun as the first value [D37]; and the benchmark
-runs [D26], each run recorded with the frictions it met and the first
-screen written against them [D104], [D105], [D106].
+runs [D26], each run recorded with the frictions it met [D104], [D105],
+[D106], while the first screen is written from the invariants of the
+language and held against probes its author never saw [D131].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
 [D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
 [D124], [D125], [D127] and [D129]: the first screen and the
 hypertext it opens, every one met. The others stand beside the suite: one
-start command returns the root doc within four kilobytes; `:trail`
+start command returns the root doc, complete first and within four
+kilobytes after a pass on compactness [D131]; `:trail`
 prints the same way on an error value and on its materialized
 descriptor, where the error literal hides an empty trail and the
 descriptor shows it; a renderer loads the documents of the tags and
@@ -1941,3 +1943,4 @@ maintainer wants to explore it before it is fixed.
 [D127]: decisions/D127.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
+[D131]: decisions/D131.md

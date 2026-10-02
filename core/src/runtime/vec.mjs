@@ -7,7 +7,7 @@
 // the map where it keeps keys; a slot of code arrives closed at the call,
 // a lambda over the element [D73].
 
-import { isQSet, isKeyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet } from '../types.mjs';
+import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareModifierError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError, declareNumericDomainError } from '../errors.mjs';
@@ -156,10 +156,12 @@ bindPrim('any', async (container, predicate) => {
 });
 
 // The keyword the key of `groupBy` or `indexBy` answers for an element,
-// or the error it answered.
+// a string or a number filed under the keyword of its text [D130], or the
+// error it answered.
 async function keywordOf(key, element, index, ErrorCls) {
   const answer = await key(element);
   if (isErrorValue(answer) || isKeyword(answer)) return answer;
+  if (isString(answer) || isNumber(answer)) return keyword(String(answer));
   throw new ErrorCls({ index, actualType: typeKeyword(answer), actualValue: answer });
 }
 

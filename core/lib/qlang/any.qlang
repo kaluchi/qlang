@@ -302,23 +302,27 @@
 
 :groupBy
   |~~ Partitions a vector or a set into a map keyed by the keyword the key
-      answers for each element: a vector's buckets are vectors and a
-      set's are sets. The entries follow the first occurrence of each
-      key, and each bucket the subject's order.
+      answers for each element, a string or a number filed under the
+      keyword of its text, so a field of JSON groups as it is: a vector's
+      buckets are vectors and a set's are sets. The entries follow the
+      first occurrence of each key, and each bucket the subject's order.
 
       ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
+      A string or a number keys its bucket by the keyword of its text:
+      ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
+      ~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
   ~~|
   ::verb~()
 
 ::GroupByKeyNotKeywordError
-  |~~ The key `groupBy` files an element under is a keyword, since the
-      keys of a map are keywords; a string becomes one by `keyword`,
-      `groupBy ~(/status | keyword)`, and a number by `print | keyword`. `:index` names the
-      element.
+  |~~ The key `groupBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text, since the keys of
+      a map are keywords; any other value is refused, and `:index` names
+      the element.
       ~(
-        [{:k 1} {:k 2}] | groupBy ~(/k)
+        [{:k true} {:k 2}] | groupBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::GroupByKeyNotKeywordError ::number 0]
+        |  eq [::GroupByKeyNotKeywordError ::boolean 0]
        )
   ~~|
 
@@ -334,22 +338,24 @@
 
 :indexBy
   |~~ Collapses a vector or a set into a map keyed by the keyword the key
-      answers for each element; of two elements the key answers alike,
-      the last wins.
+      answers for each element, a string or a number filed under the
+      keyword of its text; of two elements the key answers alike, the
+      last wins.
 
       ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
+      ~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
   ~~|
   ::verb~()
 
 ::IndexByKeyNotKeywordError
-  |~~ The key `indexBy` files an element under is a keyword, since the
-      keys of a map are keywords; a string becomes one by `keyword`, and
-      a number by `print | keyword`, `indexBy ~(/id | print | keyword)`. `:index` names the
-      element.
+  |~~ The key `indexBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text, since the keys of
+      a map are keywords; any other value is refused, and `:index` names
+      the element.
       ~(
-        [{:k 1}] | indexBy ~(/k)
+        [{:k [1]}] | indexBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::IndexByKeyNotKeywordError ::number 0]
+        |  eq [::IndexByKeyNotKeywordError ::vec 0]
        )
   ~~|
 

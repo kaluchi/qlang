@@ -138,7 +138,7 @@
 
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
-  ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
+  ::verb~(:returns / * :keys ::quote | ::builtin{:impl :qlang/prim/sort})
 
 :take
   |~~ The first count entries.

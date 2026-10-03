@@ -375,9 +375,11 @@
   |~~ The elements in the one order of values, the order every value of
       the language takes against every other, so a listing can be ranked
       before it is read; `sort ~(key)` ranks by what the key answers for
-      each element. Within a kind strings order by their code units,
-      vectors element by element, a set as its vector, maps by their keys
-      and then their values, and a tagged value by its payload.
+      each element, and further keys rank the elements the keys before
+      them leave alike, `sort ~(/count | desc) ~(/name)` as `ORDER BY
+      count DESC, name` reads. Within a kind strings order by their code
+      units, vectors element by element, a set as its vector, maps by
+      their keys and then their values, and a tagged value by its payload.
 
       Numbers ascend by value, equal ones side by side:
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
@@ -389,29 +391,45 @@
       vector, since the order is imposed and a set keeps its own:
       ~(#[:y :x :z] | sort | eq [:x :y :z])
       ~([::B ::A] | sort | eq [::A ::B])
-      A vector the key answers is a compound key, and elements with equal
-      keys keep the order of the subject:
-      ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~([/a /b]) | eq [{:a 1 :b 1} {:a 1 :b 2}])
-      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
-      The descending order is the sort reversed:
-      ~([{:k 1} {:k 2}] | sort ~(/k) | reverse | eq [{:k 2} {:k 1}])
+      A second key ranks the elements the first leaves alike, and elements
+      all the keys leave alike keep the order of the subject:
+      ~([{:a 1 :b 2} {:a 1 :b 1}] | sort ~(/a) ~(/b) | eq [{:a 1 :b 1} {:a 1 :b 2}])
+      ~([3 null 1] | sort ~(eq null) ~(/) | eq [1 3 null])
+      `desc` turns one key to descend, the ties of the keys after it still
+      ascending:
+      ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~(/n | desc) ~(/s) * /s | eq ["a" "c" "b"])
+      ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
       A key that answers an error answers the call, so a key that misses
-      its field is refused where it is read:
+      its field is refused where it is read, a part of a vector it answers
+      among them:
       ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::ProjectionKeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::ProjectionKeyNotInMapError)
       A map sorts its entries by their values and keeps the keys:
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::verb~()
 
-::SortKeyNotQuoteError
-  |~~ The key of `sort` is code it runs on each element, so it takes a
-      quote, `sort ~(/age)`; a value computed at the call is refused.
-      ~(
-        [3 1 2] | sort 1
-        !| [type /actualType]
-        |  eq [::SortKeyNotQuoteError ::number]
-       )
+::desc
+  |~~ The kind of a value `desc` lays its tag over, a key of `sort` that
+      descends: among the values under `::desc` the one order runs in
+      reverse, and `payload` opens one to the value beneath.
+
+      ~(5 | desc | type | eq ::desc)
+      ~([2 1] * desc | sort | * payload | eq [2 1])
   ~~|
+
+:desc
+  |~~ The value under `::desc`, which takes the reverse of its place in the
+      one order among the values under that tag: a key of `sort` that
+      descends, `sort ~(/count | desc) ~(/name)`, whatever the kind of
+      what it ranks.
+
+      ~([1 3 2] | sort ~(desc) | eq [3 2 1])
+      ~(["b" "a"] | sort ~(desc) | eq ["b" "a"])
+      ~(5 | desc | payload | eq 5)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/desc})
+
 
 :take
   |~~ The first count elements in the subject's order, a set's least

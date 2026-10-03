@@ -7,7 +7,9 @@
 // the map where it keeps keys; a slot of code arrives closed at the call,
 // a lambda over the element [D73].
 
-import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet } from '../types.mjs';
+import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
+
+const DESC_TAG = makeTagKeyword('desc');
 import { compareValues } from '../ordering.mjs';
 import { declareModifierError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError, declareNumericDomainError } from '../errors.mjs';
@@ -46,7 +48,6 @@ declareModifierError('EveryPredicateNotQuoteError',  'every',   2, 'quote');
 declareModifierError('AnyPredicateNotQuoteError',    'any',     2, 'quote');
 declareModifierError('GroupByKeyNotQuoteError',      'groupBy', 2, 'quote');
 declareModifierError('IndexByKeyNotQuoteError',      'indexBy', 2, 'quote');
-declareModifierError('SortKeyNotQuoteError',         'sort',    2, 'quote');
 declareModifierError('ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 
 // A count and an index are whole numbers: the head refuses a value of
@@ -194,18 +195,31 @@ bindPrim('indexBy', async (sequence, key) => {
   return index;
 });
 
-// `sort` orders the elements in the one order, or by the value the key
-// answers for each, keeping equal ones in the subject's order; a map
-// orders its entries by their values and keeps the keys. A key that
-// answers an error answers the call, as the key of `groupBy` does
-// [D87].
-bindPrim('sort', async (container, key) => {
+// The error a key answered for an element, the key itself or a part of
+// the vector it answered, or null [D87], [D140].
+function errorOfKey(sortKey) {
+  if (isErrorValue(sortKey)) return sortKey;
+  return isVec(sortKey) ? sortKey.find(isErrorValue) ?? null : null;
+}
+
+// `sort` orders the elements in the one order, or by the values the keys
+// answer for each, the first key first and each later one among the
+// elements the ones before it rank alike, keeping equal ones in the
+// subject's order; a map orders its entries by their values and keeps the
+// keys. A key that answers an error answers the call, as the key of
+// `groupBy` does [D87], [D140].
+bindPrim('sort', async (container, keys) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
   const keyed = [];
   for (const entry of entries) {
-    const sortKey = key === NULL ? entry[1] : await key(entry[1]);
-    if (key !== NULL && isErrorValue(sortKey)) return sortKey;
-    keyed.push({ entry, sortKey });
+    const sortKeys = [];
+    for (const key of keys) {
+      const sortKey = await key(entry[1]);
+      const failed = errorOfKey(sortKey);
+      if (failed !== null) return failed;
+      sortKeys.push(sortKey);
+    }
+    keyed.push({ entry, sortKey: keys.length === 0 ? entry[1] : sortKeys });
   }
   keyed.sort((left, right) => compareValues(left.sortKey, right.sortKey));
   const sorted = keyed.map(({ entry }) => entry);
@@ -239,6 +253,10 @@ bindPrim('at', (container, place) => {
 // `distinct` is the constructor of the set [D16]: the elements of a
 // vector in the one order without duplicates. A set passes through as
 // it is.
+// `desc` lays `::desc` over a value, which reverses its place in the one
+// order among the values under that tag [D140].
+bindPrim('desc', value => makeTaggedInstance(DESC_TAG, value));
+
 bindPrim('distinct', sequence => (isQSet(sequence) ? sequence : makeSet(sequence)));
 
 bindPrim('reverse', container => (isQMap(container) ? new Map([...container].reverse()) : [...container].reverse()));

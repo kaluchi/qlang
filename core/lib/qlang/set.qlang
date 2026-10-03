@@ -129,7 +129,7 @@
 
       ~(#[:y :x :z] | sort | eq [:x :y :z])
   ~~|
-  ::verb~(:key #[::quote ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/sort})
+  ::verb~(:returns ::vec * :keys ::quote | ::builtin{:impl :qlang/prim/sort})
 
 :take
   |~~ The set of the least count elements.

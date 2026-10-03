@@ -29,6 +29,9 @@ const ELISION_KIND  = 12;
 const TAGGED_KIND   = 13;
 
 const ELISION_TAG_NAME = 'elision';
+// A value under `::desc` takes the reverse of its payload's place among
+// the values under that tag, so a key of `sort` descends [D140].
+const DESC_TAG_NAME = 'desc';
 
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
@@ -93,7 +96,8 @@ function compareKinded(leftKind, left, rightKind, right) {
       return comparePayloads(left, right);
     default: {
       const byTag = compareCodeUnits(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
-      return byTag !== 0 ? byTag : comparePayloads(left, right);
+      if (byTag !== 0) return byTag;
+      return left[TAG_HEADER_SYMBOL].name === DESC_TAG_NAME ? comparePayloads(right, left) : comparePayloads(left, right);
     }
   }
 }

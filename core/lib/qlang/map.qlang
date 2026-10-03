@@ -100,14 +100,14 @@
 
       ~({:a 3 :b 1} | min | eq 1)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/min})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
   |~~ The last value in the one order of values.
 
       ~({:a 3 :b 1} | max | eq 3)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/max})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
 :filter
   |~~ The entries whose value the predicate answers true for, their keys

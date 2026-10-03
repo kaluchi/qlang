@@ -49,6 +49,7 @@
     "#qlang/spec": "./lib/qlang/spec.qlang",
     "#qlang/binding": "./lib/qlang/binding.qlang",
     "#qlang/elision": "./lib/qlang/elision.qlang",
+    "#qlang/desc": "./lib/qlang/desc.qlang",
     "#qlang/link": "./lib/qlang/link.qlang",
     "#qlang/snippet": "./lib/qlang/snippet.qlang",
     "#qlang/call": "./lib/qlang/call.qlang",

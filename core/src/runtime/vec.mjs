@@ -7,7 +7,9 @@
 // the map where it keeps keys; a slot of code arrives closed at the call,
 // a lambda over the element [D73].
 
-import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet } from '../types.mjs';
+import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
+
+const DESC_TAG = makeTagKeyword('desc');
 import { compareValues } from '../ordering.mjs';
 import { declareModifierError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError, declareNumericDomainError } from '../errors.mjs';
@@ -88,16 +90,43 @@ function sizeOf(container) {
   return isQMap(container) ? container.size : container.length;
 }
 
-// The least or the greatest element in the one order, `pick` naming
-// which side wins a comparison.
-function extremeOf(container, pick) {
-  const items = elementsOf(container);
-  if (items.length === 0) return NULL;
-  let acc = items[0];
-  for (let i = 1; i < items.length; i++) {
-    if (pick(compareValues(items[i], acc))) acc = items[i];
+// The error a key answered for an element, the key itself or a part of
+// the vector it answered, or null [D87], [D140].
+function errorOfKey(rankKey) {
+  if (isErrorValue(rankKey)) return rankKey;
+  return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
+}
+
+// Each entry beside the value it ranks by, its own without a key, an
+// error among the elements ranked as the one order ranks it, or the
+// error a key answered.
+async function keyedEntries(entries, key) {
+  const keyed = [];
+  for (const entry of entries) {
+    if (key === NULL) {
+      keyed.push({ entry, sortKey: entry[1] });
+      continue;
+    }
+    const sortKey = await key(entry[1]);
+    const failed = errorOfKey(sortKey);
+    if (failed !== null) return failed;
+    keyed.push({ entry, sortKey });
   }
-  return acc;
+  return keyed;
+}
+
+// The least or the greatest element in the one order, or by the value
+// the key answers for each, `pick` naming which side wins a comparison,
+// the first of equal ones staying [D140].
+async function extremeOf(container, key, pick) {
+  const keyed = await keyedEntries(elementsOf(container).map(item => [null, item]), key);
+  if (isErrorValue(keyed)) return keyed;
+  if (keyed.length === 0) return NULL;
+  let best = keyed[0];
+  for (const candidate of keyed.slice(1)) {
+    if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
+  }
+  return best.entry[1];
 }
 
 bindPrim('count', container => sizeOf(container));
@@ -124,8 +153,8 @@ bindPrim('sum', container => {
   return total;
 });
 
-bindPrim('min', container => extremeOf(container, order => order < 0));
-bindPrim('max', container => extremeOf(container, order => order > 0));
+bindPrim('min', (container, key) => extremeOf(container, key, order => order < 0));
+bindPrim('max', (container, key) => extremeOf(container, key, order => order > 0));
 
 // `filter` keeps the entries of a map whose values pass, and the
 // elements of a sequence that do; the head reads the answer back as the
@@ -196,17 +225,14 @@ bindPrim('indexBy', async (sequence, key) => {
 
 // `sort` orders the elements in the one order, or by the value the key
 // answers for each, keeping equal ones in the subject's order; a map
-// orders its entries by their values and keeps the keys. A key that
-// answers an error answers the call, as the key of `groupBy` does
-// [D87].
+// orders its entries by their values and keeps the keys. A vector the key
+// answers ranks element by element, and `desc` reverses a place of it.
+// A key that answers an error answers the call, as the key of `groupBy`
+// does, and so does one whose vector holds an error [D87], [D140].
 bindPrim('sort', async (container, key) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
-  const keyed = [];
-  for (const entry of entries) {
-    const sortKey = key === NULL ? entry[1] : await key(entry[1]);
-    if (key !== NULL && isErrorValue(sortKey)) return sortKey;
-    keyed.push({ entry, sortKey });
-  }
+  const keyed = await keyedEntries(entries, key);
+  if (isErrorValue(keyed)) return keyed;
   keyed.sort((left, right) => compareValues(left.sortKey, right.sortKey));
   const sorted = keyed.map(({ entry }) => entry);
   return isQMap(container) ? new Map(sorted) : sorted.map(([, element]) => element);
@@ -239,6 +265,10 @@ bindPrim('at', (container, place) => {
 // `distinct` is the constructor of the set [D16]: the elements of a
 // vector in the one order without duplicates. A set passes through as
 // it is.
+// `desc` lays `::desc` over a value, which reverses its place in the one
+// order among the values under that tag [D140].
+bindPrim('desc', value => makeTaggedInstance(DESC_TAG, value));
+
 bindPrim('distinct', sequence => (isQSet(sequence) ? sequence : makeSet(sequence)));
 
 bindPrim('reverse', container => (isQMap(container) ? new Map([...container].reverse()) : [...container].reverse()));

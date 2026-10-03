@@ -67,7 +67,7 @@ const ERROR_TAGS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 const VALUE_CLASS_CONSTRUCTOR_TAGS = new Set([
   '::builtin', '::set',
   '::null', '::boolean', '::number', '::string', '::keyword', '::tag', '::vec', '::map', '::doc',
-  '::quote', '::call', '::proj', '::bind', '::construct', '::each', '::fail', '::group', '::verb'
+  '::quote', '::call', '::proj', '::bind', '::construct', '::each', '::fail', '::group', '::verb', '::desc'
 ]);
 
 describe('every refusal names the place it guards [D64]', () => {

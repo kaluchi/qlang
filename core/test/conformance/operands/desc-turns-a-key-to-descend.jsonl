@@ -1,0 +1,11 @@
+{"name":"a-vector-key-ranks-by-its-next-place-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b","expect":"[9 1 2]","decision":"D140"}
+{"name":"desc-turns-one-place-of-a-vector-key-to-descend","query":"[{:n 1 :s \"b\"} {:n 2 :s \"c\"} {:n 2 :s \"a\"}] | sort ~([(/n | desc) /s]) * /s","expect":"[\"a\" \"c\" \"b\"]","decision":"D140"}
+{"name":"desc-descends-strings","query":"[\"b\" \"c\" \"a\"] | sort ~(desc)","expect":"[\"c\" \"b\" \"a\"]","decision":"D140"}
+{"name":"a-map-sorts-by-a-descending-key-and-keeps-its-keys","query":"{:a 1 :b 3 :c 2} | sort ~(desc) | vals","expect":"[3 2 1]","decision":"D140"}
+{"name":"a-place-of-a-key-that-fails-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~([/a]) !| type","expect":"::ProjectionKeyNotInMapError","decision":"D140"}
+{"name":"every-comparison-agrees-on-desc","query":"[(1 | desc | gt (2 | desc)) ([1 2] * desc | max | payload)]","expect":"[true 1]","decision":"D140"}
+{"name":"max-takes-a-key-and-answers-the-element","query":"[{:age 30} {:age 40}] | max ~(/age)","expect":"{:age 40}","decision":"D140"}
+{"name":"min-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | min ~(/n) | /i","expect":"0","decision":"D140"}
+{"name":"the-key-of-the-greatest-value-of-a-map","query":"{:a 3 :b 1} | entries | max ~(/1) | /0","expect":":a","decision":"D140"}
+{"name":"a-key-of-max-that-fails-answers-the-call","query":"[{:a 2} {:b 1}] | max ~(/a) !| type","expect":"::ProjectionKeyNotInMapError","decision":"D140"}
+{"name":"desc-lays-its-kind","query":"5 | desc | [type payload]","expect":"[::desc 5]","decision":"D140"}

@@ -75,14 +75,14 @@
 
       ~([3 1 4 1 5] | min | eq 1)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/min})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
   |~~ The last element in the one order of values.
 
       ~([3 1 4 1 5] | max | eq 5)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/max})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
 :filter
   |~~ The elements whose predicate answers true, in their order.
@@ -155,8 +155,10 @@
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
       A key orders by what it answers for each element:
       ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
-      `reverse` after it orders descending:
-      ~([{:age 30} {:age 40}] | sort ~(/age) | reverse | first | /age | eq 40)
+      A key under `desc` descends, and a vector key breaks the ties by its
+      next place:
+      ~([{:age 30} {:age 40}] | sort ~(/age | desc) | first | /age | eq 40)
+      ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s | eq ["a" "c" "b"])
   ~~|
   ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
 

@@ -1,9 +1,10 @@
 // One order ranks every value [D16, D48]: first by kind, null,
 // boolean, number, string, keyword, tag name, vector, set, map, quote,
-// doc, error and elision, then every other tag by its name; within a
-// kind numbers by value, strings by their code units, vectors element
+// doc, error, elision and desc, then every other tag by its name; within
+// a kind numbers by value, strings by their code units, vectors element
 // by element, a set as its vector, maps by their keys and then their
-// values, and a tagged value by its payload. `sort`, `min` and `max`
+// values, a desc by the reverse of its payload's place [D140], and a
+// tagged value by its payload. `sort`, `min` and `max`
 // order by it, and so do the ordering predicates, whose heads admit two
 // values of one kind [D65], [D72].
 
@@ -26,9 +27,11 @@ const QUOTE_KIND    = 9;
 const DOC_KIND      = 10;
 const ERROR_KIND    = 11;
 const ELISION_KIND  = 12;
-const TAGGED_KIND   = 13;
+const DESC_KIND     = 13;
+const TAGGED_KIND   = 14;
 
 const ELISION_TAG_NAME = 'elision';
+const DESC_TAG_NAME = 'desc';
 
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
@@ -44,6 +47,7 @@ function kindOf(value) {
   if (headerTag.name === SET_TAG_NAME) return SET_KIND;
   if (headerTag.name === QUOTE_TAG_NAME) return QUOTE_KIND;
   if (headerTag.name === ELISION_TAG_NAME) return ELISION_KIND;
+  if (headerTag.name === DESC_TAG_NAME) return DESC_KIND;
   return TAGGED_KIND;
 }
 
@@ -91,6 +95,8 @@ function compareKinded(leftKind, left, rightKind, right) {
     }
     case ELISION_KIND:
       return comparePayloads(left, right);
+    case DESC_KIND:
+      return comparePayloads(right, left);
     default: {
       const byTag = compareCodeUnits(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
       return byTag !== 0 ? byTag : comparePayloads(left, right);

@@ -22,12 +22,13 @@
 
 ::AnswerNotJsonError
   |~~ The input was JSON, so the answer is written as JSON, and a value
-      under it has no form there: a quote, a keyword, a tag or a value
-      under a tag; a set is written as the array of its elements.
+      under it has no form there: a quote, a tag or a value under a tag;
+      a set is written as the array of its elements, and a keyword as
+      its name.
       `:path` holds the map keys and the indices to it, `:actualType` its
       kind. The query ends before the answer is data: `* (…)` runs a body
-      where `* ~(…)` hands each element the quote, `| keyword` answers the
-      name of a keyword, and `payload` a value without its tag. ~~|
+      where `* ~(…)` hands each element the quote, and `payload` a value
+      without its tag. ~~|
 
 :@in
   |~~ The text stdin holds, read to its end whatever the subject, the

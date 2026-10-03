@@ -253,13 +253,21 @@ BlockDocContent
 // without modifiers.
 Step
   = Command
+  / ProjectionBeforeWord
   / Word
   / DocLit
 
 LineStep
   = LineCommand
+  / ProjectionBeforeWord
   / Word
   / DocLit
+
+// A projection written before a word, the method call of other
+// languages, `/ne ""`: a verb is called by its name alone.
+ProjectionBeforeWord
+  = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
+    { error('`/' + name + '` reads the key ' + name + '; a verb is called by its name alone, `' + name + ' …`'); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with

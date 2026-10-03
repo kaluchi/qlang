@@ -131,8 +131,12 @@
 
       ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
       ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
+
+      Without a key an element files under itself, so the occurrences
+      of each value are counted by `groupBy * count`:
+      ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
   ~~|
-  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
+  ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
 
 :indexBy
   |~~ The map of the elements under the key each answers, the last
@@ -141,7 +145,7 @@
 
       ~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
   ~~|
-  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
+  ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
 
 :sort
   |~~ The elements in the one order of values, the way a reader ranks

@@ -64,6 +64,7 @@
       ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
       ~("a,b,c" | split "," | join "-" | eq "a-b-c")
       ~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
+      ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
       ~(3.14159 | round 2 | ne 3.14159)
       ~([3 1 2] | reduce 0 ~(add) | eq 6)
 

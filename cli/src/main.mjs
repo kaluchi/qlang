@@ -58,6 +58,14 @@ function slotSuffixOf(codecError) {
   return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
 }
 
+// A query no qlang source begins with: a drive and a slash, the path
+// Git Bash on Windows writes for an argument that began with `/`, so
+// `qlang '/data/users'` arrives as `C:/Program Files/Git/data/users`.
+const SHELL_PATH_OF_A_QUERY = /^[A-Za-z]:\//;
+
+const SHELL_PATH_HINT = 'qlang: the shell turned a query that began with `/` into a path; '
+  + "begin it with a pipe, `| /data/users`, or run it as `MSYS_NO_PATHCONV=1 qlang '/data/users'`\n";
+
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
@@ -116,5 +124,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);
   if (cliOutcome.stderrText) stderrWrite(cliOutcome.stderrText);
+  if (cliOutcome.exitCode !== 0 && SHELL_PATH_OF_A_QUERY.test(cliInvocation.queryText)) stderrWrite(SHELL_PATH_HINT);
   return cliOutcome.exitCode;
 }

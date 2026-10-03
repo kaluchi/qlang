@@ -1,0 +1,154 @@
+[
+  {
+    "id": "O1",
+    "input": "orders.json",
+    "text": "Sum the \"total\" of all orders whose \"status\" equals \"paid\" ignoring case. Orders with a null or missing total count as 0. Return a single number.",
+    "expected": 400.5
+  },
+  {
+    "id": "O2",
+    "input": "orders.json",
+    "text": "Count orders per \"region\", excluding orders whose status is \"cancelled\" (case-insensitive). Return an object mapping region to count.",
+    "expected": {
+      "EU": 3,
+      "US": 3,
+      "APAC": 2
+    }
+  },
+  {
+    "id": "O3",
+    "input": "issues.json",
+    "text": "Among issues with state \"open\" that have a label equal to \"bug\" (case-insensitive), sort by \"comments\" descending, ties by \"number\" ascending, and return the \"number\" values of the first 3 as an array of numbers.",
+    "expected": [
+      3,
+      1,
+      5
+    ]
+  },
+  {
+    "id": "O4",
+    "input": "issues.json",
+    "text": "Collect the distinct assignee logins (\"assignee.login\") of all issues, skipping issues whose assignee is null or missing. Lowercase each login before deduplicating. Return an array of strings sorted alphabetically ascending.",
+    "expected": [
+      "alice",
+      "bob",
+      "carol",
+      "dave"
+    ]
+  },
+  {
+    "id": "O5",
+    "input": "package.json",
+    "text": "List the names of all packages in \"dependencies\" and \"devDependencies\" combined whose version string starts with \"^\". Return an array of strings sorted alphabetically ascending.",
+    "expected": [
+      "express",
+      "jest",
+      "typescript",
+      "zod"
+    ]
+  },
+  {
+    "id": "O6",
+    "input": "users.json",
+    "text": "For users whose \"address.city\" equals \"berlin\" ignoring case (users with a missing or null address or city are excluded), return an array of objects {\"id\", \"name\", \"email\"} in the original order. If email is missing or null, use null.",
+    "expected": [
+      {
+        "id": 1,
+        "name": "Ann",
+        "email": "ann@x.io"
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": null
+      },
+      {
+        "id": 5,
+        "name": "Ed",
+        "email": "ed@x.io"
+      }
+    ]
+  },
+  {
+    "id": "O7",
+    "input": "config.json",
+    "text": "From \"services\", take those that are enabled (\"enabled\" is true, or missing which means enabled; false means disabled) and that have a \"port\". Return an object mapping service name to port.",
+    "expected": {
+      "api": 8080,
+      "db": 5432,
+      "queue": 5672
+    }
+  },
+  {
+    "id": "O8",
+    "input": "events.json",
+    "text": "Among \"data.items\" with \"type\" exactly \"click\" (case-sensitive), compute the average of \"duration_ms\", ignoring items where it is null or missing. Round to 2 decimal places. Return a number.",
+    "expected": 135.33
+  },
+  {
+    "id": "O9",
+    "input": "access.log",
+    "text": "Each line is \"timestamp METHOD path status duration\". Count requests per path (all methods, all statuses) and return the top 2 paths as an array of objects {\"path\", \"count\"}, sorted by count descending, ties by path ascending.",
+    "expected": [
+      {
+        "path": "/api/orders",
+        "count": 3
+      },
+      {
+        "path": "/api/users",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "id": "O10",
+    "input": "staff.csv",
+    "text": "The file is CSV with a header row. Compute the average \"salary\" per \"dept\", ignoring rows with an empty salary. Round each average to 1 decimal place. Return an object mapping dept to average.",
+    "expected": {
+      "Eng": 105,
+      "Ops": 83,
+      "Sales": 80
+    }
+  },
+  {
+    "id": "O11",
+    "input": "requirements.txt",
+    "text": "Ignore blank lines and lines starting with \"#\". Take the lines that pin an exact version with \"==\". Lowercase the package names (the part before \"==\"), sort them alphabetically ascending, and return them joined with \",\" (no spaces) as one string.",
+    "expected": "django,flask,numpy,pyyaml"
+  },
+  {
+    "id": "O12",
+    "input": null,
+    "text": "The input string is \"Alpha:3, beta:5, ALPHA:4, gamma:1, Beta:2\". It is a comma-separated list of name:number pairs (spaces around pairs should be trimmed). Sum the numbers per name, treating names case-insensitively and using the lowercase name as the key. Return an object mapping name to sum.",
+    "expected": {
+      "alpha": 7,
+      "beta": 7,
+      "gamma": 1
+    }
+  },
+  {
+    "id": "O13",
+    "input": "orders.json",
+    "text": "Across all orders (any status), sum \"qty\" per item \"sku\". Return the top 3 as an array of objects {\"sku\", \"qty\"}, sorted by qty descending, ties by sku ascending.",
+    "expected": [
+      {
+        "sku": "A1",
+        "qty": 7
+      },
+      {
+        "sku": "D4",
+        "qty": 7
+      },
+      {
+        "sku": "B2",
+        "qty": 6
+      }
+    ]
+  },
+  {
+    "id": "O14",
+    "input": "issues.json",
+    "text": "Return a boolean: true if every issue with state \"closed\" has a non-null assignee, false otherwise.",
+    "expected": true
+  }
+]

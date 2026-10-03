@@ -1,0 +1,49 @@
+{
+  "status": "ok",
+  "data": {
+    "items": [
+      {
+        "id": "e1",
+        "type": "click",
+        "duration_ms": 120
+      },
+      {
+        "id": "e2",
+        "type": "view",
+        "duration_ms": 300
+      },
+      {
+        "id": "e3",
+        "type": "click",
+        "duration_ms": null
+      },
+      {
+        "id": "e4",
+        "type": "click",
+        "duration_ms": 85
+      },
+      {
+        "id": "e5",
+        "type": "Click",
+        "duration_ms": 40
+      },
+      {
+        "id": "e6",
+        "type": "click"
+      },
+      {
+        "id": "e7",
+        "type": "scroll",
+        "duration_ms": 10
+      },
+      {
+        "id": "e8",
+        "type": "click",
+        "duration_ms": 201
+      }
+    ]
+  },
+  "paging": {
+    "next": null
+  }
+}

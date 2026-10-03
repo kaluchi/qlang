@@ -1,0 +1,217 @@
+{
+ "set": "O",
+ "screen": "D141",
+ "screenHash": "f0e496c5a9b1",
+ "mode": "cli",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": "f8bb111",
+ "result": "Perfect! All queries are working. Here are the final solutions:\n\nO1: * (if (/status | lower | eq \"paid\") ~((/total !| 0) | coalesce 0) ~(0)) | sum\n\nO2: filter ~(/status | lower | ne \"cancelled\") | groupBy ~(/region) | * count\n\nO3: filter ~(if (/state | eq \"open\") ~(/labels | * lower | contains \"bug\") ~(false)) | sort ~([(/comments | desc) /number]) | take 3 | * /number\n\nO4: * (((/assignee !| null) | if (ne null) ~(/login | lower) ~(null))) | filter ~(ne null) | distinct | sort\n\nO5: [(/dependencies | entries) (/devDependencies | entries)] | flat | * (if (/1 | startsWith \"^\") ~((/0 | keyword)) ~(null)) | filter ~(ne null) | sort\n\nO6: * (if ((/address/city | lower | eq \"berlin\") !| false) ~({:id /id :name /name :email ((/email !| null) | coalesce null)}) ~(null)) | filter ~(ne null)\n\nO7: /services * (if ((/enabled !| true) | ne false) ~(if ((at :port) | ne null) ~([(/name | keyword) (at :port)]) ~(null)) ~(null)) | filter ~(ne null) | tag ::map\n\nO8: /data/items | filter ~(/type | eq \"click\") | * (at :duration_ms) | filter ~(ne null) | :vals / | (vals | reduce 0 ~(add) | div (vals | count)) | round 2\n\nO9: split \"\\n\" | filter ~(ne \"\") | * (split \" \" | /2) | groupBy ~(/) | * count | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:path (/0 | keyword) :count /1}\n\nO10: split \"\\n\" | drop 1 | filter ~(ne \"\") | * (split \",\" | {:name /0 :dept /1 :salary (if (/2 | ne \"\") ~((parseJson /2)) ~(null)) :start /3}) | groupBy ~(/dept) | * (filter ~(/salary | ne null) | :objs / | (objs | * /salary | reduce 0 ~(add)) | :sum / | (objs | count) | (sum | div /1) !| (sum | div (objs | count)) | round 1)\n\nO11: split \"\\n\" | filter ~(ne \"\") | filter ~((startsWith \"#\") | not) | filter ~(contains \"==\") | * (split \"==\" | /0 | lower) | sort | join \",\"\n\nO12: \"Alpha:3, beta:5, ALPHA:4, gamma:1, Beta:2\" | split \", \" | * (split \":\" | {:name (/0 | lower) :num (parseJson /1)}) | groupBy ~(/name) | * (* /num | reduce 0 ~(add))\n\nO13: * /items | flat | groupBy ~(/sku) | * (* /qty | sum) | entries | sort ~([(/1 | desc) /0]) | take 3 | * {:sku (/0 | keyword) :qty /1}\n\nO14: filter ~(/state | eq \"closed\") | every ~(((/assignee !| null) | ne null))",
+ "failed": false,
+ "turns": 41,
+ "inputTokens": 1563437,
+ "outputTokens": 30093,
+ "calls": [
+  {
+   "command": "ls -la",
+   "answered": "value",
+   "head": "total 29 drwxr-xr-x 1 EugenPC 197121 0 Oct 3 22:13 ./ drwxr-xr-x 1 EugenPC 197121 0 Oct 3 22:13 ../ -rw-r--r-- 1 EugenPC 197121 443 Oct 3 22:13 access.log -rw-r--r-- 1 EugenPC 197121 456 Oct 3 22:13 config.json -rw-r--r-- 1 EugenPC 197121 7"
+  },
+  {
+   "command": "head -100 orders.json && echo \"---\" && head -100 issues.json && echo \"---\" && head -100 package.json",
+   "answered": "value",
+   "head": "[ { \"id\": 1, \"customer\": \"Ann\", \"status\": \"paid\", \"total\": 120.5, \"region\": \"EU\", \"items\": [ { \"sku\": \"A1\", \"qty\": 2 }, { \"sku\": \"B2\", \"qty\": 1 } ] }, { \"id\": 2, \"customer\": \"Bob\", \"status\": \"Paid\", \"total\": 80, \"region\": \"US\", \"items\": [ {"
+  },
+  {
+   "command": "cat users.json && echo \"---\" && cat config.json && echo \"---\" && cat events.json",
+   "answered": "value",
+   "head": "[ { \"id\": 1, \"name\": \"Ann\", \"email\": \"ann@x.io\", \"address\": { \"city\": \"Berlin\" } }, { \"id\": 2, \"name\": \"Bob\", \"address\": { \"city\": \"berlin\" } }, { \"id\": 3, \"name\": \"Cy\", \"email\": null, \"address\": null }, { \"id\": 4, \"name\": \"Di\", \"email\": \"d"
+  },
+  {
+   "command": "cat access.log && echo \"---\" && cat staff.csv && echo \"---\" && cat requirements.txt",
+   "answered": "value",
+   "head": "2026-03-01T10:00:00Z GET /api/users 200 12ms 2026-03-01T10:00:01Z GET /api/orders 500 80ms 2026-03-01T10:00:02Z POST /api/orders 201 45ms 2026-03-01T10:00:03Z GET /api/users 200 10ms 2026-03-01T10:00:04Z GET /health 200 2ms 2026-03-01T10:00"
+  },
+  {
+   "command": "qlang '* | filter ~(/status | lower | eq \"paid\") | * (/total !| 0 | coalesce 0) | sum' < orders.json",
+   "answered": "ParseError",
+   "head": "Exit code 1 ::ParseError!{ :source \"* | filter ~(/status | lower | eq \\\"paid\\\") | * (/total !| 0 | coalesce 0) | sum\" :marker \" ^ \" :expected [:whitespace \":\" \"::\" :\"identifier start (letter, underscore, or @-sigil)\" \"/\" \"(\" \"!{\" \"#[\" \"[\" \""
+  },
+  {
+   "command": "qlang '* ~(if (/status | lower | eq \"paid\") (/total !| 0 | coalesce 0) 0) | sum' < orders.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"SumElementNotNumberError\", \"descriptor\": { \"actualValue\": \"~(if (/status | lower | eq \\\"paid\\\") (/total !| 0 | coalesce 0) 0)\", \"actualType\": \"::quote\", \"index\": 0, \"trail\": [ { \"step\": \"~(sum)\", \"subject\": [ \"~(if (/"
+  },
+  {
+   "command": "qlang '* (if (/status | lower | eq \"paid\") (/total !| 0 | coalesce 0) 0) | sum' < orders.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"IfThenNotQuoteError\", \"descriptor\": { \"actualValue\": 120.5, \"actualType\": \"::number\", \"trail\": [ { \"step\": \"~(if (/status | lower | eq \\\"paid\\\") (/total !| 0 | coalesce 0) 0)\", \"subject\": { \"id\": 1, \"customer\": \"Ann\","
+  },
+  {
+   "command": "qlang '* ~(/status | lower | eq \"paid\") | * (at :total | coalesce 0) | sum' < orders.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"AtIndexNotIntegerError\", \"descriptor\": { \"actualValue\": \"total\", \"actualType\": \"::keyword\", \"trail\": [ { \"step\": \"~(at :total)\", \"subject\": \"~(/status | lower | eq \\\"paid\\\")\", \"skipped\": \"~(coalesce 0)\" }, { \"step\": \""
+  },
+  {
+   "command": "qlang '* (if (/status | lower | eq \"paid\") ~((/total !| 0) | coalesce 0) ~(0)) | sum' < orders.json",
+   "answered": "value",
+   "head": "400.5"
+  },
+  {
+   "command": "qlang '* ~(/status | lower | ne \"cancelled\") | groupBy ~(/region) | * count' < orders.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"ProjectionSequenceKeyNotIntegerError\", \"descriptor\": { \"key\": \"region\", \"trail\": [ { \"step\": \"~(/region)\", \"subject\": \"~(/status | lower | ne \\\"cancelled\\\")\", \"skipped\": \"~()\" }, { \"step\": \"~(groupBy ~(/region))\", \"su"
+  },
+  {
+   "command": "qlang 'filter ~(/status | lower | ne \"cancelled\") | groupBy ~(/region) | * count' < orders.json",
+   "answered": "value",
+   "head": "{ \"EU\": 3, \"US\": 3, \"APAC\": 2 }"
+  },
+  {
+   "command": "qlang 'filter ~(if (/state | eq \"open\") (/labels | * lower | contains \"bug\") false) | sort ~([(/comments | desc) /number]) | take 3 | * /number' < issues.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"IfThenNotQuoteError\", \"descriptor\": { \"actualValue\": true, \"actualType\": \"::boolean\", \"trail\": [ { \"step\": \"~(if (/state | eq \\\"open\\\") (/labels * lower | contains \\\"bug\\\") false)\", \"subject\": { \"number\": 1, \"title\": "
+  },
+  {
+   "command": "qlang 'filter ~(if (/state | eq \"open\") ~(/labels | * lower | contains \"bug\") ~(false)) | sort ~([(/comments | desc) /number]) | take 3 | * /number' < issues.json",
+   "answered": "value",
+   "head": "[ 3, 1, 5 ]"
+  },
+  {
+   "command": "qlang '* (((/assignee | if / (/login | lower) null) !| null)) | filter ~(ne null) | distinct | sort' < issues.json",
+   "answered": "value",
+   "head": "[]"
+  },
+  {
+   "command": "qlang '* (((/assignee | if / (/login | lower) null) !| null)) | filter ~(ne null) | distinct | sort' < issues.json",
+   "answered": "value",
+   "head": "[]"
+  },
+  {
+   "command": "qlang '* /assignee' < issues.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"ProjectionKeyNotInMapError\", \"descriptor\": { \"key\": \"assignee\", \"trail\": [ { \"step\": \"~(/assignee)\", \"subject\": { \"number\": 8, \"title\": \"Null pointer\", \"state\": \"open\", \"labels\": [ \"bug\" ], \"comments\": 3 }, \"skipped\":"
+  },
+  {
+   "command": "qlang '* ((/assignee !| null) | if / (/login | lower) null) | filter ~(ne null) | distinct | sort' < issues.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"IfConditionNotBooleanError\", \"descriptor\": { \"actualType\": \"::map\", \"trail\": [ { \"step\": \"~(if / (/login | lower) null)\", \"subject\": { \"login\": \"Alice\" }, \"skipped\": \"~()\" }, { \"step\": \"~(* ((/assignee !| null) | if /"
+  },
+  {
+   "command": "qlang '* (((/assignee !| null) | if (ne null) ~(/login | lower) ~(null))) | filter ~(ne null) | distinct | sort' < issues.json",
+   "answered": "value",
+   "head": "[ \"alice\", \"bob\", \"carol\", \"dave\" ]"
+  },
+  {
+   "command": "qlang '[(/dependencies | entries) (/devDependencies | entries)] | flat | * (if (/1 | startsWith \"^\") ~(/0) ~(null)) | filter ~(ne null) | sort' < package.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"AnswerNotJsonError\", \"descriptor\": { \"path\": [ 0 ], \"actualType\": \"::keyword\", \"trail\": [] } } }"
+  },
+  {
+   "command": "qlang '[(/dependencies | entries) (/devDependencies | entries)] | flat | * (if (/1 | startsWith \"^\") ~((/0 | keyword)) ~(null)) | filter ~(ne null) | sort' < package.json",
+   "answered": "value",
+   "head": "[ \"express\", \"jest\", \"typescript\", \"zod\" ]"
+  },
+  {
+   "command": "qlang '* (if ((/address/city | lower | eq \"berlin\") !| false) ~({:id /id :name /name :email ((/email !| null) | coalesce null)}) ~(null)) | filter ~(ne null)' < users.json",
+   "answered": "value",
+   "head": "[ { \"id\": 1, \"name\": \"Ann\", \"email\": \"ann@x.io\" }, { \"id\": 2, \"name\": \"Bob\", \"email\": null }, { \"id\": 5, \"name\": \"Ed\", \"email\": \"ed@x.io\" } ]"
+  },
+  {
+   "command": "qlang '/services * (if (((/enabled | coalesce true)) | if (ne null) ~(ne false) ~(true)) ~(if ((at :port) | ne null) ~([(/name | keyword) (at :port)]) ~(null)) ~(null)) | filter ~(ne null) | tag ::map' < config.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"ProjectionKeyNotInMapError\", \"descriptor\": { \"key\": \"enabled\", \"trail\": [ { \"step\": \"~(/enabled)\", \"subject\": { \"name\": \"db\", \"port\": 5432 }, \"skipped\": \"~(coalesce true)\" }, { \"step\": \"~((/enabled | coalesce true))\","
+  },
+  {
+   "command": "qlang '/services * (if ((/enabled !| true) | ne false) ~(if ((at :port) | ne null) ~([(/name | keyword) (at :port)]) ~(null)) ~(null)) | filter ~(ne null) | tag ::map' < config.json",
+   "answered": "value",
+   "head": "{ \"api\": 8080, \"db\": 5432, \"queue\": 5672 }"
+  },
+  {
+   "command": "qlang '/data/items * ~(/type | eq \"click\") | * ((/duration_ms !| null) | coalesce null) | filter ~(ne null) | :vals / | (vals | reduce 0 ~(add) | div (vals | count)) | round 2' < events.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"DivisionByZeroError\", \"descriptor\": { \"trail\": [ { \"step\": \"~(div (vals | count))\", \"subject\": 0, \"skipped\": \"~()\" }, { \"step\": \"~((vals | reduce 0 ~(add) | div (vals | count)))\", \"subject\": [], \"skipped\": \"~(round 2)"
+  },
+  {
+   "command": "qlang '/data/items | filter ~(/type | eq \"click\") | * (at :duration_ms) | filter ~(ne null) | :vals / | (vals | reduce 0 ~(add) | div (vals | count)) | round 2' < events.json",
+   "answered": "value",
+   "head": "135.33"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | filter ~(ne \"\") | * (split \" \" | /2) | groupBy ~(/) | * count | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:path /0 :count /1}' < access.log",
+   "answered": "value",
+   "head": "[{:path :\"/api/orders\" :count 3} {:path :\"/api/users\" :count 3}]"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | filter ~(ne \"\") | * (split \" \" | /2) | groupBy ~(/) | * count | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:path (/0 | keyword) :count /1}' < access.log",
+   "answered": "value",
+   "head": "[{:path \"/api/orders\" :count 3} {:path \"/api/users\" :count 3}]"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | drop 1 | filter ~(ne \"\") | * (split \",\" | {:name /0 :dept /1 :salary (if (/2 | ne \"\") ~((parseJson /2)) ~(null)) :start /3}) | groupBy ~(/dept) | * (filter ~(/salary | ne null) | :objs / | [(objs | * /salary | reduce 0 ~(add)) (objs | count)] | (/0 | div /1) | round 1)' < staff.csv",
+   "answered": "ProjectionSubjectNotProjectableError",
+   "head": "::ProjectionSubjectNotProjectableError!{ :actualType ::number :key \"1\" :trail [ { :step ~(/1) :subject 315 :skipped ~() } { :step ~(div /1) :subject 315 :skipped ~() } { :step ~((/0 | div /1)) :subject [315 3] :skipped ~(round 1) } { :step "
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | drop 1 | filter ~(ne \"\") | * (split \",\" | {:name /0 :dept /1 :salary (if (/2 | ne \"\") ~((parseJson /2)) ~(null)) :start /3}) | groupBy ~(/dept) | * (filter ~(/salary | ne null) | :objs / | (objs | * /salary | reduce 0 ~(add)) | :sum / | (objs | count) | (sum | div /) | round 1)' < staff.csv",
+   "answered": "value",
+   "head": "{ :Eng 1 :Ops 1 :Sales 1 }"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | drop 1 | filter ~(ne \"\") | * (split \",\" | {:name /0 :dept /1 :salary (if (/2 | ne \"\") ~((parseJson /2)) ~(null)) :start /3}) | groupBy ~(/dept) | * (filter ~(/salary | ne null) | :objs / | (objs | * /salary | reduce 0 ~(add)) | :sum / | (objs | count) | (sum | div /1) !| (sum | div (objs | count)) | round 1)' < staff.csv",
+   "answered": "value",
+   "head": "{ :Eng 105 :Ops 83 :Sales 80 }"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | filter ~(ne \"\") | filter ~((/0 | ne \"#\")) | filter ~(contains \"==\") | * (split \"==\" | /0 | lower) | sort | join \",\"' < requirements.txt",
+   "answered": "ProjectionSubjectNotProjectableError",
+   "head": "::ProjectionSubjectNotProjectableError!{ :actualType ::string :key \"0\" :trail [ { :step ~(/0) :subject \"# deps\" :skipped ~(ne \"#\") } { :step ~((/0 | ne \"#\")) :subject \"# deps\" :skipped ~() } { :step ~(filter ~((/0 | ne \"#\"))) :subject [\"# d"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | filter ~(ne \"\") | filter ~((/startsWith \"#\") | not) | filter ~(contains \"==\") | * (split \"==\" | /0 | lower) | sort | join \",\"' < requirements.txt",
+   "answered": "ParseError",
+   "head": "Exit code 1 ::ParseError!{ :source \"split \\\"\\\\n\\\" | filter ~(ne \\\"\\\") | filter ~((/startsWith \\\"#\\\") | not) | filter ~(contains \\\"==\\\") | * (split \\\"==\\\" | /0 | lower) | sort | join \\\",\\\"\" :marker \" ^~~~~~~~~~~ \" :message \"`/startsWith` rea"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | filter ~(ne \"\") | filter ~((startsWith \"#\") | not) | filter ~(contains \"==\") | * (split \"==\" | /0 | lower) | sort | join \",\"' < requirements.txt",
+   "answered": "value",
+   "head": "django,flask,numpy,pyyaml"
+  },
+  {
+   "command": "qlang 'split \", \" | * (split \":\" | {:name (/0 | lower) :num (parseJson /1)}) | groupBy ~(/name) | * (reduce 0 ~(add | /num))' < /dev/null",
+   "answered": "SplitSubjectNotStringError",
+   "head": "::SplitSubjectNotStringError!{ :actualType ::tag :trail [ { :step ~(split \", \") :subject ::qlang :skipped ~(* (split \":\" | {:name (/0 | lower) :num (parseJson /1)}) | groupBy ~(/name) * reduce 0 ~(add | /num)) } ] }"
+  },
+  {
+   "command": "qlang '\"Alpha:3, beta:5, ALPHA:4, gamma:1, Beta:2\" | split \", \" | * (split \":\" | {:name (/0 | lower) :num (parseJson /1)}) | groupBy ~(/name) | * (reduce 0 ~(add | /num))' < /dev/null",
+   "answered": "ReduceReducerNotBinaryError",
+   "head": "::ReduceReducerNotBinaryError!{ :trail [ { :step ~(reduce 0 ~(add | /num)) :subject [{:name \"alpha\" :num 3} {:name \"alpha\" :num 4}] :skipped ~() } { :step ~(* reduce 0 ~(add | /num)) :subject { :alpha [{:name \"alpha\" :num 3} {:name \"alpha\" "
+  },
+  {
+   "command": "qlang '\"Alpha:3, beta:5, ALPHA:4, gamma:1, Beta:2\" | split \", \" | * (split \":\" | {:name (/0 | lower) :num (parseJson /1)}) | groupBy ~(/name) | * (* /num | reduce 0 ~(add))' < /dev/null",
+   "answered": "value",
+   "head": "{ :alpha 7 :beta 7 :gamma 1 }"
+  },
+  {
+   "command": "qlang '* /items | flat | groupBy ~(/sku) | * (* /qty | sum) | entries | sort ~([(/1 | desc) /0]) | take 3 | * {:sku /0 :qty /1}' < orders.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"AnswerNotJsonError\", \"descriptor\": { \"path\": [ 0, \"sku\" ], \"actualType\": \"::keyword\", \"trail\": [] } } }"
+  },
+  {
+   "command": "qlang '* /items | flat | groupBy ~(/sku) | * (* /qty | sum) | entries | sort ~([(/1 | desc) /0]) | take 3 | * {:sku (/0 | keyword) :qty /1}' < orders.json",
+   "answered": "value",
+   "head": "[ { \"sku\": \"A1\", \"qty\": 7 }, { \"sku\": \"D4\", \"qty\": 7 }, { \"sku\": \"B2\", \"qty\": 6 } ]"
+  },
+  {
+   "command": "qlang 'filter ~(/state | eq \"closed\") | every ~(((/assignee !| null) | ne null))' < issues.json",
+   "answered": "value",
+   "head": "true"
+  },
+  {
+   "command": "qlang --raw 'split \"\\n\" | drop 1 | filter ~(ne \"\") | * (split \",\" | {:name /0 :dept /1 :salary (if (/2 | ne \"\") ~((parseJson /2)) ~(null)) :start /3}) | groupBy ~(/dept) | * (filter ~(/salary | ne null) | :objs / | (objs | * /salary | reduce 0 ~(add)) | :sum / | (objs | count) | (sum | div /1) !| (sum | div (objs | count)) | round 1)' < staff.csv",
+   "answered": "value",
+   "head": "{ :Eng 105 :Ops 83 :Sales 80 }"
+  }
+ ]
+}

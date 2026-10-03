@@ -1,0 +1,16 @@
+{
+ "set": "O",
+ "screen": "D141",
+ "screenHash": "f0e496c5a9b1",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": "f8bb111",
+ "result": "Looking at this qlang documentation, I need to understand the pipeline language fundamentals before writing queries. Let me work through each task systematically.\n\nKey insights:\n- `|` pipes values between steps\n- `*` applies a step to each element\n- `~(...)` creates quoted code\n- `/key` reads from maps/arrays; `at :key` reads softly (returns null if missing)\n- `filter`, `groupBy`, `sort` are container verbs\n- `coalesce` provides defaults for null values\n\nHere are my queries, written on first attempt:\n\nO1: filter ~(/status | lower | eq \"paid\") | * (at :total | coalesce 0) | sum\n\nO2: filter ~(/status | lower | ne \"cancelled\") | groupBy ~(/region) | * count\n\nO3: filter ~(/state | eq \"open\") | filter ~(/labels | any ~(lower | eq \"bug\")) | sort ~([(/comments | desc) /number]) | take 3 | * /number\n\nO4: filter ~(at :assignee | ne null) | * (/assignee/login | lower) | distinct | sort\n\nO5: /dependencies | union (/devDependencies) | entries | filter ~(/1 | startsWith \"^\") | * /0 | sort\n\nO6: filter ~(at :address | ne null) | filter ~(/address | at :city | ne null) | filter ~(/address | at :city | lower | eq \"berlin\") | * {:id /id :name /name :email (at :email)}\n\nO7: /services | filter ~((at :enabled | coalesce true) | eq true) | filter ~(has :port) | * [(/name | keyword) /port] | tag ::map\n\nO8: /data/items | filter ~(/type | eq \"click\") | * (at :duration_ms) | filter ~(ne null) | :durs / | (:durs | sum) | div (:durs | count) | round 2\n\nO9: lines | * (split \" \" | /2) | groupBy | * count | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:path (/0 | keyword) :count /1}\n\nO10: lines | drop 1 | * (split \",\" | {:dept /1 :salary (/2 | if (ne \"\") ~(parseJson) ~(null))}) | filter ~(/salary | ne null) | groupBy ~(/dept) | * (* /salary | :sals / | (:sals | sum) | div (:sals | count) | round 1)\n\nO11: lines | filter ~((startsWith \"#\") | not) | filter ~(ne \"\") | filter ~(contains \"==\") | * (split \"==\" | /0) | * lower | sort | join \",\"\n\nO12: split \", \" | * (split \":\" | {:name (/0 | lower) :value (/1 | parseJson)}) | groupBy ~(/name) | * (* /value | sum)\n\nO13: * /items | flat | groupBy ~(/sku) | * (* /qty | sum) | entries | sort ~([(/1 | desc) /0]) | take 3 | * {:sku (/0 | keyword) :qty /1}\n\nO14: filter ~(/state | eq \"closed\") | every ~((at :assignee | ne null))",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8691,
+ "outputTokens": 38615,
+ "calls": []
+}

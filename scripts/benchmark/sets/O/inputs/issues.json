@@ -1,0 +1,116 @@
+[
+  {
+    "number": 1,
+    "title": "Crash on start",
+    "state": "open",
+    "labels": [
+      "bug",
+      "P1"
+    ],
+    "assignee": {
+      "login": "Alice"
+    },
+    "comments": 5
+  },
+  {
+    "number": 2,
+    "title": "Add dark mode",
+    "state": "open",
+    "labels": [
+      "feature"
+    ],
+    "assignee": null,
+    "comments": 2
+  },
+  {
+    "number": 3,
+    "title": "Memory leak",
+    "state": "open",
+    "labels": [
+      "Bug"
+    ],
+    "assignee": {
+      "login": "bob"
+    },
+    "comments": 9
+  },
+  {
+    "number": 4,
+    "title": "Typo in docs",
+    "state": "closed",
+    "labels": [
+      "docs"
+    ],
+    "assignee": {
+      "login": "carol"
+    },
+    "comments": 0
+  },
+  {
+    "number": 5,
+    "title": "Slow query",
+    "state": "open",
+    "labels": [
+      "BUG",
+      "perf"
+    ],
+    "assignee": {
+      "login": "ALICE"
+    },
+    "comments": 5
+  },
+  {
+    "number": 6,
+    "title": "Login fails",
+    "state": "closed",
+    "labels": [
+      "bug"
+    ],
+    "assignee": {
+      "login": "Bob"
+    },
+    "comments": 7
+  },
+  {
+    "number": 7,
+    "title": "Refactor auth",
+    "state": "open",
+    "labels": [],
+    "assignee": null,
+    "comments": 1
+  },
+  {
+    "number": 8,
+    "title": "Null pointer",
+    "state": "open",
+    "labels": [
+      "bug"
+    ],
+    "comments": 3
+  },
+  {
+    "number": 9,
+    "title": "Upgrade deps",
+    "state": "closed",
+    "labels": [
+      "chore"
+    ],
+    "assignee": {
+      "login": "dave"
+    },
+    "comments": 4
+  },
+  {
+    "number": 10,
+    "title": "Race condition",
+    "state": "open",
+    "labels": [
+      "bug",
+      "P1"
+    ],
+    "assignee": {
+      "login": "carol"
+    },
+    "comments": 5
+  }
+]

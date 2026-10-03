@@ -1,0 +1,33 @@
+{
+  "env": "prod",
+  "services": [
+    {
+      "name": "api",
+      "port": 8080,
+      "enabled": true
+    },
+    {
+      "name": "db",
+      "port": 5432
+    },
+    {
+      "name": "cache",
+      "port": 6379,
+      "enabled": false
+    },
+    {
+      "name": "queue",
+      "port": 5672,
+      "enabled": true
+    },
+    {
+      "name": "cron",
+      "enabled": true
+    },
+    {
+      "name": "web",
+      "port": 80,
+      "enabled": false
+    }
+  ]
+}

@@ -9,7 +9,7 @@
 // `author/`, and the runs under `runs/`, each named
 // `<screen>~<mode>~<model>~<n>.json`.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, renameSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
@@ -41,8 +41,8 @@ function markSeen(setId, reason) {
 // ── author ─────────────────────────────────────────────────────
 
 // A clean author writes the set in a directory of its own, with the
-// file tools and node alone; its inputs, tasks and generator move under
-// `sets/<id>/`.
+// file tools and node alone; its inputs, tasks and generator are copied
+// under `sets/<id>/`, the scratch directory lying on any drive.
 export async function author(setId, model = 'sonnet') {
   if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists`);
   const workDir = join(scratchRoot, 'author', setId);
@@ -63,9 +63,9 @@ export async function author(setId, model = 'sonnet') {
   mkdirSync(join(setDir, 'author'), { recursive: true });
   for (const name of readdirSync(workDir)) {
     const from = join(workDir, name);
-    if (name === 'tasks.json') renameSync(from, join(setDir, 'tasks.json'));
-    else if (/\.(c?js|mjs)$/.test(name)) renameSync(from, join(setDir, 'author', name));
-    else renameSync(from, join(setDir, 'inputs', name));
+    if (name === 'tasks.json') copyFileSync(from, join(setDir, 'tasks.json'));
+    else if (/\.(c?js|mjs)$/.test(name)) copyFileSync(from, join(setDir, 'author', name));
+    else copyFileSync(from, join(setDir, 'inputs', name));
   }
   writeFileSync(join(setDir, 'author', 'prompt.txt'), prompt);
   writeFileSync(join(setDir, 'author', 'record.json'), authorRecord);

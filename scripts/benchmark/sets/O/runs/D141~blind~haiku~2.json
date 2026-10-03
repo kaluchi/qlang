@@ -1,0 +1,16 @@
+{
+ "set": "O",
+ "screen": "D141",
+ "screenHash": "f0e496c5a9b1",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": "f8bb111",
+ "result": "O1: filter ~(/status | lower | eq \"paid\") * (at /total | coalesce 0) | sum\n\nO2: filter ~(/status | lower | ne \"cancelled\") | groupBy ~(/region) * count\n\nO3: filter ~(/state | eq \"open\") | filter ~(/labels * lower | any ~(eq \"bug\")) | sort ~([(/comments | desc) /number]) | take 3 * /number\n\nO4: filter ~(at /assignee | ne null) | * (/assignee/login | lower) | distinct | sort\n\nO5: [(/dependencies | entries) (/devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | * (/0 | keyword | lower) | sort\n\nO6: filter ~(/address/city | lower | eq \"berlin\" !| false) * {:id /id :name /name :email (at /email)}\n\nO7: /services | filter ~(if (at :enabled | coalesce true | eq true) ~(has :port) ~(false)) | * [(/name | keyword) /port] | tag ::map\n\nO8: /data/items | filter ~(/type | eq \"click\") | * (at /duration_ms) | filter ~(ne null) | :s (sum) | :c (count) | (s | / c) | round 2\n\nO9: lines | * (split \" \" | /2) | groupBy | * count | entries | * {:path /0 :count /1} | sort ~([(/count | desc) /path]) | take 2\n\nO10: lines | drop 1 | * (split \",\") | filter ~((/2 | ne \"\")) | * [/1 (/2 | parseJson)] | groupBy ~(/0) | * (:c (count) | * /1 | reduce 0 ~(add) | / c | round 1)\n\nO11: lines | filter ~(if (ne \"\") ~(if ((startsWith \"#\") | not) ~(true) ~(false)) ~(false)) | filter ~(contains \"==\") | * (split \"==\" | /0 | lower) | sort | join \",\"\n\nO12: split \",\" | * (split \" \" | filter ~(ne \"\") | /0 | split \":\" | [(/0 | lower) (/1 | parseJson)]) | groupBy ~(/0) | * (* /1 | reduce 0 ~(add))\n\nO13: * /items | flat | groupBy ~(/sku) | * (* /qty | reduce 0 ~(add)) | entries | * {:sku /0 :qty /1} | sort ~([(/qty | desc) /sku]) | take 3\n\nO14: filter ~(/state | eq \"closed\") | every ~(/assignee | ne null)",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8691,
+ "outputTokens": 45064,
+ "calls": []
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "Ann",
+    "email": "ann@x.io",
+    "address": {
+      "city": "Berlin"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Bob",
+    "address": {
+      "city": "berlin"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Cy",
+    "email": null,
+    "address": null
+  },
+  {
+    "id": 4,
+    "name": "Di",
+    "email": "di@x.io",
+    "address": {
+      "city": "Paris"
+    }
+  },
+  {
+    "id": 5,
+    "name": "Ed",
+    "email": "ed@x.io",
+    "address": {
+      "city": "BERLIN"
+    }
+  },
+  {
+    "id": 6,
+    "name": "Flo",
+    "email": "flo@x.io"
+  },
+  {
+    "id": 7,
+    "name": "Gil",
+    "email": "gil@x.io",
+    "address": {
+      "city": null
+    }
+  }
+]

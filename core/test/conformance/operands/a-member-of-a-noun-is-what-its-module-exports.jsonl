@@ -1,0 +1,2 @@
+{"name":"a-law-of-a-page-applied-binds-in-its-readers-scope","query":"::qlang | doc :pipeline | laws * (apply /) | every ~(/)","expect":"true","decision":"D143"}
+{"name":"a-member-of-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false","decision":"D143"}

@@ -149,13 +149,16 @@ export function isProviderBinding(env, name) {
 
 // A declaration a noun's module makes that is no verb is a member of the
 // noun, read through it, `::qlang | doc :pipeline`, and no name of a
-// reader's scope [D117].
+// reader's scope [D117]: one the module exported, so a declaration a
+// query of the module's text makes when a reader runs it, a law or a
+// snippet of a page, names a binding of that reader's scope [D143].
 export function isNounMember(env, name) {
   const entry = env.get(name);
   if (!isBinding(entry) || isVerb(bindingValueOf(entry)) || isTagBindingName(name)) return false;
   const moduleName = entry.get('module')?.name;
   return typeof moduleName === 'string' && moduleName.startsWith(`${ROOT_NOUN_NAME}/`)
-    && isNoun(env, moduleName.slice(ROOT_NOUN_NAME.length + 1));
+    && isNoun(env, moduleName.slice(ROOT_NOUN_NAME.length + 1))
+    && namespaceDerivedOf(env, indexProviders).recordsByName.get(name)?.has(entry) === true;
 }
 
 // The member a noun holds under a name that is no verb of it, or null.

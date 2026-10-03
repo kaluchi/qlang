@@ -39,7 +39,7 @@ const StringPayloadNotStringError   = declareSubjectError('StringPayloadNotStrin
 const KeywordPayloadNotKeywordError = declareSubjectError('KeywordPayloadNotKeywordError', '::keyword', 'keyword');
 const TagPayloadNotTagError         = declareSubjectError('TagPayloadNotTagError',         '::tag',     'tag');
 const VecPayloadNotVecError         = declareSubjectError('VecPayloadNotVecError',         '::vec',     'vec');
-const MapPayloadNotMapError         = declareSubjectError('MapPayloadNotMapError',         '::map',     'map');
+const MapPayloadNotMapError         = declareSubjectError('MapPayloadNotMapError',         '::map',     ['map', 'vec']);
 
 function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
   return payload => {
@@ -58,7 +58,32 @@ bindTypeConstructor('string',  coreKindConstructor(isString, StringPayloadNotStr
 bindTypeConstructor('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
 bindTypeConstructor('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
 bindTypeConstructor('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
-bindTypeConstructor('map',     coreKindConstructor(isQMap, MapPayloadNotMapError, bareMapOf));
+// `::map[…]` also builds a map from the vector of its pairs `[key
+// value]`, the reverse of `entries`, as a doc comes back from its
+// segments: a key is a keyword, or a string or a number naming the
+// keyword of its text, as the key of `groupBy` [D130], and of two pairs
+// with one key the last wins [D138].
+const MapElementNotPairError = declareElementError('MapElementNotPairError', '::map', 'pair');
+const MapKeyNotKeywordError  = declareElementError('MapKeyNotKeywordError',  '::map', ['keyword', 'string', 'number']);
+
+function keyNameOfPair(pairKey, index) {
+  if (isKeyword(pairKey)) return pairKey.name;
+  if (isString(pairKey) || isNumber(pairKey)) return String(pairKey);
+  throw new MapKeyNotKeywordError(index, pairKey);
+}
+
+function mapConstructor(payload) {
+  if (isQMap(payload)) return bareMapOf(payload);
+  if (!isVec(payload)) throw new MapPayloadNotMapError(payload);
+  const built = new Map();
+  payload.forEach((pair, index) => {
+    if (!isVec(pair) || pair.length !== 2) throw new MapElementNotPairError(index, pair);
+    built.set(keyNameOfPair(pair[0], index), pair[1]);
+  });
+  return built;
+}
+
+bindTypeConstructor('map', mapConstructor);
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.

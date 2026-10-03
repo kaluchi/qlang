@@ -32,8 +32,9 @@ describe('runLaws reads a name as examples does', () => {
     expect(refusal.tag).toEqual(makeTagKeyword('RunLawsBindingNotFoundError'));
   });
 
-  it('the keyword of a verb a provider keeps runs the laws of its contract', async () => {
-    expect(await evalQuery(':count | runLaws | eq (::qlang/any/count | runLaws)')).toBe(true);
+  it('the keyword of a verb a provider keeps hands on its addresses', async () => {
+    const addresses = await evalQuery(':count | runLaws !| /addresses');
+    expect([...addresses].map(address => address.name).sort()).toEqual(['any/count', 'map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {

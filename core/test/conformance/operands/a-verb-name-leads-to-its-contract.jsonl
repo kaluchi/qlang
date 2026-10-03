@@ -1,0 +1,2 @@
+{"name":"a-refusal-of-a-verb-name-leads-to-its-contract","query":":reduce | doc !| /addresses | first","expect":"::any/reduce","decision":"D137"}
+{"name":"the-contract-page-is-read-by-its-address","query":"::any/reduce | doc | eq (::qlang/any/reduce | doc)","expect":"true","decision":"D137"}

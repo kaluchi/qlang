@@ -1,6 +1,6 @@
 // The verbs of the keys of a map and of membership, each a plain
-// function over the value the head of its verb checked [D72]: `keys`
-// and `vals` reside on `::map`, and `has` on `::map`, whose key is a
+// function over the value the head of its verb checked [D72]: `keys`,
+// `vals` and `entries` reside on `::map`, and `has` on `::map`, whose key is a
 // keyword or a string, and on `::set` and `::vec`, whose element is any
 // value.
 //
@@ -15,12 +15,18 @@ import { compareValues } from '../ordering.mjs';
 // `has` is the map's alone, the element of a set being any value [D73].
 declareSubjectError('KeysSubjectNotMapError', 'keys', 'map');
 declareSubjectError('ValsSubjectNotMapError', 'vals', 'map');
+declareSubjectError('EntriesSubjectNotMapError', 'entries', 'map');
 declareModifierError('HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.
 bindPrim('keys', map => makeSet([...map.keys()].map(keyword)));
 bindPrim('vals', map => [...map.values()]);
+
+// `entries` answers a map as the vector of its pairs `[key value]` in the
+// order of the entries, the key a keyword, the way `[type payload]`
+// splits a tagged value; `::map` builds the map back [D138].
+bindPrim('entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
 // `has` is a boolean lookup: over a map a keyword and a string both
 // name the key as the map stores it, so the `keys | first | :k / | src |

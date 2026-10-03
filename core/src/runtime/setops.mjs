@@ -8,17 +8,27 @@
 //
 // The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
-import { isQSet, isKeyword, isVec, isQMap, makeSet, NULL } from '../types.mjs';
+import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import { declareComparabilityError } from '../operand-errors.mjs';
+import { declareComparabilityError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // A map minus or inter another map or a vector of keys drops or keeps
-// its entries by key [D15]: the other map's keys, or the names of the
-// keywords in the vector, a set among them (`#[:tmp]`, `[:a :c]`).
-function keyNamesOf(keysValue) {
-  return isQMap(keysValue) ? keysValue : new Set(keysValue.filter(isKeyword).map(keyOfEntry => keyOfEntry.name));
+// its entries by key [D15]: the other map's keys, or the keys the vector
+// names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
+// string naming a key as `at` and `has` read it, and any other element
+// refused where it stands [D139].
+const MinusKeyNotKeywordOrStringError = declareElementError('MinusKeyNotKeywordOrStringError', '::map/minus', ['keyword', 'string']);
+const InterKeyNotKeywordOrStringError = declareElementError('InterKeyNotKeywordOrStringError', '::map/inter', ['keyword', 'string']);
+
+function keyNamesOf(keysValue, KeyError) {
+  if (isQMap(keysValue)) return keysValue;
+  return new Set(keysValue.map((keyOfEntry, index) => {
+    if (isKeyword(keyOfEntry)) return keyOfEntry.name;
+    if (isString(keyOfEntry)) return keyOfEntry;
+    throw new KeyError(index, keyOfEntry);
+  }));
 }
 
 // The algebra of two sets is a merge of their elements in the one
@@ -90,7 +100,7 @@ function unionPair(left, right) {
 function minusPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right);
+    const rightNames = keyNamesOf(right, MinusKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => !rightNames.has(k)));
   }
   throw new MinusPairIncompatibleError(left, right);
@@ -99,7 +109,7 @@ function minusPair(left, right) {
 function interPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right);
+    const rightNames = keyNamesOf(right, InterKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => rightNames.has(k)));
   }
   throw new InterPairIncompatibleError(left, right);

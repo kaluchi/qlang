@@ -27,9 +27,9 @@ import {
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
-import { tagBindingKey, isTagBindingName } from '../env-keys.mjs';
+import { tagBindingKey } from '../env-keys.mjs';
 import {
-  addressedVerb, addressesOf, isNoun, isNounMember, nounMemberOf, refusalsOfNoun,
+  addressedVerb, addressesOf, isNoun, pageAddressesOf, isNounMember, isProviderBinding, nounMemberOf, refusalsOfNoun,
   residenceOnSubject, verbsOfKind
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
@@ -91,12 +91,11 @@ function addressOf(env, subject) {
   return addressedVerb(env, subject.name);
 }
 
-// A keyword names a binding of the scope where it stands: under the name
-// of a verb a provider exports, the record a call of the name goes
-// through, the contract on any value or the one verb of that name
-// [D136]; a member of a noun is read through the noun [D117].
+// A keyword names a binding of the scope where it stands, so under the
+// name of a verb a provider exports it names nothing, and the verb is
+// read through the noun it lives on [D62].
 function namesNoScopeBinding(env, subject) {
-  return isKeyword(subject) && (isTagBindingName(subject.name) || isNounMember(env, subject.name));
+  return isKeyword(subject) && (isProviderBinding(env, subject.name) || isNounMember(env, subject.name));
 }
 
 // The name whose verbs a refusal lists: a keyword's, the last name of a
@@ -108,9 +107,10 @@ function nameOf(subject) {
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the verbs of that name live [D62].
+// where the pages of that name live, the contract's among them [D62],
+// [D137].
 export function refusalOf(env, subject) {
-  return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
+  return { bindingName: bindingNameOf(subject), addresses: pageAddressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
 
 // The names near the one a subject reads, tags for a tag name and the

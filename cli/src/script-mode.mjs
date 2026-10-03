@@ -45,12 +45,13 @@ const JSON_PRETTY_INDENT = 2;
 // Under JSON, the channel a JSON input chose, an answer holding a value
 // JSON has no form for is refused, naming the path of map keys and
 // indices to that value and its kind [D103]; a set is written as the
-// array of its elements in the one order [D126].
+// array of its elements in the one order [D126], and a keyword as its
+// name, as `json` writes it [D148].
 // The refusal is minted as a value where the answer is written, so its
 // site records its facts without a factory.
 recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::qlang/cli' });
 
-const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'vec', 'set', 'map']);
+const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
 
 // The first value beneath the answer that JSON has no form for, an
 // error among them, with the path to it, or null.

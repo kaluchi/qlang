@@ -93,13 +93,12 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
     expect(JSON.parse(await encodeSuccessValueForFormat(await evalQuery('{:a #[3 1 2]}'), 'json'))).toEqual({ a: [1, 2, 3] });
   });
 
-  it('refuses a keyword inside a set by its index', async () => {
-    expect((await refusalOf('#[1 :k]')).descriptor).toMatchObject({ path: [1], actualType: '::keyword' });
+  it('writes a keyword as its name, as `json` writes it [D148]', async () => {
+    expect(JSON.parse(await encodeSuccessValueForFormat(await evalQuery('{:a [{:b :k}] :s #[1 :k]}'), 'json'))).toEqual({ a: [{ b: 'k' }], s: [1, 'k'] });
   });
 
-  it('refuses a keyword and a tagged value by the path of map keys and indices', async () => {
-    expect((await refusalOf('{:a [{:b :k}]}')).descriptor).toMatchObject({ path: ['a', 0, 'b'], actualType: '::keyword' });
-    expect((await refusalOf('::Box {} | {:a ::Box{:k 1}}')).descriptor).toMatchObject({ path: ['a'], actualType: '::Box' });
+  it('refuses a tagged value by the path of map keys and indices', async () => {
+    expect((await refusalOf('::Box {} | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
   });
 
   it('answers an error a container holds as that error', async () => {

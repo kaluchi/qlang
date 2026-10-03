@@ -1,0 +1,56 @@
+[
+  {
+    "name": "A",
+    "dept": "eng",
+    "skills": [
+      "Go",
+      "SQL",
+      "Docker"
+    ]
+  },
+  {
+    "name": "B",
+    "dept": "eng",
+    "skills": [
+      "go",
+      "Rust"
+    ]
+  },
+  {
+    "name": "C",
+    "dept": "ops",
+    "skills": [
+      "Docker",
+      "Bash"
+    ]
+  },
+  {
+    "name": "D",
+    "dept": "ops",
+    "skills": null
+  },
+  {
+    "name": "E",
+    "dept": "hr",
+    "skills": []
+  },
+  {
+    "name": "F",
+    "dept": "ops",
+    "skills": [
+      "bash",
+      "Terraform"
+    ]
+  },
+  {
+    "name": "G",
+    "dept": "eng"
+  },
+  {
+    "name": "H",
+    "dept": "hr",
+    "skills": [
+      "Excel"
+    ]
+  }
+]

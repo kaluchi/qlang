@@ -1,0 +1,164 @@
+[
+  {
+    "id": "M1",
+    "input": "users.json",
+    "text": "Input is an array of users. Take users with active === true and a non-null, present email. Return an array of their emails converted to lowercase, sorted ascending by plain string comparison.",
+    "expected": [
+      "alice@example.com",
+      "dave@example.com",
+      "frank@example.com",
+      "grace@example.com"
+    ]
+  },
+  {
+    "id": "M2",
+    "input": "users.json",
+    "text": "Compute the average of profile.age over users that have a numeric profile.age (skip users with missing profile, missing age, or null age). Return a number rounded to 1 decimal place.",
+    "expected": 35.6
+  },
+  {
+    "id": "M3",
+    "input": "users.json",
+    "text": "Count users per country using profile.country, compared case-insensitively. Skip users whose country is missing or null. Return an object whose keys are the uppercase country codes and whose values are the counts.",
+    "expected": {
+      "DE": 3,
+      "US": 2,
+      "FR": 1
+    }
+  },
+  {
+    "id": "M4",
+    "input": "issues.json",
+    "text": "Take issues with state \"open\" that have a label equal to \"bug\" (case-insensitive). Sort them by priority descending, ties by id ascending. Return an array of the ids of the first 2 issues in this order.",
+    "expected": [
+      101,
+      107
+    ]
+  },
+  {
+    "id": "M5",
+    "input": "issues.json",
+    "text": "Count issues with state \"open\" per assignee. An issue whose assignee is null or missing is counted under the key \"unassigned\". Return an object mapping assignee to count.",
+    "expected": {
+      "ann": 2,
+      "unassigned": 2,
+      "bo": 2,
+      "cy": 1
+    }
+  },
+  {
+    "id": "M6",
+    "input": "issues.json",
+    "text": "Collect all labels from all issues (any state), lowercase them, remove duplicates, and return an array sorted ascending by plain string comparison.",
+    "expected": [
+      "bug",
+      "docs",
+      "feature",
+      "performance",
+      "tech-debt",
+      "urgent"
+    ]
+  },
+  {
+    "id": "M7",
+    "input": "package.json",
+    "text": "Consider only \"dependencies\". Return an array of objects {\"name\",\"version\"} where version is the version string with a single leading \"^\" or \"~\" removed (if present). Sort by name ascending.",
+    "expected": [
+      {
+        "name": "axios",
+        "version": "1.6.0"
+      },
+      {
+        "name": "express",
+        "version": "4.18.2"
+      },
+      {
+        "name": "lodash",
+        "version": "4.17.21"
+      },
+      {
+        "name": "zod",
+        "version": "3.22.0"
+      }
+    ]
+  },
+  {
+    "id": "M8",
+    "input": "orders.json",
+    "text": "Sum qty*price over all items of all orders whose status is \"paid\" or \"shipped\". Return the sum as a number rounded to 2 decimals.",
+    "expected": 191.21
+  },
+  {
+    "id": "M9",
+    "input": "orders.json",
+    "text": "For orders whose status is not \"cancelled\", compute each customer's total spend (sum of qty*price over items; orders with no items add 0). Return the top 2 customers as an array of objects {\"customer\",\"total\"} sorted by total descending (ties by customer name ascending), with total rounded to 2 decimals.",
+    "expected": [
+      {
+        "customer": "initech",
+        "total": 142.99
+      },
+      {
+        "customer": "acme",
+        "total": 48.22
+      }
+    ]
+  },
+  {
+    "id": "M10",
+    "input": "config.json",
+    "text": "Look at config.services (an object keyed by service name). Keep services where tls.enabled is exactly true (a missing tls or missing enabled counts as false). Return an array of \"host:port\" strings, in ascending order of service name; if port is missing use 80.",
+    "expected": [
+      "api.local:8443",
+      "q.local:5672",
+      "web.local:80"
+    ]
+  },
+  {
+    "id": "M11",
+    "input": "logs.txt",
+    "text": "Each line is \"<timestamp> <LEVEL> <service> <message...>\" separated by single spaces. Count lines with level ERROR per service. Return an object mapping service to count, including only services with at least one ERROR.",
+    "expected": {
+      "db": 2,
+      "api": 2,
+      "auth": 1
+    }
+  },
+  {
+    "id": "M12",
+    "input": "logs.txt",
+    "text": "Find lines with level WARN or ERROR whose message contains the word \"timeout\" (case-insensitive substring). Return the distinct service names of those lines as an array sorted ascending.",
+    "expected": [
+      "cache",
+      "db"
+    ]
+  },
+  {
+    "id": "M13",
+    "input": "people.csv",
+    "text": "The file is CSV with a header row (name,dept,salary,start). Compute the average salary per dept, ignoring rows with an empty salary; omit departments with no salaries. Return an object mapping dept to the average rounded to the nearest integer (Math.round semantics).",
+    "expected": {
+      "eng": 95000,
+      "ops": 70000,
+      "sales": 68501
+    }
+  },
+  {
+    "id": "M14",
+    "input": null,
+    "text": "Given this text: \"The quick brown fox jumps over the lazy dog. The dog sleeps; the fox runs. A fox is quick.\" — split it into words (maximal runs of letters A-Z/a-z), lowercase them, and count occurrences. Return the top 3 words as an array of objects {\"word\",\"count\"}, sorted by count descending, ties by word ascending.",
+    "expected": [
+      {
+        "word": "the",
+        "count": 4
+      },
+      {
+        "word": "fox",
+        "count": 3
+      },
+      {
+        "word": "dog",
+        "count": 2
+      }
+    ]
+  }
+]

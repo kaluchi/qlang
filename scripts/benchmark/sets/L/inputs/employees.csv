@@ -1,0 +1,9 @@
+name,dept,salary,city
+Ann,Eng,5000,Berlin
+Bo,Eng,6000,Paris
+Cy,Ops,,Berlin
+Di,Ops,4001,Rome
+Ed,Eng,,Paris
+Flo,HR,3500,Berlin
+Gus,hr,3700,Rome
+Hal,Ops,4500,Paris

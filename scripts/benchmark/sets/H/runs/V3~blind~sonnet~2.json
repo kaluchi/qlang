@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "V3",
+ "screenHash": "a6c241cc56a5",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "These queries are untested guesses written from the documentation page alone. Two assumptions carry the most risk:\n\n- **Rounding (H2, H10):** the page lists no rounding verb, so `round 2` and `round 1` are guesses that such a verb exists.\n- **`coalesce` and `groupBy`:** I assumed `coalesce x` replaces a null with `x`, and that `groupBy` accepts keyword keys.\n\nH1: filter ~(if /active ~(if (/country | lower | eq \"de\") ~(if (at :age | type | eq ::number) ~(/age | gte 30) ~(false)) ~(false)) ~(false)) * /name | sort\nH2: filter ~(/status | lower | eq \"paid\") * (/items * (mul /qty /price) | sum) | sum | round 2\nH3: groupBy ~(/customer | lower | keyword) * count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys * keyword | sort)}\nH5: filter ~(/state | eq \"open\") | sort ~([(/comments | mul -1) /id]) | take 3 * /id\nH6: * (at :labels | coalesce []) | flat * lower | distinct | sort\nH7: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | if (type | eq ::map) ~(/login) ~(\"unassigned\") | keyword) * count\nH8: lines | filter ~(split \"\" | count | gt 0) * split \" \" | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2 | keyword) * count\nH9: lines | filter ~(split \"\" | count | gt 0) * split \" \" | filter ~(if (/1 | eq \"ERROR\") ~(true) ~(/1 | eq \"WARN\")) * (drop 3 | filter ~(startsWith \"user=\")) | flat * (split \"=\" | /1) | distinct | sort\nH10: lines | drop 1 | filter ~(split \"\" | count | gt 0) * split \",\" | filter ~(if (/4 | lower | eq \"up\") ~(/2 | eq \"\" | not) ~(false)) | groupBy ~(/1 | keyword) * (* (/2 | parseJson) | :v / | sum | div (v | count) | round 1)\nH11: lines | filter ~(split \"\" | count | gt 0) | filter ~(startsWith \"#\" | not) | filter ~(split \"=\" | first | lower | startsWith \"db_\") * {:k (split \"=\" | first | lower | split \"_\" | drop 1 | join \"_\" | keyword) :v (split \"=\" | drop 1 | join \"=\")} | indexBy ~/k * /v\nH12: :d /defaults/timeout | /services | filter ~(/enabled) * {:name /name :timeout (at :timeout | coalesce d) :team (at :owner | if (type | eq ::map) ~(at :team | coalesce \"none\") ~(\"none\"))} | sort ~/name\nH13: /results | filter ~(if (at :score | type | eq ::number) ~(/score | gte 50) ~(false)) | sort ~/score | reverse * ([([/profile/first /profile/last] | join \" \") (at :tags | coalesce [] | join \"|\")] | join \": \")\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | split \"\" | filter ~(:c / | if (eq \" \") ~(true) ~(lower | eq (c | upper) | not)) | join \"\" | split \" \" | filter ~(split \"\" | count | gt 0) | :ws / | distinct * (:w / | {:word w :count (ws | filter ~(eq w) | count)}) | sort ~([(/count | mul -1) /word]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9840,
+ "outputTokens": 6295,
+ "calls": null
+}

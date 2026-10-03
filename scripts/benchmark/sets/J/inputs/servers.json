@@ -1,0 +1,45 @@
+[
+  {
+    "host": "h1",
+    "role": "web",
+    "region": "eu-west",
+    "cpu": {
+      "cores": 4
+    }
+  },
+  {
+    "host": "h2",
+    "role": "DB",
+    "region": "eu-west",
+    "cpu": {
+      "cores": 16
+    }
+  },
+  {
+    "host": "h3",
+    "role": "db",
+    "region": "eu-west",
+    "cpu": {
+      "cores": 8
+    }
+  },
+  {
+    "host": "h4",
+    "role": "Web",
+    "region": "us-east",
+    "cpu": null
+  },
+  {
+    "host": "h5",
+    "role": "cache",
+    "region": "us-east"
+  },
+  {
+    "host": "h6",
+    "role": "Db",
+    "region": "eu-west",
+    "cpu": {
+      "cores": 12
+    }
+  }
+]

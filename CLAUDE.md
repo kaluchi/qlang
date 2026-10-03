@@ -118,6 +118,11 @@ install` at the root links the workspaces; the Node floor is the
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
   runs recorded side by side [D104].
+- `node scripts/benchmark.mjs author | run | grade | misses | frictions |
+  predict`: a set of tasks a clean author writes, clean children that
+  solve it blind or with the command line under a saved screen, the
+  grade by the tree, and the reading of the misses, which marks the set
+  seen [D142]. The usage is the header of the script.
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.

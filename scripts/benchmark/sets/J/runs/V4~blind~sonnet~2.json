@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "V4",
+ "screenHash": "22eeb1857437",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Each query is my first and only attempt, written from the page alone and not run. The task labels are J1 to J14, so I used `J` in the answer lines instead of the `H` in your template.\n\nThree assumptions I could not check against the page:\n- **J11:** I treated \"status code 500 or higher\" as \"starts with 5\", because the page has no way to read a number out of a string and the log only has 5xx codes.\n- **J3, J5, J6, J11:** I assumed `coalesce` and `groupBy` work as their names suggest, and that a name like `d` stays readable inside a quoted modifier.\n- **J12:** I used `parseJson` on the score string to get a number, since the page says nothing is converted implicitly.\n\nJ1: /data | filter ~/active | filter ~(/address/city | type | eq ::string !| false) | sort ~(/name | lower) * /name\nJ2: filter ~(/status | lower | eq \"paid\" !| false) * (/items * (mul /qty /price) | sum) | sum | round 2\nJ3: :r / | /dependencies | combine (r | /devDependencies) | filter ~(startsWith \"^\") | :m / | keys * (:k / | keyword | append \"@\" | append (m | at k))\nJ4: filter ~(/state | eq \"open\") * (/assignee/login !| \"unassigned\" | keyword) | groupBy ~(/) | * count\nJ5: :d /defaults | /services | filter ~(/enabled | ne false !| true) | * {:name /name :timeout (at :timeout | coalesce (d | /timeout)) :retries (at :retries | coalesce (d | /retries))} | sort ~/name\nJ6: filter ~(at :durationMs | type | eq ::number) | groupBy ~(/service | keyword) | * (* /durationMs | :v / | sum | div (v | count) | round 1)\nJ7: filter ~(/stock | gt 0 !| false) | sort ~/price | reverse | take 3 * /name\nJ8: groupBy ~(/dept | keyword) | * (* (at :skills | coalesce []) | flat | * lower | distinct | sort)\nJ9: filter ~(/role | lower | eq \"db\") * [(/region | eq \"eu-west\") (/cpu/cores | gte 8 !| false)] | flat | every ~(eq true)\nJ10: split \"; \" * split \", \" | flat | * (split \"@\" | last | lower) | distinct | sort\nJ11: lines * split \" \" | filter ~(/3 | startsWith \"5\" !| false) | * /2 | :p / | distinct * (:x / | {:path x :count (p | filter ~(eq x) | count)}) | sort ~([(/count | mul -1) /path]) | take 2\nJ12: lines | drop 1 * split \",\" | filter ~(/2 | count | gt 0 !| false) | groupBy ~(/1 | keyword) | * (* (/2 | parseJson) | :v / | sum | div (v | count) | round 2)\nJ13: lines | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") * split \"==\" | indexBy ~(/0 | lower | keyword) | * /1\nJ14: * {:t /title :l (at :comments | coalesce [] * (at :likes | coalesce 0) | sum)} | sort ~/l | last | /t",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 11145,
+ "outputTokens": 5162,
+ "calls": null
+}

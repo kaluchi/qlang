@@ -1,0 +1,16 @@
+{
+ "set": "M",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Each query below is written from the page alone and has not been run. These are the assumptions that could break it:\n\n- `groupBy` with no key modifier groups by the element itself.\n- `at 1` on a vector reads softly and answers null.\n- `round` rounds halves up (M13 needs 68500.5 to become 68501).\n- `contains` works on a vector of strings (M4).\n- `parseJson` turns \"100000\" into a number (M13).\n- M14 splits on spaces and strips a trailing \".\" or \";\" instead of matching runs of letters, since the page lists no regex verb.\n\nM1: filter ~(/active) | filter ~(at :email | ne null) | * (/email | lower) | sort\nM2: * (/profile/age !| null) | filter ~(type | eq ::number) | :a / | sum | div (a | count) | mul 10 | round | div 10\nM3: filter ~(/profile/country !| null | type | eq ::string) | groupBy ~(/profile/country | upper) * count\nM4: filter ~(/state | eq \"open\") | filter ~(/labels * lower | contains \"bug\") | sort ~([(/priority | mul -1) /id]) | take 2 * /id\nM5: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | coalesce \"unassigned\") * count\nM6: * /labels | flat | * lower | distinct | sort\nM7: :d /dependencies | d | keys * (:k / | {:name (k | keyword) :version (d | at k | if (startsWith \"^\") ~(drop 1) ~(if (startsWith \"~\") ~(drop 1) ~(/)))}) | sort ~/name\nM8: filter ~(/status | [(eq \"paid\") (eq \"shipped\")] | any ~(/)) | * /items | flat | * (mul /qty /price) | sum | mul 100 | round | div 100\nM9: filter ~(/status | ne \"cancelled\") | groupBy ~/customer | :g / | keys * (:c / | {:customer (c | keyword) :total (g | at c | * (/items * (mul /qty /price) | sum) | sum | mul 100 | round | div 100)}) | sort ~([(/total | mul -1) /customer]) | take 2\nM10: /services | filter ~(/tls/enabled !| false | eq true) | :s / | keys * (:k / | s | at k | [/host (at :port | coalesce 80 | print)] | join \":\")\nM11: lines | filter ~(split \" \" | at 1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count\nM12: lines | filter ~(split \" \" | at 1 | [(eq \"WARN\") (eq \"ERROR\")] | any ~(/)) | filter ~(lower | contains \"timeout\") | * (split \" \" | /2) | distinct | sort\nM13: lines | drop 1 | * (split \",\") | filter ~(at 2 | coalesce \"\" | ne \"\") | * {:dept /1 :sal (/2 | parseJson)} | groupBy ~/dept * (/ * /sal | :v / | sum | div (v | count) | round)\nM14: \"The quick brown fox jumps over the lazy dog. The dog sleeps; the fox runs. A fox is quick.\" | split \" \" | * (lower | if (endsWith \".\") ~(take (count | sub 1)) ~(if (endsWith \";\") ~(take (count | sub 1)) ~(/))) | groupBy * count | :g / | keys * (:k / | {:word (k | keyword) :count (g | at k)}) | sort ~([(/count | mul -1) /word]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9286,
+ "outputTokens": 7048,
+ "calls": null
+}

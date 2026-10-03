@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "data": [
+    {
+      "id": 1,
+      "name": "Zoe Adams",
+      "email": "zoe@x.io",
+      "active": true,
+      "address": {
+        "city": "Berlin"
+      }
+    },
+    {
+      "id": 2,
+      "name": "bob Stone",
+      "email": "bob@x.io",
+      "active": true,
+      "address": null
+    },
+    {
+      "id": 3,
+      "name": "Carla Diaz",
+      "email": "carla@x.io",
+      "active": false,
+      "address": {
+        "city": "Madrid"
+      }
+    },
+    {
+      "id": 4,
+      "name": "alan Wu",
+      "email": "alan@x.io",
+      "active": true,
+      "address": {
+        "city": "Taipei"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Dmitri Ivanov",
+      "email": "dm@x.io",
+      "active": true
+    },
+    {
+      "id": 6,
+      "name": "Emma Li",
+      "email": "emma@x.io",
+      "active": true,
+      "address": {
+        "city": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "Frank Moore",
+      "email": "frank@x.io",
+      "active": true,
+      "address": {
+        "city": "Austin"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Greta Berg",
+      "email": "greta@x.io",
+      "active": false,
+      "address": null
+    }
+  ]
+}

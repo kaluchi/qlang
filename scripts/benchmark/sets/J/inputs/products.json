@@ -1,0 +1,49 @@
+[
+  {
+    "sku": "p1",
+    "name": "Keyboard",
+    "price": 49.5,
+    "stock": 12
+  },
+  {
+    "sku": "p2",
+    "name": "Monitor",
+    "price": 219,
+    "stock": 0
+  },
+  {
+    "sku": "p3",
+    "name": "Mouse",
+    "price": 19.9,
+    "stock": 40
+  },
+  {
+    "sku": "p4",
+    "name": "Webcam",
+    "price": 79,
+    "stock": 3
+  },
+  {
+    "sku": "p5",
+    "name": "Dock",
+    "price": 149,
+    "stock": 5
+  },
+  {
+    "sku": "p6",
+    "name": "Cable",
+    "price": 5,
+    "stock": null
+  },
+  {
+    "sku": "p7",
+    "name": "Headset",
+    "price": 99,
+    "stock": 7
+  },
+  {
+    "sku": "p8",
+    "name": "Laptop",
+    "price": 999
+  }
+]

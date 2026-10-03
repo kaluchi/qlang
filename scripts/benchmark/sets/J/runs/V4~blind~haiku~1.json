@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "V4",
+ "screenHash": "22eeb1857437",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "H1: /data | filter ~(and (/active) (/address | at /city | type | eq ::string)) | * /name | sort ~(lower)\n\nH2: filter ~(/status | lower | eq \"paid\") | * (/items | * (mul /qty /price) | sum) | sum | round 2\n\nH3: /dependencies | combine /devDependencies | filter ~(/value | startsWith \"^\") | :map / | /map | keys | sort | * (:name / | :string (/name | keyword) | :version (/map | at /name) | [/string /version] | join \"@\")\n\nH4: filter ~(/state | eq \"open\") | groupBy ~(at /assignee | at /login | coalesce \"unassigned\") | * count\n\nH5: :defaults /defaults | /services | filter ~(at /enabled | coalesce true) | * {:name /name :timeout (/timeout | if (ne null) ~(.) ~(defaults | at /timeout)) :retries (/retries | if (ne null) ~(.) ~(defaults | at /retries))} | sort ~/name\n\nH6: filter ~(at /durationMs | ne null) | groupBy ~/service | * (:arr / | /arr | * /durationMs | sum | div (/arr | count) | round 1)\n\nH7: filter ~(at /stock | if (type | eq ::number) ~(gt 0) ~(false)) | sort ~/price | reverse | take 3 | * /name\n\nH8: groupBy ~/dept | * (* at /skills | filter ~(. | type | ne ::null) | flat | * lower | sort | distinct)\n\nH9: filter ~(/role | lower | eq \"db\") | every ~(if (/region | eq \"eu-west\") ~(if (/cpu | type | ne ::null) ~(/cpu/cores | gte 8) ~(false)) ~(false))\n\nH10: split \",\" | * (split \";\") | flat | * (if (startsWith \" \") ~(drop 1) ~(.) | split \"@\" | last | lower) | distinct | sort\n\nH11: lines | filter ~(split \" \" | /3 | parseJson | gte 500) | * (split \" \" | /2) | groupBy ~(.) | :grouped / | /grouped | keys | reduce [] ~(:acc / | :path (.) | /acc | append {:path /path :count (/grouped | at /path | count)}) | sort ~/count | reverse | take 2\n\nH12: lines | drop 1 | filter ~(split \",\" | /2 | ne \"\") | * (split \",\" | {:team /1 :score (/2 | parseJson)}) | groupBy ~/team | * (:arr / | /arr | * /score | sum | div (/arr | count) | round 2)\n\nH13: lines | filter ~(ne \"\") | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") | * (split \"==\" | {:name (/0 | lower) :version /1}) | indexBy ~/name | * /version\n\nH14: * {:title /title :total_likes (/comments | if (type | eq ::null) ~(0) ~((* (at /likes | coalesce 0)) | sum))} | sort ~/total_likes | last | /title",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9489,
+ "outputTokens": 42314,
+ "calls": null
+}

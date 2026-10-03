@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "L1: filter ~(/status | lower | eq \"paid\") | * (/items * (at /price | coalesce 0 | mul /qty) | sum) | sum | round 2\n\nL2: filter ~(/state | eq \"open\") | * /labels | filter ~(ne null) | filter ~(count | gt 0) | flat | groupBy * count\n\nL3: [ (/dependencies | filter ~(startsWith \"^0.\") | keys) (/devDependencies | filter ~(startsWith \"^0.\") | keys) ] | reduce #[] ~(union) | sort\n\nL4: /data/users | filter ~(/active | eq true) | filter ~(at /email | ne null) | * /email | * (lower) | distinct | sort\n\nL5: /services | * (if (at /enabled | coalesce true) (if (at /port | ne null) ({\"name\": key \"port\": /port}) ~null) ~null) | filter ~(ne null) | sort ~/port\n\nL6: lines | * (split \" \") | filter ~([/1 /3] | eq [\"GET\" \"200\"]) | * (/4 | take (count | sub 2) | parseJson) | [(sum) (count)] | /0 | div /1 | round 1\n\nL7: lines | drop 1 | * (split \",\" | * (trim) | {:dept (/1 | lower) :salary (/2 | if (count | gt 0) (parseJson) ~null)}) | filter ~(/salary | ne null) | groupBy ~/dept | * (* /salary | sum | div (count) | round 0)\n\nL8: * /user | groupBy * count | * ({:user key :count / :sort_key [/ /user]}) | sort ~/sort_key | reverse | take 3 | * (/user | keyword | append \":\" | append (/count | print))\n\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" | * (trim | lower) | distinct | sort | join \"|\"\n\nL10: lines | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") | * (split \"==\" | * (trim) | {:package (/0 | lower) :version /1})\n\nL11: filter ~(/state | eq \"open\" | and (at /assignee | eq null)) | * {:number /number :comments /comments :sort_key [-(/comments) /number]} | sort ~/sort_key | take 2 | * /number\n\nL12: * /customer | groupBy * count | filter ~(gte 2) | keys | sort\n\nL13: /data/users | * {:country (at /address | coalesce {} | at /country | coalesce \"unknown\") :name /name} | groupBy ~/country | * (* /name | sort)\n\nL14: filter ~(/type | eq \"push\") | * (at /payload | at /repo | at /name) | filter ~(ne null) | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8232,
+ "outputTokens": 27766,
+ "calls": null
+}

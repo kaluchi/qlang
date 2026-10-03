@@ -1,0 +1,27 @@
+{
+  "services": {
+    "web": {
+      "port": 8080,
+      "enabled": true,
+      "opts": {
+        "tls": true
+      }
+    },
+    "api": {
+      "port": 3000,
+      "enabled": true
+    },
+    "worker": {
+      "enabled": true
+    },
+    "cron": {
+      "port": 9000,
+      "enabled": false
+    },
+    "db": {
+      "port": 5432,
+      "enabled": true,
+      "opts": null
+    }
+  }
+}

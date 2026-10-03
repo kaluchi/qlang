@@ -1597,7 +1597,9 @@ name the workspace they came from [D38]; a host's command is the
 language's with its noun as the first value [D37]; and the benchmark
 runs [D26], each run recorded with the frictions it met [D104], [D105],
 [D106], while the first screen is written from the invariants of the
-language and held against probes its author never saw [D131].
+language and held against probes its author never saw [D131], each
+measurement on a set of tasks a clean author wrote, which measures once
+and serves the work once its misses are read [D142].
 
 Its answers in the conformance suite are the targets of [D7], [D107],
 [D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
@@ -1963,3 +1965,4 @@ maintainer wants to explore it before it is fixed.
 [D133]: decisions/D133.md
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
+[D142]: decisions/D142.md

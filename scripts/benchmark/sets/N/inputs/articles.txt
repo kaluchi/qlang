@@ -1,0 +1,7 @@
+Intro to Rust: Systems, rust , Beginner
+Web basics: HTML, css,Beginner
+Async patterns: rust, Async,systems
+Styling tips: CSS, Design
+
+Advanced SQL: sql, Databases, advanced
+Indexes: SQL, databases

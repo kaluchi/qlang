@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "cli",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Based on my testing, here are the final qlang queries:\n\nL1: filter ~(/status | lower | eq \"paid\") | * (/items | * (mul /qty (at :price | coalesce 0)) | sum) | sum | round 2\n\nL2: filter ~(/state | eq \"open\") | filter ~(at :labels | ne null) | filter ~(at :labels | count | gt 0) | * /labels | flat | groupBy * count\n\nL3: [(/dependencies | filter ~(startsWith \"^0\") | keys) (/devDependencies | filter ~(startsWith \"^0\") | keys)] | flat | distinct | sort | * (keyword)\n\nL4: /data/users | filter ~(at :active | eq true) | filter ~(at :email | ne null) | * (at :email | lower) | distinct | sort\n\nL5: /services | filter ~(if (at :enabled | coalesce true) ~(at :port | ne null) ~(false)) | keys | * (: k / | {:name /k :port (/services | at /k | at :port)}) | sort ~/port\n\nL6: split \"\\n\" | filter ~(split \" \" | :p / | if (at 1 | eq \"GET\") ~(p | at 3 | eq \"200\") ~(false)) | * (split \" \" | at 4 | split \"ms\" | at 0 | parseJson) | :nums / | (nums | sum) | div (nums | count) | round 1\n\nL7: split \"\\n\" | drop 1 | filter ~(split \",\" | count | eq 4) | filter ~(split \",\" | at 2 | ne \"\") | * (split \",\" | :row / | {:dept (row | at 1 | lower) :salary (row | at 2 | parseJson)}) | groupBy ~/dept | * (* /salary | :salaries / | (salaries | sum) | div (salaries | count) | round 0)\n\nL8: groupBy ~/user | * count | keys | * (/ | keyword | append \":\" | append (apply ~(groupBy ~/user | * count | at /) /))\n\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" | * ((split \" \" | filter ~(ne \"\") | join \" \") | lower) | distinct | sort | join \"|\"\n\nL10: split \"\\n\" | filter ~(ne \"\") | filter ~(split \" \" | at 0 | ne \"#\") | filter ~(contains \"==\") | * (split \"==\" | [(at 0 | lower) (at 1)])\n\nL11: filter ~(/state | eq \"open\") | filter ~(at :assignee | eq null) | sort ~/number | sort ~/comments | reverse | take 2 | * /number\n\nL12: groupBy ~/customer | filter ~(/ | count | gte 2) | keys | * (keyword)\n\nL13: /data/users | groupBy ~(at :address | coalesce {} | at :country | coalesce \"unknown\") | * (* /name | sort)\n\nL14: filter ~(/type | eq \"push\") | filter ~(at :payload | coalesce {} | at :repo | coalesce {} | at :name | ne null) | * (at :payload | at :repo | at :name) | distinct | sort",
+ "failed": false,
+ "turns": 93,
+ "inputTokens": 5838027,
+ "outputTokens": 55082,
+ "calls": null
+}

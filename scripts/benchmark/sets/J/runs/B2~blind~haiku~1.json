@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "# qlang Query Answers\n\nI'll work through each task systematically, applying the language constructs demonstrated in the documentation.\n\nH1: /data | map { :name /name :active /active :city /address/city } | select ( /active | eq true ) | select /city | map /name | sort-by ( . | lowercase )\n\nH2: . | select ( /status | lowercase | eq \"paid\" ) | map /items | flatten | map ( /qty * /price ) | sum | round 2\n\nH3: ( /dependencies | merge /devDependencies ) | entries | select ( /[1] | startsWith \"^\" ) | map ( /[0] + \"@\" + /[1] ) | sort\n\nH4: . | select ( /state | eq \"open\" ) | group-by ( /assignee/login || \"unassigned\" ) | map-values count\n\nH5: /services | select ( /enabled != false ) | map { :name /name :timeout ( /timeout || 30 ) :retries ( /retries || 3 ) } | sort-by /name\n\nH6: . | select ( /durationMs | . != null ) | group-by /service | map-values ( . | map /durationMs | avg | round 1 )\n\nH7: . | select ( /stock | . | gt 0 ) | sort-by /price | reverse | take 3 | map /name\n\nH8: . | group-by /dept | map-values ( . | map /skills | flatten | compact | map ( . | lowercase ) | distinct | sort )\n\nH9: . | select ( /role | lowercase | eq \"db\" ) | all ( ( /region | eq \"eu-west\" ) & ( /cpu/cores | . | gte 8 ) )\n\nH10: split /[,;]/ | map ( . | trim ) | map ( . | split \"@\" | /[1] | lowercase ) | distinct | sort\n\nH11: . | split /\\n/ | map ( . | split \" \" ) | select ( /[3] | int | gte 500 ) | group-by /[2] | entries | map { :path /[0] :count ( /[1] | count ) } | sort-by ( [ (0 - /count) /path ] ) | take 2\n\nH12: . | split /\\n/ | skip 1 | map ( . | split \",\" ) | select ( /[2] | . ) | group-by /[1] | map-values ( . | map ( /[2] | num ) | avg | round 2 )\n\nH13: . | split /\\n/ | select ( . ) | select ( . | startsWith \"#\" | not ) | select ( . | contains \"==\" ) | map ( . | split \"==\" | [ (/[0] | lowercase) /[1] ] ) | from-entries\n\nH14: . | map { :title /title :likes ( ( /comments || [] ) | map ( /likes || 0 ) | sum ) } | sort-by /likes | reverse | /[0] | /title",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6872,
+ "outputTokens": 32905,
+ "calls": null
+}

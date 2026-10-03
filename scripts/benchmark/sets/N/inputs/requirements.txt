@@ -1,0 +1,9 @@
+# base deps
+Flask==2.3.2
+requests>=2.28
+
+numpy==1.26.0   # pinned
+Django==4.2.7
+-r dev.txt
+PyYAML==6.0.1
+pytest>=7.0

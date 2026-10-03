@@ -1,0 +1,28 @@
+{
+  "services": [
+    {
+      "name": "web",
+      "env": "prod",
+      "replicas": 3
+    },
+    {
+      "name": "api",
+      "env": "prod",
+      "replicas": 2
+    },
+    {
+      "name": "batch",
+      "env": "prod"
+    },
+    {
+      "name": "web-stg",
+      "env": "stage",
+      "replicas": 1
+    },
+    {
+      "name": "db",
+      "env": "PROD",
+      "replicas": 2
+    }
+  ]
+}

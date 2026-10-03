@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "L1: filter ~(/status | lower | eq \"paid\") | * (/items | * (/qty | mul (/price | coalesce 0)) | sum) | sum | round 2\n\nL2: filter ~(/state | eq \"open\") | * /labels | filter ~(ne null) | filter ~(count | gt 0) | flat | groupBy | * count\n\nL3: [(/dependencies | filter ~(startsWith \"^0.\") | keys) (/devDependencies | filter ~(startsWith \"^0.\") | keys)] | flat | distinct | sort | * keyword\n\nL4: /data/users | filter ~(eq /active true) | filter ~(ne (at :email) null) | * /email | * lower | distinct | sort\n\nL5: /services | filter ~(and (ne (at :enabled) false) (ne /port null)) | sort ~/port\n\nL6: lines | * (split \" \") | filter ~(and (eq /1 \"GET\") (eq /3 \"200\")) | * (/4 | drop -2 | parseJson) | [(sum) (count)] | [/0 | div /1] | /0 | round 1\n\nL7: lines | drop 1 | * (split \",\") | filter ~(ne /2 \"\") | groupBy ~(/1 | lower) | * (* (/2 | parseJson) | [(sum) (count)] | [/0 | div /1] | /0 | round 0)\n\nL8: groupBy ~/user | * count | keys | sort | reverse | take 3\n\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" | * (split \" \" | filter ~(count | gt 0) | join \" \") | * lower | distinct | sort | join \"|\"\n\nL10: lines | * (split \" \" | filter ~(count | gt 0) | join \" \") | filter ~(count | gt 0) | filter ~(not (startsWith \"#\")) | filter ~(contains \"==\") | * (split \"==\") | reduce {} ~([:pkg (/0 | lower | keyword)] [:ver /1] | append {pkg ver})\n\nL11: filter ~(and (eq /state \"open\") (eq (at :assignee) null)) | sort ~([(0 | sub /comments) /number]) | take 2 | * /number\n\nL12: groupBy ~/customer | * count | filter ~(gte 2) | keys | sort | * keyword\n\nL13: /data/users | groupBy ~((at /address | at /country | coalesce \"unknown\") | lower) | * (* /name | sort)\n\nL14: filter ~(eq /type \"push\") | filter ~(ne (at /payload | at /repo | at /name) null) | * (/payload | /repo | /name) | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8232,
+ "outputTokens": 40475,
+ "calls": null
+}

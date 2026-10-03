@@ -1,0 +1,9 @@
+name,dept,salary,start
+Ann,eng,100000,2020-01-15
+Bob,eng,90000,2019-06-01
+Cy,ops,,2021-03-10
+Di,ops,70000,2018-11-20
+Ed,sales,65000,2022-07-04
+Flo,eng,,2023-02-01
+Gus,sales,72001,2017-09-09
+Hal,hr,,2016-05-05

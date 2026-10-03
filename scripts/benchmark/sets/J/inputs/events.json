@@ -1,0 +1,63 @@
+[
+  {
+    "ts": "2026-03-01T10:00:00Z",
+    "level": "info",
+    "service": "api",
+    "msg": "req",
+    "durationMs": 120
+  },
+  {
+    "ts": "2026-03-01T10:00:01Z",
+    "level": "error",
+    "service": "api",
+    "msg": "fail",
+    "durationMs": 300
+  },
+  {
+    "ts": "2026-03-01T10:00:02Z",
+    "level": "info",
+    "service": "db",
+    "msg": "query",
+    "durationMs": 40
+  },
+  {
+    "ts": "2026-03-01T10:00:03Z",
+    "level": "info",
+    "service": "db",
+    "msg": "query",
+    "durationMs": null
+  },
+  {
+    "ts": "2026-03-01T10:00:04Z",
+    "level": "warn",
+    "service": "db",
+    "msg": "slow",
+    "durationMs": 95
+  },
+  {
+    "ts": "2026-03-01T10:00:05Z",
+    "level": "info",
+    "service": "web",
+    "msg": "start"
+  },
+  {
+    "ts": "2026-03-01T10:00:06Z",
+    "level": "info",
+    "service": "api",
+    "msg": "req",
+    "durationMs": 81
+  },
+  {
+    "ts": "2026-03-01T10:00:07Z",
+    "level": "error",
+    "service": "web",
+    "msg": "boom",
+    "durationMs": 10
+  },
+  {
+    "ts": "2026-03-01T10:00:08Z",
+    "level": "info",
+    "service": "cron",
+    "msg": "tick"
+  }
+]

@@ -1,0 +1,16 @@
+{
+ "set": "N",
+ "screen": "V8",
+ "screenHash": "1c94a6ec4c0d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Looking at this qlang documentation, I'll write queries for each task. These are my first and only attempts, based on the patterns shown in the documentation.\n\nN1: /data/users | filter ~(and /active (at /email | ne null)) | * (/email | split \"@\" | last | lower) | distinct | sort\n\nN2: filter ~(/status | lower | eq \"paid\") | * {:customer /customer/name :amount ((/lines * (/qty | mul /unit_price) | sum) | sub (at /discount | coalesce 0))} | groupBy ~/customer | * ((* /amount | sum)) | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:customer (/0 | keyword) :total (/1 | mul 100 | round | div 100)}\n\nN3: filter ~(/state | eq \"open\") | * (if (at /assignee | ne null) ~(/assignee/login) ~(\"unassigned\")) | groupBy | * count\n\nN4: (at /dependencies | coalesce {}) | union (at /devDependencies | coalesce {}) | entries | filter ~(/1 | startsWith \"^\") | * (/0 | keyword) | sort\n\nN5: /services | filter ~(/enabled | eq true) | {:enabledCount (count) :ports (* (at /port) | filter ~(ne null) | distinct | sort) :totalReplicas (* (/replicas | coalesce 1) | sum)}\n\nN6: lines | filter ~(contains \"ERROR\") | * (split \"[\" | /1 | split \"]\" | /0) | groupBy | * count | entries | sort ~([(/1 | desc) /0]) | take 2 | * {:service (/0 | keyword) :count /1}\n\nN7: lines | filter ~(ne \"\") | drop 1 | * (split \",\") | filter ~(and (ne \"\" | /2) (ne \"\" | /3)) | * {:region (/0 | lower) :revenue (/2 | parseJson | mul (/3 | parseJson))} | groupBy ~/region | * ((* /revenue | sum) | mul 100 | round | div 100)\n\nN8: groupBy ~/user | entries | filter ~(and (/1 | any ~(/type | lower | eq \"login\")) (not (/1 | any ~(/type | lower | eq \"logout\")))) | * /0 | sort\n\nN9: filter ~(ne null | at /salary) | * {:dept (/dept | lower) :salary /salary} | groupBy ~/dept | * ({:sum (* /salary | sum) :count (count)} | /sum | div /count | mul 10 | round | div 10)\n\nN10: lines | filter ~(ne \"\") | * (split \":\" | /1 | split \",\" | * (trim | lower)) | flat | distinct | sort\n\nN11: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"apple\",\"date\"] | * lower | groupBy | * count | entries | filter ~(/1 | gt 1) | sort ~([(/1 | desc) /0]) | * {:word (/0 | keyword) :count /1}\n\nN12: /releases | filter ~(and (not /draft) (not /prerelease)) | * {:tag /tag_name :downloads (/assets | * (at /download_count | coalesce 0) | sum)} | sort ~(/downloads | desc) | take 3\n\nN13: filter ~(/category | lower | eq \"tools\") | {:count (count) :allPriced (every ~(and (ne null | /price) (/price | gt 0))) :inStockNames (filter ~(/stock | gt 0) | * /name | sort)}\n\nN14: lines | filter ~(and (ne \"\") (not (startsWith \"#\")) (not (startsWith \"-\"))) | * (split \"#\" | /0) | filter ~(contains \"==\") | * (split \"==\" | {:name (/0 | lower) :version /1}) | groupBy ~/name | * (first | /version)",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9804,
+ "outputTokens": 46738,
+ "calls": null
+}

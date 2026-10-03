@@ -1,0 +1,9 @@
+host,region,cpu,mem_gb,status
+web1,eu,55.5,16,up
+web2,eu,70,16,up
+web3,eu,,32,up
+db1,us,40,64,up
+db2,us,90,64,down
+web4,us,61,16,UP
+cache1,ap,20,8,up
+cache2,ap,35,8,down

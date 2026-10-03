@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Ann",
+        "email": "ann@Example.com",
+        "active": true,
+        "age": 31
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": null,
+        "active": true,
+        "age": 25
+      },
+      {
+        "id": 3,
+        "name": "Cid",
+        "email": "cid@mail.org",
+        "active": false
+      },
+      {
+        "id": 4,
+        "name": "Dee",
+        "email": "dee@EXAMPLE.com",
+        "active": true
+      },
+      {
+        "id": 5,
+        "name": "Eve",
+        "email": "eve@zeta.io",
+        "active": true,
+        "age": 40
+      },
+      {
+        "id": 6,
+        "name": "Fay",
+        "active": true,
+        "age": 22
+      },
+      {
+        "id": 7,
+        "name": "Gus",
+        "email": "gus@mail.org",
+        "active": true,
+        "age": 35
+      },
+      {
+        "id": 8,
+        "name": "Hal",
+        "email": "hal@alpha.net",
+        "active": false,
+        "age": 29
+      },
+      {
+        "id": 9,
+        "name": "Ivy",
+        "email": "ivy@Mail.org",
+        "active": true,
+        "age": null
+      }
+    ]
+  },
+  "meta": {
+    "page": 1
+  }
+}

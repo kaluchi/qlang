@@ -1,0 +1,65 @@
+ qlang is a pipeline language over values, and a language that
+      describes itself in the same values: data, code, prose and
+      failures are all values, so the pipeline that reshapes data also
+      reads the description of the language. That description is a
+      hypertext rooted here. Every name has a page; a page is a doc,
+      prose whose quotes with no tag are laws that run, whose quotes
+      under `::link` are links to other pages and whose quotes under
+      `::snippet` are queries to run and see; `open` runs either,
+      so `::qlang | doc | links * open` answers every page this
+      one names, in one query. `::` begins an absolute name, and a
+      keyword is an anchor within the page of its subject, as `#` within
+      a web page: `::qlang | doc :pipeline` reads one page, a set of
+      anchors several at once, `::qlang | doc #[:pipeline :errors] *
+      content`, and a vector of anchors a path, `::vec | doc [:take
+      :count]`.
+
+      The forms. A query is a subject and its steps, each a command on
+      the value the step before answered, `S | verb object`; a value
+      never changes, a step answers a new one. `a | b` runs `b` on `a`;
+      `a * b`, in the place of `|`, runs `b` on each element, several
+      steps in parentheses; `/k`, `/0`, `/a/b` read a part; `(…)`
+      groups steps on the value in the pipe; `:n v` names a value;
+      `a !| b` runs `b` on an error alone. `42`, `"s"`, `:k`, `[a b]`,
+      `{:k v}`, `#[a b]`, `null`, `true` are literals, each a step that
+      replaces the value; `::T` before `{…}`, `[…]`, `(…)` or `"…"` puts
+      a payload under the tag `::T`, the name of its kind, `::T {…}`, with
+      a space, declares the kind, and `x | tag ::T` puts `x` under it;
+      `~(…)` is code held as a value.
+
+      Asking. `x | doc` answers the page of a name or of the kind of a
+      value, a doc whose text is `content`, whose laws are `laws` and
+      whose links are `links`. ::snippet~(::qlang | manifest) lists the
+      kinds; ::snippet~(::vec | spec | /verbs) lists the verbs of a kind by
+      address, and ::snippet~(::any | spec | /verbs) those of every
+      value; a verb in neither does not exist. `::vec/sort | doc` reads
+      the page of one verb, `::vec/sort | runLaws` runs its laws,
+      and `x !| explain` shows the page of what refused above an error.
+      An answer prints whole; `x | elide 4000` bounds it to that many
+      characters of its print, each part left out an `::elision` whose
+      `:read` continues the query to it.
+
+      The concepts, in the order they rest on each other, each page
+      naming its neighbours and the kinds that are it:
+      ::link~(::qlang | doc :values) values, kinds and tags;
+      ::link~(::qlang | doc :pipeline) the steps of a query;
+      ::link~(::qlang | doc :names) names and their records;
+      ::link~(::qlang | doc :verbs) the verbs that live on kinds;
+      ::link~(::qlang | doc :errors) the failure as a value;
+      ::link~(::qlang | doc :code) code as a value;
+      ::link~(::qlang | doc :hypertext) the pages and how to move
+      through them; ::link~(::qlang | doc :hosts) the tool the
+      language runs in and the budget of an answer.
+
+      The links of a page open the pages it names, in one query:
+      ~(::qlang | doc | links * open | count | gt 5)
+      ~(::qlang | doc :pipeline | links * open | count | gt 0)
+      A set of anchors reads several pages at once:
+      ~(::qlang | doc #[:errors :pipeline] * content | count | eq 2)
+      A map literal after `*` reshapes each element:
+      ~([{:id 1 :tags [1 2]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+      The outermost of stacked tags names the kind:
+      ~(::Box::Crate{:a 1} | type | eq ::Box)
+      A failed step answers an error the tag of its site names:
+      ~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
+  

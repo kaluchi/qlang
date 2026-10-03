@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Ana",
+    "dept": "Eng",
+    "salary": 120000
+  },
+  {
+    "name": "Ben",
+    "dept": "Eng",
+    "salary": 100000
+  },
+  {
+    "name": "Cal",
+    "dept": "Eng",
+    "salary": null
+  },
+  {
+    "name": "Dot",
+    "dept": "Ops",
+    "salary": 70000
+  },
+  {
+    "name": "Eli",
+    "dept": "Ops",
+    "salary": 65000
+  },
+  {
+    "name": "Fox",
+    "dept": "Sales",
+    "salary": 90000
+  },
+  {
+    "name": "Gia",
+    "dept": "Sales"
+  },
+  {
+    "name": "Hub",
+    "dept": "Sales",
+    "salary": 81000
+  },
+  {
+    "name": "Ira",
+    "dept": "Ops",
+    "salary": 72500
+  },
+  {
+    "name": "Jon",
+    "dept": "Eng",
+    "salary": 110000
+  }
+]

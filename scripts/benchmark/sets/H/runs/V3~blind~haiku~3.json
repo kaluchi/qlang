@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "V3",
+ "screenHash": "a6c241cc56a5",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 3,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "H1: filter ~(/active | eq true) | filter ~(/country | lower | eq \"de\") | filter ~(/age | gte 30 !| false) | * /name | sort\n\nH2: filter ~(/status | lower | eq \"paid\") | * /items | flat | * (mul /qty /price) | sum\n\nH3: groupBy ~(/customer | lower) | * count\n\nH4: {:name /name :depCount (/dependencies | keys | count) :devDepCount (/devDependencies | keys | count) :scripts (/scripts | keys | sort)}\n\nH5: filter ~(/state | lower | eq \"open\") | sort ~(/comments) | reverse | take 3 | sort ~(/id) | * /id\n\nH6: * (at /labels) | filter ~(/ | type | eq ::null | not) | flat | * (lower) | distinct | sort\n\nH7: filter ~(/state | lower | eq \"open\") | groupBy ~((/assignee/login !| \"unassigned\")) | * count\n\nH8: split \"\\n\" | filter ~(/ | eq \"\" | not) | filter ~(split \" \" | /1 !| false | eq \"ERROR\") | * (split \" \" | /2) | groupBy ~/ | * count\n\nH9: split \"\\n\" | filter ~(/ | eq \"\" | not) | filter ~(split \" \" | /1 !| false | (if / ~(eq \"ERROR\") ~(true) ~(eq \"WARN\"))) | * (split \" \" | filter ~(startsWith \"user=\") | /0 | split \"=\" | /1) | distinct | sort\n\nH10: split \"\\n\" | drop 1 | filter ~(/ | eq \"\" | not) | * (split \",\") | filter ~(((/4 | lower | eq \"up\") & (/2 | eq \"\" | not))) | groupBy ~(/1) | * (* (/2 | parseJson) | :values / | (:values | sum) | :sum / | (:values | count) | :count / | (/sum | div /count))\n\nH11: split \"\\n\" | filter ~(/ | eq \"\" | not) | filter ~(/ | startsWith \"#\" | not) | * (split \"=\" | {:key /0 :value (drop 1 | join \"=\")}) | filter ~(/key | upper | startsWith \"DB_\") | indexBy ~(/key | upper | drop 3 | lower | keyword)\n\nH12: :defaults /defaults | /services | filter ~(/enabled | eq true) | * {:name /name :timeout (if (/timeout | type | eq ::null) ~(defaults/timeout) ~(/timeout)) :team (at /owner/team | if (/ | eq null) ~(\"none\") ~(/))} | sort ~(/name)\n\nH13: /results | filter ~((/score | type | eq ::number) | if / ~(/score | gte 50) ~(false)) | sort ~(/score) | reverse | * ([/profile/first \" \" /profile/last \": \" (((/tags) !| []) | join \"|\")] | join \"\")\n\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | split \" \" | * (split \",\") | flat | * (split \".\") | flat | * (split \";\") | flat | * (split \"!\") | flat | * (lower) | filter ~(/ | eq \"\" | not) | :words / | /words | distinct | * {:word / :count (/words | filter ~(eq /) | count)} | sort ~(/word) | sort ~(/count) | reverse | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8203,
+ "outputTokens": 45103,
+ "calls": null
+}

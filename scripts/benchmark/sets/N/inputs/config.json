@@ -1,0 +1,36 @@
+{
+  "env": "prod",
+  "services": {
+    "api": {
+      "enabled": true,
+      "port": 8080,
+      "replicas": 3
+    },
+    "web": {
+      "enabled": true,
+      "port": 80,
+      "replicas": 2
+    },
+    "worker": {
+      "enabled": true,
+      "replicas": 5
+    },
+    "cron": {
+      "enabled": false,
+      "port": 9000
+    },
+    "cache": {
+      "enabled": true,
+      "port": 6379,
+      "replicas": null
+    },
+    "admin": {
+      "enabled": true,
+      "port": 8080,
+      "replicas": 1
+    },
+    "legacy": {
+      "port": 7000
+    }
+  }
+}

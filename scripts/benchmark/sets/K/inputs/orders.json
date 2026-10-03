@@ -1,0 +1,99 @@
+[
+  {
+    "id": "o1",
+    "customer": "alice",
+    "status": "paid",
+    "total": 120.5,
+    "items": [
+      {
+        "sku": "A",
+        "qty": 2
+      },
+      {
+        "sku": "B",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "id": "o2",
+    "customer": "bob",
+    "status": "paid",
+    "total": 80,
+    "items": [
+      {
+        "sku": "A",
+        "qty": 5
+      }
+    ]
+  },
+  {
+    "id": "o3",
+    "customer": "alice",
+    "status": "refunded",
+    "total": 60,
+    "items": [
+      {
+        "sku": "C",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "id": "o4",
+    "customer": "carol",
+    "status": "paid",
+    "total": null,
+    "items": [
+      {
+        "sku": "B",
+        "qty": 3
+      },
+      {
+        "sku": "C",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "id": "o5",
+    "customer": "bob",
+    "status": "paid",
+    "total": 45.25
+  },
+  {
+    "id": "o6",
+    "customer": "alice",
+    "status": "paid",
+    "total": 30,
+    "items": []
+  },
+  {
+    "id": "o7",
+    "customer": "dave",
+    "status": "pending",
+    "total": 99,
+    "items": [
+      {
+        "sku": "A",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "id": "o8",
+    "customer": "carol",
+    "status": "paid",
+    "total": 210,
+    "items": [
+      {
+        "sku": "D",
+        "qty": 4
+      },
+      {
+        "sku": "A",
+        "qty": 1
+      }
+    ]
+  }
+]

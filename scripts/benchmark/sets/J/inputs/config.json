@@ -1,0 +1,36 @@
+{
+  "defaults": {
+    "timeout": 30,
+    "retries": 3
+  },
+  "services": [
+    {
+      "name": "search",
+      "timeout": 10,
+      "retries": 5
+    },
+    {
+      "name": "auth",
+      "enabled": true
+    },
+    {
+      "name": "billing",
+      "enabled": false,
+      "timeout": 60
+    },
+    {
+      "name": "mailer",
+      "retries": 0
+    },
+    {
+      "name": "cache",
+      "enabled": true,
+      "timeout": null
+    },
+    {
+      "name": "api",
+      "timeout": 45,
+      "enabled": true
+    }
+  ]
+}

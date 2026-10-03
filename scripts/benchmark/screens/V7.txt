@@ -1,0 +1,118 @@
+qlang is a pipeline language over values. A query is a subject and its steps: each step is a command on the value the step before it answered, and answers a new value; nothing changes in place, and the answer is the last value. Everything the language handles is a value with a literal that prints and reads back as itself: data, code, prose and failures alike. So the language describes itself in its own values: every name has a page, the pages grow from ::qlang, and a query reads them like any data.
+
+Every ~(…) on this page is a law: a query that runs and answers true. A form copied from a law is a form that works.
+
+What a reader can rely on, the invariants every rule below follows from:
+- A query is a function of its input: the same subject answers the same value, nothing changes in place, and nothing is read or written outside it but by the verbs of the host.
+- The value in the pipe is the one implicit argument: every command takes it as its subject, and every modifier is computed against it.
+- Every nested piece, an element of a literal, a group, the body of `*`, a modifier, starts from the value and the names around it and gives back only its value.
+- Nothing is converted behind the reader: no truthiness, no number read out of a string, no default for a missing part; a value that does not fit makes its step fail, under a tag naming that step.
+- One order ranks every value, so anything sorts, compares and dedupes.
+- A failure is a value: it rides past `|` and `*` until `!|` opens it.
+- Every value prints as a literal that reads back as itself: what an answer shows is the value.
+- What exists is what the language lists: a verb missing from the list of a kind does not exist for it, and a page tells the truth about its name because its laws run.
+
+1. The combinators. Steps are joined by combinators, each set off by spaces on both sides; they bind alike, from left to right.
+`a | b` runs b on the value a answered.
+`a * b` runs b on each element of a: a vector or a set answers the vector of the results, a map answers a map with the same keys. Several steps after `*` stand in a group.
+`a !| b` runs b only when a answered a failure; any other value passes it untouched.
+`(…)` is a group: its steps run on the value in the pipe and answer their result.
+At the top level a line is a step, joined to the next line by `|`; a comment `|~ … ~|` is whitespace.
+~([1 2 3] * (mul 2 | add 1) | eq [3 5 7])
+~({:a 1 :b 2} * (mul 10) | eq {:a 10 :b 20})
+~([1 "x" 3] * (mul 2 !| 0) | eq [2 0 6])
+~(5 | (add 1 | mul 2) | eq 12)
+
+2. The literals. A literal is a step: it replaces the value in the pipe, and every word inside it is computed against that value.
+42, -1.5 and 1e3 are numbers, finite doubles. "text" is a string. :name and :"two words" are keywords, names that stand for themselves. null, true and false. [1 2 3] is a vector, [1, 2, 3] the same vector. {:k 1} is a map, and {"k": 1} the same map: every key of a map is a keyword. #[3 1 2] is a set. ~(add 1) is code. |~~ text ~~| is prose, a doc. !{:reason :x} is a failure. ::Box is a tag name, a value of its own. ::Box{:a 1} is a value under the tag ::Box.
+~(5 | [1 2] | eq [1 2])
+~({"a": 1, "b": [true, null]} | eq {:a 1 :b [true null]})
+~([7 8] | ::Box | eq ::Box)
+A literal is how data is reshaped: write the shape the answer takes, with its parts read from the value.
+~({:first "Ann" :age 30} | {:who /first :next (/age | add 1)} | eq {:who "Ann" :next 31})
+~([{:id 1 :tags [:a :b]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+
+3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
+~({:a {:b [10 20]}} | /a/b/-1 | eq 20)
+~({"first name": "Ann"} | /"first name" | eq "Ann")
+~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)
+~({:a 1} | at :b | eq null)
+~({:a 1} | at :b | coalesce 0 | eq 0)
+
+4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. The subject comes through the pipe, and every modifier is computed against the subject, so a command can read two fields of it. A command with modifiers inside a literal or a modifier stands in parentheses.
+~({:price 4 :qty 3} | mul /price /qty | eq 12)
+~({:a 1} | [(/a | add 1) /a] | eq [2 1])
+A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
+~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
+~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
+~([1 2 3] | filter (gt 1) !| type | eq ::FilterPredicateNotQuoteError)
+
+5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | spec | /verbs`, and a verb outside its list does not exist for it. The verbs most queries use:
+numbers: add sub mul div round, and gt gte lt lte to compare.
+strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
+containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
+every value: type eq ne print json if cond coalesce apply tag payload.
+booleans: and or not.
+~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
+~("a,b,c" | split "," | join "-" | eq "a-b-c")
+~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
+~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
+~({:auth {:port 3000}} | entries * (union /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+~({:a 1} | entries | tag ::map | eq {:a 1})
+~([3 1 2] | reduce 0 ~(add) | eq 6)
+
+6. What differs from the languages you know.
+One order ranks every value: null, then booleans, numbers, strings, keywords, tag names, vectors, sets, maps; so anything sorts. A set is the vector in that order without duplicates: `distinct` and `keys` answer a set, `take`, `drop` and `filter` keep a set, and `sort` and `reverse` answer a vector.
+~(#[:z :x :y] | first | eq :x)
+~([2 3 2 1] | distinct | eq #[1 2 3])
+~({:y 1 :x 2} | keys | eq #[:x :y])
+~(#[:z :x :y] | reverse | eq [:z :y :x])
+A map's elements are its values: `count`, `sum`, `first`, `filter`, `sort` and `*` read the values, and the keys travel with them.
+~({:a 1 :b 5} | filter ~(gt 2) | eq {:b 5})
+A condition is a boolean: `if`, `filter`, `every`, `any` and `cond` refuse any other value, so nothing is truthy.
+~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
+~(5 | if 1 ~("yes") ~("no") !| type | eq ::IfConditionNotBooleanError)
+A string and a keyword turn into each other by `keyword`; text and code turn into each other by `parse`; `print` answers the text a value reads back from, a string.
+~("draft" | keyword | eq :draft)
+~(:draft | keyword | eq "draft")
+~(7 | print | eq "7")
+A name, `:n v`, holds v for the steps after it, and the value in the pipe goes on unchanged; `:n /` names the value in the pipe. A name is declared once in a scope, and the names a group declares close with it.
+~(5 | :n / | [n (n | add 1)] | eq [5 6])
+~(:k 1 | :k 2 !| type | eq ::BindNameDeclaredTwiceError)
+
+7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure names the site that refused it: the verb, the place, and what the place takes, so ::AddLeftNotNumberError is `add` refusing its left operand, its subject, for not being a number, and ::FilterPredicateNotQuoteError is `filter` refusing a predicate that is no quote. `!| explain` shows the page of the site.
+~("x" | add 1 !| type | eq ::AddLeftNotNumberError)
+~("x" | add 1 !| /actualType | eq ::string)
+~([1 2] | add 1 !| type | eq ::AddLeftNotNumberError)
+~(!{:reason :late} !| /reason | eq :late)
+A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind `::error`. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
+~({:reason :late} | raise !| [type /reason] | eq [::error :late])
+~(::Late!{:by 3} !| [type /by] | eq [::Late 3])
+~([!{:k 1} 5] * (false !| true) | eq [true false])
+~("x" | add 1 | mul 2 !| /trail/-1/skipped | eq ~(mul 2))
+
+8. Code as a value. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text. A verb of your own is a name over `::verb~(…)`, whose leading declarations are its slots; a kind of your own is `::Name {:impl ~(…)}`, whose quote checks or builds every value put under it.
+~(~(add 1 | mul 2) | count | eq 2)
+~(5 | apply ~(add 1 | mul 2) | eq 12)
+~("add 1" | parse | eq ~(add 1))
+~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+A slot declared by a kind must be filled; by a literal it is filled with that literal when the call leaves it out; by a set of kinds with `::null` among them it may be left out and reads null; `* :name kind` gathers the modifiers that remain; `:returns kind` checks the answer. A verb runs when its name is mentioned, and stands where code is asked by `~name`; a quote held in a name runs by `apply`.
+~(:f ::verb~(:by 10 | add by) | 1 | f | eq 11)
+~(:f ::verb~(* :xs ::number | xs | sum) | null | f 1 2 3 | eq 6)
+~(:pos ::verb~(gt 0) | [1 -2 3] | filter ~pos | eq [1 3])
+~(:q ~(add 1) | 5 | apply q | eq 6)
+A step of a quote is a record of what it computes, a command under `::call` with its `:name`:
+~(~(add 1) | first | [type /name] | eq [::call :add])
+~(::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :big}))} | ::Small(12) !| /reason | eq :big)
+
+Prose is a value too: `|~~ text ~~|` is a doc, whose `content` is its text, `segments` its prose and quotes, and `laws` the quotes that run. A comment, `|~ … ~|` or `|~|` to the end of its line, is whitespace.
+~(|~~ a ~(eq 1) b ~~| | [(segments | count) (laws | count)] | eq [3 1])
+~(5 |~ a note ~| | add 1 | eq 6)
+
+9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag names the verb and the place; `!| explain` reads the page of that site, and `::vec/sort | doc` the page of a verb, with laws to copy.
+~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
+
+10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. `::qlang | manifest` lists the kinds, `::vec | spec | /verbs` the verbs of a kind by address, `::vec/sort | doc` the page of one verb, `::any/sort | doc` the page every `sort` shares, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an `::elision` whose `:read` continues the query to it.
+~(::qlang | doc | links * open | count | gt 5)
+
+11. The chapters, in the order they rest on each other: ::qlang | doc :values, :pipeline, :names, :verbs, :errors, :code, :hypertext, :hosts.

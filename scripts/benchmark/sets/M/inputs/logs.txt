@@ -1,0 +1,10 @@
+2026-03-01T10:00:01Z INFO api request ok
+2026-03-01T10:00:05Z ERROR db Connection Timeout after 30s
+2026-03-01T10:00:09Z WARN api slow response
+2026-03-01T10:01:00Z ERROR api upstream failed
+2026-03-01T10:01:30Z WARN cache TIMEOUT on get
+2026-03-01T10:02:00Z INFO db reconnected
+2026-03-01T10:02:10Z ERROR api bad gateway
+2026-03-01T10:03:00Z INFO web timeout setting loaded
+2026-03-01T10:03:30Z ERROR auth token invalid
+2026-03-01T10:04:00Z ERROR db deadlock detected

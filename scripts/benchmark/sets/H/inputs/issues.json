@@ -1,0 +1,92 @@
+[
+  {
+    "id": 101,
+    "title": "Crash on start",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "Bug",
+      "P1"
+    ],
+    "comments": 7
+  },
+  {
+    "id": 102,
+    "title": "Add dark mode",
+    "state": "open",
+    "assignee": null,
+    "labels": [
+      "feature"
+    ],
+    "comments": 12
+  },
+  {
+    "id": 103,
+    "title": "Typo in docs",
+    "state": "closed",
+    "assignee": {
+      "login": "leo"
+    },
+    "labels": [
+      "docs"
+    ],
+    "comments": 1
+  },
+  {
+    "id": 104,
+    "title": "Slow query",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "bug",
+      "perf"
+    ],
+    "comments": 12
+  },
+  {
+    "id": 105,
+    "title": "Upgrade deps",
+    "state": "open",
+    "labels": [],
+    "comments": 3
+  },
+  {
+    "id": 106,
+    "title": "Memory leak",
+    "state": "open",
+    "assignee": {
+      "login": "leo"
+    },
+    "comments": 9
+  },
+  {
+    "id": 107,
+    "title": "Flaky test",
+    "state": "closed",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "BUG",
+      "tests"
+    ],
+    "comments": 20
+  },
+  {
+    "id": 108,
+    "title": "Login redirect",
+    "state": "open",
+    "assignee": {
+      "login": "noa"
+    },
+    "labels": [
+      "Docs",
+      "bug"
+    ],
+    "comments": 0
+  }
+]

@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "V5",
+ "screenHash": "650c6ab86652",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Looking at this qlang documentation and the tasks, I'll work through each query carefully using only the patterns shown in the laws.\n\nLet me trace through the key concepts:\n- Steps combine with `|`, `*` applies to elements, `!|` handles failures\n- `/field` reads fields, `at :field` reads softly (returns null if missing)\n- `groupBy ~expr` groups by expression result\n- `sort ~expr` sorts by expression value\n- `distinct` removes duplicates (returns a set)\n\nHere are my queries:\n\nK1: `[\"Apple\",\"banana\",\"APPLE\",\"Cherry\",\"banana\",\"date\",\"Date\",\"elderberry\"] | * lower | distinct | count`\n\nK2: `/ | filter ~(/status | eq \"paid\") | groupBy ~/customer | * (* (at :total | coalesce 0) | sum)`\n\nK3: `/ | lines | * (split \" \" | /1) | groupBy ~ | * count`\n\nK4: `/ | (/dependencies | filter ~(startsWith \"^\") | keys) | union (/devDependencies | filter ~(startsWith \"^\") | keys) | sort`\n\nK5: `/ | filter ~(/state | eq \"open\") | sort ~([(0 | sub (at :comments | coalesce 0)), /id]) | * /id | take 3`\n\nK6: `/ | lines | drop 1 | * (split \",\") | filter ~(if (/2 | lower | eq \"de\") ~(/1 | count | gt 0) ~(false)) | :ages (* /1 | * (parseJson)) | [(:ages | sum), (:ages | count)] | /0 | div /1 | mul 10 | round | div 10`\n\nK7: `/ | /services | filter ~(/enabled | eq true) | filter ~(type /port | eq ::number) | sort ~/port | vals`\n\nK8: `/ | /results | filter ~(if (/email | ne null) ~(if (/user/name/last | ne null) ~(/email | split \"@\" | /1 | lower | eq \"example.com\") ~(false)) ~(false)) | * (/user/name/last | append \", \" | append /user/name/first)`\n\nK9: `/ | filter ~(if (/user | ne null) ~(/action | lower | eq \"login\") ~(false)) | * /user | * lower | distinct | sort`\n\nK10: `/ | filter ~(if (at :salary | ne null) ~(true) ~(false)) | groupBy ~/dept | * (*(/ salary) | sum | div (*(/ salary) | count) | mul 100 | round | div 100)`\n\nK11: `/ | * /tags | * (if (at :null | ne null) ~(if (count | gt 0) ~(split \",\") ~([])) ~([])) | flat | * lower | filter ~(count | gt 0) | groupBy ~ | * count | sort | reverse | take 3`\n\nK12: `/ | lines | filter ~(if (/0 | eq \"#\") ~(false) ~(if (count | gt 0) ~(true) ~(false))) | * (split \"|\" | /1 | parseJson | mul (/2 | parseJson)) | sum | mul 100 | round | div 100`\n\nK13: `/ | /services | filter ~(/env | lower | eq \"prod\") | every ~(at :replicas | coalesce 1 | gte 2)`\n\nK14: `/ | * {:id /id :itemCount (at :items | coalesce [] | * /qty | sum)} | filter ~(/itemCount | gt 0) | sort ~([0 | sub /itemCount, /id]) | take 3`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8267,
+ "outputTokens": 49929,
+ "calls": null
+}

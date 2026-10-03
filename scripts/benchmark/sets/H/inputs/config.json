@@ -1,0 +1,44 @@
+{
+  "defaults": {
+    "timeout": 30
+  },
+  "services": [
+    {
+      "name": "web",
+      "enabled": true,
+      "timeout": 10,
+      "owner": {
+        "team": "front"
+      }
+    },
+    {
+      "name": "api",
+      "enabled": true,
+      "owner": {
+        "team": "core"
+      }
+    },
+    {
+      "name": "worker",
+      "enabled": false,
+      "timeout": 5,
+      "owner": null
+    },
+    {
+      "name": "cron",
+      "enabled": true,
+      "timeout": null,
+      "owner": null
+    },
+    {
+      "name": "auth",
+      "enabled": true,
+      "timeout": 0,
+      "owner": {}
+    },
+    {
+      "name": "legacy",
+      "enabled": false
+    }
+  ]
+}

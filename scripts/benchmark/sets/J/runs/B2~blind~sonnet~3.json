@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These queries are guesses. The page names only a few verbs (`doc`, `count`, `eq`, `gt`, `add`, `type`, `take`, `open`, `links`, `content`), so `filter`, `sortBy`, `groupBy`, `sum`, `round`, `lower` and the rest are assumed from convention. I couldn't check that any of them exist, and I used the `J` labels to match the task IDs.\n\nJ1: `/data | filter (/active | eq true) | filter (/address/city | type | eq ::Str) | sortBy (/name | lower) | * /name`\nJ2: `* (filter (/status | lower | eq \"paid\")) | filter (/status | lower | eq \"paid\") | * (/items * (/qty | mul /price)) | flatten | sum | round 2`\nJ3: `(/dependencies | merge /devDependencies) | entries | filter (/value | startsWith \"^\") | sortBy /key | * (/key | add \"@\" | add /value)`\nJ4: `filter (/state | eq \"open\") | groupBy (/assignee/login | default \"unassigned\") | mapVals count`\nJ5: `:d /defaults | /services | filter (/enabled | ne false) | * {:name /name :timeout (/timeout | default ~(/d/timeout)) :retries (/retries | default ~(/d/retries))} | sortBy /name`\nJ6: `filter (/durationMs | ne null) | groupBy /service | mapVals (* /durationMs | avg | round 1)`\nJ7: `filter (/stock | gt 0) | sortBy /price | reverse | take 3 | * /name`\nJ8: `groupBy /dept | mapVals (* (/skills | default []) | flatten | * lower | distinct | sort)`\nJ9: `filter (/role | lower | eq \"db\") | all (/region | eq \"eu-west\") and (/cpu/cores | gte 8)`\nJ10: `\"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split #\"[,;]\\s*\" * (split \"@\" | /1 | lower) | distinct | sort`\nJ11: `split \"\\n\" | * (split \" \") | filter (/3 | toNumber | gte 500) | groupBy /2 | mapVals count | entries | * {:path /key :count /value} | sortBy [(/count | neg) /path] | take 2`\nJ12: `split \"\\n\" | drop 1 | * (split \",\") | filter (/2 | ne \"\") | groupBy /1 | mapVals (* (/2 | toNumber) | avg | round 2)`\nJ13: `split \"\\n\" | filter (contains \"==\") | filter (startsWith \"#\" | not) | * (split \"==\") | * {:k (/0 | lower) :v /1} | toMap /k /v`\nJ14: `sortBy (/comments | default [] | * (/likes | default 0) | sum) | last | /title`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 7902,
+ "outputTokens": 1313,
+ "calls": null
+}

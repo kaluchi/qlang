@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "V4",
+ "screenHash": "22eeb1857437",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Looking at the qlang documentation, I'll work through each task systematically, building queries from the examples and laws provided.\n\nH1: /data | filter ~((/active | eq true) !| false) | filter ~((/address/city | type | eq ::string) !| false) | * /name | sort ~(lower)\n\nH2: filter ~((/status | lower | eq \"paid\") !| false) | * (/items * (mul /qty /price) | sum) | sum | round 2\n\nH3: [/dependencies /devDependencies] | reduce {} ~(union /) | filter ~(startsWith \"^\") | :m / | m | keys | sort * (:k / | :v (m | /k) | [k v] | join \"@\")\n\nH4: filter ~/state | eq \"open\" | * (at :assignee | at :login | coalesce \"unassigned\") | groupBy ~/ | * count\n\nH5: :config / | config | /services | filter ~(at :enabled | eq false | not) | sort ~/name | * {:name /name :timeout (/timeout | if (type | eq ::null) ~(config | /defaults | /timeout) ~(/)) :retries (/retries | if (type | eq ::null) ~(config | /defaults | /retries) ~(/))}\n\nH6: filter ~(at :durationMs | type | ne ::null) | groupBy ~/service | * (* /durationMs | :durations / | (durations | sum) | div ~(durations | count) | round 1)\n\nH7: filter ~(:s /stock | if (s | type | eq ::number) ~(s | gt 0) ~(false)) | sort ~/price | reverse | take 3 | * /name\n\nH8: groupBy ~/dept | * (* (at :skills | coalesce []) | flat | * lower | distinct | sort)\n\nH9: filter ~(/role | lower | eq \"db\") | every ~((/region | eq \"eu-west\") | and ~((/cpu/cores | gte 8)))\n\nH10: split \";\" | * (split \",\") | flat | * (split \" \" | filter ~(ne \"\") | join \"\" | split \"@\" | last | lower) | distinct | sort\n\nH11: lines | * (split \" \" | {:path /2 :status /3}) | filter ~(/status | startsWith \"5\") | groupBy ~/path | * count | :counts / | counts | keys * {:path / :count (counts | at /)} | sort ~/path | sort ~/count | reverse | take 2\n\nH12: lines | * (split \",\") | drop 1 | filter ~((at 2 | ne \"\")) | * {:team /1 :score (/2 | parseJson)} | groupBy ~/team | * (* /score | :scores / | (scores | sum) | div ~(scores | count) | round 2)\n\nH13: lines | filter ~(ne \"\") | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") | * (split \"==\" | \"\\\"\" append (/0 | lower) append \"\\\": \" append (/1)) | join \",\" | \"{ \" append . append \" }\" | parseJson\n\nH14: sort ~((at :comments | coalesce []) | * (at :likes | coalesce 0) | sum) | last | /title",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9489,
+ "outputTokens": 50939,
+ "calls": null
+}

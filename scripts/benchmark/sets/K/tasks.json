@@ -1,0 +1,139 @@
+[
+  {
+    "id": "K1",
+    "input": null,
+    "text": "Given the list of words [\"Apple\",\"banana\",\"APPLE\",\"Cherry\",\"banana\",\"date\",\"Date\",\"elderberry\"], compare words case-insensitively and return the number of distinct words (a number).",
+    "expected": 5
+  },
+  {
+    "id": "K2",
+    "input": "orders.json",
+    "text": "Input is an array of orders. Consider only orders whose status is \"paid\". For each customer, sum the \"total\" values of those orders (null or missing total counts as 0). Return an object mapping customer name to the sum (a number). Customers with no paid orders are omitted.",
+    "expected": {
+      "alice": 150.5,
+      "bob": 125.25,
+      "carol": 210
+    }
+  },
+  {
+    "id": "K3",
+    "input": "app.log",
+    "text": "Each line of the text file is \"<timestamp> <LEVEL> <service> <message...>\" separated by single spaces. Count the lines per LEVEL (the second field). Return an object mapping level to count.",
+    "expected": {
+      "INFO": 4,
+      "WARN": 2,
+      "ERROR": 3,
+      "DEBUG": 1
+    }
+  },
+  {
+    "id": "K4",
+    "input": "package.json",
+    "text": "Take the union of the keys of \"dependencies\" and \"devDependencies\". Keep those whose version string starts with \"^\". Return an array of the package names sorted alphabetically (ascending, plain string comparison).",
+    "expected": [
+      "eslint",
+      "express",
+      "jest",
+      "nodemon",
+      "zod"
+    ]
+  },
+  {
+    "id": "K5",
+    "input": "issues.json",
+    "text": "Input is an array of issues. Keep issues with state \"open\". Sort by \"comments\" descending (missing comments counts as 0), ties broken by \"id\" ascending. Return an array of the \"id\" numbers of the first 3.",
+    "expected": [
+      3,
+      31,
+      12
+    ]
+  },
+  {
+    "id": "K6",
+    "input": "users.csv",
+    "text": "The text file is CSV with a header line (name,age,country). Select rows whose country equals \"de\" case-insensitively and whose age is not empty. Return the average age of these rows rounded to 1 decimal place (a number).",
+    "expected": 34.7
+  },
+  {
+    "id": "K7",
+    "input": "config.json",
+    "text": "\"services\" is an object keyed by service name. Keep services with enabled === true that have a numeric \"port\". Sort them by port ascending. Return an array of strings of the form \"<name>:<port>\".",
+    "expected": [
+      "api:3000",
+      "db:5432",
+      "web:8080"
+    ]
+  },
+  {
+    "id": "K8",
+    "input": "people.json",
+    "text": "Input has a \"results\" array. Keep entries that have a non-null email whose domain (the part after \"@\") equals \"example.com\" case-insensitively AND a non-null user.name.last. Return an array of strings \"<last>, <first>\" in the original order.",
+    "expected": [
+      "Lovelace, Ada",
+      "Hopper, Grace",
+      "Liskov, Barbara"
+    ]
+  },
+  {
+    "id": "K9",
+    "input": "events.json",
+    "text": "Input is an array of events. Keep events with a non-null \"user\" whose action equals \"login\" case-insensitively. Return the array of distinct user ids, lowercased, sorted ascending alphabetically.",
+    "expected": [
+      "u1",
+      "u2",
+      "u3",
+      "u5"
+    ]
+  },
+  {
+    "id": "K10",
+    "input": "employees.json",
+    "text": "Group employees by \"dept\", ignoring employees whose salary is null or missing. For each department return the average salary rounded to 2 decimals. Return an object mapping dept to that average.",
+    "expected": {
+      "eng": 113.67,
+      "hr": 62.75,
+      "ops": 72.5
+    }
+  },
+  {
+    "id": "K11",
+    "input": "posts.json",
+    "text": "Each post has a \"tags\" string of comma-separated tags (may be null or empty). Split on commas, trim whitespace, lowercase, drop empty tags. Count occurrences across all posts. Return an array of the 3 most frequent tags (strings), ordered by count descending, ties broken alphabetically ascending.",
+    "expected": [
+      "api",
+      "js",
+      "node"
+    ]
+  },
+  {
+    "id": "K12",
+    "input": "inventory.txt",
+    "text": "Lines starting with \"#\" and blank lines are to be ignored. Other lines have the form \"sku|qty|price\". Return the total stock value, the sum of qty*price over all such lines, rounded to 2 decimals (a number).",
+    "expected": 103.32
+  },
+  {
+    "id": "K13",
+    "input": "release.json",
+    "text": "Input has a \"services\" array. Consider services whose \"env\" equals \"prod\" case-insensitively. A missing \"replicas\" counts as 1. Return a boolean: true if every such service has at least 2 replicas, otherwise false.",
+    "expected": false
+  },
+  {
+    "id": "K14",
+    "input": "orders.json",
+    "text": "Input is an array of orders. For each order compute itemCount = sum of \"qty\" over its \"items\" (missing items counts as an empty list). Keep orders with itemCount > 0. Sort by itemCount descending, ties by id ascending (string comparison). Return an array of the first 3 as objects {\"id\": <order id>, \"itemCount\": <number>}.",
+    "expected": [
+      {
+        "id": "o2",
+        "itemCount": 5
+      },
+      {
+        "id": "o4",
+        "itemCount": 5
+      },
+      {
+        "id": "o8",
+        "itemCount": 5
+      }
+    ]
+  }
+]

@@ -1,0 +1,171 @@
+[
+  {
+    "id": "J1",
+    "input": "users.json",
+    "text": "The file has a \"data\" array of users. Take users where active is true and address.city is a non-null string (address may be null or missing, city may be null; skip those). Return an array of their \"name\" strings sorted ascending by name compared case-insensitively (lowercase comparison).",
+    "expected": [
+      "alan Wu",
+      "Frank Moore",
+      "Zoe Adams"
+    ]
+  },
+  {
+    "id": "J2",
+    "input": "orders.json",
+    "text": "The file is an array of orders. Consider only orders whose status equals \"paid\" ignoring case (null status does not match). Each order has items with qty and price; the line total is qty*price. Return a single number: the sum of all line totals over those orders, rounded to 2 decimal places.",
+    "expected": 53.58
+  },
+  {
+    "id": "J3",
+    "input": "package.json",
+    "text": "The file is a package manifest with \"dependencies\" and \"devDependencies\" objects (name -> version range). Combine both objects and keep entries whose version string starts with \"^\". Return an array of strings of the form \"name@version\" (e.g. \"foo@^1.0.0\"), sorted ascending by package name.",
+    "expected": [
+      "axios@^1.6.0",
+      "eslint@^8.56.0",
+      "express@^4.18.2",
+      "jest@^29.7.0"
+    ]
+  },
+  {
+    "id": "J4",
+    "input": "issues.json",
+    "text": "The file is an array of issues. Keep issues with state \"open\". Count them per assignee login; issues whose assignee is null or missing are counted under the key \"unassigned\". Return an object mapping login (or \"unassigned\") to count.",
+    "expected": {
+      "mia": 2,
+      "unassigned": 2,
+      "joe": 2,
+      "sam": 1
+    }
+  },
+  {
+    "id": "J5",
+    "input": "config.json",
+    "text": "The file has \"defaults\" (timeout, retries) and a \"services\" array. Keep services that are enabled; a missing \"enabled\" field counts as enabled, only false disables. For each kept service return an object {\"name\",\"timeout\",\"retries\"} where a missing or null timeout/retries is replaced by the value from defaults (a value of 0 is a real value and is kept). Sort the array ascending by name.",
+    "expected": [
+      {
+        "name": "api",
+        "timeout": 45,
+        "retries": 3
+      },
+      {
+        "name": "auth",
+        "timeout": 30,
+        "retries": 3
+      },
+      {
+        "name": "cache",
+        "timeout": 30,
+        "retries": 3
+      },
+      {
+        "name": "mailer",
+        "timeout": 30,
+        "retries": 0
+      },
+      {
+        "name": "search",
+        "timeout": 10,
+        "retries": 5
+      }
+    ]
+  },
+  {
+    "id": "J6",
+    "input": "events.json",
+    "text": "The file is an array of log events. Ignore events whose durationMs is null or missing. For the rest, compute the average durationMs per service, rounded to 1 decimal place. Return an object mapping service to average (services with no usable events are omitted).",
+    "expected": {
+      "api": 167,
+      "db": 67.5,
+      "web": 10
+    }
+  },
+  {
+    "id": "J7",
+    "input": "products.json",
+    "text": "The file is an array of products. Keep products whose stock is a number greater than 0 (null or missing stock means not in stock). Return the \"name\" values of the 3 most expensive of them as an array, ordered by price descending.",
+    "expected": [
+      "Dock",
+      "Headset",
+      "Webcam"
+    ]
+  },
+  {
+    "id": "J8",
+    "input": "employees.json",
+    "text": "The file is an array of employees with dept and skills (skills may be null, missing or empty). For each dept, return the distinct skills, lowercased, sorted ascending. Return an object mapping dept to that array; departments with no skills get an empty array.",
+    "expected": {
+      "eng": [
+        "docker",
+        "go",
+        "rust",
+        "sql"
+      ],
+      "ops": [
+        "bash",
+        "docker",
+        "terraform"
+      ],
+      "hr": [
+        "excel"
+      ]
+    }
+  },
+  {
+    "id": "J9",
+    "input": "servers.json",
+    "text": "The file is an array of servers. Return a boolean: true if every server whose role equals \"db\" (case-insensitive) has region \"eu-west\" and cpu.cores of at least 8; otherwise false.",
+    "expected": true
+  },
+  {
+    "id": "J10",
+    "input": null,
+    "text": "Input (no file): the string \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\". Entries are separated by a comma or semicolon (each possibly followed by a space). Return the distinct email domains (the part after \"@\"), lowercased, as an array sorted ascending.",
+    "expected": [
+      "example.com",
+      "mail.net",
+      "test.org"
+    ]
+  },
+  {
+    "id": "J11",
+    "input": "access.log",
+    "text": "Each line of the text file is: timestamp, HTTP method, path, status code, duration, separated by single spaces. Consider lines with status code 500 or higher. Count them per path. Return the top 2 paths as an array of {\"path\",\"count\"} objects, sorted by count descending, ties broken by path ascending.",
+    "expected": [
+      {
+        "path": "/api/orders",
+        "count": 3
+      },
+      {
+        "path": "/api/users",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "J12",
+    "input": "data.csv",
+    "text": "The text file is CSV with header \"name,team,score\". Rows with an empty score are ignored. Compute the average score per team, rounded to 2 decimal places. Return an object mapping team to average.",
+    "expected": {
+      "red": 85.5,
+      "blue": 83.33,
+      "green": 60
+    }
+  },
+  {
+    "id": "J13",
+    "input": "requirements.txt",
+    "text": "Each non-blank line of the text file is either a comment (starts with \"#\") or a requirement. Ignore comments and blank lines, and ignore requirements that do not use \"==\". For the rest, split at \"==\" into name and version. Return an object mapping the lowercased name to the version string.",
+    "expected": {
+      "flask": "2.3.2",
+      "numpy": "1.26.4",
+      "pyyaml": "6.0.1",
+      "pytest": "7.4.0"
+    }
+  },
+  {
+    "id": "J14",
+    "input": "posts.json",
+    "text": "The file is an array of posts, each with a \"comments\" array (may be null) whose items have an optional numeric \"likes\" (null or missing counts as 0). Return the \"title\" string of the post with the highest total likes (no ties exist).",
+    "expected": "Deep dive"
+  }
+]

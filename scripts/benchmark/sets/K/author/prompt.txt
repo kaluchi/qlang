@@ -1,0 +1,7 @@
+Write a set of 14 data-reshaping tasks of the kind a coding agent meets every day: API responses, logs, configuration, package manifests, issue trackers, CSV-like text, nested records with missing fields and nulls. Each task asks for one value computed from one input file (or from no input, when the data fits in the task text), and needs two to six operations: filtering, grouping and counting, sorting by a field, distinct values, sums and averages, reshaping records into new objects, reading nested fields, string splitting and joining, case-insensitive comparisons, booleans, top-N.
+
+Do the work in the current directory only:
+1. Write each input file (JSON files and two or three plain-text files), small: 5 to 15 records each.
+2. Write tasks.json: an array of {"id": "K1".., "input": "<file name or null>", "text": "<what to compute, precise, with the exact expected shape: a number, an array of strings in which order, an object with which keys>", "expected": <the expected JSON value>}.
+3. Compute every "expected" value with a Node.js script you write and run (node), never by hand, and write it into tasks.json from that script.
+Make the tasks unambiguous: state orders, rounding, and what to do with nulls and missing fields. Do not mention any particular query language. Reply "done" when tasks.json is written.

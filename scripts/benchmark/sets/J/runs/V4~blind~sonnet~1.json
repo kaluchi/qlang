@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "V4",
+ "screenHash": "22eeb1857437",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "J1: /data | filter ~([/active (/address/city !| null | type | eq ::string)] | every ~(/)) | sort ~(/name | lower) * /name\nJ2: filter ~(/status | lower | eq \"paid\" !| false) * (/items * (mul /qty /price) | sum) | sum | round 2\nJ3: :d /devDependencies | /dependencies | combine d | filter ~(startsWith \"^\") | :m / | keys * (:k / | m | at k | prepend \"@\" | prepend (k | keyword))\nJ4: filter ~(/state | eq \"open\") * (/assignee/login !| \"unassigned\") | groupBy ~(/) * count\nJ5: :d /defaults | /services | filter ~(/enabled !| true | ne false) | sort ~/name * {:name /name :timeout (/timeout !| null | coalesce (d | /timeout)) :retries (/retries !| null | coalesce (d | /retries))}\nJ6: filter ~(/durationMs !| null | type | eq ::number) | groupBy ~/service * (* /durationMs | :v / | sum | div (v | count) | round 1)\nJ7: filter ~(/stock !| 0 | gt 0 !| false) | sort ~/price | reverse | take 3 * /name\nJ8: groupBy ~/dept * (* (/skills !| null | coalesce []) | flat * lower | distinct | sort)\nJ9: filter ~(/role | lower | eq \"db\") | every ~([(/region | eq \"eu-west\") (/cpu/cores !| 0 | gte 8)] | every ~(/))\nJ10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split \";\" * (split \",\") | flat * (split \"@\" | last | lower) | distinct | sort\nJ11: lines | filter ~(count | gt 0) * {:path (split \" \" | /2) :s (split \" \" | /3 | parseJson)} | filter ~(/s | gte 500) | groupBy ~/path | :g / | keys * (:k / | {:path (k | keyword) :count (g | at k | count)}) | sort ~([(/count | mul -1) /path]) | take 2\nJ12: lines | drop 1 | filter ~(count | gt 0) * (split \",\") | filter ~(/2 | count | gt 0) * {:team /1 :score (/2 | parseJson)} | groupBy ~/team * (* /score | :v / | sum | div (v | count) | round 2)\nJ13: lines | filter ~(contains \"==\") | filter ~(startsWith \"#\" | not) * (split \"==\" | [(/0 | lower) /1] | join \"\\\":\\\"\" | prepend \"\\\"\" | append \"\\\"\") | join \",\" | prepend \"{\" | append \"}\" | parseJson\nJ14: * {:t /title :n (/comments !| null | coalesce [] * (/likes !| null | coalesce 0) | sum)} | sort ~/n | last | /t",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 11145,
+ "outputTokens": 7194,
+ "calls": null
+}

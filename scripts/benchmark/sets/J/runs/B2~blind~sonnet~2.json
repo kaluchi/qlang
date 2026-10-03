@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "I could not check any verb names against the page, so these queries use guessed verbs (`filter`, `sortBy`, `groupBy`, `lower`, `split` and so on) that may not exist. I wrote them in the pipeline form the page describes. I used `J` labels to match the task names, although the instruction mentions `H1`.\n\nJ1: `/data | filter (/active | eq true | and (/address/city | isString)) | sortBy (/name | lower) * /name`\nJ2: `filter (/status | lower | eq \"paid\") * (/items * (/qty | mul /price) | sum) | sum | round 2`\nJ3: `[/dependencies /devDependencies] | merge | entries | filter (/1 | startsWith \"^\") | sortBy /0 * (/0 | add \"@\" | add /1)`\nJ4: `filter (/state | eq \"open\") * (/assignee/login | default \"unassigned\") | countBy`\nJ5: `:d /defaults | /services | filter (/enabled | ne false) * {:name /name :timeout (/timeout | default (d | /timeout)) :retries (/retries | default (d | /retries))} | sortBy /name`\nJ6: `filter (/durationMs | isNumber) | groupBy /service * (* /durationMs | avg | round 1)`\nJ7: `filter (/stock | isNumber | and (/stock | gt 0)) | sortBy /price | reverse | take 3 * /name`\nJ8: `groupBy /dept * (* (/skills | default []) | flatten * lower | distinct | sort)`\nJ9: `filter (/role | lower | eq \"db\") | all (/region | eq \"eu-west\" | and (/cpu/cores | gte 8))`\nJ10: `\"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split #\"[,;] ?\" * (split \"@\" | /1 | lower) | distinct | sort`\nJ11: `lines * split \" \" | filter (/3 | toNumber | gte 500) | countBy /2 | entries * {:path /0 :count /1} | sortBy [(/count | neg) /path] | take 2`\nJ12: `lines | drop 1 * split \",\" | filter (/2 | ne \"\") | groupBy /1 * (* (/2 | toNumber) | avg | round 2)`\nJ13: `lines | filter (contains \"==\" | and (startsWith \"#\" | not)) * split \"==\" | map {(/0 | lower) /1}`\nJ14: `sortBy (/comments | default [] * (/likes | default 0) | sum) | last | /title`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 7902,
+ "outputTokens": 1163,
+ "calls": null
+}

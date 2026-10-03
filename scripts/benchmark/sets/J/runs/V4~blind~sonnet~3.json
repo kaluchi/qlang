@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "V4",
+ "screenHash": "22eeb1857437",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Each query is my single attempt from the page, with nothing run. I used `J1`…`J14` as labels because the tasks are named J, not H.\n\nJ1: /data | filter ~(/active | eq true) | filter ~(/address/city !| null | type | eq ::string) | sort ~(/name | lower) | * /name\nJ2: filter ~(/status | lower !| \"\" | eq \"paid\") | * (/items * (mul /price /qty) | sum) | sum | round 2\nJ3: :d /devDependencies | /dependencies | combine d | filter ~(startsWith \"^\") | :m / | keys | sort | * (:k / | keyword | append \"@\" | append (m | at k))\nJ4: filter ~(/state | eq \"open\") | * (/assignee/login !| \"unassigned\") | groupBy ~(/) | * count\nJ5: :d /defaults | /services | filter ~(/enabled !| true | eq true) | * {:name /name :timeout (at :timeout | coalesce (d | /timeout)) :retries (at :retries | coalesce (d | /retries))} | sort ~(/name)\nJ6: filter ~(at :durationMs | type | eq ::number) | groupBy ~(/service) | * (* /durationMs | :v / | sum | div (v | count) | round 1)\nJ7: filter ~(at :stock | type | eq ::number) | filter ~(/stock | gt 0) | sort ~(/price) | reverse | take 3 | * /name\nJ8: groupBy ~(/dept) | * (* (at :skills | coalesce []) | flat | * lower | distinct | sort)\nJ9: filter ~(/role | lower | eq \"db\") | every ~([(/region | eq \"eu-west\") (/cpu/cores | gte 8)] | every ~(eq true))\nJ10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split \";\" | * (split \",\") | flat | * (split \"@\" | last | lower) | distinct | sort\nJ11: lines | filter ~(count | gt 0) | * (split \" \") | filter ~(/3 | parseJson | gte 500) | * /2 | :ps / | distinct | * (:p / | {:path p :count (ps | filter ~(eq p) | count)}) | sort ~([(/count | mul -1) /path]) | take 2\nJ12: lines | drop 1 | filter ~(count | gt 0) | * (split \",\") | filter ~(/2 | count | gt 0) | groupBy ~(/1) | * (* (/2 | parseJson) | :v / | sum | div (v | count) | round 2)\nJ13: lines | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") | * (split \"==\") | indexBy ~(/0 | lower) | * /1\nJ14: sort ~(at :comments | coalesce [] | * (at :likes | coalesce 0) | sum) | last | /title",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 11145,
+ "outputTokens": 5374,
+ "calls": null
+}

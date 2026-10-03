@@ -1,0 +1,12 @@
+2026-03-01T10:00:01Z INFO [api] started
+2026-03-01T10:00:05Z ERROR [db] connection refused
+2026-03-01T10:00:07Z WARN [api] slow response 1200ms
+2026-03-01T10:01:10Z ERROR [api] timeout calling db
+2026-03-01T10:01:12Z ERROR [db] connection refused
+2026-03-01T10:02:00Z INFO [worker] job 17 done
+2026-03-01T10:02:30Z ERROR [worker] job 18 failed
+2026-03-01T10:03:00Z ERROR [db] disk full
+2026-03-01T10:03:44Z ERROR [api] bad gateway
+2026-03-01T10:04:00Z DEBUG [api] cache hit
+2026-03-01T10:04:20Z ERROR [auth] invalid token
+2026-03-01T10:05:00Z INFO [db] recovered

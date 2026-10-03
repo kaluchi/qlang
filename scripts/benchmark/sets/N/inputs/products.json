@@ -1,0 +1,36 @@
+[
+  {
+    "sku": "T1",
+    "name": "Hammer",
+    "category": "Tools",
+    "price": 12.5,
+    "stock": 4
+  },
+  {
+    "sku": "T2",
+    "name": "Saw",
+    "category": "tools",
+    "price": 18,
+    "stock": 0
+  },
+  {
+    "sku": "G1",
+    "name": "Seeds",
+    "category": "Garden",
+    "price": null,
+    "stock": 50
+  },
+  {
+    "sku": "T3",
+    "name": "Drill",
+    "category": "TOOLS",
+    "price": 89.9,
+    "stock": 2
+  },
+  {
+    "sku": "K1",
+    "name": "Pan",
+    "category": "Kitchen",
+    "stock": 7
+  }
+]

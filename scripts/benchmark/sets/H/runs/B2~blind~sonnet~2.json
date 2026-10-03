@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "These are guesses. I can't see which verbs the first page defines (`filter`, `groupBy`, `sortBy`, `mapVals`, `split`, `default` and the like), so I wrote them as plausible names and none of them are checked against the language.\n\nH1: filter (/active | eq true) | filter (/country | lower | eq \"de\") | filter (/age | gte 30 !| false) | * /name | sort\nH2: filter (/status | lower | eq \"paid\") | * (/items * (/qty | mul /price)) | flat | sum | round 2\nH3: groupBy (/customer | lower) | mapVals count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | sort)}\nH5: filter (/state | eq \"open\") | sortBy /id | sortBy (/comments | neg) | take 3 * /id\nH6: * (/labels !| []) | flat | * lower | distinct | sort\nH7: filter (/state | eq \"open\") | groupBy (/assignee/login !| \"unassigned\") | mapVals count\nH8: split \"\\n\" | filter (trim | ne \"\") | * (split \" \") | filter (/1 | eq \"ERROR\") | groupBy /2 | mapVals count\nH9: split \"\\n\" | filter (trim | ne \"\") | * (split \" \") | filter (/1 | in [\"ERROR\" \"WARN\"]) | * (drop 3) | flat | filter (startsWith \"user=\") | * (replace \"user=\" \"\") | distinct | sort\nH10: split \"\\n\" | drop 1 | filter (trim | ne \"\") | * (split \",\") | filter (/4 | lower | eq \"up\") | filter (/2 | ne \"\") | groupBy /1 | mapVals (* (/2 | num) | avg | round 1)\nH11: split \"\\n\" | filter (trim | ne \"\") | filter (startsWith \"#\" | not) | * (splitOnce \"=\") | filter (/0 | lower | startsWith \"db_\") | * [(/0 | lower | drop 3) /1] | toObject\nH12: :d /defaults/timeout | /services | filter (/enabled | eq true) | * {:name /name :timeout (/timeout | default d) :team (/owner/team !| \"none\")} | sortBy /name\nH13: /results | filter (/score | gte 50 !| false) | sortBy /score | reverse | * (/profile/first | add \" \" | add /profile/last | add \": \" | add (/tags !| [] | join \"|\"))\nH14: lower | split \"[^a-z]+\" | filter (ne \"\") | groupBy id | mapVals count | entries * {:word /0 :count /1} | sortBy /word | sortBy (/count | neg) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6601,
+ "outputTokens": 2605,
+ "calls": null
+}

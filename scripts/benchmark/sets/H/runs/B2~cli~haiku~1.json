@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "cli",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "Based on my exploration of the qlang language, here are the completed queries for each task:\n\nH1: filter ~(/active | eq true) | filter ~(/country | lower | eq \"de\") | filter ~(/age | type | eq ::number !| false) | filter ~(/age | gte 30) | * /name | sort\nH2: :cost ::verb~(:item ::map | :qty (apply ~(item) | /qty) | :price (apply ~(item) | /price) | add (qty | mul price)) | filter ~(/status | lower | eq \"paid\") | * /items | flat | reduce 0 ~(cost)\nH3: groupBy ~(/customer | lower) * count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | reduce [] ~(append) * keyword | sort)}\nH5: filter ~(/state | eq \"open\") | sort ~(/id) | sort ~(/comments | mul -1) | take 3 | * /id\nH6: * (/labels !| []) | flat | * lower | distinct | sort\nH7: filter ~(/state | eq \"open\") | groupBy ~(coalesce ~(/assignee | /login) ~(\"unassigned\")) * count\nH8: lines | * (split \",\") | filter ~(count | gte 3) | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2 | keyword) * count\nH9: lines | filter ~(if (eq \"\") ~(false) ~(true)) | filter ~(if (startsWith \"#\") ~(false) ~(true)) | * (split \"=\") | filter ~((at 0 | lower | startsWith \"db_\") !| false) | * {:key (at 0 | lower | split \"_\" | last | keyword) :val (at 1)} | indexBy ~(/key) | * /val\nH10: lines | drop 1 | * (split \",\") | filter ~((/4 | lower | eq \"up\") !| false) | filter ~(if (/2 | eq \"\") ~(false) ~(true)) | * {:region /1 :cpu (/2 | parseJson)} | groupBy ~(/region) * (:s (* /cpu | sum) | :c (count) | s | div c)\nH11: lines | filter ~(if (eq \"\") ~(false) ~(true)) | filter ~(if (startsWith \"#\") ~(false) ~(true)) | * (split \"=\") | filter ~((at 0 | lower | startsWith \"db_\") !| false) | * {:key (at 0 | lower | split \"_\" | last | keyword) :val (at 1)} | indexBy ~(/key) | * /val\nH12: :def (/defaults | /timeout) | /services | filter ~(/enabled | eq true) * {:name /name :timeout (if ((/timeout !| null) | eq null) ~(def) ~(/timeout)) :team ((/owner | coalesce ~(/team) ~(\"none\")) !| \"none\")} | sort ~(/name)\nH13: /results | filter ~(if (type | eq ::map) ~(if ((/score | type | eq ::number) !| false) ~((/score | gte 50) !| false) ~(false)) ~(false)) | sort ~(/score | mul -1) | * apply ~((:f (/profile | /first) | :l (/profile | /last) | :t (/tags !| []) | f | append \" \" | append l | append \": \" | append (t | join \"|\")))\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | split \",\" | reduce \"\" ~(append) | split \".\" | reduce \"\" ~(append) | split \";\" | reduce \"\" ~(append) | split \"!\" | reduce \"\" ~(append) | split \" \" | filter ~(if (eq \"\") ~(false) ~(true)) | groupBy ~(keyword) * count",
+ "failed": false,
+ "turns": 185,
+ "inputTokens": 9919312,
+ "outputTokens": 47733,
+ "calls": null
+}

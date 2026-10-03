@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "V5",
+ "screenHash": "650c6ab86652",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "All 14 queries ran and gave plausible answers on the input files. I did not check K2's missing-total case or K14's missing-`qty` case against the data; both queries treat a missing field as absent. Only K5 and K14 have an explicit tie-breaker in the sort.\n\n- **K11:** qlang has no `trim`, so I split each tag on spaces and joined the pieces back. That strips all spaces, including any inside a tag, which these tags don't have.\n- **K6:** I get 34.7. **K12:** I get 103.32.\n\nK1: [\"Apple\",\"banana\",\"APPLE\",\"Cherry\",\"banana\",\"date\",\"Date\",\"elderberry\"] * lower | distinct | count\nK2: filter ~(/status | eq \"paid\") | groupBy ~(/customer) * (* (at :total | coalesce 0) | sum)\nK3: lines * (split \" \" | /1) | groupBy ~(/) * count\nK4: [/dependencies /devDependencies] | union | filter ~(startsWith \"^\") | keys * keyword | sort\nK5: filter ~(/state | eq \"open\") | sort ~([(at :comments | coalesce 0 | mul -1) /id]) | take 3 * /id\nK6: lines | drop 1 * split \",\" | filter ~(/2 | lower | eq \"de\") | filter ~(/1 | ne \"\") * (/1 | parseJson) | :v / | (sum | div (v | count)) | mul 10 | round | div 10\nK7: /services | :s / | keys | filter ~(:k / | s | at k | [(at :enabled | eq true) (at :port | type | eq ::number)] | every ~(/)) | sort ~(:k / | s | at k | /port) * (:k / | [(keyword) (s | at k | /port | print)] | join \":\")\nK8: /results | filter ~([(at :email | coalesce \"\" | split \"@\" | at 1 | coalesce \"\" | lower | eq \"example.com\") (at :user | coalesce {} | at :name | coalesce {} | at :last | ne null)] | every ~(/)) * [(/user/name/last) (/user/name/first)] * (join \", \")\nK9: filter ~([(at :user | ne null) (at :action | coalesce \"\" | lower | eq \"login\")] | every ~(/)) * (/user | lower) | distinct | sort\nK10: filter ~(at :salary | ne null) | groupBy ~(/dept) * (* /salary | :v / | sum | div (v | count) | mul 100 | round | div 100)\nK11: * (at :tags | coalesce \"\" | split \",\") | flat * (lower | split \" \" | join \"\") | filter ~(ne \"\") | groupBy ~(/) * count | :c / | keys | sort ~(:k / | [(c | at k | mul -1) (keyword)]) | take 3 * keyword\nK12: lines | filter ~(startsWith \"#\" | not) | filter ~(ne \"\") * (split \"|\" | [(/1 | parseJson) (/2 | parseJson)] | mul /0 /1) | sum | mul 100 | round | div 100\nK13: /services | filter ~(/env | lower | eq \"prod\") | every ~(at :replicas | coalesce 1 | gte 2)\nK14: * {:id /id :itemCount (at :items | coalesce [] * /qty | sum)} | filter ~(/itemCount | gt 0) | sort ~([(/itemCount | mul -1) /id]) | take 3",
+ "failed": false,
+ "turns": 18,
+ "inputTokens": 231058,
+ "outputTokens": 5047,
+ "calls": null
+}

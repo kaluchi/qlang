@@ -1,0 +1,16 @@
+{
+ "set": "N",
+ "screen": "V8",
+ "screenHash": "1c94a6ec4c0d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "N1 to N14 are single first attempts. I could not run any of them. `trim` is not on the page's verb list, so N10 and N14 strip spaces with `split \" \" | join \"\"` instead.\n\nN1: /data/users | filter ~(and (/active | eq true) (at :email | type | eq ::string)) * (/email | split \"@\" | /1 | lower) | distinct | sort ~(/)\nN2: filter ~(/status | lower | eq \"paid\") * {:c /customer/name :s (/lines * (mul /qty /unit_price) | sum) :d (at :discount | coalesce 0)} * {:c /c :a (sub /s /d)} | groupBy ~(/c) * (/ * /a | sum) | entries * {:customer (/0 | keyword) :total (/1 | mul 100 | round | div 100)} | sort ~([(/total | desc)]) | take 2\nN3: filter ~(/state | eq \"open\") * (if (at :assignee | type | eq ::map) ~(/assignee/login) ~(\"unassigned\")) | groupBy * count\nN4: :p / | (p | at :dependencies | coalesce {}) | union (p | at :devDependencies | coalesce {}) | entries | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | sort ~(/)\nN5: :e (/services | vals | filter ~(at :enabled | eq true)) | {:enabledCount (e | count) :ports (e | filter ~(at :port | type | eq ::number) * /port | distinct | sort ~(/)) :totalReplicas (e * (at :replicas | coalesce 1) | sum)}\nN6: lines | filter ~(contains \" ERROR \") * (split \" \" | /2 | split \"[\" | /1 | split \"]\" | /0) | groupBy * count | entries * {:service (/0 | keyword) :count /1} | sort ~([(/count | desc) /service]) | take 2\nN7: lines | drop 1 | filter ~(count | gt 0) * (split \",\") | filter ~(and (/2 | ne \"\") (/3 | ne \"\")) * {:r (/0 | lower) :v (mul (/2 | parseJson) (/3 | parseJson))} | groupBy ~(/r) * (/ * /v | sum | mul 100 | round | div 100)\nN8: groupBy ~(/user) * (/ * (/type | lower)) | filter ~(and (contains \"login\") (contains \"logout\" | not)) | keys * keyword | sort ~(/)\nN9: filter ~(at :salary | type | eq ::number) | groupBy ~(/dept) * (/ * /salary | :t / | sum | div (t | count) | mul 10 | round | div 10)\nN10: lines | filter ~(count | gt 0) * (split \":\" | /1 | split \" \" | join \"\" | split \",\") | flat * lower | distinct | sort ~(/)\nN11: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"apple\",\"date\"] * lower | groupBy * count | entries | filter ~(/1 | gt 1) * {:word (/0 | keyword) :count /1} | sort ~([(/count | desc) /word])\nN12: /releases | filter ~(and (/draft | eq false) (/prerelease | eq false)) * {:tag /tag_name :downloads (/assets * (/download_count | coalesce 0) | sum)} | sort ~([(/downloads | desc)]) | take 3\nN13: :t (filter ~(/category | lower | eq \"tools\")) | {:count (t | count) :allPriced (t | every ~(if (at :price | type | eq ::number) ~(/price | gt 0) ~(false))) :inStockNames (t | filter ~(/stock | gt 0) * /name | sort ~(/))}\nN14: lines * (split \"#\" | /0 | split \" \" | join \"\") | filter ~(and (startsWith \"-\" | not) (contains \"==\")) * (split \"==\" | {:n (/0 | lower) :v /1}) | indexBy ~(/n) * /v",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 11666,
+ "outputTokens": 7281,
+ "calls": null
+}

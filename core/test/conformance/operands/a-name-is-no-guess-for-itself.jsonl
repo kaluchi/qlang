@@ -1,0 +1,2 @@
+{"name":"a-name-is-no-guess-for-itself","query":":pipeline | doc !| /nearest","expect":"[]","decision":"D118"}
+{"name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| /addresses","expect":"#[::any/type]","decision":"D62"}

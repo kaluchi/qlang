@@ -83,7 +83,7 @@ function cliPrompt(setId, screen) {
     'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below is the first page of its documentation, and you may run the `qlang` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
     'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. Always pass stdin: `qlang \'<query>\' < file.json` or `< /dev/null`; for a text file use `qlang --raw \'<query>\' < file.log`. In Git Bash prefix a query that begins with `/` with MSYS_NO_PATHCONV=1.',
-    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`):',
+    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
   ].join('\n');
@@ -94,7 +94,7 @@ function blindPrompt(setId, screen) {
   return [
     'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below is the first page of its documentation. You cannot run anything: write each query from the page alone, as your first and only attempt.',
     '', '<<<', screenText(screen), '>>>', '',
-    'Each query runs with its input file as its subject: a JSON file arrives as the value it holds, a text file as one string. Do not end a query with `| json`.',
+    'Each query runs with its input file as its subject: a JSON file arrives as the value it holds, a text file as one string; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal. Do not end a query with `| json`.',
     '', 'TASKS:', ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
     '', 'INPUT FILES:', ...inputNamesOf(setId).map(name => `--- ${name}\n${readFileSync(join(setDirOf(setId), 'inputs', name), 'utf8')}`),
     '', `End your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`

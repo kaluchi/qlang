@@ -74,16 +74,19 @@
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
 :min
-  |~~ The least element.
+  |~~ The least element, or the one whose key answers the least value.
 
       ~(#[3 1 4] | min | eq 1)
+      ~(#[3 1 4] | min ~(desc) | eq 4)
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
-  |~~ The greatest element.
+  |~~ The greatest element, or the one whose key answers the greatest
+      value.
 
       ~(#[3 1 4] | max | eq 4)
+      ~(#[3 1 4] | max ~(desc) | eq 1)
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
@@ -116,7 +119,8 @@
   ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
 
 :indexBy
-  |~~ The map of the elements under the key each answers.
+  |~~ The map of the elements under the key each answers, or under
+      itself without a key.
 
       ~(#[{:id :a}] | indexBy ~(/id) | /a | eq {:id :a})
   ~~|

@@ -71,16 +71,20 @@
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
 :min
-  |~~ The first element in the one order of values.
+  |~~ The first element in the one order of values, or the one whose key
+      answers the first value.
 
       ~([3 1 4 1 5] | min | eq 1)
+      ~([{:age 30} {:age 20}] | min ~(/age) | eq {:age 20})
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
-  |~~ The last element in the one order of values.
+  |~~ The last element in the one order of values, or the one whose key
+      answers the last value.
 
       ~([3 1 4 1 5] | max | eq 5)
+      ~([{:age 30} {:age 40}] | max ~(/age) | eq {:age 40})
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
@@ -144,6 +148,7 @@
       made a keyword first, as for `groupBy`.
 
       ~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
+      ~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
   ~~|
   ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
 

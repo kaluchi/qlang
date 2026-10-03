@@ -221,6 +221,38 @@
        )
   ~~|
 
+:round
+  |~~ The number rounded half away from zero to the digits after the
+      point the call gives, none when it gives none; a negative count
+      rounds to tens and beyond.
+
+      ~(3.14159 | round 2 | eq 3.14)
+      ~(2.5 | round | eq 3)
+      ~(-2.5 | round | eq -3)
+      ~(1234 | round -2 | eq 1200)
+      ~(-0.4 | round | print | eq "0")
+  ~~|
+  ::verb~(:digits 0 | :returns ::number | ::builtin{:impl :qlang/prim/round})
+
+::RoundSubjectNotNumberError
+  |~~ `round` rounds a number; a string holding one is read first by
+      `parseJson`.
+      ~(
+        "2.5" | round
+        !| [type /actualType]
+        |  eq [::RoundSubjectNotNumberError ::string]
+       )
+  ~~|
+
+::RoundDigitsNotIntegerError
+  |~~ The digits of `round` are a whole number, `round 2`.
+      ~(
+        2.5 | round 0.5
+        !| [type /actualType]
+        |  eq [::RoundDigitsNotIntegerError ::number]
+       )
+  ~~|
+
 :gt
   |~~ Whether the subject is greater than the number the call gives.
 

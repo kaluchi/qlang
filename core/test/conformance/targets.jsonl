@@ -59,7 +59,7 @@
 {"name":"an-optional-slot-takes-its-default","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
 {"name":"an-optional-slot-takes-a-modifier","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
-{"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::vec/count]","decision":"D67"}
+{"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]","decision":"D67"}
 {"name":"a-verb-answers-its-signature","query":"::vec/sort | spec | type","expect":"::spec","decision":"D67"}
 {"name":"a-nested-error-keeps-the-stop-of-its-level","query":"[(!{:k 1} | add 1)] | eq [!{:k 1}]","expect":"false","decision":"D85"}
 {"name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]","decision":"D85"}

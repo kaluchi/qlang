@@ -55,13 +55,15 @@
       ~([1 2 3] | filter (gt 1) !| type | eq ::FilterPredicateNotQuoteError)
 
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | spec | /verbs`, and a verb outside its list does not exist for it. The verbs most queries use:
-      numbers: add sub mul div, and gt gte lt lte to compare.
-      strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword; a string is no container, so its length is `split "" | count`, and strings join from a vector by `join ","`.
+      numbers: add sub mul div round, and gt gte lt lte to compare.
+      strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
       containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals; union minus inter combine sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
-      every value: type eq print json if cond coalesce apply tag payload.
+      every value: type eq ne print json if cond coalesce apply tag payload.
       booleans: and or not.
       ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
       ~("a,b,c" | split "," | join "-" | eq "a-b-c")
+      ~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
+      ~(3.14159 | round 2 | ne 3.14159)
       ~([3 1 2] | reduce 0 ~(add) | eq 6)
 
       6. What differs from the languages a reader knows.

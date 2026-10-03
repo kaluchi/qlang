@@ -81,7 +81,10 @@ function elementsOf(container) {
   return isQMap(container) ? [...container.values()] : container;
 }
 
+// A string counts, takes and drops by its characters, each code point one
+// [D132].
 function sizeOf(container) {
+  if (isString(container)) return Array.from(container).length;
   return isQMap(container) ? container.size : container.length;
 }
 
@@ -212,6 +215,7 @@ bindPrim('sort', async (container, key) => {
 // A negative count clamps to 0, the same graceful out-of-range handling
 // an over-length count gets (`take 99` → the whole container).
 function sliceOf(container, start, end) {
+  if (isString(container)) return Array.from(container).slice(start, end).join('');
   return isQMap(container) ? new Map([...container].slice(start, end)) : container.slice(start, end);
 }
 

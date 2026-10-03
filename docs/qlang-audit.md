@@ -593,13 +593,17 @@ no session is needed to read in pieces.
 
 That works only where every part of a value has, inside the pipe, a
 size, an address and a slice. A vector, a set, a map, a value under a
-tag and an error on the fail track have them. A string has none of the
-three except by way of its lines, and strings are what overflows in
-the sister project, source text and rendered cards:
+tag and an error on the fail track have them. A string has a size and
+a slice by its characters [D132] and an address by way of its lines,
+and strings are what overflows in the sister project, source text and
+rendered cards:
 
 ```qlang
 > "hello world" | count
-::VerbWithoutBodyError!{ :verbName :count :addresses #[::map/count ::set/count ::vec/count] … }
+11
+
+> "hello world" | drop 6
+world
 
 > "a\nb\nc\nd" | split "\n" | drop 1 | take 2 | join "\n"
 b
@@ -1944,3 +1948,4 @@ maintainer wants to explore it before it is fixed.
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
 [D131]: decisions/D131.md
+[D132]: decisions/D132.md

@@ -24,6 +24,7 @@ declareModifierError('OrRightNotBooleanError',  'or',  2, 'boolean');
 declareSubjectError('NotSubjectNotBooleanError', 'not', 'boolean');
 
 bindPrim('eq',  (subject, value) => deepEqual(subject, value));
+bindPrim('ne',  (subject, value) => !deepEqual(subject, value));
 bindPrim('gt',  (subject, than) => compareValues(subject, than) > 0);
 bindPrim('lt',  (subject, than) => compareValues(subject, than) < 0);
 bindPrim('gte', (subject, than) => compareValues(subject, than) >= 0);

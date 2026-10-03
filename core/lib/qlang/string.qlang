@@ -74,6 +74,32 @@
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
 
+:count
+  |~~ The number of characters of the string, a letter of any script
+      one, the length every other language gives a string.
+
+      ~("abc" | count | eq 3)
+      ~("привет" | count | eq 6)
+      ~("" | count | eq 0)
+  ~~|
+  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
+
+:take
+  |~~ The first count characters of the string.
+
+      ~("db_host" | take 2 | eq "db")
+      ~("ab" | take 5 | eq "ab")
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
+
+:drop
+  |~~ The string without its first count characters, the rest after a
+      prefix of known length.
+
+      ~("db_host" | drop 3 | eq "host")
+  ~~|
+  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
+
 :split
   |~~ The substrings between the occurrences of the separator, as a
       vector. Inverse of `join`.

@@ -42,13 +42,16 @@ function beginsTheOther(typed, known) {
 
 // The nearest of the names, those within a slip of the hand, the nearest
 // alone, and beside them those that begin the typed name or that it
-// begins, in the order of their spelling.
+// begins, in the order of their spelling. The typed name is no guess for
+// itself: a name the scope holds yet the asking axis cannot read, `:reduce
+// | doc` of a verb only kinds keep, points to the names near it.
 function nearestOf(names, typedName) {
   let nearest = [];
   let nearestDistance = Math.floor(Math.max(typedName.length, 3) / 3);
   const begun = new Set();
   for (const name of names) {
-    if (beginsTheOther(typedName, name) && name !== typedName) begun.add(name);
+    if (name === typedName) continue;
+    if (beginsTheOther(typedName, name)) begun.add(name);
     const distance = editDistance(typedName, name);
     if (distance > nearestDistance) continue;
     if (distance < nearestDistance) {

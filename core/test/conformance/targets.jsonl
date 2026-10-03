@@ -30,7 +30,7 @@
 {"name":"a-module-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D44"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::qlang/vec/count | doc | type","expect":"::doc","decision":["D62","D63","D119"]}
 {"name":"a-declaration-wins-within-its-scope","query":":count 5 | [1 2 3] | count","expect":"5","decision":"D62"}
-{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | doc !| type","expect":"::DocBindingNotFoundError","decision":["D62","D119"]}
+{"name":"the-keyword-of-a-verb-reads-the-page-of-its-contract","query":":count | doc | eq (::qlang/any/count | doc)","expect":"true","decision":"D136"}
 {"name":"a-name-with-a-path-calls-by-address","query":":count 5 | [1 2 3] | vec/count","expect":"3","decision":"D62"}
 {"name":"an-address-under-the-core-prints-short","query":"::qlang/vec/count | eq ::vec/count","expect":"true","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
@@ -84,7 +84,7 @@
 {"name":"a-tag-name-meets-the-verbs-of-its-noun-at-their-heads","query":"::vec | count !| type","expect":"::VecPayloadNotVecError","decision":"D88"}
 {"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99","expect":"12","decision":"D44"}
 {"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::UnresolvedIdentifierError \"lim\"]","decision":"D44"}
-{"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | doc !| /addresses","expect":"#[::any/type]","decision":["D62","D119"]}
+{"name":"the-keyword-of-a-verb-of-any-value-reads-its-page","query":":type | doc | eq (::any/type | doc)","expect":"true","decision":"D136"}
 {"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}
 {"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected","expect":"[\")\"]","decision":"D125"}
 {"name":"an-unclosed-bracket-names-where-it-opened","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /message | contains \"line 1, column 18\"","expect":"true","decision":"D125"}

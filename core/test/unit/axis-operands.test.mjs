@@ -123,9 +123,8 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
   });
 
-  it('a keyword naming a verb of a provider is refused with the addresses where it lives', async () => {
-    expect([...await evalQuery(':count | doc !| /addresses')])
-      .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
+  it('a keyword naming a verb of a provider reads the page of its contract', async () => {
+    expect(await evalQuery(':count | doc | eq (::qlang/any/count | doc)')).toBe(true);
   });
 
   it('::verb | source resolves the tag-binding descriptor through reverse env lookup', async () => {

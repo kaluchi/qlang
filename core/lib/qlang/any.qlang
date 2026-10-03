@@ -1019,9 +1019,8 @@
 
 ::BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the name of a verb a provider
-      keeps among them, or a tag name that names nothing. `:addresses`
-      holds the addresses where the verbs of that name live.
+      that names no binding of its scope, or a tag name that names
+      nothing. `:nearest` holds the names near the one it read.
 
       ~(
         :nonexistent-binding | binding
@@ -1047,25 +1046,24 @@
   ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
 
 ::SourceBindingNotFoundError
-  |~~ `source` — no declaration found for the name it read: a
-      keyword that names no binding of its scope, the name of a
-      verb a provider keeps among them, or a tag name that names
-      nothing. `:addresses` holds the addresses where the verbs of
-      that name live.
+  |~~ `source` — no declaration found for the name it read: a keyword
+      that names no binding of its scope, or a tag name that names
+      nothing. `:nearest` holds the names near the one it read.
 
       ~(
         :nonexistent-binding | source
         !| [type /bindingName]
         |  eq [::SourceBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | source !| /addresses | has ::vec/filter)
+      ~(:filtr | source !| /nearest | eq [:filter])
   ~~|
 
 :doc
   |~~ The page of a name, the passage from an address into its
       description: `::vec/filter | doc` the page of a verb by its
       address, `:name | doc` the page of the declaration that binds
-      `:name` in its scope, null for a declaration without one. A page
+      `:name` in its scope, the name of a verb the page of its contract
+      or of its one verb, null for a declaration without one. A page
       answers its text by `content`, its laws by `laws`, its links by
       `links` and its snippets by `snippets`. A keyword after `doc` is an
       anchor within the page of its subject, a vector of anchors a path,
@@ -1075,6 +1073,8 @@
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
       ~(::AddLeftNotNumberError | doc | type | eq ::doc)
+      ~(:reduce | doc | eq (::qlang/any/reduce | doc))
+      ~(:add | doc | eq (::number/add | doc))
       Any other value reads the page of its kind, and the `:kind` field
       of a map names nothing:
       ~(5 | doc | eq (::number | doc))
@@ -1092,18 +1092,17 @@
   ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
 
 ::DocBindingNotFoundError
-  |~~ `doc` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the name of a verb a provider
-      keeps among them, a tag name that names nothing, or an anchor that
-      names no member of the page before it. `:addresses` holds the
-      addresses where the verbs of that name live.
+  |~~ `doc` — no declaration found for the name it read: a keyword that
+      names no binding of its scope, a tag name that names nothing, or
+      an anchor that names no member of the page before it. `:nearest`
+      holds the names near the one it read.
 
       ~(
         :nonexistent-binding | doc
         !| [type /bindingName]
         |  eq [::DocBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | doc !| /addresses | has ::vec/filter)
+      ~(:filtr | doc !| /nearest | eq [:filter])
   ~~|
 
 ::DocAnchorNotKeywordError
@@ -1160,18 +1159,16 @@
   ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
 
 ::SpecBindingNotFoundError
-  |~~ `spec` — no declaration found for the name it read: a
-      keyword that names no binding of its scope, the name of a
-      verb a provider keeps among them, or a tag name that names
-      nothing. `:addresses` holds the addresses where the verbs of
-      that name live.
+  |~~ `spec` — no declaration found for the name it read: a keyword that
+      names no binding of its scope, or a tag name that names nothing.
+      `:nearest` holds the names near the one it read.
 
       ~(
         :nonexistent-binding | spec
         !| [type /bindingName]
         |  eq [::SpecBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | spec !| /addresses | has ::vec/filter)
+      ~(:filtr | spec !| /nearest | eq [:filter])
   ~~|
 
 :runLaws
@@ -1191,18 +1188,17 @@
   ::verb~()
 
 ::RunLawsBindingNotFoundError
-  |~~ `runLaws` — no declaration found for the name it read, as
-      `doc` finds none: a keyword that names no binding of its
-      scope, the name of a verb a provider keeps among them, or a
-      tag name that names nothing. `:addresses` holds the addresses
-      where the verbs of that name live.
+  |~~ `runLaws` — no declaration found for the name it read, as `doc`
+      finds none: a keyword that names no binding of its scope, or a tag
+      name that names nothing. `:nearest` holds the names near the one
+      it read.
 
       ~(
         :nonexistent-binding | runLaws
         !| [type /bindingName]
         |  eq [::RunLawsBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filter | runLaws !| /addresses | has ::vec/filter)
+      ~(:filtr | runLaws !| /nearest | eq [:filter])
       ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
   ~~|
 

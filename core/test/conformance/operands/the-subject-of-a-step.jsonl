@@ -1,0 +1,3 @@
+{"name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\"","decision":"D141"}
+{"name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | /qty | mul /price !| type","expect":"::ProjectionSubjectNotProjectableError","decision":"D141"}
+{"name":"at-of-a-projection-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | at /email !| /actualValue","expect":"{:home \"a@b\"}","decision":"D141"}

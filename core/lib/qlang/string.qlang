@@ -190,6 +190,27 @@
        )
   ~~|
 
+:trim
+  |~~ The string without the whitespace at its two ends, spaces, tabs
+      and line breaks, so a field cut out of a line compares as the text
+      it holds.
+
+      ~("  db_host 
+" | trim | eq "db_host")
+      ~("a, b ,c" | split "," * trim | eq ["a" "b" "c"])
+  ~~|
+  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/trim})
+
+::TrimSubjectNotStringError
+  |~~ `trim` works on a string; a vector of strings takes it element by
+      element, `* trim`.
+      ~(
+        42 | trim
+        !| [type /actualType]
+        |  eq [::TrimSubjectNotStringError ::number]
+       )
+  ~~|
+
 :contains
   |~~ Whether the string holds the needle as a substring; the empty
       needle is always held. Case-sensitive.

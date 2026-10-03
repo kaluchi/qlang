@@ -492,12 +492,14 @@
       index, a set indexing in its one order and a negative index
       counting from the end, or the value of a map at a key; a miss
       answers null, the soft counterpart of the strict `/key`
-      projection.
+      projection, and a soft read of null answers null, so soft reads
+      chain.
 
       ~([10 20 30] | at 1 | eq 20)
       ~([10 20 30] | at 99 | eq null)
       ~(#[:a :b :c] | at -1 | eq :c)
       ~({:a 1 :b 2} | at :a | eq 1)
+      ~({:a null} | at :a | at :b | eq null)
   ~~|
   ::verb~()
 

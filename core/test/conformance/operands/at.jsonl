@@ -10,7 +10,7 @@
 {"name":"at-on-empty","query":"[] | at 0","expect":"null"}
 {"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | at 0","expect":"{:id 1}"}
 {"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | at 1 | /name","expect":"\"bob\""}
-{"name":"at-on-a-number-reaches-its-contract","query":"42 | at 0","expect":"::VerbWithoutBodyError!{\n  :verbName :at\n  :addresses #[::map/at ::set/at ::vec/at]\n  :trail [\n    {\n      :step ~(at 0)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"at-on-a-number-reaches-its-contract","query":"42 | at 0","expect":"::VerbWithoutBodyError!{\n  :verbName :at\n  :addresses #[::map/at ::null/at ::set/at ::vec/at]\n  :trail [\n    {\n      :step ~(at 0)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}","decision":"D145"}
 {"name":"at-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | at 1","expect":"20"}
 {"name":"at-index-not-integer-error","query":"[1 2 3] | at 0.5","error":"typeError","expect":"::AtIndexNotIntegerError!{\n  :actualValue 0.5\n  :actualType ::number\n  :trail [\n    {\n      :step ~(at 0.5)\n      :subject [1 2 3]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"at-qlangmap-keyword-key","query":"{:a 1 :b 2 :c 3} | at :b","expect":"2"}

@@ -251,8 +251,10 @@ bindPrim('drop', (container, count) => sliceOf(container, Math.max(0, wholeOrRef
 // `at` — indexed access with Array.prototype.at-style negative indices
 // on a sequence, a set indexing in its one order, and a soft lookup by
 // a keyword or a string on a map; a miss answers null, where the strict
-// `/key` projection refuses.
+// `/key` projection refuses, and a soft read of null answers null, so
+// soft reads chain [D145].
 bindPrim('at', (container, place) => {
+  if (container === NULL) return NULL;
   if (isQMap(container)) {
     const lookupKey = isKeyword(place) ? place.name : place;
     return container.has(lookupKey) ? container.get(lookupKey) : NULL;

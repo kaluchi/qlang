@@ -1,4 +1,5 @@
-|~ `::null`, the kind of the absent value, and its constructor. ~|
+|~ `::null`, the kind of the absent value, its constructor, and the
+   soft read of it. ~|
 
 ::null
   |~~ The kind of null, the absence of a value; a slot a call may leave
@@ -23,3 +24,15 @@
         |  eq [::NullPayloadNotNullError ::number]
        )
   ~~|
+
+:at
+  |~~ Null, whatever the place: a soft read of the absent value is
+      absent, so soft reads chain, `at :address | at :city`, and a
+      `coalesce` after them gives the fallback once. The strict `/k`
+      refuses null as it refuses every value without parts.
+
+      ~(null | at :k | eq null)
+      ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
+      ~({:a {:b 1}} | at :a | at :b | eq 1)
+  ~~|
+  ::verb~(:place ::any | :returns ::null | ::builtin{:impl :qlang/prim/at})

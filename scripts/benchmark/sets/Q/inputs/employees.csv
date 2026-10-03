@@ -1,0 +1,9 @@
+name,dept,salary,city
+Ann,Eng,5000,Oslo
+Bob,Eng,6001,Rome
+Cy,Ops,4000,Oslo
+Di,Ops,,Rome
+Ed,Eng,5500,Oslo
+Flo,HR,3900,Rome
+Gus,Ops,4500,Oslo
+Hal,HR,4100,Oslo

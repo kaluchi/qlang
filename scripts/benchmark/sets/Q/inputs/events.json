@@ -1,0 +1,62 @@
+[
+  {
+    "seq": 1,
+    "user": "zed",
+    "type": "login"
+  },
+  {
+    "seq": 2,
+    "user": "amy",
+    "type": "login"
+  },
+  {
+    "seq": 3,
+    "user": "zed",
+    "type": "click"
+  },
+  {
+    "seq": 4,
+    "user": "bob",
+    "type": "click"
+  },
+  {
+    "seq": 5,
+    "user": "amy",
+    "type": "click"
+  },
+  {
+    "seq": 6,
+    "user": "bob",
+    "type": "login"
+  },
+  {
+    "seq": 7,
+    "user": "zed",
+    "type": "logout"
+  },
+  {
+    "seq": 8,
+    "user": "cat",
+    "type": "login"
+  },
+  {
+    "seq": 9,
+    "user": "amy",
+    "type": "logout"
+  },
+  {
+    "seq": 10,
+    "user": "bob",
+    "type": "click"
+  },
+  {
+    "seq": 11,
+    "user": "cat",
+    "type": "click"
+  },
+  {
+    "seq": 12,
+    "user": "zed",
+    "type": "click"
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "endpoint": "/users",
+    "status": 200,
+    "latency_ms": 120
+  },
+  {
+    "endpoint": "/users",
+    "status": 200,
+    "latency_ms": 80
+  },
+  {
+    "endpoint": "/orders",
+    "status": 500,
+    "latency_ms": 900
+  },
+  {
+    "endpoint": "/orders",
+    "status": 200,
+    "latency_ms": null
+  },
+  {
+    "endpoint": "/orders",
+    "status": 200,
+    "latency_ms": 301
+  },
+  {
+    "endpoint": "/health",
+    "status": 200,
+    "latency_ms": 5
+  },
+  {
+    "endpoint": "/users",
+    "status": 404,
+    "latency_ms": 40
+  },
+  {
+    "endpoint": "/login",
+    "status": 401
+  },
+  {
+    "endpoint": "/login",
+    "status": 200,
+    "latency_ms": 61
+  }
+]

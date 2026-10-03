@@ -1,0 +1,156 @@
+[
+  {
+    "id": "Q1",
+    "input": "users.json",
+    "text": "users.json is an array of users. Return the emails of users with active equal to true whose address.city equals \"berlin\" when compared case-insensitively (no trimming of whitespace). Users with a missing or null address do not match. Return an array of strings sorted ascending (plain string comparison).",
+    "expected": [
+      "anna@x.io",
+      "boris@x.io",
+      "hugo@x.io"
+    ]
+  },
+  {
+    "id": "Q2",
+    "input": "orders.json",
+    "text": "orders.json is an array of orders, each with an items array of {sku, price, qty}. Consider only orders whose status is exactly \"paid\" (case-sensitive). Return the sum of price*qty over all items of those orders, rounded to 2 decimal places, as a number.",
+    "expected": 197.21
+  },
+  {
+    "id": "Q3",
+    "input": "issues.json",
+    "text": "issues.json is an array of issues. Count issues whose state is \"open\" per assignee; a null assignee is counted under the key \"unassigned\". Return an object mapping assignee to count.",
+    "expected": {
+      "anna": 2,
+      "unassigned": 2,
+      "boris": 1,
+      "clara": 1
+    }
+  },
+  {
+    "id": "Q4",
+    "input": "package.json",
+    "text": "package.json is an npm manifest. Take the package names from both dependencies and devDependencies whose version string starts with \"^\". Return an array of those names sorted ascending.",
+    "expected": [
+      "axios",
+      "eslint",
+      "express",
+      "jest"
+    ]
+  },
+  {
+    "id": "Q5",
+    "input": "access.log",
+    "text": "access.log has one request per line: \"<timestamp> <METHOD> <path> <status> <duration_ms>\" separated by single spaces. Return the distinct paths that had at least one response with status >= 500, as an array of strings sorted ascending.",
+    "expected": [
+      "/api/items",
+      "/api/orders"
+    ]
+  },
+  {
+    "id": "Q6",
+    "input": "employees.csv",
+    "text": "employees.csv is CSV text with a header line (name,dept,salary,city). Compute the average salary per dept, ignoring rows whose salary is empty. Round each average to 1 decimal place. Return an object mapping dept to the average (number).",
+    "expected": {
+      "Eng": 5500.3,
+      "HR": 4000,
+      "Ops": 4250
+    }
+  },
+  {
+    "id": "Q7",
+    "input": null,
+    "text": "Given the list [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Date \",\"cherry\"], count the distinct values when compared case-insensitively, without trimming whitespace (so \"date\" and \"Date \" are different). Return a number.",
+    "expected": 5
+  },
+  {
+    "id": "Q8",
+    "input": "config.json",
+    "text": "config.json has a services array. For each service with enabled equal to true, build the string \"<name>:<port>\" where port is net.port, or 80 if net or net.port is missing. Return an array of these strings sorted by port descending, ties broken by name ascending.",
+    "expected": [
+      "api:8080",
+      "db:5432",
+      "queue:80",
+      "web:80",
+      "mail:25"
+    ]
+  },
+  {
+    "id": "Q9",
+    "input": "events.json",
+    "text": "events.json is an array of events with a user field. Count events per user and return the top 3 users as an array of objects {\"user\": string, \"count\": number}, sorted by count descending, ties broken by user ascending.",
+    "expected": [
+      {
+        "user": "zed",
+        "count": 4
+      },
+      {
+        "user": "amy",
+        "count": 3
+      },
+      {
+        "user": "bob",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "id": "Q10",
+    "input": "issues.json",
+    "text": "Return the titles of the 3 issues with the highest comments value (a missing comments field counts as 0), regardless of state. Sort by comments descending, ties broken by id ascending. Return an array of title strings.",
+    "expected": [
+      "Memory leak",
+      "Crash on start",
+      "Slow query"
+    ]
+  },
+  {
+    "id": "Q11",
+    "input": "app.env",
+    "text": "app.env is a dotenv-style text file: KEY=VALUE per line; blank lines and lines whose first non-space character is \"#\" are ignored; split each line at the first \"=\" only. Keep only keys that start with the exact, case-sensitive prefix \"DB_\". Return an object whose keys are the remaining key part lowercased (prefix removed) and whose values are the value strings.",
+    "expected": {
+      "host": "localhost",
+      "port": "5432",
+      "name": "my=app",
+      "user": "admin"
+    }
+  },
+  {
+    "id": "Q12",
+    "input": "orders.json",
+    "text": "Consider orders whose total is greater than 100 (any status). Return true if every one of them has a non-null shipped_at, otherwise false. Return a boolean.",
+    "expected": false
+  },
+  {
+    "id": "Q13",
+    "input": "users.json",
+    "text": "Collect all tags of all users (a null or missing tags field counts as no tags), lowercase them, and return the distinct values as an array of strings sorted ascending.",
+    "expected": [
+      "admin",
+      "dev",
+      "ops",
+      "qa"
+    ]
+  },
+  {
+    "id": "Q14",
+    "input": "logs.json",
+    "text": "logs.json is an array of API call records. Group by endpoint. For endpoints with at least 2 records, return an object {\"endpoint\": string, \"count\": number of all records, \"avgMs\": average of latency_ms over records where it is present and non-null, rounded to the nearest integer}. Return an array of these objects sorted by endpoint ascending.",
+    "expected": [
+      {
+        "endpoint": "/login",
+        "count": 2,
+        "avgMs": 61
+      },
+      {
+        "endpoint": "/orders",
+        "count": 3,
+        "avgMs": 601
+      },
+      {
+        "endpoint": "/users",
+        "count": 3,
+        "avgMs": 80
+      }
+    ]
+  }
+]

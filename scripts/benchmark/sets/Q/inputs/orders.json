@@ -1,0 +1,122 @@
+[
+  {
+    "id": "o1",
+    "customer": {
+      "name": "Anna",
+      "email": "anna@x.io"
+    },
+    "status": "paid",
+    "items": [
+      {
+        "sku": "A",
+        "price": 10.5,
+        "qty": 2
+      },
+      {
+        "sku": "B",
+        "price": 3.25,
+        "qty": 4
+      }
+    ],
+    "total": 34,
+    "shipped_at": "2026-01-03"
+  },
+  {
+    "id": "o2",
+    "customer": {
+      "name": "Boris",
+      "email": null
+    },
+    "status": "pending",
+    "items": [
+      {
+        "sku": "A",
+        "price": 10.5,
+        "qty": 1
+      }
+    ],
+    "total": 10.5,
+    "shipped_at": null
+  },
+  {
+    "id": "o3",
+    "customer": {
+      "name": "Clara",
+      "email": "clara@x.io"
+    },
+    "status": "paid",
+    "items": [
+      {
+        "sku": "C",
+        "price": 99.99,
+        "qty": 1
+      },
+      {
+        "sku": "B",
+        "price": 3.25,
+        "qty": 1
+      }
+    ],
+    "total": 103.24,
+    "shipped_at": "2026-01-05"
+  },
+  {
+    "id": "o4",
+    "customer": null,
+    "status": "paid",
+    "items": [],
+    "total": 0,
+    "shipped_at": null
+  },
+  {
+    "id": "o5",
+    "customer": {
+      "name": "Dmitri",
+      "email": "d@x.io"
+    },
+    "status": "cancelled",
+    "items": [
+      {
+        "sku": "D",
+        "price": 150,
+        "qty": 1
+      }
+    ],
+    "total": 150,
+    "shipped_at": null
+  },
+  {
+    "id": "o6",
+    "customer": {
+      "name": "Elena",
+      "email": "e@x.io"
+    },
+    "status": "paid",
+    "items": [
+      {
+        "sku": "E",
+        "price": 19.99,
+        "qty": 3
+      }
+    ],
+    "total": 59.97,
+    "shipped_at": null
+  },
+  {
+    "id": "o7",
+    "customer": {
+      "name": "Farid",
+      "email": "f@x.io"
+    },
+    "status": "Paid",
+    "items": [
+      {
+        "sku": "A",
+        "price": 10.5,
+        "qty": 10
+      }
+    ],
+    "total": 105,
+    "shipped_at": "2026-02-01"
+  }
+]

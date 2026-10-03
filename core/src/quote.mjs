@@ -247,12 +247,20 @@ export function printQuoteSource(quote) {
   return printSteps(quote);
 }
 
-// docText(doc) → its prose with each quote written where it stands, a
-// quote under tags with its stack before it, the text a doc's `content`
-// answers [D95], [D108].
+// The text a quote of a doc was written in, the source its literal
+// spelled, which reads back as the same steps; a quote assembled from
+// data, which has no source, is printed [D149].
+function writtenSourceOf(quote) {
+  const writtenText = quote[QUOTE_AST_SLOT]?.ast?.text;
+  return typeof writtenText === 'string' ? writtenText : printQuoteSource(quote);
+}
+
+// docText(doc) → its prose with each quote written where it stands as its
+// author wrote it, a quote under tags with its stack before it, the text
+// a doc's `content` answers [D95], [D108], [D149].
 export function docText(doc) {
   return doc.map(segment => typeof segment === 'string' ? segment
-    : isQuote(segment) ? `~(${printQuoteSource(segment)})` : printValue(segment)).join('');
+    : isQuote(segment) ? `~(${writtenSourceOf(segment)})` : printValue(segment)).join('');
 }
 
 function stepTagOf(step) {

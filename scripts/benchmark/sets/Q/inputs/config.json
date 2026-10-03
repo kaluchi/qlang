@@ -1,0 +1,42 @@
+{
+  "env": "prod",
+  "services": [
+    {
+      "name": "api",
+      "enabled": true,
+      "net": {
+        "port": 8080
+      }
+    },
+    {
+      "name": "db",
+      "enabled": true,
+      "net": {
+        "port": 5432
+      }
+    },
+    {
+      "name": "cache",
+      "enabled": false,
+      "net": {
+        "port": 6379
+      }
+    },
+    {
+      "name": "web",
+      "enabled": true,
+      "net": {}
+    },
+    {
+      "name": "queue",
+      "enabled": true
+    },
+    {
+      "name": "mail",
+      "enabled": true,
+      "net": {
+        "port": 25
+      }
+    }
+  ]
+}

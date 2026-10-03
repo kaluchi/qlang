@@ -1,0 +1,82 @@
+[
+  {
+    "id": 101,
+    "title": "Crash on start",
+    "state": "open",
+    "assignee": "anna",
+    "labels": [
+      "bug",
+      "p1"
+    ],
+    "comments": 7
+  },
+  {
+    "id": 102,
+    "title": "Add dark mode",
+    "state": "open",
+    "assignee": null,
+    "labels": [
+      "feature"
+    ],
+    "comments": 3
+  },
+  {
+    "id": 103,
+    "title": "Typo in docs",
+    "state": "closed",
+    "assignee": "boris",
+    "labels": [
+      "docs"
+    ],
+    "comments": 1
+  },
+  {
+    "id": 104,
+    "title": "Slow query",
+    "state": "open",
+    "assignee": "boris",
+    "labels": [
+      "bug",
+      "perf"
+    ],
+    "comments": 7
+  },
+  {
+    "id": 105,
+    "title": "Upgrade deps",
+    "state": "open",
+    "assignee": "anna",
+    "labels": [],
+    "comments": 0
+  },
+  {
+    "id": 106,
+    "title": "Memory leak",
+    "state": "closed",
+    "assignee": "anna",
+    "labels": [
+      "bug"
+    ],
+    "comments": 12
+  },
+  {
+    "id": 107,
+    "title": "Support SSO",
+    "state": "open",
+    "assignee": "clara",
+    "labels": [
+      "feature",
+      "p1"
+    ],
+    "comments": 5
+  },
+  {
+    "id": 108,
+    "title": "Flaky test",
+    "state": "open",
+    "assignee": null,
+    "labels": [
+      "bug"
+    ]
+  }
+]

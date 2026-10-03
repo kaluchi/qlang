@@ -1,0 +1,94 @@
+[
+  {
+    "id": 1,
+    "name": "Anna",
+    "email": "anna@x.io",
+    "active": true,
+    "address": {
+      "city": "Berlin",
+      "zip": "10115"
+    },
+    "tags": [
+      "Admin",
+      "dev"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Boris",
+    "email": "boris@x.io",
+    "active": true,
+    "address": {
+      "city": "berlin"
+    },
+    "tags": [
+      "dev",
+      "ops"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Clara",
+    "email": "clara@x.io",
+    "active": false,
+    "address": {
+      "city": "BERLIN"
+    },
+    "tags": []
+  },
+  {
+    "id": 4,
+    "name": "Dmitri",
+    "email": "dmitri@x.io",
+    "active": true,
+    "address": null,
+    "tags": [
+      "OPS"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Elena",
+    "email": "elena@x.io",
+    "active": true,
+    "tags": [
+      "QA",
+      "dev"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Farid",
+    "email": "farid@x.io",
+    "active": true,
+    "address": {
+      "city": "Paris",
+      "zip": null
+    },
+    "tags": null
+  },
+  {
+    "id": 7,
+    "name": "Gina",
+    "email": "gina@x.io",
+    "active": true,
+    "address": {
+      "city": " Berlin"
+    },
+    "tags": [
+      "admin"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Hugo",
+    "email": "hugo@x.io",
+    "active": true,
+    "address": {
+      "city": "Berlin"
+    },
+    "tags": [
+      "qa"
+    ]
+  }
+]

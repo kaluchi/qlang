@@ -1,0 +1,46 @@
+[
+  {
+    "sku": "S-1",
+    "stock": {
+      "main": 5,
+      "backup": 2
+    }
+  },
+  {
+    "sku": "S-2",
+    "stock": {
+      "main": 20,
+      "backup": null
+    }
+  },
+  {
+    "sku": "S-3",
+    "stock": {
+      "main": 0,
+      "backup": 0
+    }
+  },
+  {
+    "sku": "S-4",
+    "stock": {
+      "main": null,
+      "backup": 9
+    }
+  },
+  {
+    "sku": "S-5",
+    "stock": {
+      "main": 3
+    }
+  },
+  {
+    "sku": "S-6",
+    "stock": {
+      "main": 7,
+      "backup": 4
+    }
+  },
+  {
+    "sku": "S-7"
+  }
+]

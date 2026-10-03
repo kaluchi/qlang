@@ -1,0 +1,83 @@
+[
+  {
+    "id": "o1",
+    "customer": "alice",
+    "status": "paid",
+    "items": [
+      {
+        "sku": "A",
+        "qty": 2,
+        "price": 9.99
+      },
+      {
+        "sku": "B",
+        "qty": 1,
+        "price": 5.5
+      }
+    ]
+  },
+  {
+    "id": "o2",
+    "customer": "bob",
+    "status": "Shipped",
+    "items": [
+      {
+        "sku": "C",
+        "qty": 3,
+        "price": 4.25
+      }
+    ]
+  },
+  {
+    "id": "o3",
+    "customer": "carol",
+    "status": "cancelled",
+    "items": [
+      {
+        "sku": "A",
+        "qty": 5,
+        "price": 9.99
+      }
+    ]
+  },
+  {
+    "id": "o4",
+    "customer": "dan",
+    "status": "PAID",
+    "items": []
+  },
+  {
+    "id": "o5",
+    "customer": "eve",
+    "status": "pending",
+    "items": [
+      {
+        "sku": "D",
+        "qty": 1,
+        "price": 100
+      }
+    ]
+  },
+  {
+    "id": "o6",
+    "customer": "alice",
+    "status": "paid",
+    "items": [
+      {
+        "sku": "B",
+        "qty": 4,
+        "price": 5.5
+      },
+      {
+        "sku": "E",
+        "qty": 1,
+        "price": 0.99
+      }
+    ]
+  },
+  {
+    "id": "o7",
+    "customer": "frank",
+    "status": "shipped"
+  }
+]

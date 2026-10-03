@@ -153,6 +153,21 @@ bindPrim('sum', container => {
   return total;
 });
 
+// The mean of the numbers, kept as a running mean so no partial sum
+// leaves the finite doubles; an empty container has none, and answers
+// null as `min` and `max` do [D147].
+const AvgElementNotNumberError = declareElementError('AvgElementNotNumberError', 'avg', 'number');
+bindPrim('avg', container => {
+  const items = elementsOf(container);
+  if (items.length === 0) return NULL;
+  let mean = 0;
+  for (let i = 0; i < items.length; i++) {
+    if (typeof items[i] !== 'number') throw new AvgElementNotNumberError(i, items[i]);
+    mean += (items[i] - mean) / (i + 1);
+  }
+  return mean;
+});
+
 bindPrim('min', (container, key) => extremeOf(container, key, order => order < 0));
 bindPrim('max', (container, key) => extremeOf(container, key, order => order > 0));
 

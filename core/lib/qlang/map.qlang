@@ -95,6 +95,13 @@
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
+:avg
+  |~~ The mean of the values, each a number, or null when there is none.
+
+      ~({:a 1 :b 3} | avg | eq 2)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/avg})
+
 :min
   |~~ The first value in the one order of values, or the one whose key
       answers the first value; the key of the entry is read by `entries`.

@@ -157,6 +157,27 @@
        )
   ~~|
 
+:avg
+  |~~ The mean of the elements of a vector or a set, or of the values of
+      a map, each a number, and null for an empty container, which has
+      none; a group's mean is `avg` over each group.
+
+      ~([1 2 3 4] | avg | eq 2.5)
+      ~([] | avg | eq null)
+      ~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
+  ~~|
+  ::verb~()
+
+::AvgElementNotNumberError
+  |~~ `avg` takes the mean of numbers; `:index` names the first element
+      that is none, and a field is read first, `* /amount | avg`.
+      ~(
+        [1 "two" 3] | avg
+        !| [type /actualType /index]
+        |  eq [::AvgElementNotNumberError ::string 1]
+       )
+  ~~|
+
 :min
   |~~ The first element in the one order of values, the order `sort`
       answers, of a vector, a set, or the values of a map, or the element

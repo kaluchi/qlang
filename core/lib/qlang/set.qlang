@@ -73,6 +73,13 @@
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
+:avg
+  |~~ The mean of the elements, each a number, or null when there is none.
+
+      ~(#[1 2 6] | avg | eq 3)
+  ~~|
+  ::verb~(::builtin{:impl :qlang/prim/avg})
+
 :min
   |~~ The least element, or the one whose key answers the least value.
 

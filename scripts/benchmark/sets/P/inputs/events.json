@@ -1,0 +1,73 @@
+[
+  {
+    "type": "login",
+    "user": "u1",
+    "ts": "2026-02-01T08:00:00Z"
+  },
+  {
+    "type": "purchase",
+    "user": "u2",
+    "ts": "2026-02-01T09:00:00Z",
+    "payload": {
+      "amount": 30.5
+    }
+  },
+  {
+    "type": "purchase",
+    "user": "u1",
+    "ts": "2026-02-01T09:30:00Z",
+    "payload": {
+      "amount": 12
+    }
+  },
+  {
+    "type": "purchase",
+    "user": "u3",
+    "ts": "2026-02-02T10:00:00Z",
+    "payload": {
+      "amount": null
+    }
+  },
+  {
+    "type": "Purchase",
+    "user": "u2",
+    "ts": "2026-02-02T11:00:00Z",
+    "payload": {
+      "amount": 19.5
+    }
+  },
+  {
+    "type": "purchase",
+    "user": "u1",
+    "ts": "2026-02-03T12:00:00Z"
+  },
+  {
+    "type": "refund",
+    "user": "u2",
+    "ts": "2026-02-03T13:00:00Z",
+    "payload": {
+      "amount": 10
+    }
+  },
+  {
+    "type": "purchase",
+    "user": "u4",
+    "ts": "2026-02-04T14:00:00Z",
+    "payload": {
+      "amount": 50
+    }
+  },
+  {
+    "type": "purchase",
+    "user": "u1",
+    "ts": "2026-02-04T15:00:00Z",
+    "payload": {
+      "amount": 38
+    }
+  },
+  {
+    "type": "logout",
+    "user": "u4",
+    "ts": "2026-02-04T16:00:00Z"
+  }
+]

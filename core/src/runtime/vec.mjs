@@ -48,6 +48,7 @@ declareModifierError('EveryPredicateNotQuoteError',  'every',   2, 'quote');
 declareModifierError('AnyPredicateNotQuoteError',    'any',     2, 'quote');
 declareModifierError('GroupByKeyNotQuoteError',      'groupBy', 2, 'quote');
 declareModifierError('IndexByKeyNotQuoteError',      'indexBy', 2, 'quote');
+declareModifierError('SortKeyNotQuoteError',         'sort',    2, 'quote');
 declareModifierError('ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 
 // A count and an index are whole numbers: the head refuses a value of
@@ -89,16 +90,43 @@ function sizeOf(container) {
   return isQMap(container) ? container.size : container.length;
 }
 
-// The least or the greatest element in the one order, `pick` naming
-// which side wins a comparison.
-function extremeOf(container, pick) {
-  const items = elementsOf(container);
-  if (items.length === 0) return NULL;
-  let acc = items[0];
-  for (let i = 1; i < items.length; i++) {
-    if (pick(compareValues(items[i], acc))) acc = items[i];
+// The error a key answered for an element, the key itself or a part of
+// the vector it answered, or null [D87], [D140].
+function errorOfKey(rankKey) {
+  if (isErrorValue(rankKey)) return rankKey;
+  return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
+}
+
+// Each entry beside the value it ranks by, its own without a key, an
+// error among the elements ranked as the one order ranks it, or the
+// error a key answered.
+async function keyedEntries(entries, key) {
+  const keyed = [];
+  for (const entry of entries) {
+    if (key === NULL) {
+      keyed.push({ entry, sortKey: entry[1] });
+      continue;
+    }
+    const sortKey = await key(entry[1]);
+    const failed = errorOfKey(sortKey);
+    if (failed !== null) return failed;
+    keyed.push({ entry, sortKey });
   }
-  return acc;
+  return keyed;
+}
+
+// The least or the greatest element in the one order, or by the value
+// the key answers for each, `pick` naming which side wins a comparison,
+// the first of equal ones staying [D140].
+async function extremeOf(container, key, pick) {
+  const keyed = await keyedEntries(elementsOf(container).map(item => [null, item]), key);
+  if (isErrorValue(keyed)) return keyed;
+  if (keyed.length === 0) return NULL;
+  let best = keyed[0];
+  for (const candidate of keyed.slice(1)) {
+    if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
+  }
+  return best.entry[1];
 }
 
 bindPrim('count', container => sizeOf(container));
@@ -125,8 +153,8 @@ bindPrim('sum', container => {
   return total;
 });
 
-bindPrim('min', container => extremeOf(container, order => order < 0));
-bindPrim('max', container => extremeOf(container, order => order > 0));
+bindPrim('min', (container, key) => extremeOf(container, key, order => order < 0));
+bindPrim('max', (container, key) => extremeOf(container, key, order => order > 0));
 
 // `filter` keeps the entries of a map whose values pass, and the
 // elements of a sequence that do; the head reads the answer back as the
@@ -195,32 +223,16 @@ bindPrim('indexBy', async (sequence, key) => {
   return index;
 });
 
-// The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [D87], [D140].
-function errorOfKey(sortKey) {
-  if (isErrorValue(sortKey)) return sortKey;
-  return isVec(sortKey) ? sortKey.find(isErrorValue) ?? null : null;
-}
-
-// `sort` orders the elements in the one order, or by the values the keys
-// answer for each, the first key first and each later one among the
-// elements the ones before it rank alike, keeping equal ones in the
-// subject's order; a map orders its entries by their values and keeps the
-// keys. A key that answers an error answers the call, as the key of
-// `groupBy` does [D87], [D140].
-bindPrim('sort', async (container, keys) => {
+// `sort` orders the elements in the one order, or by the value the key
+// answers for each, keeping equal ones in the subject's order; a map
+// orders its entries by their values and keeps the keys. A vector the key
+// answers ranks element by element, and `desc` reverses a place of it.
+// A key that answers an error answers the call, as the key of `groupBy`
+// does, and so does one whose vector holds an error [D87], [D140].
+bindPrim('sort', async (container, key) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
-  const keyed = [];
-  for (const entry of entries) {
-    const sortKeys = [];
-    for (const key of keys) {
-      const sortKey = await key(entry[1]);
-      const failed = errorOfKey(sortKey);
-      if (failed !== null) return failed;
-      sortKeys.push(sortKey);
-    }
-    keyed.push({ entry, sortKey: keys.length === 0 ? entry[1] : sortKeys });
-  }
+  const keyed = await keyedEntries(entries, key);
+  if (isErrorValue(keyed)) return keyed;
   keyed.sort((left, right) => compareValues(left.sortKey, right.sortKey));
   const sorted = keyed.map(({ entry }) => entry);
   return isQMap(container) ? new Map(sorted) : sorted.map(([, element]) => element);

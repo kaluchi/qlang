@@ -6,7 +6,7 @@ import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader, bindTypeConstructor } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTagKeyword, makeSet, typeKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import {
   declareSubjectError,
@@ -84,6 +84,11 @@ function mapConstructor(payload) {
 }
 
 bindTypeConstructor('map', mapConstructor);
+
+// `::desc(…)` — any value turned to descend, its place in the one order
+// the reverse of its payload's [D140].
+const DESC_TAG = makeTagKeyword('desc');
+bindTypeConstructor('desc', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.

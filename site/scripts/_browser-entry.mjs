@@ -34,6 +34,7 @@ import specCatalogSource from '@kaluchi/qlang-core/lib/qlang/spec.qlang';
 import bindingCatalogSource from '@kaluchi/qlang-core/lib/qlang/binding.qlang';
 import errorCatalogSource from '@kaluchi/qlang-core/lib/qlang/error.qlang';
 import elisionCatalogSource from '@kaluchi/qlang-core/lib/qlang/elision.qlang';
+import descCatalogSource from '@kaluchi/qlang-core/lib/qlang/desc.qlang';
 import linkCatalogSource from '@kaluchi/qlang-core/lib/qlang/link.qlang';
 import snippetCatalogSource from '@kaluchi/qlang-core/lib/qlang/snippet.qlang';
 import explanationCatalogSource from '@kaluchi/qlang-core/lib/qlang/explanation.qlang';
@@ -69,6 +70,7 @@ const CATALOG = new Map([
   ['qlang/binding', bindingCatalogSource],
   ['qlang/error', errorCatalogSource],
   ['qlang/elision', elisionCatalogSource],
+  ['qlang/desc', descCatalogSource],
   ['qlang/link', linkCatalogSource],
   ['qlang/snippet', snippetCatalogSource],
   ['qlang/explanation', explanationCatalogSource],

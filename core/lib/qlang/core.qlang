@@ -19,6 +19,7 @@
  :qlang/binding
  :qlang/error
  :qlang/elision
+ :qlang/desc
  :qlang/link
  :qlang/snippet
  :qlang/explanation

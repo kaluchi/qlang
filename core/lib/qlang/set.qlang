@@ -78,14 +78,14 @@
 
       ~(#[3 1 4] | min | eq 1)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/min})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
   |~~ The greatest element.
 
       ~(#[3 1 4] | max | eq 4)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/max})
+  ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
 :filter
   |~~ The set of the elements whose predicate answers true.
@@ -129,7 +129,7 @@
 
       ~(#[:y :x :z] | sort | eq [:x :y :z])
   ~~|
-  ::verb~(:returns ::vec * :keys ::quote | ::builtin{:impl :qlang/prim/sort})
+  ::verb~(:key #[::quote ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/sort})
 
 :take
   |~~ The set of the least count elements.

@@ -1,8 +1,0 @@
-{"name":"a-second-key-ranks-what-the-first-leaves-alike","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(/a) ~(/b) * /b","expect":"[9 1 2]","decision":"D140"}
-{"name":"desc-turns-one-key-to-descend","query":"[{:n 1 :s \"b\"} {:n 2 :s \"c\"} {:n 2 :s \"a\"}] | sort ~(/n | desc) ~(/s) * /s","expect":"[\"a\" \"c\" \"b\"]","decision":"D140"}
-{"name":"desc-descends-strings","query":"[\"b\" \"c\" \"a\"] | sort ~(desc)","expect":"[\"c\" \"b\" \"a\"]","decision":"D140"}
-{"name":"a-map-sorts-by-a-descending-key-and-keeps-its-keys","query":"{:a 1 :b 3 :c 2} | sort ~(desc) | vals","expect":"[3 2 1]","decision":"D140"}
-{"name":"a-part-of-a-key-that-fails-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~([/a]) !| type","expect":"::ProjectionKeyNotInMapError","decision":"D140"}
-{"name":"a-later-key-that-fails-answers-the-call","query":"[{:a 1 :b 2} {:a 1}] | sort ~(/a) ~(/b) !| type","expect":"::ProjectionKeyNotInMapError","decision":"D140"}
-{"name":"a-key-that-is-no-quote-names-its-index","query":"[3 1 2] | sort ~(/) 1 !| [type /slot /index]","expect":"[::VerbCodeNotQuoteError :keys 2]","decision":"D140"}
-{"name":"desc-lays-its-tag","query":"5 | desc | [type payload]","expect":"[::desc 5]","decision":"D140"}

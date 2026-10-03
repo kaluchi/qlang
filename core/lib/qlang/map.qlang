@@ -174,13 +174,18 @@
 
 ::AtKeyNotKeywordOrStringError
   |~~ The key of `at` on a map is a keyword or a string, both naming the
-      key as the map stores it.
+      key as the map stores it: `at :email`. A modifier is computed
+      against the subject before `at` runs, so `at /email` reads the
+      value of the field first and hands that value to `at` as the key;
+      `:actualValue` holds what it handed.
 
       ~(
         {:a 1} | at 42
         !| [type /actualType]
         |  eq [::AtKeyNotKeywordOrStringError ::number]
        )
+      ~({:email {:home "a@b"}} | at /email !| /actualValue | eq {:home "a@b"})
+      ~({:email {:home "a@b"}} | at :email | eq {:home "a@b"})
   ~~|
 
 :reverse

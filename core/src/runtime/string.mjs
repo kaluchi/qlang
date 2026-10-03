@@ -23,6 +23,7 @@ declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string
 declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
 declareSubjectError('LowerSubjectNotStringError',       'lower',      'string');
 declareSubjectError('UpperSubjectNotStringError',       'upper',      'string');
+declareSubjectError('TrimSubjectNotStringError',        'trim',       'string');
 declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
 declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
 declareModifierError('ContainsSubjectNotStringError',   'contains',   1, 'string');
@@ -60,6 +61,10 @@ bindPrim('join', (subject, separator) => {
 // two texts that differ in case alone compare equal once folded [D107].
 bindPrim('lower', subject => subject.toLowerCase());
 bindPrim('upper', subject => subject.toUpperCase());
+
+// The text without the whitespace at its two ends, a line break among it
+// [D141].
+bindPrim('trim', subject => subject.trim());
 
 bindPrim('contains',   (subject, needle) => subject.includes(needle));
 bindPrim('startsWith', (subject, prefix) => subject.startsWith(prefix));

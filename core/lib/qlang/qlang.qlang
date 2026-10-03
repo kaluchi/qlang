@@ -47,9 +47,11 @@
       ~({:a 1} | at :b | eq null)
       ~({:a 1} | at :b | coalesce 0 | eq 0)
 
-      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. The subject comes through the pipe, and every modifier is computed against the subject, so a command can read two fields of it. A command with modifiers inside a literal or a modifier stands in parentheses.
+      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. The subject comes through the pipe, and every modifier is computed against it. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So a command reads two fields of one record in one step, and a name carries a value past the steps that change the pipe. A command with modifiers inside a literal or a modifier stands in parentheses.
       ~({:price 4 :qty 3} | mul /price /qty | eq 12)
       ~({:a 1} | [(/a | add 1) /a] | eq [2 1])
+      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::ProjectionSubjectNotProjectableError)
+      ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
       A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
       ~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
       ~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
@@ -183,6 +185,11 @@
       `/k`, `/0`, `/-1`, `/a/b` read a part, and a miss is an error:
       ~({:a {:b 1}} | /a/b | eq 1)
       ~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)
+      A modifier is computed against the subject of its own step, the
+      value the step before it answered, so two fields of one record are
+      read in one step, and a name keeps the record for a later step:
+      ~({:qty 2 :price 3} | mul /qty /price | eq 6)
+      ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
       A name holds the value in the pipe for the steps after it, and
       steps in parentheses run on the value in the pipe and answer their
       result:

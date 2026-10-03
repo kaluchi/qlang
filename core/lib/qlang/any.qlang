@@ -785,14 +785,19 @@
       that skips them all answers null. `coalesce ~(/key) ~(fallback)`
       reads "the key where the map holds it, else the fallback": `/key`
       answers an error on a map without the key, which the walk skips as
-      it skips null.
+      it skips null. An alternative that is no quote answers itself, and a
+      call of such alternatives alone puts the subject first, so
+      `coalesce 30` reads "the subject, else 30".
 
       ~({:nickname null :name "alice"} | coalesce ~(/nickname) ~(/name) | eq "alice")
       ~({:nickname "ace" :name "alice"} | coalesce ~(/nickname) ~(/name) | eq "ace")
       ~({:a 2 :b 3} | coalesce ~(/missing) ~("fallback") | eq "fallback")
       ~({:nickname null :name null} | coalesce ~(/nickname) ~(/name) ~("anonymous") | eq "anonymous")
+      ~([{:t 45} {:t null} {}] * (at :t | coalesce 30) | eq [45 30 30])
+      ~({:tags ["a"]} | /tags | coalesce [] | eq ["a"])
+      ~({:a 2} | coalesce ~(/missing) "fallback" | eq "fallback")
   ~~|
-  ::verb~(* :alternatives ::quote | ::builtin{:impl :qlang/prim/coalesce})
+  ::verb~(* :alternatives #[::quote ::any] | ::builtin{:impl :qlang/prim/coalesce})
 
 ::CoalesceNoAlternativesError
   |~~ `coalesce` answers the first of its alternatives that answers a

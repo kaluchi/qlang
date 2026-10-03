@@ -34,11 +34,15 @@ bindPrim('if', async (subject, condition, thenCode, elseCode) =>
 // The first alternative that answers neither null nor an error value: a
 // strict projection's miss, `/missing` on a map without the key, is an
 // error, and the walk skips it as it skips null, so `coalesce ~(/a)
-// ~(/b) ~("default")` reads the first value defined.
+// ~(/b) ~("default")` reads the first value defined. An alternative
+// that is no quote answers itself, and a call of such alternatives
+// alone reads the subject first, `/timeout | coalesce 30` [D133].
 bindPrim('coalesce', async (subject, alternatives) => {
   if (alternatives.length === 0) throw new CoalesceNoAlternativesError();
-  for (const alternative of alternatives) {
-    const answer = await alternative(subject);
+  const isCode = alternative => typeof alternative === 'function';
+  const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
+  for (const alternative of candidates) {
+    const answer = isCode(alternative) ? await alternative(subject) : alternative;
     if (isNull(answer) || isErrorValue(answer)) continue;
     return answer;
   }

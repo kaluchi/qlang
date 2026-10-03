@@ -1092,7 +1092,9 @@ operand whose alternatives are pipeline slots, `coalesce` and its kin,
 runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
-asked.
+asked. A value among the alternatives of `coalesce` answers itself,
+and alternatives that are all values put the subject first,
+`at :timeout | coalesce 30` [D133].
 
 It must make the document behind each tag a procedure. The page of a
 site says, in this order, what the refusal means in one sentence, which
@@ -1949,3 +1951,4 @@ maintainer wants to explore it before it is fixed.
 [D129]: decisions/D129.md
 [D131]: decisions/D131.md
 [D132]: decisions/D132.md
+[D133]: decisions/D133.md

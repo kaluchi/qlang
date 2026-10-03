@@ -40,11 +40,12 @@
       ~({:first "Ann" :age 30} | {:who /first :next (/age | add 1)} | eq {:who "Ann" :next 31})
       ~([{:id 1 :tags [:a :b]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
 
-      3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null.
+      3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
       ~({:a {:b [10 20]}} | /a/b/-1 | eq 20)
       ~({"first name": "Ann"} | /"first name" | eq "Ann")
       ~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)
       ~({:a 1} | at :b | eq null)
+      ~({:a 1} | at :b | coalesce 0 | eq 0)
 
       4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. The subject comes through the pipe, and every modifier is computed against the subject, so a command can read two fields of it. A command with modifiers inside a literal or a modifier stands in parentheses.
       ~({:price 4 :qty 3} | mul /price /qty | eq 12)
@@ -57,7 +58,7 @@
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | spec | /verbs`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
       strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
-      containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals; union minus inter combine sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
+      containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals; union minus inter for sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
       every value: type eq ne print json if cond coalesce apply tag payload.
       booleans: and or not.
       ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])

@@ -58,13 +58,15 @@
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | spec | /verbs`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
       strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
-      containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals; union minus inter for sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
+      containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `sort ~(key) | last`, the descending order `sort | reverse`, and `flat` splices one level of nesting.
       every value: type eq ne print json if cond coalesce apply tag payload.
       booleans: and or not.
       ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
       ~("a,b,c" | split "," | join "-" | eq "a-b-c")
       ~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
       ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
+      ~({:auth {:port 3000}} | entries * (union /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+      ~({:a 1} | entries | tag ::map | eq {:a 1})
       ~(3.14159 | round 2 | ne 3.14159)
       ~([3 1 2] | reduce 0 ~(add) | eq 6)
 
@@ -117,7 +119,7 @@
       9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag names the verb and the place; `!| explain` reads the page of that site, and `::vec/sort | doc` the page of a verb, with laws to copy.
       ~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
 
-      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(::qlang | manifest) lists the kinds, ::snippet~(::vec | spec | /verbs) the verbs of a kind by address, `::vec/sort | doc` the page of one verb, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(::qlang | manifest) lists the kinds, ::snippet~(::vec | spec | /verbs) the verbs of a kind by address, `::vec/sort | doc` the page of one verb, `::any/sort | doc` the page every `sort` shares, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
       ~(::qlang | doc | links * open | count | gt 5)
 
       11. The chapters, in the order they rest on each other, each page naming its neighbours and the kinds that are it:

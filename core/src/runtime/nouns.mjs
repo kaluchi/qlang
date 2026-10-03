@@ -186,6 +186,15 @@ export function addressesOf(env, verbName) {
   return makeSet(addresses);
 }
 
+// The addresses where a reader finds the pages of a name: those of its
+// verbs, and the contract on any value, whose page holds for every verb
+// of the name [D137].
+export function pageAddressesOf(env, verbName) {
+  const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
+  if (onAnyValue === null || !isContract(bindingValueOf(onAnyValue))) return addressesOf(env, verbName);
+  return makeSet([...addressesOf(env, verbName), makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`)]);
+}
+
 // The verbs a value of the kinds reaches by name, each with its address,
 // from the outside in [D34]: those that reside on each kind, then those
 // of any value that have a body, a contract there answering only

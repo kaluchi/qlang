@@ -23,6 +23,6 @@
 {"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::VerbSlotMissingError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
 {"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::SetPayloadNotVecError]","decision":["D73","D74"]}
-{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::MapPayloadNotMapError ::AtKeyNotKeywordOrStringError]","decision":"D74"}
+{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::MapPayloadNotMapError ::MapElementNotPairError ::MapKeyNotKeywordError ::AtKeyNotKeywordOrStringError]","decision":["D74","D138"]}
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::VerbSlotNotOfKindsError) | count","expect":"1","decision":"D74"}
 {"name":"a-noun-lists-each-refusal-once","query":"::vec | spec | /throws | filter ~(eq ::VecPayloadNotVecError) | count","expect":"1","decision":"D64"}

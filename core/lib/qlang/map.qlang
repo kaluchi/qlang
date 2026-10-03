@@ -13,7 +13,10 @@
       a map runs a step on each value under its key. A JSON object is a
       map literal too, its string keys read as keywords, so JSON pastes
       into a query as it is; one literal is written in one of the two
-      forms, and a key written twice holds its last value.
+      forms, and a key written twice holds its last value. A map comes
+      apart into its pairs `[key value]` by `entries` and back by
+      `tag ::map`, which reads a key written as a string or a number as
+      the keyword of its text.
       ::snippet~(::map | spec | /verbs) lists its verbs. ::link~(::proj | doc)
       ::link~(::qlang | doc :values)
 
@@ -21,16 +24,39 @@
       ~(::map{:a 1} | eq {:a 1})
       ~({"a": 1, "b": [true, null]} | eq {:a 1 :b [true null]})
       ~({:a 1 :a 2} | eq {:a 2})
+      ~([[:a 1] ["b" 2]] | tag ::map | eq {:a 1 :b 2})
+      ~({:a 1 :b 2} | entries | tag ::map | eq {:a 1 :b 2})
   ~~|
   ::builtin{:impl :qlang/type/map}
 
 ::MapPayloadNotMapError
-  |~~ `::map` reads its payload as the map it is; a payload of another
-      kind is refused.
+  |~~ `::map` reads a map as the map it is and a vector as its pairs;
+      a payload of another kind is refused.
       ~(
-        ::map[1]
+        ::map(1)
         !| [type /actualType]
-        |  eq [::MapPayloadNotMapError ::vec]
+        |  eq [::MapPayloadNotMapError ::number]
+       )
+  ~~|
+
+::MapElementNotPairError
+  |~~ Each element of the vector `::map` builds from is a pair `[key
+      value]`; `:index` names the first that is not.
+      ~(
+        [[:a 1] [:b]] | tag ::map
+        !| [type /index]
+        |  eq [::MapElementNotPairError 1]
+       )
+  ~~|
+
+::MapKeyNotKeywordError
+  |~~ The key of a pair is a keyword, or a string or a number naming the
+      keyword of its text; `:index` names the pair whose key is another
+      value.
+      ~(
+        [[[1] 2]] | tag ::map
+        !| [type /actualType /index]
+        |  eq [::MapKeyNotKeywordError ::vec 0]
        )
   ~~|
 
@@ -203,6 +229,29 @@
        )
   ~~|
 
+:entries
+  |~~ The vector of the pairs `[key value]` of the map, in the order of
+      the entries, each key a keyword: the map with its keys as data, for
+      a step that reads a key beside its value, as `[type payload]` reads
+      a tagged value. `tag ::map` builds the map back.
+
+      ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
+      ~({:auth {:port 3000}} | entries * (union /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+      ~({:axios "^1.6.0"} | entries * ([(/0 | keyword) "@" /1] | join "") | eq ["axios@^1.6.0"])
+      ~({:a 1 :tmp 2} | entries | filter ~(/0 | ne :tmp) | tag ::map | eq {:a 1})
+  ~~|
+  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/entries})
+
+::EntriesSubjectNotMapError
+  |~~ `entries` answers the pairs of a map; a vector of maps answers
+      them element by element, `* entries`.
+      ~(
+        [1 2] | entries
+        !| [type /actualType]
+        |  eq [::EntriesSubjectNotMapError ::vec]
+       )
+  ~~|
+
 :has
   |~~ Whether the map holds the key, a keyword or a string, both naming
       the key as the map stores it, so the `keys | first | has _` chain
@@ -233,19 +282,42 @@
 
 :minus
   |~~ The entries whose keys the other operand lacks: a map's keys, or the
-      keywords of a vector or a set.
+      keys a vector or a set names, each a keyword or a string, as `at`
+      reads a key.
 
       ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
+      ~({:a 1 :b 2} | minus ["a"] | eq {:b 2})
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/minus})
 
 :inter
   |~~ The entries whose keys the other operand holds: a map's keys, or
-      the keywords of a vector or a set.
+      the keys a vector or a set names, each a keyword or a string.
 
       ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
+      ~({:a 1 :b 2 :c 3} | inter ["a" :c] | eq {:a 1 :c 3})
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
+
+::MinusKeyNotKeywordOrStringError
+  |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
+      names the first element of the other operand that is neither.
+      ~(
+        {:a 1} | minus [:a 1]
+        !| [type /actualType /index]
+        |  eq [::MinusKeyNotKeywordOrStringError ::number 1]
+       )
+  ~~|
+
+::InterKeyNotKeywordOrStringError
+  |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
+      names the first element of the other operand that is neither.
+      ~(
+        {:a 1} | inter [[:a]]
+        !| [type /actualType /index]
+        |  eq [::InterKeyNotKeywordOrStringError ::vec 0]
+       )
+  ~~|
 
 :raise
   |~~ Puts the map on the fail track as an error, the act the `!{…}`

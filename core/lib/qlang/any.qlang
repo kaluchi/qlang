@@ -583,8 +583,9 @@
 
 :minus
   |~~ The first operand without what the second holds: a set without the
-      elements of another, a map without the keys of a map, a vector or a
-      set of keywords; over a vector of operands it folds them.
+      elements of another, a map without the keys of a map, or of a vector
+      or a set of keywords or strings; over a vector of operands it folds
+      them.
 
       ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
       ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
@@ -594,8 +595,9 @@
 
 :inter
   |~~ What the first operand and the second both hold: the elements two
-      sets share, or the entries of a map whose keys a map, a vector or a
-      set of keywords holds; over a vector of operands it folds them.
+      sets share, or the entries of a map whose keys a map, or a vector or
+      a set of keywords or strings, holds; over a vector of operands it
+      folds them.
 
       ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
       ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
@@ -1019,8 +1021,10 @@
 
 ::BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, or a tag name that names
-      nothing. `:nearest` holds the names near the one it read.
+      that names no binding of its scope, the name of a verb a provider
+      keeps among them, or a tag name that names nothing. `:addresses`
+      holds the addresses of the pages of that name, the contract on any
+      value among them, whose page holds for every verb of the name.
 
       ~(
         :nonexistent-binding | binding
@@ -1047,23 +1051,24 @@
 
 ::SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, or a tag name that names
-      nothing. `:nearest` holds the names near the one it read.
+      that names no binding of its scope, the name of a verb a provider
+      keeps among them, or a tag name that names nothing. `:addresses`
+      holds the addresses of the pages of that name, the contract on any
+      value among them, whose page holds for every verb of the name.
 
       ~(
         :nonexistent-binding | source
         !| [type /bindingName]
         |  eq [::SourceBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filtr | source !| /nearest | eq [:filter])
+      ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
 
 :doc
   |~~ The page of a name, the passage from an address into its
       description: `::vec/filter | doc` the page of a verb by its
       address, `:name | doc` the page of the declaration that binds
-      `:name` in its scope, the name of a verb the page of its contract
-      or of its one verb, null for a declaration without one. A page
+      `:name` in its scope, null for a declaration without one. A page
       answers its text by `content`, its laws by `laws`, its links by
       `links` and its snippets by `snippets`. A keyword after `doc` is an
       anchor within the page of its subject, a vector of anchors a path,
@@ -1073,8 +1078,6 @@
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
       ~(::AddLeftNotNumberError | doc | type | eq ::doc)
-      ~(:reduce | doc | eq (::qlang/any/reduce | doc))
-      ~(:add | doc | eq (::number/add | doc))
       Any other value reads the page of its kind, and the `:kind` field
       of a map names nothing:
       ~(5 | doc | eq (::number | doc))
@@ -1093,16 +1096,19 @@
 
 ::DocBindingNotFoundError
   |~~ `doc` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, a tag name that names nothing, or
-      an anchor that names no member of the page before it. `:nearest`
-      holds the names near the one it read.
+      names no binding of its scope, the name of a verb a provider keeps
+      among them, a tag name that names nothing, or an anchor that names
+      no member of the page before it. `:addresses` holds the addresses
+      of the pages of that name, the contract on any value among them,
+      whose page holds for every verb of the name.
 
       ~(
         :nonexistent-binding | doc
         !| [type /bindingName]
         |  eq [::DocBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filtr | doc !| /nearest | eq [:filter])
+      ~(:filter | doc !| /addresses | has ::vec/filter)
+      ~(:reduce | doc !| /addresses | first | doc | eq (::qlang/any/reduce | doc))
   ~~|
 
 ::DocAnchorNotKeywordError
@@ -1160,15 +1166,17 @@
 
 ::SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, or a tag name that names nothing.
-      `:nearest` holds the names near the one it read.
+      names no binding of its scope, the name of a verb a provider keeps
+      among them, or a tag name that names nothing. `:addresses` holds
+      the addresses of the pages of that name, the contract on any value
+      among them, whose page holds for every verb of the name.
 
       ~(
         :nonexistent-binding | spec
         !| [type /bindingName]
         |  eq [::SpecBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filtr | spec !| /nearest | eq [:filter])
+      ~(:filter | spec !| /addresses | has ::vec/filter)
   ~~|
 
 :runLaws
@@ -1189,16 +1197,18 @@
 
 ::RunLawsBindingNotFoundError
   |~~ `runLaws` — no declaration found for the name it read, as `doc`
-      finds none: a keyword that names no binding of its scope, or a tag
-      name that names nothing. `:nearest` holds the names near the one
-      it read.
+      finds none: a keyword that names no binding of its scope, the name
+      of a verb a provider keeps among them, or a tag name that names
+      nothing. `:addresses` holds the addresses of the pages of that
+      name, the contract on any value among them, whose page holds for
+      every verb of the name.
 
       ~(
         :nonexistent-binding | runLaws
         !| [type /bindingName]
         |  eq [::RunLawsBindingNotFoundError :nonexistent-binding]
        )
-      ~(:filtr | runLaws !| /nearest | eq [:filter])
+      ~(:filter | runLaws !| /addresses | has ::vec/filter)
       ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
   ~~|
 

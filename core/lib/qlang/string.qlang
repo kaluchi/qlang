@@ -2,15 +2,17 @@
    and the verbs of strings. Each resides on `::qlang/string`, the
    kind whose module declares it: the comparisons, which compare
    two strings by their code units in the one order, the verbs
-   that read a string, and `prepend` and `append`, under the contracts
-   of their names on `::qlang/any`. ~|
+   that read a string, `count`, `take` and `drop` by its characters, and
+   `prepend` and `append`, under the contracts of their names on
+   `::qlang/any`. ~|
 
 ::string
   |~~ The kind of a string, text as it came. A JSON string arrives as a
       string, and `keyword` makes one a keyword where a key is wanted,
       since the keys of a map are keywords. Its verbs work on the text
-      whole or by its lines, and `lines` breaks it into the vector a
-      pipeline reads in pieces. Its literal is written in double quotes
+      whole, by its characters, `count`, `take` and `drop`, or by its
+      lines, and `lines` breaks it into the vector a pipeline reads in
+      pieces. Its literal is written in double quotes
       with the escapes of JSON, any character raw between them, a line
       break among them.
       ::snippet~(::string | spec | /verbs) lists its verbs. ::link~(::keyword | doc)

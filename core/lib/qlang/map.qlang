@@ -96,16 +96,20 @@
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
 :min
-  |~~ The first value in the one order of values.
+  |~~ The first value in the one order of values, or the one whose key
+      answers the first value; the key of the entry is read by `entries`.
 
       ~({:a 3 :b 1} | min | eq 1)
+      ~({:a 3 :b 1} | entries | min ~(/1) | /0 | eq :b)
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
 :max
-  |~~ The last value in the one order of values.
+  |~~ The last value in the one order of values, or the one whose key
+      answers the last value; the key of the entry is read by `entries`.
 
       ~({:a 3 :b 1} | max | eq 3)
+      ~({:a 3 :b 1} | entries | max ~(/1) | /0 | eq :a)
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 

@@ -80,11 +80,12 @@
 
 :count
   |~~ The number of elements a container holds: a vector's, a set's,
-      and a map's entries.
+      and a map's entries; and the number of characters of a string.
 
       ~([1 2 3] | count | eq 3)
       ~(#[:a :b] | count | eq 2)
       ~({:x 1 :y 2 :z 3} | count | eq 3)
+      ~("abc" | count | eq 3)
       ~(42 | count !| /addresses | has ::vec/count)
   ~~|
   ::verb~()
@@ -349,10 +350,11 @@
   |~~ Collapses a vector or a set into a map keyed by the keyword the key
       answers for each element, a string or a number filed under the
       keyword of its text; of two elements the key answers alike, the
-      last wins.
+      last wins. Without a key an element files under itself.
 
       ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
       ~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
+      ~([:x :y] | indexBy | eq {:x :x :y :y})
   ~~|
   ::verb~()
 
@@ -440,13 +442,14 @@
 
 :take
   |~~ The first count elements in the subject's order, a set's least
-      among them, and a map's first count entries, in a container of the
-      subject's kind. The count is a whole number: past the length the
+      among them, a map's first count entries and a string's first count
+      characters, in a value of the subject's kind. The count is a whole number: past the length the
       whole container comes back, and a negative count takes nothing.
 
       ~([1 2 3 4 5] | take 3 | eq [1 2 3])
       ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
       ~([1 2 3] | take -1 | eq [])
+      ~("db_host" | take 2 | eq "db")
   ~~|
   ::verb~()
 
@@ -462,13 +465,15 @@
 
 :drop
   |~~ The container with its first count elements removed, a map's first
-      count entries, in a container of the subject's kind. The count is
+      count entries and a string's first count characters, in a value of
+      the subject's kind. The count is
       a whole number: past the length the empty container comes back,
       and a negative count drops nothing.
 
       ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
       ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
       ~([1 2 3] | drop -1 | eq [1 2 3])
+      ~("db_host" | drop 3 | eq "host")
   ~~|
   ::verb~()
 

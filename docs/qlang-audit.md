@@ -1821,6 +1821,23 @@ fail and a quote be built from its steps at the price of what `first`
 answers on a quote today; and the literal as it is, whose failure
 reaches the command line, which refuses it under JSON [D103].
 
+The name of a key beside its value. A map's elements are its values
+[D15], and a task that wants the key in the answer, a record per
+service carrying the service's name, binds the map and walks its keys:
+
+```qlang
+> {:auth {:port 3000} :db {:port 5432}} | :m / | keys | sort * (:k / | {:name (k | keyword) :port (m | at k | /port)})
+[{:name "auth" :port 3000} {:name "db" :port 5432}]
+```
+
+Clean readers on three fresh sets of tasks missed this shape more often
+than any other the language left standing once the forms of D132 to
+D135 were taken. One answer keeps the shape and teaches it on the first
+screen, at the price of a task's idiom among the invariants. Another
+gives the body of `*` over a map a name for the key of its element, at
+the price of a second input beside the subject, against the rule that
+a nested piece starts from the value and the names around it.
+
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed

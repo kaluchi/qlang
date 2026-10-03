@@ -120,9 +120,13 @@
   ~~|
 
 ::VerbWithoutBodyError
-  |~~ A verb without a body declares a signature alone, a contract,
-      and answers no call; the refusal names the residences of its
-      name, where the verbs that answer it live.
+  |~~ The kind of the subject has no verb of the name: `:actualType`
+      names the kind, and `:addresses` the verbs of the name and the kinds
+      they serve, so the subject is turned into one of those kinds first,
+      or a verb of another name was meant. The call reached the contract
+      of the name, a verb without a body, which answers no call.
+
+      ~(1 | count !| [/actualType (/addresses | has ::vec/count)] | eq [::number true])
 
       ~(
         :count ::verb~(:x ::number) | [1] | count 1

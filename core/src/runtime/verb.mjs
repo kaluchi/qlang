@@ -78,8 +78,13 @@ const VerbSlotNotOfKindsError = declareShapeError('VerbSlotNotOfKindsError',
 const VerbCodeNotQuoteError = declareShapeError('VerbCodeNotQuoteError',
   ({ slot, actualType }) => `${slot.literal} takes code, a quote \`~(…)\` or a verb, got ${actualType.name}`,
   { operand: '::verb', expectedType: 'quote' });
+// A call that reaches a contract names what the reader needs: the kind of
+// its subject has no verb of the name, and where the verbs of the name
+// live [D146]; a contract with no verb under it answers no call at all.
 const VerbWithoutBodyError = declareShapeError('VerbWithoutBodyError',
-  ({ verbName }) => `${verbName.literal} declares a signature and no body, and answers no call`,
+  ({ verbName, addresses, actualType }) => (addresses?.length > 0 && actualType !== undefined
+    ? `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`
+    : `${verbName.literal} declares a signature and no body, and answers no call`),
   { operand: '::verb' });
 
 const ROLE_NAMES = new Set(['subject', 'returns']);
@@ -449,7 +454,7 @@ export async function callVerb(verb, modifierLambdas, state, verbName) {
 export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const signature = signatureOf(verb.payload);
   if (signature.body === null) {
-    throw new VerbWithoutBodyError({ verbName, addresses: addressesOf(state.env, verbName.name) });
+    throw new VerbWithoutBodyError({ verbName, addresses: addressesOf(state.env, verbName.name), actualType: typeKeyword(subject) });
   }
   if (signature.rest === null && slotLambdas.length > signature.slots.length) {
     throw new VerbModifiersBeyondSlotsError({ verbName, slotCount: signature.slots.length, actualCount: slotLambdas.length });

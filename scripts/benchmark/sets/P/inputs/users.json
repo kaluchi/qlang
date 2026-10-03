@@ -1,0 +1,104 @@
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "email": "alice@x.com",
+    "age": 31,
+    "active": true,
+    "address": {
+      "city": "Berlin",
+      "country": "DE"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Bob",
+    "email": "bob@x.com",
+    "age": 25,
+    "active": false,
+    "address": {
+      "city": "Paris",
+      "country": "FR"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Carol",
+    "email": "carol@x.com",
+    "age": 42,
+    "active": true,
+    "address": null
+  },
+  {
+    "id": 4,
+    "name": "Dan",
+    "email": "dan@x.com",
+    "age": 37,
+    "active": true,
+    "address": {
+      "city": "Munich",
+      "country": "DE"
+    }
+  },
+  {
+    "id": 5,
+    "name": "Eve",
+    "email": "eve@x.com",
+    "age": 29,
+    "active": true,
+    "address": {
+      "city": "Lyon",
+      "country": "FR"
+    }
+  },
+  {
+    "id": 6,
+    "name": "Frank",
+    "email": "frank@x.com",
+    "age": 52,
+    "active": true,
+    "address": {
+      "city": "Rome"
+    }
+  },
+  {
+    "id": 7,
+    "name": "Grace",
+    "email": "grace@x.com",
+    "age": 23,
+    "active": true,
+    "address": {
+      "city": "Hamburg",
+      "country": "DE"
+    }
+  },
+  {
+    "id": 8,
+    "name": "Heidi",
+    "email": "heidi@x.com",
+    "age": 45,
+    "active": false,
+    "address": {
+      "city": "Nice",
+      "country": "FR"
+    }
+  },
+  {
+    "id": 9,
+    "name": "Ivan",
+    "email": "ivan@x.com",
+    "age": 33,
+    "active": true,
+    "address": {
+      "city": "Madrid",
+      "country": "ES"
+    }
+  },
+  {
+    "id": 10,
+    "name": "Judy",
+    "email": "judy@x.com",
+    "age": 28,
+    "active": true
+  }
+]

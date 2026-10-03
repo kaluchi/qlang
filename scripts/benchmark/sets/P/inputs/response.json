@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Pen",
+        "category": "office",
+        "price": 1.5,
+        "stock": 100
+      },
+      {
+        "id": 2,
+        "name": "Desk",
+        "category": "furniture",
+        "price": 250,
+        "stock": 5
+      },
+      {
+        "id": 3,
+        "name": "Chair",
+        "category": "furniture",
+        "price": 120.5,
+        "stock": 0
+      },
+      {
+        "id": 4,
+        "name": "Paper",
+        "category": "office",
+        "price": 4.25,
+        "stock": 40
+      },
+      {
+        "id": 5,
+        "name": "Lamp",
+        "category": "furniture",
+        "price": null,
+        "stock": 12
+      },
+      {
+        "id": 6,
+        "name": "Stapler",
+        "category": "office",
+        "price": 7,
+        "stock": 8
+      },
+      {
+        "id": 7,
+        "name": "Mug",
+        "category": "kitchen",
+        "price": 6.1,
+        "stock": 30
+      },
+      {
+        "id": 8,
+        "name": "Kettle",
+        "category": "kitchen",
+        "price": 24.9,
+        "stock": 3
+      }
+    ]
+  },
+  "meta": {
+    "page": 1,
+    "total": 8
+  }
+}

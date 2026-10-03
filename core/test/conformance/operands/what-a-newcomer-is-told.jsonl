@@ -1,0 +1,6 @@
+{"name":"a-call-on-a-kind-without-the-verb-names-the-kind","query":"1 | count !| [/actualType (/addresses | has ::vec/count)]","expect":"[::number true]","decision":"D146"}
+{"name":"a-soft-read-of-an-empty-container-is-null","query":"[([] | first) ([] | max)]","expect":"[null null]","decision":"D146"}
+{"name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5","decision":"D147"}
+{"name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null","decision":"D147"}
+{"name":"avg-of-a-group","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg)","expect":"{:a 2 :b 5}","decision":"D147"}
+{"name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| [type /index]","expect":"[::AvgElementNotNumberError 1]","decision":"D147"}

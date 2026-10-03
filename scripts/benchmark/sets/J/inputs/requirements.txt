@@ -1,0 +1,9 @@
+# runtime deps
+Flask==2.3.2
+requests>=2.31
+
+numpy==1.26.4
+# dev
+PyYAML==6.0.1
+Django>=4.2
+pytest==7.4.0

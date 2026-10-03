@@ -1,0 +1,11 @@
+2026-03-01T10:00:01Z INFO auth user=bob login ok
+2026-03-01T10:00:05Z ERROR auth user=carol invalid password
+2026-03-01T10:01:10Z WARN billing user=bob card expiring
+2026-03-01T10:02:00Z ERROR billing gateway timeout
+
+2026-03-01T10:02:30Z ERROR billing user=dave charge failed
+2026-03-01T10:03:00Z INFO search query served
+2026-03-01T10:03:44Z ERROR auth user=carol account locked
+2026-03-01T10:04:00Z WARN search user=erin slow response
+2026-03-01T10:05:00Z DEBUG auth user=frank token refresh
+2026-03-01T10:06:00Z ERROR search index missing

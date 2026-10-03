@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "V5",
+ "screenHash": "650c6ab86652",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Every query below was written from the documentation page alone and has not been run.\n\n- **Keys and keywords:** map keys must be keywords, so grouping steps turn strings into keywords with `keyword`.\n- **Number parsing:** `parseJson` reads numbers out of strings in K6 and K12.\n- **Trimming:** the page lists no trim verb, so K11 removes spaces by splitting on `\" \"` and re-joining.\n- **Name-keyed sorts:** K7 and K11 sort by key name, and `sort` on a map would drop the keys. They take `keys` first and look values up through a named copy of the map.\n\nK1: [\"Apple\",\"banana\",\"APPLE\",\"Cherry\",\"banana\",\"date\",\"Date\",\"elderberry\"] * lower | distinct | count\nK2: filter ~(/status | eq \"paid\") | groupBy ~(/customer | keyword) | * (* (at :total | coalesce 0) | sum)\nK3: lines | filter ~(count | gt 0) | * (split \" \" | /1) | groupBy ~keyword | * count\nK4: :d /devDependencies | /dependencies | union d | filter ~(startsWith \"^\") | keys | * keyword | sort\nK5: filter ~(/state | eq \"open\") | sort ~[(at :comments | coalesce 0 | mul -1) /id] | take 3 | * /id\nK6: lines | drop 1 | filter ~(count | gt 0) | * split \",\" | filter ~(/2 | lower | eq \"de\") | filter ~(/1 | count | gt 0) | * (/1 | parseJson) | :a / | a | sum | div (a | count) | mul 10 | round | div 10\nK7: :m /services | m | filter ~(/enabled | eq true) | filter ~(at :port | type | eq ::number) | keys | sort ~(:k / | m | at k | /port) | * (:k / | [(k | keyword) (m | at k | /port | print)] | join \":\")\nK8: /results | filter ~(at :email | coalesce \"\" | split \"@\" | last | lower | eq \"example.com\") | filter ~(/user/name/last | ne null) | * ([/user/name/last /user/name/first] | join \", \")\nK9: filter ~(/user | ne null) | filter ~(/action | lower | eq \"login\") | * (/user | lower) | distinct | sort\nK10: filter ~(at :salary | ne null) | groupBy ~(/dept | keyword) | * (:g / | g | * /salary | sum | div (g | count) | mul 100 | round | div 100)\nK11: * (at :tags | coalesce \"\" | split \",\" | * (split \" \" | join \"\" | lower) | filter ~(count | gt 0)) | flat | groupBy ~keyword | * count | :c / | keys | sort ~[(:k / | c | at k | mul -1) /] | take 3 | * keyword\nK12: lines | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) | * split \"|\" | * (mul (/1 | parseJson) (/2 | parseJson)) | sum | mul 100 | round | div 100\nK13: /services | filter ~(/env | lower | eq \"prod\") | every ~(at :replicas | coalesce 1 | gte 2)\nK14: * {:id /id :itemCount (at :items | coalesce [] | * /qty | sum)} | filter ~(/itemCount | gt 0) | sort ~[(/itemCount | mul -1) /id] | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9837,
+ "outputTokens": 5710,
+ "calls": null
+}

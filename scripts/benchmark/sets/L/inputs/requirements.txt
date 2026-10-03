@@ -1,0 +1,9 @@
+# base deps
+Requests==2.31.0
+flask>=2.0
+
+numpy==1.26.4
+  # indented comment
+Django==4.2.1
+pytest>=7.0,<8
+PyYAML==6.0.1

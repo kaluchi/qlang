@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "L1: * (/status | lower | eq \"paid\") | /items * (/qty * (/price | add 0 !| 0)) | sum | round 2\n\nL2: * (/state | eq \"open\") * (/labels | * .) | group\n\nL3: ((/dependencies | * (/. | starts \"^0.\") | keys) + (/devDependencies | * (/. | starts \"^0.\") | keys)) | distinct | sort\n\nL4: /data/users | * (/active | eq true) * (/email | eq null | not) | * /email | * lower | distinct | sort\n\nL5: /services | * ((/enabled | . !| true | eq true) * (/port | eq null | not)) | keys | * {:name /., :port (/services | /. | /port)} | sort\n\nL6: split \"\\n\" | * {method: (. | split \" \" | /1), status: (. | split \" \" | /3), duration: (. | split \" \" | /4)} | * (/method | eq \"GET\") | * (/status | eq \"200\") | * (/duration | sub \"ms\" \"\" | to_number) | average | round 1\n\nL7: split \"\\n\" | * (. | split \",\" | {:name /0, :dept /1, :salary /2}) | * ((/name | ne \"name\") * (/salary | ne \"\")) | * {:dept (/dept | lower), :salary (/salary | to_number)} | group /dept | * (avg /salary | round)\n\nL8: * /user | group | * {user: /., count: /count} | sort | first 3 | * (/user + \":\" + /count)\n\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" | * (. | trim | lower) | distinct | sort | join \"|\"\n\nL10: split \"\\n\" | * (. | trim) | * (. | ne \"\") | * (. | /0 | ne \"#\") | * (. | contains \"==\") | * ({:name (. | split \"==\" | /0 | lower), :version (. | split \"==\" | /1)}) | to_object\n\nL11: * (/state | eq \"open\") * (/assignee | eq null) | sort | first 2 | * /number\n\nL12: * /customer | group | * {customer: /., count: /count} | * (/count | ge 2 | /customer) | sort\n\nL13: /data/users | * {name: /name, country: (/address/country !| \"unknown\")} | group /country | * sort\n\nL14: * (/type | eq \"push\") * (/payload/repo/name | eq null | not) | * /payload/repo/name | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 5544,
+ "outputTokens": 34083,
+ "calls": null
+}

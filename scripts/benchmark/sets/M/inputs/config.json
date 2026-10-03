@@ -1,0 +1,42 @@
+{
+  "env": "prod",
+  "services": {
+    "api": {
+      "host": "api.local",
+      "port": 8443,
+      "tls": {
+        "enabled": true
+      }
+    },
+    "web": {
+      "host": "web.local",
+      "tls": {
+        "enabled": true
+      }
+    },
+    "db": {
+      "host": "db.local",
+      "port": 5432
+    },
+    "cache": {
+      "host": "cache.local",
+      "port": 6379,
+      "tls": {
+        "enabled": false
+      }
+    },
+    "auth": {
+      "host": "auth.local",
+      "port": 9000,
+      "tls": {}
+    },
+    "queue": {
+      "host": "q.local",
+      "port": 5672,
+      "tls": {
+        "enabled": true
+      },
+      "replicas": null
+    }
+  }
+}

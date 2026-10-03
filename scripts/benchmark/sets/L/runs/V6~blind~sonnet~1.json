@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These queries come from the page alone and none were run, so some rest on guesses:\n- **Modifiers I assumed:** `round 2`, `groupBy ~(…)` and `indexBy ~(…)` taking a key quote, and `reduce #[] ~(union)`.\n- **No `trim` verb:** the page lists none, so L9 and L10 remove spaces with `split \" \" | join \"\"`. That is safe only because no name or version contains an inner space.\n- **L6:** the average is 76.25 and the final rounding step may land on either side.\n\nL1: filter ~(/status | lower | eq \"paid\") * /items | flat * (mul /qty (at :price | coalesce 0)) | sum | round 2\nL2: filter ~(/state | eq \"open\") * (at :labels | coalesce []) | flat | groupBy * count\nL3: [(/dependencies | filter ~(startsWith \"^0.\") | keys) (/devDependencies | filter ~(startsWith \"^0.\") | keys)] | reduce #[] ~(union) * keyword | sort\nL4: /data/users | filter ~(/active | eq true) | filter ~(at :email | ne null) * (/email | lower) | distinct | sort\nL5: /services | :s / | keys * {:name keyword :svc (s | at /)} | filter ~(/svc | at :enabled | coalesce true) | filter ~(/svc/port | ne null) * {:name /name :port /svc/port} | sort ~/port\nL6: lines | filter ~(count | gt 0) * split \" \" | filter ~(/1 | eq \"GET\") | filter ~(/3 | eq \"200\") * (/4 | split \"ms\" | first | parseJson) | :d / | sum | div (d | count) | round 1\nL7: lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/2 | ne \"\") | groupBy ~(/1 | lower) * (/ * (/2 | parseJson) | :v / | sum | div (v | count) | round 0)\nL8: groupBy ~(/user) * count | :c / | keys * {:u keyword :n (c | at /)} | sort ~([(/n | mul -1) /u]) | take 3 * (:r / | /u | append \":\" | append (r | /n | print))\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \" \" | join \"\" | split \",\" * lower | distinct | sort | join \"|\"\nL10: lines * (split \" \" | join \"\") | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") * split \"==\" | indexBy ~(/0 | lower) * /1\nL11: filter ~(/state | eq \"open\") | filter ~(at :assignee | eq null) | sort ~([(/comments | mul -1) /number]) | take 2 * /number\nL12: groupBy ~(/customer) | filter ~(count | gte 2) | keys * keyword | sort\nL13: /data/users | groupBy ~(at :address | coalesce {} | at :country | coalesce \"unknown\") * (/ * /name | sort)\nL14: filter ~(/type | eq \"push\") | filter ~(at :payload | coalesce {} | at :repo | coalesce {} | at :name | ne null) * /payload/repo/name | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9792,
+ "outputTokens": 5750,
+ "calls": null
+}

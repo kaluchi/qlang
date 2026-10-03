@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "Looking at the qlang documentation, I'll write queries for each task. The language uses pipelines with `|`, mapping with `*`, field access with `/`, and object literals with `:key value` syntax.\n\nH1: | filter (/active | eq true) | filter (/country | lower | eq \"de\") | filter (/age | type | eq ::number) | filter (/age | ge 30) | * /name | sort\n\nH2: | filter (/status | lower | eq \"paid\") | * (/items * (/qty * /price) | sum) | sum | round 2\n\nH3: | group-by (/customer | lower) | * {/[0]: (/[1] | count)}\n\nH4: {:name /name :depCount (/dependencies | keys | count) :devDepCount (/devDependencies | keys | count) :scripts (/scripts | keys | sort)}\n\nH5: | filter (/state | eq \"open\") | sort-by /comments | reverse | sort-by /id | take 3 | * /id\n\nH6: | * (/labels | default []) | flatten | * (. | lower) | unique | sort\n\nH7: | filter (/state | eq \"open\") | * (/assignee /login | default \"unassigned\") | group-by . | * {/[0]: (/[1] | count)}\n\nH8: | split \"\\n\" | filter (. | length | gt 0) | * (. | split \" \") | filter (/[1] | eq \"ERROR\") | * /[2] | group-by . | * {/[0]: (/[1] | count)}\n\nH9: | split \"\\n\" | filter (. | length | gt 0) | filter (. | match /ERROR|WARN/) | * (. | match /user=(\\w+)/ | /[1]) | unique | sort\n\nH10: | split \"\\n\" | * (. | split \",\") | * {:host /[0] :region /[1] :cpu /[2] :mem /[3] :status /[4]} | filter ((/status | lower | eq \"up\") & (/cpu | ne \"\")) | group-by /region | * {/[0]: ((/[1] * /cpu | * tonumber | average) | round 1)}\n\nH11: | split \"\\n\" | filter (. | length | gt 0 & . | starts-with \"#\" | not) | * (. | split \"=\") | filter (/[0] | lower | starts-with \"db_\") | * {((/[0] | lower | substring 3)): /[1]}\n\nH12: | /services | filter (/enabled | eq true) | * {:name /name :timeout (/timeout // /.. /defaults /timeout) :team (/owner /team // \"none\")} | sort-by /name\n\nH13: | /results | filter (/score | type | eq ::number & /score | ge 50) | sort-by /score | reverse | * ((/profile /first) + \" \" + (/profile /last) + \": \" + (/tags | default [] | join \"|\"))\n\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | split /\\W+/ | * (. | lower) | filter (. | length | gt 0) | group-by . | * {:word /[0] :count (/[1] | count)} | sort-by /count | reverse | sort-by /word | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 5608,
+ "outputTokens": 22827,
+ "calls": null
+}

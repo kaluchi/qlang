@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "All 14 queries ran and gave plausible answers. I checked J1, J2, J7 and J11 by hand against the data. For the rest I only checked that the output looked right.\n\n- **J13 and J14:** the J13 and J14 queries were each run only once.\n- **J3:** it builds the name from `print` of the keyword key, which is fine for this file. A package name that needed quoting, such as a scoped `@types/x`, would break it.\n- **J11:** it relies on `sort` being stable, which the tie between `/api/billing` and `/api/items` confirmed.\n\nH1: /data | filter ~(and (/active | eq true) (coalesce ~(/address/city) ~(null) | type | eq ::string)) | sort ~(/name | lower) * /name\nH2: filter ~(coalesce ~(/status | lower) ~(\"\") | eq \"paid\") * (/items * mul /qty /price) | flat | sum | round 2\nH3: :d (/devDependencies) | /dependencies | union d | :m (filter ~(startsWith \"^\")) | m | keys * (:n (print | drop 1) | :v (m | at n) | n | append \"@\" | append v)\nH4: filter ~(/state | eq \"open\") | groupBy ~(coalesce ~(/assignee/login) ~(\"unassigned\")) * count\nH5: :d (/defaults) | /services | filter ~(coalesce ~(/enabled) ~(true) | eq true) | sort ~(/name) * {:name /name :timeout (coalesce ~(/timeout) ~(d | /timeout)) :retries (coalesce ~(/retries) ~(d | /retries))}\nH6: filter ~(coalesce ~(/durationMs) ~(null) | type | eq ::number) | groupBy ~(/service) * (* /durationMs | :c (count) | :s (sum) | s | div c | round 1)\nH7: filter ~(and (coalesce ~(/stock) ~(null) | type | eq ::number) (coalesce ~(/stock) ~(0) | gt 0)) | sort ~(/price) | reverse | take 3 * /name\nH8: groupBy ~(/dept) * (* (coalesce ~(/skills) ~([])) | flat * lower | distinct | sort)\nH9: filter ~(/role | lower | eq \"db\") | every ~(and (/region | eq \"eu-west\") (/cpu/cores | gte 8))\nH10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split \",\" * (split \";\") | flat * (split \"@\" | at 1 | lower) | distinct | sort\nH11: lines * (split \" \") | filter ~(at 3 | gte \"500\") | groupBy ~(at 2) | vals * {:path (first | at 2) :count count} | sort ~(/path) | sort ~(/count | mul -1) | take 2\nH12: lines | drop 1 * (split \",\") | filter ~(at 2 | ne \"\") | groupBy ~(at 1) * (* (at 2 | parseJson) | :c (count) | :s (sum) | s | div c | round 2)\nH13: lines | filter ~(contains \"==\") | filter ~(startsWith \"#\" | not) * (split \"==\") | indexBy ~(at 0 | lower) * (at 1)\nH14: sort ~(coalesce ~(/comments * (coalesce ~(/likes) ~(0)) | sum) ~(0)) | last | /title",
+ "failed": false,
+ "turns": 39,
+ "inputTokens": 652952,
+ "outputTokens": 11329,
+ "calls": null
+}

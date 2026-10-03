@@ -1,0 +1,47 @@
+[
+  {
+    "user": "u1",
+    "action": "login",
+    "ts": 1
+  },
+  {
+    "user": "u2",
+    "action": "login",
+    "ts": 2
+  },
+  {
+    "user": "u1",
+    "action": "login",
+    "ts": 3
+  },
+  {
+    "user": "u3",
+    "action": "logout",
+    "ts": 4
+  },
+  {
+    "user": "U2",
+    "action": "Login",
+    "ts": 5
+  },
+  {
+    "user": "u4",
+    "action": "purchase",
+    "ts": 6
+  },
+  {
+    "user": null,
+    "action": "login",
+    "ts": 7
+  },
+  {
+    "user": "u5",
+    "action": "login",
+    "ts": 8
+  },
+  {
+    "user": "u3",
+    "action": "LOGIN",
+    "ts": 9
+  }
+]

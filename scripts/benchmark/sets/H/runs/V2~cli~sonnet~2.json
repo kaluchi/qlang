@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "V2",
+ "screenHash": "0fa3ea0f6f6e",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "All 14 queries ran against their input files and gave the expected answers. I checked H2, H5 and H10 by hand.\n\n- **Rounding:** qlang has no `round` verb. H2 and H10 round by adding 0.5, then keeping the part of the printed number before the \".\", then dividing back.\n- **`--raw`:** H8 to H11 read text files, so run them with `qlang --raw '<query>' < file`.\n- **Map output:** `--raw` prints map keys in qlang form (`:auth`), not JSON form (`\"auth\"`).\n\nH1: filter ~(if (at :active | eq true) ~(if (at :country | upper | eq \"DE\") ~(if (at :age | type | eq ::number) ~(/age | gte 30) ~(false)) ~(false)) ~(false)) * /name | sort\nH2: filter ~(/status | lower | eq \"paid\") * (/items * (mul /qty /price)) | flat | sum | mul 100 | add 0.5 | print | split \".\" | first | parseJson | div 100\nH3: groupBy ~(/customer | lower) * count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys * keyword | sort)}\nH5: filter ~(/state | eq \"open\") | sort ~([(/comments | mul -1) /id]) | take 3 * /id\nH6: * (coalesce ~(/labels) ~([])) | flat * lower | distinct | sort\nH7: filter ~(/state | eq \"open\") | groupBy ~(coalesce ~(/assignee/login) ~(\"unassigned\")) * count\nH8: lines * split \" \" | filter ~(count | gt 2) | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) * count\nH9: lines * split \" \" | filter ~(count | gt 2) | filter ~(/1 | if (eq \"ERROR\") ~(true) ~(eq \"WARN\")) * (filter ~(startsWith \"user=\")) | flat * (split \"=\" | /1) | distinct | sort\nH10: lines | drop 1 * split \",\" | filter ~(count | gt 4) | filter ~(/4 | lower | eq \"up\") | filter ~(/2 | eq \"\" | not) | groupBy ~(/1) * (:n (count) | * (/2 | parseJson) | sum | div n | mul 10 | add 0.5 | print | split \".\" | first | parseJson | div 10)\nH11: lines | filter ~(split \"=\" | /0 | upper | startsWith \"DB_\") | groupBy ~(split \"=\" | /0 | split \"\" | drop 3 | join \"\" | lower) * (first | split \"=\" | drop 1 | join \"=\")\nH12: :d /defaults/timeout | /services | filter ~(/enabled | eq true) * {:name /name :timeout (coalesce ~(/timeout) ~(d)) :team (coalesce ~(/owner/team) ~(\"none\"))} | sort ~(/name)\nH13: /results | filter ~(if (at :score | type | eq ::number) ~(/score | gte 50) ~(false)) | sort ~(/score) | reverse * (:p / | /profile/first | append \" \" | append (p | /profile/last) | append \": \" | append (p | coalesce ~(/tags) ~([]) | join \"|\"))\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | split \"\" * (if (gte \"a\") ~(if (lte \"z\") ~(/) ~(\" \")) ~(\" \")) | join \"\" | split \" \" | filter ~(split \"\" | count | gt 0) | :ws / | distinct * (:x / | {:word x :count (ws | filter ~(eq x) | count)}) | sort ~([(/count | mul -1) /word]) | take 3",
+ "failed": false,
+ "turns": 24,
+ "inputTokens": 388518,
+ "outputTokens": 9122,
+ "calls": null
+}

@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These are single-attempt guesses. The page names no verbs apart from a few (`doc`, `open`, `count`, `eq`, `gt`, `add`, `type`), so most verb names below (`filter`, `groupBy`, `sort`, `lower`, `split`, and so on) are assumptions that I couldn't check.\n\nK1: K1: `[\"Apple\" \"banana\" \"APPLE\" \"Cherry\" \"banana\" \"date\" \"Date\" \"elderberry\"] * lower | distinct | count`\nK2: K2: `filter (/status | eq \"paid\") | groupBy /customer | mapVals (* (/total | default 0) | sum)`\nK3: K3: `lines * (split \" \" | /1) | countBy`\nK4: K4: `[/dependencies /devDependencies] * keys | flat | distinct | filter (. | startsWith \"^\") | sort`\nK5: K5: `filter (/state | eq \"open\") | sortBy [{:k (/comments | default 0) :desc true} {:k /id}] | take 3 * /id`\nK6: K6: `lines | drop 1 * split \",\" | filter ((/2 | lower | eq \"de\") | and (/1 | ne \"\")) * (/1 | toNumber) | avg | round 1`\nK7: K7: `/services | entries | filter ((/1/enabled | eq true) | and (/1/port | isNumber)) | sortBy /1/port * (/0 | add \":\" | add (/1/port | str))`\nK8: K8: `/results | filter ((/email | ne null) | and (/email | split \"@\" | /1 | lower | eq \"example.com\") | and (/user/name/last | ne null)) * (/user/name/last | add \", \" | add /user/name/first)`\nK9: K9: `filter ((/user | ne null) | and (/action | lower | eq \"login\")) * (/user | lower) | distinct | sort`\nK10: K10: `filter (/salary | ne null) | groupBy /dept | mapVals (* /salary | avg | round 2)`\nK11: K11: `* (/tags | default \"\" | split \",\" * trim | * lower | filter (. | ne \"\")) | flat | countBy | entries | sortBy [{:k /1 :desc true} {:k /0}] | take 3 * /0`\nK12: K12: `lines * trim | filter ((. | ne \"\") | and (. | startsWith \"#\" | not)) * (split \"|\" | (/1 | toNumber | mul (/2 | toNumber))) | sum | round 2`\nK13: K13: `/services | filter (/env | lower | eq \"prod\") | all ((/replicas | default 1) | gte 2)`\nK14: K14: `* {:id /id :itemCount (/items | default [] * /qty | sum)} | filter (/itemCount | gt 0) | sortBy [{:k /itemCount :desc true} {:k /id}] | take 3`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6561,
+ "outputTokens": 1192,
+ "calls": null
+}

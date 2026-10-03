@@ -1,0 +1,16 @@
+{
+ "set": "N",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These queries are untested, each a single attempt from the page alone. A few rest on assumptions I couldn't check:\n- `groupBy` and `indexBy` take a quoted key and turn string keys into keywords.\n- `sum` of an empty vector is 0.\n- `parseJson` reads numeric strings such as \"2.50\", which I rely on in N7.\n- The page lists no `trim`, so N10 and N14 strip spaces with `split \" \" | join \"\"`. That is safe here only because the tags and requirement lines contain no meaningful inner spaces.\n\nN1: /data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | * (/email | split \"@\" | last | lower) | distinct | sort\nN2: filter ~(/status | lower | eq \"paid\") | * {:c /customer/name :a ([(/lines * (mul /qty /unit_price) | sum) (at :discount | coalesce 0 | mul -1)] | sum)} | groupBy ~/c | * {:customer (first | /c) :total (* /a | sum | mul 100 | round | div 100)} | vals | sort ~/total | reverse | take 2\nN3: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | coalesce {:login \"unassigned\"} | /login) | * count\nN4: :p / | (at :dependencies | coalesce {}) | union (p | at :devDependencies | coalesce {}) | filter ~(startsWith \"^\") | keys | * keyword | sort\nN5: /services | vals | filter ~(at :enabled | eq true) | {:enabledCount count :ports (* (at :port) | filter ~(type | eq ::number) | distinct | sort) :totalReplicas (* (at :replicas | coalesce 1) | sum)}\nN6: lines | filter ~(contains \" ERROR \") | * (split \"[\" | /1 | split \"]\" | /0) | groupBy ~(/) | vals | * {:service first :count count} | sort ~([(/count | mul -1) /service]) | take 2\nN7: lines | drop 1 | filter ~(count | gt 0) | * (split \",\") | filter ~(/2 | ne \"\") | filter ~(/3 | ne \"\") | * {:r (/0 | lower) :q (/2 | parseJson) :p (/3 | parseJson)} | * {:r /r :v (mul /q /p)} | groupBy ~/r | * (* /v | sum | mul 100 | round | div 100)\nN8: :ev / | (filter ~(/type | lower | eq \"login\") | * /user | distinct) | minus (ev | filter ~(/type | lower | eq \"logout\") | * /user | distinct) | sort\nN9: filter ~(at :salary | type | eq ::number) | groupBy ~/dept | * (* /salary | :v / | sum | div (v | count) | mul 10 | round | div 10)\nN10: lines | filter ~(count | gt 0) | * (split \":\" | last | split \",\" | * (split \" \" | join \"\" | lower)) | flat | distinct | sort\nN11: [\"Apple\" \"banana\" \"apple\" \"Cherry\" \"BANANA\" \"apple\" \"date\"] | * lower | groupBy ~(/) | vals | * {:word first :count count} | filter ~(/count | gt 1) | sort ~([(/count | mul -1) /word])\nN12: /releases | filter ~(/draft | eq false) | filter ~(/prerelease | eq false) | * {:tag /tag_name :downloads (/assets * (at :download_count | coalesce 0) | sum)} | sort ~/downloads | reverse | take 3\nN13: filter ~(/category | lower | eq \"tools\") | :t / | {:count count :allPriced (every ~(at :price | coalesce 0 | gt 0)) :inStockNames (filter ~(/stock | gt 0) | * /name | sort)}\nN14: lines | * (split \"#\" | first | split \" \" | join \"\") | filter ~(count | gt 0) | filter ~(startsWith \"-\" | not) | filter ~(contains \"==\") | indexBy ~(split \"==\" | first | lower) | * (split \"==\" | last)",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 11450,
+ "outputTokens": 5922,
+ "calls": null
+}

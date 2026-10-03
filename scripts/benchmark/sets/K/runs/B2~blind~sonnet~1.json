@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "I could not check any of these queries. The page lists no verb names, so verbs such as `filter`, `groupBy`, `sort`, `distinct`, `sum`, `lower`, `split`, `keys`, `take`, `round`, `avg` and `default` are guesses, and so are some argument shapes. Each query is my single attempt written from the page alone.\n\nK1: `[\"Apple\" \"banana\" \"APPLE\" \"Cherry\" \"banana\" \"date\" \"Date\" \"elderberry\"] * lower | distinct | count`\nK2: `filter (/status | eq \"paid\") | groupBy /customer | mapValues (* (/total | default 0) | sum)`\nK3: `split \"\\n\" | filter (ne \"\") * (split \" \" | /1) | countBy`\nK4: `[(/dependencies) (/devDependencies)] * keys | flatten | distinct | filter (startsWith \"^\") | sort`\nK5: `filter (/state | eq \"open\") | sort [{:by (/comments | default 0) :desc true} {:by /id}] | take 3 * /id`\nK6: `split \"\\n\" | drop 1 | filter (ne \"\") * (split \",\") | filter ((/2 | lower | eq \"de\") and (/1 | ne \"\")) * (/1 | toNumber) | avg | round 1`\nK7: `/services | entries | filter ((/1/enabled | eq true) and (/1/port | isNumber)) | sort /1/port * (/0 | add \":\" | add (/1/port | toString))`\nK8: `/results | filter ((/email | ne null) and (/email | split \"@\" | /1 | lower | eq \"example.com\") and (/user/name/last | ne null)) * (/user/name/last | add \", \" | add /user/name/first)`\nK9: `filter ((/user | ne null) and (/action | lower | eq \"login\")) * (/user | lower) | distinct | sort`\nK10: `filter (/salary | ne null) | groupBy /dept | mapValues (* /salary | avg | round 2)`\nK11: `* (/tags | default \"\" | split \",\" * (trim | lower) | filter (ne \"\")) | flatten | countBy | entries | sort [{:by /1 :desc true} {:by /0}] | take 3 * /0`\nK12: `split \"\\n\" | filter ((startsWith \"#\" | not) and (trim | ne \"\")) * (split \"|\" | (/1 | toNumber | mul (/2 | toNumber))) | sum | round 2`\nK13: `/services | filter (/env | lower | eq \"prod\") | all (/replicas | default 1 | gte 2)`\nK14: `* {:id /id :itemCount (/items | default [] * /qty | sum)} | filter (/itemCount | gt 0) | sort [{:by /itemCount :desc true} {:by /id}] | take 3`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6561,
+ "outputTokens": 1213,
+ "calls": null
+}

@@ -1,0 +1,16 @@
+{
+ "set": "M",
+ "screen": "V7",
+ "screenHash": "f87e1585c9f0",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These queries come from the first page alone; I could not run any of them. Two assumptions are worth knowing:\n\n- **Number strings:** M13 turns number strings into numbers with `parseJson`, since the page rules out reading a number from a string implicitly.\n- **Key strings:** `groupBy` is assumed to turn string keys into keywords, as in the page's `[\"b\" \"a\" \"b\"]` example.\n\nM14 has no regex, so punctuation is removed by splitting on `.` and `;` and re-joining with spaces. M12 tests the whole line for \"timeout\", which is safe here because the timestamp, level and service never contain it.\n\nM1: filter ~(/active) | filter ~(at :email | ne null) | * (/email | lower) | sort\nM2: filter ~(/profile/age | type | eq ::number !| false) | * /profile/age | :a / | sum | div (a | count) | mul 10 | round | div 10\nM3: filter ~(/profile/country | type | eq ::string !| false) | groupBy ~(/profile/country | upper) * count\nM4: filter ~(/state | eq \"open\") | filter ~(/labels | any ~(lower | eq \"bug\")) | sort ~[(/priority | mul -1) /id] | take 2 * /id\nM5: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | coalesce \"unassigned\") * count\nM6: * /labels | flat | * lower | distinct | sort\nM7: /dependencies | entries * {:name (/0 | keyword) :version (/1 | if (startsWith \"^\") ~(drop 1) ~(if (startsWith \"~\") ~(drop 1) ~(/)))} | sort ~/name\nM8: filter ~(:s /status | [\"paid\" \"shipped\"] | contains s) * (/items * (mul /qty /price)) | flat | sum | mul 100 | round | div 100\nM9: filter ~(/status | ne \"cancelled\") | groupBy ~/customer * (* (/items * (mul /qty /price) | sum) | sum) | entries * {:customer (/0 | keyword) :total (/1 | mul 100 | round | div 100)} | sort ~[(/total | mul -1) /customer] | take 2\nM10: /services | entries | filter ~(/1/tls/enabled | eq true !| false) | sort ~/0 * (/1 | [/host (at :port | coalesce 80 | print)] | join \":\")\nM11: lines | filter ~(split \" \" | /1 | eq \"ERROR\" !| false) | groupBy ~(split \" \" | /2) * count\nM12: lines | filter ~(split \" \" | /1 | :l / | [\"WARN\" \"ERROR\"] | contains l !| false) | filter ~(lower | contains \"timeout\") | * (split \" \" | /2) | distinct | sort\nM13: lines | drop 1 | filter ~(split \",\" | /2 | ne \"\" !| false) | groupBy ~(split \",\" | /1) * (* (split \",\" | /2 | parseJson) | :v / | sum | div (v | count) | round)\nM14: \"The quick brown fox jumps over the lazy dog. The dog sleeps; the fox runs. A fox is quick.\" | lower | split \".\" | join \" \" | split \";\" | join \" \" | split \" \" | filter ~(count | gt 0) | groupBy ~/ * count | entries * {:word (/0 | keyword) :count /1} | sort ~[(/count | mul -1) /word] | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9379,
+ "outputTokens": 4866,
+ "calls": null
+}

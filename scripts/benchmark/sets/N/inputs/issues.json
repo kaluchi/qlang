@@ -1,0 +1,84 @@
+[
+  {
+    "number": 101,
+    "title": "Crash on start",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "bug",
+      "p1"
+    ]
+  },
+  {
+    "number": 102,
+    "title": "Docs typo",
+    "state": "closed",
+    "assignee": {
+      "login": "leo"
+    },
+    "labels": [
+      "docs"
+    ]
+  },
+  {
+    "number": 103,
+    "title": "Add dark mode",
+    "state": "open",
+    "assignee": null,
+    "labels": [
+      "feature"
+    ]
+  },
+  {
+    "number": 104,
+    "title": "Slow query",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "bug",
+      "perf"
+    ]
+  },
+  {
+    "number": 105,
+    "title": "Update deps",
+    "state": "open",
+    "labels": []
+  },
+  {
+    "number": 106,
+    "title": "Memory leak",
+    "state": "open",
+    "assignee": {
+      "login": "leo"
+    },
+    "labels": [
+      "Bug"
+    ]
+  },
+  {
+    "number": 107,
+    "title": "Flaky test",
+    "state": "closed",
+    "assignee": null,
+    "labels": [
+      "bug"
+    ]
+  },
+  {
+    "number": 108,
+    "title": "Export CSV",
+    "state": "open",
+    "assignee": {
+      "login": "leo"
+    },
+    "labels": [
+      "feature",
+      "p2"
+    ]
+  }
+]

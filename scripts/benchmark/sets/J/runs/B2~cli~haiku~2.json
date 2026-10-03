@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "cli",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Based on my exploration of qlang and the data files, here are the queries for each task:\n\nJ1: /data | filter ~(/active | eq true) | filter ~(coalesce ~(/address/city) ~(false) | ne false) * /name | sort ~(lower)\n\nJ2: | filter ~(coalesce ~(/status | lower) ~(\"\") | eq \"paid\") * /items | flat * (mul /qty /price) | sum | round 2\n\nJ3: [/dependencies /devDependencies] | reduce {} ~(union) | filter ~(startsWith \"^\") | keys * keyword | sort\n\nJ4: | filter ~(/state | eq \"open\") | groupBy ~(coalesce ~(/assignee/login) ~(\"unassigned\")) * count\n\nJ5: /services | filter ~(coalesce ~(/enabled) ~(true) | eq true) * {:name /name :timeout (coalesce ~(/timeout) ~(30)) :retries (coalesce ~(/retries) ~(3))} | sort ~(/name)\n\nJ6: | filter ~(coalesce ~(/durationMs) ~(false) | ne false) | groupBy ~/service * (apply ~(* /durationMs | sum | div (count) | round 1))\n\nJ7: | filter ~(coalesce ~(/stock) ~(0) | gt 0) | sort ~(/price) | reverse | take 3 * /name\n\nJ8: | groupBy ~/dept * (apply ~(coalesce ~/skills ~([]) | flat * lower | distinct | sort))\n\nJ9: | every ~(if (/role | lower | eq \"db\") ~(/region | eq \"eu-west\") ~(true))\n\nJ10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split ~(^[,;]\\s*) | * (split ~(@) | last | lower) | distinct | sort\n\nJ11: apply ~(lines | * apply ~(split \" \" | if (gte (at 3) 500) ~({:path (at 2) :count 1}) ~(false)) | filter ~(ne false) | groupBy ~/path * count | sort ~(/value) | reverse | take 2 | * {:path /key :count /value})\n\nJ12: apply ~(lines | drop 1 | filter ~(ne \"\") | * apply ~(split \",\" | {:name (at 0) :team (at 1) :score (at 2 | parse)}) | filter ~(/score | ne \"\") | groupBy ~/team * (apply ~(* /score | sum | div (count) | round 2)))\n\nJ13: apply ~(lines | filter ~(ne \"\") | filter ~(startsWith \"#\" | every) | * apply ~(split \"==\" | {:name (at 0 | lower) :version (at 1)}) | reduce {} ~(union))\n\nJ14: | sort ~((coalesce ~/comments ~([]) | * (coalesce ~/likes ~(0)) | sum)) | reverse | first | /title",
+ "failed": false,
+ "turns": 169,
+ "inputTokens": 7074878,
+ "outputTokens": 36617,
+ "calls": null
+}

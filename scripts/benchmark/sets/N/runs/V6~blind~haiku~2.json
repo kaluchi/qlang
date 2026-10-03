@@ -1,0 +1,16 @@
+{
+ "set": "N",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Looking at the qlang documentation, I'll write queries for each task. Let me work through them carefully, understanding the pipeline model and how to combine operations.\n\nN1: /data/users | filter ~(if (/active | eq true) (at /email | ne null) (false)) | * (/email | split \"@\" | /1 | lower) | distinct | sort\n\nN2: filter ~(/status | lower | eq \"paid\") | * ({:customer /customer/name :amount (:discount (at /discount | coalesce 0) | /lines | * (mul /qty /unit_price) | sum | sub discount)}) | groupBy ~/customer | * ({:name (/ | * /customer | first), :total (/ | * /amount | sum)}) | sort ~(/total) | reverse | take 2 | * ({:customer /name, :total (/total | round 2)})\n\nN3: filter ~(eq /state \"open\") | * ((at /assignee | if . (/login) (\"unassigned\"))) | groupBy * | * count\n\nN4: [(at /dependencies | coalesce {}) | filter ~(startsWith \"^\") | keys | * keyword, (at /devDependencies | coalesce {}) | filter ~(startsWith \"^\") | keys | * keyword] | flat | sort\n\nN5: /services | filter ~(eq /enabled true) | ({:enabledCount (count), :ports (/ | * (at /port | coalesce null) | filter ~(ne null) | distinct | sort), :totalReplicas (/ | * (at /replicas | coalesce 1) | sum)})\n\nN6: lines | filter ~(contains \" ERROR \") | * ({:service (split \"[\" | /1 | split \"]\" | /0), :count 1}) | groupBy ~/service | * ({:service (/ | /service | first), :count (/ | /count | sum)}) | sort ~([(/count | mul -1) /service]) | take 2\n\nN7: lines | drop 1 | filter ~(ne \"\") | * (split \",\") | filter ~(if (/2 | ne \"\") (/3 | ne \"\") (false)) | * ({:region (/0 | lower), :revenue (mul /2 /3)}) | groupBy ~/region | * (/ | * /revenue | sum | round 2)\n\nN8: groupBy ~/user | filter ~(if ((/ | * (/type | lower)) | contains \"login\") (if ((/ | * (/type | lower)) | contains \"logout\") ~(false) ~(true)) ~(false)) | keys | * keyword | sort\n\nN9: filter ~(at /salary | ne null) | groupBy ~/dept | * (:count (count) | (/ | * /salary | sum) | div /count | round 1)\n\nN10: lines | filter ~(ne \"\") | * ((split \":\" | /1 | split \",\" | * (lower | trim)) | distinct) | flat | distinct | sort\n\nN11: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"apple\",\"date\"] | * (lower) | groupBy * | * ({:word /, :count (/ | count)}) | filter ~(/count | gt 1) | sort ~([(/count | mul -1) /word])\n\nN12: /releases | filter ~((eq /draft false) | if / (ne /prerelease true) (false)) | * ({:tag /tag_name, :downloads (/assets | * (at /download_count | coalesce 0) | sum)}) | sort ~(/downloads | mul -1) | take 3\n\nN13: filter ~(/category | lower | eq \"tools\") | {:count (count), :allPriced (every ~(if (at /price) (gt 0) (false))), :inStockNames (. | filter ~(gt /stock 0) | * /name | sort)}\n\nN14: lines | filter ~(ne \"\") | filter ~(ne (startsWith \"#\")) | filter ~(ne (startsWith \"-\")) | filter ~(contains \"==\") | * (split \"==\" | :name (/0 | lower) | :{name /1}) | reduce {} ~(union)",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9625,
+ "outputTokens": 40139,
+ "calls": null
+}

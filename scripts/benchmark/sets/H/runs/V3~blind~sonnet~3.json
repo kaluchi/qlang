@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "V3",
+ "screenHash": "a6c241cc56a5",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "Several steps are guesses the page does not confirm: `round` (and its argument), `coalesce` with a fallback, and `indexBy` with string keys. Some of the `eq \"\"` and `split` edge cases are guesses too. Nothing was run.\n\nH1: filter ~([/active (/country | lower | eq \"de\") (at :age | if (type | eq ::number) ~(gte 30) ~(false))] | every ~(/)) * /name | sort\nH2: filter ~(/status | lower | eq \"paid\") * (/items * mul /qty /price) | flat | sum | round 2\nH3: groupBy ~(/customer | lower) * count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | sort)}\nH5: filter ~(/state | eq \"open\") | sort ~([(/comments | mul -1) /id]) | take 3 * /id\nH6: * (at :labels | coalesce []) | flat * lower | distinct | sort\nH7: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | if (type | eq ::map) ~(/login) ~(\"unassigned\")) * count\nH8: lines | filter ~(eq \"\" | not) * split \" \" | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) * count\nH9: lines | filter ~(eq \"\" | not) * split \" \" | filter ~([(/1 | eq \"ERROR\") (/1 | eq \"WARN\")] | any ~(/)) * (drop 3 | filter ~(startsWith \"user=\")) | flat * (split \"=\" | /1) | distinct | sort\nH10: lines | drop 1 | filter ~(eq \"\" | not) * split \",\" | filter ~([(/4 | upper | eq \"UP\") (/2 | eq \"\" | not)] | every ~(/)) | groupBy ~(/1) * (* (/2 | parseJson) | :xs / | sum | div (xs | count) | round 1)\nH11: lines | filter ~(lower | startsWith \"db_\") * (split \"=\" | {:k (/0 | lower | split \"_\" | drop 1 | join \"_\" | keyword) :v (drop 1 | join \"=\")}) | indexBy ~/k * /v\nH12: :dt /defaults/timeout | /services | filter ~(/enabled) | sort ~/name * {:name /name :timeout (at :timeout | coalesce dt) :team (at :owner | coalesce {} | at :team | coalesce \"none\")}\nH13: /results | filter ~(at :score | if (type | eq ::number) ~(gte 50) ~(false)) | sort ~/score | reverse * (:t (at :tags | coalesce [] | join \"|\") | [/profile/first /profile/last] | join \" \" | append \": \" | append t)\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | split \" \" * split \";\" | flat * split \",\" | flat * split \".\" | flat * split \"!\" | flat | filter ~(eq \"\" | not) | :ws / | distinct * (:w / | {:word w :count (ws | filter ~(eq w) | count)}) | sort ~([(/count | mul -1) /word]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9840,
+ "outputTokens": 5770,
+ "calls": null
+}

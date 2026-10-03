@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "V3",
+ "screenHash": "a6c241cc56a5",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "These queries come from the documentation page alone and none were run. Three guesses in them are not on the page:\n\n- **`round` (H2, H10):** the page lists no rounding verb, so I assumed one called `round` exists.\n- **`groupBy` (H3, H7, H8, H10, H14):** I assumed it answers a map from key to the vector of its elements, with keyword keys.\n- **`if (has :k)` (H6, H12, H13):** I assumed `has :k` tests whether a map has a key.\n\nH14 splits on `;`, `.`, `,` and `!` in turn, because there is no regex or replace verb.\n\nH1: filter ~(/active | eq true) | filter ~(/country | lower | eq \"de\") | filter ~(at :age | type | eq ::number) | filter ~(/age | gte 30) | * /name | sort\nH2: filter ~(/status | lower | eq \"paid\") | * (/items * (mul /qty /price) | sum) | sum | mul 100 | round | div 100\nH3: groupBy ~(/customer | lower | keyword) | * count\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | * keyword | sort)}\nH5: filter ~(/state | eq \"open\") | sort ~([(/comments | mul -1) /id]) | take 3 | * /id\nH6: * (if (has :labels) ~(/labels) ~([])) | flat | * lower | distinct | sort\nH7: filter ~(/state | eq \"open\") | groupBy ~((if (at :assignee | eq null) ~(\"unassigned\") ~(/assignee/login)) | keyword) | * count\nH8: lines | filter ~(eq \"\" | not) | * (split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2 | keyword) | * count\nH9: lines | filter ~(eq \"\" | not) | * (split \" \") | filter ~(/1 | :l / | #[\"ERROR\" \"WARN\"] | contains l) | * (drop 3 | filter ~(startsWith \"user=\")) | flat | * (split \"=\" | /1) | distinct | sort\nH10: lines | drop 1 | filter ~(eq \"\" | not) | * (split \",\") | filter ~(/4 | lower | eq \"up\") | filter ~(/2 | eq \"\" | not) | groupBy ~(/1 | keyword) | * (* (/2 | parseJson) | :v / | sum | div (v | count) | mul 10 | round | div 10)\nH11: lines | filter ~(eq \"\" | not) | filter ~(startsWith \"#\" | not) | filter ~(upper | startsWith \"DB_\") | indexBy ~(split \"=\" | first | split \"_\" | drop 1 | join \"_\" | lower | keyword) | * (split \"=\" | drop 1 | join \"=\")\nH12: :d /defaults/timeout | /services | filter ~(/enabled | eq true) | sort ~/name | * {:name /name :timeout (if (at :timeout | type | eq ::number) ~(/timeout) ~(d)) :team (if (at :owner | type | eq ::map) ~(/owner | if (has :team) ~(/team) ~(\"none\")) ~(\"none\"))}\nH13: /results | filter ~(at :score | type | eq ::number) | filter ~(/score | gte 50) | sort ~/score | reverse | * ([([/profile/first /profile/last] | join \" \") (if (has :tags) ~(/tags | join \"|\") ~(\"\"))] | join \": \")\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | split \" \" | * (split \";\") | flat | * (split \".\") | flat | * (split \",\") | flat | * (split \"!\") | flat | filter ~(eq \"\" | not) | groupBy ~(keyword) | :g / | keys | * (:w / | {:word (w | keyword) :count (g | at w | count)}) | sort ~([(/count | mul -1) /word]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9840,
+ "outputTokens": 6106,
+ "calls": null
+}

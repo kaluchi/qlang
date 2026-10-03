@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Looking at the documentation, I need to infer qlang verbs and syntax from the examples provided. Key patterns I can identify:\n\n- `|` pipes values through steps\n- `*` applies to each element\n- `/field` accesses a field\n- `filter`, `sort`, `group_by`, etc. are verbs (inferred from context)\n- `eq`, `ne`, `lt`, `le`, `gt`, `ge` are comparison verbs\n- `and`, `or` for logic\n- Object literals `{:key value}` reshape data\n\nLet me write queries for each task:\n\nH1: /data | filter /active | filter /address/city | * /name | sort\n\nH2: | filter (/status | lowercase | eq \"paid\") | * (/items | * (/qty * /price) | sum) | sum | round 2\n\nH3: (/dependencies | entries) + (/devDependencies | entries) | filter (/[1] | startswith \"^\") | * (/[0] + \"@\" + /[1]) | sort\n\nH4: | filter (/state eq \"open\") | group_by (/assignee/login or \"unassigned\") | to_entries | * {/[0]: (/[1] | count)} | from_entries\n\nH5: . as $root | /services | filter (/enabled ne false) | * {name: /name, timeout: (/timeout or $root/defaults/timeout), retries: (/retries or $root/defaults/retries)} | sort\n\nH6: | filter /durationMs | group_by /service | to_entries | * {/[0]: (/[1] | * /durationMs | avg | round 1)} | from_entries\n\nH7: | filter (/stock gt 0) | sort_by /price | reverse | take 3 | * /name\n\nH8: | group_by /dept | to_entries | * {/[0]: (/[1] | * (/skills or []) | flatten | * lowercase | unique | sort)} | from_entries\n\nH9: | filter (/role | lowercase | eq \"db\") | all (/region eq \"eu-west\" and /cpu/cores ge 8)\n\nH10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | replace \";\" \",\" | split \",\" | * (trim | split \"@\" | /[1] | lowercase) | unique | sort\n\nH11: | split \"\\n\" | * (split \" \") | filter (/[3] ge 500) | * /[2] | group_by . | to_entries | sort_by (negate (/[1] | count)) | take 2 | * {path: /[0], count: (/[1] | count)}\n\nH12: | split \"\\n\" | drop 1 | * (split \",\") | filter (/[2] ne \"\") | group_by /[1] | to_entries | * {/[0]: (/[1] | * (/[2] | tonumber) | avg | round 2)} | from_entries\n\nH13: | split \"\\n\" | filter (. ne \"\" and not (startswith \"#\") and contains \"==\") | * (split \"==\" | {((/[0] | trim | lowercase)): (/[1] | trim)}) | merge\n\nH14: | * {title: /title, total_likes: (/comments or [] | * (/likes or 0) | sum)} | sort_by (negate /total_likes) | /[0]/title",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6872,
+ "outputTokens": 23345,
+ "calls": null
+}

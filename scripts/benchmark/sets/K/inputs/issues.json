@@ -1,0 +1,74 @@
+[
+  {
+    "id": 12,
+    "title": "Crash on start",
+    "state": "open",
+    "comments": 7,
+    "labels": [
+      "bug",
+      "P1"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Docs typo",
+    "state": "closed",
+    "comments": 20,
+    "labels": [
+      "docs"
+    ]
+  },
+  {
+    "id": 19,
+    "title": "Slow query",
+    "state": "open",
+    "comments": 7,
+    "labels": [
+      "perf",
+      "bug"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Add dark mode",
+    "state": "open",
+    "comments": 12,
+    "labels": [
+      "feature"
+    ]
+  },
+  {
+    "id": 25,
+    "title": "Flaky test",
+    "state": "open",
+    "comments": 2,
+    "labels": []
+  },
+  {
+    "id": 31,
+    "title": "Memory leak",
+    "state": "open",
+    "comments": 12,
+    "labels": [
+      "bug",
+      "perf"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Old idea",
+    "state": "closed",
+    "comments": 9,
+    "labels": [
+      "feature"
+    ]
+  },
+  {
+    "id": 40,
+    "title": "No comment count",
+    "state": "open",
+    "labels": [
+      "bug"
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "services": {
+    "web": {
+      "port": 8080,
+      "enabled": true,
+      "env": {
+        "LOG": "info"
+      }
+    },
+    "db": {
+      "port": 5432
+    },
+    "cache": {
+      "port": 6379,
+      "enabled": false
+    },
+    "queue": {
+      "port": 5672,
+      "enabled": true
+    },
+    "admin": {
+      "port": null,
+      "enabled": true
+    },
+    "auth": {
+      "port": 3000,
+      "enabled": true
+    }
+  }
+}

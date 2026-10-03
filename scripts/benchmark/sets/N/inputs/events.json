@@ -1,0 +1,57 @@
+[
+  {
+    "user": "u1",
+    "type": "login",
+    "ts": 1
+  },
+  {
+    "user": "u2",
+    "type": "login",
+    "ts": 2
+  },
+  {
+    "user": "u1",
+    "type": "view",
+    "ts": 3
+  },
+  {
+    "user": "u3",
+    "type": "login",
+    "ts": 4
+  },
+  {
+    "user": "u2",
+    "type": "LOGOUT",
+    "ts": 5
+  },
+  {
+    "user": "u4",
+    "type": "view",
+    "ts": 6
+  },
+  {
+    "user": "u3",
+    "type": "view",
+    "ts": 7
+  },
+  {
+    "user": "u5",
+    "type": "Login",
+    "ts": 8
+  },
+  {
+    "user": "u5",
+    "type": "logout",
+    "ts": 9
+  },
+  {
+    "user": "u1",
+    "type": "login",
+    "ts": 10
+  },
+  {
+    "user": "u6",
+    "type": "login",
+    "ts": 11
+  }
+]

@@ -1,0 +1,94 @@
+[
+  {
+    "id": 101,
+    "title": "Crash on start",
+    "state": "open",
+    "labels": [
+      "Bug",
+      "urgent"
+    ],
+    "assignee": "ann",
+    "priority": 3
+  },
+  {
+    "id": 102,
+    "title": "Add dark mode",
+    "state": "open",
+    "labels": [
+      "feature"
+    ],
+    "assignee": null,
+    "priority": 1
+  },
+  {
+    "id": 103,
+    "title": "Memory leak",
+    "state": "closed",
+    "labels": [
+      "bug"
+    ],
+    "assignee": "bo",
+    "priority": 3
+  },
+  {
+    "id": 104,
+    "title": "Typo in docs",
+    "state": "open",
+    "labels": [
+      "docs",
+      "Bug"
+    ],
+    "assignee": "ann",
+    "priority": 1
+  },
+  {
+    "id": 105,
+    "title": "Slow query",
+    "state": "open",
+    "labels": [
+      "BUG",
+      "performance"
+    ],
+    "priority": 2
+  },
+  {
+    "id": 106,
+    "title": "Upgrade deps",
+    "state": "open",
+    "labels": [],
+    "assignee": "bo",
+    "priority": 2
+  },
+  {
+    "id": 107,
+    "title": "Login fails",
+    "state": "open",
+    "labels": [
+      "bug",
+      "urgent"
+    ],
+    "assignee": "cy",
+    "priority": 3
+  },
+  {
+    "id": 108,
+    "title": "Refactor auth",
+    "state": "closed",
+    "labels": [
+      "Feature",
+      "tech-debt"
+    ],
+    "assignee": "ann",
+    "priority": 2
+  },
+  {
+    "id": 109,
+    "title": "Broken link",
+    "state": "open",
+    "labels": [
+      "docs"
+    ],
+    "assignee": "bo",
+    "priority": 1
+  }
+]

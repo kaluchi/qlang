@@ -72,6 +72,7 @@ const IGNORE_DIRS = new Set([
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
+  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D142]
   'vscode'
 ]);
 // Files that quote the forbidden list verbatim — exempt from the

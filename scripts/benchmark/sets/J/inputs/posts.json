@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "title": "Intro",
+    "comments": [
+      {
+        "author": "a",
+        "likes": 3
+      },
+      {
+        "author": "b",
+        "likes": null
+      },
+      {
+        "author": "c"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Deep dive",
+    "comments": [
+      {
+        "author": "a",
+        "likes": 5
+      },
+      {
+        "author": "d",
+        "likes": 4
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Q&A",
+    "comments": []
+  },
+  {
+    "id": 4,
+    "title": "Release notes",
+    "comments": [
+      {
+        "author": "e",
+        "likes": 2
+      },
+      {
+        "author": "f",
+        "likes": 6
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Empty",
+    "comments": null
+  }
+]

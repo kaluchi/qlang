@@ -35,6 +35,7 @@ export default [
       'site/dist/**',
       'site/coverage/**',
       'site/public/**',    // esbuild browser bundle produced by bundle-qlang.mjs
+      'scripts/benchmark/sets/**',  // the data and the generators clean authors wrote [D142]
       'vscode/**'
     ]
   },

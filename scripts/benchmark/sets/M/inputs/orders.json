@@ -1,0 +1,94 @@
+[
+  {
+    "id": "o1",
+    "customer": "acme",
+    "status": "paid",
+    "coupon": null,
+    "items": [
+      {
+        "sku": "A",
+        "qty": 2,
+        "price": 10.5
+      },
+      {
+        "sku": "B",
+        "qty": 1,
+        "price": 3.25
+      }
+    ]
+  },
+  {
+    "id": "o2",
+    "customer": "globex",
+    "status": "cancelled",
+    "items": [
+      {
+        "sku": "A",
+        "qty": 5,
+        "price": 10.5
+      }
+    ]
+  },
+  {
+    "id": "o3",
+    "customer": "acme",
+    "status": "shipped",
+    "coupon": "X1",
+    "items": [
+      {
+        "sku": "C",
+        "qty": 3,
+        "price": 7.99
+      }
+    ]
+  },
+  {
+    "id": "o4",
+    "customer": "initech",
+    "status": "paid",
+    "coupon": null,
+    "items": [
+      {
+        "sku": "B",
+        "qty": 10,
+        "price": 3.25
+      },
+      {
+        "sku": "D",
+        "qty": 1,
+        "price": 99.99
+      }
+    ]
+  },
+  {
+    "id": "o5",
+    "customer": "globex",
+    "status": "pending",
+    "items": [
+      {
+        "sku": "C",
+        "qty": 1,
+        "price": 7.99
+      }
+    ]
+  },
+  {
+    "id": "o6",
+    "customer": "umbrella",
+    "status": "shipped",
+    "items": []
+  },
+  {
+    "id": "o7",
+    "customer": "initech",
+    "status": "paid",
+    "coupon": null,
+    "items": [
+      {
+        "sku": "A",
+        "qty": 1,
+        "price": 10.5
+      }
+    ]
+  }
+]

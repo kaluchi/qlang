@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "I could not check any verb against the docs page, which names only `doc`, `open`, `type`, `count`, `eq`, `gt`, `add`, `tag`, `elide` and `explain`. Verbs such as `filter`, `sort`, `sum`, `groupBy` and `round` below are guesses from convention, so these queries may fail.\n\nJ1: `/data | filter (and (/active | eq true) (/address/city | type | eq ::String)) | sort (/name | lower) * /name`\nJ2: `* (filter (/status | lower | eq \"paid\") | /items * (/qty | mul /price)) | flatten | sum | round 2`\nJ3: `(/dependencies | merge /devDependencies) | entries | filter (/1 | startsWith \"^\") | sort /0 * (/0 | add \"@\" | add /1)`\nJ4: `filter (/state | eq \"open\") * (/assignee/login | or \"unassigned\") | countBy`\nJ5: `/services | filter (/enabled | ne false) | sort /name * {:name /name :timeout (/timeout | or /defaults/timeout) :retries (/retries | or /defaults/retries)}`\nJ6: `filter (/durationMs | ne null) | groupBy /service | mapVals (* /durationMs | avg | round 1)`\nJ7: `filter (/stock | gt 0) | sort /price | reverse | take 3 * /name`\nJ8: `groupBy /dept | mapVals (* (/skills | or []) | flatten * lower | distinct | sort)`\nJ9: `filter (/role | lower | eq \"db\") | all (and (/region | eq \"eu-west\") (/cpu/cores | gte 8))`\nJ10: `split /[,;] ?/ * (split \"@\" | /1 | lower) | distinct | sort`\nJ11: `lines * (split \" \") | filter (/3 | toNumber | gte 500) | countBy /2 | entries * {:path /0 :count /1} | sortBy [/count desc /path asc] | take 2`\nJ12: `lines | drop 1 * (split \",\") | filter (/2 | ne \"\") | groupBy /1 | mapVals (* (/2 | toNumber) | avg | round 2)`\nJ13: `lines | filter (and (startsWith \"#\" | not) (contains \"==\")) * (split \"==\") | map {(/0 | lower) /1}`\nJ14: `sortBy (/comments | or [] * (/likes | or 0) | sum) | last | /title`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 7902,
+ "outputTokens": 1034,
+ "calls": null
+}

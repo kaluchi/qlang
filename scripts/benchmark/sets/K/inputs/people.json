@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "results": [
+    {
+      "user": {
+        "name": {
+          "first": "Ada",
+          "last": "Lovelace"
+        }
+      },
+      "email": "ada@Example.com"
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Alan",
+          "last": "Turing"
+        }
+      },
+      "email": "alan@other.org"
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Grace",
+          "last": "Hopper"
+        }
+      },
+      "email": "grace@EXAMPLE.COM"
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Linus",
+          "last": null
+        }
+      },
+      "email": "linus@example.com"
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Ken",
+          "last": "Thompson"
+        }
+      },
+      "email": null
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Dennis",
+          "last": "Ritchie"
+        }
+      }
+    },
+    {
+      "user": {
+        "name": {
+          "first": "Barbara",
+          "last": "Liskov"
+        }
+      },
+      "email": "b@example.com"
+    }
+  ]
+}

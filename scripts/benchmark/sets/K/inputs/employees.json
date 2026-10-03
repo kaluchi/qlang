@@ -1,0 +1,46 @@
+[
+  {
+    "name": "A",
+    "dept": "eng",
+    "salary": 100
+  },
+  {
+    "name": "B",
+    "dept": "eng",
+    "salary": 130
+  },
+  {
+    "name": "C",
+    "dept": "ops",
+    "salary": 70
+  },
+  {
+    "name": "D",
+    "dept": "ops",
+    "salary": null
+  },
+  {
+    "name": "E",
+    "dept": "eng"
+  },
+  {
+    "name": "F",
+    "dept": "hr",
+    "salary": 65.5
+  },
+  {
+    "name": "G",
+    "dept": "ops",
+    "salary": 75
+  },
+  {
+    "name": "H",
+    "dept": "hr",
+    "salary": 60
+  },
+  {
+    "name": "I",
+    "dept": "eng",
+    "salary": 111
+  }
+]

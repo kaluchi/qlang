@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "These are guesses from the first page alone. The page never names `filter`, `sort`, `lower`, `countBy`, `split` and the other verbs I use, so I could not check that any of them exist. Anything that fails on a missing verb or argument form is a result of that, not a considered choice.\n\nH1: `filter (/active | eq true) | filter (/country | lower | eq \"de\") | filter (/age | gte 30) | * /name | sort`\nH2: `filter (/status | lower | eq \"paid\") | * (/items * (/qty | mul /price)) | flatten | sum | round 2`\nH3: `* (/customer | lower) | countBy`\nH4: `{:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | sort)}`\nH5: `filter (/state | eq \"open\") | sortBy /id | sortBy (/comments | mul -1) | take 3 * /id`\nH6: `* (/labels | default []) | flatten | * lower | distinct | sort`\nH7: `filter (/state | eq \"open\") | * (/assignee/login | default \"unassigned\") | countBy`\nH8: `split \"\\n\" | filter (count | gt 0) | * (split \" \") | filter (/1 | eq \"ERROR\") | * /2 | countBy`\nH9: `split \"\\n\" | filter (count | gt 0) | * (split \" \") | filter (/1 | in [\"ERROR\" \"WARN\"]) | flatten | filter (startsWith \"user=\") | * (replace \"user=\" \"\") | distinct | sort`\nH10: `split \"\\n\" | drop 1 | filter (count | gt 0) | * (split \",\") | filter (/4 | lower | eq \"up\") | filter (/2 | ne \"\") | groupBy /1 | mapVals (* (/2 | toNumber) | avg | round 1)`\nH11: `split \"\\n\" | filter (count | gt 0) | filter (startsWith \"#\" | not) | filter (upper | startsWith \"DB_\") | * {:k (split \"=\" | /0 | drop 3 | lower) :v (splitFirst \"=\" | /1)} | toObject`\nH12: `/services | filter (/enabled | eq true) | sortBy /name | * {:name /name :timeout (/timeout | default /defaults/timeout) :team (/owner/team | default \"none\")}`\nH13: `/results | filter (/score | gte 50) | sortBy (/score | mul -1) | * (/profile/first | add \" \" | add /profile/last | add \": \" | add (/tags | default [] | join \"|\"))`\nH14: `\"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | lower | matchAll \"[a-z]+\" | countBy | entries | * {:word /0 :count /1} | sortBy /word | sortBy (/count | mul -1) | take 3`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6601,
+ "outputTokens": 1773,
+ "calls": null
+}

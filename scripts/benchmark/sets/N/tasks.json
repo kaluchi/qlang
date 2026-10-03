@@ -1,0 +1,184 @@
+[
+  {
+    "id": "N1",
+    "input": "users.json",
+    "text": "The file has data.users (array). Keep users whose active is true and whose email is a non-null string (missing email counts as null). Take the part of each email after the '@' and lowercase it. Return the distinct domains as an array of strings sorted ascending (plain string order).",
+    "expected": [
+      "example.com",
+      "mail.org",
+      "zeta.io"
+    ]
+  },
+  {
+    "id": "N2",
+    "input": "orders.json",
+    "text": "Array of orders. Consider only orders whose status equals 'paid' ignoring case. An order's amount is the sum of qty*unit_price over its lines, minus its discount (a flat amount; null or missing means 0). Sum the amounts per customer.name. Return the top 2 customers by total, highest first, as an array of objects {\"customer\": string, \"total\": number} with total rounded to 2 decimals.",
+    "expected": [
+      {
+        "customer": "Initech",
+        "total": 314.97
+      },
+      {
+        "customer": "Acme",
+        "total": 147.49
+      }
+    ]
+  },
+  {
+    "id": "N3",
+    "input": "issues.json",
+    "text": "Array of issues. Keep issues whose state is 'open'. Count them by assignee.login; issues with a null or missing assignee are counted under the key \"unassigned\". Return an object mapping assignee name to count.",
+    "expected": {
+      "mia": 2,
+      "unassigned": 2,
+      "leo": 2
+    }
+  },
+  {
+    "id": "N4",
+    "input": "package.json",
+    "text": "A package manifest. Combine dependencies and devDependencies (a section may be missing). Keep packages whose version string starts with '^'. Return their names as an array of strings sorted ascending.",
+    "expected": [
+      "axios",
+      "express",
+      "jest",
+      "prettier",
+      "typescript"
+    ]
+  },
+  {
+    "id": "N5",
+    "input": "config.json",
+    "text": "The file has services (object of name -> settings). A service is enabled only if its enabled field is exactly true (missing means not enabled). Return an object {\"enabledCount\": number of enabled services, \"ports\": distinct port numbers of enabled services that have a port, sorted ascending numerically, \"totalReplicas\": sum of replicas over enabled services, treating missing or null replicas as 1}.",
+    "expected": {
+      "enabledCount": 5,
+      "ports": [
+        80,
+        6379,
+        8080
+      ],
+      "totalReplicas": 12
+    }
+  },
+  {
+    "id": "N6",
+    "input": "app.log",
+    "text": "Plain-text log, one entry per line, format: '<timestamp> <LEVEL> [<service>] <message>'. Count the entries with level ERROR per service. Return the top 2 services as an array of objects {\"service\": string, \"count\": number}, sorted by count descending, ties broken by service name ascending.",
+    "expected": [
+      {
+        "service": "db",
+        "count": 3
+      },
+      {
+        "service": "api",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "N7",
+    "input": "sales.csv",
+    "text": "CSV text with header 'region,product,qty,price'. Skip rows where qty or price is empty. Revenue of a row is qty*price. Group by region compared case-insensitively, using the lowercase region as the key. Return an object region -> total revenue rounded to 2 decimals.",
+    "expected": {
+      "north": 64.98,
+      "south": 72.47,
+      "east": 48.99,
+      "west": 15
+    }
+  },
+  {
+    "id": "N8",
+    "input": "events.json",
+    "text": "Array of events {user,type,ts}. Event types are compared case-insensitively. Return the distinct users who have at least one 'login' event but no 'logout' event, as an array of strings sorted ascending.",
+    "expected": [
+      "u1",
+      "u3",
+      "u6"
+    ]
+  },
+  {
+    "id": "N9",
+    "input": "employees.json",
+    "text": "Array of employees {name,dept,salary}. Ignore employees whose salary is null or missing. Return an object mapping each department to the average salary of its remaining employees, rounded to 1 decimal.",
+    "expected": {
+      "Eng": 110000,
+      "Ops": 69166.7,
+      "Sales": 85500
+    }
+  },
+  {
+    "id": "N10",
+    "input": "articles.txt",
+    "text": "Plain text, one article per line, format '<title>: <tag>, <tag>, ...' (tags may have stray spaces and mixed case; blank lines should be ignored). Return the distinct tags, trimmed and lowercased, as an array of strings sorted ascending.",
+    "expected": [
+      "advanced",
+      "async",
+      "beginner",
+      "css",
+      "databases",
+      "design",
+      "html",
+      "rust",
+      "sql",
+      "systems"
+    ]
+  },
+  {
+    "id": "N11",
+    "input": null,
+    "text": "Given the word list [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"apple\",\"date\"], count occurrences case-insensitively. Return an array of the words that occur more than once, lowercased, as objects {\"word\": string, \"count\": number}, sorted by count descending, ties by word ascending.",
+    "expected": [
+      {
+        "word": "apple",
+        "count": 3
+      },
+      {
+        "word": "banana",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "N12",
+    "input": "releases.json",
+    "text": "The file has releases (array). Ignore releases that are drafts or prereleases. A release's downloads is the sum of download_count over its assets (null counts as 0, no assets gives 0). Return the top 3 releases by downloads, highest first, as an array of {\"tag\": tag_name, \"downloads\": number}.",
+    "expected": [
+      {
+        "tag": "v2.0.0",
+        "downloads": 410
+      },
+      {
+        "tag": "v1.1.0",
+        "downloads": 290
+      },
+      {
+        "tag": "v1.0.0",
+        "downloads": 150
+      }
+    ]
+  },
+  {
+    "id": "N13",
+    "input": "products.json",
+    "text": "Array of products. Consider products whose category equals 'tools' ignoring case. Return an object {\"count\": number of such products, \"allPriced\": true if every such product has a non-null price greater than 0 (else false), \"inStockNames\": names of such products with stock > 0, sorted ascending}.",
+    "expected": {
+      "count": 3,
+      "allPriced": true,
+      "inStockNames": [
+        "Drill",
+        "Hammer"
+      ]
+    }
+  },
+  {
+    "id": "N14",
+    "input": "requirements.txt",
+    "text": "Plain-text pip requirements. Ignore blank lines, comment text (from '#' to end of line), option lines starting with '-', and any requirement that is not pinned with '=='. For the pinned ones return an object mapping the package name lowercased to its version string.",
+    "expected": {
+      "flask": "2.3.2",
+      "numpy": "1.26.0",
+      "django": "4.2.7",
+      "pyyaml": "6.0.1"
+    }
+  }
+]

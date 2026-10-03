@@ -1,0 +1,16 @@
+{
+ "set": "M",
+ "screen": "V7",
+ "screenHash": "f87e1585c9f0",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "M1: filter ~(if /active ~(at :email | eq null | not) ~(false)) | * /email | * lower | sort\n\nM2: filter ~(if (/profile | eq null | not) ~(/profile/age | type | eq ::number) ~(false)) | * /profile/age | [sum count] | div /0 /1 | round 1\n\nM3: filter ~(if (/profile | eq null | not) ~(at :country | eq null | not) ~(false)) | * (/profile/country | upper) | groupBy | * count\n\nM4: filter ~(if (/state | eq \"open\") ~(/labels | any ~(lower | eq \"bug\")) ~(false)) | sort ~([(/priority | mul -1) /id]) | take 2 | * /id\n\nM5: filter ~(/state | eq \"open\") | * (at :assignee | coalesce \"unassigned\") | groupBy | * count\n\nM6: * /labels | flat | * lower | distinct | sort\n\nM7: /dependencies | entries | * {:name (/0 | keyword) :version (/1 | if (startsWith \"^\") ~(drop 1) ~(if (startsWith \"~\") ~(drop 1) ~(/)))} | sort ~/name\n\nM8: filter ~(if (/status | eq \"paid\") ~(true) ~(/status | eq \"shipped\")) | * /items | flat | * (mul /qty /price) | sum | round 2\n\nM9: filter ~(/status | eq \"cancelled\" | not) | * {customer /customer items /items} | groupBy ~/customer | * {customer /0 total (/1 | * /items | flat | * (mul /qty /price) | sum | round 2)} | sort ~([(sub 0 /total) /customer]) | take 2\n\nM10: /services | entries | filter ~(/1 | at :tls | eq null | not | if . ~(at :enabled | eq true) ~(false)) | * {:name /0 :svc /1} | * {:name /name :addr (/svc | /host | append \":\" | append (at :port | coalesce 80 | print))} | sort ~/name | * /addr\n\nM11: lines | filter ~(contains \" ERROR \") | * (split \" \" | /2) | groupBy | * count\n\nM12: lines | filter ~((contains \" WARN \" | if . ~(true) ~(contains \" ERROR \")) | if . ~(lower | contains \"timeout\") ~(false)) | * (split \" \" | /2) | distinct | sort\n\nM13: lines | drop 1 | * (split \",\") | filter ~(/2 | eq \"\" | not) | * {:dept (/1 | keyword) :salary (/2 | parseJson)} | groupBy ~/dept | * (* /salary | [sum count] | div /0 /1 | round)\n\nM14: \"The quick brown fox jumps over the lazy dog. The dog sleeps; the fox runs. A fox is quick.\" | split \"[^a-zA-Z]+\" | filter ~(eq \"\" | not) | * lower | groupBy | * count | entries | * {:word /0 :count /1} | sort ~([(sub 0 /count) /word]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 7804,
+ "outputTokens": 38041,
+ "calls": null
+}

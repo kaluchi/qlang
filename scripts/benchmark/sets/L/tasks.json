@@ -1,0 +1,159 @@
+[
+  {
+    "id": "L1",
+    "input": "orders.json",
+    "text": "Compute total revenue: for orders whose status equals 'paid' compared case-insensitively, sum qty*price over all their items; an item with a missing price counts as 0. Return a number rounded to 2 decimal places.",
+    "expected": 150.22
+  },
+  {
+    "id": "L2",
+    "input": "issues.json",
+    "text": "Count open issues (state 'open') per label. Issues whose labels is null or empty contribute nothing. Return an object mapping label to count.",
+    "expected": {
+      "bug": 4,
+      "p1": 2,
+      "feature": 1,
+      "perf": 2,
+      "docs": 1
+    }
+  },
+  {
+    "id": "L3",
+    "input": "package.json",
+    "text": "Collect package names from both 'dependencies' and 'devDependencies' whose version string starts with '^0.'. Return distinct names as an array of strings sorted alphabetically ascending.",
+    "expected": [
+      "chalk",
+      "eslint",
+      "lodash"
+    ]
+  },
+  {
+    "id": "L4",
+    "input": "users.json",
+    "text": "Take users from data.users with active equal to true and a non-null, present email. Lowercase the emails, remove duplicates, and return an array of strings sorted alphabetically ascending.",
+    "expected": [
+      "ann@example.com",
+      "ed@example.com",
+      "gus@example.com",
+      "hal@example.com"
+    ]
+  },
+  {
+    "id": "L5",
+    "input": "config.json",
+    "text": "From the services object, take services that are enabled (a missing 'enabled' counts as true) and have a non-null port. Return an array of objects {\"name\": <service key>, \"port\": <port>} sorted by port ascending.",
+    "expected": [
+      {
+        "name": "auth",
+        "port": 3000
+      },
+      {
+        "name": "db",
+        "port": 5432
+      },
+      {
+        "name": "queue",
+        "port": 5672
+      },
+      {
+        "name": "web",
+        "port": 8080
+      }
+    ]
+  },
+  {
+    "id": "L6",
+    "input": "access.log",
+    "text": "Each line is: timestamp METHOD path status duration (duration like '120ms'). For lines with method GET and status 200, compute the average duration in milliseconds. Return a number rounded to 1 decimal place.",
+    "expected": 76.3
+  },
+  {
+    "id": "L7",
+    "input": "employees.csv",
+    "text": "The CSV has a header row (name,dept,salary,city). Ignoring rows with an empty salary, group by dept lowercased and compute the average salary per group rounded to the nearest integer (halves round up). Return an object mapping lowercase dept to the rounded average.",
+    "expected": {
+      "eng": 5500,
+      "ops": 4251,
+      "hr": 3600
+    }
+  },
+  {
+    "id": "L8",
+    "input": "events.json",
+    "text": "Count events per user. Return the top 3 users as an array of strings 'user:count', ordered by count descending, ties broken by user name ascending.",
+    "expected": [
+      "bob:3",
+      "zed:3",
+      "amy:2"
+    ]
+  },
+  {
+    "id": "L9",
+    "input": null,
+    "text": "Given the comma-separated string \"Apple, banana, apple , Cherry, banana, apple, date\": split on commas, trim whitespace, lowercase, remove duplicates, sort alphabetically ascending and join with '|'. Return the resulting string.",
+    "expected": "apple|banana|cherry|date"
+  },
+  {
+    "id": "L10",
+    "input": "requirements.txt",
+    "text": "Ignore blank lines and lines starting with '#' (after trimming). Among the remaining lines keep only those pinned with '=='. Return an object mapping the package name lowercased to its pinned version string.",
+    "expected": {
+      "requests": "2.31.0",
+      "numpy": "1.26.4",
+      "django": "4.2.1",
+      "pyyaml": "6.0.1"
+    }
+  },
+  {
+    "id": "L11",
+    "input": "issues.json",
+    "text": "Take open issues (state 'open') that have no assignee (assignee is null or missing). Sort by comments descending, ties by number ascending, and return the numbers of the first 2 as an array of numbers.",
+    "expected": [
+      102,
+      104
+    ]
+  },
+  {
+    "id": "L12",
+    "input": "orders.json",
+    "text": "Return an array of customers (strings) that have at least 2 orders in total (any status), sorted alphabetically ascending.",
+    "expected": [
+      "alice",
+      "bob",
+      "carol"
+    ]
+  },
+  {
+    "id": "L13",
+    "input": "users.json",
+    "text": "Group all users in data.users (active or not) by address.country; users whose address is null or has no country go under the key 'unknown'. Return an object mapping country to an array of user names sorted alphabetically ascending.",
+    "expected": {
+      "US": [
+        "Ann",
+        "Cy",
+        "Hal"
+      ],
+      "DE": [
+        "Bo",
+        "Ed"
+      ],
+      "unknown": [
+        "Di",
+        "Gus"
+      ],
+      "FR": [
+        "Flo"
+      ]
+    }
+  },
+  {
+    "id": "L14",
+    "input": "events.json",
+    "text": "Take events with type 'push' that have payload.repo.name present and non-null. Return the distinct repo names as an array of strings sorted alphabetically ascending.",
+    "expected": [
+      "api",
+      "docs",
+      "web"
+    ]
+  }
+]

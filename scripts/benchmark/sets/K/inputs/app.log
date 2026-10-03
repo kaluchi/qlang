@@ -1,0 +1,10 @@
+2026-03-01T10:00:00Z INFO api message number 0
+2026-03-01T10:01:00Z WARN db message number 1
+2026-03-01T10:02:00Z ERROR api message number 2
+2026-03-01T10:03:00Z INFO auth message number 3
+2026-03-01T10:04:00Z DEBUG api message number 4
+2026-03-01T10:05:00Z ERROR db message number 5
+2026-03-01T10:06:00Z INFO auth message number 6
+2026-03-01T10:07:00Z WARN api message number 7
+2026-03-01T10:08:00Z ERROR db message number 8
+2026-03-01T10:09:00Z INFO auth message number 9

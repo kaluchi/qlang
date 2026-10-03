@@ -1,0 +1,85 @@
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "email": "alice@x.io",
+    "active": true,
+    "age": 34,
+    "country": "DE",
+    "roles": [
+      "admin",
+      "dev"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Bruno",
+    "email": "bruno@x.io",
+    "active": true,
+    "age": 29,
+    "country": "de",
+    "roles": [
+      "dev"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Chen",
+    "email": "chen@x.io",
+    "active": false,
+    "age": 41,
+    "country": "DE",
+    "roles": []
+  },
+  {
+    "id": 4,
+    "name": "Dora",
+    "email": null,
+    "active": true,
+    "age": null,
+    "country": "De",
+    "roles": [
+      "ops"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Emil",
+    "email": "emil@x.io",
+    "active": true,
+    "country": "DE",
+    "roles": [
+      "dev"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Farah",
+    "email": "farah@x.io",
+    "active": true,
+    "age": 30,
+    "country": "FR",
+    "roles": [
+      "dev"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Zed",
+    "email": "zed@x.io",
+    "active": true,
+    "age": 52,
+    "country": "dE",
+    "roles": [
+      "admin"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Gita",
+    "email": "gita@x.io",
+    "active": true,
+    "age": 30,
+    "country": "DE"
+  }
+]

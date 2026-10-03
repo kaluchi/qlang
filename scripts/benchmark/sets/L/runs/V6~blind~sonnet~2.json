@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "V6",
+ "screenHash": "123993962923",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "Notes on how I wrote these from the page alone:\n- Strings have no `trim`, so I split on spaces, drop the empty pieces and join back.\n- Numbers don't come out of strings, so I use `parseJson`.\n- Where two conditions had to hold, I chained `filter`s instead of passing two modifiers to `and`.\n- `round` is used with no argument, so L1 and L6 scale by 100 or 10 and divide back.\n- `groupBy` and `indexBy` with a key quote are guesses, since the page only shows `groupBy` bare.\n\nL1: filter ~(/status | lower | eq \"paid\") * /items | flat * (mul /qty (at :price | coalesce 0)) | sum | mul 100 | round | div 100\nL2: filter ~(/state | eq \"open\") * (at :labels | coalesce []) | flat | groupBy * count\nL3: [/dependencies /devDependencies] * (filter ~(startsWith \"^0.\") | keys) | flat | distinct | sort * keyword\nL4: /data/users | filter ~(/active | eq true) | filter ~(at :email | ne null) * (/email | lower) | distinct | sort\nL5: /services | filter ~(at :enabled | coalesce true | eq true) | filter ~(at :port | ne null) | :s / | keys * (:k / | s | at k | {:name (k | keyword) :port /port}) | sort ~/port\nL6: lines | filter ~(split \" \" | [(at 1 | eq \"GET\") (at 3 | eq \"200\")] | every ~/) * (split \" \" | /4 | take (count | sub 2) | parseJson) | :d / | sum | div (d | count) | mul 10 | round | div 10\nL7: lines | drop 1 * split \",\" | filter ~(at 2 | coalesce \"\" | ne \"\") | groupBy ~(/1 | lower) * (/ * (/2 | parseJson) | :v / | sum | div (v | count) | round)\nL8: groupBy ~/user * count | :g / | keys * (:k / | {:u (k | keyword) :c (g | at k)}) | sort ~([(/c | mul -1) /u]) | take 3 * ([/u (/c | print)] | join \":\")\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" * (split \" \" | filter ~(count | gt 0) | join \"\" | lower) | distinct | sort | join \"|\"\nL10: lines * (split \" \" | filter ~(count | gt 0) | join \"\") | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) | filter ~(contains \"==\") * {:n (split \"==\" | /0 | lower) :v (split \"==\" | /1)} | indexBy ~/n * /v\nL11: filter ~(/state | eq \"open\") | filter ~(at :assignee | eq null) | sort ~([(/comments | mul -1) /number]) | take 2 * /number\nL12: groupBy ~/customer | filter ~(count | gt 1) | keys * keyword | sort\nL13: /data/users | groupBy ~(at :address | coalesce {} | at :country | coalesce \"unknown\") * (/ * /name | sort)\nL14: filter ~(/type | eq \"push\") | filter ~(at :payload | coalesce {} | at :repo | coalesce {} | at :name | ne null) * /payload/repo/name | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9792,
+ "outputTokens": 7667,
+ "calls": null
+}

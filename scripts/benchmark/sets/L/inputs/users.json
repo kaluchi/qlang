@@ -1,0 +1,76 @@
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Ann",
+        "email": "Ann@Example.com",
+        "active": true,
+        "address": {
+          "country": "US"
+        }
+      },
+      {
+        "id": 2,
+        "name": "Bo",
+        "email": null,
+        "active": true,
+        "address": {
+          "country": "DE"
+        }
+      },
+      {
+        "id": 3,
+        "name": "Cy",
+        "email": "cy@example.com",
+        "active": false,
+        "address": {
+          "country": "US"
+        }
+      },
+      {
+        "id": 4,
+        "name": "Di",
+        "email": "ann@example.com",
+        "active": true,
+        "address": null
+      },
+      {
+        "id": 5,
+        "name": "Ed",
+        "email": "ED@example.com",
+        "active": true,
+        "address": {
+          "country": "DE"
+        }
+      },
+      {
+        "id": 6,
+        "name": "Flo",
+        "active": true,
+        "address": {
+          "country": "FR"
+        }
+      },
+      {
+        "id": 7,
+        "name": "Gus",
+        "email": "gus@example.com",
+        "active": true,
+        "address": {}
+      },
+      {
+        "id": 8,
+        "name": "Hal",
+        "email": "hal@example.com",
+        "active": true,
+        "address": {
+          "country": "US"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "page": 1
+  }
+}

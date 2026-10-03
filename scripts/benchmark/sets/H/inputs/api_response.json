@@ -1,0 +1,69 @@
+{
+  "page": 1,
+  "total": 6,
+  "results": [
+    {
+      "id": "u1",
+      "profile": {
+        "first": "Ann",
+        "last": "Lee"
+      },
+      "tags": [
+        "a",
+        "b"
+      ],
+      "score": 80
+    },
+    {
+      "id": "u2",
+      "profile": {
+        "first": "Bo",
+        "last": "Ng"
+      },
+      "tags": [],
+      "score": 50
+    },
+    {
+      "id": "u3",
+      "profile": {
+        "first": "Cy",
+        "last": "Roy"
+      },
+      "score": 95
+    },
+    {
+      "id": "u4",
+      "profile": {
+        "first": "Di",
+        "last": "Fox"
+      },
+      "tags": [
+        "z"
+      ],
+      "score": null
+    },
+    {
+      "id": "u5",
+      "profile": {
+        "first": "Ed",
+        "last": "Kim"
+      },
+      "tags": [
+        "x",
+        "y",
+        "z"
+      ]
+    },
+    {
+      "id": "u6",
+      "profile": {
+        "first": "Flo",
+        "last": "Day"
+      },
+      "tags": [
+        "q"
+      ],
+      "score": 65
+    }
+  ]
+}

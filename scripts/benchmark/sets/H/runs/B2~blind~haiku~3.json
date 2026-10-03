@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 3,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "Looking at the qlang documentation, I'll construct queries for each task. The language uses pipe syntax `|`, field access `/field`, transformation with `*`, and various verbs like `filter`, `sort`, `count`, etc.\n\nH1: | filter ((/active | eq true) & ((/country | lowercase) | eq \"de\") & (/age | type | eq \"number\") & (/age | gt 29)) | * /name | sort\n\nH2: | filter (/status | lowercase | eq \"paid\") | * /items | flatten | map (/qty * /price) | sum | round 2\n\nH3: | group_by (/customer | lowercase) | map_values (. | count)\n\nH4: {:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts ((/scripts | keys) | sort)}\n\nH5: | filter (/state | eq \"open\") | sort_by (-/comments /id) | take 3 | * /id\n\nH6: | * (/labels | default []) | flatten | * (. | lowercase) | unique | sort\n\nH7: | filter (/state | eq \"open\") | group_by ((/assignee | /login) | default \"unassigned\") | map_values (. | count)\n\nH8: | split \"\\n\" | * (. | split \" \") | filter (/1 | eq \"ERROR\") | group_by /2 | map_values (. | count)\n\nH9: | split \"\\n\" | * (. | split \" \") | filter ((/1 | in [\"ERROR\" \"WARN\"])) | * /3 | * (. | split \" \" | filter (. | starts_with \"user=\") | * (. | split \"=\" | /1)) | flatten | unique | sort\n\nH10: | split \"\\n\" | skip 1 | * (. | split \",\") | filter ((/4 | lowercase | eq \"up\") & (/2 | ne \"\")) | group_by /1 | map_values (. | * (/2 | to_number) | average | round 1)\n\nH11: | split \"\\n\" | filter (. | ne \"\") | filter (not (. | starts_with \"#\")) | * (. | split \"=\") | filter ((/0 | lowercase | starts_with \"db_\")) | * {:key (/0 | lowercase | substring 3) :value /1} | map_to_object\n\nH12: /services | filter (/enabled | eq true) | * {:name /name :timeout (/timeout | default (. | parent_root /defaults /timeout)) :team ((/owner /team) | default \"none\")} | sort_by /name\n\nH13: /results | filter (/score | gte 50) | sort_by (-/score) | * {first: /profile/first last: /profile/last tags: (/tags | default [])} | * \"\\(first) \\(last): \\(tags | join \"|\")\"\n\nH14: \"The cat saw the dog; a Dog saw THE cat and a bird. Bird, dog!\" | split /[^a-zA-Z]+/ | filter (. | ne \"\") | * (. | lowercase) | group_by . | map_values (. | count) | * {:word key :count value} | sort_by (-count word) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 5608,
+ "outputTokens": 20274,
+ "calls": null
+}

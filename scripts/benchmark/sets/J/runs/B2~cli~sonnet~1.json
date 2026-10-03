@@ -1,0 +1,16 @@
+{
+ "set": "J",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "All 14 queries ran against their input files and gave plausible answers. I checked the results by eye, mostly against the first few lines of each file, and I didn't check them against a reference.\n\n- **Likely traps:** For J3, package names with an `@scope/` prefix could break the keyword-to-string step. None of the names in this file have one.\n- **J11/J12/J13:** Their answers print with `:keyword` keys rather than quoted strings. I took that to be how qlang writes map keys.\n- **J9:** I only skimmed the server file for `db` roles, so that `true` is the least checked.\n\nH1: /data | filter ~(/active | eq true) | filter ~(coalesce ~(/address/city) ~(null) | type | eq ::string) | sort ~(/name | lower) * /name\nH2: filter ~(coalesce ~(/status | lower) ~(\"\") | eq \"paid\") * (coalesce ~(/items) ~([]) * mul /qty /price) | flat | sum | round 2\nH3: :r / | /dependencies | union (r | /devDependencies) | filter ~(startsWith \"^\") | :m / | keys * (:k / | print | drop 1 | append \"@\" | append (m | at k))\nH4: filter ~(/state | eq \"open\") * (coalesce ~(/assignee/login) ~(\"unassigned\")) | groupBy ~(/) * count\nH5: :d / | /services | filter ~(coalesce ~(/enabled) ~(true) | ne false) | sort ~(/name) * {:name /name :timeout (coalesce ~(/timeout) ~(d | /defaults/timeout)) :retries (coalesce ~(/retries) ~(d | /defaults/retries))}\nH6: filter ~(coalesce ~(/durationMs) ~(null) | type | eq ::number) | groupBy ~(/service) * (* /durationMs | :v / | sum | div (v | count) | round 1)\nH7: filter ~(coalesce ~(/stock) ~(null) | type | eq ::number) | filter ~(/stock | gt 0) | sort ~(/price) | reverse | take 3 * /name\nH8: groupBy ~(/dept) * (* (coalesce ~(/skills) ~([])) | flat | * lower | distinct | sort)\nH9: filter ~(coalesce ~(/role | lower) ~(\"\") | eq \"db\") | every ~(if (/region | eq \"eu-west\") ~(coalesce ~(/cpu/cores) ~(0) | gte 8) ~(false))\nH10: \"Alice@Example.com, bob@test.org; carol@EXAMPLE.com, dave@mail.net; erin@Test.org, frank@example.com\" | split \";\" * split \",\" | flat * (split \"@\" | /1 | lower) | distinct | sort\nH11: lines * split \" \" * {:path /2 :st (/3 | parseJson)} | filter ~(/st | gte 500) | :rs / * /path | distinct * (:p / | {:path p :count (rs * /path | filter ~(eq p) | count)}) | sort ~([(/count | mul -1) /path]) | take 2\nH12: lines | drop 1 * split \",\" | filter ~(/2 | count | gt 0) * {:team /1 :score (/2 | parseJson)} | groupBy ~(/team) * (* /score | :v / | sum | div (v | count) | round 2)\nH13: lines | filter ~(contains \"==\") | filter ~(startsWith \"#\" | eq false) * (split \"==\" | {:name (/0 | lower) :version /1}) | indexBy ~(/name) * /version\nH14: sort ~(coalesce ~(/comments) ~([]) * (coalesce ~(/likes) ~(0)) | sum) | last | /title",
+ "failed": false,
+ "turns": 35,
+ "inputTokens": 496363,
+ "outputTokens": 8998,
+ "calls": null
+}

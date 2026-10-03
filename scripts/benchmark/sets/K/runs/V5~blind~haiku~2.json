@@ -1,0 +1,16 @@
+{
+ "set": "K",
+ "screen": "V5",
+ "screenHash": "650c6ab86652",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "K1: [\"Apple\",\"banana\",\"APPLE\",\"Cherry\",\"banana\",\"date\",\"Date\",\"elderberry\"] | * lower | distinct | count\n\nK2: filter ~(/status | eq \"paid\") | groupBy ~/customer | map * (map (at /total | coalesce 0) | sum)\n\nK3: lines | map (split \" \" | /1) | groupBy / | map * count\n\nK4: (/dependencies | union /devDependencies) | filter ~(startsWith \"^\") | keys | sort\n\nK5: filter ~(/state | eq \"open\") | sort ~([(at /comments | coalesce 0 | mul -1) /id]) | take 3 | map /id\n\nK6: lines | drop 1 | map (split \",\") | filter ~(/2 | lower | eq \"de\") | filter ~(/1 | ne \"\") | map (/1 | parseJson) | :ages / | {:sum (ages | reduce 0 ~(add)) :count (ages | count)} | div /sum /count | mul 10 | round | div 10\n\nK7: /services | filter ~(/enabled | eq true) | filter ~(/port | type | eq ::number) | sort ~/port | keys | map ~(:k / | :s (/services / k) | k | append \":\" | append (/s /port | print))\n\nK8: /results | filter ~(/email | ne null) | filter ~(/email | split \"@\" | /1 | lower | eq \"example.com\") | filter ~(/user/name/last | ne null) | map ~(/user/name/last | append \", \" | append /user/name/first)\n\nK9: filter ~(/user | ne null) | filter ~(/action | lower | eq \"login\") | map (/user | lower) | distinct | sort\n\nK10: filter ~(/salary | type | eq ::number) | groupBy ~/dept | map * (:emps / | (emps | map /salary | sum) / (emps | count)) | map (mul 100 | round | div 100)\n\nK11: map /tags | filter ~(ne null) | filter ~(ne \"\") | map (split \",\" | map lower) | flat | groupBy / | map * count | sort ~((mul -1)) | keys | take 3\n\nK12: lines | filter ~(ne \"\") | filter ~((startsWith \"#\") | eq false) | map (split \"|\" | {:qty (/1 | parseJson) :price (/2 | parseJson)}) | map (mul /qty /price) | sum | mul 100 | round | div 100\n\nK13: /services | filter ~(/env | lower | eq \"prod\") | every ~((at /replicas | coalesce 1) | gte 2)\n\nK14: map ({:id /id :itemCount ((at /items | coalesce []) | map /qty | sum)}) | filter ~(/itemCount | gt 0) | sort ~([(mul -1 /itemCount) /id]) | take 3",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8267,
+ "outputTokens": 31063,
+ "calls": null
+}

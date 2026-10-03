@@ -1,0 +1,16 @@
+{
+ "set": "L",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-03",
+ "commit": null,
+ "result": "These queries are guesses. The page names almost none of the verbs I use (`filter`, `sortBy`, `groupBy`, `frequencies`, `entries`, `lines`, `split`, `join`, `round`, `default` and so on). I couldn't check that any of them exist, so each query follows the `|`, `*` and `/k` forms the page describes and assumes verb names that seem natural.\n\nL1: filter (/status | lower | eq \"paid\") * (/items * (/qty | mul (/price | default 0)) | sum) | sum | round 2\nL2: filter (/state | eq \"open\") * (/labels | default []) | flatten | frequencies\nL3: [/dependencies /devDependencies] * entries | flatten | filter (/1 | startsWith \"^0.\") * /0 | distinct | sort\nL4: /data/users | filter (/active | eq true) | filter (/email | ne null) * (/email | lower) | distinct | sort\nL5: /services | entries | filter (/1/enabled | default true | eq true) | filter (/1/port | ne null) * {:name /0 :port /1/port} | sortBy /port\nL6: lines * split \" \" | filter (/2 | eq \"GET\") | filter (/3 | eq \"200\") * (/4 | replace \"ms\" \"\" | toNumber) | avg | round 1\nL7: lines | drop 1 * split \",\" | filter (/2 | ne \"\") * {:dept (/1 | lower) :s (/2 | toNumber)} | groupBy /dept * (* /s | avg | add 0.5 | floor)\nL8: * /user | frequencies | entries | sortBy [(/1 | neg) /0] | take 3 * ([/0 /1] | join \":\")\nL9: \"Apple, banana, apple , Cherry, banana, apple, date\" | split \",\" * trim * lower | distinct | sort | join \"|\"\nL10: lines * trim | filter (ne \"\") | filter (startsWith \"#\" | not) | filter (contains \"==\") * split \"==\" * [(/0 | lower) /1] | fromEntries\nL11: filter (/state | eq \"open\") | filter (/assignee | eq null) | sortBy [(/comments | neg) /number] | take 2 * /number\nL12: * /customer | frequencies | entries | filter (/1 | gte 2) * /0 | sort\nL13: /data/users | groupBy (/address/country | default \"unknown\") * (* /name | sort)\nL14: filter (/type | eq \"push\") | filter (/payload/repo/name | ne null) * /payload/repo/name | distinct | sort",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6447,
+ "outputTokens": 2161,
+ "calls": null
+}

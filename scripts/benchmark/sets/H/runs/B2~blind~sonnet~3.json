@@ -1,0 +1,16 @@
+{
+ "set": "H",
+ "screen": "B2",
+ "screenHash": "af24999fd71d",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-02",
+ "commit": null,
+ "result": "These are my best guesses from the page alone. The page never names the verbs I use, such as `filter`, `sort`, `lower`, `groupBy`, `split` or `sum`, so I could not check any of them. Several queries may fail on a wrong verb name or on how a path argument like `mul /price` is resolved.\n\nH1: `filter (/active | eq true) | filter (/country | lower | eq \"de\") | filter (/age | gte 30) * /name | sort`\nH2: `filter (/status | lower | eq \"paid\") | flatMap /items * (/qty | mul /price) | sum | round 2`\nH3: `groupBy (/customer | lower) * count`\nH4: `{:name /name :depCount (/dependencies | count) :devDepCount (/devDependencies | count) :scripts (/scripts | keys | sort)}`\nH5: `filter (/state | eq \"open\") | sortBy [{:k /comments :desc true} {:k /id}] | take 3 * /id`\nH6: `flatMap (/labels | default []) * lower | distinct | sort`\nH7: `filter (/state | eq \"open\") | groupBy (/assignee/login | default \"unassigned\") * count`\nH8: `split \"\\n\" | filter (trim | count | gt 0) * split \" \" | filter (/1 | eq \"ERROR\") | groupBy /2 * count`\nH9: `split \"\\n\" | filter (trim | count | gt 0) * split \" \" | filter (/1 | in [\"ERROR\" \"WARN\"]) * (drop 3 | find (startsWith \"user=\") | replace \"user=\" \"\") | filter (ne null) | distinct | sort`\nH10: `split \"\\n\" | drop 1 * split \",\" | filter (/4 | lower | eq \"up\") | filter (/2 | ne \"\") | groupBy /1 * (* (/2 | toNumber) | avg | round 1)`\nH11: `split \"\\n\" | filter (trim | count | gt 0) | filter (startsWith \"#\" | not) | filter (split \"=\" | /0 | lower | startsWith \"db_\") | toMap (split \"=\" | {:k (/0 | drop 3 | lower) :v (drop 1 | join \"=\")})`\nH12: `/services | filter (/enabled | eq true) | sortBy /name * {:name /name :timeout (/timeout | default (/defaults/timeout)) :team (/owner/team | default \"none\")}`\nH13: `/results | filter (/score | gte 50) | sortBy [{:k /score :desc true}] * (/profile/first | add \" \" | add /profile/last | add \": \" | add (/tags | default [] | join \"|\"))`\nH14: `lower | matchAll \"[a-z]+\" | groupBy (identity) * count | toEntries | sortBy [{:k /value :desc true} {:k /key}] | take 3 * {:word /key :count /value}`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6601,
+ "outputTokens": 1483,
+ "calls": null
+}

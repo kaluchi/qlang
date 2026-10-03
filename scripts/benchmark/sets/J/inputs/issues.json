@@ -1,0 +1,95 @@
+[
+  {
+    "id": 1,
+    "title": "Crash on start",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "bug"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Add dark mode",
+    "state": "open",
+    "assignee": null,
+    "labels": [
+      "feature"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Typo in docs",
+    "state": "closed",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "docs"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Memory leak",
+    "state": "open",
+    "assignee": {
+      "login": "joe"
+    },
+    "labels": [
+      "bug",
+      "perf"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Slow query",
+    "state": "open",
+    "assignee": {
+      "login": "mia"
+    },
+    "labels": [
+      "perf"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Update deps",
+    "state": "open",
+    "labels": []
+  },
+  {
+    "id": 7,
+    "title": "Login fails",
+    "state": "closed",
+    "assignee": {
+      "login": "joe"
+    },
+    "labels": [
+      "bug"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Refactor auth",
+    "state": "open",
+    "assignee": {
+      "login": "joe"
+    },
+    "labels": [
+      "tech-debt"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "CI flaky",
+    "state": "open",
+    "assignee": {
+      "login": "sam"
+    },
+    "labels": [
+      "bug"
+    ]
+  }
+]

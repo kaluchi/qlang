@@ -311,6 +311,8 @@
       A string or a number keys its bucket by the keyword of its text:
       ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
       ~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
+      Without a key an element files under itself:
+      ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
   ~~|
   ::verb~()
 

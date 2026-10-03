@@ -113,14 +113,14 @@
 
       ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | /big | eq #[2 3])
   ~~|
-  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
+  ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
 
 :indexBy
   |~~ The map of the elements under the key each answers.
 
       ~(#[{:id :a}] | indexBy ~(/id) | /a | eq {:id :a})
   ~~|
-  ::verb~(:key ::quote | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
+  ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
 
 :sort
   |~~ The vector of the elements in the one order, or by the value the

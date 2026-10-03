@@ -160,9 +160,9 @@ bindPrim('any', async (container, predicate) => {
 
 // The keyword the key of `groupBy` or `indexBy` answers for an element,
 // a string or a number filed under the keyword of its text [D130], or the
-// error it answered.
+// error it answered; without a key the element is its own [D135].
 async function keywordOf(key, element, index, ErrorCls) {
-  const answer = await key(element);
+  const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer) || isKeyword(answer)) return answer;
   if (isString(answer) || isNumber(answer)) return keyword(String(answer));
   throw new ErrorCls({ index, actualType: typeKeyword(answer), actualValue: answer });

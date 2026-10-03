@@ -275,3 +275,20 @@ describe('main — error paths', () => {
     expect(s.stderrText()).toBe('');
   });
 });
+
+describe('main — a query the shell turned into a path', () => {
+  it('names the shell and the two ways around it when the query begins with a drive', async () => {
+    const s = captureStreams('{"a": 1}');
+    const exitCode = await main(['C:/Program Files/Git/a'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stderrText()).toMatch(/the shell turned a query that began with `\/` into a path/);
+    expect(s.stderrText()).toMatch(/MSYS_NO_PATHCONV=1/);
+  });
+
+  it('adds nothing to the failure of a query of the language', async () => {
+    const s = captureStreams('{"a": 1}');
+    const exitCode = await main(['(1'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stderrText()).not.toMatch(/the shell turned/);
+  });
+});

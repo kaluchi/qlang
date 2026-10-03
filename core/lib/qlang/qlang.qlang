@@ -49,6 +49,7 @@
 
       4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. The subject comes through the pipe, and every modifier is computed against it. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So a command reads two fields of one record in one step, and a name carries a value past the steps that change the pipe. A command with modifiers inside a literal or a modifier stands in parentheses.
       ~({:price 4 :qty 3} | mul /price /qty | eq 12)
+      ~({:total 10 :paid 3} | sub /total /paid | eq 7)
       ~({:a 1} | [(/a | add 1) /a] | eq [2 1])
       ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::ProjectionSubjectNotProjectableError)
       ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
@@ -59,7 +60,7 @@
 
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | spec | /verbs`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
-      strings: split lines contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
+      strings: split lines trim contains startsWith endsWith lower upper append prepend parseJson keyword, and count take drop by characters; strings join from a vector by `join ","`.
       containers: count first last at take drop filter every any sort reverse distinct flat sum min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `max ~(key)`, and `sort ~([(/n | desc) /name])` ranks by n descending and then by name, and `flat` splices one level of nesting.
       every value: type eq ne print json if cond coalesce apply tag payload desc.
       booleans: and or not.

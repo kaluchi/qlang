@@ -87,7 +87,13 @@
   |~~ A projection reads a part of a map, a vector or a set, one under a
       tag among them; a number, a string or null has no parts, and a map
       that may lack a key is read by `at`, which answers null for it.
+      A modifier reads the subject of its own step: after `/qty |` the
+      subject is the number, so two parts of one record are read in one
+      step, `mul /qty /price`.
       ::link~(::proj | doc)
+
+      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::ProjectionSubjectNotProjectableError)
+      ~({:qty 2 :price 3} | mul /qty /price | eq 6)
 
       ~(
         42 | /foo

@@ -1,0 +1,4 @@
+{"name":"coalesce-of-values-reads-the-subject-first","query":"[{:t 45} {:t null} {}] * (at :t | coalesce 30)","expect":"[45 30 30]","decision":"D133"}
+{"name":"coalesce-keeps-a-subject-that-is-a-value","query":"[1] | coalesce []","expect":"[1]","decision":"D133"}
+{"name":"coalesce-walks-values-after-null","query":"null | coalesce null 7","expect":"7","decision":"D133"}
+{"name":"coalesce-with-a-quote-keeps-the-subject-out","query":"{:a 2} | coalesce ~(/missing) \"fallback\"","expect":"\"fallback\"","decision":"D133"}

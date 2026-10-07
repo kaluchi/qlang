@@ -887,7 +887,8 @@ a module that ends in a map exporting that map alone and a module of
 declarations exporting its declarations, so that helpers stay lexically
 visible to the operands that use them and out of the client's scope
 [D63]. It must keep what a module answers under its name in one loader,
-from a tag to its provider to its declaration [D36], so that the
+from a tag to its provider to its declaration [D36], the node a tag
+addresses being a binding of the module of its path [D152], so that the
 housekeeping keys leave the environment for values of their own. It
 must write the catalog by its nouns, so a noun's verbs are read where
 they are written [D62], [D67]. And it must hold the rest of the rule of
@@ -1512,13 +1513,13 @@ is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
-decisions leave in the conformance suite [D58]. The baseline's suite
-carries no target, so each decision below writes its targets before
-its work:
+decisions leave in the conformance suite [D58]. The suite carries the
+targets of the decisions whose work has begun, and every other decision
+below writes its targets before its work:
 
 ```sh
-$ grep -rl '"target": *true' core/test/conformance | wc -l
-0
+$ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
+"decision":"D152"
 ```
 
 ### Milestone 4 · One spelling
@@ -1540,7 +1541,11 @@ errors, their factories, the registry of throw sites and the drift tests
 leave, and the facts of a refusal come to speak the language's
 vocabulary [D7], [D46]. A field is documented by its record's tag and a
 value shared across kinds by its own [D50]. And elision takes the tail of
-a schema [D21]. Apart from the schema stands the module: one loader that
+a schema [D21]. Apart from the schema stands the module, and the tree
+of names it serves: every node a binding declared by a keyword, its tag
+the address of the module that declared it, a refusal under its noun,
+`::number/AddLeftNotNumberError`, and the language's names short while
+a provider's print in full [D152]; one loader that walks that tree and
 runs a module once, a pipeline whose value is what it exposes, so
 helpers stay in their module [D63], with mounted namespaces, each a
 subtree answered by its provider [D24], [D36], and the rest of the rule
@@ -1551,8 +1556,9 @@ first version, the command that measures the tree and prints the state
 of the work as a dark cockpit, whose design is the entrypoint
 document's.
 
-Its answers are the targets [D6], [D33] and [D46] leave in the
-conformance suite when they are decided, the step of a constructor
+Its answers are the targets of [D6], [D33], [D46] and [D152] in the
+conformance suite, those of the first three written when they are
+decided, the step of a constructor
 apart from the kind of tagged values having landed [D115]. Beside them:
 no factory-declared error class remains; no operand contract is spelled
 outside the catalog; one query shows every definition of a name and
@@ -1993,3 +1999,4 @@ maintainer wants to explore it before it is fixed.
 [D142]: decisions/D142.md
 [D150]: decisions/D150.md
 [D151]: decisions/D151.md
+[D152]: decisions/D152.md

@@ -102,3 +102,13 @@
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] * | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}
+{"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc","decision":"D152","target":true,"now":"::DocBindingNotFoundError"}
+{"name":"a-refusal-is-named-under-its-noun","query":"\"x\" | add 1 !| type","expect":"::number/AddLeftNotNumberError","decision":"D152","target":true,"now":"::AddLeftNotNumberError"}
+{"name":"a-refusal-reads-its-page-by-its-address","query":"::number/AddLeftNotNumberError | doc | type","expect":"::doc","decision":"D152","target":true,"now":"::DocBindingNotFoundError"}
+{"name":"a-noun-lists-the-refusals-its-module-declares","query":"::number | manifest | contains ::number/AddLeftNotNumberError","expect":"true","decision":"D152","target":true,"now":"false"}
+{"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true","decision":"D152","target":true,"now":"false"}
+{"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| ::spec~(:a ::number) | ::Box{:a 1} | doc | content","expect":"\" A box. \"","decision":"D152","target":true,"now":"::DocPayloadNotVecError"}
+{"name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError","decision":"D152","target":true,"now":"~(::Box [] | 1)"}
+{"name":"an-implicit-kind-answers-one-page-whatever-asked-first","query":"[(::Late | doc !| type) (::Late{:a 1} | doc !| type)] | distinct | count","expect":"1","decision":"D152","target":true,"now":"2"}
+{"name":"the-body-of-a-kind-is-its-constructor","query":":Small ::spec~(:payload ::number | if (lt 10) ~(/) ~(!{:reason :big})) | ::Small(12) !| /reason","expect":":big","decision":"D152","target":true,"now":"::Small(12)"}
+{"name":"a-kind-of-the-core-answers-its-spec","query":"::keyword | spec | type","expect":"::spec","decision":"D152","target":true,"now":"::builtin"}

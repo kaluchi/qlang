@@ -72,6 +72,9 @@ A second spelling is a finding, and so is the test that guards the agreement
 of two spellings: the repair deletes the duplicate with its guard. A check
 that repeats a precondition its caller already holds is a second spelling of
 the contract; defensive code stands only at the boundary of user input.
+The parser runs in `core/src/parse.mjs` alone, over source; what it read
+reaches a value through the evaluator, and a second parse of it, or a
+pattern copying a rule of the grammar, is a second spelling.
 
 ### Executable over narrated
 
@@ -146,7 +149,10 @@ once, the sister project `D:\git\eclipse-jdt-search` among them.
 
 Check: the branch reports the sign of its diff by area; a fallback for an
 old shape, an alias, a shim or a re-export kept for a caller is a finding; a
-branch that claims to cut noise shows a negative diff.
+branch that claims to cut noise shows a negative diff. The catalog grows by
+what the language gains; a growth of the core sources or of the tests is a
+finding unless the branch introduces a model and names what the next branch
+deletes because of it (`docs/decisions/D151.md`).
 
 ### Prose names the invariant, and the reason lives with the decision
 

@@ -6,26 +6,15 @@ repository, and a maintainer who answers questions; it may also be the
 maintainer alone, checking whether the work still points where it
 should. It records what the language is for, what state would count as
 satisfactory, why the code falls short of it, what has been decided,
-where the work ends, and by which route it gets there. The first
-version was written in September 2026 and frozen in commit `05eb884`.
-The second rewrote it after a day of holding it against the whole
-tree, the reference, the sister project and a long conversation with
-the maintainer, drove the repairs that landed as the pull requests
-from #42 to #52, and is frozen in commit `32db75c`. The third held the
-text against the tree those repairs left, drove the first milestone
-through the pull requests from #54 to #65, and is frozen in commit
-`4f529c5`. The fourth weighed again the decisions not yet carried out,
-drove the second milestone and part of the third through the pull
-requests from #66 to #104, and is frozen in commit `bba9606`. The fifth
-drove the third and fourth milestones and most of the front door
-through the pull requests from #105 to #138, and is frozen in commit
-`7319613`, the baseline of this sixth version. This version holds the
-text against that tree: a scar the tree no longer shows has left the
-document, what remains of a scar is stated as it stands, the route
-starts from the baseline, and every probe answers as the tree answered
-on the day this version was written. `git diff 7319613 --
-docs/qlang-audit.md` shows what changed, and the message of the commit
-that wrote this version tells why.
+where the work ends, and by which route it gets there. It was first
+written in September 2026, and each version since holds the text
+against the tree the repairs of the one before left. This, the
+seventh, holds it against commit `f679cfe`, its baseline: a scar the
+tree no longer shows has left the document, what remains of a scar is
+stated as it stands, the route starts from the baseline, and every
+probe answers as the tree answered on the day this version was
+written. `git log -- docs/qlang-audit.md` lists the versions, and the
+message of the commit that wrote each tells why.
 
 The design of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`. This document treats
@@ -137,6 +126,11 @@ Some rules for whoever edits the document, each learnt at a cost:
   has, marking a cut read with `truncatedByTokenCap`; a read that
   stopped there did not read the file, and
   `scripts/sensors/read-coverage.mjs` measures what a session has read.
+- A source outside the tree is read whole before a sentence here rests
+  on it. A search engine's digest of a page and a fetching tool's
+  summary are another model's retelling, and a sentence written from
+  one about two articles once said of one of them the opposite of what
+  it says.
 - Nothing here is condensed or deleted without the maintainer's word,
   except a sentence that the tree proves wrong, which is replaced by
   the fact and its probe.
@@ -200,6 +194,16 @@ tool's help: the share of such a sheet that bears on the task at hand
 falls toward nothing, because the shape a session needs is that of the
 one answer it is about to reshape, and that shape belongs to the
 operand it is about to call.
+
+The sister project's code is no measure of what the language needs. It
+was written under the scars this document names, so a construct it never
+uses may be one it could not use: «jdt живет на старом коде, с
+разочарованиями от qlang , с непониманием.. с конфликтами имен и т.д. ..»
+(maintainer, 2026-09-19 09:28, session ad12f85d). Nor does its use argue
+for a construct: «что делает jdt - не так важно, это не повод для
+оптимизаций . уже не раз говорилось» (maintainer, 2026-09-22 05:34,
+session 0ea77851). Need is measured by tasks and by the pain a session
+meets.
 
 That gives the project a single measure of quality. A fresh session,
 having read only what the language says about itself, writes a correct
@@ -269,11 +273,17 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `7319613` for this
+against the baseline of the version at hand, commit `f679cfe` for this
 one, the diff of the work ahead is negative in the core sources, in the
-catalog, in the documents, and in the tests; the September 2026 master,
-commit `f5e8ec8`, stays the origin the history measures from. This document and the entrypoint document stand outside
-that count: they are the measure, not what is measured. A branch that
+documents, and in the tests; the September 2026 master, commit
+`f5e8ec8`, stays the origin the history measures from. The catalog
+stands outside that count, since a language grows its catalog by the
+commands a task asks for, each under the rule of the catalog [D22], and
+by the pages that tell them, and so do this document and the
+entrypoint document, which are the measure, not what is measured. A
+growth of the core or of its tests is what the condition watches: it
+comes from a crooked part of the language, an old scar, or a concept
+that does not compose with the rest [D151]. A branch that
 claims to remove noise and lands with a positive diff has moved noise,
 not removed it.
 
@@ -752,65 +762,32 @@ field were catalogued; then two drift tests and an injection script
 were written to keep the catalog and the classes in agreement. Each
 surgery treats the one before it.
 
-In the last week of September the second version of this document
-drove a series of repairs, each a branch read by the external reviewer
-as a pull request and merged whole with its commits. Code became the
-vector of its steps, which the language takes apart and assembles with
-its own verbs, and `apply` came to take its subject first. Every step
-became a command, the verb literal was chosen, and every text of the
-repository and of the sister project was rewritten by machine into the
-command form. One order came to rank every value and the comparators
-left; JSON syntax came to read into the one map and the one vector; a
-map's elements became its values; the set became the ordered vector
-under its tag; every value received a kind; every condition was held
-to a boolean; the terminal views moved to the command line, which
-starts from a noun; the fields kept for an observability backend left
-the errors; and a failure of the host came to carry a tag of the
-language.
-
-The third version drove the first milestone, and the catalog came to be
-written by nouns. The core is the noun `::qlang`, whose page is the root
-doc; a verb lives on the kind its subject names, is addressed through
-it, `::vec/count`, and is found by walking the subject's tags; a
-keyword names a binding of its scope, `env` answers the session's own
-names, and a declaration writes the record of its binding into its
-scope, which the axes read; a refusal lives on the place it guards, and
-errors are of the kind `::error`. Beside them `within` came to edit
-under a tag, a name that does not resolve to name its nearest
-neighbours, and a text to read as its lines.
-
-The fourth version drove the second milestone. An operand became a
-verb, a quote under `::verb` whose leading declarations are its
-signature, and the runtime came to execute the head of every verb of
-the core and of every host before its body or its primitive runs, a
-host handing the primitives of its verbs beside their source. A
-declaration came to name the value its body answers once, `as` left,
-and a name came to be declared once in a scope; a comment became
-whitespace and a doc the literal in the slot of the declaration it
-documents; every value came to come apart into its atoms and back. The
-third milestone began: the trail of an error became the path it took,
-an error the envelope on top of its value, an argument came to hand an
-error on while a container keeps it, the forks of a sequence to run in
-its order, and a tag in the subject position to dispatch to the noun
-it names.
-
-The fifth version drove the rest of the third milestone, the fourth and
-most of the front door. The explanation of a value became a value of
-its own kind, the page above what it explains, and an error the site
-refused with a value of the kind of errors; `*` came to answer its
-first failure and a set the vector of its images. The catalog came to
-be told as a hypertext rooted at `::qlang`, the concepts of the
-language members of that noun, every kind's page saying why it is
-there; a name came to answer one page, read within by anchors, a link
-to open a page, a snippet to show a query, a law to prove the claim
-captioned above it, and a guessed name to lead to the names it was
-near. The command line came to print an answer whole unless asked for
-a budget, whose markers read what they left out, and to start its REPL
-from a query. The loader became a verb of any value, the function
-values, the dispatch wrapper and the descriptor applied as an operand
-leaving with it; a parse error came to name the bracket a source left
-open; and the catalog came to be laid out by the module of each kind,
-whole, the kernel's refusals under the places they guard. What those
+The repairs since have settled most of what grew around the core, and
+the tree holds what they settled. Code is the vector of its steps, which
+the language takes apart and assembles with its own verbs, and every
+step is a command. There is one binding form, a name is declared once in
+a scope, and a verb is a quote under `::verb` whose leading declarations
+are its signature, executed before its body or its primitive runs; a
+comment is whitespace, and a doc is the literal in the slot of the
+declaration it documents. One order ranks every value, JSON syntax reads
+into the one map and the one vector, the set is the ordered vector under
+its tag, every value has a kind, and every condition is a boolean. The
+catalog is written by nouns: a verb lives on the kind its subject names
+and is found by walking the subject's tags, a refusal lives under the
+place it guards, and the loader is a verb of any value. An error is a
+value of the kind `::error` under the tag of the site that refused, its
+trail the path it took, and `*` answers its first failure. The literal is
+the one lossless format of a value, the tagged JSON and the session
+envelope having left [D30]. The catalog is the reference of the language
+[D128]: the documents that retold it left, their facts laws of its pages,
+and a name answers one page, read within by anchors, its links opened,
+its snippets shown and its laws run. The first page tells the language
+from its invariants [D131], and the forms a clean session reached for
+and missed became the language's where they composed with it: a map
+coming apart into its pairs and back [D138], a fallback value for
+`coalesce` [D133], the size and the slices of a string [D132], a key
+that descends [D140]. The benchmark measures the first screen on sets of
+tasks a clean author writes and no one has read [D142]. What those
 repairs left is what the scars below describe.
 
 ## The scars
@@ -819,7 +796,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 28 September 2026
+shell with the `qlang` command or in its REPL, and on 7 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -1192,10 +1169,8 @@ leak
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
-`.qlang/` folder waits for the modules [D37]. The sister project's query
-command reimplements the parse-error descriptor by hand
-(`cli/src/commands/query.mjs`, `parseErrorToValue`), and it onboards its
-user with a static guide.
+`.qlang/` folder waits for the modules [D37]. The sister project
+onboards its user with a static guide.
 
 The repair must remove the effect marker from the language rather than
 relocate it [D2]: a naming convention would keep every `@`-name a
@@ -1532,85 +1507,111 @@ built on the language it helps to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `7319613`, and the finish
-is the tree the previous chapter describes. What the earlier versions
-drove has landed: the catalog written by nouns, a verb found by walking
-the subject's tags and a refusal on the place it guards [D34],
-[D61]–[D64]; the syntax and the mechanism of an operand, the command
-form, the quote as the vector of its steps and the one binding form
-[D4], [D5], [D43], [D44], [D57], [D60], [D65]–[D67]; the one order, the
-containers, the kinds, the trail of an error and the law of nested
-errors [D13], [D85]–[D87], [D97]–[D101], [D103], [D116]; the doc read as
-its segments and the print of a value [D19], [D94]–[D96]; the loader a
-verb, every refusal under its place and every kind whole in its module
-[D112]–[D114]; and the front door's hypertext, its budget and its parse
-errors [D107]–[D111], [D117]–[D125]. Between the baseline and the finish
-lie the milestones below, each a state of the language followed by a
-release [D29]. Under each the work is named in an order that
-illustrates and binds nobody, and the answers that show a milestone
-reached are the targets its decisions left in the conformance suite,
-which answer otherwise until the work lands [D58].
+The start is the tree of the baseline, commit `f679cfe`, and the finish
+is the tree the previous chapter describes. Between them lie two
+milestones, each a state of the language followed by a release [D29].
+Under each the work is named in the order its parts rest on each other,
+and the answers that show a milestone reached are the targets its
+decisions leave in the conformance suite [D58]. The baseline's suite
+carries no target, so each decision below writes its targets before
+its work:
+
+```sh
+$ grep -rl '"target": *true' core/test/conformance | wc -l
+0
+```
 
 ### Milestone 4 · One spelling
 
-Every fact has one spelling. What remains of it: the contracts
-moving onto the kinds, a tag's declaration being its schema or its
-constructor [D6], [D33]; the tags of the refusing sites as kinds with
-their schemas and procedures, where the JavaScript classes of errors,
-their factories, the registry of throw sites and the drift tests leave
-[D7], [D46]; one loader that runs a module once, a pipeline whose value
-is what it exposes, so helpers stay in their module [D63], with mounted
-namespaces, each a subtree answered by its provider [D24], [D36], and
-the rest of the rule of collisions, a verb and a kind joined only by
-whoever owns one of them [D23]; the examples on one plane, and the
-editor's grammar generated or reduced; and the
-entrypoint of the work in its first version, the command that measures
-the tree and prints the state of the work as a dark cockpit, whose
-design is the entrypoint document's.
+Every fact has one spelling, and a kind owns what is said of its values.
+The keystone is the declaration of a kind, its schema or its constructor
+[D6], [D33]. A map after a tag's name declares no schema today, so the
+fields of a record are spelled nowhere a reader can ask before the
+record is fetched, which is the third requirement of the mission:
+
+```qlang
+> ::P {:name ::string} | ::P{:name 5}
+::P{:name 5}
+```
+
+Three repairs rest on the schema. The tags of the refusing sites become
+kinds with their schemas and procedures, where the JavaScript classes of
+errors, their factories, the registry of throw sites and the drift tests
+leave, and the facts of a refusal come to speak the language's
+vocabulary [D7], [D46]. A field is documented by its record's tag and a
+value shared across kinds by its own [D50]. And elision takes the tail of
+a schema [D21]. Apart from the schema stands the module: one loader that
+runs a module once, a pipeline whose value is what it exposes, so
+helpers stay in their module [D63], with mounted namespaces, each a
+subtree answered by its provider [D24], [D36], and the rest of the rule
+of collisions, a verb and a kind joined only by whoever owns one of them
+[D23]. Beside both, the examples come to live on one plane, the editor's
+grammar is generated or reduced, and the entrypoint of the work gets its
+first version, the command that measures the tree and prints the state
+of the work as a dark cockpit, whose design is the entrypoint
+document's.
 
 Its answers are the targets [D6], [D33] and [D46] leave in the
 conformance suite when they are decided, the step of a constructor
 apart from the kind of tagged values having landed [D115]. Beside them:
 no factory-declared error class remains; no operand contract is spelled
-outside the catalog; one query shows
-every definition of a name and which one wins; a module's value is its
-surface, so the sister project's helpers leave its client's `env`; and
-the environment holds no key of the runtime's own.
+outside the catalog; one query shows every definition of a name and
+which one wins; a module's value is its surface, so the sister
+project's helpers leave its client's `env`; and the environment holds no
+key of the runtime's own.
+
+The model's reading of what in this milestone the language needs, and
+what is the debt of its tree. The schema is the language's, since
+without it the shape of an answer cannot be known before it is fetched,
+and a host has nowhere to say what its records hold. The surface of a
+module and the rule of collisions are the language's as soon as a host
+publishes a catalog of its own, which the sister project does, and
+mounting is the language's for a host whose names are too many to bind.
+The refusals as kinds are mostly the tree's debt: the pages of the
+refusals already teach, a session meets the tag and the facts as they
+are, and what it sees of the debt is the runtime's vocabulary in the
+facts, `:operand`, a position counted from one and a type as a keyword.
 
 ### Milestone 5 · Front door
 
-The measure can be taken as the mission states it. What remains of it:
-a view takes its options beyond a few positional modifiers as one map
-whose keys it declares [D40]; the catalog's prose is reduced to what
-the facts do not say, every page telling what its name is for and the
-claims its laws prove [D110], [D124]; errors print as alerts;
-enrichment happens once per session; fields are documented by their
-records' tags and shared values by their own [D50]; the sister
-project's nodes carry their kind as a tag, its verbs move onto its tags
-and its noun [D34], [D62], the noun's own verbs taking its name as
-their subject [D88], its types are mounted, its verbs shrink to about a
-dozen, and its guide is generated from the catalog [D24]; the effect
-marker leaves the language with them [D2], since without it a host's
-names meet the core's in a client's scope, where a module's names win
-[D62]; the sister project's workspaces become nouns and its answers
-name the workspace they came from [D38]; a host's command is the
-language's with its noun as the first value [D37]; and the benchmark
-runs [D26], each run recorded with the frictions it met [D104], [D105],
-[D106], while the first screen is written from the invariants of the
-language and held against probes its author never saw [D131], each
-measurement on a set of tasks a clean author wrote, which measures once
-and serves the work once its misses are read [D142].
+The measure can be taken as the mission states it. Its answers in the
+conformance suite are the targets of [D7], [D107], [D108], [D109],
+[D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
+[D127], [D129] and [D150]: the first screen and the hypertext it opens, every
+one met. The benchmark runs [D26], each run recorded with the frictions
+it met [D104], [D105], [D106], each measurement on a set of tasks a
+clean author wrote, which measures once and serves the work once its
+misses are read [D142].
 
-Its answers in the conformance suite are the targets of [D7], [D107],
-[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
-[D124], [D125], [D127] and [D129]: the first screen and the
-hypertext it opens, every one met. The others stand beside the suite: one
-start command returns the root doc, complete first and within four
-kilobytes after a pass on compactness [D131]; `:trail`
-prints the same way on an error value and on its materialized
-descriptor, where the error literal hides an empty trail and the
-descriptor shows it; a renderer loads the documents of the tags and
-keywords an answer carries that the session has not been shown, and
+What remains of it: a view takes its options beyond a few positional
+modifiers as one map whose keys it declares [D40]; the catalog's prose
+is reduced to what the facts do not say, every page telling what its
+name is for and the claims its laws prove [D110], [D124]; errors print
+as alerts; enrichment happens once per session; fields are documented
+by their records' tags and shared values by their own [D50]; and the
+first screen is written from the invariants of the language and held
+against probes its author never saw [D131], holding the weight it has
+until a pass on compactness can cut what a reader asks `manifest` and
+`spec` for [D150].
+
+The largest part of the milestone is the sister project's. It builds
+on the workspace copy and its suite passes against the baseline, on a
+branch that stands ahead of its remote since 29 September, and its
+redesign has not begun: its nodes carry their kind as a tag, its verbs
+move onto its tags and its noun [D34], [D62], the noun's own verbs
+taking its name as their subject [D88], its types are mounted, its verbs
+shrink to about a dozen, and its guide is generated from the catalog
+[D24]; the effect marker leaves the language with them [D2], since
+without it a host's names meet the core's in a client's scope, where a
+module's names win [D62]; its workspaces become nouns and its answers
+name the workspace they came from [D38]; and a host's command is the
+language's with its noun as the first value [D37].
+
+The others stand beside the suite: one start command returns the root
+doc; `:trail` prints the same way on an error value and on its
+materialized descriptor, where the error literal hides an empty trail
+and the descriptor shows it; a renderer loads the documents of the tags
+and keywords an answer carries that the session has not been shown, and
 withholds the ones it has; the language has no effect marker and no
 effect flag.
 
@@ -1626,8 +1627,9 @@ implements. It starts from the full set of places where its cause
 shows, found by search rather than by memory, and its first commits
 delete. The cases that confirm it are written before its code, red, and
 the branch ends when they are green and nothing else turned red. Its
-diff is negative in every area it touches, core sources, catalog,
-documents, tests, or the branch introduces a model and says in its
+diff is negative in the core sources, the documents and the tests it
+touches, and its catalog grows only by what the language gains [D151],
+or the branch introduces a model and says in its
 description what the next branch deletes because of it. The files it
 touches leave with comments that state what holds in one sentence
 [D30]. A branch that works targets, a session's or a subagent's in a
@@ -1756,9 +1758,31 @@ JavaScript, and a session whose scope lives in two processes. The
 alternative keeps the evaluator in the client and gives the host
 operands that take a vector whole and bound their own calls.
 
-The test for null. Whether `eq null | not` earns an operand of its own
-is a question the benchmark answers under the rule of the catalog
-[D22].
+A value that stands for a world [D21], [D41], [D96]. The maintainer
+asked whether a host needs a value that wraps another, prints what it
+wraps and keeps the behaviour of a long-lived thing across the steps of
+a query: «можно ли (и нужно ли.. и вообще полезно ли) сделать такоую
+proxy сущность для нужд хостов например.. которая оборачивает какое-то
+значение, не имеет собственной printValue (своей формы) и печатает то
+что заворачивает, но добавляет/меняет поведение .. по типу у нас есть
+большое значение (состояние игры)  мы взаимоействуей им через посылку
+команд | left | right | jump и так далее» (maintainer, 2026-09-28 06:09,
+session d427ce7e), and then «в хостовой среде мы как бы просто не
+печатаем ::host-тэг верхнего уровня ..  и его сущности могут печататься
+компактно, а обратный резолв из печатной формы в хостовую (это
+отвественность самого хоста) […] это я просто думаю как моделировать
+эффекты и т.п. дела потом» (06:18). The tree holds most of it: a tag
+over the state is the wrapper, a verb that returns its subject's kind
+keeps it, the tag's constructor runs again after every such verb [D41],
+and the `print` the kind answers is the screen [D96]. Two things it
+lacks. A screen that drops what the world holds is no literal that
+reads back, so it is either an elision [D21] or the view apart from the
+literal that D96 set aside. And the line between a value and a
+reference: a value reads back as itself, while a reference, a type of
+the sister project or a world, reads back as the current state of what
+it names, as a URL does; whether a tag says which of the two it is
+stays open. The first real test is the schemas of the sister project's
+entities, more complex than the kinds of the core.
 
 The site as hypermedia [D19], [D88]. The maintainer pictures the site
 as a browser that runs qlang: a module of a tutorial whose quotes, tags
@@ -1965,4 +1989,7 @@ maintainer wants to explore it before it is fixed.
 [D133]: decisions/D133.md
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
+[D140]: decisions/D140.md
 [D142]: decisions/D142.md
+[D150]: decisions/D150.md
+[D151]: decisions/D151.md

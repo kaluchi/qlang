@@ -28,16 +28,16 @@
   ~~|
   ::spec~()
 
-:TaggedLitNotTagBindingError
-  |~~ The tag before a payload names a kind, whose declaration is a
-      map; a tag bound to another value, `::T 42`, declares no kind to
+:TaggedLitTagNotKindError
+  |~~ The tag before a payload addresses a kind, whose declaration is a
+      spec; a tag that addresses a verb or a page names no kind to
       build by.
       ::link~(::construct | doc)
 
       ~(
-        ::badType 42 | ::badType[]
+        ::vec/take[]
         !| [type /tag /actualType]
-        |  eq [::construct/TaggedLitNotTagBindingError :badType ::number]
+        |  eq [::construct/TaggedLitTagNotKindError :vec/take ::verb]
        )
   ~~|
   ::spec~()

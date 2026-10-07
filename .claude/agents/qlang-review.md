@@ -22,7 +22,7 @@ file and the audit disagree, the audit wins and the finding says so.
 3. The touched files, whole. For a change to the language, also
    `core/src/grammar.peggy`, `core/src/eval.mjs`, `core/src/runtime/verb.mjs`
    and the module of each kind it touches, `core/lib/qlang/<kind>.qlang`;
-   the concepts of the language are the pages of `core/lib/qlang/qlang.qlang`.
+   the concepts of the language are the pages of `core/lib/qlang.qlang`.
 
 ## The rules
 

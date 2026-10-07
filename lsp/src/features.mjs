@@ -8,8 +8,8 @@ import {
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
-  VALUE_NAMESPACE,
-  TAG_NAMESPACE,
+  CALL_SPELLING,
+  TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
   canonicalTagName,
@@ -133,7 +133,7 @@ export function buildCatalogIndex(catalogAst) {
 let _valueCompletions = null;
 let _tagCompletions = null;
 
-async function valueNamespaceCompletions() {
+async function nameCompletions() {
   if (_valueCompletions) return _valueCompletions;
   const runtime = await langRuntime();
   _valueCompletions = [];
@@ -150,7 +150,7 @@ async function valueNamespaceCompletions() {
   return _valueCompletions;
 }
 
-async function tagNamespaceCompletions() {
+async function tagCompletions() {
   if (_tagCompletions) return _tagCompletions;
   const runtime = await langRuntime();
   _tagCompletions = [];
@@ -178,25 +178,25 @@ function justTypedDoubleColon(source, offset) {
 // declaration's, every name.
 export async function completionsAtOffset(ast, offset, source = null) {
   if (justTypedDoubleColon(source, offset)) {
-    return withDeclaredNames([...(await tagNamespaceCompletions())], ast, offset, [TAG_NAMESPACE]);
+    return withDeclaredNames([...(await tagCompletions())], ast, offset, [TAG_SPELLING]);
   }
   const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
   if (subject !== null) {
     const reached = verbsReaching(await langRuntime(), subject.kinds);
-    const verbs = (await valueNamespaceCompletions()).filter(item => reached.has(item.label));
-    return withDeclaredNames(verbs, subject.pipeline, subject.end, [VALUE_NAMESPACE]);
+    const verbs = (await nameCompletions()).filter(item => reached.has(item.label));
+    return withDeclaredNames(verbs, subject.pipeline, subject.end, [CALL_SPELLING]);
   }
-  const everyName = [...(await valueNamespaceCompletions()), ...(await tagNamespaceCompletions())];
-  return withDeclaredNames(everyName, ast, offset, [VALUE_NAMESPACE, TAG_NAMESPACE]);
+  const everyName = [...(await nameCompletions()), ...(await tagCompletions())];
+  return withDeclaredNames(everyName, ast, offset, [CALL_SPELLING, TAG_SPELLING]);
 }
 
-function withDeclaredNames(items, ast, offset, namespaces) {
+function withDeclaredNames(items, ast, offset, spellings) {
   if (!ast) return items;
-  for (const namespace of namespaces) {
-    for (const declared of bindingNamesVisibleAt(ast, offset, namespace)) {
-      const name = namespace === TAG_NAMESPACE ? tagNameOf(declared) : declared;
+  for (const spelling of spellings) {
+    for (const declared of bindingNamesVisibleAt(ast, offset, spelling)) {
+      const name = spelling === TAG_SPELLING ? tagNameOf(declared) : declared;
       if (items.some(item => item.label === name)) continue;
-      items.push(namespace === TAG_NAMESPACE
+      items.push(spelling === TAG_SPELLING
         ? { label: name, kind: 'tag', detail: 'in-document kind', documentation: null }
         : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
     }
@@ -484,7 +484,7 @@ export function referencesAtOffset(ast, offset) {
   if (!name) return [];
 
   const occurrences = isTagName(name)
-    ? findIdentifierOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_NAMESPACE)
+    ? findIdentifierOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_SPELLING)
     : findIdentifierOccurrences(ast, name);
   return occurrences
     .filter(occ => occ.location)

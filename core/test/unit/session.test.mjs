@@ -137,8 +137,8 @@ const MOCK_MODULE_SOURCE = [
 // Host-provided impl for the @fetch builtin — returns a fixed string.
 const fetchImpl = () => 'fetched-value';
 
-function mockLocator(namespaceName) {
-  if (namespaceName === 'test/io') {
+function mockLocator(modulePath) {
+  if (modulePath === 'test/io') {
     return { source: MOCK_MODULE_SOURCE, impls: { '@fetch': fetchImpl } };
   }
   return null;
@@ -150,7 +150,7 @@ describe('createSession with locator — lazy module loading', () => {
     expect(locatorSession.env.has('qlang/locator')).toBe(true);
   });
 
-  it('use(::ns) triggers locator when namespace not pre-installed', async () => {
+  it('use(::ns) triggers locator when module not pre-installed', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     const loadCell = await locatorSession.evalCell('use ::test/io | @fetch');
     expect(loadCell.error).toBeNull();
@@ -164,24 +164,24 @@ describe('createSession with locator — lazy module loading', () => {
     expect(verbCell.result).toBe('fetched-valuefetched-value');
   });
 
-  it('locator-loaded namespace keyword persists for subsequent use calls', async () => {
+  it('locator-loaded module keyword persists for subsequent use calls', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     await locatorSession.evalCell('use ::test/io');
-    // Second use of same namespace should not re-trigger locator.
+    // Second use of same module should not re-trigger locator.
     const secondUse = await locatorSession.evalCell('use ::test/io | @fetch');
     expect(secondUse.error).toBeNull();
     expect(secondUse.result).toBe('fetched-value');
   });
 
-  it('locator returning null falls through to UseNamespaceNotFoundError', async () => {
+  it('locator returning null falls through to UseModuleNotFoundError', async () => {
     const locatorSession = await createSession({ locator: mockLocator });
     const missingCell = await locatorSession.evalCell('use ::nonexistent/ns');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const locatorMissErr = missingCell.result.originalError;
-    expect(locatorMissErr.name).toBe('UseNamespaceNotFoundError');
+    expect(locatorMissErr.name).toBe('UseModuleNotFoundError');
     expect(locatorMissErr).toBeInstanceOf(QlangTypeError);
-    expect(locatorMissErr.context.namespaceName.literal).toBe('::nonexistent/ns');
+    expect(locatorMissErr.context.module.literal).toBe('::nonexistent/ns');
   });
 
   it('the signature of a locator-loaded host verb answers its head', async () => {
@@ -191,22 +191,22 @@ describe('createSession with locator — lazy module loading', () => {
     expect(specCell.result).toEqual([makeTagKeyword('spec'), makeTagKeyword('string')]);
   });
 
-  it('session without locator throws UseNamespaceNotFoundError on unknown namespace', async () => {
+  it('session without locator throws UseModuleNotFoundError on unknown module', async () => {
     const plainSession = await createSession();
     const missingCell = await plainSession.evalCell('use ::anything');
     expect(missingCell.error).toBeNull();
     expect(isErrorValue(missingCell.result)).toBe(true);
     const noLocatorErr = missingCell.result.originalError;
-    expect(noLocatorErr.name).toBe('UseNamespaceNotFoundError');
+    expect(noLocatorErr.name).toBe('UseModuleNotFoundError');
     expect(noLocatorErr).toBeInstanceOf(QlangTypeError);
-    expect(noLocatorErr.context.namespaceName.literal).toBe('::anything');
+    expect(noLocatorErr.context.module.literal).toBe('::anything');
   });
 });
 
 describe('locator exports that are no descriptors of the core', () => {
   it('leaves the verb of a module named as a noun that declares no kind off the residences of its name', async () => {
     const sessionInstance = await createSession({
-      locator: async (namespaceName) => namespaceName === 'qlang/widget'
+      locator: async (modulePath) => modulePath === 'qlang/widget'
         ? { source: ':count ::verb~(add 1) | :other 1' }
         : null
     });
@@ -221,7 +221,7 @@ describe('a cell whose failure is no error value', () => {
     // cell records it on the error channel; only a ParseError also
     // lands a structured value on the result channel.
     const sessionInstance = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/collapse'
+      locator: async modulePath => (modulePath === 'tests/collapse'
         ? {
             source: ':collapse ::verb~(::builtin{:impl :tests/collapse/collapse})',
             impls: { collapse: () => { throw new QlangInvariantError('catalog bootstrap left no root module'); } }

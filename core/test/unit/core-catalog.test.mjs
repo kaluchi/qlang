@@ -1,11 +1,12 @@
 // Tests for the qlang catalog under lib/qlang/ — the source
 // `langRuntime` parses at bootstrap.
 //
-// The catalog lives in the modules `lib/qlang/core.qlang` lists, the
-// kernel's `builtin.qlang` first, then the module of each kind, whole:
-// its page, its constructor, the refusals of its place and its verbs
-// [D112], [D114]. `langRuntime()` loads them once at startup and seals
-// the registry of primitives the verbs name.
+// The catalog is the tree of names [D152]: `lib/qlang/core.qlang`, its
+// root, binds the providers, `lib/qlang.qlang` the nouns of the language
+// with their pages and declarations, and the module of each noun its
+// verbs and the refusals of its places [D112]. `langRuntime()` loads
+// them once at startup and seals the registry of primitives the verbs
+// name.
 //
 // (The descriptor Map's identity rides on the JS-header
 // `TAG_HEADER_SYMBOL` slot — stamped to `::builtin` by the
@@ -115,7 +116,7 @@ describe('bare-name verb call', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — namespace sizes', () => {
+describe('the size of the language\'s module', () => {
   // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
   // throw site with its tag and each tag with its throw site, but the
   // six tags minted outside a per-site factory (`::Error`,
@@ -124,13 +125,13 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // axis 2 skips a name the environment does not bind. These pins fail
   // on a silent catalog shrink; per §8a of the review rules a tally
   // belongs in test code, which CI re-verifies, and never in prose.
-  it('the tag namespace holds every declared tag-binding', async () => {
+  it('the language\'s module binds every noun and every concept page', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
     expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(38);
   });
 
-  it('no name of the value namespace is left a descriptor [D113]', async () => {
+  it('no name of the scope is left a descriptor [D113]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
     expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(0);

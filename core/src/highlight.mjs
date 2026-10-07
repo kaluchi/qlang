@@ -31,7 +31,7 @@
 //                 'comment')
 //   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
 //                 writes one, or a BareTypeKeyword — the
-//                 tag-namespace identifier sigil + name
+//                 tag sigil + the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       every other single-char or multi-char combinator

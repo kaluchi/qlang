@@ -1,4 +1,4 @@
-|~ `::map`, the kind of maps, its constructor and its refusal, and
+|~ `::map`, the kind of maps, the refusal of its constructor, and
    the verbs of maps. Each resides on `::qlang/map`, the kind whose
    module declares it, under the contract of its name on `::qlang/any`,
    whose page and laws it answers. A map's elements are its

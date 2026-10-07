@@ -118,63 +118,21 @@ export class EffectLaunderingError extends QlangError {
 // A per-site error carries four structural facts: the `:category`
 // its base names, the `:operand` that raises it, the `:position`
 // that operand checks, and the `:expectedType` it requires. The
-// runtime reads them to find the refusal of a place and to list the
-// refusals of a verb; the catalog declares the refusal's kind and its
-// page beside its place [D152].
-
-// A category names who repairs the failure, and only the categories
-// a reader repairs reach the `:throws` of a place — the Vec answers
-// what a query can provoke there, which is the half a reader can act
-// on: a verb's slot, and a step's unresolved name, unreadable text or
-// laundered effect [D64].
-const QUERY_FAULT_CATEGORIES = new Set([
-  'typeError', 'arityError', 'numericDomain', 'unresolvedIdentifier', 'parseError', 'effectLaundering'
-]);
+// runtime reads them to find the refusal of a place; the catalog
+// declares the refusal's kind and its page beside its place [D152].
 
 const throwSiteSpecs = new Map();
 
 // One name, one throw site — the registry refuses a second
 // recording the way `PRIMITIVE_REGISTRY.bind` refuses a second
 // binding, and for the same reason: two classes answering to one
-// name share a catalog tag and a stamped spec, so whichever loads
-// second speaks for both.
+// name share one kind of the catalog, so whichever loads second
+// speaks for both.
 export function recordThrowSiteSpec(className, category, facts = {}) {
   if (throwSiteSpecs.has(className)) {
     throw new ThrowSiteSpecAlreadyRecordedError({ className });
   }
-  throwSiteSpecs.set(className, Object.freeze({
-    category,
-    isQueryFault: QUERY_FAULT_CATEGORIES.has(category),
-    ...facts
-  }));
-}
-
-// The `:throws` Vec of a binding, read back off the sites that name
-// it, ordered by the slot each site guards: the subject, then the
-// captured positions in order, then the refusals that guard no one
-// slot — a magnitude, a comparability, an arity. Registry insertion
-// is module-load order, which says nothing about an operand whose
-// sites are spread across modules, so the recorded `:position` is
-// what the reading rests on.
-const SUBJECT_SLOT = -1;
-const NO_SLOT = Number.MAX_SAFE_INTEGER;
-
-function slotOf(spec) {
-  if (spec.position === 'subject') return SUBJECT_SLOT;
-  if (typeof spec.position === 'number') return spec.position;
-  return NO_SLOT;
-}
-
-export function throwSiteTagsRaisedBy(bindingName) {
-  const raised = [];
-  // Every site names the place it guards, a verb, a noun or a step of
-  // the language [D64].
-  for (const [className, spec] of throwSiteSpecs) {
-    if (spec.isQueryFault && spec.operand === bindingName) raised.push([className, spec]);
-  }
-  return raised
-    .sort(([, left], [, right]) => slotOf(left) - slotOf(right))
-    .map(([className]) => className);
+  throwSiteSpecs.set(className, Object.freeze({ category, ...facts }));
 }
 
 export function throwSiteSpecOf(className) {
@@ -191,11 +149,14 @@ export function recordPlaceRefusal(className, Cls) {
 }
 
 // placeRefusalOf(operandName, positions) → the class of the refusal the
-// site of `operandName` declares at one of `positions`, or undefined.
+// site of `operandName` declares at the first of `positions` one
+// declares, or undefined.
 export function placeRefusalOf(operandName, positions) {
-  for (const className of throwSiteTagsRaisedBy(operandName)) {
-    const Cls = placeRefusalClasses.get(className);
-    if (Cls !== undefined && positions.includes(throwSiteSpecs.get(className).position)) return Cls;
+  for (const position of positions) {
+    for (const [className, Cls] of placeRefusalClasses) {
+      const { operand, position: declaredPosition } = throwSiteSpecs.get(className);
+      if (operand === operandName && declaredPosition === position) return Cls;
+    }
   }
   return undefined;
 }
@@ -227,8 +188,8 @@ export function refusalAddressOf(className) {
 // One throw site, one class. Every per-site class is built by a
 // factory that names it once and records its throw-site spec from
 // the same argument, so the class name, the `.kind` the instance
-// carries and the `:category` the catalog binding gets stamped with
-// cannot drift apart. `operand-errors.mjs` narrows the same shape
+// carries and the `:category` the registry records cannot drift
+// apart. `operand-errors.mjs` narrows the same shape
 // for the four operand slot checks — subject, modifier, element,
 // comparability — where the operand and the slot spell the wording
 // as well as the spec. The factories here take a message builder
@@ -241,7 +202,7 @@ export function refusalAddressOf(className) {
 // class built inside a factory reports the factory's local binding
 // until redefined. Every per-site class is redefined to its declared
 // name, which is what `constructor.name`, a stack frame, and the
-// `::Tag` the catalog binds all read.
+// address of the refusal in the catalog all read.
 export function brand(Cls, className) {
   Object.defineProperty(Cls, 'name', { value: className });
   return Cls;
@@ -287,7 +248,7 @@ export function declareShapeError(className, buildMessage, facts = {}) {
 // carry the right value-class and whose result leaves the
 // finite-double domain a qlang Number lives in. Extends
 // `NumericDomainError` so `.kind` reads `numericDomain` and the
-// tag-binding's `:category` matches — a shape category would claim
+// recorded `:category` matches — a shape category would claim
 // a type violation the values do not have, since
 // `typeKeyword(Infinity)` answers `::number`.
 export function declareNumericDomainError(className, buildMessage, facts = {}) {
@@ -345,7 +306,7 @@ export function declareForeignError(className, buildMessage, facts = {}) {
 export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
   'ThrowSiteSpecAlreadyRecordedError',
   ({ className }) => `${className} records a second throw-site spec; two classes under ` +
-    'one name share a catalog tag and a stamped spec',
+    'one name share one kind of the catalog',
   { operand: '::builtin' }
 );
 

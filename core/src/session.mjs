@@ -6,7 +6,7 @@ import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { isBinding, keyword, makeBinding } from './types.mjs';
-import { RUNTIME_LOCATOR_KEY, isRuntimeKey, moduleNamespaceKey } from './env-keys.mjs';
+import { RUNTIME_LOCATOR_KEY, isRuntimeKey, moduleKey } from './env-keys.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { loadTree } from './runtime/use.mjs';
 import { ROOT_MODULE_PATH } from './runtime/nouns.mjs';
@@ -28,7 +28,7 @@ async function withHostLocator(env, hostLocator) {
   };
   const hostEnv = new Map(env).set(RUNTIME_LOCATOR_KEY, locator);
   if (hostRoot === null) return hostEnv;
-  hostEnv.delete(moduleNamespaceKey(ROOT_MODULE_PATH));
+  hostEnv.delete(moduleKey(ROOT_MODULE_PATH));
   return await loadTree(rootState(null, hostEnv), hostEnv, ROOT_MODULE_PATH);
 }
 

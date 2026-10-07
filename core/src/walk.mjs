@@ -13,12 +13,11 @@
 
 import { canonicalTagName } from './env-keys.mjs';
 
-// Namespace alias values used by `bindingNamesVisibleAt` to select
-// which BindStep declaration shapes count toward the result
-// Set. Kept on the export surface so callers (LSP completion,
-// editor autocomplete) pass a named constant at every call site.
-export const VALUE_NAMESPACE = 'value';
-export const TAG_NAMESPACE   = 'tag';
+// The two spellings of a name in source: called by its name, `count`,
+// or written as a tag, the address of a node, `::Box` [D152]. The
+// editor passes one to say which occurrences and declarations count.
+export const CALL_SPELLING = 'call';
+export const TAG_SPELLING   = 'tag';
 
 // astChildrenOf(node) — yields the direct semantic children of an
 // AST node. "Semantic" excludes plumbing like the {combinator, step}
@@ -70,7 +69,7 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, BareTypeKeyword (tag-namespace identifier) have no
+    // Projection, BareTypeKeyword (a tag, the address of a node) have no
     // semantic children.
   }
   return out;
@@ -198,10 +197,10 @@ export function findAstNodeAtOffset(ast, offset) {
   return narrowest;
 }
 
-// findIdentifierOccurrences(ast, name, namespace?) — returns every AST
-// node that names the given qlang identifier. In the value namespace:
-// a call of the name, its declaration, `:foo body`, and a projection
-// that reads it as a key. In the tag namespace, a kind's name [D152]:
+// findIdentifierOccurrences(ast, name, spelling?) — returns every AST
+// node that names the given qlang identifier. Called: a call of the
+// name, its declaration, `:foo body`, and a projection that reads it
+// as a key. Written as a tag, a kind's name [D152]:
 // its declaration, a tagged literal or an error literal that writes it
 // [D86], and the tag name standing alone.
 //
@@ -209,8 +208,8 @@ export function findAstNodeAtOffset(ast, offset) {
 // result set: a `:foo` literal in value position is a keyword
 // value, addressable by `eq :foo` predicates but separate from
 // identifier resolution.
-export function findIdentifierOccurrences(ast, name, namespace = VALUE_NAMESPACE) {
-  if (namespace === TAG_NAMESPACE) return findTagNamespaceOccurrences(ast, canonicalTagName(name));
+export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
+  if (spelling === TAG_SPELLING) return findTagOccurrences(ast, canonicalTagName(name));
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
@@ -227,7 +226,7 @@ export function writesTag(node) {
   return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
 }
 
-function findTagNamespaceOccurrences(ast, tagName) {
+function findTagOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
     if (writesTag(node) && canonicalTagName(node.tag) === tagName) occurrences.push(node);
@@ -256,14 +255,14 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
-// bindingNamesVisibleAt(ast, offset, namespace?) — returns the Set
+// bindingNamesVisibleAt(ast, offset, spelling?) — returns the Set
 // of binding names lexically visible at the given UTF-16 offset.
 // This is the autocomplete primitive: "what identifiers can the
 // user type at this cursor position without an unresolved-
 // identifier error?"
 //
-// `namespace` picks which declarations contribute, each by its name:
-//   - `'value'` (default) — every declaration, `:name body`.
+// `spelling` picks which declarations contribute, each by its name:
+//   - `'call'` (default) — every declaration, `:name body`.
 //   - `'tag'` — the declarations of kinds, `:Box ::spec~(…)` [D152].
 //
 // Visibility rules, mirroring the runtime fork semantics:
@@ -275,10 +274,10 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // Cursor containment uses the closed interval [start, end] (not
 // half-open) so that a cursor at the end of a fork still sees its
 // bindings.
-export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) {
+export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    if (node.type !== 'BindStep' || (namespace === TAG_NAMESPACE && !declaresKind(node))) return;
+    if (node.type !== 'BindStep' || (spelling === TAG_SPELLING && !declaresKind(node))) return;
     const bindingName = node.key.name;
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;

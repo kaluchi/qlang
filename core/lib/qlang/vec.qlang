@@ -1,4 +1,4 @@
-|~ `::vec`, the kind of vectors, its constructor and its refusal,
+|~ `::vec`, the kind of vectors, the refusal of its constructor,
    and the verbs of vectors. Each resides on `::qlang/vec`, the kind
    whose module declares it, under the contract of its name on
    `::qlang/any`, whose page and laws it answers; a quote reads as

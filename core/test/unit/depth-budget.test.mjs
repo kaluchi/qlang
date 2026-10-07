@@ -64,7 +64,7 @@ describe('depth budget — host seams', () => {
     // step lifts the error and the tally deflects.
     let frameTally = 0;
     const sessionInstance = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/tally'
+      locator: async modulePath => (modulePath === 'tests/tally'
         ? {
             source: ':tallyFrame ::verb~(::builtin{:impl :tests/tally/tallyFrame})',
             impls: { tallyFrame: subject => { frameTally++; return subject; } }
@@ -83,8 +83,8 @@ describe('depth budget — host seams', () => {
   it('a locator-loaded module evaluates one frame below the use step, so a module using itself terminates', async () => {
     let locatorCalls = 0;
     const sessionInstance = await createSession({
-      locator: async (namespaceName) => {
-        if (namespaceName !== 'self') return null;
+      locator: async (modulePath) => {
+        if (modulePath !== 'self') return null;
         locatorCalls++;
         return { source: 'use ::self' };
       }

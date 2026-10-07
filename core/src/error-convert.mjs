@@ -22,13 +22,10 @@ recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
 // the step and its subject, after it [D85]. Identity is
 // surfaced through the `type` operand (`result !| type |
 // eq ::Foo`), which reads `error.tag` straight off the JS
-// header. Per-tag static facts — `:category`, `:operand`,
-// `:position`, `:expectedType` — are properties of the throw
-// site, recorded by the factory that builds the class and
-// stamped onto the tag-binding at bootstrap, and are reachable
-// through hypertext navigation via the `spec` axis: `result !|
-// type | spec | /category` reads the broad-bucket; `result !|
-// type | spec | /operand` reads the per-site origin.
+// header. The facts of the site, `:category`, `:operand`,
+// `:position` and `:expectedType`, stay in the registry of the
+// throw sites, and the kind the catalog declares for the refusal
+// holds its page [D152].
 //
 // `:actualValue` lift rule: stamped only when the throw site
 // drilled below the subject of the step (multi-segment projection,
@@ -48,9 +45,9 @@ const RUNTIME_FIELD_ORDER = [
 ];
 
 // Identifier-shaped descriptor fields carrying a `name`-like string
-// from a JS throw site — a referenced namespace / parameter /
+// from a JS throw site — a referenced module / parameter /
 // operand / axis / binding. The JS→qlang boundary lifts
-// each such string to a Keyword, and the env key of a tag, `::Foo`,
+// each such string to a Keyword, and a string that writes a tag, `::Foo`,
 // to the tag, so the descriptor surface stays uniformly
 // identifier-typed: `printValue` prints `:name` rather than `"name"`,
 // `!| /operandName` projection reads as a Keyword, downstream
@@ -59,7 +56,7 @@ const RUNTIME_FIELD_ORDER = [
 // IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([
   'name',
-  'operandName', 'namespaceName', 'namespace', 'paramName',
+  'operandName', 'module', 'paramName',
   'effectfulName', 'bindingName',
   'tag', 'exportName'
 ]);
@@ -74,13 +71,8 @@ export function errorFromQlang(qlangError, subject) {
 
   // Instance carries only the dynamic facts the JS context attached
   // (`:actualType`, comparability pair-types, `:index`, dispatch-time
-  // `:operandName`, etc.). Per-tag static facts —
-  // `:category`, `:operand`, `:position`, `:expectedType` — ride the
-  // tag-binding, stamped there from the throw site, and reach the
-  // reader through hypertext navigation: `result !| type | spec`
-  // returns the stamped descriptor; `result !| type | source` walks
-  // the BindStep source; `result !| type | doc` returns the
-  // canonical prose the catalog authored.
+  // `:operandName`, etc.); `result !| type | doc` reads the page of
+  // the refusal's kind.
   //
   // `:actualValue` ref-eq dedup against the subject — when the
   // throw site's per-instance `actualValue` is the very pipeValue
@@ -106,19 +98,14 @@ export function errorFromQlang(qlangError, subject) {
     if (liftedFromOrder.has(k)) continue;
     // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
     // against the subject runs in the loop above; tail-loop fields
-    // are exclusively per-site shape extras (operand-, namespace-,
+    // are exclusively per-site shape extras (operand-, module-,
     // etc.) and never need the same gate.
     if (RUNTIME_FIELD_ORDER.includes(k)) continue;
     if (v === undefined) continue;
     d.set(k, liftIdentifier(k, v));
   }
 
-  // No `:category` stamp — the broad-bucket taxonomy rides the
-  // tag-binding, where the bootstrap put it from the throw site's
-  // recorded spec; `result !| type | spec | /category` reads it
-  // through the `spec` axis.
-  //
-  // No `:message` stamp — the structured per-site fields
+  // No `:message` field — the structured per-site fields
   // (`:actualType`, `:leftType`, …) carry every input the JS-side
   // template would re-format, the tag identity TagKeyword on the
   // error's JS-header carries the template itself, and `::Tag |

@@ -2,7 +2,7 @@
 // `platformLocator` resolves logical names through the calling
 // package's `imports` field, `BootstrapRootMissingError` fires
 // when `#qlang/core` itself is unmapped, and `use(::ns)` without
-// a locator in env surfaces `UseNamespaceNotFoundError`.
+// a locator in env surfaces `UseModuleNotFoundError`.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -16,12 +16,12 @@ import { makeTagKeyword } from '../../src/types.mjs';
 import { RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
 
 describe('platformLocator', () => {
-  it('returns null for an unmapped namespace', async () => {
+  it('returns null for an unmapped module', async () => {
     const result = await platformLocator('does/not/exist/anywhere');
     expect(result).toBeNull();
   });
 
-  it('returns { source } for a mapped namespace', async () => {
+  it('returns { source } for a mapped module', async () => {
     const result = await platformLocator('qlang/core');
     expect(typeof result.source).toBe('string');
     expect(result.source.length).toBeGreaterThan(100);
@@ -68,22 +68,21 @@ describe('a module a query loads that fails to parse', () => {
   it('answers the parse error as the value of the step that loaded it', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
+      locator: async modulePath => (modulePath === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
     });
     const cellEntry = await sessionInstance.evalCell('use ::tests/broken !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('quote/ParseError'));
   });
 });
 
-describe('use without a locator in env raises UseNamespaceNotFoundError', () => {
+describe('use without a locator in env raises UseModuleNotFoundError', () => {
   it('falls into the no-locator branch when env lacks the locator key', async () => {
-    // Build a minimal env: langRuntime's seed plus locator stripped.
-    // `use(::nonexistent)` then has no way to resolve, hits the
-    // explicit no-locator throw branch in resolveNamespaceEnv.
+    // The runtime with its locator stripped: `use ::nonexistent` has no
+    // source to ask.
     const env = new Map(await langRuntime());
     env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use ::absolutely-nonexistent-namespace !| type', env);
-    expect(result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
+    const result = await evalQuery('use ::absolutely-nonexistent-module !| type', env);
+    expect(result).toEqual(makeTagKeyword('any/UseModuleNotFoundError'));
   });
 });
 

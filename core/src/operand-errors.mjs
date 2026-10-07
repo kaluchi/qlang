@@ -5,7 +5,7 @@
 // lowers that triple into both halves of the diagnostic: the
 // human wording the message carries and the structured
 // `:operand` / `:position` / `:expectedType` the throw-site spec
-// records for the tag-binding.
+// records.
 //
 // The generic forms — a site with custom wording, an arity refusal,
 // a magnitude outside the finite-double domain, a runtime invariant —
@@ -39,9 +39,7 @@ import { typeKeyword } from './types.mjs';
 // names — `'number'`, `'vec'`, or `['vec', 'set', 'map']`. The
 // factory lowers each form to a humanised string ("Number",
 // "Vec or Set", "Vec, Set, or Map") for the diagnostic message
-// body, and records the structured Keyword form in the same call
-// for the bootstrap to stamp onto the tag-binding; consumers reach
-// it through `result !| type | spec | /expectedType`.
+// body, and records the type names in the same call.
 function lowerExpectedTypeHuman(input) {
   const names = Array.isArray(input) ? input : [input];
   const caps = names.map(name => name.charAt(0).toUpperCase() + name.slice(1));
@@ -59,10 +57,8 @@ function lowerExpectedTypeHuman(input) {
 
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable. `operand` / `position` /
-// `expectedType` are per-tag static constants: the recorded spec
-// carries them onto the tag-binding, and the `spec` axis returns
-// them on demand (`::TagName | spec | /operand`). JS-side context
-// carries only dynamic facts.
+// `expectedType` are the facts of the site, which the registry
+// records; JS-side context carries only dynamic facts.
 export function declareSubjectError(className, operand, expectedTypeInput) {
   const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
   recordThrowSiteSpec(className, 'typeError',

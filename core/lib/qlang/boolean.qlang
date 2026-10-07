@@ -1,5 +1,5 @@
-|~ `::boolean`, the kind of booleans, its constructor and its
-   refusal, and the verbs of booleans. Each resides on `::qlang/boolean`, the
+|~ `::boolean`, the kind of booleans, the refusal of its
+   constructor, and the verbs of booleans. Each resides on `::qlang/boolean`, the
    kind whose module declares it: the negation, and the two
    combinators of conditions, which take booleans. ~|
 

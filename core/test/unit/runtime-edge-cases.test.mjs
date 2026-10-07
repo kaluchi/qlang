@@ -2,7 +2,7 @@
 // target source file. Each `describe` block names the module and
 // the specific branch / path it exercises (right-operand checks
 // in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
-// `UseNamespaceCollisionError` site, binding-record classifier in
+// `UseModuleCollisionError` site, binding-record classifier in
 // `types.mjs::describeType`,
 // `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
 // topical test files (`error-values.test.mjs`,
@@ -29,7 +29,7 @@ import {
   isErrorValue
 } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
-import { moduleNamespaceKey } from '../../src/env-keys.mjs';
+import { moduleKey } from '../../src/env-keys.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
@@ -194,13 +194,13 @@ describe('a slot takes no modifiers', async () => {
 });
 
 
-describe('importSelectiveNamespace single keyword fallback', async () => {
-  it('use(::ns, :singleKeyword) wraps keyword in array', async () => {
+describe('use with one name selected', async () => {
+  it('use ::lib :x brings the one name', async () => {
     const s = await createSession();
     const lib = new Map();
     lib.set('x', 10);
     lib.set('y', 20);
-    s.bind(moduleNamespaceKey('lib'), lib);
+    s.bind(moduleKey('lib'), lib);
     const r = await s.evalCell('use ::lib :x | x');
     expect(r.result).toBe(10);
   });
@@ -224,45 +224,30 @@ describe('walk.mjs — locationToQlangMap', async () => {
 
 // ── runtime/use.mjs uncovered branches ─────────────────────
 
-describe('use.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
-  it('keyword-keyed collision uses k.name in error context', async () => {
-    // importCollisionStrictNamespaces — collision on a keyword key.
-    // isKeyword(k) is true → k.name branch taken (existing coverage).
+describe('use.mjs — UseModuleCollisionError', async () => {
+  it('a set of modules that export one name is refused by that name', async () => {
     const s = await createSession();
-    s.bind(moduleNamespaceKey('nsA'), new Map([['shared', 1]]));
-    s.bind(moduleNamespaceKey('nsB'), new Map([['shared', 2]]));
+    s.bind(moduleKey('nsA'), new Map([['shared', 1]]));
+    s.bind(moduleKey('nsB'), new Map([['shared', 2]]));
     const r = await s.evalCell('use #[::nsA ::nsB]');
     expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNamespaceCollisionError');
-  });
-
-  it('non-keyword-keyed collision uses String(k) fallback in error context (line 138)', async () => {
-    // Namespaces with raw string keys (non-keyword). isKeyword(k) is
-    // false → String(k) branch fires on line 138.
-    const s = await createSession();
-    s.bind(moduleNamespaceKey('nsC'), new Map([['rawKey', 1]]));
-    s.bind(moduleNamespaceKey('nsD'), new Map([['rawKey', 2]]));
-    const r = await s.evalCell('use #[::nsC ::nsD]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.context.collidingName).toBe('rawKey');
+    expect(r.result.originalError.name).toBe('UseModuleCollisionError');
+    expect(r.result.originalError.context.collidingName).toBe('shared');
   });
 });
 
 describe('use.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
   it('selective use(::ns, :missing) produces an error when name is absent', async () => {
     const s = await createSession();
-    s.bind(moduleNamespaceKey('myNs'), new Map([['x', 99]]));
+    s.bind(moduleKey('myNs'), new Map([['x', 99]]));
     const r = await s.evalCell('use ::myNs :missing');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.name).toBe('UseNameNotExportedError');
   });
 
-  it('non-keyword selection uses String(name) fallback in error context (line 157)', async () => {
-    // Pass a Vec with a number element as the selection — the number is
-    // not a so isKeyword(name) is false → String(name) fires.
+  it('a selected name that is no keyword is refused by its text', async () => {
     const s = await createSession();
-    s.bind(moduleNamespaceKey('myNs2'), new Map([['x', 99]]));
-    // use(::myNs2, [42]) — selection Vec contains number 42, not a keyword
+    s.bind(moduleKey('myNs2'), new Map([['x', 99]]));
     const r = await s.evalCell('use ::myNs2 [42]');
     expect(isErrorValue(r.result)).toBe(true);
     expect(r.result.originalError.context.exportName).toBe('42');

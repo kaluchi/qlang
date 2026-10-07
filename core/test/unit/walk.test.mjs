@@ -9,7 +9,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
-  bindingNamesVisibleAt, TAG_NAMESPACE } from '../../src/walk.mjs';
+  bindingNamesVisibleAt, TAG_SPELLING } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
   it('yields steps for a Pipeline', () => {
@@ -189,7 +189,7 @@ describe('findIdentifierOccurrences', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
     // that writes none names no tag [D86].
     const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
-    const refs = findIdentifierOccurrences(ast, 'Foo', TAG_NAMESPACE);
+    const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
@@ -206,24 +206,24 @@ describe('findIdentifierOccurrences', () => {
     expect(refs).toHaveLength(0);
   });
 
-  it('finds TaggedLit occurrences in the tag namespace', () => {
+  it('finds TaggedLit occurrences written as a tag', () => {
     const ast = parse('::verb~(count)');
-    const refs = findIdentifierOccurrences(ast, 'verb', TAG_NAMESPACE);
+    const refs = findIdentifierOccurrences(ast, 'verb', TAG_SPELLING);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
     expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'verb')).toBe(true);
   });
 
-  it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
+  it('finds BareTypeKeyword occurrences written as a tag', () => {
     const ast = parse('::verb | source');
-    const refs = findIdentifierOccurrences(ast, 'verb', TAG_NAMESPACE);
+    const refs = findIdentifierOccurrences(ast, 'verb', TAG_SPELLING);
     expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'verb')).toBe(true);
   });
 
-  it('finds the declaration of a kind in the tag namespace', () => {
+  it('finds the declaration of a kind written as a tag', () => {
     const ast = parse(':Box ::spec~()');
-    const refs = findIdentifierOccurrences(ast, 'Box', TAG_NAMESPACE);
+    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
     expect(refs.some(n => n.type === 'BindStep' && n.key.name === 'Box')).toBe(true);
   });
 });
@@ -304,30 +304,30 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('outer')).toBe(true);
   });
 
-  it('TAG_NAMESPACE surfaces the declarations of kinds by their names', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+  it('TAG_SPELLING surfaces the declarations of kinds by their names', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
     const source = ':MyType ::spec~(42) | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('MyType')).toBe(true);
   });
 
-  it('TAG_NAMESPACE skips value-namespace BindStep declarations', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+  it('TAG_SPELLING skips the declarations of names that are no kind', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
     const source = ':valueName 1 | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('valueName')).toBe(false);
     expect(visible.has(':valueName')).toBe(false);
     expect(visible.size).toBe(0);
   });
 
-  it('TAG_NAMESPACE honours fork-isolation rules', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+  it('TAG_SPELLING honours fork-isolation rules', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
     const source = '(:Local ::spec~(42)) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
-    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_SPELLING);
     expect(visible.has('Local')).toBe(false);
   });
 });

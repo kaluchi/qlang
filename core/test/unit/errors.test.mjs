@@ -132,9 +132,8 @@ describe('error class branding survives Object.defineProperty (minification prox
 });
 
 describe('throw-site spec registry — one name, one site', () => {
-  // The registry is what the bootstrap stamps from, so a second
-  // class under one name would hand its `::Tag` binding a spec for
-  // the other site.
+  // The registry gives a refusal its address and its place, so a
+  // second class under one name would speak for the other site.
   it('refuses a second recording under a name already declared', () => {
     let refusal = null;
     try {

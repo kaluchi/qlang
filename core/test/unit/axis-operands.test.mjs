@@ -59,8 +59,8 @@ describe(':name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toBe(' first cell ');
   });
 
-  it('namespaced keyword names round-trip cleanly through axis lookup', async () => {
-    // `:landing/chapter01` parses as a single namespaced Keyword;
+  it('moduled keyword names round-trip cleanly through axis lookup', async () => {
+    // `:landing/chapter01` parses as a single moduled Keyword;
     // BindStep writes the record under that exact name, which the
     // axes read. Pinned here so a future grammar change to
     // namespacing semantics surfaces the regression.
@@ -119,7 +119,7 @@ describe(':name | doc | laws extracts Quote segments from docs', () => {
   });
 });
 
-describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
+describe('axis-operands read the node a tag addresses', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
     expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
@@ -129,7 +129,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
       .toEqual([makeTagKeyword('any/count'), makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
   });
 
-  it('::verb | source resolves the tag-binding descriptor through reverse env lookup', async () => {
+  it('::verb | source reads the declaration of the kind in the language\'s module', async () => {
     const result = await evalQuery('::verb | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result).startsWith(':verb')).toBe(true);
@@ -146,11 +146,10 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  // Regression — a keyword-keyed declaration mints only into the
-  // value namespace. A `42 | :Foo /` freeze under a value-namespace
-  // `:Foo` keyword must not satisfy a tag-namespace lookup `::Foo |
-  // source` — they are distinct env entries by colon-count.
-  it('::Tag | source ignores a same-stem value-namespace freeze', async () => {
+  // A tag reads the scope's own kind alone, a name whose value is a
+  // spec [D152], so a freeze `42 | :Foo /` is no node `::Foo | source`
+  // reads.
+  it('::Tag | source ignores a freeze of the same name in the scope', async () => {
     const result = await evalQuery('42 | :Foo / | ::Foo | source');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
@@ -159,7 +158,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
     expect(result.originalError.context.bindingName).toBe('::Foo');
   });
 
-  it('::Tag | doc ignores a same-stem value-namespace freeze', async () => {
+  it('::Tag | doc ignores a freeze of the same name in the scope', async () => {
     const result = await evalQuery('42 | :Foo / | ::Foo | doc');
     const { isErrorValue } = await import('../../src/types.mjs');
     expect(isErrorValue(result)).toBe(true);
@@ -244,13 +243,13 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 
   // Whichever of a `use` and a cell's declaration writes the name last
   // holds the record the axes read, in either order.
-  const namespaceLocator = async (namespaceName) => namespaceName === 'probe/shadow'
-    ? { source: ':contested |~~ from the namespace ~~| 111' }
+  const moduleLocator = async (modulePath) => modulePath === 'probe/shadow'
+    ? { source: ':contested |~~ from the module ~~| 111' }
     : null;
 
   it('a cell BindStep after a use answers with the cell declaration', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const sessionInstance = await createSession({ locator: moduleLocator });
     const cellEntry = await sessionInstance.evalCell(
       'use(::probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
       '[contested, (:contested | source | parse), (:contested | doc | content)]');
@@ -272,15 +271,15 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(docsEntry.result).toBeNull();
   });
 
-  it('a use after a cell BindStep answers with the namespace declaration', async () => {
+  it('a use after a cell BindStep answers with the module declaration', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({ locator: namespaceLocator });
+    const sessionInstance = await createSession({ locator: moduleLocator });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | use(::probe/shadow) | ' +
       '[contested, (:contested | source | parse), (:contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
-      111, ':contested |~~ from the namespace ~~| 111', ' from the namespace '
+      111, ':contested |~~ from the module ~~| 111', ' from the module '
     ]);
   });
 });

@@ -1239,10 +1239,11 @@ part:
   0
   ```
 - One loader of modules: `use` through a locator
-  (`core/src/runtime/use.mjs`, `resolveNamespaceEnv`), which the
-  bootstrap of the catalog calls too; the resolver of module directories
-  that tests alone used has left the package. It computes a module's
-  surface as a delta of the environment.
+  (`core/src/runtime/use.mjs`, `loadModule`), which the bootstrap of
+  the catalog calls too, walking the tree from its root with
+  `loadTree`; the resolver of module directories that tests alone used
+  has left the package. A module's surface is the bindings it declared
+  under its own path [D152].
 - An embedding surface that was never designed. The package's entry
   point exports what the command line, the language server, the site
   and the sister project read, and no name besides; among them are still

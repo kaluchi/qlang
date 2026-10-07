@@ -123,8 +123,8 @@ export const TASKS = [
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | spec | /verbs | sort * [/ (doc | content)]',
-    answer: '::string | spec | /verbs | sort * [/ (doc | content)]'
+    reference: '::string | manifest | filter ~(binding | /value | type | eq ::verb) | sort * [/ (doc | content)]',
+    answer: '::string | manifest | filter ~(binding | /value | type | eq ::verb) | sort * [/ (doc | content)]'
   },
   {
     id: 'N3',

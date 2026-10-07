@@ -997,11 +997,11 @@
       A tag loads the module it names, a vector several in order, a
       later one shadowing an earlier, and a set several refusing a name
       two of them export:
-      ~(use ::absolutely-nonexistent-module !| type | eq ::any/UseNamespaceNotFoundError)
+      ~(use ::absolutely-nonexistent-module !| type | eq ::any/UseModuleNotFoundError)
       A second slot takes only the names it lists:
-      ~(use ::absolutely-nonexistent-module #[:a] !| type | eq ::any/UseNamespaceNotFoundError)
+      ~(use ::absolutely-nonexistent-module #[:a] !| type | eq ::any/UseModuleNotFoundError)
   ~~|
-  ::verb~(:namespace #[::tag ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
+  ::verb~(:module #[::tag ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
 
 :UseSubjectNotMapError
   |~~ `use` alone brings the entries of a map into the scope, so its
@@ -1015,46 +1015,46 @@
   ~~|
   ::spec~()
 
-:UseNamespaceNotTagError
+:UseModuleNotTagError
   |~~ `use ::lib #[:name …]` takes the names of one module, so the
       module a selection reads from is named by its tag.
 
       ~(
         use [::a] #[:x]
         !| [type /actualType]
-        |  eq [::any/UseNamespaceNotTagError ::vec]
+        |  eq [::any/UseModuleNotTagError ::vec]
        )
   ~~|
   ::spec~()
 
-:UseNamespaceNotFoundError
+:UseModuleNotFoundError
   |~~ `use ::lib` found no module the tag names: none was loaded under
       it and the host's locator answers none. A verb is no module, so
       `use ::count` is refused too.
 
       ~(
         use ::absolutely-nonexistent-module
-        !| [type /namespaceName]
-        |  eq [::any/UseNamespaceNotFoundError
+        !| [type /module]
+        |  eq [::any/UseModuleNotFoundError
                 ::absolutely-nonexistent-module]
        )
-      ~(use ::count !| type | eq ::any/UseNamespaceNotFoundError)
+      ~(use ::count !| type | eq ::any/UseModuleNotFoundError)
   ~~|
   ::spec~()
 
-:UseNamespaceElementNotTagError
+:UseModuleElementNotTagError
   |~~ `use [::a ::b]` loads modules by their tags; `:index` names the
       first element that is no tag.
 
       ~(
         use [42 ::foo]
         !| [type /index /actualType]
-        |  eq [::any/UseNamespaceElementNotTagError 0 ::number]
+        |  eq [::any/UseModuleElementNotTagError 0 ::number]
        )
   ~~|
   ::spec~()
 
-:UseNamespaceCollisionError
+:UseModuleCollisionError
   |~~ `use #[::a ::b]` loads modules that must not share a name, and
       two that export one are refused; a vector, `use [::a ::b]`, lets
       the later win.
@@ -1071,7 +1071,7 @@
   |~~ A host handed an implementation for a name its module's source
       declares as no verb: the implementations a locator hands beside
       a source are the primitives of the verbs the source declares.
-      `:namespaceName` names the module and `:implName` the name.
+      `:module` names the module and `:implName` the name.
   ~~|
   ::spec~()
 

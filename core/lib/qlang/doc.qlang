@@ -1,4 +1,4 @@
-|~ `::doc`, the kind of a doc, its constructor and its refusals, and
+|~ `::doc`, the kind of a doc, the refusals of its constructor, and
    the verbs of docs. Each resides on `::qlang/doc`, the kind whose
    module declares it, and reads the doc's shape for the query. ~|
 

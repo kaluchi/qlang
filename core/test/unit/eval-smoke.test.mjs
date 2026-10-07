@@ -251,7 +251,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.
     const s = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/bomb'
+      locator: async modulePath => (modulePath === 'tests/bomb'
         ? {
             source: ':bomb ::verb~(::builtin{:impl :tests/bomb/bomb})',
             impls: { bomb: () => { throw new Error('raw boom'); } }

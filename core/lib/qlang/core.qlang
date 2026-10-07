@@ -100,7 +100,7 @@
       ~([!{:k 1} 5] * (false !| true) | eq [true false])
       ~("x" | add 1 | mul 2 !| /trail/-1/skipped | eq ~(mul 2))
 
-      8. Code as a value. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text. A verb of your own is a name over `::verb~(…)`, whose leading declarations are its slots; a kind of your own is `::Name {:impl ~(…)}`, whose quote checks or builds every value put under it.
+      8. Code as a value. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text. A verb of your own is a name over `::verb~(…)`, whose leading declarations are its slots; a kind of your own is `:Name ::spec~(…)`, whose quote checks or builds every value put under it.
       ~(~(add 1 | mul 2) | count | eq 2)
       ~(5 | apply ~(add 1 | mul 2) | eq 12)
       ~("add 1" | parse | eq ~(add 1))
@@ -123,12 +123,12 @@
       ~(::qlang | doc | links * open | count | gt 5)
 
       11. The chapters, in the order they rest on each other, each page naming its neighbours and the kinds that are it:
-      ::link~(::qlang | doc :values) values, kinds and tags;
-      ::link~(::qlang | doc :pipeline) the steps of a query;
-      ::link~(::qlang | doc :names) names and their records;
-      ::link~(::qlang | doc :verbs) the verbs that live on kinds;
-      ::link~(::qlang | doc :errors) the failure as a value;
-      ::link~(::qlang | doc :code) code as a value;
-      ::link~(::qlang | doc :hypertext) the pages and how to move through them;
-      ::link~(::qlang | doc :hosts) the tool the language runs in and the budget of an answer.
+      ::link~(::values | doc) values, kinds and tags;
+      ::link~(::pipeline | doc) the steps of a query;
+      ::link~(::names | doc) names and their records;
+      ::link~(::verbs | doc) the verbs that live on kinds;
+      ::link~(::errors | doc) the failure as a value;
+      ::link~(::code | doc) code as a value;
+      ::link~(::hypertext | doc) the pages and how to move through them;
+      ::link~(::hosts | doc) the tool the language runs in and the budget of an answer.
   ~~|

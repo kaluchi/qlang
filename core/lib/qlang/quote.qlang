@@ -1,5 +1,5 @@
-|~ `::quote`, the kind of code held as a value, its constructor and
-   its refusals, the refusal of text read as code, and the verbs of
+|~ `::quote`, the kind of code held as a value, the refusals of its
+   constructor, the refusal of text read as code, and the verbs of
    quotes. Each resides on `::qlang/quote`, the kind
    whose module declares it; a quote is also the vector of its
    steps, so the verbs of vectors read it as one, and a quote under a

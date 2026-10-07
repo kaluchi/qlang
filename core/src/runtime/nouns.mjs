@@ -13,10 +13,10 @@ import {
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
-  canonicalTagName, isModuleNamespaceKey, isRuntimeKey, moduleNamespaceKey, MODULE_NAMESPACE_PREFIX
+  canonicalTagName, isModuleKey, isRuntimeKey, moduleKey, MODULE_KEY_PREFIX
 } from '../env-keys.mjs';
 import { isContract } from './verb.mjs';
-import { namespaceDerivedOf } from '../state.mjs';
+import { moduleDerivedOf } from '../state.mjs';
 
 // The path of the root module, which binds the providers, and of the
 // language's own.
@@ -30,19 +30,19 @@ const TAGGED_KIND_NAME = 'tagged';
 function indexModules(env) {
   const exportsByPath = new Map();
   for (const [envKey, exportsMap] of env) {
-    if (isModuleNamespaceKey(envKey) && isQMap(exportsMap)) exportsByPath.set(envKey.slice(MODULE_NAMESPACE_PREFIX.length), exportsMap);
+    if (isModuleKey(envKey) && isQMap(exportsMap)) exportsByPath.set(envKey.slice(MODULE_KEY_PREFIX.length), exportsMap);
   }
   return exportsByPath;
 }
 
 function modulesOf(env) {
-  return namespaceDerivedOf(env, indexModules);
+  return moduleDerivedOf(env, indexModules);
 }
 
 // exportsOfModule(env, path) → the bindings the module of a path
 // declared, by name, or null for a module not loaded.
 export function exportsOfModule(env, path) {
-  const exportsMap = env.get(moduleNamespaceKey(path));
+  const exportsMap = env.get(moduleKey(path));
   return isQMap(exportsMap) ? exportsMap : null;
 }
 

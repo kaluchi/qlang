@@ -1,5 +1,5 @@
-|~ `::null`, the kind of the absent value, its constructor, and the
-   soft read of it. ~|
+|~ `::null`, the kind of the absent value, and the soft read
+   of it. ~|
 
 :NullPayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is

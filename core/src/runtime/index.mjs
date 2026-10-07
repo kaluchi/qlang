@@ -41,7 +41,7 @@ import {
 const _templateEnvByLocator = new WeakMap();
 
 // langRuntime({ locator? }) → a copy of the environment the catalog
-// builds, its sources read by `opts.locator`, `(namespaceName) →
+// builds, its sources read by `opts.locator`, `(modulePath) →
 // Promise<{ source } | null>`, or through `package.json#imports`; a
 // bundle without an import map hands its own, as
 // `site/scripts/_browser-entry.mjs` does.

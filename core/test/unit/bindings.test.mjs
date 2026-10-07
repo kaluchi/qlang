@@ -25,16 +25,7 @@ describe('BindStep — docs-only form', () => {
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it(':Tag |~~ ~~| ::spec~() doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
-    // Tag-namespace doc-only BindStep (`:Tag |~~ docs ~~| ::spec~()`)
-    // mints an empty `::builtin{}` descriptor under the `::Tag`
-    // env key automatically — equivalent to `::Tag ::builtin{}`
-    // body-form. The BindStep production requires docs (or body
-    // or params) after the key; the doc-prefix attaches to the
-    // BindStep, evalBindStep no-body branch fires the auto-forge.
-    // Subsequent `::Tag | doc` axis lookup resolves the attached
-    // prose, and `::Tag | spec | type` surfaces the ::builtin
-    // identity through the JS-header tag slot.
+  it('a kind declared with a doc reads its page and answers its spec by its tag [D152]', async () => {
     const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
     const spec = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | spec | type');

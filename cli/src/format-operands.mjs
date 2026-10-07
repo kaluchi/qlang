@@ -1,5 +1,5 @@
 // The primitive of `table`, the renderer of the command line, a verb of
-// the noun `::qlang/cli` [D92] and a plain function over the vector the
+// the provider `::cli` [D152] and a plain function over the vector the
 // head of its verb checks [D80].
 
 import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';

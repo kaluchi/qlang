@@ -58,7 +58,7 @@ function loadCatalogContext() {
   const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
 
   // Discovery walks lib/qlang recursively for every `.qlang` file.
-  // The namespace URI mirrors the relative path with `/` separators
+  // The path of a module mirrors the relative path with `/` separators
   // and the `.qlang` suffix stripped; the resolved file URI lets
   // goto-definition return absolute locations the editor can open.
   const sources = [];

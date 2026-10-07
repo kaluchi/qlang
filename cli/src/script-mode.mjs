@@ -49,7 +49,7 @@ const JSON_PRETTY_INDENT = 2;
 // name, as `json` writes it [D148].
 // The refusal is minted as a value where the answer is written, so its
 // site records its facts without a factory.
-recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::qlang/cli' });
+recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::cli' });
 
 const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
 

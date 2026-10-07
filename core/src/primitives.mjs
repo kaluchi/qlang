@@ -81,7 +81,7 @@ export function createPrimitiveRegistry() {
 // The table every runtime module binds into.
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
 
-// The two namespaces of handles.
+// The two prefixes of handles, a primitive's and a kind's constructor's.
 const PRIM_KEY_PREFIX = 'qlang/prim/';
 export const TYPE_KEY_PREFIX = 'qlang/type/';
 

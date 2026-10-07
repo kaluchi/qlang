@@ -9,10 +9,10 @@
     "body": [":${1:name} ::verb~(:${2:slot} ::${3:any} | ${4:body})"],
     "description": "Declare a verb with a slot via BindStep"
   },
-  "BindStep — tag-binding": {
+  "BindStep — kind": {
     "prefix": "bindtag",
-    "body": ["::${1:Tag} {:impl ~(${2:body})}"],
-    "description": "Declare a tag-namespace binding via BindStep"
+    "body": [":${1:Kind} ::spec~(${2:body})"],
+    "description": "Declare a kind by its keyword, its constructor the body of its spec"
   },
   "freeze": {
     "prefix": "freeze",

@@ -9,8 +9,8 @@
 {"name":"use-shadowable-by-a-freeze","query":"42 | :use / | use","expect":"42"}
 {"name":"use-inside-paren-scoped","query":"({:k 99} | use | k) | 0","expect":"0"}
 {"name":"use-inside-paren-leaks-pipeValue-only","query":"({:k 99} | use | k)","expect":"99"}
-{"name":"use-on-operand-name-walks-past-to-locator","query":"use ::count !| type","expect":"::any/UseNamespaceNotFoundError"}
-{"name":"use-on-a-verb-name-walks-past-to-locator","query":":double ::verb~(mul 2) | use ::double !| type","expect":"::any/UseNamespaceNotFoundError"}
+{"name":"use-on-operand-name-walks-past-to-locator","query":"use ::count !| type","expect":"::any/UseModuleNotFoundError"}
+{"name":"use-on-a-verb-name-walks-past-to-locator","query":":double ::verb~(mul 2) | use ::double !| type","expect":"::any/UseModuleNotFoundError"}
 {"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":@two ::verb~(2) | :n @two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-operand","query":"42 | as :x !| type","expect":"::call/UnresolvedIdentifierError","decision":"D70"}

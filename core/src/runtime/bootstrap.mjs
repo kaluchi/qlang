@@ -19,15 +19,15 @@ export const BootstrapCatalogNotLoadedError = declareInvariantError(
   'BootstrapCatalogNotLoadedError',
   ({ tagName }) => `qlang bootstrap: the catalog root answered ${tagName}; the modules ` +
     'of the catalog load through the sources the locator resolves for qlang/core and for ' +
-    'each namespace it uses',
+    'each module it uses',
   { operand: '::builtin' }
 );
 
-// platformLocator(namespaceName) → Promise<{ source } | null>: the
+// platformLocator(modulePath) → Promise<{ source } | null>: the
 // source of `:qlang/number` read from `#qlang/number` through the
 // `imports` field or the import map, null for a name neither maps, which
-// `use` refuses with `UseNamespaceNotFoundError`.
-export async function platformLocator(namespaceName) {
-  const source = await loadSource('#' + namespaceName);
+// `use` refuses with `UseModuleNotFoundError`.
+export async function platformLocator(modulePath) {
+  const source = await loadSource('#' + modulePath);
   return source === null ? null : { source };
 }

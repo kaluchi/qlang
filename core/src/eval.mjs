@@ -74,12 +74,12 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
   { operand: '::proj' });
 // A tag whose node is no kind, a verb or a page, builds no value [D152].
-const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
+const TaggedLitTagNotKindError = declareShapeError('TaggedLitTagNotKindError',
   ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a kind, a ::spec, builds a value`,
   { operand: '::construct', expectedType: 'spec' }
 );
-// The combinator names its qlang kind, `distribute`, so the message
-// and the catalog tag-binding's `:operand` read alike.
+// The combinator names its qlang kind, `distribute`, in the message
+// and in the `:operand` its site records.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
@@ -335,7 +335,7 @@ export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isSpec(declared)) {
-    throw new TaggedLitNotTagBindingError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
+    throw new TaggedLitTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
   const { primitiveKey, body } = constructorOfSpec(declared);
   if (primitiveKey !== undefined) return await PRIMITIVE_REGISTRY.resolve(primitiveKey)(payload, state);

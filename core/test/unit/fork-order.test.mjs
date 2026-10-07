@@ -10,7 +10,7 @@ const pause = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 
 async function sessionRecordingVisits(visits) {
   const session = await createSession({
-    locator: async namespaceName => namespaceName === 'probe' ? {
+    locator: async modulePath => modulePath === 'probe' ? {
       source: ':@visit ::verb~(::builtin{:impl :probe/@visit})',
       impls: {
         '@visit': async element => {

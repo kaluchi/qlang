@@ -1,5 +1,5 @@
 |~ `::desc`, the kind of a value whose place in the one order is the
-   reverse of its payload's, its constructor, and its comparisons. ~|
+   reverse of its payload's, and its comparisons. ~|
 
 |~ The comparisons of descending values. Each resides on `::qlang/desc`,
    the kind of the module that declares it, and compares two of its

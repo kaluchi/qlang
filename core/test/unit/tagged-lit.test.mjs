@@ -1,7 +1,6 @@
-// Tests for TaggedLit / BareTypeKeyword grammar + eval — the
-// tag-namespace literal form. Tag bindings live in env under the
-// `::`-prefixed key; ::tag<payload> looks up the binding, resolves
-// its constructor, and invokes it against the payload-value.
+// Tests for TaggedLit / BareTypeKeyword grammar + eval: a tag is the
+// address of a node of the tree of names, and ::tag<payload> builds the
+// value through the constructor the kind's spec declares [D152].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -56,7 +55,7 @@ describe('::verb constructor builds a verb', () => {
   });
 });
 
-describe('::tag descriptor registers a tag-namespace binding', () => {
+describe('a kind whose spec names a constructor of the host', () => {
   it('makes ::myType invokable through the ::verb constructor handle', async () => {
     const result = await evalQuery(
       ':myType ::spec~(::builtin{:impl :qlang/type/verb}) | :f ::myType~(add 1) | 4 | f'
@@ -95,7 +94,7 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
   });
 
   it('an unbound ::tag literal is identity-as-value — TagKeyword with no env touch', async () => {
-    // Symmetric to `:foo` (value-namespace Keyword) which evaluates
+    // Symmetric to `:foo` (a keyword) which evaluates
     // to `keyword('foo')` whether anything declared `:foo` or not.
     // Typos catch on use-site probes (TaggedLit constructor, axis
     // operands) rather than at literal construction.
@@ -107,15 +106,15 @@ describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
 });
 
 describe('TaggedLit error paths', () => {
-  it('auto-declares an identity-only binding for an unbound tag and mints the instance', async () => {
+  it('a tag no node answers puts the value under it as identity', async () => {
     const evalResult = await evalQuery('::unboundTag[1 2 3] | type');
     expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
   });
 
-  it('raises TaggedLitNotTagBindingError when the node a tag addresses is no kind', async () => {
+  it('raises TaggedLitTagNotKindError when the node a tag addresses is no kind', async () => {
     const err = await evalQuery('::vec/count[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('construct/TaggedLitNotTagBindingError'));
+    expect(err.tag).toEqual(makeTagKeyword('construct/TaggedLitTagNotKindError'));
   });
 
   it('::verb raises VerbPayloadNotQuoteError when payload is not a quote', async () => {
@@ -158,7 +157,7 @@ describe('TaggedLit error paths', () => {
 
 });
 
-describe('default constructor — tag-binding without :impl', () => {
+describe('a kind without a body — identity', () => {
   // Two value-class branches by literal form:
   //   ErrorLit payload   → ErrorValue (fail-track), `:kind`
   //                        restamped onto the descriptor.
@@ -306,7 +305,7 @@ describe('a tag no node answers is a kind of identity, and declares nothing [D15
   });
 });
 
-describe('User-defined tag binding with Quote :impl', () => {
+describe('a kind whose spec has a body of steps', () => {
   it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
       ':wrap ::spec~(prepend "[" | append "]") | "x" | ::wrap"x" | payload'
@@ -314,7 +313,7 @@ describe('User-defined tag binding with Quote :impl', () => {
     expect(result).toBe('[x]');
   });
 
-  it('Quote body sees the tag-binding payload as its initial pipeValue (read through payload after auto-wrap)', async () => {
+  it('the body of the spec takes the payload as its subject, read through payload after the tag', async () => {
     const result = await evalQuery(
       ':shout ::spec~(append "!") | ::shout"ready" | payload'
     );

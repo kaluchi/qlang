@@ -1,11 +1,13 @@
-// The stamp pass reads the throw-site spec registry, so the registry
-// has to be full by the time `buildLangRuntime` runs.
+// The loader of the tree of names reads the throw-site spec registry,
+// which gives a refusal its address under the noun whose module
+// declares it [D152], so the registry has to be full by the time
+// `buildLangRuntime` runs.
 //
 // A per-site class records its spec as a side effect of its module
 // loading, and `runtime/index.mjs` has to pull in every module that
 // declares one. A seam of `core/src/` it does not reach would record
-// nothing before the stamp pass, and its `::Tag` bindings would reach
-// env with no `:category` to answer `spec` with.
+// nothing before the catalog loads, and its refusals would carry no
+// address.
 //
 // This file imports the runtime alone, then reads every factory call
 // out of `core/src/**` by source and asks the registry for each name.
@@ -47,11 +49,10 @@ describe('throw-site registry — the runtime import graph reaches every declara
   });
 
   for (const [className, file] of declared) {
-    it(`${className} records its spec before the stamp pass`, () => {
+    it(`${className} records its spec before the catalog loads`, () => {
       expect(throwSiteSpecOf(className),
         `${file} declares ${className}, and importing core/src/runtime/index.mjs alone ` +
-        'does not load that module — add the import there, or the tag-binding reaches ' +
-        'env with no category for `spec` to answer with'
+        'does not load that module — add the import there, or its refusal carries no address'
       ).toBeDefined();
     });
   }

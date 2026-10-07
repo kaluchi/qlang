@@ -1,4 +1,4 @@
-|~ `::set`, the kind of sets, its constructor and its refusal, and
+|~ `::set`, the kind of sets, the refusal of its constructor, and
    the verbs of sets. Each resides on `::qlang/set`, the kind
    whose module declares it, under the contract of its name on
    `::qlang/any`, whose page and laws it answers. A set is the

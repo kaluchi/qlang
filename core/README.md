@@ -16,7 +16,8 @@ pipelines. Domain-agnostic. Pure. Composable.
 
 The language documents itself: every name has a page, a doc whose
 laws run. `::qlang | doc` opens the root page, `::qlang | manifest`
-lists the kinds, `::vec | spec | /verbs` the verbs of one, and
+lists the kinds and the pages of the concepts, `::vec | manifest` the
+verbs and the refusals of one, and
 `::vec/sort | doc` the page of a verb. The command line,
 `@kaluchi/qlang-cli`, runs a query from the shell.
 
@@ -28,13 +29,13 @@ A host keeps a session, whose cells share the names they declare:
 import { createSession, printValue } from '@kaluchi/qlang-core';
 
 const session = await createSession({
-  locator: async (namespaceName) => namespaceName === 'my/tools'
+  locator: async (modulePath) => modulePath === 'my/tools'
     ? { source: ':@fetch ::verb~(:url ::string | ::builtin{:impl :my/tools/@fetch})',
         impls: { '@fetch': async (subject, url) => fetchText(url) } }
     : null
 });
 
-const cell = await session.evalCell('use :my/tools | @fetch "https://example.org"');
+const cell = await session.evalCell('use ::my/tools | @fetch "https://example.org"');
 cell.error;               // a ParseError when the source does not parse, else null
 printValue(cell.result);  // the answer as its literal; a failure is an error value
 ```
@@ -46,7 +47,10 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
 - A locator answers a module as `{ source, impls }`: the source declares
   its verbs with their heads, and each implementation is a plain function
   over the values the head checked, the subject first and the slots in
-  their order. `use :ns` asks the locator once per namespace.
+  their order. `use ::lib` asks the locator once per module, and a
+  locator that answers the root, `qlang/core`, binds the host's
+  provider beside the language, whose module the runtime reads with the
+  rest of the tree of names.
 - `evalQuery(source)` evaluates one query in a fresh runtime.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `toPlain` and

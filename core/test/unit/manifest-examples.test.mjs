@@ -1,15 +1,11 @@
-// Regression catcher for core.qlang examples.
+// The laws of the catalog, run. Every page holds quotes that are its
+// laws; `runLaws` evaluates each in isolation and reports
+// {:law :actual :ok :error}, a law whose answer is truthy passing.
 //
-// Every operand in core.qlang carries a docs prefix whose Quote
-// segments are executable test cases. runLaws evaluates each
-// Quote in isolation and reports {:law :actual :ok :error}; a
-// Quote whose eval result is truthy passes, otherwise it fails.
-//
-// This walks every verb of the core by its address, the nouns
-// listing what lives on them [D62], and every tag the catalog
-// declares by its name, and surfaces each failing reader in the
-// assertion message instead of reducing the result to a single
-// boolean.
+// The walk reads every node under a noun by its address, the nouns
+// listing what lives on them, and every node the language's module
+// binds, its kinds and the pages of its concepts [D152], and names
+// each failing reader in the assertion message.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -29,19 +25,14 @@ function safeprint(v) {
   catch { return JSON.stringify(v); }
 }
 
-// The readers of the catalog's laws: the address of every verb of the
-// core, `::vec/count`, the name of every tag it declares,
-// `::number/AddLeftNotNumberError`, and every concept of the root noun,
-// `::qlang :values`, each read by `runLaws` [D124].
+// The readers of the catalog's laws: the address of every node under a
+// noun, `::vec/count` and `::number/AddLeftNotNumberError`, every node
+// of the language's module, `::number` and `::values`, and the root's
+// page, `::qlang`, each read by `runLaws` [D124].
 async function catalogReaders() {
-  const verbAddresses = await evalQuery('::qlang | manifest * manifest | flat');
-  const tagNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
-  const concepts = await evalQuery('::qlang | doc | links * (payload | parse) | filter ~(startsWith "::qlang | doc :")');
-  return [
-    ...[...verbAddresses].map(address => address.literal),
-    ...tagNames,
-    ...[...concepts].map(query => `::qlang ${query.slice('::qlang | doc '.length)}`)
-  ];
+  const memberAddresses = await evalQuery('::qlang | manifest * manifest | flat');
+  const nodeNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
+  return [...[...memberAddresses].map(address => address.literal), ...nodeNames, '::qlang'];
 }
 
 async function walkCatalogExamples() {
@@ -87,6 +78,18 @@ describe('catalog self-test via runLaws', () => {
       if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
+  }, 30000);
+
+  it('no law of a page is read as prose', async () => {
+    // A quote the parser refuses reads as prose [D94], so a law a change
+    // of the grammar breaks leaves its page with no failure to show;
+    // prose names code inside backticks alone.
+    const proseQuotes = [];
+    for (const reader of await catalogReaders()) {
+      const prose = await evalQuery(`${reader} | doc | segments | filter ~(type | eq ::string) | join ""`);
+      if (prose.replace(/`[^`]*`/g, '').includes('~(')) proseQuotes.push(reader);
+    }
+    expect(proseQuotes).toEqual([]);
   }, 30000);
 
   it('every verb of the catalog lives on a noun', async () => {

@@ -10,34 +10,34 @@ import {
   isQMap, isTagKeyword, isVec, isQSet, isNull, isBinding, isKeyword, isVerb, keyword, makeBinding, bindingValueOf,
   resideVerbOn, attachHostImpl, typeKeyword
 } from '../types.mjs';
-import { canonicalTagName, isRuntimeKey, moduleNamespaceKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
+import { canonicalTagName, isRuntimeKey, moduleKey, RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import { declareShapeError, recordRefusalAddress, throwSiteSpecOf } from '../errors.mjs';
 import { fullPathOf, nodeOf, ROOT_MODULE_PATH } from './nouns.mjs';
 
 const UseSubjectNotMapError = declareSubjectError('UseSubjectNotMapError', 'use', 'map');
-const UseNamespaceNotTagError = declareShapeError('UseNamespaceNotTagError',
+const UseModuleNotTagError = declareShapeError('UseModuleNotTagError',
   ({ actualType }) => `use names a module by its tag, \`use ::lib\`, and got ${actualType.name}`,
   { operand: 'use', expectedType: 'tag' }
 );
-const UseNamespaceNotFoundError = declareShapeError('UseNamespaceNotFoundError',
-  ({ namespaceName }) => `use: no module serves ${namespaceName}`,
+const UseModuleNotFoundError = declareShapeError('UseModuleNotFoundError',
+  ({ module }) => `use: no module serves ${module}`,
   { operand: 'use' }
 );
-const UseNamespaceElementNotTagError = declareShapeError('UseNamespaceElementNotTagError',
+const UseModuleElementNotTagError = declareShapeError('UseModuleElementNotTagError',
   ({ index, actualType }) => `use: element ${index} of the modules names a module by its tag, got ${actualType.name}`,
   { operand: 'use', expectedType: 'tag' }
 );
-const UseNamespaceCollisionError = declareShapeError('UseNamespaceCollisionError',
-  ({ collidingName, namespaces }) => `use: name '${collidingName}' exported by multiple modules: ${namespaces.join(', ')}`,
+const UseModuleCollisionError = declareShapeError('UseModuleCollisionError',
+  ({ collidingName, modules }) => `use: name '${collidingName}' exported by multiple modules: ${modules.join(', ')}`,
   { operand: 'use' }
 );
 const UseImplNamesNoVerbError = declareShapeError('UseImplNamesNoVerbError',
-  ({ namespaceName, implName }) => `use: module '${namespaceName}' hands an implementation for '${implName}', which its source declares as no verb`,
+  ({ module, implName }) => `use: module '${module}' hands an implementation for '${implName}', which its source declares as no verb`,
   { operand: 'use' }
 );
 const UseNameNotExportedError = declareShapeError('UseNameNotExportedError',
-  ({ namespaceName, exportName }) => `use: '${exportName}' not exported by module '${namespaceName}'`,
+  ({ module, exportName }) => `use: '${exportName}' not exported by module '${module}'`,
   { operand: 'use' }
 );
 
@@ -68,7 +68,7 @@ function runtimeKeysOf(env) {
 // path addresses [D72], and a refusal it declares takes its address
 // [D152]. Null for a path no locator serves.
 export async function loadModule(callerState, env, path) {
-  const cacheKey = moduleNamespaceKey(path);
+  const cacheKey = moduleKey(path);
   if (env.has(cacheKey)) return [env.get(cacheKey), env];
   const locatorFn = env.get(RUNTIME_LOCATOR_KEY);
   const locatorResult = locatorFn ? await locatorFn(path === ROOT_MODULE_PATH ? 'qlang/core' : path) : null;
@@ -90,17 +90,15 @@ export async function loadModule(callerState, env, path) {
 
   for (const [implName, impl] of Object.entries(locatorResult.impls ?? {})) {
     const declared = bindingValueOf(loadedExports.get(implName));
-    if (!isVerb(declared)) throw new UseImplNamesNoVerbError({ namespaceName: path, implName: keyword(implName) });
+    if (!isVerb(declared)) throw new UseImplNamesNoVerbError({ module: path, implName: keyword(implName) });
     attachHostImpl(declared, impl);
   }
 
   const nextEnv = envMerge(env, new Map([...loadedModules, [cacheKey, loadedExports]]));
+  if (path === ROOT_MODULE_PATH || nodeOf(nextEnv, path) === null) return [loadedExports, nextEnv];
   const nounName = canonicalTagName(path);
-  const isNounModule = path !== ROOT_MODULE_PATH && nodeOf(nextEnv, path) !== null;
   for (const [name, record] of loadedExports) {
-    const declared = bindingValueOf(record);
-    if (!isNounModule) continue;
-    if (isVerb(declared)) resideVerbOn(declared, nounName);
+    if (isVerb(bindingValueOf(record))) resideVerbOn(bindingValueOf(record), nounName);
     if (throwSiteSpecOf(name) !== undefined) recordRefusalAddress(name, canonicalTagName(`${path}/${name}`));
   }
   return [loadedExports, nextEnv];
@@ -132,49 +130,49 @@ async function moduleOfTag(state, env, tag) {
     const [moduleExports, moduleEnv] = await loadModule(state, env, path);
     if (moduleExports !== null) return [moduleExports, moduleEnv];
   }
-  throw new UseNamespaceNotFoundError({ namespaceName: tag });
+  throw new UseModuleNotFoundError({ module: tag });
 }
 
-bindScopeWriter('use', async (subject, namespace, names, state) => {
-  if (isNull(namespace)) {
+bindScopeWriter('use', async (subject, used, names, state) => {
+  if (isNull(used)) {
     if (!isQMap(subject)) throw new UseSubjectNotMapError(subject);
     return envMerge(state.env, bindingsOf(subject));
   }
   if (!isNull(names)) {
-    if (!isTagKeyword(namespace)) throw new UseNamespaceNotTagError({ actualType: typeKeyword(namespace), actualValue: namespace });
-    return await useSelected(state, namespace, names);
+    if (!isTagKeyword(used)) throw new UseModuleNotTagError({ actualType: typeKeyword(used), actualValue: used });
+    return await useSelected(state, used, names);
   }
-  if (isTagKeyword(namespace)) {
-    const [moduleExports, moduleEnv] = await moduleOfTag(state, state.env, namespace);
+  if (isTagKeyword(used)) {
+    const [moduleExports, moduleEnv] = await moduleOfTag(state, state.env, used);
     return envMerge(moduleEnv, moduleExports);
   }
-  if (isQSet(namespace)) return await useWithoutCollision(state, namespace);
-  return await useInOrder(state, namespace);
+  if (isQSet(used)) return await useWithoutCollision(state, used);
+  return await useInOrder(state, used);
 });
 
 // The scope the modules a vector names leave, a later one shadowing an
 // earlier.
-async function useInOrder(state, namespaces) {
+async function useInOrder(state, moduleTags) {
   let currentEnv = state.env;
-  for (const [index, tag] of namespaces.entries()) {
-    if (!isTagKeyword(tag)) throw new UseNamespaceElementNotTagError({ index, actualType: typeKeyword(tag) });
+  for (const [index, tag] of moduleTags.entries()) {
+    if (!isTagKeyword(tag)) throw new UseModuleElementNotTagError({ index, actualType: typeKeyword(tag) });
     const [moduleExports, moduleEnv] = await moduleOfTag(state, currentEnv, tag);
     currentEnv = envMerge(moduleEnv, moduleExports);
   }
   return currentEnv;
 }
 
-async function useWithoutCollision(state, namespaces) {
+async function useWithoutCollision(state, moduleTags) {
   const merged = new Map();
   const origins = new Map();
   let accumulatedEnv = state.env;
-  for (const tag of namespaces) {
-    if (!isTagKeyword(tag)) throw new UseNamespaceElementNotTagError({ index: origins.size, actualType: typeKeyword(tag) });
+  for (const tag of moduleTags) {
+    if (!isTagKeyword(tag)) throw new UseModuleElementNotTagError({ index: origins.size, actualType: typeKeyword(tag) });
     const [moduleExports, moduleEnv] = await moduleOfTag(state, accumulatedEnv, tag);
     accumulatedEnv = moduleEnv;
     for (const [name, record] of moduleExports) {
       if (merged.has(name)) {
-        throw new UseNamespaceCollisionError({ collidingName: name, namespaces: [origins.get(name), tag.literal] });
+        throw new UseModuleCollisionError({ collidingName: name, modules: [origins.get(name), tag.literal] });
       }
       merged.set(name, record);
       origins.set(name, tag.literal);
@@ -189,7 +187,7 @@ async function useSelected(state, tag, selection) {
   for (const name of isVec(selection) ? selection : [selection]) {
     const nameText = isKeyword(name) ? name.name : String(name);
     if (!moduleExports.has(nameText)) {
-      throw new UseNameNotExportedError({ namespaceName: tag.literal, exportName: nameText });
+      throw new UseNameNotExportedError({ module: tag.literal, exportName: nameText });
     }
     selected.set(nameText, moduleExports.get(nameText));
   }

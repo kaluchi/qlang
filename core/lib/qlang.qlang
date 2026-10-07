@@ -8,9 +8,9 @@
   |~~ The descriptor, a map of fields under this tag. A built-in verb
       ends its head with one, `::builtin{:impl :qlang/prim/add}`, which
       names the primitive the head calls; a kind declares its
-      constructor with one, `::builtin{:impl :qlang/type/vec}`; a tag
-      declared with a doc alone holds an empty one. A descriptor is
-      data and runs nothing by itself: a name bound to one reads it.
+      constructor with one, `::builtin{:impl :qlang/type/vec}`. A
+      descriptor is data and runs nothing by itself: a name bound to one
+      reads it.
 
       ~(::builtin{:impl :qlang/prim/count} | :c / | [1 2] | c | /impl | eq :qlang/prim/count)
   ~~|
@@ -30,7 +30,7 @@
       when it is mentioned, each modifier evaluated at the call and
       checked by the kind of its slot, and `~name` hands it on as code.
       ::link~(::spec | doc) ::link~(::quote | doc)
-      ::link~(::qlang | doc :verbs)
+      ::link~(::verbs | doc)
 
       ~(:double ::verb~(mul 2) | 3 | double | double | eq 12)
       ~(:least ::verb~(:n 1 | sort | take n) | [4 8 6] | [least (least 2)] | eq [[4] [4 6]])
@@ -53,7 +53,7 @@
       tag no node answers is a kind of identity, which declares nothing.
       ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
       ::snippet~(::qlang | manifest) lists the kinds.
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(::Box | type | eq ::tag)
       ~(:Even ::spec~(if (eq 2) ~(/) ~(!{:reason :odd})) | ::Even(3) !| /reason | eq :odd)
@@ -70,7 +70,7 @@
       named under its prefix and written short, `::qlang/null` reading as
       `::null`, and its constructor reads a payload of the kind as the
       value itself. ::link~(::verb | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(null | type | eq ::null)
       ~(::qlang/null | eq ::null)
@@ -83,7 +83,7 @@
       value: `filter`, `every` and `if` take a quote that answers one,
       and `false !| true` after steps answers whether they failed.
       ::snippet~(::boolean | manifest) lists its verbs and refusals.
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(true | type | eq ::boolean)
       ~(::boolean(false) | eq false)
@@ -97,7 +97,7 @@
       refused; `parseJson` reads a number out of a string. Its literal
       is JSON's, a leading zero allowed, and its precision the double's own.
       ::snippet~(::number | manifest) lists its verbs and refusals.
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(5 | type | eq ::number)
       ~(::qlang/number(5) | eq 5)
@@ -120,7 +120,7 @@
       with the escapes of JSON, any character raw between them, a line
       break among them.
       ::snippet~(::string | manifest) lists its verbs and refusals. ::link~(::keyword | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~("x" | type | eq ::string)
       ~(::string"x" | eq "x")
@@ -140,7 +140,7 @@
       `-`; a slash joins names into a path, `:domain/user`;
       any other text is written in quotes, `:"foo bar"`, and the quotes
       around a bare name change nothing. ::link~(::map | doc) ::link~(::binding | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(:k | type | eq ::keyword)
       ~(::keyword:k | eq :k)
@@ -161,7 +161,7 @@
       a vector literal too, a comma between every two elements; one literal
       is written in one of the two forms, as a map's is.
       ::snippet~(::vec | manifest) lists its verbs and refusals. ::link~(::each | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~([1 2] | type | eq ::vec)
       ~(::qlang/vec[1 2] | eq [1 2])
@@ -180,7 +180,7 @@
       the vector of its images, one per element, and `distinct` after it
       makes a set of them again.
       ::link~(::vec | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~(#[3 1 3] | eq #[1 3])
       ~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
@@ -204,7 +204,7 @@
       `tag ::map`, which reads a key written as a string or a number as
       the keyword of its text.
       ::snippet~(::map | manifest) lists its verbs and refusals. ::link~(::proj | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       ~({:a 1} | type | eq ::map)
       ~(::map{:a 1} | eq {:a 1})
@@ -227,7 +227,7 @@
       `::group`. `apply` runs a quote on the subject and `parse` prints
       it back. ::link~(::each | doc) ::link~(::call | doc)
       ::link~(::verb | doc)
-      ::link~(::qlang | doc :code)
+      ::link~(::code | doc)
 
       ~(~(1 | add 1 | mul 2) | count | eq 3)
       ~(~(add 1) | eq ~(add 1))
@@ -247,7 +247,7 @@
       `segments` its parts, `laws` its laws, `links` its links and
       `snippets` its snippets.
       ::snippet~(::doc | manifest) lists its verbs and refusals. ::link~(::link | doc)
-      ::link~(::qlang | doc :hypertext)
+      ::link~(::hypertext | doc)
 
       ~(::number/add | doc | type | eq ::doc)
       ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
@@ -261,7 +261,7 @@
       what a verb takes and answers is known before it is called, which is
       how a reader writes a call right the first time.
       ::snippet~(::vec/sort | spec) shows one.
-      ::link~(::qlang | doc :verbs)
+      ::link~(::verbs | doc)
 
       ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)
       ~(:m ::verb~(:x ::number | add x) | :m | spec | payload * /name | eq [:subject :x])
@@ -278,7 +278,7 @@
       its record holds, and the axes project the record, so `env | /x |
       doc` answers the page of `x`. A value `use` or a host binds is a
       binding without a doc and without a source. ::link~(::bind | doc)
-      ::link~(::qlang | doc :verbs)
+      ::link~(::verbs | doc)
 
       ~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
       ~(:x |~~ One. ~~| 1 | env | /x | doc | content | eq " One. ")
@@ -303,7 +303,7 @@
       added and the error raised again, or it is recovered by the tag of
       its site. ::snippet~(::error | manifest) lists its verbs and refusals.
       ::link~(::explanation | doc) ::link~(::fail | doc)
-      ::link~(::qlang | doc :errors)
+      ::link~(::errors | doc)
 
       ~(!{:detail "boom"} !| type | eq ::error)
       ~(::qlang/error | eq ::error)
@@ -327,7 +327,7 @@
       holds the first characters of a string. `elide` writes markers,
       and a reader continues its query by `:read` to see the rest.
       ::link~(::any/elide | doc)
-      ::link~(::qlang | doc :hosts)
+      ::link~(::hosts | doc)
 
       ~(::elision | doc | type | eq ::doc)
       ~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
@@ -342,7 +342,7 @@
       key descends alone, `sort ~([(/count | desc) /name])`. Every
       comparison agrees, `gt` and `lt` here as `sort` and `max`, and
       `payload` opens the value beneath. `desc` lays the kind over any
-      value. ::link~(::qlang | doc :values)
+      value. ::link~(::values | doc)
 
       ~(5 | desc | type | eq ::desc)
       ~(5 | desc | payload | eq 5)
@@ -363,9 +363,9 @@
       follows every link of the catalog, so none goes dead. A host may
       stack its own tag over a link.
       ::snippet~(::qlang | doc | links) lists the links of the first page.
-      ::link~(::qlang | doc :hypertext)
+      ::link~(::hypertext | doc)
 
-      ~(|~~ ::link~(::qlang | doc :values) ~~| | links | first | type | eq ::link)
+      ~(|~~ ::link~(::values | doc) ~~| | links | first | type | eq ::link)
       ~(::qlang | doc | links * open | every ~(type | eq ::doc))
       ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
   ~~|
@@ -379,7 +379,7 @@
       link opens a page; a snippet answers whatever it shows, which
       `open` runs, and `snippets` reads the snippets of a doc. The suite
       runs every snippet of the catalog, so none answers an error.
-      ::link~(::link | doc) ::link~(::qlang | doc :hypertext)
+      ::link~(::link | doc) ::link~(::hypertext | doc)
 
       ~(|~~ ::snippet~(::qlang | manifest) ~~| | snippets | first | open | has ::number)
       ~(::vec | doc | snippets | count | gt 0)
@@ -393,7 +393,7 @@
       raised, with its bang. It is the cord from a value to its
       procedure in one answer; `page` and `value` answer its parts.
       ::link~(::error | doc)
-      ::link~(::qlang | doc :errors)
+      ::link~(::errors | doc)
 
       ~("x" | add 1 !| explain | type | eq ::explanation)
       ~("x" | add 1 !| explain | value !| type | eq ::number/AddLeftNotNumberError)
@@ -409,7 +409,7 @@
       the tag back through its constructor. A value is put under a tag
       by a literal, `::T<payload>`, a step of its own kind, or by `tag`.
       ::link~(::tag | doc) ::link~(::construct | doc)
-      ::link~(::qlang | doc :values)
+      ::link~(::values | doc)
 
       Every value under a tag reaches the verbs of this kind:
       ~(:Box ::spec~() | ::Box[1 2] | payload | eq [1 2])
@@ -422,7 +422,7 @@
       payload under the tag `::T` through the tag's constructor, which
       checks or builds the value. As a record, `:tag` is the tag and
       `:payload` the step of its payload. ::link~(::tag | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
   ~~|
@@ -436,7 +436,7 @@
       parentheses. Like every record, a `::call` is the step its own text
       reads back as: the constructor checks the fields against the schema,
       prints the step and reads it back. ::link~(::quote | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :args [~(gt 1)]}])
       ~(~(count) | first | /name | eq :count)
@@ -454,7 +454,7 @@
       is two. As a record, `:path` is the keys and indices it walks,
       `[]` for `/`.
       ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~(/items/0/name) | first | /path | eq [:items 0 :name])
       ~(~(/) | first | /path | eq [])
@@ -471,7 +471,7 @@
       own, so a name never leaks out of the fork that declared it. As a
       record, `:name` is the keyword or tag it binds, `:docs` its prose
       and `:body` the step of its body. ::link~(::binding | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
   ~~|
@@ -486,7 +486,7 @@
       stands in the place of `|`, and several steps of a body stand in
       parentheses. As a record it wraps the quote of its body.
       ::link~(::vec | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~(* add 1) | first | payload | eq ~(add 1))
       ~(~(* (add 1 | mul 2)) | first | payload | count | eq 2)
@@ -499,7 +499,7 @@
       where a failure is read, recovered or raised again, while `|`
       passes the error by. As a record it wraps the quote of that one
       step. ::link~(::error | doc)
-      ::link~(::qlang | doc :errors)
+      ::link~(::errors | doc)
 
       ~(~(!| /kind) | first | payload | eq ~(/kind))
   ~~|
@@ -511,7 +511,7 @@
       of a literal is such a group, which is why a literal is the shape an
       answer takes, `[(add 1) (mul 2)]`. As a record it wraps the quote
       of its pipeline. ::link~(::bind | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
   ~~|
@@ -525,7 +525,7 @@
       kinds of the subject. No value answers it as its `type`, since each
       has a kind of its own above it.
       ::snippet~(::qlang/any | manifest) lists the verbs of every value.
-      ::link~(::qlang | doc :verbs)
+      ::link~(::verbs | doc)
 
       ~(::qlang/any | manifest | has ::any/type)
       ~(5 | type | eq ::qlang/any | not)
@@ -540,7 +540,7 @@
       itself, which a query asks for its page and its verbs. Rests on
       nothing; the pipeline, the verbs and the hypertext rest on it.
       ::snippet~(::qlang | manifest) lists the kinds. ::link~(::tag | doc)
-      ::link~(::qlang | doc :pipeline)
+      ::link~(::pipeline | doc)
 
       A literal implies its kind:
       ~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
@@ -565,7 +565,7 @@
       takes, so a query names what it reads. Rests on values; the verbs
       are its commands, and code holds its steps as a value.
       ::link~(::each | doc) ::link~(::proj | doc)
-      ::link~(::group | doc) ::link~(::qlang | doc :names)
+      ::link~(::group | doc) ::link~(::names | doc)
 
       `|` runs the next step on the answer of the one before:
       ~(5 | add 1 | mul 2 | eq 12)
@@ -615,7 +615,7 @@
       step inside `(…)` or `*` writes a scope that closes with it. Rests
       on values and the pipeline; the verbs are names that run.
       ::link~(::binding | doc) ::link~(::bind | doc)
-      ::link~(::any/use | doc) ::link~(::qlang | doc :verbs)
+      ::link~(::any/use | doc) ::link~(::verbs | doc)
 
       `env` lists the names a query and a session wrote:
       ~(:limit 10 | env | keys | eq #[:limit])
@@ -659,7 +659,7 @@
       errors name the verb that refused.
       ::snippet~(::vec | manifest) lists the verbs of a kind and
       ::snippet~(::qlang/any | manifest) those of every value.
-      ::link~(::verb | doc) ::link~(::qlang | doc :errors)
+      ::link~(::verb | doc) ::link~(::errors | doc)
 
       A name finds its verb through the kind of its subject: its tags
       from the outside in, then the shape beneath them, then the verbs
@@ -682,13 +682,13 @@
       ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
       ~([{:age 3}] | sort ~/age | first | /age | eq 3)
       ~([1 2] | filter ~(1) !| type | eq ::any/FilterConditionNotBooleanError)
-      A kind is declared by the step `::T body`, the tag, a space and a
-      map whose `:impl` is a quote, the constructor that checks or builds
-      each value put under it and answers an error for one it refuses:
+      A kind is declared by a name over a spec, `:T ::spec~(…)`, whose
+      quote is the constructor that checks or builds each value put
+      under it and answers an error for one it refuses:
       ~(:Small ::spec~(if (lt 10) ~(/) ~(!{:reason :tooBig})) | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
-      Written close, `::T{…}` is a value under the tag and declares
-      nothing, so the tag checks nothing:
-      ~(::Small{:impl ~(!{:reason :no})} | ::Small(12) | payload | eq 12)
+      A tag no declaration answers is a kind of identity, which checks
+      nothing and lays the tag on the value:
+      ~(::Small(12) | payload | eq 12)
   ~~|
   #[::verb ::spec ::qlang/any]
 
@@ -736,7 +736,7 @@
       links that open, and the trail of an error holds the steps it
       skipped, ready to replay. Rests on values and the pipeline; the
       hypertext is written in it.
-      ::link~(::quote | doc) ::link~(::qlang | doc :hypertext)
+      ::link~(::quote | doc) ::link~(::hypertext | doc)
 
       A quote held as a value runs by `apply`:
       ~(~(add 1 | mul 2) | :q / | 5 | apply q | eq 12)
@@ -756,7 +756,7 @@
       pipeline goes on from a projection as from any value, and a tag
       you declare with verbs on it adds projections of its own.
       A keyword after `doc` is an anchor within the page of its subject,
-      `::qlang | doc :pipeline`, a vector of anchors a path, a set of
+      `::pipeline | doc`, a vector of anchors a path, a set of
       anchors several pages at once. A page is a doc, prose that holds
       code: a quote with no tag is a law, which `runLaws` holds to
       answer true, a quote under `::link` is a link to another page, and
@@ -769,7 +769,7 @@
       is read that was not asked for, and a query names the shape of
       what it reads. Rests on every concept before it.
       ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
-      ::link~(::qlang | doc :hosts)
+      ::link~(::hosts | doc)
 
       The links of a page open in one query:
       ~(::qlang | doc | links * open | count | gt 0)

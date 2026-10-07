@@ -86,7 +86,7 @@ describe('completionsAtOffset', () => {
     expect(items.length).toBeGreaterThan(60);
   });
 
-  it('mixed completions surface tag-namespace bindings alongside builtins', async () => {
+  it('mixed completions surface the nodes of the tree alongside the verbs', async () => {
     const src = 'foo';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 3, src);
@@ -94,7 +94,7 @@ describe('completionsAtOffset', () => {
     expect(items.some(i => i.label === '::number/AddLeftNotNumberError')).toBe(true);
   });
 
-  it('cursor right after `::` filters to tag-namespace only', async () => {
+  it('cursor right after `::` filters to tags only', async () => {
     const src = '::';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 2, src);

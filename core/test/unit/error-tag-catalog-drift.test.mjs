@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { refusalAddressOf, throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
 import { exportsOfModule, nodeOf } from '../../src/runtime/nouns.mjs';
-import { isModuleNamespaceKey, MODULE_NAMESPACE_PREFIX } from '../../src/env-keys.mjs';
+import { isModuleKey, MODULE_KEY_PREFIX } from '../../src/env-keys.mjs';
 import { bindingValueOf, isSpec } from '../../src/types.mjs';
 
 // Refusals minted without going through a per-site factory, each with
@@ -28,8 +28,8 @@ const session = await createSession();
 // is a refusal's, `number/AddLeftNotNumberError`.
 const refusalKinds = [];
 for (const [envKey, exportsMap] of session.env) {
-  if (!isModuleNamespaceKey(envKey)) continue;
-  const path = envKey.slice(MODULE_NAMESPACE_PREFIX.length);
+  if (!isModuleKey(envKey)) continue;
+  const path = envKey.slice(MODULE_KEY_PREFIX.length);
   if (!path.startsWith('qlang/')) continue;
   for (const [name, record] of exportsMap) {
     if (/Error$/.test(name) && isSpec(bindingValueOf(record))) refusalKinds.push([`${path.slice('qlang/'.length)}/${name}`, name]);

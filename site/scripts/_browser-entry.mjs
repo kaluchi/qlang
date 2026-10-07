@@ -5,7 +5,7 @@
 // rewrites each `import <name> from '<path>.qlang'` line into a
 // JS string at build time, so the resulting bundle ships catalog
 // source-of-truth alongside the evaluator and resolves every module
-// the catalog root lists from an in-process Map without a network
+// of the tree of names from an in-process Map without a network
 // fetch.
 //
 // Embedders hosting qlang in a browser tab copy this pattern:
@@ -87,9 +87,9 @@ const CATALOG = new Map([
   ['qlang', qlangCatalogSource]
 ]);
 
-export async function inlineCatalogLocator(namespaceName) {
-  return CATALOG.has(namespaceName)
-    ? { source: CATALOG.get(namespaceName) }
+export async function inlineCatalogLocator(modulePath) {
+  return CATALOG.has(modulePath)
+    ? { source: CATALOG.get(modulePath) }
     : null;
 }
 

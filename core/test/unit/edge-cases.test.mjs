@@ -258,8 +258,8 @@ describe('runtime/string.mjs lines', () => {
 
 describe('source axis on verb / freeze / TagKeyword subjects', () => {
   // `:name | source` returns the quote of the declaring BindStep,
-  // which `parse` prints as its text. Same axis covers value-namespace bindings
-  // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
+  // which `parse` prints as its text. Same axis covers a name (Keyword
+  // subject) and a node of the tree (TagKeyword subject).
 
   it('source on a verb binding name returns the whole declaration', async () => {
     const source = await evalQuery(':double ::verb~(mul 2) | :double | source | parse');

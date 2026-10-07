@@ -25,11 +25,9 @@ export async function expectErrorResult(query) {
 // `'arityError'`, `'effectLaundering'`, `'parseError'`,
 // `'foreignError'`, `'numericDomain'`, `'invariantError'`,
 // `'unresolvedIdentifier'`, ...). The instance descriptor carries
-// the dynamic facts alone; `:category` rides the tag-binding,
-// stamped there from the throw site, and `result !| type | spec |
-// /category` reads it. JS-side this check rides the equivalent
-// `.kind` shortcut on the originating QlangError — the same string
-// the stamped `:category` Keyword renders.
+// the dynamic facts alone; the registry of throw sites records the
+// `:category`, and this check reads the `.kind` of the originating
+// QlangError, the same string.
 // For per-tag identity assertions use `expectErrorThrown` against
 // `:kind`.
 export async function expectErrorCategory(query, category) {

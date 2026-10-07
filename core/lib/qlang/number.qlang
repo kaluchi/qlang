@@ -1,4 +1,4 @@
-|~ `::number`, the kind of numbers, its constructor and its refusal,
+|~ `::number`, the kind of numbers, the refusal of its constructor,
    and the verbs of numbers. Each resides on `::qlang/number`, the
    kind whose module declares it, so its subject is a number, and its
    head is its declaration, which the runtime executes before the

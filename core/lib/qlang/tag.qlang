@@ -1,4 +1,4 @@
-|~ `::tag`, the kind of a tag name, its constructor and its refusal, and
+|~ `::tag`, the kind of a tag name, the refusal of its constructor, and
    the verbs that live on a tag name: the comparisons of tag names,
    `manifest` and `runLaws`. ~|
 

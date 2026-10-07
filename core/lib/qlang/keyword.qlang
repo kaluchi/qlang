@@ -1,5 +1,5 @@
-|~ `::keyword`, the kind of keywords, its constructor and its
-   refusal, and the comparisons of keywords. Each resides on
+|~ `::keyword`, the kind of keywords, the refusal of its
+   constructor, and the comparisons of keywords. Each resides on
    `::qlang/keyword`, the kind whose module declares it, and compares
    two keywords by their names in the one order. ~|
 

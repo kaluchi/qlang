@@ -1,5 +1,5 @@
 // The primitives of the streams of the command line, `@in`, `@out`,
-// `@err` and `@tap`, verbs of the noun `::qlang/cli` [D92], each a plain
+// `@err` and `@tap`, verbs of the provider `::cli` [D152], each a plain
 // function over the values the head of its verb checks [D80].
 
 import {

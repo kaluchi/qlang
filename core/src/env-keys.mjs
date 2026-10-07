@@ -1,10 +1,10 @@
 // The keys of an env and the spelling of a tag in a refusal's facts. A
 // name a declaration writes is its own key [D152]; the export map of a
-// loaded module sits under `qlang/namespace/<path>` and the host's
+// loaded module sits under `qlang/module/<path>` and the host's
 // locator under `qlang/locator`, keys the runtime keeps for itself.
 
 export const TAG_SIGIL               = '::';
-export const MODULE_NAMESPACE_PREFIX = 'qlang/namespace/';
+export const MODULE_KEY_PREFIX = 'qlang/module/';
 export const RUNTIME_LOCATOR_KEY     = 'qlang/locator';
 
 // The name a tag goes by: a name under the language is written short,
@@ -31,16 +31,16 @@ export function tagNameOfLiteral(literal) {
 }
 
 // The key of a loaded module's export map.
-export function moduleNamespaceKey(path) {
-  return MODULE_NAMESPACE_PREFIX + path;
+export function moduleKey(path) {
+  return MODULE_KEY_PREFIX + path;
 }
 
-export function isModuleNamespaceKey(name) {
-  return typeof name === 'string' && name.startsWith(MODULE_NAMESPACE_PREFIX);
+export function isModuleKey(name) {
+  return typeof name === 'string' && name.startsWith(MODULE_KEY_PREFIX);
 }
 
 // A key the runtime keeps for itself, a module's exports or the
 // host's locator, which names no binding.
 export function isRuntimeKey(name) {
-  return isModuleNamespaceKey(name) || name === RUNTIME_LOCATOR_KEY;
+  return isModuleKey(name) || name === RUNTIME_LOCATOR_KEY;
 }

@@ -59,7 +59,6 @@ const readBackMessage = operand => ({ printed }) =>
 
 const vecOf = isElement => value => isVec(value) && value.every(isElement);
 const isSegment = segment => isKeyword(segment) || Number.isInteger(segment);
-const isBindName = name => isKeyword(name) || isTagKeyword(name);
 const isBodyStep = step => isElementStep(step) || isCommandStep(step);
 
 // A record's payload is a Map whose fields each fit the schema, the
@@ -96,7 +95,7 @@ bindTypeConstructor('proj', recordConstructor(PROJ_TAG,
   declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
 bindTypeConstructor('bind', recordConstructor(BIND_TAG,
-  { name: isBindName, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
+  { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 

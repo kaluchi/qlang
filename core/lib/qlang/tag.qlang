@@ -2,39 +2,16 @@
    the verbs that live on a tag name: the comparisons of tag names,
    `manifest` and `runLaws`. ~|
 
-::tag
-  |~~ The kind of a tag name, `::Kind` taken as a value. A tag is the name
-      of a kind, the interpretation of the value it stands on, and the
-      model of the language hangs on it: a value carries its kind as the
-      tag over it, a name finds its verb through that tag, and the tag
-      names the page of the kind, so `type | doc` reads the page of a
-      value's kind. Tags stack over any payload and read from the outside
-      in; behaviour does not travel with a value, it is found again
-      through the tag wherever the value goes. A tag names apart from a
-      keyword, so `:d` and `::d` are two names; a tag no step declared is
-      declared where it is first used, and its declaration says so.
-      ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
-      ::snippet~(::qlang | manifest) lists the kinds.
-      ::link~(::qlang | doc :values)
-
-      ~(::Box | type | eq ::tag)
-      ~(::Even {:impl ~(if (eq 2) ~(/) ~(!{:reason :odd}))} | ::Even(3) !| /reason | eq :odd)
-      ~(::tag::Box | eq ::Box)
-      ~(5 | type | doc | type | eq ::doc)
-      ~(:d ::verb~(mul 60) | ::d {:impl ~({:s /})} | [(10 | d) (::d(10) | payload)] | eq [600 {:s 10}])
-      ~(::Unbound[1] | type | spec | /declarationOrigin | eq :implicit)
-  ~~|
-  ::builtin{:impl :qlang/type/tag}
-
-::TagPayloadNotTagError
+:TagPayloadNotTagError
   |~~ `::tag` reads its payload as the tag name it is; a value's own
       tag is read by `type`.
       ~(
         ::tag:k
         !| [type /actualType]
-        |  eq [::TagPayloadNotTagError ::keyword]
+        |  eq [::tag/TagPayloadNotTagError ::keyword]
        )
   ~~|
+  ::spec~()
 
 |~ The comparisons of tag names. Each resides on `::qlang/tag`,
    the kind of the module that declares it, and compares two tag names
@@ -74,11 +51,11 @@
 
 :manifest
   |~~ Asked of a noun, answers the set of what lies below it in
-      the tree of names: the nouns under its path and the
-      addresses of the verbs that live on it.
-      ::snippet~(::qlang | manifest) lists the nouns of the core and of the hosts, `::number |
-      manifest` the verbs of numbers, and a refusal is reached
-      from the place it guards, `::number/add | spec | /throws`.
+      the tree of names: every node the module of its path declared,
+      its kinds, its verbs, its refusals and its pages, each by its
+      address. ::snippet~(::qlang | manifest) lists the nouns of the
+      language and the pages of its concepts, and `::number |
+      manifest` the verbs and the refusals of numbers.
       For what one binding does reach for the axis trio
       (`::vec/count | source` / `| doc` / `| doc | laws`).
 
@@ -88,16 +65,17 @@
   ~~|
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/manifest})
 
-::ManifestSubjectNotTagError
+:ManifestSubjectNotTagError
   |~~ `manifest` is asked of a noun, a tag name in the subject
       position.
 
       ~(
         5 | manifest
         !| [type /actualType]
-        |  eq [::ManifestSubjectNotTagError ::number]
+        |  eq [::tag/ManifestSubjectNotTagError ::number]
        )
   ~~|
+  ::spec~()
 
 :runLaws
   |~~ The results of the laws of the page of the declaration the tag

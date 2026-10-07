@@ -62,7 +62,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (cellEntry.error !== null) {
     // Parse failures land both as a host-error marker (so the exit
     // code reflects the syntactic failure) AND as a structured
-    // `::ParseError!{…}` ErrorValue on the result channel. Render
+    // `::quote/ParseError!{…}` ErrorValue on the result channel. Render
     // the ErrorValue when present — `print` produces the
     // caret-pointer-aware diagnostic; fall back to the raw JS
     // message for non-lifted host failures (setup errors, etc.).

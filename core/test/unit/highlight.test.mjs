@@ -7,12 +7,13 @@
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../src/highlight.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
+import { verbNames } from '../../src/runtime/nouns.mjs';
 
 let builtinNames;
 async function builtins() {
   if (builtinNames === undefined) {
     const env = await langRuntime();
-    builtinNames = new Set([...env.keys()]);
+    builtinNames = verbNames(env);
   }
   return builtinNames;
 }

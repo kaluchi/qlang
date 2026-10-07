@@ -106,14 +106,23 @@ Combinator
 PipelineHead
   = DocBeforeDeclaration
   / BindStep
+  / TagDeclarationRefusal
   / Step
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
   = LineDocBeforeDeclaration
   / LineBindStep
+  / TagDeclarationRefusal
   / LineStep
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
+
+// A tag name in the place of a declaration's name declares nothing: a
+// name is declared by its keyword, and a value under a tag touches its
+// payload [D152].
+TagDeclarationRefusal
+  = &{ return docQuoteDepth === 0; } BareTypeKeyword _h1 !Combinator (DocOpen / Word)
+    { error('a name is declared by its keyword, `:Box ::spec~(…)`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
   = _ DocBeforeDeclaration
@@ -155,11 +164,13 @@ SpacingRefusal
 StepAfterCombinator
   = DocBeforeDeclaration
   / BindStep
+  / TagDeclarationRefusal
   / Step
 
 LineStepAfterCombinator
   = LineDocBeforeDeclaration
   / LineBindStep
+  / TagDeclarationRefusal
   / LineStep
 
 // A doc documents the declaration whose slot it stands in, between the
@@ -286,10 +297,10 @@ FirstModifierSeparator
 FirstLineModifierSeparator
   = _h1 / &"("
 
-// A declaration: a keyword or a tag name, then the doc literals of its
-// slot and an optional body, each of which may take a line of its own.
-// A body is a step other than a bare keyword or tag name; a lone `:foo`
-// is a keyword.
+// A declaration: a keyword, then the doc literals of its slot and an
+// optional body, each of which may take a line of its own [D152]. A body
+// is a step other than a bare keyword or tag name; a lone `:foo` is a
+// keyword.
 BindStep
   = key:BindName docs:(__ @DocSlot)? body:(_h1 @KindBody / __ @BindBody)?
     & { return docs !== null || body !== null; }
@@ -301,8 +312,7 @@ LineBindStep
     { return node('BindStep', { key, docs, body }, location(), text()); }
 
 BindName
-  = key:Keyword         { return key; }
-  / key:BareTypeKeyword { return key; }
+  = Keyword
 
 DocSlot
   = first:DocLit rest:(_ @DocLit)*

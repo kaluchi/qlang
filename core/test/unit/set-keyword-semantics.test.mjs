@@ -117,13 +117,13 @@ describe('setops keyword-aware minus/inter with mixed Set members', async () => 
   it('Map×Set minus refuses a member that names no key [D139]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
-    expect(result.name).toBe('MinusKeyNotKeywordOrStringError');
+    expect(result.name).toBe('map/MinusKeyNotKeywordOrStringError');
   });
 
   it('Map×Set inter refuses a member that names no key [D139]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
-    expect(result.name).toBe('InterKeyNotKeywordOrStringError');
+    expect(result.name).toBe('map/InterKeyNotKeywordOrStringError');
   });
 });
 
@@ -241,6 +241,6 @@ describe('at on a Set subject', async () => {
   it('non-integer index raises AtIndexNotIntegerError', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | at 0.5');
-    expect(err.tag.name).toBe('AtIndexNotIntegerError');
+    expect(err.tag.name).toBe('any/AtIndexNotIntegerError');
   });
 });

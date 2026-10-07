@@ -4,7 +4,7 @@
 // fail-track as a qlang error value. The lift stores the per-site
 // tag under the descriptor's `:kind` slot (the universal
 // tagged-value identity invariant — `result !| type` surfaces it
-// as `::OutSubjectNotStringError` and the like) and preserves the
+// as `::cli/OutSubjectNotStringError` and the like) and preserves the
 // original JS instance in the opaque `originalError` slot on the
 // error value (not qlang-visible — for host-boundary re-throwing
 // and for these assertions).
@@ -30,6 +30,7 @@
 // or 2.
 
 import { expect } from 'vitest';
+import { refusalAddressOf } from '@kaluchi/qlang-core/errors';
 import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core';
 
 // expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext)
@@ -47,7 +48,7 @@ export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedC
 
   const identityTag = errorValue.tag;
   expect(isTagKeyword(identityTag), ':kind must be a TagKeyword').toBe(true);
-  expect(identityTag.name).toBe(expectedClassName);
+  expect(identityTag.name).toBe(refusalAddressOf(expectedClassName));
 
   const originalError = errorValue.originalError;
   expect(originalError, 'originalError must preserve the JS throw instance').toBeInstanceOf(QlangTypeError);

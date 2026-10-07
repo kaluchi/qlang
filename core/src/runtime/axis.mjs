@@ -1,17 +1,17 @@
 // The axes, each a passage from a name to its declaration
 // [D61], the record the declaration wrote into its scope [D63]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
-// name `::Foo` the tag's, a tag name that no tag binds the record of
-// the verb it addresses from the root, `::vec/count` [D62], a record
-// the binding it records, and every other value the record of its
-// kind, the kind `type` answers. Each axis projects a field of the
-// record:
+// name the node of the tree it addresses, `::vec/count` or
+// `::qlang/pipeline` [D152], a record the binding it records, and every
+// other value the node of its kind, the kind `type` answers. Each axis
+// projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a binding no
 //            step declared, a value `use` or a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `spec`     the value the binding holds, a verb's signature for a verb.
+// `spec`     the value the binding holds as it was declared, a verb's
+//            head for a verb [D152].
 // `binding`  the record itself, `::binding` with its name, docs, value,
 //            source and module [D5].
 //
@@ -21,16 +21,14 @@
 // `::map | doc :minus` the page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
+  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, makeSet, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
-import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
-import { tagBindingKey } from '../env-keys.mjs';
+import { signatureSpecOf, slotMemberOf } from './verb.mjs';
+import { tagLiteralOf } from '../env-keys.mjs';
 import {
-  addressedVerb, addressesOf, isNoun, pageAddressesOf, isNounMember, isProviderBinding, nounMemberOf, refusalsOfNoun,
-  residenceOnSubject, verbsOfKind
+  addressesOf, isNoun, nodeOf, pageAddressesOf, nounMemberOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -72,30 +70,12 @@ export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundEr
     `spec: no binding found for '${bindingName}'`,
   { operand: 'spec' });
 
-// The binding a subject names: a keyword names a binding, a tag name
-// a tag's, and every other value names the declaration of its kind,
-// the kind `type` answers [D61].
+// The name a refusal says a subject read: a keyword's, a tag name's, and
+// for every other value the tag of its kind, the kind `type` answers [D61].
 function bindingNameOf(subject) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return tagBindingKey(subject.name);
-  return tagBindingKey(typeKeyword(subject).name);
-}
-
-// A tag name that no tag binds addresses a verb from the root of the
-// tree of names through the noun it lives on, `::vec/count` [D62], and
-// reads what the verb's provider declared, whatever the scope binds
-// under its name; a member of a noun that is no verb is read through
-// the noun, `::qlang | doc :pipeline` [D119].
-function addressOf(env, subject) {
-  if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
-  return addressedVerb(env, subject.name);
-}
-
-// A keyword names a binding of the scope where it stands, so under the
-// name of a verb a provider exports it names nothing, and the verb is
-// read through the noun it lives on [D62].
-function namesNoScopeBinding(env, subject) {
-  return isKeyword(subject) && (isProviderBinding(env, subject.name) || isNounMember(env, subject.name));
+  if (isTagKeyword(subject)) return tagLiteralOf(subject.name);
+  return tagLiteralOf(typeKeyword(subject).name);
 }
 
 // The name whose verbs a refusal lists: a keyword's, the last name of a
@@ -125,11 +105,11 @@ function nearestOfSubject(env, subject) {
 // under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
-  if (namesNoScopeBinding(env, subject)) return null;
-  const address = addressOf(env, subject);
-  if (address !== null) return address.record;
-  const entry = env.get(bindingNameOf(subject));
-  return isBinding(entry) ? entry : null;
+  if (isKeyword(subject)) {
+    const entry = env.get(subject.name);
+    return isBinding(entry) ? entry : null;
+  }
+  return nodeOf(env, isTagKeyword(subject) ? subject.name : typeKeyword(subject).name);
 }
 
 // The caption a run of prose gives the laws after it [D124]: the last
@@ -178,7 +158,7 @@ function memberRecordOf(env, subject, memberName) {
 function memberRefusalOf(env, subject, memberName) {
   const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
   return {
-    bindingName: onNoun ? tagBindingKey(`${subject.name}/${memberName}`) : memberName,
+    bindingName: onNoun ? tagLiteralOf(`${subject.name}/${memberName}`) : memberName,
     addresses: isVerb(declaringRecordOf(env, subject)?.get('value')) ? makeSet([]) : addressesOf(env, memberName)
   };
 }
@@ -255,37 +235,12 @@ bindStateReader('explain', (subject, state) => {
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
 
-// `spec` — the value the record holds: the map a catalog
-// `::builtin{…}` body declared for a built-in verb and a kind's
-// constructor;
-// the throw-site spec the bootstrap stamps for an error tag, since
-// what raises the error is what knows the category and the slot; the
-// signature of a verb as a `::spec~(…)` [D67]; and the value itself
-// for any other binding.
-//
-// The discriminator path for per-tag static facts attached to any
-// tagged value-class: `result !| type | spec | /category`
-// reads `:typeError` / `:arityError` / etc. off the error tag;
-// `::number/add | spec | /throws` lists the per-site error classes
-// `add` raises; `::verb | spec | /impl` returns the
-// `:qlang/type/verb` constructor handle.
+// `spec` — the value the record holds as it was declared [D152]: a
+// kind's `::spec~(…)`, its fields and its constructor, the head of a verb
+// as a `::spec~(…)` with its subject filled [D72], and the value itself
+// for any other binding; what lies under a noun `manifest` answers.
 bindStateReader('spec', (subject, memberName, state) => {
-  const record = recordReadBy(subject, memberName, state, SpecBindingNotFoundError);
-  const declaration = record.get('value');
-  return isVerb(declaration) ? signatureSpecOf(declaration) : withVerbsOfNoun(state.env, record);
+  const declaration = recordReadBy(subject, memberName, state, SpecBindingNotFoundError).get('value');
+  return isVerb(declaration) ? signatureSpecOf(declaration) : declaration;
 });
-
-// The declaration of a provider's noun lists the verbs that live on it
-// [D61], computed from the subjects its providers' verbs declare,
-// and the refusals a query provokes on it, its own and its verbs' [D64].
-function withVerbsOfNoun(env, record) {
-  const declaration = record.get('value');
-  const recordName = record.get('name');
-  if (!isTagKeyword(recordName) || !isNoun(env, recordName.name)) return declaration;
-  const withVerbs = new Map(declaration);
-  withVerbs.set('verbs', verbsOfKind(env, recordName.name));
-  withVerbs.set('throws', refusalsOfNoun(env, recordName.name, declaration.get('throws') ?? [], refusalsOfVerb));
-  stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
-  return withVerbs;
-}
 

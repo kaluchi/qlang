@@ -9,8 +9,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
-  bindingNamesVisibleAt
-} from '../../src/walk.mjs';
+  bindingNamesVisibleAt, TAG_NAMESPACE } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
   it('yields steps for a Pipeline', () => {
@@ -190,7 +189,7 @@ describe('findIdentifierOccurrences', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
     // that writes none names no tag [D86].
     const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
-    const refs = findIdentifierOccurrences(ast, '::Foo');
+    const refs = findIdentifierOccurrences(ast, 'Foo', TAG_NAMESPACE);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
@@ -207,9 +206,9 @@ describe('findIdentifierOccurrences', () => {
     expect(refs).toHaveLength(0);
   });
 
-  it('finds TaggedLit occurrences when name carries the :: prefix', () => {
+  it('finds TaggedLit occurrences in the tag namespace', () => {
     const ast = parse('::verb~(count)');
-    const refs = findIdentifierOccurrences(ast, '::verb');
+    const refs = findIdentifierOccurrences(ast, 'verb', TAG_NAMESPACE);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
@@ -218,14 +217,14 @@ describe('findIdentifierOccurrences', () => {
 
   it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
     const ast = parse('::verb | source');
-    const refs = findIdentifierOccurrences(ast, '::verb');
+    const refs = findIdentifierOccurrences(ast, 'verb', TAG_NAMESPACE);
     expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'verb')).toBe(true);
   });
 
-  it('finds BindStep tag-binding declaration via :: lookup', () => {
-    const ast = parse('::Box {}');
-    const refs = findIdentifierOccurrences(ast, '::Box');
-    expect(refs.some(n => n.type === 'BindStep' && n.key.type === 'BareTypeKeyword' && n.key.tag === 'Box')).toBe(true);
+  it('finds the declaration of a kind in the tag namespace', () => {
+    const ast = parse(':Box ::spec~()');
+    const refs = findIdentifierOccurrences(ast, 'Box', TAG_NAMESPACE);
+    expect(refs.some(n => n.type === 'BindStep' && n.key.name === 'Box')).toBe(true);
   });
 });
 
@@ -305,12 +304,12 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('outer')).toBe(true);
   });
 
-  it('TAG_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
+  it('TAG_NAMESPACE surfaces the declarations of kinds by their names', async () => {
     const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '::MyType {:impl ~(42)} | 42';
+    const source = ':MyType ::spec~(42) | 42';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
-    expect(visible.has('::MyType')).toBe(true);
+    expect(visible.has('MyType')).toBe(true);
   });
 
   it('TAG_NAMESPACE skips value-namespace BindStep declarations', async () => {
@@ -325,11 +324,11 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_NAMESPACE honours fork-isolation rules', async () => {
     const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '(::Local {:impl ~(42)}) | here';
+    const source = '(:Local ::spec~(42)) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
-    expect(visible.has('::Local')).toBe(false);
+    expect(visible.has('Local')).toBe(false);
   });
 });
 

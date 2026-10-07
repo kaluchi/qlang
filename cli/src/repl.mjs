@@ -39,7 +39,7 @@ import {
   isErrorValue,
   langRuntime
 } from '@kaluchi/qlang-core';
-import { createCliLocator, installCliCatalog } from './cli-locator.mjs';
+import { createCliLocator } from './cli-locator.mjs';
 import { DEFAULT_SUBJECT } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
@@ -105,7 +105,6 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
       stderrWrite: writeDiagnostic
     })
   });
-  await installCliCatalog(session);
 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,

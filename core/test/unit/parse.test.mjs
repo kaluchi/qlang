@@ -851,7 +851,7 @@ describe('parse — block comment nesting', () => {
         '   module. Both ride the universal identity-on-JS-header invariant',
         '   that every ErrorValue carries: `error({:kind ::FooError …})`',
         "   lifts the TagKeyword to the value's tag slot, and `result !|",
-        '   type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps',
+        '   type` reads it back. The doc-only `:Tag |~~ ~~| ::spec~()` BindSteps',
         '   below give axis-operands (`::AssertionFailedError | doc`,',
         '   `| source`, `| doc | laws`) a discoverable declaration through',
         "   the loaded module's AST, symmetric with catalog error tags. ~|",

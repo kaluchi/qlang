@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createCliLocator, installCliCatalog } from '../src/cli-locator.mjs';
+import { createCliLocator } from '../src/cli-locator.mjs';
 import { createSession } from '@kaluchi/qlang-core/session';
 
 const noopCtx = {
@@ -9,13 +9,17 @@ const noopCtx = {
 };
 
 describe('createCliLocator', () => {
-  it('answers the module of the noun of the command line with its primitives', async () => {
-    const result = await createCliLocator(noopCtx)('qlang/cli');
-    expect(result.source).toContain('::qlang/cli');
+  it('answers the module of the provider of the command line with its primitives', async () => {
+    const result = await createCliLocator(noopCtx)('cli');
+    expect(result.source).toContain(':table');
     expect(Object.keys(result.impls)).toEqual(expect.arrayContaining(['@in', '@out', '@err', '@tap', 'table']));
   });
 
-  it('answers no other namespace', async () => {
+  it('binds the provider beside the language at the root', async () => {
+    expect((await createCliLocator(noopCtx)('qlang/core')).source).toContain(':cli');
+  });
+
+  it('answers no other path', async () => {
     const locator = createCliLocator(noopCtx);
     expect(await locator('cli/io')).toBeNull();
     expect(await locator('qlang/number')).toBeNull();
@@ -23,10 +27,9 @@ describe('createCliLocator', () => {
   });
 });
 
-describe('installCliCatalog [D92]', () => {
+describe('the verbs of the command line [D92], [D152]', () => {
   const evalInCli = async (query) => {
     const session = await createSession({ locator: createCliLocator(noopCtx) });
-    await installCliCatalog(session);
     return (await session.evalCell(query)).result;
   };
 
@@ -38,8 +41,8 @@ describe('installCliCatalog [D92]', () => {
     expect(await evalInCli(':x 1 | env | keys')).toEqual(await evalInCli('#[:x]'));
   });
 
-  it('lists them under the noun of the command line', async () => {
-    expect(await evalInCli('::qlang | manifest | has ::cli')).toBe(true);
+  it('lists them under the provider of the command line', async () => {
+    expect(await evalInCli('::cli | doc | content | contains "command line"')).toBe(true);
     expect(await evalInCli('::cli | manifest | has ::cli/table')).toBe(true);
   });
 });

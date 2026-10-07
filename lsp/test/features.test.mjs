@@ -91,7 +91,7 @@ describe('completionsAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 3, src);
     expect(items.some(i => i.label === 'count')).toBe(true);
-    expect(items.some(i => i.label === '::AddLeftNotNumberError')).toBe(true);
+    expect(items.some(i => i.label === '::number/AddLeftNotNumberError')).toBe(true);
   });
 
   it('cursor right after `::` filters to tag-namespace only', async () => {
@@ -103,8 +103,8 @@ describe('completionsAtOffset', () => {
     expect(items.every(i => i.kind === 'tag')).toBe(true);
   });
 
-  it('in-document `::Tag` BindStep contributes to tag-namespace completions', async () => {
-    const src = '::MyTag {:impl ~(42)}';
+  it('an in-document kind contributes to the completions of tags', async () => {
+    const src = ':MyTag ::spec~(42)';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);
@@ -218,13 +218,13 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for BareTypeKeyword tag reference', async () => {
-    const src = '::AddLeftNotNumberError | doc';
+    const src = '::number/AddLeftNotNumberError | doc';
     const { ast } = parseDocument(src, 'test.qlang');
-    const tagOffset = src.indexOf('::AddLeftNotNumberError') + 5;
+    const tagOffset = src.indexOf('::number/AddLeftNotNumberError') + 5;
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
-    expect(hover.content).toMatch(/::AddLeftNotNumberError/);
-    expect(hover.content).toMatch(/tag-binding/);
+    expect(hover.content).toContain("::number/AddLeftNotNumberError");
+    expect(hover.content).toMatch(/node of the tree of names/);
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
@@ -234,19 +234,19 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/::verb/);
-    expect(hover.content).toMatch(/tag-binding/);
+    expect(hover.content).toMatch(/node of the tree of names/);
   });
 
   it('returns hover for the tag an error literal writes before its bang', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
     // tag, so its head resolves like every tag head, and its braces,
     // which the literal owns, show no tag [D86].
-    const src = '::AddLeftNotNumberError!{:actualType ::string}';
+    const src = '::number/AddLeftNotNumberError!{:actualType ::string}';
     const { ast } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(ast, src, 5);
     expect(hover).not.toBeNull();
-    expect(hover.content).toMatch(/::AddLeftNotNumberError/);
-    expect(hover.endOffset - hover.startOffset).toBe('::AddLeftNotNumberError'.length);
+    expect(hover.content).toContain("::number/AddLeftNotNumberError");
+    expect(hover.endOffset - hover.startOffset).toBe('::number/AddLeftNotNumberError'.length);
     expect(await hoverAtOffset(ast, src, src.indexOf('!{'))).toBeNull();
   });
 
@@ -492,11 +492,11 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a `::Tag` head as `struct`', async () => {
-    const { data } = await semanticTokensFor('::AddLeftNotNumberError | doc');
+    const { data } = await semanticTokensFor('::number/AddLeftNotNumberError | doc');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     const tagTok = tokens.find(t => t.type === 'struct');
     expect(tagTok).toBeTruthy();
-    expect(tagTok.length).toBe('::AddLeftNotNumberError'.length);
+    expect(tagTok.length).toBe('::number/AddLeftNotNumberError'.length);
   });
 
   it('paints a user-bound identifier reference as `variable`', async () => {

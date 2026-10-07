@@ -31,7 +31,7 @@ function safeprint(v) {
 
 // The readers of the catalog's laws: the address of every verb of the
 // core, `::vec/count`, the name of every tag it declares,
-// `::AddLeftNotNumberError`, and every concept of the root noun,
+// `::number/AddLeftNotNumberError`, and every concept of the root noun,
 // `::qlang :values`, each read by `runLaws` [D124].
 async function catalogReaders() {
   const verbAddresses = await evalQuery('::qlang | manifest * manifest | flat');

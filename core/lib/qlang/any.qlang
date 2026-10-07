@@ -6,28 +6,15 @@
    reaches it and is refused with `:addresses`, the residences of the
    name. ~|
 
-::qlang/any
-  |~~ The kind beneath every kind, where the verbs every value answers
-      live: `type`, `eq`, `doc`, `print`, `explain`, `elide` and
-      their kin. A verb that means the same for any value is written once
-      here, and the walk from a name to its verb ends here, after the
-      kinds of the subject. No value answers it as its `type`, since each
-      has a kind of its own above it.
-      ::snippet~(::qlang/any | spec | /verbs) lists the verbs of every value.
-      ::link~(::qlang | doc :verbs)
-
-      ~(::qlang/any | spec | /verbs | has ::any/type)
-      ~(5 | type | eq ::qlang/any | not)
-  ~~|
-
-::ToPlainUnencodableValueError
+:ToPlainUnencodableValueError
   |~~ JSON has no form for a value a host installed that is none of the
       kinds of qlang; a function a host bound is written as
       `<host-fn name>`, and any other such value is refused, so the query
       projects around it.
   ~~|
+  ::spec~()
 
-::SourceLoadError
+:SourceLoadError
   |~~ The platform resolved a `#qlang/<ns>` logical name to a path
       or URL the host could not read. The descriptor carries
       `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
@@ -35,6 +22,7 @@
       host that ships its own catalog answers the `:qlang/locator`
       contract and never reaches the platform loader.
   ~~|
+  ::spec~()
 
 :gt
   |~~ Whether the subject follows the value the call gives in the one
@@ -132,17 +120,18 @@
   ~~|
   ::verb~()
 
-::SumElementNotNumberError
+:SumElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
       none, and a field is read first, `* /amount | sum`.
       ~(
         [1 "two" 3] | sum
         !| [type /actualType /index]
-        |  eq [::SumElementNotNumberError ::string 1]
+        |  eq [::any/SumElementNotNumberError ::string 1]
        )
   ~~|
+  ::spec~()
 
-::SumResultNotFiniteError
+:SumResultNotFiniteError
   |~~ Every element is of the right kind, and the running
       total still answered outside the finite-double domain. The
       total is read at each element in the subject's order, so a subject
@@ -153,9 +142,10 @@
       ~(
         [1e308 1e308] | sum
         !| [type /index]
-        |  eq [::SumResultNotFiniteError 1]
+        |  eq [::any/SumResultNotFiniteError 1]
        )
   ~~|
+  ::spec~()
 
 :avg
   |~~ The mean of the elements of a vector or a set, or of the values of
@@ -168,15 +158,16 @@
   ~~|
   ::verb~()
 
-::AvgElementNotNumberError
+:AvgElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
       that is none, and a field is read first, `* /amount | avg`.
       ~(
         [1 "two" 3] | avg
         !| [type /actualType /index]
-        |  eq [::AvgElementNotNumberError ::string 1]
+        |  eq [::any/AvgElementNotNumberError ::string 1]
        )
   ~~|
+  ::spec~()
 
 :min
   |~~ The first element in the one order of values, the order `sort`
@@ -227,32 +218,34 @@
   ~~|
   ::verb~()
 
-::FilterConditionNotBooleanError
+:FilterConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
         [1 2] | filter ~(1)
         !| [type /index /actualType]
-        |  eq [::FilterConditionNotBooleanError 0 ::number]
+        |  eq [::any/FilterConditionNotBooleanError 0 ::number]
        )
   ~~|
+  ::spec~()
 
-::FilterPredicateNotQuoteError
+:FilterPredicateNotQuoteError
   |~~ The predicate of `filter` is code it runs on each element, so it takes a
       quote, `filter ~(gt 1)`; a value computed at the call is refused.
       ~(
         [1 2 3] | filter (count | gt 1)
         !| [type /actualType]
-        |  eq [::FilterPredicateNotQuoteError ::boolean]
+        |  eq [::any/FilterPredicateNotQuoteError ::boolean]
        )
       A step written without its quote runs on the whole subject at the
       call, and the error it answers is refused alike:
       ~(
         [{:a true}] | filter /a
         !| [type /actualType]
-        |  eq [::FilterPredicateNotQuoteError ::ProjectionSequenceKeyNotIntegerError]
+        |  eq [::any/FilterPredicateNotQuoteError ::proj/ProjectionSequenceKeyNotIntegerError]
        )
   ~~|
+  ::spec~()
 
 :every
   |~~ Whether a predicate holds for every element of a container, a
@@ -272,25 +265,27 @@
   ~~|
   ::verb~()
 
-::EveryConditionNotBooleanError
+:EveryConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
         [1 2] | every ~(1)
         !| [type /index /actualType]
-        |  eq [::EveryConditionNotBooleanError 0 ::number]
+        |  eq [::any/EveryConditionNotBooleanError 0 ::number]
        )
   ~~|
+  ::spec~()
 
-::EveryPredicateNotQuoteError
+:EveryPredicateNotQuoteError
   |~~ The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
       ~(
         [1 2 3] | every (count | gt 1)
         !| [type /actualType]
-        |  eq [::EveryPredicateNotQuoteError ::boolean]
+        |  eq [::any/EveryPredicateNotQuoteError ::boolean]
        )
   ~~|
+  ::spec~()
 
 :any
   |~~ Whether a predicate holds for some element of a container, a map's
@@ -309,25 +304,27 @@
   ~~|
   ::verb~()
 
-::AnyConditionNotBooleanError
+:AnyConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
         [1 2] | any ~(1)
         !| [type /index /actualType]
-        |  eq [::AnyConditionNotBooleanError 0 ::number]
+        |  eq [::any/AnyConditionNotBooleanError 0 ::number]
        )
   ~~|
+  ::spec~()
 
-::AnyPredicateNotQuoteError
+:AnyPredicateNotQuoteError
   |~~ The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
       ~(
         [1 2 3] | any (count | gt 1)
         !| [type /actualType]
-        |  eq [::AnyPredicateNotQuoteError ::boolean]
+        |  eq [::any/AnyPredicateNotQuoteError ::boolean]
        )
   ~~|
+  ::spec~()
 
 :groupBy
   |~~ Partitions a vector or a set into a map keyed by the keyword the key
@@ -345,7 +342,7 @@
   ~~|
   ::verb~()
 
-::GroupByKeyNotKeywordError
+:GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
@@ -353,19 +350,21 @@
       ~(
         [{:k true} {:k 2}] | groupBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::GroupByKeyNotKeywordError ::boolean 0]
+        |  eq [::any/GroupByKeyNotKeywordError ::boolean 0]
        )
   ~~|
+  ::spec~()
 
-::GroupByKeyNotQuoteError
+:GroupByKeyNotQuoteError
   |~~ The key of `groupBy` is code it runs on each element, so it takes a
       quote, `groupBy ~(/kind)`; a value computed at the call is refused.
       ~(
         [{:kind :a}] | groupBy :a
         !| [type /actualType]
-        |  eq [::GroupByKeyNotQuoteError ::keyword]
+        |  eq [::any/GroupByKeyNotQuoteError ::keyword]
        )
   ~~|
+  ::spec~()
 
 :indexBy
   |~~ Collapses a vector or a set into a map keyed by the keyword the key
@@ -379,7 +378,7 @@
   ~~|
   ::verb~()
 
-::IndexByKeyNotKeywordError
+:IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
@@ -387,19 +386,21 @@
       ~(
         [{:k [1]}] | indexBy ~(/k)
         !| [type /actualType /index]
-        |  eq [::IndexByKeyNotKeywordError ::vec 0]
+        |  eq [::any/IndexByKeyNotKeywordError ::vec 0]
        )
   ~~|
+  ::spec~()
 
-::IndexByKeyNotQuoteError
+:IndexByKeyNotQuoteError
   |~~ The key of `indexBy` is code it runs on each element, so it takes a
       quote, `indexBy ~(/id)`; a value computed at the call is refused.
       ~(
         [{:id :a}] | indexBy :a
         !| [type /actualType]
-        |  eq [::IndexByKeyNotQuoteError ::keyword]
+        |  eq [::any/IndexByKeyNotQuoteError ::keyword]
        )
   ~~|
+  ::spec~()
 
 :sort
   |~~ The elements in the one order of values, the order every value of
@@ -432,22 +433,23 @@
       A key that answers an error answers the call, a place of a vector it
       answers among them, so a key that misses its field is refused where
       it is read:
-      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::ProjectionKeyNotInMapError)
-      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::ProjectionKeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/ProjectionKeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/ProjectionKeyNotInMapError)
       A map sorts its entries by their values and keeps the keys:
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::verb~()
 
-::SortKeyNotQuoteError
+:SortKeyNotQuoteError
   |~~ The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
       ~(
         [3 1 2] | sort 1
         !| [type /actualType]
-        |  eq [::SortKeyNotQuoteError ::number]
+        |  eq [::any/SortKeyNotQuoteError ::number]
        )
   ~~|
+  ::spec~()
 
 :desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
@@ -474,15 +476,16 @@
   ~~|
   ::verb~()
 
-::TakeCountNotIntegerError
+:TakeCountNotIntegerError
   |~~ The count of `take` must be a whole number — a fractional count
       cannot name a prefix length.
       ~(
         [1 2 3] | take 0.5
         !| [type /actualType]
-        |  eq [::TakeCountNotIntegerError ::number]
+        |  eq [::any/TakeCountNotIntegerError ::number]
        )
   ~~|
+  ::spec~()
 
 :drop
   |~~ The container with its first count elements removed, a map's first
@@ -498,15 +501,16 @@
   ~~|
   ::verb~()
 
-::DropCountNotIntegerError
+:DropCountNotIntegerError
   |~~ The count of `drop` must be a whole number — a fractional count
       cannot name how many to remove.
       ~(
         [1 2 3] | drop 0.5
         !| [type /actualType]
-        |  eq [::DropCountNotIntegerError ::number]
+        |  eq [::any/DropCountNotIntegerError ::number]
        )
   ~~|
+  ::spec~()
 
 :at
   |~~ Indexed access: the element of a vector or a set at an integer
@@ -524,14 +528,15 @@
   ~~|
   ::verb~()
 
-::AtIndexNotIntegerError
+:AtIndexNotIntegerError
   |~~ The index of `at` on a vector or a set must be a whole number.
       ~(
         [1 2 3] | at 0.5
         !| [type /actualType]
-        |  eq [::AtIndexNotIntegerError ::number]
+        |  eq [::any/AtIndexNotIntegerError ::number]
        )
   ~~|
+  ::spec~()
 
 :distinct
   |~~ The constructor of the set: the elements of a vector in the one
@@ -593,7 +598,7 @@
   ~~|
   ::verb~()
 
-::ReduceReducerNotBinaryError
+:ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
       accumulator as its subject and the element in its first slot,
       `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
@@ -602,7 +607,7 @@
       ~(
         [1 2 3] | reduce 0 ~(mul 2 | add)
         !| type
-        |  eq ::ReduceReducerNotBinaryError
+        |  eq ::any/ReduceReducerNotBinaryError
        )
       ~(
         :step ::verb~(:el ::number | mul 2 | add el)
@@ -610,16 +615,18 @@
         | eq 11
        )
   ~~|
+  ::spec~()
 
-::ReduceReducerNotQuoteError
+:ReduceReducerNotQuoteError
   |~~ The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
       quote, `reduce 0 ~(add)`; a value computed at the call is refused.
       ~(
         [1 2 3] | reduce 0 1
         !| [type /actualType]
-        |  eq [::ReduceReducerNotQuoteError ::number]
+        |  eq [::any/ReduceReducerNotQuoteError ::number]
        )
   ~~|
+  ::spec~()
 
 :union
   |~~ The union of two operands of one kind: two sets merged in the one
@@ -740,7 +747,7 @@
       ~(
         "hello" | add 1
         !| [type /actualType]
-        |  eq [::AddLeftNotNumberError ::string]
+        |  eq [::number/AddLeftNotNumberError ::string]
        )
   ~~|
   ::verb~(:returns ::tag | ::builtin{:impl :qlang/prim/type})
@@ -805,35 +812,38 @@
       leaves the subject as it is. ~~|
   ::verb~(:condition ::boolean | :then ::quote | :else ::quote | ::builtin{:impl :qlang/prim/if})
 
-::IfConditionNotBooleanError
+:IfConditionNotBooleanError
   |~~ The condition of `if` answers a boolean; null, a number, a string
       or any other value is refused where it stands.
       ~(
         5 | if 1 ~("yes") ~("no")
         !| [type /actualType]
-        |  eq [::IfConditionNotBooleanError ::number]
+        |  eq [::any/IfConditionNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
-::IfThenNotQuoteError
+:IfThenNotQuoteError
   |~~ The then branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
         5 | if true "yes" ~("no")
         !| [type /actualType]
-        |  eq [::IfThenNotQuoteError ::string]
+        |  eq [::any/IfThenNotQuoteError ::string]
        )
   ~~|
+  ::spec~()
 
-::IfElseNotQuoteError
+:IfElseNotQuoteError
   |~~ The else branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
         5 | if true ~("yes") "no"
         !| [type /actualType]
-        |  eq [::IfElseNotQuoteError ::string]
+        |  eq [::any/IfElseNotQuoteError ::string]
        )
   ~~|
+  ::spec~()
 
 :coalesce
   |~~ The first answer of the alternatives, run in order against the
@@ -856,15 +866,16 @@
   ~~|
   ::verb~(* :alternatives #[::quote ::any] | ::builtin{:impl :qlang/prim/coalesce})
 
-::CoalesceNoAlternativesError
+:CoalesceNoAlternativesError
   |~~ `coalesce` answers the first of its alternatives that answers a
       value, so it takes one at least, `coalesce ~(/nickname) ~("anonymous")`.
       ~(
         {} | coalesce
         !| [type]
-        |  eq [::CoalesceNoAlternativesError]
+        |  eq [::any/CoalesceNoAlternativesError]
        )
   ~~|
+  ::spec~()
 
 :cond
   |~~ The branch of the first predicate that answers true against the
@@ -879,27 +890,29 @@
   ~~|
   ::verb~(* :clauses ::quote | ::builtin{:impl :qlang/prim/cond})
 
-::CondNoBranchesError
+:CondNoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
       last clause alone the default; a call without one pair, a lone
       default among them, has nothing to answer.
       ~(
         5 | cond
         !| [type]
-        |  eq [::CondNoBranchesError]
+        |  eq [::any/CondNoBranchesError]
        )
   ~~|
+  ::spec~()
 
-::CondConditionNotBooleanError
+:CondConditionNotBooleanError
   |~~ Every predicate of `cond` answers a boolean; `:index` counts the
       modifiers from 1 and names the predicate that answered another
       kind.
       ~(
         5 | cond ~(1) ~("yes")
         !| [type /index /actualType]
-        |  eq [::CondConditionNotBooleanError 1 ::number]
+        |  eq [::any/CondConditionNotBooleanError 1 ::number]
        )
   ~~|
+  ::spec~()
 
 :keyword
   |~~ The involution of strings and keywords: a string names its
@@ -942,7 +955,7 @@
   ~~|
   ::verb~(:code ::quote | ::builtin{:impl :qlang/prim/apply})
 
-::ApplyCodeNotQuoteError
+:ApplyCodeNotQuoteError
   |~~ The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
       or a name that holds one; a value computed at the call is refused,
       the error a step answered there among them.
@@ -950,9 +963,10 @@
       ~(
         42 | apply 1
         !| [type /actualType]
-        |  eq [::ApplyCodeNotQuoteError ::number]
+        |  eq [::any/ApplyCodeNotQuoteError ::number]
        )
   ~~|
+  ::spec~()
 
 :env
   |~~ The names the scope holds where it stands, a map from each name
@@ -980,79 +994,86 @@
       other value as a binding without a doc:
       ~({:limit 10 :role "admin"} | use | env | /limit | /value | eq 10)
       ~({:x 1} | use | x | add 2 | eq 3)
-      A keyword loads the module it names, a vector several in order, a
+      A tag loads the module it names, a vector several in order, a
       later one shadowing an earlier, and a set several refusing a name
       two of them export:
-      ~(use :absolutely-nonexistent-namespace !| type | eq ::UseNamespaceNotFoundError)
+      ~(use ::absolutely-nonexistent-module !| type | eq ::any/UseNamespaceNotFoundError)
       A second slot takes only the names it lists:
-      ~(use :absolutely-nonexistent-namespace #[:a] !| type | eq ::UseNamespaceNotFoundError)
+      ~(use ::absolutely-nonexistent-module #[:a] !| type | eq ::any/UseNamespaceNotFoundError)
   ~~|
-  ::verb~(:namespace #[::keyword ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
+  ::verb~(:namespace #[::tag ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
 
-::UseSubjectNotMapError
+:UseSubjectNotMapError
   |~~ `use` alone brings the entries of a map into the scope, so its
-      subject is a map; a module is loaded by its name, `use :ns`.
+      subject is a map; a module is loaded by its tag, `use ::lib`.
 
       ~(
         42 | use
         !| [type /actualType]
-        |  eq [::UseSubjectNotMapError ::number]
+        |  eq [::any/UseSubjectNotMapError ::number]
        )
   ~~|
+  ::spec~()
 
-::UseNamespaceNotKeywordError
-  |~~ `use :ns #[:name …]` takes the names of one namespace, so the
-      namespace a selection reads from is a keyword.
+:UseNamespaceNotTagError
+  |~~ `use ::lib #[:name …]` takes the names of one module, so the
+      module a selection reads from is named by its tag.
 
       ~(
-        use [:a] #[:x]
+        use [::a] #[:x]
         !| [type /actualType]
-        |  eq [::UseNamespaceNotKeywordError ::vec]
+        |  eq [::any/UseNamespaceNotTagError ::vec]
        )
   ~~|
+  ::spec~()
 
-::UseNamespaceNotFoundError
-  |~~ `use :ns` found no module of the name: none was loaded under it
-      and the host's locator answers none. A name the scope holds, a
-      verb or a value, is no module, so `use :count` is refused too.
+:UseNamespaceNotFoundError
+  |~~ `use ::lib` found no module the tag names: none was loaded under
+      it and the host's locator answers none. A verb is no module, so
+      `use ::count` is refused too.
 
       ~(
-        use :absolutely-nonexistent-namespace
+        use ::absolutely-nonexistent-module
         !| [type /namespaceName]
-        |  eq [::UseNamespaceNotFoundError
-                :absolutely-nonexistent-namespace]
+        |  eq [::any/UseNamespaceNotFoundError
+                ::absolutely-nonexistent-module]
        )
-      ~(use :count !| type | eq ::UseNamespaceNotFoundError)
+      ~(use ::count !| type | eq ::any/UseNamespaceNotFoundError)
   ~~|
+  ::spec~()
 
-::UseNamespaceElementNotKeywordError
-  |~~ `use [:a :b]` loads modules by their names, each a keyword;
-      `:index` names the first that is not.
+:UseNamespaceElementNotTagError
+  |~~ `use [::a ::b]` loads modules by their tags; `:index` names the
+      first element that is no tag.
 
       ~(
-        use [42 :foo]
+        use [42 ::foo]
         !| [type /index /actualType]
-        |  eq [::UseNamespaceElementNotKeywordError 0 ::number]
+        |  eq [::any/UseNamespaceElementNotTagError 0 ::number]
        )
   ~~|
+  ::spec~()
 
-::UseNamespaceCollisionError
-  |~~ `use #[:a :b]` loads modules that must not share a name, and two
-      that export one are refused; a vector, `use [:a :b]`, lets the
-      later win.
+:UseNamespaceCollisionError
+  |~~ `use #[::a ::b]` loads modules that must not share a name, and
+      two that export one are refused; a vector, `use [::a ::b]`, lets
+      the later win.
   ~~|
+  ::spec~()
 
-::UseNameNotExportedError
-  |~~ `use :ns #[:name]` brings the named declarations of a module, and
+:UseNameNotExportedError
+  |~~ `use ::lib #[:name]` brings the named declarations of a module, and
       a name the module does not declare is refused.
   ~~|
+  ::spec~()
 
-::UseImplNamesNoVerbError
+:UseImplNamesNoVerbError
   |~~ A host handed an implementation for a name its module's source
       declares as no verb: the implementations a locator hands beside
       a source are the primitives of the verbs the source declares.
       `:namespaceName` names the module and `:implName` the name.
   ~~|
+  ::spec~()
 
 :binding
   |~~ The record of a name, what a declaration wrote into its scope:
@@ -1068,11 +1089,11 @@
       A name of the scope reads the record its declaration wrote:
       ~(:x 1 | :x | binding | /value | eq 1)
       Any other value reads the record of its kind:
-      ~(5 | binding | /name | eq ::number)
+      ~(5 | binding | /name | eq :number)
   ~~|
   ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{:impl :qlang/prim/binding})
 
-::BindingNotFoundError
+:BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
       that names no binding of its scope, the name of a verb a provider
       keeps among them, or a tag name that names nothing. `:addresses`
@@ -1082,9 +1103,10 @@
       ~(
         :nonexistent-binding | binding
         !| [type /bindingName]
-        |  eq [::BindingNotFoundError :nonexistent-binding]
+        |  eq [::any/BindingNotFoundError :nonexistent-binding]
        )
   ~~|
+  ::spec~()
 
 :source
   |~~ The code of the declaration that binds a name in its scope, the
@@ -1096,13 +1118,13 @@
       calls after it.
 
       ~(::vec/filter | source | parse | contains ":filter")
-      ~(::AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
+      ~(::number/AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
       ~("text" | source | eq (::string | source))
       ~(::vec/take | source :count | parse | eq ":count ::number")
   ~~|
   ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
 
-::SourceBindingNotFoundError
+:SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a keyword
       that names no binding of its scope, the name of a verb a provider
       keeps among them, or a tag name that names nothing. `:addresses`
@@ -1112,10 +1134,11 @@
       ~(
         :nonexistent-binding | source
         !| [type /bindingName]
-        |  eq [::SourceBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/SourceBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
+  ::spec~()
 
 :doc
   |~~ The page of a name, the passage from an address into its
@@ -1130,7 +1153,7 @@
 
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
-      ~(::AddLeftNotNumberError | doc | type | eq ::doc)
+      ~(::number/AddLeftNotNumberError | doc | type | eq ::doc)
       Any other value reads the page of its kind, and the `:kind` field
       of a map names nothing:
       ~(5 | doc | eq (::number | doc))
@@ -1147,7 +1170,7 @@
   ~~|
   ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
 
-::DocBindingNotFoundError
+:DocBindingNotFoundError
   |~~ `doc` — no declaration found for the name it read: a keyword that
       names no binding of its scope, the name of a verb a provider keeps
       among them, a tag name that names nothing, or an anchor that names
@@ -1158,18 +1181,20 @@
       ~(
         :nonexistent-binding | doc
         !| [type /bindingName]
-        |  eq [::DocBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/DocBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | doc !| /addresses | has ::vec/filter)
       ~(:reduce | doc !| /addresses | first | doc | eq (::qlang/any/reduce | doc))
   ~~|
+  ::spec~()
 
-::DocAnchorNotKeywordError
+:DocAnchorNotKeywordError
   |~~ `doc` — an anchor of a path is no keyword: each step of the path
       names a member by a keyword.
 
-      ~(::vec | doc [:take 1] !| [type /index] | eq [::DocAnchorNotKeywordError 1])
+      ~(::vec | doc [:take 1] !| [type /index] | eq [::any/DocAnchorNotKeywordError 1])
   ~~|
+  ::spec~()
 
 :explain
   |~~ The explanation of the value, `::explanation{:page … :value …}`:
@@ -1184,7 +1209,7 @@
   ~~|
   ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
 
-::ExplainBindingNotFoundError
+:ExplainBindingNotFoundError
   |~~ `explain` — no declaration found for the page of its subject: a
       keyword that names no binding of its scope, or a tag name that
       names nothing.
@@ -1192,32 +1217,32 @@
       ~(
         :nonexistent-binding | explain
         !| [type /bindingName]
-        |  eq [::ExplainBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/ExplainBindingNotFoundError :nonexistent-binding]
        )
   ~~|
+  ::spec~()
 
 :spec
-  |~~ The declaration a name reads, what a reader checks before a call:
-      what a verb takes and answers, what a refusal knows of its site,
-      what a kind is made of. A projection of a signature reads the body
-      of the declaration it names; the loader's `use` answers its
-      descriptor, any other binding the value its record holds, and any
-      other value the declaration of its kind.
+  |~~ The declaration a name reads as it was written, what a reader
+      checks before a call: what a verb takes and answers, what a kind is
+      made of. A projection of a signature reads the body of the
+      declaration it names; any other binding answers the value its
+      record holds, and any other value the declaration of its kind.
+      What lies under a noun, its verbs and its refusals, `manifest`
+      answers.
 
       A verb answers its signature, a `::spec~(…)` whose subject is its
-      noun and whose `:throws` lists its refusals:
+      noun:
       ~(::number/add | spec | /subject | eq ::number)
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
-      A refusal answers the facts of its site, `:category`, `:operand`,
-      `:position` and `:expectedType`, and an error the facts of its tag:
-      ~(::AddLeftNotNumberError | spec | /operand | eq :add)
-      ~("x" | add 1 !| spec | /category | eq :typeError)
-      A kind answers its constructor, `:impl`, its refusals and its verbs:
-      ~(::verb | spec | /impl | eq :qlang/type/verb)
+      A kind answers its declaration, a `::spec~(…)` whose body is its
+      constructor, a refusal among the kinds:
+      ~(::verb | spec | eq ::spec~(::builtin{:impl :qlang/type/verb}))
+      ~(::number/AddLeftNotNumberError | spec | type | eq ::spec)
   ~~|
   ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
 
-::SpecBindingNotFoundError
+:SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a keyword that
       names no binding of its scope, the name of a verb a provider keeps
       among them, or a tag name that names nothing. `:addresses` holds
@@ -1227,10 +1252,11 @@
       ~(
         :nonexistent-binding | spec
         !| [type /bindingName]
-        |  eq [::SpecBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/SpecBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | spec !| /addresses | has ::vec/filter)
   ~~|
+  ::spec~()
 
 :runLaws
   |~~ Walks every quote among the segments of the docs of the binding a
@@ -1239,8 +1265,8 @@
       :actual :ok :error}`. Each quote runs in an isolated scope; `:ok`
       is true iff the example answers true, every other answer, an
       error value among them, failing it. The composition `::number |
-      spec | /verbs | every ~(runLaws | every ~(/ok))` runs every
-      example of the verbs of numbers and must answer true.
+      manifest | every ~(runLaws | every ~(/ok))` runs every example of
+      what lies under numbers and must answer true.
 
       ~(::number/add | runLaws * /ok | distinct | eq #[true])
       ~(::number/gt | runLaws | count | gte 1)
@@ -1248,7 +1274,7 @@
   ~~|
   ::verb~()
 
-::RunLawsBindingNotFoundError
+:RunLawsBindingNotFoundError
   |~~ `runLaws` — no declaration found for the name it read, as `doc`
       finds none: a keyword that names no binding of its scope, the name
       of a verb a provider keeps among them, or a tag name that names
@@ -1259,11 +1285,12 @@
       ~(
         :nonexistent-binding | runLaws
         !| [type /bindingName]
-        |  eq [::RunLawsBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/RunLawsBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | runLaws !| /addresses | has ::vec/filter)
       ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
   ~~|
+  ::spec~()
 
 :tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
@@ -1278,40 +1305,42 @@
       ~([1 2 3] | tag ::Triple | type | eq ::Triple)
       A tagged value split into its type and payload tags back into
       itself:
-      ~(::Box {} | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
+      ~(:Box ::spec~() | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
       A tag over a tagged value nests it; replacing the tag goes through
       the payload, `tagged | payload | tag ::Other`:
-      ~(::Inner {} | ::Outer {} | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
+      ~(:Inner ::spec~() | :Outer ::spec~() | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
       A tag laid over an error answers the error unchanged, since no tag
       stands over one; the fail track opens an error to its descriptor,
       which a tag and `raise` rename:
       ~([::Box (!{:k 1})] | tag !| type | eq ::error)
-      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::AddRightNotNumberError)
+      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/AddRightNotNumberError)
   ~~|
   ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
 
-::TagModifierNotTagKeywordError
+:TagModifierNotTagKeywordError
   |~~ The tag `tag` lays is a tag name, `tag ::Box`; a keyword, `:box`,
       names a field and no kind.
       ~(
         42 | tag :foo
         !| [type /actualType]
-        |  eq [::TagModifierNotTagKeywordError ::keyword]
+        |  eq [::any/TagModifierNotTagKeywordError ::keyword]
        )
   ~~|
+  ::spec~()
 
-::TagBareSubjectShapeError
+:TagBareSubjectShapeError
   |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
       value it goes over; a subject of another shape is refused, and
       `:actualLength` counts a vector of another length.
       ~(
         42 | tag
         !| [type /actualType]
-        |  eq [::TagBareSubjectShapeError ::number]
+        |  eq [::any/TagBareSubjectShapeError ::number]
        )
       ~(
         [::Foo 1 2] | tag
         !| [type /actualLength]
-        |  eq [::TagBareSubjectShapeError 3]
+        |  eq [::any/TagBareSubjectShapeError 3]
        )
   ~~|
+  ::spec~()

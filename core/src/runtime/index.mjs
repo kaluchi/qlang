@@ -1,7 +1,8 @@
-// The environment every query starts from: the catalog under
-// `lib/qlang/`, one module per noun, which the root `core.qlang` lists
-// and the bootstrap loads in order against a seed of the kernel [D36],
-// [D72], [D113].
+// The environment every query starts from: the tree of names [D152], its
+// root `core.qlang`, which binds the providers, the language's module
+// `qlang.qlang`, which binds its nouns and the pages of its concepts, and
+// under `lib/qlang/` the module of each noun, which the bootstrap walks
+// from the root with nothing seeded but the host's locator [D36].
 
 // Each module binds the primitives the catalog's verbs name into
 // PRIMITIVE_REGISTRY as it loads.
@@ -26,14 +27,11 @@ import './doc.mjs';
 import './print.mjs';
 import './axis.mjs';
 
-import { parse } from '../parse.mjs';
-import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { keyword, bindingValueOf, BUILTIN_TAG, stampTagHeader } from '../types.mjs';
-import { RUNTIME_LOCATOR_KEY, tagBindingKey } from '../env-keys.mjs';
-import { PRIMITIVE_REGISTRY, TYPE_KEY_PREFIX } from '../primitives.mjs';
-import { stampThrowSiteSpec } from '../descriptor-ops.mjs';
-import { importOrderedNamespaces } from './use.mjs';
+import { RUNTIME_LOCATOR_KEY } from '../env-keys.mjs';
+import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { loadTree } from './use.mjs';
+import { exportsOfModule, ROOT_MODULE_PATH } from './nouns.mjs';
 import {
   platformLocator, BootstrapRootMissingError, BootstrapCatalogNotLoadedError
 } from './bootstrap.mjs';
@@ -61,33 +59,14 @@ export async function langRuntime(opts = {}) {
 // The bootstrap `langRuntime` memoises, callable with a locator of a
 // test's own.
 export async function buildLangRuntime(locator) {
-  // The seed holds what the catalog uses before it can declare it: the
-  // locator, and the constructor of `::builtin`, which the catalog
-  // declares again with the same `:impl` [D36].
-  const seedEnv = new Map();
-  seedEnv.set(RUNTIME_LOCATOR_KEY, locator);
-  const seedBuiltinDescriptor = new Map();
-  seedBuiltinDescriptor.set('impl', keyword(TYPE_KEY_PREFIX + 'builtin'));
-  stampTagHeader(seedBuiltinDescriptor, BUILTIN_TAG);
-  seedEnv.set(tagBindingKey('builtin'), seedBuiltinDescriptor);
-
-  const rootResult = await locator('qlang/core');
-  if (rootResult === null) throw new BootstrapRootMissingError();
-  const coreSource = rootResult.source;
-  const coreAst = parse(coreSource, { uri: 'qlang/core' });
-  const bootstrapState = rootState(null, seedEnv);
-  const moduleNames = (await evalAst(coreAst, bootstrapState)).pipeValue;
+  const seedEnv = new Map([[RUNTIME_LOCATOR_KEY, locator]]);
   let templateEnv;
   try {
-    templateEnv = await importOrderedNamespaces(bootstrapState, moduleNames);
+    templateEnv = await loadTree(rootState(null, seedEnv), seedEnv, ROOT_MODULE_PATH);
   } catch (loadFailure) {
     throw new BootstrapCatalogNotLoadedError({ tagName: `::${loadFailure.name}` });
   }
-
-  // A tag binding takes the facts its throw site recorded.
-  for (const [envKey, entry] of templateEnv) stampThrowSiteSpec(bindingValueOf(entry), envKey);
-
+  if (exportsOfModule(templateEnv, ROOT_MODULE_PATH) === null) throw new BootstrapRootMissingError();
   PRIMITIVE_REGISTRY.seal();
-
   return templateEnv;
 }

@@ -3,25 +3,12 @@
    `::qlang/explanation`, the kind of what `explain` answers: the page
    `doc` reads for a value and the value itself. ~|
 
-::explanation
-  |~~ The kind of what `explain` answers: the page `doc` reads
-      for a value under `:page`, then the value itself under `:value`, so
-      it prints as the page above what it explains, an error
-      raised, with its bang. It is the cord from a value to its
-      procedure in one answer; `page` and `value` answer its parts.
-      ::link~(::error | doc)
-      ::link~(::qlang | doc :errors)
-
-      ~("x" | add 1 !| explain | type | eq ::explanation)
-      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
-  ~~|
-
 :page
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
       site; null for a declaration without one.
 
-      ~("x" | add 1 !| explain | page | eq (::AddLeftNotNumberError | doc))
+      ~("x" | add 1 !| explain | page | eq (::number/AddLeftNotNumberError | doc))
       ~(42 | explain | page | eq (::number | doc))
   ~~|
   ::verb~(:returns #[::doc ::null] | /page)
@@ -31,6 +18,6 @@
       it arrived before `!|` opened it.
 
       ~(42 | explain | value | eq 42)
-      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| explain | value !| type | eq ::number/AddLeftNotNumberError)
   ~~|
   ::verb~(/value)

@@ -33,6 +33,7 @@
 //      prefixes make).
 
 import { describe, it, expect } from 'vitest';
+import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
 import { keyword, isQMap, isVec, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator } from '../../src/runtime/bootstrap.mjs';
@@ -53,7 +54,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { isVerb, residenceOfVerb } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
-    const addVerb = bindingValueOf(resolved.get('add'));
+    const addVerb = bindingValueOf(nodeOf(resolved, 'number/add'));
     expect(isVerb(addVerb)).toBe(true);
     expect(residenceOfVerb(addVerb)).toBe('number');
   });
@@ -110,7 +111,7 @@ describe('bare-name verb call', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('5 | mul');
     expect(isErrorValue(evalResult)).toBe(true);
-    expect(evalResult.tag.name).toBe('VerbSlotMissingError');
+    expect(evalResult.tag.name).toBe('verb/VerbSlotMissingError');
   });
 });
 
@@ -118,7 +119,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
   // throw site with its tag and each tag with its throw site, but the
   // six tags minted outside a per-site factory (`::Error`,
-  // `::ParseError`, and the four value-class constructors) pass both
+  // `::quote/ParseError`, and the four value-class constructors) pass both
   // axes whether or not they exist — axis 1 never names them and
   // axis 2 skips a name the environment does not bind. These pins fail
   // on a silent catalog shrink; per §8a of the review rules a tally
@@ -126,7 +127,7 @@ describe('lib/qlang/core.qlang — namespace sizes', () => {
   it('the tag namespace holds every declared tag-binding', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(200);
+    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(38);
   });
 
   it('no name of the value namespace is left a descriptor [D113]', async () => {
@@ -162,7 +163,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| type');
-    expect(evalResult).toEqual(makeTagKeyword('VerbWithoutBodyError'));
+    expect(evalResult).toEqual(makeTagKeyword('verb/VerbWithoutBodyError'));
   });
 
   it('apply runs a quote assembled from its steps', async () => {
@@ -174,7 +175,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
-    expect(evalResult).toEqual(makeTagKeyword('ApplyCodeNotQuoteError'));
+    expect(evalResult).toEqual(makeTagKeyword('any/ApplyCodeNotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {
@@ -197,7 +198,7 @@ describe('parse / apply — code read, printed and run', () => {
 
   it('parse errors on malformed source lift to fail-track', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"this is not qlang [" | parse !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('parseError'));
+    const evalResult = await evalQuery('"this is not qlang [" | parse !| type');
+    expect(evalResult).toEqual(makeTagKeyword('quote/ParseError'));
   });
 });

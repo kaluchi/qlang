@@ -34,6 +34,8 @@
 //                     unconditionally, as `errorFromQlang` in
 //                     error-convert.mjs does.
 
+import { canonicalTagName } from './env-keys.mjs';
+
 // ── Category roots ─────────────────────────────────────────────
 
 export class QlangError extends Error {
@@ -115,17 +117,10 @@ export class EffectLaunderingError extends QlangError {
 //
 // A per-site error carries four structural facts: the `:category`
 // its base names, the `:operand` that raises it, the `:position`
-// that operand checks, and the `:expectedType` it requires. Each is
-// a property of the throw site, so the site records it here and the
-// bootstrap stamps it onto the `::Tag` binding the catalog declares
-// under the same name. The catalog carries what an author writes —
-// the prose and the `~(…)` examples.
-//
-// The facts stay plain strings and numbers at this layer; the lift
-// into Keywords, TagKeywords and Vecs happens at the stamp site in
-// `descriptor-ops.mjs`, which is where the value-class factories
-// live. That keeps `errors.mjs` free of a `types.mjs` import, which
-// would close a cycle.
+// that operand checks, and the `:expectedType` it requires. The
+// runtime reads them to find the refusal of a place and to list the
+// refusals of a verb; the catalog declares the refusal's kind and its
+// page beside its place [D152].
 
 // A category names who repairs the failure, and only the categories
 // a reader repairs reach the `:throws` of a place — the Vec answers
@@ -195,10 +190,6 @@ export function recordPlaceRefusal(className, Cls) {
   placeRefusalClasses.set(className, Cls);
 }
 
-export function isPlaceRefusal(className) {
-  return placeRefusalClasses.has(className);
-}
-
 // placeRefusalOf(operandName, positions) → the class of the refusal the
 // site of `operandName` declares at one of `positions`, or undefined.
 export function placeRefusalOf(operandName, positions) {
@@ -211,6 +202,24 @@ export function placeRefusalOf(operandName, positions) {
 
 export function throwSiteSpecNames() {
   return throwSiteSpecs.keys();
+}
+
+// The name of a site that names a tag in the registry, `::map/at`.
+export function siteOfTag(tagName) {
+  return '::' + canonicalTagName(tagName);
+}
+
+// The address of a refusal in the tree of names [D152]: the path of the
+// module that declared its kind and its name, recorded as that module
+// loads, `number/AddLeftNotNumberError`.
+const refusalAddresses = new Map();
+
+export function recordRefusalAddress(className, address) {
+  refusalAddresses.set(className, address);
+}
+
+export function refusalAddressOf(className) {
+  return refusalAddresses.get(className) ?? className;
 }
 
 // ── Per-site declaration ───────────────────────────────────────

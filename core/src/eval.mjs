@@ -3,7 +3,7 @@
 
 import { parse, ParseError } from './parse.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, envSet, envGet, envHas
+  rootState, withPipeValue, withEnv, nestState, envSet, envGet
 } from './state.mjs';
 import { fork, forkEach } from './fork.mjs';
 import {
@@ -20,23 +20,23 @@ import { nearestNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isKeyword, isErrorValue,
+  isVec, isQMap, isErrorValue,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
-  makeDoc, makeSet, isQuote,
+  makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
-  BIND_TAG, ERROR_TAG, BUILTIN_TAG, SPEC_TAG, TAG_HEADER_SYMBOL, stampTagHeader
+  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
+  BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
-import { tagBindingKey, canonicalTagName } from './env-keys.mjs';
+import { canonicalTagName } from './env-keys.mjs';
 import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, isNounMember, isProviderBinding, residenceOnSubject, residencesOf
+  addressedVerb, addressesOf, nodeOf, residenceOnSubject, residencesOf
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, applyVerbOn, effectfulNameOfVerb, isContract, takesFullApplication
+  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, takesFullApplication
 } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import {
@@ -73,16 +73,11 @@ const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNo
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
   { operand: '::proj' });
+// A tag whose node is no kind, a verb or a page, builds no value [D152].
 const TaggedLitNotTagBindingError = declareShapeError('TaggedLitNotTagBindingError',
-  ({ tag, actualType }) => `::${tag} — tag binding is ${actualType.name}, expected a Map descriptor`,
-  { operand: '::construct', expectedType: 'map' }
+  ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a kind, a ::spec, builds a value`,
+  { operand: '::construct', expectedType: 'spec' }
 );
-// A tag binding whose `:impl` is neither a primitive's handle nor a quote
-// constructs nothing.
-const TagBindingHasNoConstructorError = declareShapeError('TagBindingHasNoConstructorError',
-  ({ tag, payloadType }) =>
-    `::${tag} has no registered constructor — tag-binding's :impl is missing or wrong-shaped (cannot evaluate ::${tag}<${payloadType.name}> payload)`,
-  { operand: '::construct' });
 // The combinator names its qlang kind, `distribute`, so the message
 // and the catalog tag-binding's `:operand` read alike.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
@@ -285,15 +280,13 @@ async function evalMapLit(node, state) {
 }
 
 // The tag of an error literal is the one written before its bang,
-// `::Foo!{…}`, which the literal declares as a tagged literal does [D86],
-// else a tag name under `:kind`, else the kind of errors [D64]; a `:kind`
-// of another value stays a field.
+// `::Foo!{…}` [D86], else a tag name under `:kind`, else the kind of
+// errors [D64]; a `:kind` of another value stays a field.
 async function evalErrorLit(node, state) {
-  const declaredState = node.tag === null ? state : ensureTagBinding(state, canonicalTagName(node.tag));
   const errorDescriptor = new Map();
   let tag = ERROR_TAG;
   for (const entry of node.entries) {
-    const entryValue = await wordAnswer(entry.value, declaredState);
+    const entryValue = await wordAnswer(entry.value, state);
     if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
       tag = entryValue;
       continue;
@@ -303,7 +296,7 @@ async function evalErrorLit(node, state) {
   if (node.tag !== null) tag = makeTagKeyword(node.tag);
   // A literal that writes its `:trail` resumes that path [D85].
   const minted = makeErrorValue(tag, errorDescriptor, { location: node.location });
-  return withPipeValue(declaredState, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
+  return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
 }
 
 // The value a word of a literal answers, forked against the subject:
@@ -333,62 +326,33 @@ async function evalSetLit(node, state) {
 // ─── TaggedLit / BareTypeKeyword ────────────────────────────────
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
-// through the constructor its binding names: a primitive, a quote whose
-// answer takes the tag unless it carries it, or none, which lays the tag
-// on. A value a verb returns under its subject's tag is minted here
+// through the constructor its kind declares [D152]: a primitive, a body of
+// steps whose answer takes the tag unless it carries it, or none, which
+// lays the tag on; a tag no node answers is a kind of the scope's own,
+// identity. A value a verb returns under its subject's tag is minted here
 // again [D41]; no constructor meets an error [D86].
 export async function mintTaggedInstance(tagName, payload, state) {
-  const typeKey = tagBindingKey(tagName);
-  const typeBinding = bindingValueOf(envGet(state.env, typeKey));
-  if (!isQMap(typeBinding)) {
-    throw new TaggedLitNotTagBindingError({ tag: tagName, actualType: typeKeyword(typeBinding), actualValue: typeBinding });
+  const declared = bindingValueOf(nodeOf(state.env, tagName));
+  if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  if (!isSpec(declared)) {
+    throw new TaggedLitNotTagBindingError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
-  const implKey = typeBinding.get('impl');
-  if (isKeyword(implKey)) {
-    const constructor = PRIMITIVE_REGISTRY.resolve(implKey.name);
-    return await constructor(payload, state);
-  }
-  if (isQuote(implKey)) {
-    const bodyAst = astOfQuote(implKey);
-    const bodyState = nestState(state, payload, state.env);
-    const resultState = await evalBody(bodyAst, bodyState);
-    const constructorResult = resultState.pipeValue;
-    if (isErrorValue(constructorResult)) return constructorResult;
-    const tagKw = makeTagKeyword(tagName);
-    if (isTaggedInstance(constructorResult)
-        && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) {
-      return constructorResult;
-    }
-    return makeTaggedInstance(tagKw, constructorResult);
-  }
-  if (implKey === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
-  throw new TagBindingHasNoConstructorError({
-    tag: tagName,
-    payloadValue: payload,
-    payloadType: typeKeyword(payload),
-    expectedType: Object.freeze([keyword('keyword'), keyword('quote')]),
-  });
+  const { primitiveKey, body } = constructorOfSpec(declared);
+  if (primitiveKey !== undefined) return await PRIMITIVE_REGISTRY.resolve(primitiveKey)(payload, state);
+  if (body === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  const constructorResult = (await evalBody(body, nestState(state, payload, state.env))).pipeValue;
+  if (isErrorValue(constructorResult)) return constructorResult;
+  if (isTaggedInstance(constructorResult) && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) return constructorResult;
+  return makeTaggedInstance(makeTagKeyword(tagName), constructorResult);
 }
 
-// The first literal of a tag the scope does not know declares it without
-// a constructor, in the scope of its step.
-function ensureTagBinding(state, tagName) {
-  const typeKey = tagBindingKey(tagName);
-  if (envHas(state.env, typeKey)) return state;
-  const implicitBinding = new Map([['declarationOrigin', keyword('implicit')]]);
-  const implicitRecord = makeBinding({ name: makeTagKeyword(tagName), value: implicitBinding });
-  return withEnv(state, envSet(state.env, typeKey, implicitRecord));
-}
-
-// The tag is declared before its payload runs, so the payload sees it,
-// and a kind of the core written long, `::qlang/vec[1 2]`, is the kind
+// A kind of the core written long, `::qlang/vec[1 2]`, is the kind
 // written short [D32].
 async function evalTaggedLit(node, state) {
   const tagName = canonicalTagName(node.tag);
-  const declaredState = ensureTagBinding(state, tagName);
-  const payload = (await fork(declaredState, inner => evalNode(node.payload, inner))).pipeValue;
-  if (isErrorValue(payload)) return withPipeValue(declaredState, passedUntagged(payload, node, tagName));
-  return withPipeValue(declaredState, await mintTaggedInstance(tagName, payload, declaredState));
+  const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
+  if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
+  return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
 }
 
 // A tagged literal is its payload piped into `tag`, and a tag laid over
@@ -413,20 +377,14 @@ async function evalBareTypeKeyword(node, state) {
 // The one binding form [D44]: the value passes on, and the scope takes the
 // record of the binding [D63], whose value is the body evaluated once, at
 // declaration, against the current value, so `42 | :x / | add 1 | x`
-// answers 42. A doc alone binds a doc, and under a tag name the empty
-// descriptor `::builtin{}`. A verb or a quote written as the body resolves
-// in the scope the declaration writes, so it sees its own name [D44],
-// [D67].
+// answers 42; a doc alone binds a doc, a page. A verb or a quote written
+// as the body resolves in the scope the declaration writes, so it sees
+// its own name [D44], [D67].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   if (repeatsDeclarationInScope(node)) throw new BindNameDeclaredTwiceError({ name });
 
   if (node.body === null) {
-    if (node.key.type === 'BareTypeKeyword') {
-      const tagBinding = new Map();
-      stampTagHeader(tagBinding, BUILTIN_TAG);
-      return withEnv(state, envSet(state.env, name, declarationRecord(node, tagBinding)));
-    }
     return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc])))));
   }
 
@@ -450,17 +408,12 @@ function refuseVerbLaunderedByName(name, verb, node) {
   throw laundering;
 }
 
-// The keyword or the tag a declaration names.
-function declaredKeywordOf(node) {
-  return node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
-}
-
 // The record a declaration writes: its name, a keyword or a tag, the
 // docs of its slot, the value, the quote of its step and the module its
 // source came from [D63].
 function declarationRecord(node, value) {
   return makeBinding({
-    name: declaredKeywordOf(node),
+    name: keyword(node.key.name),
     docs: slotDocsOf(node),
     value,
     source: quoteOfBody(node),
@@ -535,17 +488,16 @@ async function evalOperandCall(node, state) {
 
 // A bare name resolves nearest first [D62]: the declaration of the scope,
 // then the verb that resides on the subject, found by the walk of its
-// tags [D72], then the core's binding of the name; a member of a noun is
-// read through its noun and is no name a query calls [D117].
+// tags [D72], then the verb of the name a kind declared last, whose head
+// refuses the subject at its place; a node of the tree stays under its
+// address and is no name a query calls bare [D152].
 async function callByName(lookupName, lambdas, state) {
   const lookupEnv = state.env;
-  const entry = isNounMember(lookupEnv, lookupName) ? undefined : envGet(lookupEnv, lookupName);
-  if (entry !== undefined && !isProviderBinding(lookupEnv, lookupName)) {
-    return await applyBinding(entry, lookupName, lambdas, state);
-  }
-  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue);
-  if (residence !== null) return await callResidence(bindingValueOf(residence), lookupName, lambdas, state);
+  const entry = envGet(lookupEnv, lookupName);
   if (entry !== undefined) return await applyBinding(entry, lookupName, lambdas, state);
+  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue)
+    ?? residencesOf(lookupEnv, lookupName).at(-1)?.[1] ?? null;
+  if (residence !== null) return await callResidence(bindingValueOf(residence), lookupName, lambdas, state);
   throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
 }
 
@@ -632,9 +584,11 @@ export function resolveBinaryReducer(reducerLambda) {
   const astNode = reducerLambda.astNode;
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
-  if (!envHas(callerState.env, lookupName)) return null;
-  const resolved = bindingValueOf(envGet(callerState.env, lookupName));
-  if (!isVerb(resolved)) return null;
+  const scoped = envGet(callerState.env, lookupName);
+  const namesAVerb = scoped === undefined
+    ? residencesOf(callerState.env, lookupName).length > 0 || addressedVerb(callerState.env, `any/${lookupName}`) !== null
+    : isVerb(bindingValueOf(scoped));
+  if (!namesAVerb) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }

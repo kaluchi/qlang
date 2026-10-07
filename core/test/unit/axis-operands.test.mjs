@@ -2,8 +2,9 @@
 // declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
+import { printValue } from '../../src/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQuote, makeTagKeyword, keyword as makeKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
 import { QlangTypeError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
@@ -22,8 +23,8 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
     });
-    const cellEntry = await session.evalCell('use :tests/scalar-only | :missing | source !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
+    const cellEntry = await session.evalCell('use ::tests/scalar-only | :missing | source !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
@@ -96,7 +97,7 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   it('unknown binding raises DocBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | doc');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('DocBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
   });
 
   it('a value whose kind no binding declares is refused under its kind', async () => {
@@ -120,7 +121,7 @@ describe(':name | doc | laws extracts Quote segments from docs', () => {
 
 describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('SourceBindingNotFoundError'));
+    expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
 
   it('a keyword naming a verb of a provider is refused with the addresses of its pages, its contract among them', async () => {
@@ -131,7 +132,7 @@ describe('axis-operands walk tag-namespace bindings via `::` prefix', () => {
   it('::verb | source resolves the tag-binding descriptor through reverse env lookup', async () => {
     const result = await evalQuery('::verb | source');
     expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith('::verb')).toBe(true);
+    expect(printQuoteSource(result).startsWith(':verb')).toBe(true);
   });
 
   it('::verb | doc returns the attached Doc-prefix on the type BindStep', async () => {
@@ -175,7 +176,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
     });
-    const cellEntry = await session.evalCell('use :tests/demo | :demo | doc | laws | count');
+    const cellEntry = await session.evalCell('use ::tests/demo | :demo | doc | laws | count');
     expect(cellEntry.result).toBe(1);
   });
 
@@ -185,7 +186,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/demo | :demo | doc | content');
+    const cellEntry = await session.evalCell('use ::tests/demo | :demo | doc | content');
     expect(cellEntry.result).toBe(' A short note. ');
   });
 
@@ -195,7 +196,7 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/bare | :bare | doc');
+    const cellEntry = await session.evalCell('use ::tests/bare | :bare | doc');
     expect(cellEntry.result).toBeNull();
   });
 
@@ -205,8 +206,8 @@ describe('examples axis extracts Quote segments from a loaded module', () => {
     const session = await createSession({
       locator: async () => ({ source: moduleSource })
     });
-    const cellEntry = await session.evalCell('use :tests/other | :notHere | source !| type');
-    expect(cellEntry.result.name).toBe('SourceBindingNotFoundError');
+    const cellEntry = await session.evalCell('use ::tests/other | :notHere | source !| type');
+    expect(cellEntry.result.name).toBe('any/SourceBindingNotFoundError');
   });
 
 });
@@ -251,7 +252,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
-      'use(:probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
+      'use(::probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
       '[contested, (:contested | source | parse), (:contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
@@ -275,7 +276,7 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({ locator: namespaceLocator });
     const cellEntry = await sessionInstance.evalCell(
-      ':contested |~~ from the cell ~~| 222 | use(:probe/shadow) | ' +
+      ':contested |~~ from the cell ~~| 222 | use(::probe/shadow) | ' +
       '[contested, (:contested | source | parse), (:contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([
@@ -289,40 +290,13 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(await evalQuery('::number/add | spec | /subject')).toEqual(makeTagKeyword('number'));
   });
 
-  it('::AddLeftNotNumberError | spec surfaces per-tag static :operand', async () => {
-    expect(await evalQuery('::AddLeftNotNumberError | spec | /operand')).toEqual(makeKeyword('add'));
-  });
-
-  // The stamp lifts each recorded fact into the value-class the
-  // reader projects on: a numeric position stays a Number, the
-  // `subject` position and a single expected type become Keywords, a
-  // multi-type expectation becomes a Vec of them, and a tag-binding
-  // raiser spells itself as a TagKeyword the way source writes it.
-  it('a numeric position stays a Number and :subject lifts to a Keyword', async () => {
-    expect(await evalQuery('::AddLeftNotNumberError | spec | /position')).toBe(1);
-    expect(await evalQuery('::NotSubjectNotBooleanError | spec | /position'))
-      .toEqual(makeKeyword('subject'));
-  });
-
-  it('a single expected type lifts to a Keyword and several to a Vec', async () => {
-    expect(await evalQuery('::UseNamespaceNotKeywordError | spec | /expectedType'))
-      .toEqual(makeKeyword('keyword'));
-    expect(await evalQuery('::HasKeyNotKeywordOrStringError | spec | /expectedType'))
-      .toEqual([makeKeyword('keyword'), makeKeyword('string')]);
-  });
-
-  it('a value-class constructor names itself on :operand as a TagKeyword', async () => {
-    expect(await evalQuery('::VerbPayloadNotQuoteError | spec | /operand'))
-      .toEqual(makeTagKeyword('verb'));
-  });
-
   it('a value that is no name reads the descriptor of its kind', async () => {
-    expect(await evalQuery('42 | spec | /impl')).toEqual(makeKeyword('qlang/type/number'));
+    expect(printValue(await evalQuery('42 | spec'))).toBe('::spec~(::builtin{:impl :qlang/type/number})');
   });
 
   it('keyword naming an unbound identifier lifts SpecBindingNotFoundError', async () => {
     const evalResult = await evalQuery(':nonexistentBindingForSpec | spec !| type');
-    expect(evalResult).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
+    expect(evalResult).toEqual(makeTagKeyword('any/SpecBindingNotFoundError'));
   });
 
   it('spec of a freeze answers the value its record holds', async () => {

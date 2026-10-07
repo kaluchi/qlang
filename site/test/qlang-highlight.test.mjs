@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { highlightQlang } from '../src/lib/qlang-highlight.js';
 
 let builtins;
 beforeAll(async () => {
   const runtime = await langRuntime();
-  builtins = new Set([...runtime.keys()]);
+  builtins = verbNames(runtime);
 });
 
 const hl = src => highlightQlang(src, builtins);

@@ -155,8 +155,7 @@ function callStepOf(node) {
 }
 
 function bindStepOf(node) {
-  const name = node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
-  const fields = [['name', name]];
+  const fields = [['name', keyword(node.key.name)]];
   if (node.docs !== null) fields.push(['docs', Object.freeze(node.docs.map(stepOfNode))]);
   if (node.body !== null) fields.push(['body', stepOfNode(node.body)]);
   return record(BIND_TAG, fields);

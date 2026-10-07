@@ -22,7 +22,7 @@ async function sessionRecordingVisits(visits) {
       }
     } : null
   });
-  await session.evalCell('use :probe');
+  await session.evalCell('use ::probe');
   return session;
 }
 

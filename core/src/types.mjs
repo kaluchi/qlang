@@ -3,7 +3,7 @@ import {
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
-import { TAG_BINDING_PREFIX, canonicalTagName } from './env-keys.mjs';
+import { TAG_SIGIL, canonicalTagName } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
 // A number is a finite double, and one a host hands otherwise has no
@@ -90,7 +90,7 @@ export function keyword(name) {
 // shares.
 export function makeTagKeyword(tag) {
   const name = canonicalTagName(tag);
-  return Object.freeze(brandValueClass({ name, literal: TAG_BINDING_PREFIX + name }, 'tagKeyword'));
+  return Object.freeze(brandValueClass({ name, literal: TAG_SIGIL + name }, 'tagKeyword'));
 }
 
 export function isTagKeyword(v) {
@@ -123,12 +123,6 @@ export function makeBinding({ name, docs = [], value, source = null, module = nu
 // host bound as it is, and a key of the runtime's own as they lie.
 export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
-}
-
-// A descriptor, the map under `::builtin` that declares a built-in verb
-// or a kind of the core.
-export function isBuiltinDescriptor(v) {
-  return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
 // A value under a tag of its own.
@@ -250,7 +244,6 @@ export const BINDING_TAG     = makeTagKeyword(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTagKeyword(BUILTIN_TAG_NAME);
 export const DOC_TAG         = makeTagKeyword(DOC_TAG_NAME);
 export const ERROR_TAG       = makeTagKeyword('error');
-export const PARSE_ERROR_TAG = makeTagKeyword('ParseError');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SPEC_TAG        = makeTagKeyword('spec');
@@ -318,6 +311,11 @@ export function makeVerb(quote, envRef) {
 
 export function isVerb(v) {
   return isValueClass(v, 'taggedInstance') && v.tag.name === VERB_TAG_NAME;
+}
+
+// A kind's declaration, a quote under `::spec` [D152].
+export function isSpec(v) {
+  return isValueClass(v, 'taggedInstance') && v.tag.name === SPEC_TAG.name && isQuote(v.payload);
 }
 
 export function verbEnvRef(verb) {

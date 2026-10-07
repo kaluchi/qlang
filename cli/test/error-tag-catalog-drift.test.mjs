@@ -1,84 +1,37 @@
 // Throw-site ↔ catalog drift guard for the CLI host operands.
 //
 // The core suite pins the same contract for `core/src` against the
-// language catalog; this file pins the host half — the module of the
-// noun `::qlang/cli` the locator installs [D92].
-// A host operand's per-site error class records its structural facts
-// where the factory call builds it, and names itself again as a
-// `::Tag` binding in `cli/lib/qlang/cli.qlang` that carries the prose
-// and the `~(…)` examples. The namespace-resolution pass stamps the
-// recorded facts onto that binding, so each fact has one spelling.
-//
-// The two halves drift silently: a renamed class leaves `result !|
-// type | doc` unresolvable, and a `::builtin{…}` body restating a
-// recorded fact disagrees with the stamp that overwrites it.
-//
-// Three axes, one describe each:
-//
-//   1. every throw site under `cli/src` has a `::Tag` binding in a
-//      CLI catalog file, and that binding reaches env carrying the
-//      category the site recorded;
-//   2. every `::Tag` a CLI catalog file declares has a throw site;
-//   3. a tag whose throw site records a spec declares no
-//      `::builtin{…}` body of its own.
+// language's tree; this file pins the host half, the module of the
+// provider `::cli` the locator serves [D152]. A host operand's per-site
+// error class records its facts where the factory call builds it, and
+// the module of `::cli` declares its kind with the prose and the laws a
+// reader reaches through `doc`. The two halves drift silently: a renamed
+// class leaves `result !| type | doc` answering a refusal of its own.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
-import { throwSiteSpecOf } from '@kaluchi/qlang-core/errors';
-import { createCliLocator, installCliCatalog } from '../src/cli-locator.mjs';
+import { evalQuery } from '@kaluchi/qlang-core';
+import { createCliLocator } from '../src/cli-locator.mjs';
 import '../src/io-operands.mjs';
 import '../src/format-operands.mjs';
 import '../src/script-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', 'src');
-const catalogDir = join(here, '..', 'lib', 'qlang');
 
 // Every form that puts a name in the throw-site registry opens with
 // the class name as a string literal.
 const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9]+)'/g;
 
-// A `::Tag` at column 0, paired with whether the block under it
-// opens a `::builtin{…}` body.
-const CATALOG_TAG_RE = /^::([\p{ID_Start}][\p{ID_Continue}_]*Error)\r?$/u;
-const BODY_OPENING = '  ::builtin{';
-
-function collectThrowSites() {
-  const throwSites = new Map();
-  for (const fileName of readdirSync(srcDir).filter(f => f.endsWith('.mjs'))) {
-    const source = readFileSync(join(srcDir, fileName), 'utf8');
-    for (const match of source.matchAll(DECLARATION_RE)) {
-      throwSites.set(match[1], `cli/src/${fileName}`);
-    }
+const throwSites = new Map();
+for (const fileName of readdirSync(srcDir).filter(f => f.endsWith('.mjs'))) {
+  for (const match of readFileSync(join(srcDir, fileName), 'utf8').matchAll(DECLARATION_RE)) {
+    throwSites.set(match[1], `cli/src/${fileName}`);
   }
-  return throwSites;
 }
-
-function collectCatalogTags() {
-  const declared = new Map();
-  for (const fileName of readdirSync(catalogDir).filter(f => f.endsWith('.qlang'))) {
-    const lines = readFileSync(join(catalogDir, fileName), 'utf8').split('\n');
-    let open = null;
-    for (const line of lines) {
-      const match = CATALOG_TAG_RE.exec(line);
-      if (match !== null) {
-        open = { file: `cli/lib/qlang/${fileName}`, declaresBody: false };
-        declared.set(match[1], open);
-      } else if (open !== null && line.startsWith(BODY_OPENING)) {
-        open.declaresBody = true;
-      } else if (line.length > 0 && !line.startsWith(' ')) {
-        open = null;
-      }
-    }
-  }
-  return declared;
-}
-
-const throwSites = collectThrowSites();
-const declaredTags = collectCatalogTags();
 
 const session = await createSession({
   locator: createCliLocator({
@@ -87,49 +40,27 @@ const session = await createSession({
     stderrWrite: () => {}
   })
 });
-await installCliCatalog(session);
-// The tags the session binds, each under its `::Name` key, the
-// declaration each record of the environment holds [D63].
-const catalogTags = new Map([...session.env]
-  .filter(([name]) => name.startsWith('::'))
-  .map(([name, record]) => [name, record.get('value')]));
+const cliNodes = [...(await session.evalCell('::cli | manifest')).result].map(address => address.name);
+const refusalNodes = cliNodes.filter(name => name.endsWith('Error'));
+const ask = async query => (await session.evalCell(query)).result;
 
-describe('CLI host operands — every throw site carries a catalog tag', () => {
+describe('CLI host operands — every throw site has its kind under ::cli', () => {
   for (const [className, file] of throwSites) {
-    it(`::${className} is declared in a CLI catalog file`, () => {
-      expect(declaredTags.has(className),
-        `${file} throws ${className} with no \`::${className}\` tag-binding under cli/lib/qlang`
+    it(`${className} is declared in the module of ::cli`, async () => {
+      expect(refusalNodes.includes(`cli/${className}`),
+        `${file} throws ${className} and the module of ::cli declares no :${className} ::spec~(…)`
       ).toBe(true);
-      expect(catalogTags.has(`::${className}`),
-        `::${className} is declared but does not reach env through the locator install`
-      ).toBe(true);
-    });
-
-    it(`::${className} reaches env with the category its site recorded`, () => {
-      expect(catalogTags.get(`::${className}`).get('category').name,
-        `::${className} reached env without the category ${file} records`
-      ).toBe(throwSiteSpecOf(className).category);
+      expect(await ask(`::cli/${className} | spec | type`)).toEqual(await evalQuery('::spec'));
     });
   }
 });
 
-describe('CLI host operands — every catalog tag has a throw site', () => {
-  for (const [className, declaration] of declaredTags) {
-    it(`::${className} is raised somewhere under cli/src`, () => {
-      expect(throwSites.has(className),
-        `${declaration.file} declares ::${className} with no throw site under cli/src`
+describe('CLI host operands — every refusal under ::cli has a throw site', () => {
+  for (const address of refusalNodes) {
+    it(`${address} is raised somewhere under cli/src`, () => {
+      expect(throwSites.has(address.slice('cli/'.length)),
+        `the module of ::cli declares ${address} with no throw site under cli/src`
       ).toBe(true);
-    });
-  }
-});
-
-describe('CLI host operands — the structural facts have one spelling', () => {
-  for (const [className, declaration] of declaredTags) {
-    it(`::${className} carries prose, and its facts come from the throw site`, () => {
-      expect(declaration.declaresBody,
-        `${declaration.file} gives ::${className} a \`::builtin{…}\` body while its ` +
-        'throw site already records the same facts — drop the body and keep the prose'
-      ).toBe(false);
     });
   }
 });

@@ -6,16 +6,39 @@ import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { isBinding, keyword, makeBinding } from './types.mjs';
-import { RUNTIME_LOCATOR_KEY, isRuntimeKey } from './env-keys.mjs';
+import { RUNTIME_LOCATOR_KEY, isRuntimeKey, moduleNamespaceKey } from './env-keys.mjs';
 import { errorFromParse } from './error-convert.mjs';
+import { loadTree } from './runtime/use.mjs';
+import { ROOT_MODULE_PATH } from './runtime/nouns.mjs';
+
+// The env of a session whose host hands a locator: the host's modules
+// beside the language's, which the locator before it still serves, and,
+// when the host answers the root, `qlang/core`, the root read again with
+// the providers the host binds there beside the language's, and the
+// modules under them [D152].
+const ROOT_SOURCE_PATH = 'qlang/core';
+
+async function withHostLocator(env, hostLocator) {
+  const languageLocator = env.get(RUNTIME_LOCATOR_KEY);
+  const hostRoot = await hostLocator(ROOT_SOURCE_PATH);
+  const locator = async path => {
+    if (path !== ROOT_SOURCE_PATH || hostRoot === null) return (await hostLocator(path)) ?? await languageLocator(path);
+    const languageRoot = await languageLocator(ROOT_SOURCE_PATH);
+    return { source: `${languageRoot.source}\n${hostRoot.source}` };
+  };
+  const hostEnv = new Map(env).set(RUNTIME_LOCATOR_KEY, locator);
+  if (hostRoot === null) return hostEnv;
+  hostEnv.delete(moduleNamespaceKey(ROOT_MODULE_PATH));
+  return await loadTree(rootState(null, hostEnv), hostEnv, ROOT_MODULE_PATH);
+}
 
 // createSession(opts?) → Session
 //
 // opts:
 //   env     — initial env Map (defaults to a fresh langRuntime())
-//   locator — async (namespaceName: string) => {source, impls?} | null,
-//             asked by `use` for a namespace the env lacks; stored
-//             under :qlang/locator in env.
+//   locator — async (path: string) => {source, impls?} | null, asked
+//             before the language's for a module the env lacks, the root
+//             `qlang/core` among them.
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
@@ -27,9 +50,7 @@ import { errorFromParse } from './error-convert.mjs';
 //   bind(name, value) — install a binding into env
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
-  if (opts.locator) {
-    env = new Map(env).set(RUNTIME_LOCATOR_KEY, opts.locator);
-  }
+  if (opts.locator) env = await withHostLocator(env, opts.locator);
   let cellCount = 0;
 
   return {

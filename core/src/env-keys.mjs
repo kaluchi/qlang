@@ -1,39 +1,38 @@
-// The keys of an env. A name a declaration writes is its own key; a tag
-// binding is keyed `::Tag`, so a tag and a name of one stem never meet;
-// the export map of a loaded module sits under `qlang/namespace/<name>`
-// and the host's locator under `qlang/locator`, keys the runtime keeps
-// for itself. Each prefix has one mint and one probe below.
+// The keys of an env and the spelling of a tag in a refusal's facts. A
+// name a declaration writes is its own key [D152]; the export map of a
+// loaded module sits under `qlang/namespace/<path>` and the host's
+// locator under `qlang/locator`, keys the runtime keeps for itself.
 
-export const TAG_BINDING_PREFIX     = '::';
+export const TAG_SIGIL               = '::';
 export const MODULE_NAMESPACE_PREFIX = 'qlang/namespace/';
-export const RUNTIME_LOCATOR_KEY    = 'qlang/locator';
+export const RUNTIME_LOCATOR_KEY     = 'qlang/locator';
 
-// The name a tag goes by: a name under the core's noun is written short,
+// The name a tag goes by: a name under the language is written short,
 // `::qlang/number` the tag `::number`, since the names without a prefix
-// belong to the core [D23], [D62].
-const CORE_NOUN_PREFIX = 'qlang/';
+// belong to the language [D23], [D62], [D152].
+const LANGUAGE_PREFIX = 'qlang/';
 
 export function canonicalTagName(tagName) {
-  return tagName.startsWith(CORE_NOUN_PREFIX) ? tagName.slice(CORE_NOUN_PREFIX.length) : tagName;
+  return tagName.startsWith(LANGUAGE_PREFIX) ? tagName.slice(LANGUAGE_PREFIX.length) : tagName;
 }
 
-// The key of a tag's binding, from its name written short or long.
-export function tagBindingKey(tagName) {
-  return TAG_BINDING_PREFIX + canonicalTagName(tagName);
+// A tag as a refusal's facts spell it, a string the lift into values
+// reads as a tag, `::number/add`.
+export function tagLiteralOf(tagName) {
+  return TAG_SIGIL + canonicalTagName(tagName);
 }
 
-export function isTagBindingName(name) {
-  return typeof name === 'string' && name.startsWith(TAG_BINDING_PREFIX);
+export function isTagLiteral(name) {
+  return typeof name === 'string' && name.startsWith(TAG_SIGIL);
 }
 
-export function stripTagBindingPrefix(envKey) {
-  return envKey.slice(TAG_BINDING_PREFIX.length);
+export function tagNameOfLiteral(literal) {
+  return literal.slice(TAG_SIGIL.length);
 }
 
 // The key of a loaded module's export map.
-
-export function moduleNamespaceKey(uri) {
-  return MODULE_NAMESPACE_PREFIX + uri;
+export function moduleNamespaceKey(path) {
+  return MODULE_NAMESPACE_PREFIX + path;
 }
 
 export function isModuleNamespaceKey(name) {

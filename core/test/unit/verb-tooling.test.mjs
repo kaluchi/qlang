@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
-import { verbsReaching } from '../../src/runtime/nouns.mjs';
+import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
 import { bindingValueOf, residenceOfVerb } from '../../src/types.mjs';
 
 describe('the head of a verb as the tooling reads it', () => {
@@ -18,13 +18,19 @@ describe('the head of a verb as the tooling reads it', () => {
   it('shows the verb a name binds, its slots labeled', async () => {
     const env = await langRuntime();
     const addVerb = verbShownFor(env, 'add');
-    expect(addVerb).toBe(bindingValueOf(env.get('add')));
+    expect(addVerb).toBe(bindingValueOf(nodeOf(env, 'number/add')));
     expect(slotLabelsOf(addVerb)).toEqual([':addend ::number']);
   });
 
   it('shows the first verb a contract answers for', async () => {
     const env = await langRuntime();
     expect(residenceOfVerb(verbShownFor(env, 'gt'))).not.toBeNull();
+  });
+
+  it('shows the verb any value answers, and nothing for a name no verb goes by', async () => {
+    const env = await langRuntime();
+    expect(verbShownFor(env, 'type')).toBe(bindingValueOf(nodeOf(env, 'any/type')));
+    expect(verbShownFor(env, 'nosuchverb')).toBeUndefined();
   });
 
   it('shows a contract no verb answers for as it is', async () => {

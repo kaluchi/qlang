@@ -1,10 +1,10 @@
 import {
   keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword, PARSE_ERROR_TAG
+  makeErrorValue, makeTagKeyword
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
-import { recordThrowSiteSpec } from './errors.mjs';
-import { isTagBindingName, stripTagBindingPrefix } from './env-keys.mjs';
+import { recordThrowSiteSpec, refusalAddressOf } from './errors.mjs';
+import { isTagLiteral, tagNameOfLiteral } from './env-keys.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
@@ -64,12 +64,12 @@ const IDENTIFIER_FIELDS = new Set([
   'tag', 'exportName'
 ]);
 function liftIdentifier(k, v) {
-  if (!IDENTIFIER_FIELDS.has(k)) return v;
-  return isTagBindingName(v) ? makeTagKeyword(stripTagBindingPrefix(v)) : keyword(v);
+  if (!IDENTIFIER_FIELDS.has(k) || typeof v !== 'string') return v;
+  return isTagLiteral(v) ? makeTagKeyword(tagNameOfLiteral(v)) : keyword(v);
 }
 
 export function errorFromQlang(qlangError, subject) {
-  const tag = makeTagKeyword(qlangError.name);
+  const tag = makeTagKeyword(refusalAddressOf(qlangError.name));
   const d = new Map();
 
   // Instance carries only the dynamic facts the JS context attached
@@ -152,7 +152,7 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  return makeErrorValue(PARSE_ERROR_TAG, d, {
+  return makeErrorValue(makeTagKeyword(refusalAddressOf('ParseError')), d, {
     location: parseError.location,
     originalError: parseError
   });
@@ -224,10 +224,8 @@ const WELL_KNOWN_PROPS = [
 // carries a tag of the language and its class name as the field
 // `:name` [D7], so a port of the runtime to another host changes a
 // field and no identity a query matches.
-const FOREIGN_FAILURE_TAG = makeTagKeyword('ForeignFailureError');
-
 export function errorFromForeign(jsError, astNode) {
-  const tag = FOREIGN_FAILURE_TAG;
+  const tag = makeTagKeyword(refusalAddressOf('ForeignFailureError'));
   const d = new Map();
   d.set('message', jsError.message);
 

@@ -111,8 +111,8 @@ describe('round-trip invariant — Error', () => {
     '!{:kind :oops}',
     '!{:kind :oops :message "boom"}',
     '!{:kind :oops :context {:request "r-1"}}',
-    '::TagBindingHasNoConstructorError!{:tag :Foo :payloadType ::number}',
-    '::AddLeftNotNumberError!{:operand :add :position 1 :expectedType :number :actualType ::string}'
+    '::construct/TaggedLitNotTagBindingError!{:tag :Foo :actualType ::number}',
+    '::number/AddLeftNotNumberError!{:operand :add :position 1 :expectedType :number :actualType ::string}'
   ]) {
     it(`error literal: ${src}`, () => pinRoundTrip(src));
   }
@@ -173,7 +173,7 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
 // TaggedLit AST and re-evaluates to a deepEqual value.
 
 describe('round-trip invariant — TaggedLit payload covering every Primary form', () => {
-  const TAG_DECL = '::Tag1 {} | ::Inner {}';
+  const TAG_DECL = ':Tag1 ::spec~() | :Inner ::spec~()';
 
   for (const tail of [
     // VecLit payload (whitespace-separated)
@@ -250,7 +250,7 @@ describe('round-trip invariant — named-error literal self-evaluation', () => {
   // `printErrorValue` folds the header tag back into the head; the
   // resulting `::Tag!{…}` form re-parses as a TaggedLit whose
   // payload is an ErrorLit and recovers the same descriptor.
-  const TAG_DECL = '::ErrTag {}';
+  const TAG_DECL = ':ErrTag ::spec~()';
 
   for (const tail of [
     '::ErrTag!{}',

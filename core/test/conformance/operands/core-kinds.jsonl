@@ -4,13 +4,13 @@
 {"name":"a-kind-of-the-core-written-long-is-written-short","query":"::qlang/number","expect":"::number","decision":"D32"}
 {"name":"the-long-and-the-short-name-are-one-kind","query":"::qlang/number | eq ::number","expect":"true","decision":"D32"}
 {"name":"every-noun-of-the-core-written-long-is-written-short","query":"::qlang/verb","expect":"::verb","decision":"D62"}
-{"name":"a-refusal-of-the-core-written-long-is-the-same-tag","query":"::qlang/ParseError | eq ::ParseError","expect":"true","decision":["D23","D32"]}
+{"name":"a-refusal-of-the-core-written-long-is-the-same-tag","query":"::qlang/quote/ParseError | eq ::quote/ParseError","expect":"true","decision":["D23","D32"]}
 {"name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null","decision":"D32"}
 {"name":"a-reserved-word-is-a-segment-of-a-namespaced-keyword","query":":qlang/type/null","expect":":qlang/type/null","decision":"D32"}
 {"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::qlang/vec[1 2]","expect":"[1 2]","decision":"D32"}
 {"name":"the-vector-kind-reads-a-set-as-its-vector","query":"::vec#[2 1]","expect":"[1 2]","decision":"D32"}
 {"name":"the-vector-kind-reads-a-quote-as-its-vector","query":"::vec~(a | b) | type","expect":"::vec","decision":"D32"}
 {"name":"the-map-kind-reads-a-tagged-map-as-the-bare-one","query":"::map::Box{:a 1} | type","expect":"::map","decision":"D32"}
-{"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::NumberPayloadNotNumberError","decision":"D32"}
+{"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/NumberPayloadNotNumberError","decision":"D32"}
 {"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true","decision":["D32","D119"]}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| /actualType","expect":"::string","decision":"D32"}

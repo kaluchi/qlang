@@ -46,7 +46,7 @@ const documentStates = new Map();
 // Every module under `core/lib/qlang/` takes part in goto-definition:
 // its declarations, verbs and tags alike, merge into one `name →
 // { uri, source, range }` table, so `count` and
-// `::AddLeftNotNumberError` resolve through one lookup.
+// `::number/AddLeftNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 

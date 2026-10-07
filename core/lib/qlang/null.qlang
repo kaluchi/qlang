@@ -1,29 +1,16 @@
 |~ `::null`, the kind of the absent value, its constructor, and the
    soft read of it. ~|
 
-::null
-  |~~ The kind of null, the absence of a value; a slot a call may leave
-      empty declares `::null` among its kinds. A kind of the core is
-      named under its prefix and written short, `::qlang/null` reading as
-      `::null`, and its constructor reads a payload of the kind as the
-      value itself. ::link~(::verb | doc)
-      ::link~(::qlang | doc :values)
-
-      ~(null | type | eq ::null)
-      ~(::qlang/null | eq ::null)
-      ~(::null(null) | eq null)
-  ~~|
-  ::builtin{:impl :qlang/type/null}
-
-::NullPayloadNotNullError
+:NullPayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is
       refused.
       ~(
         ::null(1)
         !| [type /actualType]
-        |  eq [::NullPayloadNotNullError ::number]
+        |  eq [::null/NullPayloadNotNullError ::number]
        )
   ~~|
+  ::spec~()
 
 :at
   |~~ Null, whatever the place: a soft read of the absent value is

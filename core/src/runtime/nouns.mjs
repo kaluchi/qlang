@@ -1,84 +1,113 @@
-// The nouns a session can reach and the verbs that live on a kind
-// [D61], [D62], read from what the providers declared. A provider's
-// noun is a tag binding it declared with the `::builtin` shape, the
-// refusals of its sites apart; the verbs of a kind are the verbs a
-// provider exported whose subject names the kind, a subject of any value
-// or of any tagged value naming `::qlang/any`. A tag name that no tag
-// binds is an address from the root of the tree of names, the path of a
-// kind and the name of a verb that lives on it, `::vec/count`; a verb
-// has no address of its own. A verb declared in the module of a noun,
-// the module named by the noun's path, resides on that noun [D72].
+// The tree of names [D152]: every node is a binding a module declared,
+// the binding `x` of the module of the path `P` being the node `::P/x`;
+// the root module binds the providers, the language's module `qlang`
+// its nouns and the pages of its concepts, and the module of a noun its
+// verbs, refusals and members. A tag name is the address of a node, read
+// nearest first: the scope's own binding of a name of one segment, then
+// a provider's node for a path that starts with a provider, then the
+// language's. A verb declared in the module of a noun resides on that
+// noun [D72], and a walk of a subject's tags finds its verbs there [D34].
 
 import {
-  isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword, residenceOfVerb,
-  typeKeyword, bindingValueOf, isBuiltinDescriptor, TAG_HEADER_SYMBOL
+  isBinding, isQMap, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
+  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import {
-  isTagBindingName, stripTagBindingPrefix, canonicalTagName, tagBindingKey, isModuleNamespaceKey,
-  isRuntimeKey, moduleNamespaceKey, MODULE_NAMESPACE_PREFIX
+  canonicalTagName, isModuleNamespaceKey, isRuntimeKey, moduleNamespaceKey, MODULE_NAMESPACE_PREFIX
 } from '../env-keys.mjs';
 import { isContract } from './verb.mjs';
 import { namespaceDerivedOf } from '../state.mjs';
 
-const ROOT_NOUN_NAME = 'qlang';
-
-// A refusal is a tag whose declaration names the category of its
-// failure, stamped from the site that raises it or written in the
-// catalog, `::ParseError` and `::ForeignFailureError` among them;
-// every other tag a provider declares and exports is a noun, while a
-// tag the query or the session declares stays its own. An entry of the
-// scope or of an export map is the record of its binding [D63].
-function isProviderNoun(env, envKey) {
-  return isTagBindingName(envKey) && isProviderBinding(env, envKey)
-    && !bindingValueOf(env.get(envKey)).has('category');
-}
-
-// The export maps of an env's providers by module name, and the records
-// each name is exported under, read once per env [D63].
-function indexProviders(env) {
-  const exports = [];
-  const recordsByName = new Map();
-  for (const [envKey, exportsMap] of env) {
-    if (!isModuleNamespaceKey(envKey) || !isQMap(exportsMap)) continue;
-    exports.push([envKey.slice(MODULE_NAMESPACE_PREFIX.length), exportsMap]);
-    for (const [name, record] of exportsMap) {
-      if (!recordsByName.has(name)) recordsByName.set(name, new Set());
-      recordsByName.get(name).add(record);
-    }
-  }
-  return { exports, recordsByName };
-}
-
-function providerExports(env) {
-  return namespaceDerivedOf(env, indexProviders).exports;
-}
+// The path of the root module, which binds the providers, and of the
+// language's own.
+export const ROOT_MODULE_PATH = '';
+export const LANGUAGE_PATH = 'qlang';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
 
-// The module of a noun of the core is named by its path, `qlang/number`
-// for the kind `::number` [D72].
-function nounModuleName(kindName) {
-  return `qlang/${kindName}`;
+// The export maps of an env's modules by path, read once per env.
+function indexModules(env) {
+  const exportsByPath = new Map();
+  for (const [envKey, exportsMap] of env) {
+    if (isModuleNamespaceKey(envKey) && isQMap(exportsMap)) exportsByPath.set(envKey.slice(MODULE_NAMESPACE_PREFIX.length), exportsMap);
+  }
+  return exportsByPath;
 }
 
-function exportsOfNoun(env, kindName) {
-  const exportsMap = env.get(moduleNamespaceKey(nounModuleName(kindName)));
+function modulesOf(env) {
+  return namespaceDerivedOf(env, indexModules);
+}
+
+// exportsOfModule(env, path) → the bindings the module of a path
+// declared, by name, or null for a module not loaded.
+export function exportsOfModule(env, path) {
+  const exportsMap = env.get(moduleNamespaceKey(path));
   return isQMap(exportsMap) ? exportsMap : null;
+}
+
+// The providers the root binds, the language among them.
+function isProvider(env, segment) {
+  return exportsOfModule(env, ROOT_MODULE_PATH)?.has(segment) === true;
+}
+
+// fullPathOf(env, tagName) → the path of the node a tag name addresses
+// from the root: a provider's path as written, and any other under the
+// language, written short, `::number` for `::qlang/number`.
+export function fullPathOf(env, tagName) {
+  const name = canonicalTagName(tagName);
+  if (name === LANGUAGE_PATH) return LANGUAGE_PATH;
+  const firstSegment = name.split('/')[0];
+  if (firstSegment !== LANGUAGE_PATH && isProvider(env, firstSegment)) return name;
+  return `${LANGUAGE_PATH}/${name}`;
+}
+
+// The module of a path and the name of its node.
+function splitPath(path) {
+  const cut = path.lastIndexOf('/');
+  return cut < 0 ? [ROOT_MODULE_PATH, path] : [path.slice(0, cut), path.slice(cut + 1)];
+}
+
+// The kind of the scope a name of one segment reads first: one a query,
+// a session or a `use` declared, a binding whose value is a spec.
+function scopeRecordOf(env, tagName) {
+  if (tagName.includes('/') || isRuntimeKey(tagName)) return null;
+  const entry = env.get(tagName);
+  return isBinding(entry) && isSpec(bindingValueOf(entry)) ? entry : null;
+}
+
+// nodeOf(env, tagName) → the record of the node a tag name addresses,
+// or null: the scope's own binding first, then the tree's.
+export function nodeOf(env, tagName) {
+  const scopeRecord = scopeRecordOf(env, canonicalTagName(tagName));
+  if (scopeRecord !== null) return scopeRecord;
+  const [modulePath, name] = splitPath(fullPathOf(env, tagName));
+  const record = exportsOfModule(env, modulePath)?.get(name);
+  return isBinding(record) ? record : null;
+}
+
+// The module that serves what lies under a noun, or null.
+function exportsUnder(env, nounName) {
+  return exportsOfModule(env, fullPathOf(env, nounName));
+}
+
+// A noun: a node whose module serves what lies under it.
+export function isNoun(env, tagName) {
+  return exportsUnder(env, tagName) !== null;
 }
 
 // The record of the verb of `verbName` that resides on a kind, or null.
 function residenceOf(env, kindName, verbName) {
-  const record = exportsOfNoun(env, kindName)?.get(verbName);
+  const record = exportsUnder(env, kindName)?.get(verbName);
   return record !== undefined && isVerb(bindingValueOf(record)) ? record : null;
 }
 
 // The verbs that reside on a kind, by name, a contract among them.
 function* residencesOnKind(env, kindName) {
-  const exportsMap = exportsOfNoun(env, kindName);
+  const exportsMap = exportsUnder(env, kindName);
   if (exportsMap === null) return;
   for (const [name, record] of exportsMap) {
-    if (!isTagBindingName(name) && isVerb(bindingValueOf(record))) yield [name, record];
+    if (isVerb(bindingValueOf(record))) yield [name, record];
   }
 }
 
@@ -118,62 +147,41 @@ export function residenceOnSubject(env, verbName, subject) {
   return residenceOf(env, ANY_KIND_NAME, verbName);
 }
 
+// The nouns of the tree whose modules are loaded, each by the name it is
+// written by, the root's providers and the language apart.
+function* loadedNouns(env) {
+  for (const path of modulesOf(env).keys()) {
+    if (path === ROOT_MODULE_PATH) continue;
+    yield canonicalTagName(path);
+  }
+}
+
 // residencesOf(env, verbName) → the verbs of a name that reside on the
-// nouns of its providers, each with its kind, the contract on `any`
-// apart: what a contract answers for.
+// nouns of the tree, each with its kind, the contract on `any` apart:
+// what a contract answers for.
 export function residencesOf(env, verbName) {
   const residences = [];
-  for (const [moduleName, exportsMap] of providerExports(env)) {
-    const kindName = canonicalTagName(moduleName);
-    const record = exportsMap.get(verbName);
-    if (record === undefined || !isVerb(bindingValueOf(record)) || kindName === ANY_KIND_NAME) continue;
-    if (moduleName === nounModuleName(kindName) && env.has(tagBindingKey(kindName))) residences.push([kindName, record]);
+  for (const kindName of loadedNouns(env)) {
+    if (kindName === ANY_KIND_NAME) continue;
+    const record = residenceOf(env, kindName, verbName);
+    if (record !== null) residences.push([kindName, record]);
   }
   return residences;
 }
 
-export function isNoun(env, tagName) {
-  return isProviderNoun(env, tagBindingKey(tagName));
-}
-
-// A verb or a tag a provider exports under a name stays with its
-// provider, read through the noun it lives on, a verb residing on one
-// among them [D72]; the scope holds what the query, the session and a
-// module's `use` wrote under a name of their own [D62], [D63].
-export function isProviderBinding(env, name) {
-  const entry = env.get(name);
-  const declared = bindingValueOf(entry);
-  if (!isBuiltinDescriptor(declared) && !(isVerb(declared) && residenceOfVerb(declared) !== null)) return false;
-  return namespaceDerivedOf(env, indexProviders).recordsByName.get(name)?.has(entry) === true;
-}
-
-// A declaration a noun's module makes that is no verb is a member of the
-// noun, read through it, `::qlang | doc :pipeline`, and no name of a
-// reader's scope [D117]: one the module exported, so a declaration a
-// query of the module's text makes when a reader runs it, a law or a
-// snippet of a page, names a binding of that reader's scope [D143].
-export function isNounMember(env, name) {
-  const entry = env.get(name);
-  if (!isBinding(entry) || isVerb(bindingValueOf(entry)) || isTagBindingName(name)) return false;
-  const moduleName = entry.get('module')?.name;
-  return typeof moduleName === 'string' && moduleName.startsWith(`${ROOT_NOUN_NAME}/`)
-    && isNoun(env, moduleName.slice(ROOT_NOUN_NAME.length + 1))
-    && namespaceDerivedOf(env, indexProviders).recordsByName.get(name)?.has(entry) === true;
-}
-
-// The member a noun holds under a name that is no verb of it, or null.
+// The member a noun holds under a name that is no verb of it, or null
+// [D117].
 export function nounMemberOf(env, kindName, memberName) {
-  const record = exportsOfNoun(env, kindName)?.get(memberName);
+  const record = exportsUnder(env, kindName)?.get(memberName);
   return isBinding(record) && !isVerb(bindingValueOf(record)) ? record : null;
 }
 
 // The bindings the scope holds, the names the query, the session and a
-// module's `use` wrote, with the verbs, the tags and the members of the
-// providers and the keys of the runtime's own apart [D61], [D117].
+// `use` wrote, the keys of the runtime's own apart [D61].
 export function scopeBindingsOf(env) {
   const scopeBindings = new Map();
   for (const [name, value] of env) {
-    if (!isRuntimeKey(name) && !isProviderBinding(env, name) && !isNounMember(env, name)) scopeBindings.set(name, value);
+    if (!isRuntimeKey(name)) scopeBindings.set(name, value);
   }
   return scopeBindings;
 }
@@ -214,54 +222,40 @@ export function verbsReaching(env, kindNames) {
   return reached;
 }
 
-// The nouns under a noun, the whole set for the core's own noun.
-function nounsUnder(env, tagName) {
-  const under = canonicalTagName(tagName);
-  const nouns = [];
-  for (const envKey of env.keys()) {
-    if (!isProviderNoun(env, envKey)) continue;
-    const nounName = stripTagBindingPrefix(envKey);
-    const beneath = under === ROOT_NOUN_NAME ? nounName !== ROOT_NOUN_NAME : nounName.startsWith(`${under}/`);
-    if (beneath) nouns.push(makeTagKeyword(nounName));
-  }
-  return makeSet(nouns);
-}
-
-// The verbs of a kind by their addresses, which the axes follow, where a
-// keyword would name a binding of the reader's scope [D62].
-export function verbsOfKind(env, tagName) {
-  const kindName = canonicalTagName(tagName);
-  const addresses = [];
-  for (const [name] of residencesOnKind(env, kindName)) addresses.push(makeTagKeyword(`${kindName}/${name}`));
-  return makeSet(addresses);
-}
-
-// The refusals a query provokes on a noun: its own, then those of each
-// verb that lives on it, in the order of the verbs [D64], a verb's read by
-// `refusalsOfVerb`, each listed once, since the refusal of a kind guards
-// the places of several verbs.
-export function refusalsOfNoun(env, tagName, ownRefusals, refusalsOfVerb) {
-  const verbRefusals = [...verbsOfKind(env, tagName)].flatMap(address => refusalsOfVerb(addressedVerb(env, address.name).descriptor));
-  const refusalsByName = new Map([...ownRefusals, ...verbRefusals].map(refusal => [refusal.name, refusal]));
-  return Object.freeze([...refusalsByName.values()]);
-}
-
-// What lies below a noun in the tree of names [D62]: the nouns under its
-// path and the addresses of the verbs that live on it, so `::number`
-// answers `::number/add` among its own and `::qlang`, with no verb of
-// its own, the nouns of the providers.
+// namesUnder(env, tagName) → the nodes under a noun, every binding its
+// module declared, its kinds, verbs, refusals and pages [D152].
 export function namesUnder(env, tagName) {
-  return makeSet([...nounsUnder(env, tagName), ...verbsOfKind(env, tagName)]);
+  const path = fullPathOf(env, tagName);
+  const exportsMap = exportsOfModule(env, path);
+  if (exportsMap === null) return makeSet([]);
+  return makeSet([...exportsMap.keys()].map(name => makeTagKeyword(`${path}/${name}`)));
 }
 
-// The verb a tag name addresses, what its provider declared, and the
-// record its declaration wrote, or null when the address names none. A tag name comes written short, so the path of an
-// address under the core starts at its kind.
+// The names of every node of the tree, by address, which a guessed tag
+// name is held against [D118].
+export function nodeAddresses(env) {
+  const addresses = [];
+  for (const [path, exportsMap] of modulesOf(env)) {
+    for (const name of exportsMap.keys()) addresses.push(canonicalTagName(path === ROOT_MODULE_PATH ? name : `${path}/${name}`));
+  }
+  return addresses;
+}
+
+// The names the verbs of the tree go by, which a guessed name of a step
+// is held against beside the scope's [D118].
+export function verbNames(env) {
+  const names = new Set();
+  for (const exportsMap of modulesOf(env).values()) {
+    for (const [name, record] of exportsMap) if (isVerb(bindingValueOf(record))) names.add(name);
+  }
+  return names;
+}
+
+// The verb a tag name addresses, what its module declared, and the
+// record its declaration wrote, or null when the address names none.
 export function addressedVerb(env, tagName) {
-  const cut = tagName.lastIndexOf('/');
-  if (cut < 0) return null;
-  const verbName = tagName.slice(cut + 1);
-  const kindName = tagName.slice(0, cut);
-  const residence = residenceOf(env, kindName, verbName);
-  return residence === null ? null : { verbName, descriptor: bindingValueOf(residence), record: residence };
+  const [modulePath, verbName] = splitPath(fullPathOf(env, tagName));
+  const record = exportsOfModule(env, modulePath)?.get(verbName);
+  if (record === undefined || !isVerb(bindingValueOf(record))) return null;
+  return { verbName, descriptor: bindingValueOf(record), record };
 }

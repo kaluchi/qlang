@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { formatExample } from '../src/lib/format-example.js';
 
 let builtins;
 beforeAll(async () => {
   const runtime = await langRuntime();
-  builtins = new Set([...runtime.keys()]);
+  builtins = verbNames(runtime);
 });
 
 const fmt = code => formatExample(code, builtins);

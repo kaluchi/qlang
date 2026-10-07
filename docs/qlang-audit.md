@@ -437,7 +437,7 @@ weight [D20]. A tag is the name of an interpretation: it says how to read
 the value it stands on. Many values carry one tag; a tag stacks over
 any payload, a string or a number included, and the stack reads from
 the outside in; and the tag taken as a value, `::Kind`, is the kind
-itself standing as a subject, which is why `::AddLeftNotNumberError |
+itself standing as a subject, which is why `::number/AddLeftNotNumberError |
 doc` can ask the kind for its page. Behaviour is kept out of the
 value: the verbs that apply to a kind live in the catalog and are
 found through the tag. That separation is what lets a value cross a
@@ -814,13 +814,13 @@ so that nothing of the runtime is exported for building operands [D46].
 ### Modules that dissolve into their clients
 
 A declaration writes the record of its binding into its scope [D63],
-and a module has neither a record nor a value. `use` runs it and merges
-into the client's scope the difference between the environment before
-and after its steps, so a module exists at the moment of the merge and
-dissolves in it: a helper written for the module's own definitions
-lands in the client's scope beside the operands meant for the client,
-and a module that loads another passes that module's names on as its
-own. The language offers an underscore convention to which it attaches
+and a module is the file whose bindings are the nodes under its path
+[D152], read once in a scope of its own. `use` merges into the client's
+scope every binding the module declared, so a module that loads another
+no longer passes that module's names on, while a helper written for the
+module's own definitions still lands in the client's scope beside the
+operands meant for the client: a module has no value of its own that
+says what it exposes. The language offers an underscore convention to which it attaches
 nothing. The sister project's graph catalog uses no such convention and
 is loaded whole into every session, so the helpers behind `@problems`
 stand in its client's `env` beside `@problems` itself. In the sister
@@ -836,27 +836,27 @@ way, so a head whose slots name kinds of their own [D60] multiplies what
 a client's `env` shows until a module's surface is its own.
 
 The verbs of the core live in the module of their noun, and the loader's
-`use` among the verbs of any value [D72], [D113]. The command line's verbs live on its noun, `::qlang/cli`
-[D92], and a host whose prefix is its own has no noun yet: the module
-of that host lands its verbs in its client's scope beside the client's
-own names, where the manifest answers nouns [D80]. In the sister
-project:
+`use` among the verbs of any value [D72], [D113]. The command line's verbs
+live on its own provider, `::cli`, which it binds beside the language
+at the root [D152], and a query calls them by their names without a
+`use`. The sister project binds no provider yet: the module of that
+host lands its verbs in its client's scope beside the client's own
+names [D80]. In the sister project:
 
 ```sh
 $ node cli/bin/jdt q 'env | has :@type'
 true
 ```
 
-What the merge leaves behind is the runtime's housekeeping in the
-environment: the export map of every namespace under a prefix of its
-own, and the host's locator, a raw JavaScript function, under another,
-which every reader of the environment filters. The prefix of the
-runtime's own namespace of tags reaches what `env` answers, since a
-kind the scope declares is keyed by it:
+What stays in the environment is the runtime's housekeeping: the
+export map of every module under a prefix of its own, which is the
+tree of names, and the host's locator, a raw JavaScript function,
+under another, which every reader of the environment filters. A kind
+the scope declares is a name like any other [D152]:
 
 ```qlang
-> ::Width |~~ How many characters a line holds. ~~| | env | keys
-#[:"::Width"]
+> :Width |~~ How many characters a line holds. ~~| ::spec~() | env | keys
+#[:Width]
 ```
 
 And names collide, which the maintainer has named as the one worry the
@@ -943,7 +943,7 @@ is accepted inside a tag's name and the dot is not:
 ::tag
 
 > ::app.m8.web.Foo | type
-::ParseError!{ … :found "." … }
+::quote/ParseError!{ … :found "." … }
 ```
 
 The dot is unused elsewhere in the grammar, and after `::` it is
@@ -975,18 +975,19 @@ class name is a function of the facts the site records:
 number, and nothing else. There are more such classes than there are
 operands, and the catalog carries a page for every one of them, so the
 prose about errors outweighs the prose about the operands themselves.
-The facts ride the declaration's `spec`, and the page says what they do
-not, the procedure, what the place takes and how a reader writes it:
+The facts live in the registry of the runtime alone: the kind the
+catalog declares for a refusal has no fields yet [D152], and the page
+says the procedure, what the place takes and how a reader writes it:
 
 ```qlang
 > "hello" | add 1 !| type | spec
-::builtin{:category :typeError :operand :add :position 1 :expectedType :number}
+::spec~()
 
 > "hello" | add 1 !| type | doc | content
  `add` adds numbers: a vector adds element by element, `* add 1`, …
 ```
 
-The facts still spell the vocabulary of the runtime, `:operand`, a
+The facts the runtime records spell its vocabulary, `:operand`, a
 position counted from one and a type as a keyword where a kind is a
 tag.
 
@@ -1033,7 +1034,7 @@ since the error a step produces carries its path there [D82], [D85].
 
 ```qlang
 > ~(!{:kind :oops :trail 5}) * (!| raise !| type)
-[::ErrorTrailNotVecError]
+[::error/ErrorTrailNotVecError]
 ```
 
 The library of error-handling pipelines, retry and recover and assert
@@ -1045,17 +1046,16 @@ The repair must keep error identity per site and declare it once [D7],
 [D46]: each site's tag is a kind declared in the catalog beside its
 operand, whose schema owns the site's fields in the order a reader needs
 them and whose document is the site's procedure; the throw site passes
-the facts, and the tag's constructor checks them. A refusal names the
-place it guards, and the place lists its refusals [D64], so the runtime
-that checks a slot [D45] finds the refusal of that slot among those its
-verb lists, by the position the refusal declares:
+the facts, and the tag's constructor checks them. A refusal lives under
+the noun whose module declares it, where `manifest` lists it [D152]; the
+place it guards it declares itself, so the runtime that checks a slot
+[D45] finds the refusal of that slot by what the refusal declares, and
+a verb lists the refusals that guard it [D46]. Today the noun lists them
+and no verb does:
 
 ```qlang
-> ::number/add | spec | /throws
-[::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]
-
-> ::AddRightNotNumberError | spec | /position
-2
+> ::number | manifest | filter ~(print | contains "Add")
+#[::number/AddLeftNotNumberError ::number/AddResultNotFiniteError ::number/AddRightNotNumberError]
 ```
 
 It must hold one law for an error inside a nested evaluation, derived
@@ -1088,20 +1088,21 @@ takes first.
 ### Self-description at full size
 
 The full view is the default one, where the terminals of the paper age
-made the cheap path the default and the full view a flag: the
-declaration of a kind answers its verbs beside every refusal they raise.
+made the cheap path the default and the full view a flag: what lies
+under a kind answers its verbs beside every refusal they raise, at
+once, with no view of the verbs alone.
 
 ```qlang
-> ::vec | spec | keys
-#[:impl :throws :verbs]
+> ::vec | manifest | filter ~(print | contains "Error" | not) | count | lt (::vec | manifest | count)
+true
 ```
 
 The pages of the refusals of the kernel speak the language's words:
 the page of an unknown node of the tree says it is “a defect of the
 runtime, and no failure of the query” (`core/lib/qlang/builtin.qlang`).
 The names of some refusals still carry the runtime's,
-`::PayloadSubjectNotTaggedInstanceError` and
-`::EffectLaunderingAtBindStepParseError` among them, which the tags of
+`::tagged/PayloadSubjectNotTaggedInstanceError` and
+`::bind/EffectLaunderingAtBindStepParseError` among them, which the tags of
 the sites as kinds rename [D46].
 
 Examples live on two planes: the conformance suite and the laws of the
@@ -1519,19 +1520,20 @@ below writes its targets before its work:
 
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
-"decision":"D152"
+"decision":"D46"
 ```
 
 ### Milestone 4 · One spelling
 
 Every fact has one spelling, and a kind owns what is said of its values.
 The keystone is the declaration of a kind, its schema or its constructor
-[D6], [D33]. A map after a tag's name declares no schema today, so the
-fields of a record are spelled nowhere a reader can ask before the
-record is fetched, which is the third requirement of the mission:
+[D6], [D33]. A kind is declared by a keyword with a `::spec~(…)` for its
+value [D152], and the fields that spec declares check nothing today, so
+the fields of a record are spelled nowhere a reader can rely on before
+the record is fetched, which is the third requirement of the mission:
 
 ```qlang
-> ::P {:name ::string} | ::P{:name 5}
+> :P ::spec~(:name ::string) | ::P{:name 5}
 ::P{:name 5}
 ```
 

@@ -18,12 +18,12 @@ describe('raise operand', () => {
 
   it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
     const evalResult = await evalQuery('42 | raise !| type');
-    expect(evalResult).toEqual(makeTagKeyword('RaiseSubjectNotMapError'));
+    expect(evalResult).toEqual(makeTagKeyword('map/RaiseSubjectNotMapError'));
   });
 
   it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
     const evalResult = await evalQuery('null | raise ("not-a-number" | add 1) !| type');
-    expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(evalResult).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
   });
 });
 
@@ -57,7 +57,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('distribute of add(10) over mixed elements answers the first failure [D103]', async () => {
     const evalResult = await evalQuery('[1 "x" 3] * add 10 !| type');
-    expect(evalResult).toEqual(makeTagKeyword('AddLeftNotNumberError'));
+    expect(evalResult).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
@@ -70,7 +70,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('the steps skipped past a plain comment replay through apply as the bare operand suffix', async () => {
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
-    expect(evalResult).toEqual(makeTagKeyword('VerbWithoutBodyError'));
+    expect(evalResult).toEqual(makeTagKeyword('verb/VerbWithoutBodyError'));
   });
 });
 
@@ -88,7 +88,7 @@ describe('EffectLaunderingAtCallError', () => {
     sessionInstance.bind('doIt', effectfulVerb);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.tag.name).toBe('EffectLaunderingAtCallError');
+    expect(cellEntry.result.tag.name).toBe('call/EffectLaunderingAtCallError');
   });
 });
 
@@ -276,7 +276,7 @@ describe('per-site error classes carry unique identity', () => {
     // the resulting error's `tag` slot and drops the field from
     // the descriptor — the same identity invariant the
     // `evalErrorLit` literal path enforces.
-    const result = await evalQuery('::MyTag {} | {:kind ::MyTag :detail "x"} | raise');
+    const result = await evalQuery(':MyTag ::spec~() | {:kind ::MyTag :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
     expect(result.descriptor.has('kind')).toBe(false);
     expect(result.descriptor.get('detail')).toBe('x');
@@ -289,12 +289,12 @@ describe('per-site error classes carry unique identity', () => {
     // The tagged Vec / wrap-scalar branches are covered above via
     // the per-shape identity-overlay tests.
     const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
-    const setResult = await evalQuery('::Tags {} | ::Tags#[:b :a] | payload');
+    const setResult = await evalQuery(':Tags ::spec~() | ::Tags#[:b :a] | payload');
     expect(isQSet(setResult)).toBe(true);
     const vecResult = await evalQuery('#[:b :a] | payload');
     expect(isTaggedInstance(vecResult)).toBe(false);
     expect(vecResult.map(k => k.name)).toEqual(['a', 'b']);
-    const mapResult = await evalQuery('::User {} | ::User{:name "alice"} | payload');
+    const mapResult = await evalQuery(':User ::spec~() | ::User{:name "alice"} | payload');
     expect(mapResult instanceof Map).toBe(true);
     expect(isTaggedInstance(mapResult)).toBe(false);
     expect(mapResult.get('name')).toBe('alice');

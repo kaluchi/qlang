@@ -4,6 +4,7 @@
 // and check the result via isErrorValue + descriptor inspection.
 
 import { expect } from 'vitest';
+import { refusalAddressOf } from '../../src/errors.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
@@ -45,7 +46,7 @@ export async function expectErrorCategory(query, category) {
 export async function expectErrorThrown(query, classTagName) {
   const errorResult = await expectErrorResult(query);
   const identityTag = errorResult.tag;
-  expect(identityTag?.name).toBe(classTagName);
+  expect(identityTag?.name).toBe(refusalAddressOf(classTagName));
   return errorResult;
 }
 

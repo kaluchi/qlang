@@ -45,7 +45,7 @@ describe('vec.flat non-Vec elements', async () => {
 
 describe('setops bare form over a subject no residence takes', async () => {
   it('union bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | union !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | union !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
   });
 
   it('union bare on a set folds its elements, the set being a vector', async () => {
@@ -53,11 +53,11 @@ describe('setops bare form over a subject no residence takes', async () => {
   });
 
   it('minus bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | minus !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | minus !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
   });
 
   it('inter bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | inter !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | inter !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
   });
 });
 

@@ -9,15 +9,15 @@
 {"name":"use-shadowable-by-a-freeze","query":"42 | :use / | use","expect":"42"}
 {"name":"use-inside-paren-scoped","query":"({:k 99} | use | k) | 0","expect":"0"}
 {"name":"use-inside-paren-leaks-pipeValue-only","query":"({:k 99} | use | k)","expect":"99"}
-{"name":"use-on-operand-name-walks-past-to-locator","query":"use :count !| type","expect":"::UseNamespaceNotFoundError"}
-{"name":"use-on-a-verb-name-walks-past-to-locator","query":":double ::verb~(mul 2) | use :double !| type","expect":"::UseNamespaceNotFoundError"}
+{"name":"use-on-operand-name-walks-past-to-locator","query":"use ::count !| type","expect":"::any/UseNamespaceNotFoundError"}
+{"name":"use-on-a-verb-name-walks-past-to-locator","query":":double ::verb~(mul 2) | use ::double !| type","expect":"::any/UseNamespaceNotFoundError"}
 {"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":@two ::verb~(2) | :n @two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
-{"name":"as-is-no-operand","query":"42 | as :x !| type","expect":"::UnresolvedIdentifierError","decision":"D70"}
-{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::BindNameDeclaredTwiceError :k]","decision":["D44","D71"]}
+{"name":"as-is-no-operand","query":"42 | as :x !| type","expect":"::call/UnresolvedIdentifierError","decision":"D70"}
+{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/BindNameDeclaredTwiceError :k]","decision":["D44","D71"]}
 {"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":["D71","D85"]}
-{"name":"a-tag-is-declared-once-in-a-scope","query":"::T {} | ::T {} !| [type /name]","expect":"[::BindNameDeclaredTwiceError ::T]","decision":"D71"}
-{"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type /name]","expect":"[::BindNameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-tag-is-declared-once-in-a-scope","query":":T ::spec~() | :T ::spec~() !| [type /name]","expect":"[::bind/BindNameDeclaredTwiceError :T]","decision":"D71"}
+{"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type /name]","expect":"[::bind/BindNameDeclaredTwiceError :x]","decision":"D71"}
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
 {"name":"a-distributed-step-declares-in-each-element","query":":x 1 | [2 3] * :x / | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}

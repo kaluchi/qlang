@@ -53,7 +53,7 @@
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\" mentions |~~ inner pair ~~| inside \"","decision":["D94","D95"]}
 {"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
 {"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail/-1/skipped","expect":"~(count)","decision":["D81","D85"]}
-{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::VerbWithoutBodyError","decision":"D85"}
+{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::verb/VerbWithoutBodyError","decision":"D85"}
 {"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] * (!| |~ note ~| /kind)","expect":"[:zap]"}
 {"name":"comment-head-keeps-leading-distribute","query":"[1 2] | (* |~ note ~| add 1)","expect":"[2 3]"}
@@ -71,5 +71,5 @@
 {"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true","decision":"D81"}
 {"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| :foo | doc | content","expect":"\" the doc\"","decision":["D70","D81","D94","D95","D119"]}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| /) | first | /docs | first | type","expect":"::doc","decision":"D83"}
-{"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::ParseError","decision":"D83"}
+{"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError","decision":"D83"}
 {"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | :x | doc | content","expect":"\" note \"","decision":["D83","D94","D95","D119"]}

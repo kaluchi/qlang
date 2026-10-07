@@ -47,10 +47,11 @@ import eachCatalogSource from '@kaluchi/qlang-core/lib/qlang/each.qlang';
 import failCatalogSource from '@kaluchi/qlang-core/lib/qlang/fail.qlang';
 import groupCatalogSource from '@kaluchi/qlang-core/lib/qlang/group.qlang';
 import anyCatalogSource from '@kaluchi/qlang-core/lib/qlang/any.qlang';
-import qlangCatalogSource from '@kaluchi/qlang-core/lib/qlang/qlang.qlang';
+import qlangCatalogSource from '@kaluchi/qlang-core/lib/qlang.qlang';
 
-// The keys are the names the root `core.qlang` lists, and the locator is
-// the one seam the runtime calls to fetch a module.
+// The keys are the paths of the tree of names, the root `core.qlang` and
+// the module of each path, and the locator is the one seam the runtime
+// calls to fetch a module.
 const CATALOG = new Map([
   ['qlang/core', coreCatalogSource],
   ['qlang/builtin', builtinCatalogSource],
@@ -83,7 +84,7 @@ const CATALOG = new Map([
   ['qlang/fail', failCatalogSource],
   ['qlang/group', groupCatalogSource],
   ['qlang/any', anyCatalogSource],
-  ['qlang/qlang', qlangCatalogSource]
+  ['qlang', qlangCatalogSource]
 ]);
 
 export async function inlineCatalogLocator(namespaceName) {
@@ -102,5 +103,6 @@ export {
   printValue,
   langRuntime,
   parse,
-  createSession
+  createSession,
+  verbNames
 } from '@kaluchi/qlang-core';

@@ -5,35 +5,16 @@
    the vector of its steps. The head of each is its declaration, which
    the runtime executes before the primitive runs. ~|
 
-::vec
-  |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
-      long value takes: its parts have an index, a size and a slice,
-      `drop` and `take`, so the rest of a long answer is the same query
-      with a tail, and `*` runs a step on each element. A set, a quote
-      and a doc are vectors under their tags, read as vectors wherever a
-      vector is read; over them the constructor answers the vector of
-      their elements, and `::vec[1 2]` reads as `[1 2]`. A JSON array is
-      a vector literal too, a comma between every two elements; one literal
-      is written in one of the two forms, as a map's is.
-      ::snippet~(::vec | spec | /verbs) lists its verbs. ::link~(::each | doc)
-      ::link~(::qlang | doc :values)
-
-      ~([1 2] | type | eq ::vec)
-      ~(::qlang/vec[1 2] | eq [1 2])
-      ~(#[2 1] | tag ::vec | eq [1 2])
-      ~([1, 2] | eq [1 2])
-  ~~|
-  ::builtin{:impl :qlang/type/vec}
-
-::VecPayloadNotVecError
+:VecPayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
       payload of another kind is refused.
       ~(
         ::vec{:a 1}
         !| [type /actualType]
-        |  eq [::VecPayloadNotVecError ::map]
+        |  eq [::vec/VecPayloadNotVecError ::map]
        )
   ~~|
+  ::spec~()
 
 :count
   |~~ The number of elements.
@@ -233,28 +214,30 @@
       refused with the pair.
 
       ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
-      ~([1] | union #[2] !| type | eq ::UnionPairIncompatibleError)
+      ~([1] | union #[2] !| type | eq ::vec/UnionPairIncompatibleError)
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/union})
 
-::UnionBareEmptyError
+:UnionBareEmptyError
   |~~ `union` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | union
         !| [type]
-        |  eq [::UnionBareEmptyError]
+        |  eq [::vec/UnionBareEmptyError]
        )
   ~~|
+  ::spec~()
 
-::UnionPairIncompatibleError
+:UnionPairIncompatibleError
   |~~ The operands `union` folds are two sets or two maps.
       ~(
         [#[:a] {:b 1}] | union
         !| [type /leftType /rightType]
-        |  eq [::UnionPairIncompatibleError ::set ::map]
+        |  eq [::vec/UnionPairIncompatibleError ::set ::map]
        )
   ~~|
+  ::spec~()
 
 :minus
   |~~ The first operand the vector holds minus each one after it; another
@@ -264,25 +247,27 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/minus})
 
-::MinusBareEmptyError
+:MinusBareEmptyError
   |~~ `minus` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | minus
         !| [type]
-        |  eq [::MinusBareEmptyError]
+        |  eq [::vec/MinusBareEmptyError]
        )
   ~~|
+  ::spec~()
 
-::MinusPairIncompatibleError
+:MinusPairIncompatibleError
   |~~ The operands `minus` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | minus
         !| [type /leftType /rightType]
-        |  eq [::MinusPairIncompatibleError ::set ::map]
+        |  eq [::vec/MinusPairIncompatibleError ::set ::map]
        )
   ~~|
+  ::spec~()
 
 :inter
   |~~ The intersection of the operands the vector holds; another operand
@@ -292,25 +277,27 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/inter})
 
-::InterBareEmptyError
+:InterBareEmptyError
   |~~ `inter` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | inter
         !| [type]
-        |  eq [::InterBareEmptyError]
+        |  eq [::vec/InterBareEmptyError]
        )
   ~~|
+  ::spec~()
 
-::InterPairIncompatibleError
+:InterPairIncompatibleError
   |~~ The operands `inter` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | inter
         !| [type /leftType /rightType]
-        |  eq [::InterPairIncompatibleError ::set ::map]
+        |  eq [::vec/InterPairIncompatibleError ::set ::map]
        )
   ~~|
+  ::spec~()
 
 :join
   |~~ The strings the vector holds joined with the separator between
@@ -321,34 +308,37 @@
   ~~|
   ::verb~(:separator ::string | :returns ::string | ::builtin{:impl :qlang/prim/join})
 
-::JoinSubjectNotVecError
+:JoinSubjectNotVecError
   |~~ The subject of `join` is the vector of strings it writes as one; a
       map's values are read first, `vals | join ","`.
       ~(
         42 | join ","
         !| [type /actualType]
-        |  eq [::JoinSubjectNotVecError ::number]
+        |  eq [::vec/JoinSubjectNotVecError ::number]
        )
   ~~|
+  ::spec~()
 
-::JoinElementNotStringError
+:JoinElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
       that is not, and `* print` makes each value its text first.
       ~(
         ["a" 42 "c"] | join ","
         !| [type /actualType /index]
-        |  eq [::JoinElementNotStringError ::number 1]
+        |  eq [::vec/JoinElementNotStringError ::number 1]
        )
   ~~|
+  ::spec~()
 
-::JoinSeparatorNotStringError
+:JoinSeparatorNotStringError
   |~~ The separator of `join` is a string, `join ", "`.
       ~(
         ["a" "b"] | join 42
         !| [type /actualType]
-        |  eq [::JoinSeparatorNotStringError ::number]
+        |  eq [::vec/JoinSeparatorNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :prepend
   |~~ The vector with the element at its head, any value; a set takes it

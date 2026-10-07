@@ -218,14 +218,14 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('returns exit 1 with a structured ::ParseError!{…} diagnostic on stderr for a parse failure', async () => {
+  it('returns exit 1 with a structured ::quote/ParseError!{…} diagnostic on stderr for a parse failure', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
-    // Structured printValue form — `::ParseError!{:expected …
+    // Structured printValue form — `::quote/ParseError!{:expected …
     // :found … :source "[1 2" :marker "    ^" :location {…}}`.
-    expect(s.stderrText()).toContain('::ParseError!{');
+    expect(s.stderrText()).toContain('::quote/ParseError!{');
     expect(s.stderrText()).toContain(':source "[1 2"');
     expect(s.stderrText()).toContain(':marker');
   });

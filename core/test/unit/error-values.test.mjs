@@ -208,7 +208,7 @@ describe('errorFromQlang', () => {
     const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'myName' });
     const errorVal = errorFromQlang(unresolvedErr, 42);
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
-    expect(errorVal.tag).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['identifierName', 'trail']);
   });
 
@@ -216,7 +216,7 @@ describe('errorFromQlang', () => {
     const divErr = new DivisionByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
     expect(divErr.kind).toBe('numericDomain');
-    expect(errorVal.tag).toEqual(makeTagKeyword('DivisionByZeroError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('number/DivisionByZeroError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
   });
 });
@@ -232,7 +232,7 @@ describe('errorFromForeign', () => {
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
     expect(desc.has('kind')).toBe(false);
-    expect(errorVal.tag).toEqual(makeTagKeyword('ForeignFailureError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('call/ForeignFailureError'));
     expect(desc.get('name')).toBe('Error');
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
@@ -345,7 +345,7 @@ describe('error-convert coercion edge cases', () => {
   it('errorFromQlang without context field', () => {
     const divErr = new DivisionByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
-    expect(errorVal.tag.name).toBe('DivisionByZeroError');
+    expect(errorVal.tag.name).toBe('number/DivisionByZeroError');
     expect(errorVal.descriptor.has('category')).toBe(false);
   });
 

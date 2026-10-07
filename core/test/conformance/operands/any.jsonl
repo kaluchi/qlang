@@ -6,7 +6,7 @@
 {"name":"any-with-projection","query":"[{:active false} {:active true}] | any ~(/active)","expect":"true"}
 {"name":"any-with-projection-none","query":"[{:active false} {:active false}] | any ~(/active)","expect":"false"}
 {"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(/role | eq :admin)","expect":"true"}
-{"name":"any-on-non-container-throws","query":"42 | any ~(gt 0)","expect":"::VerbWithoutBodyError!{\n  :actualType ::quote\n  :verbName :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"any-on-non-container-throws","query":"42 | any ~(gt 0)","expect":"::verb/VerbWithoutBodyError!{\n  :actualType ::quote\n  :verbName :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
 {"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
 {"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
@@ -23,4 +23,4 @@
 {"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :pos ::verb~(gt 0) | any ~(pos)","expect":"true"}
 {"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :positive ::verb~(gt 0) | any ~positive","expect":"true"}
 {"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :positive ::verb~(gt 0) | any ~positive","expect":"false"}
-{"name":"any-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | any ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}
+{"name":"any-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | any ~above !| [type /slot]","expect":"[::verb/VerbSlotMissingError :limit]"}

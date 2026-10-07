@@ -3,7 +3,7 @@
 // verb body, captured-arg lambda, a verb run as code or as a fold,
 // `apply`, Quote-bodied tag constructor, `runLaws`,
 // locator-loaded module — terminates on the fail-track as
-// `::EvaluationDepthExceededError` with `:depth` and `:limit`.
+// `::call/EvaluationDepthExceededError` with `:depth` and `:limit`.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -14,9 +14,9 @@ import { makeTagKeyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('depth budget — self-calling verb', () => {
-  it('lifts ::EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
+  it('lifts ::call/EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
     const runaway = await evalQuery(':inf ::verb~(add 1 | inf) | 0 | inf');
-    expect(runaway.tag).toEqual(makeTagKeyword('EvaluationDepthExceededError'));
+    expect(runaway.tag).toEqual(makeTagKeyword('call/EvaluationDepthExceededError'));
     expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
     const original = runaway.originalError;
@@ -43,7 +43,7 @@ describe('depth budget — every re-entry seam', () => {
     ['captured-arg lambda naming its own verb',     ':p ::verb~([/] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':r ::verb~(:el ::any | [1] | reduce 0 ~r) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':k ::verb~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', '::T {:impl ~(::T(/))} | ::T(1)']
+    ['Quote-bodied tag constructor minting itself', ':T ::spec~(::T(/)) | ::T(1)']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {
@@ -71,7 +71,7 @@ describe('depth budget — host seams', () => {
           }
         : null)
     });
-    await sessionInstance.evalCell('use :tests/tally');
+    await sessionInstance.evalCell('use ::tests/tally');
     const cellEntry = await sessionInstance.evalCell(
       ':x |~~ ~(:x | runLaws | tallyFrame | count | eq 1) ~~| 1 | :x | runLaws | tallyFrame'
     );
@@ -84,15 +84,16 @@ describe('depth budget — host seams', () => {
     let locatorCalls = 0;
     const sessionInstance = await createSession({
       locator: async (namespaceName) => {
+        if (namespaceName !== 'self') return null;
         locatorCalls++;
-        return namespaceName === 'self' ? { source: 'use :self' } : null;
+        return { source: 'use ::self' };
       }
     });
     // The root and every frame below it reach the locator once; on
     // the frame at the budget, the `:self` captured-arg lambda is
     // the first descent past it, so that frame's `use` step lifts
     // the error before its locator call.
-    await sessionInstance.evalCell('use :self');
+    await sessionInstance.evalCell('use ::self');
     expect(locatorCalls).toBe(EVAL_DEPTH_LIMIT);
   });
 });

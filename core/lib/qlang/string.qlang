@@ -6,37 +6,18 @@
    `prepend` and `append`, under the contracts of their names on
    `::qlang/any`. ~|
 
-::string
-  |~~ The kind of a string, text as it came. A JSON string arrives as a
-      string, and `keyword` makes one a keyword where a key is wanted,
-      since the keys of a map are keywords. Its verbs work on the text
-      whole, by its characters, `count`, `take` and `drop`, or by its
-      lines, and `lines` breaks it into the vector a pipeline reads in
-      pieces. Its literal is written in double quotes
-      with the escapes of JSON, any character raw between them, a line
-      break among them.
-      ::snippet~(::string | spec | /verbs) lists its verbs. ::link~(::keyword | doc)
-      ::link~(::qlang | doc :values)
-
-      ~("x" | type | eq ::string)
-      ~(::string"x" | eq "x")
-      The escapes of JSON, `\"`, `\\`, `\n`, `\t` and `\uXXXX` among them:
-      ~("A\t\"" | eq "A	\"")
-      ~("A" | eq "A")
-  ~~|
-  ::builtin{:impl :qlang/type/string}
-
-::StringPayloadNotStringError
+:StringPayloadNotStringError
   |~~ `::string` reads its payload as the string it is; a value of
       another kind becomes text by `print`.
       ~(
         ::string(1)
         !| [type /actualType]
-        |  eq [::StringPayloadNotStringError ::number]
+        |  eq [::string/StringPayloadNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::FromPlainNumberNotFiniteError
+:FromPlainNumberNotFiniteError
   |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
       magnitude past the double range as one (`1e400` lifts to
       Infinity). The plain-JSON lift refuses it, so a piped document
@@ -45,8 +26,9 @@
       input, the command line's stdin among them, never from a qlang
       literal, which the parser refuses at its own site.
 
-      ~("1e400" | parseJson !| type | eq ::FromPlainNumberNotFiniteError)
+      ~("1e400" | parseJson !| type | eq ::string/FromPlainNumberNotFiniteError)
   ~~|
+  ::spec~()
 
 :gt
   |~~ Whether the subject follows the string the call gives.
@@ -111,24 +93,26 @@
   ~~|
   ::verb~(:separator ::string | :returns ::vec | ::builtin{:impl :qlang/prim/split})
 
-::SplitSubjectNotStringError
+:SplitSubjectNotStringError
   |~~ The subject of `split` is the string it cuts; a vector of strings
       is cut element by element, `* split ","`.
       ~(
         42 | split ","
         !| [type /actualType]
-        |  eq [::SplitSubjectNotStringError ::number]
+        |  eq [::string/SplitSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::SplitSeparatorNotStringError
+:SplitSeparatorNotStringError
   |~~ The separator of `split` is a string, `split ","`.
       ~(
         "abc" | split 42
         !| [type /actualType]
-        |  eq [::SplitSeparatorNotStringError ::number]
+        |  eq [::string/SplitSeparatorNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :lines
   |~~ The lines of a text, as a vector of strings. A `\n` ends a line
@@ -144,15 +128,16 @@
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/lines})
 
-::LinesSubjectNotStringError
+:LinesSubjectNotStringError
   |~~ `lines` breaks a string, the text the command line reads with
       `--raw`; a vector of texts is broken element by element, `* lines`.
       ~(
         42 | lines
         !| [type /actualType]
-        |  eq [::LinesSubjectNotStringError ::number]
+        |  eq [::string/LinesSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :lower
   |~~ The string with every letter in lower case, so two strings that
@@ -163,15 +148,16 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/lower})
 
-::LowerSubjectNotStringError
+:LowerSubjectNotStringError
   |~~ `lower` works on a string; a vector of strings takes it element by
       element, `* lower`, and a field is read first, `/email | lower`.
       ~(
         42 | lower
         !| [type /actualType]
-        |  eq [::LowerSubjectNotStringError ::number]
+        |  eq [::string/LowerSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :upper
   |~~ The string with every letter in upper case.
@@ -180,15 +166,16 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/upper})
 
-::UpperSubjectNotStringError
+:UpperSubjectNotStringError
   |~~ `upper` works on a string; a vector of strings takes it element by
       element, `* upper`.
       ~(
         42 | upper
         !| [type /actualType]
-        |  eq [::UpperSubjectNotStringError ::number]
+        |  eq [::string/UpperSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :trim
   |~~ The string without the whitespace at its two ends, spaces, tabs
@@ -201,15 +188,16 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/trim})
 
-::TrimSubjectNotStringError
+:TrimSubjectNotStringError
   |~~ `trim` works on a string; a vector of strings takes it element by
       element, `* trim`.
       ~(
         42 | trim
         !| [type /actualType]
-        |  eq [::TrimSubjectNotStringError ::number]
+        |  eq [::string/TrimSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :contains
   |~~ Whether the string holds the needle as a substring; the empty
@@ -220,26 +208,28 @@
   ~~|
   ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
 
-::ContainsSubjectNotStringError
+:ContainsSubjectNotStringError
   |~~ The subject of `::string/contains` is the string searched, where the
       address calls it; the name `contains` reaches a vector and a set by
       their elements.
       ~(
         42 | string/contains "x"
         !| [type /actualType]
-        |  eq [::ContainsSubjectNotStringError ::number]
+        |  eq [::string/ContainsSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::ContainsNeedleNotStringError
+:ContainsNeedleNotStringError
   |~~ The needle of `contains` is a string, `contains "x"`; a keyword
       gives its name by `keyword`.
       ~(
         "hi" | contains 42
         !| [type /actualType]
-        |  eq [::ContainsNeedleNotStringError ::number]
+        |  eq [::string/ContainsNeedleNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :startsWith
   |~~ Whether the string begins with the prefix; the empty prefix
@@ -250,24 +240,26 @@
   ~~|
   ::verb~(:prefix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/startsWith})
 
-::StartsWithSubjectNotStringError
+:StartsWithSubjectNotStringError
   |~~ The subject of `startsWith` is the string whose beginning is read;
       a field is read first, `/name | startsWith "a"`.
       ~(
         42 | startsWith "x"
         !| [type /actualType]
-        |  eq [::StartsWithSubjectNotStringError ::number]
+        |  eq [::string/StartsWithSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::StartsWithPrefixNotStringError
+:StartsWithPrefixNotStringError
   |~~ The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
         "hi" | startsWith 42
         !| [type /actualType]
-        |  eq [::StartsWithPrefixNotStringError ::number]
+        |  eq [::string/StartsWithPrefixNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :endsWith
   |~~ Whether the string ends with the suffix; the empty suffix always
@@ -278,24 +270,26 @@
   ~~|
   ::verb~(:suffix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/endsWith})
 
-::EndsWithSubjectNotStringError
+:EndsWithSubjectNotStringError
   |~~ The subject of `endsWith` is the string whose end is read; a field
       is read first, `/file | endsWith ".json"`.
       ~(
         42 | endsWith "x"
         !| [type /actualType]
-        |  eq [::EndsWithSubjectNotStringError ::number]
+        |  eq [::string/EndsWithSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::EndsWithSuffixNotStringError
+:EndsWithSuffixNotStringError
   |~~ The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
         "hi" | endsWith 42
         !| [type /actualType]
-        |  eq [::EndsWithSuffixNotStringError ::number]
+        |  eq [::string/EndsWithSuffixNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :prepend
   |~~ The string with the prefix in front; a tag over the string comes
@@ -306,15 +300,16 @@
   ~~|
   ::verb~(:prefix ::string | :returns / | ::builtin{:impl :qlang/prim/prepend})
 
-::PrependPrefixNotStringError
+:PrependPrefixNotStringError
   |~~ The prefix a string takes is a string; a value of another kind
       becomes one by `print`, `prepend (n | print)`.
       ~(
         "x" | prepend 42
         !| [type /actualType]
-        |  eq [::PrependPrefixNotStringError ::number]
+        |  eq [::string/PrependPrefixNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :append
   |~~ The string with the suffix after it; a tag over the string comes
@@ -324,15 +319,16 @@
   ~~|
   ::verb~(:suffix ::string | :returns / | ::builtin{:impl :qlang/prim/append})
 
-::AppendSuffixNotStringError
+:AppendSuffixNotStringError
   |~~ The suffix a string takes is a string; a value of another kind
       becomes one by `print`, `append (n | print)`.
       ~(
         "x" | append 42
         !| [type /actualType]
-        |  eq [::AppendSuffixNotStringError ::number]
+        |  eq [::string/AppendSuffixNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :parseJson
   |~~ The qlang value a string of plain JSON spells, the reverse of
@@ -349,23 +345,25 @@
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/parseJson})
 
-::ParseJsonSubjectNotStringError
+:ParseJsonSubjectNotStringError
   |~~ `parseJson` reads a string of JSON text; a value becomes such text
       by `json`.
 
       ~(
         42 | parseJson
         !| [type /actualType]
-        |  eq [::ParseJsonSubjectNotStringError ::number]
+        |  eq [::string/ParseJsonSubjectNotStringError ::number]
        )
   ~~|
+  ::spec~()
 
-::ParseJsonInvalidJsonError
+:ParseJsonInvalidJsonError
   |~~ `parseJson` could not parse the subject as JSON. The message
       of the host's parser rides on `:message`.
 
-      ~("{not json" | parseJson !| type | eq ::ParseJsonInvalidJsonError)
+      ~("{not json" | parseJson !| type | eq ::string/ParseJsonInvalidJsonError)
   ~~|
+  ::spec~()
 
 :keyword
   |~~ The keyword the string names, bridging the world of strings, JSON
@@ -382,7 +380,7 @@
   |~~ The quote of the steps the source text spells, the reverse of
       `parse` on a quote. Pair it with `apply /` to evaluate source
       text without leaving qlang. A source the parser refuses answers a
-      `::ParseError` on the fail-track, which `!|` reads like every
+      `::quote/ParseError` on the fail-track, which `!|` reads like every
       other error.
 
       ~("1 | add 1" | parse | count | eq 2)

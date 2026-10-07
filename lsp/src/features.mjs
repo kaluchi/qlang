@@ -12,30 +12,26 @@ import {
   TAG_NAMESPACE,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
-  isModuleNamespaceKey,
-  isTagBindingName,
-  RUNTIME_LOCATOR_KEY,
-  tagBindingKey,
   canonicalTagName,
   tokenize,
   isNameStart,
   isNameContinue,
-  isKeyword,
   isTagKeyword,
-  isVerb,
   typeKeyword,
-  bindingValueOf,
   printQuoteSource,
   signatureSpecOf,
   slotLabelsOf,
   verbShownFor,
-  verbsReaching
+  verbsReaching,
+  verbNames,
+  nodeOf,
+  nodeAddresses
 } from '@kaluchi/qlang-core';
 
-// The fields of a descriptor, which the loader's `use` alone is [D79].
-const F_CATEGORY  = 'category';
-const F_SUBJECT   = 'subject';
-const F_MODIFIERS = 'modifiers';
+// A tag as the server names it, `::number`, apart from the names of verbs.
+const TAG_SIGIL = '::';
+const tagNameOf = tag => TAG_SIGIL + canonicalTagName(tag);
+const isTagName = name => name.startsWith(TAG_SIGIL);
 
 // The prose of a doc, its segments without its quotes [D94], which hover
 // and completion show; a doc the runtime answers is its segments, and a
@@ -70,7 +66,7 @@ function dedent(text) {
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  const query = isTagBindingName(name)
+  const query = isTagName(name)
     ? `${name} | doc`
     : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
   let page;
@@ -124,14 +120,9 @@ export function buildCatalogIndex(catalogAst) {
     // The declarations of a doc's examples belong to the examples.
     if (node.type === 'DocLit') return false;
     if (node.type !== 'BindStep') return;
-    let name;
-    if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
-    else return;
-    index.set(name, {
-      startOffset: node.location.start.offset,
-      endOffset: node.location.end.offset
-    });
+    const span = { startOffset: node.location.start.offset, endOffset: node.location.end.offset };
+    index.set(node.key.name, span);
+    if (bindingKindForKeywordHead(node) === 'tag') index.set(tagNameOf(node.key.name), span);
   });
   return index;
 }
@@ -146,17 +137,13 @@ async function valueNamespaceCompletions() {
   if (_valueCompletions) return _valueCompletions;
   const runtime = await langRuntime();
   _valueCompletions = [];
-  for (const [k, entry] of runtime) {
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    if (isTagBindingName(k)) continue;
-    const descriptor = bindingValueOf(entry);
-    if (!(descriptor instanceof Map) && !isVerb(descriptor)) continue;
-    const docContents = await fetchDocsContents(k);
+  for (const name of verbNames(runtime)) {
+    if (verbShownFor(runtime, name) === undefined) continue;
+    const docContents = await fetchDocsContents(name);
     _valueCompletions.push({
-      label: k,
+      label: name,
       kind: 'function',
-      detail: isVerb(descriptor) ? signatureTextOf(runtime, k) : formatMetaValue(descriptor.get(F_CATEGORY)),
+      detail: signatureTextOf(runtime, name),
       documentation: tidyProse(docContents[0] ?? '')
     });
   }
@@ -167,13 +154,13 @@ async function tagNamespaceCompletions() {
   if (_tagCompletions) return _tagCompletions;
   const runtime = await langRuntime();
   _tagCompletions = [];
-  for (const [k] of runtime) {
-    if (!isTagBindingName(k)) continue;
-    const docContents = await fetchDocsContents(k);
+  for (const address of nodeAddresses(runtime)) {
+    const label = tagNameOf(address);
+    const docContents = await fetchDocsContents(label);
     _tagCompletions.push({
-      label: k,
+      label,
       kind: 'tag',
-      detail: 'tag-binding',
+      detail: 'node of the tree of names',
       documentation: tidyProse(docContents[0] ?? '')
     });
   }
@@ -206,10 +193,11 @@ export async function completionsAtOffset(ast, offset, source = null) {
 function withDeclaredNames(items, ast, offset, namespaces) {
   if (!ast) return items;
   for (const namespace of namespaces) {
-    for (const name of bindingNamesVisibleAt(ast, offset, namespace)) {
+    for (const declared of bindingNamesVisibleAt(ast, offset, namespace)) {
+      const name = namespace === TAG_NAMESPACE ? tagNameOf(declared) : declared;
       if (items.some(item => item.label === name)) continue;
       items.push(namespace === TAG_NAMESPACE
-        ? { label: name, kind: 'tag', detail: 'in-document tag-binding', documentation: null }
+        ? { label: name, kind: 'tag', detail: 'in-document kind', documentation: null }
         : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
     }
   }
@@ -315,16 +303,10 @@ function signatureTextOf(runtime, name) {
 
 async function hoverForOperand(node, documentAst) {
   const runtime = await langRuntime();
-  if (runtime.has(node.name)) {
-    const descriptor = bindingValueOf(runtime.get(node.name));
+  if (verbShownFor(runtime, node.name) !== undefined) {
     const docContents = await fetchDocsContents(node.name);
     const prose = tidyProse(docContents.join('\n'));
-    const heading = isVerb(descriptor)
-      ? [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`]
-      : [
-        `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
-        `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`
-      ];
+    const heading = [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`];
     return {
       content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
@@ -367,9 +349,9 @@ function isOnTagHead(node, offset) {
 
 // The page of a tag a node names or writes, over the span of its head.
 async function hoverForTag(node) {
-  const tagKey = tagBindingKey(node.tag);
+  const tagKey = tagNameOf(node.tag);
   const runtime = await langRuntime();
-  if (!runtime.has(tagKey)) return null;
+  if (nodeOf(runtime, node.tag) === null) return null;
 
   const docContents = await fetchDocsContents(tagKey);
   const headStart = node.location.start.offset;
@@ -378,7 +360,7 @@ async function hoverForTag(node) {
   const prose = tidyProse(docContents.join('\n'));
   return {
     content: markdownHardBreaks([
-      `**${tagKey}** — tag-binding`,
+      `**${tagKey}** — node of the tree of names`,
       '',
       prose
     ].join('\n')),
@@ -396,16 +378,6 @@ function hoverForProjection(node) {
   };
 }
 
-function formatMetaValue(value) {
-  if (value === null || value === undefined) return 'any';
-  if (typeof value === 'string') return value;
-  if (isKeyword(value)) return value.name;
-  if (Array.isArray(value)) {
-    return value.map(formatMetaValue).join(' | ');
-  }
-  return String(value);
-}
-
 // ── Go to Definition ──────────────────────────────────────────
 
 // The declaration a name, a tag name or the head of a tag a node writes
@@ -419,8 +391,8 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 
   let name;
   if (node.type === 'OperandCall')        name = node.name;
-  else if (node.type === 'BareTypeKeyword') name = tagBindingKey(node.tag);
-  else if (isOnTagHead(node, offset))       name = tagBindingKey(node.tag);
+  else if (node.type === 'BareTypeKeyword') name = tagNameOf(node.tag);
+  else if (isOnTagHead(node, offset))       name = tagNameOf(node.tag);
   else return null;
 
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
@@ -433,25 +405,19 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   return null;
 }
 
-// The name a declaration binds and the symbol it shows as: a tag, a verb
-// for the verb literal as its body [D67], a value otherwise.
+// The name a declaration binds and the symbol it shows as: a kind, its
+// tag, for a `::spec~(…)` as its body, a verb for the verb literal [D67],
+// [D152], a value otherwise.
 function bindingDeclarationOf(node) {
-  if (node.type === 'BindStep') {
-    if (node.key.type === 'BareTypeKeyword') {
-      return { name: tagBindingKey(node.key.tag), kind: 'tag' };
-    }
-    if (node.key.type === 'Keyword') {
-      const kind = bindingKindForKeywordHead(node);
-      return { name: node.key.name, kind };
-    }
-    return null;
-  }
-  return null;
+  if (node.type !== 'BindStep') return null;
+  const kind = bindingKindForKeywordHead(node);
+  return { name: kind === 'tag' ? tagNameOf(node.key.name) : node.key.name, kind };
 }
 
+const KIND_OF_DECLARED_BODY = { verb: 'verb', spec: 'tag' };
 function bindingKindForKeywordHead(bindStepNode) {
   const body = bindStepNode.body;
-  return body?.type === 'TaggedLit' && canonicalTagName(body.tag) === 'verb' ? 'verb' : 'value';
+  return (body?.type === 'TaggedLit' && KIND_OF_DECLARED_BODY[canonicalTagName(body.tag)]) || 'value';
 }
 
 // The span of the last declaration of the name that stands before the
@@ -505,20 +471,21 @@ export function referencesAtOffset(ast, offset) {
   if (node.type === 'OperandCall') {
     name = node.name;
   } else if (node.type === 'BindStep') {
-    if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
+    name = bindingDeclarationOf(node).name;
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
       name = node.name;
     }
   } else if (node.type === 'BareTypeKeyword') {
-    name = tagBindingKey(node.tag);
+    name = tagNameOf(node.tag);
   }
 
   if (!name) return [];
 
-  const occurrences = findIdentifierOccurrences(ast, name);
+  const occurrences = isTagName(name)
+    ? findIdentifierOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_NAMESPACE)
+    : findIdentifierOccurrences(ast, name);
   return occurrences
     .filter(occ => occ.location)
     .map(occ => ({
@@ -560,12 +527,10 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   if (!operandCall) return null;
 
   const runtime = await langRuntime();
-  if (!runtime.has(operandCall.name)) return null;
+  const verb = verbShownFor(runtime, operandCall.name);
+  if (verb === undefined) return null;
 
-  const descriptor = bindingValueOf(runtime.get(operandCall.name));
-  const modifiers = isVerb(descriptor)
-    ? slotLabelsOf(verbShownFor(runtime, operandCall.name))
-    : descriptor.get(F_MODIFIERS).map(formatMetaValue);
+  const modifiers = slotLabelsOf(verb);
   const docContents = await fetchDocsContents(operandCall.name);
 
   // The active parameter is the modifier the cursor stands on or after:
@@ -623,14 +588,7 @@ const KIND_TO_TYPE_INDEX = {
 let _builtinNamesCache = null;
 async function builtinNamesForTokenize() {
   if (_builtinNamesCache) return _builtinNamesCache;
-  const runtime = await langRuntime();
-  _builtinNamesCache = new Set();
-  for (const k of runtime.keys()) {
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    if (isTagBindingName(k)) continue;
-    _builtinNamesCache.add(k);
-  }
+  _builtinNamesCache = verbNames(await langRuntime());
   return _builtinNamesCache;
 }
 

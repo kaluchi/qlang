@@ -5,28 +5,7 @@
    steps, so the verbs of vectors read it as one, and a quote under a
    tag, a link or a snippet of a page, reads them through its shape. ~|
 
-::quote
-  |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
-      under the code tag. Code is a value so that a verb takes code as its
-      slot, `filter`, `sort`, `if`; a page holds laws that run and links
-      that lead on; the trail of an error holds the steps it skipped,
-      ready to replay; and a query is read, printed and built like any
-      data. A literal step is the literal itself; a step that computes is
-      a record, `::call`, `::proj`, `::bind` or `::construct`; `*`, `!|`
-      and parentheses wrap their step as `::each`, `::fail` and
-      `::group`. `apply` runs a quote on the subject and `parse` prints
-      it back. ::link~(::each | doc) ::link~(::call | doc)
-      ::link~(::verb | doc)
-      ::link~(::qlang | doc :code)
-
-      ~(~(1 | add 1 | mul 2) | count | eq 3)
-      ~(~(add 1) | eq ~(add 1))
-      ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
-      ~(~(add 1 | mul 2) | filter ~(/name | eq :mul) | parse | eq "mul 2")
-  ~~|
-  ::builtin{:impl :qlang/type/quote}
-
-::QuotePayloadNotVecError
+:QuotePayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
       ::link~(::quote | doc)
@@ -34,11 +13,12 @@
       ~(
         ::quote{:not :steps}
         !| [type /actualType]
-        |  eq [::QuotePayloadNotVecError ::map]
+        |  eq [::quote/QuotePayloadNotVecError ::map]
        )
   ~~|
+  ::spec~()
 
-::QuoteElementNotStepError
+:QuoteElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
       container of steps, or a record or wrapper of code. A value
       with no reading as code, such as a tagged instance of
@@ -48,11 +28,12 @@
       ~(
         [::Box[1]] | tag ::quote
         !| [type /index]
-        |  eq [::QuoteElementNotStepError 0]
+        |  eq [::quote/QuoteElementNotStepError 0]
        )
   ~~|
+  ::spec~()
 
-::ParseError
+:ParseError
   |~~ The source does not read as qlang: `:marker` points where the
       reading stopped, `:expected` lists what could stand there, and a
       source cut short names the bracket it left open.
@@ -60,10 +41,11 @@
 
       ~(
         "42 |" | parse
-        !| type | spec | /category
-        |  eq :parseError
+        !| type
+        |  eq ::quote/ParseError
        )
   ~~|
+  ::spec~()
 
 :parse
   |~~ The source text of the quote, the reverse of `parse` on a string.

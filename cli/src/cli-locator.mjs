@@ -1,5 +1,6 @@
-// The locator of the command line: the module of its noun, `qlang/cli`,
-// with the primitives of its verbs [D80], [D92].
+// The locator of the command line: its provider, `::cli`, bound beside the
+// language at the root, and the module of that path with the primitives
+// of its verbs [D80], [D152].
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -8,13 +9,14 @@ import { makeIoImpls } from './io-operands.mjs';
 import { formatImpls } from './format-operands.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CLI_SOURCE = readFileSync(join(__dirname, '..', 'lib', 'qlang', 'cli.qlang'), 'utf8');
+const catalogFile = name => readFileSync(join(__dirname, '..', 'lib', 'qlang', name), 'utf8');
+const CLI_ROOT_SOURCE = catalogFile('cli-root.qlang');
+const CLI_SOURCE = catalogFile('cli.qlang');
 
 export function createCliLocator(ioContext) {
   const impls = { ...makeIoImpls(ioContext), ...formatImpls };
-  return async (namespaceName) => (namespaceName === 'qlang/cli' ? { source: CLI_SOURCE, impls } : null);
-}
-
-export async function installCliCatalog(session) {
-  await session.evalCell('use :qlang/cli', { uri: 'qlang/cli' });
+  return async (path) => {
+    if (path === 'qlang/core') return { source: CLI_ROOT_SOURCE };
+    return path === 'cli' ? { source: CLI_SOURCE, impls } : null;
+  };
 }

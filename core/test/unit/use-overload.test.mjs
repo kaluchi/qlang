@@ -3,16 +3,16 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { makeTagKeyword } from '../../src/types.mjs';
 import { moduleNamespaceKey } from '../../src/env-keys.mjs';
 
-// ── use(:namespace) ─────────────────────────────────────────────
+// ── use(::namespace) ─────────────────────────────────────────────
 
-describe('use(:namespace) imports bindings', () => {
+describe('use(::namespace) imports bindings', () => {
   it('imports all exports from a namespace Map', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([['hello', 42]]));
-    const cellEntry = await sessionInstance.evalCell('use :myNs | hello');
+    sessionInstance.bind(moduleNamespaceKey('myNs'), new Map([['hello', 42]]));
+    const cellEntry = await sessionInstance.evalCell('use ::myNs | hello');
     expect(cellEntry.result).toBe(42);
   });
 });
@@ -22,9 +22,9 @@ describe('use(:namespace) imports bindings', () => {
 describe('use(Vec) imports in order', () => {
   it('imports from multiple namespaces in Vec order', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns1', new Map([['a', 1]]));
-    sessionInstance.bind('ns2', new Map([['b', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use [:ns1 :ns2] | [a b]');
+    sessionInstance.bind(moduleNamespaceKey('ns1'), new Map([['a', 1]]));
+    sessionInstance.bind(moduleNamespaceKey('ns2'), new Map([['b', 2]]));
+    const cellEntry = await sessionInstance.evalCell('use [::ns1 ::ns2] | [a b]');
     expect(cellEntry.result).toEqual([1, 2]);
   });
 });
@@ -34,42 +34,42 @@ describe('use(Vec) imports in order', () => {
 describe('use(Set) detects collision', () => {
   it('throws UseNamespaceCollisionError when two namespaces export the same name', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('nsA', new Map([['x', 1]]));
-    sessionInstance.bind('nsB', new Map([['x', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use #[:nsA :nsB] !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceCollisionError'));
+    sessionInstance.bind(moduleNamespaceKey('nsA'), new Map([['x', 1]]));
+    sessionInstance.bind(moduleNamespaceKey('nsB'), new Map([['x', 2]]));
+    const cellEntry = await sessionInstance.evalCell('use #[::nsA ::nsB] !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceCollisionError'));
   });
 });
 
-// ── use(:ns, filter) selective ─────────────────────────────────
+// ── use(::ns, filter) selective ─────────────────────────────────
 
-describe('use(:ns, filter) selective import', () => {
+describe('use(::ns, filter) selective import', () => {
   it('imports only the selected export', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([['foo', 10], ['bar', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use :myNs [:foo] | foo');
+    sessionInstance.bind(moduleNamespaceKey('myNs'), new Map([['foo', 10], ['bar', 20]]));
+    const cellEntry = await sessionInstance.evalCell('use ::myNs [:foo] | foo');
     expect(cellEntry.result).toBe(10);
   });
 
   it('rejects missing export → UseNameNotExportedError', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('myNs', new Map([['foo', 10]]));
-    const cellEntry = await sessionInstance.evalCell('use :myNs [:missing] !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNameNotExportedError'));
+    sessionInstance.bind(moduleNamespaceKey('myNs'), new Map([['foo', 10]]));
+    const cellEntry = await sessionInstance.evalCell('use ::myNs [:missing] !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNameNotExportedError'));
   });
 });
 
-// ── use(:missing) ───────────────────────────────────────────────
+// ── use(::missing) ───────────────────────────────────────────────
 
-describe('use(:missing) → UseNamespaceNotFoundError', () => {
+describe('use(::missing) → UseNamespaceNotFoundError', () => {
   it('produces UseNamespaceNotFoundError when namespace not in env', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use :missing !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const cellEntry = await sessionInstance.evalCell('use ::missing !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
   });
 });
 
-// ── use(:name) where :name is an identifier-plane binding ──────
+// ── use(::name) where :name is an identifier-plane binding ──────
 //
 // A namespace is a header-less Map a host bound with no declaration
 // behind it. An operand descriptor or a verb bound under the same
@@ -79,87 +79,80 @@ describe('use(:missing) → UseNamespaceNotFoundError', () => {
 // UseNamespaceNotFoundError — a tagged Map's internal slots (`:impl`,
 // `:envRef`) never spill into env.
 
-describe('use(:name) walks past identifier-plane bindings under the bare name', () => {
-  it('use(:count) walks past the ::builtin descriptor under the bare name and lands on UseNamespaceNotFoundError', async () => {
+describe('use(::name) walks past identifier-plane bindings under the bare name', () => {
+  it('use(::count) walks past the ::builtin descriptor under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use :count !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const cellEntry = await sessionInstance.evalCell('use ::count !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
     const probeCell = await sessionInstance.evalCell('env | has :category');
     expect(probeCell.result).toBe(false);
   });
 
-  it('use(:double) walks past the verb under the bare name and lands on UseNamespaceNotFoundError', async () => {
+  it('use(::double) walks past the verb under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell(':double ::verb~(mul 2) | use :double !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const cellEntry = await sessionInstance.evalCell(':double ::verb~(mul 2) | use ::double !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
     const probeCell = await sessionInstance.evalCell('env | has :envRef');
     expect(probeCell.result).toBe(false);
   });
 
-  it('use(:cfg) walks past the freeze under the bare name and lands on UseNamespaceNotFoundError', async () => {
+  it('use(::cfg) walks past the freeze under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('{:a 1} | :cfg / | use :cfg !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const cellEntry = await sessionInstance.evalCell('{:a 1} | :cfg / | use ::cfg !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
   });
 
-  it('use(:notMap) walks past a host-bound scalar under the bare name and lands on UseNamespaceNotFoundError', async () => {
+  it('use(::notMap) walks past a host-bound scalar under the bare name and lands on UseNamespaceNotFoundError', async () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('notMap', 42);
-    const cellEntry = await sessionInstance.evalCell('use :notMap !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const cellEntry = await sessionInstance.evalCell('use ::notMap !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
   });
 
-  it('the namespace cache key wins over a header-less Map bound under the bare name', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('ns', new Map([['origin', 'bare']]));
-    sessionInstance.bind(moduleNamespaceKey('ns'), new Map([['origin', 'cache']]));
-    const cellEntry = await sessionInstance.evalCell('use :ns | origin');
-    expect(cellEntry.result).toBe('cache');
-  });
 });
 
 // ── use(non-keyword) ────────────────────────────────────────────
 
 describe('use(non-keyword) → the slot refuses it', () => {
-  it('produces UseNamespaceNotKeywordError error for numeric argument', async () => {
+  it('produces UseNamespaceNotTagError error for numeric argument', async () => {
     const evalResult = await evalQuery('use 42 !| type');
-    expect(evalResult).toEqual(makeTagKeyword('VerbSlotNotOfKindsError'));
+    expect(evalResult).toEqual(makeTagKeyword('verb/VerbSlotNotOfKindsError'));
   });
 });
 
 // ── use Vec with non-keyword element ────────────────────────────
 
-describe('use Vec with non-keyword element → UseNamespaceElementNotKeywordError', () => {
-  it('produces UseNamespaceElementNotKeywordError for non-keyword in Vec', async () => {
+describe('use Vec with non-keyword element → UseNamespaceElementNotTagError', () => {
+  it('produces UseNamespaceElementNotTagError for non-keyword in Vec', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns1', new Map([['a', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use [:ns1 42] !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('UseNamespaceElementNotKeywordError'));
+    sessionInstance.bind(moduleNamespaceKey('ns1'), new Map([['a', 1]]));
+    const cellEntry = await sessionInstance.evalCell('use [::ns1 42] !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/UseNamespaceElementNotTagError'));
   });
 });
 
 describe('use Set without collision succeeds', () => {
   it('imports from Set when no collisions', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('a', new Map([['x', 10]]));
-    sessionInstance.bind('b', new Map([['y', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use #[:a :b] | add x y');
+    sessionInstance.bind(moduleNamespaceKey('a'), new Map([['x', 10]]));
+    sessionInstance.bind(moduleNamespaceKey('b'), new Map([['y', 20]]));
+    const cellEntry = await sessionInstance.evalCell('use #[::a ::b] | add x y');
     expect(cellEntry.result).toBe(30);
   });
 });
 
 describe('use arity-2 with non-keyword namespace', () => {
-  it('produces UseNamespaceNotKeywordError', async () => {
-    const evalResult = await evalQuery('use [:a] #[:x] !| type');
-    expect(evalResult.name).toBe('UseNamespaceNotKeywordError');
+  it('produces UseNamespaceNotTagError', async () => {
+    const evalResult = await evalQuery('use [::a] #[:x] !| type');
+    expect(evalResult.name).toBe('any/UseNamespaceNotTagError');
   });
 });
 
 describe('use selective with Vec filter', () => {
   it('accepts Vec as selection filter', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('lib', new Map([['x', 10], ['y', 20]]));
-    const cellEntry = await sessionInstance.evalCell('use :lib [:x] | x');
+    sessionInstance.bind(moduleNamespaceKey('lib'), new Map([['x', 10], ['y', 20]]));
+    const cellEntry = await sessionInstance.evalCell('use ::lib [:x] | x');
     expect(cellEntry.result).toBe(10);
   });
 });
@@ -169,18 +162,18 @@ import { QlangTypeError } from '../../src/errors.mjs';
 describe('per-site error triple-assertions', () => {
   it('UseNamespaceNotFoundError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('use :nonexistent');
+    const cellEntry = await sessionInstance.evalCell('use ::nonexistent');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceNotFoundError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
-    expect(originalErr.context.namespaceName).toBe('nonexistent');
+    expect(originalErr.context.namespaceName.literal).toBe('::nonexistent');
   });
 
   it('UseNamespaceCollisionError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('a', new Map([['x', 1]]));
-    sessionInstance.bind('b', new Map([['x', 2]]));
-    const cellEntry = await sessionInstance.evalCell('use #[:a :b]');
+    sessionInstance.bind(moduleNamespaceKey('a'), new Map([['x', 1]]));
+    sessionInstance.bind(moduleNamespaceKey('b'), new Map([['x', 2]]));
+    const cellEntry = await sessionInstance.evalCell('use #[::a ::b]');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNamespaceCollisionError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
@@ -189,28 +182,28 @@ describe('per-site error triple-assertions', () => {
 
   it('UseNameNotExportedError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('lib', new Map([['x', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use :lib #[:z]');
+    sessionInstance.bind(moduleNamespaceKey('lib'), new Map([['x', 1]]));
+    const cellEntry = await sessionInstance.evalCell('use ::lib #[:z]');
     const originalErr = cellEntry.result.originalError;
     expect(originalErr.name).toBe('UseNameNotExportedError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
-    expect(originalErr.context.namespaceName).toBe('lib');
+    expect(originalErr.context.namespaceName).toBe('::lib');
     expect(originalErr.context.exportName).toBe('z');
   });
 
-  it('UseNamespaceElementNotKeywordError: name, instanceof, context', async () => {
+  it('UseNamespaceElementNotTagError: name, instanceof, context', async () => {
     const sessionInstance = await createSession();
-    sessionInstance.bind('ns', new Map([['x', 1]]));
-    const cellEntry = await sessionInstance.evalCell('use [:ns 42]');
+    sessionInstance.bind(moduleNamespaceKey('ns'), new Map([['x', 1]]));
+    const cellEntry = await sessionInstance.evalCell('use [::ns 42]');
     const originalErr = cellEntry.result.originalError;
-    expect(originalErr.name).toBe('UseNamespaceElementNotKeywordError');
+    expect(originalErr.name).toBe('UseNamespaceElementNotTagError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
-  it('UseNamespaceNotKeywordError: name, instanceof, context', async () => {
-    const evalResult = await evalQuery('use [:a] #[:x]');
+  it('UseNamespaceNotTagError: name, instanceof, context', async () => {
+    const evalResult = await evalQuery('use [::a] #[:x]');
     const originalErr = evalResult.originalError;
-    expect(originalErr.name).toBe('UseNamespaceNotKeywordError');
+    expect(originalErr.name).toBe('UseNamespaceNotTagError');
     expect(originalErr).toBeInstanceOf(QlangTypeError);
   });
 
@@ -228,29 +221,52 @@ describe('higher-order lambda fail-track deflection into !|', () => {
   // the higher-order operand returns that error value as its own
   // result. Downstream the success-track `|` deflects the error, so
   // we route the next step through `!|` to fire on it and project
-  // `:category` out of the materialized descriptor.
+  // its tag.
   it('every returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | every ~(thisIsNotDefined) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
+    const evalResult = await evalQuery('[1 2 3] | every ~(thisIsNotDefined) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
   });
 
   it('any returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | any ~(thisIsNotDefined) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
+    const evalResult = await evalQuery('[1 2 3] | any ~(thisIsNotDefined) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
   });
 
   it('groupBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | groupBy ~(thisIsNotDefined) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
+    const evalResult = await evalQuery('[1 2 3] | groupBy ~(thisIsNotDefined) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
   });
 
   it('indexBy returns the error raised by its key lambda', async () => {
-    const evalResult = await evalQuery('[1 2 3] | indexBy ~(thisIsNotDefined) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
+    const evalResult = await evalQuery('[1 2 3] | indexBy ~(thisIsNotDefined) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
   });
 
   it('filter returns the error raised by its predicate', async () => {
-    const evalResult = await evalQuery('[1 2 3] | filter ~(thisIsNotDefined) !| type | spec | /category');
-    expect(evalResult).toEqual(keyword('unresolvedIdentifier'));
+    const evalResult = await evalQuery('[1 2 3] | filter ~(thisIsNotDefined) !| type');
+    expect(evalResult).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
+  });
+});
+
+describe('a module read in a scope of its own [D63], [D152]', () => {
+  it('keeps the modules its own use loaded, and passes none of their names on', async () => {
+    let askedForInner = 0;
+    const sessionInstance = await createSession({
+      locator: async path => {
+        if (path === 'outer') return { source: 'use ::inner | :x 1' };
+        if (path === 'inner') { askedForInner++; return { source: ':y 2' }; }
+        return null;
+      }
+    });
+    expect((await sessionInstance.evalCell('use ::outer | x')).result).toBe(1);
+    expect((await sessionInstance.evalCell('use ::outer | y !| type')).result).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
+    expect((await sessionInstance.evalCell('use ::outer | use ::inner | y')).result).toBe(2);
+    expect(askedForInner).toBe(1);
+  });
+
+  it('refuses an element of a set of modules that is no tag', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind(moduleNamespaceKey('a'), new Map([['x', 1]]));
+    expect((await sessionInstance.evalCell('use #[::a 42] !| type')).result).toEqual(makeTagKeyword('any/UseNamespaceElementNotTagError'));
   });
 });

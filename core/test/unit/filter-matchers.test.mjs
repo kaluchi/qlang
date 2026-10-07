@@ -70,7 +70,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with an unresolved name for pred — surfaces on fail-track', async () => {
     const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
-    expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+    expect(errorValue).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
   });
 
   it('Map with a value bound for pred — every entry passes', async () => {
@@ -261,7 +261,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
-    // key now errors (::ProjectionKeyNotInMapError) instead of silently
+    // key now errors (::proj/ProjectionKeyNotInMapError) instead of silently
     // returning null.
     expect(await evalQuery('{:nothing null} | /nothing | type | eq ::null')).toBe(true);
     expect(await evalQuery('0 | type | eq ::null')).toBe(false);

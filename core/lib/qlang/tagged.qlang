@@ -2,47 +2,31 @@
    tagged values. Each resides on `::qlang/tagged`, which the walk of a
    tagged value reaches after its own tags. ~|
 
-::tagged
-  |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
-      whatever the payload: the walk from a tagged value to its verb
-      passes its own tags, then this kind, then the kind of its payload's
-      shape. The verbs that take a tag apart live here, `payload`, which
-      answers the value beneath, and `within`, which edits it and puts
-      the tag back through its constructor. A value is put under a tag
-      by a literal, `::T<payload>`, a step of its own kind, or by `tag`.
-      ::link~(::tag | doc) ::link~(::construct | doc)
-      ::link~(::qlang | doc :values)
-
-      Every value under a tag reaches the verbs of this kind:
-      ~(::Box {} | ::Box[1 2] | payload | eq [1 2])
-      The step that builds one is no value of this kind:
-      ~(~(::Box[1 2]) | first | type | eq ::construct)
-  ~~|
-
 :payload
   |~~ The value the tag holds, the reverse of `tag`: `value | tag ::Foo
       | payload | eq value` holds of every value. A set's payload is its
       vector.
 
-      ~(::Box {} | ::Box[42] | payload | eq [42])
-      ~(::Pair {} | ::Pair[1 2] | payload | eq [1 2])
-      ~(::Note {} | ::Note"hello" | payload | eq "hello")
+      ~(:Box ::spec~() | ::Box[42] | payload | eq [42])
+      ~(:Pair ::spec~() | ::Pair[1 2] | payload | eq [1 2])
+      ~(:Note ::spec~() | ::Note"hello" | payload | eq "hello")
       ~(#[2 1] | payload | eq [1 2])
-      The declaration of a kind is a map under `::builtin`, taken apart
+      The declaration of a kind is a quote under `::spec`, taken apart
       the same way:
-      ~(::vec | spec | payload | keys | has :verbs)
+      ~(::vec | spec | payload | type | eq ::quote)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/payload})
 
-::PayloadSubjectNotTaggedInstanceError
+:PayloadSubjectNotTaggedInstanceError
   |~~ `payload` takes a value under a tag; a value of a kind of the
       core, a number or a plain map, stands under none.
       ~(
         42 | payload
         !| [type /actualType]
-        |  eq [::PayloadSubjectNotTaggedInstanceError ::number]
+        |  eq [::tagged/PayloadSubjectNotTaggedInstanceError ::number]
        )
   ~~|
+  ::spec~()
 
 :within
   |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
@@ -56,28 +40,30 @@
       of tags is reached by nesting `within`.
 
       ~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
-      ~(::Box {} | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
-      ~(::Box {} | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
+      ~(:Box ::spec~() | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+      ~(:Box ::spec~() | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
   ~~|
   ::verb~(:code ::quote | :returns / | ::builtin{:impl :qlang/prim/within})
 
-::WithinSubjectNotTaggedInstanceError
+:WithinSubjectNotTaggedInstanceError
   |~~ `within` edits the value beneath a tag and puts the tag back; a
       value under no tag is edited by `apply`.
       ~(
         [1 2] | within ~(reverse)
         !| [type /actualType]
-        |  eq [::WithinSubjectNotTaggedInstanceError ::vec]
+        |  eq [::tagged/WithinSubjectNotTaggedInstanceError ::vec]
        )
   ~~|
+  ::spec~()
 
-::WithinCodeNotQuoteError
+:WithinCodeNotQuoteError
   |~~ The edit `within` runs is a quote, `within ~(reverse)`; a value
       computed at the call is refused, the error a step answered there
       among them.
       ~(
         #[3 1] | within 1
         !| [type /actualType]
-        |  eq [::WithinCodeNotQuoteError ::number]
+        |  eq [::tagged/WithinCodeNotQuoteError ::number]
        )
   ~~|
+  ::spec~()

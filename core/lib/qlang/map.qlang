@@ -5,60 +5,39 @@
    values, and its keys are the shape that travels with them: a
    verb that keeps the kind keeps the keys of the entries it keeps. ~|
 
-::map
-  |~~ The kind of a map, the value of a `{…}` literal: named facts under
-      keywords, the shape a JSON object arrives in. A map literal is also
-      the shape an answer takes, each value a group run on the subject,
-      `{:id /id :n (/tags | count)}`; `/k` reads a field, and `*` over
-      a map runs a step on each value under its key. A JSON object is a
-      map literal too, its string keys read as keywords, so JSON pastes
-      into a query as it is; one literal is written in one of the two
-      forms, and a key written twice holds its last value. A map comes
-      apart into its pairs `[key value]` by `entries` and back by
-      `tag ::map`, which reads a key written as a string or a number as
-      the keyword of its text.
-      ::snippet~(::map | spec | /verbs) lists its verbs. ::link~(::proj | doc)
-      ::link~(::qlang | doc :values)
-
-      ~({:a 1} | type | eq ::map)
-      ~(::map{:a 1} | eq {:a 1})
-      ~({"a": 1, "b": [true, null]} | eq {:a 1 :b [true null]})
-      ~({:a 1 :a 2} | eq {:a 2})
-      ~([[:a 1] ["b" 2]] | tag ::map | eq {:a 1 :b 2})
-      ~({:a 1 :b 2} | entries | tag ::map | eq {:a 1 :b 2})
-  ~~|
-  ::builtin{:impl :qlang/type/map}
-
-::MapPayloadNotMapError
+:MapPayloadNotMapError
   |~~ `::map` reads a map as the map it is and a vector as its pairs;
       a payload of another kind is refused.
       ~(
         ::map(1)
         !| [type /actualType]
-        |  eq [::MapPayloadNotMapError ::number]
+        |  eq [::map/MapPayloadNotMapError ::number]
        )
   ~~|
+  ::spec~()
 
-::MapElementNotPairError
+:MapElementNotPairError
   |~~ Each element of the vector `::map` builds from is a pair `[key
       value]`; `:index` names the first that is not.
       ~(
         [[:a 1] [:b]] | tag ::map
         !| [type /index]
-        |  eq [::MapElementNotPairError 1]
+        |  eq [::map/MapElementNotPairError 1]
        )
   ~~|
+  ::spec~()
 
-::MapKeyNotKeywordError
+:MapKeyNotKeywordError
   |~~ The key of a pair is a keyword, or a string or a number naming the
       keyword of its text; `:index` names the pair whose key is another
       value.
       ~(
         [[[1] 2]] | tag ::map
         !| [type /actualType /index]
-        |  eq [::MapKeyNotKeywordError ::vec 0]
+        |  eq [::map/MapKeyNotKeywordError ::vec 0]
        )
   ~~|
+  ::spec~()
 
 :count
   |~~ The number of entries.
@@ -171,7 +150,7 @@
   |~~ The value at the key, a keyword or a string, both naming the key
       as the map stores it, or null for a key the map lacks: the soft
       counterpart of the strict `/key` projection, which refuses a
-      miss with `::ProjectionKeyNotInMapError`.
+      miss with `::proj/ProjectionKeyNotInMapError`.
 
       ~({:a 1 :b 2} | at :a | eq 1)
       ~({:a 1 :b 2} | at "a" | eq 1)
@@ -179,7 +158,7 @@
   ~~|
   ::verb~(:key #[::keyword ::string] | ::builtin{:impl :qlang/prim/at})
 
-::AtKeyNotKeywordOrStringError
+:AtKeyNotKeywordOrStringError
   |~~ The key of `at` on a map is a keyword or a string, both naming the
       key as the map stores it: `at :email`. A modifier is computed
       against the subject before `at` runs, so `at /email` reads the
@@ -189,11 +168,12 @@
       ~(
         {:a 1} | at 42
         !| [type /actualType]
-        |  eq [::AtKeyNotKeywordOrStringError ::number]
+        |  eq [::map/AtKeyNotKeywordOrStringError ::number]
        )
       ~({:email {:home "a@b"}} | at /email !| /actualValue | eq {:home "a@b"})
       ~({:email {:home "a@b"}} | at :email | eq {:home "a@b"})
   ~~|
+  ::spec~()
 
 :reverse
   |~~ The entries in the reverse order, their keys kept.
@@ -217,16 +197,17 @@
   ~~|
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/keys})
 
-::KeysSubjectNotMapError
+:KeysSubjectNotMapError
   |~~ `keys` answers the keys of a map; a vector of maps answers them
       element by element, `* keys`, and a vector's own places are its
       indices, `/0`.
       ~(
         42 | keys
         !| [type /actualType]
-        |  eq [::KeysSubjectNotMapError ::number]
+        |  eq [::map/KeysSubjectNotMapError ::number]
        )
   ~~|
+  ::spec~()
 
 :vals
   |~~ The vector of the values, in the order of the entries.
@@ -235,15 +216,16 @@
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/vals})
 
-::ValsSubjectNotMapError
+:ValsSubjectNotMapError
   |~~ `vals` answers the values of a map; a vector of maps answers them
       element by element, `* vals`.
       ~(
         [1 2] | vals
         !| [type /actualType]
-        |  eq [::ValsSubjectNotMapError ::vec]
+        |  eq [::map/ValsSubjectNotMapError ::vec]
        )
   ~~|
+  ::spec~()
 
 :entries
   |~~ The vector of the pairs `[key value]` of the map, in the order of
@@ -258,15 +240,16 @@
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/entries})
 
-::EntriesSubjectNotMapError
+:EntriesSubjectNotMapError
   |~~ `entries` answers the pairs of a map; a vector of maps answers
       them element by element, `* entries`.
       ~(
         [1 2] | entries
         !| [type /actualType]
-        |  eq [::EntriesSubjectNotMapError ::vec]
+        |  eq [::map/EntriesSubjectNotMapError ::vec]
        )
   ~~|
+  ::spec~()
 
 :has
   |~~ Whether the map holds the key, a keyword or a string, both naming
@@ -278,15 +261,16 @@
   ~~|
   ::verb~(:key #[::keyword ::string] | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
 
-::HasKeyNotKeywordOrStringError
+:HasKeyNotKeywordOrStringError
   |~~ The key of `has` on a map is a keyword or a string, both naming
       the key as the map stores it.
       ~(
         {:a 1} | has 42
         !| [type /actualType]
-        |  eq [::HasKeyNotKeywordOrStringError ::number]
+        |  eq [::map/HasKeyNotKeywordOrStringError ::number]
        )
   ~~|
+  ::spec~()
 
 :union
   |~~ The entries of both maps, the other map's value winning a key both
@@ -315,25 +299,27 @@
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
 
-::MinusKeyNotKeywordOrStringError
+:MinusKeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
       names the first element of the other operand that is neither.
       ~(
         {:a 1} | minus [:a 1]
         !| [type /actualType /index]
-        |  eq [::MinusKeyNotKeywordOrStringError ::number 1]
+        |  eq [::map/MinusKeyNotKeywordOrStringError ::number 1]
        )
   ~~|
+  ::spec~()
 
-::InterKeyNotKeywordOrStringError
+:InterKeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
       names the first element of the other operand that is neither.
       ~(
         {:a 1} | inter [[:a]]
         !| [type /actualType /index]
-        |  eq [::InterKeyNotKeywordOrStringError ::vec 0]
+        |  eq [::map/InterKeyNotKeywordOrStringError ::vec 0]
        )
   ~~|
+  ::spec~()
 
 :raise
   |~~ Puts the map on the fail track as an error, the act the `!{…}`
@@ -348,7 +334,7 @@
       Its tag is the one its value shows, the outermost tag over the
       map, then the one the map carries, then a `:kind` that names a
       tag, then `::error`, so an opened error raised again is itself:
-      ~("x" | add 1 !| raise !| type | eq ::AddLeftNotNumberError)
+      ~("x" | add 1 !| raise !| type | eq ::number/AddLeftNotNumberError)
       A step that lays a tag over an opened error renames it:
       ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
       A guard raises an error of its own tag when a value fails its
@@ -357,12 +343,13 @@
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/raise})
 
-::RaiseSubjectNotMapError
+:RaiseSubjectNotMapError
   |~~ `raise` puts a map on the fail track.
 
       ~(
         42 | raise
         !| [type /actualType]
-        |  eq [::RaiseSubjectNotMapError ::number]
+        |  eq [::map/RaiseSubjectNotMapError ::number]
        )
   ~~|
+  ::spec~()

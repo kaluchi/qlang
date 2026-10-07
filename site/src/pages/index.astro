@@ -1,9 +1,9 @@
 ---
 import Base from "../layouts/Base.astro"
-import { parse, walkAst, langRuntime } from "@kaluchi/qlang-core"
+import { parse, walkAst, langRuntime, verbNames } from "@kaluchi/qlang-core"
 import { formatExample } from "../lib/format-example.js"
 
-const builtins = new Set([...(await langRuntime()).keys()])
+const builtins = verbNames(await langRuntime())
 
 const examples = [
   {
@@ -197,12 +197,12 @@ const features = [
   import { highlightQlang as hl } from '../lib/qlang-highlight.js';
 
   async function initRepl() {
-    const { evalQuery, printValue, langRuntime, inlineCatalogLocator } = await import(
+    const { evalQuery, printValue, langRuntime, inlineCatalogLocator, verbNames } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
     const env = await langRuntime({ locator: inlineCatalogLocator });
-    const builtins = new Set([...env.keys()]);
+    const builtins = verbNames(env);
     const hi = (src: string) => hl(src, builtins);
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;

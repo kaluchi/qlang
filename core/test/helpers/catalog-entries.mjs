@@ -1,25 +1,18 @@
-// The catalog a session holds, as the entries a test walks: every verb
-// or every tag bound in the session's environment, each its
-// declaration, the value of its record [D63], with the name it is bound
-// under, `:name`, in the order of the names. `manifest` answers the
-// tree of names [D62], so a test that reads every declaration reads the
-// environment itself.
+// The catalog a session holds, as the entries a test walks [D152]: with
+// `tags`, every node the language's module binds, its kinds and the
+// pages of its concepts, each named by its tag, `::number`; without,
+// the names the scope binds to a descriptor, which no module of the
+// language leaves. Each entry carries the name it is read by, `:name`,
+// in the order of the names. What lies under a noun `::qlang | manifest
+// * manifest` answers.
 
-import { isRuntimeKey, isTagBindingName } from '../../src/env-keys.mjs';
-import { isQMap, bindingValueOf, TAG_HEADER_SYMBOL, stampTagHeader } from '../../src/types.mjs';
-
-function carriesBuiltinShape(value) {
-  return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === 'builtin';
-}
+import { exportsOfModule, LANGUAGE_PATH } from '../../src/runtime/nouns.mjs';
+import { isRuntimeKey } from '../../src/env-keys.mjs';
+import { bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 
 export function catalogEntriesOf(env, { tags }) {
-  const entries = [];
-  for (const [name, record] of env) {
-    const declaration = bindingValueOf(record);
-    if (isRuntimeKey(name) || isTagBindingName(name) !== tags || !carriesBuiltinShape(declaration)) continue;
-    const entry = new Map([['name', name], ...declaration]);
-    stampTagHeader(entry, declaration[TAG_HEADER_SYMBOL]);
-    entries.push(entry);
-  }
-  return entries.sort((left, right) => (left.get('name') < right.get('name') ? -1 : 1));
+  const names = tags
+    ? [...(exportsOfModule(env, LANGUAGE_PATH)?.keys() ?? [])].map(name => `::${name}`)
+    : [...env.keys()].filter(name => !isRuntimeKey(name) && bindingValueOf(env.get(name))?.[TAG_HEADER_SYMBOL]?.name === 'builtin');
+  return names.sort().map(name => new Map([['name', name]]));
 }

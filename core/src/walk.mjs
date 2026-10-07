@@ -11,7 +11,7 @@
 // `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey, canonicalTagName } from './env-keys.mjs';
+import { canonicalTagName } from './env-keys.mjs';
 
 // Namespace alias values used by `bindingNamesVisibleAt` to select
 // which BindStep declaration shapes count toward the result
@@ -141,10 +141,16 @@ export function moduleUriOf(node) {
   return root.uri;
 }
 
-// declaredNameOf(bindStep) — the env key a declaration writes: the
-// name of a keyword, a tag's under the `::` prefix.
+// declaredNameOf(bindStep) — the name a declaration writes, its keyword's
+// [D152].
 export function declaredNameOf(bindStep) {
-  return bindStep.key.type === 'BareTypeKeyword' ? tagBindingKey(bindStep.key.tag) : bindStep.key.name;
+  return bindStep.key.name;
+}
+
+// declaresKind(bindStep) — whether a declaration's body is a kind's,
+// `:Box ::spec~(…)` [D152].
+export function declaresKind(bindStep) {
+  return bindStep.body?.type === 'TaggedLit' && canonicalTagName(bindStep.body.tag) === 'spec';
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
@@ -192,39 +198,23 @@ export function findAstNodeAtOffset(ast, offset) {
   return narrowest;
 }
 
-// findIdentifierOccurrences(ast, name) — returns every AST node
-// that names the given qlang identifier. Supports both namespaces:
-//
-//   * Value-namespace lookup (`name` is a plain identifier like
-//     `'foo'`):
-//       - OperandCall whose .name matches (read site or bare ident)
-//       - BindStep whose Keyword key names the identifier
-//         (declaration site — `:foo body` form)
-//       - Projection whose .keys contains the name (Map field read)
-//
-//   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
-//     `'::Tag'`):
-//       - TaggedLit whose .tag matches (constructor invocation), and
-//         the ErrorLit that writes the tag before its bang [D86]
-//       - BareTypeKeyword whose .tag matches (identifier reference)
-//       - BindStep whose BareTypeKeyword key names the identifier
-//         (declaration site — `::Tag body`)
+// findIdentifierOccurrences(ast, name, namespace?) — returns every AST
+// node that names the given qlang identifier. In the value namespace:
+// a call of the name, its declaration, `:foo body`, and a projection
+// that reads it as a key. In the tag namespace, a kind's name [D152]:
+// its declaration, a tagged literal or an error literal that writes it
+// [D86], and the tag name standing alone.
 //
 // Keyword literals (`:foo` value-position) stay out of the
 // result set: a `:foo` literal in value position is a keyword
 // value, addressable by `eq :foo` predicates but separate from
 // identifier resolution.
-export function findIdentifierOccurrences(ast, name) {
-  if (isTagBindingName(name)) {
-    return findTagNamespaceOccurrences(ast, name.slice(TAG_BINDING_PREFIX.length));
-  }
+export function findIdentifierOccurrences(ast, name, namespace = VALUE_NAMESPACE) {
+  if (namespace === TAG_NAMESPACE) return findTagNamespaceOccurrences(ast, canonicalTagName(name));
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
-    else if (node.type === 'BindStep'
-             && node.key.type === 'Keyword' && node.key.name === name) {
-      occurrences.push(node);
-    }
+    else if (node.type === 'BindStep' && node.key.name === name) occurrences.push(node);
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -242,10 +232,7 @@ function findTagNamespaceOccurrences(ast, tagName) {
   walkAst(ast, (node) => {
     if (writesTag(node) && canonicalTagName(node.tag) === tagName) occurrences.push(node);
     else if (node.type === 'BareTypeKeyword' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
-    else if (node.type === 'BindStep'
-             && node.key.type === 'BareTypeKeyword' && canonicalTagName(node.key.tag) === tagName) {
-      occurrences.push(node);
-    }
+    else if (node.type === 'BindStep' && declaresKind(node) && node.key.name === tagName) occurrences.push(node);
   });
   return occurrences;
 }
@@ -275,13 +262,9 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // user type at this cursor position without an unresolved-
 // identifier error?"
 //
-// `namespace` picks which declaration shapes contribute:
-//   - `'value'` (default) — BindStep with a Keyword key (`:name body`).
-//     Names land bare (`'foo'`).
-//   - `'tag'` — BindStep with a BareTypeKeyword key (`::Tag body`).
-//     Names land with the `::Tag` prefix so the Set is directly
-//     comparable with tag-namespace identifiers from env (which
-//     all carry the `::` prefix as part of their env key).
+// `namespace` picks which declarations contribute, each by its name:
+//   - `'value'` (default) — every declaration, `:name body`.
+//   - `'tag'` — the declarations of kinds, `:Box ::spec~(…)` [D152].
 //
 // Visibility rules, mirroring the runtime fork semantics:
 //   1. The declaring node must already have been completed at the
@@ -295,20 +278,8 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    let bindingName;
-    if (namespace === TAG_NAMESPACE) {
-      if (node.type === 'BindStep' && node.key.type === 'BareTypeKeyword') {
-        bindingName = tagBindingKey(node.key.tag);
-      } else {
-        return;
-      }
-    } else {
-      if (node.type === 'BindStep' && node.key.type === 'Keyword') {
-        bindingName = node.key.name;
-      } else {
-        return;
-      }
-    }
+    if (node.type !== 'BindStep' || (namespace === TAG_NAMESPACE && !declaresKind(node))) return;
+    const bindingName = node.key.name;
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;
     let parent = current.parent;

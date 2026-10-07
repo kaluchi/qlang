@@ -89,13 +89,13 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('writes a structured ::ParseError!{…} diagnostic on stderr for parse failures', async () => {
+  it('writes a structured ::quote/ParseError!{…} diagnostic on stderr for parse failures', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // REPL paints output with ANSI colour codes — strip before
     // matching the structural shape.
     const text = replHarness.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
-    expect(text).toContain('::ParseError!{');
+    expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
   });
 });
@@ -135,7 +135,7 @@ describe('runRepl — output highlighting', () => {
     await replPromise;
 
     const stderrText = stderrChunks.join('');
-    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::ParseError!{');
+    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::quote/ParseError!{');
     expect(stderrText).toMatch(/\r\n/);
   });
 

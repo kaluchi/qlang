@@ -1,7 +1,7 @@
 // Per-site coverage for `core/src/runtime/bootstrap.mjs` —
 // `platformLocator` resolves logical names through the calling
 // package's `imports` field, `BootstrapRootMissingError` fires
-// when `#qlang/core` itself is unmapped, and `use(:ns)` without
+// when `#qlang/core` itself is unmapped, and `use(::ns)` without
 // a locator in env surfaces `UseNamespaceNotFoundError`.
 
 import { describe, it, expect } from 'vitest';
@@ -45,11 +45,10 @@ describe('BootstrapRootMissingError', () => {
 });
 
 describe('BootstrapCatalogNotLoadedError', () => {
-  // A module of the catalog that fails to parse refuses the load of the
-  // modules the root lists.
-  const brokenModuleLocator = async (namespaceName) => {
-    if (namespaceName === 'qlang/core') return { source: '[:qlang/broken]' };
-    if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
+  // A module of the tree that fails to parse refuses the load.
+  const brokenModuleLocator = async (path) => {
+    if (path === 'qlang/core') return { source: ':broken |~~ A provider. ~~|' };
+    if (path === 'broken') return { source: ':unclosed (mul(2)' };
     return null;
   };
 
@@ -63,14 +62,6 @@ describe('BootstrapCatalogNotLoadedError', () => {
     expect(thrown.message).toContain('the modules of the catalog');
   });
 
-  it('names the refusal the load met, whichever it is', async () => {
-    const missingModuleLocator = async (namespaceName) =>
-      namespaceName === 'qlang/core' ? { source: '[:qlang/absent]' } : null;
-    let thrown = null;
-    try { await buildLangRuntime(missingModuleLocator); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
-    expect(thrown.context.tagName).toBe('::UseNamespaceNotFoundError');
-  });
 });
 
 describe('a module a query loads that fails to parse', () => {
@@ -79,20 +70,20 @@ describe('a module a query loads that fails to parse', () => {
     const sessionInstance = await createSession({
       locator: async namespaceName => (namespaceName === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
     });
-    const cellEntry = await sessionInstance.evalCell('use :tests/broken !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('ParseError'));
+    const cellEntry = await sessionInstance.evalCell('use ::tests/broken !| type');
+    expect(cellEntry.result).toEqual(makeTagKeyword('quote/ParseError'));
   });
 });
 
 describe('use without a locator in env raises UseNamespaceNotFoundError', () => {
   it('falls into the no-locator branch when env lacks the locator key', async () => {
     // Build a minimal env: langRuntime's seed plus locator stripped.
-    // `use(:nonexistent)` then has no way to resolve, hits the
+    // `use(::nonexistent)` then has no way to resolve, hits the
     // explicit no-locator throw branch in resolveNamespaceEnv.
     const env = new Map(await langRuntime());
     env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use :absolutely-nonexistent-namespace !| type', env);
-    expect(result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    const result = await evalQuery('use ::absolutely-nonexistent-namespace !| type', env);
+    expect(result).toEqual(makeTagKeyword('any/UseNamespaceNotFoundError'));
   });
 });
 

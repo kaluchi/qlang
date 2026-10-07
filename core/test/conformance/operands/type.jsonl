@@ -22,12 +22,12 @@
 {"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":"::map"}
 {"name":"type-set","query":"#[1 2] | type","expect":"::set"}
 {"name":"type-set-empty","query":"#[] | type","expect":"::set"}
-{"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::AddLeftNotNumberError"}
+{"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/AddLeftNotNumberError"}
 {"name":"type-payload-reads-past-the-identity-overlay","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
-{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq ::null","expect":"::ProjectionKeyNotInMapError!{\n  :key \"missing\"\n  :trail [\n    {\n      :step ~(/missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n}"}
+{"name":"classify-strict-projection-flushes-the-pending-trail","query":"{} | /missing | type | eq ::null","expect":"::proj/ProjectionKeyNotInMapError!{\n  :key \"missing\"\n  :trail [\n    {\n      :step ~(/missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n}"}
 {"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
 {"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
 {"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
 {"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | [type (payload | type)]","expect":"[::A ::B]","decision":"D20"}
 {"name":"a-tag-stacks-over-a-scalar-as-over-a-container","query":"::A(1) | [type payload]","expect":"[::A 1]","decision":"D20"}
-{"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | spec | /verbs | has ::vec/count","expect":"true","decision":"D20"}
+{"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true","decision":"D20"}

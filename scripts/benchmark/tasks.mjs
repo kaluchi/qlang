@@ -61,7 +61,7 @@ export const TASKS = [
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: "::Small {:impl ~(if (lt 10) ~(/) ~(!{:reason :tooBig}))} | [(::Small(3) | type) (::Small(12) | false !| true)]",
+    reference: ":Small ::spec~(if (lt 10) ~(/) ~(!{:reason :tooBig})) | [(::Small(3) | type) (::Small(12) | false !| true)]",
     answer: "[::Small true]"
   },
   {
@@ -74,12 +74,12 @@ export const TASKS = [
     id: 'L4',
     question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
     reference: "\"a\" | mul 2 !| [type /actualType]",
-    answer: "[::MulLeftNotNumberError ::string]"
+    answer: "[::number/MulLeftNotNumberError ::string]"
   },
   {
     id: 'L5',
     question: 'by searching the pages of the verbs that live on strings, find the verb whose page says it tells whether a string begins with a prefix, and answer its address.',
-    reference: "::string | spec | /verbs | filter ~(doc | content | contains \"begins\") | first",
+    reference: "::string | manifest | filter ~(doc | content | contains \"begins\") | first",
     answer: "::string/startsWith"
   },
   {
@@ -129,13 +129,13 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::qlang | manifest | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
+    reference: '::qlang | manifest | filter ~(spec | type | eq ::spec) | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
     answer: '#[::explanation ::fail]'
   },
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | spec | /verbs | sort * (runLaws | count) | sum',
-    answer: '::vec | spec | /verbs | sort * (doc | laws | count) | sum'
+    reference: '::vec | manifest | filter ~(binding | /value | type | eq ::verb) | sort * (runLaws | count) | sum',
+    answer: '::vec | manifest | filter ~(binding | /value | type | eq ::verb) | sort * (doc | laws | count) | sum'
   }
 ];

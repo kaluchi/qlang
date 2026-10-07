@@ -50,7 +50,7 @@ answer to stdout in the form the input came in. JSON input is the
 subject as values, an object a map whose keys are keywords, and the
 answer is written as JSON, a set as an array and a keyword as its
 name, where a value JSON has no form for, a quote or a tag, is refused
-as ::AnswerNotJsonError.
+as ::cli/AnswerNotJsonError.
 Text input is a String, and the answer is written as its print;
 '| json' writes JSON text. Use -i for an interactive REPL, a query
 after it run as its first cell. Quote

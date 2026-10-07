@@ -287,7 +287,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if refuses a null condition', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('IfConditionNotBooleanError'));
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('any/IfConditionNotBooleanError'));
   });
 
   it('if treats false literal as falsy', async () => {

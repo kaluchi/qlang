@@ -1,18 +1,7 @@
 |~ `::construct`, the step that puts a value under a tag through the
    tag's constructor, `::T<payload>`, and the refusals of that step. ~|
 
-::construct
-  |~~ The step of a constructor invocation, `::T<payload>`: it puts a
-      payload under the tag `::T` through the tag's constructor, which
-      checks or builds the value. As a record, `:tag` is the tag and
-      `:payload` the step of its payload. ::link~(::tag | doc)
-      ::link~(::qlang | doc :pipeline)
-
-      ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
-  ~~|
-  ::builtin{:impl :qlang/type/construct}
-
-::ConstructPayloadNotSchemaError
+:ConstructPayloadNotSchemaError
   |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
       ::link~(::construct | doc)
@@ -20,11 +9,12 @@
       ~(
         ::construct{:tag :Box :payload [1]}
         !| [type /field]
-        |  eq [::ConstructPayloadNotSchemaError :tag]
+        |  eq [::construct/ConstructPayloadNotSchemaError :tag]
        )
   ~~|
+  ::spec~()
 
-::ConstructReadBackDiffersError
+:ConstructReadBackDiffersError
   |~~ The ::construct prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
       as a group.
@@ -33,19 +23,12 @@
       ~(
         ::construct{:tag ::Box :payload 42}
         !| [type /printed]
-        |  eq [::ConstructReadBackDiffersError "::Box42"]
+        |  eq [::construct/ConstructReadBackDiffersError "::Box42"]
        )
   ~~|
+  ::spec~()
 
-::TagBindingHasNoConstructorError
-  |~~ The declaration of a kind names its constructor under `:impl`,
-      a quote, `::T {:impl ~(…)}`; one whose `:impl` is neither a quote
-      nor the name of a primitive builds nothing. `:payloadValue` holds
-      the payload it was handed and `:actualValue` the `:impl`.
-      ::link~(::construct | doc)
-  ~~|
-
-::TaggedLitNotTagBindingError
+:TaggedLitNotTagBindingError
   |~~ The tag before a payload names a kind, whose declaration is a
       map; a tag bound to another value, `::T 42`, declares no kind to
       build by.
@@ -54,6 +37,7 @@
       ~(
         ::badType 42 | ::badType[]
         !| [type /tag /actualType]
-        |  eq [::TaggedLitNotTagBindingError :badType ::number]
+        |  eq [::construct/TaggedLitNotTagBindingError :badType ::number]
        )
   ~~|
+  ::spec~()

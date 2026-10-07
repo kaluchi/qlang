@@ -98,15 +98,15 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   });
 
   it('refuses a tagged value by the path of map keys and indices', async () => {
-    expect((await refusalOf('::Box {} | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
+    expect((await refusalOf(':Box ::spec~() | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
   });
 
   it('answers an error a container holds as that error', async () => {
-    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('AddLeftNotNumberError');
+    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('number/AddLeftNotNumberError');
   });
 
   it('keeps the form of an answer that is itself an error', async () => {
-    expect((await refusalOf('"x" | add 1')).$tag).toBe('AddLeftNotNumberError');
+    expect((await refusalOf('"x" | add 1')).$tag).toBe('number/AddLeftNotNumberError');
   });
 
   it('writes JSON values as they are', async () => {

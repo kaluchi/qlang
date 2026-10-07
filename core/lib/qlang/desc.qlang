@@ -1,24 +1,6 @@
 |~ `::desc`, the kind of a value whose place in the one order is the
    reverse of its payload's, its constructor, and its comparisons. ~|
 
-::desc
-  |~~ The kind of a value turned to descend: among the values of this
-      kind the one order runs in reverse, the greater payload first, so a
-      key of `sort`, `min` or `max` under `desc` descends whatever the
-      kind of what it ranks, a string among them, and a place of a vector
-      key descends alone, `sort ~([(/count | desc) /name])`. Every
-      comparison agrees, `gt` and `lt` here as `sort` and `max`, and
-      `payload` opens the value beneath. `desc` lays the kind over any
-      value. ::link~(::qlang | doc :values)
-
-      ~(5 | desc | type | eq ::desc)
-      ~(5 | desc | payload | eq 5)
-      ~(::desc(5) | eq (5 | desc))
-      ~([2 1 3] * desc | sort | * payload | eq [3 2 1])
-      ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
-  ~~|
-  ::builtin{:impl :qlang/type/desc}
-
 |~ The comparisons of descending values. Each resides on `::qlang/desc`,
    the kind of the module that declares it, and compares two of its
    values in the one order, the reverse of their payloads'. ~|

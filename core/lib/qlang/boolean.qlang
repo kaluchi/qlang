@@ -3,27 +3,16 @@
    kind whose module declares it: the negation, and the two
    combinators of conditions, which take booleans. ~|
 
-::boolean
-  |~~ The kind of `true` and `false`, the answer of a question about a
-      value: `filter`, `every` and `if` take a quote that answers one,
-      and `false !| true` after steps answers whether they failed.
-      ::snippet~(::boolean | spec | /verbs) lists its verbs.
-      ::link~(::qlang | doc :values)
-
-      ~(true | type | eq ::boolean)
-      ~(::boolean(false) | eq false)
-  ~~|
-  ::builtin{:impl :qlang/type/boolean}
-
-::BooleanPayloadNotBooleanError
+:BooleanPayloadNotBooleanError
   |~~ `::boolean` reads its payload as the boolean it is; a payload of
       another kind is refused.
       ~(
         ::boolean(1)
         !| [type /actualType]
-        |  eq [::BooleanPayloadNotBooleanError ::number]
+        |  eq [::boolean/BooleanPayloadNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
 :not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
@@ -35,15 +24,16 @@
   ~~|
   ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/not})
 
-::NotSubjectNotBooleanError
+:NotSubjectNotBooleanError
   |~~ `not` turns a boolean; a value is asked whether it is absent by
       `eq null`, and a container whether it is empty by `empty`.
       ~(
         0 | not
         !| [type /actualType]
-        |  eq [::NotSubjectNotBooleanError ::number]
+        |  eq [::boolean/NotSubjectNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
 :and
   |~~ Whether the subject and the right condition both hold, each a
@@ -58,23 +48,25 @@
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/and})
 
-::AndLeftNotBooleanError
+:AndLeftNotBooleanError
   |~~ The left condition of `and` must answer a boolean.
       ~(
         1 | and true
         !| [type /actualType]
-        |  eq [::AndLeftNotBooleanError ::number]
+        |  eq [::boolean/AndLeftNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
-::AndRightNotBooleanError
+:AndRightNotBooleanError
   |~~ The right condition of `and` must answer a boolean.
       ~(
         true | and 1
         !| [type /actualType]
-        |  eq [::AndRightNotBooleanError ::number]
+        |  eq [::boolean/AndRightNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
 :or
   |~~ Whether the subject or the right condition holds, each a boolean.
@@ -88,20 +80,22 @@
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/or})
 
-::OrLeftNotBooleanError
+:OrLeftNotBooleanError
   |~~ The left condition of `or` must answer a boolean.
       ~(
         1 | or true
         !| [type /actualType]
-        |  eq [::OrLeftNotBooleanError ::number]
+        |  eq [::boolean/OrLeftNotBooleanError ::number]
        )
   ~~|
+  ::spec~()
 
-::OrRightNotBooleanError
+:OrRightNotBooleanError
   |~~ The right condition of `or` must answer a boolean.
       ~(
         false | or 1
         !| [type /actualType]
-        |  eq [::OrRightNotBooleanError ::number]
+        |  eq [::boolean/OrRightNotBooleanError ::number]
        )
   ~~|
+  ::spec~()

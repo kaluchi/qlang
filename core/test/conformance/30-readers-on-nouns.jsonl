@@ -2,13 +2,13 @@
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | keys","expect":"#[:limit]","decision":["D61","D79"]}
 {"name":"tag-lays-its-name-over-the-first-modifier-in-full","query":"null | tag 5 ::Foo","expect":"::Foo(5)","decision":["D72","D79"]}
 {"name":"tag-takes-a-pair-apart-without-a-name","query":"[::Foo 1] | tag","expect":"::Foo(1)","decision":"D79"}
-{"name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::ManifestSubjectNotTagError","decision":["D62","D79"]}
+{"name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::tag/ManifestSubjectNotTagError","decision":["D62","D79"]}
 {"name":"the-contract-of-run-examples-names-its-residences","query":"42 | runLaws !| /addresses","expect":"#[::keyword/runLaws ::tag/runLaws]","decision":["D79","D123"]}
 {"name":"the-loader-is-a-verb-of-any-value","query":"::any/use | spec | type","expect":"::spec","decision":["D79","D113"]}
-{"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type /actualType]","expect":"[::TagModifierNotTagKeywordError ::keyword]","decision":"D79"}
+{"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type /actualType]","expect":"[::any/TagModifierNotTagKeywordError ::keyword]","decision":"D79"}
 {"name":"an-axis-reads-a-default-and-a-rest-slot-by-name","query":":f ::verb~(:n 3 * :rest ::number | [n rest]) | :f | [(spec :n) (spec :rest)]","expect":"[3 ::number]","decision":"D88"}
 {"name":"an-axis-reads-a-set-of-kinds-a-slot-admits","query":":f ::verb~(:limit #[::number ::null] | [limit]) | :f | spec :limit","expect":"#[::null ::number]","decision":"D88"}
-{"name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| [type /bindingName /addresses]","expect":"[::DocBindingNotFoundError :nosuch #[]]","decision":["D88","D119"]}
-{"name":"a-name-a-verb-declares-no-slot-under-is-refused","query":"::vec/take | doc :nosuch !| [type /bindingName /addresses]","expect":"[::DocBindingNotFoundError :nosuch #[]]","decision":["D88","D119"]}
+{"name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| [type /bindingName /addresses]","expect":"[::any/DocBindingNotFoundError :nosuch #[]]","decision":["D88","D119"]}
+{"name":"a-name-a-verb-declares-no-slot-under-is-refused","query":"::vec/take | doc :nosuch !| [type /bindingName /addresses]","expect":"[::any/DocBindingNotFoundError :nosuch #[]]","decision":["D88","D119"]}
 {"name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"::number | gt ::A","expect":"true","decision":"D88"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | [(manifest | has ::vec/count) (doc :count | eq (::vec/count | doc))]","expect":"[true true]","decision":["D88","D119"]}

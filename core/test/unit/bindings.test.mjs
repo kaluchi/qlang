@@ -25,8 +25,8 @@ describe('BindStep — docs-only form', () => {
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it('::Tag |~~ ~~| doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
-    // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`)
+  it(':Tag |~~ ~~| ::spec~() doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
+    // Tag-namespace doc-only BindStep (`:Tag |~~ docs ~~| ::spec~()`)
     // mints an empty `::builtin{}` descriptor under the `::Tag`
     // env key automatically — equivalent to `::Tag ::builtin{}`
     // body-form. The BindStep production requires docs (or body
@@ -35,10 +35,10 @@ describe('BindStep — docs-only form', () => {
     // Subsequent `::Tag | doc` axis lookup resolves the attached
     // prose, and `::Tag | spec | type` surfaces the ::builtin
     // identity through the JS-header tag slot.
-    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
+    const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
-    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
-    expect(spec).toEqual(makeTagKeyword('builtin'));
+    const spec = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | spec | type');
+    expect(spec).toEqual(makeTagKeyword('spec'));
   });
 });
 
@@ -90,6 +90,6 @@ describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
     const err = await evalQuery(':safe ::verb~(@nonExistent)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
+    expect(err.tag).toEqual(makeTagKeyword('bind/EffectLaunderingAtBindStepParseError'));
   });
 });

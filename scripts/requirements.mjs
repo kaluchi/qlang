@@ -31,7 +31,7 @@ const decisions = new Map(readdirSync(decisionsDir)
     const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
       .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
     return [name, {
-      domain: recordText.match(/^Domain\. (\w+)\./m)[1].toLowerCase(),
+      domain: recordText.match(/^Domain\. ([^.]+)\./m)[1].toLowerCase(),
       replacedBy: replacing(false),
       replacedInPartBy: replacing(true),
       met: [],
@@ -115,6 +115,10 @@ if (askedDecisions.length > 0) {
     && record.met.length + record.targets.length === 0));
   printList('replaced', decisionsWhere(replacedWhole));
   printList('replaced in part', decisionsWhere(record => !replacedWhole(record) && record.replacedInPartBy.length > 0));
-  printList("held by a host's tests", decisionsWhere(record => record.domain === 'host'));
+  // A decision of any other domain, a host, the command line or the
+  // tooling, is held by the tests of that domain.
+  const otherDomains = new Set([...decisions.values()].map(record => record.domain)
+    .filter(domain => domain !== 'language' && domain !== 'process'));
+  for (const domain of otherDomains) printList(`held by the tests of the ${domain}`, decisionsWhere(record => record.domain === domain));
   printList('rules of work', decisionsWhere(record => record.domain === 'process'));
 }

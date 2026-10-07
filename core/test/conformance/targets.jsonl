@@ -101,3 +101,4 @@
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::ProjectionSequenceKeyNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] * | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
+{"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}

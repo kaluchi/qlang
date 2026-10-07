@@ -1543,13 +1543,15 @@ errors, their factories, the registry of throw sites and the drift tests
 leave, and the facts of a refusal come to speak the language's
 vocabulary [D7], [D46]. A field is documented by its record's tag and a
 value shared across kinds by its own [D50]. And elision takes the tail of
-a schema [D21]. Apart from the schema stands the module, and the tree
-of names it serves: every node a binding declared by a keyword, its tag
-the address of the module that declared it, a refusal under its noun,
-`::number/AddLeftNotNumberError`, and the language's names short while
-a provider's print in full [D152]; one loader that walks that tree and
-runs a module once, a pipeline whose value is what it exposes, so
-helpers stay in their module [D63], with mounted namespaces, each a
+a schema [D21]. Apart from the schema stands the module. The tree of
+names it serves stands [D152]: every node a binding declared by a
+keyword, its tag the address of the module that declared it, a refusal
+under its noun, `::number/AddLeftNotNumberError`, and the language's
+names short while a provider's print in full. What remains of the
+module: the loader reads the tree down to the nouns of its providers
+when the runtime starts, where it is to read a module when a query names
+what it serves; a module runs once as a pipeline whose value is what it
+exposes, so helpers stay in their module [D63], with mounted namespaces, each a
 subtree answered by its provider [D24], [D36], and the rest of the rule
 of collisions, a verb and a kind joined only by whoever owns one of them
 [D23]. Beside both, the examples come to live on one plane, the editor's
@@ -1559,7 +1561,8 @@ of the work as a dark cockpit, whose design is the entrypoint
 document's.
 
 Its answers are the targets of [D6], [D33], [D46] and [D152] in the
-conformance suite, those of the first three written when they are
+conformance suite, those of the last met, those of [D46] the facts its
+refusals are to hold, and those of the first two written when they are
 decided, the step of a constructor
 apart from the kind of tagged values having landed [D115]. Beside them:
 no factory-declared error class remains; no operand contract is spelled

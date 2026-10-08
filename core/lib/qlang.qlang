@@ -769,8 +769,10 @@
       address alone:
       ~(:Box ::spec~(:w ::number) | :Box/twice ::verb~(:returns ::number | /w | mul 2) | ::Box{:w 3} | twice | eq 6)
       ~(:vec/second ::verb~(/1) | [7 8 9] | second | eq 8)
-      ~(:A ::spec~() | :k ::verb~(1) | :A/g (::k | binding | /value) | ::A{} | g !| type | eq ::call/UnresolvedIdentifierError)
-      ~(:A ::spec~() | :k ::verb~(1) | :A/g (::k | binding | /value) | ::A{} | A/g | eq 1)
+      ~(:Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | {:w 3} | Box/w2 | eq 6)
+      ~(:Box ::spec~() | :Box/me ::verb~(/) | :me2 (::Box/me | binding | /value) | 5 | me2 | type | eq ::Box)
+      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::B{} | g !| type | eq ::call/UnresolvedIdentifierError)
+      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::B{} | B/g | eq 1)
       ~(:Box/area ::verb~(1) !| type | eq ::bind/BindNounNotDeclaredError)
       A name is declared once in a scope and again in a scope inside it,
       which shadows it for the steps after, a verb of a kind staying one

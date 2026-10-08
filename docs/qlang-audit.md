@@ -1706,6 +1706,19 @@ for a tag no declaration names [D24], [D36], and `manifest` lists them
 beside the declared nodes [D61]. Open: how a host declares the noun it
 answers on demand, and the exact record of a member.
 
+How a verb residing on a kind takes its subject [D68], [D153]. A
+residence reads its subject as a head that names the kind does, through
+the kind's constructor, so a kind whose spec checks nothing wraps any
+value a bare name reaches its verb with: under `:Box ::spec~(:w
+::number)` and `:Box/me ::verb~(/)`, `5 | me` answers `::Box(5)` and
+`{:w "a"} | me` answers `::Box{:w "a"}`, and a body reading `/w` is
+refused inside it rather than at the head. The alternative takes every
+subject by the walk of its tags alone and refuses the rest at the head
+with `::verb/VerbSlotNotOfKindsError`, the constructor checking
+modifiers only: nothing is turned into a kind behind the reader, and
+the cost is a refinement a head declares, `:subject ::Pos`, which no
+longer validates a plain value, and D68 replaced in part.
+
 What a module of declarations answers [D35], [D63]. D63 has a module
 answer the Map of what it exposes, `env` as its last step exposing
 every name it declared, and sets aside a value taken from the scope

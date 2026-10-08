@@ -284,13 +284,12 @@ function walkToKinds(value, kindNames) {
 
 // What a declaration of kinds takes from a value: the value of one of
 // its kinds beneath the tags the walk passed, or, for a declaration of
-// one kind, the subject's among them, the value its constructor reads,
+// one kind, the subject's included, the value its constructor reads,
 // which is the check of the kind [D60], [D68]; code is taken only as it
-// is. `place` names the slot or the
-// role, `{ slot }`, and for a value of the rest its index from 1,
-// `{ slot, index }` [D77]; `siteRefusal` finds the refusal a built-in's
-// site declares there, raised in place of the kind's [D72], and runs only
-// for a value the kinds refuse.
+// is. `place` names the slot or the role, `{ slot }`, and for a value of
+// the rest its index from 1, `{ slot, index }` [D77]; `siteRefusal`
+// finds the refusal a built-in's site declares there, raised in place of
+// the kind's [D72], and runs only for a value the kinds refuse.
 async function servedByKinds(value, kindNames, state, place, siteRefusal) {
   const walked = walkToKinds(value, kindNames);
   if (walked !== null) return walked;

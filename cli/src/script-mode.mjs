@@ -80,7 +80,7 @@ function answerForJson(value) {
 
 // The noun the command line starts from when standard input carries no
 // bytes, outside any project [D37]; the noun of the nearest `.qlang/`
-// folder comes with the modules a project ships.
+// folder comes with the sources a project ships.
 export const DEFAULT_SUBJECT = makeTagKeyword('qlang');
 
 export function liftStdinToPipeValue(stdinText, inputFormat) {

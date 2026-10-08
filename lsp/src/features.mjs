@@ -110,8 +110,8 @@ export function parseDocument(source, uri) {
 
 // ── Catalog context ───────────────────────────────────────────
 
-// The declarations of a module of the catalog by name, a verb's and a
-// tag's alike, each with the span goto-definition jumps to.
+// The declarations of a source of the catalog by name and by the tag that
+// addresses it [D153], each with the span goto-definition jumps to.
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
@@ -121,9 +121,19 @@ export function buildCatalogIndex(catalogAst) {
     if (node.type !== 'BindStep') return;
     const span = { startOffset: node.location.start.offset, endOffset: node.location.end.offset };
     index.set(node.key.name, span);
-    if (bindingKindForKeywordHead(node) === 'tag') index.set(tagNameOf(node.key.name), span);
+    index.set(tagNameOf(node.key.name), span);
   });
   return index;
+}
+
+// The catalog's declaration of a name: its own, else, for a name a step
+// calls bare, the contract on any value, whose page every verb of the
+// name shares, else the first verb of the name declared under a kind.
+function catalogDeclarationOf(index, name) {
+  if (index.has(name)) return index.get(name);
+  if (index.has(`any/${name}`)) return index.get(`any/${name}`);
+  for (const [declared, entry] of index) if (declared.endsWith(`/${name}`)) return entry;
+  return null;
 }
 
 // ── Completion ────────────────────────────────────────────────
@@ -159,7 +169,7 @@ async function tagCompletions() {
     _tagCompletions.push({
       label,
       kind: 'tag',
-      detail: 'node of the tree of names',
+      detail: 'a name of the root',
       documentation: tidyProse(docContents[0] ?? '')
     });
   }
@@ -359,7 +369,7 @@ async function hoverForTag(node) {
   const prose = tidyProse(docContents.join('\n'));
   return {
     content: markdownHardBreaks([
-      `**${tagKey}** — node of the tree of names`,
+      `**${tagKey}** — a name of the root`,
       '',
       prose
     ].join('\n')),
@@ -397,11 +407,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
   if (localDecl) return localDecl;
 
-  if (catalogCtx?.index?.has(name)) {
-    return catalogCtx.index.get(name);
-  }
-
-  return null;
+  return catalogCtx?.index ? catalogDeclarationOf(catalogCtx.index, name) : null;
 }
 
 // The name a declaration binds and the symbol it shows as: a kind, its

@@ -1,4 +1,4 @@
-// The verbs of control, residing on `::qlang/any`, each a plain function
+// The verbs of control, residing on `::any`, each a plain function
 // over the values the head of its verb checked [D72]: a branch, a clause
 // and an alternative is code the verb runs only when it is chosen, closed
 // at the call [D43], [D73], and the condition of `if` is a boolean

@@ -28,8 +28,8 @@ function setConstructor(payload) {
 bindTypeConstructor('set', setConstructor);
 
 // The constructors of the core's kinds [D32, D33]: each reads its
-// payload as the value of its kind, so `::vec[1 2]`, `::qlang/vec[1 2]`
-// and `[1 2]` are one value and print as the last, and a payload of
+// payload as the value of its kind, so `::vec[1 2]` and `[1 2]` are one
+// value and print as the latter, and a payload of
 // another kind is refused at the site. A vector or a map under a tag of
 // its own reads as the bare one.
 const NullPayloadNotNullError       = declareSubjectError('NullPayloadNotNullError',       '::null',    'null');
@@ -107,8 +107,7 @@ bindTypeConstructor('doc', docConstructor);
 
 // `::builtin{…}` — the descriptor: the step of a built-in verb that names
 // its primitive [D72], the declaration of a kind that names its
-// constructor, and the loader's `use` [D79]; its fields stay flat under
-// its tag.
+// constructor [D79]; its fields stay flat under its tag.
 const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
 
 function builtinConstructor(payload) {
@@ -147,7 +146,7 @@ function payloadOf(tagged) {
 bindPrim('payload', subject => payloadOf(subject));
 bindPrim('within', async (subject, code) => await code(payloadOf(subject)));
 
-// `tag` resides on `::qlang/any` and reads the state of its call, whose
+// `tag` resides on `::any` and reads the state of its call, whose
 // scope holds the constructor of the tag [D79]: `value | tag ::Foo` lays
 // the tag over the subject, `tag value ::Foo` over its first modifier,
 // the full application [D72], and `[::Foo value] | tag` over the second

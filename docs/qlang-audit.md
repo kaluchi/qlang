@@ -811,7 +811,7 @@ and carries its own copy of `fromPlain`, named `jsonToQlang`
 The repair must make the refusals of a host kinds its catalog declares,
 so that nothing of the runtime is exported for building operands [D46].
 
-### Modules that dissolve into their clients
+### Names in one root
 
 A declaration writes the record of its binding into its scope [D63],
 and a source of the root is a cell whose declarations stand in the root
@@ -819,31 +819,35 @@ as a cell's stand in a session [D153]: what it declares bare is a name
 of every reader's scope, and what it declares with a path a node under
 a noun. A helper of one verb lives in the group of its declaration and
 closes with it, and a helper several verbs share is a node under their
-noun. The sister project's graph catalog still declares its helpers
-bare and loads them by `use`, which [D153] retires, so the helpers
-behind `@problems` stand in its client's `env` beside `@problems`
-itself. In the sister project:
+noun. The sister project declares the helpers behind `@problems` under
+its topic, `:jdt/@problemsVia`, so they leave its client's names. In
+the sister project:
 
 ```sh
 $ node cli/bin/jdt q 'env | keys | inter #[:@problems :@problemsVia :@problemsForNodeVia :problemsInRangeOf]'
-#[:@problems :@problemsForNodeVia :@problemsVia :problemsInRangeOf]
+#[]
+$ node cli/bin/jdt q '::jdt | manifest'
+#[::jdt/@problemsForMemberVia ::jdt/@problemsForNodeVia ::jdt/@problemsForStringVia ::jdt/@problemsVia ::jdt/problemsInRangeOf]
 ```
 
 Every kind a source declares bare reaches the names of every reader
 the same way, so a head whose slots name kinds of their own [D60]
 multiplies what a reader's `env` shows unless the source declares
-those kinds under its noun.
+those kinds under its noun; the sister project's kinds, `JdtType` and
+its kin, and its refusals stand bare in the root.
 
 The verbs of the core are declared under their noun, `:vec/count`
 [D72], [D153]. The command line declares its verbs under the kinds of
 their subjects, `:vec/table` and `:any/@out`, and its topic `::cli`
-among the names of the root, and a query calls them by their names.
-The sister project declares its verbs bare and still loads them by
-`use`: the verbs of that host land in its client's scope beside the
-client's own names [D80]. In the sister project:
+among the names of the root, and the sister project its verbs under
+`::any`, every value their subject, so a query calls them all by their
+names and none lands among a client's own [D80], [D153]. In the sister
+project:
 
 ```sh
 $ node cli/bin/jdt q 'env | has :@type'
+false
+$ node cli/bin/jdt q '::any | manifest | has ::any/@type'
 true
 ```
 
@@ -864,14 +868,14 @@ design never resolved: «стремительно растущий зоопар�
 86982eb5). The rule is decided [D23], [D34], [D62], and a host still
 publishes names without a prefix. The sister project's names meet the
 core's on `type` and on `source`, kept apart by the effect marker alone,
-and its graph alone declares sixty operands, among them six lookups by
-kind of element, four accessors of the containing element, four
-enumerations by scope, some fifteen relations and four private helpers
-of `@problems`. In the sister project:
+and its graph alone declares under `::any` the verbs a query calls, six
+lookups by kind of element, four accessors of the containing element,
+four enumerations by scope and some fifteen relations among them. In the
+sister project:
 
 ```sh
-$ grep -oE '^:@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
-60
+$ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
+56
 ```
 
 That is the `ioctl` of Unix: every new capability a new verb in one
@@ -880,16 +884,12 @@ fixed, the handful of operations of its file protocol, and letting the
 nouns grow, every resource a path in a per-process namespace; a host's
 catalog should grow the same way.
 
-The repair must let a module decide its own surface without a keyword,
-a module that ends in a map exporting that map alone and a module of
-declarations exporting its declarations, so that helpers stay lexically
-visible to the operands that use them and out of the client's scope
-[D63]. It must keep what a module answers under its name in one loader,
-from a tag to its provider to its declaration [D36], the node a tag
-addresses being a binding of the module of its path [D152], so that the
-housekeeping keys leave the environment for values of their own. It
-must write the catalog by its nouns, so a noun's verbs are read where
-they are written [D62], [D67]. And it must hold the rest of the rule of
+[D153] repaired the surface and the loading: a helper stays lexically
+visible to the operands that use it and out of a reader's names, a host
+hands its names one way, its sources declared as cells into the root,
+the environment keeps one key of the runtime beside the names, and the
+catalog is written by its nouns, so a noun's verbs are read where they
+are written [D62], [D67]. What remains is the rest of the rule of
 collisions:
 
 - A verb and a kind may be joined by whoever owns one of them. This is
@@ -903,9 +903,10 @@ collisions:
   tag.
 - Extensions are switched on lexically. Ruby's global reopening of
   classes broke libraries against each other until refinements made a
-  patch active only where `using` names it; `use` is lexical, and a
-  module's verbs for foreign tags are active in the query that uses the
-  module and nowhere else.
+  patch active only where `using` names it; a reader's verb under a
+  noun of the root, `:vec/second`, stands in its scope and nowhere
+  else, and a host's extensions stand in the root its sources declare
+  for its readers alone [D153].
 - Names without a prefix belong to the core. EDN reserves its
   unprefixed tags for built-ins and requires every user tag to carry a
   prefix the user owns, a domain or a mark; CBOR's registry gives its
@@ -1040,8 +1041,8 @@ The repair must keep error identity per site and declare it once [D7],
 [D46]: each site's tag is a kind declared in the catalog beside its
 operand, whose schema owns the site's fields in the order a reader needs
 them and whose document is the site's procedure; the throw site passes
-the facts, and the tag's constructor checks them. A refusal lives under
-the noun whose module declares it, where `manifest` lists it [D152]; the
+the facts, and the tag's constructor checks them. A refusal is declared
+under the noun of its place, where `manifest` lists it [D152], [D153]; the
 place it guards it declares itself, so the runtime that checks a slot
 [D45] finds the refusal of that slot by what the refusal declares, and
 a verb lists the refusals that guard it [D46]. Today the noun lists them
@@ -1165,7 +1166,7 @@ leak
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
-`.qlang/` folder waits for the modules [D37]. The sister project
+`.qlang/` folder waits for the sources a project ships [D37]. The sister project
 onboards its user with a static guide.
 
 The repair must remove the effect marker from the language rather than
@@ -1187,8 +1188,9 @@ by an explicit step at the host boundary and by nothing else.
 A host's operands are then named as the core's are, under the rule of
 collisions [D23], and the marker leaves with the host's verbs moving
 onto its tags: without it the sister project's `@type` and `@source`
-become `type` and `source`, and a module's names in a client's scope
-win over the core's there [D62]. Selecting an operand by the tag of its
+become `type` and `source`, which the root refuses beside `::any/type`
+and `::any/source` unless the sister declares them under kinds of its
+own [D153]. Selecting an operand by the tag of its
 subject is the walk of its tags [D34]. Whether an effect deserves to
 become a value of its own, an action awaiting the host the way a quote
 awaits `apply`, is a question for a later branch that would have to
@@ -1258,10 +1260,11 @@ and replaces every false comment with nothing. The literal becomes the
 one lossless format: a descriptor prints with its tag like every other
 tagged value, tagged JSON and the session envelope go, a session saves
 as the source of its
-declarations, since a module prints as it is written, and JSON remains
-the lossy codec of the boundary. One loader remains, the catalog being
-a module loaded like any other. The embedding surface is designed with
-the argument model: a session, a module as `{ source, impls }`, the
+declarations, since a source prints as it is written, and JSON remains
+the lossy codec of the boundary. One way remains for a host to hand
+names, the catalog being sources like any other's [D153]. The embedding
+surface is designed with the argument model: a session, a source as
+`{ uri, source, impls }`, the
 parser, the printer and the JSON codec, and nothing of the runtime's
 internals. The unused session surface goes. The consumers read the
 catalog's declarations and the parser's tree and keep no rule of their
@@ -1383,24 +1386,28 @@ declared once whose schema puts the facts a reader needs first, and the
 tag leads to the site's procedure. A nested evaluation that fails yields
 its error as a value, and every operand treats that value by one rule.
 
-A namespace is a subtree of names with the provider that answers for it,
-a large one mounted and served on demand [D36]. A name typed bare
-resolves nearest first, the declarations of its scope, then the verbs
-of its subject, the core's names last, and a name with a path calls by
-address without a search [D62]; a tag in the subject position is
-dispatched to the noun it names, after the verbs of tag names, and each
-step resolves by its own subject [D88], while values carry their
-qualified tags [D35]; an axis with a name reads the member its subject
-holds under it, the slot of a verb or the verb a noun holds [D88]; a
-host sets up a query by the first value of its
-pipe and nothing else [D37]. `use` brings a library's pipelines into
-the user's names, and the environment the user sees holds only those.
-A declaration writes into its scope the record of its binding, with its
-name, its documentation, its source, the module it came from and its
-value, so the axes are projections of the record [D63], and a verb a
-declaration shadows stays one address away [D62]. A module is a
-pipeline its provider runs once, and its value is what it exposes
-[D63]. Effect markers are gone; a host that wants provenance visible
+A name is declared by its keyword, and a name with a path declares a
+node under the noun the path begins with, whose address its tag is
+[D152], [D153]. The root is the scope a host's sources declare as cells
+before a reader's first step, the language's first, and a source, a
+cell and a query are written alike; a namespace too large to declare,
+a host's tens of thousands of types, is mounted and served on demand
+[D24], [D36]. A name typed bare resolves nearest first, the reader's
+declarations, then the verbs of its subject, the root's names last, and
+a name with a path calls by address without a search [D62], [D153]; a
+tag in the subject position is dispatched to the noun it names, after
+the verbs of tag names, and each step resolves by its own subject
+[D88], while values carry their qualified tags [D35]; an axis with a
+name reads the member its subject holds under it, the slot of a verb or
+the verb a noun holds [D88]; a host sets up a query by its sources and
+the first value of its pipe and nothing else [D37], [D153]. `env`
+answers the names of the scope, the nouns of the root among them. A
+declaration writes into its scope the record of its binding, with its
+name, its documentation, its source, its origin and its value, so the
+axes are projections of the record [D63], and a verb a declaration
+shadows stays one address away [D62]. A reader extends a noun of the
+root and replaces none of its nodes; a tag over a value changes what a
+name finds for it [D153]. Effect markers are gone; a host that wants provenance visible
 tags the value, and an effect described by a value is performed at the
 boundary and nowhere else.
 
@@ -1446,12 +1453,12 @@ them may name them otherwise.
 - The evaluator: the state pair, the fork, the combinators as
   attributes of steps, application by executing declarations, the law
   of nested errors, and one constructor of refusals.
-- Modules: one loader, from a tag to its provider to its declaration;
-  namespaces as subtrees answered by providers, the core, the hosts and
-  a repository's `.qlang/`; binding values with their origin; `use` for
-  a library's pipelines.
-- The host interface: a session; a module as `{ source, impls }`, the
-  implementations plain functions over checked values; the parser, the
+- Names: the root, the scope a host's sources declare as cells, the
+  core's, a host's and a repository's `.qlang/`; a name with a path as
+  the address of a node under its noun; binding values with their
+  origin; mounts for the namespaces too large to declare.
+- The host interface: a session; a source as `{ uri, source, impls }`,
+  the implementations plain functions over checked values; the parser, the
   printer and the JSON codec; the points where a host applies its
   budget, elision and enrichment.
 - The catalog, in qlang: operands with declarations that are true
@@ -1536,41 +1543,37 @@ errors, their factories, the registry of throw sites and the drift tests
 leave, and the facts of a refusal come to speak the language's
 vocabulary [D7], [D46]. A field is documented by its record's tag and a
 value shared across kinds by its own [D50]. And elision takes the tail of
-a schema [D21]. Apart from the schema stands the module. The tree of
-names it serves stands [D152]: every node a binding declared by a
-keyword, its tag the address of the module that declared it, a refusal
-under its noun, `::number/AddLeftNotNumberError`, and the language's
-names short while a provider's print in full. What remains of the
-module: the loader reads the tree down to the nouns of its providers
-when the runtime starts, where it is to read a module when a query names
-what it serves; a module runs once as a pipeline whose value is what it
-exposes, so helpers stay in their module [D63], with mounted namespaces, each a
-subtree answered by its provider [D24], [D36], and the rest of the rule
-of collisions, a verb and a kind joined only by whoever owns one of them
-[D23]. Beside both, the examples come to live on one plane, the editor's
+a schema [D21]. Apart from the schema stand the names, and the root
+of sources stands [D152], [D153]: every name declared by its keyword,
+a name with a path the address of a node under its noun, a refusal
+under the noun of its place, `::number/AddLeftNotNumberError`, the
+root the scope a host's sources declare as cells before a reader's
+first step, read whole when the runtime starts, a helper in the group
+of its declaration, and `use` gone. What remains of the names: mounted
+namespaces for a host whose names are too many to declare [D24], [D36],
+and the rest of the rule of collisions, a verb and a kind joined only
+by whoever owns one of them [D23]. Beside both, the examples come to live on one plane, the editor's
 grammar is generated or reduced, and the entrypoint of the work gets its
 first version, the command that measures the tree and prints the state
 of the work as a dark cockpit, whose design is the entrypoint
 document's.
 
-Its answers are the targets of [D6], [D33], [D46] and [D152] in the
-conformance suite, those of the last met, those of [D46] the facts its
+Its answers are the targets of [D6], [D33], [D46], [D152] and [D153] in
+the conformance suite, those of the last two met, those of [D46] the facts its
 refusals are to hold, and those of the first two written when they are
 decided, the step of a constructor
 apart from the kind of tagged values having landed [D115]. Beside them:
 no factory-declared error class remains; no operand contract is spelled
 outside the catalog; one query shows every definition of a name and
-which one wins; a module's value is its surface, so the sister
-project's helpers leave its client's `env`; and the environment holds no
-key of the runtime's own.
+which one wins; and the environment holds no key of the runtime's own.
 
 The model's reading of what in this milestone the language needs, and
 what is the debt of its tree. The schema is the language's, since
 without it the shape of an answer cannot be known before it is fetched,
-and a host has nowhere to say what its records hold. The surface of a
-module and the rule of collisions are the language's as soon as a host
-publishes a catalog of its own, which the sister project does, and
-mounting is the language's for a host whose names are too many to bind.
+and a host has nowhere to say what its records hold. The rule of
+collisions is the language's as soon as a host publishes a catalog of
+its own, which the sister project does, and mounting is the language's
+for a host whose names are too many to declare.
 The refusals as kinds are mostly the tree's debt: the pages of the
 refusals already teach, a session meets the tag and the facts as they
 are, and what it sees of the debt is the runtime's vocabulary in the
@@ -1606,8 +1609,8 @@ move onto its tags and its noun [D34], [D62], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog
 [D24]; the effect marker leaves the language with them [D2], since
-without it a host's names meet the core's in a client's scope, where a
-module's names win [D62]; its workspaces become nouns and its answers
+without it a host's names meet the core's in the root, which refuses a
+second declaration of a name [D153]; its workspaces become nouns and its answers
 name the workspace they came from [D38]; and a host's command is the
 language's with its noun as the first value [D37].
 
@@ -1688,17 +1691,16 @@ wants one, Clojure's multimethods show the form: a hierarchy of names
 built as data with `derive`, separate from any value, rather than
 inheritance. The cost is a second axis of resolution; the gain is that
 a host can say that every kind of its nodes answers a verb once. One
-level of it is decided: the walk passes the `any` of the provider whose
-path a tag names before `::qlang/any`, where a contract several of the
-provider's kinds answer lives [D67].
+level of it is decided: every walk ends at `::any`, where a contract
+several kinds answer lives, a host's among them [D67], [D153].
 
 The spelling and the mechanics of mounting [D24]. Admitting the dot
 inside a tag's name is local to the grammar; the quoted form `::"…"`
-mirrors the quoted keyword. A tag name is an address from the root of
-the tree of names [D62], so a mount is a subtree whose provider the one
-loader asks for a tag no binding knows [D36], and `manifest` lists the
-mounted namespaces beside the other nouns [D61]. Open: how a module
-declares that it serves a namespace, and the exact record of a member.
+mirrors the quoted keyword. A tag name is the address of a name of the
+root [D153], so a mount is a noun whose names a host answers on demand
+for a tag no declaration names [D24], [D36], and `manifest` lists them
+beside the declared nodes [D61]. Open: how a host declares the noun it
+answers on demand, and the exact record of a member.
 
 What a module of declarations answers [D35], [D63]. D63 has a module
 answer the Map of what it exposes, `env` as its last step exposing
@@ -1729,7 +1731,12 @@ keywords name its own bindings [D62]; read as data, as a quote of
 declarations is [D53], it answers its declarations, which needs neither
 the tail nor the noun, and a tag over it names the convention its names
 follow and checks it in its constructor [D6]. A module that computes
-while it loads [D63] answers the spec its pipeline builds.
+while it loads [D63] answers the spec its pipeline builds. [D153]
+answers the question by the cell of a session: a source of the root
+is written as a cell is, its declarations stand in the root, its value
+is no surface, and a name's path, `:vec/count`, is the convention of
+names the third reading asked for, with neither the tail nor a noun of
+the provider.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written
@@ -1802,8 +1809,8 @@ REPL and running it, so that the answer reads as the next page: «что б
 text typed in the REPL or passed on the command line gives the same
 page, and the site is one renderer of it. The tree gives the segments
 of a doc, its prose apart from its runnable quotes, and a name to reach
-a page by [D88]; the prose of a module is a plain comment that no name
-reaches, and a tag or a keyword inside prose is no segment yet [D19].
+a page by [D88]; the prose that heads a source is a plain comment that
+no name reaches, and a tag or a keyword inside prose is no segment yet [D19].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23). A tutorial that serves is also how the documents
 that retell the catalog leave: «и если интерактивный туториал

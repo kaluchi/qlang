@@ -1,4 +1,4 @@
-// `manifest` answers what lies below a noun in the tree of names [D62],
+// `manifest` answers the nodes declared one name under a noun [D62],
 // and `runLaws` runs the laws of a page, each primitive reading the state
 // of the call [D79]; the axes of one binding live in `axis.mjs`.
 
@@ -14,7 +14,7 @@ import { printQuoteSource } from '../quote.mjs';
 declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
 const RunLawsBindingNotFoundError = declareShapeError('RunLawsBindingNotFoundError',
   ({ bindingName }) =>
-    `runLaws: no binding-step found for '${bindingName}' across loaded modules`,
+    `runLaws: no declaration found for '${bindingName}'`,
   { operand: 'runLaws' });
 
 // The message of an error: a raised one's `:message`, a site's its own.
@@ -25,8 +25,8 @@ function errorMessageOf(errorValue) {
 
 bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
 
-// A law runs one frame below the step in the caller's scope, the modules
-// it loaded among them, and passes when it answers true [D14]; its result
+// A law runs one frame below the step in the caller's scope, the root
+// among it, and passes when it answers true [D14]; its result
 // names the claim it proves [D124].
 async function runQuoteEntry({ law: quote, says }, callerState) {
   const result = new Map();

@@ -1,6 +1,7 @@
 // The primitives of the streams of the command line, `@in`, `@out`,
-// `@err` and `@tap`, verbs of the provider `::cli` [D152], each a plain
-// function over the values the head of its verb checks [D80].
+// `@err` and `@tap`, verbs its source declares under `::any` [D153],
+// each a plain function over the values the head of its verb checks
+// [D80].
 
 import {
   declareSubjectError,

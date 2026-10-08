@@ -13,16 +13,6 @@
   ~~|
   ::spec~()
 
-:any/SourceLoadError
-  |~~ The platform resolved a `#qlang/<ns>` logical name to a path
-      or URL the host could not read. The descriptor carries
-      `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
-      and either the underlying `:cause` or the HTTP `:status`. A
-      host that ships its own catalog answers the `:qlang/locator`
-      contract and never reaches the platform loader.
-  ~~|
-  ::spec~()
-
 :any/gt
   |~~ Whether the subject follows the value the call gives in the one
       order of their kind. Numbers, strings, keywords and tag names each
@@ -1004,10 +994,11 @@
 
 :any/BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the name of a verb a provider
-      keeps among them, or a tag name that names nothing. `:addresses`
-      holds the addresses of the pages of that name, the contract on any
-      value among them, whose page holds for every verb of the name.
+      that names no binding of its scope, the last name of a verb
+      declared under a kind among them, or a tag name that names
+      nothing. `:addresses` holds the addresses of the pages of that
+      name, the contract on any value among them, whose page holds for
+      every verb of the name.
 
       ~(
         :nonexistent-binding | binding
@@ -1036,10 +1027,11 @@
 
 :any/SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the name of a verb a provider
-      keeps among them, or a tag name that names nothing. `:addresses`
-      holds the addresses of the pages of that name, the contract on any
-      value among them, whose page holds for every verb of the name.
+      that names no binding of its scope, the last name of a verb
+      declared under a kind among them, or a tag name that names
+      nothing. `:addresses` holds the addresses of the pages of that
+      name, the contract on any value among them, whose page holds for
+      every verb of the name.
 
       ~(
         :nonexistent-binding | source
@@ -1082,11 +1074,11 @@
 
 :any/DocBindingNotFoundError
   |~~ `doc` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, the name of a verb a provider keeps
-      among them, a tag name that names nothing, or an anchor that names
-      no member of the page before it. `:addresses` holds the addresses
-      of the pages of that name, the contract on any value among them,
-      whose page holds for every verb of the name.
+      names no binding of its scope, the last name of a verb declared
+      under a kind among them, a tag name that names nothing, or an
+      anchor that names no member of the page before it. `:addresses`
+      holds the addresses of the pages of that name, the contract on any
+      value among them, whose page holds for every verb of the name.
 
       ~(
         :nonexistent-binding | doc
@@ -1154,10 +1146,11 @@
 
 :any/SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, the name of a verb a provider keeps
-      among them, or a tag name that names nothing. `:addresses` holds
-      the addresses of the pages of that name, the contract on any value
-      among them, whose page holds for every verb of the name.
+      names no binding of its scope, the last name of a verb declared
+      under a kind among them, or a tag name that names nothing.
+      `:addresses` holds the addresses of the pages of that name, the
+      contract on any value among them, whose page holds for every verb
+      of the name.
 
       ~(
         :nonexistent-binding | spec
@@ -1186,11 +1179,11 @@
 
 :any/RunLawsBindingNotFoundError
   |~~ `runLaws` — no declaration found for the name it read, as `doc`
-      finds none: a keyword that names no binding of its scope, the name
-      of a verb a provider keeps among them, or a tag name that names
-      nothing. `:addresses` holds the addresses of the pages of that
-      name, the contract on any value among them, whose page holds for
-      every verb of the name.
+      finds none: a keyword that names no binding of its scope, the last
+      name of a verb declared under a kind among them, or a tag name
+      that names nothing. `:addresses` holds the addresses of the pages
+      of that name, the contract on any value among them, whose page
+      holds for every verb of the name.
 
       ~(
         :nonexistent-binding | runLaws

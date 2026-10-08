@@ -1,5 +1,5 @@
 // The printer of the core: the text that reads back as a value [D30], a
-// part a kind of a module prints its own way taken from that kind before
+// part a kind whose `print` is declared under it prints its own way taken from that kind before
 // the forms of the core write the rest [D96].
 
 import { printQuoteSource, docText } from '../quote.mjs';
@@ -55,7 +55,7 @@ const PRINT_HANDLERS = {
 const printedByNoKind = () => undefined;
 
 // printValue(v, indent?, printedOf?) → the text that reads back as `v`;
-// `printedOf(part)` answers the print a kind of a module gives a part, or
+// `printedOf(part)` answers the print a kind declared under it gives a part, or
 // undefined where the forms of the core write it, and a print of several
 // lines keeps the indent of the place it stands in.
 export function printValue(v, indent = 0, printedOf = printedByNoKind) {

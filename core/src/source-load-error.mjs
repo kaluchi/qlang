@@ -1,5 +1,5 @@
-// A module's source that the loader `#qlang/load-source` resolves to
-// could not read, a foreign failure of the embedding whose
+// A source of the language that the loader `#qlang/load-source`
+// resolves to could not read, a foreign failure of the embedding whose
 // `:context.host` names the loader, `'node'` or `'web'`.
 
 import { declareForeignError } from './errors.mjs';
@@ -12,5 +12,5 @@ export const SourceLoadError = declareForeignError('SourceLoadError',
     return `failed to read qlang source '${logicalName}' from ${sourceLocation}` +
       (tail ? ` — ${tail}` : '');
   },
-  { operand: 'use' }
+  { operand: '::builtin' }
 );

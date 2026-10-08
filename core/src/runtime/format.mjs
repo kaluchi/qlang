@@ -132,7 +132,7 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
-// `json` resides on `::qlang/any` and `parseJson` on `::string`, each a
+// `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the head of its verb checked [D72].
 declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
 const ParseJsonInvalidJsonError = declareShapeError('ParseJsonInvalidJsonError',

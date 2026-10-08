@@ -1,7 +1,7 @@
 // Container primitives, each a plain function over the value the head of
 // its verb checked [D72]. The verbs reside on `::vec`, `::set` and `::map`
 // (lib/qlang/vec.qlang, set.qlang, map.qlang) under the contracts on
-// `::qlang/any`, which refuse a subject no residence serves. A set is the
+// `::any`, which refuse a subject no residence serves. A set is the
 // vector in the one order [D16] and a map's elements are its values
 // [D15], so one primitive serves the kinds that read alike and branches on
 // the map where it keeps keys; a slot of code arrives closed at the call,

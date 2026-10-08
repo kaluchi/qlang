@@ -103,10 +103,5 @@
     "prefix": "interb",
     "body": ["inter #[${1::key}]"],
     "description": "Select fields via bound inter"
-  },
-  "use": {
-    "prefix": "use",
-    "body": ["{${1::key ${2:value}}} | use"],
-    "description": "Import bindings into env via use"
   }
 }

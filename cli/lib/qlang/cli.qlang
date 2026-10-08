@@ -16,8 +16,11 @@
       as a string, whose answer is written as its `print`; and
       `| json` writes JSON text. A query that writes to stdout itself,
       by `@out`, holds the channel, and its answer is left unwritten.
-      Every query the command line runs calls its verbs by their names,
-      and `::cli | manifest` lists them.
+      Its verbs are declared under the kinds of their subjects, a query
+      calls them by their names, and the manifest of each kind lists
+      them:
+      ~(::vec | manifest | has ::vec/table)
+      ~(::any | manifest | has ::any/@out)
   ~~|
 
 :cli/AnswerNotJsonError

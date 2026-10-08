@@ -11,8 +11,8 @@ import { compareValues } from './ordering.mjs';
 export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
   'NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
-    "qlang Number lives in — a host installed it through session.bind or a locator's " +
-    'impls map, where source cannot mint one',
+    "qlang Number lives in — a host installed it through session.bind or the impls of " +
+    'its sources, where source cannot mint one',
   { operand: '::builtin' }
 );
 

@@ -224,7 +224,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toContain("::number/AddLeftNotNumberError");
-    expect(hover.content).toMatch(/node of the tree of names/);
+    expect(hover.content).toMatch(/a name of the root/);
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
@@ -234,7 +234,7 @@ describe('hoverAtOffset', () => {
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/::verb/);
-    expect(hover.content).toMatch(/node of the tree of names/);
+    expect(hover.content).toMatch(/a name of the root/);
   });
 
   it('returns hover for the tag an error literal writes before its bang', async () => {
@@ -267,16 +267,14 @@ describe('hoverAtOffset', () => {
   });
 });
 
-// Build a catalog context for definition fallback tests. Mirrors
-// lib/qlang/core.qlang's BindStep series: each entry is
-// `:name {...descriptor...}`, and `buildCatalogIndex` walks every
-// `BindStep` node and records the entire BindStep span as the
-// declaration site. The server merges each catalog file's source
-// and URI onto every index entry so the goto handler can resolve
-// offsets without re-reading the source — the test mirror does
-// the same.
-const catalogSrc = ':count {:category :vecReducer}';
-const catalogAst = parseDocument(catalogSrc, 'qlang/core').ast;
+// A catalog context for definition fallback tests, in the shape of a
+// source of the language: a contract under `::any` and a verb under a
+// kind, each a declaration `buildCatalogIndex` records by its span. The
+// server merges each catalog file's source and URI onto every index
+// entry so the goto handler resolves offsets without re-reading the
+// source — the test mirror does the same.
+const catalogSrc = ':any/count ::verb~() | :vec/count ::verb~(1)';
+const catalogAst = parseDocument(catalogSrc, 'qlang/any').ast;
 const testCatalogIndex = new Map();
 for (const [name, range] of buildCatalogIndex(catalogAst)) {
   testCatalogIndex.set(name, {
@@ -318,12 +316,28 @@ describe('definitionAtOffset', () => {
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
-  it('falls back to core.qlang catalog for builtin operands', () => {
+  it('falls back to the contract of a bare name in the catalog', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
     expect(def.fileUri).toBe('file:///test/core.qlang');
+    expect(def.startOffset).toBe(0);
+  });
+
+  it('jumps from an address to the verb it names', () => {
+    const src = '[1 2 3] | vec/count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(ast, src.indexOf('vec/count'), testCatalogCtx);
+    expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
+  });
+
+  it('falls back to a verb under a kind when no contract names it', () => {
+    const vecOnly = new Map([...testCatalogIndex].filter(([name]) => !name.includes('any/')));
+    const src = '[1 2 3] | count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(ast, src.indexOf('count'), { index: vecOnly });
+    expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
   });
 
   it('returns null without catalog context for builtins', () => {

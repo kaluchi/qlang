@@ -21,8 +21,9 @@ file and the audit disagree, the audit wins and the finding says so.
 2. Every decision record the diff adds or cites, `docs/decisions/Dnn.md`.
 3. The touched files, whole. For a change to the language, also
    `core/src/grammar.peggy`, `core/src/eval.mjs`, `core/src/runtime/verb.mjs`
-   and the module of each kind it touches, `core/lib/qlang/<kind>.qlang`;
-   the concepts of the language are the pages of `core/lib/qlang.qlang`.
+   and the source of each kind it touches, `core/lib/qlang/<kind>.qlang`,
+   whose declarations sit under the kind, `:vec/count`; the kinds, the
+   first page and the chapters are declared in `core/lib/qlang.qlang`.
 
 ## The rules
 
@@ -52,7 +53,7 @@ The only description of a verb, a kind or a refusal is its page in the
 catalog: a doc whose laws run, each under a caption of its claim, whose
 links open the pages it rests on. An error leads to the page of its site.
 
-Check: a new verb, kind or refusal has its page in the module of its kind,
+Check: a new verb, kind or refusal has its page under the noun of its kind,
 a refusal declared at its site, one tag for one site, through the
 factories of `core/src/errors.mjs` and `core/src/operand-errors.mjs`
 until decision D46 makes each a kind of the catalog;
@@ -106,7 +107,7 @@ report:
 
 - A generic name where a name of the language is sharper: `data`, `item`,
   `helper`, `util`, `handler`, `result`, a bare `node` whose type is known.
-  A name is unique enough to grep within its module.
+  A name is unique enough to grep within its source.
 - `Class` and `Class-level` for a kind or a tag; `first-class` stays.
 - Definition by negation: "X, not Y", "instead of", "rather than", "no
   longer", a reassurance that denies an alternative nobody raised. A

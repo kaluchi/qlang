@@ -65,9 +65,9 @@
     },
 
     "tagKeyword": {
-      "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::verb | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
+      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/AddLeftNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword-atom so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
-      "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
+      "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "map-key": {
@@ -82,7 +82,7 @@
         },
         {
           "comment": "bare map key :ident followed by whitespace",
-          "match": "(:[a-zA-Z@_][a-zA-Z0-9_-]*)(?=[ \\t])",
+          "match": "(:[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*)(?=[ \\t])",
           "captures": {
             "1": { "name": "support.type.property-name.qlang" }
           }
@@ -107,7 +107,7 @@
         {
           "comment": "bare keyword :name",
           "name": "constant.other.symbol.qlang",
-          "match": ":[@_a-zA-Z][a-zA-Z0-9_-]*"
+          "match": ":[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
         }
       ]
     },
@@ -189,7 +189,7 @@
     "identifier": {
       "comment": "User-defined operand calls and verb references.",
       "name": "entity.name.function.qlang",
-      "match": "[@_a-zA-Z][a-zA-Z0-9_-]*"
+      "match": "[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "punctuation": {

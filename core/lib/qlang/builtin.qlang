@@ -99,3 +99,13 @@
       and `:implName` the name.
   ~~|
   ::spec~()
+
+:builtin/SourceLoadError
+  |~~ The platform resolved a `#qlang/<ns>` logical name to a path or
+      URL the host could not read. The descriptor carries `:host`
+      (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and either
+      the underlying `:cause` or the HTTP `:status`. A host that ships
+      its own catalog hands `langRuntime({ locator })` the sources of
+      the language and never reaches the platform loader.
+  ~~|
+  ::spec~()

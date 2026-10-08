@@ -6,7 +6,7 @@
 // `env` — and one bookkeeping field, `depth`: how many nested
 // evaluation frames (verb bodies, modifiers run at a call, `apply`
 // re-entry, Quote-bodied tag constructors, doc-segment
-// literals, locator-loaded modules) sit between the root and this
+// literals) sit between the root and this
 // state. Every step returns a fresh State carrying the next
 // pipeValue or the next env; the previous State stays observable
 // to ancestor frames so fork boundaries can discard inner-env
@@ -30,7 +30,7 @@ function makeState(pipeValue, env, depth) {
 }
 
 // rootState(pipeValue, env) → State at depth 0 — the entry frame of
-// a query, a session cell, a module load, the catalog bootstrap.
+// a query, a session cell, a source of the root.
 export function rootState(pipeValue, env) {
   return makeState(pipeValue, env, 0);
 }

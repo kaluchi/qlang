@@ -102,8 +102,7 @@ export class QlangInvariantError extends QlangError {
 //     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
 //     a non-@-prefixed identifier resolves to an effectful function
 //     value or verb (the laundering path where the binding was
-//     installed via use, handed through a slot, or injected by the
-//     embedding host, so the declaration could not detect the
+//     handed through a slot or injected by the embedding host, so the declaration could not detect the
 //     effect).
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
@@ -169,9 +168,9 @@ export function siteOfTag(tagName) {
   return '::' + tagName;
 }
 
-// The address of a refusal in the tree of names [D152]: the path of the
-// module that declared its kind and its name, recorded as that module
-// loads, `number/AddLeftNotNumberError`.
+// The address of a refusal [D153]: the name its kind is declared by,
+// `number/AddLeftNotNumberError`, which the root records as a source
+// declares it.
 const refusalAddresses = new Map();
 
 export function recordRefusalAddress(className, address) {
@@ -361,6 +360,6 @@ export const EffectLaunderingAtCallError = declareEffectLaunderingError(
   ({ bindingName, effectfulName }) =>
     `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
     `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
-    `use, or a slot — rename to '@${bindingName}' to mark the effect`,
+    `or a slot — rename to '@${bindingName}' to mark the effect`,
   { operand: '::call' }
 );

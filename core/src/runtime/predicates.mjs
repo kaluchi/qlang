@@ -1,13 +1,13 @@
 // The predicates and the reader of kinds, each a plain function over the
 // values the head of its verb checked [D72]: `not`, `and` and `or`
 // reside on `::boolean` and take booleans [D14], `eq` and `type` on
-// `::qlang/any`, and the comparisons on the kinds they compare [D65].
+// `::any`, and the comparisons on the kinds they compare [D65].
 //
 // Equality is the shared deepEqual. `type` answers a value's kind, a
 // tag: the tag of a tagged value, and for every other value the kind of
 // the core its literal implies [D32].
 //
-// The verbs live in lib/qlang/boolean.qlang, any.qlang and the modules
+// The verbs live in lib/qlang/boolean.qlang, any.qlang and the sources
 // of the kinds the comparisons compare.
 
 import { typeKeyword } from '../types.mjs';

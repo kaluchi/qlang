@@ -2,12 +2,12 @@
 // [D61], the record the declaration wrote into its scope [D63]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
 // name the node of the tree it addresses, `::vec/count` or
-// `::qlang/pipeline` [D152], a record the binding it records, and every
+// `::qlang/values` [D153], a record the binding it records, and every
 // other value the node of its kind, the kind `type` answers. Each axis
 // projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a binding no
-//            step declared, a value `use` or a host bound.
+//            step declared, a value a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
 // `spec`     the value the binding holds as it was declared, a verb's
@@ -165,7 +165,7 @@ function memberRefusalOf(env, subject, memberName) {
 
 // The record the subject names in the scope of the call, or the member
 // it holds under a name, or the refusal of the axis that read it; each
-// axis resides on `::qlang/any`, and its primitive reads the state of
+// axis resides on `::any`, and its primitive reads the state of
 // the call [D79].
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {

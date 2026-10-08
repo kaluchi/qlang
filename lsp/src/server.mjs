@@ -43,10 +43,10 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Every module under `core/lib/qlang/` takes part in goto-definition:
-// its declarations, verbs and tags alike, merge into one `name →
-// { uri, source, range }` table, so `count` and
-// `::number/AddLeftNotNumberError` resolve through one lookup.
+// Every source of the language takes part in goto-definition: its
+// declarations, by name and by tag, merge into one `name → { uri, source,
+// range }` table, so `count` and `::number/AddLeftNotNumberError`
+// resolve through one lookup.
 
 let catalogCtx = null;
 
@@ -57,10 +57,10 @@ function loadCatalogContext() {
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
   const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
 
-  // Discovery walks lib/qlang recursively for every `.qlang` file.
-  // The path of a module mirrors the relative path with `/` separators
-  // and the `.qlang` suffix stripped; the resolved file URI lets
-  // goto-definition return absolute locations the editor can open.
+  // Discovery walks lib/qlang recursively for every `.qlang` file, the
+  // name of a source its relative path with `/` separators and the
+  // `.qlang` suffix stripped; the resolved file URI lets goto-definition
+  // return absolute locations the editor can open.
   const sources = [];
   function walk(dir, prefix) {
     for (const name of readdirSync(dir, { withFileTypes: true })) {
@@ -73,6 +73,7 @@ function loadCatalogContext() {
       }
     }
   }
+  sources.push({ path: join(libDir, '..', 'qlang.qlang'), uri: 'qlang' });
   walk(libDir, '');
 
   const mergedIndex = new Map();

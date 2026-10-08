@@ -14,21 +14,21 @@ const AddressNotStringError = declareInvariantError(
 
 const AddressBoundTwiceError = declareInvariantError(
   'builtin/AddressBoundTwiceError',
-  ({ keyName }) => `bind: ${keyName} is already bound; two runtime modules claim the same address`,
+  ({ address }) => `bind: ${address} is already bound; two runtime modules claim the same address`,
   { operand: '::builtin' }
 );
 
 const TableSealedError = declareInvariantError(
   'builtin/TableSealedError',
-  ({ keyLabel }) => `bind: the table is sealed; cannot bind ${keyLabel} after the bootstrap`,
+  ({ address }) => `bind: the table is sealed; cannot bind ${address} after the bootstrap`,
   { operand: '::builtin' }
 );
 
-// A handle that names no primitive, which a descriptor a query
-// assembled can hold, answers on the fail track.
+// A verb or a kind ending in `::builtin{}` that no implementation was
+// handed for, refused as the root is declared [D157].
 export const ImplementationNotHandedError = declarePerSiteError(
   'builtin/ImplementationNotHandedError', 'primitiveUnbound',
-  ({ keyLabel }) => `no implementation is handed for ${keyLabel}, which ends in ::builtin{}`,
+  ({ name }) => `no implementation is handed for ${name}, which ends in ::builtin{}`,
   { operand: '::builtin' }
 );
 
@@ -40,13 +40,13 @@ export function createPrimitiveRegistry() {
   return {
     bind(key, impl) {
       if (sealed) {
-        throw new TableSealedError({ keyLabel: key });
+        throw new TableSealedError({ address: key });
       }
       if (typeof key !== 'string') {
         throw new AddressNotStringError({ actualType: typeof key });
       }
       if (bindings.has(key)) {
-        throw new AddressBoundTwiceError({ keyName: key });
+        throw new AddressBoundTwiceError({ address: key });
       }
       bindings.set(key, impl);
       return key;
@@ -54,7 +54,7 @@ export function createPrimitiveRegistry() {
 
     resolve(key) {
       if (!bindings.has(key)) {
-        throw new ImplementationNotHandedError({ keyLabel: key });
+        throw new ImplementationNotHandedError({ name: key });
       }
       return bindings.get(key);
     },

@@ -15,7 +15,7 @@
   ::spec~()
 
 :bind/ReadBackDiffersError
-  |~~ The ::bind prints as text that reads back as another step: a
+  |~~ The `::bind` prints as text that reads back as another step: a
       declaration binds a body or docs, and a body that is a keyword
       or a tag is written as a group.
       ::link~(::bind | doc)

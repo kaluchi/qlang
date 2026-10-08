@@ -18,14 +18,12 @@
 //
 // Principle: **one throw site, one class**. No error class is
 // shared across two different operand sites. Each check raises an
-// exception whose class name uniquely identifies where it fired,
-// so a stack trace or `instanceof` check pinpoints the failure
-// without scraping the message string. Every class here extends
-// `QlangTypeError`, so `instanceof QlangTypeError` holds and `.kind`
-// reads `typeError`, while the concrete class narrows the throw site
-// to a single operand + position + condition:
-// `FilterSubjectNotContainerError`, `AddLeftNotNumberError`,
-// `SortElementsNotComparable`, and so on.
+// exception whose address identifies where it fired, so a reader of
+// the error finds the place without scraping the message. Every class
+// here extends `QlangTypeError`, so `instanceof QlangTypeError` holds
+// and `.kind` reads `typeError`, while the concrete class narrows the
+// throw site to one operand, place and condition:
+// `number/AddLeftNotNumberError`, `map/KeysSubjectNotMapError`.
 
 import {
   QlangTypeError,
@@ -36,25 +34,23 @@ import {
 } from './errors.mjs';
 import { typeKeyword } from './types.mjs';
 
-// expectedType authoring form is one or more qlang type-keyword
-// names — `'number'`, `'vec'`, or `['vec', 'set', 'map']`. The
-// factory lowers each form to a humanised string ("Number",
-// "Vec or Set", "Vec, Set, or Map") for the diagnostic message
-// body, and records the type names in the same call.
+// The kinds a site expects, one or more names, `'number'` or
+// `['vec', 'set', 'map']`, written for the message as the tags a reader
+// writes, `::vec, ::set or ::map`, and recorded as names.
 function lowerExpectedTypeHuman(input) {
-  const names = Array.isArray(input) ? input : [input];
-  const caps = names.map(name => name.charAt(0).toUpperCase() + name.slice(1));
-  if (caps.length === 1) return caps[0];
-  if (caps.length === 2) return `${caps[0]} or ${caps[1]}`;
-  return caps.slice(0, -1).join(', ') + ', or ' + caps[caps.length - 1];
+  const tags = (Array.isArray(input) ? input : [input]).map(name => `::${name}`);
+  return tags.length === 1 ? tags[0] : `${tags.slice(0, -1).join(', ')} or ${tags.at(-1)}`;
 }
 
-// Per-site identity rides on `this.name`,
-// stamped by every factory below from its `className` argument. The
-// context bag carries only structured data the throw site wants the
-// downstream catch (or the user-facing :trail descriptor) to read —
-// no `site` field, because that would duplicate the tag identity
-// without adding information.
+// The place a position names in a full application: 1 the subject, 2
+// the first modifier [D72].
+function placeOf(position) {
+  return position === 1 ? 'as its subject' : `in modifier ${position - 1}`;
+}
+
+// A refusal's identity is its address, which every factory below
+// takes [D158]; the context carries only the facts the site wants the
+// reader of the error to see.
 
 // declareSubjectError — thrown when an operand receives a subject
 // value whose type is not acceptable. `operand` / `position` /
@@ -68,7 +64,7 @@ export function declareSubjectError(address, operand, expectedTypeInput) {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} requires ${expectedTypeHuman} subject, got ${actualType.name}`,
+        `${operand} takes a subject of ${expectedTypeHuman}, got ::${actualType.name}`,
         { actualType, actualValue }
       );
       this.name = lastNameOf(address);
@@ -89,7 +85,7 @@ export function declareModifierError(address, operand, position, expectedTypeInp
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} expects ${expectedTypeHuman} at position ${position}, got ${actualType.name}`,
+        `${operand} takes ${expectedTypeHuman} ${placeOf(position)}, got ::${actualType.name}`,
         { actualType, actualValue }
       );
       this.name = lastNameOf(address);
@@ -110,7 +106,7 @@ export function declareElementError(address, operand, expectedTypeInput) {
     constructor(index, actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand}: element ${index} expects ${expectedTypeHuman}, got ${actualType.name}`,
+        `${operand} takes elements of ${expectedTypeHuman}, and element ${index} is ::${actualType.name}`,
         { index, actualType, actualValue }
       );
       this.name = lastNameOf(address);
@@ -129,7 +125,7 @@ export function declareComparabilityError(address, operand) {
       const leftType = typeKeyword(leftValue);
       const rightType = typeKeyword(rightValue);
       super(
-        `${operand} cannot compare ${leftType.name} with ${rightType.name}`,
+        `${operand} cannot compare ::${leftType.name} with ::${rightType.name}`,
         { leftType, rightType }
       );
       this.name = lastNameOf(address);

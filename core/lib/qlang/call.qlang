@@ -17,7 +17,7 @@
   ::spec~()
 
 :call/ReadBackDiffersError
-  |~~ The ::call prints as text that reads back as another step,
+  |~~ The `::call` prints as text that reads back as another step,
       or as none: `:printed` is that text.
       ::link~(::call | doc)
 
@@ -59,8 +59,11 @@
 
 :call/EffectMarkMissingError
   |~~ A verb whose body calls a name marked `@` was called by a name
-      without the mark, one a host bound where no declaration was read;
-      the name that calls it carries the mark.
+      without the mark. A declaration that names such a verb is refused
+      where it stands, `::bind/EffectMarkMissingError`; this one is met
+      when a host put the verb in the scope under a plain name, where no
+      declaration was there to refuse it, and the host binds it under a
+      name that carries the mark, `@fetch`.
       ::link~(::call | doc)
   ~~|
   ::spec~()

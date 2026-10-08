@@ -32,7 +32,7 @@ export const RootSourceNotDeclaredError = declareInvariantError('builtin/RootSou
 // An implementation a host hands for a name its source declares as no
 // verb or kind ending in `::builtin{}` has nothing to run under.
 export const ImplementationNamesNoBuiltinError = declareShapeError('builtin/ImplementationNamesNoBuiltinError',
-  ({ uri, implName }) => `qlang root: the source ${uri} hands an implementation for ${implName.literal}, which it declares as no verb ending in ::builtin{}`,
+  ({ uri, name }) => `qlang root: the source ${uri} hands an implementation for ${name.literal}, which it declares as no verb or kind ending in ::builtin{}`,
   { operand: '::builtin' });
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
@@ -53,12 +53,12 @@ export async function declareRoot(env, sources) {
     if (again !== undefined) throw new RootSourceNotDeclaredError({ uri, tagName: DECLARED_TWICE, name: keyword(again) });
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
-      if (endsInBuiltin(value) && impls[name] === undefined) throw new ImplementationNotHandedError({ keyLabel: name });
+      if (endsInBuiltin(value) && impls[name] === undefined) throw new ImplementationNotHandedError({ name });
       if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name]);
     }
     for (const implName of Object.keys(impls)) {
       if (!endsInBuiltin(bindingValueOf(declared.get(implName)))) {
-        throw new ImplementationNamesNoBuiltinError({ uri, implName: keyword(implName) });
+        throw new ImplementationNamesNoBuiltinError({ uri, name: keyword(implName) });
       }
     }
     root = new Map([...root, ...declared]);

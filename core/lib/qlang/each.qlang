@@ -2,7 +2,7 @@
    element: its refusals. ~|
 
 :each/PayloadNotQuoteError
-  |~~ The payload of ::each is the quote of its body.
+  |~~ The payload of `::each` is the quote of its body.
       ::link~(::each | doc)
 
       ~(
@@ -14,7 +14,7 @@
   ::spec~()
 
 :each/ReadBackDiffersError
-  |~~ The ::each prints as text that reads back as another step, or
+  |~~ The `::each` prints as text that reads back as another step, or
       as none: a body holds at least one step.
       ::link~(::each | doc)
 

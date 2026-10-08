@@ -159,7 +159,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('refuses a verb ending in ::builtin{} the host hands nothing for, as the root is declared', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::verb~(::builtin{})' }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', context: { keyLabel: 'any/hello' } });
+      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', context: { name: 'any/hello' } });
   });
 
   it('refuses an implementation handed for a verb of steps', async () => {

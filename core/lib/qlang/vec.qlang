@@ -218,8 +218,9 @@
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
 :vec/UnionOfNothingError
-  |~~ `union` over a vector folds its operands, so the vector holds one
-      at least.
+  |~~ `union` over a vector joins its operands from the first, `[a b c]
+      | union`, so the vector holds one at least; two operands are
+      written `a | union b`.
       ~(
         [] | union
         !| [type]
@@ -229,7 +230,7 @@
   ::spec~()
 
 :vec/UnionOperandsMismatchedError
-  |~~ The operands `union` folds are two sets or two maps.
+  |~~ The operands `union` joins are two sets or two maps.
       ~(
         [#[:a] {:b 1}] | union
         !| [type /leftType /rightType]
@@ -247,8 +248,9 @@
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
 :vec/MinusOfNothingError
-  |~~ `minus` over a vector folds its operands, so the vector holds one
-      at least.
+  |~~ `minus` over a vector joins its operands from the first, `[a b c]
+      | minus`, so the vector holds one at least; two operands are
+      written `a | minus b`.
       ~(
         [] | minus
         !| [type]
@@ -258,7 +260,7 @@
   ::spec~()
 
 :vec/MinusOperandsMismatchedError
-  |~~ The operands `minus` folds are two sets, or a map and a map or a
+  |~~ The operands `minus` joins are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | minus
@@ -277,8 +279,9 @@
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
 :vec/InterOfNothingError
-  |~~ `inter` over a vector folds its operands, so the vector holds one
-      at least.
+  |~~ `inter` over a vector joins its operands from the first, `[a b c]
+      | inter`, so the vector holds one at least; two operands are
+      written `a | inter b`.
       ~(
         [] | inter
         !| [type]
@@ -288,7 +291,7 @@
   ::spec~()
 
 :vec/InterOperandsMismatchedError
-  |~~ The operands `inter` folds are two sets, or a map and a map or a
+  |~~ The operands `inter` joins are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | inter

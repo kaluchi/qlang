@@ -40,9 +40,9 @@
   ::spec~()
 
 :builtin/ThrowSiteSpecAlreadyRecordedError
-  |~~ Two sites of the runtime declared one refusal under one name, a
-      defect of the runtime found as it loads: the name is the identity
-      the page and the `spec` of the refusal read, so one site would
+  |~~ Two sites of the runtime declared one refusal under one address,
+      a defect of the runtime found as it loads: the address is the tag
+      the refusal answers by and the name of its page, so one site would
       speak for both.
   ~~|
   ::spec~()
@@ -55,8 +55,8 @@
 
 :builtin/ImplementationNotHandedError
   |~~ A verb or a kind ends in `::builtin{}` and the host handed no
-      implementation for its name beside its source; `:keyLabel` names
-      it, and the root is refused as it is declared.
+      implementation for its name beside its source; `:name` names it,
+      and the root is refused as it is declared.
   ~~|
   ::spec~()
 
@@ -90,19 +90,17 @@
   |~~ A source of the root answered an error, or declared again a name
       the root holds, so its declarations stay out of the root; `:uri`
       names the source and `:tagName` the refusal, for a name declared
-      again `::bind/NameDeclaredTwiceError` with `:name` the name, a
-      refusal declared under a second address among them.
+      again `::bind/NameDeclaredTwiceError` with `:name` the name.
   ~~|
   ::spec~()
 
 :builtin/ImplementationNamesNoBuiltinError
   |~~ A host handed an implementation beside a source of the root for a
-      name the source declares as no verb ending in `::builtin{}`: an
-      implementation is the primitive of such a verb, and a verb whose
-      step names a primitive of the core runs that one. `:uri` names the
-      source and `:implName` the name. A verb ending in `::builtin{}`
+      name the source declares as no verb or kind ending in
+      `::builtin{}`, the one step an implementation runs; `:uri` names
+      the source and `:name` the name. A verb ending in `::builtin{}`
       the host hands nothing for is refused with
-      `::builtin/ImplementationNotHandedError`, its `:keyLabel` the name.
+      `::builtin/ImplementationNotHandedError`.
   ~~|
   ::spec~()
 

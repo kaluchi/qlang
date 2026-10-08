@@ -19,9 +19,10 @@
 
 :quote/ElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
-      container of steps, or a record or wrapper of code. A value
-      with no reading as code, such as a tagged instance of
-      another tag, is refused at the index it stands at.
+      vector, a set or a map of steps, or a step as data, `::call`,
+      `::proj` and their kin. A value with no reading as code, a value
+      under a tag of another kind among them, is refused at the index it
+      stands at.
       ::link~(::quote | doc)
 
       ~(

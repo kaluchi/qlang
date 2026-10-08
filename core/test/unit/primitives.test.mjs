@@ -124,7 +124,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       .toThrow(/qlang\/test-prim\/dup is already bound/);
   });
 
-  it('duplicate-key error is a QlangInvariantError carrying keyName', () => {
+  it('duplicate-key error is a QlangInvariantError carrying the address', () => {
     const k = 'qlang/test-prim/dup';
     registry.bind(k, () => null);
     try {
@@ -133,7 +133,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('AddressBoundTwiceError');
-      expect(e.context.keyName).toBe('qlang/test-prim/dup');
+      expect(e.context.address).toBe('qlang/test-prim/dup');
     }
   });
 
@@ -153,7 +153,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('TableSealedError');
-      expect(e.context.keyLabel).toBe('qlang/test-prim/late');
+      expect(e.context.address).toBe('qlang/test-prim/late');
     }
   });
 
@@ -195,7 +195,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
       expect(e).not.toBeInstanceOf(QlangInvariantError);
       expect(e.kind).toBe('primitiveUnbound');
       expect(e.name).toBe('ImplementationNotHandedError');
-      expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
+      expect(e.context.name).toContain('qlang/test-prim/missing');
     }
   });
 

@@ -15,7 +15,7 @@
   ::spec~()
 
 :proj/ReadBackDiffersError
-  |~~ The ::proj prints as text that reads back as another step: a
+  |~~ The `::proj` prints as text that reads back as another step: a
       key that reads as an index is written as the index.
       ::link~(::proj | doc)
 
@@ -28,9 +28,13 @@
   ::spec~()
 
 :proj/FieldNotInSignatureError
-  |~~ Projection segment names no declaration of the signature it
-      reads.
+  |~~ A projection of a signature, `::vec/join | spec | /separator`,
+      names a slot or a role its head declares; another name is refused,
+      and the signature printed whole, `::vec/join | spec`, shows the
+      ones there are.
       ::link~(::proj | doc)
+
+      ~(::vec/join | spec | /separator | eq ::string)
 
       ~(
         ::vec/join | spec | /missing

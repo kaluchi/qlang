@@ -16,7 +16,7 @@
   ::spec~()
 
 :construct/ReadBackDiffersError
-  |~~ The ::construct prints as text that reads back as another step: a
+  |~~ The `::construct` prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
       as a group.
       ::link~(::construct | doc)

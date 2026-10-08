@@ -6,10 +6,10 @@
    and is refused with `:addresses`, where the verbs of the name live. ~|
 
 :any/JsonValueNotEncodableError
-  |~~ JSON has no form for a value a host installed that is none of the
-      kinds of qlang; a function a host bound is written as
-      `<host-fn name>`, and any other such value is refused, so the query
-      projects around it.
+  |~~ JSON has no form for a value a host put in the scope that is of
+      none of the kinds of qlang: `json` writes such a value that runs as
+      `<host-fn name>` and refuses any other, so a query projects around
+      it, `/name`, before it writes JSON.
   ~~|
   ::spec~()
 

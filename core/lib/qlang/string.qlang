@@ -17,13 +17,12 @@
   ::spec~()
 
 :string/ParseJsonNumberNotFiniteError
-  |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
-      magnitude past the double range as one (`1e400` lifts to
-      Infinity). The plain-JSON lift refuses it, so a piped document
-      cannot seed a pipeline with a value the language does not
-      admit. Reached through `parseJson` or a host's lift of its
-      input, the command line's stdin among them, never from a qlang
-      literal, which the parser refuses at its own site.
+  |~~ JSON text may write a number past the range of the doubles a
+      number of qlang is, `1e400`, which no number of the language
+      holds, so reading it is refused rather than turned into an
+      infinity. It is met where JSON text is read, by `parseJson` and
+      by the command line reading its input, and never in a literal of
+      qlang, which the parser refuses itself.
 
       ~("1e400" | parseJson !| type | eq ::string/ParseJsonNumberNotFiniteError)
   ~~|

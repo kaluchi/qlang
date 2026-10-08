@@ -4,9 +4,9 @@
 // A per-site class names its throw site and nothing else: one site,
 // one class. The factories below build them, and each concrete class
 // lives next to the site that raises it — an operand impl in
-// runtime/*.mjs or a seam of the host. `operand-errors.mjs` narrows the same shape for the
-// sites that check a slot's value-class, where the operand, the
-// position and the expected type spell the diagnostic.
+// runtime/*.mjs or a seam of the host. `operand-errors.mjs` narrows
+// the same shape for the sites that check a slot's value-class, where
+// the operand, the position and the expected type spell the diagnostic.
 //
 // The category roots this file declares:
 //
@@ -15,7 +15,7 @@
 //     NumericDomainError             — abstract numericDomain class
 //     ArityError                     — captured-arg count the site refuses
 //     QlangInvariantError            — registration-time invariant
-//     EffectLaunderingError          — @-marker laundered past a name
+//     EffectLaunderingError          — a call to outside under a name without @
 //
 // Declaration order follows that hierarchy: the roots, then the
 // registry, then the factories over both, then the per-site classes
@@ -73,12 +73,10 @@ export class ArityError extends QlangError {
   }
 }
 
-// QlangInvariantError — abstract root for registration-time invariant
-// violations raised when a runtime operand is constructed with
-// incomplete or malformed metadata. These fire when langRuntime is
-// assembled and signal that a runtime-module author forgot to
-// provide a required meta field.
-// Per-site subclasses live next to the site that enforces the invariant.
+// QlangInvariantError — abstract root of the defects of the runtime and
+// of what a host handed: the table of implementations, the bootstrap,
+// the root a host's sources declare. Per-site subclasses live next to
+// the site that holds the invariant.
 export class QlangInvariantError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'invariantError', context);
@@ -86,23 +84,13 @@ export class QlangInvariantError extends QlangError {
   }
 }
 
-// EffectLaunderingError — abstract root for the @-prefix effect-marker
-// invariant: a BindStep declaration whose body references an
-// @-prefixed identifier (the qlang convention for side-effectful host
-// operands like @callers, @refs, @hierarchy) must itself be
-// @-prefixed, so the effect propagates through every alias. Two
-// concrete subclasses fire from two different points:
-//
-//   BindEffectMarkMissingError — fired by `evalBindStep` when
-//     a non-@-prefixed name declares a verb whose body calls an
-//     @-prefixed OperandCall or reads an @-prefixed Projection key.
-//
-//   CallEffectMarkMissingError — fired at runtime by
-//     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
-//     a non-@-prefixed identifier resolves to an effectful function
-//     value or verb (the laundering path where the binding was
-//     handed through a slot or injected by the embedding host, so the
-//     declaration could not detect the effect).
+// EffectLaunderingError — abstract root of the mark of an effect: a
+// name whose verb calls a name marked `@`, a verb that reaches outside
+// the language, carries the mark itself, so every reader of the name
+// sees it [D69]. `bind/EffectMarkMissingError` refuses a declaration
+// without it where it stands; `call/EffectMarkMissingError` a call of
+// such a verb under a plain name a host bound, which no declaration
+// read.
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'effectLaundering', context);
@@ -180,8 +168,9 @@ export function siteOfTag(tagName) {
 // as well as the spec. The factories here take a message builder
 // instead, and cover every site the slot checks leave: a custom
 // diagnostic, an arity refusal, a magnitude outside the
-// finite-double domain, a runtime invariant, an @-marker laundered
-// past a name, the primitive registry, the bootstrap, a source the host cannot read.
+// finite-double domain, a runtime invariant, a name without the mark
+// of its effect, the table of implementations, the bootstrap, a source
+// the host cannot read.
 
 // `name` is a non-writable own property of a class object, so a
 // class built inside a factory reports the factory's local binding
@@ -304,7 +293,7 @@ export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
 
 export const UnknownNameError = declarePerSiteError(
   'call/UnknownNameError', 'unresolvedIdentifier',
-  ({ identifierName }) => `unresolved identifier: ${identifierName}`,
+  ({ identifierName }) => `no name ${identifierName} is declared, and no verb of the kinds of the subject answers it`,
   { operand: '::call' }
 );
 
@@ -342,16 +331,15 @@ export const BindNameDeclaredTwiceError = declareShapeError('bind/NameDeclaredTw
 export const BindEffectMarkMissingError = declareEffectLaunderingError(
   'bind/EffectMarkMissingError',
   ({ bindingName, effectfulName }) =>
-    `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
-    `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
+    `${bindingName} declares a verb that calls ${effectfulName}, which reaches outside the language; ` +
+    `its name carries the mark too, @${bindingName}`,
   { operand: '::bind' }
 );
 
 export const CallEffectMarkMissingError = declareEffectLaunderingError(
   'call/EffectMarkMissingError',
   ({ bindingName, effectfulName }) =>
-    `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
-    `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
-    `or a slot — rename to '@${bindingName}' to mark the effect`,
+    `${bindingName} calls a verb that calls ${effectfulName}, which reaches outside the language, ` +
+    `and carries no mark; the host binds it under a name marked @, @${bindingName}`,
   { operand: '::call' }
 );

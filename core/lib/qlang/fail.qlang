@@ -2,7 +2,7 @@
    alone: its refusals. ~|
 
 :fail/PayloadNotQuoteError
-  |~~ The payload of ::fail is the quote of the step it wraps.
+  |~~ The payload of `::fail` is the quote of the step it wraps.
 
       ~(
         42 | tag ::fail
@@ -13,7 +13,7 @@
   ::spec~()
 
 :fail/ReadBackDiffersError
-  |~~ The ::fail prints as text that reads back as another step: it
+  |~~ The `::fail` prints as text that reads back as another step: it
       wraps one step, and a pipeline under `!|` is written as a
       group.
 

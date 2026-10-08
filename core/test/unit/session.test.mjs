@@ -154,7 +154,7 @@ describe('the sources a host hands [D153]', () => {
     expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
     expect((await sessionInstance.evalCell('5 | shout !| type')).result)
       .toEqual(makeTagKeyword('verb/SlotNotOfKindsError'));
-    expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell('env | /shout | /value')).result);
+    expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell(':shout | binding | /value')).result);
   });
 
   it('refuses a verb ending in ::builtin{} the host hands nothing for, as the root is declared', async () => {

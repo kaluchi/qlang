@@ -27,8 +27,9 @@ describe('the verbs of the command line [D153]', () => {
     expect(await evalInCli('[{:a 1}] | table')).toContain('| a |');
   });
 
-  it('declares its topic among the names of the scope', async () => {
-    expect(await evalInCli(':x 1 | env | [(has :x) (has :cli) (has :table)]')).toEqual([true, true, false]);
+  it('declares its topic beside the names a reader declares', async () => {
+    expect(await evalInCli(':x 1 | env | [(has :x) (has :cli) (has :table)]')).toEqual([true, false, false]);
+    expect(await evalInCli('::cli | doc | type')).toEqual(await evalInCli('::doc'));
   });
 
   it('declares its verbs under the kinds of their subjects', async () => {

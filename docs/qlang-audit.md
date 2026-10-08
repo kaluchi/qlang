@@ -861,9 +861,10 @@ true
 ```
 
 Beside the names the environment holds one key of the runtime, the
-root, which every reader of it filters; `env` answers the names of one
-segment, the nouns of the root among them [D153]. A kind the scope
-declares is a name like any other [D152]:
+root, which every reader of it filters; `env` answers what the reader
+declared, and `kinds` the kinds the scope reads, the root's among them
+[D153], [D160]. A kind the scope declares is a name like any other
+[D152]:
 
 ```qlang
 > :Width |~~ How many characters a line holds. ~~| ::spec~() | env | has :Width
@@ -1413,7 +1414,8 @@ the verbs of tag names, and each step resolves by its own subject
 name reads the member its subject holds under it, the slot of a verb or
 the verb a noun holds [D88]; a host sets up a query by its sources and
 the first value of its pipe and nothing else [D37], [D153]. `env`
-answers the names of the scope, the nouns of the root among them. A
+answers what the reader declared and `kinds` the kinds of the scope
+[D160]. A
 declaration writes into its scope the record of its binding, with its
 name, its documentation, its source, its origin and its value, so the
 axes are projections of the record [D63], and a verb a declaration
@@ -2021,3 +2023,4 @@ maintainer wants to explore it before it is fixed.
 [D155]: decisions/D155.md
 [D156]: decisions/D156.md
 [D158]: decisions/D158.md
+[D160]: decisions/D160.md

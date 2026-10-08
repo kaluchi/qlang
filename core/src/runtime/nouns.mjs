@@ -8,7 +8,7 @@
 // finds the verbs residing on each kind it passes [D34], [D72].
 
 import {
-  isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
+  isBinding, isQMap, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
   typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
@@ -138,6 +138,21 @@ export function scopeNamesOf(env) {
     if (splitAddress(name)[0] === null) scopeNames.set(name, record);
   }
   return scopeNames;
+}
+
+// readerNamesOf(env) → what the reader declared, by name, the root apart
+// [D160].
+export function readerNamesOf(env) {
+  const readerNames = new Map();
+  for (const [name, entry] of env) if (isBinding(entry)) readerNames.set(name, entry);
+  return readerNames;
+}
+
+// kindNamesOf(env) → the names of one segment whose tag addresses a
+// kind, the root's first, as a tag reads them, then the reader's.
+export function kindNamesOf(env) {
+  const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
+  return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isSpec(bindingValueOf(nodeOf(env, name))));
 }
 
 // The addresses where the verbs of a name live, one for each kind a verb

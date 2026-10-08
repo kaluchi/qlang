@@ -8,9 +8,10 @@ import { createSession } from '../../src/session.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds the nouns of the root, a verb of a kind apart', async () => {
-    expect(await evalQuery('env | [(has :number) (has :qlang) (has :count) (has :number/AddLeftNotNumberError)]'))
-      .toEqual([true, true, false, false]);
+  it('env holds what the reader declared, and kinds the kinds of the root [D160]', async () => {
+    expect(await evalQuery('env | eq {}')).toBe(true);
+    expect(await evalQuery('kinds | [(has ::number) (has ::qlang) (has ::number/AddLeftNotNumberError)]'))
+      .toEqual([true, false, false]);
   });
 
   it('a kind the reader declares is a name of its scope', async () => {

@@ -958,21 +958,33 @@
   ::spec~()
 
 :any/env
-  |~~ The names of the scope where the step stands, a map from each name
-      to the record of its binding, `::binding` with its name, docs,
-      value, source and origin: the nouns the host's sources declared,
-      the kinds and the topic of the language among them, then what the
-      session and the query declared, a fork's own declarations among
-      them inside the fork. A name with a path is a member of the noun it
-      begins with, which `manifest` lists, `::vec | manifest`.
-      `env | /flag` hands one record to the next step.
+  |~~ What the reader declared, where the step stands: a map from each
+      name the cells of a session and the steps before it declared, one
+      with a path among them, to the record of its binding, `::binding`
+      with its name, docs, value, source and origin, a fork's own
+      declarations among them inside the fork. What the language and the
+      host declared stands apart: `kinds` lists their kinds, and
+      `manifest` what lies under a noun. `env | /flag` hands one record
+      to the next step.
 
       ~(:limit 10 | env | has :limit)
-      ~(env | has :vec)
-      ~(env | has :count | not)
+      ~(env | eq {})
+      ~(:Box ::spec~() | :Box/area ::verb~(1) | env | keys | eq #[:Box :Box/area])
       ~(42 | :answer / | env | /answer | /value | eq 42)
   ~~|
   ::verb~(:returns ::map | ::builtin{})
+
+:any/kinds
+  |~~ The kinds the scope reads, each by its tag: those the language
+      and the host declared, then the reader's, so a query asks which
+      kinds there are before it asks one of them for its page,
+      `::set | doc`, or for what lies under it, `::set | manifest`.
+
+      ~(kinds | has ::vec)
+      ~(:Box ::spec~() | kinds | has ::Box)
+      ~(kinds | has ::qlang | not)
+  ~~|
+  ::verb~(:returns ::set | ::builtin{})
 
 :any/binding
   |~~ The record of a name, what a declaration wrote into its scope:

@@ -182,7 +182,7 @@
       address of that name, so `:d ::spec~()` declares the kind `::d`; a
       tag no node answers is a kind of identity, which declares nothing.
       ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
-      ::snippet~(env | keys) lists the kinds among the names in scope.
+      ::snippet~(kinds) lists the kinds the scope reads.
       ::link~(::qlang/values | doc)
 
       ~(::Box | type | eq ::tag)
@@ -665,7 +665,7 @@
       stands on, and the tag taken as a value, `::Box`, is the kind
       itself, which a query asks for its page and its verbs. Rests on
       nothing; the pipeline, the verbs and the hypertext rest on it.
-      ::snippet~(env | keys) lists the kinds among the names in scope.
+      ::snippet~(kinds) lists the kinds the scope reads.
       ::link~(::tag | doc)
       ::link~(::qlang/pipeline | doc)
 
@@ -750,10 +750,10 @@
       run. ::link~(::binding | doc) ::link~(::bind | doc)
       ::link~(::qlang/verbs | doc)
 
-      `env` lists the names of the scope, the nouns of the root among
-      them; what lies under a noun `manifest` lists:
+      `env` lists what the reader declared, `kinds` the kinds the scope
+      reads, and what lies under a noun `manifest` lists:
       ~(:limit 10 | env | has :limit)
-      ~(env | has :vec)
+      ~(kinds | has ::vec)
       ~(::vec | manifest | has ::vec/count)
       A name reads its record by `binding`:
       ~(:x 1 | :x | binding | /value | eq 1)

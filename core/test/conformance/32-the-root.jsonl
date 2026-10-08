@@ -9,7 +9,8 @@
 {"name":"no-prefix-stands-for-the-language","query":"::qlang/number | doc !| type","expect":"::any/DocBindingNotFoundError","decision":"D153"}
 {"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true","decision":"D153"}
 {"name":"a-tag-of-a-word-no-name-declares-is-identity","query":"::code{:a 1} | type","expect":"::code","decision":"D153"}
-{"name":"env-answers-the-names-of-one-segment","query":":x 1 | :Box {} | :Box/y 2 | env | [(has :x) (has :Box/y) (has :vec) (has :count)]","expect":"[true false true false]","decision":["D36","D153"]}
+{"name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | [(has :x) (has :Box/y) (has :vec) (has :count)]","expect":"[true true false false]","decision":["D36","D160"]}
+{"name":"kinds-answers-the-kinds-the-scope-reads","query":":Box ::spec~() | kinds | [(has ::vec) (has ::Box) (has ::qlang)]","expect":"[true true false]","decision":"D160"}
 {"name":"a-binding-records-its-origin","query":"::number/add | binding | /origin","expect":":qlang/number","decision":"D153"}
 {"name":"a-helper-of-one-verb-lives-in-the-group-of-its-declaration","query":":f (:h 2 | ::verb~(mul h)) | 3 | f","expect":"6","decision":"D153"}
 {"name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ::verb~(mul h)) | env | has :h","expect":"false","decision":"D153"}
@@ -26,3 +27,5 @@
 {"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | :w2 ::verb~(:subject ::Box | /w | mul 2) | [(::Box{:w 3} | Box/w2) ({:w 3} | Box/w2 !| type) ({:w 3} | w2 !| type)]","expect":"[6 ::verb/SlotNotOfKindsError ::verb/SlotNotOfKindsError]","decision":["D153","D156"]}
 {"name":"a-reader-kind-of-a-builtin-step-runs-it-as-a-step","query":":B ::spec~(::builtin{}) | ::B[1] | type","expect":"::B","decision":["D73","D153"]}
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A ::spec~() | :B ::spec~() | ::verb~(:returns ::number | 1) | [(:A/f (/) | ::A{} | f) (:B/f (/) | ::B{} | f)]","expect":"[1 1]","decision":"D153"}
+{"name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | [(kinds | has ::vec) (env | /vec | /value)]","expect":"[true 5]","decision":["D153","D160"]}
+{"name":"a-name-a-reader-stands-over-is-near-once","query":":vec 5 | vex !| /nearest","expect":"[:vec]","decision":["D118","D160"]}

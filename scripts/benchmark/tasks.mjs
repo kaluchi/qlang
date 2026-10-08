@@ -129,8 +129,8 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'env | filter ~(/value | type | eq ::spec) | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc")) | keys',
-    answer: '#[:explanation :fail]'
+    reference: 'kinds | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
+    answer: '#[::explanation ::fail]'
   },
   {
     id: 'N4',

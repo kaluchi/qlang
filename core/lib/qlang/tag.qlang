@@ -50,9 +50,10 @@
   |~~ Asked of a noun, answers the set of the nodes declared one name
       under it, each by its address: ::snippet~(::number | manifest)
       the verbs and the refusals of numbers, ::snippet~(::qlang |
-      manifest) the chapters of the language. The names of the scope,
-      the nouns among them, `env` lists; what one node holds the axes
-      read, `::vec/count | source`, `| doc`, `| doc | laws`.
+      manifest) the chapters of the language. The kinds of the scope
+      `kinds` lists, and what the reader declared `env`; what one node
+      holds the axes read, `::vec/count | source`, `| doc`, `| doc |
+      laws`.
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::qlang/values)

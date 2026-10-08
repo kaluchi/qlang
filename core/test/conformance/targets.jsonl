@@ -18,7 +18,7 @@
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true","decision":["D61","D119"]}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| ::spec~() | ::Box#[3 1] | doc | content","expect":"\" A box. \"","decision":["D61","D119"]}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true","decision":["D61","D94","D95","D119"]}
-{"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | [(has :x) (has :vec) (has :count)]","expect":"[true true false]","decision":["D36","D61","D153"]}
+{"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | [(has :x) (has :vec) (has :count)]","expect":"[true false false]","decision":["D36","D61","D160"]}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":["D61","D62"]}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::any | manifest | has ::any/doc","expect":"true","decision":"D62"}
 {"name":"a-kind-lists-its-own-verbs","query":"::qlang/string | manifest | has ::string/docs","expect":"false","decision":"D62"}
@@ -43,7 +43,7 @@
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
-{"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"env | has :error","expect":"true","decision":"D64"}
+{"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true","decision":"D64"}
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::number/AddLeftNotNumberError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::proj/KeyNotInMapError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-refusal-names-the-place-it-guards","query":"::call/UnknownNameError | spec | /operand","expect":"::call","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}

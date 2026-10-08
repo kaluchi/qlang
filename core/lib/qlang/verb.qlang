@@ -1,7 +1,8 @@
-|~ `::verb`, the kind of a verb, and the refusals its head raises: of its
-   declaration, of the slots a call fills and of a contract called. ~|
+|~ What is declared under `::verb`, the kind of a verb: the refusals
+   its head raises, of its declaration, of the slots a call fills and of
+   a contract called. ~|
 
-:VerbPayloadNotQuoteError
+:verb/VerbPayloadNotQuoteError
   |~~ `::verb` is a tag over a quote, and a payload of another kind is
       refused.
 
@@ -13,7 +14,7 @@
   ~~|
   ::spec~()
 
-:VerbSlotWithoutBodyError
+:verb/VerbSlotWithoutBodyError
   |~~ The head of a verb is read before it runs, so a slot is declared
       by a kind, a set of kinds or a literal, and a leading declaration
       without a body is refused where the verb is made. A declaration
@@ -28,7 +29,7 @@
   ~~|
   ::spec~()
 
-:VerbRoleNotKindError
+:verb/VerbRoleNotKindError
   |~~ The roles of a verb, `:subject` and `:returns`, are declared by a
       kind or a set of kinds, and `:returns` by `/` for the subject's
       own kind.
@@ -41,7 +42,7 @@
   ~~|
   ::spec~()
 
-:VerbSlotMissingError
+:verb/VerbSlotMissingError
   |~~ A slot declared by a kind alone is filled by the call, and a call
       that leaves it empty is refused by the name of the slot.
 
@@ -53,7 +54,7 @@
   ~~|
   ::spec~()
 
-:VerbModifiersBeyondSlotsError
+:verb/VerbModifiersBeyondSlotsError
   |~~ A verb takes as many modifiers as it has slots, one more when
       the first is its subject, unless `*` gathers the ones that
       remain.
@@ -66,7 +67,7 @@
   ~~|
   ::spec~()
 
-:VerbSlotNotOfKindsError
+:verb/VerbSlotNotOfKindsError
   |~~ A slot declared by a set of kinds takes a value of one of them,
       reached through the tags the value carries, and refuses any
       other, since no one constructor reads it.
@@ -79,7 +80,7 @@
   ~~|
   ::spec~()
 
-:VerbCodeNotQuoteError
+:verb/VerbCodeNotQuoteError
   |~~ A slot of code takes a quote `~(…)` or a verb and nothing else,
       since a value is never read as code, nor the error a modifier
       answered when it ran at the call.
@@ -92,7 +93,7 @@
   ~~|
   ::spec~()
 
-:VerbWithoutBodyError
+:verb/VerbWithoutBodyError
   |~~ The kind of the subject has no verb of the name: `:actualType`
       names the kind, and `:addresses` the verbs of the name and the kinds
       they serve, so the subject is turned into one of those kinds first,

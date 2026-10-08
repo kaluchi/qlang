@@ -56,7 +56,7 @@ const RUNTIME_FIELD_ORDER = [
 // IDENTIFIER_FIELDS` gate).
 const IDENTIFIER_FIELDS = new Set([
   'name',
-  'operandName', 'module', 'paramName',
+  'operandName', 'paramName',
   'effectfulName', 'bindingName',
   'tag', 'exportName'
 ]);

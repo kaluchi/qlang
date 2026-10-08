@@ -55,9 +55,9 @@ describe('runLaws Quote-as-test outcomes', () => {
       ':demo |~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
       '1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell('use ::tests/broken | :demo | runLaws | first');
+    const cellEntry = await session.evalCell(':demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
@@ -71,9 +71,9 @@ describe('runLaws Quote-as-test outcomes', () => {
       ':demo |~~ falsy example.\n    ~(5 | mul 2 | eq 99) ~~|\n' +
       '1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell('use ::tests/falsy | :demo | runLaws | first');
+    const cellEntry = await session.evalCell(':demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBeNull();
     expect(cellEntry.result.get('actual')).toBe(false);
@@ -83,44 +83,32 @@ describe('runLaws Quote-as-test outcomes', () => {
     const moduleSource =
       ':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell('use ::tests/passing | :demo | runLaws | first | /ok');
+    const cellEntry = await session.evalCell(':demo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
   it('a binding without a doc in its slot returns an empty Vec', async () => {
     const session = await createSession({
-      locator: async () => ({ source: ':bare 42' })
+      sources: [{ uri: 'tests/source', source: ':bare 42' }]
     });
-    const cellEntry = await session.evalCell('use ::tests/bare | :bare | runLaws | count');
+    const cellEntry = await session.evalCell(':bare | runLaws | count');
     expect(cellEntry.result).toBe(0);
   });
 
-  it('example sees module bindings loaded through the calling session', async () => {
-    // The Quote inside `:fortytwo`'s doc references `add` —
-    // an operand pulled in via `use(::qlang/operand/arith)` inside
-    // the test's transient module. runLaws must evaluate the
-    // Quote against the calling session's env so the operand
-    // resolves; falling back to a fresh `langRuntime()` env would
-    // leak the example into an isolated runtime that already has
-    // `add` — masking the contract.
-    //
-    // The stronger surface is in the JDT module: `:@type`'s example
-    // calls the host-bound `@type` operand. Without env propagation
-    // the call would lift to `::call/UnresolvedIdentifierError`; with it
-    // the operand fires against the live bridge and the example
-    // verifies the documented fail-track tag. Coverage here uses
-    // bare-qlang `add` to keep the test runtime-free.
+  it('a law sees the names of the calling session', async () => {
+    // A law runs in the scope of the session that asked for it, so a
+    // name a source of the root declared resolves there [D14].
     const moduleSource =
       ':fortytwo |~~ tracks env propagation through runLaws.\n' +
       '    ~(40 | add 2 | eq 42)\n ~~|\n' +
       '1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellEntry = await session.evalCell(
-      'use ::tests/env-propagation | :fortytwo | runLaws | first | /ok');
+      ':fortytwo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -135,10 +123,10 @@ describe('runLaws Quote-as-test outcomes', () => {
       '    ~(:scratch 99 | scratch | eq 99)\n ~~|\n' +
       '1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellRun = await session.evalCell(
-      'use ::tests/isolation | :writer | runLaws | first | /ok');
+      ':writer | runLaws | first | /ok');
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
@@ -157,9 +145,9 @@ describe('runLaws Quote-as-test outcomes', () => {
       ':demo |~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | raise)\n    ~~|\n' +
       '1';
     const session = await createSession({
-      locator: async () => ({ source: moduleSource })
+      sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell('use ::tests/user-error | :demo | runLaws | first');
+    const cellEntry = await session.evalCell(':demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBe('hand-built failure');
   });

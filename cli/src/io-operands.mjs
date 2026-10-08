@@ -29,10 +29,10 @@ function makeWriter(writer, recordEffect, SubjectError) {
 export function makeIoImpls(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   return {
-    '@in':  async () => ioContext.stdinReader(),
-    '@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, OutSubjectNotStringError),
-    '@err': makeWriter(ioContext.stderrWrite, () => {}, ErrSubjectNotStringError),
-    '@tap': (subject, label) => {
+    'any/@in':  async () => ioContext.stdinReader(),
+    'any/@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, OutSubjectNotStringError),
+    'any/@err': makeWriter(ioContext.stderrWrite, () => {}, ErrSubjectNotStringError),
+    'any/@tap': (subject, label) => {
       ioContext.stderrWrite(`[tap ${label.name}] ${printValue(subject)}\n`);
       return subject;
     }

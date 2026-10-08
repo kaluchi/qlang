@@ -3,7 +3,7 @@ import {
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
-import { TAG_SIGIL, canonicalTagName } from './env-keys.mjs';
+import { TAG_SIGIL } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
 // A number is a finite double, and one a host hands otherwise has no
@@ -88,8 +88,7 @@ export function keyword(name) {
 
 // A tag name, `::Kind`, a value of its own whose `.name` a keyword's
 // shares.
-export function makeTagKeyword(tag) {
-  const name = canonicalTagName(tag);
+export function makeTagKeyword(name) {
   return Object.freeze(brandValueClass({ name, literal: TAG_SIGIL + name }, 'tagKeyword'));
 }
 
@@ -100,21 +99,21 @@ export function isTagKeyword(v) {
 // ── binding / quote predicates ────────────────────────────────
 
 // The record a declaration writes into its scope [D63]: the name, the
-// docs of its slot, the value, the quote of the declaring step
-// and the module it came from, under the kind `::binding`. A binding
-// with no declaration behind it, a value `use` or a host bound, holds
-// no source.
+// docs of its slot, the value, the quote of the declaring step and its
+// origin, the source or the cell it was read from [D153], under the kind
+// `::binding`. A binding with no declaration behind it, a value a host
+// bound, holds no source.
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
 
-export function makeBinding({ name, docs = [], value, source = null, module = null }) {
+export function makeBinding({ name, docs = [], value, source = null, origin = null }) {
   const record = new Map();
   record.set('name', name);
   record.set('docs', Object.freeze([...docs]));
   record.set('value', value);
   record.set('source', source);
-  record.set('module', module);
+  record.set('origin', origin);
   stampTagHeader(record, BINDING_TAG);
   return record;
 }
@@ -323,8 +322,9 @@ export function verbEnvRef(verb) {
 }
 
 // The noun a verb resides on, the kind of its subject when its head
-// names none: the noun whose module declared it [D72], which the loader
-// of that module records in the holder beside the verb's scope.
+// names none: the noun its declared name begins with, `:vec/count`
+// residing on `::vec` [D72], [D153], which the declaration records in
+// the holder beside the verb's scope.
 export function residenceOfVerb(verb) {
   return verb[VERB_ENV_REF_SLOT]?.residence ?? null;
 }
@@ -333,16 +333,21 @@ export function resideVerbOn(verb, kindName) {
   verb[VERB_ENV_REF_SLOT].residence = kindName;
 }
 
-// The implementation a host handed with the module that declared a verb,
-// a plain function over the values the verb's head checks [D4], [D80],
-// which the loader of that module records in the holder beside the verb's
-// scope.
+// A verb a host's source declared, which alone reaches a primitive
+// [D73], and the implementation the host handed beside that source, a
+// plain function over the values the verb's head checks [D4], [D80],
+// null for a primitive of the core; the root records both in the holder
+// beside the verb's scope.
+export function isHostVerb(verb) {
+  return verb[VERB_ENV_REF_SLOT]?.host === true;
+}
+
 export function hostImplOfVerb(verb) {
   return verb[VERB_ENV_REF_SLOT]?.hostImpl ?? null;
 }
 
-export function attachHostImpl(verb, impl) {
-  verb[VERB_ENV_REF_SLOT].hostImpl = impl;
+export function declareHostVerb(verb, impl) {
+  Object.assign(verb[VERB_ENV_REF_SLOT], { host: true, hostImpl: impl });
 }
 
 // An error carries its tag, the kind of errors for a literal that names

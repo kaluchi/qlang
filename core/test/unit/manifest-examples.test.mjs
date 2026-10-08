@@ -2,15 +2,13 @@
 // laws; `runLaws` evaluates each in isolation and reports
 // {:law :actual :ok :error}, a law whose answer is truthy passing.
 //
-// The walk reads every node under a noun by its address, the nouns
-// listing what lives on them, and every node the language's module
-// binds, its kinds and the pages of its concepts [D152], and names
-// each failing reader in the assertion message.
+// The walk reads every name the root holds by its address [D153], and
+// names each failing reader in the assertion message.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
+import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { isErrorValue, isQSet } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
@@ -25,14 +23,11 @@ function safeprint(v) {
   catch { return JSON.stringify(v); }
 }
 
-// The readers of the catalog's laws: the address of every node under a
-// noun, `::vec/count` and `::number/AddLeftNotNumberError`, every node
-// of the language's module, `::number` and `::values`, and the root's
-// page, `::qlang`, each read by `runLaws` [D124].
+// The readers of the catalog's laws: the address of every name the root
+// holds, `::number`, `::vec/count` and `::qlang/values`, each read by
+// `runLaws` [D124].
 async function catalogReaders() {
-  const memberAddresses = await evalQuery('::qlang | manifest * manifest | flat');
-  const nodeNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
-  return [...[...memberAddresses].map(address => address.literal), ...nodeNames, '::qlang'];
+  return rootAddressesOf(await langRuntime());
 }
 
 async function walkCatalogExamples() {
@@ -93,14 +88,13 @@ describe('catalog self-test via runLaws', () => {
   }, 30000);
 
   it('every verb of the catalog lives on a noun', async () => {
-    const verbNames = catalogEntriesOf(await langRuntime(), { tags: false }).map(entry => entry.get('name'));
-    const addressedNames = new Set([...await evalQuery('::qlang | manifest * manifest | flat')]
-      .map(address => address.name.slice(address.name.lastIndexOf('/') + 1)));
-    expect(verbNames.filter(verbName => !addressedNames.has(verbName))).toEqual([]);
+    const bareVerbs = await evalQuery('env | vals | filter ~(/value | type | eq ::verb) | count');
+    expect(bareVerbs).toBe(0);
   });
 
-  it('the /ok distribution over every verb is {true}', async () => {
-    const distinctOkValues = await evalQuery('::qlang | manifest * manifest | flat * (runLaws * /ok) | flat | distinct');
+  it('the /ok distribution over every page is {true}', async () => {
+    const readers = await catalogReaders();
+    const distinctOkValues = await evalQuery(`[${readers.join(' ')}] * (runLaws * /ok) | flat | distinct`);
     expect(isErrorValue(distinctOkValues)).toBe(false);
     expect(isQSet(distinctOkValues)).toBe(true);
     expect([...distinctOkValues]).toEqual([true]);

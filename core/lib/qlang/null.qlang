@@ -1,7 +1,7 @@
-|~ `::null`, the kind of the absent value, and the soft read
-   of it. ~|
+|~ What is declared under `::null`, the kind of the absent value: the
+   soft read of it. ~|
 
-:NullPayloadNotNullError
+:null/NullPayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is
       refused.
       ~(
@@ -12,7 +12,7 @@
   ~~|
   ::spec~()
 
-:at
+:null/at
   |~~ Null, whatever the place: a soft read of the absent value is
       absent, so soft reads chain, `at :address | at :city`, and a
       `coalesce` after them gives the fallback once. The strict `/k`

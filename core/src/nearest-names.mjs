@@ -6,8 +6,7 @@
 // names one of which begins the other.
 
 import { keyword, makeTagKeyword } from './types.mjs';
-import { isRuntimeKey } from './env-keys.mjs';
-import { nodeAddresses, verbNames } from './runtime/nouns.mjs';
+import { nodeAddresses, scopeNamesOf, verbNames } from './runtime/nouns.mjs';
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -58,9 +57,10 @@ function nearestOf(names, typedName) {
   return [...new Set([...nearest, ...begun])].sort();
 }
 
-// The names a step reaches bare: the scope's and the verbs of the tree.
+// The names a step reaches bare: those of the scope and the last names of
+// the verbs declared under a kind.
 function namesOfSteps(env) {
-  return new Set([...[...env.keys()].filter(name => !isRuntimeKey(name)), ...verbNames(env)]);
+  return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
 export function nearestNames(env, typedName) {

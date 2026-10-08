@@ -9,21 +9,16 @@ import { QlangTypeError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
-  it('::vec/count | source carries the canonical :count BindStep text', async () => {
+  it('::vec/count | source carries the declaration by its address', async () => {
     const result = await evalQuery('::vec/count | source');
     expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith(':count')).toBe(true);
+    expect(printQuoteSource(result).startsWith(':vec/count')).toBe(true);
   });
 
-  it('a module that declares nothing writes no record to read', async () => {
-    // A module of a bare literal declares no binding, so a name it
-    // was to bring names nothing and the axis raises its not-found
-    // class.
+  it('a source of the root that declares nothing writes no record to read', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const session = await createSession({
-      locator: async (nsName) => nsName === 'tests/scalar-only' ? { source: '42' } : null
-    });
-    const cellEntry = await session.evalCell('use ::tests/scalar-only | :missing | source !| type');
+    const session = await createSession({ sources: [{ uri: 'tests/scalar-only', source: '42' }] });
+    const cellEntry = await session.evalCell(':missing | source !| type');
     expect(cellEntry.result).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
 
@@ -146,21 +141,14 @@ describe('axis-operands read the node a tag addresses', () => {
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
-  // A tag reads the scope's own kind alone, a name whose value is a
-  // spec [D152], so a freeze `42 | :Foo /` is no node `::Foo | source`
-  // reads.
-  it('::Tag | source ignores a freeze of the same name in the scope', async () => {
-    const result = await evalQuery('42 | :Foo / | ::Foo | source');
-    const { isErrorValue } = await import('../../src/types.mjs');
-    expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('SourceBindingNotFoundError');
-    expect(result.originalError).toBeInstanceOf(QlangTypeError);
-    expect(result.originalError.context.bindingName).toBe('::Foo');
+  // A tag is the address of a name, so it reads the nearest declaration
+  // of that name whatever its value holds [D153].
+  it('::Tag | source reads the declaration of its name', async () => {
+    expect(await evalQuery('42 | :Foo / | ::Foo | source | parse')).toBe(':Foo /');
   });
 
-  it('::Tag | doc ignores a freeze of the same name in the scope', async () => {
-    const result = await evalQuery('42 | :Foo / | ::Foo | doc');
-    const { isErrorValue } = await import('../../src/types.mjs');
+  it('a tag no declaration names is refused by its address', async () => {
+    const result = await evalQuery('::Foo | doc');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocBindingNotFoundError');
     expect(result.originalError).toBeInstanceOf(QlangTypeError);
@@ -168,47 +156,31 @@ describe('axis-operands read the node a tag addresses', () => {
   });
 });
 
-describe('examples axis extracts Quote segments from a loaded module', () => {
-  it('use-loaded module with Quote segment is reachable through examples', async () => {
+describe('the axes read what a source of the root declared', () => {
+  async function sessionOf(source) {
     const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = ':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n99';
-    const session = await createSession({
-      locator: async (nsName) => nsName === 'tests/demo' ? { source: moduleSource } : null
-    });
-    const cellEntry = await session.evalCell('use ::tests/demo | :demo | doc | laws | count');
-    expect(cellEntry.result).toBe(1);
+    return await createSession({ sources: [{ uri: 'tests/demo', source }] });
+  }
+
+  it('reads the laws of a page a source declared', async () => {
+    const session = await sessionOf(':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n99');
+    expect((await session.evalCell(':demo | doc | laws | count')).result).toBe(1);
   });
 
-  it('the page of the loaded module carries its prefix', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = ':demo |~~ A short note. ~~|\n1';
-    const session = await createSession({
-      locator: async () => ({ source: moduleSource })
-    });
-    const cellEntry = await session.evalCell('use ::tests/demo | :demo | doc | content');
-    expect(cellEntry.result).toBe(' A short note. ');
+  it('reads the page a source declared', async () => {
+    const session = await sessionOf(':demo |~~ A short note. ~~|\n1');
+    expect((await session.evalCell(':demo | doc | content')).result).toBe(' A short note. ');
   });
 
-  it('doc on a binding without an attached doc-prefix answers null', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = ':bare 42';
-    const session = await createSession({
-      locator: async () => ({ source: moduleSource })
-    });
-    const cellEntry = await session.evalCell('use ::tests/bare | :bare | doc');
-    expect(cellEntry.result).toBeNull();
+  it('answers null for the page of a declaration without one', async () => {
+    const session = await sessionOf(':bare 42');
+    expect((await session.evalCell(':bare | doc')).result).toBeNull();
   });
 
-  it('a name a loaded module does not declare names no binding', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const moduleSource = ':somethingElse 1';
-    const session = await createSession({
-      locator: async () => ({ source: moduleSource })
-    });
-    const cellEntry = await session.evalCell('use ::tests/other | :notHere | source !| type');
-    expect(cellEntry.result.name).toBe('any/SourceBindingNotFoundError');
+  it('refuses a name no source declares', async () => {
+    const session = await sessionOf(':somethingElse 1');
+    expect((await session.evalCell(':notHere | source !| type')).result.name).toBe('any/SourceBindingNotFoundError');
   });
-
 });
 
 describe('a value that is no name reads the declaration of its kind', () => {
@@ -241,22 +213,18 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('spec'));
   });
 
-  // Whichever of a `use` and a cell's declaration writes the name last
-  // holds the record the axes read, in either order.
-  const moduleLocator = async (modulePath) => modulePath === 'probe/shadow'
-    ? { source: ':contested |~~ from the module ~~| 111' }
-    : null;
-
-  it('a cell BindStep after a use answers with the cell declaration', async () => {
+  // The reader's declaration of a name the root holds stands over it
+  // [D62], [D153].
+  it('a cell declaration of a name the root holds is the one the axes read', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({ locator: moduleLocator });
+    const sessionInstance = await createSession({
+      sources: [{ uri: 'probe/shadow', source: ':contested |~~ from the source ~~| 111' }]
+    });
     const cellEntry = await sessionInstance.evalCell(
-      'use(::probe/shadow) | :contested |~~ from the cell ~~| 222 | ' +
+      ':contested |~~ from the cell ~~| 222 | ' +
       '[contested, (:contested | source | parse), (:contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual([
-      222, ':contested |~~ from the cell ~~| 222', ' from the cell '
-    ]);
+    expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 
   it('a host binding is a record with no source and no docs', async () => {
@@ -269,18 +237,6 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
     expect(sourceEntry.result).toBeNull();
     const docsEntry = await sessionInstance.evalCell(':hostInstalled | doc');
     expect(docsEntry.result).toBeNull();
-  });
-
-  it('a use after a cell BindStep answers with the module declaration', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({ locator: moduleLocator });
-    const cellEntry = await sessionInstance.evalCell(
-      ':contested |~~ from the cell ~~| 222 | use(::probe/shadow) | ' +
-      '[contested, (:contested | source | parse), (:contested | doc | content)]');
-    expect(cellEntry.error).toBeNull();
-    expect(cellEntry.result).toEqual([
-      111, ':contested |~~ from the module ~~| 111', ' from the module '
-    ]);
   });
 });
 

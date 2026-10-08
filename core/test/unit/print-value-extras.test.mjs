@@ -20,7 +20,7 @@ describe('printValue — binding record / Function branches', () => {
   it('renders a binding record as the tagged Map it is', () => {
     const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
-      '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :module null\n}');
+      '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :origin null\n}');
   });
 
   it('renders a Doc value as `|~~content~~|` block form', () => {
@@ -196,7 +196,7 @@ describe('format.toPlain non-keyword Map keys', () => {
 describe('the finite-double domain holds at every render seam', () => {
   // Source cannot mint an infinity or a NaN — the parser refuses the
   // literal and every arithmetic site lifts a numericDomain error.
-  // A host can, through `session.bind` or a locator's `impls` map,
+  // A host can, through `session.bind` or the `impls` of its sources,
   // and render is where such a value becomes observable: `printValue`
   // would answer `Infinity`, which no production reads back, and the
   // JSON boundary would answer `null`.
@@ -223,20 +223,19 @@ describe('the finite-double domain holds at every render seam', () => {
   });
 });
 
-// A kind a module declares prints its parts through its own `print`,
+// A kind whose `print` is declared under it prints its parts through it,
 // and the forms of the core print the rest of the value [D96].
-describe('print — the print a kind of a module answers', () => {
+describe('print — the print declared under a kind', () => {
   const BADGE_SOURCE = [
-    ':print',
+    ':badge |~~ A badge. ~~| ::spec~()',
+    ':badge/print',
     '  |~~ A badge as its name. ~~|',
     '  ::verb~(:returns ::string | /name)'
   ].join('\n');
 
   async function badgeSession() {
     const { createSession } = await import('../../src/session.mjs');
-    return await createSession({
-      locator: async path => ({ 'qlang/core': { source: ':badge |~~ A badge. ~~| ::spec~()' }, badge: { source: BADGE_SOURCE } })[path] ?? null
-    });
+    return await createSession({ sources: [{ uri: 'badge', source: BADGE_SOURCE }] });
   }
 
   it('takes the print of a part from the kind of that part', async () => {

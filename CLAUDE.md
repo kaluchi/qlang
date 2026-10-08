@@ -43,22 +43,21 @@ Tier 1, every session, whole, before any claim about the language is
 argued or the audit is touched: `core/src/grammar.peggy` for the syntax,
 `core/src/eval.mjs` for the semantics, `core/src/runtime/verb.mjs`
 for application, `core/src/types.mjs` for the values, and
-`core/lib/qlang/core.qlang`, the root of the tree of names, with
-`core/lib/qlang.qlang`, the nouns of the language, and one module of a
-noun such as `core/lib/qlang/number.qlang` for the shape of the catalog.
+`core/lib/qlang.qlang`, the kinds of the language and its topic, with
+one source of a noun such as `core/lib/qlang/number.qlang`, whose
+declarations sit under the noun, `:number/add`, for the shape of the
+catalog.
 Read source with the file-reading tool, whole; the persistence limit
 below applies to shell output, so a large file is never `cat`-ed.
 
 Tier 2, by topic, only the files the topic names:
 
 - arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
-  from a subject's tags to the verb a name calls,
-  `core/lib/qlang/any.qlang` for the contracts several kinds answer,
-  and `core/src/runtime/use.mjs` for `use`, the verb that writes
-  the scope
-- names, scope, modules, sessions: `core/src/state.mjs`,
+  from a subject's tags to the verb a name calls, and
+  `core/lib/qlang/any.qlang` for the contracts several kinds answer
+- names, scope, the root, sessions: `core/src/state.mjs`,
   `core/src/fork.mjs`, `core/src/env-keys.mjs`,
-  `core/src/runtime/use.mjs`, `core/src/runtime/env.mjs`,
+  `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/operand-errors.mjs`,
   `core/src/error-convert.mjs`, `core/src/eval-trail.mjs`
@@ -72,7 +71,7 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/print.mjs`, `core/src/runtime/format.mjs`
 - host boundary: `core/src/effect.mjs`, `core/src/effect-check.mjs`,
   `core/src/runtime/bootstrap.mjs`, `core/host/`, `cli/src/main.mjs`,
-  `cli/src/script-mode.mjs`, `cli/src/cli-locator.mjs`
+  `cli/src/script-mode.mjs`, `cli/src/cli-sources.mjs`
 - tests: `core/test/unit/conformance.test.mjs` for the runner, then
   only the conformance or unit file of the topic
 

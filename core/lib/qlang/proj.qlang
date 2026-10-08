@@ -1,7 +1,7 @@
-|~ `::proj`, the step that reads a part of a value, and the refusals of
-   a read that misses. ~|
+|~ What is declared under `::proj`, the step that reads a part of a
+   value: the refusals of a read that misses. ~|
 
-:ProjPayloadNotSchemaError
+:proj/ProjPayloadNotSchemaError
   |~~ A `::proj` is a map of `:path`, a vector of keys and
       integers.
       ::link~(::proj | doc)
@@ -14,7 +14,7 @@
   ~~|
   ::spec~()
 
-:ProjReadBackDiffersError
+:proj/ProjReadBackDiffersError
   |~~ The ::proj prints as text that reads back as another step: a
       key that reads as an index is written as the index.
       ::link~(::proj | doc)
@@ -27,7 +27,7 @@
   ~~|
   ::spec~()
 
-:ProjectionFieldNotOnValueClassError
+:proj/ProjectionFieldNotOnValueClassError
   |~~ Projection segment names no declaration of the signature it
       reads.
       ::link~(::proj | doc)
@@ -40,7 +40,7 @@
   ~~|
   ::spec~()
 
-:ProjectionIndexOutOfBoundsError
+:proj/ProjectionIndexOutOfBoundsError
   |~~ An index reads within a vector or a set, from `/0` to the last,
       `/-1`; `take` and `drop` answer the part there is without refusing.
       `:length` holds the length of the subject.
@@ -54,7 +54,7 @@
   ~~|
   ::spec~()
 
-:ProjectionKeyNotInMapError
+:proj/ProjectionKeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
       found where it is read; `keys` lists the keys there are, and
       `at :key` answers null for a key that may be absent.
@@ -68,7 +68,7 @@
   ~~|
   ::spec~()
 
-:ProjectionSubjectNotProjectableError
+:proj/ProjectionSubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a
       tag among them; a number, a string or null has no parts, and a map
       that may lack a key is read by `at`, which answers null for it.
@@ -88,7 +88,7 @@
   ~~|
   ::spec~()
 
-:ProjectionSequenceKeyNotIntegerError
+:proj/ProjectionSequenceKeyNotIntegerError
   |~~ A vector is read by an index, `/0`, a set's in its one order; a
       field of each element is read under `*`, `* /name`, and the
       elements a field picks are found by `filter`.

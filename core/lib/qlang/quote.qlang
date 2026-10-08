@@ -1,11 +1,10 @@
-|~ `::quote`, the kind of code held as a value, the refusals of its
+|~ What is declared under `::quote`: the refusals of its
    constructor, the refusal of text read as code, and the verbs of
-   quotes. Each resides on `::qlang/quote`, the kind
-   whose module declares it; a quote is also the vector of its
-   steps, so the verbs of vectors read it as one, and a quote under a
-   tag, a link or a snippet of a page, reads them through its shape. ~|
+   quotes. A quote is also the vector of its steps, so the verbs of
+   vectors read it as one, and a quote under a tag, a link or a snippet
+   of a page, reads them through its shape. ~|
 
-:QuotePayloadNotVecError
+:quote/QuotePayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
       ::link~(::quote | doc)
@@ -18,7 +17,7 @@
   ~~|
   ::spec~()
 
-:QuoteElementNotStepError
+:quote/QuoteElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
       container of steps, or a record or wrapper of code. A value
       with no reading as code, such as a tagged instance of
@@ -33,7 +32,7 @@
   ~~|
   ::spec~()
 
-:ParseError
+:quote/ParseError
   |~~ The source does not read as qlang: `:marker` points where the
       reading stopped, `:expected` lists what could stand there, and a
       source cut short names the bracket it left open.
@@ -47,14 +46,14 @@
   ~~|
   ::spec~()
 
-:parse
+:quote/parse
   |~~ The source text of the quote, the reverse of `parse` on a string.
 
       ~(~(add 1) | parse | eq "add 1")
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/parse})
 
-:open
+:quote/open
   |~~ The answer of the query the quote holds, run as it stands in the
       scope of the reader, beneath whatever tags stand over it: a link
       opens to the page it names, so `links * open` reads every page a

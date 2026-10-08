@@ -9,21 +9,20 @@
 // is left out and a value of the literal's kind otherwise; `* :name
 // kind` gathers the modifiers that remain. `:subject` and `:returns` are
 // the roles: the kind the verb serves, and the kind it answers, `/` for
-// its subject's own; a verb declared in the module of a noun resides on
-// it and serves that kind [D72]. A call fills the slots in order from its
+// its subject's own; a verb declared under a noun, `:vec/count`, resides
+// on it and serves that kind [D72]. A call fills the slots in order from its
 // modifiers, each evaluated at the call against the subject [D43] and
 // checked by its kind, and runs the rest of the quote, the body, in the
 // scope of the verb with the slots bound, or, for a built-in, the
 // primitive its `::builtin{:impl}` step names over the checked values. A
 // verb without a body is a contract, which answers no call.
 
-import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags, writesScope } from '../primitives.mjs';
+import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags } from '../primitives.mjs';
 import { codeOf, evalAst, mintTaggedInstance } from '../eval.mjs';
-import { addressesOf, nodeOf, residencesOf } from './nouns.mjs';
+import { addressesOf, isRootBinding, nodeOf, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, slotDocsOf, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
-import { canonicalTagName } from '../env-keys.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import {
@@ -34,7 +33,7 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import {
   bindingValueOf, isQuote, isVec, isQMap, isSpec, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
   makeBinding,
-  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, hostImplOfVerb, typeKeyword,
+  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, hostImplOfVerb, isHostVerb, typeKeyword,
   verbEnvRef,
   BIND_TAG, BUILTIN_TAG, SPEC_TAG
 } from '../types.mjs';
@@ -166,10 +165,10 @@ function bodyOf(bodyUnits, quote) {
 // The kinds a tag name or a set of tag names declares, in the one
 // order, or null for any other body.
 function kindsNamedBy(body) {
-  if (body?.type === 'BareTypeKeyword') return [canonicalTagName(body.tag)];
+  if (body?.type === 'BareTypeKeyword') return [body.tag];
   if (body?.type !== 'SetLit' || body.elements.length === 0) return null;
   if (!body.elements.every(element => element.type === 'BareTypeKeyword')) return null;
-  return body.elements.map(element => canonicalTagName(element.tag)).sort();
+  return body.elements.map(element => element.tag).sort();
 }
 
 function kindsOfRole(declaration) {
@@ -344,23 +343,21 @@ function siteRefusalAt(signature, verb, positions) {
 }
 
 // The site of the residence of a built-in, `::map/at`, or null for a
-// verb of a host, which resides on no noun.
+// verb declared under no noun.
 function residenceSiteOf(signature, verb) {
   const residence = residenceOfVerb(verb);
   return residence === null ? null : siteOfTag(`${residence}/${signature.siteName}`);
 }
 
-// Whether a verb calls a primitive: a built-in, the verb declared in the
-// module of a noun [D72], or a verb whose host handed its implementation
-// with the module that declared it [D80]; a `::builtin` step in any other
-// verb is a step, so no head a user writes reaches a primitive past its
-// declaration's [D73].
+// Whether a verb calls a primitive: one a host's source declared [D153];
+// a `::builtin` step in any other verb is a step, so no head a reader
+// writes reaches a primitive past its declaration's [D73].
 function callsPrimitive(signature, verb) {
-  return signature.primitiveKey !== null && (residenceOfVerb(verb) !== null || hostImplOfVerb(verb) !== null);
+  return signature.primitiveKey !== null && isHostVerb(verb);
 }
 
-// A host's primitive, handed with the module that declared the verb, a
-// verb of its noun among them [D92], else the core's.
+// The primitive the host handed beside the source that declared the
+// verb [D80], else the core's.
 function primitiveOfVerb(signature, verb) {
   return hostImplOfVerb(verb) ?? PRIMITIVE_REGISTRY.resolve(signature.primitiveKey);
 }
@@ -473,24 +470,11 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
   const primitive = callsPrimitive(signature, verb) ? primitiveOfVerb(signature, verb) : null;
-  if (primitive !== null && writesScope(primitive)) {
-    return scopeWritten(await primitive(served, ...primitiveArgumentsOf(signature, slotValues, state), state));
-  }
   const answer = primitive !== null
     ? await runPrimitive(primitive, served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
     : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
-
-// The scope a verb that writes it leaves, which the step that called the
-// verb takes, the value in its pipe going on unchanged [D113].
-const WRITTEN_SCOPES = new WeakSet();
-function scopeWritten(env) {
-  const written = Object.freeze({ env });
-  WRITTEN_SCOPES.add(written);
-  return written;
-}
-const stateAfter = (state, answer) => (WRITTEN_SCOPES.has(answer) ? withEnv(state, answer.env) : withPipeValue(state, answer));
 
 // A primitive runs over the values its head checked, a reader of the
 // scope over the state of the call after them [D79], and a reader of the
@@ -523,14 +507,14 @@ function refuseLaunderedVerb(verb, lookupName) {
 // A name bound to a verb runs it when mentioned [D44].
 export async function applyVerb(verb, modifierLambdas, state, lookupName) {
   refuseLaunderedVerb(verb, lookupName);
-  return stateAfter(state, await callVerb(verb, modifierLambdas, state, keyword(lookupName)));
+  return withPipeValue(state, await callVerb(verb, modifierLambdas, state, keyword(lookupName)));
 }
 
 // A name whose verb was found from a subject the call already read runs
 // it against that subject.
 export async function applyVerbOn(verb, subject, slotLambdas, state, lookupName) {
   refuseLaunderedVerb(verb, lookupName);
-  return stateAfter(state, await callVerbOn(verb, subject, slotLambdas, state, keyword(lookupName)));
+  return withPipeValue(state, await callVerbOn(verb, subject, slotLambdas, state, keyword(lookupName)));
 }
 
 // ── the signature as a value ───────────────────────────────────
@@ -547,15 +531,17 @@ export function slotLabelsOf(verb) {
 }
 
 // verbShownFor(env, name) → the verb a tool shows for a name: the one the
-// scope binds, else the one any value answers, else the first a kind
-// answers, a contract giving way to the verbs it answers for; undefined
-// for a name no kind answers.
+// reader declares, else the one any value answers, else the first a kind
+// answers, a contract giving way to the verbs it answers for, else the
+// root's; undefined for a name that names no verb.
 export function verbShownFor(env, name) {
   const scoped = bindingValueOf(env.get(name));
-  if (isVerb(scoped)) return scoped;
+  if (isVerb(scoped) && !isRootBinding(env, name)) return scoped;
   const onAnyValue = bindingValueOf(nodeOf(env, `any/${name}`));
   if (isVerb(onAnyValue) && !isContract(onAnyValue)) return onAnyValue;
-  return bindingValueOf(residencesOf(env, name)[0]?.[1]);
+  const onKind = bindingValueOf(residencesOf(env, name)[0]?.[1]);
+  if (isVerb(onKind)) return onKind;
+  return isVerb(scoped) ? scoped : undefined;
 }
 
 // The signature `spec` answers for a verb: its head as a `::spec~(…)`,

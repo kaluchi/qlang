@@ -44,5 +44,5 @@ function table(subject) {
 }
 
 export const formatImpls = {
-  table
+  'vec/table': table
 };

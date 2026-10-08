@@ -1,10 +1,26 @@
-|~ The module of the command line, its provider `::cli`: its verbs
-   live on it, and their
+|~ The command line: its topic, `::cli`, and the verbs it declares on
+   the kinds of their subjects, `table` under `::vec` and the verbs of
+   the streams under `::any`, each with the refusals of its places; their
    primitives, in `cli/src/io-operands.mjs` and `format-operands.mjs`,
-   are plain functions over the values the head of
-   each verb checks; the refusals of a verb sit under it. ~|
+   are plain functions over the values the head of each verb checks. ~|
 
-:AnswerNotJsonError
+:cli
+  |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
+      and write the streams of the process, and `table` renders a
+      vector of maps as text. A value one query hands another over a
+      pipe keeps its kinds as its literal: `print | @out` writes it and
+      `@in | parse | open` reads it back.
+      A query runs on what stdin holds: JSON read as values, an object
+      a map whose keys are keywords, whose answer is written as JSON,
+      where a value JSON has no form for is refused; text read
+      as a string, whose answer is written as its `print`; and
+      `| json` writes JSON text. A query that writes to stdout itself,
+      by `@out`, holds the channel, and its answer is left unwritten.
+      Every query the command line runs calls its verbs by their names,
+      and `::cli | manifest` lists them.
+  ~~|
+
+:cli/AnswerNotJsonError
   |~~ The input was JSON, so the answer is written as JSON, and a value
       under it has no form there: a quote, a tag or a value under a tag;
       a set is written as the array of its elements, and a keyword as
@@ -15,7 +31,7 @@
       without its tag. ~~|
   ::spec~()
 
-:@in
+:any/@in
   |~~ The text stdin holds, read to its end whatever the subject, the
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
@@ -23,7 +39,7 @@
       lines piped in. ~~|
   ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/@in})
 
-:@out
+:any/@out
   |~~ Writes a line to stdout and answers its subject as it came: the
       subject when it is a string, `"hi" | @out`, or the text a modifier
       computes from it, `42 | @out json`, the steps after still reading
@@ -31,18 +47,18 @@
       ::snippet~([1 2] | @out json | count) writes `[1,2]`. ~~|
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@out})
 
-:OutSubjectNotStringError
+:any/OutSubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
       value is written as the text a modifier computes from it,
       `42 | @out json` or `{:x 1} | @out print`. ~~|
   ::spec~()
 
-:OutRendererResultNotStringError
+:any/OutRendererResultNotStringError
   |~~ The text `@out` writes is a string; a modifier that answers
       another kind is refused, and `json` or `print` makes the text. ~~|
   ::spec~()
 
-:@err
+:any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
       writes to stdout, and answers its subject; the answer of the query
       is written as ever.
@@ -50,31 +66,31 @@
       stderr and answers 3. ~~|
   ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@err})
 
-:ErrSubjectNotStringError
+:any/ErrSubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
       another value is written as the text a modifier computes, `@err
       json` or `@err print`. ~~|
   ::spec~()
 
-:ErrRendererResultNotStringError
+:any/ErrRendererResultNotStringError
   |~~ The text `@err` writes is a string; `json` or `print` makes one
       of any value. ~~|
   ::spec~()
 
-:@tap
+:any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject, a look at a value halfway through a query:
       ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
       shows both vectors and answers 1. ~~|
   ::verb~(:subject ::any | :label ::keyword | ::builtin{:impl :qlang/cli/@tap})
 
-:TapLabelNotKeywordError
+:any/TapLabelNotKeywordError
   |~~ The label of `@tap` is a keyword, `@tap :before`, written before
       the value as `[tap before]`. ~~|
   ::spec~()
 
 
-:table
+:vec/table
   |~~ A vector of maps drawn as a table of fixed-width columns, a view
       for a terminal. Columns are derived from keys in first-occurrence
       order across all rows; missing keys render as empty cells. A
@@ -88,24 +104,24 @@
   ~~|
   ::verb~(:subject ::vec | :returns ::string | ::builtin{:impl :qlang/cli/table})
 
-:TableSubjectNotVecError
+:vec/TableSubjectNotVecError
   |~~ `table` draws a vector of maps, a row each; a single map goes in a
       vector first, `[/] | table`.
       ~(
         42 | table
         !| [type /actualType]
-        |  eq [::cli/TableSubjectNotVecError ::number]
+        |  eq [::vec/TableSubjectNotVecError ::number]
        )
   ~~|
   ::spec~()
 
-:TableRowNotMapError
+:vec/TableRowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`
       names the first that is not.
       ~(
         [42 "hello"] | table
         !| [type /index /actualType]
-        |  eq [::cli/TableRowNotMapError 0 ::number]
+        |  eq [::vec/TableRowNotMapError 0 ::number]
        )
   ~~|
   ::spec~()

@@ -12,8 +12,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createPrimitiveRegistry,
-  PRIMITIVE_REGISTRY,
-  writesScope
+  PRIMITIVE_REGISTRY
 } from '../../src/primitives.mjs';
 
 import { QlangError, QlangInvariantError } from '../../src/errors.mjs';
@@ -292,7 +291,7 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
 
   it('holds the reflective primitives', async () => {
     await import('../../src/runtime/index.mjs');
-    for (const name of ['env', 'use', 'manifest', 'runLaws']) {
+    for (const name of ['env', 'manifest', 'runLaws']) {
       expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
     }
   });
@@ -300,12 +299,5 @@ describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalo
   it('holds the raise primitive', async () => {
     await import('../../src/runtime/index.mjs');
     expect(PRIMITIVE_REGISTRY.has('qlang/prim/raise')).toBe(true);
-  });
-
-  it('resolve returns the loader as a primitive that writes the scope [D113]', async () => {
-    await import('../../src/runtime/index.mjs');
-    const impl = PRIMITIVE_REGISTRY.resolve('qlang/prim/use');
-    expect(typeof impl).toBe('function');
-    expect(writesScope(impl)).toBe(true);
   });
 });

@@ -1,11 +1,10 @@
-|~ `::vec`, the kind of vectors, the refusal of its constructor,
-   and the verbs of vectors. Each resides on `::qlang/vec`, the kind
-   whose module declares it, under the contract of its name on
-   `::qlang/any`, whose page and laws it answers; a quote reads as
-   the vector of its steps. The head of each is its declaration, which
-   the runtime executes before the primitive runs. ~|
+|~ What is declared under `::vec`: the refusal of its constructor, and
+   the verbs of vectors, each under the contract of its name on `::any`,
+   whose page and laws it answers; a quote reads as the vector of its
+   steps. The head of each verb is its declaration, which the runtime
+   executes before the primitive runs. ~|
 
-:VecPayloadNotVecError
+:vec/VecPayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
       payload of another kind is refused.
       ~(
@@ -16,49 +15,49 @@
   ~~|
   ::spec~()
 
-:count
+:vec/count
   |~~ The number of elements.
 
       ~([1 2 3] | count | eq 3)
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
 
-:empty
+:vec/empty
   |~~ Whether the vector holds no element.
 
       ~([] | empty | eq true)
   ~~|
   ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/empty})
 
-:first
+:vec/first
   |~~ The first element, or null for the empty vector.
 
       ~([10 20 30] | first | eq 10)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/first})
 
-:last
+:vec/last
   |~~ The last element, or null for the empty vector.
 
       ~([10 20 30] | last | eq 30)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/last})
 
-:sum
+:vec/sum
   |~~ The sum of the elements, each a number.
 
       ~([1 2 3 4] | sum | eq 10)
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
-:avg
+:vec/avg
   |~~ The mean of the elements, each a number, or null when there is none.
 
       ~([1 2 3 4] | avg | eq 2.5)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/avg})
 
-:min
+:vec/min
   |~~ The first element in the one order of values, or the one whose key
       answers the first value.
 
@@ -67,7 +66,7 @@
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
-:max
+:vec/max
   |~~ The last element in the one order of values, or the one whose key
       answers the last value.
 
@@ -76,28 +75,28 @@
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
-:filter
+:vec/filter
   |~~ The elements whose predicate answers true, in their order.
 
       ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
   ~~|
   ::verb~(:predicate ::quote | :returns / | ::builtin{:impl :qlang/prim/filter})
 
-:every
+:vec/every
   |~~ Whether the predicate answers true for every element.
 
       ~([2 4 6 8] | every ~(gt 0) | eq true)
   ~~|
   ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/every})
 
-:any
+:vec/any
   |~~ Whether the predicate answers true for some element.
 
       ~([1 2 3] | any ~(gt 2) | eq true)
   ~~|
   ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/any})
 
-:has
+:vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
       membership of a JSON array.
 
@@ -106,7 +105,7 @@
   ~~|
   ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
 
-:contains
+:vec/contains
   |~~ Whether the vector holds an element equal to the value, the
       membership `has` asks, under the word a string answers for its
       substrings.
@@ -115,7 +114,7 @@
   ~~|
   ::verb~(:element ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
 
-:groupBy
+:vec/groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
       map is a keyword, and a key that answers a string, the field of a
       JSON object, or a number files its element under the keyword of
@@ -130,7 +129,7 @@
   ~~|
   ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/groupBy})
 
-:indexBy
+:vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
       made a keyword first, as for `groupBy`.
@@ -140,7 +139,7 @@
   ~~|
   ::verb~(:key #[::quote ::null] | :returns ::map | ::builtin{:impl :qlang/prim/indexBy})
 
-:sort
+:vec/sort
   |~~ The elements in the one order of values, the way a reader ranks
       what a query found.
 
@@ -155,21 +154,21 @@
   ~~|
   ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
 
-:take
+:vec/take
   |~~ The first count elements.
 
       ~([1 2 3 4 5] | take 3 | eq [1 2 3])
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
 
-:drop
+:vec/drop
   |~~ The elements after the first count.
 
       ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
 
-:at
+:vec/at
   |~~ The element at the index, a negative one counting from the end,
       or null past either end.
 
@@ -178,7 +177,7 @@
   ~~|
   ::verb~(:index ::number | ::builtin{:impl :qlang/prim/at})
 
-:distinct
+:vec/distinct
   |~~ The set of the elements, the vector in the one order without
       duplicates.
 
@@ -186,28 +185,28 @@
   ~~|
   ::verb~(:returns / | ::builtin{:impl :qlang/prim/distinct})
 
-:reverse
+:vec/reverse
   |~~ The elements in the reverse order.
 
       ~([1 2 3] | reverse | eq [3 2 1])
   ~~|
   ::verb~(:returns / | ::builtin{:impl :qlang/prim/reverse})
 
-:flat
+:vec/flat
   |~~ The elements with one level of nesting spliced in.
 
       ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
   ~~|
   ::verb~(:returns / | ::builtin{:impl :qlang/prim/flat})
 
-:reduce
+:vec/reduce
   |~~ The seed folded over the elements by the reducer.
 
       ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
   ~~|
   ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})
 
-:union
+:vec/union
   |~~ The union of the operands the vector holds, sets merged in the one
       order or maps merged with the last value winning a key. A vector is
       no set for the algebra, so another operand beside it is
@@ -218,7 +217,7 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/union})
 
-:UnionBareEmptyError
+:vec/UnionBareEmptyError
   |~~ `union` over a vector folds its operands, so the vector holds one
       at least.
       ~(
@@ -229,7 +228,7 @@
   ~~|
   ::spec~()
 
-:UnionPairIncompatibleError
+:vec/UnionPairIncompatibleError
   |~~ The operands `union` folds are two sets or two maps.
       ~(
         [#[:a] {:b 1}] | union
@@ -239,7 +238,7 @@
   ~~|
   ::spec~()
 
-:minus
+:vec/minus
   |~~ The first operand the vector holds minus each one after it; another
       operand beside the vector is refused with the pair.
 
@@ -247,7 +246,7 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/minus})
 
-:MinusBareEmptyError
+:vec/MinusBareEmptyError
   |~~ `minus` over a vector folds its operands, so the vector holds one
       at least.
       ~(
@@ -258,7 +257,7 @@
   ~~|
   ::spec~()
 
-:MinusPairIncompatibleError
+:vec/MinusPairIncompatibleError
   |~~ The operands `minus` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
@@ -269,7 +268,7 @@
   ~~|
   ::spec~()
 
-:inter
+:vec/inter
   |~~ The intersection of the operands the vector holds; another operand
       beside the vector is refused with the pair.
 
@@ -277,7 +276,7 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{:impl :qlang/prim/inter})
 
-:InterBareEmptyError
+:vec/InterBareEmptyError
   |~~ `inter` over a vector folds its operands, so the vector holds one
       at least.
       ~(
@@ -288,7 +287,7 @@
   ~~|
   ::spec~()
 
-:InterPairIncompatibleError
+:vec/InterPairIncompatibleError
   |~~ The operands `inter` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
@@ -299,7 +298,7 @@
   ~~|
   ::spec~()
 
-:join
+:vec/join
   |~~ The strings the vector holds joined with the separator between
       consecutive ones. Inverse of `split`.
 
@@ -308,7 +307,7 @@
   ~~|
   ::verb~(:separator ::string | :returns ::string | ::builtin{:impl :qlang/prim/join})
 
-:JoinSubjectNotVecError
+:vec/JoinSubjectNotVecError
   |~~ The subject of `join` is the vector of strings it writes as one; a
       map's values are read first, `vals | join ","`.
       ~(
@@ -319,7 +318,7 @@
   ~~|
   ::spec~()
 
-:JoinElementNotStringError
+:vec/JoinElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
       that is not, and `* print` makes each value its text first.
       ~(
@@ -330,7 +329,7 @@
   ~~|
   ::spec~()
 
-:JoinSeparatorNotStringError
+:vec/JoinSeparatorNotStringError
   |~~ The separator of `join` is a string, `join ", "`.
       ~(
         ["a" "b"] | join 42
@@ -340,7 +339,7 @@
   ~~|
   ::spec~()
 
-:prepend
+:vec/prepend
   |~~ The vector with the element at its head, any value; a set takes it
       through its constructor, so it stays a set.
 
@@ -349,7 +348,7 @@
   ~~|
   ::verb~(:element ::any | :returns / | ::builtin{:impl :qlang/prim/prepend})
 
-:append
+:vec/append
   |~~ The vector with the element at its end, any value, so `[1] |
       append [2 3]` answers `[1 [2 3]]` and vectors join through
       `flat`; a set takes it through its constructor, so it stays a set.

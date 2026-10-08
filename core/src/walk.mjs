@@ -11,7 +11,6 @@
 // `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
-import { canonicalTagName } from './env-keys.mjs';
 
 // The two spellings of a name in source: called by its name, `count`,
 // or written as a tag, the address of a node, `::Box` [D152]. The
@@ -131,10 +130,10 @@ export function attachAstParents(root) {
   walkAst(root, (n, parent) => { n.parent = parent; });
 }
 
-// moduleUriOf(node) — the uri of the source a node was read from,
-// which the root of its tree carries: a module's name, a session
+// originOf(node) — the uri of the source a node was read from, which
+// the root of its tree carries: a source of the root's name, a session
 // cell's, `inline` for a query, `quote` for code assembled from data.
-export function moduleUriOf(node) {
+export function originOf(node) {
   let root = node;
   while (root.parent) root = root.parent;
   return root.uri;
@@ -149,7 +148,7 @@ export function declaredNameOf(bindStep) {
 // declaresKind(bindStep) — whether a declaration's body is a kind's,
 // `:Box ::spec~(…)` [D152].
 export function declaresKind(bindStep) {
-  return bindStep.body?.type === 'TaggedLit' && canonicalTagName(bindStep.body.tag) === 'spec';
+  return bindStep.body?.type === 'TaggedLit' && bindStep.body.tag === 'spec';
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
@@ -209,7 +208,7 @@ export function findAstNodeAtOffset(ast, offset) {
 // value, addressable by `eq :foo` predicates but separate from
 // identifier resolution.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
-  if (spelling === TAG_SPELLING) return findTagOccurrences(ast, canonicalTagName(name));
+  if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
   walkAst(ast, (node) => {
     if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
@@ -229,8 +228,8 @@ export function writesTag(node) {
 function findTagOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (writesTag(node) && canonicalTagName(node.tag) === tagName) occurrences.push(node);
-    else if (node.type === 'BareTypeKeyword' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
+    if (writesTag(node) && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'BareTypeKeyword' && node.tag === tagName) occurrences.push(node);
     else if (node.type === 'BindStep' && declaresKind(node) && node.key.name === tagName) occurrences.push(node);
   });
   return occurrences;

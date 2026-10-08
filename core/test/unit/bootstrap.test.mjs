@@ -1,88 +1,45 @@
-// Per-site coverage for `core/src/runtime/bootstrap.mjs` —
-// `platformLocator` resolves logical names through the calling
-// package's `imports` field, `BootstrapRootMissingError` fires
-// when `#qlang/core` itself is unmapped, and `use(::ns)` without
-// a locator in env surfaces `UseModuleNotFoundError`.
+// Per-site coverage for `core/src/runtime/bootstrap.mjs` and the root
+// it declares: `platformLocator` resolves the sources of the language
+// through the calling package's `imports` field, a source it cannot find
+// refuses the bootstrap by `BootstrapSourceMissingError`, and a source
+// the parser refuses raises its `ParseError` [D153].
 
 import { describe, it, expect } from 'vitest';
-import {
-  platformLocator,
-  BootstrapRootMissingError,
-  BootstrapCatalogNotLoadedError
-} from '../../src/runtime/bootstrap.mjs';
-import { langRuntime, buildLangRuntime } from '../../src/runtime/index.mjs';
-import { evalQuery } from '../../src/eval.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
-import { RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
+import { platformLocator, BootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';
+import { ParseError } from '../../src/parse.mjs';
+import { buildLangRuntime } from '../../src/runtime/index.mjs';
 
 describe('platformLocator', () => {
-  it('returns null for an unmapped module', async () => {
-    const result = await platformLocator('does/not/exist/anywhere');
-    expect(result).toBeNull();
+  it('returns null for an unmapped source', async () => {
+    expect(await platformLocator('does/not/exist/anywhere')).toBeNull();
   });
 
-  it('returns { source } for a mapped module', async () => {
-    const result = await platformLocator('qlang/core');
+  it('returns { source } for a source of the language', async () => {
+    const result = await platformLocator('qlang');
     expect(typeof result.source).toBe('string');
     expect(result.source.length).toBeGreaterThan(100);
   });
 });
 
-describe('BootstrapRootMissingError', () => {
-  it('constructs with a clear diagnostic message and stable name', () => {
-    const err = new BootstrapRootMissingError();
-    expect(err.name).toBe('BootstrapRootMissingError');
-
-    expect(err.message).toContain('#qlang/core');
+describe('BootstrapSourceMissingError', () => {
+  it('names the source it missed and where a host maps it', () => {
+    const err = new BootstrapSourceMissingError({ uri: 'qlang/vec' });
+    expect(err.name).toBe('BootstrapSourceMissingError');
+    expect(err.message).toContain('#qlang/vec');
     expect(err.message).toContain('package.json#imports');
-    expect(err.context).toEqual({});
   });
 
-  it('fires from buildLangRuntime when the locator returns null for the root', async () => {
-    const nullLocator = async () => null;
-    await expect(buildLangRuntime(nullLocator)).rejects.toBeInstanceOf(BootstrapRootMissingError);
+  it('fires from buildLangRuntime when the locator serves no source', async () => {
+    await expect(buildLangRuntime(async () => null)).rejects.toBeInstanceOf(BootstrapSourceMissingError);
   });
 });
 
-describe('BootstrapCatalogNotLoadedError', () => {
-  // A module of the tree that fails to parse refuses the load.
-  const brokenModuleLocator = async (path) => {
-    if (path === 'qlang/core') return { source: ':broken |~~ A provider. ~~|' };
-    if (path === 'broken') return { source: ':unclosed (mul(2)' };
-    return null;
-  };
-
-  it('fires when a module the locator resolves fails to parse', async () => {
+describe('a source of the language the parser refuses', () => {
+  it('raises its parse error, which names the source', async () => {
     let thrown = null;
-    try { await buildLangRuntime(brokenModuleLocator); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
-    expect(thrown.name).toBe('BootstrapCatalogNotLoadedError');
-
-    expect(thrown.context.tagName).toBe('::ParseError');
-    expect(thrown.message).toContain('the modules of the catalog');
-  });
-
-});
-
-describe('a module a query loads that fails to parse', () => {
-  it('answers the parse error as the value of the step that loaded it', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({
-      locator: async modulePath => (modulePath === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
-    });
-    const cellEntry = await sessionInstance.evalCell('use ::tests/broken !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('quote/ParseError'));
-  });
-});
-
-describe('use without a locator in env raises UseModuleNotFoundError', () => {
-  it('falls into the no-locator branch when env lacks the locator key', async () => {
-    // The runtime with its locator stripped: `use ::nonexistent` has no
-    // source to ask.
-    const env = new Map(await langRuntime());
-    env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use ::absolutely-nonexistent-module !| type', env);
-    expect(result).toEqual(makeTagKeyword('any/UseModuleNotFoundError'));
+    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul(2)' })); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(ParseError);
+    expect(thrown.uri).toBe('qlang');
   });
 });
 

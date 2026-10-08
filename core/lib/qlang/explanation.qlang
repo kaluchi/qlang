@@ -1,9 +1,8 @@
-|~ `::explanation`, the kind of what `explain` answers, and the verbs
-   of explanations. Each resides on
-   `::qlang/explanation`, the kind of what `explain` answers: the page
-   `doc` reads for a value and the value itself. ~|
+|~ What is declared under `::explanation`, the kind of what
+   `explain` answers, the page `doc` reads for a value and the value
+   itself: its verbs. ~|
 
-:page
+:explanation/page
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
       site; null for a declaration without one.
@@ -13,7 +12,7 @@
   ~~|
   ::verb~(:returns #[::doc ::null] | /page)
 
-:value
+:explanation/value
   |~~ The value the explanation explains; an error among them raised, as
       it arrived before `!|` opened it.
 

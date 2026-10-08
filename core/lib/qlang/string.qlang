@@ -1,12 +1,11 @@
-|~ `::string`, the kind of strings, the refusal of its constructor,
-   and the verbs of strings. Each resides on `::qlang/string`, the
-   kind whose module declares it: the comparisons, which compare
-   two strings by their code units in the one order, the verbs
-   that read a string, `count`, `take` and `drop` by its characters, and
+|~ What is declared under `::string`: the refusal of its
+   constructor, and the verbs of strings: the comparisons, which compare
+   two strings by their code units in the one order, the verbs that read
+   a string, `count`, `take` and `drop` by its characters, and
    `prepend` and `append`, under the contracts of their names on
-   `::qlang/any`. ~|
+   `::any`. ~|
 
-:StringPayloadNotStringError
+:string/StringPayloadNotStringError
   |~~ `::string` reads its payload as the string it is; a value of
       another kind becomes text by `print`.
       ~(
@@ -17,7 +16,7 @@
   ~~|
   ::spec~()
 
-:FromPlainNumberNotFiniteError
+:string/FromPlainNumberNotFiniteError
   |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
       magnitude past the double range as one (`1e400` lifts to
       Infinity). The plain-JSON lift refuses it, so a piped document
@@ -30,35 +29,35 @@
   ~~|
   ::spec~()
 
-:gt
+:string/gt
   |~~ Whether the subject follows the string the call gives.
 
       ~("b" | gt "a" | eq true)
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
 
-:gte
+:string/gte
   |~~ Whether the subject follows or equals the string the call gives.
 
       ~("b" | gte "b" | eq true)
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
 
-:lt
+:string/lt
   |~~ Whether the subject precedes the string the call gives.
 
       ~("a" | lt "b" | eq true)
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
 
-:lte
+:string/lte
   |~~ Whether the subject precedes or equals the string the call gives.
 
       ~("a" | lte "a" | eq true)
   ~~|
   ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
 
-:count
+:string/count
   |~~ The number of characters of the string, a letter of any script
       one, the length every other language gives a string.
 
@@ -68,7 +67,7 @@
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
 
-:take
+:string/take
   |~~ The first count characters of the string.
 
       ~("db_host" | take 2 | eq "db")
@@ -76,7 +75,7 @@
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
 
-:drop
+:string/drop
   |~~ The string without its first count characters, the rest after a
       prefix of known length.
 
@@ -84,7 +83,7 @@
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
 
-:split
+:string/split
   |~~ The substrings between the occurrences of the separator, as a
       vector. Inverse of `join`.
 
@@ -93,7 +92,7 @@
   ~~|
   ::verb~(:separator ::string | :returns ::vec | ::builtin{:impl :qlang/prim/split})
 
-:SplitSubjectNotStringError
+:string/SplitSubjectNotStringError
   |~~ The subject of `split` is the string it cuts; a vector of strings
       is cut element by element, `* split ","`.
       ~(
@@ -104,7 +103,7 @@
   ~~|
   ::spec~()
 
-:SplitSeparatorNotStringError
+:string/SplitSeparatorNotStringError
   |~~ The separator of `split` is a string, `split ","`.
       ~(
         "abc" | split 42
@@ -114,7 +113,7 @@
   ~~|
   ::spec~()
 
-:lines
+:string/lines
   |~~ The lines of a text, as a vector of strings. A `\n` ends a line
       and a `\r` before it belongs to the ending; a newline at the end
       closes the last line rather than opening an empty one, so a text
@@ -128,7 +127,7 @@
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/lines})
 
-:LinesSubjectNotStringError
+:string/LinesSubjectNotStringError
   |~~ `lines` breaks a string, the text the command line reads with
       `--raw`; a vector of texts is broken element by element, `* lines`.
       ~(
@@ -139,7 +138,7 @@
   ~~|
   ::spec~()
 
-:lower
+:string/lower
   |~~ The string with every letter in lower case, so two strings that
       differ in case alone compare equal once lowered.
 
@@ -148,7 +147,7 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/lower})
 
-:LowerSubjectNotStringError
+:string/LowerSubjectNotStringError
   |~~ `lower` works on a string; a vector of strings takes it element by
       element, `* lower`, and a field is read first, `/email | lower`.
       ~(
@@ -159,14 +158,14 @@
   ~~|
   ::spec~()
 
-:upper
+:string/upper
   |~~ The string with every letter in upper case.
 
       ~("ok, go" | upper | eq "OK, GO")
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/upper})
 
-:UpperSubjectNotStringError
+:string/UpperSubjectNotStringError
   |~~ `upper` works on a string; a vector of strings takes it element by
       element, `* upper`.
       ~(
@@ -177,7 +176,7 @@
   ~~|
   ::spec~()
 
-:trim
+:string/trim
   |~~ The string without the whitespace at its two ends, spaces, tabs
       and line breaks, so a field cut out of a line compares as the text
       it holds.
@@ -188,7 +187,7 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/trim})
 
-:TrimSubjectNotStringError
+:string/TrimSubjectNotStringError
   |~~ `trim` works on a string; a vector of strings takes it element by
       element, `* trim`.
       ~(
@@ -199,7 +198,7 @@
   ~~|
   ::spec~()
 
-:contains
+:string/contains
   |~~ Whether the string holds the needle as a substring; the empty
       needle is always held. Case-sensitive.
 
@@ -208,7 +207,7 @@
   ~~|
   ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
 
-:ContainsSubjectNotStringError
+:string/ContainsSubjectNotStringError
   |~~ The subject of `::string/contains` is the string searched, where the
       address calls it; the name `contains` reaches a vector and a set by
       their elements.
@@ -220,7 +219,7 @@
   ~~|
   ::spec~()
 
-:ContainsNeedleNotStringError
+:string/ContainsNeedleNotStringError
   |~~ The needle of `contains` is a string, `contains "x"`; a keyword
       gives its name by `keyword`.
       ~(
@@ -231,7 +230,7 @@
   ~~|
   ::spec~()
 
-:startsWith
+:string/startsWith
   |~~ Whether the string begins with the prefix; the empty prefix
       always begins it. Case-sensitive.
 
@@ -240,7 +239,7 @@
   ~~|
   ::verb~(:prefix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/startsWith})
 
-:StartsWithSubjectNotStringError
+:string/StartsWithSubjectNotStringError
   |~~ The subject of `startsWith` is the string whose beginning is read;
       a field is read first, `/name | startsWith "a"`.
       ~(
@@ -251,7 +250,7 @@
   ~~|
   ::spec~()
 
-:StartsWithPrefixNotStringError
+:string/StartsWithPrefixNotStringError
   |~~ The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
         "hi" | startsWith 42
@@ -261,7 +260,7 @@
   ~~|
   ::spec~()
 
-:endsWith
+:string/endsWith
   |~~ Whether the string ends with the suffix; the empty suffix always
       ends it. Case-sensitive.
 
@@ -270,7 +269,7 @@
   ~~|
   ::verb~(:suffix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/endsWith})
 
-:EndsWithSubjectNotStringError
+:string/EndsWithSubjectNotStringError
   |~~ The subject of `endsWith` is the string whose end is read; a field
       is read first, `/file | endsWith ".json"`.
       ~(
@@ -281,7 +280,7 @@
   ~~|
   ::spec~()
 
-:EndsWithSuffixNotStringError
+:string/EndsWithSuffixNotStringError
   |~~ The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
         "hi" | endsWith 42
@@ -291,7 +290,7 @@
   ~~|
   ::spec~()
 
-:prepend
+:string/prepend
   |~~ The string with the prefix in front; a tag over the string comes
       back on the answer.
 
@@ -300,7 +299,7 @@
   ~~|
   ::verb~(:prefix ::string | :returns / | ::builtin{:impl :qlang/prim/prepend})
 
-:PrependPrefixNotStringError
+:string/PrependPrefixNotStringError
   |~~ The prefix a string takes is a string; a value of another kind
       becomes one by `print`, `prepend (n | print)`.
       ~(
@@ -311,7 +310,7 @@
   ~~|
   ::spec~()
 
-:append
+:string/append
   |~~ The string with the suffix after it; a tag over the string comes
       back on the answer.
 
@@ -319,7 +318,7 @@
   ~~|
   ::verb~(:suffix ::string | :returns / | ::builtin{:impl :qlang/prim/append})
 
-:AppendSuffixNotStringError
+:string/AppendSuffixNotStringError
   |~~ The suffix a string takes is a string; a value of another kind
       becomes one by `print`, `append (n | print)`.
       ~(
@@ -330,7 +329,7 @@
   ~~|
   ::spec~()
 
-:parseJson
+:string/parseJson
   |~~ The qlang value a string of plain JSON spells, the reverse of
       `json`: the keys of an object become keywords, an array a vector,
       and scalars pass through. Lossy for the shapes of qlang alone: a
@@ -345,7 +344,7 @@
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/parseJson})
 
-:ParseJsonSubjectNotStringError
+:string/ParseJsonSubjectNotStringError
   |~~ `parseJson` reads a string of JSON text; a value becomes such text
       by `json`.
 
@@ -357,7 +356,7 @@
   ~~|
   ::spec~()
 
-:ParseJsonInvalidJsonError
+:string/ParseJsonInvalidJsonError
   |~~ `parseJson` could not parse the subject as JSON. The message
       of the host's parser rides on `:message`.
 
@@ -365,7 +364,7 @@
   ~~|
   ::spec~()
 
-:keyword
+:string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON
       data and text built from parts, with the world of keywords, the
       keys of maps and the discriminators of enums.
@@ -376,7 +375,7 @@
   ~~|
   ::verb~(:returns ::keyword | ::builtin{:impl :qlang/prim/keyword})
 
-:parse
+:string/parse
   |~~ The quote of the steps the source text spells, the reverse of
       `parse` on a quote. Pair it with `apply /` to evaluate source
       text without leaving qlang. A source the parser refuses answers a

@@ -117,8 +117,8 @@ export const TASKS = [
   {
     id: 'N1',
     question: 'in one query, the text of the page of every kind the language lists.',
-    reference: '::qlang | manifest * (doc | content)',
-    answer: '::qlang | manifest * (doc | content)'
+    reference: 'env | filter ~(/value | type | eq ::spec) * (doc | content)',
+    answer: 'env | filter ~(/value | type | eq ::spec) * (doc | content)'
   },
   {
     id: 'N2',
@@ -129,8 +129,8 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::qlang | manifest | filter ~(spec | type | eq ::spec) | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
-    answer: '#[::explanation ::fail]'
+    reference: 'env | filter ~(/value | type | eq ::spec) | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc")) | keys',
+    answer: '#[:explanation :fail]'
   },
   {
     id: 'N4',

@@ -301,7 +301,7 @@ describe('a tag no node answers is a kind of identity, and declares nothing [D15
   it('leaves no binding to read', async () => {
     const result = await evalQuery('::Top(1) | ::Top | spec');
     expect(result.tag.name).toBe('any/SpecBindingNotFoundError');
-    expect(await evalQuery('::Zap(1) | env | keys | count')).toBe(0);
+    expect(await evalQuery('::Zap(1) | env | has :Zap')).toBe(false);
   });
 });
 

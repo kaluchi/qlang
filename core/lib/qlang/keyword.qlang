@@ -1,9 +1,8 @@
-|~ `::keyword`, the kind of keywords, the refusal of its
-   constructor, and the comparisons of keywords. Each resides on
-   `::qlang/keyword`, the kind whose module declares it, and compares
-   two keywords by their names in the one order. ~|
+|~ What is declared under `::keyword`: the refusal of its
+   constructor, and the comparisons of keywords, which compare two
+   keywords by their names in the one order. ~|
 
-:KeywordPayloadNotKeywordError
+:keyword/KeywordPayloadNotKeywordError
   |~~ `::keyword` reads its payload as the keyword it is; a string
       becomes one by `keyword`.
       ~(
@@ -14,7 +13,7 @@
   ~~|
   ::spec~()
 
-:gt
+:keyword/gt
   |~~ Whether the subject's name follows the name of the keyword the
       call gives.
 
@@ -22,7 +21,7 @@
   ~~|
   ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
 
-:gte
+:keyword/gte
   |~~ Whether the subject's name follows or equals the name of the
       keyword the call gives.
 
@@ -30,7 +29,7 @@
   ~~|
   ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
 
-:lt
+:keyword/lt
   |~~ Whether the subject's name precedes the name of the keyword the
       call gives.
 
@@ -38,7 +37,7 @@
   ~~|
   ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
 
-:lte
+:keyword/lte
   |~~ Whether the subject's name precedes or equals the name of the
       keyword the call gives.
 
@@ -46,7 +45,7 @@
   ~~|
   ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
 
-:keyword
+:keyword/keyword
   |~~ The name of the keyword, as a string: the reverse of `keyword` on
       a string, so `"foo" | keyword | keyword` answers `"foo"`.
 
@@ -55,7 +54,7 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/keyword})
 
-:runLaws
+:keyword/runLaws
   |~~ The results of the laws of the page of the binding the keyword
       names in its scope, one `{:law :says :actual :ok :error}` per law,
       `:says` the caption of the claim the law proves. A keyword after

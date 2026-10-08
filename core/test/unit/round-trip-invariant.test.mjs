@@ -331,16 +331,14 @@ describe('env output is parseable', () => {
   it('printValue(env) emits no raw JS function source', async () => {
     const env = await evalSource('env');
     const printed = printValue(env);
-    // The literal leak pattern this test guards against — undici's
-    // async-function source landing in the output as `async
-    // function platformLocator(...) { ... }`.
+    // The literal leak pattern this test guards against: a function's
+    // source landing in the output as `async function name(...) { ... }`.
     expect(printed).not.toMatch(/async function\b/);
     expect(printed).not.toMatch(/=>\s*\{/);
   });
 
   it('host-bound raw JS function in env renders as a parseable host-marker string', async () => {
-    // The locator slot is the live example; this test generalises
-    // to any embedder-installed function value under `session.bind`.
+    // An embedder installs a function value under `session.bind`.
     const env = new Map(await langRuntime());
     env.set('myHostFn', async function helloFn() { return 42; });
     const printed = printValue(env);

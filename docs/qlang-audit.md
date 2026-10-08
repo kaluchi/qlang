@@ -814,49 +814,47 @@ so that nothing of the runtime is exported for building operands [D46].
 ### Modules that dissolve into their clients
 
 A declaration writes the record of its binding into its scope [D63],
-and a module is the file whose bindings are the nodes under its path
-[D152], read once in a scope of its own. `use` merges into the client's
-scope every binding the module declared, so a module that loads another
-no longer passes that module's names on, while a helper written for the
-module's own definitions still lands in the client's scope beside the
-operands meant for the client: a module has no value of its own that
-says what it exposes. The language offers an underscore convention to which it attaches
-nothing. The sister project's graph catalog uses no such convention and
-is loaded whole into every session, so the helpers behind `@problems`
-stand in its client's `env` beside `@problems` itself. In the sister
-project:
+and a source of the root is a cell whose declarations stand in the root
+as a cell's stand in a session [D153]: what it declares bare is a name
+of every reader's scope, and what it declares with a path a node under
+a noun. A helper of one verb lives in the group of its declaration and
+closes with it, and a helper several verbs share is a node under their
+noun. The sister project's graph catalog still declares its helpers
+bare and loads them by `use`, which [D153] retires, so the helpers
+behind `@problems` stand in its client's `env` beside `@problems`
+itself. In the sister project:
 
 ```sh
 $ node cli/bin/jdt q 'env | keys | inter #[:@problems :@problemsVia :@problemsForNodeVia :problemsInRangeOf]'
 #[:@problems :@problemsForNodeVia :@problemsVia :problemsInRangeOf]
 ```
 
-Every kind a module declares reaches the scope of its clients the same
-way, so a head whose slots name kinds of their own [D60] multiplies what
-a client's `env` shows until a module's surface is its own.
+Every kind a source declares bare reaches the names of every reader
+the same way, so a head whose slots name kinds of their own [D60]
+multiplies what a reader's `env` shows unless the source declares
+those kinds under its noun.
 
-The verbs of the core live in the module of their noun, and the loader's
-`use` among the verbs of any value [D72], [D113]. The command line's verbs
-live on its own provider, `::cli`, which it binds beside the language
-at the root [D152], and a query calls them by their names without a
-`use`. The sister project binds no provider yet: the module of that
-host lands its verbs in its client's scope beside the client's own
-names [D80]. In the sister project:
+The verbs of the core are declared under their noun, `:vec/count`
+[D72], [D153]. The command line declares its verbs under the kinds of
+their subjects, `:vec/table` and `:any/@out`, and its topic `::cli`
+among the names of the root, and a query calls them by their names.
+The sister project declares its verbs bare and still loads them by
+`use`: the verbs of that host land in its client's scope beside the
+client's own names [D80]. In the sister project:
 
 ```sh
 $ node cli/bin/jdt q 'env | has :@type'
 true
 ```
 
-What stays in the environment is the runtime's housekeeping: the
-export map of every module under a prefix of its own, which is the
-tree of names, and the host's locator, a raw JavaScript function,
-under another, which every reader of the environment filters. A kind
-the scope declares is a name like any other [D152]:
+Beside the names the environment holds one key of the runtime, the
+root, which every reader of it filters; `env` answers the names of one
+segment, the nouns of the root among them [D153]. A kind the scope
+declares is a name like any other [D152]:
 
 ```qlang
-> :Width |~~ How many characters a line holds. ~~| ::spec~() | env | keys
-#[:Width]
+> :Width |~~ How many characters a line holds. ~~| ::spec~() | env | has :Width
+true
 ```
 
 And names collide, which the maintainer has named as the one worry the
@@ -1016,13 +1014,9 @@ The path of an error carries the subject of every level it left
 ```
 
 A slot of a verb that meets an error hands it on unchanged, as the law
-of nested errors asks [D13], [D68], the namespace `use` computes at the
-call among them, since the loader is a verb [D113]:
+of nested errors asks [D13], [D68]:
 
 ```qlang
-> use (!{:k 1}) !| type
-::error
-
 > 1 | add (!{:k 1}) !| type
 ::error
 ```
@@ -1238,22 +1232,20 @@ part:
   $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /TaggedJSON|serialize/i.test(name)).length)"
   0
   ```
-- One loader of modules: `use` through a locator
-  (`core/src/runtime/use.mjs`, `loadModule`), which the bootstrap of
-  the catalog calls too, walking the tree from its root with
-  `loadTree`; the resolver of module directories that tests alone used
-  has left the package. A module's surface is the bindings it declared
-  under its own path [D152].
+- One way names come from a host: the root, the scope the host's sources
+  declare as cells before a reader's first step, the language's first
+  (`core/src/runtime/root.mjs`, `declareRoot`); the resolver of module
+  directories that tests alone used has left the package, and `use` the
+  language [D153].
 - An embedding surface that was never designed. The package's entry
   point exports what the command line, the language server, the site
-  and the sister project read, and no name besides; among them are still
-  the Symbol slot of the headers and the key of the host's locator in
-  the environment, and the package exposes subpaths for the error
-  factories, which is what hosts build on:
+  and the sister project read, and no name besides; among them is still
+  the Symbol slot of the headers, and the package exposes subpaths for
+  the error factories, which is what hosts build on:
 
   ```sh
   $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
-  RUNTIME_LOCATOR_KEY TAG_HEADER_SYMBOL
+  TAG_HEADER_SYMBOL
   $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
   ./errors ./operand-errors
   ```

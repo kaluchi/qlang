@@ -34,7 +34,6 @@
 //                     unconditionally, as `errorFromQlang` in
 //                     error-convert.mjs does.
 
-import { canonicalTagName } from './env-keys.mjs';
 
 // ── Category roots ─────────────────────────────────────────────
 
@@ -167,7 +166,7 @@ export function throwSiteSpecNames() {
 
 // The name of a site that names a tag in the registry, `::map/at`.
 export function siteOfTag(tagName) {
-  return '::' + canonicalTagName(tagName);
+  return '::' + tagName;
 }
 
 // The address of a refusal in the tree of names [D152]: the path of the

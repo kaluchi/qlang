@@ -1,7 +1,7 @@
-|~ `::group`, the steps in parentheses run on the value in the pipe,
-   and its refusals. ~|
+|~ What is declared under `::group`, the steps in parentheses run on
+   the value in the pipe: its refusals. ~|
 
-:GroupPayloadNotQuoteError
+:group/GroupPayloadNotQuoteError
   |~~ The payload of ::group is the quote of its pipeline.
 
       ~(
@@ -12,7 +12,7 @@
   ~~|
   ::spec~()
 
-:GroupReadBackDiffersError
+:group/GroupReadBackDiffersError
   |~~ The ::group prints as text that reads back as another step, or
       as none: a group holds at least one step.
 

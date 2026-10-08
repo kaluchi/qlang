@@ -16,7 +16,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
-import { catalogEntriesOf } from '../helpers/catalog-entries.mjs';
+import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -53,11 +53,8 @@ async function unbuiltOf(valuesBySource) {
 }
 
 async function catalogExamples() {
-  const tagNames = catalogEntriesOf(await langRuntime(), { tags: true }).map(entry => entry.get('name'));
-  const examples = [
-    ...await evalQuery('::qlang | manifest * manifest | flat * (doc | laws) | flat'),
-    ...await evalQuery(`[${tagNames.join(' ')}] * (doc | laws) | flat`),
-  ];
+  const addresses = rootAddressesOf(await langRuntime());
+  const examples = [...await evalQuery(`[${addresses.join(' ')}] * (doc | laws) | flat`)];
   return new Map(examples.map(example => [printQuoteSource(example), example]));
 }
 

@@ -1,12 +1,11 @@
-|~ `::qlang/any`, the kind beneath every kind: the verbs of any value, and the contracts of the verbs that
-   several kinds answer, each residing on `::qlang/any`, the kind beneath
-   every kind. A contract is a verb without a body: its page and its
-   laws hold for every verb of its name, what a residence
-   leaves out it says, and a call whose subject no residence serves
-   reaches it and is refused with `:addresses`, the residences of the
-   name. ~|
+|~ What is declared under `::any`, the kind beneath every kind: the
+   verbs of any value, and the contracts of the verbs several kinds
+   answer. A contract is a verb without a body: its page and its laws
+   hold for every verb of its name, what the verb of a kind leaves out it
+   says, and a call whose subject no kind of its walk serves reaches it
+   and is refused with `:addresses`, where the verbs of the name live. ~|
 
-:ToPlainUnencodableValueError
+:any/ToPlainUnencodableValueError
   |~~ JSON has no form for a value a host installed that is none of the
       kinds of qlang; a function a host bound is written as
       `<host-fn name>`, and any other such value is refused, so the query
@@ -14,7 +13,7 @@
   ~~|
   ::spec~()
 
-:SourceLoadError
+:any/SourceLoadError
   |~~ The platform resolved a `#qlang/<ns>` logical name to a path
       or URL the host could not read. The descriptor carries
       `:host` (`:node` / `:web`), `:logicalName`, `:sourceLocation`,
@@ -24,7 +23,7 @@
   ~~|
   ::spec~()
 
-:gt
+:any/gt
   |~~ Whether the subject follows the value the call gives in the one
       order of their kind. Numbers, strings, keywords and tag names each
       compare with a value of their own kind, a residence on each of
@@ -37,7 +36,7 @@
   ~~|
   ::verb~()
 
-:gte
+:any/gte
   |~~ Whether the subject follows or equals the value the call gives in
       the one order of their kind, which `gt` states for every kind it
       compares.
@@ -47,7 +46,7 @@
   ~~|
   ::verb~()
 
-:lt
+:any/lt
   |~~ Whether the subject precedes the value the call gives in the one
       order of their kind, which `gt` states for every kind it compares.
 
@@ -56,7 +55,7 @@
   ~~|
   ::verb~()
 
-:lte
+:any/lte
   |~~ Whether the subject precedes or equals the value the call gives in
       the one order of their kind, which `gt` states for every kind it
       compares.
@@ -66,7 +65,7 @@
   ~~|
   ::verb~()
 
-:count
+:any/count
   |~~ The number of elements a container holds: a vector's, a set's,
       and a map's entries; and the number of characters of a string.
 
@@ -78,7 +77,7 @@
   ~~|
   ::verb~()
 
-:empty
+:any/empty
   |~~ Whether a container holds no element.
 
       ~([] | empty | eq true)
@@ -87,7 +86,7 @@
   ~~|
   ::verb~()
 
-:first
+:any/first
   |~~ The first element of a vector, the least of a set, or the first
       value of a map, and null for an empty container.
 
@@ -98,7 +97,7 @@
   ~~|
   ::verb~()
 
-:last
+:any/last
   |~~ The last element of a vector, the greatest of a set, or the last
       value of a map, and null for an empty container.
 
@@ -109,7 +108,7 @@
   ~~|
   ::verb~()
 
-:sum
+:any/sum
   |~~ The sum of the elements of a vector or a set, or of the values of a
       map, each a number; an empty container sums to 0.
 
@@ -120,7 +119,7 @@
   ~~|
   ::verb~()
 
-:SumElementNotNumberError
+:any/SumElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
       none, and a field is read first, `* /amount | sum`.
       ~(
@@ -131,7 +130,7 @@
   ~~|
   ::spec~()
 
-:SumResultNotFiniteError
+:any/SumResultNotFiniteError
   |~~ Every element is of the right kind, and the running
       total still answered outside the finite-double domain. The
       total is read at each element in the subject's order, so a subject
@@ -147,7 +146,7 @@
   ~~|
   ::spec~()
 
-:avg
+:any/avg
   |~~ The mean of the elements of a vector or a set, or of the values of
       a map, each a number, and null for an empty container, which has
       none; a group's mean is `avg` over each group.
@@ -158,7 +157,7 @@
   ~~|
   ::verb~()
 
-:AvgElementNotNumberError
+:any/AvgElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
       that is none, and a field is read first, `* /amount | avg`.
       ~(
@@ -169,7 +168,7 @@
   ~~|
   ::spec~()
 
-:min
+:any/min
   |~~ The first element in the one order of values, the order `sort`
       answers, of a vector, a set, or the values of a map, or the element
       whose key answers the first value, the key read as `sort` reads it;
@@ -184,7 +183,7 @@
   ~~|
   ::verb~()
 
-:max
+:any/max
   |~~ The last element in the one order of values, the order `sort`
       answers, of a vector, a set, or the values of a map, or the element
       whose key answers the last value, the key read as `sort` reads it;
@@ -200,7 +199,7 @@
   ~~|
   ::verb~()
 
-:filter
+:any/filter
   |~~ Keeps the elements of a container a predicate accepts, in a
       container of the same kind, the way a query narrows what it found
       before it reads it.
@@ -218,7 +217,7 @@
   ~~|
   ::verb~()
 
-:FilterConditionNotBooleanError
+:any/FilterConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
@@ -229,7 +228,7 @@
   ~~|
   ::spec~()
 
-:FilterPredicateNotQuoteError
+:any/FilterPredicateNotQuoteError
   |~~ The predicate of `filter` is code it runs on each element, so it takes a
       quote, `filter ~(gt 1)`; a value computed at the call is refused.
       ~(
@@ -247,7 +246,7 @@
   ~~|
   ::spec~()
 
-:every
+:any/every
   |~~ Whether a predicate holds for every element of a container, a
       map's elements being its values: the question a law asks of a
       listing, `every ~(…)`. It stops at the first false.
@@ -265,7 +264,7 @@
   ~~|
   ::verb~()
 
-:EveryConditionNotBooleanError
+:any/EveryConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
@@ -276,7 +275,7 @@
   ~~|
   ::spec~()
 
-:EveryPredicateNotQuoteError
+:any/EveryPredicateNotQuoteError
   |~~ The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
       ~(
@@ -287,7 +286,7 @@
   ~~|
   ::spec~()
 
-:any
+:any/any
   |~~ Whether a predicate holds for some element of a container, a map's
       elements being its values. It stops at the first true.
 
@@ -304,7 +303,7 @@
   ~~|
   ::verb~()
 
-:AnyConditionNotBooleanError
+:any/AnyConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
       ~(
@@ -315,7 +314,7 @@
   ~~|
   ::spec~()
 
-:AnyPredicateNotQuoteError
+:any/AnyPredicateNotQuoteError
   |~~ The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
       ~(
@@ -326,7 +325,7 @@
   ~~|
   ::spec~()
 
-:groupBy
+:any/groupBy
   |~~ Partitions a vector or a set into a map keyed by the keyword the key
       answers for each element, a string or a number filed under the
       keyword of its text, so a field of JSON groups as it is: a vector's
@@ -342,7 +341,7 @@
   ~~|
   ::verb~()
 
-:GroupByKeyNotKeywordError
+:any/GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
@@ -355,7 +354,7 @@
   ~~|
   ::spec~()
 
-:GroupByKeyNotQuoteError
+:any/GroupByKeyNotQuoteError
   |~~ The key of `groupBy` is code it runs on each element, so it takes a
       quote, `groupBy ~(/kind)`; a value computed at the call is refused.
       ~(
@@ -366,7 +365,7 @@
   ~~|
   ::spec~()
 
-:indexBy
+:any/indexBy
   |~~ Collapses a vector or a set into a map keyed by the keyword the key
       answers for each element, a string or a number filed under the
       keyword of its text; of two elements the key answers alike, the
@@ -378,7 +377,7 @@
   ~~|
   ::verb~()
 
-:IndexByKeyNotKeywordError
+:any/IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
@@ -391,7 +390,7 @@
   ~~|
   ::spec~()
 
-:IndexByKeyNotQuoteError
+:any/IndexByKeyNotQuoteError
   |~~ The key of `indexBy` is code it runs on each element, so it takes a
       quote, `indexBy ~(/id)`; a value computed at the call is refused.
       ~(
@@ -402,7 +401,7 @@
   ~~|
   ::spec~()
 
-:sort
+:any/sort
   |~~ The elements in the one order of values, the order every value of
       the language takes against every other, so a listing can be ranked
       before it is read; `sort ~(key)` ranks by the value the key answers
@@ -440,7 +439,7 @@
   ~~|
   ::verb~()
 
-:SortKeyNotQuoteError
+:any/SortKeyNotQuoteError
   |~~ The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
       ~(
@@ -451,7 +450,7 @@
   ~~|
   ::spec~()
 
-:desc
+:any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
       `sort`, `min` or `max`, or a place of a vector key, that ranks the
       greater first, whatever the kind of what it ranks.
@@ -463,7 +462,7 @@
   ::verb~(:returns ::desc | ::builtin{:impl :qlang/prim/desc})
 
 
-:take
+:any/take
   |~~ The first count elements in the subject's order, a set's least
       among them, a map's first count entries and a string's first count
       characters, in a value of the subject's kind. The count is a whole number: past the length the
@@ -476,7 +475,7 @@
   ~~|
   ::verb~()
 
-:TakeCountNotIntegerError
+:any/TakeCountNotIntegerError
   |~~ The count of `take` must be a whole number — a fractional count
       cannot name a prefix length.
       ~(
@@ -487,7 +486,7 @@
   ~~|
   ::spec~()
 
-:drop
+:any/drop
   |~~ The container with its first count elements removed, a map's first
       count entries and a string's first count characters, in a value of
       the subject's kind. The count is
@@ -501,7 +500,7 @@
   ~~|
   ::verb~()
 
-:DropCountNotIntegerError
+:any/DropCountNotIntegerError
   |~~ The count of `drop` must be a whole number — a fractional count
       cannot name how many to remove.
       ~(
@@ -512,7 +511,7 @@
   ~~|
   ::spec~()
 
-:at
+:any/at
   |~~ Indexed access: the element of a vector or a set at an integer
       index, a set indexing in its one order and a negative index
       counting from the end, or the value of a map at a key; a miss
@@ -528,7 +527,7 @@
   ~~|
   ::verb~()
 
-:AtIndexNotIntegerError
+:any/AtIndexNotIntegerError
   |~~ The index of `at` on a vector or a set must be a whole number.
       ~(
         [1 2 3] | at 0.5
@@ -538,7 +537,7 @@
   ~~|
   ::spec~()
 
-:distinct
+:any/distinct
   |~~ The constructor of the set: the elements of a vector in the one
       order of values, each once, so a downstream verb receives a
       value whose kind says «no duplicates»; a set passes through as it
@@ -553,7 +552,7 @@
   ~~|
   ::verb~()
 
-:reverse
+:any/reverse
   |~~ The container in reverse order: a vector and a set reverse into a
       vector, since a set keeps its own order, and a map reverses its
       entries and keeps the keys.
@@ -564,7 +563,7 @@
   ~~|
   ::verb~()
 
-:flat
+:any/flat
   |~~ One level of nesting flattened: the vectors and sets among the
       elements are spliced in, the other elements pass through, and the
       answer is of the subject's kind, so a set of sets flattens into
@@ -575,7 +574,7 @@
   ~~|
   ::verb~()
 
-:reduce
+:any/reduce
   |~~ The universal left fold, which threads an accumulator across the
       elements of a vector, a set in its order, or the values of a map,
       and collapses them to one value; `sum`, `count`, `max` and the
@@ -598,7 +597,7 @@
   ~~|
   ::verb~()
 
-:ReduceReducerNotBinaryError
+:any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
       accumulator as its subject and the element in its first slot,
       `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
@@ -617,7 +616,7 @@
   ~~|
   ::spec~()
 
-:ReduceReducerNotQuoteError
+:any/ReduceReducerNotQuoteError
   |~~ The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
       quote, `reduce 0 ~(add)`; a value computed at the call is refused.
       ~(
@@ -628,7 +627,7 @@
   ~~|
   ::spec~()
 
-:union
+:any/union
   |~~ The union of two operands of one kind: two sets merged in the one
       order, or two maps merged with the second one's value winning a
       key both hold; over a vector of operands it folds them. The bound
@@ -641,7 +640,7 @@
   ~~|
   ::verb~()
 
-:minus
+:any/minus
   |~~ The first operand without what the second holds: a set without the
       elements of another, a map without the keys of a map, or of a vector
       or a set of keywords or strings; over a vector of operands it folds
@@ -653,7 +652,7 @@
   ~~|
   ::verb~()
 
-:inter
+:any/inter
   |~~ What the first operand and the second both hold: the elements two
       sets share, or the entries of a map whose keys a map, or a vector or
       a set of keywords or strings, holds; over a vector of operands it
@@ -665,7 +664,7 @@
   ~~|
   ::verb~()
 
-:has
+:any/has
   |~~ Whether a map holds a key or a set holds an element.
 
       ~({:name "Alice"} | has :name | eq true)
@@ -674,7 +673,7 @@
   ~~|
   ::verb~()
 
-:contains
+:any/contains
   |~~ Whether the subject holds the value: a string a substring, a
       vector or a set an element equal to it, the membership `has` asks.
 
@@ -684,7 +683,7 @@
   ~~|
   ::verb~()
 
-:prepend
+:any/prepend
   |~~ The subject with the operand in front: a string takes a string as
       its prefix, a vector any value as its first element. The subject
       keeps its kind and the tags over it, a set staying a set through
@@ -696,7 +695,7 @@
   ~~|
   ::verb~()
 
-:append
+:any/append
   |~~ The subject with the operand after it: a string takes a string as
       its suffix, a vector any value as its last element. The subject
       keeps its kind and the tags over it, a set staying a set through
@@ -708,7 +707,7 @@
   ~~|
   ::verb~()
 
-:eq
+:any/eq
   |~~ Whether the subject equals the value, by structural equality deep
       across maps, vectors, sets and scalars.
 
@@ -717,7 +716,7 @@
   ~~|
   ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/eq})
 
-:ne
+:any/ne
   |~~ Whether the subject differs from the value, by the structural
       equality of `eq`, whose negation it is.
 
@@ -726,7 +725,7 @@
   ~~|
   ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/ne})
 
-:type
+:any/type
   |~~ The value's kind, a tag, which names the page of the value and the
       verbs it answers: `type | doc` reads the kind's page, and asking
       what a value is composes `type` with `eq`, `filter ~(type | eq
@@ -752,7 +751,7 @@
   ~~|
   ::verb~(:returns ::tag | ::builtin{:impl :qlang/prim/type})
 
-:json
+:any/json
   |~~ The subject rendered as a JSON string. The shapes of qlang alone
       lose their identity at this boundary: a keyword becomes its bare
       name, a key and a value alike (`:foo` → `"foo"`), a set flattens
@@ -765,14 +764,14 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/json})
 
-:print
+:any/print
   |~~ The text that reads back as the subject, which the command line
       shows for an answer: an atom as its literal, a vector and a map by
       their brackets around the print of each part, the set, the quote,
       the doc and the error by their own brackets, and any other value
-      under a tag as its tag before the print of its payload. A kind a
-      module declares may answer `print` of its own, and the print of a
-      value takes it for each part of that kind.
+      under a tag as its tag before the print of its payload. A kind may
+      answer a `print` of its own declared under it, `:Box/print`, and the
+      print of a value takes it for each part of that kind.
 
       ~(42 | print | eq "42")
       ~(#[2 1] | print | eq "#[1 2]")
@@ -781,7 +780,7 @@
   ~~|
   ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/print})
 
-:elide
+:any/elide
   |~~ The value within a budget of characters of its print, what does
       not fit given way to `::elision` markers: the largest part
       beneath the top gives way first, a vector keeping the first half of
@@ -797,7 +796,7 @@
   ~~|
   ::verb~(:budget ::number | ::builtin{:impl :qlang/prim/elide})
 
-:if
+:any/if
   |~~ The branch the condition chooses, run against the subject: `if
       cond ~(then) ~(else)`. The condition is a boolean computed at the
       call, each branch a quote, and only the chosen branch runs.
@@ -812,7 +811,7 @@
       leaves the subject as it is. ~~|
   ::verb~(:condition ::boolean | :then ::quote | :else ::quote | ::builtin{:impl :qlang/prim/if})
 
-:IfConditionNotBooleanError
+:any/IfConditionNotBooleanError
   |~~ The condition of `if` answers a boolean; null, a number, a string
       or any other value is refused where it stands.
       ~(
@@ -823,7 +822,7 @@
   ~~|
   ::spec~()
 
-:IfThenNotQuoteError
+:any/IfThenNotQuoteError
   |~~ The then branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
@@ -834,7 +833,7 @@
   ~~|
   ::spec~()
 
-:IfElseNotQuoteError
+:any/IfElseNotQuoteError
   |~~ The else branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
@@ -845,7 +844,7 @@
   ~~|
   ::spec~()
 
-:coalesce
+:any/coalesce
   |~~ The first answer of the alternatives, run in order against the
       subject, that is neither null nor an error; every other value,
       false, 0, "", [], {} and #[] among them, ends the walk, and a walk
@@ -866,7 +865,7 @@
   ~~|
   ::verb~(* :alternatives #[::quote ::any] | ::builtin{:impl :qlang/prim/coalesce})
 
-:CoalesceNoAlternativesError
+:any/CoalesceNoAlternativesError
   |~~ `coalesce` answers the first of its alternatives that answers a
       value, so it takes one at least, `coalesce ~(/nickname) ~("anonymous")`.
       ~(
@@ -877,7 +876,7 @@
   ~~|
   ::spec~()
 
-:cond
+:any/cond
   |~~ The branch of the first predicate that answers true against the
       subject, the clauses alternating predicate and branch, each
       predicate answering a boolean. A clause left over after the pairs
@@ -890,7 +889,7 @@
   ~~|
   ::verb~(* :clauses ::quote | ::builtin{:impl :qlang/prim/cond})
 
-:CondNoBranchesError
+:any/CondNoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
       last clause alone the default; a call without one pair, a lone
       default among them, has nothing to answer.
@@ -902,7 +901,7 @@
   ~~|
   ::spec~()
 
-:CondConditionNotBooleanError
+:any/CondConditionNotBooleanError
   |~~ Every predicate of `cond` answers a boolean; `:index` counts the
       modifiers from 1 and names the predicate that answered another
       kind.
@@ -914,7 +913,7 @@
   ~~|
   ::spec~()
 
-:keyword
+:any/keyword
   |~~ The involution of strings and keywords: a string names its
       keyword, and a keyword answers its name, so `keyword | keyword`
       round-trips.
@@ -925,7 +924,7 @@
   ~~|
   ::verb~()
 
-:parse
+:any/parse
   |~~ The involution of source text and quotes, the way `keyword` flips
       a string and a keyword: text reads as the quote of its steps, and
       a quote prints back as its text.
@@ -936,7 +935,7 @@
   ~~|
   ::verb~()
 
-:apply
+:any/apply
   |~~ The value of the code run against the subject, under the fork
       rule: the declarations the code makes stay inside it, and only its
       value comes out. The subject comes first, as for every verb, so
@@ -955,7 +954,7 @@
   ~~|
   ::verb~(:code ::quote | ::builtin{:impl :qlang/prim/apply})
 
-:ApplyCodeNotQuoteError
+:any/ApplyCodeNotQuoteError
   |~~ The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
       or a name that holds one; a value computed at the call is refused,
       the error a step answered there among them.
@@ -968,123 +967,33 @@
   ~~|
   ::spec~()
 
-:env
-  |~~ The names the scope holds where it stands, a map from each name
+:any/env
+  |~~ The names of the scope where the step stands, a map from each name
       to the record of its binding, `::binding` with its name, docs,
-      value, source and module: what the query, the session and a
-      module's `use` wrote, a fork's own declarations among them inside
-      the fork. The verbs and the nouns of the core and of the hosts
-      stay with their providers, listed from `::qlang | manifest`.
+      value, source and origin: the nouns the host's sources declared,
+      the kinds and the topic of the language among them, then what the
+      session and the query declared, a fork's own declarations among
+      them inside the fork. A name with a path is a member of the noun it
+      begins with, which `manifest` lists, `::vec | manifest`.
       `env | /flag` hands one record to the next step.
 
-      ~(:limit 10 | env | keys | eq #[:limit])
+      ~(:limit 10 | env | has :limit)
+      ~(env | has :vec)
       ~(env | has :count | not)
       ~(42 | :answer / | env | /answer | /value | eq 42)
-      ~(99 | :secret / | env | has :secret | eq true)
   ~~|
   ::verb~(:returns ::map | ::builtin{:impl :qlang/prim/env})
 
-:use
-  |~~ The loader, the one verb that writes the scope of its call: it
-      brings declarations into the names of a reader, where every other
-      verb answers a value, and the value in the pipe goes on unchanged.
-      Inside a fork the names it brings evaporate on close.
-
-      A map brings its entries in, a record as the binding it is and any
-      other value as a binding without a doc:
-      ~({:limit 10 :role "admin"} | use | env | /limit | /value | eq 10)
-      ~({:x 1} | use | x | add 2 | eq 3)
-      A tag loads the module it names, a vector several in order, a
-      later one shadowing an earlier, and a set several refusing a name
-      two of them export:
-      ~(use ::absolutely-nonexistent-module !| type | eq ::any/UseModuleNotFoundError)
-      A second slot takes only the names it lists:
-      ~(use ::absolutely-nonexistent-module #[:a] !| type | eq ::any/UseModuleNotFoundError)
-  ~~|
-  ::verb~(:module #[::tag ::vec ::null] :names #[::keyword ::vec ::null] | ::builtin{:impl :qlang/prim/use})
-
-:UseSubjectNotMapError
-  |~~ `use` alone brings the entries of a map into the scope, so its
-      subject is a map; a module is loaded by its tag, `use ::lib`.
-
-      ~(
-        42 | use
-        !| [type /actualType]
-        |  eq [::any/UseSubjectNotMapError ::number]
-       )
-  ~~|
-  ::spec~()
-
-:UseModuleNotTagError
-  |~~ `use ::lib #[:name …]` takes the names of one module, so the
-      module a selection reads from is named by its tag.
-
-      ~(
-        use [::a] #[:x]
-        !| [type /actualType]
-        |  eq [::any/UseModuleNotTagError ::vec]
-       )
-  ~~|
-  ::spec~()
-
-:UseModuleNotFoundError
-  |~~ `use ::lib` found no module the tag names: none was loaded under
-      it and the host's locator answers none. A verb is no module, so
-      `use ::count` is refused too.
-
-      ~(
-        use ::absolutely-nonexistent-module
-        !| [type /module]
-        |  eq [::any/UseModuleNotFoundError
-                ::absolutely-nonexistent-module]
-       )
-      ~(use ::count !| type | eq ::any/UseModuleNotFoundError)
-  ~~|
-  ::spec~()
-
-:UseModuleElementNotTagError
-  |~~ `use [::a ::b]` loads modules by their tags; `:index` names the
-      first element that is no tag.
-
-      ~(
-        use [42 ::foo]
-        !| [type /index /actualType]
-        |  eq [::any/UseModuleElementNotTagError 0 ::number]
-       )
-  ~~|
-  ::spec~()
-
-:UseModuleCollisionError
-  |~~ `use #[::a ::b]` loads modules that must not share a name, and
-      two that export one are refused; a vector, `use [::a ::b]`, lets
-      the later win.
-  ~~|
-  ::spec~()
-
-:UseNameNotExportedError
-  |~~ `use ::lib #[:name]` brings the named declarations of a module, and
-      a name the module does not declare is refused.
-  ~~|
-  ::spec~()
-
-:UseImplNamesNoVerbError
-  |~~ A host handed an implementation for a name its module's source
-      declares as no verb: the implementations a locator hands beside
-      a source are the primitives of the verbs the source declares.
-      `:module` names the module and `:implName` the name.
-  ~~|
-  ::spec~()
-
-:binding
+:any/binding
   |~~ The record of a name, what a declaration wrote into its scope:
       `::binding` with its `:name`, its `:docs`, its `:value`, its
-      `:source` and the `:module` it came from, so where a name was
-      declared is read as data. The other axes project it: `doc` its
-      page, `source` its quote, `spec` its value. A keyword after it
-      reads the record of the member the subject holds under it.
+      `:source` and its `:origin`, the source it was read from, so where
+      a name was declared is read as data. The other axes project it:
+      `doc` its page, `source` its quote, `spec` its value. A keyword
+      after it reads the record of the member the subject holds under it.
 
-      A verb by its address reads the record its module declared:
-      ~(::vec/filter | binding | /module | eq :qlang/vec)
+      A verb by its address reads the record its source declared:
+      ~(::vec/filter | binding | /origin | eq :qlang/vec)
       ~(::vec/filter | binding | type | eq ::binding)
       A name of the scope reads the record its declaration wrote:
       ~(:x 1 | :x | binding | /value | eq 1)
@@ -1093,7 +1002,7 @@
   ~~|
   ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{:impl :qlang/prim/binding})
 
-:BindingNotFoundError
+:any/BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
       that names no binding of its scope, the name of a verb a provider
       keeps among them, or a tag name that names nothing. `:addresses`
@@ -1108,23 +1017,24 @@
   ~~|
   ::spec~()
 
-:source
+:any/source
   |~~ The code of the declaration that binds a name in its scope, the
-      `:source` of its record, which `parse` prints as its text; `::Tag | source` the tag's. A binding no
-      step declared, a value `use` or a host bound, answers null.
+      `:source` of its record, which `parse` prints as its text;
+      `::Tag | source` the tag's. A binding no step declared, a value a
+      host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
       it reads the member the subject holds under it: the slot a
       verb's head declares, and for any other subject the verb the name
       calls after it.
 
-      ~(::vec/filter | source | parse | contains ":filter")
+      ~(::vec/filter | source | parse | contains ":vec/filter")
       ~(::number/AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
       ~("text" | source | eq (::string | source))
       ~(::vec/take | source :count | parse | eq ":count ::number")
   ~~|
   ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
 
-:SourceBindingNotFoundError
+:any/SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a keyword
       that names no binding of its scope, the name of a verb a provider
       keeps among them, or a tag name that names nothing. `:addresses`
@@ -1140,7 +1050,7 @@
   ~~|
   ::spec~()
 
-:doc
+:any/doc
   |~~ The page of a name, the passage from an address into its
       description: `::vec/filter | doc` the page of a verb by its
       address, `:name | doc` the page of the declaration that binds
@@ -1170,7 +1080,7 @@
   ~~|
   ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
 
-:DocBindingNotFoundError
+:any/DocBindingNotFoundError
   |~~ `doc` — no declaration found for the name it read: a keyword that
       names no binding of its scope, the name of a verb a provider keeps
       among them, a tag name that names nothing, or an anchor that names
@@ -1184,11 +1094,11 @@
         |  eq [::any/DocBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | doc !| /addresses | has ::vec/filter)
-      ~(:reduce | doc !| /addresses | first | doc | eq (::qlang/any/reduce | doc))
+      ~(:reduce | doc !| /addresses | first | doc | eq (::any/reduce | doc))
   ~~|
   ::spec~()
 
-:DocAnchorNotKeywordError
+:any/DocAnchorNotKeywordError
   |~~ `doc` — an anchor of a path is no keyword: each step of the path
       names a member by a keyword.
 
@@ -1196,7 +1106,7 @@
   ~~|
   ::spec~()
 
-:explain
+:any/explain
   |~~ The explanation of the value, `::explanation{:page … :value …}`:
       the page `doc` reads for it, then the value itself, so it prints
       as the page above what it explains. A name reads its own
@@ -1209,7 +1119,7 @@
   ~~|
   ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
 
-:ExplainBindingNotFoundError
+:any/ExplainBindingNotFoundError
   |~~ `explain` — no declaration found for the page of its subject: a
       keyword that names no binding of its scope, or a tag name that
       names nothing.
@@ -1222,7 +1132,7 @@
   ~~|
   ::spec~()
 
-:spec
+:any/spec
   |~~ The declaration a name reads as it was written, what a reader
       checks before a call: what a verb takes and answers, what a kind is
       made of. A projection of a signature reads the body of the
@@ -1242,7 +1152,7 @@
   ~~|
   ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
 
-:SpecBindingNotFoundError
+:any/SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a keyword that
       names no binding of its scope, the name of a verb a provider keeps
       among them, or a tag name that names nothing. `:addresses` holds
@@ -1258,7 +1168,7 @@
   ~~|
   ::spec~()
 
-:runLaws
+:any/runLaws
   |~~ Walks every quote among the segments of the docs of the binding a
       name reads, a keyword or a tag name, the address of a verb among
       them, and answers a vector of result maps shaped `{:snippet
@@ -1274,7 +1184,7 @@
   ~~|
   ::verb~()
 
-:RunLawsBindingNotFoundError
+:any/RunLawsBindingNotFoundError
   |~~ `runLaws` — no declaration found for the name it read, as `doc`
       finds none: a keyword that names no binding of its scope, the name
       of a verb a provider keeps among them, or a tag name that names
@@ -1292,7 +1202,7 @@
   ~~|
   ::spec~()
 
-:tag
+:any/tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
       partner of the split `[type payload]`: a value is minted under a
       tag at run time as a literal `::Tag{…}` mints it where it is
@@ -1317,7 +1227,7 @@
   ~~|
   ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
 
-:TagModifierNotTagKeywordError
+:any/TagModifierNotTagKeywordError
   |~~ The tag `tag` lays is a tag name, `tag ::Box`; a keyword, `:box`,
       names a field and no kind.
       ~(
@@ -1328,7 +1238,7 @@
   ~~|
   ::spec~()
 
-:TagBareSubjectShapeError
+:any/TagBareSubjectShapeError
   |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
       value it goes over; a subject of another shape is refused, and
       `:actualLength` counts a vector of another length.

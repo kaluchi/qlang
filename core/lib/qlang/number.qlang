@@ -1,12 +1,11 @@
-|~ `::number`, the kind of numbers, the refusal of its constructor,
-   and the verbs of numbers. Each resides on `::qlang/number`, the
-   kind whose module declares it, so its subject is a number, and its
-   head is its declaration, which the runtime executes before the
-   primitive runs. The refusals of a verb sit under it: the head
-   raises the one its site declares at the place it checks, and the
-   primitive the rest. ~|
+|~ What is declared under `::number`: the refusal of its
+   constructor, and the verbs of numbers, each serving a number. The head
+   of a verb is its declaration, which the runtime executes before the
+   primitive runs; the refusals of a verb sit beside it, the head raising
+   the one its site declares at the place it checks, and the primitive
+   the rest. ~|
 
-:NumberPayloadNotNumberError
+:number/NumberPayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
       another kind is refused, and text is read by `parseJson`.
       ~(
@@ -17,7 +16,7 @@
   ~~|
   ::spec~()
 
-:add
+:number/add
   |~~ Adds two numbers: `a | add b` computes a + b, and the full form
       `add a b` reads both modifiers against the value in the pipe.
 
@@ -26,7 +25,7 @@
   ~~|
   ::verb~(:addend ::number | :returns ::number | ::builtin{:impl :qlang/prim/add})
 
-:AddLeftNotNumberError
+:number/AddLeftNotNumberError
   |~~ `add` adds numbers: a vector adds element by element, `* add 1`,
       and sums by `sum`; a string is joined by `append`.
 
@@ -38,7 +37,7 @@
   ~~|
   ::spec~()
 
-:AddRightNotNumberError
+:number/AddRightNotNumberError
   |~~ The addend of `add` is a number; two fields of one map add by
       `add /price /tax`, both read from it.
 
@@ -50,7 +49,7 @@
   ~~|
   ::spec~()
 
-:AddResultNotFiniteError
+:number/AddResultNotFiniteError
   |~~ `add` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
@@ -64,7 +63,7 @@
   ~~|
   ::spec~()
 
-:sub
+:number/sub
   |~~ Subtracts the subtrahend from the subject, the minuend.
 
       ~(10 | sub 3 | eq 7)
@@ -72,7 +71,7 @@
   ~~|
   ::verb~(:subtrahend ::number | :returns ::number | ::builtin{:impl :qlang/prim/sub})
 
-:SubLeftNotNumberError
+:number/SubLeftNotNumberError
   |~~ `sub` subtracts from a number; a vector subtracts element by
       element, `* sub 1`.
 
@@ -84,7 +83,7 @@
   ~~|
   ::spec~()
 
-:SubRightNotNumberError
+:number/SubRightNotNumberError
   |~~ The subtrahend of `sub` is a number; two fields of one map
       subtract by `sub /total /paid`.
 
@@ -96,7 +95,7 @@
   ~~|
   ::spec~()
 
-:SubResultNotFiniteError
+:number/SubResultNotFiniteError
   |~~ `sub` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
@@ -110,7 +109,7 @@
   ~~|
   ::spec~()
 
-:mul
+:number/mul
   |~~ Multiplies two numbers.
 
       ~(10 | mul 3 | eq 30)
@@ -118,7 +117,7 @@
   ~~|
   ::verb~(:multiplier ::number | :returns ::number | ::builtin{:impl :qlang/prim/mul})
 
-:MulLeftNotNumberError
+:number/MulLeftNotNumberError
   |~~ `mul` multiplies numbers; a vector multiplies element by element,
       `* mul 2`.
 
@@ -130,7 +129,7 @@
   ~~|
   ::spec~()
 
-:MulRightNotNumberError
+:number/MulRightNotNumberError
   |~~ The multiplier of `mul` is a number; two fields of one map
       multiply by `mul /price /qty`.
 
@@ -142,7 +141,7 @@
   ~~|
   ::spec~()
 
-:MulResultNotFiniteError
+:number/MulResultNotFiniteError
   |~~ `mul` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
@@ -156,7 +155,7 @@
   ~~|
   ::spec~()
 
-:div
+:number/div
   |~~ Divides the subject, the dividend, by the divisor, and refuses a
       divisor of zero with `::number/DivisionByZeroError`.
 
@@ -165,7 +164,7 @@
   ~~|
   ::verb~(:divisor ::number | :returns ::number | ::builtin{:impl :qlang/prim/div})
 
-:DivLeftNotNumberError
+:number/DivLeftNotNumberError
   |~~ `div` divides a number; a vector divides element by element,
       `* div 2`.
 
@@ -177,7 +176,7 @@
   ~~|
   ::spec~()
 
-:DivRightNotNumberError
+:number/DivRightNotNumberError
   |~~ The divisor of `div` is a number; two fields of one map divide by
       `div /sum /count`.
 
@@ -189,7 +188,7 @@
   ~~|
   ::spec~()
 
-:DivResultNotFiniteError
+:number/DivResultNotFiniteError
   |~~ `div` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
@@ -203,7 +202,7 @@
   ~~|
   ::spec~()
 
-:DivisionByZeroError
+:number/DivisionByZeroError
   |~~ A division by zero has no finite answer; a divisor that may be
       zero is tested first, `if (/count | eq 0) ~(0) ~(div /sum /count)`.
 
@@ -215,7 +214,7 @@
   ~~|
   ::spec~()
 
-:round
+:number/round
   |~~ The number rounded half away from zero to the digits after the
       point the call gives, none when it gives none; a negative count
       rounds to tens and beyond.
@@ -228,7 +227,7 @@
   ~~|
   ::verb~(:digits 0 | :returns ::number | ::builtin{:impl :qlang/prim/round})
 
-:RoundSubjectNotNumberError
+:number/RoundSubjectNotNumberError
   |~~ `round` rounds a number; a string holding one is read first by
       `parseJson`.
       ~(
@@ -239,7 +238,7 @@
   ~~|
   ::spec~()
 
-:RoundDigitsNotIntegerError
+:number/RoundDigitsNotIntegerError
   |~~ The digits of `round` are a whole number, `round 2`.
       ~(
         2.5 | round 0.5
@@ -249,14 +248,14 @@
   ~~|
   ::spec~()
 
-:gt
+:number/gt
   |~~ Whether the subject is greater than the number the call gives.
 
       ~(10 | gt 5 | eq true)
   ~~|
   ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
 
-:gte
+:number/gte
   |~~ Whether the subject is greater than or equal to the number the
       call gives.
 
@@ -264,14 +263,14 @@
   ~~|
   ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
 
-:lt
+:number/lt
   |~~ Whether the subject is less than the number the call gives.
 
       ~(5 | lt 10 | eq true)
   ~~|
   ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
 
-:lte
+:number/lte
   |~~ Whether the subject is less than or equal to the number the call
       gives.
 

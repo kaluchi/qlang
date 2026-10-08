@@ -1,11 +1,10 @@
-|~ `::map`, the kind of maps, the refusal of its constructor, and
-   the verbs of maps. Each resides on `::qlang/map`, the kind whose
-   module declares it, under the contract of its name on `::qlang/any`,
-   whose page and laws it answers. A map's elements are its
-   values, and its keys are the shape that travels with them: a
-   verb that keeps the kind keeps the keys of the entries it keeps. ~|
+|~ What is declared under `::map`: the refusal of its constructor, and
+   the verbs of maps, each under the contract of its name on `::any`,
+   whose page and laws it answers. A map's elements are its values, and
+   its keys are the shape that travels with them: a verb that keeps the
+   kind keeps the keys of the entries it keeps. ~|
 
-:MapPayloadNotMapError
+:map/MapPayloadNotMapError
   |~~ `::map` reads a map as the map it is and a vector as its pairs;
       a payload of another kind is refused.
       ~(
@@ -16,7 +15,7 @@
   ~~|
   ::spec~()
 
-:MapElementNotPairError
+:map/MapElementNotPairError
   |~~ Each element of the vector `::map` builds from is a pair `[key
       value]`; `:index` names the first that is not.
       ~(
@@ -27,7 +26,7 @@
   ~~|
   ::spec~()
 
-:MapKeyNotKeywordError
+:map/MapKeyNotKeywordError
   |~~ The key of a pair is a keyword, or a string or a number naming the
       keyword of its text; `:index` names the pair whose key is another
       value.
@@ -39,49 +38,49 @@
   ~~|
   ::spec~()
 
-:count
+:map/count
   |~~ The number of entries.
 
       ~({:x 1 :y 2 :z 3} | count | eq 3)
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
 
-:empty
+:map/empty
   |~~ Whether the map holds no entry.
 
       ~({} | empty | eq true)
   ~~|
   ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/empty})
 
-:first
+:map/first
   |~~ The value of the first entry, or null for the empty map.
 
       ~({:a 1 :b 2} | first | eq 1)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/first})
 
-:last
+:map/last
   |~~ The value of the last entry, or null for the empty map.
 
       ~({:a 1 :b 2} | last | eq 2)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/last})
 
-:sum
+:map/sum
   |~~ The sum of the values, each a number.
 
       ~({:a 10 :b 20} | sum | eq 30)
   ~~|
   ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/sum})
 
-:avg
+:map/avg
   |~~ The mean of the values, each a number, or null when there is none.
 
       ~({:a 1 :b 3} | avg | eq 2)
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/avg})
 
-:min
+:map/min
   |~~ The first value in the one order of values, or the one whose key
       answers the first value; the key of the entry is read by `entries`.
 
@@ -90,7 +89,7 @@
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/min})
 
-:max
+:map/max
   |~~ The last value in the one order of values, or the one whose key
       answers the last value; the key of the entry is read by `entries`.
 
@@ -99,7 +98,7 @@
   ~~|
   ::verb~(:key #[::quote ::null] | ::builtin{:impl :qlang/prim/max})
 
-:filter
+:map/filter
   |~~ The entries whose value the predicate answers true for, their keys
       kept; the joint test of a key with its value reads the keys, `m |
       keys | filter ~(…)`, and `at` the value of each.
@@ -108,21 +107,21 @@
   ~~|
   ::verb~(:predicate ::quote | :returns / | ::builtin{:impl :qlang/prim/filter})
 
-:every
+:map/every
   |~~ Whether the predicate answers true for every value.
 
       ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
   ~~|
   ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/every})
 
-:any
+:map/any
   |~~ Whether the predicate answers true for some value.
 
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
   ~~|
   ::verb~(:predicate ::quote | :returns ::boolean | ::builtin{:impl :qlang/prim/any})
 
-:sort
+:map/sort
   |~~ The entries ordered by their values, or by the value the key
       answers for each, their keys kept.
 
@@ -130,14 +129,14 @@
   ~~|
   ::verb~(:key #[::quote ::null] | :returns / | ::builtin{:impl :qlang/prim/sort})
 
-:take
+:map/take
   |~~ The first count entries.
 
       ~({:a 1 :b 2 :c 3} | take 2 | eq {:a 1 :b 2})
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
 
-:drop
+:map/drop
   |~~ The entries after the first count, in the order of the map; a
       key leaves a map by `minus`, which takes the keys to leave out.
 
@@ -146,7 +145,7 @@
   ~~|
   ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
 
-:at
+:map/at
   |~~ The value at the key, a keyword or a string, both naming the key
       as the map stores it, or null for a key the map lacks: the soft
       counterpart of the strict `/key` projection, which refuses a
@@ -158,7 +157,7 @@
   ~~|
   ::verb~(:key #[::keyword ::string] | ::builtin{:impl :qlang/prim/at})
 
-:AtKeyNotKeywordOrStringError
+:map/AtKeyNotKeywordOrStringError
   |~~ The key of `at` on a map is a keyword or a string, both naming the
       key as the map stores it: `at :email`. A modifier is computed
       against the subject before `at` runs, so `at /email` reads the
@@ -175,21 +174,21 @@
   ~~|
   ::spec~()
 
-:reverse
+:map/reverse
   |~~ The entries in the reverse order, their keys kept.
 
       ~({:a 1 :b 2} | reverse | vals | eq [2 1])
   ~~|
   ::verb~(:returns / | ::builtin{:impl :qlang/prim/reverse})
 
-:reduce
+:map/reduce
   |~~ The seed folded over the values by the reducer.
 
       ~({:a 1 :b 2} | reduce 0 ~(add) | eq 3)
   ~~|
   ::verb~(:seed ::any | :reducer ::quote | ::builtin{:impl :qlang/prim/reduce})
 
-:keys
+:map/keys
   |~~ The set of the keys, keywords in the one order: sorted by name.
 
       ~({:name "Alice" :age 30} | keys | eq #[:age :name])
@@ -197,7 +196,7 @@
   ~~|
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/keys})
 
-:KeysSubjectNotMapError
+:map/KeysSubjectNotMapError
   |~~ `keys` answers the keys of a map; a vector of maps answers them
       element by element, `* keys`, and a vector's own places are its
       indices, `/0`.
@@ -209,14 +208,14 @@
   ~~|
   ::spec~()
 
-:vals
+:map/vals
   |~~ The vector of the values, in the order of the entries.
 
       ~({:name "Alice" :age 30} | vals | eq ["Alice" 30])
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/vals})
 
-:ValsSubjectNotMapError
+:map/ValsSubjectNotMapError
   |~~ `vals` answers the values of a map; a vector of maps answers them
       element by element, `* vals`.
       ~(
@@ -227,7 +226,7 @@
   ~~|
   ::spec~()
 
-:entries
+:map/entries
   |~~ The vector of the pairs `[key value]` of the map, in the order of
       the entries, each key a keyword: the map with its keys as data, for
       a step that reads a key beside its value, as `[type payload]` reads
@@ -240,7 +239,7 @@
   ~~|
   ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/entries})
 
-:EntriesSubjectNotMapError
+:map/EntriesSubjectNotMapError
   |~~ `entries` answers the pairs of a map; a vector of maps answers
       them element by element, `* entries`.
       ~(
@@ -251,7 +250,7 @@
   ~~|
   ::spec~()
 
-:has
+:map/has
   |~~ Whether the map holds the key, a keyword or a string, both naming
       the key as the map stores it, so the `keys | first | has _` chain
       composes.
@@ -261,7 +260,7 @@
   ~~|
   ::verb~(:key #[::keyword ::string] | :returns ::boolean | ::builtin{:impl :qlang/prim/has})
 
-:HasKeyNotKeywordOrStringError
+:map/HasKeyNotKeywordOrStringError
   |~~ The key of `has` on a map is a keyword or a string, both naming
       the key as the map stores it.
       ~(
@@ -272,7 +271,7 @@
   ~~|
   ::spec~()
 
-:union
+:map/union
   |~~ The entries of both maps, the other map's value winning a key both
       hold.
 
@@ -280,7 +279,7 @@
   ~~|
   ::verb~(:with ::map | :returns / | ::builtin{:impl :qlang/prim/union})
 
-:minus
+:map/minus
   |~~ The entries whose keys the other operand lacks: a map's keys, or the
       keys a vector or a set names, each a keyword or a string, as `at`
       reads a key.
@@ -290,7 +289,7 @@
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/minus})
 
-:inter
+:map/inter
   |~~ The entries whose keys the other operand holds: a map's keys, or
       the keys a vector or a set names, each a keyword or a string.
 
@@ -299,7 +298,7 @@
   ~~|
   ::verb~(:keys #[::map ::vec] | :returns / | ::builtin{:impl :qlang/prim/inter})
 
-:MinusKeyNotKeywordOrStringError
+:map/MinusKeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
       names the first element of the other operand that is neither.
       ~(
@@ -310,7 +309,7 @@
   ~~|
   ::spec~()
 
-:InterKeyNotKeywordOrStringError
+:map/InterKeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
       names the first element of the other operand that is neither.
       ~(
@@ -321,7 +320,7 @@
   ~~|
   ::spec~()
 
-:raise
+:map/raise
   |~~ Puts the map on the fail track as an error, the act the `!{…}`
       literal writes with its bang, so a query fails where its own check
       fails. `|` and `*` step around the raised error into its trail, and
@@ -343,7 +342,7 @@
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/raise})
 
-:RaiseSubjectNotMapError
+:map/RaiseSubjectNotMapError
   |~~ `raise` puts a map on the fail track.
 
       ~(

@@ -19,16 +19,14 @@ describe('an unresolved name names the names nearest to it', () => {
   });
 
   it('a nearer name leaves the farther ones out', async () => {
-    expect(await nearestOf(':mapper 1 | :mapped 2 | mappe')).toEqual([keyword('mapped'), keyword('mapper')]);
-    expect(await nearestOf(':mapper 1 | :mapperXY 2 | mapper2')).toEqual([keyword('mapper')]);
+    expect(await nearestOf(':mapper 1 | :mapped 2 | mappe')).toEqual([keyword('map'), keyword('mapped'), keyword('mapper')]);
+    expect(await nearestOf(':mapper 1 | :mapperXY 2 | mapper2')).toEqual([keyword('map'), keyword('mapper')]);
   });
 
-  it('the names of the session count, a kind among them, and the keys of the runtime do not', async () => {
+  it('the names of the session count, a kind among them, and an address does not', async () => {
     expect(await nearestOf(':limit 3 | limti')).toEqual([keyword('limit')]);
-    // A kind is a name of the scope [D152], and `qlang/locator` lies one
-    // edit from `qlanglocator`.
     expect(await nearestOf(':Limit ::spec~() | XLimit')).toEqual([keyword('Limit')]);
-    expect(await nearestOf('qlanglocator')).toEqual([]);
+    expect(await nearestOf('numbe')).toEqual([keyword('number')]);
   });
 
   it('a name with nothing near holds the empty vector', async () => {

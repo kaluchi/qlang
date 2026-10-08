@@ -1,8 +1,7 @@
-// The primitive of `env`, which reads the state of its call [D79] and
-// answers the names the query, the session and a module's `use` wrote as
-// a map of the records of their bindings [D61], [D63].
+// `env` reads the state of its call [D79] and answers the names of the
+// scope, the nouns of the root among them [D61], [D153].
 
 import { bindStateReader } from '../primitives.mjs';
-import { scopeBindingsOf } from './nouns.mjs';
+import { scopeNamesOf } from './nouns.mjs';
 
-bindStateReader('env', (subject, state) => scopeBindingsOf(state.env));
+bindStateReader('env', (subject, state) => scopeNamesOf(state.env));

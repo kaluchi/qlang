@@ -30,6 +30,3 @@ export {
   signatureSpecOf, slotLabelsOf, verbShownFor
 } from './runtime/verb.mjs';
 export { verbsReaching, verbNames, nodeOf, nodeAddresses, addressedVerb } from './runtime/nouns.mjs';
-export {
-  RUNTIME_LOCATOR_KEY, isModuleKey, isRuntimeKey, canonicalTagName
-} from './env-keys.mjs';

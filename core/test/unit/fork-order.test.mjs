@@ -9,21 +9,18 @@ import { createSession } from '../../src/session.mjs';
 const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 async function sessionRecordingVisits(visits) {
-  const session = await createSession({
-    locator: async modulePath => modulePath === 'probe' ? {
-      source: ':@visit ::verb~(::builtin{:impl :probe/@visit})',
-      impls: {
-        '@visit': async element => {
-          visits.push(['start', element]);
-          await pause(element);
-          visits.push(['end', element]);
-          return element;
-        }
+  return await createSession({ sources: [{
+    uri: 'probe',
+    source: ':any/@visit ::verb~(::builtin{:impl :probe/@visit})',
+    impls: {
+      'any/@visit': async element => {
+        visits.push(['start', element]);
+        await pause(element);
+        visits.push(['end', element]);
+        return element;
       }
-    } : null
-  });
-  await session.evalCell('use ::probe');
-  return session;
+    }
+  }] });
 }
 
 describe('the forks of a sequence run in its order [D84]', () => {

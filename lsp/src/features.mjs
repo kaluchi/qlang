@@ -12,7 +12,6 @@ import {
   TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
-  canonicalTagName,
   tokenize,
   isNameStart,
   isNameContinue,
@@ -30,7 +29,7 @@ import {
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
 const TAG_SIGIL = '::';
-const tagNameOf = tag => TAG_SIGIL + canonicalTagName(tag);
+const tagNameOf = tag => TAG_SIGIL + tag;
 const isTagName = name => name.startsWith(TAG_SIGIL);
 
 // The prose of a doc, its segments without its quotes [D94], which hover
@@ -417,7 +416,7 @@ function bindingDeclarationOf(node) {
 const KIND_OF_DECLARED_BODY = { verb: 'verb', spec: 'tag' };
 function bindingKindForKeywordHead(bindStepNode) {
   const body = bindStepNode.body;
-  return (body?.type === 'TaggedLit' && KIND_OF_DECLARED_BODY[canonicalTagName(body.tag)]) || 'value';
+  return (body?.type === 'TaggedLit' && KIND_OF_DECLARED_BODY[body.tag]) || 'value';
 }
 
 // The span of the last declaration of the name that stands before the

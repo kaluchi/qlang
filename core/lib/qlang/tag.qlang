@@ -1,8 +1,9 @@
-|~ `::tag`, the kind of a tag name, the refusal of its constructor, and
-   the verbs that live on a tag name: the comparisons of tag names,
-   `manifest` and `runLaws`. ~|
+|~ What is declared under `::tag`, the kind of a tag name: the refusal
+   of its constructor, and the verbs that live on a tag name, the
+   comparisons of tag names, which compare them by their names in the one
+   order, `manifest` and `runLaws`. ~|
 
-:TagPayloadNotTagError
+:tag/TagPayloadNotTagError
   |~~ `::tag` reads its payload as the tag name it is; a value's own
       tag is read by `type`.
       ~(
@@ -13,11 +14,7 @@
   ~~|
   ::spec~()
 
-|~ The comparisons of tag names. Each resides on `::qlang/tag`,
-   the kind of the module that declares it, and compares two tag names
-   by their names in the one order. ~|
-
-:gt
+:tag/gt
   |~~ Whether the subject's name follows the name of the tag the call
       gives.
 
@@ -25,7 +22,7 @@
   ~~|
   ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
 
-:gte
+:tag/gte
   |~~ Whether the subject's name follows or equals the name of the tag
       the call gives.
 
@@ -33,7 +30,7 @@
   ~~|
   ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
 
-:lt
+:tag/lt
   |~~ Whether the subject's name precedes the name of the tag the call
       gives.
 
@@ -41,7 +38,7 @@
   ~~|
   ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
 
-:lte
+:tag/lte
   |~~ Whether the subject's name precedes or equals the name of the
       tag the call gives.
 
@@ -49,23 +46,21 @@
   ~~|
   ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
 
-:manifest
-  |~~ Asked of a noun, answers the set of what lies below it in
-      the tree of names: every node the module of its path declared,
-      its kinds, its verbs, its refusals and its pages, each by its
-      address. ::snippet~(::qlang | manifest) lists the nouns of the
-      language and the pages of its concepts, and `::number |
-      manifest` the verbs and the refusals of numbers.
-      For what one binding does reach for the axis trio
-      (`::vec/count | source` / `| doc` / `| doc | laws`).
+:tag/manifest
+  |~~ Asked of a noun, answers the set of the nodes declared one name
+      under it, each by its address: ::snippet~(::number | manifest)
+      the verbs and the refusals of numbers, ::snippet~(::qlang |
+      manifest) the chapters of the language. The names of the scope,
+      the nouns among them, `env` lists; what one node holds the axes
+      read, `::vec/count | source`, `| doc`, `| doc | laws`.
 
       ~(::number | manifest | has ::number/add)
-      ~(::qlang | manifest | has ::vec)
-      ~(::qlang | manifest * manifest | flat | has ::vec/count)
+      ~(::qlang | manifest | has ::qlang/values)
+      ~(:Box/area ::verb~(1) | ::Box | manifest | eq #[::Box/area])
   ~~|
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/manifest})
 
-:ManifestSubjectNotTagError
+:tag/ManifestSubjectNotTagError
   |~~ `manifest` is asked of a noun, a tag name in the subject
       position.
 
@@ -77,7 +72,7 @@
   ~~|
   ::spec~()
 
-:runLaws
+:tag/runLaws
   |~~ The results of the laws of the page of the declaration the tag
       name reads, a verb by its address among them, one `{:law :says
       :actual :ok :error}` per law, `:says` the caption of the claim the

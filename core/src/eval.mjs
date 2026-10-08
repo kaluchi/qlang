@@ -1,7 +1,7 @@
 // The evaluator: the state pair of value and environment threaded through
 // the steps, each node a function `(node, state) → state`.
 
-import { parse, ParseError } from './parse.mjs';
+import { parse } from './parse.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, envSet, envGet
 } from './state.mjs';
@@ -24,16 +24,15 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun,
+  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, resideVerbOn,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
-import { canonicalTagName } from './env-keys.mjs';
-import { declaredNameOf, moduleUriOf, repeatsDeclarationInScope } from './walk.mjs';
+import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, nodeOf, residenceOnSubject, residencesOf
+  addressedVerb, addressesOf, isRootBinding, nodeOf, residenceOnSubject, residencesOf, splitAddress
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, takesFullApplication
@@ -150,11 +149,9 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangError && !caughtError.location && node.location)
       caughtError.location = node.location;
     if (caughtError instanceof QlangInvariantError) throw caughtError;
-    // The error the node raised, a `::ParseError` among them when a
-    // step reads text as code mid-evaluation; the step that ran the node
-    // writes its stop [D85].
-    const raised = caughtError instanceof ParseError ? errorFromParse(caughtError)
-      : caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue)
+    // The error the node raised; the step that ran the node writes its
+    // stop [D85].
+    const raised = caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue)
       : errorFromForeign(caughtError, node);
     return withPipeValue(state, raisedBy(raised, node));
   }
@@ -346,10 +343,8 @@ export async function mintTaggedInstance(tagName, payload, state) {
   return makeTaggedInstance(makeTagKeyword(tagName), constructorResult);
 }
 
-// A kind of the core written long, `::qlang/vec[1 2]`, is the kind
-// written short [D32].
 async function evalTaggedLit(node, state) {
-  const tagName = canonicalTagName(node.tag);
+  const tagName = node.tag;
   const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
   if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
   return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
@@ -379,10 +374,16 @@ async function evalBareTypeKeyword(node, state) {
 // declaration, against the current value, so `42 | :x / | add 1 | x`
 // answers 42; a doc alone binds a doc, a page. A verb or a quote written
 // as the body resolves in the scope the declaration writes, so it sees
-// its own name [D44], [D67].
+// its own name [D44], [D67]. A name is declared once in its scope [D71],
+// and an address the root holds once at all: a reader extends a noun of
+// the root and replaces none of its nodes [D153]. A verb declared under a
+// noun, `:vec/count`, resides on it [D72].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
-  if (repeatsDeclarationInScope(node)) throw new BindNameDeclaredTwiceError({ name });
+  const [nounName] = splitAddress(name);
+  if (repeatsDeclarationInScope(node) || (nounName !== null && isRootBinding(state.env, name))) {
+    throw new BindNameDeclaredTwiceError({ name });
+  }
 
   if (node.body === null) {
     return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc])))));
@@ -393,7 +394,10 @@ async function evalBindStep(node, state) {
   const writtenQuote = node.body.type === 'QuoteLit';
   const value = writtenQuote ? quoteInEnv(answered, null) : answered;
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
-  if (isVerb(value) && node.body.type === 'TaggedLit') verbEnvRef(value).env = nextEnv;
+  if (isVerb(value) && node.body.type === 'TaggedLit') {
+    verbEnvRef(value).env = nextEnv;
+    if (nounName !== null) resideVerbOn(value, nounName);
+  }
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
 }
@@ -408,16 +412,15 @@ function refuseVerbLaunderedByName(name, verb, node) {
   throw laundering;
 }
 
-// The record a declaration writes: its name, a keyword or a tag, the
-// docs of its slot, the value, the quote of its step and the module its
-// source came from [D63].
+// The record a declaration writes: its name, the docs of its slot, the
+// value, the quote of its step and its origin [D63], [D153].
 function declarationRecord(node, value) {
   return makeBinding({
     name: keyword(node.key.name),
     docs: slotDocsOf(node),
     value,
     source: quoteOfBody(node),
-    module: keyword(moduleUriOf(node))
+    origin: keyword(originOf(node))
   });
 }
 
@@ -486,18 +489,19 @@ async function evalOperandCall(node, state) {
   return await callByName(node.name, node.args.map(argNode => makeLambda(argNode, state)), state);
 }
 
-// A bare name resolves nearest first [D62]: the declaration of the scope,
-// then the verb that resides on the subject, found by the walk of its
-// tags [D72], then the verb of the name a kind declared last, whose head
-// refuses the subject at its place; a node of the tree stays under its
-// address and is no name a query calls bare [D152].
+// A bare name resolves nearest first [D62]: the reader's declaration, then
+// the verb declared under a kind the walk of the subject's tags reaches
+// [D72], then the root's declaration, and last the one verb of the name
+// declared under a kind, whose head refuses the subject at its place.
 async function callByName(lookupName, lambdas, state) {
   const lookupEnv = state.env;
   const entry = envGet(lookupEnv, lookupName);
-  if (entry !== undefined) return await applyBinding(entry, lookupName, lambdas, state);
-  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue)
-    ?? residencesOf(lookupEnv, lookupName).at(-1)?.[1] ?? null;
+  if (entry !== undefined && !isRootBinding(lookupEnv, lookupName)) return await applyBinding(entry, lookupName, lambdas, state);
+  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue);
   if (residence !== null) return await callResidence(bindingValueOf(residence), lookupName, lambdas, state);
+  if (entry !== undefined) return await applyBinding(entry, lookupName, lambdas, state);
+  const residences = residencesOf(lookupEnv, lookupName);
+  if (residences.length === 1) return await callResidence(bindingValueOf(residences[0][1]), lookupName, lambdas, state);
   throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
 }
 
@@ -536,14 +540,13 @@ async function applyBinding(entry, lookupName, lambdas, state) {
   return withPipeValue(state, resolved);
 }
 
-// A name with a path calls the verb its address names, from the root
-// and past every binding of the scope, so a verb a declaration shadows
-// stays one address away [D62]: `[1 2 3] | vec/filter ~(gt 1)` calls
-// the `filter` of vectors whatever the scope binds as `filter`.
+// A name with a path calls the verb its address names, past every bare
+// name of the scope, so a verb a declaration shadows stays one address
+// away [D62]: `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of
+// vectors whatever the scope binds as `filter`.
 async function callByAddress(node, state) {
-  const addressName = canonicalTagName(node.name);
-  const address = addressedVerb(state.env, addressName);
-  if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(addressName) });
+  const address = addressedVerb(state.env, node.name);
+  if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(node.name) });
   const lambdas = node.args.map(argNode => makeLambda(argNode, state));
   return await applyVerb(address.descriptor, lambdas, state, address.verbName);
 }
@@ -585,9 +588,10 @@ export function resolveBinaryReducer(reducerLambda) {
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   const scoped = envGet(callerState.env, lookupName);
-  const namesAVerb = scoped === undefined
-    ? residencesOf(callerState.env, lookupName).length > 0 || addressedVerb(callerState.env, `any/${lookupName}`) !== null
-    : isVerb(bindingValueOf(scoped));
+  const namesAVerb = scoped !== undefined && !isRootBinding(callerState.env, lookupName)
+    ? isVerb(bindingValueOf(scoped))
+    : residencesOf(callerState.env, lookupName).length > 0 || addressedVerb(callerState.env, `any/${lookupName}`) !== null
+      || isVerb(bindingValueOf(scoped));
   if (!namesAVerb) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;

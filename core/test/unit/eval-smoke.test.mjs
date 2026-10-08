@@ -167,12 +167,6 @@ describe('eval — env operand', () => {
   });
 });
 
-describe('eval — use', () => {
-  it('use installs constants from a Map', async () => {
-    expect(await evalQuery('{:taxRate 0.07} | use | taxRate')).toBe(0.07);
-  });
-});
-
 describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', async () => {
     const fakeNode = { type: 'BogusNode' };
@@ -251,14 +245,13 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.
     const s = await createSession({
-      locator: async modulePath => (modulePath === 'tests/bomb'
-        ? {
-            source: ':bomb ::verb~(::builtin{:impl :tests/bomb/bomb})',
-            impls: { bomb: () => { throw new Error('raw boom'); } }
-          }
-        : null)
+      sources: [{
+        uri: 'tests/bomb',
+        source: ':any/bomb ::verb~(::builtin{:impl :tests/bomb/bomb})',
+        impls: { 'any/bomb': () => { throw new Error('raw boom'); } }
+      }]
     });
-    const entry = await s.evalCell('use ::tests/bomb | 42 | bomb');
+    const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
     expect(entry.result.tag.name).toBe('call/ForeignFailureError');
     expect(entry.result.descriptor.get('name')).toBe('Error');

@@ -23,4 +23,3 @@
 {"name":"a-full-application-keeps-its-verb-where-the-subject-finds-none","query":"5 | add \"a\" 1 !| type","expect":"::number/AddLeftNotNumberError","decision":"D72"}
 {"name":"a-declared-verb-in-full-application-answers-an-error-subject","query":":s ::verb~(:k ::number | mul k) | null | s (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
 {"name":"a-builtin-body-without-a-handle-is-a-step","query":":v ::verb~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}
-{"name": "the-loader-refuses-modifiers-beyond-its-slots", "query": "use ::a :b :c :d !| type", "expect": "::verb/VerbModifiersBeyondSlotsError", "decision": ["D72", "D113"]}

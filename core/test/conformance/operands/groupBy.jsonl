@@ -11,3 +11,4 @@
 {"name":"groupBy-vec-subject-bucket-stays-vec","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | /big | type","expect":"::vec"}
 {"name":"groupBy-files-a-string-under-its-keyword","query":"[{:s \"a\"} {:s \"b\"} {:s \"a\"}] | groupBy ~(/s) * count","expect":"{:a 2 :b 1}","decision":"D130"}
 {"name":"groupBy-files-a-number-under-the-keyword-of-its-text","query":"[{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys","expect":"#[:\"1\" :\"2\"]","decision":"D130"}
+{"name":"a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | groupBy ~(/b) !| type","expect":"::proj/ProjectionKeyNotInMapError"}

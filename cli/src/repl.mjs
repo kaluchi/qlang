@@ -39,7 +39,7 @@ import {
   isErrorValue,
   langRuntime
 } from '@kaluchi/qlang-core';
-import { createCliLocator } from './cli-locator.mjs';
+import { cliSources } from './cli-sources.mjs';
 import { DEFAULT_SUBJECT } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
@@ -99,7 +99,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
     : stderrWrite;
 
   const session = await createSession({
-    locator: createCliLocator({
+    sources: cliSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
       stderrWrite: writeDiagnostic

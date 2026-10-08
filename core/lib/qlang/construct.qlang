@@ -1,7 +1,8 @@
-|~ `::construct`, the step that puts a value under a tag through the
-   tag's constructor, `::T<payload>`, and the refusals of that step. ~|
+|~ What is declared under `::construct`, the step that puts a
+   value under a tag through the tag's constructor, `::T<payload>`: the
+   refusals of that step. ~|
 
-:ConstructPayloadNotSchemaError
+:construct/ConstructPayloadNotSchemaError
   |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
       ::link~(::construct | doc)
@@ -14,7 +15,7 @@
   ~~|
   ::spec~()
 
-:ConstructReadBackDiffersError
+:construct/ConstructReadBackDiffersError
   |~~ The ::construct prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
       as a group.
@@ -28,7 +29,7 @@
   ~~|
   ::spec~()
 
-:TaggedLitTagNotKindError
+:construct/TaggedLitTagNotKindError
   |~~ The tag before a payload addresses a kind, whose declaration is a
       spec; a tag that addresses a verb or a page names no kind to
       build by.

@@ -1,9 +1,8 @@
-|~ `::boolean`, the kind of booleans, the refusal of its
-   constructor, and the verbs of booleans. Each resides on `::qlang/boolean`, the
-   kind whose module declares it: the negation, and the two
-   combinators of conditions, which take booleans. ~|
+|~ What is declared under `::boolean`: the refusal of its
+   constructor, the negation, and the two combinators of conditions,
+   which take booleans. ~|
 
-:BooleanPayloadNotBooleanError
+:boolean/BooleanPayloadNotBooleanError
   |~~ `::boolean` reads its payload as the boolean it is; a payload of
       another kind is refused.
       ~(
@@ -14,7 +13,7 @@
   ~~|
   ::spec~()
 
-:not
+:boolean/not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
       subject of another kind is refused.
 
@@ -24,7 +23,7 @@
   ~~|
   ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/not})
 
-:NotSubjectNotBooleanError
+:boolean/NotSubjectNotBooleanError
   |~~ `not` turns a boolean; a value is asked whether it is absent by
       `eq null`, and a container whether it is empty by `empty`.
       ~(
@@ -35,7 +34,7 @@
   ~~|
   ::spec~()
 
-:and
+:boolean/and
   |~~ Whether the subject and the right condition both hold, each a
       boolean. Given two conditions, `x | and a b` reads both against
       the subject, the first as the subject of `and`, so it
@@ -48,7 +47,7 @@
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/and})
 
-:AndLeftNotBooleanError
+:boolean/AndLeftNotBooleanError
   |~~ The left condition of `and` must answer a boolean.
       ~(
         1 | and true
@@ -58,7 +57,7 @@
   ~~|
   ::spec~()
 
-:AndRightNotBooleanError
+:boolean/AndRightNotBooleanError
   |~~ The right condition of `and` must answer a boolean.
       ~(
         true | and 1
@@ -68,7 +67,7 @@
   ~~|
   ::spec~()
 
-:or
+:boolean/or
   |~~ Whether the subject or the right condition holds, each a boolean.
       Given two conditions, `x | or a b` reads both against the
       subject, the first as the subject of `or`.
@@ -80,7 +79,7 @@
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/or})
 
-:OrLeftNotBooleanError
+:boolean/OrLeftNotBooleanError
   |~~ The left condition of `or` must answer a boolean.
       ~(
         1 | or true
@@ -90,7 +89,7 @@
   ~~|
   ::spec~()
 
-:OrRightNotBooleanError
+:boolean/OrRightNotBooleanError
   |~~ The right condition of `or` must answer a boolean.
       ~(
         false | or 1

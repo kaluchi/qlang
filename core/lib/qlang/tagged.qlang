@@ -1,8 +1,8 @@
-|~ `::tagged`, the kind of every value under a tag, and the verbs of
-   tagged values. Each resides on `::qlang/tagged`, which the walk of a
-   tagged value reaches after its own tags. ~|
+|~ What is declared under `::tagged`, the kind of every value under
+   a tag, which the walk of a tagged value reaches after its own tags: the
+   verbs of tagged values. ~|
 
-:payload
+:tagged/payload
   |~~ The value the tag holds, the reverse of `tag`: `value | tag ::Foo
       | payload | eq value` holds of every value. A set's payload is its
       vector.
@@ -17,7 +17,7 @@
   ~~|
   ::verb~(::builtin{:impl :qlang/prim/payload})
 
-:PayloadSubjectNotTaggedInstanceError
+:tagged/PayloadSubjectNotTaggedInstanceError
   |~~ `payload` takes a value under a tag; a value of a kind of the
       core, a number or a plain map, stands under none.
       ~(
@@ -28,7 +28,7 @@
   ~~|
   ::spec~()
 
-:within
+:tagged/within
   |~~ An edit under one tag: `tagged | within ~(…)` runs the quote
       against the payload as `apply` runs it, a fork whose declarations
       stay inside, and the answer returns the subject's kind, minted
@@ -45,7 +45,7 @@
   ~~|
   ::verb~(:code ::quote | :returns / | ::builtin{:impl :qlang/prim/within})
 
-:WithinSubjectNotTaggedInstanceError
+:tagged/WithinSubjectNotTaggedInstanceError
   |~~ `within` edits the value beneath a tag and puts the tag back; a
       value under no tag is edited by `apply`.
       ~(
@@ -56,7 +56,7 @@
   ~~|
   ::spec~()
 
-:WithinCodeNotQuoteError
+:tagged/WithinCodeNotQuoteError
   |~~ The edit `within` runs is a quote, `within ~(reverse)`; a value
       computed at the call is refused, the error a step answered there
       among them.

@@ -29,7 +29,6 @@ import {
   isErrorValue
 } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
-import { moduleKey } from '../../src/env-keys.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
@@ -169,11 +168,11 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
 describe('verb effectLaundering at call site', async () => {
   it('an effectful verb called via a clean alias triggers EffectLaunderingAtCallError', async () => {
     const s = await createSession();
-    // Declare a verb whose body calls an @-name under an @-name, then
-    // bind it under a clean name via use, triggering the runtime safety
-    // net in applyVerb.
+    // A verb whose body calls an @-name, which a host binds under a
+    // clean name where no declaration reads it, triggering the runtime
+    // safety net in applyVerb.
     await s.evalCell(':@effFn ::verb~(@callers | count)');
-    await s.evalCell('{:clean (env | /@effFn)} | use');
+    s.bind('clean', (await s.evalCell('env | /@effFn | /value')).result);
     const cell = await s.evalCell('[1 2 3] | clean');
     // EffectLaunderingAtCallError produces an error value.
     expect(isErrorValue(cell.result)).toBe(true);
@@ -194,22 +193,6 @@ describe('a slot takes no modifiers', async () => {
 });
 
 
-describe('use with one name selected', async () => {
-  it('use ::lib :x brings the one name', async () => {
-    const s = await createSession();
-    const lib = new Map();
-    lib.set('x', 10);
-    lib.set('y', 20);
-    s.bind(moduleKey('lib'), lib);
-    const r = await s.evalCell('use ::lib :x | x');
-    expect(r.result).toBe(10);
-  });
-});
-
-
-
-// ── walk.mjs location view ─────────────────────────────────────
-
 describe('walk.mjs — locationToQlangMap', async () => {
   it('answers null for a declaration without a site', async () => {
     expect(locationToQlangMap(null)).toBe(null);
@@ -219,38 +202,6 @@ describe('walk.mjs — locationToQlangMap', async () => {
     const view = locationToQlangMap(parse('42').location);
     expect(view.get('start').get('offset')).toBe(0);
     expect(view.get('end').get('column')).toBe(3);
-  });
-});
-
-// ── runtime/use.mjs uncovered branches ─────────────────────
-
-describe('use.mjs — UseModuleCollisionError', async () => {
-  it('a set of modules that export one name is refused by that name', async () => {
-    const s = await createSession();
-    s.bind(moduleKey('nsA'), new Map([['shared', 1]]));
-    s.bind(moduleKey('nsB'), new Map([['shared', 2]]));
-    const r = await s.evalCell('use #[::nsA ::nsB]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseModuleCollisionError');
-    expect(r.result.originalError.context.collidingName).toBe('shared');
-  });
-});
-
-describe('use.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
-  it('selective use(::ns, :missing) produces an error when name is absent', async () => {
-    const s = await createSession();
-    s.bind(moduleKey('myNs'), new Map([['x', 99]]));
-    const r = await s.evalCell('use ::myNs :missing');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNameNotExportedError');
-  });
-
-  it('a selected name that is no keyword is refused by its text', async () => {
-    const s = await createSession();
-    s.bind(moduleKey('myNs2'), new Map([['x', 99]]));
-    const r = await s.evalCell('use ::myNs2 [42]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.context.exportName).toBe('42');
   });
 });
 

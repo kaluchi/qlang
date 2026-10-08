@@ -19,10 +19,10 @@
 // the query, so `cat data.json | qlang '/path'` works as a filter.
 
 import { createSession } from '@kaluchi/qlang-core/session';
-import { createCliLocator } from './cli-locator.mjs';
+import { cliSources } from './cli-sources.mjs';
 
 export async function runQuery(queryText, ioContext, runOpts = {}) {
-  const session = await createSession({ locator: createCliLocator(ioContext) });
+  const session = await createSession({ sources: cliSources(ioContext) });
   const evalOpts = 'initialPipeValue' in runOpts
     ? { initialPipeValue: runOpts.initialPipeValue }
     : {};

@@ -1,9 +1,9 @@
 // The evaluation depth budget across every re-entry seam: a
 // runaway recursion through any seam the evaluator descends —
 // verb body, captured-arg lambda, a verb run as code or as a fold,
-// `apply`, Quote-bodied tag constructor, `runLaws`,
-// locator-loaded module — terminates on the fail-track as
-// `::call/EvaluationDepthExceededError` with `:depth` and `:limit`.
+// `apply`, Quote-bodied tag constructor, `runLaws` — terminates on
+// the fail-track as `::call/EvaluationDepthExceededError` with `:depth`
+// and `:limit`.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -64,36 +64,17 @@ describe('depth budget — host seams', () => {
     // step lifts the error and the tally deflects.
     let frameTally = 0;
     const sessionInstance = await createSession({
-      locator: async modulePath => (modulePath === 'tests/tally'
-        ? {
-            source: ':tallyFrame ::verb~(::builtin{:impl :tests/tally/tallyFrame})',
-            impls: { tallyFrame: subject => { frameTally++; return subject; } }
-          }
-        : null)
+      sources: [{
+        uri: 'tests/tally',
+        source: ':any/tallyFrame ::verb~(::builtin{:impl :tests/tally/tallyFrame})',
+        impls: { 'any/tallyFrame': subject => { frameTally++; return subject; } }
+      }]
     });
-    await sessionInstance.evalCell('use ::tests/tally');
     const cellEntry = await sessionInstance.evalCell(
       ':x |~~ ~(:x | runLaws | tallyFrame | count | eq 1) ~~| 1 | :x | runLaws | tallyFrame'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);
     expect(frameTally).toBe(EVAL_DEPTH_LIMIT);
-  });
-
-  it('a locator-loaded module evaluates one frame below the use step, so a module using itself terminates', async () => {
-    let locatorCalls = 0;
-    const sessionInstance = await createSession({
-      locator: async (modulePath) => {
-        if (modulePath !== 'self') return null;
-        locatorCalls++;
-        return { source: 'use ::self' };
-      }
-    });
-    // The root and every frame below it reach the locator once; on
-    // the frame at the budget, the `:self` captured-arg lambda is
-    // the first descent past it, so that frame's `use` step lifts
-    // the error before its locator call.
-    await sessionInstance.evalCell('use ::self');
-    expect(locatorCalls).toBe(EVAL_DEPTH_LIMIT);
   });
 });

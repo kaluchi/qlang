@@ -4,8 +4,6 @@
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":z"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::proj/ProjectionIndexOutOfBoundsError"}
 {"name":"distribute-on-number","query":"42 * add 1","expect":"::each/DistributeSubjectNotSequenceError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(* add 1)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
-{"name":"use-on-number","query":"42 | use","expect":"::any/UseSubjectNotMapError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(use)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
-{"name":"use-on-vec","query":"[1 2] | use","expect":"::any/UseSubjectNotMapError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(use)\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"div-by-zero","query":"10 | div 0","expect":"::number/DivisionByZeroError!{\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::any/SumElementNotNumberError!{\n  :actualValue \"two\"\n  :actualType ::string\n  :index 1\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"count-on-number","query":"42 | count","expect":"::verb/VerbWithoutBodyError!{\n  :actualType ::number\n  :verbName :count\n  :addresses #[::map/count ::set/count ::string/count ::vec/count]\n  :trail [\n    {\n      :step ~(count)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}

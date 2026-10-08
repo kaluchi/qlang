@@ -226,12 +226,6 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('use on non-Map → UseSubjectNotMapError', async () => {
-    const caughtErr = await catchOriginalError('42 | use');
-    expect(caughtErr.name).toBe('UseSubjectNotMapError');
-  });
-
-
   it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
     const caughtErr = await catchOriginalError('{:a 1} | at 42');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
@@ -326,7 +320,6 @@ describe('per-site error classes carry unique identity', () => {
       '42 | /name',
       '42 * add 1',
       '5 | :five / | five 42',
-      '42 | use',
       '42 | reduce 0 ~(add)',
       '[1 2 3] | reduce 0 ~(42)'
     ];

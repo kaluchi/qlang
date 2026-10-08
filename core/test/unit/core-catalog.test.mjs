@@ -1,55 +1,26 @@
-// Tests for the qlang catalog under lib/qlang/ — the source
-// `langRuntime` parses at bootstrap.
-//
-// The catalog is the tree of names [D152]: `lib/qlang/core.qlang`, its
-// root, binds the providers, `lib/qlang.qlang` the nouns of the language
-// with their pages and declarations, and the module of each noun its
-// verbs and the refusals of its places [D112]. `langRuntime()` loads
-// them once at startup and seals the registry of primitives the verbs
-// name.
-//
-// (The descriptor Map's identity rides on the JS-header
-// `TAG_HEADER_SYMBOL` slot — stamped to `::builtin` by the
-// `::builtin{…}` tag-literal constructor in `runtime/tagged.mjs`
-// — not on a `:kind` Map field; the descriptor body carries only
-// `:impl` plus authored metadata.)
-//
-// Contract pinned here:
-//
-//   1. The root entry `#qlang/core` parses to a Pipeline AST
-//      without errors.
-//   2. Evaluating the catalog through the locator produces a
-//      non-empty Map — one entry per built-in operand.
-//   3. Every operand entry is itself a Map with the `::builtin`
-//      identity on its JS-header slot and a `:impl` keyword
-//      prefixed `qlang/prim/`.
-//   4. Every :impl keyword resolves to a real primitive in
-//      the live PRIMITIVE_REGISTRY (populated by runtime/*.mjs
-//      module-load side effects) and the resolved callable rides
-//      the descriptor's `BUILTIN_IMPL_SLOT` slot.
-//   5. Doc-comment prefixes have folded into `.docs` Vecs on each
-//      `BindStep`'s AST node attached by grammar's `DocPrefix` /
-//      `DocAttachedSequence` rules and reachable through the
-//      axis-operand `:name | doc` (the one page its attached
-//      prefixes make).
+// The catalog the language declares its root by [D153]: `lib/qlang.qlang`
+// declares the kinds and the topic of the language, and each source under
+// `lib/qlang/` the verbs and the refusals declared under one noun [D112].
+// `langRuntime()` runs them once at startup and seals the registry of
+// primitives the verbs name.
 
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
 import { keyword, isQMap, isVec, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
-import { platformLocator } from '../../src/runtime/bootstrap.mjs';
+import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
+import { evalQuery } from '../../src/eval.mjs';
 
-describe('lib/qlang/core.qlang — shape and content', () => {
-  it('parses without errors', async () => {
-    const rootResult = await platformLocator('qlang/core');
-    const ast = parse(rootResult.source, { uri: 'qlang/core' });
-    expect(ast).toBeDefined();
-    expect(ast.type).toBeDefined();
+describe('the sources of the language', () => {
+  it('each parses without errors', async () => {
+    for (const uri of LANGUAGE_SOURCES) {
+      const ast = parse((await platformLocator(uri)).source, { uri });
+      expect(ast.type, uri).toBeDefined();
+    }
   });
-
 });
 
-describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
+describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — :add is a verb that resides on ::number [D72]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
@@ -66,7 +37,7 @@ describe('lib/qlang/core.qlang — handoff into PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('lib/qlang/core.qlang — doc-prefix reachable through `:tag | doc` axis', () => {
+describe('the pages of the language read through `doc`', () => {
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -116,25 +87,18 @@ describe('bare-name verb call', () => {
   });
 });
 
-describe('the size of the language\'s module', () => {
+describe('the root of the language', () => {
   // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
-  // throw site with its tag and each tag with its throw site, but the
-  // six tags minted outside a per-site factory (`::Error`,
-  // `::quote/ParseError`, and the four value-class constructors) pass both
-  // axes whether or not they exist — axis 1 never names them and
-  // axis 2 skips a name the environment does not bind. These pins fail
-  // on a silent catalog shrink; per §8a of the review rules a tally
-  // belongs in test code, which CI re-verifies, and never in prose.
-  it('the language\'s module binds every noun and every concept page', async () => {
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: true }).length).toBe(38);
+  // throw site with its kind and each kind with its throw site, but a
+  // kind minted outside a per-site factory passes both whether or not it
+  // exists. This pin fails on a silent shrink of the root's nouns; a
+  // tally belongs in test code, which CI re-verifies, and never in prose.
+  it('the root holds the kinds of the language and its topic', async () => {
+    expect(await evalQuery('env | keys | count')).toBe(31);
   });
 
-  it('no name of the scope is left a descriptor [D113]', async () => {
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { catalogEntriesOf } = await import('../helpers/catalog-entries.mjs');
-    expect(catalogEntriesOf(await langRuntime(), { tags: false }).length).toBe(0);
+  it('no name of the root is left a descriptor [D113]', async () => {
+    expect(await evalQuery('env | vals | filter ~(/value | type | eq ::builtin) | count')).toBe(0);
   });
 });
 

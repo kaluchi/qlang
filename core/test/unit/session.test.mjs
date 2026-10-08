@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
-import { QlangTypeError, QlangInvariantError } from '../../src/errors.mjs';
+import { QlangInvariantError } from '../../src/errors.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -98,119 +98,68 @@ describe('createSession lifecycle', () => {
   });
 });
 
-describe('a module a locator hands', () => {
-  it('runs a host verb through the implementation its module was handed with', async () => {
-    const sessionInstance = await createSession({
-      locator: async nsName => (nsName === 'tests/host'
-        ? {
-            source: ':less ::verb~(:by ::number | ::builtin{:impl :tests/host/less})',
-            impls: { less: (subject, by) => subject - by }
-          }
-        : null)
-    });
-    expect((await sessionInstance.evalCell('use ::tests/host | 7 | less 2')).result).toBe(5);
-    expect((await sessionInstance.evalCell('use ::tests/host | 7 | less "a" !| type')).result)
+describe('the sources a host hands [D153]', () => {
+  // A source of the host declares a verb under the noun of its subject,
+  // with the implementation the host hands beside it [D80].
+  const HOST_SOURCES = [{
+    uri: 'tests/host',
+    source: [
+      ':number/less ::verb~(:by ::number | ::builtin{:impl :tests/host/less})',
+      ':any/@fetch ::verb~(:returns ::string | ::builtin{:impl :tests/host/@fetch})',
+      ':any/@doubled ::verb~(@fetch | append @fetch)'
+    ].join('\n'),
+    impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
+  }];
+
+  it('runs a host verb through the implementation handed beside its source', async () => {
+    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
+    expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
       .toEqual(makeTagKeyword('number/NumberPayloadNotNumberError'));
   });
 
+  it('runs a verb of steps the source declares over the host\'s own', async () => {
+    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    expect((await sessionInstance.evalCell('@doubled')).result).toBe('fetchedfetched');
+  });
+
+  it('answers the head of a host verb as its signature', async () => {
+    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    expect((await sessionInstance.evalCell('::any/@fetch | spec | [type /returns]')).result)
+      .toEqual([makeTagKeyword('spec'), makeTagKeyword('string')]);
+  });
+
+  it('records the source a host verb came from as its origin', async () => {
+    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    expect((await sessionInstance.evalCell('::number/less | binding | /origin')).result).toEqual(keyword('tests/host'));
+  });
+
+  it('calls a verb a source declares under no noun by its name, last of all', async () => {
+    const { verbShownFor } = await import('../../src/runtime/verb.mjs');
+    const sessionInstance = await createSession({ sources: [{
+      uri: 'tests/bare',
+      source: ':shout ::verb~(:subject ::string | ::builtin{:impl :tests/bare/shout})',
+      impls: { shout: text => text.toUpperCase() }
+    }] });
+    expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
+    expect((await sessionInstance.evalCell('5 | shout !| type')).result)
+      .toEqual(makeTagKeyword('string/StringPayloadNotStringError'));
+    expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell('env | /shout | /value')).result);
+  });
+
   it('refuses an implementation handed for a name the source declares as no verb', async () => {
-    const sessionInstance = await createSession({
-      locator: async nsName => (nsName === 'tests/stray'
-        ? { source: ':limit 10', impls: { limit: () => 1 } }
-        : null)
-    });
-    expect((await sessionInstance.evalCell('use ::tests/stray !| [type /implName]')).result)
-      .toEqual([makeTagKeyword('any/UseImplNamesNoVerbError'), keyword('limit')]);
-  });
-});
-
-// ── Locator-based lazy module loading ─────────────────────────
-
-// Minimal .qlang source for a module with one host verb and one
-// qlang-only verb that builds on it; the locator hands the host verb's
-// implementation beside the source [D80]. Env delta = the exports.
-const MOCK_MODULE_SOURCE = [
-  ':@fetch ::verb~(:returns ::string | ::builtin{:impl :test/io/@fetch})',
-  '| :@doubled ::verb~(@fetch | append @fetch)'
-].join('\n');
-
-// Host-provided impl for the @fetch builtin — returns a fixed string.
-const fetchImpl = () => 'fetched-value';
-
-function mockLocator(modulePath) {
-  if (modulePath === 'test/io') {
-    return { source: MOCK_MODULE_SOURCE, impls: { '@fetch': fetchImpl } };
-  }
-  return null;
-}
-
-describe('createSession with locator — lazy module loading', () => {
-  it('installs locator under :qlang/locator in env', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    expect(locatorSession.env.has('qlang/locator')).toBe(true);
+    await expect(createSession({ sources: [{ uri: 'tests/stray', source: ':limit 10', impls: { limit: () => 1 } }] }))
+      .rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
   });
 
-  it('use(::ns) triggers locator when module not pre-installed', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    const loadCell = await locatorSession.evalCell('use ::test/io | @fetch');
-    expect(loadCell.error).toBeNull();
-    expect(loadCell.result).toBe('fetched-value');
+  it('refuses a source that declares a name the root holds', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/twice', source: ':vec |~~ again ~~|' }] }))
+      .rejects.toMatchObject({ name: 'BindNameDeclaredTwiceError' });
   });
 
-  it('qlang-only verb in a locator-loaded module works', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    const verbCell = await locatorSession.evalCell('use ::test/io | @doubled');
-    expect(verbCell.error).toBeNull();
-    expect(verbCell.result).toBe('fetched-valuefetched-value');
-  });
-
-  it('locator-loaded module keyword persists for subsequent use calls', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    await locatorSession.evalCell('use ::test/io');
-    // Second use of same module should not re-trigger locator.
-    const secondUse = await locatorSession.evalCell('use ::test/io | @fetch');
-    expect(secondUse.error).toBeNull();
-    expect(secondUse.result).toBe('fetched-value');
-  });
-
-  it('locator returning null falls through to UseModuleNotFoundError', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    const missingCell = await locatorSession.evalCell('use ::nonexistent/ns');
-    expect(missingCell.error).toBeNull();
-    expect(isErrorValue(missingCell.result)).toBe(true);
-    const locatorMissErr = missingCell.result.originalError;
-    expect(locatorMissErr.name).toBe('UseModuleNotFoundError');
-    expect(locatorMissErr).toBeInstanceOf(QlangTypeError);
-    expect(locatorMissErr.context.module.literal).toBe('::nonexistent/ns');
-  });
-
-  it('the signature of a locator-loaded host verb answers its head', async () => {
-    const locatorSession = await createSession({ locator: mockLocator });
-    const specCell = await locatorSession.evalCell('use ::test/io | :@fetch | spec | [type /returns]');
-    expect(specCell.error).toBeNull();
-    expect(specCell.result).toEqual([makeTagKeyword('spec'), makeTagKeyword('string')]);
-  });
-
-  it('session without locator throws UseModuleNotFoundError on unknown module', async () => {
-    const plainSession = await createSession();
-    const missingCell = await plainSession.evalCell('use ::anything');
-    expect(missingCell.error).toBeNull();
-    expect(isErrorValue(missingCell.result)).toBe(true);
-    const noLocatorErr = missingCell.result.originalError;
-    expect(noLocatorErr.name).toBe('UseModuleNotFoundError');
-    expect(noLocatorErr).toBeInstanceOf(QlangTypeError);
-    expect(noLocatorErr.context.module.literal).toBe('::anything');
-  });
-});
-
-describe('locator exports that are no descriptors of the core', () => {
-  it('leaves the verb of a module named as a noun that declares no kind off the residences of its name', async () => {
-    const sessionInstance = await createSession({
-      locator: async (modulePath) => modulePath === 'qlang/widget'
-        ? { source: ':count ::verb~(add 1) | :other 1' }
-        : null
-    });
-    expect((await sessionInstance.evalCell('use ::qlang/widget #[:other] | count [1 2]')).result).toBe(2);
+  it('refuses a source whose run answers an error', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/broken', source: ':a 1 | 1 | add "x" | :b 2' }] }))
+      .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
   });
 });
 
@@ -221,15 +170,14 @@ describe('a cell whose failure is no error value', () => {
     // cell records it on the error channel; only a ParseError also
     // lands a structured value on the result channel.
     const sessionInstance = await createSession({
-      locator: async modulePath => (modulePath === 'tests/collapse'
-        ? {
-            source: ':collapse ::verb~(::builtin{:impl :tests/collapse/collapse})',
-            impls: { collapse: () => { throw new QlangInvariantError('catalog bootstrap left no root module'); } }
-          }
-        : null)
+      sources: [{
+        uri: 'tests/collapse',
+        source: ':any/collapse ::verb~(::builtin{:impl :tests/collapse/collapse})',
+        impls: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
+      }]
     });
 
-    const cellEntry = await sessionInstance.evalCell('use ::tests/collapse | 42 | collapse');
+    const cellEntry = await sessionInstance.evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();
     expect(cellEntry.error).toBeInstanceOf(QlangInvariantError);
     expect(cellEntry.error.name).toBe('QlangInvariantError');

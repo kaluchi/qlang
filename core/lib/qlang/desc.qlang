@@ -1,11 +1,8 @@
-|~ `::desc`, the kind of a value whose place in the one order is the
-   reverse of its payload's, and its comparisons. ~|
+|~ What is declared under `::desc`, the kind of a value whose place
+   in the one order is the reverse of its payload's: its comparisons,
+   which compare two of its values by their payloads, reversed. ~|
 
-|~ The comparisons of descending values. Each resides on `::qlang/desc`,
-   the kind of the module that declares it, and compares two of its
-   values in the one order, the reverse of their payloads'. ~|
-
-:gt
+:desc/gt
   |~~ Whether the subject follows the value the call gives among
       descending values, which holds when its payload precedes the
       other's.
@@ -14,7 +11,7 @@
   ~~|
   ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
 
-:gte
+:desc/gte
   |~~ Whether the subject follows or equals the value the call gives
       among descending values.
 
@@ -22,7 +19,7 @@
   ~~|
   ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
 
-:lt
+:desc/lt
   |~~ Whether the subject precedes the value the call gives among
       descending values, which holds when its payload follows the
       other's.
@@ -31,7 +28,7 @@
   ~~|
   ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
 
-:lte
+:desc/lte
   |~~ Whether the subject precedes or equals the value the call gives
       among descending values.
 

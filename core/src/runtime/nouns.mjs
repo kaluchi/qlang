@@ -2,16 +2,16 @@
 // with a path, `vec/count`, is the address of the node it declares under
 // the noun its path names before its last name. The root is the scope the
 // host's sources declared before the reader's first step, the language's
-// first; the frame of the reader's declarations stands over it. A tag name is an address: it reads
-// the root's node of its name, which no reader replaces, else the nearest
-// declaration of it, and a walk of a subject's tags finds the verbs
-// declared under each kind it passes [D34], [D72].
+// first; the frame of the reader's declarations stands over its bare
+// names. A tag name is an address: it reads the root's node of its name,
+// which no reader replaces, else the reader's, and a walk of a subject's
+// tags finds the verbs residing on each kind it passes [D34], [D72].
 
 import {
   isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
-  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
+  typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { ROOT_KEY } from '../env-keys.mjs';
+import { rootOf } from '../state.mjs';
 import { isContract } from './verb.mjs';
 
 const ANY_KIND_NAME = 'any';
@@ -22,13 +22,6 @@ const TAGGED_KIND_NAME = 'tagged';
 export function splitAddress(name) {
   const cut = name.lastIndexOf('/');
   return cut < 0 ? [null, name] : [name.slice(0, cut), name.slice(cut + 1)];
-}
-
-const NO_ROOT = new Map();
-
-// The root beneath a frame, the bindings the host's sources declared.
-export function rootOf(env) {
-  return env.get(ROOT_KEY) ?? NO_ROOT;
 }
 
 // The bindings of a scope by name: the root's a name of the frame does
@@ -45,10 +38,16 @@ export function nodeOf(env, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
-// The record of the verb of `verbName` declared under a kind, or null.
+// Whether a record holds a verb residing on a kind.
+function residesOn(record, kindName) {
+  const value = bindingValueOf(record);
+  return isVerb(value) && residenceOfVerb(value) === kindName;
+}
+
+// The record of the verb of `verbName` residing on a kind, or null.
 function residenceOf(env, kindName, verbName) {
   const record = nodeOf(env, `${kindName}/${verbName}`);
-  return record !== null && isVerb(bindingValueOf(record)) ? record : null;
+  return record !== null && residesOn(record, kindName) ? record : null;
 }
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
@@ -104,15 +103,15 @@ export function bareNameReach(env, name, subject) {
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
 
-// residencesOf(env, verbName) → the verbs of a name declared under a
-// kind, each with its kind, in the order of their declarations, the
-// contract on `any` apart: what a contract answers for.
+// residencesOf(env, verbName) → the verbs of a name residing on a kind,
+// each with its kind, in the order of their declarations, the contract
+// on `any` apart: what a contract answers for.
 export function residencesOf(env, verbName) {
   const residences = [];
   for (const [name, record] of bindingsOf(env)) {
     const [kindName, lastName] = splitAddress(name);
     if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
-    if (isVerb(bindingValueOf(record))) residences.push([kindName, record]);
+    if (residesOn(record, kindName)) residences.push([kindName, record]);
   }
   return residences;
 }

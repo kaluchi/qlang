@@ -12,10 +12,10 @@
 // to ancestor frames so fork boundaries can discard inner-env
 // writes without copying.
 //
-// The env is a JS Map whose keys are plain strings (identifier
-// names), the frame a reader writes, over the root the host's sources
-// declared, which sits under a symbol of its own and is shared by every
-// frame [D153]; a lookup reads the frame, then the root.
+// The env is a JS Map from the names a reader declared to their
+// records, the frame, over the root the host's sources declared, which
+// sits under a key no name spells and is shared by every frame [D153]; a
+// lookup reads the frame, then the root.
 
 import { EvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY } from './env-keys.mjs';
@@ -59,15 +59,23 @@ export function nestState(state, pipeValue, env) {
   return makeState(pipeValue, env, depth);
 }
 
+const NO_ROOT = new Map();
+
+// rootOf(env) → the root beneath a frame, the bindings the host's
+// sources declared.
+export function rootOf(env) {
+  return env.get(ROOT_KEY) ?? NO_ROOT;
+}
+
 // envGet(env, name) → the value the frame holds under a name, else the
 // root's, or undefined
 export function envGet(env, name) {
-  return env.has(name) ? env.get(name) : env.get(ROOT_KEY)?.get(name);
+  return env.has(name) ? env.get(name) : rootOf(env).get(name);
 }
 
 // envHas(env, name) → boolean
 export function envHas(env, name) {
-  return env.has(name) || env.get(ROOT_KEY)?.has(name) === true;
+  return env.has(name) || rootOf(env).has(name);
 }
 
 // envSet(env, name, value) → new env Map

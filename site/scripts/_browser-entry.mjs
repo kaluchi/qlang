@@ -12,8 +12,8 @@
 // import every source of the language, which the bundler lists from
 // `LANGUAGE_SOURCES`, and expose an `inlineCatalogLocator` named export.
 // Consumer code then calls `await langRuntime({ locator:
-// inlineCatalogLocator })` to bootstrap. No `<script type="importmap">`,
-// no `fetch`, no host-side resolver glue.
+// inlineCatalogLocator })` to bootstrap, and the page reads every
+// source from the bundle it loaded.
 
 // The sources of the language by the names the runtime asks for them,
 // which the bundler writes from LANGUAGE_SOURCES [D153].

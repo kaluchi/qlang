@@ -86,18 +86,22 @@
   ::spec~()
 
 :builtin/RootSourceNotDeclaredError
-  |~~ A source of the root answered an error, so its declarations stay
-      out of the root; `:uri` names the source and `:tagName` what it
-      answered, `::bind/BindNameDeclaredTwiceError` for a name the root
-      already holds, a refusal under a second address among them.
+  |~~ A source of the root answered an error, or declared again a name
+      the root holds, so its declarations stay out of the root; `:uri`
+      names the source and `:tagName` the refusal, for a name declared
+      again `::bind/BindNameDeclaredTwiceError` with `:name` the name, a
+      refusal declared under a second address among them.
   ~~|
   ::spec~()
 
 :builtin/RootImplNamesNoVerbError
   |~~ A host handed an implementation beside a source of the root for a
-      name the source declares as no verb: an implementation is the
-      primitive of a verb the source declares. `:uri` names the source
-      and `:implName` the name.
+      name the source declares as no verb ending in `::builtin{}`: an
+      implementation is the primitive of such a verb, and a verb whose
+      step names a primitive of the core runs that one. `:uri` names the
+      source and `:implName` the name. A verb ending in `::builtin{}`
+      the host hands nothing for is refused with
+      `::builtin/PrimitiveKeyUnboundError`, its `:keyLabel` the name.
   ~~|
   ::spec~()
 

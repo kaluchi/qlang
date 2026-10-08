@@ -54,7 +54,19 @@
         !| [type /name]
         |  eq [::bind/BindVerbSubjectUnderKindError :Box/area]
        )
-      ~(:t/h ::verb~(type) | 5 | t/h | eq ::number)
+      ~(:t {} | :t/h ::verb~(type) | 5 | t/h | eq ::number)
+  ~~|
+  ::spec~()
+
+:bind/BindNounNotDeclaredError
+  |~~ A name with a path is declared under the noun its path names
+      before its last name, and that noun is declared before it, so
+      whether the noun is a kind, which the verbs under it serve, is
+      known where they are declared.
+      ::link~(::bind | doc)
+
+      ~(:Box/area ::verb~(1) !| [type /noun] | eq [::bind/BindNounNotDeclaredError ::Box])
+      ~(:Box ::spec~() | :Box/area ::verb~(1) | ::Box{} | area | eq 1)
   ~~|
   ::spec~()
 

@@ -62,7 +62,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
-      ':landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | doc | content');
+      ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | doc | content');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(' Глава из лендинг пейджа ');
   });

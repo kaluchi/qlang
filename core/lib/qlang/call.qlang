@@ -82,6 +82,13 @@
         |  eq [::call/UnresolvedIdentifierError]
        )
       ~(fist !| /nearest | eq [:first])
+      ~(
+        :Box ::spec~() | :Ring ::spec~()
+        | :Box/area ::verb~(1) | :Ring/area ::verb~(2)
+        | 5 | area
+        !| /addresses
+        |  eq #[::Box/area ::Ring/area]
+       )
       ~(:limit 3 | limti !| /nearest | eq [:limit])
       ~(zzzzqqq !| /nearest | eq [])
   ~~|
@@ -100,7 +107,7 @@
         |  eq [::call/UnresolvedAddressError ::vec/nothing]
        )
       ~([1] | vec/countt !| /nearest | has ::vec/count)
-      ~(:Box/side 3 | Box/side | eq 3)
+      ~(:Box ::spec~() | :Box/side 3 | Box/side | eq 3)
   ~~|
   ::spec~()
 

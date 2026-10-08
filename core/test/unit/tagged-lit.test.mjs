@@ -56,11 +56,17 @@ describe('::verb constructor builds a verb', () => {
 });
 
 describe('a kind whose spec names a constructor of the host', () => {
-  it('makes ::myType invokable through the ::verb constructor handle', async () => {
-    const result = await evalQuery(
-      ':myType ::spec~(::builtin{:impl :qlang/type/verb}) | :f ::myType~(add 1) | 4 | f'
-    );
-    expect(result).toBe(5);
+  it('makes ::myType invokable through the ::verb constructor handle, declared by a host [D73]', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const sessionInstance = await createSession({
+      sources: [{ uri: 'tests/kind', source: ':myType ::spec~(::builtin{:impl :qlang/type/verb})' }]
+    });
+    expect((await sessionInstance.evalCell(':f ::myType~(add 1) | 4 | f')).result).toBe(5);
+  });
+
+  it('runs the builtin step of a kind a reader declares as a step [D73]', async () => {
+    const result = await evalQuery(':myType ::spec~(::builtin{:impl :qlang/type/verb}) | ::myType~(add 1) | type');
+    expect(result).toEqual(makeTagKeyword('myType'));
   });
 
   it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {

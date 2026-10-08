@@ -66,7 +66,7 @@ describe('depth budget — host seams', () => {
     const sessionInstance = await createSession({
       sources: [{
         uri: 'tests/tally',
-        source: ':any/tallyFrame ::verb~(::builtin{:impl :tests/tally/tallyFrame})',
+        source: ':any/tallyFrame ::verb~(::builtin{})',
         impls: { 'any/tallyFrame': subject => { frameTally++; return subject; } }
       }]
     });

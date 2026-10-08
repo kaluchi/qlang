@@ -16,7 +16,7 @@
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true","decision":"D72"}
 {"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119"]}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
-{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/NumberPayloadNotNumberError","decision":"D72"}
+{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::verb/VerbSlotNotOfKindsError","decision":"D72"}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
 {"name":"a-projection-of-a-signature-names-what-it-declares","query":"::number/add | spec | /nope !| /availableFields","expect":"[\"subject\" \"addend\" \"returns\"]","decision":"D72"}
 {"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}

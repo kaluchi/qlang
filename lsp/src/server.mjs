@@ -21,7 +21,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
+import { parse, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -44,13 +44,13 @@ const documentStates = new Map();
 // ── Catalog context ───────────────────────────────────────────
 //
 // Every source of the language takes part in goto-definition: its
-// declarations, by name and by tag, merge into one `name → { uri, source,
-// range }` table, so `count` and `::number/AddLeftNotNumberError`
-// resolve through one lookup.
+// declarations merge into one `address → { uri, source, range }` table,
+// and the runtime answers the address a bare name reaches, so `count`
+// and `::number/AddLeftNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 
-function loadCatalogContext() {
+async function loadCatalogContext() {
   // Monorepo layout: `lsp/` and `core/` are sibling workspaces, so the
   // sources sit under `../core/lib/` relative to `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
@@ -75,13 +75,13 @@ function loadCatalogContext() {
       connection.console.warn(`catalog source ${path} not loaded: ${e.message}`);
     }
   }
-  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex } : null;
+  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex, runtime: await langRuntime() } : null;
 }
 
 // ── Initialization ────────────────────────────────────────────
 
-connection.onInitialize(() => {
-  loadCatalogContext();
+connection.onInitialize(async () => {
+  await loadCatalogContext();
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,

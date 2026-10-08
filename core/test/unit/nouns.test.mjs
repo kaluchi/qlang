@@ -46,7 +46,7 @@ describe('the verbs that live on a kind', () => {
   it('a host verb declared under a kind serves its values beneath a tag', async () => {
     const session = await createSession({ sources: [{
       uri: 'tests/typed',
-      source: ':string/shout ::verb~(::builtin{:impl :tests/typed/shout})',
+      source: ':string/shout ::verb~(::builtin{})',
       impls: { 'string/shout': text => text.toUpperCase() }
     }] });
     expect((await session.evalCell('::Box("hi") | shout')).result).toBe('HI');

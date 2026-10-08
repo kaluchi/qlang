@@ -321,33 +321,40 @@ export function verbEnvRef(verb) {
   return verb[VERB_ENV_REF_SLOT];
 }
 
-// The noun a verb resides on, the kind of its subject when its head
-// names none: the noun its declared name begins with, `:vec/count`
-// residing on `::vec` [D72], [D153], which the declaration records in
-// the holder beside the verb's scope.
+// The address a verb was first declared at, and the kind it resides on,
+// the kind of its subject when its head names none: the noun of that
+// address when the noun is a kind, `:vec/count` residing on `::vec`
+// [D72], [D153]. A verb declared again under another name keeps both, as
+// it keeps its scope; the holder beside the scope records them.
+export function addressOfVerb(verb) {
+  return verb[VERB_ENV_REF_SLOT]?.address ?? null;
+}
+
 export function residenceOfVerb(verb) {
   return verb[VERB_ENV_REF_SLOT]?.residence ?? null;
 }
 
-export function resideVerbOn(verb, kindName) {
-  verb[VERB_ENV_REF_SLOT].residence = kindName;
+export function declareVerbAt(verb, address, residence) {
+  Object.assign(verb[VERB_ENV_REF_SLOT], { address, residence });
 }
 
-// A verb a host's source declared, which alone reaches a primitive
-// [D73], and the implementation the host handed beside that source, a
-// plain function over the values the verb's head checks [D4], [D80],
-// null for a primitive of the core; the root records both in the holder
-// beside the verb's scope.
-export function isHostVerb(verb) {
-  return verb[VERB_ENV_REF_SLOT]?.host === true;
+// A verb or a kind a host's source declared, which alone reaches a
+// primitive [D73], and the implementation the host handed beside that
+// source for a verb, a plain function over the values the verb's head
+// checks [D4], [D80], null for a primitive of the core.
+const HOST_DECLARED = new WeakSet();
+
+export function isHostDeclared(value) {
+  return HOST_DECLARED.has(value);
 }
 
 export function hostImplOfVerb(verb) {
   return verb[VERB_ENV_REF_SLOT]?.hostImpl ?? null;
 }
 
-export function declareHostVerb(verb, impl) {
-  Object.assign(verb[VERB_ENV_REF_SLOT], { host: true, hostImpl: impl });
+export function declareHostValue(value, impl) {
+  HOST_DECLARED.add(value);
+  if (isVerb(value)) value[VERB_ENV_REF_SLOT].hostImpl = impl;
 }
 
 // An error carries its tag, the kind of errors for a literal that names

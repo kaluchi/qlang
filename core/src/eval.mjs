@@ -3,7 +3,7 @@
 
 import { parse } from './parse.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, envSet
+  rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
 import { fork, forkEach } from './fork.mjs';
 import {
@@ -24,7 +24,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, resideVerbOn, makeVerb,
+  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -32,7 +32,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, nodeOf, residenceOnSubject, residencesOf, rootOf, splitAddress
+  addressesOf, bareNameReach, nodeOf, residenceOnSubject, residencesOf, splitAddress
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication
@@ -84,6 +84,10 @@ const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubject
 // subject of its own [D153].
 const BindVerbSubjectUnderKindError = declareShapeError('BindVerbSubjectUnderKindError',
   ({ name }) => `${name} is declared under a kind, its subject, and its head names a subject of its own`,
+  { operand: '::bind' }
+);
+const BindNounNotDeclaredError = declareShapeError('BindNounNotDeclaredError',
+  ({ name, noun }) => `${name} is declared under ${noun.literal}, which no declaration names`,
   { operand: '::bind' }
 );
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
@@ -381,15 +385,17 @@ async function evalBareTypeKeyword(node, state) {
 // answers 42; a doc alone binds a doc, a page. A verb or a quote written
 // as the body resolves in the scope the declaration writes, so it sees
 // its own name [D44], [D67]. A name is declared once in its scope [D71],
-// and an address the root holds once at all: a reader extends a noun of
-// the root and replaces none of its nodes [D153]. A verb declared under a
-// kind, `:vec/count`, resides on it, its head naming no subject [D72]; one
-// under a noun that is no kind serves any value.
+// and a node the root holds once at all, so a reader extends a noun of the
+// root and replaces none of its nodes [D153]; a name with a path is
+// declared under a noun declared before it.
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
   if (repeatsDeclarationInScope(node) || (nounName !== null && rootOf(state.env).has(name))) {
     throw new BindNameDeclaredTwiceError({ name });
+  }
+  if (nounName !== null && !envHas(state.env, nounName)) {
+    throw new BindNounNotDeclaredError({ name, noun: makeTagKeyword(nounName) });
   }
 
   if (node.body === null) {
@@ -400,18 +406,22 @@ async function evalBindStep(node, state) {
   if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
-  // A verb a body computed is another declaration's value, so the noun
-  // takes a verb of its own over the same code and scope.
-  const value = writtenQuote ? quoteInEnv(answered, null)
-    : isVerb(answered) && !writtenVerb && nounName !== null ? makeVerb(answered.payload, { env: verbEnvRef(answered).env })
-    : answered;
-  const underKind = nounName !== null && isVerb(value) && isSpec(bindingValueOf(nodeOf(state.env, nounName)));
-  if (underKind && namesItsSubject(value)) throw new BindVerbSubjectUnderKindError({ name });
+  const value = writtenQuote ? quoteInEnv(answered, null) : answered;
+  if (isVerb(value) && addressOfVerb(value) === null) declareVerbFirst(value, name, nounName, state.env);
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenVerb) verbEnvRef(value).env = nextEnv;
-  if (underKind) resideVerbOn(value, nounName);
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
+}
+
+// A verb takes the address of its first declaration and resides on the
+// noun of that address when the noun is a kind, its head then naming no
+// subject of its own [D72], [D153]; one under a noun that is no kind
+// serves any value.
+function declareVerbFirst(verb, name, nounName, env) {
+  const underKind = nounName !== null && isSpec(bindingValueOf(nodeOf(env, nounName)));
+  if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
+  declareVerbAt(verb, name, underKind ? nounName : null);
 }
 
 // A name without the effect marker refuses a verb whose body calls one,

@@ -7,6 +7,7 @@ import {
   documentSymbols, signatureHelpAtOffset,
   semanticTokensFor, SEMANTIC_TOKEN_TYPES
 } from '../src/features.mjs';
+import { langRuntime } from '@kaluchi/qlang-core';
 
 describe('parseDocument', () => {
   it('parses valid qlang source without diagnostics', () => {
@@ -268,12 +269,13 @@ describe('hoverAtOffset', () => {
 });
 
 // A catalog context for definition fallback tests, in the shape of a
-// source of the language: a contract under `::any` and a verb under a
-// kind, each a declaration `buildCatalogIndex` records by its span. The
-// server merges each catalog file's source and URI onto every index
-// entry so the goto handler resolves offsets without re-reading the
-// source — the test mirror does the same.
-const catalogSrc = ':any/count ::verb~() | :vec/count ::verb~(1)';
+// source of the language: a contract under `::any` and verbs under a
+// kind, each a declaration `buildCatalogIndex` records by its span, and
+// the runtime that answers what a bare name reaches. The server merges
+// each catalog file's source and URI onto every index entry so the goto
+// handler resolves offsets without re-reading the source — the test
+// mirror does the same.
+const catalogSrc = ':any/count ::verb~() | :vec/count ::verb~(1) | :number/add ::verb~(1)';
 const catalogAst = parseDocument(catalogSrc, 'qlang/any').ast;
 const testCatalogIndex = new Map();
 for (const [name, range] of buildCatalogIndex(catalogAst)) {
@@ -283,7 +285,7 @@ for (const [name, range] of buildCatalogIndex(catalogAst)) {
     source: catalogSrc
   });
 }
-const testCatalogCtx = { index: testCatalogIndex };
+const testCatalogCtx = { index: testCatalogIndex, runtime: await langRuntime() };
 
 describe('definitionAtOffset', () => {
   it('jumps from verb use site to BindStep declaration', () => {
@@ -332,12 +334,11 @@ describe('definitionAtOffset', () => {
     expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
   });
 
-  it('falls back to a verb under a kind when no contract names it', () => {
-    const vecOnly = new Map([...testCatalogIndex].filter(([name]) => !name.includes('any/')));
-    const src = '[1 2 3] | count';
+  it('falls back to the one verb of a name under a kind when no contract names it', () => {
+    const src = '1 | add 2';
     const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('count'), { index: vecOnly });
-    expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
+    const def = definitionAtOffset(ast, src.indexOf('add'), testCatalogCtx);
+    expect(def.startOffset).toBe(catalogSrc.indexOf(':number/add'));
   });
 
   it('returns null without catalog context for builtins', () => {

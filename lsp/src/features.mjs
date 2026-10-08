@@ -24,7 +24,8 @@ import {
   verbsReaching,
   verbNames,
   nodeOf,
-  nodeAddresses
+  nodeAddresses,
+  bareNameReach
 } from '@kaluchi/qlang-core';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
@@ -110,8 +111,8 @@ export function parseDocument(source, uri) {
 
 // ── Catalog context ───────────────────────────────────────────
 
-// The declarations of a source of the catalog by name and by the tag that
-// addresses it [D153], each with the span goto-definition jumps to.
+// The declarations of a source of the catalog by the name each declares,
+// its address [D153], with the span goto-definition jumps to.
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
@@ -121,19 +122,17 @@ export function buildCatalogIndex(catalogAst) {
     if (node.type !== 'BindStep') return;
     const span = { startOffset: node.location.start.offset, endOffset: node.location.end.offset };
     index.set(node.key.name, span);
-    index.set(tagNameOf(node.key.name), span);
   });
   return index;
 }
 
-// The catalog's declaration of a name: its own, else, for a name a step
-// calls bare, the contract on any value, whose page every verb of the
-// name shares, else the first verb of the name declared under a kind.
-function catalogDeclarationOf(index, name) {
-  if (index.has(name)) return index.get(name);
-  if (index.has(`any/${name}`)) return index.get(`any/${name}`);
-  for (const [declared, entry] of index) if (declared.endsWith(`/${name}`)) return entry;
-  return null;
+// The catalog's declaration of what a name reaches with no subject [D62],
+// [D153]: for a bare name the contract on any value, whose page every verb
+// of the name shares, else the one verb of the name under a kind; for an
+// address the node it names.
+function catalogDeclarationOf({ index, runtime }, name) {
+  const reach = bareNameReach(runtime, name);
+  return index.get(reach === null ? name : reach.record.get('name').name) ?? null;
 }
 
 // ── Completion ────────────────────────────────────────────────
@@ -398,16 +397,16 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  let name;
-  if (node.type === 'OperandCall')        name = node.name;
-  else if (node.type === 'BareTypeKeyword') name = tagNameOf(node.tag);
-  else if (isOnTagHead(node, offset))       name = tagNameOf(node.tag);
+  let name, address;
+  if (node.type === 'OperandCall')        [name, address] = [node.name, node.name];
+  else if (node.type === 'BareTypeKeyword') [name, address] = [tagNameOf(node.tag), node.tag];
+  else if (isOnTagHead(node, offset))       [name, address] = [tagNameOf(node.tag), node.tag];
   else return null;
 
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
   if (localDecl) return localDecl;
 
-  return catalogCtx?.index ? catalogDeclarationOf(catalogCtx.index, name) : null;
+  return catalogCtx ? catalogDeclarationOf(catalogCtx, address) : null;
 }
 
 // The name a declaration binds and the symbol it shows as: a kind, its

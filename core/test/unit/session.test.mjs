@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
-import { QlangInvariantError } from '../../src/errors.mjs';
+import { QlangInvariantError, declareShapeError } from '../../src/errors.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -104,8 +104,8 @@ describe('the sources a host hands [D153]', () => {
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less ::verb~(:by ::number | ::builtin{:impl :tests/host/less})',
-      ':any/@fetch ::verb~(:returns ::string | ::builtin{:impl :tests/host/@fetch})',
+      ':number/less ::verb~(:by ::number | ::builtin{})',
+      ':any/@fetch ::verb~(:returns ::string | ::builtin{})',
       ':any/@doubled ::verb~(@fetch | append @fetch)'
     ].join('\n'),
     impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
@@ -148,13 +148,24 @@ describe('the sources a host hands [D153]', () => {
     const { verbShownFor } = await import('../../src/runtime/verb.mjs');
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/bare',
-      source: ':shout ::verb~(:subject ::string | ::builtin{:impl :tests/bare/shout})',
+      source: ':shout ::verb~(:subject ::string | ::builtin{})',
       impls: { shout: text => text.toUpperCase() }
     }] });
     expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
     expect((await sessionInstance.evalCell('5 | shout !| type')).result)
       .toEqual(makeTagKeyword('string/StringPayloadNotStringError'));
     expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell('env | /shout | /value')).result);
+  });
+
+  it('refuses a verb ending in ::builtin{} the host hands nothing for, as the root is declared', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::verb~(::builtin{})' }] }))
+      .rejects.toMatchObject({ name: 'PrimitiveKeyUnboundError', context: { keyLabel: 'any/hello' } });
+  });
+
+  it('refuses an implementation handed for a verb whose step names a primitive of the core', async () => {
+    await expect(createSession({ sources: [{
+      uri: 'tests/over', source: ':any/many ::verb~(::builtin{:impl :qlang/prim/count})', impls: { 'any/many': () => 0 }
+    }] })).rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
   });
 
   it('refuses an implementation handed for a name the source declares as no verb', async () => {
@@ -176,6 +187,13 @@ describe('the sources a host hands [D153]', () => {
       .toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
   });
 
+  it('declares a refusal of the host at its address again in every session of the process', async () => {
+    declareShapeError('SessionProbeRefusalError', () => 'a refusal of the host', { operand: '::Probe' });
+    const sources = [{ uri: 'tests/refusal', source: ':Probe {} | :Probe/SessionProbeRefusalError ::spec~()' }];
+    await createSession({ sources });
+    expect((await (await createSession({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);
+  });
+
   it('refuses a source whose run answers an error', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/broken', source: ':a 1 | 1 | add "x" | :b 2' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
@@ -191,7 +209,7 @@ describe('a cell whose failure is no error value', () => {
     const sessionInstance = await createSession({
       sources: [{
         uri: 'tests/collapse',
-        source: ':any/collapse ::verb~(::builtin{:impl :tests/collapse/collapse})',
+        source: ':any/collapse ::verb~(::builtin{})',
         impls: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
       }]
     });

@@ -56,7 +56,7 @@
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::qlang/values)
-      ~(:Box/area ::verb~(1) | ::Box | manifest | eq #[::Box/area])
+      ~(:Box ::spec~() | :Box/area ::verb~(1) | ::Box | manifest | eq #[::Box/area])
   ~~|
   ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/manifest})
 

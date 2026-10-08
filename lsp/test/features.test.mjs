@@ -567,10 +567,13 @@ describe('semanticTokensFor', () => {
     expect(data.length).toBe(0);
   });
 
-  it('returns empty data for parse-failed source', async () => {
-    const { data } = await semanticTokensFor('[1 2 3');
-    // tokenize emits a single whitespace span on parse failure,
-    // which has no semantic-token type — output is empty.
-    expect(data.length).toBe(0);
+  it('returns empty data for a source the parser reads none of', async () => {
+    // tokenize emits a single whitespace span for it, which has no
+    // semantic-token type — output is empty.
+    expect((await semanticTokensFor(')))')).data.length).toBe(0);
+  });
+
+  it('returns the tokens of a source cut short, as it is typed', async () => {
+    expect((await semanticTokensFor('[1 2 3')).data.length).toBeGreaterThan(0);
   });
 });

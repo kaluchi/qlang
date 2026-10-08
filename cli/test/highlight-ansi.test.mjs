@@ -118,9 +118,11 @@ describe('highlightAnsi', () => {
     expect(resets.length * 2).toBe(opens.length);
   });
 
-  it('passes parseError input through without escape sequences', () => {
-    const out = highlightAnsi('[unclosed', noBuiltins);
-    expect(out).toBe('[unclosed');
-    expect(out).not.toMatch(ANY_ANSI);
+  it('paints a line cut short, as it is typed', () => {
+    expect(highlightAnsi('[unclosed', noBuiltins)).toMatch(ANY_ANSI);
+  });
+
+  it('passes a source the parser reads none of through without escape sequences', () => {
+    expect(highlightAnsi(')))', noBuiltins)).toBe(')))');
   });
 });

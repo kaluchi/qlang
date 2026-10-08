@@ -105,6 +105,15 @@ Some rules for whoever edits the document, each learnt at a cost:
 - The maintainer's words are quoted, never paraphrased. A paraphrase
   replaces the maintainer's intention with the model's reading of it,
   and the next session cannot tell the two apart.
+- Only the maintainer's quoted words bind a session. A record names
+  who decided it, `Decided by.`, and a choice the maintainer made and
+  the mechanics the model worked out around it are two records; a
+  record the model decided is weighed on its merits and replaced by a
+  record of the session's own when a better reading turns up, without
+  asking leave, and is never named to the maintainer as a rule the
+  maintainer set. A question goes to the maintainer where the
+  maintainer's quoted words are at stake or the merits leave the
+  choice open [D155].
 - A rule is written as a rule, not as the minutes of the conversation
   that produced it. The date and the source belong in the record's
   source line, not in the narrative.
@@ -1391,8 +1400,8 @@ node under the noun its path names before its last name, whose
 address its tag is
 [D152], [D153]. A path names a noun declared before it, and a verb
 resides on the noun of its first declaration when that noun is a kind,
-reading its subject as a head that names the kind does [D68], [D72],
-[D153]. The root is the scope a host's sources declare as cells
+taking a subject the walk of its tags brings to the kind and refusing
+any other, as every subject is taken [D72], [D153], [D156]. The root is the scope a host's sources declare as cells
 before a reader's first step, the language's first, and a source, a
 cell and a query are written alike; a namespace too large to declare,
 a host's tens of thousands of types, is mounted and served on demand
@@ -1706,19 +1715,6 @@ for a tag no declaration names [D24], [D36], and `manifest` lists them
 beside the declared nodes [D61]. Open: how a host declares the noun it
 answers on demand, and the exact record of a member.
 
-How a verb residing on a kind takes its subject [D68], [D153]. A
-residence reads its subject as a head that names the kind does, through
-the kind's constructor, so a kind whose spec checks nothing wraps any
-value a bare name reaches its verb with: under `:Box ::spec~(:w
-::number)` and `:Box/me ::verb~(/)`, `5 | me` answers `::Box(5)` and
-`{:w "a"} | me` answers `::Box{:w "a"}`, and a body reading `/w` is
-refused inside it rather than at the head. The alternative takes every
-subject by the walk of its tags alone and refuses the rest at the head
-with `::verb/VerbSlotNotOfKindsError`, the constructor checking
-modifiers only: nothing is turned into a kind behind the reader, and
-the cost is a refinement a head declares, `:subject ::Pos`, which no
-longer validates a plain value, and D68 replaced in part.
-
 What a module of declarations answers [D35], [D63]. D63 has a module
 answer the Map of what it exposes, `env` as its last step exposing
 every name it declared, and sets aside a value taken from the scope
@@ -2022,3 +2018,6 @@ maintainer wants to explore it before it is fixed.
 [D150]: decisions/D150.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
+[D153]: decisions/D153.md
+[D155]: decisions/D155.md
+[D156]: decisions/D156.md

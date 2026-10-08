@@ -153,10 +153,10 @@ describe('punctuation', () => {
 // ── Error fallback ────────────────────────────────────────────
 
 describe('parse error fallback', () => {
-  it('returns escaped plain text on parse failure', () => {
-    const out = hl('[unclosed');
+  it('returns escaped plain text for a source the parser reads none of', () => {
+    const out = hl(')))');
     expect(out).not.toContain('<span');
-    expect(out).toContain('[unclosed');
+    expect(out).toContain(')))');
   });
 
   it('HTML-escapes angle brackets in fallback', () => {

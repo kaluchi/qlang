@@ -302,12 +302,28 @@ describe('tokenize — coverage invariant', () => {
   });
 });
 
-describe('tokenize — parseError fallback', () => {
-  it('returns a single whitespace token covering the full input on a parse failure', async () => {
-    const src = '[unclosed';
-    expect(tokenize(src, await builtins())).toEqual([
-      { start: 0, end: src.length, kind: 'whitespace' }
+describe('tokenize — a source that does not parse', () => {
+  it('paints a source cut short through the closers that complete it [D125]', async () => {
+    expect(tokenize('[unclosed', await builtins())).toEqual([
+      { start: 0, end: 1, kind: 'vec' },
+      { start: 1, end: 9, kind: 'atom' }
     ]);
+  });
+
+  it('paints a string cut short as far as it is written', async () => {
+    expect(tokenize('"abc', await builtins())).toEqual([{ start: 0, end: 4, kind: 'string' }]);
+  });
+
+  it('paints a refused source up to the refusal, the rest as whitespace', async () => {
+    const src = '{:a 1 | zz) 5';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens[1]).toEqual({ start: 1, end: 3, kind: 'atom' });
+    expect(tokens.at(-1)).toEqual({ start: src.indexOf('|'), end: src.length, kind: 'whitespace' });
+  });
+
+  it('leaves a source no prefix of which completes as whitespace', async () => {
+    expect(tokenize(')))', await builtins())).toEqual([{ start: 0, end: 3, kind: 'whitespace' }]);
+    expect(tokenize('[[[[[1 )', await builtins())).toEqual([{ start: 0, end: 8, kind: 'whitespace' }]);
   });
 });
 

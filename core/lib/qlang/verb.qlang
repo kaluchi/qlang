@@ -68,14 +68,22 @@
   ::spec~()
 
 :verb/VerbSlotNotOfKindsError
-  |~~ A slot declared by a set of kinds takes a value of one of them,
-      reached through the tags the value carries, and refuses any
-      other, since no one constructor reads it.
+  |~~ The subject of a verb and a slot declared by a set of kinds take
+      a value of one of their kinds, reached through the tags the value
+      carries, and refuse any other: no constructor turns the value in
+      the pipe into the kind a verb serves, and no one constructor reads
+      a value for a set of kinds. A slot of one kind reads its modifier
+      through the kind's constructor.
 
       ~(
         :m ::verb~(:limit #[::number ::null] | limit) | 5 | m "a"
         !| [type /slot /kinds]
         |  eq [::verb/VerbSlotNotOfKindsError :limit #[::null ::number]]
+       )
+      ~(
+        :inc ::verb~(:subject ::number | add 1) | "a" | inc
+        !| [type /slot]
+        |  eq [::verb/VerbSlotNotOfKindsError :subject]
        )
   ~~|
   ::spec~()

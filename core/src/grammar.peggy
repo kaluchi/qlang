@@ -302,12 +302,12 @@ FirstLineModifierSeparator
 // is a step other than a bare keyword or tag name; a lone `:foo` is a
 // keyword.
 BindStep
-  = key:BindName docs:(__ @DocSlot)? body:(_h1 @KindBody / __ @BindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:(_h1 @KindBody / __ @TagBody / __ @BindBody)?
     & { return docs !== null || body !== null; }
     { return node('BindStep', { key, docs, body }, location(), text()); }
 
 LineBindStep
-  = key:BindName docs:(__ @DocSlot)? body:(_h1 @LineKindBody / __ @LineBindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:(_h1 @LineKindBody / __ @LineTagBody / __ @LineBindBody)?
     & { return docs !== null || body !== null; }
     { return node('BindStep', { key, docs, body }, location(), text()); }
 
@@ -329,7 +329,8 @@ LineBindBody
     { return body; }
 
 // A keyword or a tag name is a body on the line of its declaration's
-// name or doc; on a later line it opens a declaration of its own [D66].
+// name or doc [D66]; on a later line a keyword opens a declaration of its
+// own, and a tag name, which opens none [D152], is the body [D154].
 KindBody
   = body:Step
     & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
@@ -338,6 +339,16 @@ KindBody
 LineKindBody
   = body:LineStep
     & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
+    { return body; }
+
+TagBody
+  = body:Step
+    & { return body.type === 'BareTypeKeyword'; }
+    { return body; }
+
+LineTagBody
+  = body:LineStep
+    & { return body.type === 'BareTypeKeyword'; }
     { return body; }
 
 // ── Words ──────────────────────────────────────────────────────────

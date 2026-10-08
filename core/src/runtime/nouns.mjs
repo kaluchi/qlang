@@ -91,8 +91,8 @@ export function residenceOnSubject(env, verbName, subject) {
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
 // first [D62], [D153]: the reader's declaration, the verb residing on a
 // kind the walk of the subject reaches, the root's declaration, else the
-// one verb of the name residing on a kind, whose head reads the subject
-// as its kind does [D68]; `{ record, underKind }`, or null when no record
+// one verb of the name residing on a kind, whose head refuses a subject
+// of another kind [D156]; `{ record, underKind }`, or null when no record
 // answers or verbs of several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };

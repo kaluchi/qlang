@@ -153,7 +153,7 @@ describe('the sources a host hands [D153]', () => {
     }] });
     expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
     expect((await sessionInstance.evalCell('5 | shout !| type')).result)
-      .toEqual(makeTagKeyword('string/StringPayloadNotStringError'));
+      .toEqual(makeTagKeyword('verb/VerbSlotNotOfKindsError'));
     expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell('env | /shout | /value')).result);
   });
 

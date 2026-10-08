@@ -40,12 +40,14 @@
 //                 JSON literal, and the `/` separator inside a
 //                 `Projection`
 //   'whitespace'  runs of whitespace between meaningful tokens, and
-//                 the entire input on a parse failure (the safe
-//                 fallback that lets live-typing scenarios render
-//                 partial source without a span until the next
-//                 keystroke makes it parseable again)
+//                 the source past where its parse stopped
+//
+// A source that does not parse paints as far as the parser reads it: a
+// source cut short, as a line being typed is, through the closers that
+// complete it [D125], and one the parser refuses up to the place of the
+// refusal, the rest as whitespace.
 
-import { parse } from './parse.mjs';
+import { closersCompleting, parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
@@ -56,14 +58,31 @@ const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
 export function tokenize(src, builtinNames) {
   if (src.length === 0) return [];
-  let ast;
+  const read = readOf(src);
+  if (read === null) return [{ start: 0, end: src.length, kind: 'whitespace' }];
+  const semanticSpans = collectSemanticSpans(read.source, read.ast, builtinNames)
+    .filter(span => span.start < read.end)
+    .map(span => span.end > read.end ? { ...span, end: read.end } : span);
+  const tokens = interleaveGapTokens(src.slice(0, read.end), semanticSpans);
+  if (read.end < src.length) tokens.push({ start: read.end, end: src.length, kind: 'whitespace' });
+  return tokens;
+}
+
+// The tree a source is painted from: `{ ast, source, end }`, the source
+// the tree was parsed from and how far into the painted one it reads,
+// or null when no prefix of it completes.
+function readOf(src) {
+  let refusal;
   try {
-    ast = parse(src);
-  } catch {
-    return [{ start: 0, end: src.length, kind: 'whitespace' }];
+    return { ast: parse(src), source: src, end: src.length };
+  } catch (error) {
+    refusal = error;
   }
-  const semanticSpans = collectSemanticSpans(src, ast, builtinNames);
-  return interleaveGapTokens(src, semanticSpans);
+  for (const prefix of [src, src.slice(0, refusal.location.start.offset)]) {
+    const closers = closersCompleting(prefix);
+    if (closers !== null) return { ast: parse(prefix + closers.join('')), source: prefix + closers.join(''), end: prefix.length };
+  }
+  return null;
 }
 
 // ── AST-driven semantic spans ──────────────────────────────────
@@ -303,10 +322,8 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 // Resolve the kind of a single- or multi-char combinator run in a
 // gap region. `!|` is the fail-track combinator and takes the `err`
 // kind so renderers can paint it in the same palette as the `!{}`
-// descriptor brackets. `#[` is not listed here because a well-
-// formed set opener always arrives through the SetLit AST case
-// above, and an unparseable source collapses to a single
-// `whitespace` token before this scanner ever runs.
+// descriptor brackets. `#[` is not listed here because a set opener
+// always arrives through the SetLit AST case above.
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];

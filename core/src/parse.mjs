@@ -130,6 +130,12 @@ function completionOf(source) {
   return null;
 }
 
+// closersCompleting(source) → the shortest run of closers that
+// completes a source, or null.
+export function closersCompleting(source) {
+  return completionOf(source)?.closers ?? null;
+}
+
 // The innermost node that ends at `offset` and opens with one of
 // `openers`: nodes that end together nest, and the walk meets the outer
 // before the inner.

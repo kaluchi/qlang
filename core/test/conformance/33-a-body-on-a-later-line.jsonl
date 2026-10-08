@@ -1,0 +1,3 @@
+{"name":"a-tag-name-on-a-later-line-is-the-body","query":":s\n::vec\n| s","expect":"::vec","decision":"D154"}
+{"name":"a-tag-name-on-a-later-line-of-a-head-is-the-kind-of-its-slot","query":":Box ::spec~(:w\n  ::number) | ::Box | spec | /w","expect":"::number","decision":"D154"}
+{"name":"a-keyword-on-a-later-line-opens-a-declaration-of-its-own","query":":a\n:b 2\n| b","expect":"2","decision":["D66","D154"]}

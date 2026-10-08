@@ -15,7 +15,7 @@
 {"name":"a-rest-slot-gathers-the-modifiers-that-remain","query":":all ::verb~(:head ::any * :tail ::number | [head tail]) | null | all :a 1 2","expect":"[:a [1 2]]","decision":"D67"}
 {"name":"a-rest-slot-checks-each-modifier-by-its-kind","query":":all ::verb~(* :xs ::number | xs) | null | all 1 \"b\" !| type","expect":"::number/NumberPayloadNotNumberError","decision":"D67"}
 {"name":"a-rest-slot-without-modifiers-holds-the-empty-vector","query":":all ::verb~(* :xs ::number | xs) | null | all","expect":"[]","decision":["D67","D68"]}
-{"name":"a-declared-subject-is-checked-by-its-kind","query":":inc ::verb~(:subject ::number | add 1) | \"a\" | inc !| type","expect":"::number/NumberPayloadNotNumberError","decision":["D67","D68"]}
+{"name":"a-declared-subject-is-checked-by-its-kind","query":":inc ::verb~(:subject ::number | add 1) | \"a\" | inc !| type","expect":"::verb/VerbSlotNotOfKindsError","decision":["D67","D68","D156"]}
 {"name":"a-declared-subject-is-reached-through-the-tags","query":":inc ::verb~(:subject ::number | add 1) | ::Width(5) | inc","expect":"6","decision":["D67","D68"]}
 {"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":inc ::verb~(:subject ::number | :returns / | add 1) | ::Width(5) | inc | [type payload]","expect":"[::Width 6]","decision":"D67"}
 {"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":grow ::verb~(:returns / | union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T","decision":"D67"}
@@ -51,7 +51,7 @@
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":m ::verb~(:x ::any | x) | 5 | m !{:k 1} !| /k","expect":"1","decision":["D67","D68"]}
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":all ::verb~(* :xs ::any | xs) | null | all 1 !{:k 2} !| /k","expect":"2","decision":["D67","D68"]}
 {"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":f ::verb~(:returns ::number | add \"a\") | 1 | f !| type","expect":"::number/AddRightNotNumberError","decision":["D67","D68"]}
-{"name":"a-subject-its-constructor-refuses-answers-the-call","query":":Pos ::spec~(if (gt 0) ~(/) ~(!{:reason :not-positive})) | :f ::verb~(:subject ::Pos | payload) | 0 | f !| /reason","expect":":not-positive","decision":["D67","D68"]}
+{"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos ::spec~(if (gt 0) ~(/) ~(!{:reason :not-positive})) | :f ::verb~(:subject ::Pos | payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::verb/VerbSlotNotOfKindsError :not-positive]","decision":["D67","D68","D156"]}
 {"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos ::spec~(if (gt 0) ~(/) ~(!{:reason :not-positive})) | :dec ::verb~(:subject ::Pos | :returns / | payload | sub 1) | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":["D67","D68"]}
 {"name":"an-effectful-verb-under-a-clean-name-is-refused-at-its-call","query":":run ::verb~(:code ::verb | code) | null | run ::verb~(@callers) !| type","expect":"::call/EffectLaunderingAtCallError","decision":["D67","D68"]}
 {"name":"an-effectful-verb-under-a-marked-name-runs","query":":@f ::verb~(@callers) | @f !| type","expect":"::call/UnresolvedIdentifierError","decision":["D67","D68"]}

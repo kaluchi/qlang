@@ -83,7 +83,11 @@ The audit is the maintainer's memory between sessions. A session
 validates it against the code: a wrong sentence is replaced by the
 fact with its probe, a hole becomes a question in the chapter of open
 questions with the alternatives and their cost, and nothing
-is deleted or condensed without the maintainer's word. A session's
+is deleted or condensed without the maintainer's word. Only the
+maintainer's quoted words bind: a record whose `Decided by.` or
+`Source.` line names the model is a reading the session weighs on its
+merits and replaces when it finds a better one, never a rule to put to
+the maintainer nor a question of leave [D155]. A session's
 answer is findings with `file:line` and a probe, and the questions the
 tree cannot answer; no retelling, no tables unless asked, no next-step
 pitches, no talk of commits or pull requests.

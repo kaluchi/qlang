@@ -48,6 +48,9 @@
 //       the repository lacks is the sister project's, checked where
 //       its checkout sits beside this one.
 //
+//   (8) Who decided: a record from D155 on names in a line of its
+//       own, `Decided by.`, the maintainer or the model [D155].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -370,6 +373,24 @@ function decisionsInCatalog() {
   return violations;
 }
 
+// ── (8) Who decided ────────────────────────────────────────────
+//
+// A record names who took its decision, so a session tells the
+// maintainer's words, which bind it, from the model's reading, which it
+// weighs on its merits [D155].
+
+const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
+const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
+
+function recordsWithoutDecider() {
+  const recordsDir = join(repoRoot, 'docs', 'decisions');
+  return readdirSync(recordsDir)
+    .map(file => ({ file, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
+    .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
+    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(recordsDir, file), 'utf8')))
+    .map(({ file }) => `docs/decisions/${file}`);
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -378,13 +399,15 @@ const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
 const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
+const undecided = recordsWithoutDecider();
 
 if (forbidden.length === 0
     && errorSuffixViolations.length === 0
     && proseTallies.length === 0
     && workspaceRanges.length === 0
     && anchors.length === 0
-    && catalogDecisions.length === 0) {
+    && catalogDecisions.length === 0
+    && undecided.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -430,5 +453,10 @@ if (catalogDecisions.length > 0) {
   process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
   for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
   process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D110].\n');
+}
+if (undecided.length > 0) {
+  process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
+  for (const file of undecided) process.stdout.write(`  ${file}\n`);
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
 }
 process.exit(1);

@@ -151,6 +151,20 @@ keeps the discussion from drifting.
   of the entrypoint and its hooks are one.
 - Context engineering is the discipline of choosing what tokens enter
   the window at each step.
+- A presentation is data filtered for a question, what a command
+  answers in place of the data a host holds [D162].
+- A label is a tag as its reader meets it, «ярлык на данных»: markup
+  laid over a payload, a sticky hint of what the data beneath it is,
+  hiding nothing, as highlighting lies over the text of an editor
+  [D161].
+- A legend is the key to reading an observation, reached from its
+  printed form by one step and itself a literal of the language, so it
+  is read further the same way: its hints tell how to take out more of
+  the observation or a part of it [D162].
+- The legend of a payload is the legend a label leads to: what was
+  received, what each part of the payload means, and which verbs carry
+  the value on, the fates open to it. A tool that changes carries the
+  legends of its values inside itself, where they cannot go stale.
 
 The seed deserves a note of its own. A seed text informs a model and
 also casts it. The essay *Simulators* describes a language model as a
@@ -726,6 +740,8 @@ entrypoint's first screen has to say how to ask.
 [D58]: decisions/D58.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
+[D161]: decisions/D161.md
+[D162]: decisions/D162.md
 [E1]: decisions/E1.md
 [E2]: decisions/E2.md
 [E3]: decisions/E3.md

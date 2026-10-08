@@ -204,6 +204,38 @@ falls toward nothing, because the shape a session needs is that of the
 one answer it is about to reshape, and that shape belongs to the
 operand it is about to call.
 
+An answer is a presentation, data filtered for a question, never the
+data a host holds. The sister project's first answers were formatted
+text, which a model read well and no other command could take in, and
+then JSON as the services handed it, which composed and flooded: «то
+данные, а не представление .. представление это отфильтрованные как-то
+данные» (maintainer, 2026-10-08 22:41, session 22b934f8). The interface
+is at once the means of focus and the means of action, and the focus
+is spent in two places. The arguments of a host's verb choose what the
+host computes at all, since a workspace of the size of Eclipse's
+cannot be produced whole and cut down afterwards; that price is paid
+at the host. The pipeline cuts what arrived, a literal, to any depth.
+A command has one output, a value under its tag, and the kinds of its
+refusals; its input is the part of the question that moves into the
+host, which is why the input asks for a description of its own and the
+output for a legend [D162].
+
+What a reader holds after a call is a printed value, however strange
+it looks, and its explanation starts there. The tag on it is a label,
+and the label leads to the payload's legend: what was received, what
+each part means, and which verbs carry the value on, the fates open to
+it, read progressively, each step a literal of the language: «легенда
+она прежде всего от printValue -- а уже там в легенде подсказки и
+рассказы как извлечь что-то б0льшее или часть из неё» (maintainer,
+2026-10-08 23:30, session 22b934f8). The dark room of `::workflow |
+status`, a build or a test run, is the pattern: the reader asks whether
+it succeeded and, if not, what failed, and never meets the whole log.
+A tool that changes carries its legend inside itself, where it cannot
+go stale behind the tool's back [D161], [D162]. The same holds for the
+seed of a session, the instruction file, which is a table of contents
+of what the repository does not hold and no summary of what it does
+[D163].
+
 The sister project's code is no measure of what the language needs. It
 was written under the scars this document names, so a construct it never
 uses may be one it could not use: «jdt живет на старом коде, с
@@ -2029,3 +2061,5 @@ maintainer wants to explore it before it is fixed.
 [D158]: decisions/D158.md
 [D160]: decisions/D160.md
 [D161]: decisions/D161.md
+[D162]: decisions/D162.md
+[D163]: decisions/D163.md

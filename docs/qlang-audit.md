@@ -461,7 +461,11 @@ of the next element and a reader registers a handler per tag; the
 difference is that in Clojure the tag is an instruction to the reader
 and the value's identity at run time is a class of the JVM, while in
 qlang the tag is the identity at run time, which is what the document,
-the dispatch and the anchor of hypertext all hang on.
+the dispatch and the anchor of hypertext all hang on. A tag is markup
+over its payload: what its declaration describes is the data beneath
+it, its parts and what each of them means, so the page a reader
+reaches through the tag answers what the data is, and the tag itself
+is no subject a reader needs to learn [D161].
 
 All of that stays. Each item is an instance of exactly one concept, and
 removing it would leave something inexpressible. The audit is about
@@ -2024,3 +2028,4 @@ maintainer wants to explore it before it is fixed.
 [D156]: decisions/D156.md
 [D158]: decisions/D158.md
 [D160]: decisions/D160.md
+[D161]: decisions/D161.md

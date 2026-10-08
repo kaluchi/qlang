@@ -11,7 +11,6 @@
 // `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
-
 // The two spellings of a name in source: called by its name, `count`,
 // or written as a tag, the address of a node, `::Box` [D152]. The
 // editor passes one to say which occurrences and declarations count.

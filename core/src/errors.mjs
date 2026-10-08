@@ -34,7 +34,6 @@
 //                     unconditionally, as `errorFromQlang` in
 //                     error-convert.mjs does.
 
-
 // ── Category roots ─────────────────────────────────────────────
 
 export class QlangError extends Error {
@@ -102,8 +101,8 @@ export class QlangInvariantError extends QlangError {
 //     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
 //     a non-@-prefixed identifier resolves to an effectful function
 //     value or verb (the laundering path where the binding was
-//     handed through a slot or injected by the embedding host, so the declaration could not detect the
-//     effect).
+//     handed through a slot or injected by the embedding host, so the
+//     declaration could not detect the effect).
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'effectLaundering', context);

@@ -79,16 +79,17 @@
 
 :builtin/BootstrapSourceMissingError
   |~~ A source of the language resolved to nothing, so the root lacks
-      what it declares; `:uri` names the source. The host adds the entry
-      to `package.json#imports` (Node) or to the import map (browser), or
-      hands `langRuntime({ locator })` a locator of its own.
+      what it declares; `:uri` names the source. The host maps the source
+      in the imports of its package or in the import map of a browser, or
+      hands the runtime a locator of its own.
   ~~|
   ::spec~()
 
 :builtin/RootSourceNotDeclaredError
-  |~~ A source of the root answered an error, so the declarations after
-      the step that failed were never written; `:uri` names the source
-      and `:tagName` what it answered.
+  |~~ A source of the root answered an error, so its declarations stay
+      out of the root; `:uri` names the source and `:tagName` what it
+      answered, `::bind/BindNameDeclaredTwiceError` for a name the root
+      already holds, a refusal under a second address among them.
   ~~|
   ::spec~()
 
@@ -105,7 +106,7 @@
       URL the host could not read. The descriptor carries `:host`
       (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and either
       the underlying `:cause` or the HTTP `:status`. A host that ships
-      its own catalog hands `langRuntime({ locator })` the sources of
-      the language and never reaches the platform loader.
+      its own catalog hands the runtime a locator of the sources of the
+      language and never reaches the platform loader.
   ~~|
   ::spec~()

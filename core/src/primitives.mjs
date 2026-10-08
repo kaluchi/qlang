@@ -27,7 +27,7 @@ const PrimitiveRegistrySealedError = declareInvariantError(
 
 // A handle that names no primitive, which a descriptor a query
 // assembled can hold, answers on the fail track.
-const PrimitiveKeyUnboundError = declarePerSiteError(
+export const PrimitiveKeyUnboundError = declarePerSiteError(
   'PrimitiveKeyUnboundError', 'primitiveUnbound',
   ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`,
   { operand: '::builtin' }

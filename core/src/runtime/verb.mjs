@@ -284,20 +284,21 @@ function walkToKinds(value, kindNames) {
 
 // What a declaration of kinds takes from a value: the value of one of
 // its kinds beneath the tags the walk passed, or, for a declaration of
-// one kind, the value its constructor reads, which is the check of the
-// kind [D60]; code is taken only as it is. `place` names the slot or the
+// one kind, the subject's among them, the value its constructor reads,
+// which is the check of the kind [D60], [D68]; code is taken only as it
+// is. `place` names the slot or the
 // role, `{ slot }`, and for a value of the rest its index from 1,
 // `{ slot, index }` [D77]; `siteRefusal` finds the refusal a built-in's
 // site declares there, raised in place of the kind's [D72], and runs only
 // for a value the kinds refuse.
-async function servedByKinds(value, kindNames, state, place, siteRefusal, constructs = true) {
+async function servedByKinds(value, kindNames, state, place, siteRefusal) {
   const walked = walkToKinds(value, kindNames);
   if (walked !== null) return walked;
   const PlaceRefusal = siteRefusal?.();
   if (PlaceRefusal !== undefined) throw new PlaceRefusal(value);
   const refusalFacts = { ...place, actualType: typeKeyword(value), actualValue: value };
   if (kindNames.length === 1 && CODE_KIND_NAMES.has(kindNames[0])) throw new VerbCodeNotQuoteError(refusalFacts);
-  if (kindNames.length > 1 || !constructs) {
+  if (kindNames.length > 1) {
     throw new VerbSlotNotOfKindsError({ ...refusalFacts, kinds: makeSet(kindNames.map(makeTagKeyword)) });
   }
   return { served: await mintUnderTag(state, makeTagKeyword(kindNames[0]), value), passedTags: [] };
@@ -471,13 +472,10 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   }
   const scopeEnv = verbEnvRef(verb).env;
   const scopeState = withEnv(state, scopeEnv);
-  // The kind a verb resides on takes its subject by the walk of its tags
-  // alone: no constructor turns a value into it behind the reader.
   const subjectKinds = signature.subjectKinds ?? residenceKindsOf(verb);
   const { served, passedTags } = subjectKinds === null
     ? { served: subject, passedTags: [] }
-    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') },
-      () => siteRefusalAt(signature, verb, SUBJECT_POSITIONS), signature.subjectKinds !== null);
+    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, () => siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
   if (isErrorValue(served)) return served;
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;

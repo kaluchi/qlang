@@ -741,8 +741,9 @@
       `:Box/area` under `::Box`, a noun declared before it, and the tag
       of a name is its address, `::Box/area`. A name is a record,
       `::binding`, with its page, its source, its value and the source
-      it came from, so where a thing was declared is read as data. The scope of a step is what the steps before it wrote; a
-      step inside `(…)` or `*` writes a scope that closes with it. Under
+      it came from, so where a thing was declared is read as data. The
+      scope of a step is what the steps before it wrote; a step inside
+      `(…)` or `*` writes a scope that closes with it. Under
       every scope lies the root, which the host's sources declared as
       cells before the first step of a reader, the language's first; a
       query, a cell of a session and a source of the root are written
@@ -762,11 +763,14 @@
       ~(1 | (:inner 2 | inner) | env | has :inner | not)
       A verb declared under a kind resides on it: it serves the values
       of the kind, found by its name through the walk of their tags, and
-      no other value, which it refuses rather than turns into the kind;
-      it keeps the residence of its first declaration under any name:
+      reads its subject as a head that names the kind does; it keeps the
+      residence of its first declaration under any name, and a verb
+      declared under a kind it did not first reside on is reached by its
+      address alone:
       ~(:Box ::spec~(:w ::number) | :Box/twice ::verb~(:returns ::number | /w | mul 2) | ::Box{:w 3} | twice | eq 6)
       ~(:vec/second ::verb~(/1) | [7 8 9] | second | eq 8)
-      ~(:Box ::spec~() | :Box/me ::verb~(/) | 5 | me !| type | eq ::verb/VerbSlotNotOfKindsError)
+      ~(:A ::spec~() | :k ::verb~(1) | :A/g (::k | binding | /value) | ::A{} | g !| type | eq ::call/UnresolvedIdentifierError)
+      ~(:A ::spec~() | :k ::verb~(1) | :A/g (::k | binding | /value) | ::A{} | A/g | eq 1)
       ~(:Box/area ::verb~(1) !| type | eq ::bind/BindNounNotDeclaredError)
       A name is declared once in a scope and again in a scope inside it,
       which shadows it for the steps after, a verb of a kind staying one

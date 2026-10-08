@@ -2,10 +2,10 @@
 // with a path, `vec/count`, is the address of the node it declares under
 // the noun its path names before its last name. The root is the scope the
 // host's sources declared before the reader's first step, the language's
-// first; the frame of the reader's declarations stands over its bare
-// names. A tag name is an address: it reads the root's node of its name,
-// which no reader replaces, else the reader's, and a walk of a subject's
-// tags finds the verbs residing on each kind it passes [D34], [D72].
+// first. A step reads the nearest declaration of its name, the frame of
+// the reader's before the root's, and a tag name, an address, the root's
+// node of it first, which no reader replaces; a walk of a subject's tags
+// finds the verbs residing on each kind it passes [D34], [D72].
 
 import {
   isBinding, isQMap, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
@@ -89,10 +89,10 @@ export function residenceOnSubject(env, verbName, subject) {
 }
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
-// first [D62], [D153]: the reader's declaration, the verb declared under a
+// first [D62], [D153]: the reader's declaration, the verb residing on a
 // kind the walk of the subject reaches, the root's declaration, else the
-// one verb of the name declared under a kind, whose head refuses the
-// subject at its place; `{ record, underKind }`, or null when no record
+// one verb of the name residing on a kind, whose head reads the subject
+// as its kind does [D68]; `{ record, underKind }`, or null when no record
 // answers or verbs of several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
@@ -168,7 +168,7 @@ export function verbsReaching(env, kindNames) {
   for (const kindName of [...kindNames, ANY_KIND_NAME]) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
-      if (!isVerb(verb) || reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
+      if (!residesOn(record, kindName) || reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
       reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
     }
   }

@@ -21,7 +21,7 @@ import {
 } from '../errors.mjs';
 import { splitAddress } from './nouns.mjs';
 import { builtinOfVerb } from './verb.mjs';
-import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
+import { PRIMITIVE_REGISTRY, PrimitiveKeyUnboundError } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:tagName`
@@ -67,7 +67,8 @@ export async function declareRoot(env, sources) {
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
       const builtin = builtinOfVerb(value);
-      if (builtin !== null && impls[name] === undefined) PRIMITIVE_REGISTRY.resolve(builtin.primitiveKey ?? name);
+      if (builtin?.primitiveKey === null && impls[name] === undefined) throw new PrimitiveKeyUnboundError({ keyLabel: name });
+      if (builtin?.primitiveKey) PRIMITIVE_REGISTRY.resolve(builtin.primitiveKey);
       if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name] ?? null);
       const [, lastName] = splitAddress(name);
       if (throwSiteSpecOf(lastName) !== undefined) recordRefusalAddress(lastName, name);

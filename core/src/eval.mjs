@@ -24,7 +24,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt,
+  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt, makeVerb,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -406,7 +406,12 @@ async function evalBindStep(node, state) {
   if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
-  const value = writtenQuote ? quoteInEnv(answered, null) : answered;
+  // A declaration writes into no verb it was handed: one no declaration
+  // named yet is succeeded by a verb of its own over the same code and
+  // scope, and one declared before keeps its address.
+  const value = writtenQuote ? quoteInEnv(answered, null)
+    : isVerb(answered) && !writtenVerb && addressOfVerb(answered) === null ? makeVerb(answered.payload, { env: verbEnvRef(answered).env })
+    : answered;
   if (isVerb(value) && addressOfVerb(value) === null) declareVerbFirst(value, name, nounName, state.env);
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenVerb) verbEnvRef(value).env = nextEnv;

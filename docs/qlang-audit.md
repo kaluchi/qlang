@@ -1389,7 +1389,10 @@ its error as a value, and every operand treats that value by one rule.
 A name is declared by its keyword, and a name with a path declares a
 node under the noun its path names before its last name, whose
 address its tag is
-[D152], [D153]. The root is the scope a host's sources declare as cells
+[D152], [D153]. A path names a noun declared before it, and a verb
+resides on the noun of its first declaration when that noun is a kind,
+taking a subject the walk of its tags brings to the kind and no other
+[D72], [D153]. The root is the scope a host's sources declare as cells
 before a reader's first step, the language's first, and a source, a
 cell and a query are written alike; a namespace too large to declare,
 a host's tens of thousands of types, is mounted and served on demand

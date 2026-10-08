@@ -133,15 +133,15 @@ describe('a slot left without its modifier', async () => {
 });
 
 describe('setops bare-form empty Vec', async () => {
-  it('minus bare on empty Vec throws MinusOfNothingError', async () => {
+  it('minus bare on empty Vec throws VecMinusOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | minus'))).toBe(true);
   });
 
-  it('inter bare on empty Vec throws InterOfNothingError', async () => {
+  it('inter bare on empty Vec throws VecInterOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | inter'))).toBe(true);
   });
 
-  it('union bare on empty Vec throws UnionOfNothingError', async () => {
+  it('union bare on empty Vec throws VecUnionOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | union'))).toBe(true);
   });
 });

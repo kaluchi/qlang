@@ -12,7 +12,7 @@ import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
 declareSubjectError('tag/ManifestSubjectNotTagError', 'manifest', 'tag');
-const RunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
+const AnyRunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
   ({ bindingName }) =>
     `runLaws: no declaration found for '${bindingName}'`,
   { operand: 'runLaws' });
@@ -48,7 +48,7 @@ async function runQuoteEntry({ law: quote, says }, callerState) {
 // A name reads its record as the axes do, a keyword after it the member
 // it holds, `::qlang | runLaws :values` [D124].
 bindStateReader(['tag/runLaws', 'keyword/runLaws'], async (subject, anchor, state) => {
-  const claims = claimsOfRecord(recordReadBy(subject, anchor, state, RunLawsBindingNotFoundError));
+  const claims = claimsOfRecord(recordReadBy(subject, anchor, state, AnyRunLawsBindingNotFoundError));
   const entries = [];
   for (const claim of claims) entries.push(await runQuoteEntry(claim, state));
   return entries;

@@ -47,26 +47,26 @@ import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
-export const SourceBindingNotFoundError = declareShapeError('any/SourceBindingNotFoundError',
+export const AnySourceBindingNotFoundError = declareShapeError('any/SourceBindingNotFoundError',
   ({ bindingName }) =>
     `source: no binding found for '${bindingName}'`,
   { operand: 'source' });
-export const DocBindingNotFoundError = declareShapeError('any/DocBindingNotFoundError',
+export const AnyDocBindingNotFoundError = declareShapeError('any/DocBindingNotFoundError',
   ({ bindingName }) =>
     `doc: no binding found for '${bindingName}'`,
   { operand: 'doc' });
-const BindingNotFoundError = declareShapeError('any/BindingNotFoundError',
+const AnyBindingNotFoundError = declareShapeError('any/BindingNotFoundError',
   ({ bindingName }) =>
     `binding: no binding found for '${bindingName}'`,
   { operand: 'binding' });
-const DocAnchorNotKeywordError = declareShapeError('any/DocAnchorNotKeywordError',
+const AnyDocAnchorNotKeywordError = declareShapeError('any/DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
-export const ExplainBindingNotFoundError = declareShapeError('any/ExplainBindingNotFoundError',
+export const AnyExplainBindingNotFoundError = declareShapeError('any/ExplainBindingNotFoundError',
   ({ bindingName }) =>
     `explain: no binding found for '${bindingName}'`,
   { operand: 'explain' });
-export const SpecBindingNotFoundError = declareShapeError('any/SpecBindingNotFoundError',
+export const AnySpecBindingNotFoundError = declareShapeError('any/SpecBindingNotFoundError',
   ({ bindingName }) =>
     `spec: no binding found for '${bindingName}'`,
   { operand: 'spec' });
@@ -180,9 +180,9 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
 }
 
 bindStateReader('any/binding', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, BindingNotFoundError));
+  recordReadBy(subject, memberName, state, AnyBindingNotFoundError));
 bindStateReader('any/source', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
+  recordReadBy(subject, memberName, state, AnySourceBindingNotFoundError).get('source'));
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
 function pageOfRecord(record) {
@@ -200,10 +200,10 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 // of the record the one before it reached, the empty path the record of
 // the subject itself [D119].
 function recordAlongPath(subject, anchors, state) {
-  if (anchors.length === 0) return recordReadBy(subject, NULL, state, DocBindingNotFoundError);
+  if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocBindingNotFoundError);
   return anchors.reduce((reached, anchor, index) => {
-    if (!isKeyword(anchor)) throw new DocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
-    return recordReadBy(reached, anchor, state, DocBindingNotFoundError);
+    if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
+    return recordReadBy(reached, anchor, state, AnyDocBindingNotFoundError);
   }, subject);
 }
 
@@ -232,7 +232,7 @@ function heldByExplanation(subject) {
 // explanation prints as the page above what it explains [D98].
 const EXPLANATION_TAG = makeTagKeyword('explanation');
 bindStateReader('any/explain', (subject, state) => {
-  const page = pageOfRecord(recordReadBy(subject, NULL, state, ExplainBindingNotFoundError));
+  const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainBindingNotFoundError));
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
 
@@ -241,7 +241,7 @@ bindStateReader('any/explain', (subject, state) => {
 // as a `::spec~(…)` with its subject filled [D72], and the value itself
 // for any other binding; what lies under a noun `manifest` answers.
 bindStateReader('any/spec', (subject, memberName, state) => {
-  const declaration = recordReadBy(subject, memberName, state, SpecBindingNotFoundError).get('value');
+  const declaration = recordReadBy(subject, memberName, state, AnySpecBindingNotFoundError).get('value');
   return isVerb(declaration) ? signatureSpecOf(declaration) : declaration;
 });
 

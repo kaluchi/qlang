@@ -17,7 +17,7 @@
 // sits under a key no name spells and is shared by every frame [D153]; a
 // lookup reads the frame, then the root.
 
-import { EvaluationDepthExceededError } from './errors.mjs';
+import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY } from './env-keys.mjs';
 
 // EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
@@ -49,12 +49,12 @@ export function withEnv(state, nextEnv) {
 }
 
 // nestState(state, pipeValue, env) → State one frame deeper, or
-// EvaluationDepthExceededError once the frame passes
+// CallEvaluationDepthExceededError once the frame passes
 // EVAL_DEPTH_LIMIT. `context.depth` names the refused frame.
 export function nestState(state, pipeValue, env) {
   const depth = state.depth + 1;
   if (depth > EVAL_DEPTH_LIMIT) {
-    throw new EvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
+    throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
   }
   return makeState(pipeValue, env, depth);
 }

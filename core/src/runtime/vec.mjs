@@ -20,11 +20,11 @@ import { resolveBinaryReducer } from '../eval.mjs';
 // names the element whose condition answered another kind.
 const conditionRefusal = operand => ({ index, actualType }) =>
   `${operand} takes a boolean from its condition, element ${index} answered ${actualType.name}`;
-const FilterConditionNotBooleanError = declareShapeError('any/FilterConditionNotBooleanError',
+const AnyFilterConditionNotBooleanError = declareShapeError('any/FilterConditionNotBooleanError',
   conditionRefusal('filter'), { operand: 'filter', expectedType: 'boolean' });
-const EveryConditionNotBooleanError  = declareShapeError('any/EveryConditionNotBooleanError',
+const AnyEveryConditionNotBooleanError  = declareShapeError('any/EveryConditionNotBooleanError',
   conditionRefusal('every'), { operand: 'every', expectedType: 'boolean' });
-const AnyConditionNotBooleanError    = declareShapeError('any/AnyConditionNotBooleanError',
+const AnyAnyConditionNotBooleanError    = declareShapeError('any/AnyConditionNotBooleanError',
   conditionRefusal('any'), { operand: 'any', expectedType: 'boolean' });
 
 function booleanOf(answer, index, ErrorCls) {
@@ -32,11 +32,11 @@ function booleanOf(answer, index, ErrorCls) {
   return answer;
 }
 
-const GroupByKeyNotKeywordError = declareShapeError('any/GroupByKeyNotKeywordError',
+const AnyGroupByKeyNotKeywordError = declareShapeError('any/GroupByKeyNotKeywordError',
   ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
   { operand: 'groupBy', expectedType: 'keyword' }
 );
-const IndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeywordError',
+const AnyIndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeywordError',
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
   { operand: 'indexBy', expectedType: 'keyword' }
 );
@@ -54,9 +54,9 @@ declareModifierError('any/ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 // A count and an index are whole numbers: the head refuses a value of
 // another kind at the site's place, and the primitive a fraction. A key
 // of a map is the map's residence's own [D73].
-const TakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
-const DropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
-const AtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');
+const AnyTakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
+const AnyDropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
+const AnyAtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');
 declareModifierError('map/AtKeyNotKeywordOrStringError', '::map/at', 2, ['keyword', 'string']);
 
 function wholeOrRefuse(value, ErrorCls) {
@@ -64,16 +64,16 @@ function wholeOrRefuse(value, ErrorCls) {
   return value;
 }
 
-const SumElementNotNumberError = declareElementError('any/SumElementNotNumberError', 'sum', 'number');
+const AnySumElementNotNumberError = declareElementError('any/SumElementNotNumberError', 'sum', 'number');
 // Every element is a finite double, yet their running total can
 // still leave the range. `:index` names the element the total
 // crossed at, so the subject can be split at that point.
-const SumResultNotFiniteError = declareNumericDomainError('any/SumResultNotFiniteError',
+const AnySumResultNotFiniteError = declareNumericDomainError('any/SumResultNotFiniteError',
   ({ index }) => `sum: the running total leaves the finite double range at element ${index}`,
   { operand: 'sum' }
 );
 
-const ReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
+const AnyReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
   () => 'reduce reducer must be a binary operand (add / mul / union / …) or a verb whose first slot takes the element',
   { operand: 'reduce' }
 );
@@ -146,9 +146,9 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
   const items = elementsOf(container);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
-    if (typeof items[i] !== 'number') throw new SumElementNotNumberError(i, items[i]);
+    if (typeof items[i] !== 'number') throw new AnySumElementNotNumberError(i, items[i]);
     total += items[i];
-    if (!Number.isFinite(total)) throw new SumResultNotFiniteError({ index: i });
+    if (!Number.isFinite(total)) throw new AnySumResultNotFiniteError({ index: i });
   }
   return total;
 });
@@ -156,13 +156,13 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
 // The mean of the numbers, kept as a running mean so no partial sum
 // leaves the finite doubles; an empty container has none, and answers
 // null as `min` and `max` do [D147].
-const AvgElementNotNumberError = declareElementError('any/AvgElementNotNumberError', 'avg', 'number');
+const AnyAvgElementNotNumberError = declareElementError('any/AvgElementNotNumberError', 'avg', 'number');
 bindPrim(['vec/avg', 'set/avg', 'map/avg'], container => {
   const items = elementsOf(container);
   if (items.length === 0) return NULL;
   let mean = 0;
   for (let i = 0; i < items.length; i++) {
-    if (typeof items[i] !== 'number') throw new AvgElementNotNumberError(i, items[i]);
+    if (typeof items[i] !== 'number') throw new AnyAvgElementNotNumberError(i, items[i]);
     mean += (items[i] - mean) / (i + 1);
   }
   return mean;
@@ -179,7 +179,7 @@ bindPrim(['vec/filter', 'set/filter', 'map/filter'], async (container, predicate
   for (const [index, entry] of [...(isQMap(container) ? container : container.entries())].entries()) {
     const verdict = await predicate(entry[1]);
     if (isErrorValue(verdict)) return verdict;
-    if (booleanOf(verdict, index, FilterConditionNotBooleanError)) kept.push(entry);
+    if (booleanOf(verdict, index, AnyFilterConditionNotBooleanError)) kept.push(entry);
   }
   return isQMap(container) ? new Map(kept) : kept.map(([, element]) => element);
 });
@@ -188,7 +188,7 @@ bindPrim(['vec/every', 'set/every', 'map/every'], async (container, predicate) =
   for (const [index, element] of elementsOf(container).entries()) {
     const verdict = await predicate(element);
     if (isErrorValue(verdict)) return verdict;
-    if (!booleanOf(verdict, index, EveryConditionNotBooleanError)) return false;
+    if (!booleanOf(verdict, index, AnyEveryConditionNotBooleanError)) return false;
   }
   return true;
 });
@@ -197,7 +197,7 @@ bindPrim(['vec/any', 'set/any', 'map/any'], async (container, predicate) => {
   for (const [index, element] of elementsOf(container).entries()) {
     const verdict = await predicate(element);
     if (isErrorValue(verdict)) return verdict;
-    if (booleanOf(verdict, index, AnyConditionNotBooleanError)) return true;
+    if (booleanOf(verdict, index, AnyAnyConditionNotBooleanError)) return true;
   }
   return false;
 });
@@ -217,7 +217,7 @@ async function keywordOf(key, element, index, ErrorCls) {
 bindPrim(['vec/groupBy', 'set/groupBy'], async (sequence, key) => {
   const buckets = new Map();
   for (const [index, element] of sequence.entries()) {
-    const bucketKey = await keywordOf(key, element, index, GroupByKeyNotKeywordError);
+    const bucketKey = await keywordOf(key, element, index, AnyGroupByKeyNotKeywordError);
     if (isErrorValue(bucketKey)) return bucketKey;
     if (!buckets.has(bucketKey.name)) buckets.set(bucketKey.name, []);
     buckets.get(bucketKey.name).push(element);
@@ -231,7 +231,7 @@ bindPrim(['vec/groupBy', 'set/groupBy'], async (sequence, key) => {
 bindPrim(['vec/indexBy', 'set/indexBy'], async (sequence, key) => {
   const index = new Map();
   for (const [position, element] of sequence.entries()) {
-    const indexKey = await keywordOf(key, element, position, IndexByKeyNotKeywordError);
+    const indexKey = await keywordOf(key, element, position, AnyIndexByKeyNotKeywordError);
     if (isErrorValue(indexKey)) return indexKey;
     index.set(indexKey.name, element);
   }
@@ -260,8 +260,8 @@ function sliceOf(container, start, end) {
   return isQMap(container) ? new Map([...container].slice(start, end)) : container.slice(start, end);
 }
 
-bindPrim(['string/take', 'vec/take', 'set/take', 'map/take'], (container, count) => sliceOf(container, 0, Math.max(0, wholeOrRefuse(count, TakeCountNotIntegerError))));
-bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count) => sliceOf(container, Math.max(0, wholeOrRefuse(count, DropCountNotIntegerError))));
+bindPrim(['string/take', 'vec/take', 'set/take', 'map/take'], (container, count) => sliceOf(container, 0, Math.max(0, wholeOrRefuse(count, AnyTakeCountNotIntegerError))));
+bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count) => sliceOf(container, Math.max(0, wholeOrRefuse(count, AnyDropCountNotIntegerError))));
 
 // `at` — indexed access with Array.prototype.at-style negative indices
 // on a sequence, a set indexing in its one order, and a soft lookup by
@@ -274,7 +274,7 @@ bindPrim(['null/at', 'vec/at', 'set/at', 'map/at'], (container, place) => {
     const lookupKey = isKeyword(place) ? place.name : place;
     return container.has(lookupKey) ? container.get(lookupKey) : NULL;
   }
-  const index = wholeOrRefuse(place, AtIndexNotIntegerError);
+  const index = wholeOrRefuse(place, AnyAtIndexNotIntegerError);
   const resolvedIndex = index < 0 ? container.length + index : index;
   return (resolvedIndex >= 0 && resolvedIndex < container.length) ? container[resolvedIndex] : NULL;
 });
@@ -302,7 +302,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 // stops the fold.
 bindPrim(['vec/reduce', 'set/reduce', 'map/reduce'], async (container, seed, reducer) => {
   const combine = resolveBinaryReducer(reducer);
-  if (combine === null) throw new ReduceReducerNotBinaryError();
+  if (combine === null) throw new AnyReduceReducerNotBinaryError();
   let acc = seed;
   for (const element of elementsOf(container)) {
     acc = await combine(acc, element);

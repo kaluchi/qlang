@@ -9,9 +9,9 @@ import {
 } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
 
-const OutSubjectNotStringError = declareSubjectError('any/OutSubjectNotStringError', '@out', 'string');
+const AnyOutSubjectNotStringError = declareSubjectError('any/OutSubjectNotStringError', '@out', 'string');
 declareModifierError('any/OutRendererResultNotStringError', '@out', 2, 'string');
-const ErrSubjectNotStringError = declareSubjectError('any/ErrSubjectNotStringError', '@err', 'string');
+const AnyErrSubjectNotStringError = declareSubjectError('any/ErrSubjectNotStringError', '@err', 'string');
 declareModifierError('any/ErrRendererResultNotStringError', '@err', 2, 'string');
 declareModifierError('any/TapLabelNotKeywordError', '@tap', 2, 'keyword');
 
@@ -31,8 +31,8 @@ export function makeIoImpls(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   return {
     'any/@in':  async () => ioContext.stdinReader(),
-    'any/@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, OutSubjectNotStringError),
-    'any/@err': makeWriter(ioContext.stderrWrite, () => {}, ErrSubjectNotStringError),
+    'any/@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectNotStringError),
+    'any/@err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectNotStringError),
     'any/@tap': (subject, label) => {
       ioContext.stderrWrite(`[tap ${label.name}] ${printValue(subject)}\n`);
       return subject;

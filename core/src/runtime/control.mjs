@@ -16,14 +16,14 @@ declareModifierError('any/IfConditionNotBooleanError', 'if', 2, 'boolean');
 declareModifierError('any/IfThenNotQuoteError',        'if', 3, 'quote');
 declareModifierError('any/IfElseNotQuoteError',        'if', 4, 'quote');
 
-const CondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
+const AnyCondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
   ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,
   { operand: 'cond', expectedType: 'boolean' });
-const CoalesceNoAlternativesError = declareArityError('any/CoalesceNoAlternativesError',
+const AnyCoalesceNoAlternativesError = declareArityError('any/CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline',
   { operand: 'coalesce' }
 );
-const CondNoBranchesError = declareArityError('any/CondNoBranchesError',
+const AnyCondNoBranchesError = declareArityError('any/CondNoBranchesError',
   () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default',
   { operand: 'cond' }
 );
@@ -38,7 +38,7 @@ bindPrim('any/if', async (subject, condition, thenCode, elseCode) =>
 // that is no quote answers itself, and a call of such alternatives
 // alone reads the subject first, `/timeout | coalesce 30` [D133].
 bindPrim('any/coalesce', async (subject, alternatives) => {
-  if (alternatives.length === 0) throw new CoalesceNoAlternativesError();
+  if (alternatives.length === 0) throw new AnyCoalesceNoAlternativesError();
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
   for (const alternative of candidates) {
@@ -50,13 +50,13 @@ bindPrim('any/coalesce', async (subject, alternatives) => {
 });
 
 bindPrim('any/cond', async (subject, clauses) => {
-  if (clauses.length < 2) throw new CondNoBranchesError();
+  if (clauses.length < 2) throw new AnyCondNoBranchesError();
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
     if (typeof answer !== 'boolean') {
-      throw new CondConditionNotBooleanError({ index: clauseIndex + 1, actualType: typeKeyword(answer), actualValue: answer });
+      throw new AnyCondConditionNotBooleanError({ index: clauseIndex + 1, actualType: typeKeyword(answer), actualValue: answer });
     }
     if (answer) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;

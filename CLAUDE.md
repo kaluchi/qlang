@@ -138,12 +138,14 @@ documents (legacy, deprecated, currently, previously, backward
 compatibility, and the TODO, FIXME, and HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
-sibling's `^x.y.z`, on error-class suffixes, on a decision named in a page of the
-catalog, which a reader of the language cannot follow, and on a path
-the audit, the entrypoint document or this file names that the tree
-lacks or on words they quote from the tree that their file no longer
-holds. The audit deletes the suffix check together with the classes
-of errors it guards. `npm run check:probes` runs every probe of the audit and the
+sibling's `^x.y.z`, on a refusal not declared by its address as a
+literal or held by a constant the address does not name
+(`NumberAddLeftNotNumberError` for `number/AddLeftNotNumberError`) [D159],
+on a decision named in a page of the catalog, which a reader of the
+language cannot follow, on a record that names no decider [D155], and
+on a path the audit, the entrypoint document or this file names that
+the tree lacks or on words they quote from the tree that their file no
+longer holds. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone
 included, and fails on one whose answer changed, which the branch that
 changed it answers by rewriting the sentence with its probe [D93]; a

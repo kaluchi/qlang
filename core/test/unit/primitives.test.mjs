@@ -90,7 +90,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('rejects non-string keys with AddressNotStringError', () => {
+  it('rejects non-string keys with BuiltinAddressNotStringError', () => {
     expect(() => registry.bind(Symbol('bad'), () => null))
       .toThrow(/an address must be a string, got symbol/);
   });
@@ -117,7 +117,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     }
   });
 
-  it('rejects duplicate keys with AddressBoundTwiceError', () => {
+  it('rejects duplicate keys with BuiltinAddressBoundTwiceError', () => {
     const k = 'qlang/test-prim/dup';
     registry.bind(k, () => 'first');
     expect(() => registry.bind(k, () => 'second'))
@@ -137,7 +137,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     }
   });
 
-  it('rejects binding after seal with TableSealedError', () => {
+  it('rejects binding after seal with BuiltinTableSealedError', () => {
     registry.seal();
     const k = 'qlang/test-prim/late';
     expect(() => registry.bind(k, () => null))
@@ -175,7 +175,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('throws ImplementationNotHandedError on missing key', () => {
+  it('throws BuiltinImplementationNotHandedError on missing key', () => {
     const k = 'qlang/test-prim/missing';
     expect(() => registry.resolve(k))
       .toThrow(/no implementation is handed for qlang\/test-prim\/missing/);
@@ -201,7 +201,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
 
   it('tolerates non-keyword lookup with a readable label', () => {
     // resolve() is stricter than bind() because it only throws
-    // ImplementationNotHandedError when the key is unknown — it does not
+    // BuiltinImplementationNotHandedError when the key is unknown — it does not
     // separately validate the key type. A non-keyword lookup
     // produces the missing-key error with a typeof label.
     expect(() => registry.resolve('not-a-keyword'))

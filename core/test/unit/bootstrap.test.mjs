@@ -5,7 +5,7 @@
 // the parser refuses raises its `ParseError` [D153].
 
 import { describe, it, expect } from 'vitest';
-import { platformLocator, BootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';
+import { platformLocator, BuiltinBootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';
 import { ParseError } from '../../src/parse.mjs';
 import { buildLangRuntime } from '../../src/runtime/index.mjs';
 
@@ -23,14 +23,14 @@ describe('platformLocator', () => {
 
 describe('BootstrapSourceMissingError', () => {
   it('names the source it missed and where a host maps it', () => {
-    const err = new BootstrapSourceMissingError({ uri: 'qlang/vec' });
+    const err = new BuiltinBootstrapSourceMissingError({ uri: 'qlang/vec' });
     expect(err.name).toBe('BootstrapSourceMissingError');
     expect(err.message).toContain('#qlang/vec');
     expect(err.message).toContain('package.json#imports');
   });
 
   it('fires from buildLangRuntime when the locator serves no source', async () => {
-    await expect(buildLangRuntime(async () => null)).rejects.toBeInstanceOf(BootstrapSourceMissingError);
+    await expect(buildLangRuntime(async () => null)).rejects.toBeInstanceOf(BuiltinBootstrapSourceMissingError);
   });
 });
 
@@ -51,9 +51,9 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   // host-specific tail (`cause` for Node, `status` for Web).
 
   it('Node-shape error carries host="node" and the inner cause message', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const cause = new Error('EACCES: permission denied');
-    const err = new SourceLoadError({
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/locked/core.qlang',
@@ -74,8 +74,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   });
 
   it('Web-shape error carries host="web" and the HTTP status tail', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'web',
       logicalName: '#qlang/core',
       sourceLocation: 'https://cdn.example/qlang/core.qlang',
@@ -88,8 +88,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   });
 
   it('cause-shaped object without `.message` falls through to String(cause)', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/x.qlang',
@@ -99,8 +99,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   });
 
   it('no cause and no status — message ends after the source location', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/x.qlang'

@@ -6,7 +6,7 @@ import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/op
 import { printValue } from '@kaluchi/qlang-core';
 
 declareSubjectError('vec/TableSubjectNotVecError', 'table', 'vec');
-const TableRowNotMapError     = declareElementError('vec/TableRowNotMapError',     'table', 'map');
+const VecTableRowNotMapError     = declareElementError('vec/TableRowNotMapError',     'table', 'map');
 
 // A cell is a view at the boundary: a String prints bare, null as an
 // empty cell, and every other value as its literal on one line.
@@ -29,7 +29,7 @@ function columnOrderOf(rows) {
 function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
-    if (!(row instanceof Map)) throw new TableRowNotMapError(rowIndex, row);
+    if (!(row instanceof Map)) throw new VecTableRowNotMapError(rowIndex, row);
   });
   const columnNames = columnOrderOf(subject);
   const widths = columnNames.map(columnName => columnName.length);

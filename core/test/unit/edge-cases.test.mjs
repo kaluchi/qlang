@@ -208,7 +208,7 @@ describe('runtime/string.mjs split and join error sites', () => {
     expect(caughtErr.name).toBe('JoinSubjectNotVecError');
   });
 
-  it('join with non-string element → JoinElementNotStringError', async () => {
+  it('join with non-string element → VecJoinElementNotStringError', async () => {
     const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
     expect(caughtErr.name).toBe('JoinElementNotStringError');
     expect(caughtErr.context.index).toBe(1);
@@ -348,7 +348,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   // Per-site coalesce arityError tag identity is
   // pinned by `error-operands.test.mjs`; the control-flow block
   // tests the operand semantics, not the per-site wiring.
-  it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
+  it('coalesce raises AnyCoalesceNoAlternativesError on bare call', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce');
     expect(caughtErr).toBeInstanceOf(ArityError);
   });

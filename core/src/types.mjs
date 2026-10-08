@@ -8,7 +8,7 @@ import { compareValues } from './ordering.mjs';
 
 // A number is a finite double, and one a host hands otherwise has no
 // literal, so none reaches the printer or the codec.
-export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
+export const BuiltinNumberNotFiniteLeakedToPrintError = declareInvariantError(
   'builtin/NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or the impls of " +
@@ -18,7 +18,7 @@ export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
 
 // Reads the guard at every seam where a Number becomes observable.
 export function finiteNumberOrLift(numberValue) {
-  if (!Number.isFinite(numberValue)) throw new NumberNotFiniteLeakedToPrintError({ actualValue: String(numberValue) });
+  if (!Number.isFinite(numberValue)) throw new BuiltinNumberNotFiniteLeakedToPrintError({ actualValue: String(numberValue) });
   return numberValue;
 }
 

@@ -19,12 +19,11 @@
 //       as part of a legitimate reference, etc.) for a cheap
 //       grep — those stay under human review.
 //
-//   (3) Per-site error class `Error` suffix. Every concrete class
-//       introduced by a `declare*Error(...)` factory call or by a
-//       direct `class Foo extends QlangError` declaration across
-//       `core/src`, `cli/src`, `lsp/src` must carry the `Error`
-//       suffix, so the named-error island stays distinct from the
-//       kinds of values (`::verb`, `::qlang`, `::json`).
+//   (3) A refusal is declared by its address. Every factory of a
+//       refusal and every recording of a site takes the address as a
+//       literal, `'noun/LastNameError'`, and the constant that holds
+//       the class is the address without its slash, across `core/src`,
+//       `cli/src`, `lsp/src` [D158], [D159].
 //
 //   (4) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
@@ -146,45 +145,44 @@ function scanForbiddenWords() {
   return violations;
 }
 
-// ── (3) Per-site error class `Error` suffix convention ─────────
+// ── (3) A refusal is declared by its address ──────────────────
 //
-// Every concrete error class in `core/src/**/*.mjs` must carry the
-// `Error` suffix — the convention that distinguishes the kinds of
-// refusals (`::FooError`) from the kinds of values (`::verb`,
-// `::qlang`, `::json`). Classes are introduced two
-// ways:
-//
-//   * `declare(Subject|Modifier|Element|Comparability|Shape|Arity)
-//     Error('Foo', …)` factory call — the first string literal
-//     is the className.
-//   * `class Foo extends QlangError|QlangInvariantError|ArityError|
-//     EffectLaunderingError|Error` direct declaration.
-//
-// Abstract roots are exempt — they ARE the bases everyone extends,
-// not concrete throw sites:
+// A refusal's address is the one key the implementation and its page
+// in the catalog share [D158]: every factory of a refusal and every
+// recording of a site outside one takes it as a literal, the noun of the
+// place and a last name ending in `Error`, `number/AddLeftNotNumberError`,
+// and the constant that holds the class is named by the address without
+// its slash, `NumberAddLeftNotNumberError`, so a grep for either finds
+// the declaration, every throw and the page [D159]. A class declared by
+// `class Foo extends …` ends in `Error`; the abstract roots are the
+// bases every site extends.
 
 const ABSTRACT_BASES = new Set([
   'QlangError', 'QlangTypeError', 'QlangInvariantError',
-  'ArityError', 'EffectLaunderingError'
+  'ArityError', 'EffectLaunderingError', 'NumericDomainError'
 ]);
 
-const factoryDeclRe = /declare(?:Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Z][A-Za-z0-9_]*)'/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|Error)\b/g;
+const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declare\w*Error|recordThrowSiteSpec)\(\s*([^,)]*)/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|NumericDomainError|Error)\b/g;
+const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9@]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs', 'core/src/operand-errors.mjs']);
 
-// Every workspace that can declare its own host-bound errors
-// (CLI host operands via `declareSubjectError(...)` / direct
-// `class FooError extends QlangError`, LSP server-side errors,
-// future host packages) goes through the same scan. Scope sits
-// at the npm-workspace boundary so a new workspace opt's into
-// the convention by adding its `<ws>/src` here.
-const ERROR_SUFFIX_SCAN_ROOTS = [
+// The constant a refusal's class is held by: its address without the
+// slash, each name capitalised and the effect marker dropped.
+function constantOfAddress(address) {
+  return address.split('/').map(part => part.replace(/^@/, '')).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+}
+
+// Every workspace that can declare its own refusals goes through the
+// same scan, the root of its sources named here.
+const REFUSAL_SCAN_ROOTS = [
   ['core', 'src'],
   ['cli',  'src'],
   ['lsp',  'src']
 ];
 
-function* walkErrorScanRoots() {
-  for (const segments of ERROR_SUFFIX_SCAN_ROOTS) {
+function* walkRefusalScanRoots() {
+  for (const segments of REFUSAL_SCAN_ROOTS) {
     const root = join(repoRoot, ...segments);
     let st;
     try { st = statSync(root); } catch { continue; }
@@ -193,42 +191,26 @@ function* walkErrorScanRoots() {
   }
 }
 
-function errorSuffixDrift() {
+function refusalDeclarationDrift() {
   const violations = [];
-  for (const filePath of walkErrorScanRoots()) {
+  for (const filePath of walkRefusalScanRoots()) {
     const text = readFileSync(filePath, 'utf8');
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    const lines = text.split(/\r?\n/);
-
-    // Collect per-line classNames declared via factory or class
-    // syntax so the violation report cites the exact line.
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
-      const line = lines[lineIndex];
-
-      factoryDeclRe.lastIndex = 0;
-      let fm;
-      while ((fm = factoryDeclRe.exec(line)) !== null) {
-        const className = fm[1];
-        if (className.endsWith('Error')) continue;
-        violations.push({
-          file: relFile, line: lineIndex + 1,
-          className, kind: 'factory call',
-          snippet: line.trim().slice(0, 120)
-        });
+    const lineAt = index => text.slice(0, index).split('\n').length;
+    for (const match of text.matchAll(refusalDeclarationRe)) {
+      const [, constant, factory, argument] = match;
+      if (FACTORY_DEFINITION_FILES.has(relFile) && /^[a-z]\w*$/.test(argument.trim())) continue;
+      const address = ADDRESS_RE.exec(argument.trim())?.[1];
+      const line = lineAt(match.index);
+      if (address === undefined) {
+        violations.push({ file: relFile, line, problem: `${factory} takes ${argument.trim() || 'nothing'}, where a refusal's address stands, \`'noun/LastNameError'\`` });
+      } else if (constant !== undefined && constant !== constantOfAddress(address)) {
+        violations.push({ file: relFile, line, problem: `${constant} holds ${address}, which names it ${constantOfAddress(address)}` });
       }
-
-      directClassRe.lastIndex = 0;
-      let cm;
-      while ((cm = directClassRe.exec(line)) !== null) {
-        const className = cm[1];
-        if (ABSTRACT_BASES.has(className)) continue;
-        if (className.endsWith('Error')) continue;
-        violations.push({
-          file: relFile, line: lineIndex + 1,
-          className, kind: 'class declaration',
-          snippet: line.trim().slice(0, 120)
-        });
-      }
+    }
+    for (const match of text.matchAll(directClassRe)) {
+      if (ABSTRACT_BASES.has(match[1]) || match[1].endsWith('Error')) continue;
+      violations.push({ file: relFile, line: lineAt(match.index), problem: `class ${match[1]} names a refusal without the suffix Error` });
     }
   }
   return violations;
@@ -394,7 +376,7 @@ function recordsWithoutDecider() {
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
-const errorSuffixViolations = errorSuffixDrift();
+const refusalDeclarations = refusalDeclarationDrift();
 const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
 const anchors = anchorDrift();
@@ -402,7 +384,7 @@ const catalogDecisions = decisionsInCatalog();
 const undecided = recordsWithoutDecider();
 
 if (forbidden.length === 0
-    && errorSuffixViolations.length === 0
+    && refusalDeclarations.length === 0
     && proseTallies.length === 0
     && workspaceRanges.length === 0
     && anchors.length === 0
@@ -418,13 +400,10 @@ if (forbidden.length > 0) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
   }
 }
-if (errorSuffixViolations.length > 0) {
-  process.stdout.write(
-    `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
-  for (const v of errorSuffixViolations) {
-    process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
-    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from the kinds of values (::verb / ::qlang / ::json).\n`);
-  }
+if (refusalDeclarations.length > 0) {
+  process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
+  for (const v of refusalDeclarations) process.stdout.write(`  ${v.file}:${v.line}  ${v.problem}\n`);
+  process.stdout.write('    the address is the key the implementation and the page of the catalog share [D158], [D159].\n');
 }
 if (proseTallies.length > 0) {
   process.stdout.write(

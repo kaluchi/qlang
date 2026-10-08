@@ -117,7 +117,7 @@ describe('TaggedLit error paths', () => {
     expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
   });
 
-  it('raises TagNotKindError when the node a tag addresses is no kind', async () => {
+  it('raises ConstructTagNotKindError when the node a tag addresses is no kind', async () => {
     const err = await evalQuery('::vec/count[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('construct/TagNotKindError'));

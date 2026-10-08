@@ -32,7 +32,7 @@ declareModifierError('string/StartsWithSubjectNotStringError', 'startsWith', 1, 
 declareModifierError('string/StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
 declareModifierError('string/EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
 declareModifierError('string/EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
-const JoinElementNotStringError = declareElementError('vec/JoinElementNotStringError', 'join', 'string');
+const VecJoinElementNotStringError = declareElementError('vec/JoinElementNotStringError', 'join', 'string');
 
 // A string takes its prefix or its suffix, a vector its element at the
 // head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
@@ -53,7 +53,7 @@ bindPrim('string/lines', subject => {
 
 bindPrim('vec/join', (subject, separator) => {
   const stranger = subject.findIndex(element => typeof element !== 'string');
-  if (stranger >= 0) throw new JoinElementNotStringError(stranger, subject[stranger]);
+  if (stranger >= 0) throw new VecJoinElementNotStringError(stranger, subject[stranger]);
   return subject.join(separator);
 });
 

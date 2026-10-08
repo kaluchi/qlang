@@ -26,7 +26,7 @@ import './axis.mjs';
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
 import { declareRoot } from './root.mjs';
-import { platformLocator, LANGUAGE_SOURCES, BootstrapSourceMissingError } from './bootstrap.mjs';
+import { platformLocator, LANGUAGE_SOURCES, BuiltinBootstrapSourceMissingError } from './bootstrap.mjs';
 
 // One template per locator; each call answers a copy that the caller's
 // declarations write into.
@@ -59,7 +59,7 @@ export async function buildLangRuntime(locator) {
   const sources = [];
   for (const uri of LANGUAGE_SOURCES) {
     const located = await locator(uri);
-    if (located === null) throw new BootstrapSourceMissingError({ uri });
+    if (located === null) throw new BuiltinBootstrapSourceMissingError({ uri });
     sources.push({ uri, source: located.source, impls: PRIMITIVE_REGISTRY.implsUnder(nounOfSource(uri)) });
   }
   const templateEnv = await declareRoot(new Map(), sources);

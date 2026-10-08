@@ -5,8 +5,8 @@ import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, describ
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
-import { QlangTypeError, UnknownNameError, declareShapeError } from '../../src/errors.mjs';
-import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
+import { QlangTypeError, CallUnknownNameError, declareShapeError } from '../../src/errors.mjs';
+import { NumberDivisionByZeroError } from '../../src/runtime/arith.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -190,8 +190,8 @@ describe('errorFromQlang', () => {
   // The facts of the site come before the trail, and the step and the
   // subject leave the descriptor for the first stop of the trail [D85].
   it('converts a refusal — its address the tag, the facts of its site before the trail [D158]', () => {
-    const ProbeTypeError = declareShapeError('tests/ProbeTypeError', () => 'bad type');
-    const typeErr = new ProbeTypeError({
+    const TestsProbeTypeError = declareShapeError('tests/ProbeTypeError', () => 'bad type');
+    const typeErr = new TestsProbeTypeError({
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
@@ -207,16 +207,16 @@ describe('errorFromQlang', () => {
     expect([...desc.keys()]).toEqual(['actualValue', 'actualType', 'trail']);
   });
 
-  it('converts UnknownNameError with its name before the trail', () => {
-    const unresolvedErr = new UnknownNameError({ identifierName: 'myName' });
+  it('converts CallUnknownNameError with its name before the trail', () => {
+    const unresolvedErr = new CallUnknownNameError({ identifierName: 'myName' });
     const errorVal = errorFromQlang(unresolvedErr, 42);
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(errorVal.tag).toEqual(makeTagKeyword('call/UnknownNameError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['identifierName', 'trail']);
   });
 
-  it('converts DivisionByZeroError, whose site has no facts, to the trail alone', () => {
-    const divErr = new DivisionByZeroError();
+  it('converts NumberDivisionByZeroError, whose site has no facts, to the trail alone', () => {
+    const divErr = new NumberDivisionByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
     expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('number/DivisionByZeroError'));
@@ -340,7 +340,7 @@ describe('error-convert coercion edge cases', () => {
   });
 
   it('errorFromQlang without context field', () => {
-    const divErr = new DivisionByZeroError();
+    const divErr = new NumberDivisionByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
     expect(errorVal.tag.name).toBe('number/DivisionByZeroError');
     expect(errorVal.descriptor.has('category')).toBe(false);

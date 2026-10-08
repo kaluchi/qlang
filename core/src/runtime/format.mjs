@@ -72,10 +72,10 @@ export function toPlain(v) {
 // is refused.
 function toPlainFallback(v) {
   if (typeof v === 'function') return `<host-fn ${v.name}>`;
-  throw new JsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
+  throw new AnyJsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
 }
 
-export const JsonValueNotEncodableError = declareInvariantError(
+export const AnyJsonValueNotEncodableError = declareInvariantError(
   'any/JsonValueNotEncodableError',
   ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value; ` +
     'project around the slot',
@@ -97,7 +97,7 @@ function qMapToPlainObject(m) {
 // `:path` names the keys and indices walked to reach the refused
 // scalar, so `!| /path` locates it inside a document of any depth —
 // the reading a message string cannot carry.
-export const ParseJsonNumberNotFiniteError = declarePerSiteError(
+export const StringParseJsonNumberNotFiniteError = declarePerSiteError(
   'string/ParseJsonNumberNotFiniteError', 'codecError',
   () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number',
   { operand: 'parseJson' }
@@ -111,7 +111,7 @@ const FROM_PLAIN_HANDLERS = {
 
 function liftPlainScalar(scalarValue, path) {
   if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
-    throw new ParseJsonNumberNotFiniteError({ path: Object.freeze([...path]) });
+    throw new StringParseJsonNumberNotFiniteError({ path: Object.freeze([...path]) });
   }
   return scalarValue;
 }
@@ -135,7 +135,7 @@ function plainObjectToQMap(plainObj, path) {
 // `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the head of its verb checked [D72].
 declareSubjectError('string/ParseJsonSubjectNotStringError', 'parseJson', 'string');
-const ParseJsonTextNotJsonError = declareShapeError('string/ParseJsonTextNotJsonError',
+const StringParseJsonTextNotJsonError = declareShapeError('string/ParseJsonTextNotJsonError',
   ({ message }) => `parseJson: invalid JSON — ${message}`,
   { operand: 'parseJson' });
 
@@ -145,7 +145,7 @@ bindPrim('string/parseJson', subject => {
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseJsonTextNotJsonError({ message: jsParseError.message });
+    throw new StringParseJsonTextNotJsonError({ message: jsParseError.message });
   }
   return fromPlain(parsed);
 });

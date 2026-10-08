@@ -13,7 +13,7 @@ import { bindPrim } from '../primitives.mjs';
 // `div` refuses two magnitudes: a zero divisor, and a quotient past
 // the finite-double range. Both are the same repair for a reader —
 // change a value — so both ride `NumericDomainError`.
-export const DivisionByZeroError = declareNumericDomainError(
+export const NumberDivisionByZeroError = declareNumericDomainError(
   'number/DivisionByZeroError', () => 'division by zero', { operand: 'div' }
 );
 
@@ -26,26 +26,26 @@ declareModifierError('number/MulRightNotNumberError', 'mul', 2, 'number');
 declareModifierError('number/DivLeftNotNumberError',  'div', 1, 'number');
 declareModifierError('number/DivRightNotNumberError', 'div', 2, 'number');
 declareModifierError('number/RoundSubjectNotNumberError', 'round', 1, 'number');
-const RoundDigitsNotIntegerError = declareModifierError('number/RoundDigitsNotIntegerError', 'round', 2, 'integer');
+const NumberRoundDigitsNotIntegerError = declareModifierError('number/RoundDigitsNotIntegerError', 'round', 2, 'integer');
 
 // A qlang Number is a finite double, as the page of `::number` says.
 // Both operands are finite by that same rule, so
 // the operation itself is the only way out of the domain, and each
 // site lifts its own class onto the fail-track — the second answer
 // `div` gives alongside `DivisionByZeroError`.
-const AddResultNotFiniteError = declareNumericDomainError('number/AddResultNotFiniteError',
+const NumberAddResultNotFiniteError = declareNumericDomainError('number/AddResultNotFiniteError',
   ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'add' }
 );
-const SubResultNotFiniteError = declareNumericDomainError('number/SubResultNotFiniteError',
+const NumberSubResultNotFiniteError = declareNumericDomainError('number/SubResultNotFiniteError',
   ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'sub' }
 );
-const MulResultNotFiniteError = declareNumericDomainError('number/MulResultNotFiniteError',
+const NumberMulResultNotFiniteError = declareNumericDomainError('number/MulResultNotFiniteError',
   ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'mul' }
 );
-const DivResultNotFiniteError = declareNumericDomainError('number/DivResultNotFiniteError',
+const NumberDivResultNotFiniteError = declareNumericDomainError('number/DivResultNotFiniteError',
   ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'div' }
 );
@@ -59,19 +59,19 @@ function finiteOrLift(arithResult, leftValue, rightValue, ErrorCls) {
   return arithResult;
 }
 
-bindPrim('number/add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, AddResultNotFiniteError));
-bindPrim('number/sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, SubResultNotFiniteError));
+bindPrim('number/add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, NumberAddResultNotFiniteError));
+bindPrim('number/sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, NumberSubResultNotFiniteError));
 bindPrim('number/mul', (multiplicand, multiplier) =>
-  finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, MulResultNotFiniteError));
+  finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, NumberMulResultNotFiniteError));
 bindPrim('number/div', (dividend, divisor) => {
-  if (divisor === 0) throw new DivisionByZeroError();
-  return finiteOrLift(dividend / divisor, dividend, divisor, DivResultNotFiniteError);
+  if (divisor === 0) throw new NumberDivisionByZeroError();
+  return finiteOrLift(dividend / divisor, dividend, divisor, NumberDivResultNotFiniteError);
 });
 
 // A number rounds half away from zero to the digits after the point the
 // call gives, a negative count rounding to tens and beyond [D132].
 bindPrim('number/round', (subject, digits) => {
-  if (!Number.isInteger(digits)) throw new RoundDigitsNotIntegerError(digits);
+  if (!Number.isInteger(digits)) throw new NumberRoundDigitsNotIntegerError(digits);
   const factor = 10 ** digits;
   const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;
   return rounded === 0 ? 0 : rounded;

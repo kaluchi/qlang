@@ -190,7 +190,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('AppendSuffixNotStringError');
   });
 
-  it('sum element non-number → SumElementNotNumberError', async () => {
+  it('sum element non-number → AnySumElementNotNumberError', async () => {
     const caughtErr = await catchOriginalError('[1 "two" 3] | sum');
     expect(caughtErr.name).toBe('SumElementNotNumberError');
     expect(caughtErr.context.index).toBe(1);
@@ -203,22 +203,22 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('projection on non-Map → SubjectNotProjectableError', async () => {
+  it('projection on non-Map → ProjSubjectNotProjectableError', async () => {
     const caughtErr = await catchOriginalError('42 | /name');
     expect(caughtErr.name).toBe('SubjectNotProjectableError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('distribute on a scalar → SubjectNotContainerError', async () => {
+  it('distribute on a scalar → EachSubjectNotContainerError', async () => {
     const caughtErr = await catchOriginalError('42 * add 1');
     expect(caughtErr.name).toBe('SubjectNotContainerError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('apply args to non-function → ValueTakesNoModifiersError', async () => {
+  it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
     // Freeze a raw value, not a verb. Its record holds a
-    // non-function, so captured args trigger ValueTakesNoModifiersError on
+    // non-function, so captured args trigger CallValueTakesNoModifiersError on
     // the value the record holds.
     const caughtErr = await catchOriginalError('5 | :five / | five 42');
     expect(caughtErr.name).toBe('ValueTakesNoModifiersError');
@@ -247,7 +247,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('tag with non-TagKeyword captured-arg → TagModifierNotTagKeywordError', async () => {
+  it('tag with non-TagKeyword captured-arg → AnyTagModifierNotTagKeywordError', async () => {
     const caughtErr = await catchOriginalError('42 | tag :foo');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
@@ -294,18 +294,18 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('take count non-integer → TakeCountNotIntegerError', async () => {
+  it('take count non-integer → AnyTakeCountNotIntegerError', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | take "x"');
     expect(caughtErr.name).toBe('TakeCountNotIntegerError');
   });
 
-  it('drop count non-integer → DropCountNotIntegerError (distinct from take)', async () => {
+  it('drop count non-integer → AnyDropCountNotIntegerError (distinct from take)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | drop "x"');
     expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
 
-  it('reduce with a non-binary reducer → ReduceReducerNotBinaryError (distinct from subject site)', async () => {
+  it('reduce with a non-binary reducer → AnyReduceReducerNotBinaryError (distinct from subject site)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('ReduceReducerNotBinaryError');
@@ -334,16 +334,16 @@ describe('per-site error classes carry unique identity', () => {
   it('throw sites produce distinct class names (no sharing)', async () => {
     const names = new Set();
     const queries = [
-      '42 | count',        // KindAnswersNoVerbError, the contract of count
+      '42 | count',        // CallKindAnswersNoVerbError, the contract of count
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
       '"a" | add 1',      // AddLeftNotNumberError
       '"a" | sub 1',      // SubLeftNotNumberError
       '"a" | mul 1',      // MulLeftNotNumberError
       '"a" | div 1',      // DivLeftNotNumberError
-      '1 | /name',         // SubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '42 * add 1',       // SubjectNotContainerError
-      '[1 2 3] | reduce 0 ~(42)' // ReduceReducerNotBinaryError
+      '1 | /name',         // ProjSubjectNotProjectableError (Number subject — neither Map nor Vec)
+      '42 * add 1',       // EachSubjectNotContainerError
+      '[1 2 3] | reduce 0 ~(42)' // AnyReduceReducerNotBinaryError
     ];
     for (const q of queries) {
       names.add((await catchOriginalError(q)).name);
@@ -355,7 +355,7 @@ describe('per-site error classes carry unique identity', () => {
 });
 
 describe('coalesce arityError sites carry unique per-site identity', () => {
-  it('coalesce with zero captured args raises CoalesceNoAlternativesError as an ArityError', async () => {
+  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError as an ArityError', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce');
     expect(caughtErr).toBeInstanceOf(ArityError);
     expect(caughtErr.kind).toBe('arityError');

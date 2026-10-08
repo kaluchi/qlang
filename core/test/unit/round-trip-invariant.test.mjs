@@ -367,13 +367,13 @@ describe('env output is parseable', () => {
 // ── toPlain unencodable shapes ───────────────────────────────
 
 describe('toPlain refuses unencodable values', async () => {
-  const { toPlain, JsonValueNotEncodableError } = await import('../../src/runtime/format.mjs');
+  const { toPlain, AnyJsonValueNotEncodableError } = await import('../../src/runtime/format.mjs');
 
-  it('throws JsonValueNotEncodableError on a raw foreign object', () => {
+  it('throws AnyJsonValueNotEncodableError on a raw foreign object', () => {
     // A JS Date isn't a qlang value-class and isn't a function —
     // the lossy plain-JSON encoder refuses rather than silently
     // emitting `"[object Date]"`.
-    expect(() => toPlain(new Date())).toThrow(JsonValueNotEncodableError);
+    expect(() => toPlain(new Date())).toThrow(AnyJsonValueNotEncodableError);
   });
 
   it('error context carries the offending value\'s typeof for diagnosis', () => {

@@ -116,7 +116,7 @@ const throwSiteSpecs = new Map();
 // by, `number/AddLeftNotNumberError`, and the tag it answers by [D158].
 export function recordThrowSiteSpec(address, category, facts = {}) {
   if (throwSiteSpecs.has(address)) {
-    throw new ThrowSiteSpecAlreadyRecordedError({ address });
+    throw new BuiltinThrowSiteSpecAlreadyRecordedError({ address });
   }
   throwSiteSpecs.set(address, Object.freeze({ category, ...facts }));
 }
@@ -282,7 +282,7 @@ export function declareForeignError(address, buildMessage, facts = {}) {
 // First among the per-site classes: `recordThrowSiteSpec` reaches
 // for it on a repeated name, and every later declaration in the tree
 // records after this one resolves.
-export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
+export const BuiltinThrowSiteSpecAlreadyRecordedError = declareInvariantError(
   'builtin/ThrowSiteSpecAlreadyRecordedError',
   ({ address }) => `${address} records a second throw-site spec; two classes under ` +
     'one address share one kind of the catalog',
@@ -291,26 +291,26 @@ export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
 
 // ── Per-site classes under QlangError ──────────────────────────
 
-export const UnknownNameError = declarePerSiteError(
+export const CallUnknownNameError = declarePerSiteError(
   'call/UnknownNameError', 'unresolvedIdentifier',
   ({ identifierName }) => `no name ${identifierName} is declared, and no verb of the kinds of the subject answers it`,
   { operand: '::call' }
 );
 
-// UnknownAddressError — a name with a path that no declaration names
+// CallUnknownAddressError — a name with a path that no declaration names
 // [D62], [D153]. `context.address` is the address as a tag name, and
 // `context.nearest` the addresses it was likely meant to be.
-export const UnknownAddressError = declarePerSiteError(
+export const CallUnknownAddressError = declarePerSiteError(
   'call/UnknownAddressError', 'unresolvedIdentifier',
   ({ address }) => `no name is declared at the address ${address.literal}`,
   { operand: '::call' }
 );
 
-// EvaluationDepthExceededError — `nestState` (state.mjs) refused one
+// CallEvaluationDepthExceededError — `nestState` (state.mjs) refused one
 // more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
 // `resourceLimit`: the runaway sits in the query's recursion.
 // `context.depth` is the refused frame, `context.limit` the budget.
-export const EvaluationDepthExceededError = declarePerSiteError(
+export const CallEvaluationDepthExceededError = declarePerSiteError(
   'call/EvaluationDepthExceededError', 'resourceLimit',
   ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`,
   { operand: '::call' }

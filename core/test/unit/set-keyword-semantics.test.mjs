@@ -238,7 +238,7 @@ describe('at on a Set subject', async () => {
     expect(await evalQuery('#[:a :b :c] | at 99')).toBe(null);
   });
 
-  it('non-integer index raises AtIndexNotIntegerError', async () => {
+  it('non-integer index raises AnyAtIndexNotIntegerError', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | at 0.5');
     expect(err.tag.name).toBe('any/AtIndexNotIntegerError');

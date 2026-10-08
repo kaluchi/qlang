@@ -121,9 +121,9 @@ function builtinConstructor(payload) {
 bindPrim('builtin', builtinConstructor);
 
 declareSubjectError('tagged/PayloadSubjectNotTaggedError', 'payload', 'taggedInstance');
-const TagModifierNotTagKeywordError = declareModifierError(
+const AnyTagModifierNotTagKeywordError = declareModifierError(
   'any/TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
-const TagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
+const AnyTagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
   ({ actualType, actualLength }) =>
     actualLength === undefined
       ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`
@@ -153,14 +153,14 @@ bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)
 // element of the pair it takes apart.
 async function mintPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
-    throw new TagSubjectNotPairError({
+    throw new AnyTagSubjectNotPairError({
       actualType: typeKeyword(pair),
       actualValue: pair,
       actualLength: isVec(pair) ? pair.length : undefined
     });
   }
   const [pairTag, value] = pair;
-  if (!isTagKeyword(pairTag)) throw new TagModifierNotTagKeywordError(pairTag);
+  if (!isTagKeyword(pairTag)) throw new AnyTagModifierNotTagKeywordError(pairTag);
   return await mintUnderTag(state, pairTag, value);
 }
 

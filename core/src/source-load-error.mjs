@@ -4,7 +4,7 @@
 
 import { declareForeignError } from './errors.mjs';
 
-export const SourceLoadError = declareForeignError('builtin/SourceLoadError',
+export const BuiltinSourceLoadError = declareForeignError('builtin/SourceLoadError',
   ({ logicalName, sourceLocation, cause, status }) => {
     const tail = cause
       ? cause.message ?? String(cause)

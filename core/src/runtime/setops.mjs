@@ -19,8 +19,8 @@ import { bindPrim } from '../primitives.mjs';
 // names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
 // string naming a key as `at` and `has` read it, and any other element
 // refused where it stands [D139].
-const MinusKeyNotKeywordOrStringError = declareElementError('map/MinusKeyNotKeywordOrStringError', '::map/minus', ['keyword', 'string']);
-const InterKeyNotKeywordOrStringError = declareElementError('map/InterKeyNotKeywordOrStringError', '::map/inter', ['keyword', 'string']);
+const MapMinusKeyNotKeywordOrStringError = declareElementError('map/MinusKeyNotKeywordOrStringError', '::map/minus', ['keyword', 'string']);
+const MapInterKeyNotKeywordOrStringError = declareElementError('map/InterKeyNotKeywordOrStringError', '::map/inter', ['keyword', 'string']);
 
 function keyNamesOf(keysValue, KeyError) {
   if (isQMap(keysValue)) return keysValue;
@@ -61,19 +61,19 @@ function mergeSets(left, right, keeps) {
   return makeSet(merged);
 }
 
-const UnionOperandsMismatchedError = declareComparabilityError('vec/UnionOperandsMismatchedError', 'union');
-const MinusOperandsMismatchedError = declareComparabilityError('vec/MinusOperandsMismatchedError', 'minus');
-const InterOperandsMismatchedError = declareComparabilityError('vec/InterOperandsMismatchedError', 'inter');
+const VecUnionOperandsMismatchedError = declareComparabilityError('vec/UnionOperandsMismatchedError', 'union');
+const VecMinusOperandsMismatchedError = declareComparabilityError('vec/MinusOperandsMismatchedError', 'minus');
+const VecInterOperandsMismatchedError = declareComparabilityError('vec/InterOperandsMismatchedError', 'inter');
 
-const UnionOfNothingError = declareShapeError('vec/UnionOfNothingError',
+const VecUnionOfNothingError = declareShapeError('vec/UnionOfNothingError',
   () => 'union (bare form) requires a non-empty Vec of operands',
   { operand: 'union' }
 );
-const MinusOfNothingError = declareShapeError('vec/MinusOfNothingError',
+const VecMinusOfNothingError = declareShapeError('vec/MinusOfNothingError',
   () => 'minus (bare form) requires a non-empty Vec of operands',
   { operand: 'minus' }
 );
-const InterOfNothingError = declareShapeError('vec/InterOfNothingError',
+const VecInterOfNothingError = declareShapeError('vec/InterOfNothingError',
   () => 'inter (bare form) requires a non-empty Vec of operands',
   { operand: 'inter' }
 );
@@ -94,25 +94,25 @@ function unionPair(left, right) {
     }
     return new Map(merged);
   }
-  throw new UnionOperandsMismatchedError(left, right);
+  throw new VecUnionOperandsMismatchedError(left, right);
 }
 
 function minusPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right, MinusKeyNotKeywordOrStringError);
+    const rightNames = keyNamesOf(right, MapMinusKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => !rightNames.has(k)));
   }
-  throw new MinusOperandsMismatchedError(left, right);
+  throw new VecMinusOperandsMismatchedError(left, right);
 }
 
 function interPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right, InterKeyNotKeywordOrStringError);
+    const rightNames = keyNamesOf(right, MapInterKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => rightNames.has(k)));
   }
-  throw new InterOperandsMismatchedError(left, right);
+  throw new VecInterOperandsMismatchedError(left, right);
 }
 
 // A pair's answer for the verbs of sets and maps, and the fold of a
@@ -127,6 +127,6 @@ function pairOrFold(pair, EmptyError) {
   };
 }
 
-bindPrim(['vec/union', 'set/union', 'map/union'], pairOrFold(unionPair, UnionOfNothingError));
-bindPrim(['vec/minus', 'set/minus', 'map/minus'], pairOrFold(minusPair, MinusOfNothingError));
-bindPrim(['vec/inter', 'set/inter', 'map/inter'], pairOrFold(interPair, InterOfNothingError));
+bindPrim(['vec/union', 'set/union', 'map/union'], pairOrFold(unionPair, VecUnionOfNothingError));
+bindPrim(['vec/minus', 'set/minus', 'map/minus'], pairOrFold(minusPair, VecMinusOfNothingError));
+bindPrim(['vec/inter', 'set/inter', 'map/inter'], pairOrFold(interPair, VecInterOfNothingError));

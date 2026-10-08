@@ -5,15 +5,15 @@ import { describe, it, expect } from 'vitest';
 import {
   QlangError,
   QlangTypeError,
-  UnknownNameError,
+  CallUnknownNameError,
   ArityError,
-  EvaluationDepthExceededError,
+  CallEvaluationDepthExceededError,
   QlangInvariantError,
-  ThrowSiteSpecAlreadyRecordedError,
+  BuiltinThrowSiteSpecAlreadyRecordedError,
   declarePerSiteError,
   declareForeignError
 } from '../../src/errors.mjs';
-import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
+import { NumberDivisionByZeroError } from '../../src/runtime/arith.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
@@ -30,7 +30,7 @@ describe('QlangError base class', () => {
 
 describe('UnknownNameError', () => {
   it('sets identifierName, kind and name', () => {
-    const unresolvedErr = new UnknownNameError({ identifierName: 'foo' });
+    const unresolvedErr = new CallUnknownNameError({ identifierName: 'foo' });
     expect(unresolvedErr.context.identifierName).toBe('foo');
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(unresolvedErr.name).toBe('UnknownNameError');
@@ -41,7 +41,7 @@ describe('UnknownNameError', () => {
 
 describe('DivisionByZeroError', () => {
   it('has a fixed message and its name', () => {
-    const divErr = new DivisionByZeroError();
+    const divErr = new NumberDivisionByZeroError();
     expect(divErr.kind).toBe('numericDomain');
     expect(divErr.name).toBe('DivisionByZeroError');
     expect(divErr.message).toBe('division by zero');
@@ -58,7 +58,7 @@ describe('ArityError', () => {
 
 describe('EvaluationDepthExceededError', () => {
   it('carries the refused frame and the budget under kind resourceLimit', () => {
-    const depthErr = new EvaluationDepthExceededError({ depth: 11, limit: 10 });
+    const depthErr = new CallEvaluationDepthExceededError({ depth: 11, limit: 10 });
     expect(depthErr).toBeInstanceOf(QlangError);
     expect(depthErr.kind).toBe('resourceLimit');
     expect(depthErr.name).toBe('EvaluationDepthExceededError');
@@ -142,7 +142,7 @@ describe('throw-site spec registry — one name, one site', () => {
       refusal = caught;
     }
     expect(refusal).toBeInstanceOf(QlangInvariantError);
-    expect(refusal).toBeInstanceOf(ThrowSiteSpecAlreadyRecordedError);
+    expect(refusal).toBeInstanceOf(BuiltinThrowSiteSpecAlreadyRecordedError);
     expect(refusal.name).toBe('ThrowSiteSpecAlreadyRecordedError');
     expect(refusal.context.address).toBe('number/DivisionByZeroError');
     expect(refusal.message).toContain('number/DivisionByZeroError');

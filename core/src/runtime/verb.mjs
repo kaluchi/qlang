@@ -77,7 +77,7 @@ const VerbCodeNotQuoteError = declareShapeError('verb/CodeNotQuoteError',
 // A call that reaches a contract names what the reader needs: the kind of
 // its subject has no verb of the name, and where the verbs of the name
 // live [D146]; a contract with no verb under it answers no call at all.
-const KindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
+const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
   ({ verbName, addresses, actualType }) => (addresses?.length > 0 && actualType !== undefined
     ? `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`
     : `${verbName.literal} declares a signature and no body, and answers no call`),
@@ -451,7 +451,7 @@ export async function callVerb(verb, modifierLambdas, state, verbName) {
 export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const signature = signatureOf(verb.payload);
   if (signature.body === null) {
-    throw new KindAnswersNoVerbError({ verbName, addresses: addressesOf(state.env, verbName.name), actualType: typeKeyword(subject) });
+    throw new CallKindAnswersNoVerbError({ verbName, addresses: addressesOf(state.env, verbName.name), actualType: typeKeyword(subject) });
   }
   if (signature.rest === null && slotLambdas.length > signature.slots.length) {
     throw new VerbModifiersBeyondSlotsError({ verbName, slotCount: signature.slots.length, actualCount: slotLambdas.length });

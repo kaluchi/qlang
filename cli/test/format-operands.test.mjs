@@ -69,7 +69,7 @@ describe('table — a view for a terminal', () => {
     expectOperandErrorThrown(cellEntry, 'vec/TableSubjectNotVecError', { actualType: { name: 'number' } });
   });
 
-  it('lifts TableRowNotMapError on a row other than a Map, naming it', async () => {
+  it('lifts VecTableRowNotMapError on a row other than a Map, naming it', async () => {
     const cellEntry = await runQuery('[{:a 1} 42] | table', noopIo);
     expectOperandErrorThrown(cellEntry, 'vec/TableRowNotMapError', { index: 1, actualType: { name: 'number' } });
   });

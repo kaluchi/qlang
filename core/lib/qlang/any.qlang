@@ -993,12 +993,15 @@
   ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{})
 
 :any/BindingNotFoundError
-  |~~ `binding` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the last name of a verb
-      declared under a kind among them, or a tag name that names
-      nothing. `:addresses` holds the addresses of the pages of that
-      name, the contract on any value among them, whose page holds for
-      every verb of the name.
+  |~~ `binding` found no declaration of the name it read: a keyword that
+      names no binding of its scope, the last name of a verb declared
+      under a kind among them, or a tag name that names nothing.
+      `:bindingName` holds the name, and `:addresses` the addresses of
+      the pages of that name, the contract on any value among them,
+      whose page holds for every verb of the name. `source`, `doc`,
+      `spec`, `explain` and `runLaws` read a name as `binding` does, and
+      each is refused under a tag of its own, so the tag says which of
+      them read it.
 
       ~(
         :nonexistent-binding | binding
@@ -1026,12 +1029,9 @@
   ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{})
 
 :any/SourceBindingNotFoundError
-  |~~ `source` — no declaration found for the name it read: a keyword
-      that names no binding of its scope, the last name of a verb
-      declared under a kind among them, or a tag name that names
-      nothing. `:addresses` holds the addresses of the pages of that
-      name, the contract on any value among them, whose page holds for
-      every verb of the name.
+  |~~ `source` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/BindingNotFoundError | doc)
 
       ~(
         :nonexistent-binding | source
@@ -1073,12 +1073,10 @@
   ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{})
 
 :any/DocBindingNotFoundError
-  |~~ `doc` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, the last name of a verb declared
-      under a kind among them, a tag name that names nothing, or an
-      anchor that names no member of the page before it. `:addresses`
-      holds the addresses of the pages of that name, the contract on any
-      value among them, whose page holds for every verb of the name.
+  |~~ `doc` found no declaration of the name it read, as `binding` finds
+      none, or no member of the page before it under an anchor of its
+      path.
+      ::link~(::any/BindingNotFoundError | doc)
 
       ~(
         :nonexistent-binding | doc
@@ -1091,8 +1089,8 @@
   ::spec~()
 
 :any/DocAnchorNotKeywordError
-  |~~ `doc` — an anchor of a path is no keyword: each step of the path
-      names a member by a keyword.
+  |~~ An anchor of the path `doc` reads is no keyword: each step of the
+      path names a member by a keyword, `doc [:take :count]`.
 
       ~(::vec | doc [:take 1] !| [type /index] | eq [::any/DocAnchorNotKeywordError 1])
   ~~|
@@ -1112,9 +1110,9 @@
   ::verb~(:returns ::explanation | ::builtin{})
 
 :any/ExplainBindingNotFoundError
-  |~~ `explain` — no declaration found for the page of its subject: a
-      keyword that names no binding of its scope, or a tag name that
-      names nothing.
+  |~~ `explain` found no declaration of the page of its subject, as
+      `binding` finds none.
+      ::link~(::any/BindingNotFoundError | doc)
 
       ~(
         :nonexistent-binding | explain
@@ -1145,12 +1143,9 @@
   ::verb~(:name #[::keyword ::null] | ::builtin{})
 
 :any/SpecBindingNotFoundError
-  |~~ `spec` — no declaration found for the name it read: a keyword that
-      names no binding of its scope, the last name of a verb declared
-      under a kind among them, or a tag name that names nothing.
-      `:addresses` holds the addresses of the pages of that name, the
-      contract on any value among them, whose page holds for every verb
-      of the name.
+  |~~ `spec` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/BindingNotFoundError | doc)
 
       ~(
         :nonexistent-binding | spec
@@ -1178,12 +1173,9 @@
   ::verb~()
 
 :any/RunLawsBindingNotFoundError
-  |~~ `runLaws` — no declaration found for the name it read, as `doc`
-      finds none: a keyword that names no binding of its scope, the last
-      name of a verb declared under a kind among them, or a tag name
-      that names nothing. `:addresses` holds the addresses of the pages
-      of that name, the contract on any value among them, whose page
-      holds for every verb of the name.
+  |~~ `runLaws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/BindingNotFoundError | doc)
 
       ~(
         :nonexistent-binding | runLaws

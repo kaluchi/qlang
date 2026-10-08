@@ -201,19 +201,19 @@ describe('the finite-double domain holds at every render seam', () => {
   // would answer `Infinity`, which no production reads back, and the
   // JSON boundary would answer `null`.
   it('printValue refuses an infinity and a NaN', async () => {
-    const { NumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
+    const { BuiltinNumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;
       try { printValue(leaked); } catch (caught) { thrown = caught; }
-      expect(thrown).toBeInstanceOf(NumberNotFiniteLeakedToPrintError);
+      expect(thrown).toBeInstanceOf(BuiltinNumberNotFiniteLeakedToPrintError);
       expect(thrown.name).toBe('NumberNotFiniteLeakedToPrintError');
       expect(thrown.context.actualValue).toBe(String(leaked));
     }
   });
 
   it('toPlain refuses the values the printer refuses', async () => {
-    const { NumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
-    expect(() => toPlain(Infinity)).toThrow(NumberNotFiniteLeakedToPrintError);
+    const { BuiltinNumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
+    expect(() => toPlain(Infinity)).toThrow(BuiltinNumberNotFiniteLeakedToPrintError);
   });
 
   it('every in-domain magnitude renders unchanged', () => {

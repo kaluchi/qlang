@@ -16,7 +16,7 @@
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
-import { SourceLoadError } from '../src/source-load-error.mjs';
+import { BuiltinSourceLoadError } from '../src/source-load-error.mjs';
 
 export async function loadSource(logicalName) {
   let filePath;
@@ -31,7 +31,7 @@ export async function loadSource(logicalName) {
   try {
     return await readFile(filePath, 'utf8');
   } catch (cause) {
-    throw new SourceLoadError({
+    throw new BuiltinSourceLoadError({
       host: 'node',
       logicalName,
       sourceLocation: filePath,

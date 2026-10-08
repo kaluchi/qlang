@@ -46,7 +46,7 @@ describe('parseJson — error sites', () => {
     });
   });
 
-  it('lifts ParseJsonTextNotJsonError when the subject is not valid JSON', async () => {
+  it('lifts StringParseJsonTextNotJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
     const thrown = expectOperandErrorThrown(cellEntry, 'string/ParseJsonTextNotJsonError', {});
     expect(typeof thrown.context.message).toBe('string');

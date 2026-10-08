@@ -33,7 +33,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
     // A cell's declaration writes its record into the session's scope;
     // the regression that first flagged the gap was `qlang ':foo |~~
-    // note ~~| | :foo | doc'` returning DocBindingNotFoundError
+    // note ~~| | :foo | doc'` returning AnyDocBindingNotFoundError
     // instead of the attached doc.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
@@ -89,7 +89,7 @@ describe(':name | doc returns the page its attached prefixes make', () => {
     expect(await evalQuery('42 | doc | eq (::number | doc)')).toBe(true);
   });
 
-  it('unknown binding raises DocBindingNotFoundError', async () => {
+  it('unknown binding raises AnyDocBindingNotFoundError', async () => {
     const err = await evalQuery(':totallyMadeUp | doc');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
@@ -249,7 +249,7 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
     expect(printValue(await evalQuery('42 | spec'))).toBe('::spec~(::builtin{})');
   });
 
-  it('keyword naming an unbound identifier lifts SpecBindingNotFoundError', async () => {
+  it('keyword naming an unbound identifier lifts AnySpecBindingNotFoundError', async () => {
     const evalResult = await evalQuery(':nonexistentBindingForSpec | spec !| type');
     expect(evalResult).toEqual(makeTagKeyword('any/SpecBindingNotFoundError'));
   });

@@ -7,7 +7,7 @@ import {
   rootState, withPipeValue, withEnv, nestState, EVAL_DEPTH_LIMIT,
   envSet, envHas, envGet, envMerge
 } from '../../src/state.mjs';
-import { QlangError, EvaluationDepthExceededError } from '../../src/errors.mjs';
+import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 
 describe('state.mjs env updaters', () => {
   it('envSet returns a new Map without mutating the original', () => {
@@ -61,7 +61,7 @@ describe('state.mjs frames', () => {
     expect(frame.depth).toBe(EVAL_DEPTH_LIMIT);
     let thrown = null;
     try { nestState(frame, null, frame.env); } catch (depthErr) { thrown = depthErr; }
-    expect(thrown).toBeInstanceOf(EvaluationDepthExceededError);
+    expect(thrown).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('EvaluationDepthExceededError');
     expect(thrown.kind).toBe('resourceLimit');

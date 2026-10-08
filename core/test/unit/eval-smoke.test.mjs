@@ -115,7 +115,7 @@ describe('eval — Map and projection', () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises KeyNotInMapError', async () => {
+  it('strict-projection: missing key raises ProjKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);

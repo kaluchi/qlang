@@ -183,7 +183,7 @@ describe('verb effectLaundering at call site', async () => {
 describe('a slot takes no modifiers', async () => {
   it('a slot holding a value refuses modifiers as any value does', async () => {
     // Inside the body, `n` is the record of a slot holding a value, so
-    // a modifier handed to it is refused with ValueTakesNoModifiersError.
+    // a modifier handed to it is refused with CallValueTakesNoModifiersError.
     const result = await evalQuery(':f ::verb~(:n ::any | n 42) | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;

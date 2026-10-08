@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { EVAL_DEPTH_LIMIT } from '../../src/state.mjs';
-import { QlangError, EvaluationDepthExceededError } from '../../src/errors.mjs';
+import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
@@ -20,7 +20,7 @@ describe('depth budget — self-calling verb', () => {
     expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
     const original = runaway.originalError;
-    expect(original).toBeInstanceOf(EvaluationDepthExceededError);
+    expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(original).toBeInstanceOf(QlangError);
     expect(original.name).toBe('EvaluationDepthExceededError');
     expect(original.kind).toBe('resourceLimit');
@@ -48,7 +48,7 @@ describe('depth budget — every re-entry seam', () => {
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {
       const original = await catchOriginalError(query);
-      expect(original).toBeInstanceOf(EvaluationDepthExceededError);
+      expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
       expect(original.context).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
     });
   }

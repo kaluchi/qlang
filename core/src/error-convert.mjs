@@ -8,10 +8,8 @@ import { isTagLiteral, tagNameOfLiteral } from './env-keys.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
-const PARSE_ERROR_ADDRESS = 'quote/ParseError';
-const HOST_FAILURE_ADDRESS = 'call/HostFailureError';
-recordThrowSiteSpec(PARSE_ERROR_ADDRESS, 'parseError', { operand: '::quote' });
-recordThrowSiteSpec(HOST_FAILURE_ADDRESS, 'error', { operand: '::call' });
+recordThrowSiteSpec('quote/ParseError', 'parseError', { operand: '::quote' });
+recordThrowSiteSpec('call/HostFailureError', 'error', { operand: '::call' });
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class
@@ -141,7 +139,7 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  return makeErrorValue(makeTagKeyword(PARSE_ERROR_ADDRESS), d, {
+  return makeErrorValue(makeTagKeyword('quote/ParseError'), d, {
     location: parseError.location,
     originalError: parseError
   });
@@ -214,7 +212,7 @@ const WELL_KNOWN_PROPS = [
 // `:name` [D7], so a port of the runtime to another host changes a
 // field and no identity a query matches.
 export function errorFromForeign(jsError, astNode) {
-  const tag = makeTagKeyword(HOST_FAILURE_ADDRESS);
+  const tag = makeTagKeyword('call/HostFailureError');
   const d = new Map();
   d.set('message', jsError.message);
 

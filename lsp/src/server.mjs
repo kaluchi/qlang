@@ -5,7 +5,7 @@
 // in features.mjs; this file only maps between LSP protocol types
 // and the feature functions.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
@@ -21,7 +21,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse } from '@kaluchi/qlang-core';
+import { parse, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -51,30 +51,15 @@ const documentStates = new Map();
 let catalogCtx = null;
 
 function loadCatalogContext() {
-  // Monorepo layout: `lsp/` and `core/` are sibling workspaces,
-  // so catalog files sit under `../core/lib/qlang/...` relative
-  // to `lsp/src/`.
+  // Monorepo layout: `lsp/` and `core/` are sibling workspaces, so the
+  // sources sit under `../core/lib/` relative to `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
+  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
 
-  // Discovery walks lib/qlang recursively for every `.qlang` file, the
-  // name of a source its relative path with `/` separators and the
-  // `.qlang` suffix stripped; the resolved file URI lets goto-definition
-  // return absolute locations the editor can open.
-  const sources = [];
-  function walk(dir, prefix) {
-    for (const name of readdirSync(dir, { withFileTypes: true })) {
-      const childPath = join(dir, name.name);
-      const childUri = prefix ? prefix + '/' + name.name : name.name;
-      if (name.isDirectory()) {
-        walk(childPath, childUri);
-      } else if (name.name.endsWith('.qlang')) {
-        sources.push({ path: childPath, uri: 'qlang/' + childUri.replace(/\.qlang$/, '') });
-      }
-    }
-  }
-  sources.push({ path: join(libDir, '..', 'qlang.qlang'), uri: 'qlang' });
-  walk(libDir, '');
+  // The sources of the language, `lib/<uri>.qlang` as
+  // `package.json#imports` maps each [D153]; the resolved file URI lets
+  // goto-definition return absolute locations the editor can open.
+  const sources = LANGUAGE_SOURCES.map(uri => ({ path: join(libDir, `${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();
   for (const { path, uri } of sources) {

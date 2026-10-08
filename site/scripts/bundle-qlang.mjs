@@ -17,6 +17,24 @@
 import { build } from 'esbuild';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
+
+// The module `qlang:language-sources` the entry imports: a static import
+// of each source of the language, `lib/<uri>.qlang` as
+// `package.json#imports` maps it, in a Map by its uri [D153].
+const languageSources = {
+  name: 'language-sources',
+  setup(builder) {
+    builder.onResolve({ filter: /^qlang:language-sources$/ }, () => ({ path: 'language-sources', namespace: 'qlang' }));
+    builder.onLoad({ filter: /.*/, namespace: 'qlang' }, () => ({
+      resolveDir: __dirname,
+      contents: [
+        ...LANGUAGE_SOURCES.map((uri, index) => `import source${index} from '@kaluchi/qlang-core/lib/${uri}.qlang';`),
+        `export const CATALOG = new Map([${LANGUAGE_SOURCES.map((uri, index) => `['${uri}', source${index}]`).join(', ')}]);`
+      ].join('\n')
+    }));
+  }
+};
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(__dirname, '..');
@@ -47,7 +65,8 @@ await build({
   // pinning the runtime/ folder, `ignoreAnnotations: true` tells
   // esbuild to keep them in the bundle unconditionally — a
   // single-source-of-truth knob for the registration semantics.
-  ignoreAnnotations: true
+  ignoreAnnotations: true,
+  plugins: [languageSources]
 });
 
 console.log('  bundled public/qlang.js (inline catalog, inline sourcemap)');

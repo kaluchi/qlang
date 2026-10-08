@@ -5,7 +5,7 @@ import {
   parseDocument, buildCatalogIndex, completionsAtOffset,
   hoverAtOffset, definitionAtOffset, referencesAtOffset,
   documentSymbols, signatureHelpAtOffset,
-  semanticTokensFor, SEMANTIC_TOKEN_TYPES
+  semanticTokensFor, SEMANTIC_TOKEN_TYPES, foldingRangesOf
 } from '../src/features.mjs';
 import { langRuntime } from '@kaluchi/qlang-core';
 
@@ -395,6 +395,22 @@ describe('referencesAtOffset', () => {
 
   it('returns empty for null ast', () => {
     expect(referencesAtOffset(null, 0)).toEqual([]);
+  });
+});
+
+describe('foldingRangesOf', () => {
+  it('folds a declaration, its doc as a comment, and a quote, leaving a closer alone open', () => {
+    const src = [':double', '  |~~ Doubles.', '      ~(', '        2 | double', '      )', '  ~~|', '  ::verb~(mul 2)', ':x 1'].join('\n');
+    const { ast } = parseDocument(src, 'test.qlang');
+    expect(foldingRangesOf(ast, src)).toEqual([
+      { startLine: 0, endLine: 6, kind: 'region' },
+      { startLine: 1, endLine: 4, kind: 'comment' },
+      { startLine: 2, endLine: 3, kind: 'region' }
+    ]);
+  });
+
+  it('folds nothing without a tree', () => {
+    expect(foldingRangesOf(null, '')).toEqual([]);
   });
 });
 

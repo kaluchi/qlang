@@ -30,6 +30,7 @@ import {
   definitionAtOffset,
   referencesAtOffset,
   documentSymbols,
+  foldingRangesOf,
   signatureHelpAtOffset,
   semanticTokensFor,
   SEMANTIC_TOKEN_TYPES
@@ -90,6 +91,7 @@ connection.onInitialize(async () => {
       definitionProvider: true,
       referencesProvider: true,
       documentSymbolProvider: true,
+      foldingRangeProvider: true,
       signatureHelpProvider: { triggerCharacters: ['(', ','] },
       semanticTokensProvider: {
         legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
@@ -270,6 +272,13 @@ connection.onDocumentSymbol((params) => {
       end: doc.positionAt(sym.endOffset)
     }
   }));
+});
+
+// ── Folding ───────────────────────────────────────────────────
+
+connection.onFoldingRanges((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  return state?.ast ? foldingRangesOf(state.ast, state.source) : [];
 });
 
 // ── Signature Help ────────────────────────────────────────────

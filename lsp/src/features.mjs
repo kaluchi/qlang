@@ -519,6 +519,28 @@ export function documentSymbols(ast) {
   return symbols;
 }
 
+// ── Folding ───────────────────────────────────────────────────
+
+// foldingRangesOf(ast, source) → the line ranges an editor folds, from
+// 0: a declaration, a doc and a quote that span lines, the line of a
+// closer that stands alone left open; a doc folds as a comment.
+const FOLDED_NODE_TYPES = new Set(['BindStep', 'DocLit', 'QuoteLit']);
+
+export function foldingRangesOf(ast, source) {
+  if (!ast) return [];
+  const lines = source.split(/\r?\n/);
+  const ranges = [];
+  walkAst(ast, (node) => {
+    if (!FOLDED_NODE_TYPES.has(node.type)) return;
+    const startLine = node.location.start.line - 1;
+    const lastLine = node.location.end.line - 1;
+    const closerAlone = /^\s*(~~\||\))\s*$/.test(lines[lastLine]);
+    const endLine = closerAlone ? lastLine - 1 : lastLine;
+    if (endLine > startLine) ranges.push({ startLine, endLine, kind: node.type === 'DocLit' ? 'comment' : 'region' });
+  });
+  return ranges;
+}
+
 // ── Signature Help ────────────────────────────────────────────
 
 export async function signatureHelpAtOffset(ast, source, offset) {

@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "name": "Anna",
+    "email": "anna@example.com",
+    "age": 31,
+    "active": true,
+    "address": {
+      "city": "Berlin",
+      "country": "DE"
+    },
+    "tags": [
+      "admin",
+      "dev"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Boris",
+    "email": "boris@example.com",
+    "age": 45,
+    "active": true,
+    "address": {
+      "city": "berlin",
+      "country": "DE"
+    },
+    "tags": [
+      "dev"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Chen",
+    "email": "chen@example.com",
+    "age": null,
+    "active": true,
+    "address": {
+      "city": "Beijing",
+      "country": "CN"
+    },
+    "tags": []
+  },
+  {
+    "id": 4,
+    "name": "Dmitri",
+    "email": "dmitri@example.com",
+    "active": false,
+    "address": {
+      "city": "BERLIN",
+      "country": "DE"
+    },
+    "tags": [
+      "ops"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Elena",
+    "email": "elena@example.com",
+    "age": 28,
+    "active": true,
+    "address": null,
+    "tags": [
+      "dev",
+      "ops"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Farid",
+    "email": "farid@example.com",
+    "age": 39,
+    "active": true,
+    "address": {
+      "city": "Baku",
+      "country": "AZ"
+    },
+    "tags": [
+      "Admin"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Greta",
+    "email": "greta@example.org",
+    "age": 22,
+    "active": true,
+    "address": {
+      "country": "DE"
+    },
+    "tags": [
+      "dev"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Hugo",
+    "email": "hugo@example.com",
+    "age": 50,
+    "active": true,
+    "address": {
+      "city": "Berlin",
+      "country": "DE"
+    },
+    "tags": [
+      "ops",
+      "dev"
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "env": "staging",
+  "services": {
+    "api": {
+      "enabled": true,
+      "protocol": "https",
+      "host": "api.example.com",
+      "port": 8443
+    },
+    "web": {
+      "enabled": true,
+      "protocol": "http",
+      "host": "www.example.com"
+    },
+    "cache": {
+      "enabled": false,
+      "protocol": "redis",
+      "host": "cache.local",
+      "port": 6379
+    },
+    "auth": {
+      "enabled": true,
+      "protocol": "https",
+      "host": "auth.example.com",
+      "port": 443
+    },
+    "legacy": {
+      "protocol": "http",
+      "host": "old.example.com",
+      "port": 8080
+    }
+  }
+}

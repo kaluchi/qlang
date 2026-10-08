@@ -541,6 +541,7 @@
       The step that builds one is no value of this kind:
       ~(~(::Box[1 2]) | first | type | eq ::construct)
   ~~|
+  ::spec~()
 
 :construct
   |~~ The step of a constructor invocation, `::T<payload>`: it puts a
@@ -655,6 +656,7 @@
       ~(::any | manifest | has ::any/type)
       ~(5 | type | eq ::any | not)
   ~~|
+  ::spec~()
 
 :qlang/values
   |~~ Values. Everything qlang handles is a value, data, code, prose and
@@ -735,8 +737,8 @@
   |~~ Names. A name holds a value for the steps after it, the one way a
       query remembers: `:n v` declares it in the scope where it stands,
       and a verb and a kind are names alike. A name with a path declares
-      a node under the noun the path begins with, `:Box/area` under
-      `::Box`, and the tag of a name is its address, `::Box/area`. A
+      a node under the noun its path names before its last name,
+      `:Box/area` under `::Box`, and the tag of a name is its address, `::Box/area`. A
       name is a record, `::binding`, with its page, its source, its value
       and the source it came from, so where a thing was declared is read
       as data. The scope of a step is what the steps before it wrote; a

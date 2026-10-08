@@ -7,7 +7,7 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
 import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
-import { bindingValueOf, residenceOfVerb } from '../../src/types.mjs';
+import { bindingValueOf, keyword, makeBinding, residenceOfVerb } from '../../src/types.mjs';
 
 describe('the head of a verb as the tooling reads it', () => {
   it('labels the slots as the head writes them, the rest behind a star', async () => {
@@ -36,7 +36,7 @@ describe('the head of a verb as the tooling reads it', () => {
   it('shows a contract no verb answers for as it is', async () => {
     const env = new Map(await langRuntime());
     const lonelyContract = await evalQuery('::verb~()');
-    env.set('lonely', lonelyContract);
+    env.set('lonely', makeBinding({ name: keyword('lonely'), value: lonelyContract }));
     expect(verbShownFor(env, 'lonely')).toBe(lonelyContract);
   });
 });

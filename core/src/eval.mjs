@@ -3,7 +3,7 @@
 
 import { parse } from './parse.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, envSet, envGet
+  rootState, withPipeValue, withEnv, nestState, envSet
 } from './state.mjs';
 import { fork, forkEach } from './fork.mjs';
 import {
@@ -16,7 +16,7 @@ import {
   declareInvariantError,
   declareShapeError
 } from './errors.mjs';
-import { nearestNames } from './nearest-names.mjs';
+import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
@@ -24,7 +24,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, resideVerbOn,
+  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, resideVerbOn, makeVerb,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -32,10 +32,10 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressedVerb, addressesOf, isRootBinding, nodeOf, residenceOnSubject, residencesOf, splitAddress
+  addressesOf, bareNameReach, nodeOf, residenceOnSubject, residencesOf, rootOf, splitAddress
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, takesFullApplication
+  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication
 } from './runtime/verb.mjs';
 import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import {
@@ -80,6 +80,12 @@ const TaggedLitTagNotKindError = declareShapeError('TaggedLitTagNotKindError',
 // The combinator names its qlang kind, `distribute`, in the message
 // and in the `:operand` its site records.
 const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
+// A verb declared under a kind serves that kind, so its head names no
+// subject of its own [D153].
+const BindVerbSubjectUnderKindError = declareShapeError('BindVerbSubjectUnderKindError',
+  ({ name }) => `${name} is declared under a kind, its subject, and its head names a subject of its own`,
+  { operand: '::bind' }
+);
 const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { operand: '::call', expectedType: 'function' }
@@ -377,11 +383,12 @@ async function evalBareTypeKeyword(node, state) {
 // its own name [D44], [D67]. A name is declared once in its scope [D71],
 // and an address the root holds once at all: a reader extends a noun of
 // the root and replaces none of its nodes [D153]. A verb declared under a
-// noun, `:vec/count`, resides on it [D72].
+// kind, `:vec/count`, resides on it, its head naming no subject [D72]; one
+// under a noun that is no kind serves any value.
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
-  if (repeatsDeclarationInScope(node) || (nounName !== null && isRootBinding(state.env, name))) {
+  if (repeatsDeclarationInScope(node) || (nounName !== null && rootOf(state.env).has(name))) {
     throw new BindNameDeclaredTwiceError({ name });
   }
 
@@ -392,12 +399,17 @@ async function evalBindStep(node, state) {
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
   const writtenQuote = node.body.type === 'QuoteLit';
-  const value = writtenQuote ? quoteInEnv(answered, null) : answered;
+  const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
+  // A verb a body computed is another declaration's value, so the noun
+  // takes a verb of its own over the same code and scope.
+  const value = writtenQuote ? quoteInEnv(answered, null)
+    : isVerb(answered) && !writtenVerb && nounName !== null ? makeVerb(answered.payload, { env: verbEnvRef(answered).env })
+    : answered;
+  const underKind = nounName !== null && isVerb(value) && isSpec(bindingValueOf(nodeOf(state.env, nounName)));
+  if (underKind && namesItsSubject(value)) throw new BindVerbSubjectUnderKindError({ name });
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
-  if (isVerb(value) && node.body.type === 'TaggedLit') {
-    verbEnvRef(value).env = nextEnv;
-    if (nounName !== null) resideVerbOn(value, nounName);
-  }
+  if (writtenVerb) verbEnvRef(value).env = nextEnv;
+  if (underKind) resideVerbOn(value, nounName);
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
 }
@@ -489,20 +501,19 @@ async function evalOperandCall(node, state) {
   return await callByName(node.name, node.args.map(argNode => makeLambda(argNode, state)), state);
 }
 
-// A bare name resolves nearest first [D62]: the reader's declaration, then
-// the verb declared under a kind the walk of the subject's tags reaches
-// [D72], then the root's declaration, and last the one verb of the name
-// declared under a kind, whose head refuses the subject at its place.
+// A bare name calls what it reaches for the subject [D62], [D153]; a
+// name that reaches nothing is refused with the names near it and the
+// addresses where verbs of it live.
 async function callByName(lookupName, lambdas, state) {
-  const lookupEnv = state.env;
-  const entry = envGet(lookupEnv, lookupName);
-  if (entry !== undefined && !isRootBinding(lookupEnv, lookupName)) return await applyBinding(entry, lookupName, lambdas, state);
-  const residence = residenceOnSubject(lookupEnv, lookupName, state.pipeValue);
-  if (residence !== null) return await callResidence(bindingValueOf(residence), lookupName, lambdas, state);
-  if (entry !== undefined) return await applyBinding(entry, lookupName, lambdas, state);
-  const residences = residencesOf(lookupEnv, lookupName);
-  if (residences.length === 1) return await callResidence(bindingValueOf(residences[0][1]), lookupName, lambdas, state);
-  throw new UnresolvedIdentifierError({ identifierName: lookupName, nearest: nearestNames(lookupEnv, lookupName) });
+  const reach = bareNameReach(state.env, lookupName, state.pipeValue);
+  if (reach === null) {
+    throw new UnresolvedIdentifierError({
+      identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
+    });
+  }
+  return reach.underKind
+    ? await callResidence(bindingValueOf(reach.record), lookupName, lambdas, state)
+    : await applyBinding(reach.record, lookupName, lambdas, state);
 }
 
 // A call with one modifier more than the slots of its verb reads the
@@ -540,15 +551,17 @@ async function applyBinding(entry, lookupName, lambdas, state) {
   return withPipeValue(state, resolved);
 }
 
-// A name with a path calls the verb its address names, past every bare
-// name of the scope, so a verb a declaration shadows stays one address
-// away [D62]: `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of
-// vectors whatever the scope binds as `filter`.
+// A name with a path reads what its address declared, past every bare
+// name of the scope, a verb run and any other value itself, so a verb a
+// declaration shadows stays one address away [D62], [D153]:
+// `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of vectors whatever
+// the scope binds as `filter`.
 async function callByAddress(node, state) {
-  const address = addressedVerb(state.env, node.name);
-  if (address === null) throw new UnresolvedAddressError({ address: makeTagKeyword(node.name) });
-  const lambdas = node.args.map(argNode => makeLambda(argNode, state));
-  return await applyVerb(address.descriptor, lambdas, state, address.verbName);
+  const record = nodeOf(state.env, node.name);
+  if (record === null) {
+    throw new UnresolvedAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
+  }
+  return await applyBinding(record, splitAddress(node.name)[1], node.args.map(argNode => makeLambda(argNode, state)), state);
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run
@@ -587,11 +600,8 @@ export function resolveBinaryReducer(reducerLambda) {
   const astNode = reducerLambda.astNode;
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
-  const scoped = envGet(callerState.env, lookupName);
-  const namesAVerb = scoped !== undefined && !isRootBinding(callerState.env, lookupName)
-    ? isVerb(bindingValueOf(scoped))
-    : residencesOf(callerState.env, lookupName).length > 0 || addressedVerb(callerState.env, `any/${lookupName}`) !== null
-      || isVerb(bindingValueOf(scoped));
+  const reach = bareNameReach(callerState.env, lookupName);
+  const namesAVerb = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : isVerb(bindingValueOf(reach.record));
   if (!namesAVerb) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;

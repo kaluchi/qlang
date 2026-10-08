@@ -1387,7 +1387,8 @@ tag leads to the site's procedure. A nested evaluation that fails yields
 its error as a value, and every operand treats that value by one rule.
 
 A name is declared by its keyword, and a name with a path declares a
-node under the noun the path begins with, whose address its tag is
+node under the noun its path names before its last name, whose
+address its tag is
 [D152], [D153]. The root is the scope a host's sources declare as cells
 before a reader's first step, the language's first, and a source, a
 cell and a query are written alike; a namespace too large to declare,

@@ -21,6 +21,7 @@
 // `::map | doc :minus` the page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
+import { envGet } from '../state.mjs';
 import {
   isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, makeSet, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
@@ -106,7 +107,7 @@ function nearestOfSubject(env, subject) {
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
   if (isKeyword(subject)) {
-    const entry = env.get(subject.name);
+    const entry = envGet(env, subject.name);
     return isBinding(entry) ? entry : null;
   }
   return nodeOf(env, isTagKeyword(subject) ? subject.name : typeKeyword(subject).name);

@@ -339,9 +339,10 @@ describe('env output is parseable', () => {
 
   it('host-bound raw JS function in env renders as a parseable host-marker string', async () => {
     // An embedder installs a function value under `session.bind`.
-    const env = new Map(await langRuntime());
-    env.set('myHostFn', async function helloFn() { return 42; });
-    const printed = printValue(env);
+    const { createSession } = await import('../../src/session.mjs');
+    const session = await createSession();
+    session.bind('myHostFn', async function helloFn() { return 42; });
+    const printed = printValue((await session.evalCell('env')).result);
     expect(printed).toContain('"<host-fn helloFn>"');
     expect(() => parse(printed, { uri: 'host-fn-round-trip' })).not.toThrow();
   });

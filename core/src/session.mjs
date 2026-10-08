@@ -6,7 +6,6 @@ import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { isBinding, keyword, makeBinding } from './types.mjs';
-import { isRuntimeKey } from './env-keys.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declareRoot } from './runtime/root.mjs';
 
@@ -58,11 +57,9 @@ export async function createSession(opts = {}) {
     },
 
     // A host binds a value as a binding without a doc [D63], a record
-    // as the binding it is, and a key of the runtime's own as it lies.
+    // as the binding it is.
     bind(name, value) {
-      env = new Map(env).set(name, isRuntimeKey(name) || isBinding(value)
-        ? value
-        : makeBinding({ name: keyword(name), value }));
+      env = new Map(env).set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));
     },
 
     get env() { return env; }

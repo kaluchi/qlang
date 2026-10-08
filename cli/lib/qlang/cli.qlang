@@ -40,7 +40,7 @@
       nothing piped answers the empty string. It heads a query that reads
       the text as it came: ::snippet~(@in | lines | count) counts the
       lines piped in. ~~|
-  ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/@in})
+  ::verb~(:returns ::string | ::builtin{})
 
 :any/@out
   |~~ Writes a line to stdout and answers its subject as it came: the
@@ -48,7 +48,7 @@
       computes from it, `42 | @out json`, the steps after still reading
       `42`. A query that writes by `@out` leaves its answer unwritten.
       ::snippet~([1 2] | @out json | count) writes `[1,2]`. ~~|
-  ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@out})
+  ::verb~(:text #[::string ::null] | ::builtin{})
 
 :any/OutSubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
@@ -67,7 +67,7 @@
       is written as ever.
       ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
       stderr and answers 3. ~~|
-  ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@err})
+  ::verb~(:text #[::string ::null] | ::builtin{})
 
 :any/ErrSubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
@@ -85,7 +85,7 @@
       answers the subject, a look at a value halfway through a query:
       ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
       shows both vectors and answers 1. ~~|
-  ::verb~(:subject ::any | :label ::keyword | ::builtin{:impl :qlang/cli/@tap})
+  ::verb~(:label ::keyword | ::builtin{})
 
 :any/TapLabelNotKeywordError
   |~~ The label of `@tap` is a keyword, `@tap :before`, written before
@@ -105,7 +105,7 @@
       ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
       ~([] | table | eq "(empty)")
   ~~|
-  ::verb~(:subject ::vec | :returns ::string | ::builtin{:impl :qlang/cli/table})
+  ::verb~(:returns ::string | ::builtin{})
 
 :vec/TableSubjectNotVecError
   |~~ `table` draws a vector of maps, a row each; a single map goes in a

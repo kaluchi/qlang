@@ -13,9 +13,12 @@
 // writes without copying.
 //
 // The env is a JS Map whose keys are plain strings (identifier
-// names). Identifier lookup passes the name string directly.
+// names), the frame a reader writes, over the root the host's sources
+// declared, which sits under a symbol of its own and is shared by every
+// frame [D153]; a lookup reads the frame, then the root.
 
 import { EvaluationDepthExceededError } from './errors.mjs';
+import { ROOT_KEY } from './env-keys.mjs';
 
 // EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
 // that calls itself without a base case, a Quote that applies
@@ -56,14 +59,15 @@ export function nestState(state, pipeValue, env) {
   return makeState(pipeValue, env, depth);
 }
 
-// envGet(env, name) → value or undefined
+// envGet(env, name) → the value the frame holds under a name, else the
+// root's, or undefined
 export function envGet(env, name) {
-  return env.get(name);
+  return env.has(name) ? env.get(name) : env.get(ROOT_KEY)?.get(name);
 }
 
 // envHas(env, name) → boolean
 export function envHas(env, name) {
-  return env.has(name);
+  return env.has(name) || env.get(ROOT_KEY)?.has(name) === true;
 }
 
 // envSet(env, name, value) → new env Map

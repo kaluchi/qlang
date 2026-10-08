@@ -15,3 +15,9 @@
 {"name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ::verb~(mul h)) | env | has :h","expect":"false","decision":"D153"}
 {"name":"use-left-the-language","query":"{:x 1} | use !| type","expect":"::call/UnresolvedIdentifierError","decision":"D153"}
 {"name":"the-effect-marker-sits-on-the-last-name","query":":any/@x ::verb~(1) | 5 | @x","expect":"1","decision":["D69","D153"]}
+{"name":"a-verb-a-body-computes-under-a-kind-serves-the-kind","query":":Box ::spec~() | :Box/h (::verb~(type)) | 5 | h","expect":"::Box","decision":"D153"}
+{"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | [vec (env | /vec | /value) (::vec[1] | eq [1]) ([1] | doc | type)]","expect":"[5 5 true ::doc]","decision":["D62","D153"]}
+{"name":"a-verb-under-a-kind-names-no-subject","query":":Box ::spec~() | :Box/area ::verb~(:subject ::map | 1) !| type","expect":"::bind/BindVerbSubjectUnderKindError","decision":"D153"}
+{"name":"a-verb-under-a-topic-serves-any-value","query":":t/h ::verb~(type) | 5 | t/h","expect":"::number","decision":"D153"}
+{"name":"an-address-reads-a-value","query":":Box/side 3 | Box/side","expect":"3","decision":"D153"}
+{"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box ::spec~() | :Circle ::spec~() | :Box/area ::verb~(1) | :Circle/area ::verb~(2) | 5 | area !| /addresses","expect":"#[::Box/area ::Circle/area]","decision":"D153"}

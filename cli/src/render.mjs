@@ -30,7 +30,7 @@
 // REPL mode has its own renderer inline in repl.mjs — the per-cell
 // auto-print there stays qlang-native (print + ANSI).
 
-import { isErrorValue, printAnswer, langRuntime } from '@kaluchi/qlang-core';
+import { isErrorValue, printAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
@@ -41,7 +41,7 @@ import { highlightAnsi } from './highlight-ansi.mjs';
 let _builtinNamesPromise = null;
 async function getBuiltinNames() {
   if (_builtinNamesPromise === null) {
-    _builtinNamesPromise = langRuntime().then(env => new Set(env.keys()));
+    _builtinNamesPromise = langRuntime().then(env => verbNames(env));
   }
   return _builtinNamesPromise;
 }

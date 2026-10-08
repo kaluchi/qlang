@@ -134,6 +134,16 @@ describe('the sources a host hands [D153]', () => {
     expect((await sessionInstance.evalCell('::number/less | binding | /origin')).result).toEqual(keyword('tests/host'));
   });
 
+  it('runs a host verb whose builtin step names no primitive by the implementation handed for it', async () => {
+    const sessionInstance = await createSession({ sources: [{
+      uri: 'tests/handed',
+      source: ':any/twice ::verb~(:by ::number | ::builtin{})',
+      impls: { 'any/twice': (subject, by) => subject * by }
+    }] });
+    expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('number/NumberPayloadNotNumberError'));
+  });
+
   it('calls a verb a source declares under no noun by its name, last of all', async () => {
     const { verbShownFor } = await import('../../src/runtime/verb.mjs');
     const sessionInstance = await createSession({ sources: [{
@@ -152,9 +162,18 @@ describe('the sources a host hands [D153]', () => {
       .rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
   });
 
-  it('refuses a source that declares a name the root holds', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/twice', source: ':vec |~~ again ~~|' }] }))
-      .rejects.toMatchObject({ name: 'BindNameDeclaredTwiceError' });
+  it('refuses a source that declares a name the root holds, bare or with a path, by one refusal', async () => {
+    for (const source of [':vec |~~ again ~~|', ':vec/count ::verb~(0)']) {
+      await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/BindNameDeclaredTwiceError' } });
+    }
+  });
+
+  it('refuses a source that declares a refusal of the root under another address', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError ::spec~()' }] }))
+      .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
+    expect((await (await createSession()).evalCell('"a" | add 1 !| type')).result)
+      .toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
   });
 
   it('refuses a source whose run answers an error', async () => {

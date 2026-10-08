@@ -67,7 +67,8 @@
 
 :call/UnresolvedIdentifierError
   |~~ No name of the scope and no verb of the kinds of the subject
-      answers the name. `:identifierName` holds the name as typed, and
+      answers the name. `:identifierName` holds the name as typed,
+      `:addresses` where verbs of that name live under other kinds, and
       `:nearest` the names it was likely meant to be: those
       within an edit distance of a third of its length, one at least,
       and of those the nearest alone, in the order of their spelling.
@@ -87,9 +88,10 @@
   ::spec~()
 
 :call/UnresolvedAddressError
-  |~~ A name with a path names no verb: no verb of its last name
-      lives on the noun of its path. `:address` holds the address as
-      a tag name, written short, which the axes read.
+  |~~ A name with a path names nothing: no declaration wrote that
+      address. `:address` holds the address as a tag name, which the
+      axes read, and `:nearest` the addresses it was likely meant to
+      be. An address that names a value reads it, as a bare name does.
       ::link~(::call | doc)
 
       ~(
@@ -97,6 +99,8 @@
         !| [type /address]
         |  eq [::call/UnresolvedAddressError ::vec/nothing]
        )
+      ~([1] | vec/countt !| /nearest | has ::vec/count)
+      ~(:Box/side 3 | Box/side | eq 3)
   ~~|
   ::spec~()
 

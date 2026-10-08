@@ -37,7 +37,8 @@ import {
   printAnswer,
   elideAnswer,
   isErrorValue,
-  langRuntime
+  langRuntime,
+  verbNames
 } from '@kaluchi/qlang-core';
 import { cliSources } from './cli-sources.mjs';
 import { DEFAULT_SUBJECT } from './script-mode.mjs';
@@ -80,9 +81,7 @@ session.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null } = {}) {
-  const builtinNames = new Set(
-    [...(await langRuntime()).keys()]
-  );
+  const builtinNames = verbNames(await langRuntime());
 
   // In raw-mode TTY the terminal does not translate `\n` into CRLF
   // — a bare LF moves the cursor down without resetting the

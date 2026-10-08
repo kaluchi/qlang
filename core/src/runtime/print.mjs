@@ -7,7 +7,7 @@ import { isVerb, isErrorValue, bindingValueOf, TAG_HEADER_SYMBOL } from '../type
 import { elide } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
-import { addressedVerb, residenceOnSubject } from './nouns.mjs';
+import { nodeOf, residenceOnSubject } from './nouns.mjs';
 import { applyVerbOn } from './verb.mjs';
 
 // printAnswer(value, env, state?) → the print of a value: a part under a
@@ -15,7 +15,7 @@ import { applyVerbOn } from './verb.mjs';
 // forms of the core print the rest.
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printedByKind = new Map();
-  await collectPrintsOfKinds(value, env, state, addressedVerb(env, 'any/print')?.descriptor, printedByKind);
+  await collectPrintsOfKinds(value, env, state, bindingValueOf(nodeOf(env, 'any/print')), printedByKind);
   return printValue(value, 0, part => printedByKind.get(part));
 }
 

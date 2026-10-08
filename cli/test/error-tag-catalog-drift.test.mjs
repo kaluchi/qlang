@@ -14,7 +14,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
-import { evalQuery } from '@kaluchi/qlang-core';
+import { evalQuery, nodeAddresses, nodeOf } from '@kaluchi/qlang-core';
 import { cliSources } from '../src/cli-sources.mjs';
 import '../src/io-operands.mjs';
 import '../src/format-operands.mjs';
@@ -44,9 +44,9 @@ const session = await createSession({
 // The refusals the source of the command line declares, by the last
 // name of each address, `TableRowNotMapError` for `vec/TableRowNotMapError`.
 const refusalAddresses = new Map();
-for (const [address, record] of session.env) {
+for (const address of nodeAddresses(session.env)) {
   const lastName = address.slice(address.lastIndexOf('/') + 1);
-  if (record.get?.('origin')?.name === 'cli' && lastName.endsWith('Error')) refusalAddresses.set(lastName, address);
+  if (nodeOf(session.env, address).get('origin')?.name === 'cli' && lastName.endsWith('Error')) refusalAddresses.set(lastName, address);
 }
 const ask = async query => (await session.evalCell(query)).result;
 

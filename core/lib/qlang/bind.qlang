@@ -43,6 +43,21 @@
   ~~|
   ::spec~()
 
+:bind/BindVerbSubjectUnderKindError
+  |~~ A verb declared under a kind serves that kind: the kind is its
+      subject, and its head names none of its own. A verb under a noun
+      that is no kind, a topic, serves any value.
+      ::link~(::bind | doc)
+
+      ~(
+        :Box ::spec~() | :Box/area ::verb~(:subject ::map | 1)
+        !| [type /name]
+        |  eq [::bind/BindVerbSubjectUnderKindError :Box/area]
+       )
+      ~(:t/h ::verb~(type) | 5 | t/h | eq ::number)
+  ~~|
+  ::spec~()
+
 :bind/BindNameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline
       that the pipe or the fail track joins share one env, and a

@@ -316,12 +316,12 @@ export const UnresolvedIdentifierError = declarePerSiteError(
   { operand: '::call' }
 );
 
-// UnresolvedAddressError — a name with a path names no verb that lives
-// on the noun of its path [D62]. `context.address` is the address as a
-// tag name, written short.
+// UnresolvedAddressError — a name with a path that no declaration names
+// [D62], [D153]. `context.address` is the address as a tag name, and
+// `context.nearest` the addresses it was likely meant to be.
 export const UnresolvedAddressError = declarePerSiteError(
   'UnresolvedAddressError', 'unresolvedIdentifier',
-  ({ address }) => `no verb lives at the address ${address.literal}`,
+  ({ address }) => `no name is declared at the address ${address.literal}`,
   { operand: '::call' }
 );
 

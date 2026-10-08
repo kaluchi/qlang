@@ -1,19 +1,19 @@
 |~ What is declared under `::each`, the step `*` runs on each
    element: its refusals. ~|
 
-:each/EachPayloadNotQuoteError
+:each/PayloadNotQuoteError
   |~~ The payload of ::each is the quote of its body.
       ::link~(::each | doc)
 
       ~(
         42 | tag ::each
         !| [type /actualType]
-        |  eq [::each/EachPayloadNotQuoteError ::number]
+        |  eq [::each/PayloadNotQuoteError ::number]
        )
   ~~|
   ::spec~()
 
-:each/EachReadBackDiffersError
+:each/ReadBackDiffersError
   |~~ The ::each prints as text that reads back as another step, or
       as none: a body holds at least one step.
       ::link~(::each | doc)
@@ -21,12 +21,12 @@
       ~(
         ~() | tag ::each
         !| [type /printed]
-        |  eq [::each/EachReadBackDiffersError "* ()"]
+        |  eq [::each/ReadBackDiffersError "* ()"]
        )
   ~~|
   ::spec~()
 
-:each/DistributeSubjectNotSequenceError
+:each/SubjectNotContainerError
   |~~ `*` runs its step on each element of a vector or a set, or on each
       value of a map; a value of another kind has no elements, and `|`
       runs a step on it whole.
@@ -35,7 +35,7 @@
       ~(
         42 * add 1
         !| [type /actualType]
-        |  eq [::each/DistributeSubjectNotSequenceError ::number]
+        |  eq [::each/SubjectNotContainerError ::number]
        )
   ~~|
   ::spec~()

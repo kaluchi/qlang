@@ -5,7 +5,7 @@
    says, and a call whose subject no kind of its walk serves reaches it
    and is refused with `:addresses`, where the verbs of the name live. ~|
 
-:any/ToPlainUnencodableValueError
+:any/JsonValueNotEncodableError
   |~~ JSON has no form for a value a host installed that is none of the
       kinds of qlang; a function a host bound is written as
       `<host-fn name>`, and any other such value is refused, so the query
@@ -231,7 +231,7 @@
       ~(
         [{:a true}] | filter /a
         !| [type /actualType]
-        |  eq [::any/FilterPredicateNotQuoteError ::proj/ProjectionSequenceKeyNotIntegerError]
+        |  eq [::any/FilterPredicateNotQuoteError ::proj/IndexNotIntegerError]
        )
   ~~|
   ::spec~()
@@ -422,8 +422,8 @@
       A key that answers an error answers the call, a place of a vector it
       answers among them, so a key that misses its field is refused where
       it is read:
-      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/ProjectionKeyNotInMapError)
-      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/ProjectionKeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
       A map sorts its entries by their values and keeps the keys:
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
@@ -1231,19 +1231,19 @@
   ~~|
   ::spec~()
 
-:any/TagBareSubjectShapeError
+:any/TagSubjectNotPairError
   |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
       value it goes over; a subject of another shape is refused, and
       `:actualLength` counts a vector of another length.
       ~(
         42 | tag
         !| [type /actualType]
-        |  eq [::any/TagBareSubjectShapeError ::number]
+        |  eq [::any/TagSubjectNotPairError ::number]
        )
       ~(
         [::Foo 1 2] | tag
         !| [type /actualLength]
-        |  eq [::any/TagBareSubjectShapeError 3]
+        |  eq [::any/TagSubjectNotPairError 3]
        )
   ~~|
   ::spec~()

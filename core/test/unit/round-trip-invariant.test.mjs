@@ -111,7 +111,7 @@ describe('round-trip invariant — Error', () => {
     '!{:kind :oops}',
     '!{:kind :oops :message "boom"}',
     '!{:kind :oops :context {:request "r-1"}}',
-    '::construct/TaggedLitTagNotKindError!{:tag :Foo :actualType ::number}',
+    '::construct/TagNotKindError!{:tag :Foo :actualType ::number}',
     '::number/AddLeftNotNumberError!{:operand :add :position 1 :expectedType :number :actualType ::string}'
   ]) {
     it(`error literal: ${src}`, () => pinRoundTrip(src));
@@ -367,13 +367,13 @@ describe('env output is parseable', () => {
 // ── toPlain unencodable shapes ───────────────────────────────
 
 describe('toPlain refuses unencodable values', async () => {
-  const { toPlain, ToPlainUnencodableValueError } = await import('../../src/runtime/format.mjs');
+  const { toPlain, JsonValueNotEncodableError } = await import('../../src/runtime/format.mjs');
 
-  it('throws ToPlainUnencodableValueError on a raw foreign object', () => {
+  it('throws JsonValueNotEncodableError on a raw foreign object', () => {
     // A JS Date isn't a qlang value-class and isn't a function —
     // the lossy plain-JSON encoder refuses rather than silently
     // emitting `"[object Date]"`.
-    expect(() => toPlain(new Date())).toThrow(ToPlainUnencodableValueError);
+    expect(() => toPlain(new Date())).toThrow(JsonValueNotEncodableError);
   });
 
   it('error context carries the offending value\'s typeof for diagnosis', () => {

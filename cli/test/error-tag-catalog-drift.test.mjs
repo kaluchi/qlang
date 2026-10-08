@@ -23,9 +23,9 @@ import '../src/script-mode.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(here, '..', 'src');
 
-// Every form that puts a name in the throw-site registry opens with
-// the class name as a string literal.
-const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9]+)'/g;
+// Every form that puts a refusal in the throw-site registry opens with
+// its address as a string literal [D158].
+const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9@/]+)'/g;
 
 const throwSites = new Map();
 for (const fileName of readdirSync(srcDir).filter(f => f.endsWith('.mjs'))) {
@@ -41,30 +41,28 @@ const session = await createSession({
     stderrWrite: () => {}
   })
 });
-// The refusals the source of the command line declares, by the last
-// name of each address, `TableRowNotMapError` for `vec/TableRowNotMapError`.
-const refusalAddresses = new Map();
+// The refusals the source of the command line declares, by address.
+const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
-  const lastName = address.slice(address.lastIndexOf('/') + 1);
-  if (nodeOf(session.env, address).get('origin')?.name === 'cli' && lastName.endsWith('Error')) refusalAddresses.set(lastName, address);
+  if (nodeOf(session.env, address).get('origin')?.name === 'cli' && address.endsWith('Error')) refusalAddresses.add(address);
 }
 const ask = async query => (await session.evalCell(query)).result;
 
 describe('CLI host operands — every throw site has its kind in the source of the command line', () => {
-  for (const [className, file] of throwSites) {
-    it(`${className} is declared under the noun of its place`, async () => {
-      expect(refusalAddresses.has(className),
-        `${file} throws ${className} and the source of the command line declares no kind of it`
+  for (const [address, file] of throwSites) {
+    it(`${address} is declared under the noun of its place`, async () => {
+      expect(refusalAddresses.has(address),
+        `${file} throws ${address} and the source of the command line declares no kind of it`
       ).toBe(true);
-      expect(await ask(`::${refusalAddresses.get(className)} | spec | type`)).toEqual(await evalQuery('::spec'));
+      expect(await ask(`::${address} | spec | type`)).toEqual(await evalQuery('::spec'));
     });
   }
 });
 
 describe('CLI host operands — every refusal the source declares has a throw site', () => {
-  for (const [className, address] of refusalAddresses) {
+  for (const address of refusalAddresses) {
     it(`${address} is raised somewhere under cli/src`, () => {
-      expect(throwSites.has(className),
+      expect(throwSites.has(address),
         `the source of the command line declares ${address} with no throw site under cli/src`
       ).toBe(true);
     });

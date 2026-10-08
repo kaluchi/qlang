@@ -14,15 +14,15 @@
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]","decision":"D41"}
 {"name":"append-reruns-the-constructor-of-its-tag","query":":P ::spec~(/) | ::P[1 2] | append 3 | type","expect":"::P","decision":"D41"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box(\"ab\") | append \"c\"","expect":"::Box\"abc\"","decision":["D34","D41"]}
-{"name":"a-verb-run-as-the-code-of-if-is-named-by-its-slot","query":"5 | if true ::verb~(:x ::number | add x) ~(0) !| [type /verbName]","expect":"[::verb/VerbSlotMissingError :then]","decision":["D67","D77"]}
-{"name":"a-verb-applied-as-code-is-named-by-its-slot","query":"5 | apply ::verb~(:x ::number | add x) !| [type /verbName]","expect":"[::verb/VerbSlotMissingError :code]","decision":["D67","D78"]}
-{"name":"a-vector-beside-another-operand-is-refused-with-the-pair","query":"[1] | union #[2] !| [type /leftType /rightType]","expect":"[::vec/UnionPairIncompatibleError ::vec ::set]","decision":["D16","D74"]}
+{"name":"a-verb-run-as-the-code-of-if-is-named-by-its-slot","query":"5 | if true ::verb~(:x ::number | add x) ~(0) !| [type /verbName]","expect":"[::verb/SlotMissingError :then]","decision":["D67","D77"]}
+{"name":"a-verb-applied-as-code-is-named-by-its-slot","query":"5 | apply ::verb~(:x ::number | add x) !| [type /verbName]","expect":"[::verb/SlotMissingError :code]","decision":["D67","D78"]}
+{"name":"a-vector-beside-another-operand-is-refused-with-the-pair","query":"[1] | union #[2] !| [type /leftType /rightType]","expect":"[::vec/UnionOperandsMismatchedError ::vec ::set]","decision":["D16","D74"]}
 {"name":"the-contract-of-union-names-its-residences","query":"42 | union !| /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]","decision":["D34","D67","D74"]}
-{"name":"a-set-refuses-another-operand-of-another-kind","query":"#[1] | union [2] !| [type /slot]","expect":"[::verb/VerbSlotNotOfKindsError :with]","decision":"D74"}
-{"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::verb/VerbSlotMissingError","decision":"D74"}
+{"name":"a-set-refuses-another-operand-of-another-kind","query":"#[1] | union [2] !| [type /slot]","expect":"[::verb/SlotNotOfKindsError :with]","decision":"D74"}
+{"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::verb/SlotMissingError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
-{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::set/SetPayloadNotVecError]","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
-{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::map/MapPayloadNotMapError ::map/MapElementNotPairError ::map/MapKeyNotKeywordError ::map/AtKeyNotKeywordOrStringError]","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::verb/VerbSlotNotOfKindsError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | spec | /throws | filter ~(eq ::vec/VecPayloadNotVecError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
+{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::set/PayloadNotVecError]","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::map/PayloadNotMapError ::map/ElementNotPairError ::map/KeyNotKeywordError ::map/AtKeyNotKeywordOrStringError]","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::verb/SlotNotOfKindsError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | spec | /throws | filter ~(eq ::vec/PayloadNotVecError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}

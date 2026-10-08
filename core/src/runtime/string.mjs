@@ -16,23 +16,23 @@ import { bindPrim } from '../primitives.mjs';
 // The refusals the heads raise at the places they declare; the prefix
 // and the suffix are the string's alone, a vector taking any element
 // [D73].
-declareModifierError('PrependPrefixNotStringError',     '::string/prepend', 2, 'string');
-declareModifierError('AppendSuffixNotStringError',      '::string/append',  2, 'string');
-declareModifierError('SplitSubjectNotStringError',      'split',      1, 'string');
-declareModifierError('SplitSeparatorNotStringError',    'split',      2, 'string');
-declareSubjectError('LinesSubjectNotStringError',       'lines',      'string');
-declareSubjectError('LowerSubjectNotStringError',       'lower',      'string');
-declareSubjectError('UpperSubjectNotStringError',       'upper',      'string');
-declareSubjectError('TrimSubjectNotStringError',        'trim',       'string');
-declareSubjectError('JoinSubjectNotVecError',           'join',       'vec');
-declareModifierError('JoinSeparatorNotStringError',     'join',       2, 'string');
-declareModifierError('ContainsSubjectNotStringError',   'contains',   1, 'string');
-declareModifierError('ContainsNeedleNotStringError',    'contains',   2, 'string');
-declareModifierError('StartsWithSubjectNotStringError', 'startsWith', 1, 'string');
-declareModifierError('StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
-declareModifierError('EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
-declareModifierError('EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
-const JoinElementNotStringError = declareElementError('JoinElementNotStringError', 'join', 'string');
+declareModifierError('string/PrependPrefixNotStringError',     '::string/prepend', 2, 'string');
+declareModifierError('string/AppendSuffixNotStringError',      '::string/append',  2, 'string');
+declareModifierError('string/SplitSubjectNotStringError',      'split',      1, 'string');
+declareModifierError('string/SplitSeparatorNotStringError',    'split',      2, 'string');
+declareSubjectError('string/LinesSubjectNotStringError',       'lines',      'string');
+declareSubjectError('string/LowerSubjectNotStringError',       'lower',      'string');
+declareSubjectError('string/UpperSubjectNotStringError',       'upper',      'string');
+declareSubjectError('string/TrimSubjectNotStringError',        'trim',       'string');
+declareSubjectError('vec/JoinSubjectNotVecError',           'join',       'vec');
+declareModifierError('vec/JoinSeparatorNotStringError',     'join',       2, 'string');
+declareModifierError('string/ContainsSubjectNotStringError',   'contains',   1, 'string');
+declareModifierError('string/ContainsNeedleNotStringError',    'contains',   2, 'string');
+declareModifierError('string/StartsWithSubjectNotStringError', 'startsWith', 1, 'string');
+declareModifierError('string/StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
+declareModifierError('string/EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
+declareModifierError('string/EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
+const JoinElementNotStringError = declareElementError('vec/JoinElementNotStringError', 'join', 'string');
 
 // A string takes its prefix or its suffix, a vector its element at the
 // head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.

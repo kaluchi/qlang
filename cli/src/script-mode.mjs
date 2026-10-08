@@ -49,7 +49,7 @@ const JSON_PRETTY_INDENT = 2;
 // name, as `json` writes it [D148].
 // The refusal is minted as a value where the answer is written, so its
 // site records its facts without a factory.
-recordThrowSiteSpec('AnswerNotJsonError', 'typeError', { operand: '::cli' });
+recordThrowSiteSpec('cli/AnswerNotJsonError', 'typeError', { operand: '::cli' });
 
 const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
 
@@ -74,7 +74,7 @@ function firstNotJson(value, path) {
 function answerForJson(value) {
   const notJson = firstNotJson(value, []);
   if (notJson === null || isErrorValue(notJson.value)) return notJson?.value ?? value;
-  return makeErrorValue(makeTagKeyword('AnswerNotJsonError'),
+  return makeErrorValue(makeTagKeyword('cli/AnswerNotJsonError'),
     new Map([['path', notJson.path], ['actualType', typeKeyword(notJson.value)]]));
 }
 
@@ -126,7 +126,7 @@ function liftParsedDocument(parsed, resolvedFormat) {
   try {
     return { pipeValue: fromPlain(parsed), resolvedFormat };
   } catch (codecRefusal) {
-    // `fromPlain` raises one class — `FromPlainNumberNotFiniteError`,
+    // `fromPlain` raises one class — `ParseJsonNumberNotFiniteError`,
     // carrying `:path` — so the caller reads that field directly.
     return { codecError: codecRefusal, resolvedFormat };
   }

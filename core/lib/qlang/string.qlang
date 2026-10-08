@@ -5,18 +5,18 @@
    `prepend` and `append`, under the contracts of their names on
    `::any`. ~|
 
-:string/StringPayloadNotStringError
+:string/PayloadNotStringError
   |~~ `::string` reads its payload as the string it is; a value of
       another kind becomes text by `print`.
       ~(
         ::string(1)
         !| [type /actualType]
-        |  eq [::string/StringPayloadNotStringError ::number]
+        |  eq [::string/PayloadNotStringError ::number]
        )
   ~~|
   ::spec~()
 
-:string/FromPlainNumberNotFiniteError
+:string/ParseJsonNumberNotFiniteError
   |~~ JSON carries no NaN and no infinity, yet `JSON.parse` reads a
       magnitude past the double range as one (`1e400` lifts to
       Infinity). The plain-JSON lift refuses it, so a piped document
@@ -25,7 +25,7 @@
       input, the command line's stdin among them, never from a qlang
       literal, which the parser refuses at its own site.
 
-      ~("1e400" | parseJson !| type | eq ::string/FromPlainNumberNotFiniteError)
+      ~("1e400" | parseJson !| type | eq ::string/ParseJsonNumberNotFiniteError)
   ~~|
   ::spec~()
 
@@ -356,11 +356,11 @@
   ~~|
   ::spec~()
 
-:string/ParseJsonInvalidJsonError
+:string/ParseJsonTextNotJsonError
   |~~ `parseJson` could not parse the subject as JSON. The message
       of the host's parser rides on `:message`.
 
-      ~("{not json" | parseJson !| type | eq ::string/ParseJsonInvalidJsonError)
+      ~("{not json" | parseJson !| type | eq ::string/ParseJsonTextNotJsonError)
   ~~|
   ::spec~()
 

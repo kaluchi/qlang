@@ -2,13 +2,13 @@
    constructor, the negation, and the two combinators of conditions,
    which take booleans. ~|
 
-:boolean/BooleanPayloadNotBooleanError
+:boolean/PayloadNotBooleanError
   |~~ `::boolean` reads its payload as the boolean it is; a payload of
       another kind is refused.
       ~(
         ::boolean(1)
         !| [type /actualType]
-        |  eq [::boolean/BooleanPayloadNotBooleanError ::number]
+        |  eq [::boolean/PayloadNotBooleanError ::number]
        )
   ~~|
   ::spec~()

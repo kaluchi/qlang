@@ -9,9 +9,9 @@ import { fork, forkEach } from './fork.mjs';
 import {
   QlangError,
   QlangInvariantError,
-  UnresolvedIdentifierError,
-  UnresolvedAddressError,
-  EffectLaunderingAtBindStepParseError,
+  UnknownNameError,
+  UnknownAddressError,
+  BindEffectMarkMissingError,
   BindNameDeclaredTwiceError,
   declareInvariantError,
   declareShapeError
@@ -44,52 +44,52 @@ import {
 // A node or a combinator the tables below do not name is a defect of the
 // evaluator, raised past the fail track.
 const UnknownAstNodeTypeError = declareInvariantError(
-  'UnknownAstNodeTypeError',
+  'builtin/UnknownAstNodeTypeError',
   ({ nodeType }) => `unknown AST node type: ${nodeType}`,
   { operand: '::builtin' }
 );
 
 const UnknownCombinatorKindError = declareInvariantError(
-  'UnknownCombinatorKindError',
+  'builtin/UnknownCombinatorKindError',
   ({ kind }) => `unknown combinator: ${kind}`,
   { operand: '::builtin' }
 );
 
-const ProjectionSubjectNotProjectableError = declareShapeError('ProjectionSubjectNotProjectableError',
+const SubjectNotProjectableError = declareShapeError('proj/SubjectNotProjectableError',
   ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`,
   { operand: '::proj' });
-const ProjectionKeyNotInMapError = declareShapeError('ProjectionKeyNotInMapError',
+const KeyNotInMapError = declareShapeError('proj/KeyNotInMapError',
   ({ key }) => `/${key} — key not present in Map subject`,
   { operand: '::proj' });
-const ProjectionIndexOutOfBoundsError = declareShapeError('ProjectionIndexOutOfBoundsError',
+const IndexOutOfBoundsError = declareShapeError('proj/IndexOutOfBoundsError',
   ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`,
   { operand: '::proj' });
-const ProjectionSequenceKeyNotIntegerError = declareShapeError('ProjectionSequenceKeyNotIntegerError',
+const IndexNotIntegerError = declareShapeError('proj/IndexNotIntegerError',
   ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`,
   { operand: '::proj' });
-const ProjectionFieldNotOnValueClassError = declareShapeError('ProjectionFieldNotOnValueClassError',
+const FieldNotInSignatureError = declareShapeError('proj/FieldNotInSignatureError',
   ({ key, valueClass, availableFields }) =>
     `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
   { operand: '::proj' });
 // A tag whose node is no kind, a verb or a page, builds no value [D152].
-const TaggedLitTagNotKindError = declareShapeError('TaggedLitTagNotKindError',
+const TagNotKindError = declareShapeError('construct/TagNotKindError',
   ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a kind, a ::spec, builds a value`,
   { operand: '::construct', expectedType: 'spec' }
 );
 // The combinator names its qlang kind, `distribute`, in the message
 // and in the `:operand` its site records.
-const DistributeSubjectNotSequenceError = declareSubjectError('DistributeSubjectNotSequenceError', 'distribute', ['vec', 'set', 'map']);
+const SubjectNotContainerError = declareSubjectError('each/SubjectNotContainerError', 'distribute', ['vec', 'set', 'map']);
 // A verb declared under a kind serves that kind, so its head names no
 // subject of its own [D153].
-const BindVerbSubjectUnderKindError = declareShapeError('BindVerbSubjectUnderKindError',
+const BindVerbSubjectUnderKindError = declareShapeError('bind/VerbSubjectUnderKindError',
   ({ name }) => `${name} is declared under a kind, its subject, and its head names a subject of its own`,
   { operand: '::bind' }
 );
-const BindNounNotDeclaredError = declareShapeError('BindNounNotDeclaredError',
+const BindNounNotDeclaredError = declareShapeError('bind/NounNotDeclaredError',
   ({ name, noun }) => `${name} is declared under ${noun.literal}, which no declaration names`,
   { operand: '::bind' }
 );
-const ApplyToNonFunctionError      = declareShapeError('ApplyToNonFunctionError',
+const ValueTakesNoModifiersError      = declareShapeError('call/ValueTakesNoModifiersError',
   ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
   { operand: '::call', expectedType: 'function' }
 );
@@ -219,7 +219,7 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, eachStepOf(bodyNode)));
   const subjectSeq = containerBeneathTags(state.pipeValue);
   if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
-    const distributeErr = new DistributeSubjectNotSequenceError(state.pipeValue);
+    const distributeErr = new SubjectNotContainerError(state.pipeValue);
     distributeErr.location = bodyNode.location;
     const refused = errorFromQlang(distributeErr, state.pipeValue);
     return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue));
@@ -341,7 +341,7 @@ export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isSpec(declared)) {
-    throw new TaggedLitTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
+    throw new TagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
   const { primitive, body } = constructorOfSpec(declared);
   if (primitive !== undefined) return await primitive(payload, state);
@@ -433,7 +433,7 @@ function declareVerbFirst(verb, name, nounName, env) {
 function refuseVerbLaunderedByName(name, verb, node) {
   const effectfulName = effectfulNameOfVerb(verb);
   if (effectfulName === null || classifyEffect(name)) return;
-  const laundering = new EffectLaunderingAtBindStepParseError({ bindingName: name, effectfulName });
+  const laundering = new BindEffectMarkMissingError({ bindingName: name, effectfulName });
   laundering.location = node.body.location;
   throw laundering;
 }
@@ -470,7 +470,7 @@ function projectSignature(signatureSpec, projKey) {
   const declarations = signatureSpec.payload.filter(step => typeKeyword(step).name === BIND_TAG.name);
   const declared = declarations.find(step => step.get('name').name === projKey);
   if (declared === undefined) {
-    throw new ProjectionFieldNotOnValueClassError({
+    throw new FieldNotInSignatureError({
       key: projKey,
       valueClass: SPEC_TAG.name,
       availableFields: declarations.map(step => step.get('name').name)
@@ -487,21 +487,21 @@ function projectSegment(subject, projKey) {
   }
   const projected = containerBeneathTags(subject);
   if (isQMap(projected)) {
-    if (!projected.has(projKey)) throw new ProjectionKeyNotInMapError({ key: projKey, actualValue: subject });
+    if (!projected.has(projKey)) throw new KeyNotInMapError({ key: projKey, actualValue: subject });
     return projected.get(projKey);
   }
   if (isVec(projected)) {
     if (!INTEGER_SEGMENT_RE.test(projKey)) {
-      throw new ProjectionSequenceKeyNotIntegerError({ key: projKey, actualValue: subject });
+      throw new IndexNotIntegerError({ key: projKey, actualValue: subject });
     }
     const segmentIndex = parseInt(projKey, 10);
     const resolvedIndex = segmentIndex < 0 ? projected.length + segmentIndex : segmentIndex;
     if (resolvedIndex < 0 || resolvedIndex >= projected.length) {
-      throw new ProjectionIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: projected.length, actualValue: subject });
+      throw new IndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: projected.length, actualValue: subject });
     }
     return projected[resolvedIndex];
   }
-  throw new ProjectionSubjectNotProjectableError({
+  throw new SubjectNotProjectableError({
     key: projKey,
     actualType: typeKeyword(subject),
     actualValue: subject
@@ -521,7 +521,7 @@ async function evalOperandCall(node, state) {
 async function callByName(lookupName, lambdas, state) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
-    throw new UnresolvedIdentifierError({
+    throw new UnknownNameError({
       identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
     });
   }
@@ -555,7 +555,7 @@ async function applyBinding(entry, lookupName, lambdas, state) {
   // A value takes no modifiers; its refusal names where a verb of the
   // name lives, one a declaration shadows among them [D62].
   if (lambdas.length > 0) {
-    throw new ApplyToNonFunctionError({
+    throw new ValueTakesNoModifiersError({
       name: lookupName,
       actualType: typeKeyword(resolved),
       actualValue: resolved,
@@ -573,7 +573,7 @@ async function applyBinding(entry, lookupName, lambdas, state) {
 async function callByAddress(node, state) {
   const record = nodeOf(state.env, node.name);
   if (record === null) {
-    throw new UnresolvedAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
+    throw new UnknownAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   return await applyBinding(record, splitAddress(node.name)[1], node.args.map(argNode => makeLambda(argNode, state)), state);
 }

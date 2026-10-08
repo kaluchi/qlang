@@ -18,7 +18,7 @@ import { declareShapeError } from '../errors.mjs';
 // `::set[…]` — the set of a vector's elements, the one `distinct`
 // mints [D16], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
 // are one value.
-const SetPayloadNotVecError = declareSubjectError('SetPayloadNotVecError', '::set', 'vec');
+const SetPayloadNotVecError = declareSubjectError('set/PayloadNotVecError', '::set', 'vec');
 
 function setConstructor(payload) {
   if (!isVec(payload)) throw new SetPayloadNotVecError(payload);
@@ -32,14 +32,14 @@ bindPrim('set', setConstructor);
 // value and print as the latter, and a payload of
 // another kind is refused at the site. A vector or a map under a tag of
 // its own reads as the bare one.
-const NullPayloadNotNullError       = declareSubjectError('NullPayloadNotNullError',       '::null',    'null');
-const BooleanPayloadNotBooleanError = declareSubjectError('BooleanPayloadNotBooleanError', '::boolean', 'boolean');
-const NumberPayloadNotNumberError   = declareSubjectError('NumberPayloadNotNumberError',   '::number',  'number');
-const StringPayloadNotStringError   = declareSubjectError('StringPayloadNotStringError',   '::string',  'string');
-const KeywordPayloadNotKeywordError = declareSubjectError('KeywordPayloadNotKeywordError', '::keyword', 'keyword');
-const TagPayloadNotTagError         = declareSubjectError('TagPayloadNotTagError',         '::tag',     'tag');
-const VecPayloadNotVecError         = declareSubjectError('VecPayloadNotVecError',         '::vec',     'vec');
-const MapPayloadNotMapError         = declareSubjectError('MapPayloadNotMapError',         '::map',     ['map', 'vec']);
+const NullPayloadNotNullError       = declareSubjectError('null/PayloadNotNullError',       '::null',    'null');
+const BooleanPayloadNotBooleanError = declareSubjectError('boolean/PayloadNotBooleanError', '::boolean', 'boolean');
+const NumberPayloadNotNumberError   = declareSubjectError('number/PayloadNotNumberError',   '::number',  'number');
+const StringPayloadNotStringError   = declareSubjectError('string/PayloadNotStringError',   '::string',  'string');
+const KeywordPayloadNotKeywordError = declareSubjectError('keyword/PayloadNotKeywordError', '::keyword', 'keyword');
+const TagPayloadNotTagError         = declareSubjectError('tag/PayloadNotTagError',         '::tag',     'tag');
+const VecPayloadNotVecError         = declareSubjectError('vec/PayloadNotVecError',         '::vec',     'vec');
+const MapPayloadNotMapError         = declareSubjectError('map/PayloadNotMapError',         '::map',     ['map', 'vec']);
 
 function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
   return payload => {
@@ -63,8 +63,8 @@ bindPrim('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf)
 // segments: a key is a keyword, or a string or a number naming the
 // keyword of its text, as the key of `groupBy` [D130], and of two pairs
 // with one key the last wins [D138].
-const MapElementNotPairError = declareElementError('MapElementNotPairError', '::map', 'pair');
-const MapKeyNotKeywordError  = declareElementError('MapKeyNotKeywordError',  '::map', ['keyword', 'string', 'number']);
+const MapElementNotPairError = declareElementError('map/ElementNotPairError', '::map', 'pair');
+const MapKeyNotKeywordError  = declareElementError('map/KeyNotKeywordError',  '::map', ['keyword', 'string', 'number']);
 
 function keyNameOfPair(pairKey, index) {
   if (isKeyword(pairKey)) return pairKey.name;
@@ -92,8 +92,8 @@ bindPrim('desc', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.
-const DocPayloadNotVecError     = declareSubjectError('DocPayloadNotVecError', '::doc', 'vec');
-const DocElementNotSegmentError = declareElementError('DocElementNotSegmentError', '::doc', 'segment');
+const DocPayloadNotVecError     = declareSubjectError('doc/PayloadNotVecError', '::doc', 'vec');
+const DocElementNotSegmentError = declareElementError('doc/ElementNotSegmentError', '::doc', 'segment');
 
 function docConstructor(payload) {
   if (!isVec(payload)) throw new DocPayloadNotVecError(payload);
@@ -108,7 +108,7 @@ bindPrim('doc', docConstructor);
 // `::builtin{…}` — the descriptor: the step of a built-in verb that names
 // its primitive [D72], the declaration of a kind that names its
 // constructor [D79]; its fields stay flat under its tag.
-const BuiltinPayloadNotMapError = declareSubjectError('BuiltinPayloadNotMapError', '::builtin', 'map');
+const BuiltinPayloadNotMapError = declareSubjectError('builtin/PayloadNotMapError', '::builtin', 'map');
 
 function builtinConstructor(payload) {
   if (!isQMap(payload)) throw new BuiltinPayloadNotMapError(payload);
@@ -120,10 +120,10 @@ function builtinConstructor(payload) {
 
 bindPrim('builtin', builtinConstructor);
 
-declareSubjectError('PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
+declareSubjectError('tagged/PayloadSubjectNotTaggedError', 'payload', 'taggedInstance');
 const TagModifierNotTagKeywordError = declareModifierError(
-  'TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
-const TagBareSubjectShapeError = declareShapeError('TagBareSubjectShapeError',
+  'any/TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
+const TagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
   ({ actualType, actualLength }) =>
     actualLength === undefined
       ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`
@@ -153,7 +153,7 @@ bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)
 // element of the pair it takes apart.
 async function mintPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
-    throw new TagBareSubjectShapeError({
+    throw new TagSubjectNotPairError({
       actualType: typeKeyword(pair),
       actualValue: pair,
       actualLength: isVec(pair) ? pair.length : undefined
@@ -167,6 +167,6 @@ async function mintPair(pair, state) {
 bindStateReader('any/tag', async (subject, tagName, state) =>
   (isNull(tagName) ? await mintPair(subject, state) : await mintUnderTag(state, tagName, subject)));
 
-declareSubjectError('WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');
-declareModifierError('WithinCodeNotQuoteError', 'within', 2, 'quote');
+declareSubjectError('tagged/WithinSubjectNotTaggedError', 'within', 'taggedInstance');
+declareModifierError('tagged/WithinCodeNotQuoteError', 'within', 2, 'quote');
 

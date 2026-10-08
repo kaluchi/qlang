@@ -1,22 +1,22 @@
 {"name":"a-built-in-takes-the-kind-of-its-noun-as-subject","query":"::number/add | spec | /subject","expect":"::number","decision":"D72"}
-{"name":"a-built-in-lists-its-refusals-in-its-signature","query":"::number/add | spec | /throws","expect":"[::number/AddLeftNotNumberError ::number/AddRightNotNumberError ::number/AddResultNotFiniteError]","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
+{"name":"a-built-in-lists-its-refusals-in-its-signature","query":"::number/add | spec | /throws","expect":"[::number/AddLeftNotNumberError ::number/AddRightNotNumberError ::number/AddResultNotFiniteError]","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-projection-of-a-signature-reads-a-slot","query":"::number/add | spec | /addend","expect":"::number","decision":"D72"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::number/AddLeftNotNumberError ::string]","decision":"D72"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/AddRightNotNumberError ::string]","decision":"D72"}
 {"name":"a-full-application-reads-its-first-modifier-as-the-subject","query":"{:price 100 :qty 3} | mul /price /qty","expect":"300","decision":"D72"}
 {"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::number/AddLeftNotNumberError","decision":"D72"}
 {"name":"a-declared-verb-takes-a-full-application","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2","expect":"10","decision":"D72"}
-{"name":"a-full-application-leaves-no-modifier-beyond-the-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 3 !| type","expect":"::verb/VerbModifiersBeyondSlotsError","decision":"D72"}
+{"name":"a-full-application-leaves-no-modifier-beyond-the-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 3 !| type","expect":"::verb/ModifiersBeyondSlotsError","decision":"D72"}
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
-{"name":"a-comparison-refuses-a-slot-of-another-kind-by-the-kind","query":"1 | gt \"x\" !| type","expect":"::number/NumberPayloadNotNumberError","decision":["D65","D72"]}
+{"name":"a-comparison-refuses-a-slot-of-another-kind-by-the-kind","query":"1 | gt \"x\" !| type","expect":"::number/PayloadNotNumberError","decision":["D65","D72"]}
 {"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72","D140"]}
 {"name":"a-name-several-kinds-answer-is-found-again-from-a-full-application","query":"{:a 2 :b 1} | gt /a /b","expect":"true","decision":"D72"}
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true","decision":"D72"}
 {"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119"]}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
-{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::verb/VerbSlotNotOfKindsError","decision":["D72","D156"]}
+{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::verb/SlotNotOfKindsError","decision":["D72","D156"]}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
 {"name":"a-projection-of-a-signature-names-what-it-declares","query":"::number/add | spec | /nope !| /availableFields","expect":"[\"subject\" \"addend\" \"returns\"]","decision":"D72"}
 {"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}

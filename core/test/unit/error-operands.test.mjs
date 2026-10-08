@@ -70,13 +70,13 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('the steps skipped past a plain comment replay through apply as the bare operand suffix', async () => {
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
-    expect(evalResult).toEqual(makeTagKeyword('verb/VerbWithoutBodyError'));
+    expect(evalResult).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
   });
 });
 
-// ── EffectLaunderingAtCallError ──────────────────────────────────────
+// ── CallEffectMarkMissingError ──────────────────────────────────────
 
-describe('EffectLaunderingAtCallError', () => {
+describe('CallEffectMarkMissingError', () => {
   it('calling non-@-prefixed name resolving to an effectful verb produces error', async () => {
     // Install a verb whose body calls an @-prefixed name under a
     // non-@-prefixed name via session.bind. This simulates the
@@ -88,7 +88,7 @@ describe('EffectLaunderingAtCallError', () => {
     sessionInstance.bind('doIt', effectfulVerb);
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.tag.name).toBe('call/EffectLaunderingAtCallError');
+    expect(cellEntry.result.tag.name).toBe('call/EffectMarkMissingError');
   });
 });
 
@@ -145,7 +145,7 @@ describe('per-site error classes carry unique identity', () => {
   it('count on a non-container reaches its contract, which names the residences [D72]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('VerbWithoutBodyError');
+    expect(caughtErr.name).toBe('KindAnswersNoVerbError');
     expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
@@ -199,29 +199,29 @@ describe('per-site error classes carry unique identity', () => {
 
   it('gt across kinds → the refusal of the head, by the kind of its slot [D65], [D72]', async () => {
     const caughtErr = await catchOriginalError('"a" | gt 5');
-    expect(caughtErr.name).toBe('StringPayloadNotStringError');
+    expect(caughtErr.name).toBe('PayloadNotStringError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('projection on non-Map → ProjectionSubjectNotProjectableError', async () => {
+  it('projection on non-Map → SubjectNotProjectableError', async () => {
     const caughtErr = await catchOriginalError('42 | /name');
-    expect(caughtErr.name).toBe('ProjectionSubjectNotProjectableError');
+    expect(caughtErr.name).toBe('SubjectNotProjectableError');
     expect(caughtErr.context.key).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('distribute on a scalar → DistributeSubjectNotSequenceError', async () => {
+  it('distribute on a scalar → SubjectNotContainerError', async () => {
     const caughtErr = await catchOriginalError('42 * add 1');
-    expect(caughtErr.name).toBe('DistributeSubjectNotSequenceError');
+    expect(caughtErr.name).toBe('SubjectNotContainerError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('apply args to non-function → ApplyToNonFunctionError', async () => {
+  it('apply args to non-function → ValueTakesNoModifiersError', async () => {
     // Freeze a raw value, not a verb. Its record holds a
-    // non-function, so captured args trigger ApplyToNonFunctionError on
+    // non-function, so captured args trigger ValueTakesNoModifiersError on
     // the value the record holds.
     const caughtErr = await catchOriginalError('5 | :five / | five 42');
-    expect(caughtErr.name).toBe('ApplyToNonFunctionError');
+    expect(caughtErr.name).toBe('ValueTakesNoModifiersError');
     expect(caughtErr.context.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
@@ -240,10 +240,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('payload on non-TaggedInstance → PayloadSubjectNotTaggedInstanceError', async () => {
+  it('payload on non-TaggedInstance → PayloadSubjectNotTaggedError', async () => {
     const caughtErr = await catchOriginalError('42 | payload');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('PayloadSubjectNotTaggedInstanceError');
+    expect(caughtErr.name).toBe('PayloadSubjectNotTaggedError');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -334,15 +334,15 @@ describe('per-site error classes carry unique identity', () => {
   it('throw sites produce distinct class names (no sharing)', async () => {
     const names = new Set();
     const queries = [
-      '42 | count',        // VerbWithoutBodyError, the contract of count
+      '42 | count',        // KindAnswersNoVerbError, the contract of count
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
       '"a" | add 1',      // AddLeftNotNumberError
       '"a" | sub 1',      // SubLeftNotNumberError
       '"a" | mul 1',      // MulLeftNotNumberError
       '"a" | div 1',      // DivLeftNotNumberError
-      '1 | /name',         // ProjectionSubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '42 * add 1',       // DistributeSubjectNotSequenceError
+      '1 | /name',         // SubjectNotProjectableError (Number subject — neither Map nor Vec)
+      '42 * add 1',       // SubjectNotContainerError
       '[1 2 3] | reduce 0 ~(42)' // ReduceReducerNotBinaryError
     ];
     for (const q of queries) {

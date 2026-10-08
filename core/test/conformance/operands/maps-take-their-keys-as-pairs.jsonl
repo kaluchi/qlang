@@ -3,8 +3,8 @@
 {"name":"the-map-constructor-builds-a-map-from-pairs","query":"[[:a 1] [\"b\" 2] [3 4]] | tag ::map","expect":"{:a 1 :b 2 :\"3\" 4}","decision":"D138"}
 {"name":"entries-and-the-constructor-round-trip","query":"{:a 1 :b [2]} | entries | tag ::map | eq {:a 1 :b [2]}","expect":"true","decision":"D138"}
 {"name":"the-last-pair-of-a-key-wins","query":"[[:a 1] [:a 2]] | tag ::map","expect":"{:a 2}","decision":"D138"}
-{"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | tag ::map !| [type /index]","expect":"[::map/MapElementNotPairError 1]","decision":"D138"}
-{"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | tag ::map !| [type /index]","expect":"[::map/MapKeyNotKeywordError 0]","decision":"D138"}
+{"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | tag ::map !| [type /index]","expect":"[::map/ElementNotPairError 1]","decision":"D138"}
+{"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | tag ::map !| [type /index]","expect":"[::map/KeyNotKeywordError 0]","decision":"D138"}
 {"name":"minus-reads-a-string-as-a-key","query":"{:a 1 :b 2} | minus [\"a\"]","expect":"{:b 2}","decision":"D139"}
 {"name":"inter-reads-a-string-as-a-key","query":"{:a 1 :b 2 :c 3} | inter #[\"a\" :c]","expect":"{:a 1 :c 3}","decision":"D139"}
 {"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a 1] !| [type /index]","expect":"[::map/MinusKeyNotKeywordOrStringError 1]","decision":"D139"}

@@ -16,39 +16,27 @@ import { isBinding, isErrorValue, isSpec, isVerb, bindingValueOf, declareHostVal
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import {
-  declareInvariantError, declareShapeError, recordRefusalAddress, refusalAddressOf, throwSiteSpecOf
+  declareInvariantError, declareShapeError
 } from '../errors.mjs';
-import { splitAddress } from './nouns.mjs';
 import { endsInBuiltin } from './verb.mjs';
-import { PrimitiveKeyUnboundError } from '../primitives.mjs';
+import { ImplementationNotHandedError } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:tagName`
 // the refusal and `:name` the name declared again; one the parser refuses
 // raises the parse error with its uri.
-export const RootSourceNotDeclaredError = declareInvariantError('RootSourceNotDeclaredError',
+export const RootSourceNotDeclaredError = declareInvariantError('builtin/RootSourceNotDeclaredError',
   ({ uri, tagName, name }) => `qlang root: the source ${uri} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`,
   { operand: '::builtin' });
 
 // An implementation a host hands for a name its source declares as no
 // verb or kind ending in `::builtin{}` has nothing to run under.
-export const RootImplNamesNoVerbError = declareShapeError('RootImplNamesNoVerbError',
+export const ImplementationNamesNoBuiltinError = declareShapeError('builtin/ImplementationNamesNoBuiltinError',
   ({ uri, implName }) => `qlang root: the source ${uri} hands an implementation for ${implName.literal}, which it declares as no verb ending in ::builtin{}`,
   { operand: '::builtin' });
 
-const DECLARED_TWICE = '::bind/BindNameDeclaredTwiceError';
+const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
-// Whether a source declares again a name the root holds, or a refusal the
-// root declared under another address: the tag a refusal answers by is
-// found by its last name until its site names its address [D46], so no
-// source moves it.
-function declaresAgain(root, name) {
-  if (root.has(name)) return true;
-  const [, lastName] = splitAddress(name);
-  if (throwSiteSpecOf(lastName) === undefined) return false;
-  const recorded = refusalAddressOf(lastName);
-  return recorded !== lastName && recorded !== name;
-}
 
 // declareRoot(env, sources) → the env whose root holds what each source
 // declared, `{ uri, source, impls? }` in order, over the root `env` holds.
@@ -61,18 +49,16 @@ export async function declareRoot(env, sources) {
       throw new RootSourceNotDeclaredError({ uri, tagName: answered.pipeValue.tag.literal });
     }
     const declared = new Map([...answered.env].filter(([, record]) => isBinding(record)));
-    const again = [...declared.keys()].find(name => declaresAgain(root, name));
+    const again = [...declared.keys()].find(name => root.has(name));
     if (again !== undefined) throw new RootSourceNotDeclaredError({ uri, tagName: DECLARED_TWICE, name: keyword(again) });
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
-      if (endsInBuiltin(value) && impls[name] === undefined) throw new PrimitiveKeyUnboundError({ keyLabel: name });
+      if (endsInBuiltin(value) && impls[name] === undefined) throw new ImplementationNotHandedError({ keyLabel: name });
       if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name]);
-      const [, lastName] = splitAddress(name);
-      if (throwSiteSpecOf(lastName) !== undefined) recordRefusalAddress(lastName, name);
     }
     for (const implName of Object.keys(impls)) {
       if (!endsInBuiltin(bindingValueOf(declared.get(implName)))) {
-        throw new RootImplNamesNoVerbError({ uri, implName: keyword(implName) });
+        throw new ImplementationNamesNoBuiltinError({ uri, implName: keyword(implName) });
       }
     }
     root = new Map([...root, ...declared]);

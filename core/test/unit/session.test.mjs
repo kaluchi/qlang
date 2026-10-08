@@ -75,7 +75,7 @@ describe('createSession lifecycle', () => {
     // evalCell succeeds; result is an error value, entry.error is null.
     expect(cellEntry.error).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.originalError.name).toBe('VerbWithoutBodyError');
+    expect(cellEntry.result.originalError.name).toBe('KindAnswersNoVerbError');
   });
 
   it('evalCell uri defaults to cell-N', async () => {
@@ -115,7 +115,7 @@ describe('the sources a host hands [D153]', () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTagKeyword('number/NumberPayloadNotNumberError'));
+      .toEqual(makeTagKeyword('number/PayloadNotNumberError'));
   });
 
   it('runs a verb of steps the source declares over the host\'s own', async () => {
@@ -141,7 +141,7 @@ describe('the sources a host hands [D153]', () => {
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('number/NumberPayloadNotNumberError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('number/PayloadNotNumberError'));
   });
 
   it('calls a verb a source declares under no noun by its name, last of all', async () => {
@@ -153,30 +153,30 @@ describe('the sources a host hands [D153]', () => {
     }] });
     expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
     expect((await sessionInstance.evalCell('5 | shout !| type')).result)
-      .toEqual(makeTagKeyword('verb/VerbSlotNotOfKindsError'));
+      .toEqual(makeTagKeyword('verb/SlotNotOfKindsError'));
     expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell('env | /shout | /value')).result);
   });
 
   it('refuses a verb ending in ::builtin{} the host hands nothing for, as the root is declared', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::verb~(::builtin{})' }] }))
-      .rejects.toMatchObject({ name: 'PrimitiveKeyUnboundError', context: { keyLabel: 'any/hello' } });
+      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', context: { keyLabel: 'any/hello' } });
   });
 
   it('refuses an implementation handed for a verb of steps', async () => {
     await expect(createSession({ sources: [{
       uri: 'tests/over', source: ':any/many ::verb~(count)', impls: { 'any/many': () => 0 }
-    }] })).rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
+    }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
   it('refuses an implementation handed for a name the source declares as no verb', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/stray', source: ':limit 10', impls: { limit: () => 1 } }] }))
-      .rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
+      .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal', async () => {
     for (const source of [':vec |~~ again ~~|', ':vec/count ::verb~(0)']) {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/BindNameDeclaredTwiceError' } });
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/NameDeclaredTwiceError' } });
     }
   });
 

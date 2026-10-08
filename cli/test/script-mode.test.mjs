@@ -84,7 +84,7 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
 
   it('refuses a quote, naming its place and its kind', async () => {
     const refusal = await refusalOf('[1 ~(add 1)]');
-    expect(refusal.$tag).toBe('AnswerNotJsonError');
+    expect(refusal.$tag).toBe('cli/AnswerNotJsonError');
     expect(refusal.descriptor.path).toEqual([1]);
     expect(refusal.descriptor.actualType).toBe('::quote');
   });

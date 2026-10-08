@@ -25,7 +25,7 @@ const srcDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 // `declareSubjectError('Foo', …)` / `declarePerSiteError('Foo', …)` /
 // `recordThrowSiteSpec('Foo', …)` — every form that puts a name in
 // the registry opens with the class name as a string literal.
-const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9]+)'/g;
+const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9@/]+)'/g;
 
 function declaredClassNames() {
   const declared = new Map();

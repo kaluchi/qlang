@@ -6,7 +6,7 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import { bindReaderOfPassedTags } from '../primitives.mjs';
 import { resumingItsTrail } from '../eval-trail.mjs';
 
-declareSubjectError('RaiseSubjectNotMapError', 'raise', 'map');
+declareSubjectError('map/RaiseSubjectNotMapError', 'raise', 'map');
 
 // The tag of the raised error is the one its value shows [D86]: the
 // outermost tag the walk of the head passed on its way to the map, the

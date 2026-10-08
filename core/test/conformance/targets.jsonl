@@ -44,9 +44,9 @@
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"env | has :error","expect":"true","decision":"D64"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::number/AddLeftNotNumberError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
-{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::proj/ProjectionKeyNotInMapError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
-{"name":"a-refusal-names-the-place-it-guards","query":"::call/UnresolvedIdentifierError | spec | /operand","expect":"::call","decision":"D46","target":true,"now":"::proj/ProjectionFieldNotOnValueClassError"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::number/AddLeftNotNumberError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::proj/KeyNotInMapError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-refusal-names-the-place-it-guards","query":"::call/UnknownNameError | spec | /operand","expect":"::call","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true","decision":"D65"}
 {"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}
 {"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66"}
@@ -65,22 +65,22 @@
 {"name":"a-stop-of-an-operand-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| /trail * /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]","decision":"D85"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first !| /trail * /step","expect":"[~(first)]","decision":"D85"}
 {"name":"the-fault-fields-leave-the-descriptor","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]","decision":"D85"}
-{"name":"a-tag-over-a-failed-payload-answers-the-failure","query":"[::Foo(nosuch)] * (!| type)","expect":"[::call/UnresolvedIdentifierError]","decision":"D86"}
-{"name":"a-constructor-of-the-core-never-meets-a-failure","query":"[::set(nosuch)] * (!| type)","expect":"[::call/UnresolvedIdentifierError]","decision":"D86"}
+{"name":"a-tag-over-a-failed-payload-answers-the-failure","query":"[::Foo(nosuch)] * (!| type)","expect":"[::call/UnknownNameError]","decision":"D86"}
+{"name":"a-constructor-of-the-core-never-meets-a-failure","query":"[::set(nosuch)] * (!| type)","expect":"[::call/UnknownNameError]","decision":"D86"}
 {"name":"the-tag-of-a-literal-over-a-failure-joins-its-skipped-steps","query":":P ::spec~(add 1) | [::P(nosuch)] * (!| /trail * /skipped)","expect":"[[~(tag ::P)]]","decision":"D86"}
 {"name":"tag-over-an-error-it-takes-out-of-a-pair-answers-the-error","query":"[::Foo (!{:k 1})] | tag !| [type (/trail * /step)]","expect":"[::error [~(!{:k 1}) ~(tag)]]","decision":"D86"}
 {"name":"the-tag-a-step-lays-over-the-descriptor-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| [type (/trail * /step)]","expect":"[::Foo [~(add 1)]]","decision":["D86","D97"]}
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar","decision":["D86","D97"]}
 {"name":"the-step-of-a-tagged-error-literal-is-the-error-it-spells","query":"~(::Foo!{:k 1}) | first !| [type /k]","expect":"[::Foo 1]","decision":"D86"}
-{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::error/ErrorTrailNotVecError]","decision":"D86"}
-{"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::proj/ProjectionKeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
+{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::error/TrailNotVecError]","decision":"D86"}
+{"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::proj/KeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
 {"name":"an-axis-reads-the-slot-a-verb-holds-under-a-name","query":"::vec/take | [(source :count) (spec :count) (doc :count)]","expect":"[~(:count ::number) ::number null]","decision":["D88","D119"]}
 {"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content","expect":"\" how many \"","decision":["D88","D94","D95","D119"]}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /bindingName]","expect":"[::any/DocBindingNotFoundError ::map/nosuch]","decision":["D88","D119"]}
-{"name":"a-tag-name-meets-the-verbs-of-its-noun-at-their-heads","query":"::vec | count !| type","expect":"::verb/VerbSlotNotOfKindsError","decision":["D88","D156"]}
+{"name":"a-tag-name-meets-the-verbs-of-its-noun-at-their-heads","query":"::vec | count !| type","expect":"::verb/SlotNotOfKindsError","decision":["D88","D156"]}
 {"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99","expect":"12","decision":"D44"}
-{"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::call/UnresolvedIdentifierError \"lim\"]","decision":"D44"}
+{"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::call/UnknownNameError \"lim\"]","decision":"D44"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | doc !| /addresses","expect":"#[::any/type]","decision":["D62","D119"]}
 {"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}
 {"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected","expect":"[\")\"]","decision":"D125"}
@@ -93,9 +93,9 @@
 {"name":"a-pipe-before-distribute-stands-for-it","query":"[1 2] | * (add 1)","expect":"[2 3]","decision":"D130"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] * (mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}
-{"name":"a-step-without-its-quote-is-refused-by-the-slot-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::any/FilterPredicateNotQuoteError ::proj/ProjectionSequenceKeyNotIntegerError]","decision":"D129"}
-{"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::verb/VerbCodeNotQuoteError","decision":"D129"}
-{"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/ProjectionSequenceKeyNotIntegerError","decision":"D129"}
+{"name":"a-step-without-its-quote-is-refused-by-the-slot-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::any/FilterPredicateNotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
+{"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::verb/CodeNotQuoteError","decision":"D129"}
+{"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] * | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}

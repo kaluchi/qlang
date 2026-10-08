@@ -9,7 +9,7 @@ import { compareValues } from './ordering.mjs';
 // A number is a finite double, and one a host hands otherwise has no
 // literal, so none reaches the printer or the codec.
 export const NumberNotFiniteLeakedToPrintError = declareInvariantError(
-  'NumberNotFiniteLeakedToPrintError',
+  'builtin/NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or the impls of " +
     'its sources, where source cannot mint one',
@@ -363,7 +363,7 @@ export function declareHostValue(value, impl) {
 // the path it took [D85], a vector of stops that `eval-trail.mjs` writes;
 // a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareShapeError(
-  'ErrorTrailNotVecError',
+  'error/TrailNotVecError',
   ({ actualType }) => `error descriptor :trail must be a vector of stops, got ${actualType.name}`,
   { operand: '::error', expectedType: 'vec' }
 );

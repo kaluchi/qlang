@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   QlangError,
   QlangTypeError,
-  UnresolvedIdentifierError,
+  UnknownNameError,
   ArityError,
   EvaluationDepthExceededError,
   QlangInvariantError,
@@ -28,12 +28,12 @@ describe('QlangError base class', () => {
 
 });
 
-describe('UnresolvedIdentifierError', () => {
+describe('UnknownNameError', () => {
   it('sets identifierName, kind and name', () => {
-    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
+    const unresolvedErr = new UnknownNameError({ identifierName: 'foo' });
     expect(unresolvedErr.context.identifierName).toBe('foo');
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
-    expect(unresolvedErr.name).toBe('UnresolvedIdentifierError');
+    expect(unresolvedErr.name).toBe('UnknownNameError');
     expect(unresolvedErr.message).toContain('foo');
   });
 
@@ -137,15 +137,15 @@ describe('throw-site spec registry — one name, one site', () => {
   it('refuses a second recording under a name already declared', () => {
     let refusal = null;
     try {
-      declarePerSiteError('DivisionByZeroError', 'numericDomain', () => 'a second site');
+      declarePerSiteError('number/DivisionByZeroError', 'numericDomain', () => 'a second site');
     } catch (caught) {
       refusal = caught;
     }
     expect(refusal).toBeInstanceOf(QlangInvariantError);
     expect(refusal).toBeInstanceOf(ThrowSiteSpecAlreadyRecordedError);
     expect(refusal.name).toBe('ThrowSiteSpecAlreadyRecordedError');
-    expect(refusal.context.className).toBe('DivisionByZeroError');
-    expect(refusal.message).toContain('DivisionByZeroError');
+    expect(refusal.context.address).toBe('number/DivisionByZeroError');
+    expect(refusal.message).toContain('number/DivisionByZeroError');
   });
 });
 

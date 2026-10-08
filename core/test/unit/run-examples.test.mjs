@@ -45,7 +45,7 @@ describe('runLaws reads a name as examples does', () => {
   it('a subject no residence takes reaches the contract, which refuses it', async () => {
     const err = await evalQuery('42 | runLaws');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('verb/VerbWithoutBodyError'));
+    expect(err.tag).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
   });
 });
 
@@ -117,7 +117,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     // session-env copy isolates the write so the calling session
     // still sees no `:scratch` after runLaws completes. Reading
     // `:scratch` on the session after `runLaws` therefore lifts
-    // ::call/UnresolvedIdentifierError.
+    // ::call/UnknownNameError.
     const moduleSource =
       ':writer |~~ leaks BindStep into session env.\n' +
       '    ~(:scratch 99 | scratch | eq 99)\n ~~|\n' +
@@ -131,7 +131,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
     expect(cellProbe.result.tag)
-      .toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
+      .toEqual(makeTagKeyword('call/UnknownNameError'));
   });
 
   it('Quote that lifts a user-built error → :error reads :message from descriptor', async () => {

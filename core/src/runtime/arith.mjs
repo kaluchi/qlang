@@ -14,38 +14,38 @@ import { bindPrim } from '../primitives.mjs';
 // the finite-double range. Both are the same repair for a reader —
 // change a value — so both ride `NumericDomainError`.
 export const DivisionByZeroError = declareNumericDomainError(
-  'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
+  'number/DivisionByZeroError', () => 'division by zero', { operand: 'div' }
 );
 
-declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
-declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
-declareModifierError('SubLeftNotNumberError',  'sub', 1, 'number');
-declareModifierError('SubRightNotNumberError', 'sub', 2, 'number');
-declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
-declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
-declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
-declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
-declareModifierError('RoundSubjectNotNumberError', 'round', 1, 'number');
-const RoundDigitsNotIntegerError = declareModifierError('RoundDigitsNotIntegerError', 'round', 2, 'integer');
+declareModifierError('number/AddLeftNotNumberError',  'add', 1, 'number');
+declareModifierError('number/AddRightNotNumberError', 'add', 2, 'number');
+declareModifierError('number/SubLeftNotNumberError',  'sub', 1, 'number');
+declareModifierError('number/SubRightNotNumberError', 'sub', 2, 'number');
+declareModifierError('number/MulLeftNotNumberError',  'mul', 1, 'number');
+declareModifierError('number/MulRightNotNumberError', 'mul', 2, 'number');
+declareModifierError('number/DivLeftNotNumberError',  'div', 1, 'number');
+declareModifierError('number/DivRightNotNumberError', 'div', 2, 'number');
+declareModifierError('number/RoundSubjectNotNumberError', 'round', 1, 'number');
+const RoundDigitsNotIntegerError = declareModifierError('number/RoundDigitsNotIntegerError', 'round', 2, 'integer');
 
 // A qlang Number is a finite double, as the page of `::number` says.
 // Both operands are finite by that same rule, so
 // the operation itself is the only way out of the domain, and each
 // site lifts its own class onto the fail-track — the second answer
 // `div` gives alongside `DivisionByZeroError`.
-const AddResultNotFiniteError = declareNumericDomainError('AddResultNotFiniteError',
+const AddResultNotFiniteError = declareNumericDomainError('number/AddResultNotFiniteError',
   ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'add' }
 );
-const SubResultNotFiniteError = declareNumericDomainError('SubResultNotFiniteError',
+const SubResultNotFiniteError = declareNumericDomainError('number/SubResultNotFiniteError',
   ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'sub' }
 );
-const MulResultNotFiniteError = declareNumericDomainError('MulResultNotFiniteError',
+const MulResultNotFiniteError = declareNumericDomainError('number/MulResultNotFiniteError',
   ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'mul' }
 );
-const DivResultNotFiniteError = declareNumericDomainError('DivResultNotFiniteError',
+const DivResultNotFiniteError = declareNumericDomainError('number/DivResultNotFiniteError',
   ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`,
   { operand: 'div' }
 );

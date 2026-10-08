@@ -1,26 +1,26 @@
 |~ What is declared under `::doc`: the refusals of its constructor
    and the verbs that read a doc's shape for the query. ~|
 
-:doc/DocPayloadNotVecError
+:doc/PayloadNotVecError
   |~~ `::doc` builds a doc from the vector of its segments, prose
       strings and quotes; a payload of another kind is refused.
 
       ~(
         ::doc"x"
         !| [type /actualType]
-        |  eq [::doc/DocPayloadNotVecError ::string]
+        |  eq [::doc/PayloadNotVecError ::string]
        )
   ~~|
   ::spec~()
 
-:doc/DocElementNotSegmentError
+:doc/ElementNotSegmentError
   |~~ Every element of a doc is a segment, a string of prose or a
       quote, and another value is refused at the index it stands at.
 
       ~(
         ["a" 1] | tag ::doc
         !| [type /index]
-        |  eq [::doc/DocElementNotSegmentError 1]
+        |  eq [::doc/ElementNotSegmentError 1]
        )
   ~~|
   ::spec~()

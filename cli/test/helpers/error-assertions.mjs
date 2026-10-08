@@ -30,10 +30,9 @@
 // or 2.
 
 import { expect } from 'vitest';
-import { refusalAddressOf } from '@kaluchi/qlang-core/errors';
 import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core';
 
-// expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext)
+// expectOperandErrorThrown(cellEntry, address, expectedContext)
 //   → the JS error instance (for further ad-hoc assertions)
 //
 // `cellEntry.error` must be null (the throw was caught and lifted,
@@ -41,18 +40,18 @@ import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core'
 // partial shape — only listed fields are checked, so a test can pin
 // the per-site-significant subset without re-asserting invariants
 // every site already shares.
-export function expectOperandErrorThrown(cellEntry, expectedClassName, expectedContext) {
+export function expectOperandErrorThrown(cellEntry, address, expectedContext) {
   expect(cellEntry.error, 'cellEntry.error must be null (throw is lifted onto fail-track)').toBeNull();
   const errorValue = cellEntry.result;
   expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
 
   const identityTag = errorValue.tag;
   expect(isTagKeyword(identityTag), ':kind must be a TagKeyword').toBe(true);
-  expect(identityTag.name).toBe(refusalAddressOf(expectedClassName));
+  expect(identityTag.name).toBe(address);
 
   const originalError = errorValue.originalError;
   expect(originalError, 'originalError must preserve the JS throw instance').toBeInstanceOf(QlangTypeError);
-  expect(originalError.name).toBe(expectedClassName);
+  expect(originalError.address).toBe(address);
   expect(originalError.context).toMatchObject(expectedContext);
 
   return originalError;

@@ -5,7 +5,7 @@ import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, describ
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
-import { QlangTypeError, UnresolvedIdentifierError } from '../../src/errors.mjs';
+import { QlangTypeError, UnknownNameError, declareShapeError } from '../../src/errors.mjs';
 import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
@@ -57,7 +57,7 @@ describe('makeErrorValue', () => {
       catch (mintErr) { thrown = mintErr; }
       expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
       expect(thrown).toBeInstanceOf(QlangTypeError);
-      expect(thrown.name).toBe('ErrorTrailNotVecError');
+      expect(thrown.name).toBe('TrailNotVecError');
       expect(thrown.context.actualType).toEqual(makeTagKeyword(kindName));
       expect(thrown.context.actualValue).toBe(refusedTrail);
     }
@@ -189,26 +189,29 @@ describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () =
 describe('errorFromQlang', () => {
   // The facts of the site come before the trail, and the step and the
   // subject leave the descriptor for the first stop of the trail [D85].
-  it('converts QlangTypeError — tag on JS-header, the facts of its site before the trail', () => {
-    const typeErr = new QlangTypeError('bad type', {
+  it('converts a refusal — its address the tag, the facts of its site before the trail [D158]', () => {
+    const ProbeTypeError = declareShapeError('tests/ProbeTypeError', () => 'bad type');
+    const typeErr = new ProbeTypeError({
       actualType: { name: 'string' },
       actualValue: 'the-value'
     });
     const errorVal = errorFromQlang(typeErr, 'the-subject');
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
+    expect(typeErr).toBeInstanceOf(QlangTypeError);
     expect(typeErr.kind).toBe('typeError');
-    expect(errorVal.tag).toEqual(makeTagKeyword('QlangTypeError'));
+    expect(typeErr.name).toBe('ProbeTypeError');
+    expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
     expect(desc.get('actualType')).toEqual({ name: 'string' });
     expect([...desc.keys()]).toEqual(['actualValue', 'actualType', 'trail']);
   });
 
-  it('converts UnresolvedIdentifierError with its name before the trail', () => {
-    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'myName' });
+  it('converts UnknownNameError with its name before the trail', () => {
+    const unresolvedErr = new UnknownNameError({ identifierName: 'myName' });
     const errorVal = errorFromQlang(unresolvedErr, 42);
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
-    expect(errorVal.tag).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('call/UnknownNameError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['identifierName', 'trail']);
   });
 
@@ -232,7 +235,7 @@ describe('errorFromForeign', () => {
     const desc = errorVal.descriptor;
     expect(desc.has('category')).toBe(false);
     expect(desc.has('kind')).toBe(false);
-    expect(errorVal.tag).toEqual(makeTagKeyword('call/ForeignFailureError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('call/HostFailureError'));
     expect(desc.get('name')).toBe('Error');
     expect(desc.get('message')).toBe('something went wrong');
     expect(desc.get('operand')).toBe('myOp');
@@ -334,12 +337,6 @@ describe('error-convert coercion edge cases', () => {
     const errorVal = errorFromForeign(current, null);
     const causes = errorVal.descriptor.get('causes');
     expect(causes.length).toBe(8);
-  });
-
-  it('errorFromQlang takes the tag from the error name', () => {
-    const typeErr = new QlangTypeError('a bare type error', {});
-    const errorVal = errorFromQlang(typeErr, [1, 2]);
-    expect(errorVal.tag.name).toBe('QlangTypeError');
   });
 
   it('errorFromQlang without context field', () => {

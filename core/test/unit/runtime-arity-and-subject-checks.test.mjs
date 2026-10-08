@@ -45,7 +45,7 @@ describe('vec.flat non-Vec elements', async () => {
 
 describe('setops bare form over a subject no residence takes', async () => {
   it('union bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | union !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
   it('union bare on a set folds its elements, the set being a vector', async () => {
@@ -53,11 +53,11 @@ describe('setops bare form over a subject no residence takes', async () => {
   });
 
   it('minus bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | minus !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | minus !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
   it('inter bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | inter !| type | eq ::verb/VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | inter !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 });
 
@@ -133,15 +133,15 @@ describe('a slot left without its modifier', async () => {
 });
 
 describe('setops bare-form empty Vec', async () => {
-  it('minus bare on empty Vec throws MinusBareEmptyError', async () => {
+  it('minus bare on empty Vec throws MinusOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | minus'))).toBe(true);
   });
 
-  it('inter bare on empty Vec throws InterBareEmptyError', async () => {
+  it('inter bare on empty Vec throws InterOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | inter'))).toBe(true);
   });
 
-  it('union bare on empty Vec throws UnionBareEmptyError', async () => {
+  it('union bare on empty Vec throws UnionOfNothingError', async () => {
     expect(isErrorValue(await evalQuery('[] | union'))).toBe(true);
   });
 });
@@ -151,7 +151,7 @@ describe('min/max subject type checks', async () => {
     for (const query of ['42 | min', '"hello" | max']) {
       const result = await evalQuery(query);
       expect(isErrorValue(result)).toBe(true);
-      expect(result.originalError.name).toBe('VerbWithoutBodyError');
+      expect(result.originalError.name).toBe('KindAnswersNoVerbError');
     }
   });
 });

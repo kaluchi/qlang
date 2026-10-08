@@ -42,7 +42,7 @@
       3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
       ~({:a {:b [10 20]}} | /a/b/-1 | eq 20)
       ~({"first name": "Ann"} | /"first name" | eq "Ann")
-      ~({:a 1} | /b !| type | eq ::proj/ProjectionKeyNotInMapError)
+      ~({:a 1} | /b !| type | eq ::proj/KeyNotInMapError)
       ~({:a 1} | at :b | eq null)
       ~({:a 1} | at :b | coalesce 0 | eq 0)
 
@@ -50,7 +50,7 @@
       ~({:price 4 :qty 3} | mul /price /qty | eq 12)
       ~({:total 10 :paid 3} | sub /total /paid | eq 7)
       ~({:a 1} | [(/a | add 1) /a] | eq [2 1])
-      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/ProjectionSubjectNotProjectableError)
+      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/SubjectNotProjectableError)
       ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
       A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
       ~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
@@ -89,7 +89,7 @@
       ~(7 | print | eq "7")
       A name, `:n v`, holds v for the steps after it, and the value in the pipe goes on unchanged; `:n /` names the value in the pipe. A name is declared once in a scope, and the names a group declares close with it.
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
-      ~(:k 1 | :k 2 !| type | eq ::bind/BindNameDeclaredTwiceError)
+      ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
       7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure names the site that refused it: the noun that declares it, the verb, the place, and what the place takes, so ::number/AddLeftNotNumberError is `add` refusing its left operand, its subject, for not being a number. `!| explain` shows the page of the site.
       ~("x" | add 1 !| type | eq ::number/AddLeftNotNumberError)
@@ -707,7 +707,7 @@
       ~([1 2] | * (add 1) | eq [2 3])
       `/k`, `/0`, `/-1`, `/a/b` read a part, and a miss is an error:
       ~({:a {:b 1}} | /a/b | eq 1)
-      ~({:a 1} | /b !| type | eq ::proj/ProjectionKeyNotInMapError)
+      ~({:a 1} | /b !| type | eq ::proj/KeyNotInMapError)
       A modifier is computed against the subject of its own step, the
       value the step before it answered, so two fields of one record are
       read in one step, and a name keeps the record for a later step:
@@ -728,7 +728,7 @@
       value and the names outside it, and only its answer leaves it, so
       the parts of one literal see nothing of each other:
       ~(:n 10 | [1 2] * (add n) | eq [11 12])
-      ~([(:a 1 | a) (a)] | /1 !| type | eq ::call/UnresolvedIdentifierError)
+      ~([(:a 1 | a) (a)] | /1 !| type | eq ::call/UnknownNameError)
   ~~|
   #[::each ::proj ::group ::bind ::call ::construct]
 
@@ -768,26 +768,26 @@
       its address alone:
       ~(:Box ::spec~(:w ::number) | :Box/twice ::verb~(:returns ::number | /w | mul 2) | ::Box{:w 3} | twice | eq 6)
       ~(:vec/second ::verb~(/1) | [7 8 9] | second | eq 8)
-      ~(:Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | {:w 3} | Box/w2 !| type | eq ::verb/VerbSlotNotOfKindsError)
+      ~(:Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | {:w 3} | Box/w2 !| type | eq ::verb/SlotNotOfKindsError)
       ~(:Box ::spec~() | :Box/me ::verb~(/) | :me2 (::Box/me | binding | /value) | ::Box[5] | me2 | type | eq ::Box)
-      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::B{} | g !| type | eq ::call/UnresolvedIdentifierError)
+      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::B{} | g !| type | eq ::call/UnknownNameError)
       ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::A{} | B/g | eq 1)
-      ~(:Box/area ::verb~(1) !| type | eq ::bind/BindNounNotDeclaredError)
+      ~(:Box/area ::verb~(1) !| type | eq ::bind/NounNotDeclaredError)
       A name is declared once in a scope and again in a scope inside it,
       which shadows it for the steps after, a verb of a kind staying one
       address away; an address the root holds is declared once at all,
       so a reader extends a noun of the root and replaces none of its
       nodes:
-      ~(:k 1 | :k 2 !| type | eq ::bind/BindNameDeclaredTwiceError)
+      ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
       ~(:k 1 | (:k 2 | k) | eq 2)
       ~(:count 5 | [1 2 3] | vec/count | eq 3)
-      ~(:vec/count ::verb~(0) !| type | eq ::bind/BindNameDeclaredTwiceError)
+      ~(:vec/count ::verb~(0) !| type | eq ::bind/NameDeclaredTwiceError)
       A name begins with a letter of any script, `_` or `@`; `@` marks a
       name whose call reaches outside the language, and a verb whose body
       calls one carries it too, while a name over the value a call
       answered is plain:
       ~(:@io ::verb~(1) | :fine (@io) | fine | eq 1)
-      ~(:quiet ::verb~(@out) !| type | eq ::bind/EffectLaunderingAtBindStepParseError)
+      ~(:quiet ::verb~(@out) !| type | eq ::bind/EffectMarkMissingError)
       The docs in the slot of a declaration, between its name and its
       body, are its page, one doc each:
       ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | /x | /docs | count | eq 2)

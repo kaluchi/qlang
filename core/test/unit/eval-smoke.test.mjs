@@ -115,11 +115,11 @@ describe('eval — Map and projection', () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises ProjectionKeyNotInMapError', async () => {
+  it('strict-projection: missing key raises KeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.tag.name).toBe('proj/ProjectionKeyNotInMapError');
+    expect(result.tag.name).toBe('proj/KeyNotInMapError');
     expect(result.descriptor.get('key')).toBe('age');
   });
 
@@ -253,7 +253,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     });
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.tag.name).toBe('call/ForeignFailureError');
+    expect(entry.result.tag.name).toBe('call/HostFailureError');
     expect(entry.result.descriptor.get('name')).toBe('Error');
     expect(entry.result.descriptor.has('category')).toBe(false);
   });

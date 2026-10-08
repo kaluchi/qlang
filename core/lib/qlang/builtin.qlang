@@ -3,7 +3,7 @@
    the table of primitives, the tree the evaluator does not know, the
    session, the printer and the sources of the root. ~|
 
-:builtin/BuiltinPayloadNotMapError
+:builtin/PayloadNotMapError
   |~~ `::builtin` holds its fields as a map, `::builtin{}` the step a
       host's verb or kind ends with; a payload of another kind is
       refused.
@@ -11,12 +11,12 @@
       ~(
         ::builtin"hello"
         !| [type /actualType]
-        |  eq [::builtin/BuiltinPayloadNotMapError ::string]
+        |  eq [::builtin/PayloadNotMapError ::string]
        )
       ~(
         ::builtin[1 2 3]
         !| [type /actualType]
-        |  eq [::builtin/BuiltinPayloadNotMapError ::vec]
+        |  eq [::builtin/PayloadNotMapError ::vec]
        )
   ~~|
   ::spec~()
@@ -33,7 +33,7 @@
   ~~|
   ::spec~()
 
-:builtin/PrimitiveKeyAlreadyBoundError
+:builtin/AddressBoundTwiceError
   |~~ Two files of the runtime bound an implementation under one
       address, a defect of the runtime found as it loads.
   ~~|
@@ -47,20 +47,20 @@
   ~~|
   ::spec~()
 
-:builtin/PrimitiveKeyNotStringError
+:builtin/AddressNotStringError
   |~~ A file of the runtime bound an implementation under an address
       that is no string, a defect of the runtime found as it loads.
   ~~|
   ::spec~()
 
-:builtin/PrimitiveKeyUnboundError
+:builtin/ImplementationNotHandedError
   |~~ A verb or a kind ends in `::builtin{}` and the host handed no
       implementation for its name beside its source; `:keyLabel` names
       it, and the root is refused as it is declared.
   ~~|
   ::spec~()
 
-:builtin/PrimitiveRegistrySealedError
+:builtin/TableSealedError
   |~~ The table of the language's implementations is sealed when the
       bootstrap completes, and one bound after it is refused.
   ~~|
@@ -90,19 +90,19 @@
   |~~ A source of the root answered an error, or declared again a name
       the root holds, so its declarations stay out of the root; `:uri`
       names the source and `:tagName` the refusal, for a name declared
-      again `::bind/BindNameDeclaredTwiceError` with `:name` the name, a
+      again `::bind/NameDeclaredTwiceError` with `:name` the name, a
       refusal declared under a second address among them.
   ~~|
   ::spec~()
 
-:builtin/RootImplNamesNoVerbError
+:builtin/ImplementationNamesNoBuiltinError
   |~~ A host handed an implementation beside a source of the root for a
       name the source declares as no verb ending in `::builtin{}`: an
       implementation is the primitive of such a verb, and a verb whose
       step names a primitive of the core runs that one. `:uri` names the
       source and `:implName` the name. A verb ending in `::builtin{}`
       the host hands nothing for is refused with
-      `::builtin/PrimitiveKeyUnboundError`, its `:keyLabel` the name.
+      `::builtin/ImplementationNotHandedError`, its `:keyLabel` the name.
   ~~|
   ::spec~()
 

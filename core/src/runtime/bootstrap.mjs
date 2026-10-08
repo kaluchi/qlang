@@ -22,7 +22,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
 // A source of the language the locator does not serve leaves the root
 // without the declarations it holds.
 export const BootstrapSourceMissingError = declareInvariantError(
-  'BootstrapSourceMissingError',
+  'builtin/BootstrapSourceMissingError',
   ({ uri }) => `qlang bootstrap: '#${uri}' must resolve to a source of the language — ` +
     'add an entry to package.json#imports or the import map',
   { operand: '::builtin' }

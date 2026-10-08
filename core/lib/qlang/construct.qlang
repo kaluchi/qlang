@@ -2,7 +2,7 @@
    value under a tag through the tag's constructor, `::T<payload>`: the
    refusals of that step. ~|
 
-:construct/ConstructPayloadNotSchemaError
+:construct/PayloadNotSchemaError
   |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
       ::link~(::construct | doc)
@@ -10,12 +10,12 @@
       ~(
         ::construct{:tag :Box :payload [1]}
         !| [type /field]
-        |  eq [::construct/ConstructPayloadNotSchemaError :tag]
+        |  eq [::construct/PayloadNotSchemaError :tag]
        )
   ~~|
   ::spec~()
 
-:construct/ConstructReadBackDiffersError
+:construct/ReadBackDiffersError
   |~~ The ::construct prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
       as a group.
@@ -24,12 +24,12 @@
       ~(
         ::construct{:tag ::Box :payload 42}
         !| [type /printed]
-        |  eq [::construct/ConstructReadBackDiffersError "::Box42"]
+        |  eq [::construct/ReadBackDiffersError "::Box42"]
        )
   ~~|
   ::spec~()
 
-:construct/TaggedLitTagNotKindError
+:construct/TagNotKindError
   |~~ The tag before a payload addresses a kind, whose declaration is a
       spec; a tag that addresses a verb or a page names no kind to
       build by.
@@ -38,7 +38,7 @@
       ~(
         ::vec/take[]
         !| [type /tag /actualType]
-        |  eq [::construct/TaggedLitTagNotKindError :vec/take ::verb]
+        |  eq [::construct/TagNotKindError :vec/take ::verb]
        )
   ~~|
   ::spec~()

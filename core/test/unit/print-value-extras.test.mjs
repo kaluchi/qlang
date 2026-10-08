@@ -255,6 +255,6 @@ describe('print — the print declared under a kind', () => {
   it('prints what a kind answers that is no string as the value it is', async () => {
     const session = await badgeSession();
     const printed = await session.evalCell('[(5 | tag ::badge)] | print');
-    expect(printed.result).toContain('::proj/ProjectionSubjectNotProjectableError!{');
+    expect(printed.result).toContain('::proj/SubjectNotProjectableError!{');
   });
 });

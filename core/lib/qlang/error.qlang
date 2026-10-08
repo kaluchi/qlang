@@ -4,7 +4,7 @@
    the site that refused stacked over it, and its walk passes `::error`
    on its way to the map, so a verb declared here reaches every error. ~|
 
-:error/ErrorTrailNotVecError
+:error/TrailNotVecError
   |~~ `:trail` on an error descriptor is the path of the error, a
       vector of stops the runtime writes, `{:step :subject :skipped}`,
       from the step where it arose to the step where it is read.
@@ -17,12 +17,12 @@
       ~(
         !{:kind :oops :trail 5}
         !| [type /actualType]
-        |  eq [::error/ErrorTrailNotVecError ::number]
+        |  eq [::error/TrailNotVecError ::number]
        )
       ~(
         !{:kind :oops} | count
         !| union {:trail 5} | raise
-        !| type | eq ::error/ErrorTrailNotVecError
+        !| type | eq ::error/TrailNotVecError
        )
       ~(
         !{:kind :oops} | count

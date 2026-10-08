@@ -17,11 +17,11 @@ import { declareModifierError, declareSubjectError } from '../operand-errors.mjs
 import { bindPrim } from '../primitives.mjs';
 
 // The refusals the heads raise at the places they declare.
-declareModifierError('AndLeftNotBooleanError',  'and', 1, 'boolean');
-declareModifierError('AndRightNotBooleanError', 'and', 2, 'boolean');
-declareModifierError('OrLeftNotBooleanError',   'or',  1, 'boolean');
-declareModifierError('OrRightNotBooleanError',  'or',  2, 'boolean');
-declareSubjectError('NotSubjectNotBooleanError', 'not', 'boolean');
+declareModifierError('boolean/AndLeftNotBooleanError',  'and', 1, 'boolean');
+declareModifierError('boolean/AndRightNotBooleanError', 'and', 2, 'boolean');
+declareModifierError('boolean/OrLeftNotBooleanError',   'or',  1, 'boolean');
+declareModifierError('boolean/OrRightNotBooleanError',  'or',  2, 'boolean');
+declareSubjectError('boolean/NotSubjectNotBooleanError', 'not', 'boolean');
 
 bindPrim('any/eq',  (subject, value) => deepEqual(subject, value));
 bindPrim('any/ne',  (subject, value) => !deepEqual(subject, value));

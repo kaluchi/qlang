@@ -3,11 +3,11 @@
 {"name":"a-concept-is-a-member-of-the-root-noun","query":"::qlang | doc :pipeline | type","expect":"::doc","decision":["D111","D117","D119"]}
 {"name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | doc | links * open | every ~(false !| true | not)","expect":"true","decision":["D111","D119"]}
 {"name":"the-first-screen-names-the-concepts","query":"::qlang | doc | links * open | filter ~(type | eq ::doc) | count | gt 5","expect":"true","decision":["D111","D119"]}
-{"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnresolvedIdentifierError","decision":"D117"}
+{"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnknownNameError","decision":"D117"}
 {"name":"a-path-of-anchors-reads-the-page-of-a-slot","query":"::vec | doc [:take :count] | eq null","expect":"true","decision":"D119"}
 {"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2","decision":"D119"}
-{"name":"docs-leaves-for-doc","query":"5 | docs | type !| type","expect":"::call/UnresolvedIdentifierError","decision":"D119"}
+{"name":"docs-leaves-for-doc","query":"5 | docs | type !| type","expect":"::call/UnknownNameError","decision":"D119"}
 {"name": "every-link-of-the-first-screen-opens-a-page", "query": "::qlang | doc | links * open | every ~(type | eq ::doc)", "expect": "true", "decision": "D121"}
 {"name": "the-empty-path-reads-the-page-of-the-subject", "query": "::qlang | doc [] | eq (::qlang | doc)", "expect": "true", "decision": "D119"}
 {"name": "an-anchor-of-a-set-that-is-no-keyword-is-refused", "query": "::qlang | doc #[1] !| type", "expect": "::any/DocAnchorNotKeywordError", "decision": "D119"}
-{"name": "a-value-that-is-no-quote-opens-nothing", "query": "5 | open !| [type /slot]", "expect": "[::verb/VerbCodeNotQuoteError :subject]", "decision": "D122"}
+{"name": "a-value-that-is-no-quote-opens-nothing", "query": "5 | open !| [type /slot]", "expect": "[::verb/CodeNotQuoteError :subject]", "decision": "D122"}

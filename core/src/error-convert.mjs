@@ -3,13 +3,15 @@ import {
   makeErrorValue, makeTagKeyword
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
-import { recordThrowSiteSpec, refusalAddressOf } from './errors.mjs';
+import { recordThrowSiteSpec } from './errors.mjs';
 import { isTagLiteral, tagNameOfLiteral } from './env-keys.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
-recordThrowSiteSpec('ParseError', 'parseError', { operand: '::quote' });
-recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
+const PARSE_ERROR_ADDRESS = 'quote/ParseError';
+const HOST_FAILURE_ADDRESS = 'call/HostFailureError';
+recordThrowSiteSpec(PARSE_ERROR_ADDRESS, 'parseError', { operand: '::quote' });
+recordThrowSiteSpec(HOST_FAILURE_ADDRESS, 'error', { operand: '::call' });
 
 // Descriptor field-order: high-entropy first. The per-site
 // identity (the same invariant every tagged-instance value-class
@@ -66,7 +68,7 @@ function liftIdentifier(k, v) {
 }
 
 export function errorFromQlang(qlangError, subject) {
-  const tag = makeTagKeyword(refusalAddressOf(qlangError.name));
+  const tag = makeTagKeyword(qlangError.address);
   const d = new Map();
 
   // Instance carries only the dynamic facts the JS context attached
@@ -139,7 +141,7 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  return makeErrorValue(makeTagKeyword(refusalAddressOf('ParseError')), d, {
+  return makeErrorValue(makeTagKeyword(PARSE_ERROR_ADDRESS), d, {
     location: parseError.location,
     originalError: parseError
   });
@@ -212,7 +214,7 @@ const WELL_KNOWN_PROPS = [
 // `:name` [D7], so a port of the runtime to another host changes a
 // field and no identity a query matches.
 export function errorFromForeign(jsError, astNode) {
-  const tag = makeTagKeyword(refusalAddressOf('ForeignFailureError'));
+  const tag = makeTagKeyword(HOST_FAILURE_ADDRESS);
   const d = new Map();
   d.set('message', jsError.message);
 

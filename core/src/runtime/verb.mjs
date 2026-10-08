@@ -26,7 +26,7 @@ import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import {
-  BindNameDeclaredTwiceError, EffectLaunderingAtCallError, declareArityError, declareShapeError,
+  BindNameDeclaredTwiceError, CallEffectMarkMissingError, declareArityError, declareShapeError,
   placeRefusalOf, siteOfTag
 } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
@@ -55,29 +55,29 @@ export async function mintUnderTag(state, tag, value) {
   return await mintTaggedInstance(tag.name, value, state);
 }
 
-const VerbPayloadNotQuoteError = declareSubjectError('VerbPayloadNotQuoteError', '::verb', 'quote');
-const VerbSlotWithoutBodyError = declareShapeError('VerbSlotWithoutBodyError',
+const VerbPayloadNotQuoteError = declareSubjectError('verb/PayloadNotQuoteError', '::verb', 'quote');
+const VerbSlotWithoutBodyError = declareShapeError('verb/SlotWithoutBodyError',
   ({ slot }) => `::verb declares a slot by a kind or a literal, and ${slot.literal} has neither`,
   { operand: '::verb' });
-const VerbRoleNotKindError = declareShapeError('VerbRoleNotKindError',
+const VerbRoleNotKindError = declareShapeError('verb/RoleNotKindError',
   ({ role }) => `::verb role ${role.literal} is declared by a kind or a set of kinds, and :returns by / as well`,
   { operand: '::verb' });
-const VerbSlotMissingError = declareArityError('VerbSlotMissingError',
+const VerbSlotMissingError = declareArityError('verb/SlotMissingError',
   ({ verbName, slot }) => `${verbName.literal} takes ${slot.literal}, and the call leaves it empty`,
   { operand: '::verb' });
-const VerbModifiersBeyondSlotsError = declareArityError('VerbModifiersBeyondSlotsError',
+const VerbModifiersBeyondSlotsError = declareArityError('verb/ModifiersBeyondSlotsError',
   ({ verbName, slotCount, actualCount }) => `${verbName.literal} has ${slotCount} slots, and the call gives ${actualCount} modifiers`,
   { operand: '::verb' });
-const VerbSlotNotOfKindsError = declareShapeError('VerbSlotNotOfKindsError',
+const VerbSlotNotOfKindsError = declareShapeError('verb/SlotNotOfKindsError',
   ({ slot, actualType }) => `${slot.literal} takes a value of one of its kinds, got ${actualType.name}`,
   { operand: '::verb' });
-const VerbCodeNotQuoteError = declareShapeError('VerbCodeNotQuoteError',
+const VerbCodeNotQuoteError = declareShapeError('verb/CodeNotQuoteError',
   ({ slot, actualType }) => `${slot.literal} takes code, a quote \`~(…)\` or a verb, got ${actualType.name}`,
   { operand: '::verb', expectedType: 'quote' });
 // A call that reaches a contract names what the reader needs: the kind of
 // its subject has no verb of the name, and where the verbs of the name
 // live [D146]; a contract with no verb under it answers no call at all.
-const VerbWithoutBodyError = declareShapeError('VerbWithoutBodyError',
+const KindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
   ({ verbName, addresses, actualType }) => (addresses?.length > 0 && actualType !== undefined
     ? `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`
     : `${verbName.literal} declares a signature and no body, and answers no call`),
@@ -451,7 +451,7 @@ export async function callVerb(verb, modifierLambdas, state, verbName) {
 export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const signature = signatureOf(verb.payload);
   if (signature.body === null) {
-    throw new VerbWithoutBodyError({ verbName, addresses: addressesOf(state.env, verbName.name), actualType: typeKeyword(subject) });
+    throw new KindAnswersNoVerbError({ verbName, addresses: addressesOf(state.env, verbName.name), actualType: typeKeyword(subject) });
   }
   if (signature.rest === null && slotLambdas.length > signature.slots.length) {
     throw new VerbModifiersBeyondSlotsError({ verbName, slotCount: signature.slots.length, actualCount: slotLambdas.length });
@@ -495,7 +495,7 @@ function primitiveArgumentsOf(signature, slotValues, state) {
 function refuseLaunderedVerb(verb, lookupName) {
   const effectfulName = effectfulNameOfVerb(verb);
   if (effectfulName !== null && !classifyEffect(lookupName)) {
-    throw new EffectLaunderingAtCallError({ bindingName: lookupName, effectfulName });
+    throw new CallEffectMarkMissingError({ bindingName: lookupName, effectfulName });
   }
 }
 

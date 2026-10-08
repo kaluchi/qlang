@@ -1038,7 +1038,7 @@ since the error a step produces carries its path there [D82], [D85].
 
 ```qlang
 > ~(!{:kind :oops :trail 5}) * (!| raise !| type)
-[::error/ErrorTrailNotVecError]
+[::error/TrailNotVecError]
 ```
 
 The library of error-handling pipelines, retry and recover and assert
@@ -1104,10 +1104,9 @@ true
 The pages of the refusals of the kernel speak the language's words:
 the page of an unknown node of the tree says it is “a defect of the
 runtime, and no failure of the query” (`core/lib/qlang/builtin.qlang`).
-The names of some refusals still carry the runtime's,
-`::tagged/PayloadSubjectNotTaggedInstanceError` and
-`::bind/EffectLaunderingAtBindStepParseError` among them, which the tags of
-the sites as kinds rename [D46].
+A refusal is named by its address, the noun said once and the last name
+in the language's words, `::tagged/PayloadSubjectNotTaggedError` and
+`::bind/EffectMarkMissingError` among them [D46], [D158].
 
 Examples live on two planes: the conformance suite and the laws of the
 catalog, with a runner for each.
@@ -2021,3 +2020,4 @@ maintainer wants to explore it before it is fixed.
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
 [D156]: decisions/D156.md
+[D158]: decisions/D158.md

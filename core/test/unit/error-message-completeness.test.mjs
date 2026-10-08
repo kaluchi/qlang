@@ -60,7 +60,7 @@ describe('factory-builder error messages — no `undefined` interpolation', () =
 // the JS `.message` surface that conformance descriptor-shape
 // assertions miss when a key happens to be present but message
 // rendering breaks on a different slot.
-describe('ProjectionIndexOutOfBoundsError — Gemini round 4', () => {
+describe('IndexOutOfBoundsError — Gemini round 4', () => {
   it('Vec out-of-bounds index — message renders /<key>', async () => {
     const queryResult = await evalQuery('[10 20 30] | /99');
     expect(isErrorValue(queryResult)).toBe(true);

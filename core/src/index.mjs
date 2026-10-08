@@ -15,7 +15,7 @@ export {
 export { printQuoteSource } from './quote.mjs';
 export { decorateAstWithEffectMarkers } from './effect-check.mjs';
 export {
-  printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
+  printValue, toPlain, fromPlain, ParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';
 export { printAnswer } from './runtime/print.mjs';
 export { elide, elideAnswer } from './elide.mjs';

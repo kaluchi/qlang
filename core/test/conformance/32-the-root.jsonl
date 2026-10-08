@@ -1,7 +1,7 @@
 {"name":"a-name-with-a-path-declares-a-node-under-its-noun","query":":Box ::spec~() | :Box/area ::verb~(1) | ::Box | manifest","expect":"#[::Box/area]","decision":"D153"}
 {"name":"a-verb-declared-under-a-kind-serves-its-values","query":":Box ::spec~(:w ::number) | :Box/twice ::verb~(:returns ::number | /w | mul 2) | ::Box{:w 3} | twice","expect":"6","decision":"D153"}
 {"name":"a-reader-extends-a-kind-of-the-root","query":":vec/second ::verb~(/1) | [7 8 9] | second","expect":"8","decision":"D153"}
-{"name":"an-address-the-root-holds-is-declared-once","query":":vec/count ::verb~(0) !| type","expect":"::bind/BindNameDeclaredTwiceError","decision":"D153"}
+{"name":"an-address-the-root-holds-is-declared-once","query":":vec/count ::verb~(0) !| type","expect":"::bind/NameDeclaredTwiceError","decision":"D153"}
 {"name":"a-bare-name-of-the-reader-shadows-the-root","query":":vec 5 | vec","expect":"5","decision":["D62","D153"]}
 {"name":"a-bare-name-of-the-root-reads-its-value","query":"qlang | type","expect":"::doc","decision":"D153"}
 {"name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc","decision":["D62","D153"]}
@@ -13,16 +13,16 @@
 {"name":"a-binding-records-its-origin","query":"::number/add | binding | /origin","expect":":qlang/number","decision":"D153"}
 {"name":"a-helper-of-one-verb-lives-in-the-group-of-its-declaration","query":":f (:h 2 | ::verb~(mul h)) | 3 | f","expect":"6","decision":"D153"}
 {"name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ::verb~(mul h)) | env | has :h","expect":"false","decision":"D153"}
-{"name":"use-left-the-language","query":"{:x 1} | use !| type","expect":"::call/UnresolvedIdentifierError","decision":"D153"}
+{"name":"use-left-the-language","query":"{:x 1} | use !| type","expect":"::call/UnknownNameError","decision":"D153"}
 {"name":"the-effect-marker-sits-on-the-last-name","query":":any/@x ::verb~(1) | 5 | @x","expect":"1","decision":["D69","D153"]}
 {"name":"a-verb-a-body-computes-under-a-kind-serves-the-kind","query":":Box ::spec~() | :Box/h (::verb~(type)) | ::Box{} | h","expect":"::Box","decision":"D153"}
 {"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | [vec (env | /vec | /value) (::vec[1] | eq [1]) ([1] | doc | type)]","expect":"[5 5 true ::doc]","decision":["D62","D153"]}
-{"name":"a-verb-under-a-kind-names-no-subject","query":":Box ::spec~() | :Box/area ::verb~(:subject ::map | 1) !| type","expect":"::bind/BindVerbSubjectUnderKindError","decision":"D153"}
+{"name":"a-verb-under-a-kind-names-no-subject","query":":Box ::spec~() | :Box/area ::verb~(:subject ::map | 1) !| type","expect":"::bind/VerbSubjectUnderKindError","decision":"D153"}
 {"name":"a-verb-under-a-topic-serves-any-value","query":":t {} | :t/h ::verb~(type) | 5 | t/h","expect":"::number","decision":"D153"}
 {"name":"an-address-reads-a-value","query":":Box ::spec~() | :Box/side 3 | Box/side","expect":"3","decision":"D153"}
 {"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box ::spec~() | :Circle ::spec~() | :Box/area ::verb~(1) | :Circle/area ::verb~(2) | 5 | area !| /addresses","expect":"#[::Box/area ::Circle/area]","decision":"D153"}
-{"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ::verb~(1) !| [type /noun]","expect":"[::bind/BindNounNotDeclaredError ::Box]","decision":"D153"}
+{"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ::verb~(1) !| [type /noun]","expect":"[::bind/NounNotDeclaredError ::Box]","decision":"D153"}
 {"name":"a-verb-resides-where-it-was-first-declared","query":":t {} | :t/ad (::number/add | binding | /value) | [(1 | t/ad 2) (\"a\" | t/ad 1 !| type) (::t/ad | spec | /subject)]","expect":"[3 ::number/AddLeftNotNumberError ::number]","decision":"D153"}
-{"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | :w2 ::verb~(:subject ::Box | /w | mul 2) | [(::Box{:w 3} | Box/w2) ({:w 3} | Box/w2 !| type) ({:w 3} | w2 !| type)]","expect":"[6 ::verb/VerbSlotNotOfKindsError ::verb/VerbSlotNotOfKindsError]","decision":["D153","D156"]}
+{"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | :w2 ::verb~(:subject ::Box | /w | mul 2) | [(::Box{:w 3} | Box/w2) ({:w 3} | Box/w2 !| type) ({:w 3} | w2 !| type)]","expect":"[6 ::verb/SlotNotOfKindsError ::verb/SlotNotOfKindsError]","decision":["D153","D156"]}
 {"name":"a-reader-kind-of-a-builtin-step-runs-it-as-a-step","query":":B ::spec~(::builtin{}) | ::B[1] | type","expect":"::B","decision":["D73","D153"]}
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A ::spec~() | :B ::spec~() | ::verb~(:returns ::number | 1) | [(:A/f (/) | ::A{} | f) (:B/f (/) | ::B{} | f)]","expect":"[1 1]","decision":"D153"}

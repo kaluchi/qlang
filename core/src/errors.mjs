@@ -93,11 +93,11 @@ export class QlangInvariantError extends QlangError {
 // @-prefixed, so the effect propagates through every alias. Two
 // concrete subclasses fire from two different points:
 //
-//   EffectLaunderingAtBindStepParseError — fired by `evalBindStep` when
+//   BindEffectMarkMissingError — fired by `evalBindStep` when
 //     a non-@-prefixed name declares a verb whose body calls an
 //     @-prefixed OperandCall or reads an @-prefixed Projection key.
 //
-//   EffectLaunderingAtCallError — fired at runtime by
+//   CallEffectMarkMissingError — fired at runtime by
 //     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
 //     a non-@-prefixed identifier resolves to an effectful function
 //     value or verb (the laundering path where the binding was
@@ -120,20 +120,21 @@ export class EffectLaunderingError extends QlangError {
 
 const throwSiteSpecs = new Map();
 
-// One name, one throw site — the registry refuses a second
+// One address, one throw site — the registry refuses a second
 // recording the way `PRIMITIVE_REGISTRY.bind` refuses a second
 // binding, and for the same reason: two classes answering to one
-// name share one kind of the catalog, so whichever loads second
-// speaks for both.
-export function recordThrowSiteSpec(className, category, facts = {}) {
-  if (throwSiteSpecs.has(className)) {
-    throw new ThrowSiteSpecAlreadyRecordedError({ className });
+// address share one kind of the catalog, so whichever loads second
+// speaks for both. A refusal's address is the name its kind is declared
+// by, `number/AddLeftNotNumberError`, and the tag it answers by [D158].
+export function recordThrowSiteSpec(address, category, facts = {}) {
+  if (throwSiteSpecs.has(address)) {
+    throw new ThrowSiteSpecAlreadyRecordedError({ address });
   }
-  throwSiteSpecs.set(className, Object.freeze({ category, ...facts }));
+  throwSiteSpecs.set(address, Object.freeze({ category, ...facts }));
 }
 
-export function throwSiteSpecOf(className) {
-  return throwSiteSpecs.get(className);
+export function throwSiteSpecOf(address) {
+  return throwSiteSpecs.get(address);
 }
 
 // The classes of the sites that refuse the value at one place of a verb,
@@ -141,8 +142,8 @@ export function throwSiteSpecOf(className) {
 // refuses there [D72]; each takes the value it refuses.
 const placeRefusalClasses = new Map();
 
-export function recordPlaceRefusal(className, Cls) {
-  placeRefusalClasses.set(className, Cls);
+export function recordPlaceRefusal(address, Cls) {
+  placeRefusalClasses.set(address, Cls);
 }
 
 // placeRefusalOf(operandName, positions) → the class of the refusal the
@@ -150,8 +151,8 @@ export function recordPlaceRefusal(className, Cls) {
 // declares, or undefined.
 export function placeRefusalOf(operandName, positions) {
   for (const position of positions) {
-    for (const [className, Cls] of placeRefusalClasses) {
-      const { operand, position: declaredPosition } = throwSiteSpecs.get(className);
+    for (const [address, Cls] of placeRefusalClasses) {
+      const { operand, position: declaredPosition } = throwSiteSpecs.get(address);
       if (operand === operandName && declaredPosition === position) return Cls;
     }
   }
@@ -165,19 +166,6 @@ export function throwSiteSpecNames() {
 // The name of a site that names a tag in the registry, `::map/at`.
 export function siteOfTag(tagName) {
   return '::' + tagName;
-}
-
-// The address of a refusal [D153]: the name its kind is declared by,
-// `number/AddLeftNotNumberError`, which the root records as a source
-// declares it.
-const refusalAddresses = new Map();
-
-export function recordRefusalAddress(className, address) {
-  refusalAddresses.set(className, address);
-}
-
-export function refusalAddressOf(className) {
-  return refusalAddresses.get(className) ?? className;
 }
 
 // ── Per-site declaration ───────────────────────────────────────
@@ -197,48 +185,53 @@ export function refusalAddressOf(className) {
 
 // `name` is a non-writable own property of a class object, so a
 // class built inside a factory reports the factory's local binding
-// until redefined. Every per-site class is redefined to its declared
-// name, which is what `constructor.name`, a stack frame, and the
-// address of the refusal in the catalog all read.
-export function brand(Cls, className) {
-  Object.defineProperty(Cls, 'name', { value: className });
+// until redefined. Every per-site class is redefined to the last name
+// of its address, which `constructor.name` and a stack frame read, and
+// carries the address, which the tag of the error value is [D158].
+export function brand(Cls, address) {
+  Object.defineProperty(Cls, 'name', { value: lastNameOf(address) });
+  Object.defineProperty(Cls.prototype, 'address', { value: address });
   return Cls;
+}
+
+export function lastNameOf(address) {
+  return address.slice(address.lastIndexOf('/') + 1);
 }
 
 // Shared body of every factory whose base already stamps the kind
 // and keeps the context bag: the base takes `(message, context)`,
 // the per-site class adds its identity.
-function declareUnder(BaseError, category, className, buildMessage, facts) {
-  recordThrowSiteSpec(className, category, facts);
+function declareUnder(BaseError, category, address, buildMessage, facts) {
+  recordThrowSiteSpec(address, category, facts);
   const Cls = class extends BaseError {
     constructor(context = {}) {
       super(buildMessage(context), context);
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
 // declarePerSiteError — a site whose category names no `instanceof`
 // family of its own. The class extends `QlangError` directly and
 // stamps `category` as its kind.
-export function declarePerSiteError(className, category, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, category, facts);
+export function declarePerSiteError(address, category, buildMessage, facts = {}) {
+  recordThrowSiteSpec(address, category, facts);
   const Cls = class extends QlangError {
     constructor(context = {}) {
       super(buildMessage(context), category, context);
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
 // declareShapeError — a site whose diagnostic wording the operand
 // slot-check factories in `operand-errors.mjs` cannot spell, because
 // what it refuses is a shape rather than one slot's value-class. The
 // class still carries structured context and a unique site name.
-export function declareShapeError(className, buildMessage, facts = {}) {
-  return declareUnder(QlangTypeError, 'typeError', className, buildMessage, facts);
+export function declareShapeError(address, buildMessage, facts = {}) {
+  return declareUnder(QlangTypeError, 'typeError', address, buildMessage, facts);
 }
 
 // declareNumericDomainError — a site whose subject and modifiers
@@ -248,8 +241,8 @@ export function declareShapeError(className, buildMessage, facts = {}) {
 // recorded `:category` matches — a shape category would claim
 // a type violation the values do not have, since
 // `typeKeyword(Infinity)` answers `::number`.
-export function declareNumericDomainError(className, buildMessage, facts = {}) {
-  return declareUnder(NumericDomainError, 'numericDomain', className, buildMessage, facts);
+export function declareNumericDomainError(address, buildMessage, facts = {}) {
+  return declareUnder(NumericDomainError, 'numericDomain', address, buildMessage, facts);
 }
 
 // declareArityError — a site whose failure is the captured-arg
@@ -257,8 +250,8 @@ export function declareNumericDomainError(className, buildMessage, facts = {}) {
 // Extends ArityError so `.kind === 'arityError'` and `instanceof
 // ArityError` both match, while the concrete per-site class still
 // identifies the throw location uniquely.
-export function declareArityError(className, buildMessage, facts = {}) {
-  return declareUnder(ArityError, 'arityError', className, buildMessage, facts);
+export function declareArityError(address, buildMessage, facts = {}) {
+  return declareUnder(ArityError, 'arityError', address, buildMessage, facts);
 }
 
 // declareInvariantError — a registration-time or render-time
@@ -266,15 +259,15 @@ export function declareArityError(className, buildMessage, facts = {}) {
 // so `evalNode`'s rethrow guard keeps letting it past the deflect
 // machinery: an invariant violation is a defect in the runtime or in
 // what a host installed, never a value the fail track should carry.
-export function declareInvariantError(className, buildMessage, facts = {}) {
-  return declareUnder(QlangInvariantError, 'invariantError', className, buildMessage, facts);
+export function declareInvariantError(address, buildMessage, facts = {}) {
+  return declareUnder(QlangInvariantError, 'invariantError', address, buildMessage, facts);
 }
 
 // declareEffectLaunderingError — a site that caught an @-prefixed
 // effect reaching a name that does not carry the marker. Extends
 // `EffectLaunderingError` so a host can catch the whole family.
-export function declareEffectLaunderingError(className, buildMessage, facts = {}) {
-  return declareUnder(EffectLaunderingError, 'effectLaundering', className, buildMessage, facts);
+export function declareEffectLaunderingError(address, buildMessage, facts = {}) {
+  return declareUnder(EffectLaunderingError, 'effectLaundering', address, buildMessage, facts);
 }
 
 // declareForeignError — a failure of the embedding rather than of
@@ -283,16 +276,16 @@ export function declareEffectLaunderingError(className, buildMessage, facts = {}
 // see it and it rides out to the host that can act on it, while the
 // spec it records gives its `::Tag` the same `spec` reading every
 // other per-site error answers with.
-export function declareForeignError(className, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, 'foreignError', facts);
+export function declareForeignError(address, buildMessage, facts = {}) {
+  recordThrowSiteSpec(address, 'foreignError', facts);
   const Cls = class extends Error {
     constructor(context = {}) {
       super(buildMessage(context));
-      this.name = className;
+      this.name = lastNameOf(address);
       this.context = context;
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
 // ── Per-site classes under QlangInvariantError ─────────────────
@@ -301,25 +294,25 @@ export function declareForeignError(className, buildMessage, facts = {}) {
 // for it on a repeated name, and every later declaration in the tree
 // records after this one resolves.
 export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
-  'ThrowSiteSpecAlreadyRecordedError',
-  ({ className }) => `${className} records a second throw-site spec; two classes under ` +
-    'one name share one kind of the catalog',
+  'builtin/ThrowSiteSpecAlreadyRecordedError',
+  ({ address }) => `${address} records a second throw-site spec; two classes under ` +
+    'one address share one kind of the catalog',
   { operand: '::builtin' }
 );
 
 // ── Per-site classes under QlangError ──────────────────────────
 
-export const UnresolvedIdentifierError = declarePerSiteError(
-  'UnresolvedIdentifierError', 'unresolvedIdentifier',
+export const UnknownNameError = declarePerSiteError(
+  'call/UnknownNameError', 'unresolvedIdentifier',
   ({ identifierName }) => `unresolved identifier: ${identifierName}`,
   { operand: '::call' }
 );
 
-// UnresolvedAddressError — a name with a path that no declaration names
+// UnknownAddressError — a name with a path that no declaration names
 // [D62], [D153]. `context.address` is the address as a tag name, and
 // `context.nearest` the addresses it was likely meant to be.
-export const UnresolvedAddressError = declarePerSiteError(
-  'UnresolvedAddressError', 'unresolvedIdentifier',
+export const UnknownAddressError = declarePerSiteError(
+  'call/UnknownAddressError', 'unresolvedIdentifier',
   ({ address }) => `no name is declared at the address ${address.literal}`,
   { operand: '::call' }
 );
@@ -329,7 +322,7 @@ export const UnresolvedAddressError = declarePerSiteError(
 // `resourceLimit`: the runaway sits in the query's recursion.
 // `context.depth` is the refused frame, `context.limit` the budget.
 export const EvaluationDepthExceededError = declarePerSiteError(
-  'EvaluationDepthExceededError', 'resourceLimit',
+  'call/EvaluationDepthExceededError', 'resourceLimit',
   ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`,
   { operand: '::call' }
 );
@@ -339,23 +332,23 @@ export const EvaluationDepthExceededError = declarePerSiteError(
 // [D153]: `evalBindStep` refuses it where it stands, the head of a verb,
 // which never runs, where the verb is made, and the root a source that
 // declares it again. `context.name` is the name the declarations share.
-export const BindNameDeclaredTwiceError = declareShapeError('BindNameDeclaredTwiceError',
+export const BindNameDeclaredTwiceError = declareShapeError('bind/NameDeclaredTwiceError',
   ({ name }) => `${name} is declared once, and this declaration declares it again`,
   { operand: '::bind' }
 );
 
 // ── Per-site classes under EffectLaunderingError ───────────────
 
-export const EffectLaunderingAtBindStepParseError = declareEffectLaunderingError(
-  'EffectLaunderingAtBindStepParseError',
+export const BindEffectMarkMissingError = declareEffectLaunderingError(
+  'bind/EffectMarkMissingError',
   ({ bindingName, effectfulName }) =>
     `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
     `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
   { operand: '::bind' }
 );
 
-export const EffectLaunderingAtCallError = declareEffectLaunderingError(
-  'EffectLaunderingAtCallError',
+export const CallEffectMarkMissingError = declareEffectLaunderingError(
+  'call/EffectMarkMissingError',
   ({ bindingName, effectfulName }) =>
     `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
     `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +

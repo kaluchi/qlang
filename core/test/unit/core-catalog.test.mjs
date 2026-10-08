@@ -83,7 +83,7 @@ describe('bare-name verb call', () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('5 | mul');
     expect(isErrorValue(evalResult)).toBe(true);
-    expect(evalResult.tag.name).toBe('verb/VerbSlotMissingError');
+    expect(evalResult.tag.name).toBe('verb/SlotMissingError');
   });
 });
 
@@ -128,7 +128,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| type');
-    expect(evalResult).toEqual(makeTagKeyword('verb/VerbWithoutBodyError'));
+    expect(evalResult).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
   });
 
   it('apply runs a quote assembled from its steps', async () => {

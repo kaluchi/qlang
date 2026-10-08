@@ -21,8 +21,8 @@ import {
   CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
-const QuotePayloadNotVecError = declareSubjectError('QuotePayloadNotVecError', '::quote', 'vec');
-const QuoteElementNotStepError = declareElementError('QuoteElementNotStepError', '::quote', 'step');
+const QuotePayloadNotVecError = declareSubjectError('quote/PayloadNotVecError', '::quote', 'vec');
+const QuoteElementNotStepError = declareElementError('quote/ElementNotStepError', '::quote', 'step');
 
 function quoteConstructor(payload) {
   if (!isVec(payload)) throw new QuotePayloadNotVecError(payload);
@@ -86,23 +86,23 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 
 bindPrim('call', recordConstructor(CALL_TAG,
   { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
-  declareShapeError('CallPayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
-  declareShapeError('CallReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
+  declareShapeError('call/PayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
+  declareShapeError('call/ReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
 
 bindPrim('proj', recordConstructor(PROJ_TAG,
   { path: vecOf(isSegment) }, ['path'],
-  declareShapeError('ProjPayloadNotSchemaError', schemaMessage('::proj'), { operand: '::proj' }),
-  declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
+  declareShapeError('proj/PayloadNotSchemaError', schemaMessage('::proj'), { operand: '::proj' }),
+  declareShapeError('proj/ReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
 bindPrim('bind', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
-  declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
-  declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
+  declareShapeError('bind/PayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
+  declareShapeError('bind/ReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 
 bindPrim('construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
-  declareShapeError('ConstructPayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
-  declareShapeError('ConstructReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
+  declareShapeError('construct/PayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
+  declareShapeError('construct/ReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
 
 // ── wrappers ───────────────────────────────────────────────────
 
@@ -115,13 +115,13 @@ function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
 }
 
 bindPrim('each', wrapperConstructor(EACH_TAG,
-  declareSubjectError('EachPayloadNotQuoteError', '::each', 'quote'),
-  declareShapeError('EachReadBackDiffersError', readBackMessage('::each'), { operand: '::each' })));
+  declareSubjectError('each/PayloadNotQuoteError', '::each', 'quote'),
+  declareShapeError('each/ReadBackDiffersError', readBackMessage('::each'), { operand: '::each' })));
 
 bindPrim('fail', wrapperConstructor(FAIL_TAG,
-  declareSubjectError('FailPayloadNotQuoteError', '::fail', 'quote'),
-  declareShapeError('FailReadBackDiffersError', readBackMessage('::fail'), { operand: '::fail' })));
+  declareSubjectError('fail/PayloadNotQuoteError', '::fail', 'quote'),
+  declareShapeError('fail/ReadBackDiffersError', readBackMessage('::fail'), { operand: '::fail' })));
 
 bindPrim('group', wrapperConstructor(GROUP_TAG,
-  declareSubjectError('GroupPayloadNotQuoteError', '::group', 'quote'),
-  declareShapeError('GroupReadBackDiffersError', readBackMessage('::group'), { operand: '::group' })));
+  declareSubjectError('group/PayloadNotQuoteError', '::group', 'quote'),
+  declareShapeError('group/ReadBackDiffersError', readBackMessage('::group'), { operand: '::group' })));

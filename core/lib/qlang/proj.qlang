@@ -1,7 +1,7 @@
 |~ What is declared under `::proj`, the step that reads a part of a
    value: the refusals of a read that misses. ~|
 
-:proj/ProjPayloadNotSchemaError
+:proj/PayloadNotSchemaError
   |~~ A `::proj` is a map of `:path`, a vector of keys and
       integers.
       ::link~(::proj | doc)
@@ -9,12 +9,12 @@
       ~(
         ::proj{:path "items"}
         !| [type /field]
-        |  eq [::proj/ProjPayloadNotSchemaError :path]
+        |  eq [::proj/PayloadNotSchemaError :path]
        )
   ~~|
   ::spec~()
 
-:proj/ProjReadBackDiffersError
+:proj/ReadBackDiffersError
   |~~ The ::proj prints as text that reads back as another step: a
       key that reads as an index is written as the index.
       ::link~(::proj | doc)
@@ -22,12 +22,12 @@
       ~(
         ::proj{:path [:"0"]}
         !| [type /printed]
-        |  eq [::proj/ProjReadBackDiffersError "/\"0\""]
+        |  eq [::proj/ReadBackDiffersError "/\"0\""]
        )
   ~~|
   ::spec~()
 
-:proj/ProjectionFieldNotOnValueClassError
+:proj/FieldNotInSignatureError
   |~~ Projection segment names no declaration of the signature it
       reads.
       ::link~(::proj | doc)
@@ -35,12 +35,12 @@
       ~(
         ::vec/join | spec | /missing
         !| [type /key]
-        |  eq [::proj/ProjectionFieldNotOnValueClassError "missing"]
+        |  eq [::proj/FieldNotInSignatureError "missing"]
        )
   ~~|
   ::spec~()
 
-:proj/ProjectionIndexOutOfBoundsError
+:proj/IndexOutOfBoundsError
   |~~ An index reads within a vector or a set, from `/0` to the last,
       `/-1`; `take` and `drop` answer the part there is without refusing.
       `:length` holds the length of the subject.
@@ -49,12 +49,12 @@
       ~(
         [10 20 30] | /99
         !| [type /index /length]
-        |  eq [::proj/ProjectionIndexOutOfBoundsError 99 3]
+        |  eq [::proj/IndexOutOfBoundsError 99 3]
        )
   ~~|
   ::spec~()
 
-:proj/ProjectionKeyNotInMapError
+:proj/KeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
       found where it is read; `keys` lists the keys there are, and
       `at :key` answers null for a key that may be absent.
@@ -63,12 +63,12 @@
       ~(
         {:a 1} | /b
         !| [type /key]
-        |  eq [::proj/ProjectionKeyNotInMapError "b"]
+        |  eq [::proj/KeyNotInMapError "b"]
        )
   ~~|
   ::spec~()
 
-:proj/ProjectionSubjectNotProjectableError
+:proj/SubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a
       tag among them; a number, a string or null has no parts, and a map
       that may lack a key is read by `at`, which answers null for it.
@@ -77,18 +77,18 @@
       step, `mul /qty /price`.
       ::link~(::proj | doc)
 
-      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/ProjectionSubjectNotProjectableError)
+      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/SubjectNotProjectableError)
       ~({:qty 2 :price 3} | mul /qty /price | eq 6)
 
       ~(
         42 | /foo
         !| [type /key /actualType]
-        |  eq [::proj/ProjectionSubjectNotProjectableError "foo" ::number]
+        |  eq [::proj/SubjectNotProjectableError "foo" ::number]
        )
   ~~|
   ::spec~()
 
-:proj/ProjectionSequenceKeyNotIntegerError
+:proj/IndexNotIntegerError
   |~~ A vector is read by an index, `/0`, a set's in its one order; a
       field of each element is read under `*`, `* /name`, and the
       elements a field picks are found by `filter`.
@@ -97,12 +97,12 @@
       ~(
         [10 20 30] | /name
         !| [type /key]
-        |  eq [::proj/ProjectionSequenceKeyNotIntegerError "name"]
+        |  eq [::proj/IndexNotIntegerError "name"]
        )
        ~(
         #[:a :b :c] | /name
         !| [type /key]
-        |  eq [::proj/ProjectionSequenceKeyNotIntegerError "name"]
+        |  eq [::proj/IndexNotIntegerError "name"]
        )
   ~~|
   ::spec~()

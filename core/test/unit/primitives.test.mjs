@@ -90,7 +90,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('rejects non-string keys with PrimitiveKeyNotStringError', () => {
+  it('rejects non-string keys with AddressNotStringError', () => {
     expect(() => registry.bind(Symbol('bad'), () => null))
       .toThrow(/an address must be a string, got symbol/);
   });
@@ -111,13 +111,13 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.name).toBe('PrimitiveKeyNotStringError');
+      expect(e.name).toBe('AddressNotStringError');
       expect(e.kind).toBe('invariantError');
       expect(e.context.actualType).toBe('object');
     }
   });
 
-  it('rejects duplicate keys with PrimitiveKeyAlreadyBoundError', () => {
+  it('rejects duplicate keys with AddressBoundTwiceError', () => {
     const k = 'qlang/test-prim/dup';
     registry.bind(k, () => 'first');
     expect(() => registry.bind(k, () => 'second'))
@@ -132,12 +132,12 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.name).toBe('PrimitiveKeyAlreadyBoundError');
+      expect(e.name).toBe('AddressBoundTwiceError');
       expect(e.context.keyName).toBe('qlang/test-prim/dup');
     }
   });
 
-  it('rejects binding after seal with PrimitiveRegistrySealedError', () => {
+  it('rejects binding after seal with TableSealedError', () => {
     registry.seal();
     const k = 'qlang/test-prim/late';
     expect(() => registry.bind(k, () => null))
@@ -152,7 +152,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
-      expect(e.name).toBe('PrimitiveRegistrySealedError');
+      expect(e.name).toBe('TableSealedError');
       expect(e.context.keyLabel).toBe('qlang/test-prim/late');
     }
   });
@@ -175,7 +175,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('throws PrimitiveKeyUnboundError on missing key', () => {
+  it('throws ImplementationNotHandedError on missing key', () => {
     const k = 'qlang/test-prim/missing';
     expect(() => registry.resolve(k))
       .toThrow(/no implementation is handed for qlang\/test-prim\/missing/);
@@ -194,14 +194,14 @@ describe('createPrimitiveRegistry — resolve error class', () => {
       expect(e).toBeInstanceOf(QlangError);
       expect(e).not.toBeInstanceOf(QlangInvariantError);
       expect(e.kind).toBe('primitiveUnbound');
-      expect(e.name).toBe('PrimitiveKeyUnboundError');
+      expect(e.name).toBe('ImplementationNotHandedError');
       expect(e.context.keyLabel).toContain('qlang/test-prim/missing');
     }
   });
 
   it('tolerates non-keyword lookup with a readable label', () => {
     // resolve() is stricter than bind() because it only throws
-    // PrimitiveKeyUnboundError when the key is unknown — it does not
+    // ImplementationNotHandedError when the key is unknown — it does not
     // separately validate the key type. A non-keyword lookup
     // produces the missing-key error with a typeof label.
     expect(() => registry.resolve('not-a-keyword'))

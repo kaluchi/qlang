@@ -117,29 +117,29 @@ describe('TaggedLit error paths', () => {
     expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
   });
 
-  it('raises TaggedLitTagNotKindError when the node a tag addresses is no kind', async () => {
+  it('raises TagNotKindError when the node a tag addresses is no kind', async () => {
     const err = await evalQuery('::vec/count[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('construct/TaggedLitTagNotKindError'));
+    expect(err.tag).toEqual(makeTagKeyword('construct/TagNotKindError'));
   });
 
   it('::verb raises VerbPayloadNotQuoteError when payload is not a quote', async () => {
     const err = await evalQuery('::verb{:not :a-quote}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('verb/VerbPayloadNotQuoteError'));
+    expect(err.tag).toEqual(makeTagKeyword('verb/PayloadNotQuoteError'));
   });
 
   it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {
     const err = await evalQuery('::builtin"hello"');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('builtin/BuiltinPayloadNotMapError'));
+    expect(err.tag).toEqual(makeTagKeyword('builtin/PayloadNotMapError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTagKeyword('string'));
   });
 
   it('::builtin raises BuiltinPayloadNotMapError when payload is a Vec', async () => {
     const err = await evalQuery('::builtin[1 2 3]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('builtin/BuiltinPayloadNotMapError'));
+    expect(err.tag).toEqual(makeTagKeyword('builtin/PayloadNotMapError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTagKeyword('vec'));
   });
 
@@ -378,7 +378,7 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('a constructor that refuses the answer refuses the edit', async () => {
     expect(await evalQuery('#[1 2] | within ~(count) !| type'))
-      .toEqual(makeTagKeyword('set/SetPayloadNotVecError'));
+      .toEqual(makeTagKeyword('set/PayloadNotVecError'));
   });
 
   it('the declarations of the edit stay inside it', async () => {
@@ -392,7 +392,7 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('a subject with no tag and a code that is no quote are refused', async () => {
     expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
-      .toEqual(makeTagKeyword('tagged/WithinSubjectNotTaggedInstanceError'));
+      .toEqual(makeTagKeyword('tagged/WithinSubjectNotTaggedError'));
     expect(await evalQuery('#[1 2] | within 1 !| type'))
       .toEqual(makeTagKeyword('tagged/WithinCodeNotQuoteError'));
   });

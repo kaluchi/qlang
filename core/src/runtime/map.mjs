@@ -13,10 +13,10 @@ import { compareValues } from '../ordering.mjs';
 
 // The refusals the heads raise at the places they declare; the key of
 // `has` is the map's alone, the element of a set being any value [D73].
-declareSubjectError('KeysSubjectNotMapError', 'keys', 'map');
-declareSubjectError('ValsSubjectNotMapError', 'vals', 'map');
-declareSubjectError('EntriesSubjectNotMapError', 'entries', 'map');
-declareModifierError('HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
+declareSubjectError('map/KeysSubjectNotMapError', 'keys', 'map');
+declareSubjectError('map/ValsSubjectNotMapError', 'vals', 'map');
+declareSubjectError('map/EntriesSubjectNotMapError', 'entries', 'map');
+declareModifierError('map/HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.

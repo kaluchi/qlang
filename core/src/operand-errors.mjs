@@ -30,6 +30,7 @@
 import {
   QlangTypeError,
   brand,
+  lastNameOf,
   recordPlaceRefusal,
   recordThrowSiteSpec
 } from './errors.mjs';
@@ -59,9 +60,9 @@ function lowerExpectedTypeHuman(input) {
 // value whose type is not acceptable. `operand` / `position` /
 // `expectedType` are the facts of the site, which the registry
 // records; JS-side context carries only dynamic facts.
-export function declareSubjectError(className, operand, expectedTypeInput) {
+export function declareSubjectError(address, operand, expectedTypeInput) {
   const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
-  recordThrowSiteSpec(className, 'typeError',
+  recordThrowSiteSpec(address, 'typeError',
     { operand, position: 'subject', expectedType: expectedTypeInput });
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
@@ -70,20 +71,20 @@ export function declareSubjectError(className, operand, expectedTypeInput) {
         `${operand} requires ${expectedTypeHuman} subject, got ${actualType.name}`,
         { actualType, actualValue }
       );
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  recordPlaceRefusal(className, Cls);
-  return brand(Cls, className);
+  recordPlaceRefusal(address, Cls);
+  return brand(Cls, address);
 }
 
 // declareModifierError — thrown when a captured argument has the
 // wrong type at a specific numeric position. The recorded spec
 // carries `:operand` / `:position` / `:expectedType`; JS context
 // carries only `:actualType` / `:actualValue`.
-export function declareModifierError(className, operand, position, expectedTypeInput) {
+export function declareModifierError(address, operand, position, expectedTypeInput) {
   const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
-  recordThrowSiteSpec(className, 'typeError', { operand, position, expectedType: expectedTypeInput });
+  recordThrowSiteSpec(address, 'typeError', { operand, position, expectedType: expectedTypeInput });
   const Cls = class extends QlangTypeError {
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
@@ -91,20 +92,20 @@ export function declareModifierError(className, operand, position, expectedTypeI
         `${operand} expects ${expectedTypeHuman} at position ${position}, got ${actualType.name}`,
         { actualType, actualValue }
       );
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  recordPlaceRefusal(className, Cls);
-  return brand(Cls, className);
+  recordPlaceRefusal(address, Cls);
+  return brand(Cls, address);
 }
 
 // declareElementError — thrown when a specific element of a
 // collection subject has the wrong type. The recorded spec carries
 // `:operand` / `:expectedType`; per-instance `:index` stays in JS
 // context because it varies per throw.
-export function declareElementError(className, operand, expectedTypeInput) {
+export function declareElementError(address, operand, expectedTypeInput) {
   const expectedTypeHuman = lowerExpectedTypeHuman(expectedTypeInput);
-  recordThrowSiteSpec(className, 'typeError', { operand, expectedType: expectedTypeInput });
+  recordThrowSiteSpec(address, 'typeError', { operand, expectedType: expectedTypeInput });
   const Cls = class extends QlangTypeError {
     constructor(index, actualValue) {
       const actualType = typeKeyword(actualValue);
@@ -112,17 +113,17 @@ export function declareElementError(className, operand, expectedTypeInput) {
         `${operand}: element ${index} expects ${expectedTypeHuman}, got ${actualType.name}`,
         { index, actualType, actualValue }
       );
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
 // declareComparabilityError — thrown when a shape-matching check of
 // a pair fails. The recorded spec carries `:operand`;
 // JS context carries the pairwise dynamic types.
-export function declareComparabilityError(className, operand) {
-  recordThrowSiteSpec(className, 'typeError', { operand });
+export function declareComparabilityError(address, operand) {
+  recordThrowSiteSpec(address, 'typeError', { operand });
   const Cls = class extends QlangTypeError {
     constructor(leftValue, rightValue) {
       const leftType = typeKeyword(leftValue);
@@ -131,8 +132,8 @@ export function declareComparabilityError(className, operand) {
         `${operand} cannot compare ${leftType.name} with ${rightType.name}`,
         { leftType, rightType }
       );
-      this.name = className;
+      this.name = lastNameOf(address);
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }

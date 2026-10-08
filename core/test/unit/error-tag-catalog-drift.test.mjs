@@ -11,7 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
-import { refusalAddressOf, throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
+import { throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
 import { nodeOf, splitAddress } from '../../src/runtime/nouns.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
 import { bindingValueOf, isSpec } from '../../src/types.mjs';
@@ -20,7 +20,7 @@ import { bindingValueOf, isSpec } from '../../src/types.mjs';
 // the site that mints it.
 const REFUSALS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
   ['quote/ParseError', 'errorFromParse lifts the peggy ParseError shape'],
-  ['call/ForeignFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
+  ['call/HostFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
 ]);
 
 const session = await createSession();
@@ -35,25 +35,24 @@ for (const [address, record] of session.env.get(ROOT_KEY)) {
 
 describe('every refusal names the place it guards [D64]', () => {
   it('a throw site names a verb, a noun or a step of the language', () => {
-    const placeless = [...throwSiteSpecNames()].filter(className => throwSiteSpecOf(className).operand === undefined);
+    const placeless = [...throwSiteSpecNames()].filter(address => throwSiteSpecOf(address).operand === undefined);
     expect(placeless).toEqual([]);
   });
 });
 
 describe('every throw site has its kind in the tree of names [D152]', () => {
-  for (const className of throwSiteSpecNames()) {
-    it(`${className} is declared under the noun it guards`, () => {
-      const address = refusalAddressOf(className);
+  for (const address of throwSiteSpecNames()) {
+    it(`${address} is declared under the noun it guards`, () => {
       expect(isSpec(bindingValueOf(nodeOf(session.env, address))),
-        `${className} records a throw-site spec and no source of the language declares it under its noun`
+        `${address} records a throw-site spec and no source of the language declares it under its noun`
       ).toBe(true);
     });
   }
 });
 
 describe('every refusal of the catalog has a throw site', () => {
-  for (const [address, name] of refusalKinds) {
-    if (throwSiteSpecOf(name) !== undefined) continue;
+  for (const [address] of refusalKinds) {
+    if (throwSiteSpecOf(address) !== undefined) continue;
     it(`${address} is minted outside a per-site factory for a stated reason`, () => {
       expect(REFUSALS_MINTED_OUTSIDE_A_THROW_SITE.get(address),
         `${address} has no throw site under core/src and no entry naming what mints it`

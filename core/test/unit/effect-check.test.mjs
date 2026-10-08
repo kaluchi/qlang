@@ -10,7 +10,7 @@ import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import {
   EffectLaunderingError,
-  EffectLaunderingAtBindStepParseError,
+  BindEffectMarkMissingError,
   QlangError
 } from '../../src/errors.mjs';
 import {
@@ -115,14 +115,14 @@ describe('findFirstEffectfulIdentifier', () => {
 });
 
 describe('eval-time effect validation in evalBindStep', () => {
-  // EffectLaunderingAtBindStepParseError produces an error value
+  // BindEffectMarkMissingError produces an error value
   // (5th type). `catchOriginalError` (shared helper) unwraps the
   // originating JS-side QlangError off the ErrorValue for the
-  // `instanceof EffectLaunderingAtBindStepParseError` checks below.
+  // `instanceof BindEffectMarkMissingError` checks below.
 
   it('rejects :foo ::verb~(@callers) — effectful body, clean name', async () => {
     const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('accepts a quote literal whose steps name an effect — the quote is data', async () => {
@@ -132,24 +132,24 @@ describe('eval-time effect validation in evalBindStep', () => {
 
   it('rejects nested effectful body', async () => {
     const effectErr = await catchOriginalError(':foo ::verb~(filter ~(@callers | count))');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('rejects projection-laundering', async () => {
     const effectErr = await catchOriginalError(':bad ::verb~(env | /@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('accepts :@impl ::verb~(@callers) — effectful body, @-prefixed name', async () => {
     // @callers resolves to unresolvedIdentifier in langRuntime (no host plugin),
     // but the let itself should NOT produce an effectLaundering error.
     const effectErr = await catchOriginalError(':@impl ::verb~(@callers)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).not.toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('accepts :@safe ::verb~(count) — over-approximation harmless', async () => {
     const effectErr = await catchOriginalError(':@safe ::verb~(count)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).not.toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('accepts :foo ::verb~(count) — pure body, clean name', async () => {
@@ -159,19 +159,19 @@ describe('eval-time effect validation in evalBindStep', () => {
 
   it('rejects transitive aliasing through a clean name', async () => {
     const effectErr = await catchOriginalError(':@a ::verb~(count) | :b ::verb~(@a)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('error carries the offending binding name and effectful identifier', async () => {
     const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
     expect(effectErr.context.bindingName).toBe('foo');
     expect(effectErr.context.effectfulName).toBe('@callers');
   });
 
   it('error has a stable per-site name', async () => {
     const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr.name).toBe('EffectLaunderingAtBindStepParseError');
+    expect(effectErr.name).toBe('EffectMarkMissingError');
   });
 
   it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
@@ -189,7 +189,7 @@ describe('eval-time effect validation in evalBindStep', () => {
 
   it('rejects BindStep inside a ParenGroup with effectful body', async () => {
     const effectErr = await catchOriginalError('1 | (:bad ::verb~(@callers) | bad)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
 });

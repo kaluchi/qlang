@@ -1,18 +1,18 @@
 |~ What is declared under `::fail`, the step `!|` runs on an error
    alone: its refusals. ~|
 
-:fail/FailPayloadNotQuoteError
+:fail/PayloadNotQuoteError
   |~~ The payload of ::fail is the quote of the step it wraps.
 
       ~(
         42 | tag ::fail
         !| [type /actualType]
-        |  eq [::fail/FailPayloadNotQuoteError ::number]
+        |  eq [::fail/PayloadNotQuoteError ::number]
        )
   ~~|
   ::spec~()
 
-:fail/FailReadBackDiffersError
+:fail/ReadBackDiffersError
   |~~ The ::fail prints as text that reads back as another step: it
       wraps one step, and a pipeline under `!|` is written as a
       group.
@@ -20,7 +20,7 @@
       ~(
         ~(a | b) | tag ::fail
         !| [type /printed]
-        |  eq [::fail/FailReadBackDiffersError "!| a | b"]
+        |  eq [::fail/ReadBackDiffersError "!| a | b"]
        )
   ~~|
   ::spec~()

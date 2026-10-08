@@ -11,7 +11,7 @@ import { errorFromParse } from '../error-convert.mjs';
 import { codeOf } from '../eval.mjs';
 
 // The refusal the head of `apply` raises at the code it declares.
-declareModifierError('ApplyCodeNotQuoteError', 'apply', 2, 'quote');
+declareModifierError('any/ApplyCodeNotQuoteError', 'apply', 2, 'quote');
 
 // A source the parser refuses answers the `::ParseError` with the
 // location and the excerpt of the source.

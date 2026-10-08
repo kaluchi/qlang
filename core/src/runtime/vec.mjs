@@ -20,11 +20,11 @@ import { resolveBinaryReducer } from '../eval.mjs';
 // names the element whose condition answered another kind.
 const conditionRefusal = operand => ({ index, actualType }) =>
   `${operand} takes a boolean from its condition, element ${index} answered ${actualType.name}`;
-const FilterConditionNotBooleanError = declareShapeError('FilterConditionNotBooleanError',
+const FilterConditionNotBooleanError = declareShapeError('any/FilterConditionNotBooleanError',
   conditionRefusal('filter'), { operand: 'filter', expectedType: 'boolean' });
-const EveryConditionNotBooleanError  = declareShapeError('EveryConditionNotBooleanError',
+const EveryConditionNotBooleanError  = declareShapeError('any/EveryConditionNotBooleanError',
   conditionRefusal('every'), { operand: 'every', expectedType: 'boolean' });
-const AnyConditionNotBooleanError    = declareShapeError('AnyConditionNotBooleanError',
+const AnyConditionNotBooleanError    = declareShapeError('any/AnyConditionNotBooleanError',
   conditionRefusal('any'), { operand: 'any', expectedType: 'boolean' });
 
 function booleanOf(answer, index, ErrorCls) {
@@ -32,48 +32,48 @@ function booleanOf(answer, index, ErrorCls) {
   return answer;
 }
 
-const GroupByKeyNotKeywordError = declareShapeError('GroupByKeyNotKeywordError',
+const GroupByKeyNotKeywordError = declareShapeError('any/GroupByKeyNotKeywordError',
   ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
   { operand: 'groupBy', expectedType: 'keyword' }
 );
-const IndexByKeyNotKeywordError = declareShapeError('IndexByKeyNotKeywordError',
+const IndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeywordError',
   ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
   { operand: 'indexBy', expectedType: 'keyword' }
 );
 
 // The slot that runs code per element takes a quote, and a value
 // computed at the call is refused by the head at the site's place.
-declareModifierError('FilterPredicateNotQuoteError', 'filter',  2, 'quote');
-declareModifierError('EveryPredicateNotQuoteError',  'every',   2, 'quote');
-declareModifierError('AnyPredicateNotQuoteError',    'any',     2, 'quote');
-declareModifierError('GroupByKeyNotQuoteError',      'groupBy', 2, 'quote');
-declareModifierError('IndexByKeyNotQuoteError',      'indexBy', 2, 'quote');
-declareModifierError('SortKeyNotQuoteError',         'sort',    2, 'quote');
-declareModifierError('ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
+declareModifierError('any/FilterPredicateNotQuoteError', 'filter',  2, 'quote');
+declareModifierError('any/EveryPredicateNotQuoteError',  'every',   2, 'quote');
+declareModifierError('any/AnyPredicateNotQuoteError',    'any',     2, 'quote');
+declareModifierError('any/GroupByKeyNotQuoteError',      'groupBy', 2, 'quote');
+declareModifierError('any/IndexByKeyNotQuoteError',      'indexBy', 2, 'quote');
+declareModifierError('any/SortKeyNotQuoteError',         'sort',    2, 'quote');
+declareModifierError('any/ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 
 // A count and an index are whole numbers: the head refuses a value of
 // another kind at the site's place, and the primitive a fraction. A key
 // of a map is the map's residence's own [D73].
-const TakeCountNotIntegerError = declareModifierError('TakeCountNotIntegerError', 'take', 2, 'integer');
-const DropCountNotIntegerError = declareModifierError('DropCountNotIntegerError', 'drop', 2, 'integer');
-const AtIndexNotIntegerError   = declareModifierError('AtIndexNotIntegerError',   'at',   2, 'integer');
-declareModifierError('AtKeyNotKeywordOrStringError', '::map/at', 2, ['keyword', 'string']);
+const TakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
+const DropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
+const AtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');
+declareModifierError('map/AtKeyNotKeywordOrStringError', '::map/at', 2, ['keyword', 'string']);
 
 function wholeOrRefuse(value, ErrorCls) {
   if (!Number.isInteger(value)) throw new ErrorCls(value);
   return value;
 }
 
-const SumElementNotNumberError = declareElementError('SumElementNotNumberError', 'sum', 'number');
+const SumElementNotNumberError = declareElementError('any/SumElementNotNumberError', 'sum', 'number');
 // Every element is a finite double, yet their running total can
 // still leave the range. `:index` names the element the total
 // crossed at, so the subject can be split at that point.
-const SumResultNotFiniteError = declareNumericDomainError('SumResultNotFiniteError',
+const SumResultNotFiniteError = declareNumericDomainError('any/SumResultNotFiniteError',
   ({ index }) => `sum: the running total leaves the finite double range at element ${index}`,
   { operand: 'sum' }
 );
 
-const ReduceReducerNotBinaryError = declareShapeError('ReduceReducerNotBinaryError',
+const ReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
   () => 'reduce reducer must be a binary operand (add / mul / union / …) or a verb whose first slot takes the element',
   { operand: 'reduce' }
 );
@@ -156,7 +156,7 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
 // The mean of the numbers, kept as a running mean so no partial sum
 // leaves the finite doubles; an empty container has none, and answers
 // null as `min` and `max` do [D147].
-const AvgElementNotNumberError = declareElementError('AvgElementNotNumberError', 'avg', 'number');
+const AvgElementNotNumberError = declareElementError('any/AvgElementNotNumberError', 'avg', 'number');
 bindPrim(['vec/avg', 'set/avg', 'map/avg'], container => {
   const items = elementsOf(container);
   if (items.length === 0) return NULL;

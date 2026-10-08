@@ -5,13 +5,13 @@
    the one its site declares at the place it checks, and the primitive
    the rest. ~|
 
-:number/NumberPayloadNotNumberError
+:number/PayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
       another kind is refused, and text is read by `parseJson`.
       ~(
         ::number"5"
         !| [type /actualType]
-        |  eq [::number/NumberPayloadNotNumberError ::string]
+        |  eq [::number/PayloadNotNumberError ::string]
        )
   ~~|
   ::spec~()

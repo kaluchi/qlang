@@ -4,7 +4,7 @@
    vectors read it as one, and a quote under a tag, a link or a snippet
    of a page, reads them through its shape. ~|
 
-:quote/QuotePayloadNotVecError
+:quote/PayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
       ::link~(::quote | doc)
@@ -12,12 +12,12 @@
       ~(
         ::quote{:not :steps}
         !| [type /actualType]
-        |  eq [::quote/QuotePayloadNotVecError ::map]
+        |  eq [::quote/PayloadNotVecError ::map]
        )
   ~~|
   ::spec~()
 
-:quote/QuoteElementNotStepError
+:quote/ElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
       container of steps, or a record or wrapper of code. A value
       with no reading as code, such as a tagged instance of
@@ -27,7 +27,7 @@
       ~(
         [::Box[1]] | tag ::quote
         !| [type /index]
-        |  eq [::quote/QuoteElementNotStepError 0]
+        |  eq [::quote/ElementNotStepError 0]
        )
   ~~|
   ::spec~()

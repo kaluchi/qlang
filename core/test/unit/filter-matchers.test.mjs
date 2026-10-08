@@ -70,7 +70,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with an unresolved name for pred — surfaces on fail-track', async () => {
     const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
-    expect(errorValue).toEqual(makeTagKeyword('call/UnresolvedIdentifierError'));
+    expect(errorValue).toEqual(makeTagKeyword('call/UnknownNameError'));
   });
 
   it('Map with a value bound for pred — every entry passes', async () => {
@@ -93,9 +93,9 @@ describe('filter — container polymorphism', () => {
   });
 
   it('a non-container subject reaches the contract of filter on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'VerbWithoutBodyError');
+    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
   it('Vec with a verb handed as the predicate', async () => {
@@ -149,9 +149,9 @@ describe('every — container polymorphism', () => {
   });
 
   it('a non-container subject reaches the contract of every on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'VerbWithoutBodyError');
+    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
   it('Vec with a declared verb predicate', async () => {
@@ -193,9 +193,9 @@ describe('any — container polymorphism', () => {
   });
 
   it('a non-container subject reaches the contract of any on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'VerbWithoutBodyError');
+    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 });
 
@@ -261,7 +261,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
-    // key now errors (::proj/ProjectionKeyNotInMapError) instead of silently
+    // key now errors (::proj/KeyNotInMapError) instead of silently
     // returning null.
     expect(await evalQuery('{:nothing null} | /nothing | type | eq ::null')).toBe(true);
     expect(await evalQuery('0 | type | eq ::null')).toBe(false);

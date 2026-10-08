@@ -47,26 +47,26 @@ import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
-export const SourceBindingNotFoundError = declareShapeError('SourceBindingNotFoundError',
+export const SourceBindingNotFoundError = declareShapeError('any/SourceBindingNotFoundError',
   ({ bindingName }) =>
     `source: no binding found for '${bindingName}'`,
   { operand: 'source' });
-export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundError',
+export const DocBindingNotFoundError = declareShapeError('any/DocBindingNotFoundError',
   ({ bindingName }) =>
     `doc: no binding found for '${bindingName}'`,
   { operand: 'doc' });
-const BindingNotFoundError = declareShapeError('BindingNotFoundError',
+const BindingNotFoundError = declareShapeError('any/BindingNotFoundError',
   ({ bindingName }) =>
     `binding: no binding found for '${bindingName}'`,
   { operand: 'binding' });
-const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
+const DocAnchorNotKeywordError = declareShapeError('any/DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
-export const ExplainBindingNotFoundError = declareShapeError('ExplainBindingNotFoundError',
+export const ExplainBindingNotFoundError = declareShapeError('any/ExplainBindingNotFoundError',
   ({ bindingName }) =>
     `explain: no binding found for '${bindingName}'`,
   { operand: 'explain' });
-export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundError',
+export const SpecBindingNotFoundError = declareShapeError('any/SpecBindingNotFoundError',
   ({ bindingName }) =>
     `spec: no binding found for '${bindingName}'`,
   { operand: 'spec' });

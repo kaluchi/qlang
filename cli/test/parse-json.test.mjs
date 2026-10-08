@@ -41,14 +41,14 @@ describe('parseJson — happy path', () => {
 describe('parseJson — error sites', () => {
   it('lifts ParseJsonSubjectNotStringError when the subject is not a String', async () => {
     const cellEntry = await runQuery('42 | parseJson', noopIo);
-    expectOperandErrorThrown(cellEntry, 'ParseJsonSubjectNotStringError', {
+    expectOperandErrorThrown(cellEntry, 'string/ParseJsonSubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });
 
-  it('lifts ParseJsonInvalidJsonError when the subject is not valid JSON', async () => {
+  it('lifts ParseJsonTextNotJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
-    const thrown = expectOperandErrorThrown(cellEntry, 'ParseJsonInvalidJsonError', {});
+    const thrown = expectOperandErrorThrown(cellEntry, 'string/ParseJsonTextNotJsonError', {});
     expect(typeof thrown.context.message).toBe('string');
     expect(thrown.context.message.length).toBeGreaterThan(0);
   });

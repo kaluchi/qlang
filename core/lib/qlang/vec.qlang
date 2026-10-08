@@ -4,13 +4,13 @@
    steps. The head of each verb is its declaration, which the runtime
    executes before the primitive runs. ~|
 
-:vec/VecPayloadNotVecError
+:vec/PayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
       payload of another kind is refused.
       ~(
         ::vec{:a 1}
         !| [type /actualType]
-        |  eq [::vec/VecPayloadNotVecError ::map]
+        |  eq [::vec/PayloadNotVecError ::map]
        )
   ~~|
   ::spec~()
@@ -213,27 +213,27 @@
       refused with the pair.
 
       ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
-      ~([1] | union #[2] !| type | eq ::vec/UnionPairIncompatibleError)
+      ~([1] | union #[2] !| type | eq ::vec/UnionOperandsMismatchedError)
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
-:vec/UnionBareEmptyError
+:vec/UnionOfNothingError
   |~~ `union` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | union
         !| [type]
-        |  eq [::vec/UnionBareEmptyError]
+        |  eq [::vec/UnionOfNothingError]
        )
   ~~|
   ::spec~()
 
-:vec/UnionPairIncompatibleError
+:vec/UnionOperandsMismatchedError
   |~~ The operands `union` folds are two sets or two maps.
       ~(
         [#[:a] {:b 1}] | union
         !| [type /leftType /rightType]
-        |  eq [::vec/UnionPairIncompatibleError ::set ::map]
+        |  eq [::vec/UnionOperandsMismatchedError ::set ::map]
        )
   ~~|
   ::spec~()
@@ -246,24 +246,24 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
-:vec/MinusBareEmptyError
+:vec/MinusOfNothingError
   |~~ `minus` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | minus
         !| [type]
-        |  eq [::vec/MinusBareEmptyError]
+        |  eq [::vec/MinusOfNothingError]
        )
   ~~|
   ::spec~()
 
-:vec/MinusPairIncompatibleError
+:vec/MinusOperandsMismatchedError
   |~~ The operands `minus` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | minus
         !| [type /leftType /rightType]
-        |  eq [::vec/MinusPairIncompatibleError ::set ::map]
+        |  eq [::vec/MinusOperandsMismatchedError ::set ::map]
        )
   ~~|
   ::spec~()
@@ -276,24 +276,24 @@
   ~~|
   ::verb~(:with #[::set ::map ::null] | ::builtin{})
 
-:vec/InterBareEmptyError
+:vec/InterOfNothingError
   |~~ `inter` over a vector folds its operands, so the vector holds one
       at least.
       ~(
         [] | inter
         !| [type]
-        |  eq [::vec/InterBareEmptyError]
+        |  eq [::vec/InterOfNothingError]
        )
   ~~|
   ::spec~()
 
-:vec/InterPairIncompatibleError
+:vec/InterOperandsMismatchedError
   |~~ The operands `inter` folds are two sets, or a map and a map or a
       vector of keys.
       ~(
         [#[:a] {:b 1}] | inter
         !| [type /leftType /rightType]
-        |  eq [::vec/InterPairIncompatibleError ::set ::map]
+        |  eq [::vec/InterOperandsMismatchedError ::set ::map]
        )
   ~~|
   ::spec~()

@@ -4,7 +4,6 @@
 // and check the result via isErrorValue + descriptor inspection.
 
 import { expect } from 'vitest';
-import { refusalAddressOf } from '../../src/errors.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
@@ -36,15 +35,13 @@ export async function expectErrorCategory(query, category) {
   return errorResult;
 }
 
-// expectErrorThrown(query, classTagName) → error value
+// expectErrorThrown(query, address) → error value
 //
-// Asserts the query produces an error value whose `:kind`
-// (the universal tagged-value identity slot) is a TagKeyword with
-// the given class tag name (e.g. `'AddLeftNotNumberError'`).
-export async function expectErrorThrown(query, classTagName) {
+// Asserts the query produces an error value whose tag is the address of
+// the refusal (e.g. `'number/AddLeftNotNumberError'`) [D158].
+export async function expectErrorThrown(query, address) {
   const errorResult = await expectErrorResult(query);
-  const identityTag = errorResult.tag;
-  expect(identityTag?.name).toBe(refusalAddressOf(classTagName));
+  expect(errorResult.tag?.name).toBe(address);
   return errorResult;
 }
 

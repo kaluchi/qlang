@@ -12,18 +12,18 @@ import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // The refusals the head of `if` raises at the places it declares.
-declareModifierError('IfConditionNotBooleanError', 'if', 2, 'boolean');
-declareModifierError('IfThenNotQuoteError',        'if', 3, 'quote');
-declareModifierError('IfElseNotQuoteError',        'if', 4, 'quote');
+declareModifierError('any/IfConditionNotBooleanError', 'if', 2, 'boolean');
+declareModifierError('any/IfThenNotQuoteError',        'if', 3, 'quote');
+declareModifierError('any/IfElseNotQuoteError',        'if', 4, 'quote');
 
-const CondConditionNotBooleanError = declareShapeError('CondConditionNotBooleanError',
+const CondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
   ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,
   { operand: 'cond', expectedType: 'boolean' });
-const CoalesceNoAlternativesError = declareArityError('CoalesceNoAlternativesError',
+const CoalesceNoAlternativesError = declareArityError('any/CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline',
   { operand: 'coalesce' }
 );
-const CondNoBranchesError = declareArityError('CondNoBranchesError',
+const CondNoBranchesError = declareArityError('any/CondNoBranchesError',
   () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default',
   { operand: 'cond' }
 );

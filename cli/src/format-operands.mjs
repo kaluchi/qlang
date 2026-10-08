@@ -5,8 +5,8 @@
 import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
 
-declareSubjectError('TableSubjectNotVecError', 'table', 'vec');
-const TableRowNotMapError     = declareElementError('TableRowNotMapError',     'table', 'map');
+declareSubjectError('vec/TableSubjectNotVecError', 'table', 'vec');
+const TableRowNotMapError     = declareElementError('vec/TableRowNotMapError',     'table', 'map');
 
 // A cell is a view at the boundary: a String prints bare, null as an
 // empty cell, and every other value as its literal on one line.

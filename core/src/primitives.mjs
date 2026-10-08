@@ -6,28 +6,28 @@
 
 import { declareInvariantError, declarePerSiteError } from './errors.mjs';
 
-const PrimitiveKeyNotStringError = declareInvariantError(
-  'PrimitiveKeyNotStringError',
+const AddressNotStringError = declareInvariantError(
+  'builtin/AddressNotStringError',
   ({ actualType }) => `bind: an address must be a string, got ${actualType}`,
   { operand: '::builtin' }
 );
 
-const PrimitiveKeyAlreadyBoundError = declareInvariantError(
-  'PrimitiveKeyAlreadyBoundError',
+const AddressBoundTwiceError = declareInvariantError(
+  'builtin/AddressBoundTwiceError',
   ({ keyName }) => `bind: ${keyName} is already bound; two runtime modules claim the same address`,
   { operand: '::builtin' }
 );
 
-const PrimitiveRegistrySealedError = declareInvariantError(
-  'PrimitiveRegistrySealedError',
+const TableSealedError = declareInvariantError(
+  'builtin/TableSealedError',
   ({ keyLabel }) => `bind: the table is sealed; cannot bind ${keyLabel} after the bootstrap`,
   { operand: '::builtin' }
 );
 
 // A handle that names no primitive, which a descriptor a query
 // assembled can hold, answers on the fail track.
-export const PrimitiveKeyUnboundError = declarePerSiteError(
-  'PrimitiveKeyUnboundError', 'primitiveUnbound',
+export const ImplementationNotHandedError = declarePerSiteError(
+  'builtin/ImplementationNotHandedError', 'primitiveUnbound',
   ({ keyLabel }) => `no implementation is handed for ${keyLabel}, which ends in ::builtin{}`,
   { operand: '::builtin' }
 );
@@ -40,13 +40,13 @@ export function createPrimitiveRegistry() {
   return {
     bind(key, impl) {
       if (sealed) {
-        throw new PrimitiveRegistrySealedError({ keyLabel: key });
+        throw new TableSealedError({ keyLabel: key });
       }
       if (typeof key !== 'string') {
-        throw new PrimitiveKeyNotStringError({ actualType: typeof key });
+        throw new AddressNotStringError({ actualType: typeof key });
       }
       if (bindings.has(key)) {
-        throw new PrimitiveKeyAlreadyBoundError({ keyName: key });
+        throw new AddressBoundTwiceError({ keyName: key });
       }
       bindings.set(key, impl);
       return key;
@@ -54,7 +54,7 @@ export function createPrimitiveRegistry() {
 
     resolve(key) {
       if (!bindings.has(key)) {
-        throw new PrimitiveKeyUnboundError({ keyLabel: key });
+        throw new ImplementationNotHandedError({ keyLabel: key });
       }
       return bindings.get(key);
     },

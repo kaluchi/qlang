@@ -17,13 +17,13 @@
   ~~|
   ::verb~(::builtin{})
 
-:tagged/PayloadSubjectNotTaggedInstanceError
+:tagged/PayloadSubjectNotTaggedError
   |~~ `payload` takes a value under a tag; a value of a kind of the
       core, a number or a plain map, stands under none.
       ~(
         42 | payload
         !| [type /actualType]
-        |  eq [::tagged/PayloadSubjectNotTaggedInstanceError ::number]
+        |  eq [::tagged/PayloadSubjectNotTaggedError ::number]
        )
   ~~|
   ::spec~()
@@ -45,13 +45,13 @@
   ~~|
   ::verb~(:code ::quote | :returns / | ::builtin{})
 
-:tagged/WithinSubjectNotTaggedInstanceError
+:tagged/WithinSubjectNotTaggedError
   |~~ `within` edits the value beneath a tag and puts the tag back; a
       value under no tag is edited by `apply`.
       ~(
         [1 2] | within ~(reverse)
         !| [type /actualType]
-        |  eq [::tagged/WithinSubjectNotTaggedInstanceError ::vec]
+        |  eq [::tagged/WithinSubjectNotTaggedError ::vec]
        )
   ~~|
   ::spec~()

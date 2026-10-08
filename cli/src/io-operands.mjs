@@ -9,11 +9,11 @@ import {
 } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
 
-const OutSubjectNotStringError = declareSubjectError('OutSubjectNotStringError', '@out', 'string');
-declareModifierError('OutRendererResultNotStringError', '@out', 2, 'string');
-const ErrSubjectNotStringError = declareSubjectError('ErrSubjectNotStringError', '@err', 'string');
-declareModifierError('ErrRendererResultNotStringError', '@err', 2, 'string');
-declareModifierError('TapLabelNotKeywordError', '@tap', 2, 'keyword');
+const OutSubjectNotStringError = declareSubjectError('any/OutSubjectNotStringError', '@out', 'string');
+declareModifierError('any/OutRendererResultNotStringError', '@out', 2, 'string');
+const ErrSubjectNotStringError = declareSubjectError('any/ErrSubjectNotStringError', '@err', 'string');
+declareModifierError('any/ErrRendererResultNotStringError', '@err', 2, 'string');
+declareModifierError('any/TapLabelNotKeywordError', '@tap', 2, 'keyword');
 
 // A writer takes the text the call gives, or bare, its subject, which is
 // then a string; the subject passes on either way.

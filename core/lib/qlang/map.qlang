@@ -4,36 +4,36 @@
    its keys are the shape that travels with them: a verb that keeps the
    kind keeps the keys of the entries it keeps. ~|
 
-:map/MapPayloadNotMapError
+:map/PayloadNotMapError
   |~~ `::map` reads a map as the map it is and a vector as its pairs;
       a payload of another kind is refused.
       ~(
         ::map(1)
         !| [type /actualType]
-        |  eq [::map/MapPayloadNotMapError ::number]
+        |  eq [::map/PayloadNotMapError ::number]
        )
   ~~|
   ::spec~()
 
-:map/MapElementNotPairError
+:map/ElementNotPairError
   |~~ Each element of the vector `::map` builds from is a pair `[key
       value]`; `:index` names the first that is not.
       ~(
         [[:a 1] [:b]] | tag ::map
         !| [type /index]
-        |  eq [::map/MapElementNotPairError 1]
+        |  eq [::map/ElementNotPairError 1]
        )
   ~~|
   ::spec~()
 
-:map/MapKeyNotKeywordError
+:map/KeyNotKeywordError
   |~~ The key of a pair is a keyword, or a string or a number naming the
       keyword of its text; `:index` names the pair whose key is another
       value.
       ~(
         [[[1] 2]] | tag ::map
         !| [type /actualType /index]
-        |  eq [::map/MapKeyNotKeywordError ::vec 0]
+        |  eq [::map/KeyNotKeywordError ::vec 0]
        )
   ~~|
   ::spec~()
@@ -149,7 +149,7 @@
   |~~ The value at the key, a keyword or a string, both naming the key
       as the map stores it, or null for a key the map lacks: the soft
       counterpart of the strict `/key` projection, which refuses a
-      miss with `::proj/ProjectionKeyNotInMapError`.
+      miss with `::proj/KeyNotInMapError`.
 
       ~({:a 1 :b 2} | at :a | eq 1)
       ~({:a 1 :b 2} | at "a" | eq 1)

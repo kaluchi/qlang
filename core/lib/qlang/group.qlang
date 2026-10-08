@@ -1,25 +1,25 @@
 |~ What is declared under `::group`, the steps in parentheses run on
    the value in the pipe: its refusals. ~|
 
-:group/GroupPayloadNotQuoteError
+:group/PayloadNotQuoteError
   |~~ The payload of ::group is the quote of its pipeline.
 
       ~(
         42 | tag ::group
         !| [type /actualType]
-        |  eq [::group/GroupPayloadNotQuoteError ::number]
+        |  eq [::group/PayloadNotQuoteError ::number]
        )
   ~~|
   ::spec~()
 
-:group/GroupReadBackDiffersError
+:group/ReadBackDiffersError
   |~~ The ::group prints as text that reads back as another step, or
       as none: a group holds at least one step.
 
       ~(
         ~() | tag ::group
         !| [type /printed]
-        |  eq [::group/GroupReadBackDiffersError "()"]
+        |  eq [::group/ReadBackDiffersError "()"]
        )
   ~~|
   ::spec~()

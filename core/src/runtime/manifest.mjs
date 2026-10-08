@@ -11,8 +11,8 @@ import { claimsOfRecord, recordReadBy } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
-const RunLawsBindingNotFoundError = declareShapeError('RunLawsBindingNotFoundError',
+declareSubjectError('tag/ManifestSubjectNotTagError', 'manifest', 'tag');
+const RunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
   ({ bindingName }) =>
     `runLaws: no declaration found for '${bindingName}'`,
   { operand: 'runLaws' });

@@ -2,13 +2,13 @@
    constructor, and the comparisons of keywords, which compare two
    keywords by their names in the one order. ~|
 
-:keyword/KeywordPayloadNotKeywordError
+:keyword/PayloadNotKeywordError
   |~~ `::keyword` reads its payload as the keyword it is; a string
       becomes one by `keyword`.
       ~(
         ::keyword"k"
         !| [type /actualType]
-        |  eq [::keyword/KeywordPayloadNotKeywordError ::string]
+        |  eq [::keyword/PayloadNotKeywordError ::string]
        )
   ~~|
   ::spec~()

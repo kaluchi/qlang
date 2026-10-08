@@ -11,7 +11,8 @@
 //
 //   'string'      String literal, including the surrounding quotes
 //   'number'      Number literal, plus boolean and null literals
-//   'comment'     Plain or doc comment, all four forms
+//   'comment'     Plain comment, and the prose of a doc: the quotes a
+//                 doc holds and its spans in backticks paint as code
 //   'atom'        `:name` keyword (atom) OR an OperandCall name
 //                 that resolves through a user-defined binding
 //   'effect'      `:@name` keyword OR an `@`-prefixed OperandCall
@@ -102,9 +103,18 @@ function collectSemanticSpans(src, ast, builtinNames) {
     const endOffset   = node.location.end.offset;
 
     switch (node.type) {
-      case 'DocLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'comment' });
-        return false;
+      case 'DocLit': {
+        // The prose of a doc paints as a comment and the quotes it holds
+        // as the code they are, so only prose reads grey [D83].
+        let cursor = startOffset;
+        for (const segment of node.segments) {
+          if (typeof segment === 'string') continue;
+          pushProseSpans(src, cursor, segment.location.start.offset, builtinNames, spans);
+          cursor = segment.location.end.offset;
+        }
+        pushProseSpans(src, cursor, endOffset, builtinNames, spans);
+        return; // descend into the quotes
+      }
 
       case 'StringLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'string' });
@@ -203,6 +213,22 @@ function collectSemanticSpans(src, ast, builtinNames) {
   });
 
   return dedupeOverlappingSpans(spans);
+}
+
+// The prose of a doc between `start` and `end`: a comment, but for a
+// span in backticks, which names code and paints as the code it spells.
+function pushProseSpans(src, start, end, builtinNames, spans) {
+  let cursor = start;
+  for (const match of src.slice(start, end).matchAll(/`([^`\n]+)`/g)) {
+    const codeStart = start + match.index + 1;
+    const codeEnd = codeStart + match[1].length;
+    spans.push({ start: cursor, end: codeStart, kind: 'comment' });
+    for (const inner of tokenize(match[1], builtinNames)) {
+      spans.push({ ...inner, start: codeStart + inner.start, end: codeStart + inner.end });
+    }
+    cursor = codeEnd;
+  }
+  spans.push({ start: cursor, end, kind: 'comment' });
 }
 
 function classifyOperandName(operandName, builtinNames) {

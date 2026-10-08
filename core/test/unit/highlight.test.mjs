@@ -327,12 +327,36 @@ describe('tokenize — a source that does not parse', () => {
   });
 });
 
+describe('tokenize — the code a doc holds', () => {
+  // Only the prose of a doc paints as a comment: its quotes and its
+  // spans in backticks paint as the code they are [D83].
+  const paint = async src => tokenize(src, await builtins())
+    .filter(token => token.kind !== 'whitespace')
+    .map(token => [src.slice(token.start, token.end), token.kind]);
+
+  it('paints a quote of the prose as code', async () => {
+    expect(await paint('|~~ see ~(add 1) ~~|')).toEqual([
+      ['|~~ see ', 'comment'], ['~(', 'quote'], ['add', 'operand'], ['1', 'number'], [')', 'quote'], [' ~~|', 'comment']
+    ]);
+  });
+
+  it('paints a span in backticks as the code it spells', async () => {
+    expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'operand'], ['` b ~~|', 'comment']]);
+  });
+
+  it('closes a doc inside a quote of a doc at its own marker', async () => {
+    const painted = await paint('|~~ ~(|~~ a ~~| | count) after ~~|');
+    expect(painted.at(-1)).toEqual([' after ~~|', 'comment']);
+    expect(painted).toContainEqual(['count', 'operand']);
+  });
+});
+
 describe('tokenize — the docs of a slot', () => {
   // The doc literals of a declaration's slot are the DocLit nodes the
   // tree holds for every doc [D83], so each paints as one `comment`
   // span instead of `pushGapTokens` misclassifying the prose as punct.
 
-  it('a doc between the key and the body gets one comment span', async () => {
+  it('a doc of prose between the key and the body gets one comment span', async () => {
     const src = ':double |~~ Doubles the input. ~~| mul 2';
     const tokens = tokenize(src, await builtins());
     const commentSpan = tokens.find(t => t.kind === 'comment');

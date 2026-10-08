@@ -337,11 +337,12 @@ export const EvaluationDepthExceededError = declarePerSiteError(
 );
 
 // BindNameDeclaredTwiceError — a declaration of a name an earlier step
-// of its scope declared [D44], [D71]: `evalBindStep` refuses it where it
-// stands, and the head of a verb, which never runs, where the verb is
-// made. `context.name` is the env key the declarations share.
+// of its scope declared [D44], [D71], or of an address the root holds
+// [D153]: `evalBindStep` refuses it where it stands, the head of a verb,
+// which never runs, where the verb is made, and the root a source that
+// declares it again. `context.name` is the name the declarations share.
 export const BindNameDeclaredTwiceError = declareShapeError('BindNameDeclaredTwiceError',
-  ({ name }) => `${name} is declared once in a scope, and this declaration declares it again`,
+  ({ name }) => `${name} is declared once, and this declaration declares it again`,
   { operand: '::bind' }
 );
 

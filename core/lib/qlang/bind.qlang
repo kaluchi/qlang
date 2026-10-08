@@ -49,7 +49,10 @@
       declaration of a name one of them declared before is refused
       where it stands. A group, an element, a modifier, a quote and
       a step joined by `*` open scopes of their own, where a name
-      of the scope around them is shadowed.
+      of the scope around them is shadowed. An address the root
+      holds is declared once at all: a reader extends a noun of the
+      root and replaces none of its nodes, and a source of the root
+      that declares a name the root holds is refused.
       ::link~(::bind | doc)
 
       ~(
@@ -58,5 +61,6 @@
         |  eq [::bind/BindNameDeclaredTwiceError :k]
        )
       ~(:k 1 | (:k 2 | k) | eq 2)
+      ~(:vec/count ::verb~(0) !| type | eq ::bind/BindNameDeclaredTwiceError)
   ~~|
   ::spec~()

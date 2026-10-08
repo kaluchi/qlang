@@ -26,7 +26,7 @@ export const RootSourceNotDeclaredError = declareInvariantError('RootSourceNotDe
 // An implementation a host hands for a name its source declares as no
 // verb has nothing to run under.
 export const RootImplNamesNoVerbError = declareShapeError('RootImplNamesNoVerbError',
-  ({ uri, implName }) => `qlang root: the source ${uri} hands an implementation for '${implName}', which it declares as no verb`,
+  ({ uri, implName }) => `qlang root: the source ${uri} hands an implementation for ${implName.literal}, which it declares as no verb`,
   { operand: '::builtin' });
 
 // The bindings a source declared, by name: those whose record names the

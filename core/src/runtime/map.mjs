@@ -20,13 +20,13 @@ declareModifierError('HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword'
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.
-bindPrim('keys', map => makeSet([...map.keys()].map(keyword)));
-bindPrim('vals', map => [...map.values()]);
+bindPrim('map/keys', map => makeSet([...map.keys()].map(keyword)));
+bindPrim('map/vals', map => [...map.values()]);
 
 // `entries` answers a map as the vector of its pairs `[key value]` in the
 // order of the entries, the key a keyword, the way `[type payload]`
 // splits a tagged value; `::map` builds the map back [D138].
-bindPrim('entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
+bindPrim('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
 // `has` is a boolean lookup: over a map a keyword and a string both
 // name the key as the map stores it, so the `keys | first | :k / | src |
@@ -47,7 +47,7 @@ function setHas(set, value) {
   return false;
 }
 
-bindPrim('has', (container, place) =>
+bindPrim(['vec/has', 'vec/contains', 'set/has', 'set/contains', 'map/has'], (container, place) =>
   isQMap(container) ? container.has(isKeyword(place) ? place.name : place)
     : isQSet(container) ? setHas(container, place)
       : container.some(element => compareValues(element, place) === 0));

@@ -92,17 +92,17 @@ describe('createPrimitiveRegistry — bind error classes', () => {
 
   it('rejects non-string keys with PrimitiveKeyNotStringError', () => {
     expect(() => registry.bind(Symbol('bad'), () => null))
-      .toThrow(/primitive key must be a string, got symbol/);
+      .toThrow(/an address must be a string, got symbol/);
   });
 
   it('rejects number keys', () => {
     expect(() => registry.bind(42, () => null))
-      .toThrow(/primitive key must be a string, got number/);
+      .toThrow(/an address must be a string, got number/);
   });
 
   it('rejects plain object keys', () => {
     expect(() => registry.bind({ not: 'keyword' }, () => null))
-      .toThrow(/primitive key must be a string, got object/);
+      .toThrow(/an address must be a string, got object/);
   });
 
   it('non-string rejection is a QlangInvariantError', () => {
@@ -121,7 +121,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     const k = 'qlang/test-prim/dup';
     registry.bind(k, () => 'first');
     expect(() => registry.bind(k, () => 'second'))
-      .toThrow(/primitive key :qlang\/test-prim\/dup is already bound/);
+      .toThrow(/qlang\/test-prim\/dup is already bound/);
   });
 
   it('duplicate-key error is a QlangInvariantError carrying keyName', () => {
@@ -141,7 +141,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     registry.seal();
     const k = 'qlang/test-prim/late';
     expect(() => registry.bind(k, () => null))
-      .toThrow(/registry is sealed/);
+      .toThrow(/the table is sealed/);
   });
 
   it('sealed-registry error is a QlangInvariantError', () => {
@@ -164,7 +164,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     // Verified against a non-keyword input so both checks would fail.
     registry.seal();
     expect(() => registry.bind('not-a-keyword', () => null))
-      .toThrow(/registry is sealed/);
+      .toThrow(/the table is sealed/);
   });
 });
 
@@ -178,7 +178,7 @@ describe('createPrimitiveRegistry — resolve error class', () => {
   it('throws PrimitiveKeyUnboundError on missing key', () => {
     const k = 'qlang/test-prim/missing';
     expect(() => registry.resolve(k))
-      .toThrow(/no primitive bound under :qlang\/test-prim\/missing/);
+      .toThrow(/no implementation is handed for qlang\/test-prim\/missing/);
   });
 
   it('unbound-key is a QlangError (lifts to fail-track)', () => {
@@ -205,9 +205,9 @@ describe('createPrimitiveRegistry — resolve error class', () => {
     // separately validate the key type. A non-keyword lookup
     // produces the missing-key error with a typeof label.
     expect(() => registry.resolve('not-a-keyword'))
-      .toThrow(/no primitive bound under :/);
+      .toThrow(/no implementation is handed for /);
     expect(() => registry.resolve(42))
-      .toThrow(/no primitive bound under :42/);
+      .toThrow(/no implementation is handed for 42/);
   });
 });
 
@@ -219,7 +219,7 @@ describe('createPrimitiveRegistry — isolation between instances', () => {
     a.bind(k, () => 'a-impl');
     expect(a.has(k)).toBe(true);
     expect(b.has(k)).toBe(false);
-    expect(() => b.resolve(k)).toThrow(/no primitive bound/);
+    expect(() => b.resolve(k)).toThrow(/no implementation is handed/);
   });
 
   it('sealing one instance does not seal another', () => {
@@ -250,54 +250,20 @@ describe('PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('PRIMITIVE_REGISTRY — runtime/*.mjs bindings populate the full catalog', () => {
-  // After importing runtime/index.mjs the side-effect bindings in
-  // every runtime/*.mjs impl module have run, so PRIMITIVE_REGISTRY
-  // holds all 67 built-in operand impls under their :qlang/prim/
-  // keys. This test pins the catalog total and spot-checks
-  // representative entries from each family.
-
-  it('holds 67 primitive bindings after runtime/*.mjs are loaded', async () => {
-    await import('../../src/runtime/index.mjs');
-    expect(PRIMITIVE_REGISTRY.size).toBeGreaterThanOrEqual(67);
+describe('PRIMITIVE_REGISTRY — the implementations of the language by address [D157]', () => {
+  it('binds one under the address of every verb and kind of the language that ends in ::builtin{}, and no other', async () => {
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const { ROOT_KEY } = await import('../../src/env-keys.mjs');
+    const { endsInBuiltin } = await import('../../src/runtime/verb.mjs');
+    const root = (await langRuntime()).get(ROOT_KEY);
+    const builtins = [...root].filter(([, record]) => endsInBuiltin(record.get('value'))).map(([name]) => name);
+    expect(builtins.every(name => PRIMITIVE_REGISTRY.has(name))).toBe(true);
+    expect(PRIMITIVE_REGISTRY.size).toBe(builtins.length);
+    expect(PRIMITIVE_REGISTRY.has('number/add') && PRIMITIVE_REGISTRY.has('vec')).toBe(true);
   });
 
-  it('holds the arithmetic primitives', async () => {
-    await import('../../src/runtime/index.mjs');
-    for (const name of ['add', 'sub', 'mul', 'div']) {
-      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
-    }
-  });
-
-  it('holds the Vec-family primitives', async () => {
-    await import('../../src/runtime/index.mjs');
-    const vecNames = [
-      'count', 'empty', 'first', 'last', 'sum', 'min', 'max',
-      'every', 'any',
-      'filter', 'sort', 'take', 'drop', 'distinct',
-      'reverse', 'flat', 'groupBy', 'indexBy'
-    ];
-    for (const name of vecNames) {
-      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
-    }
-  });
-
-  it('holds the control-flow primitives', async () => {
-    await import('../../src/runtime/index.mjs');
-    for (const name of ['if', 'coalesce', 'cond']) {
-      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
-    }
-  });
-
-  it('holds the reflective primitives', async () => {
-    await import('../../src/runtime/index.mjs');
-    for (const name of ['env', 'manifest', 'runLaws']) {
-      expect(PRIMITIVE_REGISTRY.has(`qlang/prim/${name}`)).toBe(true);
-    }
-  });
-
-  it('holds the raise primitive', async () => {
-    await import('../../src/runtime/index.mjs');
-    expect(PRIMITIVE_REGISTRY.has('qlang/prim/raise')).toBe(true);
+  it('hands a source of the language the implementations under its noun', () => {
+    expect(Object.keys(PRIMITIVE_REGISTRY.implsUnder('number'))).toContain('number/add');
+    expect(Object.keys(PRIMITIVE_REGISTRY.implsUnder(null))).toContain('vec');
   });
 });

@@ -5,4 +5,4 @@
 import { isString, keyword } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-bindPrim('keyword', subject => (isString(subject) ? keyword(subject) : subject.name));
+bindPrim(['string/keyword', 'keyword/keyword'], subject => (isString(subject) ? keyword(subject) : subject.name));

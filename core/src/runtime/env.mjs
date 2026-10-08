@@ -4,4 +4,4 @@
 import { bindStateReader } from '../primitives.mjs';
 import { scopeNamesOf } from './nouns.mjs';
 
-bindStateReader('env', (subject, state) => scopeNamesOf(state.env));
+bindStateReader('any/env', (subject, state) => scopeNamesOf(state.env));

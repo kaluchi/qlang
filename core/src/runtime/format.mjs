@@ -139,8 +139,8 @@ const ParseJsonInvalidJsonError = declareShapeError('ParseJsonInvalidJsonError',
   ({ message }) => `parseJson: invalid JSON — ${message}`,
   { operand: 'parseJson' });
 
-bindPrim('json', subject => JSON.stringify(toPlain(subject)));
-bindPrim('parseJson', subject => {
+bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
+bindPrim('string/parseJson', subject => {
   let parsed;
   try {
     parsed = JSON.parse(subject);

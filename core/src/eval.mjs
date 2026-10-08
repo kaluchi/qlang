@@ -37,7 +37,6 @@ import {
 import {
   applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication
 } from './runtime/verb.mjs';
-import { PRIMITIVE_REGISTRY } from './primitives.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
 } from './eval-trail.mjs';
@@ -344,8 +343,8 @@ export async function mintTaggedInstance(tagName, payload, state) {
   if (!isSpec(declared)) {
     throw new TaggedLitTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
-  const { primitiveKey, body } = constructorOfSpec(declared);
-  if (primitiveKey !== undefined) return await PRIMITIVE_REGISTRY.resolve(primitiveKey)(payload, state);
+  const { primitive, body } = constructorOfSpec(declared);
+  if (primitive !== undefined) return await primitive(payload, state);
   if (body === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   const constructorResult = (await evalBody(body, nestState(state, payload, state.env))).pipeValue;
   if (isErrorValue(constructorResult)) return constructorResult;

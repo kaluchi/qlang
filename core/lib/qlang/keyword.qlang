@@ -19,7 +19,7 @@
 
       ~(:b | gt :a | eq true)
   ~~|
-  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{})
 
 :keyword/gte
   |~~ Whether the subject's name follows or equals the name of the
@@ -27,7 +27,7 @@
 
       ~(:b | gte :b | eq true)
   ~~|
-  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{})
 
 :keyword/lt
   |~~ Whether the subject's name precedes the name of the keyword the
@@ -35,7 +35,7 @@
 
       ~(:a | lt :b | eq true)
   ~~|
-  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{})
 
 :keyword/lte
   |~~ Whether the subject's name precedes or equals the name of the
@@ -43,7 +43,7 @@
 
       ~(:a | lte :a | eq true)
   ~~|
-  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+  ::verb~(:than ::keyword | :returns ::boolean | ::builtin{})
 
 :keyword/keyword
   |~~ The name of the keyword, as a string: the reverse of `keyword` on
@@ -52,7 +52,7 @@
       ~(:foo | keyword | eq "foo")
       ~(:"foo bar" | keyword | eq "foo bar")
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/keyword})
+  ::verb~(:returns ::string | ::builtin{})
 
 :keyword/runLaws
   |~~ The results of the laws of the page of the binding the keyword
@@ -62,4 +62,4 @@
 
       ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runLaws * /ok | eq [true])
   ~~|
-  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/runLaws})
+  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{})

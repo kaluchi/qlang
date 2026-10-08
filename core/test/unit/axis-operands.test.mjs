@@ -246,7 +246,7 @@ describe(':name | spec returns the env-side declaration descriptor', () => {
   });
 
   it('a value that is no name reads the descriptor of its kind', async () => {
-    expect(printValue(await evalQuery('42 | spec'))).toBe('::spec~(::builtin{:impl :qlang/type/number})');
+    expect(printValue(await evalQuery('42 | spec'))).toBe('::spec~(::builtin{})');
   });
 
   it('keyword naming an unbound identifier lifts SpecBindingNotFoundError', async () => {

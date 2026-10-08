@@ -34,28 +34,28 @@
 
       ~("b" | gt "a" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
 
 :string/gte
   |~~ Whether the subject follows or equals the string the call gives.
 
       ~("b" | gte "b" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
 
 :string/lt
   |~~ Whether the subject precedes the string the call gives.
 
       ~("a" | lt "b" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
 
 :string/lte
   |~~ Whether the subject precedes or equals the string the call gives.
 
       ~("a" | lte "a" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
 
 :string/count
   |~~ The number of characters of the string, a letter of any script
@@ -65,7 +65,7 @@
       ~("привет" | count | eq 6)
       ~("" | count | eq 0)
   ~~|
-  ::verb~(:returns ::number | ::builtin{:impl :qlang/prim/count})
+  ::verb~(:returns ::number | ::builtin{})
 
 :string/take
   |~~ The first count characters of the string.
@@ -73,7 +73,7 @@
       ~("db_host" | take 2 | eq "db")
       ~("ab" | take 5 | eq "ab")
   ~~|
-  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/take})
+  ::verb~(:count ::number | :returns / | ::builtin{})
 
 :string/drop
   |~~ The string without its first count characters, the rest after a
@@ -81,7 +81,7 @@
 
       ~("db_host" | drop 3 | eq "host")
   ~~|
-  ::verb~(:count ::number | :returns / | ::builtin{:impl :qlang/prim/drop})
+  ::verb~(:count ::number | :returns / | ::builtin{})
 
 :string/split
   |~~ The substrings between the occurrences of the separator, as a
@@ -90,7 +90,7 @@
       ~("a,b,c" | split "," | eq ["a" "b" "c"])
       ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
   ~~|
-  ::verb~(:separator ::string | :returns ::vec | ::builtin{:impl :qlang/prim/split})
+  ::verb~(:separator ::string | :returns ::vec | ::builtin{})
 
 :string/SplitSubjectNotStringError
   |~~ The subject of `split` is the string it cuts; a vector of strings
@@ -125,7 +125,7 @@
       ~("one\r\ntwo\n" | lines | eq ["one" "two"])
       ~("" | lines | eq [])
   ~~|
-  ::verb~(:returns ::vec | ::builtin{:impl :qlang/prim/lines})
+  ::verb~(:returns ::vec | ::builtin{})
 
 :string/LinesSubjectNotStringError
   |~~ `lines` breaks a string, the text the command line reads with
@@ -145,7 +145,7 @@
       ~("Ann@Example.COM" | lower | eq "ann@example.com")
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/lower})
+  ::verb~(:returns ::string | ::builtin{})
 
 :string/LowerSubjectNotStringError
   |~~ `lower` works on a string; a vector of strings takes it element by
@@ -163,7 +163,7 @@
 
       ~("ok, go" | upper | eq "OK, GO")
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/upper})
+  ::verb~(:returns ::string | ::builtin{})
 
 :string/UpperSubjectNotStringError
   |~~ `upper` works on a string; a vector of strings takes it element by
@@ -185,7 +185,7 @@
 " | trim | eq "db_host")
       ~("a, b ,c" | split "," * trim | eq ["a" "b" "c"])
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/trim})
+  ::verb~(:returns ::string | ::builtin{})
 
 :string/TrimSubjectNotStringError
   |~~ `trim` works on a string; a vector of strings takes it element by
@@ -205,7 +205,7 @@
       ~("hello world" | contains "world" | eq true)
       ~("hello" | contains "xyz" | eq false)
   ~~|
-  ::verb~(:needle ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/contains})
+  ::verb~(:needle ::string | :returns ::boolean | ::builtin{})
 
 :string/ContainsSubjectNotStringError
   |~~ The subject of `::string/contains` is the string searched, where the
@@ -237,7 +237,7 @@
       ~("hello world" | startsWith "hello" | eq true)
       ~("hello" | startsWith "world" | eq false)
   ~~|
-  ::verb~(:prefix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/startsWith})
+  ::verb~(:prefix ::string | :returns ::boolean | ::builtin{})
 
 :string/StartsWithSubjectNotStringError
   |~~ The subject of `startsWith` is the string whose beginning is read;
@@ -267,7 +267,7 @@
       ~("hello world" | endsWith "world" | eq true)
       ~("hello" | endsWith "xyz" | eq false)
   ~~|
-  ::verb~(:suffix ::string | :returns ::boolean | ::builtin{:impl :qlang/prim/endsWith})
+  ::verb~(:suffix ::string | :returns ::boolean | ::builtin{})
 
 :string/EndsWithSubjectNotStringError
   |~~ The subject of `endsWith` is the string whose end is read; a field
@@ -297,7 +297,7 @@
       ~("world" | prepend "hello " | eq "hello world")
       ~(::Box("b") | prepend "a" | eq ::Box("ab"))
   ~~|
-  ::verb~(:prefix ::string | :returns / | ::builtin{:impl :qlang/prim/prepend})
+  ::verb~(:prefix ::string | :returns / | ::builtin{})
 
 :string/PrependPrefixNotStringError
   |~~ The prefix a string takes is a string; a value of another kind
@@ -316,7 +316,7 @@
 
       ~("hello" | append " world" | eq "hello world")
   ~~|
-  ::verb~(:suffix ::string | :returns / | ::builtin{:impl :qlang/prim/append})
+  ::verb~(:suffix ::string | :returns / | ::builtin{})
 
 :string/AppendSuffixNotStringError
   |~~ The suffix a string takes is a string; a value of another kind
@@ -342,7 +342,7 @@
       ~("[1,2,3]" | parseJson | eq [1 2 3])
       ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/parseJson})
+  ::verb~(::builtin{})
 
 :string/ParseJsonSubjectNotStringError
   |~~ `parseJson` reads a string of JSON text; a value becomes such text
@@ -373,7 +373,7 @@
       ~("qlang/error" | keyword | eq :qlang/error)
       ~("bar" | keyword | keyword | eq "bar")
   ~~|
-  ::verb~(:returns ::keyword | ::builtin{:impl :qlang/prim/keyword})
+  ::verb~(:returns ::keyword | ::builtin{})
 
 :string/parse
   |~~ The quote of the steps the source text spells, the reverse of
@@ -385,4 +385,4 @@
       ~("1 | add 1" | parse | count | eq 2)
       ~("add 1 2" | parse | eq ~(add 1 2))
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/parse})
+  ::verb~(::builtin{})

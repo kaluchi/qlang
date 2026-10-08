@@ -15,7 +15,7 @@ declareModifierError('ApplyCodeNotQuoteError', 'apply', 2, 'quote');
 
 // A source the parser refuses answers the `::ParseError` with the
 // location and the excerpt of the source.
-bindPrim('parse', subject => {
+bindPrim(['string/parse', 'quote/parse'], subject => {
   if (isQuote(subject)) return printQuoteSource(subject);
   try {
     return quoteOfSource(subject, 'parse-operand');
@@ -24,10 +24,10 @@ bindPrim('parse', subject => {
   }
 });
 
-bindPrim('apply', async (subject, code) => await code(subject));
+bindPrim('any/apply', async (subject, code) => await code(subject));
 
 // A quote opens to the answer of its query, run in the scope of the
 // reader that opens it; its slot of subject hands the quote beneath the
 // tags of a link or a snippet, so a page names what its reader's scope
 // holds [D111], [D122].
-bindStateReader('quoteOpen', async (query, state) => await codeOf(query, state)(null));
+bindStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));

@@ -136,16 +136,15 @@
   ~~|
 
 :builtin
-  |~~ The descriptor, a map of fields under this tag. A built-in verb
-      ends its head with one, `::builtin{:impl :qlang/prim/add}`, which
-      names the primitive the head calls; a kind declares its
-      constructor with one, `::builtin{:impl :qlang/type/vec}`. A
-      descriptor is data and runs nothing by itself: a name bound to one
-      reads it.
+  |~~ The descriptor, a map of fields under this tag. A verb or a kind a
+      host declares ends with an empty one, `::builtin{}`, which runs the
+      implementation the host handed for its name, `::number/add` and
+      `::vec` the language's own. A descriptor is data and runs nothing
+      by itself: a name bound to one reads it.
 
-      ~(::builtin{:impl :qlang/prim/count} | :c / | [1 2] | c | /impl | eq :qlang/prim/count)
+      ~(::builtin{} | :c / | [1 2] | c | type | eq ::builtin)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/builtin})
+  ::spec~(::builtin{})
 
 :verb
   |~~ A verb, a quote under this tag: its leading declarations are its
@@ -168,7 +167,7 @@
       ~(:scale ::verb~(:by ::number | mul by) | [1 2] * scale / | eq [1 4])
       ~(:big ::verb~(gt 2) | [1 2 3 4] | filter ~big | eq [3 4])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/verb})
+  ::spec~(::builtin{})
 
 :tag
   |~~ The kind of a tag name, `::Kind` taken as a value. A tag is the name
@@ -193,7 +192,7 @@
       ~(:d ::spec~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
       ~(::Unbound[1] | type | spec !| type | eq ::any/SpecBindingNotFoundError)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/tag})
+  ::spec~(::builtin{})
 
 :null
   |~~ The kind of null, the absence of a value; a slot a call may leave
@@ -205,7 +204,7 @@
       ~(null | type | eq ::null)
       ~(::null(null) | eq null)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/null})
+  ::spec~(::builtin{})
 
 :boolean
   |~~ The kind of `true` and `false`, the answer of a question about a
@@ -217,7 +216,7 @@
       ~(true | type | eq ::boolean)
       ~(::boolean(false) | eq false)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/boolean})
+  ::spec~(::builtin{})
 
 :number
   |~~ The kind of a number, a finite double: an infinity or NaN is no
@@ -236,7 +235,7 @@
       An integer and a decimal are one kind, rounded as a double rounds:
       ~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/number})
+  ::spec~(::builtin{})
 
 :string
   |~~ The kind of a string, text as it came. A JSON string arrives as a
@@ -256,7 +255,7 @@
       ~("A\t\"" | eq "A	\"")
       ~("A" | eq "A")
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/string})
+  ::spec~(::builtin{})
 
 :keyword
   |~~ The kind of a keyword, `:k`, a name that stands for itself. It is
@@ -276,7 +275,7 @@
       ~([:данные :domain/user :"$ref"] * keyword | eq ["данные" "domain/user" "$ref"])
       ~(:"foo" | eq :foo)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/keyword})
+  ::spec~(::builtin{})
 
 :vec
   |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
@@ -295,7 +294,7 @@
       ~(#[2 1] | tag ::vec | eq [1 2])
       ~([1, 2] | eq [1 2])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/vec})
+  ::spec~(::builtin{})
 
 :set
   |~~ The set, the vector in the one order without duplicates, the value
@@ -316,7 +315,7 @@
       A set written with braces is refused with the brackets it takes:
       ~("#{1}" | parse !| /message | contains "#[")
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/set})
+  ::spec~(::builtin{})
 
 :map
   |~~ The kind of a map, the value of a `{…}` literal: named facts under
@@ -340,7 +339,7 @@
       ~([[:a 1] ["b" 2]] | tag ::map | eq {:a 1 :b 2})
       ~({:a 1 :b 2} | entries | tag ::map | eq {:a 1 :b 2})
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/map})
+  ::spec~(::builtin{})
 
 :quote
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
@@ -361,7 +360,7 @@
       ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
       ~(~(add 1 | mul 2) | filter ~(/name | eq :mul) | parse | eq "mul 2")
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/quote})
+  ::spec~(::builtin{})
 
 :doc
   |~~ The kind of a doc, prose as a value, the value of a doc literal:
@@ -380,7 +379,7 @@
       ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
       ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/doc})
+  ::spec~(::builtin{})
 
 :spec
   |~~ The signature of a verb, its leading declarations as a quote under
@@ -475,7 +474,7 @@
       ~([2 1 3] * desc | sort | * payload | eq [3 2 1])
       ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/desc})
+  ::spec~(::builtin{})
 
 :link
   |~~ The kind of a link, a query a page names for its reader to follow,
@@ -552,7 +551,7 @@
 
       ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/construct})
+  ::spec~(::builtin{})
 
 :call
   |~~ The step of a command, `verb object`: the name finds its verb
@@ -568,7 +567,7 @@
       ~(~(count) | first | /name | eq :count)
       ~({:name :filter :args [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/call})
+  ::spec~(::builtin{})
 
 :proj
   |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
@@ -588,7 +587,7 @@
       ~({:qlang {:error 2}} | /qlang/error | eq 2)
       ~(5 | mul / | eq 25)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/proj})
+  ::spec~(::builtin{})
 
 :bind
   |~~ The step of a declaration, `:name body`: it names a value for the
@@ -601,7 +600,7 @@
 
       ~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/bind})
+  ::spec~(::builtin{})
 
 :each
   |~~ The step `* body`, the distribute: it runs its body on each
@@ -617,7 +616,7 @@
       ~(~(* add 1) | first | payload | eq ~(add 1))
       ~(~(* (add 1 | mul 2)) | first | payload | count | eq 2)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/each})
+  ::spec~(::builtin{})
 
 :fail
   |~~ The step `!| step`, the fail track: it runs its step on an error
@@ -629,7 +628,7 @@
 
       ~(~(!| /kind) | first | payload | eq ~(/kind))
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/fail})
+  ::spec~(::builtin{})
 
 :group
   |~~ The step `(pipeline)`, a group: it runs its steps on the value in
@@ -641,7 +640,7 @@
 
       ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
   ~~|
-  ::spec~(::builtin{:impl :qlang/type/group})
+  ::spec~(::builtin{})
 
 :any
   |~~ The kind beneath every kind, where the verbs every value answers

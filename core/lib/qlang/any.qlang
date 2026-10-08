@@ -449,7 +449,7 @@
       ~([{:n 1} {:n 2}] | max ~(/n | desc) | eq {:n 1})
       ~(5 | desc | type | eq ::desc)
   ~~|
-  ::verb~(:returns ::desc | ::builtin{:impl :qlang/prim/desc})
+  ::verb~(:returns ::desc | ::builtin{})
 
 
 :any/take
@@ -704,7 +704,7 @@
       ~(42 | eq 42 | eq true)
       ~({:a 1} | eq {:a 1} | eq true)
   ~~|
-  ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/eq})
+  ::verb~(:value ::any | :returns ::boolean | ::builtin{})
 
 :any/ne
   |~~ Whether the subject differs from the value, by the structural
@@ -713,7 +713,7 @@
       ~(1 | ne 2 | eq true)
       ~({:a 1} | ne {:a 1} | eq false)
   ~~|
-  ::verb~(:value ::any | :returns ::boolean | ::builtin{:impl :qlang/prim/ne})
+  ::verb~(:value ::any | :returns ::boolean | ::builtin{})
 
 :any/type
   |~~ The value's kind, a tag, which names the page of the value and the
@@ -739,7 +739,7 @@
         |  eq [::number/AddLeftNotNumberError ::string]
        )
   ~~|
-  ::verb~(:returns ::tag | ::builtin{:impl :qlang/prim/type})
+  ::verb~(:returns ::tag | ::builtin{})
 
 :any/json
   |~~ The subject rendered as a JSON string. The shapes of qlang alone
@@ -752,7 +752,7 @@
       ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
       ~(#[1 2 3] | json | eq "[1,2,3]")
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/json})
+  ::verb~(:returns ::string | ::builtin{})
 
 :any/print
   |~~ The text that reads back as the subject, which the command line
@@ -768,7 +768,7 @@
       ~(::builtin{:a 1} | print | eq "::builtin{:a 1}")
       ~({:a [1 "x"]} | :v / | print | parse | :q / | apply q | eq v)
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/print})
+  ::verb~(:returns ::string | ::builtin{})
 
 :any/elide
   |~~ The value within a budget of characters of its print, what does
@@ -784,7 +784,7 @@
       ~({:s "a long line of text to leave out" :n 1} | elide 40 | /s | type | eq ::elision)
       ~({:s "a long line of text to leave out" :n 1} | :v / | elide 40 | /s/read | :r / | v | apply r | eq (v | /s))
   ~~|
-  ::verb~(:budget ::number | ::builtin{:impl :qlang/prim/elide})
+  ::verb~(:budget ::number | ::builtin{})
 
 :any/if
   |~~ The branch the condition chooses, run against the subject: `if
@@ -799,7 +799,7 @@
       A condition that is not a boolean is refused, since it has no
       second reading. The empty quote `~()` is the branch that
       leaves the subject as it is. ~~|
-  ::verb~(:condition ::boolean | :then ::quote | :else ::quote | ::builtin{:impl :qlang/prim/if})
+  ::verb~(:condition ::boolean | :then ::quote | :else ::quote | ::builtin{})
 
 :any/IfConditionNotBooleanError
   |~~ The condition of `if` answers a boolean; null, a number, a string
@@ -853,7 +853,7 @@
       ~({:tags ["a"]} | /tags | coalesce [] | eq ["a"])
       ~({:a 2} | coalesce ~(/missing) "fallback" | eq "fallback")
   ~~|
-  ::verb~(* :alternatives #[::quote ::any] | ::builtin{:impl :qlang/prim/coalesce})
+  ::verb~(* :alternatives #[::quote ::any] | ::builtin{})
 
 :any/CoalesceNoAlternativesError
   |~~ `coalesce` answers the first of its alternatives that answers a
@@ -877,7 +877,7 @@
       ~(65 | cond ~(gte 90) ~("A") ~(gte 80) ~("B") ~(gte 70) ~("C") ~("F") | eq "F")
       ~({:role "admin"} | cond ~(/role | eq "admin") ~("full") ~(/role | eq "user") ~("limited") | eq "full")
   ~~|
-  ::verb~(* :clauses ::quote | ::builtin{:impl :qlang/prim/cond})
+  ::verb~(* :clauses ::quote | ::builtin{})
 
 :any/CondNoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
@@ -942,7 +942,7 @@
       ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
       ~("10 | add 3" | parse | apply / | eq 13)
   ~~|
-  ::verb~(:code ::quote | ::builtin{:impl :qlang/prim/apply})
+  ::verb~(:code ::quote | ::builtin{})
 
 :any/ApplyCodeNotQuoteError
   |~~ The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
@@ -972,7 +972,7 @@
       ~(env | has :count | not)
       ~(42 | :answer / | env | /answer | /value | eq 42)
   ~~|
-  ::verb~(:returns ::map | ::builtin{:impl :qlang/prim/env})
+  ::verb~(:returns ::map | ::builtin{})
 
 :any/binding
   |~~ The record of a name, what a declaration wrote into its scope:
@@ -990,7 +990,7 @@
       Any other value reads the record of its kind:
       ~(5 | binding | /name | eq :number)
   ~~|
-  ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{:impl :qlang/prim/binding})
+  ::verb~(:anchor #[::keyword ::null] | :returns ::binding | ::builtin{})
 
 :any/BindingNotFoundError
   |~~ `binding` — no declaration found for the name it read: a keyword
@@ -1023,7 +1023,7 @@
       ~("text" | source | eq (::string | source))
       ~(::vec/take | source :count | parse | eq ":count ::number")
   ~~|
-  ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{:impl :qlang/prim/source})
+  ::verb~(:name #[::keyword ::null] | :returns #[::quote ::null] | ::builtin{})
 
 :any/SourceBindingNotFoundError
   |~~ `source` — no declaration found for the name it read: a keyword
@@ -1070,7 +1070,7 @@
       ~(::vec | doc [:take] | eq (::vec/take | doc))
       ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
   ~~|
-  ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{:impl :qlang/prim/doc})
+  ::verb~(:anchor #[::keyword ::vec ::set ::null] | :returns #[::doc ::null ::vec] | ::builtin{})
 
 :any/DocBindingNotFoundError
   |~~ `doc` — no declaration found for the name it read: a keyword that
@@ -1109,7 +1109,7 @@
       ~(::number/add | explain | page | content | contains "Adds two numbers")
       ~("x" | add 1 !| explain | page | content | contains "adds numbers")
   ~~|
-  ::verb~(:returns ::explanation | ::builtin{:impl :qlang/prim/explain})
+  ::verb~(:returns ::explanation | ::builtin{})
 
 :any/ExplainBindingNotFoundError
   |~~ `explain` — no declaration found for the page of its subject: a
@@ -1139,10 +1139,10 @@
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
       A kind answers its declaration, a `::spec~(…)` whose body is its
       constructor, a refusal among the kinds:
-      ~(::verb | spec | eq ::spec~(::builtin{:impl :qlang/type/verb}))
+      ~(::verb | spec | eq ::spec~(::builtin{}))
       ~(::number/AddLeftNotNumberError | spec | type | eq ::spec)
   ~~|
-  ::verb~(:name #[::keyword ::null] | ::builtin{:impl :qlang/prim/spec})
+  ::verb~(:name #[::keyword ::null] | ::builtin{})
 
 :any/SpecBindingNotFoundError
   |~~ `spec` — no declaration found for the name it read: a keyword that
@@ -1218,7 +1218,7 @@
       ~([::Box (!{:k 1})] | tag !| type | eq ::error)
       ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/AddRightNotNumberError)
   ~~|
-  ::verb~(:name #[::tag ::null] | ::builtin{:impl :qlang/prim/tag})
+  ::verb~(:name #[::tag ::null] | ::builtin{})
 
 :any/TagModifierNotTagKeywordError
   |~~ The tag `tag` lays is a tag name, `tag ::Box`; a keyword, `:box`,

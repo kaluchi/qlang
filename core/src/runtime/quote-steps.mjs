@@ -10,7 +10,7 @@
 // reads back as another step, or as no step at all, is refused where it
 // is made rather than run as a program that means something else.
 
-import { bindTypeConstructor } from '../primitives.mjs';
+import { bindPrim } from '../primitives.mjs';
 import { declareSubjectError, declareElementError } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
@@ -32,7 +32,7 @@ function quoteConstructor(payload) {
   return makeQuote(payload);
 }
 
-bindTypeConstructor('quote', quoteConstructor);
+bindPrim('quote', quoteConstructor);
 
 // The step reads back as itself, or its refusal names the text it
 // printed as. Text that reads as no step at all is refused alike.
@@ -84,22 +84,22 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
   };
 }
 
-bindTypeConstructor('call', recordConstructor(CALL_TAG,
+bindPrim('call', recordConstructor(CALL_TAG,
   { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
   declareShapeError('CallPayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
   declareShapeError('CallReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
 
-bindTypeConstructor('proj', recordConstructor(PROJ_TAG,
+bindPrim('proj', recordConstructor(PROJ_TAG,
   { path: vecOf(isSegment) }, ['path'],
   declareShapeError('ProjPayloadNotSchemaError', schemaMessage('::proj'), { operand: '::proj' }),
   declareShapeError('ProjReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
-bindTypeConstructor('bind', recordConstructor(BIND_TAG,
+bindPrim('bind', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareShapeError('BindPayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('BindReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 
-bindTypeConstructor('construct', recordConstructor(CONSTRUCT_TAG,
+bindPrim('construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
   declareShapeError('ConstructPayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
   declareShapeError('ConstructReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
@@ -114,14 +114,14 @@ function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
   };
 }
 
-bindTypeConstructor('each', wrapperConstructor(EACH_TAG,
+bindPrim('each', wrapperConstructor(EACH_TAG,
   declareSubjectError('EachPayloadNotQuoteError', '::each', 'quote'),
   declareShapeError('EachReadBackDiffersError', readBackMessage('::each'), { operand: '::each' })));
 
-bindTypeConstructor('fail', wrapperConstructor(FAIL_TAG,
+bindPrim('fail', wrapperConstructor(FAIL_TAG,
   declareSubjectError('FailPayloadNotQuoteError', '::fail', 'quote'),
   declareShapeError('FailReadBackDiffersError', readBackMessage('::fail'), { operand: '::fail' })));
 
-bindTypeConstructor('group', wrapperConstructor(GROUP_TAG,
+bindPrim('group', wrapperConstructor(GROUP_TAG,
   declareSubjectError('GroupPayloadNotQuoteError', '::group', 'quote'),
   declareShapeError('GroupReadBackDiffersError', readBackMessage('::group'), { operand: '::group' })));

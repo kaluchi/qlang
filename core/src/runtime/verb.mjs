@@ -17,7 +17,7 @@
 // primitive its `::builtin{:impl}` step names over the checked values. A
 // verb without a body is a contract, which answers no call.
 
-import { PRIMITIVE_REGISTRY, bindTypeConstructor, readsState, readsPassedTags } from '../primitives.mjs';
+import { bindPrim, readsState, readsPassedTags } from '../primitives.mjs';
 import { codeOf, evalAst, mintTaggedInstance } from '../eval.mjs';
 import { addressesOf, bareNameReach, nodeOf, residencesOf, splitAddress } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
@@ -33,7 +33,7 @@ import { declareSubjectError } from '../operand-errors.mjs';
 import {
   bindingValueOf, isQuote, isVec, isQMap, isSpec, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
   makeBinding,
-  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, addressOfVerb, hostImplOfVerb, isHostDeclared, typeKeyword,
+  makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, addressOfVerb, hostImplOf, isHostDeclared, typeKeyword,
   verbEnvRef,
   BIND_TAG, BUILTIN_TAG, SPEC_TAG
 } from '../types.mjs';
@@ -203,28 +203,21 @@ function readSignature(quote) {
     else signature.slots.push(slotOf(declaration));
   }
   signature.body = bodyOf(units.slice(headLength), quote);
-  signature.builtin = builtinOf(signature.body);
-  const primitiveKey = signature.builtin?.primitiveKey ?? null;
-  signature.siteName = primitiveKey === null ? null : primitiveKey.slice(primitiveKey.lastIndexOf('/') + 1);
+  signature.builtin = isBuiltinStep(signature.body);
   signature.effectfulName = signature.body === null ? null : findFirstEffectfulIdentifier(signature.body);
   return signature;
 }
 
-// A body of one `::builtin{…}` step, which a host's declaration runs as a
-// primitive [D72], [D73]: `{ primitiveKey }`, the primitive of the core
-// its `:impl` names, or null for a `::builtin{}` whose implementation the
-// host hands [D153]; null for a body of steps.
-function builtinOf(body) {
-  if (body?.type !== 'TaggedLit' || body.tag !== BUILTIN_TAG.name || body.payload.type !== 'MapLit') return null;
-  const implEntry = body.payload.entries.find(entry => entry.key.name === 'impl' && entry.value.type === 'Keyword');
-  return { primitiveKey: implEntry === undefined ? null : implEntry.value.name };
+// Whether a body is one `::builtin{}` step, which a host's declaration
+// runs as the implementation the host handed for it [D72], [D73], [D157].
+function isBuiltinStep(body) {
+  return body?.type === 'TaggedLit' && body.tag === BUILTIN_TAG.name && body.payload.type === 'MapLit';
 }
 
-// builtinOfVerb(value) → the `::builtin` step of a verb's body, as
-// `builtinOf` reads it; null for a verb of steps or a value that is no
-// verb.
-export function builtinOfVerb(value) {
-  return isVerb(value) ? signatureOf(value.payload).builtin : null;
+// endsInBuiltin(value) → whether a verb or a kind ends in a `::builtin{}`
+// step, which runs an implementation of the host's.
+export function endsInBuiltin(value) {
+  return (isVerb(value) || isSpec(value)) && signatureOf(value.payload).builtin;
 }
 
 // `::verb~(…)` — the verb over a quote, whose head is read here, so a
@@ -236,16 +229,16 @@ function verbConstructor(payload, state) {
   return makeVerb(payload, { env: state.env });
 }
 
-bindTypeConstructor('verb', verbConstructor);
+bindPrim('verb', verbConstructor);
 
 // constructorOfSpec(spec) → what a kind's declaration constructs with
-// [D152]: `{ primitiveKey }` for a body that is one `::builtin{:impl}`
-// step of a kind a host's source declared [D73], `{ body }` for a body of
-// steps, and `{}` for a kind without a body, which is identity. Its
-// leading declarations are its fields.
+// [D152]: `{ primitive }` for a body that is one `::builtin{}` step of a
+// kind a host's source declared, the implementation it handed [D73],
+// [D157], `{ body }` for a body of steps, and `{}` for a kind without a
+// body, which is identity. Its leading declarations are its fields.
 export function constructorOfSpec(spec) {
   const signature = signatureOf(spec.payload);
-  if (signature.builtin !== null && isHostDeclared(spec)) return signature.builtin;
+  if (signature.builtin && isHostDeclared(spec)) return { primitive: hostImplOf(spec) };
   return signature.body === null ? {} : { body: signature.body };
 }
 
@@ -343,11 +336,11 @@ function asCodeOfSlot(slot, kindNames, value, scopeEnv) {
 // The refusal a built-in's site declares at one of `positions`: the one
 // that names the address of the residence, `::map/at`, where the verbs
 // of a name check a place differently, and otherwise the one that names
-// the verb, by the name of its primitive or, for a host's verb, by the
-// last name of its first declaration [D73]; undefined for a verb of steps.
+// the verb, by the last name of its first declaration [D73], [D157];
+// undefined for a verb of steps.
 function siteRefusalAt(signature, verb, positions) {
   if (!callsPrimitive(signature, verb)) return undefined;
-  const siteName = signature.siteName ?? splitAddress(addressOfVerb(verb))[1];
+  const siteName = splitAddress(addressOfVerb(verb))[1];
   const residence = residenceOfVerb(verb);
   return (residence === null ? undefined : placeRefusalOf(siteOfTag(`${residence}/${siteName}`), positions))
     ?? placeRefusalOf(siteName, positions);
@@ -357,13 +350,7 @@ function siteRefusalAt(signature, verb, positions) {
 // a `::builtin` step in any other verb is a step, so no head a reader
 // writes reaches a primitive past its declaration's [D73].
 function callsPrimitive(signature, verb) {
-  return signature.builtin !== null && isHostDeclared(verb);
-}
-
-// The primitive the host handed beside the source that declared the
-// verb [D80], else the core's its step names.
-function primitiveOfVerb(signature, verb) {
-  return hostImplOfVerb(verb) ?? PRIMITIVE_REGISTRY.resolve(signature.builtin.primitiveKey);
+  return signature.builtin && isHostDeclared(verb);
 }
 
 // The scope of the body: the verb's own with each slot bound to the
@@ -477,7 +464,7 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
     : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, () => siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
   const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
-  const primitive = callsPrimitive(signature, verb) ? primitiveOfVerb(signature, verb) : null;
+  const primitive = callsPrimitive(signature, verb) ? hostImplOf(verb) : null;
   const answer = primitive !== null
     ? await runPrimitive(primitive, served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
     : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;

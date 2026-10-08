@@ -22,4 +22,4 @@
       ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
       ~({:a {:b 1}} | at :a | at :b | eq 1)
   ~~|
-  ::verb~(:place ::any | :returns ::null | ::builtin{:impl :qlang/prim/at})
+  ::verb~(:place ::any | :returns ::null | ::builtin{})

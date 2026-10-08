@@ -36,22 +36,22 @@ const JoinElementNotStringError = declareElementError('JoinElementNotStringError
 
 // A string takes its prefix or its suffix, a vector its element at the
 // head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
-bindPrim('prepend', (subject, prefix) => (isVec(subject) ? [prefix, ...subject] : prefix + subject));
-bindPrim('append',  (subject, suffix) => (isVec(subject) ? [...subject, suffix] : subject + suffix));
+bindPrim(['string/prepend', 'vec/prepend'], (subject, prefix) => (isVec(subject) ? [prefix, ...subject] : prefix + subject));
+bindPrim(['string/append', 'vec/append'],  (subject, suffix) => (isVec(subject) ? [...subject, suffix] : subject + suffix));
 
-bindPrim('split', (subject, separator) => subject.split(separator));
+bindPrim('string/split', (subject, separator) => subject.split(separator));
 
 // The lines of a text [D49]: a `\n` ends a line and a `\r` before it
 // belongs to the ending; the text after the last ending is a line
 // unless it is empty, so a final newline closes the last line rather
 // than opening one, and the empty text has no lines.
-bindPrim('lines', subject => {
+bindPrim('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();
   return pieces;
 });
 
-bindPrim('join', (subject, separator) => {
+bindPrim('vec/join', (subject, separator) => {
   const stranger = subject.findIndex(element => typeof element !== 'string');
   if (stranger >= 0) throw new JoinElementNotStringError(stranger, subject[stranger]);
   return subject.join(separator);
@@ -59,13 +59,13 @@ bindPrim('join', (subject, separator) => {
 
 // The case of a text, folded letter by letter as Unicode maps it, so
 // two texts that differ in case alone compare equal once folded [D107].
-bindPrim('lower', subject => subject.toLowerCase());
-bindPrim('upper', subject => subject.toUpperCase());
+bindPrim('string/lower', subject => subject.toLowerCase());
+bindPrim('string/upper', subject => subject.toUpperCase());
 
 // The text without the whitespace at its two ends, a line break among it
 // [D141].
-bindPrim('trim', subject => subject.trim());
+bindPrim('string/trim', subject => subject.trim());
 
-bindPrim('contains',   (subject, needle) => subject.includes(needle));
-bindPrim('startsWith', (subject, prefix) => subject.startsWith(prefix));
-bindPrim('endsWith',   (subject, suffix) => subject.endsWith(suffix));
+bindPrim('string/contains',   (subject, needle) => subject.includes(needle));
+bindPrim('string/startsWith', (subject, prefix) => subject.startsWith(prefix));
+bindPrim('string/endsWith',   (subject, suffix) => subject.endsWith(suffix));

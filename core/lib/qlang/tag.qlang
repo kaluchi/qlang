@@ -20,7 +20,7 @@
 
       ~(::b | gt ::a | eq true)
   ~~|
-  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{})
 
 :tag/gte
   |~~ Whether the subject's name follows or equals the name of the tag
@@ -28,7 +28,7 @@
 
       ~(::b | gte ::b | eq true)
   ~~|
-  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{})
 
 :tag/lt
   |~~ Whether the subject's name precedes the name of the tag the call
@@ -36,7 +36,7 @@
 
       ~(::a | lt ::b | eq true)
   ~~|
-  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{})
 
 :tag/lte
   |~~ Whether the subject's name precedes or equals the name of the
@@ -44,7 +44,7 @@
 
       ~(::a | lte ::a | eq true)
   ~~|
-  ::verb~(:than ::tag | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+  ::verb~(:than ::tag | :returns ::boolean | ::builtin{})
 
 :tag/manifest
   |~~ Asked of a noun, answers the set of the nodes declared one name
@@ -58,7 +58,7 @@
       ~(::qlang | manifest | has ::qlang/values)
       ~(:Box ::spec~() | :Box/area ::verb~(1) | ::Box | manifest | eq #[::Box/area])
   ~~|
-  ::verb~(:returns ::set | ::builtin{:impl :qlang/prim/manifest})
+  ::verb~(:returns ::set | ::builtin{})
 
 :tag/ManifestSubjectNotTagError
   |~~ `manifest` is asked of a noun, a tag name in the subject
@@ -82,4 +82,4 @@
       ~(::number/add | runLaws | first | /ok | eq true)
       ~(::qlang | runLaws :values | every ~(/ok))
   ~~|
-  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{:impl :qlang/prim/runLaws})
+  ::verb~(:anchor #[::keyword ::null] | :returns ::vec | ::builtin{})

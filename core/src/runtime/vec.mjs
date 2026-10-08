@@ -129,20 +129,20 @@ async function extremeOf(container, key, pick) {
   return best.entry[1];
 }
 
-bindPrim('count', container => sizeOf(container));
-bindPrim('empty', container => sizeOf(container) === 0);
+bindPrim(['string/count', 'vec/count', 'set/count', 'map/count'], container => sizeOf(container));
+bindPrim(['vec/empty', 'set/empty', 'map/empty'], container => sizeOf(container) === 0);
 
-bindPrim('first', container => {
+bindPrim(['vec/first', 'set/first', 'map/first'], container => {
   const items = elementsOf(container);
   return items.length === 0 ? NULL : items[0];
 });
 
-bindPrim('last', container => {
+bindPrim(['vec/last', 'set/last', 'map/last'], container => {
   const items = elementsOf(container);
   return items.length === 0 ? NULL : items[items.length - 1];
 });
 
-bindPrim('sum', container => {
+bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
   const items = elementsOf(container);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
@@ -157,7 +157,7 @@ bindPrim('sum', container => {
 // leaves the finite doubles; an empty container has none, and answers
 // null as `min` and `max` do [D147].
 const AvgElementNotNumberError = declareElementError('AvgElementNotNumberError', 'avg', 'number');
-bindPrim('avg', container => {
+bindPrim(['vec/avg', 'set/avg', 'map/avg'], container => {
   const items = elementsOf(container);
   if (items.length === 0) return NULL;
   let mean = 0;
@@ -168,13 +168,13 @@ bindPrim('avg', container => {
   return mean;
 });
 
-bindPrim('min', (container, key) => extremeOf(container, key, order => order < 0));
-bindPrim('max', (container, key) => extremeOf(container, key, order => order > 0));
+bindPrim(['vec/min', 'set/min', 'map/min'], (container, key) => extremeOf(container, key, order => order < 0));
+bindPrim(['vec/max', 'set/max', 'map/max'], (container, key) => extremeOf(container, key, order => order > 0));
 
 // `filter` keeps the entries of a map whose values pass, and the
 // elements of a sequence that do; the head reads the answer back as the
 // subject's own kind, a set through its constructor.
-bindPrim('filter', async (container, predicate) => {
+bindPrim(['vec/filter', 'set/filter', 'map/filter'], async (container, predicate) => {
   const kept = [];
   for (const [index, entry] of [...(isQMap(container) ? container : container.entries())].entries()) {
     const verdict = await predicate(entry[1]);
@@ -184,7 +184,7 @@ bindPrim('filter', async (container, predicate) => {
   return isQMap(container) ? new Map(kept) : kept.map(([, element]) => element);
 });
 
-bindPrim('every', async (container, predicate) => {
+bindPrim(['vec/every', 'set/every', 'map/every'], async (container, predicate) => {
   for (const [index, element] of elementsOf(container).entries()) {
     const verdict = await predicate(element);
     if (isErrorValue(verdict)) return verdict;
@@ -193,7 +193,7 @@ bindPrim('every', async (container, predicate) => {
   return true;
 });
 
-bindPrim('any', async (container, predicate) => {
+bindPrim(['vec/any', 'set/any', 'map/any'], async (container, predicate) => {
   for (const [index, element] of elementsOf(container).entries()) {
     const verdict = await predicate(element);
     if (isErrorValue(verdict)) return verdict;
@@ -214,7 +214,7 @@ async function keywordOf(key, element, index, ErrorCls) {
 
 // groupBy on a Set subject mints Set-typed buckets so the value-class
 // signal of the original sequence (uniqueness) survives partitioning.
-bindPrim('groupBy', async (sequence, key) => {
+bindPrim(['vec/groupBy', 'set/groupBy'], async (sequence, key) => {
   const buckets = new Map();
   for (const [index, element] of sequence.entries()) {
     const bucketKey = await keywordOf(key, element, index, GroupByKeyNotKeywordError);
@@ -228,7 +228,7 @@ bindPrim('groupBy', async (sequence, key) => {
   return buckets;
 });
 
-bindPrim('indexBy', async (sequence, key) => {
+bindPrim(['vec/indexBy', 'set/indexBy'], async (sequence, key) => {
   const index = new Map();
   for (const [position, element] of sequence.entries()) {
     const indexKey = await keywordOf(key, element, position, IndexByKeyNotKeywordError);
@@ -244,7 +244,7 @@ bindPrim('indexBy', async (sequence, key) => {
 // answers ranks element by element, and `desc` reverses a place of it.
 // A key that answers an error answers the call, as the key of `groupBy`
 // does, and so does one whose vector holds an error [D87], [D140].
-bindPrim('sort', async (container, key) => {
+bindPrim(['vec/sort', 'set/sort', 'map/sort'], async (container, key) => {
   const entries = [...(isQMap(container) ? container : container.entries())];
   const keyed = await keyedEntries(entries, key);
   if (isErrorValue(keyed)) return keyed;
@@ -260,15 +260,15 @@ function sliceOf(container, start, end) {
   return isQMap(container) ? new Map([...container].slice(start, end)) : container.slice(start, end);
 }
 
-bindPrim('take', (container, count) => sliceOf(container, 0, Math.max(0, wholeOrRefuse(count, TakeCountNotIntegerError))));
-bindPrim('drop', (container, count) => sliceOf(container, Math.max(0, wholeOrRefuse(count, DropCountNotIntegerError))));
+bindPrim(['string/take', 'vec/take', 'set/take', 'map/take'], (container, count) => sliceOf(container, 0, Math.max(0, wholeOrRefuse(count, TakeCountNotIntegerError))));
+bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count) => sliceOf(container, Math.max(0, wholeOrRefuse(count, DropCountNotIntegerError))));
 
 // `at` — indexed access with Array.prototype.at-style negative indices
 // on a sequence, a set indexing in its one order, and a soft lookup by
 // a keyword or a string on a map; a miss answers null, where the strict
 // `/key` projection refuses, and a soft read of null answers null, so
 // soft reads chain [D145].
-bindPrim('at', (container, place) => {
+bindPrim(['null/at', 'vec/at', 'set/at', 'map/at'], (container, place) => {
   if (container === NULL) return NULL;
   if (isQMap(container)) {
     const lookupKey = isKeyword(place) ? place.name : place;
@@ -284,23 +284,23 @@ bindPrim('at', (container, place) => {
 // it is.
 // `desc` lays `::desc` over a value, which reverses its place in the one
 // order among the values under that tag [D140].
-bindPrim('desc', value => makeTaggedInstance(DESC_TAG, value));
+bindPrim('any/desc', value => makeTaggedInstance(DESC_TAG, value));
 
-bindPrim('distinct', sequence => (isQSet(sequence) ? sequence : makeSet(sequence)));
+bindPrim(['vec/distinct', 'set/distinct'], sequence => (isQSet(sequence) ? sequence : makeSet(sequence)));
 
-bindPrim('reverse', container => (isQMap(container) ? new Map([...container].reverse()) : [...container].reverse()));
+bindPrim(['vec/reverse', 'set/reverse', 'map/reverse'], container => (isQMap(container) ? new Map([...container].reverse()) : [...container].reverse()));
 
 // `flat` lifts one level of nesting: the inner sequences splice in
 // order, and the head mints a set's answer as a set again, so a set of
 // sets flattens into their union.
-bindPrim('flat', sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
+bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
 
 // `reduce seed ~(reducer)` — the universal left-fold: the reducer is
 // applied as `reducer(acc, element)`, a verb of two places through its bound
 // form (`acc | add element`) and a verb with the element in its first
 // slot [D67]; `seed` answers for an empty subject, and a reducer error
 // stops the fold.
-bindPrim('reduce', async (container, seed, reducer) => {
+bindPrim(['vec/reduce', 'set/reduce', 'map/reduce'], async (container, seed, reducer) => {
   const combine = resolveBinaryReducer(reducer);
   if (combine === null) throw new ReduceReducerNotBinaryError();
   let acc = seed;

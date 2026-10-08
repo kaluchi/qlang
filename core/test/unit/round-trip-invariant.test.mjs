@@ -162,9 +162,8 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
 
 // ── TaggedInstance — default constructor accepts every Primary ─
 //
-// `::Tag<payload>` for a tag declared with an identity-only Map
-// body (no `:impl` slot) routes through `evalTaggedLit`'s
-// default branch. Every payload shape the grammar's `Primary`
+// `::Tag<payload>` for a tag declared with no constructor routes
+// through `evalTaggedLit`'s default branch. Every payload shape the grammar's `Primary`
 // rule accepts is covered here — payload starts with a bracket
 // character (Vec / JsonArray / Map / JsonObject / Set / Quote /
 // Doc / Error literal) or wraps a non-bracket value through
@@ -388,22 +387,21 @@ describe('toPlain refuses unencodable values', async () => {
 });
 
 describe('descriptor Maps in pipeValue round-trip through render', async () => {
-  // A `::builtin` descriptor is data: its `:impl :qlang/prim/<name>`
-  // handle is a keyword, so every field a render path walks is a qlang
-  // value and the Map's literal round-trips [D113].
+  // A `::builtin` descriptor is data: every field a render path walks is
+  // a qlang value, so the Map's literal round-trips [D113].
 
-  it('json on a descriptor Map carries :impl as the bare name of its keyword', async () => {
+  it('json on a descriptor Map carries a keyword field as its bare name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const jsonOutput = await evalQuery('::builtin{:impl :qlang/prim/count} | json');
+    const jsonOutput = await evalQuery('::builtin{:note :draft} | json');
     expect(typeof jsonOutput).toBe('string');
-    expect(jsonOutput).toContain('"impl":"qlang/prim/count"');
+    expect(jsonOutput).toContain('"note":"draft"');
   });
 
-  it('projection at :impl lands on the handle keyword', async () => {
+  it('a projection of a descriptor lands on its field', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isKeyword } = await import('../../src/types.mjs');
-    const handle = await evalQuery('::builtin{:impl :qlang/prim/count} | /impl');
+    const handle = await evalQuery('::builtin{:note :draft} | /note');
     expect(isKeyword(handle)).toBe(true);
-    expect(handle.name).toBe('qlang/prim/count');
+    expect(handle.name).toBe('draft');
   });
 });

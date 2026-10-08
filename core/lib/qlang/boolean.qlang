@@ -21,7 +21,7 @@
       ~(true | not | eq false)
       ~(null | eq null | eq true)
   ~~|
-  ::verb~(:returns ::boolean | ::builtin{:impl :qlang/prim/not})
+  ::verb~(:returns ::boolean | ::builtin{})
 
 :boolean/NotSubjectNotBooleanError
   |~~ `not` turns a boolean; a value is asked whether it is absent by
@@ -45,7 +45,7 @@
       ~({:active true :age 25} | and /active (/age | gte 18) | eq true)
       ~({:active false :age 25} | and /active (/age | gte 18) | eq false)
   ~~|
-  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/and})
+  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 
 :boolean/AndLeftNotBooleanError
   |~~ The left condition of `and` must answer a boolean.
@@ -77,7 +77,7 @@
       ~(7  | or (eq 5) (eq 10) | eq false)
       ~({:role "admin"} | or (/role | eq "admin") (/role | eq "owner") | eq true)
   ~~|
-  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{:impl :qlang/prim/or})
+  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 
 :boolean/OrLeftNotBooleanError
   |~~ The left condition of `or` must answer a boolean.

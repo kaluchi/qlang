@@ -15,7 +15,7 @@
       the same way:
       ~(::vec | spec | payload | type | eq ::quote)
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/payload})
+  ::verb~(::builtin{})
 
 :tagged/PayloadSubjectNotTaggedInstanceError
   |~~ `payload` takes a value under a tag; a value of a kind of the
@@ -43,7 +43,7 @@
       ~(:Box ::spec~() | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
       ~(:Box ::spec~() | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
   ~~|
-  ::verb~(:code ::quote | :returns / | ::builtin{:impl :qlang/prim/within})
+  ::verb~(:code ::quote | :returns / | ::builtin{})
 
 :tagged/WithinSubjectNotTaggedInstanceError
   |~~ `within` edits the value beneath a tag and puts the tag back; a

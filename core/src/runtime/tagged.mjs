@@ -3,7 +3,7 @@
 // take it off.
 
 import { mintUnderTag } from './verb.mjs';
-import { bindPrim, bindStateReader, bindTypeConstructor } from '../primitives.mjs';
+import { bindPrim, bindStateReader } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
   isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
@@ -25,7 +25,7 @@ function setConstructor(payload) {
   return makeSet(payload);
 }
 
-bindTypeConstructor('set', setConstructor);
+bindPrim('set', setConstructor);
 
 // The constructors of the core's kinds [D32, D33]: each reads its
 // payload as the value of its kind, so `::vec[1 2]` and `[1 2]` are one
@@ -51,13 +51,13 @@ function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payloa
 const bareVecOf = vec => vec[TAG_HEADER_SYMBOL] === undefined ? vec : Object.freeze([...vec]);
 const bareMapOf = map => map[TAG_HEADER_SYMBOL] === undefined ? map : new Map(map);
 
-bindTypeConstructor('null',    coreKindConstructor(isNull, NullPayloadNotNullError));
-bindTypeConstructor('boolean', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
-bindTypeConstructor('number',  coreKindConstructor(isNumber, NumberPayloadNotNumberError));
-bindTypeConstructor('string',  coreKindConstructor(isString, StringPayloadNotStringError));
-bindTypeConstructor('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
-bindTypeConstructor('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
-bindTypeConstructor('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
+bindPrim('null',    coreKindConstructor(isNull, NullPayloadNotNullError));
+bindPrim('boolean', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
+bindPrim('number',  coreKindConstructor(isNumber, NumberPayloadNotNumberError));
+bindPrim('string',  coreKindConstructor(isString, StringPayloadNotStringError));
+bindPrim('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
+bindPrim('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
+bindPrim('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
 // `::map[…]` also builds a map from the vector of its pairs `[key
 // value]`, the reverse of `entries`, as a doc comes back from its
 // segments: a key is a keyword, or a string or a number naming the
@@ -83,12 +83,12 @@ function mapConstructor(payload) {
   return built;
 }
 
-bindTypeConstructor('map', mapConstructor);
+bindPrim('map', mapConstructor);
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [D140].
 const DESC_TAG = makeTagKeyword('desc');
-bindTypeConstructor('desc', payload => makeTaggedInstance(DESC_TAG, payload));
+bindPrim('desc', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.
@@ -103,7 +103,7 @@ function docConstructor(payload) {
   return makeDoc(payload);
 }
 
-bindTypeConstructor('doc', docConstructor);
+bindPrim('doc', docConstructor);
 
 // `::builtin{…}` — the descriptor: the step of a built-in verb that names
 // its primitive [D72], the declaration of a kind that names its
@@ -118,7 +118,7 @@ function builtinConstructor(payload) {
   return descriptor;
 }
 
-bindTypeConstructor('builtin', builtinConstructor);
+bindPrim('builtin', builtinConstructor);
 
 declareSubjectError('PayloadSubjectNotTaggedInstanceError', 'payload', 'taggedInstance');
 const TagModifierNotTagKeywordError = declareModifierError(
@@ -143,8 +143,8 @@ function payloadOf(tagged) {
 // over the tagged value the head of its verb checked [D72], [D78];
 // `within` returns its subject's kind, so the answer of its edit mints
 // back under the subject's tag [D41], [D67].
-bindPrim('payload', subject => payloadOf(subject));
-bindPrim('within', async (subject, code) => await code(payloadOf(subject)));
+bindPrim('tagged/payload', subject => payloadOf(subject));
+bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)));
 
 // `tag` resides on `::any` and reads the state of its call, whose
 // scope holds the constructor of the tag [D79]: `value | tag ::Foo` lays
@@ -164,7 +164,7 @@ async function mintPair(pair, state) {
   return await mintUnderTag(state, pairTag, value);
 }
 
-bindStateReader('tag', async (subject, tagName, state) =>
+bindStateReader('any/tag', async (subject, tagName, state) =>
   (isNull(tagName) ? await mintPair(subject, state) : await mintUnderTag(state, tagName, subject)));
 
 declareSubjectError('WithinSubjectNotTaggedInstanceError', 'within', 'taggedInstance');

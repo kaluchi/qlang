@@ -59,18 +59,18 @@ function finiteOrLift(arithResult, leftValue, rightValue, ErrorCls) {
   return arithResult;
 }
 
-bindPrim('add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, AddResultNotFiniteError));
-bindPrim('sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, SubResultNotFiniteError));
-bindPrim('mul', (multiplicand, multiplier) =>
+bindPrim('number/add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, AddResultNotFiniteError));
+bindPrim('number/sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, SubResultNotFiniteError));
+bindPrim('number/mul', (multiplicand, multiplier) =>
   finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, MulResultNotFiniteError));
-bindPrim('div', (dividend, divisor) => {
+bindPrim('number/div', (dividend, divisor) => {
   if (divisor === 0) throw new DivisionByZeroError();
   return finiteOrLift(dividend / divisor, dividend, divisor, DivResultNotFiniteError);
 });
 
 // A number rounds half away from zero to the digits after the point the
 // call gives, a negative count rounding to tens and beyond [D132].
-bindPrim('round', (subject, digits) => {
+bindPrim('number/round', (subject, digits) => {
   if (!Number.isInteger(digits)) throw new RoundDigitsNotIntegerError(digits);
   const factor = 10 ** digits;
   const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;

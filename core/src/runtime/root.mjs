@@ -3,12 +3,11 @@
 // before it left, the language's first. A source whose run answers an
 // error, or that declares again a name the root holds, is refused; each
 // verb and kind a source declares is the
-// host's, which alone reaches a primitive [D73]: a verb whose step is
-// `::builtin{}` the implementation the host handed beside the source
-// under its name [D80], one whose step names a primitive of the core
-// that primitive, each refused as the root is declared when it lacks
-// one; a refusal the source declares takes its address, the name it is
-// declared by, once [D64].
+// host's, which alone reaches an implementation [D73]: a verb or a kind
+// whose step is `::builtin{}` runs the implementation the host handed
+// beside the source under its name [D80], [D157], and is refused as the
+// root is declared when it was handed none; a refusal the source declares
+// takes its address, the name it is declared by, once [D64].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
@@ -20,8 +19,8 @@ import {
   declareInvariantError, declareShapeError, recordRefusalAddress, refusalAddressOf, throwSiteSpecOf
 } from '../errors.mjs';
 import { splitAddress } from './nouns.mjs';
-import { builtinOfVerb } from './verb.mjs';
-import { PRIMITIVE_REGISTRY, PrimitiveKeyUnboundError } from '../primitives.mjs';
+import { endsInBuiltin } from './verb.mjs';
+import { PrimitiveKeyUnboundError } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:tagName`
@@ -32,7 +31,7 @@ export const RootSourceNotDeclaredError = declareInvariantError('RootSourceNotDe
   { operand: '::builtin' });
 
 // An implementation a host hands for a name its source declares as no
-// verb ending in `::builtin{}` has nothing to run under.
+// verb or kind ending in `::builtin{}` has nothing to run under.
 export const RootImplNamesNoVerbError = declareShapeError('RootImplNamesNoVerbError',
   ({ uri, implName }) => `qlang root: the source ${uri} hands an implementation for ${implName.literal}, which it declares as no verb ending in ::builtin{}`,
   { operand: '::builtin' });
@@ -66,15 +65,13 @@ export async function declareRoot(env, sources) {
     if (again !== undefined) throw new RootSourceNotDeclaredError({ uri, tagName: DECLARED_TWICE, name: keyword(again) });
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
-      const builtin = builtinOfVerb(value);
-      if (builtin?.primitiveKey === null && impls[name] === undefined) throw new PrimitiveKeyUnboundError({ keyLabel: name });
-      if (builtin?.primitiveKey) PRIMITIVE_REGISTRY.resolve(builtin.primitiveKey);
-      if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name] ?? null);
+      if (endsInBuiltin(value) && impls[name] === undefined) throw new PrimitiveKeyUnboundError({ keyLabel: name });
+      if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name]);
       const [, lastName] = splitAddress(name);
       if (throwSiteSpecOf(lastName) !== undefined) recordRefusalAddress(lastName, name);
     }
     for (const implName of Object.keys(impls)) {
-      if (builtinOfVerb(bindingValueOf(declared.get(implName)))?.primitiveKey !== null) {
+      if (!endsInBuiltin(bindingValueOf(declared.get(implName)))) {
         throw new RootImplNamesNoVerbError({ uri, implName: keyword(implName) });
       }
     }

@@ -1,27 +1,26 @@
-// The table from the handle of a primitive to its implementation: the
-// `::builtin{:impl :qlang/prim/<name>}` step of a built-in verb names
-// one [D72], and a kind's `::builtin{:impl :qlang/type/<name>}` its
-// constructor; each runtime module binds its own as it loads, and the
-// bootstrap seals the table.
+// The implementations of the language by the address of the verb or the
+// kind each serves, `number/add`, `vec` [D157]: each runtime module binds
+// its own as it loads, the bootstrap hands each source of the language
+// those under its noun as a host hands its own [D80], and seals the
+// table.
 
 import { declareInvariantError, declarePerSiteError } from './errors.mjs';
 
 const PrimitiveKeyNotStringError = declareInvariantError(
   'PrimitiveKeyNotStringError',
-  ({ actualType }) => `bind: primitive key must be a string, got ${actualType}`,
+  ({ actualType }) => `bind: an address must be a string, got ${actualType}`,
   { operand: '::builtin' }
 );
 
 const PrimitiveKeyAlreadyBoundError = declareInvariantError(
   'PrimitiveKeyAlreadyBoundError',
-  ({ keyName }) => `bind: primitive key :${keyName} is already bound; ` +
-    'duplicate binding indicates two runtime modules claim the same primitive name',
+  ({ keyName }) => `bind: ${keyName} is already bound; two runtime modules claim the same address`,
   { operand: '::builtin' }
 );
 
 const PrimitiveRegistrySealedError = declareInvariantError(
   'PrimitiveRegistrySealedError',
-  ({ keyLabel }) => `bind: registry is sealed; cannot bind :${keyLabel} after bootstrap has completed`,
+  ({ keyLabel }) => `bind: the table is sealed; cannot bind ${keyLabel} after the bootstrap`,
   { operand: '::builtin' }
 );
 
@@ -29,7 +28,7 @@ const PrimitiveRegistrySealedError = declareInvariantError(
 // assembled can hold, answers on the fail track.
 export const PrimitiveKeyUnboundError = declarePerSiteError(
   'PrimitiveKeyUnboundError', 'primitiveUnbound',
-  ({ keyLabel }) => `resolve: no primitive bound under :${keyLabel}`,
+  ({ keyLabel }) => `no implementation is handed for ${keyLabel}, which ends in ::builtin{}`,
   { operand: '::builtin' }
 );
 
@@ -64,6 +63,17 @@ export function createPrimitiveRegistry() {
       return bindings.has(key);
     },
 
+    // The implementations under a noun, by address; null for the kinds,
+    // which are under none.
+    implsUnder(nounName) {
+      const under = {};
+      for (const [address, impl] of bindings) {
+        const cut = address.lastIndexOf('/');
+        if ((cut < 0 ? null : address.slice(0, cut)) === nounName) under[address] = impl;
+      }
+      return under;
+    },
+
     seal() {
       sealed = true;
     },
@@ -81,14 +91,10 @@ export function createPrimitiveRegistry() {
 // The table every runtime module binds into.
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
 
-// The two prefixes of handles, a primitive's and a kind's constructor's.
-const PRIM_KEY_PREFIX = 'qlang/prim/';
-export const TYPE_KEY_PREFIX = 'qlang/type/';
-
-// bindPrim(name, impl) — binds the primitive of a verb under
-// `qlang/prim/<name>`.
-export function bindPrim(name, impl) {
-  return PRIMITIVE_REGISTRY.bind(PRIM_KEY_PREFIX + name, impl);
+// bindPrim(addresses, impl) — binds an implementation under the address
+// of each verb or kind it serves, one or several.
+export function bindPrim(addresses, impl) {
+  for (const address of [addresses].flat()) PRIMITIVE_REGISTRY.bind(address, impl);
 }
 
 // A primitive that reads the scope of its call takes the state of the
@@ -96,9 +102,9 @@ export function bindPrim(name, impl) {
 // over the values its head checked [D72].
 const STATE_READERS = new WeakSet();
 
-export function bindStateReader(name, impl) {
+export function bindStateReader(addresses, impl) {
   STATE_READERS.add(impl);
-  return bindPrim(name, impl);
+  bindPrim(addresses, impl);
 }
 
 export function readsState(impl) {
@@ -110,17 +116,12 @@ export function readsState(impl) {
 // values [D34]: `raise` names its error by the outermost [D86].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 
-export function bindReaderOfPassedTags(name, impl) {
+export function bindReaderOfPassedTags(addresses, impl) {
   READERS_OF_PASSED_TAGS.add(impl);
-  return bindPrim(name, impl);
+  bindPrim(addresses, impl);
 }
 
 export function readsPassedTags(impl) {
   return READERS_OF_PASSED_TAGS.has(impl);
 }
 
-// bindTypeConstructor(tagName, ctor) — binds the constructor of a kind
-// under `qlang/type/<tag>`.
-export function bindTypeConstructor(tagName, ctor) {
-  return PRIMITIVE_REGISTRY.bind(TYPE_KEY_PREFIX + tagName, ctor);
-}

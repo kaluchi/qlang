@@ -162,9 +162,9 @@ describe('the sources a host hands [D153]', () => {
       .rejects.toMatchObject({ name: 'PrimitiveKeyUnboundError', context: { keyLabel: 'any/hello' } });
   });
 
-  it('refuses an implementation handed for a verb whose step names a primitive of the core', async () => {
+  it('refuses an implementation handed for a verb of steps', async () => {
     await expect(createSession({ sources: [{
-      uri: 'tests/over', source: ':any/many ::verb~(::builtin{:impl :qlang/prim/count})', impls: { 'any/many': () => 0 }
+      uri: 'tests/over', source: ':any/many ::verb~(count)', impls: { 'any/many': () => 0 }
     }] })).rejects.toMatchObject({ name: 'RootImplNamesNoVerbError' });
   });
 

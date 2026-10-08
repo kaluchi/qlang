@@ -9,7 +9,7 @@
 
       ~(1 | desc | gt (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
 
 :desc/gte
   |~~ Whether the subject follows or equals the value the call gives
@@ -17,7 +17,7 @@
 
       ~(2 | desc | gte (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
 
 :desc/lt
   |~~ Whether the subject precedes the value the call gives among
@@ -26,7 +26,7 @@
 
       ~(2 | desc | lt (1 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
 
 :desc/lte
   |~~ Whether the subject precedes or equals the value the call gives
@@ -34,4 +34,4 @@
 
       ~(2 | desc | lte (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})

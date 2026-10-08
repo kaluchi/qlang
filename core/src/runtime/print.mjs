@@ -36,5 +36,5 @@ async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind)
   for (const inner of parts) await collectPrintsOfKinds(inner, env, state, printOfAny, printedByKind);
 }
 
-bindStateReader('print', (subject, state) => printAnswer(subject, state.env, state));
-bindPrim('elide', (subject, budget) => elide(subject, budget));
+bindStateReader('any/print', (subject, state) => printAnswer(subject, state.env, state));
+bindPrim('any/elide', (subject, budget) => elide(subject, budget));

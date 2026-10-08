@@ -343,18 +343,19 @@ export function declareVerbAt(verb, address, residence) {
 // source for a verb, a plain function over the values the verb's head
 // checks [D4], [D80], null for a primitive of the core.
 const HOST_DECLARED = new WeakSet();
+const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {
   return HOST_DECLARED.has(value);
 }
 
-export function hostImplOfVerb(verb) {
-  return verb[VERB_ENV_REF_SLOT]?.hostImpl ?? null;
+export function hostImplOf(value) {
+  return HOST_IMPLS.get(value);
 }
 
 export function declareHostValue(value, impl) {
   HOST_DECLARED.add(value);
-  if (isVerb(value)) value[VERB_ENV_REF_SLOT].hostImpl = impl;
+  if (impl !== undefined) HOST_IMPLS.set(value, impl);
 }
 
 // An error carries its tag, the kind of errors for a literal that names

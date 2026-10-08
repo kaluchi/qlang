@@ -179,9 +179,9 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
   return record;
 }
 
-bindStateReader('binding', (subject, memberName, state) =>
+bindStateReader('any/binding', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, BindingNotFoundError));
-bindStateReader('source', (subject, memberName, state) =>
+bindStateReader('any/source', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
@@ -211,7 +211,7 @@ function recordAlongPath(subject, anchors, state) {
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set.
-bindStateReader('doc', (subject, anchor, state) =>
+bindStateReader('any/doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 
 // The value as an explanation holds it: an error, a map under `::error`
@@ -231,7 +231,7 @@ function heldByExplanation(subject) {
 // null for a declaration without one, above the value itself, so an
 // explanation prints as the page above what it explains [D98].
 const EXPLANATION_TAG = makeTagKeyword('explanation');
-bindStateReader('explain', (subject, state) => {
+bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, ExplainBindingNotFoundError));
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
@@ -240,7 +240,7 @@ bindStateReader('explain', (subject, state) => {
 // kind's `::spec~(…)`, its fields and its constructor, the head of a verb
 // as a `::spec~(…)` with its subject filled [D72], and the value itself
 // for any other binding; what lies under a noun `manifest` answers.
-bindStateReader('spec', (subject, memberName, state) => {
+bindStateReader('any/spec', (subject, memberName, state) => {
   const declaration = recordReadBy(subject, memberName, state, SpecBindingNotFoundError).get('value');
   return isVerb(declaration) ? signatureSpecOf(declaration) : declaration;
 });

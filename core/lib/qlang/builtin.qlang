@@ -4,8 +4,9 @@
    session, the printer and the sources of the root. ~|
 
 :builtin/BuiltinPayloadNotMapError
-  |~~ `::builtin` holds the fields of a declaration as a map,
-      `::builtin{:impl …}`; a payload of another kind is refused.
+  |~~ `::builtin` holds its fields as a map, `::builtin{}` the step a
+      host's verb or kind ends with; a payload of another kind is
+      refused.
 
       ~(
         ::builtin"hello"
@@ -33,8 +34,8 @@
   ::spec~()
 
 :builtin/PrimitiveKeyAlreadyBoundError
-  |~~ Two files of the runtime bound one primitive name, a defect of
-      the runtime found as it loads.
+  |~~ Two files of the runtime bound an implementation under one
+      address, a defect of the runtime found as it loads.
   ~~|
   ::spec~()
 
@@ -47,21 +48,21 @@
   ::spec~()
 
 :builtin/PrimitiveKeyNotStringError
-  |~~ A file of the runtime bound a primitive under a name that is no
-      string, a defect of the runtime found as it loads.
+  |~~ A file of the runtime bound an implementation under an address
+      that is no string, a defect of the runtime found as it loads.
   ~~|
   ::spec~()
 
 :builtin/PrimitiveKeyUnboundError
-  |~~ The `:impl` of a declaration names a primitive no file of the
-      runtime bound: a verb or a kind declared by a source whose
-      implementation was not handed with it.
+  |~~ A verb or a kind ends in `::builtin{}` and the host handed no
+      implementation for its name beside its source; `:keyLabel` names
+      it, and the root is refused as it is declared.
   ~~|
   ::spec~()
 
 :builtin/PrimitiveRegistrySealedError
-  |~~ The table of primitives is sealed when the bootstrap completes,
-      and a primitive bound after it is refused.
+  |~~ The table of the language's implementations is sealed when the
+      bootstrap completes, and one bound after it is refused.
   ~~|
   ::spec~()
 

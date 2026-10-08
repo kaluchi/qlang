@@ -28,7 +28,7 @@ const CondNoBranchesError = declareArityError('CondNoBranchesError',
   { operand: 'cond' }
 );
 
-bindPrim('if', async (subject, condition, thenCode, elseCode) =>
+bindPrim('any/if', async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject)));
 
 // The first alternative that answers neither null nor an error value: a
@@ -37,7 +37,7 @@ bindPrim('if', async (subject, condition, thenCode, elseCode) =>
 // ~(/b) ~("default")` reads the first value defined. An alternative
 // that is no quote answers itself, and a call of such alternatives
 // alone reads the subject first, `/timeout | coalesce 30` [D133].
-bindPrim('coalesce', async (subject, alternatives) => {
+bindPrim('any/coalesce', async (subject, alternatives) => {
   if (alternatives.length === 0) throw new CoalesceNoAlternativesError();
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
@@ -49,7 +49,7 @@ bindPrim('coalesce', async (subject, alternatives) => {
   return NULL;
 });
 
-bindPrim('cond', async (subject, clauses) => {
+bindPrim('any/cond', async (subject, clauses) => {
   if (clauses.length < 2) throw new CondNoBranchesError();
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {

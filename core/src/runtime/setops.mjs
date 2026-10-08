@@ -127,6 +127,6 @@ function pairOrFold(pair, EmptyError) {
   };
 }
 
-bindPrim('union', pairOrFold(unionPair, UnionBareEmptyError));
-bindPrim('minus', pairOrFold(minusPair, MinusBareEmptyError));
-bindPrim('inter', pairOrFold(interPair, InterBareEmptyError));
+bindPrim(['vec/union', 'set/union', 'map/union'], pairOrFold(unionPair, UnionBareEmptyError));
+bindPrim(['vec/minus', 'set/minus', 'map/minus'], pairOrFold(minusPair, MinusBareEmptyError));
+bindPrim(['vec/inter', 'set/inter', 'map/inter'], pairOrFold(interPair, InterBareEmptyError));

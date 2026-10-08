@@ -51,7 +51,7 @@
 
       ~(~(add 1) | parse | eq "add 1")
   ~~|
-  ::verb~(:returns ::string | ::builtin{:impl :qlang/prim/parse})
+  ::verb~(:returns ::string | ::builtin{})
 
 :quote/open
   |~~ The answer of the query the quote holds, run as it stands in the
@@ -63,4 +63,4 @@
       ~(::qlang | doc | links * open | every ~(type | eq ::doc))
       ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
   ~~|
-  ::verb~(::builtin{:impl :qlang/prim/quoteOpen})
+  ::verb~(::builtin{})

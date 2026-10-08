@@ -23,7 +23,7 @@ function errorMessageOf(errorValue) {
   return errorValue.descriptor.get('message');
 }
 
-bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
+bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
 
 // A law runs one frame below the step in the caller's scope, the root
 // among it, and passes when it answers true [D14]; its result
@@ -47,7 +47,7 @@ async function runQuoteEntry({ law: quote, says }, callerState) {
 
 // A name reads its record as the axes do, a keyword after it the member
 // it holds, `::qlang | runLaws :values` [D124].
-bindStateReader('runLaws', async (subject, anchor, state) => {
+bindStateReader(['tag/runLaws', 'keyword/runLaws'], async (subject, anchor, state) => {
   const claims = claimsOfRecord(recordReadBy(subject, anchor, state, RunLawsBindingNotFoundError));
   const entries = [];
   for (const claim of claims) entries.push(await runQuoteEntry(claim, state));

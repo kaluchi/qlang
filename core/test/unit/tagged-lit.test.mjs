@@ -59,19 +59,19 @@ describe('a kind whose spec names a constructor of the host', () => {
   it('makes ::myType invokable through the ::verb constructor handle, declared by a host [D73]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
-      sources: [{ uri: 'tests/kind', source: ':myType ::spec~(::builtin{:impl :qlang/type/verb})' }]
+      sources: [{ uri: 'tests/kind', source: ':myType ::spec~(::builtin{})', impls: { myType: payload => payload * 2 } }]
     });
-    expect((await sessionInstance.evalCell(':f ::myType~(add 1) | 4 | f')).result).toBe(5);
+    expect((await sessionInstance.evalCell('::myType(4)')).result).toBe(8);
   });
 
   it('runs the builtin step of a kind a reader declares as a step [D73]', async () => {
-    const result = await evalQuery(':myType ::spec~(::builtin{:impl :qlang/type/verb}) | ::myType~(add 1) | type');
+    const result = await evalQuery(':myType ::spec~(::builtin{}) | ::myType~(add 1) | type');
     expect(result).toEqual(makeTagKeyword('myType'));
   });
 
   it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
-      ':myType ::spec~(::builtin{:impl :qlang/type/verb}) | ::myType | source'
+      ':myType ::spec~(::builtin{}) | ::myType | source'
     );
     expect(isQuote(source)).toBe(true);
     expect(printQuoteSource(source)).toContain(':myType');
@@ -86,7 +86,7 @@ describe('axis-operand subject classification', () => {
 
   it('a map holding a tag in its :kind field reads ::map, since a field names nothing', async () => {
     expect(await evalQuery(
-      ':myType ::spec~(::builtin{:impl :qlang/type/verb}) | {:kind ::myType :payload []} | source | eq (::map | source)'
+      ':myType ::spec~(::builtin{}) | {:kind ::myType :payload []} | source | eq (::map | source)'
     )).toBe(true);
   });
 });

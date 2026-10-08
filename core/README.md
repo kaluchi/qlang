@@ -33,7 +33,7 @@ import { createSession, printValue } from '@kaluchi/qlang-core';
 const session = await createSession({
   sources: [{
     uri: 'my/tools',
-    source: ':string/@fetch ::verb~(::builtin{:impl :my/tools/@fetch})',
+    source: ':string/@fetch ::verb~(::builtin{})',
     impls: { 'string/@fetch': async (url) => fetchText(url) }
   }]
 });

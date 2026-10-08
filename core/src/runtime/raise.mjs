@@ -31,4 +31,4 @@ export function raisedFrom(sourceMap, passedTags) {
   return descriptor.has('trail') ? resumingItsTrail(minted) : minted;
 }
 
-bindReaderOfPassedTags('raise', raisedFrom);
+bindReaderOfPassedTags('map/raise', raisedFrom);

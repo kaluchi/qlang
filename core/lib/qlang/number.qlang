@@ -23,7 +23,7 @@
       ~(10 | add 3 | eq 13)
       ~({:x 10 :y 3} | add /x /y | eq 13)
   ~~|
-  ::verb~(:addend ::number | :returns ::number | ::builtin{:impl :qlang/prim/add})
+  ::verb~(:addend ::number | :returns ::number | ::builtin{})
 
 :number/AddLeftNotNumberError
   |~~ `add` adds numbers: a vector adds element by element, `* add 1`,
@@ -69,7 +69,7 @@
       ~(10 | sub 3 | eq 7)
       ~({:x 10 :y 3} | sub /x /y | eq 7)
   ~~|
-  ::verb~(:subtrahend ::number | :returns ::number | ::builtin{:impl :qlang/prim/sub})
+  ::verb~(:subtrahend ::number | :returns ::number | ::builtin{})
 
 :number/SubLeftNotNumberError
   |~~ `sub` subtracts from a number; a vector subtracts element by
@@ -115,7 +115,7 @@
       ~(10 | mul 3 | eq 30)
       ~({:x 5 :y 4} | mul /x /y | eq 20)
   ~~|
-  ::verb~(:multiplier ::number | :returns ::number | ::builtin{:impl :qlang/prim/mul})
+  ::verb~(:multiplier ::number | :returns ::number | ::builtin{})
 
 :number/MulLeftNotNumberError
   |~~ `mul` multiplies numbers; a vector multiplies element by element,
@@ -162,7 +162,7 @@
       ~(10 | div 2 | eq 5)
       ~({:x 20 :y 4} | div /x /y | eq 5)
   ~~|
-  ::verb~(:divisor ::number | :returns ::number | ::builtin{:impl :qlang/prim/div})
+  ::verb~(:divisor ::number | :returns ::number | ::builtin{})
 
 :number/DivLeftNotNumberError
   |~~ `div` divides a number; a vector divides element by element,
@@ -225,7 +225,7 @@
       ~(1234 | round -2 | eq 1200)
       ~(-0.4 | round | print | eq "0")
   ~~|
-  ::verb~(:digits 0 | :returns ::number | ::builtin{:impl :qlang/prim/round})
+  ::verb~(:digits 0 | :returns ::number | ::builtin{})
 
 :number/RoundSubjectNotNumberError
   |~~ `round` rounds a number; a string holding one is read first by
@@ -253,7 +253,7 @@
 
       ~(10 | gt 5 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gt})
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
 
 :number/gte
   |~~ Whether the subject is greater than or equal to the number the
@@ -261,14 +261,14 @@
 
       ~(10 | gte 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/gte})
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
 
 :number/lt
   |~~ Whether the subject is less than the number the call gives.
 
       ~(5 | lt 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/lt})
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
 
 :number/lte
   |~~ Whether the subject is less than or equal to the number the call
@@ -276,4 +276,4 @@
 
       ~(10 | lte 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{:impl :qlang/prim/lte})
+  ::verb~(:than ::number | :returns ::boolean | ::builtin{})

@@ -2,8 +2,8 @@
 // sources declare [D153], each read by the host's locator, with nothing
 // seeded before them.
 
-// Each module binds the primitives the catalog's verbs name into
-// PRIMITIVE_REGISTRY as it loads.
+// Each module binds the implementations of the language's verbs and
+// kinds into PRIMITIVE_REGISTRY, by address, as it loads [D157].
 import './vec.mjs';
 import './map.mjs';
 import './setops.mjs';
@@ -47,6 +47,12 @@ export async function langRuntime(opts = {}) {
   return new Map(templateEnv);
 }
 
+// The noun a source of the language declares under, `qlang/number`
+// under `number`; `qlang`, the kinds and the topic, under none.
+function nounOfSource(uri) {
+  return uri === 'qlang' ? null : uri.slice('qlang/'.length);
+}
+
 // The bootstrap `langRuntime` memoises, callable with a locator of a
 // test's own.
 export async function buildLangRuntime(locator) {
@@ -54,7 +60,7 @@ export async function buildLangRuntime(locator) {
   for (const uri of LANGUAGE_SOURCES) {
     const located = await locator(uri);
     if (located === null) throw new BootstrapSourceMissingError({ uri });
-    sources.push({ uri, source: located.source });
+    sources.push({ uri, source: located.source, impls: PRIMITIVE_REGISTRY.implsUnder(nounOfSource(uri)) });
   }
   const templateEnv = await declareRoot(new Map(), sources);
   PRIMITIVE_REGISTRY.seal();

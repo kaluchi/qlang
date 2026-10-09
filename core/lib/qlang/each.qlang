@@ -1,7 +1,8 @@
 |~ What is declared under `::each`, the step `*` runs on each
    element: its refusals. ~|
 
-:each/construct |~~ The step `* body` from the quote of its body. ~~|
+:each/construct
+  |~~ The step `* body` from the quote of its body. ~~|
   ::builtin{}
 
 :each/PayloadNotQuoteError

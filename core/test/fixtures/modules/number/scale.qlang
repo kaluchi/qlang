@@ -1,1 +1,3 @@
-:any/tenfold |~~ Multiplies the number by ten. ~~| ~(mul 10)
+:any/tenfold
+  |~~ Multiplies the number by ten. ~~|
+  ~(mul 10)

@@ -2,7 +2,8 @@
    constructor, the negation, and the two combinators of conditions,
    which take booleans. ~|
 
-:boolean/construct |~~ Reads a boolean as itself. ~~|
+:boolean/construct
+  |~~ Reads a boolean as itself. ~~|
   ::builtin{}
 
 :boolean/PayloadNotBooleanError
@@ -33,7 +34,8 @@
   ~~|
   ::builtin{}
 
-:boolean/not/negation |~~ The other boolean. ~~|
+:boolean/not/negation
+  |~~ The other boolean. ~~|
   ::boolean
 
 :boolean/and
@@ -67,10 +69,12 @@
   ~~|
   ~(/0)
 
-:boolean/and/right/NotBooleanError |~~ The right is a boolean. ~~|
+:boolean/and/right/NotBooleanError
+  |~~ The right is a boolean. ~~|
   ::holds~(is ::boolean)
 
-:boolean/and/both |~~ Whether the subject and the other condition both hold. ~~|
+:boolean/and/both
+  |~~ Whether the subject and the other condition both hold. ~~|
   ::boolean
 
 :boolean/or
@@ -104,8 +108,10 @@
   ~~|
   ~(/0)
 
-:boolean/or/right/NotBooleanError |~~ The right is a boolean. ~~|
+:boolean/or/right/NotBooleanError
+  |~~ The right is a boolean. ~~|
   ::holds~(is ::boolean)
 
-:boolean/or/either |~~ Whether the subject or the other condition holds. ~~|
+:boolean/or/either
+  |~~ Whether the subject or the other condition holds. ~~|
   ::boolean

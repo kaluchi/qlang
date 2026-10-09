@@ -61,8 +61,10 @@
   ~~|
   ~(/0)
 
-:tagged/within/code/NotQuoteError |~~ The code is code, a quote. ~~|
+:tagged/within/code/NotQuoteError
+  |~~ The code is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:tagged/within/edited |~~ The value edited beneath its tag, under the tag again. ~~|
+:tagged/within/edited
+  |~~ The value edited beneath its tag, under the tag again. ~~|
   ::tagged

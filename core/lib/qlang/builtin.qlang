@@ -3,7 +3,8 @@
    the table of primitives, the tree the evaluator does not know, the
    session, the printer and the sources of the root. ~|
 
-:builtin/construct |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|
+:builtin/construct
+  |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|
   ::builtin{}
 
 :builtin/PayloadNotMapError

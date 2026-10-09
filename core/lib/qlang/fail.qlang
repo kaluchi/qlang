@@ -1,7 +1,8 @@
 |~ What is declared under `::fail`, the step `!|` runs on an error
    alone: its refusals. ~|
 
-:fail/construct |~~ The step `!| step` from the quote of its step. ~~|
+:fail/construct
+  |~~ The step `!| step` from the quote of its step. ~~|
   ::builtin{}
 
 :fail/PayloadNotQuoteError

@@ -4,7 +4,8 @@
    a string, `count`, `take` and `drop` by its characters, and
    `prepend` and `append`. ~|
 
-:string/construct |~~ Reads a string as itself. ~~|
+:string/construct
+  |~~ Reads a string as itself. ~~|
   ::builtin{}
 
 :string/PayloadNotStringError
@@ -39,10 +40,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:string/gt/than/NotStringError |~~ The than is a string. ~~|
+:string/gt/than/NotStringError
+  |~~ The than is a string. ~~|
   ::holds~(is ::string)
 
-:string/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+:string/gt/greater
+  |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
 :string/gte
@@ -56,10 +59,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:string/gte/than/NotStringError |~~ The than is a string. ~~|
+:string/gte/than/NotStringError
+  |~~ The than is a string. ~~|
   ::holds~(is ::string)
 
-:string/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+:string/gte/atLeast
+  |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
 :string/lt
@@ -73,10 +78,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:string/lt/than/NotStringError |~~ The than is a string. ~~|
+:string/lt/than/NotStringError
+  |~~ The than is a string. ~~|
   ::holds~(is ::string)
 
-:string/lt/less |~~ Whether the subject comes before the value compared. ~~|
+:string/lt/less
+  |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
 :string/lte
@@ -90,10 +97,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:string/lte/than/NotStringError |~~ The than is a string. ~~|
+:string/lte/than/NotStringError
+  |~~ The than is a string. ~~|
   ::holds~(is ::string)
 
-:string/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+:string/lte/atMost
+  |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
 
 :string/count
@@ -106,7 +115,8 @@
   ~~|
   ::builtin{}
 
-:string/count/length |~~ How many characters the string holds. ~~|
+:string/count/length
+  |~~ How many characters the string holds. ~~|
   ::number
 
 :string/take
@@ -117,12 +127,16 @@
   ~~|
   ::builtin{}
 
-:string/take/count |~~ How many. ~~| ~(/0)
+:string/take/count
+  |~~ How many. ~~|
+  ~(/0)
 
-:string/take/count/NotNumberError |~~ The count is a number. ~~|
+:string/take/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:string/take/taken |~~ The first characters. ~~|
+:string/take/taken
+  |~~ The first characters. ~~|
   ::string
 
 :string/drop
@@ -133,12 +147,16 @@
   ~~|
   ::builtin{}
 
-:string/drop/count |~~ How many. ~~| ~(/0)
+:string/drop/count
+  |~~ How many. ~~|
+  ~(/0)
 
-:string/drop/count/NotNumberError |~~ The count is a number. ~~|
+:string/drop/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:string/drop/rest |~~ The characters after the ones dropped. ~~|
+:string/drop/rest
+  |~~ The characters after the ones dropped. ~~|
   ::string
 
 :string/split
@@ -170,10 +188,12 @@
   ~~|
   ~(/0)
 
-:string/split/separator/NotStringError |~~ The separator is a string. ~~|
+:string/split/separator/NotStringError
+  |~~ The separator is a string. ~~|
   ::holds~(is ::string)
 
-:string/split/pieces |~~ The pieces between the separators, in order. ~~|
+:string/split/pieces
+  |~~ The pieces between the separators, in order. ~~|
   ::vec
 
 :string/lines
@@ -198,7 +218,8 @@
   ~~|
   ::builtin{}
 
-:string/lines/rows |~~ The lines of the text in order, without their breaks. ~~|
+:string/lines/rows
+  |~~ The lines of the text in order, without their breaks. ~~|
   ::vec
 
 :string/lower
@@ -218,7 +239,8 @@
   ~~|
   ::builtin{}
 
-:string/lower/lowercase |~~ The text in lower case. ~~|
+:string/lower/lowercase
+  |~~ The text in lower case. ~~|
   ::string
 
 :string/upper
@@ -236,7 +258,8 @@
   ~~|
   ::builtin{}
 
-:string/upper/uppercase |~~ The text in upper case. ~~|
+:string/upper/uppercase
+  |~~ The text in upper case. ~~|
   ::string
 
 :string/trim
@@ -258,7 +281,8 @@
   ~~|
   ::builtin{}
 
-:string/trim/trimmed |~~ The text without the whitespace at its ends. ~~|
+:string/trim/trimmed
+  |~~ The text without the whitespace at its ends. ~~|
   ::string
 
 :string/contains
@@ -293,10 +317,12 @@
   ~~|
   ~(/0)
 
-:string/contains/needle/NotStringError |~~ The needle is a string. ~~|
+:string/contains/needle/NotStringError
+  |~~ The needle is a string. ~~|
   ::holds~(is ::string)
 
-:string/contains/found |~~ Whether the text holds the part. ~~|
+:string/contains/found
+  |~~ Whether the text holds the part. ~~|
   ::boolean
 
 :string/startsWith
@@ -328,10 +354,12 @@
   ~~|
   ~(/0)
 
-:string/startsWith/prefix/NotStringError |~~ The prefix is a string. ~~|
+:string/startsWith/prefix/NotStringError
+  |~~ The prefix is a string. ~~|
   ::holds~(is ::string)
 
-:string/startsWith/starts |~~ Whether the text begins with the part. ~~|
+:string/startsWith/starts
+  |~~ Whether the text begins with the part. ~~|
   ::boolean
 
 :string/endsWith
@@ -363,10 +391,12 @@
   ~~|
   ~(/0)
 
-:string/endsWith/suffix/NotStringError |~~ The suffix is a string. ~~|
+:string/endsWith/suffix/NotStringError
+  |~~ The suffix is a string. ~~|
   ::holds~(is ::string)
 
-:string/endsWith/ends |~~ Whether the text ends with the part. ~~|
+:string/endsWith/ends
+  |~~ Whether the text ends with the part. ~~|
   ::boolean
 
 :string/prepend
@@ -391,10 +421,12 @@
   ~~|
   ~(/0)
 
-:string/prepend/prefix/NotStringError |~~ The prefix is a string. ~~|
+:string/prepend/prefix/NotStringError
+  |~~ The prefix is a string. ~~|
   ::holds~(is ::string)
 
-:string/prepend/prepended |~~ The text with the part before it. ~~|
+:string/prepend/prepended
+  |~~ The text with the part before it. ~~|
   ::string
 
 :string/append
@@ -418,10 +450,12 @@
   ~~|
   ~(/0)
 
-:string/append/suffix/NotStringError |~~ The suffix is a string. ~~|
+:string/append/suffix/NotStringError
+  |~~ The suffix is a string. ~~|
   ::holds~(is ::string)
 
-:string/append/appended |~~ The text with the part after it. ~~|
+:string/append/appended
+  |~~ The text with the part after it. ~~|
   ::string
 
 :string/parseJson
@@ -468,7 +502,8 @@
   ~~|
   ::builtin{}
 
-:string/keyword/key |~~ The keyword the text names. ~~|
+:string/keyword/key
+  |~~ The keyword the text names. ~~|
   ::keyword
 
 :string/parse

@@ -1,7 +1,8 @@
 |~ What is declared under `::null`, the kind of the absent value: the
    soft read of it. ~|
 
-:null/construct |~~ Reads null as itself. ~~|
+:null/construct
+  |~~ Reads null as itself. ~~|
   ::builtin{}
 
 :null/PayloadNotNullError
@@ -32,5 +33,7 @@
   |~~ The place the call reads. ~~|
   ~(/0)
 
-:null/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
+:null/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
 

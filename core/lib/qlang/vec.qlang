@@ -3,7 +3,8 @@
    answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its object, read and held
    to their laws before the primitive runs. ~|
 
-:vec/construct |~~ Reads a vector as the bare vector, and a set, a quote or a doc as the vector of its elements. ~~|
+:vec/construct
+  |~~ Reads a vector as the bare vector, and a set, a quote or a doc as the vector of its elements. ~~|
   ::builtin{}
 
 :vec/PayloadNotVecError
@@ -24,7 +25,8 @@
   ~~|
   ::builtin{}
 
-:vec/count/size |~~ How many elements the vector holds. ~~|
+:vec/count/size
+  |~~ How many elements the vector holds. ~~|
   ::number
 
 :vec/empty
@@ -35,7 +37,8 @@
   ~~|
   ::builtin{}
 
-:vec/empty/vacant |~~ Whether the vector holds no element. ~~|
+:vec/empty/vacant
+  |~~ Whether the vector holds no element. ~~|
   ::boolean
 
 :vec/first
@@ -62,7 +65,8 @@
   ~~|
   ::builtin{}
 
-:vec/sum/total |~~ The sum of the elements. ~~|
+:vec/sum/total
+  |~~ The sum of the elements. ~~|
   ::number
 
 :vec/avg
@@ -74,7 +78,8 @@
   ~~|
   ::builtin{}
 
-:vec/avg/mean |~~ The mean of the elements, null for an empty vector. ~~|
+:vec/avg/mean
+  |~~ The mean of the elements, null for an empty vector. ~~|
   #[::number ::null]
 
 :vec/min
@@ -93,7 +98,8 @@
   |~~ The key the call gives, null when it gives none. ~~|
   ~(at 0)
 
-:vec/min/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:vec/min/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
 :vec/max
@@ -112,7 +118,8 @@
   |~~ The key the call gives, null when it gives none. ~~|
   ~(at 0)
 
-:vec/max/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:vec/max/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
 :vec/filter
@@ -146,10 +153,12 @@
   ~~|
   ~(/0)
 
-:vec/filter/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:vec/filter/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/filter/kept |~~ The elements the predicate accepted, in order. ~~|
+:vec/filter/kept
+  |~~ The elements the predicate accepted, in order. ~~|
   ::vec
 
 :vec/every
@@ -178,10 +187,12 @@
   ~~|
   ~(/0)
 
-:vec/every/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:vec/every/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/every/all |~~ Whether the predicate held for every element. ~~|
+:vec/every/all
+  |~~ Whether the predicate held for every element. ~~|
   ::boolean
 
 :vec/any
@@ -210,10 +221,12 @@
   ~~|
   ~(/0)
 
-:vec/any/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:vec/any/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/any/some |~~ Whether the predicate held for some element. ~~|
+:vec/any/some
+  |~~ Whether the predicate held for some element. ~~|
   ::boolean
 
 :vec/has
@@ -230,7 +243,8 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/has/held |~~ Whether the vector holds the element. ~~|
+:vec/has/held
+  |~~ Whether the vector holds the element. ~~|
   ::boolean
 
 :vec/contains
@@ -247,7 +261,8 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/contains/found |~~ Whether the vector holds the element. ~~|
+:vec/contains/found
+  |~~ Whether the vector holds the element. ~~|
   ::boolean
 
 :vec/groupBy
@@ -280,10 +295,12 @@
   ~~|
   ~(at 0)
 
-:vec/groupBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:vec/groupBy/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/groupBy/groups |~~ The elements filed under the keyword their key answered. ~~|
+:vec/groupBy/groups
+  |~~ The elements filed under the keyword their key answered. ~~|
   ::map
 
 :vec/indexBy
@@ -312,10 +329,12 @@
   ~~|
   ~(at 0)
 
-:vec/indexBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:vec/indexBy/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
+:vec/indexBy/index
+  |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
 
 :vec/sort
@@ -361,10 +380,12 @@
   ~~|
   ~(at 0)
 
-:vec/sort/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:vec/sort/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/sort/sorted |~~ The elements in the order the key ranks them. ~~|
+:vec/sort/sorted
+  |~~ The elements in the order the key ranks them. ~~|
   ::vec
 
 :vec/take
@@ -381,10 +402,12 @@
   |~~ How many. ~~|
   ~(/0)
 
-:vec/take/count/NotNumberError |~~ The count is a number. ~~|
+:vec/take/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:vec/take/taken |~~ The first elements. ~~|
+:vec/take/taken
+  |~~ The first elements. ~~|
   ::vec
 
 :vec/drop
@@ -401,10 +424,12 @@
   |~~ How many. ~~|
   ~(/0)
 
-:vec/drop/count/NotNumberError |~~ The count is a number. ~~|
+:vec/drop/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:vec/drop/rest |~~ The elements after the ones dropped. ~~|
+:vec/drop/rest
+  |~~ The elements after the ones dropped. ~~|
   ::vec
 
 :vec/at
@@ -428,7 +453,8 @@
   |~~ The index, a negative one counting from the end. ~~|
   ~(/0)
 
-:vec/at/index/NotNumberError |~~ The index is a number. ~~|
+:vec/at/index/NotNumberError
+  |~~ The index is a number. ~~|
   ::holds~(is ::number)
 
 :vec/distinct
@@ -442,7 +468,8 @@
   ~~|
   ::builtin{}
 
-:vec/distinct/unique |~~ The elements, each once, in the one order: a set. ~~|
+:vec/distinct/unique
+  |~~ The elements, each once, in the one order: a set. ~~|
   ::vec
 
 :vec/reverse
@@ -452,7 +479,8 @@
   ~~|
   ::builtin{}
 
-:vec/reverse/reversed |~~ The elements in reverse order. ~~|
+:vec/reverse/reversed
+  |~~ The elements in reverse order. ~~|
   ::vec
 
 :vec/flat
@@ -462,7 +490,8 @@
   ~~|
   ::builtin{}
 
-:vec/flat/flattened |~~ The elements with one level of nesting spliced in. ~~|
+:vec/flat/flattened
+  |~~ The elements with one level of nesting spliced in. ~~|
   ::vec
 
 :vec/reduce
@@ -495,7 +524,8 @@
   ~~|
   ~(/1)
 
-:vec/reduce/reducer/NotQuoteError |~~ The reducer is code, a quote. ~~|
+:vec/reduce/reducer/NotQuoteError
+  |~~ The reducer is code, a quote. ~~|
   ::holds~(is ::quote)
 
 :vec/reduce/seed
@@ -517,7 +547,8 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:vec/union/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+:vec/union/with/NotSetOrMapOrNullError
+  |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
 :vec/UnionOfNothingError
@@ -552,7 +583,8 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:vec/minus/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+:vec/minus/with/NotSetOrMapOrNullError
+  |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
 :vec/MinusOfNothingError
@@ -588,7 +620,8 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:vec/inter/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+:vec/inter/with/NotSetOrMapOrNullError
+  |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
 :vec/InterOfNothingError
@@ -641,10 +674,12 @@
   ~~|
   ~(/0)
 
-:vec/join/separator/NotStringError |~~ The separator is a string. ~~|
+:vec/join/separator/NotStringError
+  |~~ The separator is a string. ~~|
   ::holds~(is ::string)
 
-:vec/join/joined |~~ The elements joined into one string by the separator. ~~|
+:vec/join/joined
+  |~~ The elements joined into one string by the separator. ~~|
   ::string
 
 :vec/JoinElementNotStringError
@@ -671,7 +706,8 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/prepend/prepended |~~ The vector with the value as its first element. ~~|
+:vec/prepend/prepended
+  |~~ The vector with the value as its first element. ~~|
   ::vec
 
 :vec/append
@@ -689,5 +725,6 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/append/appended |~~ The vector with the value as its last element. ~~|
+:vec/append/appended
+  |~~ The vector with the value as its last element. ~~|
   ::vec

@@ -1,7 +1,8 @@
 |~ What is declared under `::proj`, the step that reads a part of a
    value: the refusals of a read that misses. ~|
 
-:proj/construct |~~ The step of a projection from its record, `:path`, which reads back as itself. ~~|
+:proj/construct
+  |~~ The step of a projection from its record, `:path`, which reads back as itself. ~~|
   ::builtin{}
 
 :proj/PayloadNotSchemaError

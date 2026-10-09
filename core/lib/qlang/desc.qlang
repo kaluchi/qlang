@@ -2,7 +2,8 @@
    in the one order is the reverse of its payload's: its comparisons,
    which compare two of its values by their payloads, reversed. ~|
 
-:desc/construct |~~ Lays the kind over any value, its place in the one order turned around. ~~|
+:desc/construct
+  |~~ Lays the kind over any value, its place in the one order turned around. ~~|
   ::builtin{}
 
 :desc/gt
@@ -18,10 +19,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/gt/than/NotDescError |~~ The than is a value of ::desc. ~~|
+:desc/gt/than/NotDescError
+  |~~ The than is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+:desc/gt/greater
+  |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
 :desc/gte
@@ -36,10 +39,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/gte/than/NotDescError |~~ The than is a value of ::desc. ~~|
+:desc/gte/than/NotDescError
+  |~~ The than is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+:desc/gte/atLeast
+  |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
 :desc/lt
@@ -55,10 +60,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/lt/than/NotDescError |~~ The than is a value of ::desc. ~~|
+:desc/lt/than/NotDescError
+  |~~ The than is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/lt/less |~~ Whether the subject comes before the value compared. ~~|
+:desc/lt/less
+  |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
 :desc/lte
@@ -73,8 +80,10 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/lte/than/NotDescError |~~ The than is a value of ::desc. ~~|
+:desc/lte/than/NotDescError
+  |~~ The than is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+:desc/lte/atMost
+  |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean

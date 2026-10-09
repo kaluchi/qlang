@@ -2,7 +2,8 @@
    refusals of a call, a name that names nothing, a value applied as a
    verb, a call too deep, a failure of a host's implementation. ~|
 
-:call/construct |~~ The step of a command from its record, `:name` and `:args`, which reads back as itself. ~~|
+:call/construct
+  |~~ The step of a command from its record, `:name` and `:args`, which reads back as itself. ~~|
   ::builtin{}
 
 :call/PayloadNotSchemaError

@@ -1,1 +1,3 @@
-:any/triple |~~ Multiplies the number by three. ~~| ~(mul 3)
+:any/triple
+  |~~ Multiplies the number by three. ~~|
+  ~(mul 3)

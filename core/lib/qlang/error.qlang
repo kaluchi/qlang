@@ -42,5 +42,6 @@
   ~~|
   ~(/trail)
 
-:error/trail/stops |~~ The stops of the path the error took. ~~|
+:error/trail/stops
+  |~~ The stops of the path the error took. ~~|
   ::vec

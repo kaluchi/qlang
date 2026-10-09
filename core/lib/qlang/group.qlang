@@ -1,7 +1,8 @@
 |~ What is declared under `::group`, the steps in parentheses run on
    the value in the pipe: its refusals. ~|
 
-:group/construct |~~ The step `(pipeline)` from the quote of its pipeline. ~~|
+:group/construct
+  |~~ The step `(pipeline)` from the quote of its pipeline. ~~|
   ::builtin{}
 
 :group/PayloadNotQuoteError

@@ -12,7 +12,8 @@
   ~~|
   ~(/page)
 
-:explanation/page/prose |~~ The page that explains the value, null for a name without one. ~~|
+:explanation/page/prose
+  |~~ The page that explains the value, null for a name without one. ~~|
   #[::doc ::null]
 
 :explanation/value

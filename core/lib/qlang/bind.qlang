@@ -1,7 +1,8 @@
 |~ What is declared under `::bind`, the step that declares a name:
    the refusals of a declaration. ~|
 
-:bind/construct |~~ The step of a declaration from its record, `:name`, `:docs` and `:body`, which reads back as itself. ~~|
+:bind/construct
+  |~~ The step of a declaration from its record, `:name`, `:docs` and `:body`, which reads back as itself. ~~|
   ::builtin{}
 
 :bind/PayloadNotSchemaError

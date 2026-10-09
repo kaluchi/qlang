@@ -31,7 +31,8 @@
       `:path` holds the map keys and the indices to it, `:actualType` its
       kind. The query ends before the answer is data: `* (…)` runs a body
       where `* ~(…)` hands each element the quote, and `payload` a value
-      without its tag. ~~|
+      without its tag.
+  ~~|
 
 :any/@in
   |~~ The text stdin holds, read to its end whatever the subject, the
@@ -42,7 +43,8 @@
   ~~|
   ::builtin{}
 
-:any/@in/text |~~ The text stdin held, the empty string when nothing was piped. ~~|
+:any/@in/text
+  |~~ The text stdin held, the empty string when nothing was piped. ~~|
   ::string
 
 :any/@out
@@ -62,13 +64,15 @@
   ~~|
   ~(at 0)
 
-:any/@out/text/NotStringOrNullError |~~ The text is a string or null. ~~|
+:any/@out/text/NotStringOrNullError
+  |~~ The text is a string or null. ~~|
   ::holds~(is ::string ::null)
 
 :any/OutSubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
       value is written as the text a modifier computes from it,
-      `42 | @out json` or `{:x 1} | @out print`. ~~|
+      `42 | @out json` or `{:x 1} | @out print`.
+  ~~|
 
 :any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
@@ -87,13 +91,15 @@
   ~~|
   ~(at 0)
 
-:any/@err/text/NotStringOrNullError |~~ The text is a string or null. ~~|
+:any/@err/text/NotStringOrNullError
+  |~~ The text is a string or null. ~~|
   ::holds~(is ::string ::null)
 
 :any/ErrSubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
       another value is written as the text a modifier computes, `@err
-      json` or `@err print`. ~~|
+      json` or `@err print`.
+  ~~|
 
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
@@ -111,7 +117,8 @@
   ~~|
   ~(/0)
 
-:any/@tap/label/NotKeywordError |~~ The label is a keyword. ~~|
+:any/@tap/label/NotKeywordError
+  |~~ The label is a keyword. ~~|
   ::holds~(is ::keyword)
 
 :vec/table
@@ -136,7 +143,8 @@
   ~~|
   ::builtin{}
 
-:vec/table/drawn |~~ The rows drawn as text, a line each. ~~|
+:vec/table/drawn
+  |~~ The rows drawn as text, a line each. ~~|
   ::string
 
 :vec/TableRowNotMapError

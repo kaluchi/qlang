@@ -2,7 +2,8 @@
    value under a tag through the tag's constructor, `::T<payload>`: the
    refusals of that step. ~|
 
-:construct/construct |~~ The step of a constructor invocation from its record, `:tag` and `:payload`, which reads back as itself. ~~|
+:construct/construct
+  |~~ The step of a constructor invocation from its record, `:tag` and `:payload`, which reads back as itself. ~~|
   ::builtin{}
 
 :construct/PayloadNotSchemaError

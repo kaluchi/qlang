@@ -1,7 +1,8 @@
 |~ What is declared under `::doc`: the refusals of its constructor
    and the verbs that read a doc's shape for the query. ~|
 
-:doc/construct |~~ The doc of a vector of prose strings and quotes. ~~|
+:doc/construct
+  |~~ The doc of a vector of prose strings and quotes. ~~|
   ::builtin{}
 
 :doc/PayloadNotVecError
@@ -35,7 +36,8 @@
   ~~|
   ::builtin{}
 
-:doc/content/text |~~ The text of the doc. ~~|
+:doc/content/text
+  |~~ The text of the doc. ~~|
   ::string
 
 :doc/segments

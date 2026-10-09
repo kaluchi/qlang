@@ -5,7 +5,8 @@
    set through the constructor of `::set`, and one that imposes an order
    answers the vector. ~|
 
-:set/construct |~~ The set of the elements of a vector, in the one order without duplicates. ~~|
+:set/construct
+  |~~ The set of the elements of a vector, in the one order without duplicates. ~~|
   ::builtin{}
 
 :set/PayloadNotVecError
@@ -26,7 +27,8 @@
   ~~|
   ::builtin{}
 
-:set/count/size |~~ How many elements the set holds. ~~|
+:set/count/size
+  |~~ How many elements the set holds. ~~|
   ::number
 
 :set/empty
@@ -36,7 +38,8 @@
   ~~|
   ::builtin{}
 
-:set/empty/vacant |~~ Whether the set holds no element. ~~|
+:set/empty/vacant
+  |~~ Whether the set holds no element. ~~|
   ::boolean
 
 :set/first
@@ -60,7 +63,8 @@
   ~~|
   ::builtin{}
 
-:set/sum/total |~~ The sum of the elements. ~~|
+:set/sum/total
+  |~~ The sum of the elements. ~~|
   ::number
 
 :set/avg
@@ -70,7 +74,8 @@
   ~~|
   ::builtin{}
 
-:set/avg/mean |~~ The mean of the elements, null for an empty set. ~~|
+:set/avg/mean
+  |~~ The mean of the elements, null for an empty set. ~~|
   #[::number ::null]
 
 :set/min
@@ -81,9 +86,12 @@
   ~~|
   ::builtin{}
 
-:set/min/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+:set/min/key
+  |~~ The key the call gives, null when it gives none. ~~|
+  ~(at 0)
 
-:set/min/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:set/min/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
 :set/max
@@ -95,9 +103,12 @@
   ~~|
   ::builtin{}
 
-:set/max/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+:set/max/key
+  |~~ The key the call gives, null when it gives none. ~~|
+  ~(at 0)
 
-:set/max/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:set/max/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
 :set/filter
@@ -108,12 +119,16 @@
   ~~|
   ::builtin{}
 
-:set/filter/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+:set/filter/predicate
+  |~~ The code each element is run through, which answers a boolean. ~~|
+  ~(/0)
 
-:set/filter/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:set/filter/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/filter/kept |~~ The elements the predicate accepted. ~~|
+:set/filter/kept
+  |~~ The elements the predicate accepted. ~~|
   ::set
 
 :set/every
@@ -123,12 +138,16 @@
   ~~|
   ::builtin{}
 
-:set/every/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+:set/every/predicate
+  |~~ The code each element is run through, which answers a boolean. ~~|
+  ~(/0)
 
-:set/every/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:set/every/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/every/all |~~ Whether the predicate held for every element. ~~|
+:set/every/all
+  |~~ Whether the predicate held for every element. ~~|
   ::boolean
 
 :set/any
@@ -138,12 +157,16 @@
   ~~|
   ::builtin{}
 
-:set/any/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+:set/any/predicate
+  |~~ The code each element is run through, which answers a boolean. ~~|
+  ~(/0)
 
-:set/any/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+:set/any/predicate/NotQuoteError
+  |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/any/some |~~ Whether the predicate held for some element. ~~|
+:set/any/some
+  |~~ Whether the predicate held for some element. ~~|
   ::boolean
 
 :set/groupBy
@@ -153,12 +176,16 @@
   ~~|
   ::builtin{}
 
-:set/groupBy/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+:set/groupBy/key
+  |~~ The key the call gives, null when it gives none. ~~|
+  ~(at 0)
 
-:set/groupBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:set/groupBy/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/groupBy/groups |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
+:set/groupBy/groups
+  |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
   ::map
 
 :set/indexBy
@@ -169,12 +196,16 @@
   ~~|
   ::builtin{}
 
-:set/indexBy/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+:set/indexBy/key
+  |~~ The key the call gives, null when it gives none. ~~|
+  ~(at 0)
 
-:set/indexBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:set/indexBy/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
+:set/indexBy/index
+  |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
 
 :set/sort
@@ -186,12 +217,16 @@
   ~~|
   ::builtin{}
 
-:set/sort/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+:set/sort/key
+  |~~ The key the call gives, null when it gives none. ~~|
+  ~(at 0)
 
-:set/sort/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+:set/sort/key/NotQuoteOrNullError
+  |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/sort/sorted |~~ The elements in the order the key ranks them, a vector. ~~|
+:set/sort/sorted
+  |~~ The elements in the order the key ranks them, a vector. ~~|
   ::vec
 
 :set/take
@@ -201,12 +236,16 @@
   ~~|
   ::builtin{}
 
-:set/take/count |~~ How many. ~~| ~(/0)
+:set/take/count
+  |~~ How many. ~~|
+  ~(/0)
 
-:set/take/count/NotNumberError |~~ The count is a number. ~~|
+:set/take/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:set/take/taken |~~ The least elements. ~~|
+:set/take/taken
+  |~~ The least elements. ~~|
   ::set
 
 :set/drop
@@ -216,12 +255,16 @@
   ~~|
   ::builtin{}
 
-:set/drop/count |~~ How many. ~~| ~(/0)
+:set/drop/count
+  |~~ How many. ~~|
+  ~(/0)
 
-:set/drop/count/NotNumberError |~~ The count is a number. ~~|
+:set/drop/count/NotNumberError
+  |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
-:set/drop/rest |~~ The elements after the least ones dropped. ~~|
+:set/drop/rest
+  |~~ The elements after the least ones dropped. ~~|
   ::set
 
 :set/at
@@ -232,11 +275,16 @@
   ~~|
   ::builtin{}
 
-:set/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
+:set/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
 
-:set/at/index |~~ The index, a negative one counting from the end. ~~| ~(/0)
+:set/at/index
+  |~~ The index, a negative one counting from the end. ~~|
+  ~(/0)
 
-:set/at/index/NotNumberError |~~ The index is a number. ~~|
+:set/at/index/NotNumberError
+  |~~ The index is a number. ~~|
   ::holds~(is ::number)
 
 :set/distinct
@@ -246,7 +294,8 @@
   ~~|
   ::builtin{}
 
-:set/distinct/unique |~~ The set itself. ~~|
+:set/distinct/unique
+  |~~ The set itself. ~~|
   ::set
 
 :set/reverse
@@ -256,7 +305,8 @@
   ~~|
   ::builtin{}
 
-:set/reverse/reversed |~~ The elements from the greatest down, a vector. ~~|
+:set/reverse/reversed
+  |~~ The elements from the greatest down, a vector. ~~|
   ::vec
 
 :set/flat
@@ -267,7 +317,8 @@
   ~~|
   ::builtin{}
 
-:set/flat/flattened |~~ The elements with the sets among them spliced in. ~~|
+:set/flat/flattened
+  |~~ The elements with the sets among them spliced in. ~~|
   ::set
 
 :set/reduce
@@ -277,12 +328,17 @@
   ~~|
   ::builtin{}
 
-:set/reduce/reducer |~~ The code that folds an element into the value so far. ~~| ~(/1)
+:set/reduce/reducer
+  |~~ The code that folds an element into the value so far. ~~|
+  ~(/1)
 
-:set/reduce/reducer/NotQuoteError |~~ The reducer is code, a quote. ~~|
+:set/reduce/reducer/NotQuoteError
+  |~~ The reducer is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/reduce/seed |~~ The value the fold starts from. ~~| ~(/0)
+:set/reduce/seed
+  |~~ The value the fold starts from. ~~|
+  ~(/0)
 
 :set/union
   |~~ The set of the elements of either set, merged in the one order;
@@ -297,10 +353,12 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:set/union/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+:set/union/with/NotSetOrNullError
+  |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/union/merged |~~ The elements of both sets. ~~|
+:set/union/merged
+  |~~ The elements of both sets. ~~|
   ::set
 
 :set/minus
@@ -314,10 +372,12 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:set/minus/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+:set/minus/with/NotSetOrNullError
+  |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/minus/remaining |~~ The elements the other set does not hold. ~~|
+:set/minus/remaining
+  |~~ The elements the other set does not hold. ~~|
   ::set
 
 :set/inter
@@ -331,10 +391,12 @@
   |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
 
-:set/inter/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+:set/inter/with/NotSetOrNullError
+  |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/inter/common |~~ The elements both sets hold. ~~|
+:set/inter/common
+  |~~ The elements both sets hold. ~~|
   ::set
 
 :set/has
@@ -345,9 +407,12 @@
   ~~|
   ::builtin{}
 
-:set/has/element |~~ The element the call gives. ~~| ~(/0)
+:set/has/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
 
-:set/has/held |~~ Whether the set holds the element. ~~|
+:set/has/held
+  |~~ Whether the set holds the element. ~~|
   ::boolean
 
 :set/contains
@@ -358,7 +423,10 @@
   ~~|
   ::builtin{}
 
-:set/contains/element |~~ The element the call gives. ~~| ~(/0)
+:set/contains/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
 
-:set/contains/found |~~ Whether the set holds the element. ~~|
+:set/contains/found
+  |~~ Whether the set holds the element. ~~|
   ::boolean

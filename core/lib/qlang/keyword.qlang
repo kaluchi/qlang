@@ -2,7 +2,8 @@
    constructor, and the comparisons of keywords, which compare two
    keywords by their names in the one order. ~|
 
-:keyword/construct |~~ Reads a keyword as itself. ~~|
+:keyword/construct
+  |~~ Reads a keyword as itself. ~~|
   ::builtin{}
 
 :keyword/PayloadNotKeywordError
@@ -27,10 +28,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/gt/than/NotKeywordError |~~ The than is a keyword. ~~|
+:keyword/gt/than/NotKeywordError
+  |~~ The than is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+:keyword/gt/greater
+  |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
 :keyword/gte
@@ -46,10 +49,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/gte/than/NotKeywordError |~~ The than is a keyword. ~~|
+:keyword/gte/than/NotKeywordError
+  |~~ The than is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+:keyword/gte/atLeast
+  |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
 :keyword/lt
@@ -64,10 +69,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/lt/than/NotKeywordError |~~ The than is a keyword. ~~|
+:keyword/lt/than/NotKeywordError
+  |~~ The than is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lt/less |~~ Whether the subject comes before the value compared. ~~|
+:keyword/lt/less
+  |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
 :keyword/lte
@@ -82,10 +89,12 @@
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/lte/than/NotKeywordError |~~ The than is a keyword. ~~|
+:keyword/lte/than/NotKeywordError
+  |~~ The than is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+:keyword/lte/atMost
+  |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
 
 :keyword/keyword
@@ -97,7 +106,8 @@
   ~~|
   ::builtin{}
 
-:keyword/keyword/text |~~ The name of the keyword, a string. ~~|
+:keyword/keyword/text
+  |~~ The name of the keyword, a string. ~~|
   ::string
 
 :keyword/runLaws
@@ -110,10 +120,14 @@
   ~~|
   ::builtin{}
 
-:keyword/runLaws/anchor |~~ The anchor within the page, null when it gives none. ~~| ~(at 0)
+:keyword/runLaws/anchor
+  |~~ The anchor within the page, null when it gives none. ~~|
+  ~(at 0)
 
-:keyword/runLaws/anchor/NotKeywordOrNullError |~~ The anchor is a keyword or null. ~~|
+:keyword/runLaws/anchor/NotKeywordOrNullError
+  |~~ The anchor is a keyword or null. ~~|
   ::holds~(is ::keyword ::null)
 
-:keyword/runLaws/results |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
+:keyword/runLaws/results
+  |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec

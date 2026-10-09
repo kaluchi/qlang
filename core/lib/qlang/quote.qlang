@@ -4,7 +4,8 @@
    vectors read it as one, and a quote under a tag, a link or a snippet
    of a page, reads them through its shape. ~|
 
-:quote/construct |~~ The quote of a vector whose every element is a step. ~~|
+:quote/construct
+  |~~ The quote of a vector whose every element is a step. ~~|
   ::builtin{}
 
 :quote/PayloadNotVecError
@@ -54,7 +55,8 @@
   ~~|
   ::builtin{}
 
-:quote/parse/text |~~ The text the quote reads back from. ~~|
+:quote/parse/text
+  |~~ The text the quote reads back from. ~~|
   ::string
 
 :quote/open

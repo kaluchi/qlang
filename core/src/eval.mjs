@@ -127,7 +127,7 @@ async function evalNode(node, state) {
     // The error the node raised; the step that ran the node writes its
     // stop [D85].
     const raised = caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue, state.env)
-      : errorFromForeign(caughtError, node);
+      : errorFromForeign(caughtError, node, state.env);
     return withPipeValue(state, raisedBy(raised, node));
   }
 }

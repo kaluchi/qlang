@@ -23,7 +23,7 @@ describe('depth budget — self-calling verb', () => {
     expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(original).toBeInstanceOf(QlangError);
     expect(original.name).toBe('EvaluationDepthExceededError');
-    expect(original.context).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
+    expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
   });
 
   it('leaves the budget intact for recursion that terminates', async () => {
@@ -48,7 +48,7 @@ describe('depth budget — every re-entry seam', () => {
     it(`terminates on ${seamName}`, async () => {
       const original = await catchOriginalError(query);
       expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
-      expect(original.context).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
+      expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
     });
   }
 });

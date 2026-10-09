@@ -4,16 +4,16 @@
 // a query as values.
 //
 // Every QlangError carries:
-//   .context  — the facts its site hands, which the lift into an error
+//   .facts    — the facts its site hands, which the lift into an error
 //               value orders as the catalog declares them [D172];
 //   .location — the position in the query of the step that raised it,
 //               set as it bubbles past a node, so an editor marks it.
 
 export class QlangError extends Error {
-  constructor(message, context = {}) {
+  constructor(message, facts = {}) {
     super(message);
     this.name = 'QlangError';
-    this.context = context;
+    this.facts = facts;
     this.location = null;
   }
 }
@@ -22,8 +22,8 @@ export class QlangError extends Error {
 // implementations, the bootstrap, the root a host's sources declare. It is
 // raised past the fail track to the host, with its message.
 export class QlangInvariantError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, context);
+  constructor(message, facts = {}) {
+    super(message, facts);
     this.name = 'QlangInvariantError';
   }
 }
@@ -68,12 +68,12 @@ export function declareRefusal(address) {
 }
 
 // declareInvariantError(address, buildMessage) → the class of a defect,
-// its message built from what the site hands.
+// its message built from the facts the site hands.
 export function declareInvariantError(address, buildMessage) {
   recordRefusal(address);
   const Cls = class extends QlangInvariantError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
+    constructor(facts = {}) {
+      super(buildMessage(facts), facts);
       this.name = lastNameOf(address);
     }
   };
@@ -86,10 +86,10 @@ export function declareInvariantError(address, buildMessage) {
 export function declareForeignError(address, buildMessage) {
   recordRefusal(address);
   const Cls = class extends Error {
-    constructor(context = {}) {
-      super(buildMessage(context));
+    constructor(facts = {}) {
+      super(buildMessage(facts));
       this.name = lastNameOf(address);
-      this.context = context;
+      this.facts = facts;
     }
   };
   return brand(Cls, address);

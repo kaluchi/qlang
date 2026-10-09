@@ -109,7 +109,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('AddressNotStringError');
-      expect(e.context.actualType).toBe('object');
+      expect(e.facts.actualType).toBe('object');
     }
   });
 
@@ -129,7 +129,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('AddressBoundTwiceError');
-      expect(e.context.address).toBe('qlang/test-prim/dup');
+      expect(e.facts.address).toBe('qlang/test-prim/dup');
     }
   });
 
@@ -149,7 +149,7 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('TableSealedError');
-      expect(e.context.address).toBe('qlang/test-prim/late');
+      expect(e.facts.address).toBe('qlang/test-prim/late');
     }
   });
 

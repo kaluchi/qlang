@@ -30,7 +30,7 @@ import {
 } from '../../src/types.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
-import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
+import { errorFromParse } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 
 describe('equality.deepEqual rejection branches', async () => {
@@ -139,24 +139,6 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
   });
 });
 
-describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
-  it('coerce passes through a set unchanged', async () => {
-    const qset = makeSet([1, 2, 3]);
-    const err = Object.assign(new Error('foreign'), { mySet: qset });
-    const errVal = errorFromForeign(err, null);
-    expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get('mySet')).toBe(qset);
-  });
-
-  it('coerce passes through an errorValue unchanged', async () => {
-    const inner = makeErrorValue(makeTagKeyword('Inner'), new Map(), { originalError: new Error('inner') });
-    const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
-    const errVal = errorFromForeign(err, null);
-    expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get('myErr')).toBe(inner);
-  });
-});
-
 describe('a part takes no modifiers', async () => {
   it('a part holding a value refuses modifiers as any value does', async () => {
     // Inside the body, `n` is the record of a part holding a value, so
@@ -165,7 +147,7 @@ describe('a part takes no modifiers', async () => {
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ValueTakesNoModifiersError');
-    expect(e.context.name.name).toBe('n');
+    expect(e.facts.name.name).toBe('n');
   });
 });
 

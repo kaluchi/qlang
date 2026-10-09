@@ -45,7 +45,7 @@ export function expectOriginalError(errorValue, ErrorClass) {
 // the query unexpectedly succeeded — the assertion fails on the null
 // rather than on a TypeError). Used by per-site error-identity
 // tests where assertions read against `caughtErr.name`,
-// `caughtErr.context.*`, or `instanceof QlangError`.
+// `caughtErr.facts.*`, or `instanceof QlangError`.
 export async function catchOriginalError(query) {
   const evalResult = await evalQuery(query);
   return isErrorValue(evalResult) ? evalResult.originalError : null;

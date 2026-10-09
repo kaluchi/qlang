@@ -121,14 +121,14 @@ describe('per-site error classes carry unique identity', () => {
   // `catchOriginalError(query)` lives in
   // `../helpers/error-assertions.mjs` — runtime errors are error
   // values, the helper unwraps the underlying QlangError off
-  // `.originalError` for structured (`.name`, `.context.*`,
+  // `.originalError` for structured (`.name`, `.facts.*`,
   // `instanceof QlangError`) inspection.
 
   it('count on a non-container reaches its contract, which names the residences [D72]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('KindAnswersNoVerbError');
-    expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
+    expect(caughtErr.facts.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
   it('keys on non-Map is refused under the address of keys [D166]', async () => {

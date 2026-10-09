@@ -165,7 +165,7 @@ describe('a host\'s primitive under a label', () => {
     ]) {
       await expect(createSession({
         sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, [primitive]: subject => subject } }]
-      })).rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/EffectMarkMissingError' } });
+      })).rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { tagName: '::bind/EffectMarkMissingError' } });
     }
   });
 });

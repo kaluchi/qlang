@@ -1,7 +1,4 @@
-import {
-  keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword, typeKeyword
-} from './types.mjs';
+import { keyword, makeErrorValue, makeTagKeyword, typeKeyword } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
@@ -43,11 +40,11 @@ export function factsInOrder(tag, facts, env) {
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTagKeyword(qlangError.address);
   const facts = new Map();
-  for (const [name, value] of Object.entries(qlangError.context)) {
+  for (const [name, value] of Object.entries(qlangError.facts)) {
     if (value === undefined || (name === 'actualValue' && value === subject)) continue;
     facts.set(name, value);
   }
-  if (qlangError.context.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.context.actualValue));
+  if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.facts.actualValue));
   return makeErrorValue(tag, factsInOrder(tag, facts, env), {
     location: qlangError.location,
     originalError: qlangError
@@ -136,74 +133,32 @@ function excerptAroundLocation(source, location) {
   return { source: line, marker: lead + caret + tail };
 }
 
-const WELL_KNOWN_PROPS = [
-  'message', 'name', 'stack', 'code', 'errno',
-  'status', 'statusCode', 'statusText'
-];
+// The failures beneath a host's failure that its facts recount.
+const CAUSES_RECOUNTED = 8;
 
-// A JavaScript error escaping an operand is a foreign failure: it
-// carries a tag of the language and its class name as the field
-// `:name` [D7], so a port of the runtime to another host changes a
-// field and no identity a query matches.
-export function errorFromForeign(jsError, astNode) {
+// A JavaScript error escaping an implementation is a failure of the
+// host: a tag of the language and the facts every host can give, its
+// account and the accounts of the failures beneath it, so a port of the
+// runtime to another language changes no fact a query reads [D7],
+// [D172]. The step that failed stands in the trail; the stack, the class
+// and the fields of the error stay with the host in `originalError`, and
+// a host that has facts to hand declares a refusal of its own.
+export function errorFromForeign(jsError, node, env) {
   const tag = makeTagKeyword('call/HostFailureError');
-  const d = new Map();
-  d.set('message', jsError.message);
-
-  for (const prop of WELL_KNOWN_PROPS) {
-    if (prop in jsError && jsError[prop] !== undefined && !d.has(prop))
-      d.set(prop, coerce(jsError[prop]));
+  const facts = new Map([['message', accountOf(jsError)]]);
+  const causes = [];
+  for (let cause = jsError?.cause; cause != null && causes.length < CAUSES_RECOUNTED; cause = cause?.cause) {
+    causes.push(accountOf(cause));
   }
-  for (const [k, v] of Object.entries(jsError)) {
-    if (!d.has(k))
-      d.set(k, coerce(v));
-  }
-
-  // Cause-chain entries are inert Map records that document the
-  // JS-side cause provenance for a foreign throw site, each naming
-  // its host class under `:name` as the failure itself does —
-  // `error !| /causes * /name` reads them.
-  if (jsError.cause instanceof Error) {
-    const causes = [];
-    let current = jsError.cause;
-    while (current instanceof Error && causes.length < 8) {
-      const m = new Map();
-      m.set('name', current.name);
-      m.set('message', current.message);
-      causes.push(m);
-      current = current.cause;
-    }
-    d.set('causes', causes);
-  }
-
-  d.set('operand', astNode?.text ?? null);
-
-  return makeErrorValue(tag, d, {
-    location: astNode?.location ?? null,
+  if (causes.length > 0) facts.set('causes', Object.freeze(causes));
+  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
+    location: node?.location ?? null,
     originalError: jsError
   });
 }
 
-function coerce(v, depth = 0) {
-  if (depth > 4) return String(v);
-  if (v === null || v === undefined) return null;
-  const t = typeof v;
-  if (t === 'number' || t === 'string' || t === 'boolean') return v;
-  if (isKeyword(v) || isQMap(v) || isQSet(v) || isErrorValue(v)) return v;
-  if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
-  if (v instanceof Error) {
-    // A coerced JS Error is a record of the cause chain's shape, its
-    // host class under `:name` beside `:message` [D7].
-    const m = new Map();
-    m.set('name', v.name);
-    m.set('message', v.message);
-    return m;
-  }
-  if (t === 'object') {
-    const m = new Map();
-    for (const [k, val] of Object.entries(v))
-      m.set(k, coerce(val, depth + 1));
-    return m;
-  }
-  return String(v);
+// What a thrown value says of itself: an error's message, and any other
+// value as its text, since a host may throw what it likes.
+function accountOf(thrown) {
+  return thrown instanceof Error ? thrown.message : String(thrown);
 }

@@ -80,7 +80,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     try { fromPlain(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
     expect(thrown.address).toBe('string/parseJson/NumberNotFiniteError');
-    expect(thrown.context.path).toEqual([]);
+    expect(thrown.facts.path).toEqual([]);
   });
 
   it('names the slot it walked to when the magnitude sits nested', async () => {
@@ -88,7 +88,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     let thrown = null;
     try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
-    expect(thrown.context.path).toEqual(['a', 'b', 1]);
+    expect(thrown.facts.path).toEqual(['a', 'b', 1]);
   });
 
   it('lifts every in-range magnitude unchanged', async () => {

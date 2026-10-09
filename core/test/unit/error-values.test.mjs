@@ -59,7 +59,7 @@ describe('makeErrorValue', () => {
       expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
       expect(thrown).toBeInstanceOf(QlangError);
       expect(thrown.name).toBe('TrailNotVecError');
-      expect(thrown.context.actualValue).toBe(refusedTrail);
+      expect(thrown.facts.actualValue).toBe(refusedTrail);
       expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTagKeyword(kindName));
     }
   });
@@ -230,23 +230,19 @@ describe('errorFromQlang', () => {
 // ── errorFromForeign ────────────────────────────────────────────
 
 describe('errorFromForeign', () => {
-  it('converts plain JS Error — tag on JS-header, message, operand, originalError', () => {
+  // A host's failure carries the facts every host can give, its account
+  // and the accounts of the failures beneath it [D7], [D172].
+  it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
-    const astNode = { text: 'myOp' };
-    const errorVal = errorFromForeign(jsErr, astNode);
+    const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
-    const desc = errorVal.descriptor;
-    expect(desc.has('category')).toBe(false);
-    expect(desc.has('kind')).toBe(false);
     expect(errorVal.tag).toEqual(makeTagKeyword('call/HostFailureError'));
-    expect(desc.get('name')).toBe('Error');
-    expect(desc.get('message')).toBe('something went wrong');
-    expect(desc.get('operand')).toBe('myOp');
+    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect(errorVal.descriptor.get('message')).toBe('something went wrong');
     expect(errorVal.originalError).toBe(jsErr);
-    expect([...desc.keys()]).toEqual(['message', 'name', 'stack', 'operand', 'trail']);
   });
 
-  it('extracts well-known properties', () => {
+  it('leaves the stack, the class and the fields of the host error with the host', async () => {
     class AppError extends Error {
       constructor() {
         super('app error');
@@ -255,61 +251,31 @@ describe('errorFromForeign', () => {
         this.code = 'NOT_FOUND';
       }
     }
-    const appErr = new AppError();
-    const errorVal = errorFromForeign(appErr, null);
-    const desc = errorVal.descriptor;
-    expect(desc.get('status')).toBe(404);
-    expect(desc.get('code')).toBe('NOT_FOUND');
+    const errorVal = errorFromForeign(new AppError(), null, await langRuntime());
+    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect(errorVal.originalError.code).toBe('NOT_FOUND');
   });
 
-  it('collects cause chain', () => {
-    const cause2 = new Error('root cause');
-    const cause1 = new Error('intermediate', { cause: cause2 });
-    const top = new Error('top error', { cause: cause1 });
-    const errorVal = errorFromForeign(top, null);
-    const causes = errorVal.descriptor.get('causes');
-    expect(Array.isArray(causes)).toBe(true);
-    expect(causes).toHaveLength(2);
-    // Cause-chain entries are inert Map records: each carries
-    // `:name`, the JS-side cause's class, plus `:message`.
-    expect(causes[0].get('message')).toBe('intermediate');
-    expect(causes[0].get('name')).toBe('Error');
-    expect(causes[1].get('message')).toBe('root cause');
+  it('recounts the accounts of the failures beneath it, outermost first', async () => {
+    const top = new Error('top error', { cause: new Error('intermediate', { cause: 'root cause' }) });
+    const errorVal = errorFromForeign(top, null, await langRuntime());
+    expect(errorVal.descriptor.get('causes')).toEqual(['intermediate', 'root cause']);
   });
 
-  it('extracts enumerable own props', () => {
-    const foreignErr = new Error('custom');
-    foreignErr.customField = 'myValue';
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(errorVal.descriptor.get('customField')).toBe('myValue');
+  it('recounts eight failures beneath it at most', async () => {
+    let current = new Error('leaf');
+    for (let i = 0; i < 12; i++) current = new Error(`level-${i}`, { cause: current });
+    expect(errorFromForeign(current, null, await langRuntime()).descriptor.get('causes')).toHaveLength(8);
   });
 
-  it('coerces nested objects to Maps', () => {
-    const foreignErr = new Error('nested');
-    foreignErr.meta = { type: 'context', value: 42 };
-    const errorVal = errorFromForeign(foreignErr, null);
-    const meta = errorVal.descriptor.get('meta');
-    expect(meta instanceof Map).toBe(true);
-    expect(meta.get('type')).toBe('context');
-    expect(meta.get('value')).toBe(42);
+  it('gives no causes where none stands beneath it', async () => {
+    const env = await langRuntime();
+    expect(errorFromForeign(new Error('no cause'), null, env).descriptor.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, env).descriptor.has('causes')).toBe(false);
   });
 
-  it('coerces Error nested in context to Map carrying :name', () => {
-    const inner = new TypeError('inner');
-    const foreignErr = new Error('outer');
-    foreignErr.wrapped = inner;
-    const errorVal = errorFromForeign(foreignErr, null);
-    const wrapped = errorVal.descriptor.get('wrapped');
-    expect(wrapped instanceof Map).toBe(true);
-    expect(wrapped.get('message')).toBe('inner');
-    expect(wrapped.get('name')).toBe('TypeError');
-  });
-
-  it('coerces non-object to string', () => {
-    const foreignErr = new Error('fail');
-    foreignErr.fn = () => {};
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(typeof errorVal.descriptor.get('fn')).toBe('string');
+  it('takes a thrown value that is no error by its text', async () => {
+    expect(errorFromForeign('a bare string', null, await langRuntime()).descriptor.get('message')).toBe('a bare string');
   });
 });
 
@@ -320,58 +286,6 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.descriptor.has('index')).toBe(false);
     expect(errorVal.descriptor.get('actualValue')).toBe(null);
     expect(errorVal.descriptor.get('actualType')).toEqual(makeTagKeyword('null'));
-  });
-
-  it('errorFromForeign with deeply nested cause chain caps at 8', () => {
-    let current = new Error('leaf');
-    for (let i = 0; i < 12; i++) current = new Error(`level-${i}`, { cause: current });
-    const errorVal = errorFromForeign(current, null);
-    const causes = errorVal.descriptor.get('causes');
-    expect(causes.length).toBe(8);
-  });
-
-  it('errorFromForeign without cause (no causes field)', () => {
-    const foreignErr = new Error('no cause');
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(errorVal.descriptor.has('causes')).toBe(false);
-  });
-
-  it('errorFromForeign coerce depth limit returns string', () => {
-    const foreignErr = new Error('deep');
-    let obj = { leaf: true };
-    for (let i = 0; i < 8; i++) obj = { nested: obj };
-    foreignErr.deep = obj;
-    const errorVal = errorFromForeign(foreignErr, null);
-    let val = errorVal.descriptor.get('deep');
-    while (val instanceof Map && val.has('nested')) val = val.get('nested');
-    expect(typeof val).toBe('string');
-  });
-
-  it('errorFromForeign coerce function to string', () => {
-    const foreignErr = new Error('fn');
-    foreignErr.callback = () => {};
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(typeof errorVal.descriptor.get('callback')).toBe('string');
-  });
-
-  it('errorFromForeign coerce null values', () => {
-    const foreignErr = new Error('nulls');
-    foreignErr.missing = null;
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(errorVal.descriptor.get('missing')).toBe(null);
-  });
-
-  it('errorFromForeign coerce array values', () => {
-    const foreignErr = new Error('arr');
-    foreignErr.items = [1, 'two', null];
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(errorVal.descriptor.get('items')).toEqual([1, 'two', null]);
-  });
-
-  it('errorFromForeign well-known prop already set by standard fields', () => {
-    const foreignErr = new Error('test');
-    const errorVal = errorFromForeign(foreignErr, null);
-    expect(errorVal.descriptor.get('message')).toBe('test');
   });
 
   it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {

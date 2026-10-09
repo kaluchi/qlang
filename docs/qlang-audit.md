@@ -1694,9 +1694,16 @@ collisions is the language's as soon as a host publishes a catalog of
 its own, which the sister project does, and mounting is the language's
 for a host whose names are too many to declare.
 The refusals as kinds are mostly the tree's debt: the pages of the
-refusals already teach, a session meets the tag and the facts as they
-are, and what it sees of the debt is the runtime's vocabulary in the
-facts, `:operand`, a position counted from one and a type as a keyword.
+refusals already teach, and a session meets the tag and the facts as
+they are, each fact a definition under the label of the refusal or under
+`::error`, the kind of the value refused a tag [D172]:
+
+```qlang
+> 1 | add "x" !| entries * first
+[:actualType :actualValue :trail]
+> 1 | add "x" !| /actualType
+::string
+```
 
 ### Milestone 5 · Front door
 

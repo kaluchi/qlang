@@ -64,7 +64,7 @@ describe('state.mjs frames', () => {
     expect(thrown).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('EvaluationDepthExceededError');
-    expect(thrown.context).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
+    expect(thrown.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
     expect(thrown.message).toBe('::call/EvaluationDepthExceededError');
   });
 });

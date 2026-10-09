@@ -165,7 +165,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', context: { name: 'any/hello' } });
+      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', facts: { name: 'any/hello' } });
   });
 
   it('refuses an implementation handed for a verb of steps', async () => {
@@ -186,7 +186,7 @@ describe('the sources a host hands [D153]', () => {
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal', async () => {
     for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/NameDeclaredTwiceError' } });
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { tagName: '::bind/NameDeclaredTwiceError' } });
     }
   });
 

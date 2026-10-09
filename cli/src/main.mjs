@@ -54,7 +54,7 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
 // reach the refused scalar. Rendering it as a projection chain
 // points the reader straight at the slot in their document.
 function slotSuffixOf(codecError) {
-  const path = codecError.context.path;
+  const path = codecError.facts.path;
   return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
 }
 

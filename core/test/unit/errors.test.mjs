@@ -17,7 +17,7 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 describe('QlangError base class', () => {
   it('carries its facts and location=null', () => {
     const qlangErr = new QlangError('boom', { count: 5 });
-    expect(qlangErr.context).toEqual({ count: 5 });
+    expect(qlangErr.facts).toEqual({ count: 5 });
     expect(qlangErr.location).toBeNull();
     expect(qlangErr.message).toBe('boom');
     expect(qlangErr.name).toBe('QlangError');
@@ -32,7 +32,7 @@ describe('a refusal declared by its address [D172]', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);
-    expect(unresolvedErr.context.name.name).toBe('foo');
+    expect(unresolvedErr.facts.name.name).toBe('foo');
     expect(unresolvedErr.name).toBe('UnknownNameError');
     expect(unresolvedErr.address).toBe('call/UnknownNameError');
   });
@@ -45,7 +45,7 @@ describe('a refusal declared by its address [D172]', () => {
   it('hands no facts where its site hands none', () => {
     const probeErr = new TestsProbeError();
     expect(probeErr.name).toBe('ProbeError');
-    expect(probeErr.context).toEqual({});
+    expect(probeErr.facts).toEqual({});
   });
 });
 
@@ -53,8 +53,8 @@ describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
     const invariantErr = new QlangInvariantError('registration failed', { site: 'X', operandName: 'foo' });
     expect(invariantErr.message).toBe('registration failed');
-    expect(invariantErr.context.site).toBe('X');
-    expect(invariantErr.context.operandName).toBe('foo');
+    expect(invariantErr.facts.site).toBe('X');
+    expect(invariantErr.facts.operandName).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);
   });
 });
@@ -127,7 +127,7 @@ describe('one address, one site', () => {
     expect(refusal).toBeInstanceOf(QlangInvariantError);
     expect(refusal).toBeInstanceOf(BuiltinRefusalDeclaredTwiceError);
     expect(refusal.name).toBe('RefusalDeclaredTwiceError');
-    expect(refusal.context.address).toBe('call/UnknownNameError');
+    expect(refusal.facts.address).toBe('call/UnknownNameError');
     expect(refusal.message).toContain('call/UnknownNameError');
   });
 });
@@ -144,7 +144,7 @@ describe('declareForeignError — a failure of the embedding', () => {
     expect(foreignErr).toBeInstanceOf(Error);
     expect(foreignErr).not.toBeInstanceOf(QlangError);
     expect(foreignErr.name).toBe('HostBridgeUnreachableError');
-    expect(foreignErr.context.endpoint).toBe('ipc://bridge');
+    expect(foreignErr.facts.endpoint).toBe('ipc://bridge');
     expect(foreignErr.message).toContain('ipc://bridge');
   });
 });

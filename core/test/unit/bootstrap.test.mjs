@@ -64,7 +64,7 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     expect(err.message).toContain('#qlang/core');
     expect(err.message).toContain('/locked/core.qlang');
     expect(err.message).toContain('EACCES: permission denied');
-    expect(err.context).toEqual({
+    expect(err.facts).toEqual({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/locked/core.qlang',
@@ -83,8 +83,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     });
     expect(err.name).toBe('SourceLoadError');
     expect(err.message).toContain('HTTP 503');
-    expect(err.context.host).toBe('web');
-    expect(err.context.status).toBe(503);
+    expect(err.facts.host).toBe('web');
+    expect(err.facts.status).toBe(503);
   });
 
   it('cause-shaped object without `.message` falls through to String(cause)', async () => {

@@ -379,7 +379,7 @@ describe('toPlain refuses unencodable values', async () => {
   it('error context carries the offending value\'s typeof for diagnosis', () => {
     try { toPlain(Symbol('s')); }
     catch (e) {
-      expect(e.context.actualType).toBe('symbol');
+      expect(e.facts.actualType).toBe('symbol');
       return;
     }
     throw new Error('expected toPlain to throw');

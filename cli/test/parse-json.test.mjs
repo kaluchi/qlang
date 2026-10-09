@@ -49,7 +49,7 @@ describe('parseJson — error sites', () => {
   it('lifts StringParseJsonTextNotJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
     const thrown = expectOperandErrorThrown(cellEntry, 'string/parseJson/TextNotJsonError', {});
-    expect(typeof thrown.context.message).toBe('string');
-    expect(thrown.context.message.length).toBeGreaterThan(0);
+    expect(typeof thrown.facts.message).toBe('string');
+    expect(thrown.facts.message.length).toBeGreaterThan(0);
   });
 });

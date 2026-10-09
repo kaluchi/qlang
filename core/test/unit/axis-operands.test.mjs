@@ -152,7 +152,7 @@ describe('axis-operands read the node a tag addresses', () => {
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.address).toBe('any/doc/UnknownNameError');
     expect(result.originalError).toBeInstanceOf(QlangError);
-    expect(result.originalError.context.name.literal).toBe('::Foo');
+    expect(result.originalError.facts.name.literal).toBe('::Foo');
   });
 });
 

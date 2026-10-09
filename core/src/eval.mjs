@@ -34,7 +34,7 @@ import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astO
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, isMemberValue, isUnderLabel, nodeOf, partsOfName, residencesOf, selectorOf, splitAddress, vocabularyWords
+  addressesOf, bareNameReach, isMemberValue, isUnderLabel, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
   applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
@@ -501,7 +501,7 @@ async function evalBindStep(node, state) {
   if (isVerb(answered)) refuseLaunderedByName(name, effectfulNameOfVerb(answered), node);
   else if (isQuote(answered) && isUnderLabel(state.env, name)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
-  } else if (isQuote(answered) && nounName !== null && isUnderLabel(state.env, nounName)) {
+  } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {
     refuseLaunderedByName(nounName, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   }
   const writtenQuote = node.body.type === 'QuoteLit';
@@ -565,8 +565,6 @@ function declarationRecord(node, value) {
 // a quote and a doc among them, by an index counted from the end when
 // negative, and a signature by the names it declares; a miss is a refusal
 // that names its `:key`, where `at` answers null.
-const INTEGER_SEGMENT_RE = /^-?\d+$/;
-
 function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
   for (const projKey of node.keys) projectionCurrent = projectSegment(projectionCurrent, projKey);
@@ -600,13 +598,13 @@ function projectSegment(subject, projKey) {
     return projected.get(projKey);
   }
   if (isVec(projected)) {
-    if (!INTEGER_SEGMENT_RE.test(projKey)) {
+    const index = segmentIndex(projKey);
+    if (Number.isNaN(index)) {
       throw new ProjIndexNotIntegerError({ key: projKey, actualValue: subject });
     }
-    const segmentIndex = parseInt(projKey, 10);
-    const resolvedIndex = segmentIndex < 0 ? projected.length + segmentIndex : segmentIndex;
+    const resolvedIndex = index < 0 ? projected.length + index : index;
     if (resolvedIndex < 0 || resolvedIndex >= projected.length) {
-      throw new ProjIndexOutOfBoundsError({ key: projKey, index: segmentIndex, length: projected.length, actualValue: subject });
+      throw new ProjIndexOutOfBoundsError({ key: projKey, index, length: projected.length, actualValue: subject });
     }
     return projected[resolvedIndex];
   }
@@ -803,11 +801,11 @@ function refusalOfComputedCode(parts, place, error) {
 // step that reads a place, `/n` or `at n default`, is the value at the
 // place, read here as `at` reads it, so the parts of `at` itself read
 // without calling it; any other selector runs as code over the object.
-async function partOf({ ast, place, onePlace }, values, state) {
+async function partOf({ ast, place, onePlace, strict, fallback }, values, state) {
   if (!onePlace) return (await evalBody(ast, state)).pipeValue;
   if (place < values.length) return values[place];
-  if (ast.type === 'Projection') return MISSED_PLACE;
-  return ast.args.length === 1 ? null : (await evalBody(ast.args[1], state)).pipeValue;
+  if (strict) return MISSED_PLACE;
+  return fallback === null ? null : (await evalBody(fallback, state)).pipeValue;
 }
 
 // A strict read of a place past the values of the object.
@@ -821,10 +819,12 @@ const MISSED_PLACE = Symbol('missedPlace');
 function servedByLaw(law, part) {
   if (law === undefined) return part;
   if (law.kinds !== null) return walkToKinds(part, law.kinds).served;
-  const elements = walkToKinds(part, ['vec']);
-  if (elements === null || isQuote(part) || isDoc(part)) return part;
+  const ownKind = walkToKinds(part, ['set', 'quote', 'doc']);
+  if (ownKind !== null && !isQSet(ownKind.served)) return ownKind.served;
+  const elements = ownKind ?? walkToKinds(part, ['vec']);
+  if (elements === null) return part;
   const served = Array.from(elements.served, element => walkToKinds(element, law.elementKinds).served);
-  return isQSet(part) ? makeSet(served) : Object.freeze(served);
+  return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
 }
 
 // The kinds the first law `isA` of a part's page asks for, or null: the

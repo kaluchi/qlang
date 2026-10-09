@@ -968,13 +968,13 @@
   ::spec~()
 
 :any/CondConditionNotBooleanError
-  |~~ Every predicate of `cond` answers a boolean; `:index` counts the
-      modifiers from 1 and names the predicate that answered another
+  |~~ Every predicate of `cond` answers a boolean; `:index` is the place
+      in the object, from zero, of the predicate that answered another
       kind.
       ~(
         5 | cond ~(1) ~("yes")
         !| [type /index /actualType]
-        |  eq [::any/CondConditionNotBooleanError 1 ::number]
+        |  eq [::any/CondConditionNotBooleanError 0 ::number]
        )
   ~~|
   ::spec~()
@@ -1466,6 +1466,7 @@
       ~(#[1 2] | isA ::vec | eq true)
       ~("5" | isA ::number ::null | eq false)
       ~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ::holds~(every ~(isA ::number)) ~~| ~(/) | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
+      ~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ::holds~(every ~(isA ::number)) ~~| ~(/0) | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
   ~~|
   ::builtin{}
 

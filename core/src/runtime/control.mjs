@@ -11,7 +11,7 @@ import { declareArityError, declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 const AnyCondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
-  ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,
+  ({ index, actualType }) => `cond takes a boolean from each condition, the condition at place ${index} of the object answered ${actualType.name}`,
   { operand: 'cond', expectedType: 'boolean' });
 const AnyCoalesceNoAlternativesError = declareArityError('any/CoalesceNoAlternativesError',
   () => 'coalesce requires at least one alternative sub-pipeline',
@@ -50,7 +50,7 @@ bindPrim('any/cond', async (subject, clauses) => {
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
     if (typeof answer !== 'boolean') {
-      throw new AnyCondConditionNotBooleanError({ index: clauseIndex + 1, actualType: typeKeyword(answer), actualValue: answer });
+      throw new AnyCondConditionNotBooleanError({ index: clauseIndex, actualType: typeKeyword(answer), actualValue: answer });
     }
     if (answer) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;

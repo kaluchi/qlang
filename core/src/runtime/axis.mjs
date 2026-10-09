@@ -35,15 +35,8 @@ import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
-// `bindingName` (a name, or a tag spelled with its `::`) is an
-// identifier-shaped string at the JS
-// level; the JS→qlang lift in `error-convert.mjs::liftIdentifier`
-// converts it to a Keyword / TagKeyword at descriptor build time,
-// so the printed message body reads the same regardless of shape.
-// The factory's template stringifies via `${value}` which produces
-// the raw `name` half — the lifted-keyword printValue surface kicks
-// in only when projection consumers (`!| /bindingName`) read the
-// descriptor.
+// `bindingName` is a name or a tag name, held among the facts as a
+// keyword or a tag.
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.

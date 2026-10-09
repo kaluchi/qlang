@@ -43,7 +43,7 @@ export function nodeOf(env, tagName) {
 
 // Whether a node is a label, a name declared by its page or over a spec
 // [D166].
-export function isLabel(env, name) {
+function isLabel(env, name) {
   return isLabelValue(bindingValueOf(nodeOf(env, name)));
 }
 
@@ -67,6 +67,14 @@ function residesOn(record, kindName, env) {
 // A value a name under a label holds when it runs on the label's values.
 export function isMemberValue(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
+}
+
+// Whether a call of the name reads the parts declared under it: a quote
+// or a `::builtin{}` under a label, the host's marked as such once its
+// source has run, or a contract [D167].
+export function readsParts(env, name) {
+  const value = bindingValueOf(nodeOf(env, name));
+  return ((isQuote(value) || isBuiltinDescriptor(value)) && isUnderLabel(env, name)) || isContractValue(value);
 }
 
 // The record of the verb of `verbName` residing on a kind, or null.
@@ -221,9 +229,9 @@ export function verbsReaching(env, kindNames) {
 export function partsOfName(env, address) {
   const own = quotesUnder(env, address);
   const contract = nodeOf(env, `${ANY_KIND_NAME}/${splitAddress(address)[1]}`);
-  const reads = isQuote(bindingValueOf(nodeOf(env, address))) || contract === null || !isContractValue(bindingValueOf(contract))
-    ? own
-    : [...own, ...sharedParts(own, quotesUnder(env, contract.get('name').name))];
+  const reads = isBuiltinDescriptor(bindingValueOf(nodeOf(env, address))) && contract !== null && isContractValue(bindingValueOf(contract))
+    ? [...own, ...sharedParts(own, quotesUnder(env, contract.get('name').name))]
+    : own;
   return reads.sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
 }
 
@@ -250,7 +258,13 @@ export function selectorOf(partRecord) {
   if (selector === undefined) {
     const ast = astOfQuote(bindingValueOf(partRecord));
     const place = placeReadBy(ast);
-    selector = { ast, place, onePlace: readsOnePlace(ast, place), readsObject: ast.type === 'Projection' && ast.keys.length === 0 };
+    const onePlace = readsOnePlace(ast, place);
+    selector = {
+      ast, place, onePlace,
+      strict: onePlace && ast.type === 'Projection',
+      fallback: onePlace && ast.type === 'OperandCall' && ast.args.length === 2 ? ast.args[1] : null,
+      readsObject: ast.type === 'Projection' && ast.keys.length === 0
+    };
     SELECTORS.set(partRecord, selector);
   }
   return selector;
@@ -261,10 +275,17 @@ export function selectorOf(partRecord) {
 // place counted from its end or anything else.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  const place = head.type === 'Projection' ? Number(head.keys[0])
+  const place = head.type === 'Projection' ? segmentIndex(head.keys[0])
     : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
     : NaN;
   return Number.isInteger(place) && place >= 0 ? place : NaN;
+}
+
+// segmentIndex(key) → the index a segment of a projection names, a whole
+// number or one counted from the end, or none for a key that names no
+// index, `1e0` among them.
+export function segmentIndex(key) {
+  return /^-?\d+$/.test(String(key)) ? parseInt(key, 10) : NaN;
 }
 
 // Whether a selector is one step that reads one place, `/n` or `at n`

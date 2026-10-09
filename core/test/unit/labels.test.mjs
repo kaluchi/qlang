@@ -67,7 +67,7 @@ describe('the object of a call', () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put (/missing) !| type')).toEqual(makeTagKeyword('proj/IndexNotIntegerError'));
   });
 
-  it('reads a place softly by at, and the tail by any other step', async () => {
+  it('reads a place softly by at, and the values after the lead by any other step', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
   });
 
@@ -158,12 +158,12 @@ describe('a host\'s primitive under a label', () => {
   });
 
   it('holds a part a host declares under its own primitive or under a contract to the mark of the name [D167]', async () => {
-    for (const source of [
-      lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'),
-      lines(':any/zip ::verb~()', ':any/zip/n ~(/0 | @note)', ':vec/zip ::builtin{}')
+    for (const [source, primitive] of [
+      [lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'), 'vec/zap'],
+      [lines(':any/zip ::verb~()', ':any/zip/n ~(/0 | @note)', ':vec/zip ::builtin{}'), 'vec/zip']
     ]) {
       await expect(createSession({
-        sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, 'vec/zap': subject => subject, 'vec/zip': subject => subject } }]
+        sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, [primitive]: subject => subject } }]
       })).rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/EffectMarkMissingError' } });
     }
   });

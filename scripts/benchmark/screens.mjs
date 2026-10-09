@@ -12,9 +12,10 @@ const benchDir = import.meta.dirname;
 const screensDir = join(benchDir, 'screens');
 const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
 
-// The first screen the tree prints, `::qlang | doc | content`.
-export function firstScreen() {
-  return execFileSync(process.execPath, [commandLine, '::qlang | doc | content'], { input: '', encoding: 'utf8' });
+// The first screen the tree prints, `::qlang | doc | content`, or what
+// another query prints, a screen a run tries against it.
+export function firstScreen(query = '::qlang | doc | content') {
+  return execFileSync(process.execPath, [commandLine, query], { input: '', encoding: 'utf8' });
 }
 
 export function screenText(screenName) {
@@ -26,10 +27,11 @@ export const shortHash = text => createHash('sha256').update(text).digest('hex')
 
 export const screenHash = screenName => shortHash(screenText(screenName));
 
-// saveScreen(name) — the first screen of the tree under a name.
-export function saveScreen(screenName) {
+// saveScreen(name, query) — the first screen of the tree, or what the
+// query prints, under a name.
+export function saveScreen(screenName, query) {
   mkdirSync(screensDir, { recursive: true });
-  const text = firstScreen();
+  const text = firstScreen(query);
   writeFileSync(join(screensDir, `${screenName}.txt`), text);
   console.log(`screen ${screenName}: ${shortHash(text.trim())}`);
 }

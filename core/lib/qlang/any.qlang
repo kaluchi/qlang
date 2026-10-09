@@ -166,7 +166,7 @@
 
 :any/print/printsASetInItsOrder
   |~~ A set prints in its one order. ~~|
-  ::law~(#[2 1] | print | eq "#[1 2]")
+  ::law~("#[2 1]" | parse | apply / | print | eq "#[1 2]")
 
 :any/print/printsATaggedValue
   |~~ A tagged value prints with its tag. ~~|
@@ -811,6 +811,21 @@
 :any/laws/pairsThePageWithTheQuery
   |~~ Each law is the pair of its page and its query. ~~|
   ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | /answersFive | [(/0 | content) /1] | eq [" k answers five. " ~(0 | k | eq 5)])
+
+:any/tutorial
+  |~~ The page of the name the value reads and its laws, the pair a
+      reader learns the name from: the prose that says what it is, and
+      the laws that show it at work, each the pair of its claim and its
+      query. ~~|
+  ~([doc laws])
+
+:any/tutorial/lesson
+  |~~ The page and the laws. ~~|
+  ::vec
+
+:any/tutorial/pairsThePageWithTheLaws
+  |~~ A tutorial is the page of a name and its laws. ~~|
+  ::law~(::number | tutorial | [(/0 | type) (/1 | type)] | eq [::doc ::map])
 
 :any/laws/UnknownNameError
   |~~ `laws` found no declaration of the name it read, as `binding`

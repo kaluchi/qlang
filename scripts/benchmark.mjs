@@ -11,7 +11,7 @@
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks
 //   node scripts/benchmark.mjs prompt                 the prompt of a run of tasks.mjs
-//   node scripts/benchmark.mjs screen [--save NAME]   the hash of the first screen, or it saved under a name
+//   node scripts/benchmark.mjs screen [--save NAME] [--query Q]   the hash of the first screen, or it or what Q prints saved under a name
 //   node scripts/benchmark.mjs report                 the runs of tasks.mjs side by side
 //   node scripts/benchmark.mjs author ID [--model M]  a clean author writes the set ID
 //   node scripts/benchmark.mjs run ID --screen NAME --mode blind|cli --model M --runs N
@@ -130,7 +130,7 @@ const { flags, positional } = argumentsOf(process.argv.slice(3));
 const COMMANDS = {
   check: () => check(),
   prompt: () => console.log(prompt()),
-  screen: () => (flags.save === undefined ? console.log(shortHash(firstScreen())) : saveScreen(flags.save)),
+  screen: () => (flags.save === undefined ? console.log(shortHash(firstScreen(flags.query))) : saveScreen(flags.save, flags.query)),
   report,
   author: () => author(positional[0], flags.model),
   run: () => run(positional[0], { screen: flags.screen, mode: flags.mode, model: flags.model, runs: Number(flags.runs ?? 1) }),

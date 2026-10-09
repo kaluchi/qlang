@@ -102,11 +102,11 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   });
 
   it('answers an error a container holds as that error', async () => {
-    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('number/AddLeftNotNumberError');
+    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('number/add/SubjectNotNumberError');
   });
 
   it('keeps the form of an answer that is itself an error', async () => {
-    expect((await refusalOf('"x" | add 1')).$tag).toBe('number/AddLeftNotNumberError');
+    expect((await refusalOf('"x" | add 1')).$tag).toBe('number/add/SubjectNotNumberError');
   });
 
   it('writes JSON values as they are', async () => {

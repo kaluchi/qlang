@@ -1,9 +1,8 @@
 |~ What is declared under `::number`: the refusal of its
-   constructor, and the verbs of numbers, each serving a number. The head
-   of a verb is its declaration, which the runtime executes before the
-   primitive runs; the refusals of a verb sit beside it, the head raising
-   the one its site declares at the place it checks, and the primitive
-   the rest. ~|
+   constructor, and the names that run on a number. A name holds its
+   page and its primitive, the parts of the object of its call are
+   declared under it, each with the law a part keeps, and the refusals
+   its primitive raises sit under it too. ~|
 
 :number/PayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
@@ -17,234 +16,151 @@
   ::spec~()
 
 :number/add
-  |~~ Adds two numbers: `a | add b` computes a + b, and the full form
-      `add a b` reads both modifiers against the value in the pipe.
+  |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
+      adds element by element, `* add 1`, and sums by `sum`; a string is
+      joined by `append`; two numbers one value holds add by `sumOf`,
+      `{:x 10 :y 3} | sumOf /x /y`. ::call~(add 3)
 
       ~(10 | add 3 | eq 13)
-      ~({:x 10 :y 3} | add /x /y | eq 13)
+      A subject that is no number is refused under the name:
+      ~("hello" | add 1 !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
+      An object with more numbers than the call has places is refused:
+      ~(1 | add 1 2 !| type | eq ::number/add/ObjectBeyondPartsError)
   ~~|
-  ::verb~(:addend ::number | :returns ::number | ::builtin{})
+  ::builtin{}
 
-:number/AddLeftNotNumberError
-  |~~ `add` adds numbers: a vector adds element by element, `* add 1`,
-      and sums by `sum`; a string is joined by `append`.
+:number/add/addend
+  |~~ The number added to the subject. ::holds~(type | eq ::number)
 
-      ~(
-        "hello" | add 1
-        !| [type /actualType]
-        |  eq [::number/AddLeftNotNumberError ::string]
-       )
+      ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/HoldsNotMetError ::string])
   ~~|
-  ::spec~()
+  ~(/0)
 
-:number/AddRightNotNumberError
-  |~~ The addend of `add` is a number; two fields of one map add by
-      `add /price /tax`, both read from it.
-
-      ~(
-        1 | add "x"
-        !| [type /actualType]
-        |  eq [::number/AddRightNotNumberError ::string]
-       )
-  ~~|
-  ::spec~()
-
-:number/AddResultNotFiniteError
+:number/add/ResultNotFiniteError
   |~~ `add` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
       refuses.
 
-      ~(
-        1e308 | add 1e308
-        !| [type /leftValue]
-        |  eq [::number/AddResultNotFiniteError 1e308]
-       )
+      ~(1e308 | add 1e308 !| [type /leftValue] | eq [::number/add/ResultNotFiniteError 1e308])
   ~~|
   ::spec~()
 
 :number/sub
-  |~~ Subtracts the subtrahend from the subject, the minuend.
+  |~~ Subtracts a number from the subject, the minuend. A vector
+      subtracts element by element, `* sub 1`; two numbers one value
+      holds subtract by `subOf`, `{:total 10 :paid 3} | subOf /total
+      /paid`. ::call~(sub 3)
 
       ~(10 | sub 3 | eq 7)
-      ~({:x 10 :y 3} | sub /x /y | eq 7)
+      ~("hello" | sub 1 !| [type /actualType] | eq [::number/sub/SubjectNotNumberError ::string])
   ~~|
-  ::verb~(:subtrahend ::number | :returns ::number | ::builtin{})
+  ::builtin{}
 
-:number/SubLeftNotNumberError
-  |~~ `sub` subtracts from a number; a vector subtracts element by
-      element, `* sub 1`.
+:number/sub/subtrahend
+  |~~ The number subtracted from the subject. ::holds~(type | eq ::number)
 
-      ~(
-        "hello" | sub 1
-        !| [type /actualType]
-        |  eq [::number/SubLeftNotNumberError ::string]
-       )
+      ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/HoldsNotMetError ::string])
   ~~|
-  ::spec~()
+  ~(/0)
 
-:number/SubRightNotNumberError
-  |~~ The subtrahend of `sub` is a number; two fields of one map
-      subtract by `sub /total /paid`.
-
-      ~(
-        1 | sub "x"
-        !| [type /actualType]
-        |  eq [::number/SubRightNotNumberError ::string]
-       )
-  ~~|
-  ::spec~()
-
-:number/SubResultNotFiniteError
+:number/sub/ResultNotFiniteError
   |~~ `sub` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
       refuses.
 
-      ~(
-        -1e308 | sub 1e308
-        !| [type /leftValue]
-        |  eq [::number/SubResultNotFiniteError -1e308]
-       )
+      ~(-1e308 | sub 1e308 !| [type /leftValue] | eq [::number/sub/ResultNotFiniteError -1e308])
   ~~|
   ::spec~()
 
 :number/mul
-  |~~ Multiplies two numbers.
+  |~~ Multiplies the subject by a number. A vector multiplies element by
+      element, `* mul 2`; two numbers one value holds multiply by
+      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. ::call~(mul 3)
 
       ~(10 | mul 3 | eq 30)
-      ~({:x 5 :y 4} | mul /x /y | eq 20)
+      ~("hello" | mul 2 !| [type /actualType] | eq [::number/mul/SubjectNotNumberError ::string])
   ~~|
-  ::verb~(:multiplier ::number | :returns ::number | ::builtin{})
+  ::builtin{}
 
-:number/MulLeftNotNumberError
-  |~~ `mul` multiplies numbers; a vector multiplies element by element,
-      `* mul 2`.
+:number/mul/multiplier
+  |~~ The number the subject is multiplied by. ::holds~(type | eq ::number)
 
-      ~(
-        "hello" | mul 2
-        !| [type /actualType]
-        |  eq [::number/MulLeftNotNumberError ::string]
-       )
+      ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/HoldsNotMetError ::string])
   ~~|
-  ::spec~()
+  ~(/0)
 
-:number/MulRightNotNumberError
-  |~~ The multiplier of `mul` is a number; two fields of one map
-      multiply by `mul /price /qty`.
-
-      ~(
-        1 | mul "x"
-        !| [type /actualType]
-        |  eq [::number/MulRightNotNumberError ::string]
-       )
-  ~~|
-  ::spec~()
-
-:number/MulResultNotFiniteError
+:number/mul/ResultNotFiniteError
   |~~ `mul` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
       refuses.
 
-      ~(
-        1e308 | mul 10
-        !| [type /leftValue]
-        |  eq [::number/MulResultNotFiniteError 1e308]
-       )
+      ~(1e308 | mul 10 !| [type /leftValue] | eq [::number/mul/ResultNotFiniteError 1e308])
   ~~|
   ::spec~()
 
 :number/div
-  |~~ Divides the subject, the dividend, by the divisor, and refuses a
-      divisor of zero with `::number/DivisionByZeroError`.
+  |~~ Divides the subject, the dividend, by a number. A vector divides
+      element by element, `* div 2`; two numbers one value holds divide
+      by `divOf`, `{:sum 20 :count 4} | divOf /sum /count`.
+      ::call~(div 2)
 
       ~(10 | div 2 | eq 5)
-      ~({:x 20 :y 4} | div /x /y | eq 5)
+      ~("hello" | div 2 !| [type /actualType] | eq [::number/div/SubjectNotNumberError ::string])
   ~~|
-  ::verb~(:divisor ::number | :returns ::number | ::builtin{})
+  ::builtin{}
 
-:number/DivLeftNotNumberError
-  |~~ `div` divides a number; a vector divides element by element,
-      `* div 2`.
+:number/div/divisor
+  |~~ The number the subject is divided by. ::holds~(type | eq ::number)
 
-      ~(
-        "hello" | div 2
-        !| [type /actualType]
-        |  eq [::number/DivLeftNotNumberError ::string]
-       )
+      ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/HoldsNotMetError ::string])
   ~~|
-  ::spec~()
+  ~(/0)
 
-:number/DivRightNotNumberError
-  |~~ The divisor of `div` is a number; two fields of one map divide by
-      `div /sum /count`.
-
-      ~(
-        1 | div "x"
-        !| [type /actualType]
-        |  eq [::number/DivRightNotNumberError ::string]
-       )
-  ~~|
-  ::spec~()
-
-:number/DivResultNotFiniteError
+:number/div/ResultNotFiniteError
   |~~ `div` answered outside the finite doubles a number of qlang
       is: both operands are numbers, held as `:leftValue` and
       `:rightValue`, and the size of the answer is what the site
       refuses.
 
-      ~(
-        1e308 | div 0.0001
-        !| [type /leftValue]
-        |  eq [::number/DivResultNotFiniteError 1e308]
-       )
+      ~(1e308 | div 0.0001 !| [type /leftValue] | eq [::number/div/ResultNotFiniteError 1e308])
   ~~|
   ::spec~()
 
-:number/DivisionByZeroError
+:number/div/ByZeroError
   |~~ A division by zero has no finite answer; a divisor that may be
-      zero is tested first, `if (/count | eq 0) ~(0) ~(div /sum /count)`.
+      zero is tested first, `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
 
-      ~(
-        10 | div 0
-        !| [type]
-        |  eq [::number/DivisionByZeroError]
-       )
+      ~(10 | div 0 !| type | eq ::number/div/ByZeroError)
   ~~|
   ::spec~()
 
 :number/round
   |~~ The number rounded half away from zero to the digits after the
       point the call gives, none when it gives none; a negative count
-      rounds to tens and beyond.
+      rounds to tens and beyond. A string holding a number is read first
+      by `parseJson`. ::call~(round 2)
 
       ~(3.14159 | round 2 | eq 3.14)
       ~(2.5 | round | eq 3)
       ~(-2.5 | round | eq -3)
       ~(1234 | round -2 | eq 1200)
       ~(-0.4 | round | print | eq "0")
+      ~("2.5" | round !| [type /actualType] | eq [::number/round/SubjectNotNumberError ::string])
   ~~|
-  ::verb~(:digits 0 | :returns ::number | ::builtin{})
+  ::builtin{}
 
-:number/RoundSubjectNotNumberError
-  |~~ `round` rounds a number; a string holding one is read first by
-      `parseJson`.
-      ~(
-        "2.5" | round
-        !| [type /actualType]
-        |  eq [::number/RoundSubjectNotNumberError ::string]
-       )
-  ~~|
-  ::spec~()
+:number/round/digits
+  |~~ The digits after the point, a whole number, none when the call
+      gives none. ::holds~(type | eq ::number) ~~|
+  ~(at 0 0)
 
-:number/RoundDigitsNotIntegerError
+:number/round/DigitsNotIntegerError
   |~~ The digits of `round` are a whole number, `round 2`.
-      ~(
-        2.5 | round 0.5
-        !| [type /actualType]
-        |  eq [::number/RoundDigitsNotIntegerError ::number]
-       )
+
+      ~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
   ~~|
   ::spec~()
 

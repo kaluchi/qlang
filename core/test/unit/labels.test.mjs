@@ -60,7 +60,7 @@ describe('the object of a call', () => {
   });
 
   it('hands on the error a part answers for a place it holds', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | scaled "x" !| type')).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | scaled "x" !| type')).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
   it('hands on the error a modifier answers', async () => {

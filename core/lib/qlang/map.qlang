@@ -154,8 +154,9 @@
       ~({:a 1 :b 2} | at :a | eq 1)
       ~({:a 1 :b 2} | at "a" | eq 1)
       ~({:a 1} | at :z | eq null)
+      ~({:a 1} | at :z 0 | eq 0)
   ~~|
-  ::verb~(:key #[::keyword ::string] | ::builtin{})
+  ::verb~(:key #[::keyword ::string] | :default #[::any ::null] | ::builtin{})
 
 :map/AtKeyNotKeywordOrStringError
   |~~ The key of `at` on a map is a keyword or a string, both naming the
@@ -233,7 +234,7 @@
       a tagged value. `tag ::map` builds the map back.
 
       ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
-      ~({:auth {:port 3000}} | entries * (union /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+      ~({:auth {:port 3000}} | entries * (unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
       ~({:axios "^1.6.0"} | entries * ([(/0 | keyword) "@" /1] | join "") | eq ["axios@^1.6.0"])
       ~({:a 1 :tmp 2} | entries | filter ~(/0 | ne :tmp) | tag ::map | eq {:a 1})
   ~~|
@@ -326,19 +327,18 @@
       fails. `|` and `*` step around the raised error into its trail, and
       `!|` opens it to the error itself.
 
-      `map | raise` raises the subject, and `raise map` reads the map
-      against the subject:
+      `map | raise` raises the subject, a map the step builds among them:
       ~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
-      ~(raise {:kind :oops} !| /kind | eq :oops)
+      ~(42 | {:kind :oops :value /} | raise !| /value | eq 42)
       Its tag is the one its value shows, the outermost tag over the
       map, then the one the map carries, then a `:kind` that names a
       tag, then `::error`, so an opened error raised again is itself:
-      ~("x" | add 1 !| raise !| type | eq ::number/AddLeftNotNumberError)
+      ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
       A step that lays a tag over an opened error renames it:
       ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
       A guard raises an error of its own tag when a value fails its
       check:
-      ~(42 | if (gt 100) ~(/) ~(raise {:kind ::TooSmall :value /}) !| [type /value] | eq [::TooSmall 42])
+      ~(42 | if (gt 100) ~(/) ~({:kind ::TooSmall :value /} | raise) !| [type /value] | eq [::TooSmall 42])
   ~~|
   ::verb~(::builtin{})
 

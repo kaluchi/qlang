@@ -146,7 +146,7 @@
        )
       ~(
         :q ~(apply q) | apply q
-        !| gt /depth /limit
+        !| :e / | /depth | gt (e | /limit)
        )
   ~~|
   ::spec~()

@@ -13,13 +13,15 @@
   ::spec~()
 
 :null/at
-  |~~ Null, whatever the place: a soft read of the absent value is
-      absent, so soft reads chain, `at :address | at :city`, and a
-      `coalesce` after them gives the fallback once. The strict `/k`
-      refuses null as it refuses every value without parts.
+  |~~ The default the call gives, null when it gives none, whatever the
+      place: a soft read of the absent value is absent, so soft reads
+      chain, `at :address | at :city`, and a `coalesce` after them gives
+      the fallback once. The strict `/k` refuses null as it refuses
+      every value without parts.
 
       ~(null | at :k | eq null)
+      ~(null | at :k "none" | eq "none")
       ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
       ~({:a {:b 1}} | at :a | at :b | eq 1)
   ~~|
-  ::verb~(:place ::any | :returns ::null | ::builtin{})
+  ::verb~(:place ::any | :default #[::any ::null] | ::builtin{})

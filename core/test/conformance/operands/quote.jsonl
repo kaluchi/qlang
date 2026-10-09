@@ -27,11 +27,11 @@
 {"name":"type-quote-map-false","query":"{:a 1} | type | eq ::quote","expect":"false","decision":"D8"}
 {"name":"type-quote-null-false","query":"null | type | eq ::quote","expect":"false","decision":"D8"}
 {"name":"error-element-type-is-not-quote","query":"[!{:k 1}] * (!| type | eq ::quote) | first","expect":"false","decision":"D8"}
-{"name":"quote-equality-same-source","query":"eq ~(mul 2) ~(mul 2)","expect":"true","decision":"D8"}
-{"name":"quote-equality-different-source","query":"eq ~(mul 2) ~(mul 3)","expect":"false","decision":"D8"}
-{"name":"quote-equality-ignores-spacing","query":"eq ~(mul 2) ~(mul  2)","expect":"true","decision":"D8"}
-{"name":"quote-equality-ignores-comments","query":"eq ~(mul 2 |~ note ~|) ~(mul 2)","expect":"true","decision":"D8"}
-{"name":"quote-equality-cross-type-string","query":"eq ~(mul 2) \"mul 2\"","expect":"false","decision":"D8"}
+{"name":"quote-equality-same-source","query":"~(mul 2) | eq ~(mul 2)","expect":"true","decision":"D8"}
+{"name":"quote-equality-different-source","query":"~(mul 2) | eq ~(mul 3)","expect":"false","decision":"D8"}
+{"name":"quote-equality-ignores-spacing","query":"~(mul 2) | eq ~(mul  2)","expect":"true","decision":"D8"}
+{"name":"quote-equality-ignores-comments","query":"~(mul 2 |~ note ~|) | eq ~(mul 2)","expect":"true","decision":"D8"}
+{"name":"quote-equality-cross-type-string","query":"~(mul 2) | eq \"mul 2\"","expect":"false","decision":"D8"}
 {"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3","decision":"D8"}
 {"name":"quote-in-vec-prints","query":"[~(a) ~(b) ~(c)] | first | parse","expect":"\"a\"","decision":"D8"}
 {"name":"quote-in-map","query":"{:body ~(mul 2)} | /body | parse","expect":"\"mul 2\"","decision":"D8"}

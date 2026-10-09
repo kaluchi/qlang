@@ -184,7 +184,7 @@ describe('the sources a host hands [D153]', () => {
     await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError ::spec~()' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
     expect((await (await createSession()).evalCell('"a" | add 1 !| type')).result)
-      .toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+      .toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
   it('declares a refusal of the host at its address again in every session of the process', async () => {

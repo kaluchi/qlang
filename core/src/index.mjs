@@ -28,6 +28,6 @@ export {
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';
 export {
-  signatureSpecOf, slotLabelsOf, verbShownFor
+  signatureSpecOf, slotLabelsOf, verbShownFor, shownFor
 } from './runtime/verb.mjs';
 export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach } from './runtime/nouns.mjs';

@@ -62,24 +62,24 @@ describe('setops bare form over a subject no residence takes', async () => {
 });
 
 describe('setops full form (two captured args)', async () => {
-  it('minus full form computes left minus right via two captured pipelines', async () => {
-    const result = await evalQuery('null | minus {:a 1 :b 2 :tmp 3} #[:tmp]');
+  it('minus takes the keys off the map in the pipe', async () => {
+    const result = await evalQuery('{:a 1 :b 2 :tmp 3} | minus #[:tmp]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
     expect(result.has('tmp')).toBe(false);
   });
 
-  it('inter full form computes left inter right via two captured pipelines', async () => {
-    const result = await evalQuery('null | inter {:a 1 :b 2 :c 3} #[:a :b]');
+  it('inter keeps the keys of the map in the pipe the set names', async () => {
+    const result = await evalQuery('{:a 1 :b 2 :c 3} | inter #[:a :b]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
     expect(result.has('c')).toBe(false);
   });
 
-  it('union full form computes left union right via two captured pipelines', async () => {
-    const result = await evalQuery('null | union {:a 1} {:b 2}');
+  it('union joins a map to the map in the pipe', async () => {
+    const result = await evalQuery('{:a 1} | union {:b 2}');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);

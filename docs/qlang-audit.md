@@ -478,7 +478,7 @@ weight [D20]. A tag is the name of an interpretation: it says how to read
 the value it stands on. Many values carry one tag; a tag stacks over
 any payload, a string or a number included, and the stack reads from
 the outside in; and the tag taken as a value, `::Kind`, is the kind
-itself standing as a subject, which is why `::number/AddLeftNotNumberError |
+itself standing as a subject, which is why `::number/add/SubjectNotNumberError |
 doc` can ask the kind for its page. Behaviour is kept out of the
 value: the verbs that apply to a kind live in the catalog and are
 found through the tag. That separation is what lets a value cross a
@@ -1014,23 +1014,28 @@ than from being asked for.
 
 ### Errors named by their site
 
-Every throw site in the runtime declares its own error class, and the
-class name is a function of the facts the site records:
-`AddLeftNotNumberError` is the operand `add`, position 1, expected type
-number, and nothing else. There are more such classes than there are
-operands, and the catalog carries a page for every one of them, so the
-prose about errors outweighs the prose about the operands themselves.
-The facts live in the registry of the runtime alone: the kind the
-catalog declares for a refusal has no fields yet [D152], and the page
-says the procedure, what the place takes and how a reader writes it:
+A name under a label refuses with no class of its own: a subject of
+another kind is refused under the name, a part that breaks its law
+under the part, and each refusal reads the page of what refused, where
+the procedure is written once [D166]:
 
 ```qlang
-> "hello" | add 1 !| type | spec
-::spec~()
+> "hello" | add 1 !| type
+::number/add/SubjectNotNumberError
 
-> "hello" | add 1 !| type | doc | content
- `add` adds numbers: a vector adds element by element, `* add 1`, …
+> 1 | add "x" !| [type /holds]
+[::number/add/addend/HoldsNotMetError ~(type | eq ::number)]
+
+> "hello" | add 1 !| explain | page | content | contains "sumOf"
+true
 ```
+
+Every other throw site in the runtime still declares its own error
+class, its name a function of the facts the site records, and the
+catalog carries a page for every one of them, so the prose about errors
+outweighs the prose about the operands themselves. Those facts live in
+the registry of the runtime alone: the kind the catalog declares for a
+refusal has no fields yet [D152].
 
 The facts the runtime records spell its vocabulary, `:operand`, a
 position counted from one and a type as a keyword where a kind is a
@@ -1091,12 +1096,14 @@ the facts, and the tag's constructor checks them. A refusal is declared
 under the noun of its place, where `manifest` lists it [D152], [D153]; the
 place it guards it declares itself, so the runtime that checks a slot
 [D45] finds the refusal of that slot by what the refusal declares, and
-a verb lists the refusals that guard it [D46]. Today the noun lists them
-and no verb does:
+a verb lists the refusals that guard it [D46]. A name under a label
+lists what its primitive raises and the parts of its object, and the
+refusals of its places are named by their addresses with no declaration
+of their own:
 
 ```qlang
-> ::number | manifest | filter ~(print | contains "Add")
-#[::number/AddLeftNotNumberError ::number/AddResultNotFiniteError ::number/AddRightNotNumberError]
+> ::number/add | manifest
+#[::number/add/ResultNotFiniteError ::number/add/addend]
 ```
 
 It must hold one law for an error inside a nested evaluation, derived
@@ -1422,7 +1429,7 @@ constructor of `::map` builds a map back from them [D138], a string
 naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries * (union /1 {:name (/0 | keyword)}) | sort ~(/port)
+> {:auth {:port 3000} :db {:port 5432}} | entries * (unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -1572,8 +1579,6 @@ below writes its targets before its work:
 
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
-"decision":"D165"
-"decision":"D166"
 "decision":"D46"
 ```
 
@@ -1600,7 +1605,7 @@ value shared across kinds by its own [D50]. And elision takes the tail of
 a schema [D21]. Apart from the schema stand the names, and the root
 of sources stands [D152], [D153]: every name declared by its keyword,
 a name with a path the address of a node under its noun, a refusal
-under the noun of its place, `::number/AddLeftNotNumberError`, the
+under the noun of its place, `::number/add/SubjectNotNumberError`, the
 root the scope a host's sources declare as cells before a reader's
 first step, read whole when the runtime starts, a helper in the group
 of its declaration, and `use` gone. What remains of the names: mounted
@@ -2068,3 +2073,5 @@ maintainer wants to explore it before it is fixed.
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md
 [D164]: decisions/D164.md
+[D165]: decisions/D165.md
+[D166]: decisions/D166.md

@@ -141,7 +141,7 @@
 
       ~(#[:a :b :c] | at -1 | eq :c)
   ~~|
-  ::verb~(:index ::number | ::builtin{})
+  ::verb~(:index ::number | :default #[::any ::null] | ::builtin{})
 
 :set/distinct
   |~~ The set itself.

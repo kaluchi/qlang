@@ -37,14 +37,14 @@
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D62"}
 {"name":"manifest-lives-on-tags","query":"::tag | manifest | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true","decision":["D62","D72","D157"]}
-{"name":"an-addressed-built-in-answers-its-signature","query":"::number/add | spec | type","expect":"::spec","decision":["D62","D72"]}
+{"name":"an-addressed-built-in-answers-its-signature","query":"::vec/take | spec | type","expect":"::spec","decision":["D62","D72"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest * manifest | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
 {"name":"every-example-of-the-core-passes","query":"::qlang | manifest * manifest | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true","decision":"D64"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::number/AddLeftNotNumberError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | spec | /throws | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | spec | /throws | filter ~(eq ::proj/KeyNotInMapError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-refusal-names-the-place-it-guards","query":"::call/UnknownNameError | spec | /operand","expect":"::call","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true","decision":"D65"}
@@ -100,9 +100,9 @@
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] * | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}
 {"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc","decision":"D152"}
-{"name":"a-refusal-is-named-under-its-noun","query":"\"x\" | add 1 !| type","expect":"::number/AddLeftNotNumberError","decision":"D152"}
-{"name":"a-refusal-reads-its-page-by-its-address","query":"::number/AddLeftNotNumberError | doc | type","expect":"::doc","decision":"D152"}
-{"name":"a-noun-lists-the-refusals-its-module-declares","query":"::number | manifest | contains ::number/AddLeftNotNumberError","expect":"true","decision":"D152"}
+{"name":"a-refusal-is-named-under-its-noun","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D152"}
+{"name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc","decision":"D152"}
+{"name":"a-noun-lists-the-refusals-its-module-declares","query":"::number/add | manifest | contains ::number/add/ResultNotFiniteError","expect":"true","decision":["D152","D164"]}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true","decision":"D152"}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| ::spec~(:a ::number) | ::Box{:a 1} | doc | content","expect":"\" A box. \"","decision":"D152"}
 {"name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError","decision":"D152"}

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
+import { shownFor, slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
 import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
 import { bindingValueOf, keyword, makeBinding, residenceOfVerb } from '../../src/types.mjs';
 
@@ -17,9 +17,19 @@ describe('the head of a verb as the tooling reads it', () => {
 
   it('shows the verb a name binds, its slots labeled', async () => {
     const env = await langRuntime();
-    const addVerb = verbShownFor(env, 'add');
-    expect(addVerb).toBe(bindingValueOf(nodeOf(env, 'number/add')));
-    expect(slotLabelsOf(addVerb)).toEqual([':addend ::number']);
+    const takeVerb = verbShownFor(env, 'take');
+    expect(slotLabelsOf(takeVerb)).toEqual([':count ::number']);
+    expect(shownFor(env, 'take').labels).toEqual([':count ::number']);
+  });
+
+  it('shows a name under a label by its address and the parts of its object [D164]', async () => {
+    const shown = shownFor(await langRuntime(), 'add');
+    expect(shown.address.name).toBe('number/add');
+    expect(shown.labels).toEqual(['addend']);
+  });
+
+  it('shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
+    expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
   it('shows the first verb a contract answers for', async () => {
@@ -46,7 +56,7 @@ describe('the verbs a value of a kind reaches [D34]', () => {
     const reached = verbsReaching(await langRuntime(), ['number']);
     expect(reached.get('add').address.name).toBe('number/add');
     expect(reached.get('type').address.name).toBe('any/type');
-    expect(slotLabelsOf(reached.get('add').verb)).toEqual([':addend ::number']);
+    expect(reached.get('take')).toBeUndefined();
   });
 
   it('leaves out a contract of any value its kind does not answer', async () => {

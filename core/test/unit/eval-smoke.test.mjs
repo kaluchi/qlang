@@ -129,8 +129,8 @@ describe('eval — Map and projection', () => {
 });
 
 describe('eval — full application of mul', () => {
-  it('mul(/price, /qty) full form', async () => {
-    expect(await evalQuery('{:price 100 :qty 3} | mul /price /qty')).toBe(300);
+  it('mulOf multiplies two fields of one record', async () => {
+    expect(await evalQuery('{:price 100 :qty 3} | mulOf /price /qty')).toBe(300);
   });
 });
 

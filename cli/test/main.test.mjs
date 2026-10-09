@@ -271,7 +271,7 @@ describe('main — error paths', () => {
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toContain('AddLeftNotNumberError');
+    expect(s.stdoutText()).toContain('number/add/SubjectNotNumberError');
     expect(s.stderrText()).toBe('');
   });
 });

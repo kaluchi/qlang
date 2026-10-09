@@ -1,9 +1,9 @@
 {"name":"not-resides-on-the-boolean","query":"::boolean/not | spec | /subject","expect":"::boolean","decision":["D62","D76"]}
-{"name":"a-full-and-reads-its-first-condition-as-the-subject","query":"{:active true :age 25} | and /active (/age | gte 18)","expect":"true","decision":["D72","D76"]}
+{"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf /active (/age | gte 18)","expect":"true","decision":["D76","D165"]}
 {"name":"and-refuses-a-left-of-another-kind-at-its-subject","query":"1 | and true !| type","expect":"::boolean/AndLeftNotBooleanError","decision":"D76"}
 {"name":"eq-takes-any-value","query":"::any/eq | spec | /value","expect":"::any","decision":"D76"}
 {"name":"type-answers-a-tag","query":"::any/type | spec | /returns","expect":"::tag","decision":["D32","D76"]}
 {"name":"json-answers-a-string","query":"::any/json | spec | /returns","expect":"::string","decision":"D76"}
 {"name":"parse-json-resides-on-the-string","query":"::string/parseJson | spec | /subject","expect":"::string","decision":["D62","D76"]}
 {"name":"raise-resides-on-the-map","query":"::map/raise | spec | /subject","expect":"::map","decision":["D62","D76"]}
-{"name":"an-error-that-describes-an-error-rides-through","query":"raise (!{:kind :inner}) !| /kind","expect":":inner","decision":["D13","D76","D97"]}
+{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| /kind","expect":":inner","decision":["D13","D76","D97"]}

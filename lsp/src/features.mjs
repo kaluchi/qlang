@@ -17,10 +17,7 @@ import {
   isNameContinue,
   isTagKeyword,
   typeKeyword,
-  printQuoteSource,
-  signatureSpecOf,
-  slotLabelsOf,
-  verbShownFor,
+  shownFor,
   verbsReaching,
   verbNames,
   nodeOf,
@@ -146,7 +143,7 @@ async function nameCompletions() {
   const runtime = await langRuntime();
   _valueCompletions = [];
   for (const name of verbNames(runtime)) {
-    if (verbShownFor(runtime, name) === undefined) continue;
+    if (shownFor(runtime, name) === undefined) continue;
     const docContents = await fetchDocsContents(name);
     _valueCompletions.push({
       label: name,
@@ -304,14 +301,16 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-// The head a verb of the runtime declares, as its signature prints [D72].
+// The address a name of the runtime reaches and what a call of it takes,
+// the slots of a head or the parts of an object [D164].
 function signatureTextOf(runtime, name) {
-  return printQuoteSource(signatureSpecOf(verbShownFor(runtime, name)).payload);
+  const shown = shownFor(runtime, name);
+  return [shown.address.literal, ...shown.labels].join(' ');
 }
 
 async function hoverForOperand(node, documentAst) {
   const runtime = await langRuntime();
-  if (verbShownFor(runtime, node.name) !== undefined) {
+  if (shownFor(runtime, node.name) !== undefined) {
     const docContents = await fetchDocsContents(node.name);
     const prose = tidyProse(docContents.join('\n'));
     const heading = [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`];
@@ -553,10 +552,10 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   if (!operandCall) return null;
 
   const runtime = await langRuntime();
-  const verb = verbShownFor(runtime, operandCall.name);
-  if (verb === undefined) return null;
+  const shown = shownFor(runtime, operandCall.name);
+  if (shown === undefined) return null;
 
-  const modifiers = slotLabelsOf(verb);
+  const modifiers = shown.labels;
   const docContents = await fetchDocsContents(operandCall.name);
 
   // The active parameter is the modifier the cursor stands on or after:

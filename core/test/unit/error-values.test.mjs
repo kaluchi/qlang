@@ -6,7 +6,7 @@ import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { QlangTypeError, CallUnknownNameError, declareShapeError } from '../../src/errors.mjs';
-import { NumberDivisionByZeroError } from '../../src/runtime/arith.mjs';
+import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -215,11 +215,11 @@ describe('errorFromQlang', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['identifierName', 'trail']);
   });
 
-  it('converts NumberDivisionByZeroError, whose site has no facts, to the trail alone', () => {
-    const divErr = new NumberDivisionByZeroError();
+  it('converts NumberDivByZeroError, whose site has no facts, to the trail alone', () => {
+    const divErr = new NumberDivByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
     expect(divErr.kind).toBe('numericDomain');
-    expect(errorVal.tag).toEqual(makeTagKeyword('number/DivisionByZeroError'));
+    expect(errorVal.tag).toEqual(makeTagKeyword('number/div/ByZeroError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
   });
 });
@@ -340,9 +340,9 @@ describe('error-convert coercion edge cases', () => {
   });
 
   it('errorFromQlang without context field', () => {
-    const divErr = new NumberDivisionByZeroError();
+    const divErr = new NumberDivByZeroError();
     const errorVal = errorFromQlang(divErr, 10);
-    expect(errorVal.tag.name).toBe('number/DivisionByZeroError');
+    expect(errorVal.tag.name).toBe('number/div/ByZeroError');
     expect(errorVal.descriptor.has('category')).toBe(false);
   });
 

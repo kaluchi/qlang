@@ -15,4 +15,4 @@
 {"name":"bare-union-maps","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
 {"name":"bare-union-empty-error","query":"[] | union","error":"typeError","expect":"::vec/UnionOfNothingError!{\n  :trail [\n    {\n      :step ~(union)\n      :subject []\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"bare-union-singleton","query":"[#[:only]] | union","expect":"#[:only]"}
-{"name":"full-union-maps","query":"{:anchor true} | union {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}"}
+{"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}","decision":"D165"}

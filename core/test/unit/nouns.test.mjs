@@ -10,7 +10,7 @@ import { makeTagKeyword } from '../../src/types.mjs';
 describe('the names of the scope', () => {
   it('env holds what the reader declared, and kinds the kinds of the root [D160]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
-    expect(await evalQuery('kinds | [(has ::number) (has ::qlang) (has ::number/AddLeftNotNumberError)]'))
+    expect(await evalQuery('kinds | [(has ::number) (has ::qlang) (has ::number/add/SubjectNotNumberError)]'))
       .toEqual([true, false, false]);
   });
 
@@ -37,7 +37,7 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('an address the listing answers leads the axes to its verb', async () => {
-    expect(await evalQuery('[::number/add ::number/gt] * (spec | /subject) | every ~(eq ::number)')).toBe(true);
+    expect(await evalQuery('[::number/gt ::number/lt] * (spec | /subject) | every ~(eq ::number)')).toBe(true);
   });
 
   it('a verb of any tagged value lives on the kind of tagged values', async () => {
@@ -54,7 +54,7 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('a refusal and a tag the session declares carry no list of verbs', async () => {
-    expect(await evalQuery('::number/AddLeftNotNumberError | spec | has :verbs')).toBe(false);
+    expect(await evalQuery('::number/add/SubjectNotNumberError | spec | has :verbs')).toBe(false);
     expect(await evalQuery(':Box ::spec~() | ::Box | spec | has :verbs')).toBe(false);
   });
 });

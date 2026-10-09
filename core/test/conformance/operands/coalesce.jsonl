@@ -19,7 +19,7 @@
 {"name":"literal-default-number","query":"{} | coalesce ~(/missing) ~(42)","expect":"42"}
 {"name":"literal-default-vec","query":"{} | coalesce ~(/missing) ~([1 2 3])","expect":"[1 2 3]"}
 {"name":"literal-default-null","query":"{} | coalesce ~(/missing) ~(null)","expect":"null"}
-{"name":"computed-default-via-add","query":"{} | coalesce ~(/missing) ~(add 1 2)","expect":"3"}
+{"name":"computed-default-via-add","query":"{} | coalesce ~(/missing) ~(sumOf 1 2)","expect":"3"}
 {"name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce ~(/a) ~(div 0)","expect":"1"}
 {"name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce ~(/a) ~(/b) ~(div 0) ~(\"unreached\")","expect":"99"}
 {"name":"evaluates-failing-when-needed","query":"{} | coalesce ~(/missing) ~(\"safe\")","expect":"\"safe\""}

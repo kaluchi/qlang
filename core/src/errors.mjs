@@ -113,7 +113,7 @@ const throwSiteSpecs = new Map();
 // binding, and for the same reason: two classes answering to one
 // address share one kind of the catalog, so whichever loads second
 // speaks for both. A refusal's address is the name its kind is declared
-// by, `number/AddLeftNotNumberError`, and the tag it answers by [D158].
+// by, `number/add/SubjectNotNumberError`, and the tag it answers by [D158].
 export function recordThrowSiteSpec(address, category, facts = {}) {
   if (throwSiteSpecs.has(address)) {
     throw new BuiltinThrowSiteSpecAlreadyRecordedError({ address });

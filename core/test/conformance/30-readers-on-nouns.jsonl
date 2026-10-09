@@ -1,6 +1,6 @@
 {"name":"env-answers-a-map","query":"::any/env | spec | /returns","expect":"::map","decision":["D62","D79"]}
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | /limit | /value","expect":"10","decision":["D61","D79"]}
-{"name":"tag-lays-its-name-over-the-first-modifier-in-full","query":"null | tag 5 ::Foo","expect":"::Foo(5)","decision":["D72","D79"]}
+{"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo(5)","decision":["D79","D165"]}
 {"name":"tag-takes-a-pair-apart-without-a-name","query":"[::Foo 1] | tag","expect":"::Foo(1)","decision":"D79"}
 {"name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::tag/ManifestSubjectNotTagError","decision":["D62","D79"]}
 {"name":"the-contract-of-run-examples-names-its-residences","query":"42 | runLaws !| /addresses","expect":"#[::keyword/runLaws ::tag/runLaws]","decision":["D79","D123"]}

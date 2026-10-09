@@ -33,10 +33,10 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residenceOnSubject, residencesOf, splitAddress, vocabularyWords
+  addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication,
+  applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
   runPrimitive, underTags, walkToKinds
 } from './runtime/verb.mjs';
 import {
@@ -374,36 +374,38 @@ async function underPage(tagName, payload, state) {
     if (isErrorValue(built)) return built;
   }
   const labelled = built?.[TAG_HEADER_SYMBOL]?.name === tagName ? built : makeTaggedInstance(makeTagKeyword(tagName), built);
-  const broken = await brokenLawOf(nodeOf(state.env, tagName), labelled, state, state.env);
-  if (broken !== null) return refusalUnder(`${tagName}/HoldsNotMetError`, { holds: broken, actualValue: payload });
-  return labelled;
+  return await refusalOfLaws(nodeOf(state.env, tagName), labelled, state, state.env, `${tagName}/HoldsNotMetError`) ?? labelled;
 }
 
 // The payload a label's `construct` builds: a quote run on the payload,
 // or the primitive a host handed run over it and the state, as a kind's
 // primitive constructor runs.
 async function constructedBy(construct, payload, state) {
-  if (isQuote(construct)) return (await evalBody(astOfQuote(construct), withPipeValue(withEnv(state, scopeOfMember(construct, state)), payload))).pipeValue;
+  if (isQuote(construct)) return (await evalBody(astOfQuote(construct), nestState(state, payload, scopeOfMember(construct, state)))).pipeValue;
   return await hostImplOf(construct)(payload, state);
 }
 
-// The first law under `::holds` of a record's page that the value does
-// not answer true to, or null.
-async function brokenLawOf(record, value, state, scope) {
+// The refusal of the first law under `::holds` of a record's page the
+// value does not answer true to, named under the address, or the error a
+// law answered, handed on as it is; null when every law holds.
+async function refusalOfLaws(record, value, state, scope, tagName) {
   for (const doc of record.get('docs')) {
     for (const segment of doc) {
       if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
       const answer = (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
-      if (answer !== true) return segment.payload;
+      if (isErrorValue(answer)) return answer;
+      if (answer !== true) return refusalUnder(tagName, { holds: segment.payload, actualValue: value });
     }
   }
   return null;
 }
 
-// A refusal named by the address of what refused, its facts the value
-// refused and its kind [D166].
-function refusalUnder(tagName, facts) {
-  const descriptor = new Map(Object.entries(facts)).set('actualType', typeKeyword(facts.actualValue));
+// A refusal named by the address of what refused [D166], its facts and
+// the kind of the value refused; the value itself rides the facts where
+// the trail does not hold it, a part or an object, and leaves them for
+// the subject, which the trail's first stop holds [D85].
+function refusalUnder(tagName, facts, refused = facts.actualValue) {
+  const descriptor = new Map(Object.entries(facts)).set('actualType', typeKeyword(refused));
   return makeErrorValue(makeTagKeyword(tagName), descriptor);
 }
 
@@ -585,24 +587,8 @@ async function callByName(lookupName, lambdas, state) {
   }
   if (reach.underKind && isMemberValue(bindingValueOf(reach.record))) return await applyMember(reach.record, lambdas, state);
   return reach.underKind
-    ? await callResidence(bindingValueOf(reach.record), lookupName, lambdas, state)
+    ? await applyVerb(bindingValueOf(reach.record), lambdas, state, lookupName)
     : await applyBinding(reach.record, lookupName, lambdas, state);
-}
-
-// A call with one modifier more than the slots of its verb reads the
-// subject from its first modifier, and the verb of a name several kinds
-// answer is found again from that subject [D72]; a call reaching a
-// contract does so when a verb it answers for takes its modifiers so.
-async function callResidence(verb, lookupName, lambdas, state) {
-  const fullApplication = isContract(verb)
-    ? residencesOf(state.env, lookupName).some(([, record]) => takesFullApplication(bindingValueOf(record), lambdas.length))
-    : takesFullApplication(verb, lambdas.length);
-  if (!fullApplication) return await applyVerb(verb, lambdas, state, lookupName);
-  const subject = await lambdas[0](state.pipeValue);
-  if (isErrorValue(subject)) return withPipeValue(state, subject);
-  const residence = residenceOnSubject(state.env, lookupName, subject);
-  const found = residence === null ? verb : bindingValueOf(residence);
-  return await applyVerbOn(found, subject, lambdas.slice(1), state, lookupName);
 }
 
 // A name reads the value its record holds [D63], so `:x / | x` sees the
@@ -657,13 +643,13 @@ async function applyMember(record, lambdas, state) {
   const walked = walkToKinds(state.pipeValue, [labelName]);
   if (walked === null) {
     const labelWord = labelName.slice(labelName.lastIndexOf('/') + 1);
-    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, { actualValue: state.pipeValue }));
+    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
   const read = await objectOf(address, partsOf(scope, address), lambdas, state, scope);
   if (isErrorValue(read)) return withPipeValue(state, read);
   const answer = isQuote(member)
-    ? (await evalBody(astOfQuote(member), withEnv(state, read.bodyEnv))).pipeValue
+    ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, read.bodyEnv))).pipeValue
     : await runHostMember(member, walked, read.values, state);
   const keeps = !isErrorValue(answer) && hasPageRole(record, 'keeps');
   return withPipeValue(state, keeps ? await underTags(answer, walked.passedTags, state) : answer);
@@ -735,8 +721,8 @@ async function objectOf(address, parts, lambdas, state, scope) {
     const partAddress = `${address}/${partName}`;
     const part = (await evalBody(astOfQuote(bindingValueOf(partRecord)), nestState(state, object, scope))).pipeValue;
     if (isErrorValue(part)) return isMissedPlace(part) ? refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object }) : part;
-    const broken = await brokenLawOf(partRecord, part, state, scope);
-    if (broken !== null) return refusalUnder(`${partAddress}/HoldsNotMetError`, { holds: broken, actualValue: part });
+    const refused = await refusalOfLaws(partRecord, part, state, scope, `${partAddress}/HoldsNotMetError`);
+    if (refused !== null) return refused;
     partValues.push(part);
     bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: part }));
   }

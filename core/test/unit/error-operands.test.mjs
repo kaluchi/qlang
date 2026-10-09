@@ -21,9 +21,9 @@ describe('raise operand', () => {
     expect(evalResult).toEqual(makeTagKeyword('map/RaiseSubjectNotMapError'));
   });
 
-  it('full form propagates a fail-track descriptor expression instead of wrapping it', async () => {
-    const evalResult = await evalQuery('null | raise ("not-a-number" | add 1) !| type');
-    expect(evalResult).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+  it('an error in the pipe rides past raise', async () => {
+    const evalResult = await evalQuery('("not-a-number" | add 1) | raise !| type');
+    expect(evalResult).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 });
 
@@ -57,7 +57,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('distribute of add(10) over mixed elements answers the first failure [D103]', async () => {
     const evalResult = await evalQuery('[1 "x" 3] * add 10 !| type');
-    expect(evalResult).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(evalResult).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
@@ -154,30 +154,19 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.name).toBe('KeysSubjectNotMapError');
   });
 
-  it('add left non-number → AddLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | add 1');
-    expect(caughtErr.name).toBe('AddLeftNotNumberError');
-    expect(caughtErr.context.actualType.name).toBe('string');
+  it('a subject of another kind is refused under the address of the name [D166]', async () => {
+    const refused = await evalQuery('"x" | add 1');
+    expect(refused.tag.name).toBe('number/add/SubjectNotNumberError');
+    expect(refused.descriptor.get('actualType').name).toBe('string');
   });
 
-  it('add right non-number → AddRightNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('1 | add "x"');
-    expect(caughtErr.name).toBe('AddRightNotNumberError');
+  it('a part that breaks its law is refused under the address of the part [D166]', async () => {
+    expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/HoldsNotMetError');
   });
 
-  it('sub left non-number → SubLeftNotNumberError (distinct from add)', async () => {
-    const caughtErr = await catchOriginalError('"x" | sub 1');
-    expect(caughtErr.name).toBe('SubLeftNotNumberError');
-  });
-
-  it('mul left non-number → MulLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | mul 1');
-    expect(caughtErr.name).toBe('MulLeftNotNumberError');
-  });
-
-  it('div left non-number → DivLeftNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('"x" | div 1');
-    expect(caughtErr.name).toBe('DivLeftNotNumberError');
+  it('each name refuses under its own address', async () => {
+    const tags = await Promise.all(['"x" | sub 1', '"x" | mul 1', '"x" | div 1'].map(async query => (await evalQuery(query)).tag.name));
+    expect(tags).toEqual(['number/sub/SubjectNotNumberError', 'number/mul/SubjectNotNumberError', 'number/div/SubjectNotNumberError']);
   });
 
   it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
@@ -254,13 +243,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('keyword');
   });
 
-  it('tag full-application rebuilds a TaggedInstance from a [value, tagKeyword] context Vec', async () => {
-    // The split/assemble round-trip can ride a positional Vec
-    // by reordering with full-app captured args — useful when
-    // the surface produced split-then-swapped pairs:
-    // `[value, tag] | tag(/0, /1)` mints the same instance as
-    // `value | tag(tag)`.
-    const r = await evalQuery('[42 ::Box] | tag /0 /1 | type');
+  it('a value and a tag one vector holds meet by a name that keeps the vector', async () => {
+    // The subject of a call is the value in the pipe [D165], so the
+    // pair is named before its value takes the tag it holds.
+    const r = await evalQuery('[42 ::Box] | :pair / | /0 | tag (pair | /1) | type');
     expect(r).toEqual(makeTagKeyword('Box'));
   });
 
@@ -314,7 +300,6 @@ describe('per-site error classes carry unique identity', () => {
   it('all per-site type errors inherit QlangTypeError and kind', async () => {
     const queries = [
       '42 | count',
-      '"x" | add 1',
       '[1 "two"] | sum',
       '"a" | gt 5',
       '42 | /name',
@@ -337,10 +322,6 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // CallKindAnswersNoVerbError, the contract of count
       '42 | keys',         // KeysSubjectNotMapError
       '42 | vals',         // ValsSubjectNotMapError
-      '"a" | add 1',      // AddLeftNotNumberError
-      '"a" | sub 1',      // SubLeftNotNumberError
-      '"a" | mul 1',      // MulLeftNotNumberError
-      '"a" | div 1',      // DivLeftNotNumberError
       '1 | /name',         // ProjSubjectNotProjectableError (Number subject — neither Map nor Vec)
       '42 * add 1',       // EachSubjectNotContainerError
       '[1 2 3] | reduce 0 ~(42)' // AnyReduceReducerNotBinaryError

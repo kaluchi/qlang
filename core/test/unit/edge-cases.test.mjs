@@ -38,7 +38,7 @@ import {
   TAG_HEADER_SYMBOL,
   VERB_TAG
 } from '../../src/types.mjs';
-import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
+import { catchOriginalError, expectErrorCategory, expectErrorThrown } from '../helpers/error-assertions.mjs';
 import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
 
 describe('types.mjs', () => {
@@ -94,19 +94,19 @@ describe('runtime/predicates.mjs ordering type errors', () => {
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | add 1', 'typeError');
+    await expectErrorThrown('"x" | add 1', 'number/add/SubjectNotNumberError');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorCategory('1 | add "x"', 'typeError');
+    await expectErrorThrown('1 | add "x"', 'number/add/addend/HoldsNotMetError');
   });
   it('sub rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | sub 1', 'typeError');
+    await expectErrorThrown('"x" | sub 1', 'number/sub/SubjectNotNumberError');
   });
   it('mul rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | mul 1', 'typeError');
+    await expectErrorThrown('"x" | mul 1', 'number/mul/SubjectNotNumberError');
   });
   it('div rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | div 1', 'typeError');
+    await expectErrorThrown('"x" | div 1', 'number/div/SubjectNotNumberError');
   });
 });
 

@@ -13,7 +13,7 @@ import {
   declarePerSiteError,
   declareForeignError
 } from '../../src/errors.mjs';
-import { NumberDivisionByZeroError } from '../../src/runtime/arith.mjs';
+import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
@@ -41,9 +41,9 @@ describe('UnknownNameError', () => {
 
 describe('DivisionByZeroError', () => {
   it('has a fixed message and its name', () => {
-    const divErr = new NumberDivisionByZeroError();
+    const divErr = new NumberDivByZeroError();
     expect(divErr.kind).toBe('numericDomain');
-    expect(divErr.name).toBe('DivisionByZeroError');
+    expect(divErr.name).toBe('ByZeroError');
     expect(divErr.message).toBe('division by zero');
   });
 });
@@ -111,8 +111,8 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site name is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('"a" | add 1');
-    expect(originalErr.name).toBe('AddLeftNotNumberError');
+    const originalErr = await catchOriginalError('"x" | prepend 42');
+    expect(originalErr.name).toBe('PrependPrefixNotStringError');
   });
 });
 
@@ -123,11 +123,11 @@ describe('error class branding survives Object.defineProperty (minification prox
   // verify the contract here: even if we artificially shadow the
   // class identifier, the runtime `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('"a" | add 1');
-    expect(originalErr.name).toBe('AddLeftNotNumberError');
+    const originalErr = await catchOriginalError('"x" | prepend 42');
+    expect(originalErr.name).toBe('PrependPrefixNotStringError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('AddLeftNotNumberError');
+    expect(originalErr.constructor.name).toBe('PrependPrefixNotStringError');
   });
 });
 
@@ -137,15 +137,15 @@ describe('throw-site spec registry — one name, one site', () => {
   it('refuses a second recording under a name already declared', () => {
     let refusal = null;
     try {
-      declarePerSiteError('number/DivisionByZeroError', 'numericDomain', () => 'a second site');
+      declarePerSiteError('number/div/ByZeroError', 'numericDomain', () => 'a second site');
     } catch (caught) {
       refusal = caught;
     }
     expect(refusal).toBeInstanceOf(QlangInvariantError);
     expect(refusal).toBeInstanceOf(BuiltinThrowSiteSpecAlreadyRecordedError);
     expect(refusal.name).toBe('ThrowSiteSpecAlreadyRecordedError');
-    expect(refusal.context.address).toBe('number/DivisionByZeroError');
-    expect(refusal.message).toContain('number/DivisionByZeroError');
+    expect(refusal.context.address).toBe('number/div/ByZeroError');
+    expect(refusal.message).toContain('number/div/ByZeroError');
   });
 });
 

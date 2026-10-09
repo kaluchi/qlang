@@ -46,9 +46,9 @@
       ~({:a 1} | at :b | eq null)
       ~({:a 1} | at :b | coalesce 0 | eq 0)
 
-      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So `mul /price /qty` reads two fields of one record, but after `/active |` a modifier reads the boolean, not the record; `:r /` keeps the record for the steps after. A command with modifiers, or a pipeline, inside a literal or a modifier stands in parentheses.
-      ~({:price 4 :qty 3} | mul /price /qty | eq 12)
-      ~({:total 10 :paid 3} | sub /total /paid | eq 7)
+      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So `mulOf /price /qty` multiplies two fields of one record, but after `/active |` a modifier reads the boolean, not the record; `:r /` keeps the record for the steps after. A command with modifiers, or a pipeline, inside a literal or a modifier stands in parentheses.
+      ~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
+      ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
       ~({:a 1} | [(/a | add 1) /a] | eq [2 1])
       ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/SubjectNotProjectableError)
       ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
@@ -67,7 +67,7 @@
       ~("a,b,c" | split "," | join "-" | eq "a-b-c")
       ~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
       ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
-      ~({:auth {:port 3000}} | entries * (union /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+      ~({:auth {:port 3000}} | entries * (unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
       ~({:a 1} | entries | tag ::map | eq {:a 1})
       ~(3.14159 | round 2 | ne 3.14159)
       ~([3 1 2] | reduce 0 ~(add) | eq 6)
@@ -91,10 +91,10 @@
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
       ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
-      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure names the site that refused it: the noun that declares it, the verb, the place, and what the place takes, so ::number/AddLeftNotNumberError is `add` refusing its left operand, its subject, for not being a number. `!| explain` shows the page of the site.
-      ~("x" | add 1 !| type | eq ::number/AddLeftNotNumberError)
+      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure names the site that refused it: the noun that declares it, the verb, the place, and what the place takes, so ::number/add/SubjectNotNumberError is `add` refusing its left operand, its subject, for not being a number. `!| explain` shows the page of the site.
+      ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
       ~("x" | add 1 !| /actualType | eq ::string)
-      ~([1 2] | add 1 !| type | eq ::number/AddLeftNotNumberError)
+      ~([1 2] | add 1 !| type | eq ::number/add/SubjectNotNumberError)
       ~(!{:reason :late} !| /reason | eq :late)
       A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
       ~({:reason :late} | raise !| [type /reason] | eq [::error :late])
@@ -231,7 +231,7 @@
       A literal past the range is no number the parser reads:
       ~("1e400" | parse !| type | eq ::quote/ParseError)
       A step whose result leaves the range answers an error:
-      ~(1e308 | mul 10 !| type | eq ::number/MulResultNotFiniteError)
+      ~(1e308 | mul 10 !| type | eq ::number/mul/ResultNotFiniteError)
       An integer and a decimal are one kind, rounded as a double rounds:
       ~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
   ~~|
@@ -421,7 +421,7 @@
       under `::error`, `::error{:k 1}`, a value like any other until it
       is raised, and the bang of a literal raises it, `!{:k 1}`. Every
       refusal is a tag of its own, named for what failed,
-      `::number/AddLeftNotNumberError`, stacked over the error. `|` passes a
+      `::number/add/SubjectNotNumberError`, stacked over the error. `|` passes a
       raised error by, `*` stops on one, and `!|` opens it to that
       stack, so `!| type` reads the site, the verbs of this kind reach
       every error, and every step works on it as on any value: a fact is
@@ -435,8 +435,8 @@
       ~("x" | add 1 !| payload | type | eq ::error)
       ~(::error{:k 1} | /k | eq 1)
       ~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
-      ~("x" | add 1 !| if (type | eq ::number/AddLeftNotNumberError) ~(0) ~(raise) | eq 0)
-      ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/AddLeftNotNumberError)
+      ~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
+      ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
   ::spec~()
 
@@ -520,7 +520,7 @@
       ::link~(::qlang/errors | doc)
 
       ~("x" | add 1 !| explain | type | eq ::explanation)
-      ~("x" | add 1 !| explain | value !| type | eq ::number/AddLeftNotNumberError)
+      ~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
   ::spec~()
 
@@ -711,7 +711,7 @@
       A modifier is computed against the subject of its own step, the
       value the step before it answered, so two fields of one record are
       read in one step, and a name keeps the record for a later step:
-      ~({:qty 2 :price 3} | mul /qty /price | eq 6)
+      ~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
       ~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
       A name holds the value in the pipe for the steps after it, and
       steps in parentheses run on the value in the pipe and answer their
@@ -823,12 +823,13 @@
       A reader's verb is a name over `::verb` and a quote whose head
       declares its slots, and it takes its arguments after its name:
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
-      A modifier is evaluated at the call against the subject, and when
-      the call writes every place of the verb, the subject among them,
-      the value in the pipe is only where they are read; a slot that runs
+      A modifier is evaluated at the call against the subject, the value
+      in the pipe, which is always the subject of the call; a form that
+      combines several values of one subject is a verb of its own, its
+      objects all the operands, `mulOf /price /qty`; a slot that runs
       code later takes a quote, `~name` or `~/path` the quote of one step, and a
       condition is a boolean:
-      ~({:price 100 :qty 3} | mul /price /qty | eq 300)
+      ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
       ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
       ~([{:age 3}] | sort ~/age | first | /age | eq 3)
       ~([1 2] | filter ~(1) !| type | eq ::any/FilterConditionNotBooleanError)
@@ -854,9 +855,9 @@
       ::link~(::explanation | doc)
 
       A failed step answers an error the tag of its site names:
-      ~("x" | add 1 !| type | eq ::number/AddLeftNotNumberError)
+      ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
       `|` passes an error by and `*` answers the first an element answers:
-      ~([1 "x" 3] * (mul 2) !| type | eq ::number/MulLeftNotNumberError)
+      ~([1 "x" 3] * (mul 2) !| type | eq ::number/mul/SubjectNotNumberError)
       `a !| b` runs `b` on an error alone, opened to its facts, and
       recovers each failure where it is read:
       ~([1 "x"] * (mul 2 !| 0) | eq [2 0])

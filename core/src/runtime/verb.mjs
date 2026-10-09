@@ -19,7 +19,7 @@
 
 import { bindPrim, readsState, readsPassedTags } from '../primitives.mjs';
 import { codeOf, evalAst, mintTaggedInstance } from '../eval.mjs';
-import { addressesOf, bareNameReach, nodeOf, residencesOf, splitAddress } from './nouns.mjs';
+import { addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf, splitAddress } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, slotDocsOf, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
@@ -419,13 +419,6 @@ function residenceKindsOf(verb) {
   return residence === null ? null : [residence];
 }
 
-// A call with one modifier more than the verb's slots, none gathering the
-// rest, reads its first modifier as the subject [D72].
-export function takesFullApplication(verb, modifierCount) {
-  const { slots, rest } = signatureOf(verb.payload);
-  return rest === null && modifierCount === slots.length + 1;
-}
-
 // Whether a verb's head names its subject, `:subject kind`.
 export function namesItsSubject(verb) {
   return signatureOf(verb.payload).subjectKinds !== null;
@@ -436,16 +429,11 @@ export function isContract(verb) {
 }
 
 // callVerb(verb, modifierLambdas, state, verbName) → the verb's answer
-// against the subject of `state`, or against its first modifier, evaluated
-// there, in a full application; `verbName` is the keyword the call reached
-// it by, the name of the slot for a verb run as code [D67].
+// against the subject of `state`, the value in the pipe always [D165];
+// `verbName` is the keyword the call reached it by, the name of the slot
+// for a verb run as code [D67].
 export async function callVerb(verb, modifierLambdas, state, verbName) {
-  if (!takesFullApplication(verb, modifierLambdas.length)) {
-    return await callVerbOn(verb, state.pipeValue, modifierLambdas, state, verbName);
-  }
-  const subject = await modifierLambdas[0](state.pipeValue);
-  if (isErrorValue(subject)) return subject;
-  return await callVerbOn(verb, subject, modifierLambdas.slice(1), state, verbName);
+  return await callVerbOn(verb, state.pipeValue, modifierLambdas, state, verbName);
 }
 
 // callVerbOn(verb, subject, slotLambdas, state, verbName) → the verb's
@@ -535,6 +523,24 @@ export function verbShownFor(env, name) {
   const reached = bindingValueOf(bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1]);
   if (!isVerb(reached)) return undefined;
   return isContract(reached) ? bindingValueOf(residencesOf(env, name)[0]?.[1]) ?? reached : reached;
+}
+
+// shownFor(env, name) → what a tool shows for a name, `{ address, labels }`:
+// the address the name reaches with no subject, a contract giving way to
+// the first residence it answers for, and the labels of what a call of
+// it takes, the slots of a verb's head or the parts of the object of a
+// name under a label [D164]; undefined for a name that reaches neither.
+export function shownFor(env, name) {
+  const record = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
+  const value = bindingValueOf(record);
+  if (isVerb(value)) {
+    const verb = verbShownFor(env, name);
+    return { address: makeTagKeyword(addressOfVerb(verb)), labels: slotLabelsOf(verb) };
+  }
+  if (!isMemberValue(value)) return undefined;
+  const address = record.get('name').name;
+  const labels = [...namesUnderOf(env, address)].filter(([, part]) => isQuote(bindingValueOf(part))).map(([partName]) => partName);
+  return { address: makeTagKeyword(address), labels };
 }
 
 // The signature `spec` answers for a verb: its head as a `::spec~(…)`,

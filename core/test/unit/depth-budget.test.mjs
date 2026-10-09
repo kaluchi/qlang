@@ -29,7 +29,7 @@ describe('depth budget — self-calling verb', () => {
 
   it('leaves the budget intact for recursion that terminates', async () => {
     const nodeCount = await evalQuery(
-      ':total ::verb~(add 1 (/children * total | sum)) '
+      ':total ::verb~(sumOf 1 (/children * total | sum)) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
     );
     expect(nodeCount).toBe(4);

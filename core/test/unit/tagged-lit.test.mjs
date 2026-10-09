@@ -146,19 +146,19 @@ describe('TaggedLit error paths', () => {
   it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
     const err = await evalQuery('42 | tag ("not-a-number" | add 1)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
-  it('tag full-form propagates a fail-track value expression instead of wrapping it', async () => {
-    const err = await evalQuery('null | tag ("not-a-number" | add 1) ::Box');
+  it('tag hands on an error in the pipe instead of wrapping it', async () => {
+    const err = await evalQuery('("not-a-number" | add 1) | tag ::Box');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
-  it('tag full-form propagates a fail-track tag-keyword expression', async () => {
-    const err = await evalQuery('null | tag 42 ("not-a-number" | add 1)');
+  it('tag hands on an error its modifier answers', async () => {
+    const err = await evalQuery('42 | tag ("not-a-number" | add 1)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
 });
@@ -173,9 +173,9 @@ describe('a kind without a body — identity', () => {
 
   it('ErrorLit payload (`::Tag!{…}`) lifts to ErrorValue with `:kind` restamped', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
-    const err = await evalQuery('::number/AddLeftNotNumberError!{:custom "field" :note 42}');
+    const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42}');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
     expect(err.descriptor.get('custom')).toBe('field');
     expect(err.descriptor.get('note')).toBe(42);
   });
@@ -187,12 +187,12 @@ describe('a kind without a body — identity', () => {
     // `*`, reduces via `count` / `first` — every Vec affordance
     // unchanged. Identity reads through `type` operand.
     const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/AddLeftNotNumberError[1 2 3]');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');
     expect(Array.isArray(instance)).toBe(true);
     expect(isVec(instance)).toBe(true);
     expect(isTaggedInstance(instance)).toBe(true);
-    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
-    expect(typeKeyword(instance)).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
     expect(instance.length).toBe(3);
     expect(instance[0]).toBe(1);
     expect(instance[1]).toBe(2);
@@ -206,11 +206,11 @@ describe('a kind without a body — identity', () => {
     // coexists with the instance's identity because identity
     // rides on the JS-header alone.
     const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/AddLeftNotNumberError{:custom "field" :position 1}');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
     expect(isTaggedInstance(instance)).toBe(true);
     expect(instance.has('kind')).toBe(false);
-    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
     expect(instance.get('custom')).toBe('field');
     expect(instance.get('position')).toBe(1);
   });
@@ -224,17 +224,17 @@ describe('a kind without a body — identity', () => {
     // projection out of reach (the wrapper is not a Map);
     // the `payload` operand is the dedicated extractor.
     const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/AddLeftNotNumberError"hello"');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError"hello"');
     expect(isTaggedInstance(instance)).toBe(true);
-    expect(typeKeyword(instance)).toEqual(makeTagKeyword('number/AddLeftNotNumberError'));
+    expect(typeKeyword(instance)).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
     expect(instance.payload).toBe('hello');
-    const extracted = await evalQuery('::number/AddLeftNotNumberError"hello" | payload');
+    const extracted = await evalQuery('::number/add/SubjectNotNumberError"hello" | payload');
     expect(extracted).toBe('hello');
   });
 
   it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, wraps in an opaque object', async () => {
     const { isTaggedInstance, isKeyword } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/AddLeftNotNumberError:foo');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError:foo');
     expect(isTaggedInstance(instance)).toBe(true);
     expect(isKeyword(instance.payload)).toBe(true);
     expect(instance.payload.name).toBe('foo');
@@ -246,7 +246,7 @@ describe('a kind without a body — identity', () => {
     // scalar payload routes through the wrap-object branch of
     // the constructor.
     const { isTaggedInstance } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/AddLeftNotNumberError(42)');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError(42)');
     expect(isTaggedInstance(instance)).toBe(true);
     expect(instance.payload).toBe(42);
   });
@@ -354,7 +354,7 @@ describe('a kind whose spec has a body of steps', () => {
       ':strictAdd ::spec~(add "not-a-number") | ::strictAdd(5)'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/AddRightNotNumberError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/addend/HoldsNotMetError'));
   });
 
 });

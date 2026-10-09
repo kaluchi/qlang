@@ -736,7 +736,7 @@
       ~(
         "hello" | add 1
         !| [type /actualType]
-        |  eq [::number/AddLeftNotNumberError ::string]
+        |  eq [::number/add/SubjectNotNumberError ::string]
        )
   ~~|
   ::verb~(:returns ::tag | ::builtin{})
@@ -1034,7 +1034,7 @@
       calls after it.
 
       ~(::vec/filter | source | parse | contains ":vec/filter")
-      ~(::number/AddLeftNotNumberError | source | parse | contains "AddLeftNotNumberError")
+      ~(::number/add/ResultNotFiniteError | source | parse | contains "ResultNotFiniteError")
       ~("text" | source | eq (::string | source))
       ~(::vec/take | source :count | parse | eq ":count ::number")
   ~~|
@@ -1067,7 +1067,7 @@
 
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
-      ~(::number/AddLeftNotNumberError | doc | type | eq ::doc)
+      ~(::number/add/SubjectNotNumberError | doc | type | eq ::doc)
       Any other value reads the page of its kind, and the `:kind` field
       of a map names nothing:
       ~(5 | doc | eq (::number | doc))
@@ -1116,8 +1116,8 @@
       opened the page of its site, which says what failed.
 
       ~(42 | explain | page | eq (::number | doc))
-      ~(::number/add | explain | page | content | contains "Adds two numbers")
-      ~("x" | add 1 !| explain | page | content | contains "adds numbers")
+      ~(::number/add | explain | page | content | contains "Adds a number")
+      ~("x" | add 1 !| explain | page | content | contains "Adds a number")
   ~~|
   ::verb~(:returns ::explanation | ::builtin{})
 
@@ -1145,12 +1145,12 @@
 
       A verb answers its signature, a `::spec~(…)` whose subject is its
       noun:
-      ~(::number/add | spec | /subject | eq ::number)
+      ~(::vec/take | spec | /subject | eq ::vec)
       ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
       A kind answers its declaration, a `::spec~(…)` whose body is its
       constructor, a refusal among the kinds:
       ~(::verb | spec | eq ::spec~(::builtin{}))
-      ~(::number/AddLeftNotNumberError | spec | type | eq ::spec)
+      ~(::number/add/ResultNotFiniteError | spec | type | eq ::spec)
   ~~|
   ::verb~(:name #[::keyword ::null] | ::builtin{})
 
@@ -1220,7 +1220,7 @@
       stands over one; the fail track opens an error to its descriptor,
       which a tag and `raise` rename:
       ~([::Box (!{:k 1})] | tag !| type | eq ::error)
-      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/AddRightNotNumberError)
+      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/add/addend/HoldsNotMetError)
   ~~|
   ::verb~(:name #[::tag ::null] | ::builtin{})
 
@@ -1251,3 +1251,98 @@
        )
   ~~|
   ::spec~()
+
+:any/sumOf
+  |~~ The sum of the numbers the call computes against the subject, as
+      many as it gives, the subject only what they are read from: two
+      fields of one map add by `sumOf /x /y`. ::call~(sumOf /x /y)
+
+      ~({:x 10 :y 3} | sumOf /x /y | eq 13)
+      ~({:a 1 :b 2 :c 3} | sumOf /a /b /c | eq 6)
+  ~~|
+  ~(numbers | sum)
+
+:any/sumOf/numbers
+  |~~ The numbers, one at least. ::holds~(count | gt 0)
+      ::holds~(every ~(type | eq ::number)) ~~|
+  ~(/)
+
+:any/mulOf
+  |~~ The product of the numbers the call computes against the subject,
+      as many as it gives: the price and the quantity of one line multiply
+      by `mulOf /price /qty`. ::call~(mulOf /price /qty)
+
+      ~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
+  ~~|
+  ~(factors | reduce 1 ~(mul))
+
+:any/mulOf/factors
+  |~~ The numbers, one at least. ::holds~(count | gt 0)
+      ::holds~(every ~(type | eq ::number)) ~~|
+  ~(/)
+
+:any/subOf
+  |~~ The first number the call computes against the subject less the
+      second: what is left to pay is `subOf /total /paid`.
+      ::call~(subOf /total /paid)
+
+      ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
+  ~~|
+  ~(minuend | sub subtrahend)
+
+:any/subOf/minuend |~~ The number subtracted from. ::holds~(type | eq ::number) ~~| ~(/0)
+:any/subOf/subtrahend |~~ The number subtracted. ::holds~(type | eq ::number) ~~| ~(/1)
+
+:any/divOf
+  |~~ The first number the call computes against the subject divided by
+      the second: a mean is `divOf /sum /count`. ::call~(divOf /sum /count)
+
+      ~({:sum 20 :count 4} | divOf /sum /count | eq 5)
+  ~~|
+  ~(dividend | div divisor)
+
+:any/divOf/dividend |~~ The number divided. ::holds~(type | eq ::number) ~~| ~(/0)
+:any/divOf/divisor |~~ The number divided by. ::holds~(type | eq ::number) ~~| ~(/1)
+
+:any/allOf
+  |~~ Whether every condition the call computes against the subject holds:
+      two conditions of one record hold together by `allOf /active (/age |
+      gte 18)`. ::call~(allOf /active /verified)
+
+      ~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
+      ~({:active true :age 15} | allOf /active (/age | gte 18) | eq false)
+  ~~|
+  ~(conditions | every ~(/))
+
+:any/allOf/conditions
+  |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
+      ::holds~(every ~(type | eq ::boolean)) ~~|
+  ~(/)
+
+:any/anyOf
+  |~~ Whether some condition the call computes against the subject holds:
+      `anyOf /vip (/score | gt 95)`. ::call~(anyOf /vip /trial)
+
+      ~({:vip false :score 99} | anyOf /vip (/score | gt 95) | eq true)
+  ~~|
+  ~(conditions | any ~(/))
+
+:any/anyOf/conditions
+  |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
+      ::holds~(every ~(type | eq ::boolean)) ~~|
+  ~(/)
+
+:any/unionOf
+  |~~ The union of the maps or the sets the call computes against the
+      subject, in their order, a later key holding over an earlier: the
+      value of a pair with its name beside it is `unionOf /1 {:name (/0 |
+      keyword)}`. ::call~(unionOf /a /b)
+
+      ~({:a {:x 1} :b {:y 2}} | unionOf /a /b | eq {:x 1 :y 2})
+      ~([:auth {:port 3000}] | unionOf /1 {:name (/0 | keyword)} | eq {:port 3000 :name "auth"})
+  ~~|
+  ~(parts | drop 1 | reduce (parts | first) ~(union))
+
+:any/unionOf/parts
+  |~~ The maps or the sets, one at least. ::holds~(count | gt 0) ~~|
+  ~(/)

@@ -265,18 +265,19 @@ bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count)
 
 // `at` — indexed access with Array.prototype.at-style negative indices
 // on a sequence, a set indexing in its one order, and a soft lookup by
-// a keyword or a string on a map; a miss answers null, where the strict
-// `/key` projection refuses, and a soft read of null answers null, so
-// soft reads chain [D145].
-bindPrim(['null/at', 'vec/at', 'set/at', 'map/at'], (container, place) => {
-  if (container === NULL) return NULL;
+// a keyword or a string on a map; a miss answers the default the call
+// gives, null when it gives none, where the strict `/key` projection
+// refuses, and a soft read of null answers it too, so soft reads chain
+// [D145], [D166].
+bindPrim(['null/at', 'vec/at', 'set/at', 'map/at'], (container, place, fallback) => {
+  if (container === NULL) return fallback;
   if (isQMap(container)) {
     const lookupKey = isKeyword(place) ? place.name : place;
-    return container.has(lookupKey) ? container.get(lookupKey) : NULL;
+    return container.has(lookupKey) ? container.get(lookupKey) : fallback;
   }
   const index = wholeOrRefuse(place, AnyAtIndexNotIntegerError);
   const resolvedIndex = index < 0 ? container.length + index : index;
-  return (resolvedIndex >= 0 && resolvedIndex < container.length) ? container[resolvedIndex] : NULL;
+  return (resolvedIndex >= 0 && resolvedIndex < container.length) ? container[resolvedIndex] : fallback;
 });
 
 // `distinct` is the constructor of the set [D16]: the elements of a

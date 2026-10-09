@@ -12,10 +12,10 @@
 {"name":"doc-type-doc-false-quote","query":"~(x) | type | eq ::doc","expect":"false"}
 {"name":"doc-type-doc-false-number","query":"42 | type | eq ::doc","expect":"false"}
 {"name":"doc-type-doc-false-null","query":"null | type | eq ::doc","expect":"false"}
-{"name":"doc-eq-same-content","query":"eq (|~~ a ~~|) (|~~ a ~~|)","expect":"true"}
-{"name":"doc-eq-different-content","query":"eq (|~~ a ~~|) (|~~ b ~~|)","expect":"false"}
-{"name":"doc-eq-doc-vs-string","query":"eq (|~~ x ~~|) \"x\"","expect":"false"}
-{"name":"doc-eq-doc-vs-quote","query":"eq (|~~ x ~~|) ~(x)","expect":"false"}
+{"name":"doc-eq-same-content","query":"(|~~ a ~~|) | eq (|~~ a ~~|)","expect":"true"}
+{"name":"doc-eq-different-content","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
+{"name":"doc-eq-doc-vs-string","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
+{"name":"doc-eq-doc-vs-quote","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | content","expect":"\" second \"","decision":["D94","D95"]}

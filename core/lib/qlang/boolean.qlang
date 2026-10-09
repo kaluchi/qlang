@@ -36,14 +36,13 @@
 
 :boolean/and
   |~~ Whether the subject and the right condition both hold, each a
-      boolean. Given two conditions, `x | and a b` reads both against
-      the subject, the first as the subject of `and`, so it
-      composes the clauses of a predicate inside `filter`, `every`
-      and `if`.
+      boolean. Two conditions of one record hold together by `allOf`,
+      `allOf /active (/age | gte 18)`, which composes the clauses of a
+      predicate inside `filter`, `every` and `if`.
 
       ~(true | and false | eq false)
-      ~({:active true :age 25} | and /active (/age | gte 18) | eq true)
-      ~({:active false :age 25} | and /active (/age | gte 18) | eq false)
+      ~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
+      ~({:active false :age 25} | allOf /active (/age | gte 18) | eq false)
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 
@@ -69,13 +68,13 @@
 
 :boolean/or
   |~~ Whether the subject or the right condition holds, each a boolean.
-      Given two conditions, `x | or a b` reads both against the
-      subject, the first as the subject of `or`.
+      Conditions of one subject hold by one of them through `anyOf`,
+      `5 | anyOf (eq 5) (eq 10)`.
 
       ~(false | or true | eq true)
-      ~(5  | or (eq 5) (eq 10) | eq true)
-      ~(7  | or (eq 5) (eq 10) | eq false)
-      ~({:role "admin"} | or (/role | eq "admin") (/role | eq "owner") | eq true)
+      ~(5  | anyOf (eq 5) (eq 10) | eq true)
+      ~(7  | anyOf (eq 5) (eq 10) | eq false)
+      ~({:role "admin"} | anyOf (/role | eq "admin") (/role | eq "owner") | eq true)
   ~~|
   ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 

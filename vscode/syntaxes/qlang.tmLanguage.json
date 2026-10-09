@@ -109,7 +109,7 @@
     },
 
     "tagKeyword": {
-      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/AddLeftNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword-atom so leading `::` does not split into two keyword sigils.",
+      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword-atom so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },

@@ -7,8 +7,8 @@
 {"name":"cond-empty-string-is-truthy","query":"\"\" | if (eq \"\") ~(\"empty\") ~(\"non\")","expect":"\"empty\""}
 {"name":"cond-empty-vec-is-truthy","query":"[] | if (empty | not) ~(\"non-empty\") ~(\"empty\")","expect":"\"empty\""}
 {"name":"cond-empty-map-is-truthy-via-not-eq","query":"{} | if (eq {}) ~(\"empty-map\") ~(\"other\")","expect":"\"empty-map\""}
-{"name":"cond-using-and","query":"{:active true :verified true} | if (and /active /verified) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
-{"name":"cond-using-or","query":"{:vip false :score 99} | if (or /vip (/score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
+{"name":"cond-using-and","query":"{:active true :verified true} | if (allOf /active /verified) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
+{"name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf /vip (/score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"cond-using-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
 {"name":"then-uses-pipevalue-via-projection","query":"{:active true :salary 100} | if /active ~(/salary | mul 11 | div 10) ~(/salary)","expect":"110"}
 {"name":"else-uses-pipevalue-via-projection","query":"{:active false :salary 100} | if /active ~(/salary | mul 11 | div 10) ~(/salary)","expect":"100"}

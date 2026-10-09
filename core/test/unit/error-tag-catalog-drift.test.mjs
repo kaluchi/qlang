@@ -26,7 +26,7 @@ const REFUSALS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
 const session = await createSession();
 
 // The kinds the root declares under a noun whose name is a refusal's,
-// `number/AddLeftNotNumberError`.
+// `number/add/SubjectNotNumberError`.
 const refusalKinds = [];
 for (const [address, record] of session.env.get(ROOT_KEY)) {
   const [nounName, name] = splitAddress(address);

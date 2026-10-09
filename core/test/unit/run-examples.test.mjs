@@ -52,7 +52,7 @@ describe('runLaws reads a name as examples does', () => {
 describe('runLaws Quote-as-test outcomes', () => {
   it('Quote that lifts an error → ok:false with error message', async () => {
     const moduleSource =
-      ':demo |~~ broken example.\n    ~("x" | add 1 | eq 42) ~~|\n' +
+      ':demo |~~ broken example.\n    ~("x" | prepend 42 | eq 42) ~~|\n' +
       '1';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]

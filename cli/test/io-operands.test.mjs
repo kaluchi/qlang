@@ -73,10 +73,10 @@ describe('@out — full-application form (1 captured)', () => {
 
   it('answers the error its renderer answers, as every modifier of a verb does', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"x" | @out (add 1)', io);
+    const cellEntry = await runQuery('"x" | @out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'number/AddLeftNotNumberError', {
-      actualType: { name: 'string' }
+    expectOperandErrorThrown(cellEntry, 'string/PrependPrefixNotStringError', {
+      actualType: { name: 'number' }
     });
   });
 });

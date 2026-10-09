@@ -83,7 +83,7 @@ describe('assembling steps by hand', () => {
     // The tag an error literal writes before its bang is the tag of the
     // error it spells, so an error of any tag stands in a quote [D86].
     expect(await evalQuery('[("x" | add 1)] | tag ::quote | parse'))
-      .toBe('::number/AddLeftNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
+      .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });
 
   it('a required field left out does not fit the schema', async () => {

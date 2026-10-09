@@ -50,7 +50,7 @@
 {"name":"a-verb-of-comments-alone-is-a-contract","query":":c ::verb~(|~ nothing yet ~|) | 1 | c !| type","expect":"::call/KindAnswersNoVerbError","decision":["D67","D68"]}
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":m ::verb~(:x ::any | x) | 5 | m !{:k 1} !| /k","expect":"1","decision":["D67","D68"]}
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":all ::verb~(* :xs ::any | xs) | null | all 1 !{:k 2} !| /k","expect":"2","decision":["D67","D68"]}
-{"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":f ::verb~(:returns ::number | add \"a\") | 1 | f !| type","expect":"::number/AddRightNotNumberError","decision":["D67","D68"]}
+{"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":f ::verb~(:returns ::number | add \"a\") | 1 | f !| type","expect":"::number/add/addend/HoldsNotMetError","decision":["D67","D68"]}
 {"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos ::spec~(if (gt 0) ~(/) ~(!{:reason :not-positive})) | :f ::verb~(:subject ::Pos | payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::verb/SlotNotOfKindsError :not-positive]","decision":["D67","D68","D156"]}
 {"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos ::spec~(if (gt 0) ~(/) ~(!{:reason :not-positive})) | :dec ::verb~(:subject ::Pos | :returns / | payload | sub 1) | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":["D67","D68"]}
 {"name":"an-effectful-verb-under-a-clean-name-is-refused-at-its-call","query":":run ::verb~(:code ::verb | code) | null | run ::verb~(@callers) !| type","expect":"::call/EffectMarkMissingError","decision":["D67","D68"]}

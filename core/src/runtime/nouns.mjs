@@ -13,6 +13,7 @@ import {
   typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
+import { ROOT_KEY } from '../env-keys.mjs';
 import { isContract } from './verb.mjs';
 
 const ANY_KIND_NAME = 'any';
@@ -205,12 +206,34 @@ export function verbsReaching(env, kindNames) {
 
 // The nodes declared one name under a noun, by their last names.
 export function namesUnderOf(env, nounName) {
+  const root = rootOf(env);
   const under = new Map();
-  for (const [name, record] of bindingsOf(env)) {
+  for (const [lastName, record] of rootIndexOf(root).get(nounName) ?? []) under.set(lastName, record);
+  for (const [name, entry] of env) {
+    if (!isBinding(entry)) continue;
     const [kindName, lastName] = splitAddress(name);
-    if (kindName === nounName) under.set(lastName, record);
+    if (kindName === nounName) under.set(lastName, entry);
   }
   return under;
+}
+
+// The names of a root by the noun each is declared under, built once for
+// the root, which a change replaces whole.
+const ROOT_INDEXES = new WeakMap();
+
+function rootIndexOf(root) {
+  let index = ROOT_INDEXES.get(root);
+  if (index === undefined) {
+    index = new Map();
+    for (const [name, record] of root) {
+      const [nounName, lastName] = splitAddress(name);
+      if (nounName === null) continue;
+      if (!index.has(nounName)) index.set(nounName, new Map());
+      index.get(nounName).set(lastName, record);
+    }
+    ROOT_INDEXES.set(root, index);
+  }
+  return index;
 }
 
 // namesUnder(env, tagName) → the nodes declared one name under a noun,
@@ -240,10 +263,29 @@ export function verbNames(env) {
 // the verbs and of the names a label holds, each declared under a noun,
 // which a bare name of the reader may not take [D166].
 export function vocabularyWords(env) {
-  const words = new Set();
-  for (const [name, record] of bindingsOf(env)) {
+  const words = new Set(rootWordsOf(rootOf(env)));
+  for (const [name, entry] of env) {
+    if (!isBinding(entry)) continue;
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && (isVerb(bindingValueOf(record)) || residesOn(record, nounName, env))) words.add(lastName);
+    if (nounName !== null && isWordOf(entry, nounName, env)) words.add(lastName);
+  }
+  return words;
+}
+
+const isWordOf = (record, nounName, env) => isVerb(bindingValueOf(record)) || residesOn(record, nounName, env);
+
+// The words a root holds, gathered once for the root.
+const ROOT_WORDS = new WeakMap();
+
+function rootWordsOf(root) {
+  let words = ROOT_WORDS.get(root);
+  if (words === undefined) {
+    const rootScope = new Map([[ROOT_KEY, root]]);
+    words = new Set();
+    for (const [nounName, names] of rootIndexOf(root)) {
+      for (const [lastName, record] of names) if (isWordOf(record, nounName, rootScope)) words.add(lastName);
+    }
+    ROOT_WORDS.set(root, words);
   }
   return words;
 }

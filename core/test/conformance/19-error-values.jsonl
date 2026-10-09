@@ -1,7 +1,7 @@
 {"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{\n  :kind :oops\n  :message \"boom\"\n  :trail [\n    {\n      :step ~(!{:kind :oops :message \"boom\"})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"error-lit-empty","query":"!{}","expect":"!{\n  :trail [\n    {\n      :step ~(!{})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"error-operand-from-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}","decision":"D97"}
-{"name":"error-operand-full-form","query":"raise {:kind :oops}","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise {:kind :oops})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}","decision":"D97"}
+{"name":"error-operand-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}","decision":["D97","D165"]}
 {"name":"error-test-via-distribute-on-error","query":"[!{:kind :oops} 42] * (false !| true)","expect":"[true false]","decision":"D52"}
 {"name":"fail-apply-deflects-map-with-kind","query":"{:kind :oops} !| /kind","expect":"{:kind :oops}"}
 {"name":"fail-apply-deflects-null","query":"null !| /kind","expect":"null"}
@@ -21,17 +21,17 @@
 {"name":"a-stop-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} !| /trail/-1/skipped","expect":"~()","decision":"D85"}
 {"name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| /trail/-1/skipped","expect":"~(mul 3)","decision":"D85"}
 {"name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| /trail/-1/skipped","expect":"~(mul 3 | count)","decision":"D85"}
-{"name":"runtime-error-thrown","query":"\"hello\" | add 1 !| type","expect":"::number/AddLeftNotNumberError"}
-{"name":"runtime-error-category","query":"\"hello\" | add 1 !| type | spec | /category","expect":":typeError","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"runtime-error-thrown","query":"\"hello\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"runtime-error-category","query":"\"hello\" | add 1 !| type | spec | /category","expect":":typeError","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
 {"name":"runtime-div-zero-category","query":"10 | div 0 !| type | spec | /category","expect":":numericDomain","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"runtime-unresolved-category","query":"blah !| type | spec | /category","expect":":unresolvedIdentifier","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
-{"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] * add 10 !| [type /actualType]","expect":"[::number/AddLeftNotNumberError ::string]","decision":"D103"}
+{"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] * add 10 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D103"}
 {"name":"a-body-that-recovers-keeps-every-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]","decision":"D103"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"error-descriptor-not-map","query":"42 | raise !| type | spec | /category","expect":":typeError","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | raise | add 1 !| /trail/-1/skipped | parse","expect":"\"count | add 1\"","decision":["D85","D97"]}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union {:request \"r-1\"} | raise | count !| /request","expect":"\"r-1\"","decision":"D97"}
-{"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] * (add 10 !| type) | filter ~(eq ::number/AddLeftNotNumberError) | count","expect":"2","decision":"D103"}
+{"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] * (add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2","decision":"D103"}
 {"name":"a-relift-without-its-trail-starts-a-path","query":"!{:kind :oops} | count | add 1 !| minus #[:trail] | raise !| /trail * /step","expect":"[~(raise)]","decision":"D85"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail","expect":"[{:step ~(pre) :subject 1 :skipped ~()}]","decision":"D85"}
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
@@ -47,10 +47,10 @@
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError","decision":["D86","D115"]}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
 {"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail/-1/skipped | parse","expect":"\"* add 1\"","decision":"D85"}
-{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/AddLeftNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"a-slot-of-any-hands-an-error-on","query":"[1] | append (!{:k 1}) !| type","expect":"::error","decision":"D87"}
 {"name":"a-slot-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":f ::verb~(:x ::any | [x]) | 1 | f (!{:k 1}) !| /trail * /step","expect":"[~(!{:k 1}) ~((!{:k 1})) ~(f (!{:k 1}))]","decision":"D87"}
 {"name":"sort-without-a-key-ranks-an-error-it-holds","query":"[2 (!{:k 1}) 1] | sort | count","expect":"3","decision":"D87"}
 {"name":"a-distribute-stops-at-the-first-failure","query":"[1 \"x\" \"y\"] * (mul 2) !| /trail | first | /subject","expect":"\"x\"","decision":"D103"}
 {"name":"a-literal-holds-an-error-a-word-answers","query":"[1 (\"x\" | add 1)] | count","expect":"2","decision":["D87","D103"]}
-{"name":"a-distribute-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} * add 10 !| [type (/trail * /step)]","expect":"[::number/AddLeftNotNumberError [~(add 10) ~(* add 10)]]","decision":"D103"}
+{"name":"a-distribute-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} * add 10 !| [type (/trail * /step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(* add 10)]]","decision":"D103"}

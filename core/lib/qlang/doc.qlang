@@ -50,7 +50,7 @@
       snippet, is no law.
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | laws | eq [~(add 1) ~(mul 2)])
-      ~("x" | add 1 !| explain | page | laws | count | eq 1)
+      ~("x" | add 1 !| explain | page | laws | count | eq 3)
   ~~|
   ::verb~(:returns ::vec | ::builtin{})
 

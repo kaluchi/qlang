@@ -47,7 +47,7 @@ const documentStates = new Map();
 // Every source of the language takes part in goto-definition: its
 // declarations merge into one `address → { uri, source, range }` table,
 // and the runtime answers the address a bare name reaches, so `count`
-// and `::number/AddLeftNotNumberError` resolve through one lookup.
+// and `::number/add/SubjectNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 

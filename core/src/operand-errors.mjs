@@ -23,7 +23,7 @@
 // here extends `QlangTypeError`, so `instanceof QlangTypeError` holds
 // and `.kind` reads `typeError`, while the concrete class narrows the
 // throw site to one operand, place and condition:
-// `number/AddLeftNotNumberError`, `map/KeysSubjectNotMapError`.
+// `number/add/SubjectNotNumberError`, `map/KeysSubjectNotMapError`.
 
 import {
   QlangTypeError,

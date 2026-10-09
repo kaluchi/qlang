@@ -170,12 +170,15 @@
 
 :vec/at
   |~~ The element at the index, a negative one counting from the end,
-      or null past either end.
+      or past either end the default the call gives, null when it gives
+      none; an element that is null stays null.
 
       ~([10 20 30] | at 1 | eq 20)
       ~([10 20 30] | at -1 | eq 30)
+      ~([] | at 0 7 | eq 7)
+      ~([null] | at 0 7 | eq null)
   ~~|
-  ::verb~(:index ::number | ::builtin{})
+  ::verb~(:index ::number | :default #[::any ::null] | ::builtin{})
 
 :vec/distinct
   |~~ The set of the elements, the vector in the one order without

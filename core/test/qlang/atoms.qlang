@@ -25,7 +25,7 @@
       fail track reads, any other value as it is. The error rides a
       second error past the step that pairs a value, which leaves its
       trail on the second. ~~|
-  ::verb~(* (!| raise {:failed /} | [false /] !| [true /failed]))
+  ::verb~(* (!| ({:failed /} | raise) | [false /] !| [true /failed]))
 
 :groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the

@@ -22,13 +22,13 @@ describe('the sources of the language', () => {
 
 describe('the verbs of the language reach their primitives', () => {
 
-  it('spot-check — :add is a verb that resides on ::number [D72]', async () => {
+  it('spot-check — :add is a name under ::number a primitive answers [D164]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { isVerb, residenceOfVerb } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isHostDeclared } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
-    const addVerb = bindingValueOf(nodeOf(resolved, 'number/add'));
-    expect(isVerb(addVerb)).toBe(true);
-    expect(residenceOfVerb(addVerb)).toBe('number');
+    const add = bindingValueOf(nodeOf(resolved, 'number/add'));
+    expect(isBuiltinDescriptor(add)).toBe(true);
+    expect(isHostDeclared(add)).toBe(true);
   });
 
   it('spot-check — ::vec/filter takes its predicate in a slot of code [D72]', async () => {
@@ -76,14 +76,14 @@ describe('bare-name verb call', () => {
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
 
-  it('bare `mul` on a number leaves its slot empty and is refused by its name', async () => {
-    // The head of `mul` declares one slot, which a call without a
-    // modifier leaves empty [D68], [D72].
+  it('bare `mul` on a number gives no multiplier and is refused under the part', async () => {
+    // The part `multiplier` reads the first place of the object, which
+    // a call without a modifier leaves empty [D166].
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('5 | mul');
     expect(isErrorValue(evalResult)).toBe(true);
-    expect(evalResult.tag.name).toBe('verb/SlotMissingError');
+    expect(evalResult.tag.name).toBe('number/mul/multiplier/NotGivenError');
   });
 });
 

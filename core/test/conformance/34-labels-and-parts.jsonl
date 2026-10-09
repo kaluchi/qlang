@@ -21,3 +21,6 @@
 {"name":"the-args-a-refusal-holds-read-back-as-they-print","query":"1 | add 1 2 !| /actualValue | eq ::number/add[1 2]","expect":"true","decision":"D173"}
 {"name":"a-law-of-a-part-that-reads-the-args-whole-refuses-them","query":"{} | coalesce !| [type /actualValue]","expect":"[::any/coalesce/alternatives/EmptyError ::any/coalesce[]]","decision":"D173"}
 {"name":"the-tag-of-a-name-that-holds-a-value-builds-nothing","query":":limit 5 | ::limit[1] !| type","expect":"::construct/TagNotKindError","decision":"D173"}
+{"name":"a-word-of-no-part-reads-its-args","query":":any/n ~(args | count) | 5 | n","expect":"0","decision":"D173"}
+{"name":"a-law-under-a-word-holds-a-call-that-gives-nothing","query":":Box |~~ B ~~| | :Box/pick ~(5) | :Box/pick/NothingGivenError ::holds~(count | gt 0) | ::Box[1] | pick !| type","expect":"::Box/pick/NothingGivenError","decision":["D169","D173"]}
+{"name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":":limit 5 | [1] | tag ::limit !| type","expect":"::construct/TagNotKindError","decision":"D173"}

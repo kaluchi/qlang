@@ -796,17 +796,21 @@
 :any/laws
   |~~ The laws declared under the name the value reads, as `doc` reads
       it, in the order of their declarations: each one's name, which says
-      the claim it proves, and its query, which answers true. `runLaws`
-      runs them, and a law's page is the sentence of its claim. ~~|
+      the claim it proves, and the pair of its page, the sentence of the
+      claim, and its query, which answers true. `runLaws` runs them. ~~|
   ::builtin{}
 
 :any/laws/claims
-  |~~ The name of each law and its query. ~~|
+  |~~ The name of each law and the pair of its page and its query. ~~|
   ::map
 
 :any/laws/answersEachLawByItsName
   |~~ A law declared under a name is answered under its own name. ~~|
   ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | keys | eq #[:answersFive])
+
+:any/laws/pairsThePageWithTheQuery
+  |~~ Each law is the pair of its page and its query. ~~|
+  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | /answersFive | [(/0 | content) /1] | eq [" k answers five. " ~(0 | k | eq 5)])
 
 :any/laws/UnknownNameError
   |~~ `laws` found no declaration of the name it read, as `binding`

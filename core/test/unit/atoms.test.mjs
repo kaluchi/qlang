@@ -27,7 +27,7 @@ const OPEN_EXAMPLES = new Map([
   // The step of an error literal whose trail is no vector of stops:
   // `raise`, the one verb that builds an error from its fields, refuses
   // that trail, since the error a step produces holds its path there.
-  ['::law~(!{:kind :oops :trail 5} !| [type /actualType] | eq [::error/TrailNotVecError ::number])',
+  ['~(!{:kind :oops :trail 5} !| [type /actualType] | eq [::error/TrailNotVecError ::number])',
     'no verb builds an error step whose trail is no vector of stops'],
 ]);
 
@@ -53,7 +53,7 @@ async function unbuiltOf(valuesBySource) {
 
 async function catalogExamples() {
   const addresses = rootAddressesOf(await langRuntime());
-  const laws = [...await evalQuery(`[${addresses.join(' ')}] * (laws | vals) | flat`)];
+  const laws = [...await evalQuery(`[${addresses.join(' ')}] * (laws | vals * /1) | flat`)];
   return new Map(laws.map(law => [printValue(law), law]));
 }
 

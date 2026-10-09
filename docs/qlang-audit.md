@@ -967,15 +967,17 @@ narrated in the project's own text; the reference was «это не
 and what they said that the catalog did not stands as laws of its names,
 the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
-The documents left are the measure, the decisions, and the research of
-a design whose work has begun, which its records absorb as the work
-lands [D164]:
+The documents left are the measure, the decisions, the research of a
+design whose work has begun, which its records absorb as the work lands
+[D164], and the audit of a clean outside reader of the tree, kept as it
+wrote it:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
 docs/qlang-audit.md
 docs/qlang-entrypoint.md
 docs/research/legend/README.md
+docs/research/outside-audit/report.md
 ```
 
 What remains of the scar is the editor's hand-written TextMate grammar,

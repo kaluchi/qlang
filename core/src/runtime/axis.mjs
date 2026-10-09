@@ -146,7 +146,7 @@ export function pageTextOfRecord(record) {
 
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
-function pageOfRecord(record) {
+export function pageOfRecord(record) {
   const docs = record.get('docs');
   if (docs.length <= 1) return docs[0] ?? NULL;
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));

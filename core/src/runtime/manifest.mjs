@@ -1,13 +1,13 @@
 // `manifest` answers the nodes declared one name under a noun [D62],
-// `laws`, `links` and `snippets` the definitions in each role under a
-// name, and `runLaws` runs its laws, each primitive reading the state of
-// the call [D79]; the axes of one binding live in `axis.mjs`.
+// `laws` the laws declared under a name and `runLaws` runs them, each
+// primitive reading the state of the call [D79]; the axes of one binding
+// live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTagKeyword, isValueClass, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { recordReadBy, pageTextOfRecord } from './axis.mjs';
+import { recordReadBy, pageOfRecord, pageTextOfRecord } from './axis.mjs';
 import { namesUnder, definitionsInRole } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -21,12 +21,14 @@ function errorMessageOf(errorValue) {
 bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
 
 // The laws declared under the address of the record a value reads, as
-// `doc` reads it: each one's last name and its claim, in the order of
-// their declarations [D174].
+// `doc` reads it: each one's last name and the pair of its page, null for
+// a law without one, and its query, in the order of their declarations
+// [D174].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
 bindStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
-  return new Map(definitionsInRole(state.env, address, 'law').map(([lastName, record]) => [lastName, bindingValueOf(record)]));
+  return new Map(definitionsInRole(state.env, address, 'law').map(([lastName, record]) =>
+    [lastName, Object.freeze([pageOfRecord(record), lawQuoteOf(bindingValueOf(record))])]));
 });
 
 // A law runs one frame below the step in the caller's scope, the root

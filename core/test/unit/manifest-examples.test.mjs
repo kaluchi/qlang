@@ -68,7 +68,7 @@ describe('catalog self-test via runLaws', () => {
     // that loses code.
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | laws | vals | filter ~(payload | :example / | parse | parse | eq example | not)`);
+      const changed = await evalQuery(`${reader} | laws | vals * /1 | filter ~(:example / | parse | parse | eq example | not)`);
       if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);

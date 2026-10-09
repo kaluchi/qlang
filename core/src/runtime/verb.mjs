@@ -6,21 +6,18 @@
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
-import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf } from './nouns.mjs';
+import { bareNameReach, isMemberValue, partsOfName, residencesOf } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
-  bindingValueOf, isDoc, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
-  makeTagKeyword, makeTaggedInstance, typeKeyword
+  bindingValueOf, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
+  makeTagKeyword, typeKeyword
 } from '../types.mjs';
 
-// The value under a tag: through its label, the construct and the laws
-// declared under it, when the tag names one, as a bare overlay when the
-// tag names an identity alone; the verbs that keep a kind and `tag`
-// share it. A tag laid over an error answers the error, since no tag
-// stands over one [D86].
+// The value under a tag as its literal puts it there [D173]: the verbs
+// that keep a kind and `tag` share it. A tag laid over an error answers
+// the error, since no tag stands over one [D86].
 export async function mintUnderTag(state, tag, value) {
   if (isErrorValue(value)) return value;
-  if (!isDoc(bindingValueOf(nodeOf(state.env, tag.name)))) return makeTaggedInstance(tag, value);
   return await mintTaggedInstance(tag.name, value, state);
 }
 

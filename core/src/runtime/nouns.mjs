@@ -102,12 +102,18 @@ export function lawsUnder(env, address) {
   const laws = [];
   for (const [, record] of namesUnderOf(env, address)) {
     const value = bindingValueOf(record);
-    if (isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload)) laws.push([record.get('name').name, value.payload]);
+    if (isInvariant(value)) laws.push([record.get('name').name, value.payload]);
   }
   return laws;
 }
 
-const LAW_TAG_NAME = 'holds';
+// Whether a value is an invariant, a quote under `::holds`, whose name is
+// the refusal of a value that breaks it [D168].
+export function isInvariant(value) {
+  return isValueClass(value, 'taggedInstance') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
+}
+
+const INVARIANT_TAG_NAME = 'holds';
 
 // holdsRole(value, roleName) → whether a value holds the tag of a role,
 // `law`, `link` or `snippet`, under the stack of tags over it, a

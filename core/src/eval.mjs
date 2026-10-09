@@ -24,7 +24,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, isWord, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
+  addressesOf, answerOf, bareNameReach, isInvariant, isMemberValue, isUnderLabel, isWord, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
@@ -299,14 +299,15 @@ async function evalSetLit(node, state) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D168]; a tag no node answers is a kind of the
-// scope's own, identity, and the tag of a word lays itself over the args
-// of a call of it, which the call checks as it reads them, so the args a
-// call prints read back [D42], [D173]. A value a verb returns under its
+// scope's own, identity, the tag of a word lays itself over the args of a
+// call of it, which the call checks as it reads them, so the args a call
+// prints read back, and the tag of an invariant, the kind of the error it
+// refuses with, over the facts a reader raises again [D42], [D173]. A value a verb returns under its
 // subject's tag is minted here again [D41]; no constructor meets an
 // error [D86].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
-  if (declared === null || declared === undefined || isWord(state.env, tagName)) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isDoc(declared)) {
     throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualValue: declared });
   }
@@ -601,7 +602,7 @@ async function applyMember(record, lambdas, state) {
     return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.env, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
-  const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope);
+  const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope, isQuote(member));
   if (isErrorValue(called)) return withPipeValue(state, called);
   const answer = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
@@ -686,10 +687,10 @@ function placesReadBy(parts) {
 // name, args that break a law declared under the name under the law, a
 // part the args do not hold under the part, and a part that breaks a law
 // declared under it under the law [D169], [D173]. Answers the values of
-// the parts in their order and the scope of the body, where each part is
-// bound by its name and the args as `args`.
-async function argsOf(address, parts, lambdas, state, scope) {
-  if (lambdas.length === 0 && parts.length === 0) return { values: [], bodyEnv: scope };
+// the parts in their order and, for a word of the language, the scope of
+// its body, where each part is bound by its name and the args as `args`;
+// a host's word reads the values alone.
+async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
     const value = await lambda(state.pipeValue);
@@ -701,7 +702,7 @@ async function argsOf(address, parts, lambdas, state, scope) {
   if (places !== null && values.length > places) return refusalUnder(`${address}/ArgsBeyondPartsError`, { places, actualValue: args }, scope);
   const argsRefused = await refusalOfLaws(address, args, state, scope);
   if (argsRefused !== null) return argsRefused;
-  let bodyEnv = envSet(scope, 'args', makeBinding({ name: keyword('args'), value: args }));
+  let bodyEnv = bindsNames ? envSet(scope, 'args', makeBinding({ name: keyword('args'), value: args })) : null;
   const partValues = [];
   const taken = [];
   for (const [partName, partRecord] of parts) {
@@ -716,7 +717,7 @@ async function argsOf(address, parts, lambdas, state, scope) {
     const handed = servedByLaw(kindLaw, part);
     partValues.push(handed);
     taken.push({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindLaw?.kinds?.includes('quote') ?? false) });
-    bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
+    if (bindsNames) bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
   return { values: partValues, taken, bodyEnv };
 }

@@ -5,6 +5,10 @@
 // link stands on. A verb renamed, a tag removed or an anchor misspelt under
 // a link fails here, where a mention in the prose would have gone stale in
 // silence. The pages are read at the address of every name the root holds.
+// A snippet answers whatever the situation it reproduces gives, an error
+// among them, and is held to reading as code alone: one that does not
+// falls to the prose of its page, where the check of the catalog's prose
+// finds it.
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -32,22 +36,19 @@ function wrongTarget(answer, declaredPages, ownPage) {
   return null;
 }
 
-// The links and the snippets of every page, each with the address of the
-// page it stands on, and the printed page of every name of the root.
+// The links of every page, each with the address of the page it stands
+// on, and the printed page of every name of the root.
 let links;
-let snippets;
 let declaredPages;
 
 beforeAll(async () => {
   links = [];
-  snippets = [];
   declaredPages = new Set();
   for (const address of rootAddressesOf(await langRuntime())) {
     const page = await evalQuery(`${address} | doc`);
     if (!isDoc(page)) continue;
     declaredPages.add(printValue(page));
     for (const link of await evalQuery(`${address} | doc | links`)) links.push({ address, page: printValue(page), query: queryOfLink(link) });
-    for (const snippet of await evalQuery(`${address} | doc | snippets`)) snippets.push({ address, query: queryOfLink(snippet) });
   }
 }, 120_000);
 
@@ -71,14 +72,5 @@ describe('the links of the catalog [D108], [D175]', () => {
     }
     expect(wrong).toEqual([]);
     expect(links.length).toBeGreaterThan(0);
-  }, 120_000);
-
-  it('every snippet answers without an error [D122]', async () => {
-    const failing = [];
-    for (const snippet of snippets) {
-      if (isErrorValue(await evalQuery(snippet.query))) failing.push(`${snippet.address}: ~(${snippet.query})`);
-    }
-    expect(failing).toEqual([]);
-    expect(snippets.length).toBeGreaterThan(0);
   }, 120_000);
 });

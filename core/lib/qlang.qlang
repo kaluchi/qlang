@@ -809,8 +809,9 @@
       listing, ::snippet~(::vec | manifest), or a demonstration of
       a form, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
       link opens a page; a snippet answers whatever it shows, which
-      `open` runs, and `snippets` reads the snippets of a doc. The suite
-      runs every snippet of the catalog, so none answers an error.
+      `open` runs, and `snippets` reads the snippets of a doc. A snippet
+      reproduces a situation for its reader, so it may answer an error;
+      the suite holds it to reading as code alone.
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
 

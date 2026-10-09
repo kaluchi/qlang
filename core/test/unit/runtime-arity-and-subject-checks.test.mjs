@@ -133,16 +133,13 @@ describe('a slot left without its modifier', async () => {
 });
 
 describe('setops bare-form empty Vec', async () => {
-  it('minus bare on empty Vec throws VecMinusOfNothingError', async () => {
-    expect(isErrorValue(await evalQuery('[] | minus'))).toBe(true);
-  });
-
-  it('inter bare on empty Vec throws VecInterOfNothingError', async () => {
-    expect(isErrorValue(await evalQuery('[] | inter'))).toBe(true);
-  });
-
-  it('union bare on empty Vec throws VecUnionOfNothingError', async () => {
-    expect(isErrorValue(await evalQuery('[] | union'))).toBe(true);
+  it('a fold of no operands is refused by the word that folds, on a vector and on a set [D172]', async () => {
+    for (const kind of ['vec', 'set']) {
+      for (const verb of ['union', 'minus', 'inter']) {
+        const empty = kind === 'vec' ? '[]' : '#[]';
+        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/NoOperandsError`);
+      }
+    }
   });
 });
 

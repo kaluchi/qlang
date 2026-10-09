@@ -619,7 +619,7 @@
       refused with the pair.
 
       ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
-      ~([1] | union #[2] !| type | eq ::vec/UnionOperandsMismatchedError)
+      ~([1] | union #[2] !| type | eq ::vec/union/OperandsMismatchedError)
   ~~|
   ::builtin{}
 
@@ -631,31 +631,28 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/UnionOfNothingError
+:vec/union/NoOperandsError
   |~~ `union` over a vector joins its operands from the first, `[a b c]
       | union`, so the vector holds one at least; two operands are
       written `a | union b`.
-      ~(
-        [] | union
-        !| [type]
-        |  eq [::vec/UnionOfNothingError]
-       )
+
+      ~([] | union !| type | eq ::vec/union/NoOperandsError)
   ~~|
 
-:vec/UnionOperandsMismatchedError
-  |~~ The operands `union` joins are two sets or two maps.
-      ~(
-        [#[:a] {:b 1}] | union
-        !| [type /leftType /rightType]
-        |  eq [::vec/UnionOperandsMismatchedError ::set ::map]
-       )
+:vec/union/OperandsMismatchedError
+  |~~ The operands `union` joins are two sets or two maps; a vector is
+      none, so an operand its call gives beside the vector is refused with
+      the pair.
+
+      ~([#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::set ::map])
+      ~([1] | union #[2] !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::vec ::set])
   ~~|
 
-:vec/UnionOperandsMismatchedError/leftType
+:vec/union/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
   ::tag
 
-:vec/UnionOperandsMismatchedError/rightType
+:vec/union/OperandsMismatchedError/rightType
   |~~ The kind of the operand on the right. ~~|
   ::tag
 
@@ -675,34 +672,37 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/MinusOfNothingError
+:vec/minus/NoOperandsError
   |~~ `minus` over a vector joins its operands from the first, `[a b c]
       | minus`, so the vector holds one at least; two operands are
       written `a | minus b`.
-      ~(
-        [] | minus
-        !| [type]
-        |  eq [::vec/MinusOfNothingError]
-       )
+
+      ~([] | minus !| type | eq ::vec/minus/NoOperandsError)
   ~~|
 
-:vec/MinusOperandsMismatchedError
+:vec/minus/OperandsMismatchedError
   |~~ The operands `minus` joins are two sets, or a map and a map or a
-      vector of keys.
-      ~(
-        [#[:a] {:b 1}] | minus
-        !| [type /leftType /rightType]
-        |  eq [::vec/MinusOperandsMismatchedError ::set ::map]
-       )
+      vector of keys; a vector is none, so an operand its call gives beside
+      the vector is refused with the pair.
+
+      ~([#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::set ::map])
+      ~([1] | minus #[2] !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::vec ::set])
   ~~|
 
-:vec/MinusOperandsMismatchedError/leftType
+:vec/minus/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
   ::tag
 
-:vec/MinusOperandsMismatchedError/rightType
+:vec/minus/OperandsMismatchedError/rightType
   |~~ The kind of the operand on the right. ~~|
   ::tag
+
+:vec/minus/KeyNotKeywordOrStringError
+  |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
+      names the first element of the vector of keys that is neither.
+
+      ~([{:a 1} [:a 1]] | minus !| [type /actualType /index] | eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
+  ~~|
 
 :vec/inter
   |~~ The intersection of the operands the vector holds; another operand
@@ -720,34 +720,37 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/InterOfNothingError
+:vec/inter/NoOperandsError
   |~~ `inter` over a vector joins its operands from the first, `[a b c]
       | inter`, so the vector holds one at least; two operands are
       written `a | inter b`.
-      ~(
-        [] | inter
-        !| [type]
-        |  eq [::vec/InterOfNothingError]
-       )
+
+      ~([] | inter !| type | eq ::vec/inter/NoOperandsError)
   ~~|
 
-:vec/InterOperandsMismatchedError
+:vec/inter/OperandsMismatchedError
   |~~ The operands `inter` joins are two sets, or a map and a map or a
-      vector of keys.
-      ~(
-        [#[:a] {:b 1}] | inter
-        !| [type /leftType /rightType]
-        |  eq [::vec/InterOperandsMismatchedError ::set ::map]
-       )
+      vector of keys; a vector is none, so an operand its call gives beside
+      the vector is refused with the pair.
+
+      ~([#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::set ::map])
+      ~([1] | inter #[2] !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::vec ::set])
   ~~|
 
-:vec/InterOperandsMismatchedError/leftType
+:vec/inter/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
   ::tag
 
-:vec/InterOperandsMismatchedError/rightType
+:vec/inter/OperandsMismatchedError/rightType
   |~~ The kind of the operand on the right. ~~|
   ::tag
+
+:vec/inter/KeyNotKeywordOrStringError
+  |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
+      names the first element of the vector of keys that is neither.
+
+      ~([{:a 1} [[:a]]] | inter !| [type /actualType /index] | eq [::vec/inter/KeyNotKeywordOrStringError ::vec 0])
+  ~~|
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between

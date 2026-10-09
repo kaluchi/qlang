@@ -114,16 +114,16 @@ describe('deepEqual Set keyword mismatch', async () => {
 });
 
 describe('setops keyword-aware minus/inter with mixed Set members', async () => {
-  it('Map×Set minus refuses a member that names no key [D139]', async () => {
+  it('Map×Set minus refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
-    expect(result.name).toBe('map/MinusKeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/minus/KeyNotKeywordOrStringError');
   });
 
-  it('Map×Set inter refuses a member that names no key [D139]', async () => {
+  it('Map×Set inter refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
-    expect(result.name).toBe('map/InterKeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/inter/KeyNotKeywordOrStringError');
   });
 });
 

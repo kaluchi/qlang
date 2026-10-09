@@ -13,6 +13,6 @@
 {"name":"bare-minus-sets","query":"[#[:a :b :c] #[:b :d]] | minus","expect":"#[:a :c]"}
 {"name":"bare-inter-sets","query":"[#[:a :b :c] #[:b :d]] | inter","expect":"#[:b]"}
 {"name":"bare-union-maps","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
-{"name":"bare-union-empty-error","query":"[] | union","expect":"::vec/UnionOfNothingError!{\n  :trail [\n    {\n      :step ~(union)\n      :subject []\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"bare-union-empty-error","query":"[] | union","expect":"::vec/union/NoOperandsError!{\n  :trail [\n    {\n      :step ~(union)\n      :subject []\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"bare-union-singleton","query":"[#[:only]] | union","expect":"#[:only]"}
 {"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}","decision":"D165"}

@@ -433,6 +433,27 @@
   |~~ The elements of both sets. ~~|
   ::set
 
+:set/union/NoOperandsError
+  |~~ `union` over a set its call leaves without the other operand joins
+      the operands the set holds, so the set holds one at least.
+
+      ~(#[] | union !| type | eq ::set/union/NoOperandsError)
+  ~~|
+
+:set/union/OperandsMismatchedError
+  |~~ The operands `union` joins inside a set are two sets or two maps.
+
+      ~(#[#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::set/union/OperandsMismatchedError ::set ::map])
+  ~~|
+
+:set/union/OperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:set/union/OperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
+
 :set/minus
   |~~ The set of the elements the other set lacks.
 
@@ -452,6 +473,27 @@
   |~~ The elements the other set does not hold. ~~|
   ::set
 
+:set/minus/NoOperandsError
+  |~~ `minus` over a set its call leaves without the other operand joins
+      the operands the set holds, so the set holds one at least.
+
+      ~(#[] | minus !| type | eq ::set/minus/NoOperandsError)
+  ~~|
+
+:set/minus/OperandsMismatchedError
+  |~~ The operands `minus` joins inside a set are two sets or two maps.
+
+      ~(#[#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::set/minus/OperandsMismatchedError ::set ::map])
+  ~~|
+
+:set/minus/OperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:set/minus/OperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
+
 :set/inter
   |~~ The set of the elements both sets hold.
 
@@ -470,6 +512,27 @@
 :set/inter/common
   |~~ The elements both sets hold. ~~|
   ::set
+
+:set/inter/NoOperandsError
+  |~~ `inter` over a set its call leaves without the other operand joins
+      the operands the set holds, so the set holds one at least.
+
+      ~(#[] | inter !| type | eq ::set/inter/NoOperandsError)
+  ~~|
+
+:set/inter/OperandsMismatchedError
+  |~~ The operands `inter` joins inside a set are two sets or two maps.
+
+      ~(#[#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::set/inter/OperandsMismatchedError ::set ::map])
+  ~~|
+
+:set/inter/OperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:set/inter/OperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
 
 :set/has
   |~~ Whether the set holds the element, found by a binary search in

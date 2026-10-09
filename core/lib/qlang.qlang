@@ -455,6 +455,17 @@
       ~(::vec | doc | snippets | count | gt 0)
   ~~|
 
+:law
+  |~~ The kind of a law, a query that answers true, declared as a
+      definition under the name whose behaviour it proves: the name says
+      the claim, the page is its sentence, and `laws` answers the laws
+      of a name, which `runLaws` runs.
+  ~~|
+
+:law/provesItsClaim
+  |~~ A law declared under a name proves its claim when it runs. ~~|
+  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | runLaws * /ok | eq [true])
+
 :explanation
   |~~ The kind of what `explain` answers: the page `doc` reads
       for a value under `:page`, then the value itself under `:value`, so

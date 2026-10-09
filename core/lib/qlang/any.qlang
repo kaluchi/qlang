@@ -597,6 +597,103 @@
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 
+:any/laws
+  |~~ The laws declared under the name the value reads, as `doc` reads
+      it, in the order of their declarations: each one's name, which says
+      the claim it proves, and its query, which answers true. `runLaws`
+      runs them, and a law's page is the sentence of its claim. ~~|
+  ::builtin{}
+
+:any/laws/claims
+  |~~ The name of each law and its query. ~~|
+  ::map
+
+:any/laws/answersEachLawByItsName
+  |~~ A law declared under a name is answered under its own name. ~~|
+  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | keys | eq #[:answersFive])
+
+:any/laws/UnknownNameError
+  |~~ `laws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+  ~~|
+
+:any/laws/UnknownNameError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/laws/UnknownNameError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/laws/UnknownNameError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
+
+:any/links
+  |~~ The links declared under the name the value reads, as `doc` reads
+      it, in the order of their declarations: each one's name and its
+      query, which `open` follows to the page it names. ~~|
+  ::builtin{}
+
+:any/links/targets
+  |~~ The name of each link and its query. ~~|
+  ::map
+
+:any/links/opensThePagesTheyName
+  |~~ Each link opens the page it names. ~~|
+  ::law~(:any/k ~(5) | :any/k/seeNumber |~~ The page of numbers. ~~| ::link~(::number | doc) | ::any/k | links * open | /seeNumber | eq (::number | doc))
+
+:any/links/UnknownNameError
+  |~~ `links` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+  ~~|
+
+:any/links/UnknownNameError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/links/UnknownNameError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/links/UnknownNameError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
+
+:any/snippets
+  |~~ The snippets declared under the name the value reads, as `doc`
+      reads it, in the order of their declarations: each one's name and
+      its query, which `open` runs to show what it shows. ~~|
+  ::builtin{}
+
+:any/snippets/shows
+  |~~ The name of each snippet and its query. ~~|
+  ::map
+
+:any/snippets/runsEachToShowIt
+  |~~ Each snippet runs to show what it shows. ~~|
+  ::law~(:any/k ~(5) | :any/k/sorted |~~ A sort. ~~| ::snippet~([2 1] | sort) | ::any/k | snippets * open | eq {:sorted [1 2]})
+
+:any/snippets/UnknownNameError
+  |~~ `snippets` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+  ~~|
+
+:any/snippets/UnknownNameError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/snippets/UnknownNameError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/snippets/UnknownNameError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
+
 :any/tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
       partner of the split `[type payload]`: a value is minted under a

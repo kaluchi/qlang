@@ -4,20 +4,12 @@
 // the role of a link or a snippet [D108], [D122].
 
 import { bindPrim } from '../primitives.mjs';
-import { isQuote, isValueClass } from '../types.mjs';
+import { isQuote } from '../types.mjs';
 import { docText } from '../quote.mjs';
+import { holdsRole } from './nouns.mjs';
 
 bindPrim('doc/content', docText);
 bindPrim('doc/segments', doc => Object.freeze([...doc]));
 bindPrim('doc/laws', doc => Object.freeze(doc.filter(isQuote)));
 bindPrim('doc/links', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'link'))));
 bindPrim('doc/snippets', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'snippet'))));
-
-// A segment in a role: a quote under a stack of tags that holds the tag
-// of the role, `::link` or `::snippet`, a host's tag over it among them.
-function holdsRole(segment, roleName) {
-  for (let beneath = segment; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
-    if (beneath.tag.name === roleName) return true;
-  }
-  return false;
-}

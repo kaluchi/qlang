@@ -91,7 +91,7 @@
 {"name": "a-source-no-short-run-of-closers-completes-lists-the-continuations", "query": "\"[[[[[ |~~ a\" | parse !| /expected | has :any-character", "expect": "true", "decision": "D125"}
 {"name":"a-pipe-before-distribute-stands-for-it","query":"[1 2] | * (add 1)","expect":"[2 3]","decision":"D130"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] * (mul 2) | !| 0","expect":"0","decision":"D130"}
-{"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}
+{"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| /addresses","expect":"#[::doc/content]","decision":"D127"}
 {"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
 {"name":"a-part-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f ~(apply q) | :any/f/q ~(/0) | :any/f/q/NotQuoteError ::holds~(is ::quote) | 1 | f /x !| type","expect":"::any/f/q/NotQuoteError","decision":["D129","D169"]}
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}

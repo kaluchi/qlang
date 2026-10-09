@@ -30,6 +30,7 @@ import {
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
+import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -158,6 +159,13 @@ bindStateReader('any/binding', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
 bindStateReader('any/source', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, AnySourceUnknownNameError).get('source'));
+// The text of the page of a record, or null for a declaration without
+// one, the sentence of a law among them [D174].
+export function pageTextOfRecord(record) {
+  const page = pageOfRecord(record);
+  return isNull(page) ? NULL : docText(page).trim().replace(/\s+/g, ' ');
+}
+
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
 function pageOfRecord(record) {

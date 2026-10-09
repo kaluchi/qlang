@@ -1,0 +1,7 @@
+{"name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | keys","expect":"#[:answersFive]","decision":"D174"}
+{"name":"run-laws-names-each-law-by-its-address-and-its-claim-by-its-page","query":":any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | runLaws | first | [/law /says /ok]","expect":"[::any/k/answersFive \"k answers five.\" true]","decision":"D174"}
+{"name":"a-law-without-a-page-claims-nothing-it-says","query":":any/k ~(5) | :any/k/answersFive ::law~(0 | k | eq 5) | ::any/k | runLaws | first | [/says /ok]","expect":"[null true]","decision":"D174"}
+{"name":"a-law-that-answers-false-fails","query":":any/k ~(5) | :any/k/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::any/k | runLaws | first | /ok","expect":"false","decision":"D174"}
+{"name":"the-links-of-a-name-open-the-pages-they-name","query":":any/k ~(5) | :any/k/seeNumber |~~ The page of numbers. ~~| ::link~(::number | doc) | ::any/k | links * open | /seeNumber | eq (::number | doc)","expect":"true","decision":"D174"}
+{"name":"the-snippets-of-a-name-run-to-show-what-they-show","query":":any/k ~(5) | :any/k/sorted |~~ A sort. ~~| ::snippet~([2 1] | sort) | ::any/k | snippets * open","expect":"{:sorted [1 2]}","decision":"D174"}
+{"name":"a-name-with-no-laws-has-none","query":":any/k ~(5) | ::any/k | laws","expect":"{}","decision":"D174"}

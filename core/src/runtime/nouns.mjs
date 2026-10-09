@@ -109,6 +109,23 @@ export function lawsUnder(env, address) {
 
 const LAW_TAG_NAME = 'holds';
 
+// holdsRole(value, roleName) → whether a value holds the tag of a role,
+// `law`, `link` or `snippet`, under the stack of tags over it, a
+// host's among them [D108].
+export function holdsRole(value, roleName) {
+  for (let beneath = value; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
+    if (beneath.tag.name === roleName) return true;
+  }
+  return false;
+}
+
+// definitionsInRole(env, address, roleName) → the definitions declared
+// one name under an address whose value holds the tag of a role, each
+// `[lastName, record]` in the order of their declarations [D169].
+export function definitionsInRole(env, address, roleName) {
+  return [...namesUnderOf(env, address)].filter(([, record]) => holdsRole(bindingValueOf(record), roleName));
+}
+
 // The kinds a tag or a set of tags names, or null for any other value.
 function kindsNamedBy(value) {
   if (isTagKeyword(value)) return [value.name];

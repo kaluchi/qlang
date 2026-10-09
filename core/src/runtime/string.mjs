@@ -5,17 +5,18 @@
 //
 // The verbs live in lib/qlang/string.qlang and vec.qlang.
 
-import { isVec } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 
 // An element `join` writes is a string.
-const VecJoinElementNotStringError = declareRefusal('vec/JoinElementNotStringError');
+const VecJoinElementNotStringError = declareRefusal('vec/join/ElementNotStringError');
 
 // A string takes its prefix or its suffix, a vector its element at the
 // head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
-bindPrim(['string/prepend', 'vec/prepend'], (subject, prefix) => (isVec(subject) ? [prefix, ...subject] : prefix + subject));
-bindPrim(['string/append', 'vec/append'],  (subject, suffix) => (isVec(subject) ? [...subject, suffix] : subject + suffix));
+bindPrim('string/prepend', (text, prefix) => prefix + text);
+bindPrim('vec/prepend', (vector, element) => [element, ...vector]);
+bindPrim('string/append', (text, suffix) => text + suffix);
+bindPrim('vec/append', (vector, element) => [...vector, element]);
 
 bindPrim('string/split', (subject, separator) => subject.split(separator));
 

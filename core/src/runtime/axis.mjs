@@ -36,11 +36,11 @@ import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
-export const AnySourceBindingNotFoundError = declareRefusal('any/SourceBindingNotFoundError');
-export const AnyDocBindingNotFoundError = declareRefusal('any/DocBindingNotFoundError');
-const AnyBindingNotFoundError = declareRefusal('any/BindingNotFoundError');
-const AnyDocAnchorNotKeywordError = declareRefusal('any/DocAnchorNotKeywordError');
-export const AnyExplainBindingNotFoundError = declareRefusal('any/ExplainBindingNotFoundError');
+export const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
+export const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
+const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
+const AnyDocAnchorNotKeywordError = declareRefusal('any/doc/AnchorNotKeywordError');
+export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
 // The name a refusal says a subject read: a keyword or a tag name
 // itself, and for every other value the tag of its kind, the kind `type`
@@ -155,9 +155,9 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
 }
 
 bindStateReader('any/binding', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnyBindingNotFoundError));
+  recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
 bindStateReader('any/source', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnySourceBindingNotFoundError).get('source'));
+  recordReadBy(subject, memberName, state, AnySourceUnknownNameError).get('source'));
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
 function pageOfRecord(record) {
@@ -175,10 +175,10 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 // of the record the one before it reached, the empty path the record of
 // the subject itself [D119].
 function recordAlongPath(subject, anchors, state) {
-  if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocBindingNotFoundError);
+  if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
     if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualValue: anchor });
-    return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocBindingNotFoundError);
+    return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocUnknownNameError);
   }, subject);
 }
 
@@ -211,7 +211,7 @@ function heldByExplanation(subject) {
 // explanation prints as the page above what it explains [D98].
 const EXPLANATION_TAG = makeTagKeyword('explanation');
 bindStateReader('any/explain', (subject, state) => {
-  const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainBindingNotFoundError));
+  const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
 

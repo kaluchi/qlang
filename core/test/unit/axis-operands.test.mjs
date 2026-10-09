@@ -19,7 +19,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({ sources: [{ uri: 'tests/scalar-only', source: '42' }] });
     const cellEntry = await session.evalCell(':missing | source !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
+    expect(cellEntry.result).toEqual(makeTagKeyword('any/source/UnknownNameError'));
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
@@ -33,7 +33,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
     // A cell's declaration writes its record into the session's scope;
     // the regression that first flagged the gap was `qlang ':foo |~~
-    // note ~~| | :foo | doc'` returning AnyDocBindingNotFoundError
+    // note ~~| | :foo | doc'` returning AnyDocUnknownNameError
     // instead of the attached doc.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
@@ -89,10 +89,10 @@ describe(':name | doc returns the page its attached prefixes make', () => {
     expect(await evalQuery('42 | doc | eq (::number | doc)')).toBe(true);
   });
 
-  it('unknown binding raises AnyDocBindingNotFoundError', async () => {
+  it('unknown binding raises AnyDocUnknownNameError', async () => {
     const err = await evalQuery(':totallyMadeUp | doc');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
+    expect(err.tag).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
   });
 
   it('a value whose kind no binding declares is refused under its kind', async () => {
@@ -116,7 +116,7 @@ describe(':name | doc | laws extracts Quote segments from docs', () => {
 
 describe('axis-operands read the node a tag addresses', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
+    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTagKeyword('any/source/UnknownNameError'));
   });
 
   it('a keyword naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
@@ -150,7 +150,7 @@ describe('axis-operands read the node a tag addresses', () => {
   it('a tag no declaration names is refused by its address', async () => {
     const result = await evalQuery('::Foo | doc');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.originalError.name).toBe('DocBindingNotFoundError');
+    expect(result.originalError.address).toBe('any/doc/UnknownNameError');
     expect(result.originalError).toBeInstanceOf(QlangError);
     expect(result.originalError.context.name.literal).toBe('::Foo');
   });
@@ -179,7 +179,7 @@ describe('the axes read what a source of the root declared', () => {
 
   it('refuses a name no source declares', async () => {
     const session = await sessionOf(':somethingElse 1');
-    expect((await session.evalCell(':notHere | source !| type')).result.name).toBe('any/SourceBindingNotFoundError');
+    expect((await session.evalCell(':notHere | source !| type')).result.name).toBe('any/source/UnknownNameError');
   });
 });
 

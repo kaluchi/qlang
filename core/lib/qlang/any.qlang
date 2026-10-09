@@ -242,14 +242,11 @@
   |~~ The alternatives, in their order. ~~|
   ~(/)
 
-:any/CoalesceNoAlternativesError
+:any/coalesce/NoAlternativesError
   |~~ `coalesce` answers the first of its alternatives that answers a
       value, so it takes one at least, `coalesce ~(/nickname) ~("anonymous")`.
-      ~(
-        {} | coalesce
-        !| [type]
-        |  eq [::any/CoalesceNoAlternativesError]
-       )
+
+      ~({} | coalesce !| type | eq ::any/coalesce/NoAlternativesError)
   ~~|
 
 :any/cond
@@ -273,25 +270,22 @@
   |~~ Each of the clauses is code, a quote. ~~|
   ::holds~(every ~(is ::quote))
 
-:any/CondNoBranchesError
+:any/cond/NoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
       last clause alone the default; a call without one pair, a lone
       default among them, has nothing to answer.
-      ~(
-        5 | cond
-        !| [type]
-        |  eq [::any/CondNoBranchesError]
-       )
+
+      ~(5 | cond !| type | eq ::any/cond/NoBranchesError)
   ~~|
 
-:any/CondConditionNotBooleanError
+:any/cond/ConditionNotBooleanError
   |~~ Every predicate of `cond` answers a boolean; `:index` is the place
       in the object, from zero, of the predicate that answered another
       kind.
       ~(
         5 | cond ~(1) ~("yes")
         !| [type /index /actualType]
-        |  eq [::any/CondConditionNotBooleanError 0 ::number]
+        |  eq [::any/cond/ConditionNotBooleanError 0 ::number]
        )
   ~~|
 
@@ -401,7 +395,7 @@
   |~~ The record of the name. ~~|
   ::binding
 
-:any/BindingNotFoundError
+:any/binding/UnknownNameError
   |~~ `binding` found no declaration of the name it read: a keyword that
       names no binding of its scope, the last name of a verb declared
       under a kind among them, or a tag name that names nothing.
@@ -414,19 +408,19 @@
       ~(
         :nonexistent-binding | binding
         !| [type /name]
-        |  eq [::any/BindingNotFoundError :nonexistent-binding]
+        |  eq [::any/binding/UnknownNameError :nonexistent-binding]
        )
   ~~|
 
-:any/BindingNotFoundError/name
+:any/binding/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|
   #[::keyword ::tag]
 
-:any/BindingNotFoundError/addresses
+:any/binding/UnknownNameError/addresses
   |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
   ::set
 
-:any/BindingNotFoundError/nearest
+:any/binding/UnknownNameError/nearest
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 
@@ -459,28 +453,28 @@
   |~~ The code of the declaration, null for a value a host bound. ~~|
   #[::quote ::null]
 
-:any/SourceBindingNotFoundError
+:any/source/UnknownNameError
   |~~ `source` found no declaration of the name it read, as `binding`
       finds none.
-      ::link~(::any/BindingNotFoundError | doc)
+      ::link~(::any/binding/UnknownNameError | doc)
 
       ~(
         :nonexistent-binding | source
         !| [type /name]
-        |  eq [::any/SourceBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/source/UnknownNameError :nonexistent-binding]
        )
       ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
 
-:any/SourceBindingNotFoundError/name
+:any/source/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|
   #[::keyword ::tag]
 
-:any/SourceBindingNotFoundError/addresses
+:any/source/UnknownNameError/addresses
   |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
   ::set
 
-:any/SourceBindingNotFoundError/nearest
+:any/source/UnknownNameError/nearest
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 
@@ -526,38 +520,38 @@
   |~~ The page of the name, null for a declaration without one. ~~|
   #[::doc ::null ::vec]
 
-:any/DocBindingNotFoundError
+:any/doc/UnknownNameError
   |~~ `doc` found no declaration of the name it read, as `binding` finds
       none, or no member of the page before it under an anchor of its
       path.
-      ::link~(::any/BindingNotFoundError | doc)
+      ::link~(::any/binding/UnknownNameError | doc)
 
       ~(
         :nonexistent-binding | doc
         !| [type /name]
-        |  eq [::any/DocBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/doc/UnknownNameError :nonexistent-binding]
        )
       ~(:filter | doc !| /addresses | has ::vec/filter)
       ~(:reduce | doc !| /addresses | has ::vec/reduce)
   ~~|
 
-:any/DocBindingNotFoundError/name
+:any/doc/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|
   #[::keyword ::tag]
 
-:any/DocBindingNotFoundError/addresses
+:any/doc/UnknownNameError/addresses
   |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
   ::set
 
-:any/DocBindingNotFoundError/nearest
+:any/doc/UnknownNameError/nearest
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 
-:any/DocAnchorNotKeywordError
+:any/doc/AnchorNotKeywordError
   |~~ An anchor of the path `doc` reads is no keyword: each step of the
       path names a member by a keyword, `doc [:take :count]`.
 
-      ~(::vec | doc [:take 1] !| [type /index] | eq [::any/DocAnchorNotKeywordError 1])
+      ~(::vec | doc [:take 1] !| [type /index] | eq [::any/doc/AnchorNotKeywordError 1])
   ~~|
 
 :any/explain
@@ -577,53 +571,27 @@
   |~~ The page above the value it explains. ~~|
   ::explanation
 
-:any/ExplainBindingNotFoundError
+:any/explain/UnknownNameError
   |~~ `explain` found no declaration of the page of its subject, as
       `binding` finds none.
-      ::link~(::any/BindingNotFoundError | doc)
+      ::link~(::any/binding/UnknownNameError | doc)
 
       ~(
         :nonexistent-binding | explain
         !| [type /name]
-        |  eq [::any/ExplainBindingNotFoundError :nonexistent-binding]
+        |  eq [::any/explain/UnknownNameError :nonexistent-binding]
        )
   ~~|
 
-:any/ExplainBindingNotFoundError/name
+:any/explain/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|
   #[::keyword ::tag]
 
-:any/ExplainBindingNotFoundError/addresses
+:any/explain/UnknownNameError/addresses
   |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
   ::set
 
-:any/ExplainBindingNotFoundError/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec
-
-:any/RunLawsBindingNotFoundError
-  |~~ `runLaws` found no declaration of the name it read, as `binding`
-      finds none.
-      ::link~(::any/BindingNotFoundError | doc)
-
-      ~(
-        :nonexistent-binding | runLaws
-        !| [type /name]
-        |  eq [::any/RunLawsBindingNotFoundError :nonexistent-binding]
-       )
-      ~(:filter | runLaws !| /addresses | has ::vec/filter)
-      ~(::Nonexistent | runLaws !| /name | eq ::Nonexistent)
-  ~~|
-
-:any/RunLawsBindingNotFoundError/name
-  |~~ The name the axis read, a keyword or a tag. ~~|
-  #[::keyword ::tag]
-
-:any/RunLawsBindingNotFoundError/addresses
-  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
-  ::set
-
-:any/RunLawsBindingNotFoundError/nearest
+:any/explain/UnknownNameError/nearest
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 

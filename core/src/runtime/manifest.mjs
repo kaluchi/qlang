@@ -10,7 +10,6 @@ import { claimsOfRecord, recordReadBy } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-const AnyRunLawsBindingNotFoundError = declareRefusal('any/RunLawsBindingNotFoundError');
 
 // The message of an error: its `:message` where it carries one, a raise's
 // or a host's failure's, and the address of any other [D166], [D172].
@@ -42,9 +41,14 @@ async function runQuoteEntry({ law: quote, says }, callerState) {
 
 // A name reads its record as the axes do, a keyword after it the member
 // it holds, `::qlang | runLaws :values` [D124].
-bindStateReader(['tag/runLaws', 'keyword/runLaws'], async (subject, anchor, state) => {
-  const claims = claimsOfRecord(recordReadBy(subject, anchor, state, AnyRunLawsBindingNotFoundError));
+async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
+  const claims = claimsOfRecord(recordReadBy(subject, anchor, state, UnknownNameError));
   const entries = [];
   for (const claim of claims) entries.push(await runQuoteEntry(claim, state));
   return entries;
-});
+}
+
+const TagRunLawsUnknownNameError = declareRefusal('tag/runLaws/UnknownNameError');
+const KeywordRunLawsUnknownNameError = declareRefusal('keyword/runLaws/UnknownNameError');
+bindStateReader('tag/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, TagRunLawsUnknownNameError));
+bindStateReader('keyword/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, KeywordRunLawsUnknownNameError));

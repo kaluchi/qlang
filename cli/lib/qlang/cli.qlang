@@ -72,7 +72,7 @@
   |~~ The text is a string or null. ~~|
   ::holds~(is ::string ::null)
 
-:any/OutSubjectNotStringError
+:any/@out/SubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
       value is written as the text a modifier computes from it,
       `42 | @out json` or `{:x 1} | @out print`.
@@ -99,7 +99,7 @@
   |~~ The text is a string or null. ~~|
   ::holds~(is ::string ::null)
 
-:any/ErrSubjectNotStringError
+:any/@err/SubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
       another value is written as the text a modifier computes, `@err
       json` or `@err print`.
@@ -151,12 +151,12 @@
   |~~ The rows drawn as text, a line each. ~~|
   ::string
 
-:vec/TableRowNotMapError
+:vec/table/RowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`
       names the first that is not.
       ~(
         [42 "hello"] | table
         !| [type /index /actualType]
-        |  eq [::vec/TableRowNotMapError 0 ::number]
+        |  eq [::vec/table/RowNotMapError 0 ::number]
        )
   ~~|

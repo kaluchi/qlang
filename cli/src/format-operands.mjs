@@ -5,7 +5,7 @@
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const VecTableRowNotMapError     = declareRefusal('vec/TableRowNotMapError');
+const VecTableRowNotMapError     = declareRefusal('vec/table/RowNotMapError');
 
 // A cell is a view at the boundary: a String prints bare, null as an
 // empty cell, and every other value as its literal on one line.

@@ -239,7 +239,7 @@ describe('main — error paths', () => {
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
-    expect(s.stderrText()).toContain('qlang: stdin: ::string/ParseJsonNumberNotFiniteError');
+    expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
     expect(s.stderrText()).toContain('at /big');
   });
 
@@ -249,7 +249,7 @@ describe('main — error paths', () => {
     const s = captureStreams('1e400');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(exitCode).toBe(1);
-    expect(s.stderrText()).toContain('qlang: stdin: ::string/ParseJsonNumberNotFiniteError');
+    expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
     expect(s.stderrText()).not.toContain(' at /');
   });
 

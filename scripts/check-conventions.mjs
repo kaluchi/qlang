@@ -149,11 +149,12 @@ function scanForbiddenWords() {
 //
 // A refusal's address is the one key the implementation and its page
 // in the catalog share [D158]: every declaration of a refusal and every
-// recording of an address outside one takes it as a literal, the noun of the
-// place and a last name ending in `Error`, `number/AddLeftNotNumberError`,
-// and the constant that holds the class is named by the address without
-// its slash, `NumberAddLeftNotNumberError`, so a grep for either finds
-// the declaration, every throw and the page [D159]. A class declared by
+// recording of an address outside one takes it as a literal, the path of
+// the place that refused, a marked name such as `@out` among its names,
+// and a last name ending in `Error`, `vec/sum/ElementNotNumberError`, and
+// the constant that holds the class is named by the address without its
+// slashes and marks, `VecSumElementNotNumberError`, so a grep for either
+// finds the declaration, every throw and the page [D159]. A class declared by
 // `class Foo extends …` ends in `Error`; the abstract roots are the
 // bases every site extends.
 
@@ -161,7 +162,7 @@ const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
 const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
 const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
-const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9@]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const ADDRESS_RE = /^'((?:@?[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
 // The constant a refusal's class is held by: its address without the

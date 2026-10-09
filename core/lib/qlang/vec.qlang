@@ -789,13 +789,13 @@
   |~~ The elements joined into one string by the separator. ~~|
   ::string
 
-:vec/JoinElementNotStringError
+:vec/join/ElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
       that is not, and `* print` makes each value its text first.
       ~(
         ["a" 42 "c"] | join ","
         !| [type /actualType /index]
-        |  eq [::vec/JoinElementNotStringError ::number 1]
+        |  eq [::vec/join/ElementNotStringError ::number 1]
        )
   ~~|
 

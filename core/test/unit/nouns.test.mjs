@@ -63,7 +63,7 @@ describe('an address reads the node its name declared', () => {
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {
-    expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
+    expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
   });
 
   it('an address reads the root\'s verb whatever the scope binds', async () => {
@@ -72,12 +72,12 @@ describe('an address reads the node its name declared', () => {
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
-    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
-    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTagKeyword('any/BindingNotFoundError'));
+    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
+    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTagKeyword('any/binding/UnknownNameError'));
   });
 
   it('a value whose tag no node answers reads no page', async () => {
-    expect((await evalQuery('::Box#[3 1] | doc')).tag.name).toBe('any/DocBindingNotFoundError');
+    expect((await evalQuery('::Box#[3 1] | doc')).tag.name).toBe('any/doc/UnknownNameError');
   });
 });
 

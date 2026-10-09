@@ -29,7 +29,7 @@
 {"name":"a-module-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | /x | /value","expect":"2","decision":"D44"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | type","expect":"::doc","decision":["D62","D63","D119"]}
 {"name":"a-declaration-of-the-reader-takes-no-word-of-the-vocabulary","query":":count 5 | [1 2 3] | count !| type","expect":"::bind/NameTakenByVocabularyError","decision":["D62","D166"]}
-{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | doc !| type","expect":"::any/DocBindingNotFoundError","decision":["D62","D119"]}
+{"name":"a-keyword-names-a-binding-of-its-scope","query":":count | doc !| type","expect":"::any/doc/UnknownNameError","decision":["D62","D119"]}
 {"name":"a-name-with-a-path-calls-by-address","query":"[1 2 3] | vec/count","expect":"3","decision":"D62"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true","decision":["D61","D62"]}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false","decision":["D61","D62"]}
@@ -76,7 +76,7 @@
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
 {"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(binding :count | /value) (doc :count | content)]","expect":"[~(/0) \" How many. \"]","decision":["D88","D119"]}
 {"name":"the-page-of-a-part-is-reached-by-its-name","query":":any/f ~(add n) | :any/f/n |~~ how many ~~| ~(/0) | ::any/f | doc :n | content","expect":"\" how many \"","decision":["D88","D119","D166"]}
-{"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /name]","expect":"[::any/DocBindingNotFoundError ::map/nosuch]","decision":["D88","D119"]}
+{"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /name]","expect":"[::any/doc/UnknownNameError ::map/nosuch]","decision":["D88","D119"]}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError","decision":["D88","D156"]}
 {"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :any/t ~(apply q) | :any/t/x ~(/0) | 2 | t 99","expect":"12","decision":"D44"}
 {"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /name]","expect":"[::call/UnknownNameError :lim]","decision":"D44"}

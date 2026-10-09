@@ -79,7 +79,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     let thrown = null;
     try { fromPlain(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
-    expect(thrown.name).toBe('ParseJsonNumberNotFiniteError');
+    expect(thrown.address).toBe('string/parseJson/NumberNotFiniteError');
     expect(thrown.context.path).toEqual([]);
   });
 

@@ -94,7 +94,7 @@ function qMapToPlainObject(m) {
 // `:path` names the keys and indices walked to reach the refused
 // scalar, so `!| /path` locates it inside a document of any depth —
 // the reading a message string cannot carry.
-export const StringParseJsonNumberNotFiniteError = declareRefusal('string/ParseJsonNumberNotFiniteError');
+export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {
   array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
@@ -127,7 +127,7 @@ function plainObjectToQMap(plainObj, path) {
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the walk served [D167].
-const StringParseJsonTextNotJsonError = declareRefusal('string/ParseJsonTextNotJsonError');
+const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
 bindPrim('string/parseJson', subject => {

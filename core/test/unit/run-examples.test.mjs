@@ -29,7 +29,7 @@ describe('runLaws reads a name as examples does', () => {
 
   it('a name that names no binding is refused as doc refuses it', async () => {
     const refusal = await evalQuery(':nothingBound | runLaws');
-    expect(refusal.tag).toEqual(makeTagKeyword('any/RunLawsBindingNotFoundError'));
+    expect(refusal.tag).toEqual(makeTagKeyword('keyword/runLaws/UnknownNameError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {

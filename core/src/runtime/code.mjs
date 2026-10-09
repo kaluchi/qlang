@@ -4,21 +4,21 @@
 // query a quote holds in the scope of its reader [D111], [D122].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
-import { isQuote } from '../types.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { codeOf } from '../eval.mjs';
 
-// A source the parser refuses answers the `::ParseError` with the
-// location and the excerpt of the source.
-bindStateReader(['string/parse', 'quote/parse'], (subject, state) => {
-  if (isQuote(subject)) return printQuoteSource(subject);
+// A source the parser refuses answers the `::quote/ParseError` with
+// the location and the excerpt of the source; a quote answers the
+// source it prints as.
+bindStateReader('string/parse', (source, state) => {
   try {
-    return quoteOfSource(subject, 'parse-operand');
+    return quoteOfSource(source, 'parse-operand');
   } catch (parseErr) {
     return errorFromParse(parseErr, state.env);
   }
 });
+bindPrim('quote/parse', quote => printQuoteSource(quote));
 
 bindPrim('any/apply', async (subject, code) => await code(subject));
 

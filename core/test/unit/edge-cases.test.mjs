@@ -188,7 +188,7 @@ describe('runtime/string.mjs split and join error sites', () => {
 
   it('join with non-string element → VecJoinElementNotStringError', async () => {
     const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
-    expect(caughtErr.name).toBe('JoinElementNotStringError');
+    expect(caughtErr.address).toBe('vec/join/ElementNotStringError');
     expect(caughtErr.context.index).toBe(1);
   });
 
@@ -320,12 +320,11 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce tag identity is pinned by
-  // `error-operands.test.mjs`; the control-flow block tests the
-  // operand semantics, not the per-site wiring.
-  it('coalesce raises AnyCoalesceNoAlternativesError on bare call', async () => {
-    const caughtErr = await catchOriginalError('{} | coalesce');
-    expect(caughtErr.address).toBe('any/CoalesceNoAlternativesError');
+  // The refusal of a bare coalesce is pinned by
+  // `error-operands.test.mjs`; the control-flow block tests the operand
+  // semantics.
+  it('coalesce answers its subject first when its alternatives are values', async () => {
+    expect(await evalQuery('null | coalesce 30')).toBe(30);
   });
 
 });

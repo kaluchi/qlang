@@ -6,7 +6,7 @@
 //
 // The verbs live in lib/qlang/map.qlang and set.qlang.
 
-import { keyword, isKeyword, isQMap, isQSet, makeSet } from '../types.mjs';
+import { keyword, isKeyword, makeSet } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
@@ -39,7 +39,6 @@ function setHas(set, value) {
   return false;
 }
 
-bindPrim(['vec/has', 'vec/contains', 'set/has', 'set/contains', 'map/has'], (container, place) =>
-  isQMap(container) ? container.has(isKeyword(place) ? place.name : place)
-    : isQSet(container) ? setHas(container, place)
-      : container.some(element => compareValues(element, place) === 0));
+bindPrim(['vec/has', 'vec/contains'], (vector, element) => vector.some(held => compareValues(held, element) === 0));
+bindPrim(['set/has', 'set/contains'], (set, element) => setHas(set, element));
+bindPrim('map/has', (map, key) => map.has(isKeyword(key) ? key.name : key));

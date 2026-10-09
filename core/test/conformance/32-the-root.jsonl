@@ -6,7 +6,7 @@
 {"name":"a-bare-name-of-the-root-reads-its-value","query":"qlang | type","expect":"::doc","decision":"D153"}
 {"name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc","decision":["D62","D153"]}
 {"name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | parse | startsWith \":vec/count\"","expect":"true","decision":"D153"}
-{"name":"no-prefix-stands-for-the-language","query":"::qlang/number | doc !| type","expect":"::any/DocBindingNotFoundError","decision":"D153"}
+{"name":"no-prefix-stands-for-the-language","query":"::qlang/number | doc !| type","expect":"::any/doc/UnknownNameError","decision":"D153"}
 {"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true","decision":"D153"}
 {"name":"a-tag-of-a-word-no-name-declares-is-identity","query":"::code{:a 1} | type","expect":"::code","decision":"D153"}
 {"name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | [(has :x) (has :Box/y) (has :vec) (has :count)]","expect":"[true true false false]","decision":["D36","D160"]}

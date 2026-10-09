@@ -1,5 +1,5 @@
-{"name":"no-node-names-the-verb","query":"::verb | doc | type !| type","expect":"::any/DocBindingNotFoundError","decision":"D168"}
-{"name":"no-node-names-the-spec","query":"::spec | doc | type !| type","expect":"::any/DocBindingNotFoundError","decision":"D168"}
+{"name":"no-node-names-the-verb","query":"::verb | doc | type !| type","expect":"::any/doc/UnknownNameError","decision":"D168"}
+{"name":"no-node-names-the-spec","query":"::spec | doc | type !| type","expect":"::any/doc/UnknownNameError","decision":"D168"}
 {"name":"a-page-is-the-prose-of-its-text","query":"|~~ a ~(add 1) b ~~| | payload","expect":"\" a ~(add 1) b \"","decision":"D168","target":true,"now":"[\" a \" ~(add 1) \" b \"]"}
 {"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| ~(append w) | :Box/put/w |~~ The weight. ~~| ~(/0) | ::Box | source | * /name","expect":"[:Box :Box/put :Box/put/w]","decision":"D168","target":true,"now":"[:Box]"}
 {"name":"the-page-of-a-kind-holds-no-page-of-its-words","query":"::vec | doc | content | contains \"The first count elements\"","expect":"false","decision":"D168"}

@@ -296,11 +296,11 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce refuses a call with no alternatives at a site of its own', () => {
-  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError', async () => {
+describe('coalesce refuses a call with no alternatives under its address', () => {
+  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError [D172]', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce');
     expect(caughtErr).toBeInstanceOf(QlangError);
-    expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
+    expect(caughtErr.address).toBe('any/coalesce/NoAlternativesError');
   });
 });
 

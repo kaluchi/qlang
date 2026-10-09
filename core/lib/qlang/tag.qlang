@@ -152,3 +152,23 @@
 :tag/runLaws/results
   |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec
+
+:tag/runLaws/UnknownNameError
+  |~~ `runLaws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+
+      ~(::Nonexistent | runLaws !| [type /name] | eq [::tag/runLaws/UnknownNameError ::Nonexistent])
+  ~~|
+
+:tag/runLaws/UnknownNameError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:tag/runLaws/UnknownNameError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:tag/runLaws/UnknownNameError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec

@@ -18,21 +18,6 @@
        )
   ~~|
 
-:string/ParseJsonNumberNotFiniteError
-  |~~ JSON text may write a number past the range of the doubles a
-      number of qlang is, `1e400`, which no number of the language
-      holds, so reading it is refused rather than turned into an
-      infinity. It is met where JSON text is read, by `parseJson` and
-      by the command line reading its input, and never in a literal of
-      qlang, which the parser refuses itself.
-
-      ~("1e400" | parseJson !| type | eq ::string/ParseJsonNumberNotFiniteError)
-  ~~|
-
-:string/ParseJsonNumberNotFiniteError/path
-  |~~ The path to the number in the text. ~~|
-  ::vec
-
 :string/gt
   |~~ Whether the subject follows the string the call gives.
 
@@ -494,16 +479,31 @@
   ~~|
   ::builtin{}
 
-:string/ParseJsonTextNotJsonError
+:string/parseJson/TextNotJsonError
   |~~ `parseJson` could not parse the subject as JSON. The message
       of the host's parser rides on `:message`.
 
-      ~("{not json" | parseJson !| type | eq ::string/ParseJsonTextNotJsonError)
+      ~("{not json" | parseJson !| type | eq ::string/parseJson/TextNotJsonError)
   ~~|
 
-:string/ParseJsonTextNotJsonError/message
+:string/parseJson/TextNotJsonError/message
   |~~ What the reader of JSON says of the text. ~~|
   ::string
+
+:string/parseJson/NumberNotFiniteError
+  |~~ JSON text may write a number past the range of the doubles a
+      number of qlang is, `1e400`, which no number of the language
+      holds, so reading it is refused rather than turned into an
+      infinity. It is met where JSON text is read, by `parseJson` and
+      by the command line reading its input, and never in a literal of
+      qlang, which the parser refuses itself.
+
+      ~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
+  ~~|
+
+:string/parseJson/NumberNotFiniteError/path
+  |~~ The path to the number in the text. ~~|
+  ::vec
 
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON

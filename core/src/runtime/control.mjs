@@ -10,9 +10,12 @@ import { isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const AnyCondConditionNotBooleanError = declareRefusal('any/CondConditionNotBooleanError');
-const AnyCoalesceNoAlternativesError = declareRefusal('any/CoalesceNoAlternativesError');
-const AnyCondNoBranchesError = declareRefusal('any/CondNoBranchesError');
+// The alternatives of `coalesce` and the clauses of `cond` are the whole
+// object of the call, which a law refusing it would hand under the tag of
+// the word, a value no literal reads back [D42]; the primitive counts them.
+const AnyCondConditionNotBooleanError = declareRefusal('any/cond/ConditionNotBooleanError');
+const AnyCoalesceNoAlternativesError = declareRefusal('any/coalesce/NoAlternativesError');
+const AnyCondNoBranchesError = declareRefusal('any/cond/NoBranchesError');
 
 bindPrim('any/if', async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject)));
@@ -35,6 +38,8 @@ bindPrim('any/coalesce', async (subject, alternatives) => {
   return NULL;
 });
 
+// The clauses alternate a predicate and its branch, a pair at least, and
+// a clause left over is the default.
 bindPrim('any/cond', async (subject, clauses) => {
   if (clauses.length < 2) throw new AnyCondNoBranchesError();
   let clauseIndex = 0;

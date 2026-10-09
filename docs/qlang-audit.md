@@ -1653,7 +1653,7 @@ host hands, `:number/construct ::builtin{}` [D168], [D169]:
 
 ```qlang
 > [::spec ::verb] * (doc !| type)
-[::any/DocBindingNotFoundError ::any/DocBindingNotFoundError]
+[::any/doc/UnknownNameError ::any/doc/UnknownNameError]
 ```
 
 Three repairs rest on the schema. The tags of the refusing sites become

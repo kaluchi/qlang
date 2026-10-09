@@ -8,8 +8,8 @@
 {"name":"auto-decl-scalar-payload-wraps","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}
 {"name":"auto-decl-scalar-payload-roundtrip","query":"::AutoScalar(42) | payload","expect":"42"}
 {"name":"auto-decl-jsonarray-payload-composite","query":"::AutoJson(::json[1 2 3]) | type","expect":"::AutoJson"}
-{"name":"an-implicit-kind-declares-no-node","query":"::AutoFoo[1] | ::AutoFoo[2] | ::AutoFoo | binding !| type","expect":"::any/BindingNotFoundError","decision":"D152"}
-{"name":"auto-decl-bare-tag-keyword-does-not-trigger","query":"::AutoBareOnly | binding !| type","expect":"::any/BindingNotFoundError"}
+{"name":"an-implicit-kind-declares-no-node","query":"::AutoFoo[1] | ::AutoFoo[2] | ::AutoFoo | binding !| type","expect":"::any/binding/UnknownNameError","decision":"D152"}
+{"name":"auto-decl-bare-tag-keyword-does-not-trigger","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"auto-decl-bare-tag-keyword-yields-tag-keyword-value","query":"::AutoBareOnly | type","expect":"::tag"}
 {"name":"a-declared-kind-is-a-label","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | ::ExplicitFirst | binding | /value | type","expect":"::doc","decision":["D152","D168"]}
 {"name":"explicit-impl-decl-runs-constructor","query":":AutoAdd10 |~~ AutoAdd10. ~~| | :AutoAdd10/construct ~(add 10) | ::AutoAdd10(5) | payload","expect":"15"}

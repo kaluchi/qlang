@@ -47,7 +47,7 @@ describe('@out — bare form (0 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'any/OutSubjectNotStringError', {
+    expectOperandErrorThrown(cellEntry, 'any/@out/SubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });
@@ -94,7 +94,7 @@ describe('@err — bare form', () => {
   it('lifts AnyErrSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @err', io);
-    expectOperandErrorThrown(cellEntry, 'any/ErrSubjectNotStringError', {
+    expectOperandErrorThrown(cellEntry, 'any/@err/SubjectNotStringError', {
       actualType: { name: 'vec' }
     });
   });

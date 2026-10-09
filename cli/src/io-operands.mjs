@@ -6,8 +6,8 @@
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const AnyOutSubjectNotStringError = declareRefusal('any/OutSubjectNotStringError');
-const AnyErrSubjectNotStringError = declareRefusal('any/ErrSubjectNotStringError');
+const AnyOutSubjectNotStringError = declareRefusal('any/@out/SubjectNotStringError');
+const AnyErrSubjectNotStringError = declareRefusal('any/@err/SubjectNotStringError');
 
 // A writer takes the text the call gives, or bare, its subject, which is
 // then a string; the subject passes on either way.

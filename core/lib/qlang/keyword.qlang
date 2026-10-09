@@ -131,3 +131,24 @@
 :keyword/runLaws/results
   |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec
+
+:keyword/runLaws/UnknownNameError
+  |~~ `runLaws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+
+      ~(:nonexistent-binding | runLaws !| [type /name] | eq [::keyword/runLaws/UnknownNameError :nonexistent-binding])
+      ~(:filter | runLaws !| /addresses | has ::vec/filter)
+  ~~|
+
+:keyword/runLaws/UnknownNameError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:keyword/runLaws/UnknownNameError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:keyword/runLaws/UnknownNameError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec

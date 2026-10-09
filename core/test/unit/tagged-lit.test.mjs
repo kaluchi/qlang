@@ -295,7 +295,7 @@ describe('parse and apply accept Quote subjects transparently', () => {
 describe('a tag no node answers is a kind of identity, and declares nothing [D152]', () => {
   it('leaves no binding to read', async () => {
     const result = await evalQuery('::Top(1) | ::Top | binding');
-    expect(result.tag.name).toBe('any/BindingNotFoundError');
+    expect(result.tag.name).toBe('any/binding/UnknownNameError');
     expect(await evalQuery('::Zap(1) | env | has :Zap')).toBe(false);
   });
 });

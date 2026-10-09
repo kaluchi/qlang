@@ -166,7 +166,7 @@
       ~(::tag::Box | eq ::Box)
       ~(5 | type | doc | type | eq ::doc)
       ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
-      ~(::Unbound[1] | type | binding !| type | eq ::any/BindingNotFoundError)
+      ~(::Unbound[1] | type | binding !| type | eq ::any/binding/UnknownNameError)
   ~~|
 
 :null

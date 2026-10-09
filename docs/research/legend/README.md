@@ -219,6 +219,75 @@ inside`, and the walk could answer the name as the projection, which
 would keep the legend in one place and give queries names; it would
 also be a second way to reach a part, and is a question, not a reading.
 
+## Beyond the vector: the overlay and the mirror
+
+The forms above grew from the declaration a kind has today and were
+measured on vectors. The maintainer turned it back: maps, sets and any
+composite are values too, and the protocol of introspection is free, so
+long as it answers a literal and explains best what the model holds.
+Two facts of the grammar open it. A comment is trivia inside any
+literal, so a value with comments between its parts reads back as the
+same value:
+
+```qlang
+> {:a 1 |~ the a ~| :b 2} | eq {:a 1 :b 2}
+true
+
+> #[:x |~ an x ~| :y] | count
+2
+```
+
+And a doc stands wherever a value stands, read by the same path as the
+datum it explains:
+
+```qlang
+> {:a |~~ the a ~~| :b [|~~ each b ~~|]} | /b/0 | content
+ each b
+```
+
+The overlay is the value printed with its legend laid over it as
+comments, the maintainer's picture of highlighting laid over text: the
+caption sits at the part it explains, whatever the composite, and what
+the reader holds is still the value, which the next step reads. The
+mirror is a value of the value's own shape whose every part is the doc
+of the part at the same path, so `S | /fails/0/1` reads a datum and `S
+| legend | /fails/0/1` its meaning, with no addressing of its own: a
+vector of one element describes each element, a map from keywords to
+docs lists the values a keyword part takes, and a set of one doc says
+what each member is. The calls the value answers ride at the end of the
+overlay and under a key of the mirror.
+
+`run-composite.mjs` showed both to clean children over
+`::Pipe{:id 7731 :st :amber :stages [[:build :ok 41.2] …] :owners
+#[:ann :bob] :fails [["parse/empty" 2] …]}`, a map over rows of a
+vector, a set and two enumerations. Without a legend Sonnet called the
+meaning of the attempts a guess and could not call the retry, and Haiku
+wrote a filter in its place. With the overlay or the mirror both models
+answered every question of meaning and wrote the call; Haiku's slips
+were of the primer's syntax, `~(…)~`. The overlay was the cheaper by a
+tenth, and the mirror let Sonnet find a fault in the legend itself:
+`:amber` says every stage passed while `lint` was skipped.
+
+Readings of the model:
+
+- The overlay is what a reader meets, `S | doc` or the host's print
+  under a flag; the mirror is the value the overlay is printed from,
+  the one a query reads, elides by the same budget, and runs laws
+  within.
+- The declaration of a label can be its mirror, written once: a blank
+  form with a caption in every field, `[[|~~ the name ~~| {:ok |~~ passed
+  ~~| …} |~~ seconds ~~|]]`. It is a literal of the shape the data has,
+  which a model reads as data, and a constructor can hold a payload
+  against it, so the description of the payload and the check of it are
+  one spelling.
+- A legend is what makes the terse form affordable. Rows of a vector
+  cost no keys, and a map repeats its keys in every row; once the
+  meaning of each column travels in the legend, a host can answer the
+  tersest shape, the way a table states its header once.
+- Progress through depth is the budget's: the mirror of a large value
+  collapses a homogeneous collection to its one element, and a nested
+  label stands as a link to its own mirror.
+
 ## Faults met on the way
 
 - A declared label with no page answers `null` to `doc`, and an

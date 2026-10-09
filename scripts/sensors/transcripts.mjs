@@ -39,10 +39,12 @@ export function* recordsOf(transcriptPath) {
 }
 
 // What the maintainer typed: a record of kind `user` that is no summary
-// of a compaction, or a message queued while the model worked.
+// of a compaction and none the harness wrote, the echo of a local command
+// or a report a subagent handed back, or a message queued while the model
+// worked.
 export function* typedByMaintainer(record) {
   if (record.type === 'queue-operation' && record.operation === 'enqueue') yield record.content;
-  if (record.type !== 'user' || record.isCompactSummary) return;
+  if (record.type !== 'user' || record.isCompactSummary || record.isMeta) return;
   const content = record.message?.content;
   if (typeof content === 'string') yield content;
   else for (const part of content ?? []) if (part.type === 'text') yield part.text;

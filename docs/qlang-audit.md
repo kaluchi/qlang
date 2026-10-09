@@ -230,8 +230,12 @@ it, read progressively, each step a literal of the language: «легенда
 2026-10-08 23:30, session 22b934f8). The dark room of `::workflow |
 status`, a build or a test run, is the pattern: the reader asks whether
 it succeeded and, if not, what failed, and never meets the whole log.
-A tool that changes carries its legend inside itself, where it cannot
-go stale behind the tool's back [D161], [D162]. The same holds for the
+A reader that met a tag in a printed value peeks into its label with
+no value to annotate, and the peek is assembled in one round trip from
+the definitions under the label's address; the legend of a value is a
+task of its own, one of the two resting on what the other provides
+[D168]. A tool that changes carries its legend inside itself, where it
+cannot go stale behind the tool's back [D161], [D162]. The same holds for the
 seed of a session, the instruction file, which is a table of contents
 of what the repository does not hold and no summary of what it does
 [D163].
@@ -1170,13 +1174,26 @@ The catalog's own laws run in under a second and are the only plane the
 language can reach, and most of them still stand under no caption of
 the claim they prove [D124].
 
+A page carries beside its prose what its name holds no prose about:
+the laws, the links and the snippets of a name ride the doc of its
+declaration, the first page's among them:
+
+```qlang
+> ::qlang | doc | [(laws | count | gt 0) (links | count | gt 0)]
+[true true]
+```
+
 The repair must give the language views sized to a budget, the cheap
 view the default [D27]. It must reduce catalog prose to what the facts
 do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
-rather than dumped.
+rather than dumped. It must make a page prose about its name alone,
+every law, link and snippet a definition of its own under the address
+it concerns, a law named by its refusal, and let a reader assemble from
+the definitions under an address the description a question needs, in
+one round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -1423,8 +1440,9 @@ declares a part whose law asks for a quote and applies what it receives, and a q
 handed over sees the names of its author [D43]. There is one binding
 form, `:name value`: its body is evaluated once at declaration against
 the current value and named as a value, a quote included, and a verb is
-a binding whose value is a verb, a quote under `::verb` whose leading
-declarations are its slots [D44], [D67]. A name is declared once in a scope. The
+a name under the label of its subject whose value is a quote, the parts
+of its object and its answer names under its address [D44], [D164],
+[D169]. A name is declared once in a scope. The
 pipe is linear continuation and the binding is a branch to the side. A
 verb runs when its name is mentioned, as a built-in does, so `apply` is
 only for a quote held as a value, from a name, a parameter, `parse`, a
@@ -1497,8 +1515,8 @@ counts, transforms, and assembles code without leaving the language.
 
 The catalog is the documentation. A root doc is the first thing a
 session reads: what the language is in a sentence, what a tag is in a
-sentence, how to discover with `manifest`, `doc`, `doc | laws`, and
-`spec`, how to read an error, and a few seed pipelines that a grep
+sentence, how to discover with `manifest`, `doc`, `source` and
+`runLaws`, how to read an error, and a few seed pipelines that a grep
 would not suggest. Every other question is answered at the point of
 need, in views sized to a budget, the cheap view first. Examples live
 in the catalog and run as its tests; the conformance suite keeps what a
@@ -1592,6 +1610,8 @@ below writes its targets before its work:
 
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
+"decision":"D168"
+"decision":"D169"
 "decision":"D46"
 ```
 
@@ -1607,6 +1627,22 @@ the record is fetched, which is the third requirement of the mission:
 ```qlang
 > :P ::spec~(:name ::string) | ::P{:name 5}
 ::P{:name 5}
+```
+
+The schema is the label's [D164], [D166]: a kind is a name declared by
+its page, and what stands under it is the definitions under its
+address, each a name, its page and its value, the value saying what the
+definition is, a word's code, a part's selector, the label of a word's
+answer, a law under the name of its refusal [D168], [D169].
+`::spec~(…)` and `::verb~(…)` leave the language whole, a reader's verb
+being a name under the label of its subject, `:number/inc ~(add 1)`,
+and `~name` the quote of one step; the pages of `::verb` and `::spec`
+and the reading of heads in `core/src/runtime/verb.mjs` leave with
+them [D168]. The suite and the laws of the catalog write them still:
+
+```
+$ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
+372
 ```
 
 Three repairs rest on the schema. The tags of the refusing sites become
@@ -1667,7 +1703,9 @@ modifiers as one map whose keys it declares [D40]; the catalog's prose
 is reduced to what the facts do not say, every page telling what its
 name is for and the claims its laws prove [D110], [D124]; errors print
 as alerts; enrichment happens once per session; fields are documented
-by their records' tags and shared values by their own [D50]; and the
+by their records' tags and shared values by their own [D50]; a page
+holds prose alone, the first page's sections names under `::qlang`
+from which the first screen is assembled [D169]; and the
 first screen is written from the invariants of the language and held
 against probes its author never saw [D131], holding the weight it has
 until a pass on compactness can cut what a reader asks `manifest` and
@@ -1946,34 +1984,6 @@ items are computed, and how the maintainer's intent enters the task:
 all of it is the subject of `docs/qlang-entrypoint.md`, and the
 maintainer wants to explore it before it is fixed.
 
-The heads that remain [D164], [D167]. The catalog's verbs are names
-under labels, but a reader's verb over `::verb~(…)` with its slots, the
-contracts, verbs without a body, and the kinds over `::spec~(…)` stay,
-and the suite and the laws of the catalog write them:
-
-```
-$ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-372
-```
-
-One way writes every one as a name under the label of its subject or
-under `::any`, `:number/inc ~(add 1)`, which leaves `~name` the quote of
-one step and nothing else, the pages of `::verb` and `::spec` and the
-reading of heads in `core/src/runtime/verb.mjs`; its cost is each of
-those places and the cases of the head itself. The other keeps
-`::verb` as a reader's bare form of a name with parts, a second spelling
-of one fact.
-
-A contract as a page [D166], [D167]. A word several kinds answer has a
-contract on `::any`, a verb without a body, which declares once the
-parts its kinds share, `::any/take | manifest`, and answers the call no
-kind of the subject answers. A page there would say the same without a
-verb, but a node whose value is a page is a label, and the names under
-it would reside on it. The alternatives: no label directly under
-`::any`, whose names are the words every value answers, so a page there
-is the contract of its word, an exception to the rule of labels; or the
-contract as it is, the one verb without a body the catalog keeps.
-
 A topic is a label [D166]. A page declared as a name is a label, a
 topic among them, so a name under a topic resides on it and refuses any
 other subject by its address:
@@ -2134,3 +2144,5 @@ the root refuses [D167].
 [D165]: decisions/D165.md
 [D166]: decisions/D166.md
 [D167]: decisions/D167.md
+[D168]: decisions/D168.md
+[D169]: decisions/D169.md

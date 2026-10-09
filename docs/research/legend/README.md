@@ -115,6 +115,20 @@ reads the tail, `~(drop 1)`, and the whole object stays reachable as
   ~(/0)
 ```
 
+The object is the literal of a call, the address of the action and the
+vector its arguments land in, which the maintainer read at once:
+«`::Box/put[10]` это прям как своеобразная литеральная форма вызова, имя
+метода + массив куда аргументы скидываются - и тем же способом мы можем
+давать им внятные имена и доку». A step of a quote holds the same call
+unrun, `~(put 10) | payload` the record `::call{:name :put :args
+[~(10)]}`, its arguments as code; the object holds them computed against
+the subject, the intent applied. So a trail can carry what came in, not
+only the step, and an effect has its literal: `::Pipe/@retry[:integration]`
+is the write D2 asks a tag to describe and an explicit step at the host
+boundary to perform, the form the open question of effects as emitted
+values lacks, a value a reader builds, reads by its legend and hands on
+before anything acts.
+
 A refusal is then named by the address of what refused, with no
 constant written for it: `put "x"` answers
 `::Box/put/weight/HoldsNotMetError`, and `::Box/put/weight | doc` is the
@@ -315,6 +329,7 @@ mirror spelled nested structure inline, against D50, and duplicated
 what aspects say by name; the head is the concept the chronology above
 shows stalled. Both readings are withdrawn.
 
+[D2]: ../../decisions/D2.md
 [D50]: ../../decisions/D50.md
 [D61]: ../../decisions/D61.md
 [D161]: ../../decisions/D161.md

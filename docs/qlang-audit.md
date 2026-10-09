@@ -811,15 +811,19 @@ The repairs since have settled most of what grew around the core, and
 the tree holds what they settled. Code is the vector of its steps, which
 the language takes apart and assembles with its own verbs, and every
 step is a command. There is one binding form, a name is declared once in
-a scope, and a verb is a quote under `::verb` whose leading declarations
-are its signature, executed before its body or its primitive runs; a
+a scope, and a verb of the catalog is a name under the label of its
+subject, a host's primitive or a quote, the parts of its object names
+under the call's address, each read from the object and held to the
+laws of its page, the law of its answer on its own page [D164], [D166],
+[D167]; a reader's verb is still a quote under `::verb` whose leading
+declarations are its signature. A
 comment is whitespace, and a doc is the literal in the slot of the
 declaration it documents. One order ranks every value, JSON syntax reads
 into the one map and the one vector, the set is the ordered vector under
 its tag, every value has a kind, and every condition is a boolean. The
 catalog is written by nouns: a verb lives on the kind its subject names
-and is found by walking the subject's tags, a refusal lives under the
-place it guards, and the loader is a verb of any value. An error is a
+and is found by walking the subject's tags, a refusal is named by the
+address of what refused, and the loader is a verb of any value. An error is a
 value of the kind `::error` under the tag of the site that refused, its
 trail the path it took, and `*` answers its first failure. The literal is
 the one lossless format of a value, the tagged JSON and the session
@@ -832,8 +836,13 @@ and missed became the language's where they composed with it: a map
 coming apart into its pairs and back [D138], a fallback value for
 `coalesce` [D133], the size and the slices of a string [D132], a key
 that descends [D140]. The benchmark measures the first screen on sets of
-tasks a clean author writes and no one has read [D142]. What those
-repairs left is what the scars below describe.
+tasks a clean author writes and no one has read [D142]. On the set R,
+unread, the screen that teaches names under labels, saved as D166,
+solved every task in two of its three blind runs and in its run with the
+command line, missing R10 in the third, where the screens of D153 and
+D156 missed R3 in each of theirs; `node scripts/benchmark.mjs grade R`
+holds the runs side by side. What those repairs left is what the scars
+below describe.
 
 ## The scars
 
@@ -1093,13 +1102,12 @@ The repair must keep error identity per site and declare it once [D7],
 operand, whose schema owns the site's fields in the order a reader needs
 them and whose document is the site's procedure; the throw site passes
 the facts, and the tag's constructor checks them. A refusal is declared
-under the noun of its place, where `manifest` lists it [D152], [D153]; the
-place it guards it declares itself, so the runtime that checks a slot
-[D45] finds the refusal of that slot by what the refusal declares, and
+under the noun of its place, where `manifest` lists it [D152], [D153], and
 a verb lists the refusals that guard it [D46]. A name under a label
 lists what its primitive raises and the parts of its object, and the
 refusals of its places are named by their addresses with no declaration
-of their own:
+of their own, a part's under the part, whose page is its procedure, the
+registry of the refusals of places having left with the heads [D167]:
 
 ```qlang
 > ::number/add | manifest
@@ -1381,13 +1389,14 @@ a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its JSON form, its order
 and its laws, while one rule of the core prints every literal [D33].
 
-One mechanism of operand. An operand is a declaration of its subject,
-its slots with their kinds, its result and its doc, and the runtime
-executes the declaration. A built-in, a host's operand and a declared
-pipeline are called the same way, checked the same way, documented the
-same way, and help for all of them, completion, the verbs that accept a
-value, the next slot, the refusal's wording, is derived from the same
-record. A verb is found by walking the subject's tags from the outside
+One mechanism of operand. An operand is a name under the label of its
+subject, the parts of its object names under its address with their
+laws, the law of its answer and its doc its page, and the runtime
+executes the declaration [D164]. A built-in, a host's operand and a
+declared pipeline are called the same way, checked the same way,
+documented the same way, and help for all of them, completion, the verbs
+that accept a value, the next part, the refusal's wording, is derived
+from the same record. A verb is found by walking the subject's tags from the outside
 in, down to the core's kind [D34]; a host's verbs sit on the tags it
 owns, and a verb and a kind are joined by whoever owns one of them. A
 query reads, and what writes stays a command of its host whose result
@@ -1406,7 +1415,7 @@ modifier or a literal, so parentheses mean one thing, a pipeline as one
 word. A parameter holds a value, and so does every modifier, read by its
 own form: code is a quote, `~(…)`, shortened to `~add` for a single
 word, and nothing but `apply` runs it; an operand that runs code
-declares a slot of kind code and applies what it receives, and a quote
+declares a part whose law asks for a quote and applies what it receives, and a quote
 handed over sees the names of its author [D43]. There is one binding
 form, `:name value`: its body is evaluated once at declaration against
 the current value and named as a value, a quote included, and a verb is
@@ -2075,3 +2084,4 @@ maintainer wants to explore it before it is fixed.
 [D164]: decisions/D164.md
 [D165]: decisions/D165.md
 [D166]: decisions/D166.md
+[D167]: decisions/D167.md

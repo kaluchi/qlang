@@ -1,0 +1,11 @@
+{"name":"a-default-is-answered-for-a-place-a-container-does-not-hold","query":"[1 2] | at 5 0","expect":"0","decision":"D167"}
+{"name":"a-quote-given-where-any-value-is-taken-stays-a-quote","query":"~(mul 2) | eq ~(mul 2)","expect":"true","decision":"D167"}
+{"name":"a-step-computed-where-a-part-takes-code-is-refused-by-the-part","query":"5 | apply /nope !| [type /actualType]","expect":"[::any/apply/code/HoldsNotMetError ::proj/SubjectNotProjectableError]","decision":"D167"}
+{"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort ~(/a) | first | /a","expect":"1","decision":"D167"}
+{"name":"the-law-of-an-answer-refuses-an-answer-that-breaks-it","query":":Box |~~ B ~~| | :Box/half |~~ Half. ::holds~(isA ::string) ~~| ~(/0 | div 2) | ::Box[4] | half !| type","expect":"::Box/half/HoldsNotMetError","decision":"D167"}
+{"name":"a-set-answered-by-a-name-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]","decision":"D167"}
+{"name":"a-quote-under-a-label-that-calls-a-marked-name-takes-the-mark","query":":any/quiet ~(@out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
+{"name":"a-quote-under-a-label-with-its-mark-is-declared","query":":any/@loud ~(@out) | 5","expect":"5","decision":"D167"}
+{"name":"the-message-of-a-refusal-by-address-is-its-address","query":":d |~~ ~(\"x\" | add 1) ~~| 1 | :d | runLaws | first | /error","expect":"\"::number/add/SubjectNotNumberError\"","decision":"D167"}
+{"name":"an-anchor-reads-the-part-under-a-name","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true","decision":"D167"}
+{"name":"the-kind-of-an-answer-is-the-law-of-its-name","query":"::vec/count | doc | content | contains \"::holds~(isA ::number)\"","expect":"true","decision":"D167"}

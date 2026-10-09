@@ -19,6 +19,7 @@ import {
 } from './errors.mjs';
 import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
+import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isErrorValue, isQuote, isDoc, isLabelValue, hostImplOf,
@@ -465,7 +466,8 @@ async function evalBindStep(node, state) {
   if (nounName === null && !isLabelValue(answered) && vocabularyWords(state.env).has(name)) {
     throw new BindNameTakenByVocabularyError({ name, addresses: addressesOf(state.env, name) });
   }
-  if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
+  if (isVerb(answered)) refuseLaunderedByName(name, effectfulNameOfVerb(answered), node);
+  else if (nounName !== null && isQuote(answered)) refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
   // A declaration writes into no verb it was handed: one no declaration
@@ -491,10 +493,9 @@ function declareVerbFirst(verb, name, nounName, env) {
   declareVerbAt(verb, name, underKind ? nounName : null);
 }
 
-// A name without the effect marker refuses a verb whose body calls one,
-// as it refuses such a body of its own.
-function refuseVerbLaunderedByName(name, verb, node) {
-  const effectfulName = effectfulNameOfVerb(verb);
+// A name without the effect marker refuses a verb, or a quote under a
+// label, whose body calls one, as it refuses such a body of its own.
+function refuseLaunderedByName(name, effectfulName, node) {
   if (effectfulName === null || classifyEffect(name)) return;
   const laundering = new BindEffectMarkMissingError({ bindingName: name, effectfulName });
   laundering.location = node.body.location;

@@ -91,10 +91,10 @@
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
       ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
-      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure names the site that refused it: the noun that declares it, the verb, the place, and what the place takes, so ::number/add/SubjectNotNumberError is `add` refusing its left operand, its subject, for not being a number. `!| explain` shows the page of the site.
+      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure is the address of what refused: ::number/add/SubjectNotNumberError is `add` refusing its subject for not being a number, ::number/add/addend/HoldsNotMetError its part `addend` breaking a law of its page. `!| explain` shows the page of what refused.
       ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
       ~("x" | add 1 !| /actualType | eq ::string)
-      ~([1 2] | add 1 !| type | eq ::number/add/SubjectNotNumberError)
+      ~(1 | add "x" !| type | eq ::number/add/addend/HoldsNotMetError)
       ~(!{:reason :late} !| /reason | eq :late)
       A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
       ~({:reason :late} | raise !| [type /reason] | eq [::error :late])
@@ -102,26 +102,23 @@
       ~([!{:k 1} 5] * (false !| true) | eq [true false])
       ~("x" | add 1 | mul 2 !| /trail/-1/skipped | eq ~(mul 2))
 
-      8. Code as a value. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text. A verb of your own is a name over `::verb~(…)`, whose leading declarations are its slots; a kind of your own is `:Name ::spec~(…)`, whose quote checks or builds every value put under it, and `:Name/f ::verb~(…)` its verb.
+      8. Code and names of your own. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text.
       ~(~(add 1 | mul 2) | count | eq 2)
       ~(5 | apply ~(add 1 | mul 2) | eq 12)
       ~("add 1" | parse | eq ~(add 1))
-      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
-      A slot declared by a kind must be filled; by a literal it is filled with that literal when the call leaves it out; by a set of kinds with ::null among them it may be left out and reads null; `* :name kind` gathers the modifiers that remain; `:returns kind` checks the answer. A verb runs when its name is mentioned, and stands where code is asked by `~name`; a quote held in a name runs by `apply`.
-      ~(:f ::verb~(:by 10 | add by) | 1 | f | eq 11)
-      ~(:f ::verb~(* :xs ::number | xs | sum) | null | f 1 2 3 | eq 6)
-      ~(:pos ::verb~(gt 0) | [1 -2 3] | filter ~pos | eq [1 3])
+      A kind of your own is a label, a name declared by its page, whose laws, `::holds~(…)`, every value put under it keeps. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, checked by the laws of its page and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ::holds~(isA ::number) ~~| ~(/0) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/HoldsNotMetError])
+      ~(:number/plus ~(add by) | :number/plus/by ~(at 0 1) | 5 | [plus (plus 2)] | eq [6 7])
       ~(:q ~(add 1) | 5 | apply q | eq 6)
       A step of a quote is a record of what it computes, a command under ::call with its `:name`:
       ~(~(add 1) | first | [type /name] | eq [::call :add])
-      ~(:Small ::spec~(if (lt 10) ~(/) ~(!{:reason :big})) | ::Small(12) !| /reason | eq :big)
       Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, `segments` its prose and quotes, and `laws` the quotes that run. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
       ~(|~~ a ~(eq 1) b ~~| | [(segments | count) (laws | count)] | eq [3 1])
 
-      9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag names the verb and the place; `!| explain` reads the page of that site, and `::vec/sort | doc` the page of a verb, with laws to copy.
+      9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, and `::vec/sort | doc` the page of a verb, with laws to copy.
       ~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
 
-      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the verbs and refusals of a kind by address, `::vec/sort | doc` the page of one verb, `::any/sort | doc` the page every `sort` shares, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | manifest` the parts of its object, `::vec/sort | doc` its page, `::any/sort | doc` the page every `sort` shares, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
       ~(::qlang | doc | links * open | count | gt 5)
 
       11. The chapters, in the order they rest on each other, each naming its neighbours and its kinds:
@@ -177,19 +174,19 @@
       names the page of the kind, so `type | doc` reads the page of a
       value's kind. Tags stack over any payload and read from the outside
       in; behaviour does not travel with a value, it is found again
-      through the tag wherever the value goes. A kind is a name declared
-      by its keyword with a `::spec~(…)` for its value, and the tag is the
-      address of that name, so `:d ::spec~()` declares the kind `::d`; a
-      tag no node answers is a kind of identity, which declares nothing.
+      through the tag wherever the value goes. A kind is a label, a name
+      declared by its page, and the tag is the address of that name, so a
+      page declared as `:d` makes the kind `::d`; a tag no node answers is
+      a kind of identity, which declares nothing.
       ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
       ::snippet~(kinds) lists the kinds the scope reads.
       ::link~(::qlang/values | doc)
 
       ~(::Box | type | eq ::tag)
-      ~(:Even ::spec~(if (eq 2) ~(/) ~(!{:reason :odd})) | ::Even(3) !| /reason | eq :odd)
+      ~(:Pos |~~ A positive number. ::holds~(gt 0) ~~| | ::Pos(-3) !| type | eq ::Pos/HoldsNotMetError)
       ~(::tag::Box | eq ::Box)
       ~(5 | type | doc | type | eq ::doc)
-      ~(:d ::spec~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
+      ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
       ~(::Unbound[1] | type | spec !| type | eq ::any/SpecBindingNotFoundError)
   ~~|
   ::spec~(::builtin{})
@@ -760,19 +757,15 @@
       ~(::vec/filter | binding | /origin | eq :qlang/vec)
       A name declared inside a group closes with it:
       ~(1 | (:inner 2 | inner) | env | has :inner | not)
-      A verb declared under a kind resides on it: it serves the values
-      of the kind, found by its name through the walk of their tags, and
-      refuses any other subject, as a head that names a kind does; it
-      keeps the residence of its first declaration under any name, and a
-      verb declared under a kind it did not first reside on is reached by
-      its address alone:
-      ~(:Box ::spec~(:w ::number) | :Box/twice ::verb~(:returns ::number | /w | mul 2) | ::Box{:w 3} | twice | eq 6)
-      ~(:vec/second ::verb~(/1) | [7 8 9] | second | eq 8)
-      ~(:Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | {:w 3} | Box/w2 !| type | eq ::verb/SlotNotOfKindsError)
-      ~(:Box ::spec~() | :Box/me ::verb~(/) | :me2 (::Box/me | binding | /value) | ::Box[5] | me2 | type | eq ::Box)
-      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::B{} | g !| type | eq ::call/UnknownNameError)
-      ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::A{} | B/g | eq 1)
-      ~(:Box/area ::verb~(1) !| type | eq ::bind/NounNotDeclaredError)
+      A name declared under a label resides on it: it serves the values
+      of the label, found by its name through the walk of their tags,
+      and refuses any other subject under its address; a quote taken
+      from one label and declared under another resides on the second:
+      ~(:Box |~~ A box. ~~| | :Box/twice ~(/w | mul 2) | ::Box{:w 3} | twice | eq 6)
+      ~(:vec/second ~(/1) | [7 8 9] | second | eq 8)
+      ~(:Box |~~ A box. ~~| | :Box/w2 ~(/w | mul 2) | {:w 3} | Box/w2 !| type | eq ::Box/w2/SubjectNotBoxError)
+      ~(:A |~~ A. ~~| | :A/f ~(1) | :B |~~ B. ~~| | :B/g (::A/f | binding | /value) | [(::B{} | g) (::A{} | B/g !| type)] | eq [1 ::B/g/SubjectNotBError])
+      ~(:Box/area ~(1) !| type | eq ::bind/NounNotDeclaredError)
       A name is declared once in a scope and again in a scope inside it,
       which shadows it for the steps after; a value the reader names
       takes no word of the vocabulary, the name of a verb or of a name
@@ -782,21 +775,21 @@
       ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
       ~(:k 1 | (:k 2 | k) | eq 2)
       ~(:count 5 !| type | eq ::bind/NameTakenByVocabularyError)
-      ~(:vec/count ::verb~(0) !| type | eq ::bind/NameDeclaredTwiceError)
+      ~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
       A name begins with a letter of any script, `_` or `@`; `@` marks a
-      name whose call reaches outside the language, and a verb whose body
+      name whose call reaches outside the language, and a name whose body
       calls one carries it too, while a name over the value a call
       answered is plain:
-      ~(:@io ::verb~(1) | :fine (@io) | fine | eq 1)
-      ~(:quiet ::verb~(@out) !| type | eq ::bind/EffectMarkMissingError)
+      ~(:any/@io ~(1) | :fine (@io) | fine | eq 1)
+      ~(:any/quiet ~(@out) !| type | eq ::bind/EffectMarkMissingError)
       The docs in the slot of a declaration, between its name and its
       body, are its page, one doc each:
       ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | /x | /docs | count | eq 2)
-      A verb resolves its names in the scope of its declaration, itself
-      among them, so it recurses by name, and the frames of a runaway
-      meet a budget:
-      ~(:walk ::verb~({:n /n :kids (/kids * walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | /kids/0/n | eq 2)
-      ~(:inf ::verb~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
+      A name under a label resolves its names through the tree of names
+      as it stands at the call, itself among them, so it recurses by
+      name, and the frames of a runaway meet a budget:
+      ~(:map/walk ~({:n /n :kids (/kids * walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | /kids/0/n | eq 2)
+      ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
   ~~|
   #[::binding]
 
@@ -820,23 +813,24 @@
       A name declares the parts of its object as names under it, which
       `manifest` answers before a call:
       ~(::vec/sort | manifest | eq #[::vec/sort/key])
-      A reader's verb is a name over `::verb` and a quote whose head
-      declares its slots, and it takes its arguments after its name:
-      ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
+      A reader's name under a noun takes the parts of its object after
+      it, each a name under the call's address:
+      ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(isA ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)
       A modifier is evaluated at the call against the subject, the value
       in the pipe, which is always the subject of the call; a form that
       combines several values of one subject is a verb of its own, its
-      objects all the operands, `mulOf /price /qty`; a slot that runs
+      objects all the operands, `mulOf /price /qty`; a part that runs
       code later takes a quote, `~name` or `~/path` the quote of one step, and a
       condition is a boolean:
       ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
       ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
       ~([{:age 3}] | sort ~/age | first | /age | eq 3)
       ~([1 2] | filter ~(1) !| type | eq ::any/FilterConditionNotBooleanError)
-      A kind is declared by a name over a spec, `:T ::spec~(…)`, whose
-      quote is the constructor that checks or builds each value put
-      under it and answers an error for one it refuses:
-      ~(:Small ::spec~(if (lt 10) ~(/) ~(!{:reason :tooBig})) | [(::Small(3) | type) (::Small(12) !| /reason)] | eq [::Small :tooBig])
+      A kind is a label, a name declared by its page, whose laws every
+      value put under it keeps, and whose name `construct`, when it has
+      one, builds the value from the payload:
+      ~(:Small |~~ Below ten. ::holds~(lt 10) ~~| | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/HoldsNotMetError])
+      ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value:
       ~(::Small(12) | payload | eq 12)
@@ -868,7 +862,7 @@
       ~("x" | add 1 !| explain | type | eq ::explanation)
       The trail holds a stop for each level the error left, and the last
       stop the steps it skipped, a quote ready to replay:
-      ~(:f ::verb~(:n ::number | add n | mul n) | "x" | f 2 | sub 3 !| /trail * /step | eq [~(add n) ~(f 2)])
+      ~(:any/f ~(add n | mul n) | :any/f/n ~(/0) | "x" | f 2 | sub 3 !| /trail * /step | eq [~(add n) ~(f 2)])
       ~("x" | add 1 | mul 2 !| /trail/-1/skipped | parse | eq "mul 2")
       A map raised again after `!|` resumes the trail it holds, and one
       without `:trail` starts it over:

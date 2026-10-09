@@ -1,0 +1,119 @@
+{
+  "status": "ok",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "alice",
+        "email": "Alice@Example.com",
+        "active": true,
+        "roles": [
+          "admin",
+          "dev"
+        ],
+        "profile": {
+          "country": "US",
+          "age": 34
+        }
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": null,
+        "active": true,
+        "roles": [
+          "dev"
+        ],
+        "profile": {
+          "country": "DE",
+          "age": 28
+        }
+      },
+      {
+        "id": 3,
+        "name": "carol",
+        "email": "carol@corp.org",
+        "active": false,
+        "roles": [
+          "Admin"
+        ],
+        "profile": {
+          "country": "US",
+          "age": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "Dave",
+        "email": "dave@example.com",
+        "active": true,
+        "roles": [],
+        "profile": {
+          "country": null,
+          "age": 45
+        }
+      },
+      {
+        "id": 5,
+        "name": "erin",
+        "email": "erin@EXAMPLE.COM",
+        "active": true,
+        "roles": [
+          "ADMIN",
+          "ops"
+        ],
+        "profile": {
+          "country": "DE",
+          "age": 31
+        }
+      },
+      {
+        "id": 6,
+        "name": "Frank",
+        "active": false,
+        "roles": [
+          "ops"
+        ]
+      },
+      {
+        "id": 7,
+        "name": "grace",
+        "email": "grace@example.com",
+        "active": false,
+        "roles": [
+          "dev"
+        ],
+        "profile": {
+          "country": "FR",
+          "age": 22
+        }
+      },
+      {
+        "id": 8,
+        "name": "Heidi",
+        "email": "heidi@example.com.au",
+        "active": true,
+        "roles": [
+          "dev",
+          "ops"
+        ],
+        "profile": {
+          "country": "US"
+        }
+      },
+      {
+        "id": 9,
+        "name": "ivan",
+        "email": "ivan@example.com",
+        "active": true,
+        "roles": [
+          "admin"
+        ],
+        "profile": {
+          "country": "FR",
+          "age": 39
+        }
+      }
+    ]
+  }
+}

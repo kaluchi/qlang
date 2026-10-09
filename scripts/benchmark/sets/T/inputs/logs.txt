@@ -1,0 +1,10 @@
+2026-03-01T10:00:01Z INFO api request path=/users ms=120
+2026-03-01T10:00:05Z ERROR db connection lost retry=1
+2026-03-01T10:00:07Z INFO api request path=/orders ms=80
+2026-03-01T10:01:11Z WARN api slow request path=/search ms=950
+2026-03-01T10:02:30Z ERROR api upstream timeout path=/pay
+2026-03-01T10:02:31Z ERROR db deadlock detected retry=2
+2026-03-01T10:03:00Z INFO worker job done ms=401
+2026-03-01T10:03:44Z ERROR worker job failed id=17
+2026-03-01T10:04:02Z INFO api request path=/users ms=100
+2026-03-01T10:05:09Z ERROR db connection lost retry=3

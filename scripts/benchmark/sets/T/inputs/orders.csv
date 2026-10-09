@@ -1,0 +1,9 @@
+id,customer,product,qty,price,status
+1,Acme,widget,10,2.50,shipped
+2,Birch,gadget,3,19.99,Shipped
+3,Acme,gizmo,1,100.00,cancelled
+4,Cobalt,widget,5,,shipped
+5,Birch,widget,20,2.50,pending
+6,Cobalt,gadget,2,19.99,shipped
+7,Acme,gadget,4,19.99,SHIPPED
+8,Delta,gizmo,1,100.00,pending

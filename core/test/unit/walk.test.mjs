@@ -207,18 +207,24 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds TaggedLit occurrences written as a tag', () => {
-    const ast = parse('::verb~(count)');
-    const refs = findIdentifierOccurrences(ast, 'verb', TAG_SPELLING);
+    const ast = parse('::holds~(count)');
+    const refs = findIdentifierOccurrences(ast, 'holds', TAG_SPELLING);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
-    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'verb')).toBe(true);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'holds')).toBe(true);
+  });
+
+  it('finds a name with a path by the name a step calls it by', () => {
+    const ast = parse(':any/double ~(mul 2) | [1 2] * double | any/double');
+    const refs = findIdentifierOccurrences(ast, 'double');
+    expect(refs.map(n => n.type)).toEqual(['BindStep', 'OperandCall', 'OperandCall']);
   });
 
   it('finds BareTypeKeyword occurrences written as a tag', () => {
-    const ast = parse('::verb | source');
-    const refs = findIdentifierOccurrences(ast, 'verb', TAG_SPELLING);
-    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'verb')).toBe(true);
+    const ast = parse('::Box | source');
+    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
+    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'Box')).toBe(true);
   });
 
   it('finds the declaration of a kind written as a tag', () => {
@@ -235,6 +241,11 @@ describe('bindingNamesVisibleAt', () => {
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('x')).toBe(true);
     expect(visible.has('y')).toBe(true);
+  });
+
+  it('offers a name with a path by the name a step calls it by', () => {
+    const source = ':any/twice ~(mul 2) | 5';
+    expect(bindingNamesVisibleAt(parse(source), source.length).has('twice')).toBe(true);
   });
 
   it('does not include bindings that are still ahead of the cursor', () => {

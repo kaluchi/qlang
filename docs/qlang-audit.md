@@ -698,8 +698,9 @@ own [D50]. The shape of an answer is read the same way, before the
 answer is fetched: the operand's declaration names the tag or the type
 of its result, the tag's declaration names the fields, and `spec` and
 `doc` on the operand answer for one operand what a schema sheet would
-answer for all. The result of a verb is the kind its `:returns`
-declares, a declared verb's and a built-in's alike [D67]; the fields are
+answer for all. The result of a word is the label its answer's
+definition names, `:number/add/sum ::number`, the catalog's and a
+reader's alike [D169]; the fields are
 declared with the tag, and the element shape of a container is spelled
 as the container's literal around the kind, `[::Method]` for a vector of
 methods. Last, everything prints as what it is, code included, because
@@ -819,9 +820,8 @@ a scope, and a verb of the catalog is a name under the label of its
 subject, a host's primitive or a quote, the parts of its object names
 under the call's address, each read from the object and held to the
 laws of its page, the law of its answer on its own page [D164], [D166],
-[D167]; a reader's verb is a quote under `::verb` whose leading
-declarations are its signature. A
-comment is whitespace, and a doc is the literal in the slot of the
+[D167], and a reader's verb is written alike, `:number/inc ~(add 1)`
+[D168]. A comment is whitespace, and a doc is the literal in the slot of the
 declaration it documents. One order ranks every value, JSON syntax reads
 into the one map and the one vector, the set is the ordered vector under
 its tag, every value has a kind, and every condition is a boolean. The
@@ -893,7 +893,7 @@ $ node cli/bin/jdt q '::jdt | manifest'
 ```
 
 Every kind a source declares bare reaches the names of every reader
-the same way, so a head whose slots name kinds of their own [D60]
+the same way, so a host whose verbs name kinds of their own [D60]
 multiplies what a reader's `env` shows unless the source declares
 those kinds under its noun; the sister project's kinds, `JdtType` and
 its kin, and its refusals stand bare in the root.
@@ -1078,11 +1078,11 @@ The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:
 
 ```qlang
-> :g ::verb~(add 1) | ::vec | spec | g !| /trail * /subject * eq (::vec | spec)
+> :any/g ~(add 1) | ::vec | spec | g !| /trail * /subject * eq (::vec | spec)
 [true true]
 ```
 
-A slot of a verb that meets an error hands it on unchanged, as the law
+A part of a call that meets an error hands it on unchanged, as the law
 of nested errors asks [D13], [D68]:
 
 ```qlang
@@ -1126,11 +1126,11 @@ It must hold one law for an error inside a nested evaluation, derived
 from the fork rule [D13]: the error of a fork is its value, handed to
 whatever ran the fork; the elements of a container keep it, the
 elements and entries of a literal and the results of a distribute; an
-argument of a step hands it on unchanged, whatever the kind of its slot,
+argument of a step hands it on unchanged, whatever the law of its part,
 and a key hands it to the operand that runs it [D87], so a selector
 aborts on a failing predicate, a sort on a key that misses its field,
 and an arithmetic step stops nesting one error inside another; and an
-operand whose alternatives are pipeline slots, `coalesce` and its kin,
+operand whose alternatives are the parts of its object, `coalesce` and its kin,
 runs them in order and treats an error result as no value, which is
 that operand's documented contract, so the misspelled field that becomes
 the fallback is the price of asking for a fallback, paid where it was
@@ -1213,8 +1213,8 @@ Both left the tree with their runner [D128]. What they said that the
 catalog did not stands as laws of its pages: the lexicon of each
 literal on the page of its kind, and on the pages of `::qlang`, in the
 order the concepts rest on each other, the layout of lines and
-comments, the fork rule and the scopes, application and the slots of
-code, the effect marker, the recursion of a verb and its budget, and
+comments, the fork rule and the scopes, application and the parts that
+take code, the effect marker, the recursion of a verb and its budget, and
 the path of an error across a raise. The embedding API is the page of
 the package, `core/README.md`. The documents left are the measure, the
 decisions, and the research of a design whose work has begun, which
@@ -1242,7 +1242,7 @@ incomplete, because an effect handed as code runs under a
 clean name:
 
 ```qlang
-> :run ::verb~(:code ::quote | apply code) | "leak" | run ~(@out)
+> :any/run ~(apply code) | :any/run/code ~(/0) | "leak" | run ~(@out)
 leak
 ```
 
@@ -1466,7 +1466,7 @@ naming a key wherever a key is taken [D139]:
 
 One order ranks every value, so anything sorts, and the set is the
 vector in that order without duplicates. A predicate answers a boolean
-or fails at its slot. An error carries the tag of its site, a kind
+or fails at its part. An error carries the tag of its site, a kind
 declared once whose schema puts the facts a reader needs first, and the
 tag leads to the site's procedure. A nested evaluation that fails yields
 its error as a value, and every operand treats that value by one rule.
@@ -1474,10 +1474,10 @@ its error as a value, and every operand treats that value by one rule.
 A name is declared by its keyword, and a name with a path declares a
 node under the noun its path names before its last name, whose
 address its tag is
-[D152], [D153]. A path names a noun declared before it, and a verb
-resides on the noun of its first declaration when that noun is a kind,
-taking a subject the walk of its tags brings to the kind and refusing
-any other, as every subject is taken [D72], [D153], [D156]. The root is the scope a host's sources declare as cells
+[D152], [D153]. A path names a noun declared before it, and a name
+under a label resides on it, taking a subject the walk of its tags
+brings to the label and refusing any other, as every subject is taken
+[D153], [D156], [D164]. The root is the scope a host's sources declare as cells
 before a reader's first step, the language's first, and a source, a
 cell and a query are written alike; a namespace too large to declare,
 a host's tens of thousands of types, is mounted and served on demand
@@ -1487,8 +1487,8 @@ a name with a path calls by address without a search [D62], [D153]; a
 tag in the subject position is dispatched to the noun it names, after
 the verbs of tag names, and each step resolves by its own subject
 [D88], while values carry their qualified tags [D35]; an axis with a
-name reads the member its subject holds under it, the slot of a verb or
-the verb a noun holds [D88]; a host sets up a query by its sources and
+name reads the member its subject holds under it, a part of a word or
+the word a noun holds [D88]; a host sets up a query by its sources and
 the first value of its pipe and nothing else [D37], [D153]. `env`
 answers what the reader declared and `kinds` the kinds of the scope
 [D160]. A
@@ -1635,13 +1635,14 @@ definition is, a word's code, a part's selector, the label of a word's
 answer, a law under the name of its refusal [D168], [D169].
 `::spec~(…)` and `::verb~(…)` leave the language whole, a reader's verb
 being a name under the label of its subject, `:number/inc ~(add 1)`,
-and `~name` the quote of one step; the pages of `::verb` and `::spec`
-and the reading of heads in `core/src/runtime/verb.mjs` leave with
-them [D168]. The suite and the laws of the catalog write them still:
+and `~name` the quote of one step [D168]. `::verb` has left with its
+page and the reading of heads; the page of `::spec` and the reading of
+a kind's fields and constructor in `core/src/runtime/verb.mjs` remain,
+and the suite and the laws of the catalog write `::spec~(…)` still:
 
 ```
-$ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-335
+$ grep -o '::spec~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
+248
 ```
 
 Three repairs rest on the schema. The tags of the refusing sites become
@@ -1800,8 +1801,8 @@ wants one, Clojure's multimethods show the form: a hierarchy of names
 built as data with `derive`, separate from any value, rather than
 inheritance. The cost is a second axis of resolution; the gain is that
 a host can say that every kind of its nodes answers a verb once. One
-level of it is decided: every walk ends at `::any`, where a contract
-several kinds answer lives, a host's among them [D67], [D153].
+level of it is decided: every walk ends at `::any`, whose words every
+value answers, a host's among them [D153], [D169].
 
 The spelling and the mechanics of mounting [D24]. Admitting the dot
 inside a tag's name is local to the grammar; the quoted form `::"…"`

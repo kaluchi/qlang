@@ -10,26 +10,25 @@
 //            step declared, a value a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `spec`     the value the binding holds as it was declared, a verb's
-//            head for a verb [D152].
+// `spec`     the value the binding holds as it was declared [D152].
 // `binding`  the record itself, `::binding` with its name, docs, value,
 //            source and module [D5].
 //
 // Given a name, each axis reads the member the subject holds under it
-// [D88]: the slot a verb's head declares, `::vec/take | doc :count`,
-// and for any other subject the verb the name calls after it,
-// `::map | doc :minus` the page of `::map/minus`.
+// [D88]: for a tag name the name under its address, a part of the object
+// of a word among them, `::vec/take | doc :count`, and for any other
+// subject the word the name calls after it, `::map | doc :minus` the
+// page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, makeSet, makeTaggedInstance,
+  isKeyword, isQuote, isTagKeyword, isBinding, isNull, isQSet, isVec, typeKeyword, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
-import { signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagLiteralOf } from '../env-keys.mjs';
 import {
-  addressesOf, isNoun, nodeOf, partsOfName, residenceOnSubject
+  addressesOf, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -143,27 +142,22 @@ export function claimsOfRecord(record) {
 }
 
 // The record of the member the subject holds under a name [D88], or
-// null: the slot a verb declares, the name under the address a tag name
-// writes, a part the contract of its word declares among them [D167],
-// and otherwise the verb the subject's walk reaches under the name
-// [D117].
+// null: the name under the address a tag name writes, a part of the
+// object of a word among them, and otherwise the word the subject's walk
+// reaches under the name [D117].
 function memberRecordOf(env, subject, memberName) {
-  const declared = declaringRecordOf(env, subject)?.get('value');
-  if (isVerb(declared)) return slotMemberOf(declared, memberName);
-  const under = isTagKeyword(subject)
-    ? nodeOf(env, `${subject.name}/${memberName}`) ?? partsOfName(env, subject.name).find(([partName]) => partName === memberName)?.[1] ?? null
-    : null;
+  const under = isTagKeyword(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
   return under ?? residenceOnSubject(env, memberName, subject);
 }
 
 // What the refusal of a member holds: the address the name would have
-// under a noun or a name that reads parts, or the name alone, and where
-// the verbs of that name live.
+// under a noun, or the name alone, and where the words of that name
+// live.
 function memberRefusalOf(env, subject, memberName) {
-  const onNoun = isTagKeyword(subject) && (isNoun(env, subject.name) || partsOfName(env, subject.name).length > 0);
+  const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
   return {
     bindingName: onNoun ? tagLiteralOf(`${subject.name}/${memberName}`) : memberName,
-    addresses: isVerb(declaringRecordOf(env, subject)?.get('value')) ? makeSet([]) : addressesOf(env, memberName)
+    addresses: addressesOf(env, memberName)
   };
 }
 
@@ -211,9 +205,8 @@ function recordAlongPath(subject, anchors, state) {
 }
 
 // What the next anchor of a path reads under: the address of the record
-// reached, so a name under a name is read by its address [D164], or the
-// verb, whose head holds its slots.
-const underRecord = record => (isVerb(record.get('value')) ? record : makeTagKeyword(record.get('name').name));
+// reached, so a name under a name is read by its address [D164].
+const underRecord = record => makeTagKeyword(record.get('name').name);
 
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
@@ -245,11 +238,9 @@ bindStateReader('any/explain', (subject, state) => {
 });
 
 // `spec` — the value the record holds as it was declared [D152]: a
-// kind's `::spec~(…)`, its fields and its constructor, the head of a verb
-// as a `::spec~(…)` with its subject filled [D72], and the value itself
-// for any other binding; what lies under a noun `manifest` answers.
-bindStateReader('any/spec', (subject, memberName, state) => {
-  const declaration = recordReadBy(subject, memberName, state, AnySpecBindingNotFoundError).get('value');
-  return isVerb(declaration) ? signatureSpecOf(declaration) : declaration;
-});
+// kind's `::spec~(…)`, its fields and its constructor, and the value
+// itself for any other binding; what lies under a noun `manifest`
+// answers.
+bindStateReader('any/spec', (subject, memberName, state) =>
+  recordReadBy(subject, memberName, state, AnySpecBindingNotFoundError).get('value'));
 

@@ -5,12 +5,12 @@
 // first. A step reads the nearest declaration of its name, the frame of
 // the reader's before the root's, and a tag name, an address, the root's
 // node of it first, which no reader replaces; a walk of a subject's tags
-// finds the verbs residing on each kind it passes [D34], [D72].
+// finds the words residing on each kind it passes [D34], [D164].
 
 import {
-  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQSet, isQuote, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance,
+  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQSet, isQuote, isSpec, isVec, isTagKeyword, isTaggedInstance,
   isValueClass, makeSet, makeTagKeyword,
-  typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
+  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
@@ -53,14 +53,11 @@ export function isUnderLabel(env, name) {
   return labelName !== null && isLabel(env, labelName);
 }
 
-// Whether a record holds a verb residing on a kind, or a name declared
-// under a label that runs on its values, a quote or the descriptor of a
-// primitive [D164]; a name under such a name is a part of its object and
-// resides nowhere.
+// Whether a record holds a name declared under a label that runs on its
+// values, a quote or the descriptor of a primitive [D164]; a name under
+// such a name is a part of its object and resides nowhere.
 function residesOn(record, kindName, env) {
-  const value = bindingValueOf(record);
-  if (isVerb(value)) return residenceOfVerb(value) === kindName;
-  return isMemberValue(value) && isLabel(env, kindName);
+  return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName);
 }
 
 // A value a name under a label holds when it runs on the label's values.
@@ -138,10 +135,9 @@ function* kindsOfWalk(subject) {
   }
 }
 
-// residenceOnSubject(env, verbName, subject) → the record of the verb of
+// residenceOnSubject(env, verbName, subject) → the record of the word of
 // `verbName` the walk of the subject's tags reaches, the one on `::any`
-// last, where a contract answers for the kinds it leaves, or null [D72];
-// with no subject, the one on `::any` alone.
+// last, or null [D34]; with no subject, the one on `::any` alone.
 export function residenceOnSubject(env, verbName, subject) {
   if (subject !== undefined) {
     for (const kindName of kindsOfWalk(subject)) {
@@ -153,11 +149,11 @@ export function residenceOnSubject(env, verbName, subject) {
 }
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
-// first [D62], [D153]: the reader's declaration, the verb residing on a
-// kind the walk of the subject reaches, the one verb of the name residing
-// on a kind, whose head refuses a subject of another kind [D156], and for
-// a name no kind answers the root's declaration [D169]; `{ record,
-// underKind }`, or null when no record answers or verbs of several kinds
+// first [D62], [D153]: the reader's declaration, the word residing on a
+// kind the walk of the subject reaches, the one word of the name residing
+// on a kind, which refuses a subject of another kind [D156], and for a
+// name no kind answers the root's declaration [D169]; `{ record,
+// underKind }`, or null when no record answers or words of several kinds
 // do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
@@ -168,9 +164,9 @@ export function bareNameReach(env, name, subject) {
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
 
-// residencesOf(env, verbName) → the verbs of a name residing on a kind,
-// each with its kind, in the order of their declarations, the contract
-// on `any` apart: what a contract answers for.
+// residencesOf(env, verbName) → the words of a name residing on a kind,
+// each with its kind, in the order of their declarations, the one on
+// `::any` apart, since it answers every value.
 export function residencesOf(env, verbName) {
   const residences = [];
   for (const [name, record] of bindingsOf(env)) {
@@ -348,7 +344,7 @@ export function verbNames(env) {
   const names = new Set();
   for (const [name, record] of bindingsOf(env)) {
     const [nounName, lastName] = splitAddress(name);
-    if (isVerb(bindingValueOf(record)) || (nounName !== null && residesOn(record, nounName, env))) names.add(lastName);
+    if (nounName !== null && residesOn(record, nounName, env)) names.add(lastName);
   }
   return names;
 }
@@ -361,12 +357,10 @@ export function vocabularyWords(env) {
   for (const [name, entry] of env) {
     if (!isBinding(entry)) continue;
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && isWordOf(entry, nounName, env)) words.add(lastName);
+    if (nounName !== null && residesOn(entry, nounName, env)) words.add(lastName);
   }
   return words;
 }
-
-const isWordOf = (record, nounName, env) => isVerb(bindingValueOf(record)) || residesOn(record, nounName, env);
 
 // The words a root holds, gathered once for the root.
 const ROOT_WORDS = new WeakMap();
@@ -377,7 +371,7 @@ function rootWordsOf(root) {
     const rootScope = new Map([[ROOT_KEY, root]]);
     words = new Set();
     for (const [nounName, names] of rootIndexOf(root)) {
-      for (const [lastName, record] of names) if (isWordOf(record, nounName, rootScope)) words.add(lastName);
+      for (const [lastName, record] of names) if (residesOn(record, nounName, rootScope)) words.add(lastName);
     }
     ROOT_WORDS.set(root, words);
   }

@@ -28,15 +28,15 @@
   ::spec~()
 
 :proj/FieldNotInSignatureError
-  |~~ A projection of a signature, `:twice | spec | /x`, names a slot
-      or a role its head declares; another name is refused, and the
-      signature printed whole, `:twice | spec`, shows the ones there are.
+  |~~ A projection of a kind's declaration, `::P | spec | /name`, names
+      a field it declares; another name is refused, and the declaration
+      printed whole, `::P | spec`, shows the ones there are.
       ::link~(::proj | doc)
 
-      ~(:twice ::verb~(:x ::number | mul x) | :twice | spec | /x | eq ::number)
+      ~(:P ::spec~(:name ::string) | ::P | spec | /name | eq ::string)
 
       ~(
-        :twice ::verb~(:x ::number | mul x) | :twice | spec | /missing
+        :P ::spec~(:name ::string) | ::P | spec | /missing
         !| [type /key]
         |  eq [::proj/FieldNotInSignatureError "missing"]
        )

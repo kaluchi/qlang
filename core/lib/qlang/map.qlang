@@ -142,7 +142,7 @@
   |~~ Whether the predicate answers true for every value.
 
       ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
-      ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
+      ~({:a 1 :b 2} | every ~(gt 0) | eq true)
       A map is asked of its values:
       ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
   ~~|
@@ -160,7 +160,7 @@
   |~~ Whether the predicate answers true for some value.
 
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
-      ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
+      ~({:a -1 :b 2} | any ~(gt 0) | eq true)
   ~~|
   ::builtin{}
 

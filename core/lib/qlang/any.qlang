@@ -150,7 +150,7 @@
         |  eq ::any/ReduceReducerNotBinaryError
        )
       ~(
-        :step ::verb~(:el ::number | mul 2 | add el)
+        :any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number)
         | [1 2 3] | reduce 0 ~(step)
         | eq 11
        )
@@ -202,9 +202,9 @@
       ~(:foo | type | eq ::keyword)
       ~([1 2] | type | eq ::vec)
       ~(#[1 2] | type | eq ::set)
-      A verb, a binding record, a descriptor of the catalog, a quote and a
-      tagged value answer the tag they carry:
-      ~(::verb~(42) | type | eq ::verb)
+      A binding record, a descriptor of the catalog, a quote and a tagged
+      value answer the tag they carry:
+      ~(~(42) | type | eq ::quote)
       An error answers the tag of its site, which `!|` keeps on the
       descriptor it opens:
       ~(
@@ -469,7 +469,7 @@
 
       ~(:limit 10 | env | has :limit)
       ~(env | eq {})
-      ~(:Box ::spec~() | :Box/area ::verb~(1) | env | keys | eq #[:Box :Box/area])
+      ~(:Box ::spec~() | :Box/area ~(1) | env | keys | eq #[:Box :Box/area])
       ~(42 | :answer / | env | /answer | /value | eq 42)
   ~~|
   ::builtin{}
@@ -544,9 +544,9 @@
       `::Tag | source` the tag's. A binding no step declared, a value a
       host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
-      it reads the name the subject holds under it: a part of the object
-      of a name, the slot a verb's head declares, and for any other
-      subject the verb the name calls after it.
+      it reads the name the subject holds under it: for a tag name the
+      name under its address, a part of the object of a word among them,
+      and for any other subject the word the name calls after it.
 
       ~(::vec/filter | source | parse | contains ":vec/filter")
       ~(::number/NotFiniteError | source | parse | contains "NotFiniteError")
@@ -598,10 +598,10 @@
       ~(5 | doc | eq (::number | doc))
       ~({:kind ::set} | doc | eq (::map | doc))
       A keyword reads the page of the member the subject holds under it,
-      the verb it calls or the slot a verb's head declares:
+      the word it calls or a part of the object of a word:
       ~(::map | doc :minus | eq (::map/minus | doc))
       ~([1 2] | doc :count | eq (::vec/count | doc))
-      ~(:f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content | eq " how many ")
+      ~(:any/f ~(add n) | :any/f/n |~~ how many ~~| ~(/0) | ::any/f | doc :n | content | eq " how many ")
       A vector of anchors walks a path, and a set of anchors reads a page
       at each:
       ~(::vec | doc [:take] | eq (::vec/take | doc))
@@ -674,22 +674,19 @@
 
 :any/spec
   |~~ The declaration a name reads as it was written, what a reader
-      checks before a call: what a verb takes and answers, what a kind is
-      made of. A projection of a signature reads the body of the
-      declaration it names; any other binding answers the value its
-      record holds, and any other value the declaration of its kind.
-      What lies under a noun, its verbs and its refusals, `manifest`
-      answers.
+      checks before a call: what a word runs, what a kind is made of. A
+      projection of a kind's declaration reads the body of the field it
+      names; any other binding answers the value its record holds, and
+      any other value the declaration of its kind. What lies under a
+      noun, its words and its refusals, `manifest` answers.
 
       A name under a label answers its value, a host's primitive its
       `::builtin{}` and a part of its object its selector:
       ~(::vec/take | spec | type | eq ::builtin)
       ~(::vec/take | spec :count | eq ~(/0))
-      A reader's verb answers its signature, a `::spec~(…)`:
-      ~(:twice ::verb~(:x ::number | mul 2) | :twice | spec | type | eq ::spec)
       A kind answers its declaration, a `::spec~(…)` whose body is its
       constructor, a refusal among the kinds:
-      ~(::verb | spec | eq ::spec~(::builtin{}))
+      ~(::vec | spec | eq ::spec~(::builtin{}))
       ~(::number/PayloadNotNumberError | spec | type | eq ::spec)
   ~~|
   ::builtin{}

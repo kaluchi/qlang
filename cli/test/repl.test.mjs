@@ -68,7 +68,7 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const replHarness = captureRepl(':double ::verb~(mul 2)\n10 | double\n.exit\n');
+    const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });

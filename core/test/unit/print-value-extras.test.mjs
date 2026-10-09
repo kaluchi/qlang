@@ -230,7 +230,7 @@ describe('print — the print declared under a kind', () => {
     ':badge |~~ A badge. ~~| ::spec~()',
     ':badge/print',
     '  |~~ A badge as its name. ~~|',
-    '  ::verb~(:returns ::string | /name)'
+    '  ~(:returns ::string | /name)'
   ].join('\n');
 
   async function badgeSession() {

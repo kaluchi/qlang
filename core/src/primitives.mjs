@@ -99,7 +99,7 @@ export function bindPrim(addresses, impl) {
 
 // A primitive that reads the scope of its call takes the state of the
 // call after its values [D79]; every other primitive is a plain function
-// over the values its head checked [D72].
+// over the values of the parts of the call [D164].
 const STATE_READERS = new WeakSet();
 
 export function bindStateReader(addresses, impl) {
@@ -112,7 +112,7 @@ export function readsState(impl) {
 }
 
 // A primitive whose answer names the tags its subject stood beneath takes
-// the tags the walk of its head passed, from the outside in, after its
+// the tags the walk of its subject passed, from the outside in, after its
 // values [D34]: `raise` names its error by the outermost [D86].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 

@@ -54,7 +54,7 @@ Tier 2, by topic, only the files the topic names:
 
 - arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls, and
-  `core/lib/qlang/any.qlang` for the contracts several kinds answer
+  `core/lib/qlang/any.qlang` for the words every value answers
 - names, scope, the root, sessions: `core/src/state.mjs`,
   `core/src/fork.mjs`, `core/src/env-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,

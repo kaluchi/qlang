@@ -152,7 +152,7 @@ describe('eval — freeze', () => {
 
 describe('eval — BindStep declaration', () => {
   it('binds and runs a verb', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 10 | double')).toBe(20);
+    expect(await evalQuery(':any/double ~(mul 2) | 10 | double')).toBe(20);
   });
 });
 

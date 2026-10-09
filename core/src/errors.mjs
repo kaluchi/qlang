@@ -85,12 +85,10 @@ export class QlangInvariantError extends QlangError {
 }
 
 // EffectLaunderingError — abstract root of the mark of an effect: a
-// name whose verb calls a name marked `@`, a verb that reaches outside
-// the language, carries the mark itself, so every reader of the name
-// sees it [D69]. `bind/EffectMarkMissingError` refuses a declaration
-// without it where it stands; `call/EffectMarkMissingError` a call of
-// such a verb under a plain name a host bound, which no declaration
-// read.
+// name whose code calls a name marked `@`, which reaches outside the
+// language, carries the mark itself, so every reader of the name sees it
+// [D69]; `bind/EffectMarkMissingError` refuses a declaration without it
+// where it stands.
 export class EffectLaunderingError extends QlangError {
   constructor(message, context = {}) {
     super(message, 'effectLaundering', context);
@@ -291,9 +289,9 @@ export const CallEvaluationDepthExceededError = declarePerSiteError(
 
 // BindNameDeclaredTwiceError — a declaration of a name an earlier step
 // of its scope declared [D44], [D71], or of an address the root holds
-// [D153]: `evalBindStep` refuses it where it stands, the head of a verb,
-// which never runs, where the verb is made, and the root a source that
-// declares it again. `context.name` is the name the declarations share.
+// [D153]: `evalBindStep` refuses it where it stands, and the root a
+// source that declares it again. `context.name` is the name the
+// declarations share.
 export const BindNameDeclaredTwiceError = declareShapeError('bind/NameDeclaredTwiceError',
   ({ name }) => `${name} is declared once, and this declaration declares it again`,
   { operand: '::bind' }
@@ -307,12 +305,4 @@ export const BindEffectMarkMissingError = declareEffectLaunderingError(
     `${bindingName} declares a verb that calls ${effectfulName}, which reaches outside the language; ` +
     `its name carries the mark too, @${bindingName}`,
   { operand: '::bind' }
-);
-
-export const CallEffectMarkMissingError = declareEffectLaunderingError(
-  'call/EffectMarkMissingError',
-  ({ bindingName, effectfulName }) =>
-    `${bindingName} calls a verb that calls ${effectfulName}, which reaches outside the language, ` +
-    `and carries no mark; the host binds it under a name marked @, @${bindingName}`,
-  { operand: '::call' }
 );

@@ -98,7 +98,7 @@
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::qlang/values)
-      ~(:Box ::spec~() | :Box/area ::verb~(1) | ::Box | manifest | eq #[::Box/area])
+      ~(:Box ::spec~() | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
 
       `manifest` is asked of a noun, a tag name in the subject
       position.

@@ -3,11 +3,12 @@
 
 import {
   parse, ParseError,
-  langRuntime, evalQuery, answerKindsOf, isVerb, bindingValueOf,
+  langRuntime, evalQuery, answerKindsOf,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
+  callNameOf,
   CALL_SPELLING,
   TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
@@ -15,8 +16,6 @@ import {
   tokenize,
   isNameStart,
   isNameContinue,
-  isTagKeyword,
-  typeKeyword,
   shownFor,
   verbsReaching,
   verbNames,
@@ -254,9 +253,9 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, a name's the labels its answer's definition
-// names, the subject's own where that is the word's own label [D169], and
-// a reader's verb's `:returns`; null where a step answers no declared kind.
+// container's through `*`, and a name's the labels its answer's
+// definition names, the subject's own where that is the word's own label
+// [D169]; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
@@ -275,11 +274,7 @@ async function kindsAfterStep(step, kinds) {
   const runtime = await langRuntime();
   const reached = verbsReaching(runtime, kinds).get(step.name);
   if (reached === undefined) return null;
-  const record = nodeOf(runtime, reached.address.name);
-  if (!isVerb(bindingValueOf(record))) return answerKindsOf(runtime, record, kinds);
-  const returns = await evalQuery(`${reached.address.literal} | spec | /returns`, runtime);
-  if (isTagKeyword(returns)) return [returns.name];
-  return typeKeyword(returns).name === 'proj' ? kinds : null;
+  return answerKindsOf(runtime, nodeOf(runtime, reached.address.name), kinds);
 }
 
 // ── Hover ─────────────────────────────────────────────────────
@@ -417,29 +412,31 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 }
 
 // The name a declaration binds and the symbol it shows as: a kind, its
-// tag, for a `::spec~(…)` as its body, a verb for the verb literal [D67],
-// [D152], a value otherwise.
+// tag, for a `::spec~(…)` as its body [D152], a word for a quote or a
+// host's `::builtin{}` under a noun [D164], [D168], a value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
   const kind = bindingKindForKeywordHead(node);
   return { name: kind === 'tag' ? tagNameOf(node.key.name) : node.key.name, kind };
 }
 
-const KIND_OF_DECLARED_BODY = { verb: 'verb', spec: 'tag' };
-function bindingKindForKeywordHead(bindStepNode) {
-  const body = bindStepNode.body;
-  return (body?.type === 'TaggedLit' && KIND_OF_DECLARED_BODY[body.tag]) || 'value';
+function bindingKindForKeywordHead({ key, body }) {
+  if (body?.type === 'TaggedLit' && body.tag === 'spec') return 'tag';
+  const runs = body?.type === 'QuoteLit' || (body?.type === 'TaggedLit' && body.tag === 'builtin');
+  return runs && key.name.includes('/') ? 'verb' : 'value';
 }
 
 // The span of the last declaration of the name that stands before the
-// cursor in a scope that encloses it, or null.
+// cursor in a scope that encloses it, or null: a call by address reaches
+// the declaration of that address, and a bare call one whose name a step
+// calls it by.
 function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 
   walkAst(ast, (node) => {
     if (node.type === 'DocLit') return false;
     const decl = bindingDeclarationOf(node);
-    if (decl === null || decl.name !== name) return;
+    if (decl === null || (decl.name !== name && (isTagName(name) || callNameOf(decl.name) !== name))) return;
     if (!node.location || node.location.end.offset > offset) return;
     if (!isVisibleAcrossForks(node, offset)) return;
     lastVisible = {
@@ -477,16 +474,18 @@ export function referencesAtOffset(ast, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return [];
 
-  // A call, a declaration or the keyword of its name, and a tag name.
+  // A call, a declaration or the keyword of its name, each by the name a
+  // step calls it by, and a tag name.
   let name = null;
   if (node.type === 'OperandCall') {
-    name = node.name;
+    name = callNameOf(node.name);
   } else if (node.type === 'BindStep') {
-    name = bindingDeclarationOf(node).name;
+    const declared = bindingDeclarationOf(node).name;
+    name = isTagName(declared) ? declared : callNameOf(declared);
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
-      name = node.name;
+      name = callNameOf(node.name);
     }
   } else if (node.type === 'BareTypeKeyword') {
     name = tagNameOf(node.tag);

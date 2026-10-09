@@ -1,7 +1,7 @@
-{"name":"a-verb-parameter-holds-a-value","query":":m ::verb~(:x ::any | mul 10 | add x) | 2 | m /","expect":"22","decision":["D57","D67"]}
-{"name":"a-verb-recurses-through-its-parameter","query":":fact ::verb~(:n ::number | if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | 5 | fact /","expect":"120","decision":["D57","D67"]}
-{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":inc ::verb~(add 1) | 5 | inc | inc","expect":"7","decision":["D57","D67"]}
-{"name":"a-verb-moved-left-answers-as-inline","query":":most ::verb~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57","D67"]}
+{"name":"a-verb-parameter-holds-a-value","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | 2 | m /","expect":"22","decision":["D57","D67"]}
+{"name":"a-verb-recurses-through-its-parameter","query":":any/fact ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | :any/fact/n ~(/0) | :any/fact/n/NotNumberError ::holds~(is ::number) | 5 | fact /","expect":"120","decision":["D57","D67"]}
+{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":any/inc ~(add 1) | 5 | inc | inc","expect":"7","decision":["D57","D67"]}
+{"name":"a-verb-moved-left-answers-as-inline","query":":any/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57","D67"]}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1}) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc","decision":["D5","D36","D119"]}
@@ -9,12 +9,11 @@
 {"name": "a-doc-of-the-catalog-holds-prose-segments", "query": "::builtin | doc | segments | first | type", "expect": "::string", "decision": ["D19", "D95", "D119"]}
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]","decision":"D19"}
 {"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| /nearest","expect":"[:filter]","decision":"D7"}
-{"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :t ::verb~(:q ::quote | :x ::any | apply q) | 2 | t ~(add x) 99","expect":"12","decision":["D43","D67"]}
+{"name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :any/t ~(apply q) | :any/t/q ~(/0) | :any/t/q/NotQuoteError ::holds~(is ::quote) | :any/t/x ~(/1) | 2 | t ~(add x) 99","expect":"12","decision":["D43","D67"]}
 {"name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true","decision":"D4"}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2","decision":"D34"}
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~([/0 /0 /1])","expect":"#[1 2]","decision":"D41"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]","decision":"D41"}
-{"name":"a-head-holds-names-and-kinds-alone","query":":Width |~~ How many characters a line holds. ~~| ::spec~() | :wrap ::verb~(:width ::Width | :returns ::vec | split \" \") | :wrap | spec | payload * /name","expect":"[:subject :width :returns]","decision":["D60","D67"]}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true","decision":["D61","D119"]}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| ::spec~() | ::Box#[3 1] | doc | content","expect":"\" A box. \"","decision":["D61","D119"]}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true","decision":["D61","D94","D95","D119"]}
@@ -52,15 +51,15 @@
 {"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66"}
 {"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)","decision":"D67"}
-{"name":"a-verb-takes-a-slot-by-its-declaration","query":":m ::verb~(:x ::number | mul 10 | add x) | 2 | m 3","expect":"23","decision":"D67"}
-{"name":"an-optional-slot-takes-its-default","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
-{"name":"an-optional-slot-takes-a-modifier","query":":top ::verb~(:n 3 | sort | reverse | take n) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
+{"name":"a-verb-takes-a-slot-by-its-declaration","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 2 | m 3","expect":"23","decision":"D67"}
+{"name":"an-optional-slot-takes-its-default","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
+{"name":"an-optional-slot-takes-a-modifier","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
 {"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]","decision":"D67"}
 {"name":"a-member-answers-its-descriptor","query":"::vec/sort | spec | type","expect":"::builtin","decision":"D67"}
 {"name":"a-nested-error-keeps-the-stop-of-its-level","query":"[(!{:k 1} | add 1)] | eq [!{:k 1}]","expect":"false","decision":"D85"}
 {"name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]","decision":"D85"}
-{"name":"a-stop-at-every-step-that-handed-the-error-on","query":":g ::verb~(:n ::number | add n | mul n) | \"x\" | g 2 | sub 3 !| /trail","expect":"[{:step ~(add n) :subject \"x\" :skipped ~(mul n)} {:step ~(g 2) :subject \"x\" :skipped ~(sub 3)}]","decision":"D85"}
+{"name":"a-stop-at-every-step-that-handed-the-error-on","query":":any/g ~(add n | mul n) | :any/g/n ~(/0) | :any/g/n/NotNumberError ::holds~(is ::number) | \"x\" | g 2 | sub 3 !| /trail","expect":"[{:step ~(add n) :subject \"x\" :skipped ~(mul n)} {:step ~(g 2) :subject \"x\" :skipped ~(sub 3)}]","decision":"D85"}
 {"name":"the-last-stop-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| /trail/-1/skipped","expect":"~(mul 2)","decision":"D85"}
 {"name":"a-stop-of-an-operand-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| /trail * /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]","decision":"D85"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first !| /trail * /step","expect":"[~(first)]","decision":"D85"}
@@ -76,10 +75,10 @@
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::proj/KeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
 {"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(spec :count) (doc :count | content)]","expect":"[~(/0) \" How many. \"]","decision":["D88","D119"]}
-{"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content","expect":"\" how many \"","decision":["D88","D94","D95","D119"]}
+{"name":"the-page-of-a-part-is-reached-by-its-name","query":":any/f ~(add n) | :any/f/n |~~ how many ~~| ~(/0) | ::any/f | doc :n | content","expect":"\" how many \"","decision":["D88","D119","D166"]}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /bindingName]","expect":"[::any/DocBindingNotFoundError ::map/nosuch]","decision":["D88","D119"]}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError","decision":["D88","D156"]}
-{"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :t ::verb~(:x ::any | apply q) | 2 | t 99","expect":"12","decision":"D44"}
+{"name":"a-named-quote-sees-the-names-of-its-declaration","query":":x 10 | :q ~(add x) | :any/t ~(apply q) | :any/t/x ~(/0) | 2 | t 99","expect":"12","decision":"D44"}
 {"name":"a-named-quote-moved-above-a-name-it-reads-is-refused","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| [type /identifierName]","expect":"[::call/UnknownNameError \"lim\"]","decision":"D44"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":":type | doc !| /addresses","expect":"#[::any/type]","decision":["D62","D119"]}
 {"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}
@@ -94,7 +93,7 @@
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] * (mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}
 {"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
-{"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::verb/CodeNotQuoteError","decision":"D129"}
+{"name":"a-part-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f ~(apply q) | :any/f/q ~(/0) | :any/f/q/NotQuoteError ::holds~(is ::quote) | 1 | f /x !| type","expect":"::any/f/q/NotQuoteError","decision":["D129","D169"]}
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] * | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}

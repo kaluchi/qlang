@@ -72,7 +72,7 @@ async function conformanceLiterals() {
 
 describe('the ring of atoms [D42]', () => {
   it('keeps the examples of its own verbs true', async () => {
-    expect((await ringSession.evalCell(':apart | runLaws * /ok')).result).toEqual([true]);
+    expect((await ringSession.evalCell('::any/apart | runLaws * /ok')).result).toEqual([true]);
   });
 
   it('builds every example of the catalog back from its atoms but the open ones', async () => {

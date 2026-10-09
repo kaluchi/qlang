@@ -42,7 +42,7 @@ describe('createSession lifecycle', () => {
 
   it('evalCell persists BindStep bindings across subsequent cells', async () => {
     const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':double ::verb~(mul 2)');
+    await sessionInstance.evalCell(':any/double ~(mul 2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
@@ -95,6 +95,16 @@ describe('createSession lifecycle', () => {
     const sessionInstance = await createSession();
     sessionInstance.bind('answer', 42);
     expect((await sessionInstance.evalCell('answer')).result).toBe(42);
+  });
+
+  it('bind installs a record a host hands as the record it is', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
+    const record = sessionInstance.env.get('answer');
+    const other = await createSession();
+    other.bind('answer', record);
+    expect(other.env.get('answer')).toBe(record);
+    expect((await other.evalCell(':answer | doc | content')).result).toBe(' The answer. ');
   });
 });
 
@@ -149,7 +159,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {
     await expect(createSession({ sources: [{
-      uri: 'tests/bare', source: ':shout ::verb~(::builtin{})', impls: { shout: text => text.toUpperCase() }
+      uri: 'tests/bare', source: ':any/shout ~(::builtin{})', impls: { shout: text => text.toUpperCase() }
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
@@ -160,7 +170,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('refuses an implementation handed for a verb of steps', async () => {
     await expect(createSession({ sources: [{
-      uri: 'tests/over', source: ':any/many ::verb~(count)', impls: { 'any/many': () => 0 }
+      uri: 'tests/over', source: ':any/many ~(count)', impls: { 'any/many': () => 0 }
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
@@ -174,7 +184,7 @@ describe('the sources a host hands [D153]', () => {
   });
 
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal', async () => {
-    for (const source of [':vec |~~ again ~~|', ':vec/count ::verb~(0)']) {
+    for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
         .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/NameDeclaredTwiceError' } });
     }

@@ -21,7 +21,7 @@ describe('the names of the scope', () => {
   it('a noun answers the nodes declared one name under it', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
-      source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~| ::spec~()\n:shop/Line |~~ A line. ~~| ::spec~()\n:shop/Line/qty ::verb~(1)'
+      source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~| ::spec~()\n:shop/Line |~~ A line. ~~| ::spec~()\n:shop/Line/qty ~(1)'
     }] });
     expect([...(await session.evalCell('::shop | manifest')).result])
       .toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);

@@ -3,28 +3,28 @@
 // [D96], and of `elide`, the value within a budget of its print [D120].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
-import { isVerb, isErrorValue, bindingValueOf, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isErrorValue, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { elide } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
 import { nodeOf, residenceOnSubject } from './nouns.mjs';
-import { applyVerbOn } from './verb.mjs';
+import { callMemberOn } from '../eval.mjs';
 
 // printAnswer(value, env, state?) → the print of a value: a part under a
 // tag whose kind answers a `print` of its own prints through it, and the
 // forms of the core print the rest.
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printedByKind = new Map();
-  await collectPrintsOfKinds(value, env, state, bindingValueOf(nodeOf(env, 'any/print')), printedByKind);
+  await collectPrintsOfKinds(value, env, state, nodeOf(env, 'any/print'), printedByKind);
   return printValue(value, 0, part => printedByKind.get(part));
 }
 
 async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind) {
   if (part === null || typeof part !== 'object') return;
   if (part[TAG_HEADER_SYMBOL] !== undefined) {
-    const printOfKind = bindingValueOf(residenceOnSubject(env, 'print', part));
-    if (isVerb(printOfKind) && printOfKind !== printOfAny) {
-      const printed = (await applyVerbOn(printOfKind, part, [], state, 'print')).pipeValue;
+    const printOfKind = residenceOnSubject(env, 'print', part);
+    if (printOfKind !== null && printOfKind !== printOfAny) {
+      const printed = await callMemberOn(printOfKind, part, state);
       printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
       return;
     }

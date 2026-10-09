@@ -49,7 +49,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with a declared verb predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b 2 :c 3} | :big ::verb~(gt 1) | filter ~big'
+      '{:a 1 :b 2 :c 3} | :any/big ~(gt 1) | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -58,7 +58,7 @@ describe('filter — container polymorphism', () => {
   it('Map with a verb predicate reading a field of the value', async () => {
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| :tiered ::verb~(/tier | eq :x | not) '
+      + '| :any/tiered ~(/tier | eq :x | not) '
       + '| filter ~tiered'
     );
     expect(isQMap(mapResult)).toBe(true);
@@ -99,17 +99,17 @@ describe('filter — container polymorphism', () => {
   });
 
   it('Vec with a verb handed as the predicate', async () => {
-    expect(await evalQuery('[1 -2 3] | filter ::verb~(gt 0)')).toEqual([1, 3]);
+    expect(await evalQuery('[1 -2 3] | filter ~(gt 0)')).toEqual([1, 3]);
   });
 
   it('Set with a verb handed as the predicate', async () => {
-    const setResult = await evalQuery('#[1 -2 3] | filter ::verb~(gt 0)');
+    const setResult = await evalQuery('#[1 -2 3] | filter ~(gt 0)');
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([1, 3]);
   });
 
   it('Map with a verb handed as the predicate', async () => {
-    const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ::verb~(gt 0)');
+    const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ~(gt 0)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('a')).toBe(1);
@@ -155,17 +155,17 @@ describe('every — container polymorphism', () => {
   });
 
   it('Vec with a declared verb predicate', async () => {
-    expect(await evalQuery('[1 2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
-    expect(await evalQuery('[1 -2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
+    expect(await evalQuery('[1 2 3] | :any/positive ~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('[1 -2 3] | :any/positive ~(gt 0) | every ~positive')).toBe(false);
   });
 
   it('Set with a verb handed as the predicate', async () => {
-    expect(await evalQuery('#[2 4 6] | every ::verb~(gt 0)')).toBe(true);
+    expect(await evalQuery('#[2 4 6] | every ~(gt 0)')).toBe(true);
   });
 
   it('Map with a declared verb predicate', async () => {
-    expect(await evalQuery('{:a 1 :b 2} | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
-    expect(await evalQuery('{:a 1 :b -2} | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
+    expect(await evalQuery('{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive')).toBe(false);
   });
 });
 
@@ -230,9 +230,9 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('#[:a] | type | eq ::map')).toBe(false);
   });
 
-  it('type answers ::binding, not :map, for the record of a verb', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::map')).toBe(false);
-    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
+  it('type answers ::binding, not ::map, for the record of a name', async () => {
+    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::map')).toBe(false);
+    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
   });
 
   it('type answers ::set for Set subjects', async () => {
@@ -300,12 +300,12 @@ describe('filter + type classifiers integration', () => {
 describe('filter — verb portability across containers', () => {
   it('a declared verb fires uniformly on Vec elements and Map values', async () => {
     const vecResult = await evalQuery(
-      ':big ::verb~(gt 1) | [1 2 3] | filter ~big'
+      ':any/big ~(gt 1) | [1 2 3] | filter ~big'
     );
     expect(vecResult).toEqual([2, 3]);
 
     const mapResult = await evalQuery(
-      ':big ::verb~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
+      ':any/big ~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);

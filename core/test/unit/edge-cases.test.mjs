@@ -29,16 +29,12 @@ import {
   isKeyword,
   isQMap,
   isQSet,
-  isQuote,
   isVec,
   makeSet,
   makeTagKeyword,
-  typeKeyword,
-  TAG_HEADER_SYMBOL,
-  VERB_TAG
+  typeKeyword
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorCategory, expectErrorThrown } from '../helpers/error-assertions.mjs';
-import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
 
 describe('types.mjs', () => {
   it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
@@ -69,16 +65,6 @@ describe('types.mjs', () => {
     expect(isQSet(makeSet([]))).toBe(true);
     expect(isQSet([])).toBe(false);
     expect(isVec([])).toBe(true);
-  });
-
-  it('a verb is a tag over its quote, its scope on a JS-header slot', async () => {
-    const doubleVerb = await evalQuery('::verb~(mul 2)');
-    expect(doubleVerb[TAG_HEADER_SYMBOL]).toEqual(VERB_TAG);
-    expect(typeKeyword(doubleVerb)).toEqual(VERB_TAG);
-    expect(isQuote(doubleVerb.payload)).toBe(true);
-    expect(printQuoteSource(doubleVerb.payload)).toBe('mul 2');
-    expect(astOfQuote(doubleVerb.payload).type).toBe('OperandCall');
-    expect(Object.keys(doubleVerb)).toEqual(['tag', 'payload']);
   });
 });
 
@@ -253,14 +239,14 @@ describe('source axis on verb / freeze / TagKeyword subjects', () => {
   // which `parse` prints as its text. Same axis covers a name (Keyword
   // subject) and a node of the tree (TagKeyword subject).
 
-  it('source on a verb binding name returns the whole declaration', async () => {
-    const source = await evalQuery(':double ::verb~(mul 2) | :double | source | parse');
-    expect(source).toBe(':double ::verb~(mul 2)');
+  it('source on the address of a word returns the whole declaration', async () => {
+    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
+    expect(source).toBe(':any/double ~(mul 2)');
   });
 
-  it('source on a verb with slots captures its head', async () => {
-    const source = await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | :@surround | source | parse');
-    expect(source).toBe(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)');
+  it('source on the address of a part returns its declaration', async () => {
+    const source = await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | ::any/@surround/sfx | source | parse');
+    expect(source).toBe(':any/@surround/sfx ~(/1)');
   });
 
   it('source on a freeze returns its declaration', async () => {

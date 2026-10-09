@@ -48,7 +48,7 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('impure body containing OperandCall fires the deferred body per call', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
+    expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 
   it('lookup of a literal binding returns the eval-at-bind-time value', async () => {
@@ -56,18 +56,18 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('a verb lookup runs its body against pipeValue', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
+    expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 });
 
-describe('BindStep — a verb with slots', () => {
-  it('a verb binds its slots from the modifiers of the call', async () => {
-    expect(await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | "x" | @surround "[" "]"'))
+describe('BindStep — a word with parts', () => {
+  it('a word binds its parts from the modifiers of the call', async () => {
+    expect(await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | "x" | @surround "[" "]"'))
       .toBe('[x]');
   });
 
-  it(':@add1 ::verb~(:x ::any | add x) — the slot x binds the modifier', async () => {
-    expect(await evalQuery(':@add1 ::verb~(:x ::any | add x) | 5 | @add1 10')).toBe(15);
+  it('the part x binds the modifier', async () => {
+    expect(await evalQuery(':any/@add1 ~(add x) | :any/@add1/x ~(/0) | 5 | @add1 10')).toBe(15);
   });
 });
 
@@ -79,7 +79,7 @@ describe('BindStep — pipeline-transparency', () => {
 
 describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
-    const err = await evalQuery(':safe ::verb~(@nonExistent)');
+    const err = await evalQuery(':any/safe ~(@nonExistent)');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('bind/EffectMarkMissingError'));
   });

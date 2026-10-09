@@ -87,11 +87,6 @@ describe('catalog self-test via runLaws', () => {
     expect(proseQuotes).toEqual([]);
   }, 30000);
 
-  it('every verb of the catalog lives on a noun', async () => {
-    const bareVerbs = await evalQuery('env | vals | filter ~(/value | type | eq ::verb) | count');
-    expect(bareVerbs).toBe(0);
-  });
-
   it('the /ok distribution over every page is {true}', async () => {
     const readers = await catalogReaders();
     const distinctOkValues = await evalQuery(`[${readers.join(' ')}] * (runLaws * /ok) | flat | distinct`);

@@ -274,10 +274,10 @@ describe('round-trip invariant — verb', () => {
   // a verb over an equal quote; the scope it resolves in rides a
   // JS-internal slot the comparison does not see.
   for (const src of [
-    '::verb~(count)',
-    '::verb~(:x ::number | mul x 2)',
-    '::verb~(:n 3 | take n)',
-    '::verb~(:pfx ::string | :sfx ::string | prepend pfx | append sfx)'
+    '~(count)',
+    '~(:x ::number | mul x 2)',
+    '~(:n 3 | take n)',
+    '~(:pfx ::string | :sfx ::string | prepend pfx | append sfx)'
   ]) {
     it(`verb literal: ${src}`, () => pinRoundTrip(src));
   }
@@ -302,7 +302,7 @@ describe('round-trip invariant — nested composites', () => {
 
 describe('round-trip invariant — BareTypeKeyword', () => {
   for (const src of [
-    '::verb',
+    '::vec',
     '::qlang',
     '::json'
   ]) {

@@ -139,34 +139,10 @@
       the host handed for its name, `::number/add` and `::vec` the
       language's own, while a name written in steps is a quote.
       A descriptor is data and runs nothing by itself: a bare name bound
-      to one reads it, and in a verb it is a step.
+      to one reads it.
 
       ~(::builtin{} | :c / | [1 2] | c | type | eq ::builtin)
       ~(::number/add | spec | eq ::builtin{})
-  ~~|
-  ::spec~(::builtin{})
-
-:verb
-  |~~ A verb, a quote under this tag: its leading declarations are its
-      signature and the rest its body. A reader's verb lives on the kind
-      its name is declared under, while the catalog is written as names
-      under labels, each with the parts of its object, which a reader
-      declares alike. A declaration whose body is a tag name is a slot the
-      call fills, one whose body is a set of kinds takes a value of any of
-      them and may be left out when `::null` is among them, and one whose
-      body is any other literal takes that literal when it is left out;
-      `* :name kind` gathers the modifiers that remain. `:subject` and
-      `:returns` are the roles, the kind the verb serves and the kind it
-      answers, `/` for its subject's own. A name bound to a verb runs it
-      when it is mentioned, each modifier evaluated at the call and
-      checked by the kind of its slot, and `~name` hands it on as code.
-      ::link~(::spec | doc) ::link~(::quote | doc)
-      ::link~(::qlang/verbs | doc)
-
-      ~(:double ::verb~(mul 2) | 3 | double | double | eq 12)
-      ~(:least ::verb~(:n 1 | sort | take n) | [4 8 6] | [least (least 2)] | eq [[4] [4 6]])
-      ~(:scale ::verb~(:by ::number | mul by) | [1 2] * scale / | eq [1 4])
-      ~(:big ::verb~(gt 2) | [1 2 3 4] | filter ~big | eq [3 4])
   ~~|
   ::spec~(::builtin{})
 
@@ -353,7 +329,6 @@
       and parentheses wrap their step as `::each`, `::fail` and
       `::group`. `apply` runs a quote on the subject and `parse` prints
       it back. ::link~(::each | doc) ::link~(::call | doc)
-      ::link~(::verb | doc)
       ::link~(::qlang/code | doc)
 
       ~(~(1 | add 1 | mul 2) | count | eq 3)
@@ -383,17 +358,17 @@
   ::spec~(::builtin{})
 
 :spec
-  |~~ The signature of a reader's verb, its leading declarations as a
-      quote under this tag with its subject filled, which `spec` answers
-      for a verb: what a verb takes and answers is known before it is
-      called. `spec` of a name under a label answers its value, a quote
-      or a `::builtin{}`, and `manifest` the parts it declares and its
-      answer.
-      ::snippet~(:m ::verb~(:x ::number | add x) | :m | spec) shows one.
+  |~~ The declaration of a kind, a quote under this tag: its leading
+      declarations with a literal body are its fields, and the steps
+      after them its constructor, which builds a value of the kind from
+      its payload. `spec` answers the declaration of a name, a kind's
+      `::spec~(…)` and a word's quote or `::builtin{}`, and `manifest`
+      what lies under it.
+      ::snippet~(:P ::spec~(:name ::string) | ::P | spec) shows one.
       ::link~(::qlang/verbs | doc)
 
-      ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)
-      ~(:m ::verb~(:x ::number | add x) | :m | spec | payload * /name | eq [:subject :x])
+      ~(:P ::spec~(:name ::string) | ::P | spec | type | eq ::spec)
+      ~(:P ::spec~(:name ::string) | ::P | spec | /name | eq ::string)
   ~~|
   ::spec~()
 
@@ -808,7 +783,7 @@
       errors name the verb that refused.
       ::snippet~(::vec | manifest) lists the verbs of a kind and
       ::snippet~(::any | manifest) those of every value.
-      ::link~(::verb | doc) ::link~(::qlang/errors | doc)
+      ::link~(::qlang/errors | doc)
 
       A name finds its verb through the kind of its subject: its tags
       from the outside in, then the shape beneath them, then the verbs
@@ -846,7 +821,7 @@
       nothing and lays the tag on the value:
       ~(::Small(12) | payload | eq 12)
   ~~|
-  #[::verb ::spec ::any]
+  #[::spec ::any]
 
 :qlang/errors
   |~~ Errors. A failure does not throw: a step that fails answers an

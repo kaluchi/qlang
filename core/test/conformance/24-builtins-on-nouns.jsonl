@@ -5,8 +5,8 @@
 {"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}
 {"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul /price /qty !| [type (explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]","decision":["D72","D165"]}
 {"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D72"}
-{"name":"a-declared-verb-refuses-a-modifier-beyond-its-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 !| type","expect":"::verb/ModifiersBeyondSlotsError","decision":["D72","D165"]}
-{"name":"a-full-application-leaves-no-modifier-beyond-the-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 3 !| type","expect":"::verb/ModifiersBeyondSlotsError","decision":"D72"}
+{"name":"a-name-refuses-a-modifier-beyond-its-places","query":":any/scale ~(mul k) | :any/scale/k ~(/0) | :any/scale/k/NotNumberError ::holds~(is ::number) | null | scale 5 2 !| type","expect":"::any/scale/ObjectBeyondPartsError","decision":["D165","D166"]}
+{"name":"a-call-of-more-values-than-places-is-refused","query":":any/scale ~(mul k) | :any/scale/k ~(/0) | :any/scale/k/NotNumberError ::holds~(is ::number) | null | scale 5 2 3 !| type","expect":"::any/scale/ObjectBeyondPartsError","decision":["D165","D166"]}
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
@@ -21,5 +21,5 @@
 {"name":"the-manifest-of-a-name-lists-the-parts-it-declares","query":"::map/at | manifest","expect":"#[::map/at/default ::map/at/key]","decision":["D167","D169"]}
 {"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
 {"name":"an-object-with-more-values-than-places-is-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ObjectBeyondPartsError","decision":["D72","D165"]}
-{"name":"a-declared-verb-refuses-an-error-beyond-its-slots","query":":s ::verb~(:k ::number | mul k) | null | s (!{:k 1}) 2 !| type","expect":"::verb/ModifiersBeyondSlotsError","decision":["D72","D165"]}
-{"name":"a-builtin-body-without-a-handle-is-a-step","query":":v ::verb~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}
+{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":any/s ~(mul k) | :any/s/k ~(/0) | :any/s/k/NotNumberError ::holds~(is ::number) | null | s (!{:k 1}) 2 !| type","expect":"::error","decision":"D167"}
+{"name":"a-builtin-body-without-a-handle-is-a-step","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}

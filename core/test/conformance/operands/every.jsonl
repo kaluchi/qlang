@@ -14,12 +14,12 @@
 {"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
-{"name":"every-vec-declared-verb","query":"[2 4 6] | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-vec-verb-predicate","query":"[2 4 6] | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-vec-verb-predicate-fails","query":"[2 4 -1] | :positive ::verb~(gt 0) | every ~positive","expect":"false"}
-{"name":"every-set-declared-verb","query":"#[2 4 6] | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-set-verb-predicate","query":"#[2 4 6] | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :big ::verb~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :positive ::verb~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :positive ::verb~(gt 0) | every ~positive","expect":"false"}
-{"name":"every-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | every ~above !| [type /slot]","expect":"[::verb/SlotMissingError :limit]"}
+{"name":"every-vec-declared-verb","query":"[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-vec-verb-predicate","query":"[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-vec-verb-predicate-fails","query":"[2 4 -1] | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2} | :any/above ~(gt limit) | :any/above/limit ~(/0) | every ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}

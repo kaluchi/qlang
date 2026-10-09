@@ -29,40 +29,24 @@
   ::spec~()
 
 :bind/EffectMarkMissingError
-  |~~ A verb whose body calls a name marked `@` reaches outside the
-      language, and its own name carries the mark, `:@fetchAll
-      ::verb~(@fetch …)`, so every reader of the name sees it. A quote
-      declared under a label is held to the mark alike, and a part whose
+  |~~ A word whose body calls a name marked `@` reaches outside the
+      language, and its own name carries the mark, `:any/@fetchAll
+      ~(@fetch …)`, so every reader of the name sees it; a part whose
       selector calls a marked name is held to the mark of the name it is a
       part of, which runs it at each call, `:bindingName` that name.
       ::link~(::bind | doc)
 
       ~(
-        1 | (:bad ::verb~(@callers) | bad)
+        1 | (:any/bad ~(@callers) | bad)
         !| [type /bindingName /effectfulName]
         |  eq [::bind/EffectMarkMissingError
-                :bad :@callers]
+                :any/bad :@callers]
        )
       ~(
         :any/f ~(1) | :any/f/n ~(/0 | @out)
         !| [type /bindingName /effectfulName]
         |  eq [::bind/EffectMarkMissingError :any/f :@out]
        )
-  ~~|
-  ::spec~()
-
-:bind/VerbSubjectUnderKindError
-  |~~ A verb declared under a kind serves that kind: the kind is its
-      subject, and its head names none of its own. A verb under a noun
-      that is no kind, a topic, serves any value.
-      ::link~(::bind | doc)
-
-      ~(
-        :Box ::spec~() | :Box/area ::verb~(:subject ::map | 1)
-        !| [type /name]
-        |  eq [::bind/VerbSubjectUnderKindError :Box/area]
-       )
-      ~(:t {} | :t/h ::verb~(type) | 5 | t/h | eq ::number)
   ~~|
   ::spec~()
 
@@ -73,8 +57,8 @@
       known where they are declared.
       ::link~(::bind | doc)
 
-      ~(:Box/area ::verb~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
-      ~(:Box ::spec~() | :Box/area ::verb~(1) | ::Box{} | area | eq 1)
+      ~(:Box/area ~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
+      ~(:Box ::spec~() | :Box/area ~(1) | ::Box{} | area | eq 1)
   ~~|
   ::spec~()
 
@@ -108,6 +92,6 @@
         |  eq [::bind/NameDeclaredTwiceError :k]
        )
       ~(:k 1 | (:k 2 | k) | eq 2)
-      ~(:vec/count ::verb~(0) !| type | eq ::bind/NameDeclaredTwiceError)
+      ~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
   ~~|
   ::spec~()

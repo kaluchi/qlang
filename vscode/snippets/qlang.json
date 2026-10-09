@@ -4,10 +4,10 @@
     "body": [":${1:name} ${2:body}"],
     "description": "Name the value of a body via BindStep"
   },
-  "BindStep — verb": {
+  "BindStep — word": {
     "prefix": "bindv",
-    "body": [":${1:name} ::verb~(:${2:slot} ::${3:any} | ${4:body})"],
-    "description": "Declare a verb with a slot via BindStep"
+    "body": [":${1:any}/${2:name} ~(${3:body})", ":${1:any}/${2:name}/${4:part} ~(/0)"],
+    "description": "Declare a word under the label of its subject and a part of its object"
   },
   "BindStep — kind": {
     "prefix": "bindtag",

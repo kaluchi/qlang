@@ -57,17 +57,6 @@
   ~~|
   ::spec~()
 
-:call/EffectMarkMissingError
-  |~~ A verb whose body calls a name marked `@` was called by a name
-      without the mark. A declaration that names such a verb is refused
-      where it stands, `::bind/EffectMarkMissingError`; this one is met
-      when a host put the verb in the scope under a plain name, where no
-      declaration was there to refuse it, and the host binds it under a
-      name that carries the mark, `@fetch`.
-      ::link~(::call | doc)
-  ~~|
-  ::spec~()
-
 :call/KindAnswersNoVerbError
   |~~ The kind of the subject has no verb of the name: `:actualType`
       names the kind, and `:addresses` the verbs of the name and the kinds
@@ -103,7 +92,7 @@
       ~(fist !| /nearest | eq [:first])
       ~(
         :Box ::spec~() | :Ring ::spec~()
-        | :Box/area ::verb~(1) | :Ring/area ::verb~(2)
+        | :Box/area ~(1) | :Ring/area ~(2)
         | 5 | area
         !| /addresses
         |  eq #[::Box/area ::Ring/area]
@@ -140,7 +129,7 @@
       ::link~(::call | doc)
 
       ~(
-        :inf ::verb~(add 1 | inf) | 0 | inf
+        :any/inf ~(add 1 | inf) | 0 | inf
         !| type | eq ::call/EvaluationDepthExceededError
        )
       ~(

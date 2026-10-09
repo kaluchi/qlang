@@ -55,7 +55,7 @@ export const TASKS = [
   {
     id: 'L1',
     question: 'declare a verb of your own named triple that multiplies a number by three, and answer the vector [1 2 3] with every element tripled.',
-    reference: ":triple ::verb~(mul 3) | [1 2 3] * triple",
+    reference: ":number/triple ~(mul 3) | [1 2 3] * triple",
     answer: "[3 6 9]"
   },
   {

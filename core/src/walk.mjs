@@ -73,38 +73,6 @@ export function astChildrenOf(node) {
   return out;
 }
 
-// isPureLiteralAst(node) — recursive purity predicate over an AST
-// subtree. Returns true when evaluation of the subtree depends on
-// neither the surrounding pipeValue nor env nor any effect, which is
-// what the head of a verb holds [D67], a group
-// around one such step among them, the payload of `::Depth(3)`; a
-// subtree with an OperandCall, a Projection or a Pipeline computes.
-export function isPureLiteralAst(node) {
-  switch (node.type) {
-    case 'NumberLit':
-    case 'StringLit':
-    case 'BooleanLit':
-    case 'NullLit':
-    case 'Keyword':
-    case 'QuoteLit':
-    case 'DocLit':
-    case 'BareTypeKeyword':
-      return true;
-    case 'VecLit':
-    case 'SetLit':
-      return node.elements.every(isPureLiteralAst);
-    case 'MapLit':
-    case 'ErrorLit':
-      return node.entries.every(e => isPureLiteralAst(e.value));
-    case 'TaggedLit':
-      return isPureLiteralAst(node.payload);
-    case 'ParenGroup':
-      return isPureLiteralAst(node.pipeline);
-    default:
-      return false;
-  }
-}
-
 // walkAst(node, visit) — pre-order recursive descent over the AST.
 //   visit(node, parent) — return false to skip descending into the
 //   node's children. Any other return value (or undefined) continues
@@ -136,6 +104,13 @@ export function originOf(node) {
   let root = node;
   while (root.parent) root = root.parent;
   return root.uri;
+}
+
+// callNameOf(name) — the name a step calls a declaration by, its last:
+// a name with a path is called by it, `:any/double` by `double` and
+// `vec/count` by `count` [D164].
+export function callNameOf(name) {
+  return name.slice(name.lastIndexOf('/') + 1);
 }
 
 // declaredNameOf(bindStep) — the name a declaration writes, its keyword's
@@ -197,8 +172,9 @@ export function findAstNodeAtOffset(ast, offset) {
 
 // findIdentifierOccurrences(ast, name, spelling?) — returns every AST
 // node that names the given qlang identifier. Called: a call of the
-// name, its declaration, `:foo body`, and a projection that reads it
-// as a key. Written as a tag, a kind's name [D152]:
+// name, its declaration, `:foo body`, each by the name a step calls it
+// by, and a projection that reads it as a key. Written as a tag, a kind's
+// name [D152]:
 // its declaration, a tagged literal or an error literal that writes it
 // [D86], and the tag name standing alone.
 //
@@ -210,8 +186,8 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
-    else if (node.type === 'BindStep' && node.key.name === name) occurrences.push(node);
+    if (node.type === 'OperandCall' && callNameOf(node.name) === name) occurrences.push(node);
+    else if (node.type === 'BindStep' && callNameOf(node.key.name) === name) occurrences.push(node);
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -259,8 +235,9 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // user type at this cursor position without an unresolved-
 // identifier error?"
 //
-// `spelling` picks which declarations contribute, each by its name:
-//   - `'call'` (default) — every declaration, `:name body`.
+// `spelling` picks which declarations contribute:
+//   - `'call'` (default) — every declaration, `:name body`, by the name
+//     a step calls it by.
 //   - `'tag'` — the declarations of kinds, `:Box ::spec~(…)` [D152].
 //
 // Visibility rules, mirroring the runtime fork semantics:
@@ -291,7 +268,7 @@ export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
       current = parent;
       parent = current.parent;
     }
-    visible.add(bindingName);
+    visible.add(spelling === TAG_SPELLING ? bindingName : callNameOf(bindingName));
   });
   return visible;
 }

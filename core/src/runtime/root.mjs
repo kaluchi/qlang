@@ -32,8 +32,8 @@ export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/
 
 // An implementation a host hands for a name its source declares neither
 // as a `::builtin{}` under a label nor as a kind ending in one has nothing
-// to run under: a verb runs its steps, a `::builtin{}` among them a step,
-// and a bare name reads its value [D73], [D167].
+// to run under: a name written in steps runs them, and a bare name reads
+// its value [D73], [D167].
 export const BuiltinImplementationNamesNoBuiltinError = declareShapeError('builtin/ImplementationNamesNoBuiltinError',
   ({ uri, name }) => `qlang root: the source ${uri} hands an implementation for ${name.literal}, which it declares neither as a ::builtin{} under a label nor as a kind ending in one; a primitive is a name under the label of its subject, :any/@x ::builtin{}`,
   { operand: '::builtin' });

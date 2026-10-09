@@ -9,7 +9,7 @@ export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession } from './session.mjs';
 export {
   walkAst, findAstNodeAtOffset, findIdentifierOccurrences, writesTag,
-  bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING,
+  bindingNamesVisibleAt, callNameOf, CALL_SPELLING, TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES
 } from './walk.mjs';
 export { printQuoteSource } from './quote.mjs';
@@ -24,10 +24,8 @@ export { isNameStart, isNameContinue } from './name-chars.mjs';
 export { QlangTypeError } from './errors.mjs';
 export {
   keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
-  isVerb, bindingValueOf, makeErrorValue, errorFromKindDescriptor,
+  bindingValueOf, makeErrorValue, errorFromKindDescriptor,
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';
-export {
-  signatureSpecOf, slotLabelsOf, verbShownFor, shownFor
-} from './runtime/verb.mjs';
+export { shownFor } from './runtime/verb.mjs';
 export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf } from './runtime/nouns.mjs';

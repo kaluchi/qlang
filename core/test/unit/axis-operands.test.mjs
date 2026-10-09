@@ -116,7 +116,7 @@ describe(':name | doc | laws extracts Quote segments from docs', () => {
 
 describe('axis-operands read the node a tag addresses', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
+    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
 
   it('a keyword naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
@@ -124,20 +124,20 @@ describe('axis-operands read the node a tag addresses', () => {
       .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
   });
 
-  it('::verb | source reads the declaration of the kind in the language\'s module', async () => {
-    const result = await evalQuery('::verb | source');
+  it('::quote | source reads the declaration of the kind in the language\'s module', async () => {
+    const result = await evalQuery('::quote | source');
     expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith(':verb')).toBe(true);
+    expect(printQuoteSource(result).startsWith(':quote')).toBe(true);
   });
 
-  it('::verb | doc returns the attached Doc-prefix on the type BindStep', async () => {
-    const result = await evalQuery('::verb | doc | content');
+  it('::quote | doc returns the attached Doc-prefix on the type BindStep', async () => {
+    const result = await evalQuery('::quote | doc | content');
     expect(typeof result).toBe('string');
-    expect(result).toContain('A verb, a quote under this tag');
+    expect(result).toContain('Code as a value');
   });
 
-  it('::verb | doc | laws extracts the Quote segments from the type docstring', async () => {
-    const result = await evalQuery('::verb | doc | laws | count');
+  it('::quote | doc | laws extracts the Quote segments from the type docstring', async () => {
+    const result = await evalQuery('::quote | doc | laws | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 
@@ -195,27 +195,23 @@ describe('a value that is no name reads the declaration of its kind', () => {
 });
 
 describe('axis-operands resolve the binding the evaluator dispatches', () => {
-  // The four axes project the one record the scope holds under the
-  // name, so a binding of the reader reads as itself — the case the
-  // hypertext chain exists for. A name of the reader takes no word of the
+  // The axes project the one record the scope holds under an address, so
+  // a word the reader declares reads as itself, the case the hypertext
+  // chain exists for. A name of the reader takes no word of the
   // vocabulary [D166].
-  const shadowed = ':hundredfold ::verb~(mul 100) | ';
+  const shadowed = ':any/hundredfold ~(mul 100) | ';
 
   it('a binding of the reader takes no word of the vocabulary', async () => {
-    expect((await evalQuery(':add ::verb~(mul 100) | 2 | add')).tag.name).toBe('bind/NameTakenByVocabularyError');
+    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('bind/NameTakenByVocabularyError');
   });
 
-  it('a binding of the reader is the one source reports', async () => {
+  it('a word of the reader is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | hundredfold')).toBe(200);
-    expect(await evalQuery(shadowed + ':hundredfold | source | parse')).toBe(':hundredfold ::verb~(mul 100)');
+    expect(await evalQuery(shadowed + '::any/hundredfold | source | parse')).toBe(':any/hundredfold ~(mul 100)');
   });
 
-  it('doc answers null for a binding of the reader that carries no page', async () => {
-    expect(await evalQuery(shadowed + ':hundredfold | doc')).toBeNull();
-  });
-
-  it('spec answers the signature of the verb source reports', async () => {
-    expect(await evalQuery(shadowed + ':hundredfold | spec | type')).toEqual(makeTagKeyword('spec'));
+  it('doc answers null for a word of the reader that carries no page', async () => {
+    expect(await evalQuery(shadowed + '::any/hundredfold | doc')).toBeNull();
   });
 
   // The reader's declaration of a name the root holds stands over it

@@ -174,7 +174,6 @@ export function envToRun(quote, envWhereApplied) {
 // they are equal.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
-export const VERB_TAG_NAME = 'verb';
 const BUILTIN_TAG_NAME = 'builtin';
 
 export function makeSet(elements) {
@@ -254,7 +253,6 @@ export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
 export const SPEC_TAG        = makeTagKeyword('spec');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
-export const VERB_TAG        = makeTagKeyword(VERB_TAG_NAME);
 
 // The kind of every value without a tag of its own, the one its literal
 // implies, which `type` answers [D32].
@@ -303,22 +301,6 @@ export function makeTaggedInstance(tag, payload) {
   return Object.freeze(wrap);
 }
 
-// A verb is a tag over a quote [D67], with a holder of the scope its body
-// resolves in, the one it was made in, which the declaration that binds
-// it extends by its own name.
-const VERB_ENV_REF_SLOT = Symbol('qlang/verbEnvRef');
-
-export function makeVerb(quote, envRef) {
-  const verb = brandValueClass({ tag: VERB_TAG, payload: quote }, 'taggedInstance');
-  stampTagHeader(verb, VERB_TAG);
-  stampSlot(verb, VERB_ENV_REF_SLOT, envRef);
-  return Object.freeze(verb);
-}
-
-export function isVerb(v) {
-  return isValueClass(v, 'taggedInstance') && v.tag.name === VERB_TAG_NAME;
-}
-
 // A kind's declaration, a quote under `::spec` [D152].
 export function isSpec(v) {
   return isValueClass(v, 'taggedInstance') && v.tag.name === SPEC_TAG.name && isQuote(v.payload);
@@ -336,31 +318,10 @@ export function isLabelValue(v) {
   return isDoc(v) || isSpec(v);
 }
 
-export function verbEnvRef(verb) {
-  return verb[VERB_ENV_REF_SLOT];
-}
-
-// The address a verb was first declared at, and the kind it resides on,
-// the kind of its subject when its head names none: the noun of that
-// address when the noun is a kind, `:vec/count` residing on `::vec`
-// [D72], [D153]. A verb declared again under another name keeps both, as
-// it keeps its scope; the holder beside the scope records them.
-export function addressOfVerb(verb) {
-  return verb[VERB_ENV_REF_SLOT]?.address ?? null;
-}
-
-export function residenceOfVerb(verb) {
-  return verb[VERB_ENV_REF_SLOT]?.residence ?? null;
-}
-
-export function declareVerbAt(verb, address, residence) {
-  Object.assign(verb[VERB_ENV_REF_SLOT], { address, residence });
-}
-
-// A verb or a kind a host's source declared, which alone reaches a
-// primitive [D73], and the implementation the host handed beside that
-// source for a verb, a plain function over the values the verb's head
-// checks [D4], [D80], null for a primitive of the core.
+// A name under a label or a kind a host's source declared, which alone
+// reaches a primitive [D73], and the implementation the host handed
+// beside that source, a plain function over the values of the parts of
+// the call's object [D4], [D80], null for a primitive of the core.
 const HOST_DECLARED = new WeakSet();
 const HOST_IMPLS = new WeakMap();
 

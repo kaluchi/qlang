@@ -29,7 +29,7 @@
 {"name":"reduce-reducer-literal","query":"[1 2 3] | reduce 0 ~(42) !| type","expect":"::any/ReduceReducerNotBinaryError"}
 {"name":"reduce-reducer-applied-expr","query":"[1 2 3] | reduce 0 ~(add 1) !| type","expect":"::any/ReduceReducerNotBinaryError"}
 {"name":"reduce-reducer-unbound","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::any/ReduceReducerNotBinaryError"}
-{"name":"reduce-reducer-verb-with-a-second-slot-is-refused-by-its-name","query":":bad2 ::verb~(:a ::any | :b ::any | a) | [1 2 3] | reduce 0 ~bad2 !| [type /slot]","expect":"[::verb/SlotMissingError :b]"}
+{"name":"a-reducer-with-a-second-part-left-out-is-refused-by-the-part","query":":any/bad2 ~(a) | :any/bad2/a ~(/0) | :any/bad2/b ~(/1) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::any/bad2/b/NotGivenError","decision":"D166"}
 {"name":"reduce-reducer-non-callable-value","query":"5 | :five / | [1 2 3] | reduce 0 ~(five) !| type","expect":"::any/ReduceReducerNotBinaryError"}
 {"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce !{:kind :oops} ~(add) !| type","expect":"::error","decision":"D64"}
-{"name":"reduce-reducer-error-shortcircuits","query":":r ::verb~(:x ::any | !{:kind :stop}) | [1 2 3] | reduce 0 ~r !| type","expect":"::error","decision":"D64"}
+{"name":"reduce-reducer-error-shortcircuits","query":":any/r ~(!{:kind :stop}) | :any/r/x ~(/0) | [1 2 3] | reduce 0 ~r !| type","expect":"::error","decision":"D64"}

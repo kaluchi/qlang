@@ -5,58 +5,53 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
-import { isErrorValue, isQuote, describeType, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
 describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
-  it('parses ::verb~(body) as TaggedLit with a quote payload', () => {
-    const ast = parse('::verb~(mul 2)');
+  it('parses ::holds~(body) as TaggedLit with a quote payload', () => {
+    const ast = parse('::holds~(mul 2)');
     expect(ast.type).toBe('TaggedLit');
-    expect(ast.tag).toBe('verb');
+    expect(ast.tag).toBe('holds');
     expect(ast.payload.type).toBe('QuoteLit');
   });
 
   it('parses bare ::tag (no payload) as BareTypeKeyword', () => {
-    const ast = parse('::verb');
+    const ast = parse('::Box');
     expect(ast.type).toBe('BareTypeKeyword');
-    expect(ast.tag).toBe('verb');
+    expect(ast.tag).toBe('Box');
   });
 
   it('TaggedLit has higher priority than BareTypeKeyword in ordered choice', () => {
-    const ast = parse('::verb{:k 1}');
+    const ast = parse('::Box{:k 1}');
     expect(ast.type).toBe('TaggedLit');
     expect(ast.payload.type).toBe('MapLit');
   });
 });
 
-describe('::verb constructor builds a verb', () => {
-  it('a verb is a tagged instance over its quote', async () => {
-    const result = await evalQuery('::verb~(mul 2)');
-    expect(describeType(result)).toBe('TaggedInstance');
-  });
-
-  it('a verb invokes through BindStep + identifier lookup', async () => {
-    const result = await evalQuery(':double ::verb~(mul 2) | 5 | double');
+describe('a word under a label runs when its name is mentioned', () => {
+  it('a word invokes through BindStep + identifier lookup', async () => {
+    const result = await evalQuery(':any/double ~(mul 2) | 5 | double');
     expect(result).toBe(10);
   });
 
-  it('a verb binds its slots from the modifiers', async () => {
+  it('a word binds its parts from the modifiers', async () => {
     const result = await evalQuery(
-      ':@surround ::verb~(:pfx ::string | :sfx ::string | prepend pfx | append sfx) | "x" | @surround "[" "]"'
+      ':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/pfx/NotStringError ::holds~(is ::string) | :any/@surround/sfx ~(/1) | :any/@surround/sfx/NotStringError ::holds~(is ::string) | "x" | @surround "[" "]"'
     );
     expect(result).toBe('[x]');
   });
 
-  it('a declared verb recurses by its own name', async () => {
+  it('a declared word recurses by its own name', async () => {
     const result = await evalQuery(
-      ':walk ::verb~(if empty ~(0) ~(drop 1 | walk | add 1)) | [1 2 3] | walk'
+      ':any/walk ~(if empty ~(0) ~(drop 1 | walk | add 1)) | [1 2 3] | walk'
     );
     expect(result).toBe(3);
   });
 });
 
 describe('a kind whose spec names a constructor of the host', () => {
-  it('makes ::myType invokable through the ::verb constructor handle, declared by a host [D73]', async () => {
+  it('makes ::myType invokable through the constructor its host handed [D73]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType ::spec~(::builtin{})', impls: { myType: payload => payload * 2 } }]
@@ -92,11 +87,11 @@ describe('axis-operand subject classification', () => {
 });
 
 describe('BareTypeKeyword resolves to a TagKeyword identifier', () => {
-  it('::verb evaluates to a TagKeyword named verb', async () => {
+  it('::Box evaluates to a TagKeyword named Box', async () => {
     const { isTagKeyword } = await import('../../src/types.mjs');
-    const result = await evalQuery('::verb');
+    const result = await evalQuery('::Box');
     expect(isTagKeyword(result)).toBe(true);
-    expect(result.name).toBe('verb');
+    expect(result.name).toBe('Box');
   });
 
   it('an unbound ::tag literal is identity-as-value — TagKeyword with no env touch', async () => {
@@ -121,12 +116,6 @@ describe('TaggedLit error paths', () => {
     const err = await evalQuery('::vec/count[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('construct/TagNotKindError'));
-  });
-
-  it('::verb raises VerbPayloadNotQuoteError when payload is not a quote', async () => {
-    const err = await evalQuery('::verb{:not :a-quote}');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('verb/PayloadNotQuoteError'));
   });
 
   it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {
@@ -254,12 +243,12 @@ describe('a kind without a body — identity', () => {
 
 describe('TaggedLit / BareTypeKeyword steps', () => {
   it('TaggedLit leaves a ::construct step over the step of its payload [D115]', async () => {
-    expect(await evalQuery('~(::verb~(mul 2)) | first | [type /tag /payload]'))
-      .toEqual(await evalQuery('[::construct ::verb ~(mul 2)]'));
+    expect(await evalQuery('~(::holds~(mul 2)) | first | [type /tag /payload]'))
+      .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });
 
   it('BareTypeKeyword leaves the tag name itself', async () => {
-    expect(await evalQuery('~(::verb) | first')).toEqual(makeTagKeyword('verb'));
+    expect(await evalQuery('~(::Box) | first')).toEqual(makeTagKeyword('Box'));
   });
 });
 
@@ -328,7 +317,7 @@ describe('a kind whose spec has a body of steps', () => {
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':exclaim ::verb~(append "!") | :shout ::spec~(exclaim) | ::shout"go" | payload'
+      ':any/exclaim ~(append "!") | :shout ::spec~(exclaim) | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
   });

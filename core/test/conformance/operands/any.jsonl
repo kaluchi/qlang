@@ -15,12 +15,12 @@
 {"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
 {"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
 {"name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
-{"name":"any-vec-declared-verb","query":"[1 2 3] | :big ::verb~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-vec-verb-predicate","query":"[1 2 3] | :big ::verb~(gt 2) | any ~big","expect":"true"}
-{"name":"any-vec-verb-predicate-false","query":"[1 2 3] | :huge ::verb~(gt 99) | any ~huge","expect":"false"}
-{"name":"any-set-declared-verb","query":"#[1 2 3] | :big ::verb~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-set-verb-predicate","query":"#[1 2 3] | :big ::verb~(gt 2) | any ~big","expect":"true"}
-{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :pos ::verb~(gt 0) | any ~(pos)","expect":"true"}
-{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :positive ::verb~(gt 0) | any ~positive","expect":"true"}
-{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :positive ::verb~(gt 0) | any ~positive","expect":"false"}
-{"name":"any-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2} | :above ::verb~(:limit ::number | gt limit) | any ~above !| [type /slot]","expect":"[::verb/SlotMissingError :limit]"}
+{"name":"any-vec-declared-verb","query":"[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-vec-verb-predicate","query":"[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"any-vec-verb-predicate-false","query":"[1 2 3] | :any/huge ~(gt 99) | any ~huge","expect":"false"}
+{"name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
+{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
+{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
+{"name":"any-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2} | :any/above ~(gt limit) | :any/above/limit ~(/0) | any ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}

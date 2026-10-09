@@ -26,19 +26,18 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt, makeVerb,
+  isTaggedInstance, isValueClass, isSpec, quoteInEnv, quoteEnvRef, envToRun,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
   addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
-  runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
+  constructorOfSpec, runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -82,12 +81,6 @@ const ConstructTagNotKindError = declareShapeError('construct/TagNotKindError',
 // The combinator names its qlang kind, `distribute`, in the message
 // and in the `:operand` its site records.
 const EachSubjectNotContainerError = declareSubjectError('each/SubjectNotContainerError', 'distribute', ['vec', 'set', 'map']);
-// A verb declared under a kind serves that kind, so its head names no
-// subject of its own [D153].
-const BindVerbSubjectUnderKindError = declareShapeError('bind/VerbSubjectUnderKindError',
-  ({ name }) => `${name} is declared under a kind, its subject, and its head names a subject of its own`,
-  { operand: '::bind' }
-);
 // A bare name the reader declares for a value takes no word of the
 // vocabulary, the name of a verb or of a name under a label, so no step
 // meets the reader's value where the subject's word was meant [D166].
@@ -462,9 +455,9 @@ async function evalBareTypeKeyword(node, state) {
 // The one binding form [D44]: the value passes on, and the scope takes the
 // record of the binding [D63], whose value is the body evaluated once, at
 // declaration, against the current value, so `42 | :x / | add 1 | x`
-// answers 42; a doc alone binds a doc, a page. A verb or a quote written
-// as the body resolves in the scope the declaration writes, so it sees
-// its own name [D44], [D67]. A name is declared once in its scope [D71],
+// answers 42; a doc alone binds a doc, a page. A quote written as the
+// body resolves in the scope the declaration writes, so it sees its own
+// name [D44]. A name is declared once in its scope [D71],
 // and a node the root holds once at all, so a reader extends a noun of the
 // root and replaces none of its nodes [D153]; a name with a path is
 // declared under a noun declared before it.
@@ -490,35 +483,16 @@ async function evalBindStep(node, state) {
   if (isQuote(answered) && partName !== null && isQuoteUnderLabel(state.env, nounName) && vocabularyWords(state.env).has(partName)) {
     throw new BindNameTakenByVocabularyError({ name: partName, addresses: addressesOf(state.env, partName) });
   }
-  if (isVerb(answered)) refuseLaunderedByName(name, effectfulNameOfVerb(answered), node);
-  else if (isQuote(answered) && isUnderLabel(state.env, name)) {
+  if (isQuote(answered) && isUnderLabel(state.env, name)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {
     refuseLaunderedByName(nounName, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   }
   const writtenQuote = node.body.type === 'QuoteLit';
-  const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
-  // A declaration writes into no verb it was handed: one no declaration
-  // named yet is succeeded by a verb of its own over the same code and
-  // scope, and one declared before keeps its address.
-  const value = writtenQuote ? quoteInEnv(answered, null)
-    : isVerb(answered) && !writtenVerb && addressOfVerb(answered) === null ? makeVerb(answered.payload, { env: verbEnvRef(answered).env })
-    : answered;
-  if (isVerb(value) && addressOfVerb(value) === null) declareVerbFirst(value, name, nounName, state.env);
+  const value = writtenQuote ? quoteInEnv(answered, null) : answered;
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
-  if (writtenVerb) verbEnvRef(value).env = nextEnv;
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
-}
-
-// A verb takes the address of its first declaration and resides on the
-// noun of that address when the noun is a kind, its head then naming no
-// subject of its own [D72], [D153]; one under a noun that is no kind
-// serves any value.
-function declareVerbFirst(verb, name, nounName, env) {
-  const underKind = isUnderLabel(env, name);
-  if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
-  declareVerbAt(verb, name, underKind ? nounName : null);
 }
 
 // Whether a node is a quote under a label, whose parts are bound by name
@@ -528,10 +502,9 @@ function isQuoteUnderLabel(env, nounName) {
   return isQuote(bindingValueOf(nodeOf(env, nounName))) && isUnderLabel(env, nounName);
 }
 
-// A name without the effect marker refuses a verb, or a quote under a
-// label, whose body calls one, as it refuses such a body of its own; a
-// part whose selector calls one is refused by the name it is a part of,
-// which runs it at each call [D167].
+// A name without the effect marker refuses a quote under a label whose
+// body calls one; a part whose selector calls one is refused by the name
+// it is a part of, which runs it at each call [D167].
 function refuseLaunderedByName(name, effectfulName, node) {
   if (effectfulName === null || classifyEffect(name)) return;
   const laundering = new BindEffectMarkMissingError({ bindingName: name, effectfulName });
@@ -555,16 +528,16 @@ function declarationRecord(node, value) {
 
 // A projection walks its path segment by segment: a map by key, a vector,
 // a quote and a doc among them, by an index counted from the end when
-// negative, and a signature by the names it declares; a miss is a refusal
-// that names its `:key`, where `at` answers null.
+// negative, and a kind's declaration by the names of its fields; a miss
+// is a refusal that names its `:key`, where `at` answers null.
 function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
   for (const projKey of node.keys) projectionCurrent = projectSegment(projectionCurrent, projKey);
   return withPipeValue(state, projectionCurrent);
 }
 
-// A signature is read by the names it declares: `/throws` of a
-// built-in's, `/subject`, or a slot's kind [D72].
+// A kind's declaration is read by the names of its fields, each answering
+// the literal it declares [D152].
 function projectSignature(signatureSpec, projKey) {
   const declarations = signatureSpec.payload.filter(step => typeKeyword(step).name === BIND_TAG.name);
   const declared = declarations.find(step => step.get('name').name === projKey);
@@ -629,19 +602,16 @@ async function callByName(lookupName, lambdas, state) {
       identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses
     });
   }
-  if (reach.underKind && isMemberValue(bindingValueOf(reach.record))) return await applyMember(reach.record, lambdas, state);
-  return reach.underKind
-    ? await applyVerb(bindingValueOf(reach.record), lambdas, state, lookupName)
-    : await applyBinding(reach.record, lookupName, lambdas, state);
+  if (reach.underKind) return await applyMember(reach.record, lambdas, state);
+  return await applyBinding(reach.record, lookupName, lambdas, state);
 }
 
 // A name reads the value its record holds [D63], so `:x / | x` sees the
-// raw data: a verb runs [D67], and any other value is itself.
+// raw data, a quote among it, which `apply` runs [D44].
 async function applyBinding(entry, lookupName, lambdas, state) {
   const resolved = bindingValueOf(entry);
-  if (isVerb(resolved)) return await applyVerb(resolved, lambdas, state, lookupName);
 
-  // A value takes no modifiers; its refusal names where a verb of the
+  // A value takes no modifiers; its refusal names where a word of the
   // name lives, one a declaration shadows among them [D62].
   if (lambdas.length > 0) {
     throw new CallValueTakesNoModifiersError({
@@ -655,8 +625,9 @@ async function applyBinding(entry, lookupName, lambdas, state) {
 }
 
 // A name with a path reads what its address declared, past every bare
-// name of the scope, a verb run and any other value itself, so a verb a
-// declaration shadows stays one address away [D62], [D153]:
+// name of the scope, a name under a label run and any other value
+// itself, so a word a declaration shadows stays one address away [D62],
+// [D153]:
 // `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of vectors whatever
 // the scope binds as `filter`.
 async function callByAddress(node, state) {
@@ -721,6 +692,13 @@ async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked
 
 const ANY_KIND = 'any';
 const capitalOf = kind => { const word = kind.slice(kind.lastIndexOf('/') + 1); return word[0].toUpperCase() + word.slice(1); };
+
+// callMemberOn(record, subject, state) → the answer of the name under a
+// label the record holds, run on the subject with no modifiers, the
+// print a kind answers among them [D96].
+export async function callMemberOn(record, subject, state) {
+  return (await applyMember(record, [], withPipeValue(state, subject))).pipeValue;
+}
 
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
@@ -797,7 +775,7 @@ async function objectOf(address, parts, lambdas, state, scope) {
     const kindLaw = kindLawOf(scope, partAddress);
     const handed = servedByLaw(kindLaw, part);
     partValues.push(handed);
-    taken.push({ name: partName, readsObject: selector.readsObject, code: selector.readsObject || (kindLaw?.kinds?.includes('quote') ?? false) });
+    taken.push({ readsObject: selector.readsObject, code: selector.readsObject || (kindLaw?.kinds?.includes('quote') ?? false) });
     bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
   return { values: partValues, taken, bodyEnv };
@@ -890,22 +868,12 @@ function isMissedPlace(error) {
 // [D167].
 async function runHostMember(member, walked, objectParts, state) {
   const handed = objectParts.values.map((value, index) => {
-    const { name, readsObject, code } = objectParts.taken[index];
-    const takenBy = element => (!code ? element
-      : isQuote(element) ? codeOf(element, state)
-      : isVerb(element) ? codeOf(quoteOfVerb(element, name, state), state)
-      : element);
+    const { readsObject, code } = objectParts.taken[index];
+    const takenBy = element => (code && isQuote(element) ? codeOf(element, state) : element);
     const served = readsObject ? walkToKinds(value, ['vec'])?.served : undefined;
     return isVec(served) ? served.map(takenBy) : takenBy(value);
   });
   return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
-}
-
-// A verb handed where code is taken is the quote that runs it, as a slot
-// of code took it [D67].
-function quoteOfVerb(verb, name, state) {
-  const scope = envSet(state.env, name, makeBinding({ name: keyword(name), value: verb }));
-  return quoteInEnv(quoteOfSource(name), scope);
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run
@@ -926,7 +894,7 @@ function makeLambda(astNode, capturedState) {
   return lambda;
 }
 
-// codeOf(code, callState) → lambda: a quote a slot of code holds, closed
+// codeOf(code, callState) → lambda: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the
 // environment the quote carries, or that of the call for a quote held as
 // data [D43]. The lambda keeps the tree it runs, so `reduce` finds the
@@ -945,9 +913,8 @@ export function resolveBinaryReducer(reducerLambda) {
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   const reach = bareNameReach(callerState.env, lookupName);
-  const reached = reach === null ? null : bindingValueOf(reach.record);
-  const namesAVerb = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : isVerb(reached) || (reach.underKind && isMemberValue(reached));
-  if (!namesAVerb) return null;
+  const namesAWord = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : reach.underKind;
+  if (!namesAWord) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }

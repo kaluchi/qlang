@@ -3,8 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, keyword, makeTagKeyword } from '../../src/types.mjs';
-import { createSession } from '../../src/session.mjs';
+import { keyword, makeTagKeyword } from '../../src/types.mjs';
 import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
@@ -51,7 +50,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   });
 
   it('a verb body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery(':handler ::verb~(/kind) | !{:kind :oops} !| handler');
+    const evalResult = await evalQuery(':any/handler ~(/kind) | !{:kind :oops} !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -74,23 +73,6 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   });
 });
 
-// ── CallEffectMarkMissingError ──────────────────────────────────────
-
-describe('CallEffectMarkMissingError', () => {
-  it('calling non-@-prefixed name resolving to an effectful verb produces error', async () => {
-    // Install a verb whose body calls an @-prefixed name under a
-    // non-@-prefixed name via session.bind. This simulates the
-    // laundering path (via use, as, or session injection) that the
-    // declaration cannot see.
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':@myCount ::verb~(@callers | count)');
-    const effectfulVerb = sessionInstance.env.get('@myCount');
-    sessionInstance.bind('doIt', effectfulVerb);
-    const cellEntry = await sessionInstance.evalCell('[1 2 3] | doIt');
-    expect(isErrorValue(cellEntry.result)).toBe(true);
-    expect(cellEntry.result.tag.name).toBe('call/EffectMarkMissingError');
-  });
-});
 
 describe('source axis prints the declaration for rare body shapes', () => {
   it('renders bare OperandCall (no args)', async () => {

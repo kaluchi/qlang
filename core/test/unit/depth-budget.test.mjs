@@ -15,7 +15,7 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('depth budget — self-calling verb', () => {
   it('lifts ::call/EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
-    const runaway = await evalQuery(':inf ::verb~(add 1 | inf) | 0 | inf');
+    const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
     expect(runaway.tag).toEqual(makeTagKeyword('call/EvaluationDepthExceededError'));
     expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
@@ -29,7 +29,7 @@ describe('depth budget — self-calling verb', () => {
 
   it('leaves the budget intact for recursion that terminates', async () => {
     const nodeCount = await evalQuery(
-      ':total ::verb~(sumOf 1 (/children * total | sum)) '
+      ':any/total ~(sumOf 1 (/children * total | sum)) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
     );
     expect(nodeCount).toBe(4);
@@ -39,10 +39,10 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
-    ['distribute body naming its own verb',         ':f ::verb~([/] * f | first) | 1 | f'],
-    ['captured-arg lambda naming its own verb',     ':p ::verb~([/] | filter ~(p)) | [1] | p'],
-    ['a verb folding through reduce',               ':r ::verb~(:el ::any | [1] | reduce 0 ~r) | [1] | reduce 0 ~r'],
-    ['a verb predicate over a Map',                 ':k ::verb~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
+    ['distribute body naming its own verb',         ':any/f ~([/] * f | first) | 1 | f'],
+    ['captured-arg lambda naming its own verb',     ':any/p ~([/] | filter ~(p)) | [1] | p'],
+    ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el ~(/0) | [1] | reduce 0 ~r'],
+    ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
     ['Quote-bodied tag constructor minting itself', ':T ::spec~(::T(/)) | ::T(1)']
   ];
   for (const [seamName, query] of seams) {

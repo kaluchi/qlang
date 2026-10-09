@@ -28,7 +28,6 @@ import {
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
-import { createSession } from '../../src/session.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
 import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
@@ -65,10 +64,6 @@ describe('describeType for a verb and a binding record', async () => {
   it('describeType reads a binding record as the tagged Map it is', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(describeType(record)).toBe('TaggedInstance');
-  });
-
-  it('describeType reads a verb as the tagged instance it is', async () => {
-    expect(describeType(await evalQuery('::verb~(mul 2)'))).toBe('TaggedInstance');
   });
 
   it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
@@ -117,10 +112,6 @@ describe('typeKeyword covers all value kinds', () => {
     expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');
   });
 
-  it('typeKeyword returns ::verb for a verb', async () => {
-    expect(typeKeyword(await evalQuery('::verb~(mul 2)')).name).toBe('verb');
-  });
-
   it('typeKeyword returns ::binding for a binding record', () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(typeKeyword(record).name).toBe('binding');
@@ -165,26 +156,11 @@ describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
   });
 });
 
-describe('verb effectLaundering at call site', async () => {
-  it('an effectful verb called via a clean alias triggers CallEffectMarkMissingError', async () => {
-    const s = await createSession();
-    // A verb whose body calls an @-name, which a host binds under a
-    // clean name where no declaration reads it, triggering the runtime
-    // safety net in applyVerb.
-    await s.evalCell(':@effFn ::verb~(@callers | count)');
-    s.bind('clean', (await s.evalCell('env | /@effFn | /value')).result);
-    const cell = await s.evalCell('[1 2 3] | clean');
-    // CallEffectMarkMissingError produces an error value.
-    expect(isErrorValue(cell.result)).toBe(true);
-    expect(cell.result.originalError.name).toBe('EffectMarkMissingError');
-  });
-});
-
-describe('a slot takes no modifiers', async () => {
-  it('a slot holding a value refuses modifiers as any value does', async () => {
-    // Inside the body, `n` is the record of a slot holding a value, so
+describe('a part takes no modifiers', async () => {
+  it('a part holding a value refuses modifiers as any value does', async () => {
+    // Inside the body, `n` is the record of a part holding a value, so
     // a modifier handed to it is refused with CallValueTakesNoModifiersError.
-    const result = await evalQuery(':f ::verb~(:n ::any | n 42) | 0 | f 5');
+    const result = await evalQuery(':any/f ~(n 42) | :any/f/n ~(/0) | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ValueTakesNoModifiersError');

@@ -612,10 +612,10 @@
       ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
       ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
       ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
-      A verb takes the accumulator as its subject and the element in its
-      first slot:
-      ~(:max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
-      ~(:tally ::verb~(:_ ::any | add 1) | [10 20 30] | reduce 0 ~tally | eq 3)
+      A name takes the accumulator as its subject and the element as the
+      first part of its object:
+      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(isA ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
+      ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
       The seed is the first accumulator, answered as it is for an empty
       subject:
       ~([] | reduce 42 ~(add) | eq 42)
@@ -641,10 +641,10 @@
 
 :any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
-      accumulator as its subject and the element in its first slot,
-      `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
-      no verb is refused. A fold of several steps is a verb
-      declared first, whose slot names the element.
+      accumulator as its subject and the element as the first part of its
+      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      name of no verb is refused. A fold of several steps is a name
+      declared first, whose part names the element.
       ~(
         [1 2 3] | reduce 0 ~(mul 2 | add)
         !| type
@@ -1328,13 +1328,13 @@
   |~~ The name the call gives, null when it gives none. ::holds~(isA ::tag ::null) ~~|
   ~(at 0)
 
-:any/TagModifierNotTagKeywordError
+:any/tag/PairTagNotTagError
   |~~ The tag of the pair `tag` reads is a tag name, `[::Box 5] | tag`; a
       keyword, `:box`, names a field and no kind.
       ~(
         [:foo 42] | tag
         !| [type /actualType]
-        |  eq [::any/TagModifierNotTagKeywordError ::keyword]
+        |  eq [::any/tag/PairTagNotTagError ::keyword]
        )
   ~~|
   ::spec~()

@@ -133,21 +133,24 @@
   ~~|
 
 :builtin
-  |~~ The descriptor, a map of fields under this tag. A verb or a kind a
-      host declares ends with an empty one, `::builtin{}`, which runs the
-      implementation the host handed for its name, `::number/add` and
-      `::vec` the language's own. A descriptor is data and runs nothing
-      by itself: a name bound to one reads it.
+  |~~ The descriptor, a map of fields under this tag. A name a host
+      declares under a label is an empty one, `::builtin{}`, and a kind a
+      host declares ends with one: it runs the implementation the host
+      handed for its name, `::number/add` and `::vec` the language's own.
+      A descriptor is data and runs nothing by itself: a bare name bound
+      to one reads it, and in a verb it is a step.
 
       ~(::builtin{} | :c / | [1 2] | c | type | eq ::builtin)
+      ~(::number/add | spec | eq ::builtin{})
   ~~|
   ::spec~(::builtin{})
 
 :verb
   |~~ A verb, a quote under this tag: its leading declarations are its
-      signature and the rest its body. Verbs live on kinds, the catalog
-      itself is written as verbs, and a reader extends the language with
-      the same form. A declaration whose body is a tag name is a slot the
+      signature and the rest its body. A reader's verb lives on the kind
+      its name is declared under, while the catalog is written as names
+      under labels, each with the parts of its object, which a reader
+      declares alike. A declaration whose body is a tag name is a slot the
       call fills, one whose body is a set of kinds takes a value of any of
       them and may be left out when `::null` is among them, and one whose
       body is any other literal takes that literal when it is left out;
@@ -192,10 +195,10 @@
   ::spec~(::builtin{})
 
 :null
-  |~~ The kind of null, the absence of a value; a slot a call may leave
-      empty declares `::null` among its kinds. Its constructor, as every
+  |~~ The kind of null, the absence of a value; a part a call may leave
+      out reads null, `~(at 0)`. Its constructor, as every
       constructor of a kind of the core, reads a payload of the kind as
-      the value itself. ::link~(::verb | doc)
+      the value itself. ::link~(::any/at | doc)
       ::link~(::qlang/values | doc)
 
       ~(null | type | eq ::null)
@@ -340,8 +343,8 @@
 
 :quote
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
-      under the code tag. Code is a value so that a verb takes code as its
-      slot, `filter`, `sort`, `if`; a page holds laws that run and links
+      under the code tag. Code is a value so that a name takes code as a
+      part of its object, `filter`, `sort`, `if`; a page holds laws that run and links
       that lead on; the trail of an error holds the steps it skipped,
       ready to replay; and a query is read, printed and built like any
       data. A literal step is the literal itself; a step that computes is
@@ -379,11 +382,12 @@
   ::spec~(::builtin{})
 
 :spec
-  |~~ The signature of a verb, its leading declarations as a quote under
-      this tag with its subject filled, which `spec` answers for a verb:
-      what a verb takes and answers is known before it is called, which is
-      how a reader writes a call right the first time.
-      ::snippet~(::vec/sort | spec) shows one.
+  |~~ The signature of a reader's verb, its leading declarations as a
+      quote under this tag with its subject filled, which `spec` answers
+      for a verb: what a verb takes and answers is known before it is
+      called. A name under a label shows the parts of its object by
+      `manifest` instead.
+      ::snippet~(:m ::verb~(:x ::number | add x) | :m | spec) shows one.
       ::link~(::qlang/verbs | doc)
 
       ~(:m ::verb~(:x ::number | add x) | :m | spec | type | eq ::spec)

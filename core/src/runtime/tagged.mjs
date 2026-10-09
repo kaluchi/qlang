@@ -10,8 +10,7 @@ import {
 } from '../types.mjs';
 import {
   declareSubjectError,
-  declareElementError,
-  declareModifierError
+  declareElementError
 } from '../operand-errors.mjs';
 import { declareShapeError } from '../errors.mjs';
 
@@ -120,8 +119,9 @@ function builtinConstructor(payload) {
 
 bindPrim('builtin', builtinConstructor);
 
-const AnyTagModifierNotTagKeywordError = declareModifierError(
-  'any/TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
+const AnyTagPairTagNotTagError = declareShapeError('any/tag/PairTagNotTagError',
+  ({ actualType }) => `tag reads a pair [::Tag value] whose first element is a tag name, got ::${actualType.name}`,
+  { operand: 'tag', expectedType: 'tagKeyword' });
 const AnyTagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
   ({ actualType, actualLength }) =>
     actualLength === undefined
@@ -139,9 +139,9 @@ function payloadOf(tagged) {
 }
 
 // `payload` and `within` reside on `::tagged`, each a plain function
-// over the tagged value the head of its verb checked [D72], [D78];
-// `within` returns its subject's kind, so the answer of its edit mints
-// back under the subject's tag [D41], [D67].
+// over the tagged value the walk served [D78]; the page of `within` keeps
+// its subject's kind, so the answer of its edit mints back under the
+// subject's tag [D41], [D167].
 bindPrim('tagged/payload', subject => payloadOf(subject));
 bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)));
 
@@ -159,7 +159,7 @@ async function mintPair(pair, state) {
     });
   }
   const [pairTag, value] = pair;
-  if (!isTagKeyword(pairTag)) throw new AnyTagModifierNotTagKeywordError(pairTag);
+  if (!isTagKeyword(pairTag)) throw new AnyTagPairTagNotTagError({ actualType: typeKeyword(pairTag), actualValue: pairTag });
   return await mintUnderTag(state, pairTag, value);
 }
 

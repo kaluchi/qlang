@@ -1,8 +1,8 @@
 |~ What is declared under `::vec`: the refusal of its constructor, and
    the verbs of vectors, each under the contract of its name on `::any`,
    whose page and laws it answers; a quote reads as the vector of its
-   steps. The head of each verb is its declaration, which the runtime
-   executes before the primitive runs. ~|
+   steps. Each verb is a name with the parts of its object, read and held
+   to their laws before the primitive runs. ~|
 
 :vec/PayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a

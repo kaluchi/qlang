@@ -102,9 +102,9 @@ export class EffectLaunderingError extends QlangError {
 //
 // A per-site error carries four structural facts: the `:category`
 // its base names, the `:operand` that raises it, the `:position`
-// that operand checks, and the `:expectedType` it requires. The
-// runtime reads them to find the refusal of a place; the catalog
-// declares the refusal's kind and its page beside its place [D152].
+// that operand checks, and the `:expectedType` it requires; the
+// catalog declares the refusal's kind and its page beside its place
+// [D152].
 
 const throwSiteSpecs = new Map();
 

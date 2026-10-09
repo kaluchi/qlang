@@ -132,7 +132,7 @@ function plainObjectToQMap(plainObj, path) {
 }
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
-// plain function over the value the head of its verb checked [D72].
+// plain function over the value the walk served [D167].
 const StringParseJsonTextNotJsonError = declareShapeError('string/ParseJsonTextNotJsonError',
   ({ message }) => `parseJson: invalid JSON — ${message}`,
   { operand: 'parseJson' });

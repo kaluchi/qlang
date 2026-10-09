@@ -1,7 +1,7 @@
 // The primitives of the streams of the command line, `@in`, `@out`,
-// `@err` and `@tap`, verbs its source declares under `::any` [D153],
-// each a plain function over the values the head of its verb checks
-// [D80].
+// `@err` and `@tap`, names its source declares under `::any` [D153],
+// each a plain function over the subject and the parts of its object
+// [D80], [D167].
 
 import {
   declareSubjectError

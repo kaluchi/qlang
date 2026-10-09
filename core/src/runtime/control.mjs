@@ -1,16 +1,14 @@
-// The verbs of control, residing on `::any`, each a plain function
-// over the values the head of its verb checked [D72]: a branch, a clause
-// and an alternative is code the verb runs only when it is chosen, closed
-// at the call [D43], [D73], and the condition of `if` is a boolean
-// computed at the call [D14].
+// The names of control, residing on `::any`, each a plain function over
+// the subject and the parts of its object [D167]: a branch, a clause and
+// an alternative is code the name runs only when it is chosen, closed at
+// the call [D43], [D73], and the condition of `if` is a boolean computed
+// at the call [D14].
 //
 // The verbs live in lib/qlang/any.qlang.
 
 import { isNull, isErrorValue, typeKeyword, NULL } from '../types.mjs';
 import { declareArityError, declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-
-// The refusals the head of `if` raises at the places it declares.
 
 const AnyCondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
   ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,

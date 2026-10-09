@@ -151,9 +151,10 @@ export function claimsOfRecord(record) {
 }
 
 // The record of the member the subject holds under a name [D88], or
-// null: the slot a verb declares, and for any other subject the verb its
-// walk reaches under the name, the noun's own after a tag name, else the
-// member a noun holds under it that is no verb [D117].
+// null: the slot a verb declares, the name under the address a tag name
+// writes, a part the contract of its word declares among them [D167],
+// and otherwise the verb the subject's walk reaches under the name
+// [D117].
 function memberRecordOf(env, subject, memberName) {
   const declared = declaringRecordOf(env, subject)?.get('value');
   if (isVerb(declared)) return slotMemberOf(declared, memberName);

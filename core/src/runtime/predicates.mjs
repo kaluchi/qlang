@@ -1,5 +1,5 @@
 // The predicates and the reader of kinds, each a plain function over the
-// values the head of its verb checked [D72]: `not`, `and` and `or`
+// subject and the parts of its object [D167]: `not`, `and` and `or`
 // reside on `::boolean` and take booleans [D14], `eq` and `type` on
 // `::any`, and the comparisons on the kinds they compare [D65].
 //
@@ -15,8 +15,6 @@ import { deepEqual } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { walkToKinds } from './verb.mjs';
-
-// The refusals the heads raise at the places they declare.
 
 bindPrim('any/eq',  (subject, value) => deepEqual(subject, value));
 bindPrim('any/ne',  (subject, value) => !deepEqual(subject, value));

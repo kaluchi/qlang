@@ -32,14 +32,6 @@
 import { expect } from 'vitest';
 import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core';
 
-// expectOperandErrorThrown(cellEntry, address, expectedContext)
-//   → the JS error instance (for further ad-hoc assertions)
-//
-// `cellEntry.error` must be null (the throw was caught and lifted,
-// not propagated as a parse/setup failure). `expectedContext` is a
-// partial shape — only listed fields are checked, so a test can pin
-// the per-site-significant subset without re-asserting invariants
-// every site already shares.
 // expectRefusalByAddress(cellEntry, address, expectedFacts) → error value
 //
 // A refusal named by the address of what refused, a name's subject or a
@@ -56,6 +48,14 @@ export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
   return errorValue;
 }
 
+// expectOperandErrorThrown(cellEntry, address, expectedContext)
+//   → the JS error instance (for further ad-hoc assertions)
+//
+// `cellEntry.error` must be null (the throw was caught and lifted,
+// not propagated as a parse/setup failure). `expectedContext` is a
+// partial shape — only listed fields are checked, so a test can pin
+// the per-site-significant subset without re-asserting invariants
+// every site already shares.
 export function expectOperandErrorThrown(cellEntry, address, expectedContext) {
   expect(cellEntry.error, 'cellEntry.error must be null (throw is lifted onto fail-track)').toBeNull();
   const errorValue = cellEntry.result;

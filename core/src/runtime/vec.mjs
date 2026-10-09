@@ -41,12 +41,8 @@ const AnyIndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeyword
   { operand: 'indexBy', expectedType: 'keyword' }
 );
 
-// The slot that runs code per element takes a quote, and a value
-// computed at the call is refused by the head at the site's place.
-
-// A count and an index are whole numbers: the head refuses a value of
-// another kind at the site's place, and the primitive a fraction. A key
-// of a map is the map's residence's own [D73].
+// A count and an index are whole numbers: the law of the part refuses a
+// value of another kind, and the primitive a fraction.
 const AnyTakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
 const AnyDropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
 const AnyAtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');

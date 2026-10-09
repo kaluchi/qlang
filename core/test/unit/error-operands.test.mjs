@@ -224,7 +224,7 @@ describe('per-site error classes carry unique identity', () => {
   it('a tag of a pair that is a keyword is refused by the primitive of tag', async () => {
     const caughtErr = await catchOriginalError('[:foo 42] | tag');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
+    expect(caughtErr.name).toBe('PairTagNotTagError');
     expect(caughtErr.context.actualType.name).toBe('keyword');
   });
 

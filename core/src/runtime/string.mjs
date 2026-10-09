@@ -1,6 +1,6 @@
-// The verbs of strings, and `join`, `prepend` and `append` of vectors,
-// each a plain function over the values the head of its verb checked
-// [D72]: `prepend` and `append` reside on `::string`, whose prefix and
+// The names of strings, and `join`, `prepend` and `append` of vectors,
+// each a plain function over the subject and the parts of its object
+// [D167]: `prepend` and `append` reside on `::string`, whose prefix and
 // suffix are strings, and on `::vec`, whose element is any value.
 //
 // The verbs live in lib/qlang/string.qlang and vec.qlang.
@@ -9,9 +9,7 @@ import { isVec } from '../types.mjs';
 import { declareElementError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-// The refusals the heads raise at the places they declare; the prefix
-// and the suffix are the string's alone, a vector taking any element
-// [D73].
+// An element `join` writes is a string.
 const VecJoinElementNotStringError = declareElementError('vec/JoinElementNotStringError', 'join', 'string');
 
 // A string takes its prefix or its suffix, a vector its element at the

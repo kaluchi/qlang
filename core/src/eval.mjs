@@ -897,7 +897,8 @@ function isMissedPlace(error) {
 }
 
 // A primitive runs over the value the walk served and the values of the
-// parts, a quote closed at the call [D4], as a verb's primitive runs.
+// parts, a quote closed at the call into code [D4] where the part takes
+// code, each element so for the tail [D167].
 async function runHostMember(member, walked, read, state) {
   const handed = read.values.map((value, index) => {
     const { name, rest, code } = read.taken[index];

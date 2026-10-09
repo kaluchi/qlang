@@ -1,17 +1,14 @@
-// The verbs of the keys of a map and of membership, each a plain
-// function over the value the head of its verb checked [D72]: `keys`,
-// `vals` and `entries` reside on `::map`, and `has` on `::map`, whose key is a
-// keyword or a string, and on `::set` and `::vec`, whose element is any
-// value.
+// The names of the keys of a map and of membership, each a plain
+// function over the subject and the parts of its object [D167]: `keys`,
+// `vals` and `entries` reside on `::map`, and `has` on `::map`, whose key
+// is a keyword or a string, and on `::set` and `::vec`, whose element is
+// any value.
 //
 // The verbs live in lib/qlang/map.qlang and set.qlang.
 
 import { keyword, isKeyword, isQMap, isQSet, makeSet } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
-
-// The refusals the heads raise at the places they declare; the key of
-// `has` is the map's alone, the element of a set being any value [D73].
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.

@@ -1,6 +1,6 @@
-// The primitive of `table`, the renderer of the command line, a verb its
+// The primitive of `table`, the renderer of the command line, a name its
 // source declares under `::vec` [D153] and a plain function over the
-// vector the head of its verb checks [D80].
+// vector the walk served [D80], [D167].
 
 import { declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';

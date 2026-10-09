@@ -13,9 +13,9 @@
 // on it and serves that kind [D72]. A call fills the slots in order from its
 // modifiers, each evaluated at the call against the subject [D43] and
 // checked by its kind, and runs the rest of the quote, the body, in the
-// scope of the verb with the slots bound, or, for a built-in, the
-// primitive its `::builtin{:impl}` step names over the checked values. A
-// verb without a body is a contract, which answers no call.
+// scope of the verb with the slots bound; a `::builtin{}` in it is a step
+// [D73], [D167]. A verb without a body is a contract, which answers no
+// call and declares once the parts its kinds share [D167].
 
 import { bindPrim, readsState, readsPassedTags } from '../primitives.mjs';
 import { evalAst, mintTaggedInstance } from '../eval.mjs';
@@ -429,9 +429,10 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
 
-// A primitive runs over the values its head checked, a reader of the
-// scope over the state of the call after them [D79], and a reader of the
-// tags its subject stood beneath over the tags the walk passed [D86].
+// A primitive runs over the value the walk served and the values of the
+// parts of the call's object, a reader of the scope over the state of
+// the call after them [D79], and a reader of the tags its subject stood
+// beneath over the tags the walk passed [D86].
 export function runPrimitive(primitive, served, passedTags, slotArguments, state) {
   if (readsState(primitive)) return primitive(served, ...slotArguments, state);
   if (readsPassedTags(primitive)) return primitive(served, ...slotArguments, passedTags);

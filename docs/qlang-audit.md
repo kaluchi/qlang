@@ -815,7 +815,7 @@ a scope, and a verb of the catalog is a name under the label of its
 subject, a host's primitive or a quote, the parts of its object names
 under the call's address, each read from the object and held to the
 laws of its page, the law of its answer on its own page [D164], [D166],
-[D167]; a reader's verb is still a quote under `::verb` whose leading
+[D167]; a reader's verb is a quote under `::verb` whose leading
 declarations are its signature. A
 comment is whitespace, and a doc is the literal in the slot of the
 declaration it documents. One order ranks every value, JSON syntax reads
@@ -1108,8 +1108,8 @@ under the noun of its place, where `manifest` lists it [D152], [D153], and
 a verb lists the refusals that guard it [D46]. A name under a label
 lists what its primitive raises and the parts of its object, and the
 refusals of its places are named by their addresses with no declaration
-of their own, a part's under the part, whose page is its procedure, the
-registry of the refusals of places having left with the heads [D167]:
+of their own, a part's under the part, whose page is its procedure, so
+no registry finds the refusal of a place [D167]:
 
 ```qlang
 > ::number/add | manifest
@@ -1951,7 +1951,7 @@ and the suite and the laws of the catalog write them:
 
 ```
 $ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-371
+370
 ```
 
 One way writes every one as a name under the label of its subject or

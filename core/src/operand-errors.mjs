@@ -11,11 +11,6 @@
 // a magnitude outside the finite-double domain, a runtime invariant —
 // live in `errors.mjs` next to the category roots they declare under.
 //
-// Lives at the `src/` root because both the core evaluator modules
-// and every `runtime/*.mjs` operand impl consume the factories below;
-// the `src/` root sits upstream of both layers so the imports flow
-// inward consistently.
-//
 // Principle: **one throw site, one class**. No error class is
 // shared across two different operand sites. Each check raises an
 // exception whose address identifies where it fired, so a reader of

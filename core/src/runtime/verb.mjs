@@ -477,7 +477,7 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
 // A primitive runs over the values its head checked, a reader of the
 // scope over the state of the call after them [D79], and a reader of the
 // tags its subject stood beneath over the tags the walk passed [D86].
-function runPrimitive(primitive, served, passedTags, slotArguments, state) {
+export function runPrimitive(primitive, served, passedTags, slotArguments, state) {
   if (readsState(primitive)) return primitive(served, ...slotArguments, state);
   if (readsPassedTags(primitive)) return primitive(served, ...slotArguments, passedTags);
   return primitive(served, ...slotArguments);

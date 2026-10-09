@@ -28,7 +28,6 @@ import {
   isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt, makeVerb,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
-import { readsState, readsPassedTags } from './primitives.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
@@ -38,7 +37,7 @@ import {
 } from './runtime/nouns.mjs';
 import {
   applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication,
-  underTags, walkToKinds
+  runPrimitive, underTags, walkToKinds
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -381,17 +380,17 @@ async function underPage(tagName, payload, state) {
 }
 
 // The payload a label's `construct` builds: a quote run on the payload,
-// or the primitive a host handed run over it.
+// or the primitive a host handed run over it and the state, as a kind's
+// primitive constructor runs.
 async function constructedBy(construct, payload, state) {
   if (isQuote(construct)) return (await evalBody(astOfQuote(construct), withPipeValue(withEnv(state, scopeOfMember(construct, state)), payload))).pipeValue;
-  const impl = hostImplOf(construct);
-  return readsState(impl) ? await impl(payload, state) : await impl(payload);
+  return await hostImplOf(construct)(payload, state);
 }
 
 // The first law under `::holds` of a record's page that the value does
 // not answer true to, or null.
 async function brokenLawOf(record, value, state, scope) {
-  for (const doc of record?.get('docs') ?? []) {
+  for (const doc of record.get('docs')) {
     for (const segment of doc) {
       if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
       const answer = (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
@@ -404,8 +403,7 @@ async function brokenLawOf(record, value, state, scope) {
 // A refusal named by the address of what refused, its facts the value
 // refused and its kind [D166].
 function refusalUnder(tagName, facts) {
-  const descriptor = new Map(Object.entries(facts));
-  if (descriptor.has('actualValue')) descriptor.set('actualType', typeKeyword(descriptor.get('actualValue')));
+  const descriptor = new Map(Object.entries(facts)).set('actualType', typeKeyword(facts.actualValue));
   return makeErrorValue(makeTagKeyword(tagName), descriptor);
 }
 
@@ -667,8 +665,8 @@ async function applyMember(record, lambdas, state) {
   const answer = isQuote(member)
     ? (await evalBody(astOfQuote(member), withEnv(state, read.bodyEnv))).pipeValue
     : await runHostMember(member, walked, read.values, state);
-  if (isErrorValue(answer) || !hasPageRole(record, 'keeps')) return withPipeValue(state, answer);
-  return withPipeValue(state, await underTags(answer, walked.passedTags, state));
+  const keeps = !isErrorValue(answer) && hasPageRole(record, 'keeps');
+  return withPipeValue(state, keeps ? await underTags(answer, walked.passedTags, state) : answer);
 }
 
 // The scope a name under a label runs in: a quote's own, over the tree of
@@ -698,15 +696,19 @@ function partsOf(scope, address) {
 function placesReadBy(parts) {
   let places = 0;
   for (const [, partRecord] of parts) {
-    const ast = astOfQuote(bindingValueOf(partRecord));
-    const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-    const index = head.type === 'Projection' && head.keys.length > 0 ? Number(head.keys[0])
-      : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
-      : NaN;
+    const index = placeReadBy(astOfQuote(bindingValueOf(partRecord)));
     if (!Number.isInteger(index)) return null;
     places = Math.max(places, index + 1);
   }
   return places;
+}
+
+// The index a part's first step reads, by a projection or by `at`, or
+// no integer for a part that reads the object whole or its tail.
+function placeReadBy(ast) {
+  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
+  if (head.type === 'Projection') return Number(head.keys[0]);
+  return head.type === 'OperandCall' && head.name === 'at' ? head.args[0].value : NaN;
 }
 
 // The object of a call, the values of its modifiers each computed against
@@ -747,14 +749,10 @@ function isMissedPlace(error) {
 }
 
 // A primitive runs over the value the walk served and the values of the
-// parts, a quote closed at the call [D4], a reader of the scope over the
-// state after them [D79] and a reader of the passed tags over those [D86].
+// parts, a quote closed at the call [D4], as a verb's primitive runs.
 async function runHostMember(member, walked, values, state) {
-  const impl = hostImplOf(member);
   const handed = values.map(value => (isQuote(value) ? codeOf(value, state) : value));
-  if (readsState(impl)) return await impl(walked.served, ...handed, state);
-  if (readsPassedTags(impl)) return await impl(walked.served, ...handed, walked.passedTags);
-  return await impl(walked.served, ...handed);
+  return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
 }
 
 // Whether a record's page holds a quote under the tag of a role.

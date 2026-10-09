@@ -34,10 +34,10 @@ import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astO
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf, splitAddress, vocabularyWords
+  addressesOf, bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject,
+  applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
   runPrimitive, keptAsSubject, walkToKinds
 } from './runtime/verb.mjs';
 import {
@@ -691,7 +691,7 @@ async function applyMember(record, lambdas, state) {
     return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
-  const objectParts = await objectOf(address, partsOf(scope, address), lambdas, state, scope);
+  const objectParts = await objectOf(address, partsOfName(scope, address), lambdas, state, scope);
   if (isErrorValue(objectParts)) return withPipeValue(state, objectParts);
   const answer = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, objectParts.bodyEnv))).pipeValue
@@ -722,22 +722,6 @@ function scopeOfMember(member, state) {
     if (typeof name === 'string' && name.includes('/') && !scope.has(name)) scope.set(name, entry);
   }
   return scope;
-}
-
-// The parts of a call's object: the quotes declared under the name's
-// address, in their order, or, for a name that declares none, those the
-// contract of its word declares once on `::any` [D167].
-function partsOf(scope, address) {
-  const own = quotesUnder(scope, address);
-  if (own.length > 0) return own;
-  const contract = nodeOf(scope, `any/${splitAddress(address)[1]}`);
-  return contract !== null && isVerb(bindingValueOf(contract)) && isContract(bindingValueOf(contract))
-    ? quotesUnder(scope, contract.get('name').name)
-    : own;
-}
-
-function quotesUnder(scope, address) {
-  return [...namesUnderOf(scope, address)].filter(([, partRecord]) => isQuote(bindingValueOf(partRecord)));
 }
 
 // The places the parts read, one past the greatest a part reads strictly

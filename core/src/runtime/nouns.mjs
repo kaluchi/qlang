@@ -198,6 +198,21 @@ export function verbsReaching(env, kindNames) {
   return reached;
 }
 
+// partsOfName(env, address) → the parts of the object of a call of the
+// name at the address, by their names: the quotes declared under it, in
+// their order, or, for a name that declares none, those the contract of
+// its word declares once on `::any` [D167].
+export function partsOfName(env, address) {
+  const own = quotesUnder(env, address);
+  if (own.length > 0) return own;
+  const contract = nodeOf(env, `${ANY_KIND_NAME}/${splitAddress(address)[1]}`);
+  return contract !== null && isContractValue(bindingValueOf(contract)) ? quotesUnder(env, contract.get('name').name) : own;
+}
+
+function quotesUnder(env, address) {
+  return [...namesUnderOf(env, address)].filter(([, record]) => isQuote(bindingValueOf(record)));
+}
+
 // The nodes declared one name under a noun, by their last names.
 export function namesUnderOf(env, nounName) {
   const root = rootOf(env);

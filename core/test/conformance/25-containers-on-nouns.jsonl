@@ -1,5 +1,5 @@
 {"name":"a-key-of-a-map-is-refused-by-its-residence","query":"{:a 1} | at 42 !| [type /actualType]","expect":"[::map/at/key/HoldsNotMetError ::number]","decision":"D73"}
-{"name":"an-index-of-a-vector-is-refused-by-its-part","query":"[1 2] | at \"a\" !| type","expect":"::vec/at/index/HoldsNotMetError","decision":"D73"}
+{"name":"an-index-of-a-vector-is-refused-by-its-part","query":"[1 2] | at \"a\" !| type","expect":"::any/at/index/HoldsNotMetError","decision":"D73"}
 {"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]","decision":"D72"}
 {"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T","decision":["D41","D72"]}
 {"name":"a-set-reverses-into-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]","decision":["D16","D72"]}

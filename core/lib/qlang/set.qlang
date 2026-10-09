@@ -67,10 +67,6 @@
   ~~|
   ::builtin{}
 
-:set/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :set/max
   |~~ The greatest element, or the one whose key answers the greatest
       value.
@@ -80,20 +76,12 @@
   ~~|
   ::builtin{}
 
-:set/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :set/filter
   |~~ The set of the elements whose predicate answers true. ::keeps~()
 
       ~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
   ~~|
   ::builtin{}
-
-:set/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
 
 :set/every
   |~~ Whether the predicate answers true for every element. ::holds~(isA ::boolean)
@@ -102,20 +90,12 @@
   ~~|
   ::builtin{}
 
-:set/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
-
 :set/any
   |~~ Whether the predicate answers true for some element. ::holds~(isA ::boolean)
 
       ~(#[1 2 3] | any ~(gt 2) | eq true)
   ~~|
   ::builtin{}
-
-:set/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
 
 :set/groupBy
   |~~ The map of sets the key sorts the elements into. ::holds~(isA ::map)
@@ -124,10 +104,6 @@
   ~~|
   ::builtin{}
 
-:set/groupBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :set/indexBy
   |~~ The map of the elements under the key each answers, or under
       itself without a key. ::holds~(isA ::map)
@@ -135,10 +111,6 @@
       ~(#[{:id :a}] | indexBy ~(/id) | /a | eq {:id :a})
   ~~|
   ::builtin{}
-
-:set/indexBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
 
 :set/sort
   |~~ The vector of the elements in the one order, or by the value the
@@ -149,20 +121,12 @@
   ~~|
   ::builtin{}
 
-:set/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :set/take
   |~~ The set of the least count elements. ::keeps~()
 
       ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
   ~~|
   ::builtin{}
-
-:set/take/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
 
 :set/drop
   |~~ The set of the elements after the least count. ::keeps~()
@@ -171,10 +135,6 @@
   ~~|
   ::builtin{}
 
-:set/drop/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
-
 :set/at
   |~~ The element at the index in the one order, a negative one
       counting from the end, or null past either end.
@@ -182,14 +142,6 @@
       ~(#[:a :b :c] | at -1 | eq :c)
   ~~|
   ::builtin{}
-
-:set/at/index
-  |~~ The index, a negative one counting from the end. ::holds~(isA ::number) ~~|
-  ~(/0)
-
-:set/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
 
 :set/distinct
   |~~ The set itself. ::keeps~()
@@ -219,14 +171,6 @@
       ~(#[1 2 3] | reduce 0 ~(add) | eq 6)
   ~~|
   ::builtin{}
-
-:set/reduce/seed
-  |~~ The value the fold starts from. ~~|
-  ~(/0)
-
-:set/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(isA ::quote) ~~|
-  ~(/1)
 
 :set/union
   |~~ The set of the elements of either set, merged in the one order;
@@ -271,10 +215,6 @@
   ~~|
   ::builtin{}
 
-:set/has/element
-  |~~ The element the call gives. ~~|
-  ~(/0)
-
 :set/contains
   |~~ Whether the set holds the element, the membership `has` asks,
       under the word a string answers for its substrings. ::holds~(isA ::boolean)
@@ -282,7 +222,3 @@
       ~(#[:a :b :c] | contains :b | eq true)
   ~~|
   ::builtin{}
-
-:set/contains/element
-  |~~ The element the call gives. ~~|
-  ~(/0)

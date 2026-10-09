@@ -66,10 +66,6 @@
   ~~|
   ::builtin{}
 
-:vec/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :vec/max
   |~~ The last element in the one order of values, or the one whose key
       answers the last value.
@@ -79,36 +75,12 @@
   ~~|
   ::builtin{}
 
-:vec/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :vec/filter
   |~~ The elements whose predicate answers true, in their order. ::keeps~()
 
       ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
   ~~|
   ::builtin{}
-
-:vec/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
-
-      The predicate of `filter` is code it runs on each element, so it takes a
-      quote, `filter ~(gt 1)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | filter (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/filter/predicate/HoldsNotMetError ::boolean]
-       )
-      A step written without its quote runs on the whole subject at the
-      call, and the error it answers is refused alike:
-      ~(
-        [{:a true}] | filter /a
-        !| [type /actualType]
-        |  eq [::vec/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]
-       )
-  ~~|
-  ~(/0)
 
 :vec/every
   |~~ Whether the predicate answers true for every element. ::holds~(isA ::boolean)
@@ -117,38 +89,12 @@
   ~~|
   ::builtin{}
 
-:vec/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
-
-      The predicate of `every` is code it runs on each element, so it takes a
-      quote, `every ~(gt 0)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | every (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/every/predicate/HoldsNotMetError ::boolean]
-       )
-  ~~|
-  ~(/0)
-
 :vec/any
   |~~ Whether the predicate answers true for some element. ::holds~(isA ::boolean)
 
       ~([1 2 3] | any ~(gt 2) | eq true)
   ~~|
   ::builtin{}
-
-:vec/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
-
-      The predicate of `any` is code it runs on each element, so it takes a
-      quote, `any ~(gt 2)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | any (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/any/predicate/HoldsNotMetError ::boolean]
-       )
-  ~~|
-  ~(/0)
 
 :vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
@@ -159,10 +105,6 @@
   ~~|
   ::builtin{}
 
-:vec/has/element
-  |~~ The element the call gives. ~~|
-  ~(/0)
-
 :vec/contains
   |~~ Whether the vector holds an element equal to the value, the
       membership `has` asks, under the word a string answers for its
@@ -171,10 +113,6 @@
       ~(["ops" "db"] | contains "ops" | eq true)
   ~~|
   ::builtin{}
-
-:vec/contains/element
-  |~~ The element the call gives. ~~|
-  ~(/0)
 
 :vec/groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
@@ -191,19 +129,6 @@
   ~~|
   ::builtin{}
 
-:vec/groupBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
-
-      The key of `groupBy` is code it runs on each element, so it takes a
-      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
-      ~(
-        [{:kind :a}] | groupBy :a
-        !| [type /actualType]
-        |  eq [::vec/groupBy/key/HoldsNotMetError ::keyword]
-       )
-  ~~|
-  ~(at 0)
-
 :vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
@@ -213,19 +138,6 @@
       ~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
   ~~|
   ::builtin{}
-
-:vec/indexBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
-
-      The key of `indexBy` is code it runs on each element, so it takes a
-      quote, `indexBy ~(/id)`; a value computed at the call is refused.
-      ~(
-        [{:id :a}] | indexBy :a
-        !| [type /actualType]
-        |  eq [::vec/indexBy/key/HoldsNotMetError ::keyword]
-       )
-  ~~|
-  ~(at 0)
 
 :vec/sort
   |~~ The elements in the one order of values, the way a reader ranks
@@ -242,19 +154,6 @@
   ~~|
   ::builtin{}
 
-:vec/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
-
-      The key of `sort` is code it runs on each element, so it takes a
-      quote, `sort ~(/age)`; a value computed at the call is refused.
-      ~(
-        [3 1 2] | sort 1
-        !| [type /actualType]
-        |  eq [::vec/sort/key/HoldsNotMetError ::number]
-       )
-  ~~|
-  ~(at 0)
-
 :vec/take
   |~~ The first count elements. ::keeps~()
 
@@ -262,20 +161,12 @@
   ~~|
   ::builtin{}
 
-:vec/take/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
-
 :vec/drop
   |~~ The elements after the first count. ::keeps~()
 
       ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
   ~~|
   ::builtin{}
-
-:vec/drop/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
 
 :vec/at
   |~~ The element at the index, a negative one counting from the end,
@@ -288,14 +179,6 @@
       ~([null] | at 0 7 | eq null)
   ~~|
   ::builtin{}
-
-:vec/at/index
-  |~~ The index, a negative one counting from the end. ::holds~(isA ::number) ~~|
-  ~(/0)
-
-:vec/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
 
 :vec/distinct
   |~~ The set of the elements, the vector in the one order without
@@ -325,23 +208,6 @@
       ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
   ~~|
   ::builtin{}
-
-:vec/reduce/seed
-  |~~ The value the fold starts from. ~~|
-  ~(/0)
-
-:vec/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(isA ::quote)
-
-      The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
-      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | reduce 0 1
-        !| [type /actualType]
-        |  eq [::vec/reduce/reducer/HoldsNotMetError ::number]
-       )
-  ~~|
-  ~(/1)
 
 :vec/union
   |~~ The union of the operands the vector holds, sets merged in the one

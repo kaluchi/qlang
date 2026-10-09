@@ -1963,14 +1963,14 @@ those places and the cases of the head itself. The other keeps
 of one fact.
 
 A contract as a page [D166], [D167]. A word several kinds answer has a
-contract on `::any`, a verb without a body, and each kind declares the
-parts of its call again, so the page of `take/count` is written once
-per kind. A page at `any/take` would hold the parts once, but a node
-whose value is a page is a label, and the names under it would reside
-on it. The alternatives: no label directly under `::any`, whose names
-are the words every value answers, so a page there is the contract of
-its word and the parts under it are shared, an exception to the rule of
-labels; or the contract as it is.
+contract on `::any`, a verb without a body, which declares once the
+parts its kinds share, `::any/take | manifest`, and answers the call no
+kind of the subject answers. A page there would say the same without a
+verb, but a node whose value is a page is a label, and the names under
+it would reside on it. The alternatives: no label directly under
+`::any`, whose names are the words every value answers, so a page there
+is the contract of its word, an exception to the rule of labels; or the
+contract as it is, the one verb without a body the catalog keeps.
 
 A topic is a label [D166]. A page declared as a name is a label, a
 topic among them, so a name under a topic resides on it and refuses any

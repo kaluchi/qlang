@@ -89,10 +89,6 @@
   ~~|
   ::builtin{}
 
-:map/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :map/max
   |~~ The last value in the one order of values, or the one whose key
       answers the last value; the key of the entry is read by `entries`.
@@ -101,10 +97,6 @@
       ~({:a 3 :b 1} | entries | max ~(/1) | /0 | eq :a)
   ~~|
   ::builtin{}
-
-:map/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
 
 :map/filter
   |~~ The entries whose value the predicate answers true for, their keys
@@ -115,10 +107,6 @@
   ~~|
   ::builtin{}
 
-:map/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
-
 :map/every
   |~~ Whether the predicate answers true for every value. ::holds~(isA ::boolean)
 
@@ -126,20 +114,12 @@
   ~~|
   ::builtin{}
 
-:map/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
-
 :map/any
   |~~ Whether the predicate answers true for some value. ::holds~(isA ::boolean)
 
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
   ~~|
   ::builtin{}
-
-:map/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote) ~~|
-  ~(/0)
 
 :map/sort
   |~~ The entries ordered by their values, or by the value the key
@@ -149,20 +129,12 @@
   ~~|
   ::builtin{}
 
-:map/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
-  ~(at 0)
-
 :map/take
   |~~ The first count entries. ::keeps~()
 
       ~({:a 1 :b 2 :c 3} | take 2 | eq {:a 1 :b 2})
   ~~|
   ::builtin{}
-
-:map/take/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
 
 :map/drop
   |~~ The entries after the first count, in the order of the map; a
@@ -172,10 +144,6 @@
       ~({:a 1 :b 2 :c 3} | minus #[:b] | eq {:a 1 :c 3})
   ~~|
   ::builtin{}
-
-:map/drop/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
 
 :map/at
   |~~ The value at the key, a keyword or a string, both naming the key
@@ -226,14 +194,6 @@
       ~({:a 1 :b 2} | reduce 0 ~(add) | eq 3)
   ~~|
   ::builtin{}
-
-:map/reduce/seed
-  |~~ The value the fold starts from. ~~|
-  ~(/0)
-
-:map/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(isA ::quote) ~~|
-  ~(/1)
 
 :map/keys
   |~~ The set of the keys, keywords in the one order: sorted by name. ::holds~(isA ::set)

@@ -97,7 +97,3 @@
       ~(::qlang | runLaws :values | every ~(/ok))
   ~~|
   ::builtin{}
-
-:tag/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
-  ~(at 0)

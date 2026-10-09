@@ -90,10 +90,6 @@
   ~~|
   ::builtin{}
 
-:string/take/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
-
 :string/drop
   |~~ The string without its first count characters, the rest after a
       prefix of known length. ::keeps~()
@@ -101,10 +97,6 @@
       ~("db_host" | drop 3 | eq "host")
   ~~|
   ::builtin{}
-
-:string/drop/count
-  |~~ How many. ::holds~(isA ::number) ~~|
-  ~(/0)
 
 :string/split
   |~~ The substrings between the occurrences of the separator, as a

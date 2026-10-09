@@ -123,10 +123,10 @@ describe('runtime/vec.mjs error paths', () => {
     await expectErrorCategory('42 | filter ~(gt 1)', 'typeError');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/HoldsNotMetError');
+    await expectErrorThrown('[1 2 3] | take "x"', 'any/take/count/HoldsNotMetError');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/HoldsNotMetError');
+    await expectErrorThrown('[1 2 3] | drop "x"', 'any/drop/count/HoldsNotMetError');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort ~(/n)'))

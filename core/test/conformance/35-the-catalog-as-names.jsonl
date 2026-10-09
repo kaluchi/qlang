@@ -7,7 +7,7 @@
 {"name":"a-quote-under-a-label-that-calls-a-marked-name-takes-the-mark","query":":any/quiet ~(@out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
 {"name":"a-quote-under-a-label-with-its-mark-is-declared","query":":any/@loud ~(@out) | 5","expect":"5","decision":"D167"}
 {"name":"the-message-of-a-refusal-by-address-is-its-address","query":":d |~~ ~(\"x\" | add 1) ~~| 1 | :d | runLaws | first | /error","expect":"\"::number/add/SubjectNotNumberError\"","decision":"D167"}
-{"name":"an-anchor-reads-the-part-under-a-name","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true","decision":"D167"}
+{"name":"an-anchor-reads-the-part-a-name-reads-from-its-contract","query":"::vec | doc [:take :count] | eq (::any/take/count | doc)","expect":"true","decision":"D167"}
 {"name":"the-kind-of-an-answer-is-the-law-of-its-name","query":"::vec/count | doc | content | contains \"::holds~(isA ::number)\"","expect":"true","decision":"D167"}
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-a-part-asks-for","query":"5 | add ::Width(2)","expect":"7","decision":"D167"}
 {"name":"each-element-a-law-of-the-tail-asks-for-is-handed-as-its-kind","query":"{:a ::W(5) :b 2} | sumOf /a /b","expect":"7","decision":"D167"}
@@ -25,3 +25,6 @@
 {"name":"the-kinds-isA-asks-for-are-tag-names","query":"5 | isA :number !| [type /index /actualType]","expect":"[::any/isA/kinds/HoldsNotMetError 1 ::keyword]","decision":"D167"}
 {"name":"a-law-that-answers-an-error-hands-it-on","query":":Box |~~ B ::holds~(/nope) ~~| | ::Box(5) !| type","expect":"::proj/SubjectNotProjectableError","decision":"D166"}
 {"name":"a-law-of-each-element-over-a-map-runs-as-code-and-hands-the-map-on","query":":Box |~~ B ~~| | :Box/sumIt ~(m | vals | sum) | :Box/sumIt/m |~~ M ::holds~(every ~(isA ::number)) ~~| ~(/0) | ::Box[1] | sumIt {:a 1 :b 2}","expect":"3","decision":"D167"}
+{"name":"the-parts-several-kinds-share-are-declared-once-under-the-contract","query":"[(::any/take | manifest) (::vec/take | manifest) (::string/take | manifest)]","expect":"[#[::any/take/count] #[] #[]]","decision":"D167"}
+{"name":"a-part-of-the-contract-refuses-under-its-own-address","query":"[(\"ab\" | take \"x\" !| type) ([1] | take \"x\" !| type)]","expect":"[::any/take/count/HoldsNotMetError ::any/take/count/HoldsNotMetError]","decision":"D167"}
+{"name":"a-name-with-parts-of-its-own-reads-them-and-not-the-contract-s","query":"[({:a 1} | at :b 0) ({:a 1} | at 5 !| type)]","expect":"[0 ::map/at/key/HoldsNotMetError]","decision":"D167"}

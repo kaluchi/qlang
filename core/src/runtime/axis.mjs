@@ -29,7 +29,7 @@ import {
 import { signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagLiteralOf } from '../env-keys.mjs';
 import {
-  addressesOf, isNoun, nodeOf, pageAddressesOf, residenceOnSubject
+  addressesOf, isNoun, nodeOf, pageAddressesOf, partsOfName, residenceOnSubject
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -157,7 +157,9 @@ export function claimsOfRecord(record) {
 function memberRecordOf(env, subject, memberName) {
   const declared = declaringRecordOf(env, subject)?.get('value');
   if (isVerb(declared)) return slotMemberOf(declared, memberName);
-  const under = isTagKeyword(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
+  const under = isTagKeyword(subject)
+    ? nodeOf(env, `${subject.name}/${memberName}`) ?? partsOfName(env, subject.name).find(([partName]) => partName === memberName)?.[1] ?? null
+    : null;
   return under ?? residenceOnSubject(env, memberName, subject);
 }
 

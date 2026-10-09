@@ -173,6 +173,10 @@
   ~~|
   ::verb~()
 
+:any/min/key
+  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
+  ~(at 0)
+
 :any/max
   |~~ The last element in the one order of values, the order `sort`
       answers, of a vector, a set, or the values of a map, or the element
@@ -188,6 +192,10 @@
       ~({:a 3 :b 1} | entries | max ~(/1) | /0 | eq :a)
   ~~|
   ::verb~()
+
+:any/max/key
+  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
+  ~(at 0)
 
 :any/filter
   |~~ Keeps the elements of a container a predicate accepts, in a
@@ -206,6 +214,26 @@
       ~({} | filter ~(gt 0) | eq {})
   ~~|
   ::verb~()
+
+:any/filter/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+
+      The predicate of `filter` is code it runs on each element, so it takes a
+      quote, `filter ~(gt 1)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | filter (count | gt 1)
+        !| [type /actualType]
+        |  eq [::any/filter/predicate/HoldsNotMetError ::boolean]
+       )
+      A step written without its quote runs on the whole subject at the
+      call, and the error it answers is refused alike:
+      ~(
+        [{:a true}] | filter /a
+        !| [type /actualType]
+        |  eq [::any/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]
+       )
+  ~~|
+  ~(/0)
 
 :any/FilterConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
@@ -236,6 +264,19 @@
   ~~|
   ::verb~()
 
+:any/every/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+
+      The predicate of `every` is code it runs on each element, so it takes a
+      quote, `every ~(gt 0)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | every (count | gt 1)
+        !| [type /actualType]
+        |  eq [::any/every/predicate/HoldsNotMetError ::boolean]
+       )
+  ~~|
+  ~(/0)
+
 :any/EveryConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
@@ -264,6 +305,19 @@
   ~~|
   ::verb~()
 
+:any/any/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+
+      The predicate of `any` is code it runs on each element, so it takes a
+      quote, `any ~(gt 2)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | any (count | gt 1)
+        !| [type /actualType]
+        |  eq [::any/any/predicate/HoldsNotMetError ::boolean]
+       )
+  ~~|
+  ~(/0)
+
 :any/AnyConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
@@ -291,6 +345,19 @@
   ~~|
   ::verb~()
 
+:any/groupBy/key
+  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+
+      The key of `groupBy` is code it runs on each element, so it takes a
+      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
+      ~(
+        [{:kind :a}] | groupBy :a
+        !| [type /actualType]
+        |  eq [::any/groupBy/key/HoldsNotMetError ::keyword]
+       )
+  ~~|
+  ~(at 0)
+
 :any/GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
@@ -315,6 +382,19 @@
       ~([:x :y] | indexBy | eq {:x :x :y :y})
   ~~|
   ::verb~()
+
+:any/indexBy/key
+  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+
+      The key of `indexBy` is code it runs on each element, so it takes a
+      quote, `indexBy ~(/id)`; a value computed at the call is refused.
+      ~(
+        [{:id :a}] | indexBy :a
+        !| [type /actualType]
+        |  eq [::any/indexBy/key/HoldsNotMetError ::keyword]
+       )
+  ~~|
+  ~(at 0)
 
 :any/IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, or a string
@@ -367,6 +447,19 @@
   ~~|
   ::verb~()
 
+:any/sort/key
+  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+
+      The key of `sort` is code it runs on each element, so it takes a
+      quote, `sort ~(/age)`; a value computed at the call is refused.
+      ~(
+        [3 1 2] | sort 1
+        !| [type /actualType]
+        |  eq [::any/sort/key/HoldsNotMetError ::number]
+       )
+  ~~|
+  ~(at 0)
+
 :any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
       `sort`, `min` or `max`, or a place of a vector key, that ranks the
@@ -390,6 +483,10 @@
       ~("db_host" | take 2 | eq "db")
   ~~|
   ::verb~()
+
+:any/take/count
+  |~~ How many. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :any/TakeCountNotIntegerError
   |~~ The count of `take` must be a whole number — a fractional count
@@ -415,6 +512,10 @@
       ~("db_host" | drop 3 | eq "host")
   ~~|
   ::verb~()
+
+:any/drop/count
+  |~~ How many. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :any/DropCountNotIntegerError
   |~~ The count of `drop` must be a whole number — a fractional count
@@ -442,6 +543,14 @@
       ~({:a null} | at :a | at :b | eq null)
   ~~|
   ::verb~()
+
+:any/at/index
+  |~~ The index, a negative one counting from the end. ::holds~(isA ::number) ~~|
+  ~(/0)
+
+:any/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
 
 :any/AtIndexNotIntegerError
   |~~ The index of `at` on a vector or a set must be a whole number.
@@ -513,6 +622,23 @@
   ~~|
   ::verb~()
 
+:any/reduce/seed
+  |~~ The value the fold starts from. ~~|
+  ~(/0)
+
+:any/reduce/reducer
+  |~~ The code that folds an element into the value so far. ::holds~(isA ::quote)
+
+      The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
+      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | reduce 0 1
+        !| [type /actualType]
+        |  eq [::any/reduce/reducer/HoldsNotMetError ::number]
+       )
+  ~~|
+  ~(/1)
+
 :any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
       accumulator as its subject and the element in its first slot,
@@ -578,6 +704,10 @@
   ~~|
   ::verb~()
 
+:any/has/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
+
 :any/contains
   |~~ Whether the subject holds the value: a string a substring, a
       vector or a set an element equal to it, the membership `has` asks.
@@ -587,6 +717,10 @@
       ~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
   ~~|
   ::verb~()
+
+:any/contains/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
 
 :any/prepend
   |~~ The subject with the operand in front: a string takes a string as
@@ -984,7 +1118,7 @@
       ~(::vec/filter | source | parse | contains ":vec/filter")
       ~(::number/add/ResultNotFiniteError | source | parse | contains "ResultNotFiniteError")
       ~("text" | source | eq (::string | source))
-      ~(::vec/take | source :count | eq (::vec/take/count | source))
+      ~(::vec/take | source :count | eq (::any/take/count | source))
   ~~|
   ::builtin{}
 
@@ -1145,6 +1279,10 @@
       ~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
   ~~|
   ::verb~()
+
+:any/runLaws/anchor
+  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
+  ~(at 0)
 
 :any/RunLawsBindingNotFoundError
   |~~ `runLaws` found no declaration of the name it read, as `binding`

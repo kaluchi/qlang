@@ -31,10 +31,10 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(add)).toBe(true);
   });
 
-  it('spot-check — ::vec/filter takes its predicate as a part whose law asks for a quote [D166]', async () => {
+  it('spot-check — filter takes its predicate as a part of its contract whose law asks for a quote [D167]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::vec/filter | manifest')).toEqual(makeSet([makeTagKeyword('vec/filter/predicate')]));
-    expect(await evalQuery('::vec/filter/predicate | doc | content | contains "::holds~(isA ::quote)"')).toBe(true);
+    expect(await evalQuery('::any/filter | manifest')).toEqual(makeSet([makeTagKeyword('any/filter/predicate')]));
+    expect(await evalQuery('::any/filter/predicate | doc | content | contains "::holds~(isA ::quote)"')).toBe(true);
   });
 });
 

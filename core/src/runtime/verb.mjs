@@ -19,7 +19,7 @@
 
 import { bindPrim, readsState, readsPassedTags } from '../primitives.mjs';
 import { evalAst, mintTaggedInstance } from '../eval.mjs';
-import { addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf } from './nouns.mjs';
+import { addressesOf, bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, slotDocsOf, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
@@ -495,7 +495,7 @@ export function shownFor(env, name) {
   if (isVerb(value)) return { address: makeTagKeyword(addressOfVerb(value)), labels: slotLabelsOf(value) };
   if (!isMemberValue(value)) return undefined;
   const address = record.get('name').name;
-  const labels = [...namesUnderOf(env, address)].filter(([, part]) => isQuote(bindingValueOf(part))).map(([partName]) => partName);
+  const labels = partsOfName(env, address).map(([partName]) => partName);
   return { address: makeTagKeyword(address), labels };
 }
 

@@ -6,6 +6,6 @@
 {"name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
 {"name":"take-fractional-raises-not-integer","query":"[1 2 3] | take 0.5 !| type","expect":"::any/TakeCountNotIntegerError"}
 {"name":"drop-fractional-raises-not-integer","query":"[1 2 3] | drop 1.5 !| type","expect":"::any/DropCountNotIntegerError"}
-{"name":"take-string-raises-not-integer","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/HoldsNotMetError"}
+{"name":"take-string-raises-not-integer","query":"[1 2 3] | take \"x\" !| type","expect":"::any/take/count/HoldsNotMetError"}
 {"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}

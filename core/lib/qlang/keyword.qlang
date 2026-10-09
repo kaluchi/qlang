@@ -79,7 +79,3 @@
       ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runLaws * /ok | eq [true])
   ~~|
   ::builtin{}
-
-:keyword/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
-  ~(at 0)

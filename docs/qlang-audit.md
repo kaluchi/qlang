@@ -842,8 +842,10 @@ solved every task in two of its three blind runs and in its run with the
 command line, missing R10 in the third, where the screens of D153 and
 D156 missed R3 in each of theirs; on the set S, written after it, D166
 solved every task in two of its three blind runs and D156 in none of
-its three, missing S5 in each. `node scripts/benchmark.mjs grade R` and
-`grade S` hold the runs side by side. What those repairs left is what
+its three, missing S5 in each; the screen as the reviews of the branch
+left it, saved as D167, solved every task of both sets in each of its
+three blind runs. `node scripts/benchmark.mjs grade R` and `grade S`
+hold the runs side by side. What those repairs left is what
 the scars below describe.
 
 ## The scars

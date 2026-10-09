@@ -7,7 +7,7 @@ import { resumingItsTrail } from '../eval-trail.mjs';
 
 
 // The tag of the raised error is the one its value shows [D86]: the
-// outermost tag the walk of the head passed on its way to the map, the
+// outermost tag the walk of the subject passed on its way to the map, the
 // site's of an error `!|` opened among them, so `x !| raise` is `x` and
 // `!| tag ::Foo | raise` renames an error; then the one the map carries
 // on its header; then a `:kind` entry that names a tag, lifted off the

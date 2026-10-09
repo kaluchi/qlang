@@ -96,11 +96,12 @@
 
 :builtin/ImplementationNamesNoBuiltinError
   |~~ A host handed an implementation beside a source of the root for a
-      name the source declares neither as `::builtin{}` nor as a kind
-      ending in one; `:uri` names the source and `:name` the name. A
-      verb runs its steps, a `::builtin{}` among them a step, so a host
-      declares its primitive as a name under the label of its subject,
-      `:any/@fetch ::builtin{}`, the parts of its object names under it.
+      name the source declares neither as a `::builtin{}` under a label
+      nor as a kind ending in one; `:uri` names the source and `:name` the
+      name. A verb runs its steps, a `::builtin{}` among them a step, and
+      a bare name reads its value, so a host declares its primitive as a
+      name under the label of its subject, `:any/@fetch ::builtin{}`, the
+      parts of its object names under it.
       A `::builtin{}` the host hands nothing for is refused with
       `::builtin/ImplementationNotHandedError`.
   ~~|

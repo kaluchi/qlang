@@ -16,7 +16,6 @@
 {"name":"a-step-computed-where-the-tail-takes-any-value-answers-its-error","query":"{} | coalesce /a ~(1) !| type","expect":"::proj/KeyNotInMapError","decision":"D167"}
 {"name":"a-step-computed-where-a-part-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/ByZeroError","decision":"D167"}
 {"name":"a-step-computed-where-no-part-reads-answers-its-error","query":"[1 2] | at 0 5 (1 | div 0) !| type","expect":"::number/div/ByZeroError","decision":"D167"}
-{"name":"the-index-of-a-tail-read-by-drop-counts-from-its-start","query":":Box |~~ B ~~| | :Box/run ~(1) | :Box/run/lead ~(/0) | :Box/run/codes |~~ C ::holds~(every ~(isA ::quote)) ~~| ~(drop 1) | ::Box[1] | [(run 1 ~(1) /nope !| [type /index]) (run 1 ~(1) 5 !| [type /index /actualType])]","expect":"[[::Box/run/codes/HoldsNotMetError 2] [::Box/run/codes/HoldsNotMetError 2 ::number]]","decision":"D167"}
 {"name":"a-place-counted-from-the-end-is-read-as-code","query":":any/lastOf ~(x) | :any/lastOf/x ~(/-1) | [(5 | lastOf 1 2) (5 | lastOf !| type)]","expect":"[2 ::any/lastOf/x/NotGivenError]","decision":"D167"}
 {"name":"a-soft-place-counted-from-the-end-is-read-as-at-reads-it","query":":any/lastOf ~(x) | :any/lastOf/x ~(at -1) | [(5 | lastOf 1 2) (5 | lastOf)]","expect":"[2 null]","decision":"D167"}
 {"name":"a-path-from-a-place-counts-that-place","query":":Box |~~ B ~~| | :Box/put ~(k) | :Box/put/k ~(/0/k) | ::Box[1] | [(put {:k 2}) (put {:k 2} 3 !| type)]","expect":"[2 ::Box/put/ObjectBeyondPartsError]","decision":"D167"}
@@ -28,3 +27,11 @@
 {"name":"the-parts-several-kinds-share-are-declared-once-under-the-contract","query":"[(::any/take | manifest) (::vec/take | manifest) (::string/take | manifest)]","expect":"[#[::any/take/count] #[] #[]]","decision":"D167"}
 {"name":"a-part-of-the-contract-refuses-under-its-own-address","query":"[(\"ab\" | take \"x\" !| type) ([1] | take \"x\" !| type)]","expect":"[::any/take/count/HoldsNotMetError ::any/take/count/HoldsNotMetError]","decision":"D167"}
 {"name":"a-name-with-parts-of-its-own-reads-them-and-not-the-contract-s","query":"[({:a 1} | at :b 0) ({:a 1} | at 5 !| type)]","expect":"[0 ::map/at/key/HoldsNotMetError]","decision":"D167"}
+{"name":"a-part-whose-selector-calls-a-marked-name-is-refused-by-its-name","query":":any/f ~(1) | :any/f/n ~(/0 | @out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
+{"name":"a-part-of-a-marked-name-may-call-a-marked-name","query":":any/@f ~(1) | :any/@f/n ~(/0 | @out) | 5","expect":"5","decision":"D167"}
+{"name":"a-quote-under-a-label-reads-no-part-of-a-contract","query":":Box |~~ B ~~| | :Box/take ~([7 8 9] | count) | ::Box[1 2 3] | take","expect":"3","decision":"D167"}
+{"name":"a-primitive-reads-the-contract-at-each-place-it-reads-no-part-of-its-own","query":"[({:a 1} | at :b 0) (null | at 3 9) ({:a 1} | at 5 !| type)]","expect":"[0 9 ::map/at/key/HoldsNotMetError]","decision":"D167"}
+{"name":"a-part-that-reads-no-place-and-not-the-object-whole-is-no-tail","query":":any/runAll ~(steps | count) | :any/runAll/steps |~~ The steps. ::holds~(every ~(isA ::quote)) ~~| ~(/-1) | 5 | [(runAll /nope [~(1)] !| type) (runAll 7 [~(1)])]","expect":"[::proj/SubjectNotProjectableError 1]","decision":"D167"}
+{"name":"a-law-of-each-element-keeps-a-set-a-set","query":":Box |~~ B ~~| | :Box/kindOf ~(m | type) | :Box/kindOf/m |~~ M ::holds~(every ~(isA ::number)) ~~| ~(/0) | ::Box[1] | [(kindOf #[1 2]) (kindOf [1 2])]","expect":"[::set ::vec]","decision":"D167"}
+{"name":"an-element-of-a-value-is-counted-from-zero","query":":Box |~~ B ~~| | :Box/m ~(xs) | :Box/m/xs |~~ X ::holds~(every ~(isA ::number)) ~~| ~(/0) | ::Box[1] | m [1 \"a\"] !| [type /index]","expect":"[::Box/m/xs/HoldsNotMetError 1]","decision":"D167"}
+{"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] * (tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]","decision":"D167"}

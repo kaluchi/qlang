@@ -14,6 +14,7 @@ import {
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
+import { astOfQuote } from '../quote.mjs';
 import { isContract } from './verb.mjs';
 
 const ANY_KIND_NAME = 'any';
@@ -47,7 +48,20 @@ export function nodeOf(env, tagName) {
 function residesOn(record, kindName, env) {
   const value = bindingValueOf(record);
   if (isVerb(value)) return residenceOfVerb(value) === kindName;
-  return isMemberValue(value) && isLabelValue(bindingValueOf(nodeOf(env, kindName)));
+  return isMemberValue(value) && isLabel(env, kindName);
+}
+
+// Whether a node is a label, a name declared by its page or over a spec
+// [D166].
+export function isLabel(env, name) {
+  return isLabelValue(bindingValueOf(nodeOf(env, name)));
+}
+
+// Whether a name stands under a label, where a quote or a host's
+// primitive runs on the label's values [D164].
+export function isUnderLabel(env, name) {
+  const [labelName] = splitAddress(name);
+  return labelName !== null && isLabel(env, labelName);
 }
 
 // A value a name under a label holds when it runs on the label's values.
@@ -199,22 +213,45 @@ export function verbsReaching(env, kindNames) {
 }
 
 // partsOfName(env, address) → the parts of the object of a call of the
-// name at the address, by their names: the quotes declared under it, in
-// their order, or, for a name that declares none, those the contract of
-// its word declares once on `::any` [D167].
+// name at the address, by their names, in the order of their places: the
+// quotes declared under it, and, for a host's primitive, at each place it
+// reads no part of its own, the part the contract of its word declares
+// once on `::any` [D167]; a quote's parts are its own alone, bound by
+// their names in its body.
 export function partsOfName(env, address) {
   const own = quotesUnder(env, address);
-  if (own.length > 0) return own;
   const contract = nodeOf(env, `${ANY_KIND_NAME}/${splitAddress(address)[1]}`);
-  return contract !== null && isContractValue(bindingValueOf(contract)) ? quotesUnder(env, contract.get('name').name) : own;
+  if (isQuote(bindingValueOf(nodeOf(env, address))) || contract === null || !isContractValue(bindingValueOf(contract))) return own;
+  const ownPlaces = new Set(own.map(([, record]) => placeOfPart(record)));
+  const shared = quotesUnder(env, contract.get('name').name)
+    .filter(([partName, record]) => !own.some(([ownName]) => ownName === partName) && !ownPlaces.has(placeOfPart(record)));
+  return [...own, ...shared].sort(([, a], [, b]) => orderOfPlace(placeOfPart(a)) - orderOfPlace(placeOfPart(b)));
 }
+
+const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
 
 function quotesUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isQuote(bindingValueOf(record)));
 }
 
+// The place a part's selector reads.
+function placeOfPart(record) {
+  return placeReadBy(astOfQuote(bindingValueOf(record)));
+}
+
+// placeReadBy(ast) → the place a selector's first step reads, by a
+// projection or by `at`, a whole number, or none for a part that reads
+// the object whole, a place counted from its end or anything else.
+export function placeReadBy(ast) {
+  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
+  const place = head.type === 'Projection' ? Number(head.keys[0])
+    : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
+    : NaN;
+  return Number.isInteger(place) && place >= 0 ? place : NaN;
+}
+
 // The nodes declared one name under a noun, by their last names.
-export function namesUnderOf(env, nounName) {
+function namesUnderOf(env, nounName) {
   const root = rootOf(env);
   const under = new Map();
   for (const [lastName, record] of rootIndexOf(root).get(nounName) ?? []) under.set(lastName, record);

@@ -1,11 +1,12 @@
-// Container primitives, each a plain function over the value the head of
-// its verb checked [D72]. The verbs reside on `::vec`, `::set` and `::map`
+// Container primitives, each a plain function over the value the walk
+// served and the parts of the call's object [D167]. The names reside on
+// `::vec`, `::set` and `::map`
 // (lib/qlang/vec.qlang, set.qlang, map.qlang) under the contracts on
 // `::any`, which refuse a subject no residence serves. A set is the
 // vector in the one order [D16] and a map's elements are its values
 // [D15], so one primitive serves the kinds that read alike and branches on
-// the map where it keeps keys; a slot of code arrives closed at the call,
-// a lambda over the element [D73].
+// the map where it keeps keys; a part that takes code arrives closed at
+// the call, a lambda over the element [D73], [D167].
 
 import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
 
@@ -16,8 +17,8 @@ import { declareShapeError, declareNumericDomainError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 
-// A condition answers a boolean or fails at its slot [D14]; the refusal
-// names the element whose condition answered another kind.
+// A condition answers a boolean or fails [D14]; the refusal names the
+// element whose condition answered another kind.
 const conditionRefusal = operand => ({ index, actualType }) =>
   `${operand} takes a boolean from its condition, element ${index} answered ${actualType.name}`;
 const AnyFilterConditionNotBooleanError = declareShapeError('any/FilterConditionNotBooleanError',
@@ -62,7 +63,7 @@ const AnySumResultNotFiniteError = declareNumericDomainError('any/SumResultNotFi
 );
 
 const AnyReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
-  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a verb whose first slot takes the element',
+  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a name whose first part takes the element',
   { operand: 'reduce' }
 );
 
@@ -160,8 +161,8 @@ bindPrim(['vec/min', 'set/min', 'map/min'], (container, key) => extremeOf(contai
 bindPrim(['vec/max', 'set/max', 'map/max'], (container, key) => extremeOf(container, key, order => order > 0));
 
 // `filter` keeps the entries of a map whose values pass, and the
-// elements of a sequence that do; the head reads the answer back as the
-// subject's own kind, a set through its constructor.
+// elements of a sequence that do; the page's `::keeps~()` reads the
+// answer back as the subject's own kind, a set through its constructor.
 bindPrim(['vec/filter', 'set/filter', 'map/filter'], async (container, predicate) => {
   const kept = [];
   for (const [index, entry] of [...(isQMap(container) ? container : container.entries())].entries()) {
@@ -280,15 +281,15 @@ bindPrim(['vec/distinct', 'set/distinct'], sequence => (isQSet(sequence) ? seque
 bindPrim(['vec/reverse', 'set/reverse', 'map/reverse'], container => (isQMap(container) ? new Map([...container].reverse()) : [...container].reverse()));
 
 // `flat` lifts one level of nesting: the inner sequences splice in
-// order, and the head mints a set's answer as a set again, so a set of
-// sets flattens into their union.
+// order, and the page's `::keeps~()` mints a set's answer as a set
+// again, so a set of sets flattens into their union.
 bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
 
 // `reduce seed ~(reducer)` — the universal left-fold: the reducer is
-// applied as `reducer(acc, element)`, a verb of two places through its bound
-// form (`acc | add element`) and a verb with the element in its first
-// slot [D67]; `seed` answers for an empty subject, and a reducer error
-// stops the fold.
+// applied as `reducer(acc, element)`, a name of two places through its
+// bound form (`acc | add element`), the element the first part of its
+// object [D67], [D167]; `seed` answers for an empty subject, and a
+// reducer error stops the fold.
 bindPrim(['vec/reduce', 'set/reduce', 'map/reduce'], async (container, seed, reducer) => {
   const combine = resolveBinaryReducer(reducer);
   if (combine === null) throw new AnyReduceReducerNotBinaryError();

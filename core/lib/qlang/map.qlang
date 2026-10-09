@@ -177,10 +177,6 @@
   ~~|
   ~(/0)
 
-:map/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
-
 :map/reverse
   |~~ The entries in the reverse order, their keys kept. ::keeps~()
 

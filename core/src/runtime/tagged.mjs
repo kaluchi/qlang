@@ -122,7 +122,7 @@ bindPrim('builtin', builtinConstructor);
 const AnyTagPairTagNotTagError = declareShapeError('any/tag/PairTagNotTagError',
   ({ actualType }) => `tag reads a pair [::Tag value] whose first element is a tag name, got ::${actualType.name}`,
   { operand: 'tag', expectedType: 'tagKeyword' });
-const AnyTagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
+const AnyTagSubjectNotPairError = declareShapeError('any/tag/SubjectNotPairError',
   ({ actualType, actualLength }) =>
     actualLength === undefined
       ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`

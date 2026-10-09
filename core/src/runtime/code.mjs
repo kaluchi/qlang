@@ -23,7 +23,7 @@ bindPrim(['string/parse', 'quote/parse'], subject => {
 bindPrim('any/apply', async (subject, code) => await code(subject));
 
 // A quote opens to the answer of its query, run in the scope of the
-// reader that opens it; its slot of subject hands the quote beneath the
-// tags of a link or a snippet, so a page names what its reader's scope
-// holds [D111], [D122].
+// reader that opens it; the walk of its subject hands the quote beneath
+// the tags of a link or a snippet, so a page names what its reader's
+// scope holds [D111], [D122].
 bindStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));

@@ -1,6 +1,6 @@
 // The algebra of containers: union, minus, inter, each a plain function
-// over the values the head of its verb checked [D72]. The verbs reside
-// on `::set` and `::map`, the other operand in their slot, and on
+// over the subject and the parts of its object [D167]. The names reside
+// on `::set` and `::map`, the other operand their part `with`, and on
 // `::vec`, where the subject is the vector of operands the primitive
 // folds; one primitive serves the three by the arguments it takes. A
 // pair of kinds apart can meet only inside the fold, whose refusal names

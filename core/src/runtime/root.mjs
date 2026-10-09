@@ -12,14 +12,14 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isLabelValue, isSpec, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isSpec, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import {
   declareInvariantError, declareShapeError
 } from '../errors.mjs';
 import { endsInBuiltin } from './verb.mjs';
-import { splitAddress } from './nouns.mjs';
+import { isUnderLabel } from './nouns.mjs';
 import { BuiltinImplementationNotHandedError } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
@@ -31,20 +31,14 @@ export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/
   { operand: '::builtin' });
 
 // An implementation a host hands for a name its source declares neither
-// as `::builtin{}` nor as a kind ending in one has nothing to run under:
-// a verb runs its steps, a `::builtin{}` among them a step [D73], [D167].
+// as a `::builtin{}` under a label nor as a kind ending in one has nothing
+// to run under: a verb runs its steps, a `::builtin{}` among them a step,
+// and a bare name reads its value [D73], [D167].
 export const BuiltinImplementationNamesNoBuiltinError = declareShapeError('builtin/ImplementationNamesNoBuiltinError',
-  ({ uri, name }) => `qlang root: the source ${uri} hands an implementation for ${name.literal}, which it declares neither as ::builtin{} nor as a kind ending in one; a primitive is a name under the label of its subject, :any/@x ::builtin{}`,
+  ({ uri, name }) => `qlang root: the source ${uri} hands an implementation for ${name.literal}, which it declares neither as a ::builtin{} under a label nor as a kind ending in one; a primitive is a name under the label of its subject, :any/@x ::builtin{}`,
   { operand: '::builtin' });
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
-
-// Whether a name stands under a label, the one place a `::builtin{}` runs
-// as a name [D164].
-function isUnderLabel(name, declared, root) {
-  const [nounName] = splitAddress(name);
-  return nounName !== null && isLabelValue(bindingValueOf(declared.get(nounName) ?? root.get(nounName)));
-}
 
 
 // declareRoot(env, sources) → the env whose root holds what each source
@@ -67,7 +61,7 @@ export async function declareRoot(env, sources) {
     }
     for (const implName of Object.keys(impls)) {
       const value = bindingValueOf(declared.get(implName));
-      if (!endsInBuiltin(value) || (isBuiltinDescriptor(value) && !isUnderLabel(implName, declared, root))) {
+      if (!endsInBuiltin(value) || (isBuiltinDescriptor(value) && !isUnderLabel(answered.env, implName))) {
         throw new BuiltinImplementationNamesNoBuiltinError({ uri, name: keyword(implName) });
       }
     }

@@ -22,7 +22,7 @@ import { classifyEffect } from './effect.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isErrorValue, isQuote, isDoc, isLabelValue, hostImplOf,
+  isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, isLabelValue, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
@@ -34,7 +34,7 @@ import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astO
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf, splitAddress, vocabularyWords
+  addressesOf, bareNameReach, isLabel, isMemberValue, isUnderLabel, nodeOf, partsOfName, placeReadBy, residencesOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
   applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
@@ -388,14 +388,16 @@ async function constructedBy(construct, payload, state) {
 
 // The refusal of the first law under `::holds` of a record's page the
 // value does not answer true to, named under the address, or the error a
-// law answered, handed on as it is; null when every law holds.
-async function refusalOfLaws(record, value, state, scope, tagName) {
+// law answered, handed on as it is; null when every law holds. The index
+// of an element counts from `indexBase`: zero for the elements of a
+// value, one for the tail of a call's modifiers [D77].
+async function refusalOfLaws(record, value, state, scope, tagName, indexBase = 0) {
   for (const { law, kinds, elementKinds } of pageOf(record).laws) {
     const elements = elementKinds === null ? null : walkToKinds(value, ['vec']);
     if (elements !== null) {
       const refused = refusedElementOf(elements.served, elementKinds);
       if (refused === null) continue;
-      return refusalUnder(tagName, { holds: law, index: refused.index, actualValue: refused.element });
+      return refusalUnder(tagName, { holds: law, index: refused.index + indexBase, actualValue: refused.element });
     }
     const answer = kinds !== null
       ? walkToKinds(value, kinds) !== null
@@ -498,8 +500,10 @@ async function evalBindStep(node, state) {
     throw new BindNameTakenByVocabularyError({ name: partName, addresses: addressesOf(state.env, partName) });
   }
   if (isVerb(answered)) refuseLaunderedByName(name, effectfulNameOfVerb(answered), node);
-  else if (isQuote(answered) && nounName !== null && isLabelValue(bindingValueOf(nodeOf(state.env, nounName)))) {
+  else if (isQuote(answered) && nounName !== null && isLabel(state.env, nounName)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
+  } else if (isQuote(answered) && nounName !== null && isMemberValue(bindingValueOf(nodeOf(state.env, nounName))) && isUnderLabel(state.env, nounName)) {
+    refuseLaunderedByName(nounName, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   }
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
@@ -521,7 +525,7 @@ async function evalBindStep(node, state) {
 // subject of its own [D72], [D153]; one under a noun that is no kind
 // serves any value.
 function declareVerbFirst(verb, name, nounName, env) {
-  const underKind = nounName !== null && isLabelValue(bindingValueOf(nodeOf(env, nounName)));
+  const underKind = nounName !== null && isLabel(env, nounName);
   if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
   declareVerbAt(verb, name, underKind ? nounName : null);
 }
@@ -530,12 +534,13 @@ function declareVerbFirst(verb, name, nounName, env) {
 // in its body, so a part takes no word of the vocabulary, as a bare name
 // does not [D166].
 function isQuoteUnderLabel(env, nounName) {
-  const [labelName] = splitAddress(nounName);
-  return labelName !== null && isQuote(bindingValueOf(nodeOf(env, nounName))) && isLabelValue(bindingValueOf(nodeOf(env, labelName)));
+  return isQuote(bindingValueOf(nodeOf(env, nounName))) && isUnderLabel(env, nounName);
 }
 
 // A name without the effect marker refuses a verb, or a quote under a
-// label, whose body calls one, as it refuses such a body of its own.
+// label, whose body calls one, as it refuses such a body of its own; a
+// part whose selector calls one is refused by the name it is a part of,
+// which runs it at each call [D167].
 function refuseLaunderedByName(name, effectfulName, node) {
   if (effectfulName === null || classifyEffect(name)) return;
   const laundering = new BindEffectMarkMissingError({ bindingName: name, effectfulName });
@@ -666,7 +671,7 @@ async function callByAddress(node, state) {
     throw new CallUnknownAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   const lambdas = node.args.map(argNode => makeLambda(argNode, state));
-  if (isMemberValue(bindingValueOf(record)) && isLabelValue(bindingValueOf(nodeOf(state.env, splitAddress(node.name)[0])))) {
+  if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
     return await applyMember(record, lambdas, state);
   }
   return await applyBinding(record, splitAddress(node.name)[1], lambdas, state);
@@ -747,21 +752,10 @@ function selectorOf(partRecord) {
   if (selector === undefined) {
     const ast = astOfQuote(bindingValueOf(partRecord));
     const place = placeReadBy(ast);
-    selector = { ast, place, onePlace: readsOnePlace(ast, place), restFrom: Number.isInteger(place) ? null : restStartOf(ast) };
+    selector = { ast, place, onePlace: readsOnePlace(ast, place), tail: ast.type === 'Projection' && ast.keys.length === 0 };
     SELECTORS.set(partRecord, selector);
   }
   return selector;
-}
-
-// The place a selector's first step reads, by a projection or by `at`, a
-// whole number, or none for a part that reads the object whole, its tail
-// or a place counted from its end.
-function placeReadBy(ast) {
-  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  const place = head.type === 'Projection' ? Number(head.keys[0])
-    : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
-    : NaN;
-  return Number.isInteger(place) && place >= 0 ? place : NaN;
 }
 
 // Whether a selector is one step that reads one place, `/n` or `at n`
@@ -769,12 +763,6 @@ function placeReadBy(ast) {
 function readsOnePlace(ast, place) {
   if (!Number.isInteger(place) || ast.type === 'Pipeline') return false;
   return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;
-}
-
-// Where the tail a part reads begins: `drop n` from the n-th place, and
-// the object whole or any other selector from the first.
-function restStartOf(ast) {
-  return ast.type === 'OperandCall' && ast.name === 'drop' && ast.args[0]?.type === 'NumberLit' ? ast.args[0].value : 0;
 }
 
 // The object of a call, the values of its modifiers each computed against
@@ -804,12 +792,11 @@ async function objectOf(address, parts, lambdas, state, scope) {
     const part = await partOf(selector, values, nestState(state, object, scope));
     if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object });
     if (isErrorValue(part)) return part;
-    const refused = await refusalOfLaws(partRecord, part, state, scope, `${partAddress}/HoldsNotMetError`);
+    const refused = await refusalOfLaws(partRecord, part, state, scope, `${partAddress}/HoldsNotMetError`, selector.tail ? 1 : 0);
     if (refused !== null) return refused;
     const handed = servedByLaw(kindLawOf(partRecord), part);
-    const rest = selector.restFrom !== null;
     partValues.push(handed);
-    taken.push({ name: partName, rest, code: rest || (lawKindsOf(partRecord)?.includes('quote') ?? false) });
+    taken.push({ name: partName, tail: selector.tail, code: selector.tail || (lawKindsOf(partRecord)?.includes('quote') ?? false) });
     bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
   return { values: partValues, taken, bodyEnv };
@@ -823,14 +810,14 @@ async function objectOf(address, parts, lambdas, state, scope) {
 // anywhere else the error is the answer [D67], [D77], [D167].
 function refusalOfComputedCode(parts, place, error) {
   const reading = parts.find(([, partRecord]) => selectorOf(partRecord).place === place)
-    ?? parts.find(([, partRecord]) => selectorOf(partRecord).restFrom !== null && selectorOf(partRecord).restFrom <= place);
+    ?? parts.find(([, partRecord]) => selectorOf(partRecord).tail);
   if (reading === undefined) return error;
   const [, partRecord] = reading;
   const law = kindLawOf(partRecord);
-  const { restFrom } = selectorOf(partRecord);
-  const asked = law === undefined ? null : restFrom === null ? law.kinds : law.elementKinds;
+  const { tail } = selectorOf(partRecord);
+  const asked = law === undefined ? null : tail ? law.elementKinds : law.kinds;
   if (asked === null || !asked.includes('quote')) return error;
-  const facts = restFrom === null ? { holds: law.law, actualValue: error } : { holds: law.law, index: place - restFrom + 1, actualValue: error };
+  const facts = tail ? { holds: law.law, index: place + 1, actualValue: error } : { holds: law.law, actualValue: error };
   return refusalUnder(`${partRecord.get('name').name}/HoldsNotMetError`, facts);
 }
 
@@ -856,7 +843,8 @@ function servedByLaw(law, part) {
   if (law === undefined) return part;
   if (law.kinds !== null) return walkToKinds(part, law.kinds).served;
   const elements = walkToKinds(part, ['vec']);
-  return elements === null ? part : Object.freeze(Array.from(elements.served, element => walkToKinds(element, law.elementKinds).served));
+  if (elements === null || isQSet(part) || isQuote(part) || isDoc(part)) return part;
+  return Object.freeze(Array.from(elements.served, element => walkToKinds(element, law.elementKinds).served));
 }
 
 // The kinds the first law `isA` of a part's page asks for, or null: the
@@ -885,10 +873,10 @@ function elementKindsAskedBy(ast) {
 }
 
 // The first element the walk of whose tags reaches none of the kinds,
-// with its index from one, or null when every one does.
+// with its index from zero, or null when every one does.
 function refusedElementOf(elements, kinds) {
   const index = elements.findIndex(element => walkToKinds(element, kinds) === null);
-  return index === -1 ? null : { index: index + 1, element: elements[index] };
+  return index === -1 ? null : { index, element: elements[index] };
 }
 
 // A strict read of a place the object does not hold.
@@ -899,14 +887,14 @@ function isMissedPlace(error) {
 // A primitive runs over the value the walk served and the values of the
 // parts, a quote closed at the call into code [D4] where the part takes
 // code, each element so for the tail [D167].
-async function runHostMember(member, walked, read, state) {
-  const handed = read.values.map((value, index) => {
-    const { name, rest, code } = read.taken[index];
+async function runHostMember(member, walked, objectParts, state) {
+  const handed = objectParts.values.map((value, index) => {
+    const { name, tail, code } = objectParts.taken[index];
     const takenBy = element => (!code ? element
       : isQuote(element) ? codeOf(element, state)
       : isVerb(element) ? codeOf(quoteOfVerb(element, name, state), state)
       : element);
-    const served = rest ? walkToKinds(value, ['vec'])?.served : undefined;
+    const served = tail ? walkToKinds(value, ['vec'])?.served : undefined;
     return isVec(served) ? served.map(takenBy) : takenBy(value);
   });
   return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);

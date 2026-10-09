@@ -129,4 +129,20 @@ describe('a host\'s primitive under a label', () => {
     expect((await session.evalCell('[1 2] | at /nope ("ran" | @note) !| type')).result).toEqual(makeTagKeyword('proj/IndexNotIntegerError'));
     expect(noted).toBe(0);
   });
+
+  it('reads the parts of the contract at each place a primitive reads none of its own, in the order of their places [D167]', async () => {
+    const session = await createSession({
+      sources: [{
+        uri: 'probe/zap',
+        source: lines(
+          ':any/zap ::verb~()',
+          ':any/zap/rest |~~ The rest. ~~| ~(/)',
+          ':vec/zap ::builtin{}',
+          ':vec/zap/lead |~~ The lead. ~~| ~(/0)'
+        ),
+        impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
+      }]
+    });
+    expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 3]);
+  });
 });

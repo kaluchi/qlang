@@ -17,8 +17,8 @@ pipelines. Domain-agnostic. Pure. Composable.
 The language documents itself: every name has a page, a doc whose
 laws run. `::qlang | doc` opens the first page, `env | keys` lists the
 names in scope, the kinds among them, `::vec | manifest` the names
-declared under one, `::vec/sort | manifest` the parts of the object of a
-call, and `::vec/sort | doc` the page of a name. The command line, `@kaluchi/qlang-cli`, runs a query from the
+declared under one, `::any/sort | manifest` the parts every `sort`
+shares, and `::vec/sort | doc` the page of a name. The command line, `@kaluchi/qlang-cli`, runs a query from the
 shell.
 
 ## Embedding

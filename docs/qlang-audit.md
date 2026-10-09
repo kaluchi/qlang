@@ -1106,8 +1106,8 @@ them and whose document is the site's procedure; the throw site passes
 the facts, and the tag's constructor checks them. A refusal is declared
 under the noun of its place, where `manifest` lists it [D152], [D153], and
 a verb lists the refusals that guard it [D46]. A name under a label
-lists what its primitive raises and the parts of its object, and the
-refusals of its places are named by their addresses with no declaration
+lists what its primitive raises and the parts it declares, the contract
+of its word the parts its kinds share, and the refusals of its places are named by their addresses with no declaration
 of their own, a part's under the part, whose page is its procedure, so
 no registry finds the refusal of a place [D167]:
 
@@ -1951,7 +1951,7 @@ and the suite and the laws of the catalog write them:
 
 ```
 $ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-370
+371
 ```
 
 One way writes every one as a name under the label of its subject or

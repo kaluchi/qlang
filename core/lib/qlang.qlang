@@ -133,10 +133,11 @@
   ~~|
 
 :builtin
-  |~~ The descriptor, a map of fields under this tag. A name a host
-      declares under a label is an empty one, `::builtin{}`, and a kind a
-      host declares ends with one: it runs the implementation the host
-      handed for its name, `::number/add` and `::vec` the language's own.
+  |~~ The descriptor, a map of fields under this tag. A host's primitive
+      is a name under a label whose value is an empty one, `::builtin{}`,
+      and a kind a host declares ends with one: it runs the implementation
+      the host handed for its name, `::number/add` and `::vec` the
+      language's own, while a name written in steps is a quote.
       A descriptor is data and runs nothing by itself: a bare name bound
       to one reads it, and in a verb it is a step.
 
@@ -385,8 +386,9 @@
   |~~ The signature of a reader's verb, its leading declarations as a
       quote under this tag with its subject filled, which `spec` answers
       for a verb: what a verb takes and answers is known before it is
-      called. A name under a label shows the parts of its object by
-      `manifest` instead.
+      called. A name under a label has no signature: `manifest` lists
+      the parts it declares, and that of the contract of its word the
+      parts its kinds share.
       ::snippet~(:m ::verb~(:x ::number | add x) | :m | spec) shows one.
       ::link~(::qlang/verbs | doc)
 
@@ -815,10 +817,12 @@
       ~([3 1 2] | sort | eq [1 2 3])
       ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
       A name declares the parts of its object as names under it, and a
-      word several kinds answer declares them once, under its contract on
-      `::any`; `manifest` answers them before a call:
-      ~(::map/at | manifest | eq #[::map/at/default ::map/at/key])
-      ~(::any/sort | manifest | eq #[::any/sort/key])
+      word several kinds answer declares once, under its contract on
+      `::any`, the parts its kinds share, which a kind's primitive reads at
+      each place it reads no part of its own; `manifest` answers them
+      before a call:
+      ~(::map/at | manifest | eq #[::map/at/key])
+      ~(::any/at | manifest | eq #[::any/at/default ::any/at/index])
       A reader's name under a noun takes the parts of its object after
       it, each a name under the call's address:
       ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(isA ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)

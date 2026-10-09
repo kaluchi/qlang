@@ -121,8 +121,9 @@ vector its arguments land in, which the maintainer read at once:
 метода + массив куда аргументы скидываются - и тем же способом мы можем
 давать им внятные имена и доку». A step of a quote holds the same call
 unrun, `~(put 10) | payload` the record `::call{:name :put :args
-[~(10)]}`, its arguments as code; the object holds them computed against
-the subject, the intent applied. So a trail can carry what came in, not
+[10]}`, an argument that computes held as its code, `~(put (weight |
+add 1))` the group of its steps; the object holds every argument
+computed against the subject, the intent applied. So a trail can carry what came in, not
 only the step, and an effect has its literal: `::Pipe/@retry[:integration]`
 is the write D2 asks a tag to describe and an explicit step at the host
 boundary to perform, the form the open question of effects as emitted

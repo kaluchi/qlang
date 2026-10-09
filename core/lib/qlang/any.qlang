@@ -1457,8 +1457,9 @@
       set is a vector, a map under a tag is a map. A part of an object
       whose law asks `isA` is handed to its name as the value of the kind
       the walk reached, and one whose law asks `every ~(isA …)` as the
-      vector of each element's, an element the walk refuses named by its
-      index. ::call~(isA ::number)
+      vector, or the set, of each element's, a quote and a doc as they
+      are, an element the walk refuses named by its index from zero.
+      ::call~(isA ::number)
 
       ~(5 | isA ::number | eq true)
       ~(::Width(5) | isA ::number | eq true)
@@ -1472,6 +1473,6 @@
   |~~ The kinds, each a tag name; of none, no value is one.
       ::holds~(every ~(isA ::tag))
 
-      ~(5 | isA :number !| [type /index /actualType] | eq [::any/isA/kinds/HoldsNotMetError 1 ::keyword])
+      ~(5 | isA :number !| [type /index /actualType] | eq [::any/isA/kinds/HoldsNotMetError 0 ::keyword])
   ~~|
   ~(/)

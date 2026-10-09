@@ -31,7 +31,10 @@
 :bind/EffectMarkMissingError
   |~~ A verb whose body calls a name marked `@` reaches outside the
       language, and its own name carries the mark, `:@fetchAll
-      ::verb~(@fetch …)`, so every reader of the name sees it.
+      ::verb~(@fetch …)`, so every reader of the name sees it. A quote
+      declared under a label is held to the mark alike, and a part whose
+      selector calls a marked name is held to the mark of the name it is a
+      part of, which runs it at each call, `:bindingName` that name.
       ::link~(::bind | doc)
 
       ~(
@@ -39,6 +42,11 @@
         !| [type /bindingName /effectfulName]
         |  eq [::bind/EffectMarkMissingError
                 :bad :@callers]
+       )
+      ~(
+        :any/f ~(1) | :any/f/n ~(/0 | @out)
+        !| [type /bindingName /effectfulName]
+        |  eq [::bind/EffectMarkMissingError :any/f :@out]
        )
   ~~|
   ::spec~()

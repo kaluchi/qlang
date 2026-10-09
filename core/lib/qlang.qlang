@@ -386,9 +386,9 @@
   |~~ The signature of a reader's verb, its leading declarations as a
       quote under this tag with its subject filled, which `spec` answers
       for a verb: what a verb takes and answers is known before it is
-      called. A name under a label has no signature: `manifest` lists
-      the parts it declares, and that of the contract of its word the
-      parts its kinds share.
+      called. `spec` of a name under a label answers its value, a quote
+      or a `::builtin{}`, and `manifest` the parts it declares, that of
+      the contract of its word the parts its kinds share.
       ::snippet~(:m ::verb~(:x ::number | add x) | :m | spec) shows one.
       ::link~(::qlang/verbs | doc)
 

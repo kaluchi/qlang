@@ -41,16 +41,6 @@ export function nodeOf(env, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
-// Whether a record holds a verb residing on a kind, or a name declared
-// under a label that runs on its values, a quote or the descriptor of a
-// primitive [D164]; a name under such a name is a part of its object and
-// resides nowhere.
-function residesOn(record, kindName, env) {
-  const value = bindingValueOf(record);
-  if (isVerb(value)) return residenceOfVerb(value) === kindName;
-  return isMemberValue(value) && isLabel(env, kindName);
-}
-
 // Whether a node is a label, a name declared by its page or over a spec
 // [D166].
 export function isLabel(env, name) {
@@ -62,6 +52,16 @@ export function isLabel(env, name) {
 export function isUnderLabel(env, name) {
   const [labelName] = splitAddress(name);
   return labelName !== null && isLabel(env, labelName);
+}
+
+// Whether a record holds a verb residing on a kind, or a name declared
+// under a label that runs on its values, a quote or the descriptor of a
+// primitive [D164]; a name under such a name is a part of its object and
+// resides nowhere.
+function residesOn(record, kindName, env) {
+  const value = bindingValueOf(record);
+  if (isVerb(value)) return residenceOfVerb(value) === kindName;
+  return isMemberValue(value) && isLabel(env, kindName);
 }
 
 // A value a name under a label holds when it runs on the label's values.
@@ -221,11 +221,17 @@ export function verbsReaching(env, kindNames) {
 export function partsOfName(env, address) {
   const own = quotesUnder(env, address);
   const contract = nodeOf(env, `${ANY_KIND_NAME}/${splitAddress(address)[1]}`);
-  if (isQuote(bindingValueOf(nodeOf(env, address))) || contract === null || !isContractValue(bindingValueOf(contract))) return own;
-  const ownPlaces = new Set(own.map(([, record]) => placeOfPart(record)));
-  const shared = quotesUnder(env, contract.get('name').name)
-    .filter(([partName, record]) => !own.some(([ownName]) => ownName === partName) && !ownPlaces.has(placeOfPart(record)));
-  return [...own, ...shared].sort(([, a], [, b]) => orderOfPlace(placeOfPart(a)) - orderOfPlace(placeOfPart(b)));
+  const reads = isQuote(bindingValueOf(nodeOf(env, address))) || contract === null || !isContractValue(bindingValueOf(contract))
+    ? own
+    : [...own, ...sharedParts(own, quotesUnder(env, contract.get('name').name))];
+  return reads.sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
+}
+
+// The parts of a contract a primitive reads: those of a name it does not
+// declare, at a place none of its own parts reads.
+function sharedParts(own, contractParts) {
+  const ownPlaces = new Set(own.map(([, record]) => selectorOf(record).place).filter(Number.isInteger));
+  return contractParts.filter(([partName, record]) => !own.some(([ownName]) => ownName === partName) && !ownPlaces.has(selectorOf(record).place));
 }
 
 const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
@@ -234,20 +240,38 @@ function quotesUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isQuote(bindingValueOf(record)));
 }
 
-// The place a part's selector reads.
-function placeOfPart(record) {
-  return placeReadBy(astOfQuote(bindingValueOf(record)));
+// selectorOf(partRecord) → what a part's selector reads, once per part:
+// its tree, the place its first step reads, whether the selector is that
+// one step, and whether it reads the object whole, `~(/)`.
+const SELECTORS = new WeakMap();
+
+export function selectorOf(partRecord) {
+  let selector = SELECTORS.get(partRecord);
+  if (selector === undefined) {
+    const ast = astOfQuote(bindingValueOf(partRecord));
+    const place = placeReadBy(ast);
+    selector = { ast, place, onePlace: readsOnePlace(ast, place), readsObject: ast.type === 'Projection' && ast.keys.length === 0 };
+    SELECTORS.set(partRecord, selector);
+  }
+  return selector;
 }
 
-// placeReadBy(ast) → the place a selector's first step reads, by a
-// projection or by `at`, a whole number, or none for a part that reads
-// the object whole, a place counted from its end or anything else.
-export function placeReadBy(ast) {
+// The place a selector's first step reads, by a projection or by `at`, a
+// whole number, or none for a selector that reads the object whole, a
+// place counted from its end or anything else.
+function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
   const place = head.type === 'Projection' ? Number(head.keys[0])
     : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
     : NaN;
   return Number.isInteger(place) && place >= 0 ? place : NaN;
+}
+
+// Whether a selector is one step that reads one place, `/n` or `at n`
+// with a default or none.
+function readsOnePlace(ast, place) {
+  if (!Number.isInteger(place) || ast.type === 'Pipeline') return false;
+  return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;
 }
 
 // The nodes declared one name under a noun, by their last names.

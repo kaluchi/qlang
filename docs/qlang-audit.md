@@ -1953,7 +1953,7 @@ and the suite and the laws of the catalog write them:
 
 ```
 $ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-371
+372
 ```
 
 One way writes every one as a name under the label of its subject or

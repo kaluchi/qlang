@@ -165,7 +165,8 @@ function memberRecordOf(env, subject, memberName) {
 }
 
 // What the refusal of a member holds: the address the name would have
-// on a noun, or the name alone, and where the verbs of that name live.
+// under a noun or a name that reads parts, or the name alone, and where
+// the verbs of that name live.
 function memberRefusalOf(env, subject, memberName) {
   const onNoun = isTagKeyword(subject) && (isNoun(env, subject.name) || partsOfName(env, subject.name).length > 0);
   return {

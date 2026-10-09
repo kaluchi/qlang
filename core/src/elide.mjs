@@ -12,7 +12,7 @@
 //     error among them, whose facts give way beneath `!|`
 
 import {
-  isVec, isQMap, isQuote, isQSet, isDoc, isErrorValue, isValueClass,
+  isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
   makeTaggedInstance, makeTagKeyword, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from './types.mjs';
@@ -34,7 +34,7 @@ function isMarker(value) {
 // vector or a map under a tag keeps its own, its parts giving way within.
 const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isQuote(value) && !isQSet(value) && !isDoc(value);
+const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
 
 // The step that reads one part of its parent: a field by its keyword, an
 // element by its index.

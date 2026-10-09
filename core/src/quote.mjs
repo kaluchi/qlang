@@ -20,7 +20,7 @@ import { printValue } from './runtime/print-value.mjs';
 import {
   keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
   makeTaggedInstance, makeErrorLiteralStep,
-  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
+  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isVecOfOwnKind, isQMap, isQSet,
   isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
@@ -309,7 +309,7 @@ function errorHeadOf(step) {
 
 // The empty vector a literal's `:trail` is unless it writes one [D85].
 function isEmptyVector(value) {
-  return isVec(value) && !isQuote(value) && !isQSet(value) && value.length === 0;
+  return isVec(value) && !isVecOfOwnKind(value) && value.length === 0;
 }
 
 function printEntries(entries) {

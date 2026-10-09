@@ -17,9 +17,9 @@ const BOX = lines(
   ':Box/put/weight |~~ The weight to put inside. ::holds~(type | eq ::number) ~~| ~(/0)',
   ':Box/scaled |~~ The length scaled. ~~| ~(length | mul (factor | add 1))',
   ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(/0 | add 1)',
-  ':Box/tally |~~ The lead and the tail. ~~| ~([lead tail])',
+  ':Box/tally |~~ The lead and the rest. ~~| ~([lead rest])',
   ':Box/tally/lead |~~ The lead, null when left out. ~~| ~(at 0)',
-  ':Box/tally/tail |~~ The tail. ~~| ~(drop 1)',
+  ':Box/tally/rest |~~ The values after the lead. ~~| ~(drop 1)',
   ':Box/past |~~ A place past the end. ~~| ~(/9)',
   ''
 );
@@ -130,19 +130,41 @@ describe('a host\'s primitive under a label', () => {
     expect(noted).toBe(0);
   });
 
-  it('reads the parts of the contract at each place a primitive reads none of its own, in the order of their places [D167]', async () => {
+  it('reads the parts of the contract at each place a primitive reads none of its own, the values after it by code over the object, in the order of their places [D167]', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/zap',
         source: lines(
           ':any/zap ::verb~()',
-          ':any/zap/rest |~~ The rest. ~~| ~(/)',
+          ':any/zap/rest |~~ The values after the lead. ~~| ~(drop 1)',
           ':vec/zap ::builtin{}',
           ':vec/zap/lead |~~ The lead. ~~| ~(/0)'
         ),
         impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
       }]
     });
-    expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 3]);
+    expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
+  });
+
+  it('hands a primitive its parts in the order of their places, whatever the order of their declarations [D167]', async () => {
+    const session = await createSession({
+      sources: [{
+        uri: 'probe/pair',
+        source: lines(':vec/pair2 ::builtin{}', ':vec/pair2/b |~~ The second. ~~| ~(/1)', ':vec/pair2/a |~~ The first. ~~| ~(/0)'),
+        impls: { 'vec/pair2': (subject, a, b) => [a, b] }
+      }]
+    });
+    expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);
+  });
+
+  it('holds a part a host declares under its own primitive or under a contract to the mark of the name [D167]', async () => {
+    for (const source of [
+      lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'),
+      lines(':any/zip ::verb~()', ':any/zip/n ~(/0 | @note)', ':vec/zip ::builtin{}')
+    ]) {
+      await expect(createSession({
+        sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, 'vec/zap': subject => subject, 'vec/zip': subject => subject } }]
+      })).rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', context: { tagName: '::bind/EffectMarkMissingError' } });
+    }
   });
 });

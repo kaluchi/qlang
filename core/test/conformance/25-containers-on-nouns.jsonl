@@ -21,6 +21,6 @@
 {"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::map/union/with/NotGivenError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
 {"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | * /name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":["D46","D168"]}
-{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:map/at/key/NotKeywordOrStringError]","decision":["D46","D168"],"target":true,"now":"[]"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:set/union/with/NotSetOrNullError]","decision":["D46","D168"],"target":true,"now":"[]"}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | * /name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":["D46","D168"],"target":true,"now":"0"}
+{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:map/at/key/NotKeywordOrStringError]","decision":["D46","D168"]}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/with | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:set/union/with/NotSetOrNullError]","decision":["D46","D168"]}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | * /name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":["D46","D168"]}

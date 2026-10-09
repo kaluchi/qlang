@@ -23,10 +23,10 @@ import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
   isKeyword, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
-  makeTagKeyword, joinedDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  makeTagKeyword, makeQuote, joinedDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import {
-  addressesOf, isNoun, nodeOf, residenceOnSubject
+  addressesOf, declarationsUnder, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -127,8 +127,15 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
 
 bindStateReader('any/binding', (subject, memberName, state) =>
   recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
-bindStateReader('any/source', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnySourceUnknownNameError).get('source'));
+// The source of a record and of every declaration under its address,
+// one quote of their steps in the order they were written, what stands
+// under the address read at once; a value a host bound wrote none
+// [D168].
+bindStateReader('any/source', (subject, memberName, state) => {
+  const record = recordReadBy(subject, memberName, state, AnySourceUnknownNameError);
+  const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
+  return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
+});
 // The text of the page of a record, or null for a declaration without
 // one, the sentence of a law among them [D174].
 export function pageTextOfRecord(record) {

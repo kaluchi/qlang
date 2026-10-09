@@ -1311,8 +1311,8 @@ targets of the decisions whose work has begun, and every other decision
 below writes its targets before its work:
 
 ```sh
-$ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
-"decision":"D168"
+$ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *(\[[^]]*\]|"D[0-9]+")' | sort -u
+"decision":["D149","D174"]
 ```
 
 ### Milestone 4 · One spelling

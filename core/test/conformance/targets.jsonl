@@ -43,8 +43,8 @@
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true","decision":"D64"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | * /name | filter ~(eq :number/add/addend/NotNumberError) | count","expect":"1","decision":["D46","D168"],"target":true,"now":"0"}
-{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | source | * /name | filter ~(eq :proj/KeyNotInMapError) | count","expect":"1","decision":["D46","D168"],"target":true,"now":"0"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | * /name | filter ~(eq :number/add/addend/NotNumberError) | count","expect":"1","decision":["D46","D168"]}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::proj | source | * /name | filter ~(eq :proj/KeyNotInMapError) | count","expect":"1","decision":["D46","D168"]}
 {"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError","decision":["D46","D166"]}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true","decision":"D65"}
 {"name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true","decision":"D65"}

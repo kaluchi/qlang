@@ -1793,8 +1793,8 @@
   |~~ The hypertext. The names are a space of addresses, `::` beginning
       an absolute one, `::vec/sort`, and a verb passes from an address
       into one of its projections, as a path reaches a file: `doc` into
-      its page, `binding` into its record, `source` into the code that
-      declared it, and `runLaws` runs the laws under it. An address holds no one
+      its page, `binding` into its record, `source` into the code
+      written under it, and `runLaws` runs the laws under it. An address holds no one
       entity but a set of values, and each passage reads one of them; the
       address, the verb and what it reaches are all values, so the
       pipeline goes on from a projection as from any value, and a tag

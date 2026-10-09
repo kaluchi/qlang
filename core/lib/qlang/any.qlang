@@ -566,10 +566,12 @@
   ::vec
 
 :any/source
-  |~~ The code of the declaration that binds a name in its scope, the
-      `:source` of its record, which `parse` prints as its text;
-      `::Tag | source` the tag's. A binding no step declared, a value a
-      host bound, answers null.
+  |~~ The code written under a name: the declaration that binds it in
+      its scope and every declaration under its address, its parts, its
+      answer, its refusals and its laws, one quote of their steps in the
+      order they were written, which `parse` prints as its text;
+      `::Tag | source` what was written under the tag. A binding no step
+      declared, a value a host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
       it reads the name the subject holds under it: for a tag name the
       name under its address, a part of the args of a word among them,
@@ -593,6 +595,10 @@
   |~~ An anchor reads the source of a part. ~~|
   ::law~(::vec/take | source :count | eq (::vec/take/count | source))
 
+:any/source/readsEveryDeclarationUnderAName
+  |~~ The source of a word holds the declarations of its parts. ~~|
+  ::law~(::vec/take | source | * /name | has :vec/take/count)
+
 :any/source/name
   |~~ The name the call gives, null when it gives none. ~~|
   ~(at 0)
@@ -602,7 +608,7 @@
   ::holds~(is ::keyword ::null)
 
 :any/source/code
-  |~~ The code of the declaration, null for a value a host bound. ~~|
+  |~~ The code written under the name, null for a value a host bound. ~~|
   #[::quote ::null]
 
 :any/source/UnknownNameError

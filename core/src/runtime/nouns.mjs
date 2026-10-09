@@ -365,6 +365,13 @@ export function namesUnder(env, tagName) {
     .map(([name]) => makeTagKeyword(`${tagName}/${name}`)));
 }
 
+// declarationsUnder(env, address) → the records declared under an
+// address at any depth, in the order of their declarations, each before
+// the names under it [D168].
+export function declarationsUnder(env, address) {
+  return [...namesUnderOf(env, address)].flatMap(([lastName, record]) => [record, ...declarationsUnder(env, `${address}/${lastName}`)]);
+}
+
 // namesDeclaredUnder(env, address) → the last names of the nodes declared
 // one name under an address, in the order of their declarations.
 export function namesDeclaredUnder(env, address) {

@@ -1,10 +1,10 @@
-// Throw-site ↔ catalog drift guard for the CLI host operands.
+// The refusals of the command line and their pages in its source.
 //
 // The core suite pins the same contract for `core/src` against the
 // language's root; this file pins the host half, the source of the
-// command line [D153]. A host operand's per-site error class records its
-// facts where the factory call builds it, and the source declares its
-// kind under the noun of the place it guards, with the prose and the laws
+// command line [D153]. A refusal of a host operand is declared by its
+// address where its site raises it, and the source pages it under the
+// noun of the place it guards, with the prose and the laws
 // a reader reaches through `doc`. The two halves drift silently: a
 // renamed class leaves `result !| type | doc` answering a refusal of its
 // own.
@@ -24,9 +24,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const isLaw = value => typeKeyword(value).name === 'holds';
 const srcDir = join(here, '..', 'src');
 
-// Every form that puts a refusal in the throw-site registry opens with
-// its address as a string literal [D158].
-const DECLARATION_RE = /(?:declare[A-Za-z]+Error|recordThrowSiteSpec)\(\s*'([A-Za-z0-9@/]+)'/g;
+// Every form that declares a refusal opens with its address as a string
+// literal [D158].
+const DECLARATION_RE = /(?:declareRefusal|recordRefusal)\(\s*'([A-Za-z0-9@/]+)'/g;
 
 const throwSites = new Map();
 for (const fileName of readdirSync(srcDir).filter(f => f.endsWith('.mjs'))) {

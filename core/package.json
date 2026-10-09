@@ -14,9 +14,6 @@
     "./errors": {
       "import": "./src/errors.mjs"
     },
-    "./operand-errors": {
-      "import": "./src/operand-errors.mjs"
-    },
     "./highlight": {
       "import": "./src/highlight.mjs"
     },

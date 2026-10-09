@@ -21,7 +21,6 @@ export { printAnswer } from './runtime/print.mjs';
 export { elide, elideAnswer } from './elide.mjs';
 export { tokenize } from './highlight.mjs';
 export { isNameStart, isNameContinue } from './name-chars.mjs';
-export { QlangTypeError } from './errors.mjs';
 export {
   keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
   bindingValueOf, makeErrorValue, errorFromKindDescriptor,

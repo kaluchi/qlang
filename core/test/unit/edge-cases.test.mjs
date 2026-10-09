@@ -21,9 +21,6 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import {
-  ArityError
-} from '../../src/errors.mjs';
-import {
   keyword,
   describeType,
   isKeyword,
@@ -34,7 +31,7 @@ import {
   makeTagKeyword,
   typeKeyword
 } from '../../src/types.mjs';
-import { catchOriginalError, expectErrorCategory, expectErrorThrown } from '../helpers/error-assertions.mjs';
+import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
   it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
@@ -73,7 +70,7 @@ describe('runtime/predicates.mjs ordering type errors', () => {
     await expectErrorThrown('"a" | gt 5', 'string/gt/than/NotStringError');
   });
   it('lt rejects non-comparable subject', async () => {
-    await expectErrorCategory('null | lt 5', 'typeError');
+    await expectErrorThrown('null | lt 5', 'call/KindAnswersNoVerbError');
   });
 });
 
@@ -97,16 +94,16 @@ describe('runtime/arith.mjs error paths', () => {
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', async () => {
-    await expectErrorCategory('42 | count', 'typeError');
+    await expectErrorThrown('42 | count', 'call/KindAnswersNoVerbError');
   });
   it('first rejects non-Vec', async () => {
-    await expectErrorCategory('42 | first', 'typeError');
+    await expectErrorThrown('42 | first', 'call/KindAnswersNoVerbError');
   });
   it('sum rejects non-Vec', async () => {
-    await expectErrorCategory('42 | sum', 'typeError');
+    await expectErrorThrown('42 | sum', 'call/KindAnswersNoVerbError');
   });
   it('filter rejects non-Vec', async () => {
-    await expectErrorCategory('42 | filter ~(gt 1)', 'typeError');
+    await expectErrorThrown('42 | filter ~(gt 1)', 'call/KindAnswersNoVerbError');
   });
   it('take rejects non-numeric n', async () => {
     await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/NotNumberError');
@@ -128,7 +125,7 @@ describe('runtime/map.mjs error paths', () => {
     await expectErrorThrown('42 | vals', 'map/vals/SubjectNotMapError');
   });
   it('has rejects non-Map/non-Set subject', async () => {
-    await expectErrorCategory('42 | has :foo', 'typeError');
+    await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
   it('has on Map requires keyword-or-string key', async () => {
     await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrStringError');
@@ -323,12 +320,12 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce arityError tag identity is
-  // pinned by `error-operands.test.mjs`; the control-flow block
-  // tests the operand semantics, not the per-site wiring.
+  // Per-site coalesce tag identity is pinned by
+  // `error-operands.test.mjs`; the control-flow block tests the
+  // operand semantics, not the per-site wiring.
   it('coalesce raises AnyCoalesceNoAlternativesError on bare call', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce');
-    expect(caughtErr).toBeInstanceOf(ArityError);
+    expect(caughtErr.address).toBe('any/CoalesceNoAlternativesError');
   });
 
 });

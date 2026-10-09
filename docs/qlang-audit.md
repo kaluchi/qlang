@@ -863,10 +863,11 @@ every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
 
-A host builds its refusals from the per-site error factories, imported
-through the `operand-errors` and `errors` subpaths of the core
-(`cli/src/io-operands.mjs`), so the factories stay an interface of the
-runtime a host builds on. The sister project no longer imports them,
+A host declares its refusals by their addresses with `declareRefusal`,
+imported through the `errors` subpath of the core
+(`cli/src/io-operands.mjs`), and declares their facts under their
+labels in its catalog [D172], so the declaration stays an interface of
+the runtime a host builds on. The sister project no longer imports them,
 and carries its own copy of `fromPlain`, named `jsonToQlang`
 (`cli/lib/jdt/coverage.impl.mjs`).
 
@@ -1065,11 +1066,12 @@ declares is a defect of the runtime [D172]:
 #[::proj/IndexOutOfBoundsError/index ::proj/IndexOutOfBoundsError/length]
 ```
 
-The facts the runtime records of each site besides, the category of its
-class, the operand, a position counted from one and the kind it
-expected, stay in a registry of the JavaScript, which no reader reaches,
-and the classes and the catalog are kept in agreement by that registry
-and a test that holds each throw site against its page.
+Of its site the runtime records the address alone, which names the
+place, the laws of its page saying the kind it wants: one kind of
+refusal in the JavaScript, whose message is its address, with no
+category, operand or position beside it [D172]. The classes and the
+catalog are kept in agreement by the addresses the runtime declares and
+a test that holds each against its page.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
@@ -1331,14 +1333,14 @@ part:
 - An embedding surface that was never designed. The package's entry
   point exports what the command line, the language server, the site
   and the sister project read, and no name besides; among them is still
-  the Symbol slot of the headers, and the package exposes subpaths for
-  the error factories, which is what hosts build on:
+  the Symbol slot of the headers, and the package exposes a subpath for
+  the declaration of a refusal, which is what hosts build on:
 
   ```sh
   $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
   TAG_HEADER_SYMBOL
   $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
-  ./errors ./operand-errors
+  ./errors
   ```
 
 The repair is a property of every branch [D30]. A branch leaves every

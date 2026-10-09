@@ -7,20 +7,10 @@ import {
   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
 import { fork, forkEach } from './fork.mjs';
-import {
-  QlangError,
-  QlangInvariantError,
-  CallUnknownNameError,
-  CallUnknownAddressError,
-  BindEffectMarkMissingError,
-  BindNameDeclaredTwiceError,
-  declareInvariantError,
-  declareShapeError
-} from './errors.mjs';
+import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
-import { declareSubjectError } from './operand-errors.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
@@ -47,52 +37,28 @@ import {
 // evaluator, raised past the fail track.
 const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   'builtin/UnknownAstNodeTypeError',
-  ({ nodeType }) => `unknown AST node type: ${nodeType}`,
-  { operand: '::builtin' }
-);
+  ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
 const BuiltinUnknownCombinatorKindError = declareInvariantError(
   'builtin/UnknownCombinatorKindError',
-  ({ kind }) => `unknown combinator: ${kind}`,
-  { operand: '::builtin' }
-);
+  ({ kind }) => `unknown combinator: ${kind}`);
 
-const ProjSubjectNotProjectableError = declareShapeError('proj/SubjectNotProjectableError',
-  ({ actualType }) => `a projection reads a map, a vector or a set, got ${actualType.name}`,
-  { operand: '::proj' });
-const ProjKeyNotInMapError = declareShapeError('proj/KeyNotInMapError',
-  ({ key }) => `/${key.name} — key not present in Map subject`,
-  { operand: '::proj' });
-const ProjIndexOutOfBoundsError = declareShapeError('proj/IndexOutOfBoundsError',
-  ({ index, length }) => `/${index} — index out of bounds for sequence of length ${length}`,
-  { operand: '::proj' });
-const ProjIndexNotIntegerError = declareShapeError('proj/IndexNotIntegerError',
-  ({ key }) => `/${key.name} — non-integer segment cannot index a Vec or Set subject`,
-  { operand: '::proj' });
+const ProjSubjectNotProjectableError = declareRefusal('proj/SubjectNotProjectableError');
+const ProjKeyNotInMapError = declareRefusal('proj/KeyNotInMapError');
+const ProjIndexOutOfBoundsError = declareRefusal('proj/IndexOutOfBoundsError');
+const ProjIndexNotIntegerError = declareRefusal('proj/IndexNotIntegerError');
 // A tag whose node is no label, a word or a value, puts no value under
 // it [D168].
-const ConstructTagNotKindError = declareShapeError('construct/TagNotKindError',
-  ({ tag, actualType }) => `${tag.literal} — its node holds ${actualType.name}, and only a label, a name declared by its page, puts a value under its tag`,
-  { operand: '::construct', expectedType: 'doc' }
-);
+const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 // The combinator names its qlang kind, `distribute`, in the message
 // and in the `:operand` its site records.
-const EachSubjectNotContainerError = declareSubjectError('each/SubjectNotContainerError', 'distribute', ['vec', 'set', 'map']);
+const EachSubjectNotContainerError = declareRefusal('each/SubjectNotContainerError');
 // A bare name the reader declares for a value takes no word of the
 // vocabulary, the name of a verb or of a name under a label, so no step
 // meets the reader's value where the subject's word was meant [D166].
-const BindNameTakenByVocabularyError = declareShapeError('bind/NameTakenByVocabularyError',
-  ({ name }) => `${name.literal} is a word of the vocabulary, a verb or a name under a label; a value of the reader takes another name`,
-  { operand: '::bind' }
-);
-const BindNounNotDeclaredError = declareShapeError('bind/NounNotDeclaredError',
-  ({ name, noun }) => `${name.literal} is declared under ${noun.literal}, which no declaration names`,
-  { operand: '::bind' }
-);
-const CallValueTakesNoModifiersError      = declareShapeError('call/ValueTakesNoModifiersError',
-  ({ name, actualType }) => `cannot apply arguments to ${name.literal}: resolves to ${actualType.name}`,
-  { operand: '::call', expectedType: 'function' }
-);
+const BindNameTakenByVocabularyError = declareRefusal('bind/NameTakenByVocabularyError');
+const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
+const CallValueTakesNoModifiersError      = declareRefusal('call/ValueTakesNoModifiersError');
 // evalQuery(source, env?, callerState?) → the value a query answers from
 // null, in the runtime's environment unless `env` is given, one frame
 // below `callerState` when a running query evaluates it, `runLaws`
@@ -219,7 +185,7 @@ async function distribute(state, bodyNode) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, eachStepOf(bodyNode)));
   const subjectSeq = containerBeneathTags(state.pipeValue);
   if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
-    const distributeErr = new EachSubjectNotContainerError(state.pipeValue);
+    const distributeErr = new EachSubjectNotContainerError({ actualValue: state.pipeValue });
     distributeErr.location = bodyNode.location;
     const refused = errorFromQlang(distributeErr, state.pipeValue, state.env);
     return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue, state.env));
@@ -339,7 +305,7 @@ export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isDoc(declared)) {
-    throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualType: typeKeyword(declared), actualValue: declared });
+    throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualValue: declared });
   }
   return await underPage(tagName, payload, state);
 }
@@ -548,7 +514,6 @@ function projectSegment(subject, projKey) {
   }
   throw new ProjSubjectNotProjectableError({
     key: Number.isNaN(segmentIndex(projKey)) ? keyword(projKey) : segmentIndex(projKey),
-    actualType: typeKeyword(subject),
     actualValue: subject
   });
 }
@@ -569,7 +534,7 @@ async function callByName(lookupName, lambdas, state) {
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, actualType: typeKeyword(state.pipeValue) });
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
@@ -589,7 +554,6 @@ async function applyBinding(entry, lookupName, lambdas, state) {
   if (lambdas.length > 0) {
     throw new CallValueTakesNoModifiersError({
       name: keyword(lookupName),
-      actualType: typeKeyword(resolved),
       actualValue: resolved,
       addresses: addressesOf(state.env, lookupName)
     });

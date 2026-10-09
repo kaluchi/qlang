@@ -8,56 +8,41 @@
 // the map where it keeps keys; a part that takes code arrives closed at
 // the call, a lambda over the element [D73], [D167].
 
-import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, typeKeyword, NULL, isQMap, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
+import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, NULL, isQMap, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
 
 const DESC_TAG = makeTagKeyword('desc');
 import { compareValues } from '../ordering.mjs';
-import { declareModifierError, declareElementError } from '../operand-errors.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 
 // A condition answers a boolean or fails [D14]; the refusal names the
 // element whose condition answered another kind.
-const conditionRefusal = operand => ({ index, actualType }) =>
-  `${operand} takes a boolean from its condition, element ${index} answered ${actualType.name}`;
-const AnyFilterConditionNotBooleanError = declareShapeError('any/FilterConditionNotBooleanError',
-  conditionRefusal('filter'), { operand: 'filter', expectedType: 'boolean' });
-const AnyEveryConditionNotBooleanError  = declareShapeError('any/EveryConditionNotBooleanError',
-  conditionRefusal('every'), { operand: 'every', expectedType: 'boolean' });
-const AnyAnyConditionNotBooleanError    = declareShapeError('any/AnyConditionNotBooleanError',
-  conditionRefusal('any'), { operand: 'any', expectedType: 'boolean' });
+const AnyFilterConditionNotBooleanError = declareRefusal('any/FilterConditionNotBooleanError');
+const AnyEveryConditionNotBooleanError  = declareRefusal('any/EveryConditionNotBooleanError');
+const AnyAnyConditionNotBooleanError    = declareRefusal('any/AnyConditionNotBooleanError');
 
 function booleanOf(answer, index, ErrorCls) {
-  if (typeof answer !== 'boolean') throw new ErrorCls({ index, actualType: typeKeyword(answer), actualValue: answer });
+  if (typeof answer !== 'boolean') throw new ErrorCls({ index, actualValue: answer });
   return answer;
 }
 
-const AnyGroupByKeyNotKeywordError = declareShapeError('any/GroupByKeyNotKeywordError',
-  ({ index, actualType }) => `groupBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
-  { operand: 'groupBy', expectedType: 'keyword' }
-);
-const AnyIndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeywordError',
-  ({ index, actualType }) => `indexBy: key sub-pipeline must produce a keyword for every element, element ${index} produced ${actualType.name}`,
-  { operand: 'indexBy', expectedType: 'keyword' }
-);
+const AnyGroupByKeyNotKeywordError = declareRefusal('any/GroupByKeyNotKeywordError');
+const AnyIndexByKeyNotKeywordError = declareRefusal('any/IndexByKeyNotKeywordError');
 
 // A count and an index are whole numbers: the law of the part refuses a
 // value of another kind, and the primitive a fraction.
-const AnyTakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
-const AnyDropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
-const AnyAtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');
+const AnyTakeCountNotIntegerError = declareRefusal('any/TakeCountNotIntegerError');
+const AnyDropCountNotIntegerError = declareRefusal('any/DropCountNotIntegerError');
+const AnyAtIndexNotIntegerError   = declareRefusal('any/AtIndexNotIntegerError');
 
 function wholeOrRefuse(value, ErrorCls) {
-  if (!Number.isInteger(value)) throw new ErrorCls(value);
+  if (!Number.isInteger(value)) throw new ErrorCls({ actualValue: value });
   return value;
 }
 
-const AnySumElementNotNumberError = declareElementError('any/SumElementNotNumberError', 'sum', 'number');
-const AnyReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
-  () => 'reduce reducer must be a binary operand (add / mul / union / …) or a name whose first part takes the element',
-  { operand: 'reduce' }
-);
+const AnySumElementNotNumberError = declareRefusal('any/SumElementNotNumberError');
+const AnyReduceReducerNotBinaryError = declareRefusal('any/ReduceReducerNotBinaryError');
 
 // The elements a container holds, a map's its values.
 function elementsOf(container) {
@@ -127,7 +112,7 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
   const items = elementsOf(container);
   let total = 0;
   for (let i = 0; i < items.length; i++) {
-    if (typeof items[i] !== 'number') throw new AnySumElementNotNumberError(i, items[i]);
+    if (typeof items[i] !== 'number') throw new AnySumElementNotNumberError({ index: i, actualValue: items[i] });
     total += items[i];
   }
   return total;
@@ -136,13 +121,13 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
 // The mean of the numbers, kept as a running mean so no partial sum
 // leaves the finite doubles; an empty container has none, and answers
 // null as `min` and `max` do [D147].
-const AnyAvgElementNotNumberError = declareElementError('any/AvgElementNotNumberError', 'avg', 'number');
+const AnyAvgElementNotNumberError = declareRefusal('any/AvgElementNotNumberError');
 bindPrim(['vec/avg', 'set/avg', 'map/avg'], container => {
   const items = elementsOf(container);
   if (items.length === 0) return NULL;
   let mean = 0;
   for (let i = 0; i < items.length; i++) {
-    if (typeof items[i] !== 'number') throw new AnyAvgElementNotNumberError(i, items[i]);
+    if (typeof items[i] !== 'number') throw new AnyAvgElementNotNumberError({ index: i, actualValue: items[i] });
     mean += (items[i] - mean) / (i + 1);
   }
   return mean;
@@ -189,7 +174,7 @@ async function keywordOf(key, element, index, ErrorCls) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer) || isKeyword(answer)) return answer;
   if (isString(answer) || isNumber(answer)) return keyword(String(answer));
-  throw new ErrorCls({ index, actualType: typeKeyword(answer), actualValue: answer });
+  throw new ErrorCls({ index, actualValue: answer });
 }
 
 // groupBy on a Set subject mints Set-typed buckets so the value-class

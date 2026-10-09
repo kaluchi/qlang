@@ -11,6 +11,4 @@ export const BuiltinSourceLoadError = declareForeignError('builtin/SourceLoadErr
       : (status !== undefined ? `HTTP ${status}` : '');
     return `failed to read qlang source '${logicalName}' from ${sourceLocation}` +
       (tail ? ` — ${tail}` : '');
-  },
-  { operand: '::builtin' }
-);
+  });

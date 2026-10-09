@@ -1,8 +1,5 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
-import {
-  declareInvariantError,
-  declareShapeError
-} from './errors.mjs';
+import { declareRefusal, declareInvariantError } from './errors.mjs';
 import { TAG_SIGIL } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
@@ -12,9 +9,7 @@ export const BuiltinNumberNotFiniteLeakedToPrintError = declareInvariantError(
   'builtin/NumberNotFiniteLeakedToPrintError',
   ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
     "qlang Number lives in — a host installed it through session.bind or the impls of " +
-    'its sources, where source cannot mint one',
-  { operand: '::builtin' }
-);
+    'its sources, where source cannot mint one');
 
 // Reads the guard at every seam where a Number becomes observable.
 export function finiteNumberOrLift(numberValue) {
@@ -328,11 +323,7 @@ export function declareHostValue(value, impl) {
 // none [D64], and a descriptor of the facts of its site with its `:trail`,
 // the path it took [D85], a vector of stops that `eval-trail.mjs` writes;
 // a `:trail` of another shape is refused where the error is made.
-export const ErrorTrailNotVecError = declareShapeError(
-  'error/TrailNotVecError',
-  ({ actualType }) => `error descriptor :trail must be a vector of stops, got ${actualType.name}`,
-  { operand: '::error', expectedType: 'vec' }
-);
+export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
 // A trail is a vector of stops, each a map whose `:skipped` is the quote
 // of the steps the error skipped after it [D85].
@@ -345,7 +336,7 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
-    if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail });
+    if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualValue: trail });
   } else {
     finalDescriptor = new Map(descriptor);
     finalDescriptor.set('trail', Object.freeze([]));

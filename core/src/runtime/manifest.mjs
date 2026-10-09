@@ -4,22 +4,17 @@
 
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { claimsOfRecord, recordReadBy } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-const AnyRunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
-  ({ name }) =>
-    `runLaws: no declaration found for ${name.literal}`,
-  { operand: 'runLaws' });
+const AnyRunLawsBindingNotFoundError = declareRefusal('any/RunLawsBindingNotFoundError');
 
-// The message of an error: a site's its own, a raised one's `:message`,
-// and the address of a refusal by address or of a raise without one
-// [D166].
+// The message of an error: its `:message` where it carries one, a raise's
+// or a host's failure's, and the address of any other [D166], [D172].
 function errorMessageOf(errorValue) {
-  if (errorValue.originalError) return errorValue.originalError.message;
   return errorValue.descriptor.get('message') ?? `::${errorValue.tag.name}`;
 }
 

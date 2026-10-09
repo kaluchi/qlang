@@ -64,10 +64,7 @@ describe('state.mjs frames', () => {
     expect(thrown).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('EvaluationDepthExceededError');
-    expect(thrown.kind).toBe('resourceLimit');
     expect(thrown.context).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
-    expect(thrown.message).toBe(
-      `evaluation depth ${EVAL_DEPTH_LIMIT + 1} exceeds the budget of ${EVAL_DEPTH_LIMIT} nested frames`
-    );
+    expect(thrown.message).toBe('::call/EvaluationDepthExceededError');
   });
 });

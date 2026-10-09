@@ -9,7 +9,6 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import {
-  EffectLaunderingError,
   BindEffectMarkMissingError,
   QlangError
 } from '../../src/errors.mjs';
@@ -174,11 +173,11 @@ describe('eval-time effect validation in evalBindStep', () => {
     expect(effectErr.name).toBe('EffectMarkMissingError');
   });
 
-  it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
+  it('the thrown error is a refusal of bind, not a ParseError', async () => {
     const effectErr = await catchOriginalError(':any/foo ~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingError);
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
     expect(effectErr).toBeInstanceOf(QlangError);
-    expect(effectErr.kind).toBe('effectLaundering');
+    expect(effectErr.address).toBe('bind/EffectMarkMissingError');
   });
 
   it('a freeze of an expression result is exempt', async () => {

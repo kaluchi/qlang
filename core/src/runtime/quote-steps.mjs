@@ -11,23 +11,22 @@
 // is made rather than run as a program that means something else.
 
 import { bindPrim } from '../primitives.mjs';
-import { declareSubjectError, declareElementError } from '../operand-errors.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
-  keyword, typeKeyword, isQMap, isQuote, isKeyword, isTagKeyword,
+  keyword, isQMap, isQuote, isKeyword, isTagKeyword,
   isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
   CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
-const QuotePayloadNotVecError = declareSubjectError('quote/PayloadNotVecError', '::quote', 'vec');
-const QuoteElementNotStepError = declareElementError('quote/ElementNotStepError', '::quote', 'step');
+const QuotePayloadNotVecError = declareRefusal('quote/PayloadNotVecError');
+const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
 
 function quoteConstructor(payload) {
-  if (!isVec(payload)) throw new QuotePayloadNotVecError(payload);
+  if (!isVec(payload)) throw new QuotePayloadNotVecError({ actualValue: payload });
   payload.forEach((element, index) => {
-    if (!isStep(element)) throw new QuoteElementNotStepError(index, element);
+    if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
   });
   return makeQuote(payload);
 }
@@ -48,13 +47,6 @@ function readBackOrRefuse(step, ReadBackDiffersError) {
   throw new ReadBackDiffersError({ printed });
 }
 
-const schemaMessage = operand => ({ field, actualType }) => field === null
-  ? `${operand} payload must be a Map of its fields, got ${actualType.name}`
-  : `${operand} field :${field.name} does not fit the ${operand} schema, got ${actualType.name}`;
-
-const readBackMessage = operand => ({ printed }) =>
-  `${operand} prints as ${printed}, which reads back as another step`;
-
 // ── records ────────────────────────────────────────────────────
 
 const vecOf = isElement => value => isVec(value) && value.every(isElement);
@@ -67,17 +59,17 @@ const isBodyStep = step => isElementStep(step) || isCommandStep(step);
 function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBackDiffersError) {
   return payload => {
     if (!isQMap(payload)) {
-      throw new PayloadNotSchemaError({ field: null, actualType: typeKeyword(payload), actualValue: payload });
+      throw new PayloadNotSchemaError({ field: null, actualValue: payload });
     }
     for (const fieldName of required) {
       if (!payload.has(fieldName)) {
-        throw new PayloadNotSchemaError({ field: keyword(fieldName), actualType: typeKeyword(null), actualValue: payload });
+        throw new PayloadNotSchemaError({ field: keyword(fieldName), actualValue: null });
       }
     }
     for (const [fieldName, fieldValue] of payload) {
       const fits = schema[fieldName];
       if (fits === undefined || !fits(fieldValue)) {
-        throw new PayloadNotSchemaError({ field: keyword(fieldName), actualType: typeKeyword(fieldValue), actualValue: fieldValue });
+        throw new PayloadNotSchemaError({ field: keyword(fieldName), actualValue: fieldValue });
       }
     }
     return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
@@ -86,42 +78,42 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 
 bindPrim('call/construct', recordConstructor(CALL_TAG,
   { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
-  declareShapeError('call/PayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
-  declareShapeError('call/ReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
+  declareRefusal('call/PayloadNotSchemaError'),
+  declareRefusal('call/ReadBackDiffersError')));
 
 bindPrim('proj/construct', recordConstructor(PROJ_TAG,
   { path: vecOf(isSegment) }, ['path'],
-  declareShapeError('proj/PayloadNotSchemaError', schemaMessage('::proj'), { operand: '::proj' }),
-  declareShapeError('proj/ReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
+  declareRefusal('proj/PayloadNotSchemaError'),
+  declareRefusal('proj/ReadBackDiffersError')));
 
 bindPrim('bind/construct', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
-  declareShapeError('bind/PayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
-  declareShapeError('bind/ReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
+  declareRefusal('bind/PayloadNotSchemaError'),
+  declareRefusal('bind/ReadBackDiffersError')));
 
 bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
-  declareShapeError('construct/PayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
-  declareShapeError('construct/ReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
+  declareRefusal('construct/PayloadNotSchemaError'),
+  declareRefusal('construct/ReadBackDiffersError')));
 
 // ── wrappers ───────────────────────────────────────────────────
 
 // A wrapper's payload is the quote of the step it wraps.
 function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
   return payload => {
-    if (!isQuote(payload)) throw new PayloadNotQuoteError(payload);
+    if (!isQuote(payload)) throw new PayloadNotQuoteError({ actualValue: payload });
     return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
   };
 }
 
 bindPrim('each/construct', wrapperConstructor(EACH_TAG,
-  declareSubjectError('each/PayloadNotQuoteError', '::each', 'quote'),
-  declareShapeError('each/ReadBackDiffersError', readBackMessage('::each'), { operand: '::each' })));
+  declareRefusal('each/PayloadNotQuoteError'),
+  declareRefusal('each/ReadBackDiffersError')));
 
 bindPrim('fail/construct', wrapperConstructor(FAIL_TAG,
-  declareSubjectError('fail/PayloadNotQuoteError', '::fail', 'quote'),
-  declareShapeError('fail/ReadBackDiffersError', readBackMessage('::fail'), { operand: '::fail' })));
+  declareRefusal('fail/PayloadNotQuoteError'),
+  declareRefusal('fail/ReadBackDiffersError')));
 
 bindPrim('group/construct', wrapperConstructor(GROUP_TAG,
-  declareSubjectError('group/PayloadNotQuoteError', '::group', 'quote'),
-  declareShapeError('group/ReadBackDiffersError', readBackMessage('::group'), { operand: '::group' })));
+  declareRefusal('group/PayloadNotQuoteError'),
+  declareRefusal('group/ReadBackDiffersError')));

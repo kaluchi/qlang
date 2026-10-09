@@ -1,62 +1,43 @@
-// Throw-site ↔ catalog drift guard for per-site error classes.
-//
-// A per-site error names itself in two planes: in JS, where the factory
-// that builds the class records its throw-site spec, and in the tree of
-// names, where a source of the language declares its kind under the
-// noun of the place it guards, with the prose and the laws a reader
-// reaches through `doc` [D152], [D153]. Nothing
-// in the language forces the two to exist in pairs, so a renamed class or
-// a fresh throw site without a kind drifts silently, and surfaces to a
-// reader as `!| type | doc` answering a refusal of its own.
+// The refusals of the runtime and their pages in the catalog. A refusal
+// names itself in two planes: in the JavaScript, where its site declares
+// it by its address, and in the tree of names, where a source of the
+// language pages it under the noun of the place it guards, with the
+// prose, the facts and the laws a reader reaches through `doc` [D152],
+// [D172]. Nothing in the language forces the two to exist in pairs, so a
+// renamed address or a fresh site without a page drifts silently, and
+// surfaces to a reader as `!| type | doc` answering a refusal of its own.
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
-import { throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
+import { declaredRefusals } from '../../src/errors.mjs';
 import { nodeOf, splitAddress } from '../../src/runtime/nouns.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
 import { bindingValueOf, isDoc } from '../../src/types.mjs';
 
-// Refusals minted without going through a per-site factory, each with
-// the site that mints it.
-const REFUSALS_MINTED_OUTSIDE_A_THROW_SITE = new Map([
-  ['quote/ParseError', 'errorFromParse lifts the peggy ParseError shape'],
-  ['call/HostFailureError', 'errorFromForeign lifts a JavaScript error escaping an operand']
-]);
-
 const session = await createSession();
+const declared = new Set(declaredRefusals());
 
-// The kinds the root declares under a noun whose name is a refusal's,
-// `number/add/SubjectNotNumberError`.
-const refusalKinds = [];
+// The refusals the root pages under a noun, `number/add/SubjectNotNumberError`.
+const refusalPages = [];
 for (const [address, record] of session.env.get(ROOT_KEY)) {
   const [nounName, name] = splitAddress(address);
-  if (nounName !== null && /Error$/.test(name) && isDoc(bindingValueOf(record))) refusalKinds.push([address, name]);
+  if (nounName !== null && /Error$/.test(name) && isDoc(bindingValueOf(record))) refusalPages.push(address);
 }
 
-describe('every refusal names the place it guards [D64]', () => {
-  it('a throw site names a verb, a noun or a step of the language', () => {
-    const placeless = [...throwSiteSpecNames()].filter(address => throwSiteSpecOf(address).operand === undefined);
-    expect(placeless).toEqual([]);
-  });
-});
-
-describe('every throw site has its kind in the tree of names [D152]', () => {
-  for (const address of throwSiteSpecNames()) {
-    it(`${address} is declared under the noun it guards`, () => {
+describe('every refusal a site of the runtime declares has its page under its noun [D152]', () => {
+  for (const address of declared) {
+    it(`${address} is paged under the noun it guards`, () => {
       expect(isDoc(bindingValueOf(nodeOf(session.env, address))),
-        `${address} records a throw-site spec and no source of the language declares it under its noun`
+        `${address} is declared by a site of the runtime and no source of the language pages it under its noun`
       ).toBe(true);
     });
   }
 });
 
-describe('every refusal of the catalog has a throw site', () => {
-  for (const [address] of refusalKinds) {
-    if (throwSiteSpecOf(address) !== undefined) continue;
-    it(`${address} is minted outside a per-site factory for a stated reason`, () => {
-      expect(REFUSALS_MINTED_OUTSIDE_A_THROW_SITE.get(address),
-        `${address} has no throw site under core/src and no entry naming what mints it`
-      ).toBeDefined();
+describe('every refusal the catalog pages is declared by a site of the runtime', () => {
+  for (const address of refusalPages) {
+    it(`${address} is declared by its site`, () => {
+      expect(declared.has(address), `${address} has a page and no site under core/src declares it`).toBe(true);
     });
   }
 

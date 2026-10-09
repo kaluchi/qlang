@@ -6,21 +6,13 @@
 //
 // The verbs live in lib/qlang/any.qlang.
 
-import { isNull, isErrorValue, typeKeyword, NULL } from '../types.mjs';
-import { declareArityError, declareShapeError } from '../errors.mjs';
+import { isNull, isErrorValue, NULL } from '../types.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
-const AnyCondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
-  ({ index, actualType }) => `cond takes a boolean from each condition, the condition at place ${index} of the object answered ${actualType.name}`,
-  { operand: 'cond', expectedType: 'boolean' });
-const AnyCoalesceNoAlternativesError = declareArityError('any/CoalesceNoAlternativesError',
-  () => 'coalesce requires at least one alternative sub-pipeline',
-  { operand: 'coalesce' }
-);
-const AnyCondNoBranchesError = declareArityError('any/CondNoBranchesError',
-  () => 'cond requires at least one (predicate, branch) pair plus an optional trailing default',
-  { operand: 'cond' }
-);
+const AnyCondConditionNotBooleanError = declareRefusal('any/CondConditionNotBooleanError');
+const AnyCoalesceNoAlternativesError = declareRefusal('any/CoalesceNoAlternativesError');
+const AnyCondNoBranchesError = declareRefusal('any/CondNoBranchesError');
 
 bindPrim('any/if', async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject)));
@@ -50,7 +42,7 @@ bindPrim('any/cond', async (subject, clauses) => {
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
     if (typeof answer !== 'boolean') {
-      throw new AnyCondConditionNotBooleanError({ index: clauseIndex, actualType: typeKeyword(answer), actualValue: answer });
+      throw new AnyCondConditionNotBooleanError({ index: clauseIndex, actualValue: answer });
     }
     if (answer) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
-import { QlangTypeError } from '../../src/errors.mjs';
+import { QlangError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
 describe(':name | source returns the BindStep source as Quote', () => {
@@ -151,7 +151,7 @@ describe('axis-operands read the node a tag addresses', () => {
     const result = await evalQuery('::Foo | doc');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocBindingNotFoundError');
-    expect(result.originalError).toBeInstanceOf(QlangTypeError);
+    expect(result.originalError).toBeInstanceOf(QlangError);
     expect(result.originalError.context.name.literal).toBe('::Foo');
   });
 });

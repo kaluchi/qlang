@@ -148,8 +148,8 @@ function scanForbiddenWords() {
 // ── (3) A refusal is declared by its address ──────────────────
 //
 // A refusal's address is the one key the implementation and its page
-// in the catalog share [D158]: every factory of a refusal and every
-// recording of a site outside one takes it as a literal, the noun of the
+// in the catalog share [D158]: every declaration of a refusal and every
+// recording of an address outside one takes it as a literal, the noun of the
 // place and a last name ending in `Error`, `number/AddLeftNotNumberError`,
 // and the constant that holds the class is named by the address without
 // its slash, `NumberAddLeftNotNumberError`, so a grep for either finds
@@ -157,15 +157,12 @@ function scanForbiddenWords() {
 // `class Foo extends …` ends in `Error`; the abstract roots are the
 // bases every site extends.
 
-const ABSTRACT_BASES = new Set([
-  'QlangError', 'QlangTypeError', 'QlangInvariantError',
-  'ArityError', 'EffectLaunderingError', 'NumericDomainError'
-]);
+const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
-const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declare\w*Error|recordThrowSiteSpec)\(\s*([^,)]*)/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|NumericDomainError|Error)\b/g;
+const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
 const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9@]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
-const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs', 'core/src/operand-errors.mjs']);
+const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
 // The constant a refusal's class is held by: its address without the
 // slash, each name capitalised and the effect marker dropped.

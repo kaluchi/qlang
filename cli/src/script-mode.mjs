@@ -38,7 +38,7 @@
 import {
   fromPlain, toPlain, printAnswer, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
 } from '@kaluchi/qlang-core';
-import { recordThrowSiteSpec } from '@kaluchi/qlang-core/errors';
+import { recordRefusal } from '@kaluchi/qlang-core/errors';
 
 const JSON_PRETTY_INDENT = 2;
 
@@ -48,8 +48,8 @@ const JSON_PRETTY_INDENT = 2;
 // array of its elements in the one order [D126], and a keyword as its
 // name, as `json` writes it [D148].
 // The refusal is minted as a value where the answer is written, so its
-// site records its facts without a factory.
-recordThrowSiteSpec('cli/AnswerNotJsonError', 'typeError', { operand: '::cli' });
+// site records its address without a class.
+recordRefusal('cli/AnswerNotJsonError');
 
 const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
 

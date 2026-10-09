@@ -17,24 +17,6 @@ export async function expectErrorResult(query) {
   return evalResult;
 }
 
-// expectErrorCategory(query, category) → error value
-//
-// Asserts the query produces an error value whose underlying JS
-// error class names the given broad-bucket category (`'typeError'`,
-// `'arityError'`, `'effectLaundering'`, `'parseError'`,
-// `'foreignError'`, `'numericDomain'`, `'invariantError'`,
-// `'unresolvedIdentifier'`, ...). The instance descriptor carries
-// the dynamic facts alone; the registry of throw sites records the
-// `:category`, and this check reads the `.kind` of the originating
-// QlangError, the same string.
-// For per-tag identity assertions use `expectErrorThrown` against
-// `:kind`.
-export async function expectErrorCategory(query, category) {
-  const errorResult = await expectErrorResult(query);
-  expect(errorResult.originalError?.kind).toBe(category);
-  return errorResult;
-}
-
 // expectErrorThrown(query, address) → error value
 //
 // Asserts the query produces an error value whose tag is the address of
@@ -63,7 +45,7 @@ export function expectOriginalError(errorValue, ErrorClass) {
 // the query unexpectedly succeeded — the assertion fails on the null
 // rather than on a TypeError). Used by per-site error-identity
 // tests where assertions read against `caughtErr.name`,
-// `caughtErr.context.*`, or `instanceof QlangTypeError`.
+// `caughtErr.context.*`, or `instanceof QlangError`.
 export async function catchOriginalError(query) {
   const evalResult = await evalQuery(query);
   return isErrorValue(evalResult) ? evalResult.originalError : null;

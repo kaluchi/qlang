@@ -4,33 +4,19 @@
 // those under its noun as a host hands its own [D80], and seals the
 // table.
 
-import { declareInvariantError, declarePerSiteError } from './errors.mjs';
+import { declareInvariantError } from './errors.mjs';
 
 const BuiltinAddressNotStringError = declareInvariantError(
   'builtin/AddressNotStringError',
-  ({ actualType }) => `bind: an address must be a string, got ${actualType}`,
-  { operand: '::builtin' }
-);
+  ({ actualType }) => `bind: an address must be a string, got ${actualType}`);
 
 const BuiltinAddressBoundTwiceError = declareInvariantError(
   'builtin/AddressBoundTwiceError',
-  ({ address }) => `bind: ${address} is already bound; two runtime modules claim the same address`,
-  { operand: '::builtin' }
-);
+  ({ address }) => `bind: ${address} is already bound; two runtime modules claim the same address`);
 
 const BuiltinTableSealedError = declareInvariantError(
   'builtin/TableSealedError',
-  ({ address }) => `bind: the table is sealed; cannot bind ${address} after the bootstrap`,
-  { operand: '::builtin' }
-);
-
-// A verb or a kind ending in `::builtin{}` that no implementation was
-// handed for, refused as the root is declared [D157].
-export const BuiltinImplementationNotHandedError = declarePerSiteError(
-  'builtin/ImplementationNotHandedError', 'primitiveUnbound',
-  ({ name }) => `no implementation is handed for ${name}, which ends in ::builtin{}`,
-  { operand: '::builtin' }
-);
+  ({ address }) => `bind: the table is sealed; cannot bind ${address} after the bootstrap`);
 
 // createPrimitiveRegistry() → a table of its own, for a test.
 export function createPrimitiveRegistry() {
@@ -50,13 +36,6 @@ export function createPrimitiveRegistry() {
       }
       bindings.set(key, impl);
       return key;
-    },
-
-    resolve(key) {
-      if (!bindings.has(key)) {
-        throw new BuiltinImplementationNotHandedError({ name: key });
-      }
-      return bindings.get(key);
     },
 
     has(key) {

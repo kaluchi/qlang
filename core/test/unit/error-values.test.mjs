@@ -6,7 +6,7 @@ import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { QlangTypeError, CallUnknownNameError, declareShapeError } from '../../src/errors.mjs';
+import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
 import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
@@ -44,7 +44,7 @@ describe('makeErrorValue', () => {
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
   });
 
-  it('fires ErrorTrailNotVecError when :trail carries anything except a vector of stops', () => {
+  it('fires ErrorTrailNotVecError when :trail carries anything except a vector of stops', async () => {
     // `:trail` is runtime-owned — a step the error skips joins the
     // `:skipped` quote of the last stop, so the mint site refuses
     // anything under it but a vector of maps that hold one.
@@ -52,15 +52,16 @@ describe('makeErrorValue', () => {
       [null, 'null'], [5, 'number'], [[1, 2], 'vec'], [quoteOfSource('| pre'), 'quote'], [makeSet([]), 'set'],
       [[new Map([['step', quoteOfSource('pre')]])], 'vec']
     ];
+    const env = await langRuntime();
     for (const [refusedTrail, kindName] of refusedTrails) {
       let thrown = null;
       try { makeErrorValue(makeTagKeyword('Oops'), new Map([['trail', refusedTrail]])); }
       catch (mintErr) { thrown = mintErr; }
       expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
-      expect(thrown).toBeInstanceOf(QlangTypeError);
+      expect(thrown).toBeInstanceOf(QlangError);
       expect(thrown.name).toBe('TrailNotVecError');
-      expect(thrown.context.actualType).toEqual(makeTagKeyword(kindName));
       expect(thrown.context.actualValue).toBe(refusedTrail);
+      expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTagKeyword(kindName));
     }
   });
 });
@@ -187,23 +188,24 @@ describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () =
 
 // ── errorFromQlang ──────────────────────────────────────────────
 
+// A refusal no page of the catalog declares facts for: the facts it
+// carries are those every refusal shares under `::error`.
+const TestsProbeTypeError = declareRefusal('tests/ProbeTypeError');
+
 describe('errorFromQlang', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trail last
   // [D85], [D172].
   it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D158]', async () => {
-    const TestsProbeTypeError = declareShapeError('tests/ProbeTypeError', () => 'bad type');
-    const typeErr = new TestsProbeTypeError({
-      actualValue: 'the-value',
-      actualType: makeTagKeyword('string')
-    });
+    const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
-    expect(typeErr).toBeInstanceOf(QlangTypeError);
+    expect(typeErr).toBeInstanceOf(QlangError);
     expect(typeErr.name).toBe('ProbeTypeError');
     expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
+    expect(desc.get('actualType')).toEqual(makeTagKeyword('string'));
     expect([...desc.keys()]).toEqual(['actualType', 'actualValue', 'trail']);
   });
 
@@ -215,15 +217,13 @@ describe('errorFromQlang', () => {
   });
 
   it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
-    const TestsProbeFactError = declareShapeError('tests/ProbeFactError', () => 'undeclared');
     const env = await langRuntime();
-    expect(() => errorFromQlang(new TestsProbeFactError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
+    expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
   });
 
   it('converts NumberDivByZeroError, whose site has no facts, to the trail alone', async () => {
     const divErr = new NumberDivByZeroError();
     const errorVal = errorFromQlang(divErr, 10, await langRuntime());
-    expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('number/div/ByZeroError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
   });
@@ -317,10 +317,11 @@ describe('errorFromForeign', () => {
 
 describe('error-convert coercion edge cases', () => {
   it('leaves out a fact its site hands as undefined', async () => {
-    const typeErr = new QlangTypeError('test', { index: undefined, actualValue: null });
+    const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
     const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
     expect(errorVal.descriptor.has('index')).toBe(false);
     expect(errorVal.descriptor.get('actualValue')).toBe(null);
+    expect(errorVal.descriptor.get('actualType')).toEqual(makeTagKeyword('null'));
   });
 
   it('errorFromForeign with deeply nested cause chain caps at 8', () => {
@@ -388,8 +389,8 @@ describe('error-convert coercion edge cases', () => {
     // (the pipeValue the step received), which the first stop of the
     // trail names. errorFromQlang dedup skips the redundant lift; the
     // descriptor surface stays single-source-of-truth.
-    const subject = { nested: 1 };
-    const typeErr = new QlangTypeError('subject error', { actualValue: subject, actualType: keyword('map') });
+    const subject = new Map([['nested', 1]]);
+    const typeErr = new TestsProbeTypeError({ actualValue: subject });
     const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
     expect(errorVal.descriptor.has('actualValue')).toBe(false);
     expect(errorVal.descriptor.get('actualType').name).toBe('map');
@@ -402,7 +403,7 @@ describe('error-convert coercion edge cases', () => {
     // surfaces «look here for the offending sub-value».
     const container = [1, 'x', 3];
     const drilled = 'x';
-    const typeErr = new QlangTypeError('element error', { actualValue: drilled, actualType: keyword('string'), index: 1 });
+    const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });
     const errorVal = errorFromQlang(typeErr, container, await langRuntime());
     expect(errorVal.descriptor.get('actualValue')).toBe(drilled);
     expect(errorVal.descriptor.get('index')).toBe(1);

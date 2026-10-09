@@ -1,22 +1,21 @@
 import {
   keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword
+  makeErrorValue, makeTagKeyword, typeKeyword
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
-import { declareInvariantError, recordThrowSiteSpec } from './errors.mjs';
+import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
-recordThrowSiteSpec('quote/ParseError', 'parseError', { operand: '::quote' });
-recordThrowSiteSpec('call/HostFailureError', 'error', { operand: '::call' });
+recordRefusal('quote/ParseError');
+recordRefusal('call/HostFailureError');
 
 // A refusal of the runtime that carries a fact neither its label nor the
 // kind of errors declares: the source of the refusal and the catalog
 // disagree, a defect of the runtime.
 const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
-  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`,
-  { operand: '::builtin' });
+  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
 const ERROR_KIND_NAME = 'error';
 
@@ -37,10 +36,10 @@ export function factsInOrder(tag, facts, env) {
   return ordered;
 }
 
-// The error a refusal of the runtime raised: the facts its site handed,
-// the value refused left out where it is the subject the first stop of
-// the trail holds, so its presence says the site reached below the
-// subject [D85].
+// The error a refusal of the runtime raised: the facts its site handed
+// with the kind of the value refused, the value itself left out where it
+// is the subject the first stop of the trail holds, so its presence says
+// the site reached below the subject [D85], [D172].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTagKeyword(qlangError.address);
   const facts = new Map();
@@ -48,6 +47,7 @@ export function errorFromQlang(qlangError, subject, env) {
     if (value === undefined || (name === 'actualValue' && value === subject)) continue;
     facts.set(name, value);
   }
+  if (qlangError.context.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.context.actualValue));
   return makeErrorValue(tag, factsInOrder(tag, facts, env), {
     location: qlangError.location,
     originalError: qlangError

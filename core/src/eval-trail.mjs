@@ -22,7 +22,7 @@
 // is and passes the steps that skip it, having no stop to join, and a
 // step that answers it raises the refusal its literal meets when it runs.
 
-import { isErrorValue, isTrail, makeErrorValue, makeQuote, typeKeyword, ErrorTrailNotVecError } from './types.mjs';
+import { isErrorValue, isTrail, makeErrorValue, makeQuote, ErrorTrailNotVecError } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';
 import { errorFromQlang } from './error-convert.mjs';
 
@@ -69,7 +69,7 @@ export function answerOfStep(answer, stepQuoteOf, subject, env) {
 function onItsPath(answer, subject, env) {
   const trail = answer.descriptor.get('trail');
   if (isTrail(trail)) return answer;
-  return errorFromQlang(new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail }), subject, env);
+  return errorFromQlang(new ErrorTrailNotVecError({ actualValue: trail }), subject, env);
 }
 
 export function answerOfWord(answer, wordNode, subject) {

@@ -11,7 +11,7 @@
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { declareInvariantError, declarePerSiteError, declareShapeError } from '../errors.mjs';
+import { declareRefusal, declareInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { dispatchQlangValue, printValue } from './print-value.mjs';
 
@@ -77,9 +77,7 @@ function toPlainFallback(v) {
 export const AnyJsonValueNotEncodableError = declareInvariantError(
   'any/JsonValueNotEncodableError',
   ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value; ` +
-    'project around the slot',
-  { operand: 'json' }
-);
+    'project around the slot');
 
 function qMapToPlainObject(m) {
   const obj = {};
@@ -96,11 +94,7 @@ function qMapToPlainObject(m) {
 // `:path` names the keys and indices walked to reach the refused
 // scalar, so `!| /path` locates it inside a document of any depth —
 // the reading a message string cannot carry.
-export const StringParseJsonNumberNotFiniteError = declarePerSiteError(
-  'string/ParseJsonNumberNotFiniteError', 'codecError',
-  () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number',
-  { operand: 'parseJson' }
-);
+export const StringParseJsonNumberNotFiniteError = declareRefusal('string/ParseJsonNumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {
   array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
@@ -133,9 +127,7 @@ function plainObjectToQMap(plainObj, path) {
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the walk served [D167].
-const StringParseJsonTextNotJsonError = declareShapeError('string/ParseJsonTextNotJsonError',
-  ({ message }) => `parseJson: invalid JSON — ${message}`,
-  { operand: 'parseJson' });
+const StringParseJsonTextNotJsonError = declareRefusal('string/ParseJsonTextNotJsonError');
 
 bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
 bindPrim('string/parseJson', subject => {

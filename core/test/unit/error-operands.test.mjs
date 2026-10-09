@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { keyword, makeTagKeyword } from '../../src/types.mjs';
-import { QlangError, QlangTypeError, ArityError } from '../../src/errors.mjs';
+import { QlangError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 // ── raise operand ──────────────────────────────────────────────
@@ -112,9 +112,9 @@ describe('json operand on error values inside containers', () => {
 });
 
 describe('per-site error classes carry unique identity', () => {
-  // Each test catches a concrete error from a known source site
-  // and asserts its unique class name + structured context. The
-  // class name alone identifies the throw location, and tests
+  // Each test catches a concrete error from a known source site and
+  // asserts its class name and the facts the error value holds [D172].
+  // The class name alone identifies the throw location, and tests
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
   //
@@ -122,11 +122,11 @@ describe('per-site error classes carry unique identity', () => {
   // `../helpers/error-assertions.mjs` — runtime errors are error
   // values, the helper unwraps the underlying QlangError off
   // `.originalError` for structured (`.name`, `.context.*`,
-  // `instanceof QlangTypeError`) inspection.
+  // `instanceof QlangError`) inspection.
 
   it('count on a non-container reaches its contract, which names the residences [D72]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('KindAnswersNoVerbError');
     expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
@@ -155,11 +155,12 @@ describe('per-site error classes carry unique identity', () => {
     expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringError');
   });
 
-  it('sum element non-number → AnySumElementNotNumberError', async () => {
-    const caughtErr = await catchOriginalError('[1 "two" 3] | sum');
-    expect(caughtErr.name).toBe('SumElementNotNumberError');
-    expect(caughtErr.context.index).toBe(1);
-    expect(caughtErr.context.actualType.name).toBe('string');
+  it('sum element non-number → AnySumElementNotNumberError, the element and its kind among the facts', async () => {
+    const refused = await evalQuery('[1 "two" 3] | sum');
+    expect(refused.originalError.name).toBe('SumElementNotNumberError');
+    expect(refused.descriptor.get('index')).toBe(1);
+    expect(refused.descriptor.get('actualType').name).toBe('string');
+    expect(refused.descriptor.get('actualValue')).toBe('two');
   });
 
   it('gt across kinds is refused by the law of its part, the kind it met among the facts [D166]', async () => {
@@ -169,26 +170,27 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('projection on non-Map → ProjSubjectNotProjectableError', async () => {
-    const caughtErr = await catchOriginalError('42 | /name');
-    expect(caughtErr.name).toBe('SubjectNotProjectableError');
-    expect(caughtErr.context.key.name).toBe('name');
-    expect(caughtErr.context.actualType.name).toBe('number');
+    const refused = await evalQuery('42 | /name');
+    expect(refused.originalError.name).toBe('SubjectNotProjectableError');
+    expect(refused.descriptor.get('key').name).toBe('name');
+    expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('distribute on a scalar → EachSubjectNotContainerError', async () => {
-    const caughtErr = await catchOriginalError('42 * add 1');
-    expect(caughtErr.name).toBe('SubjectNotContainerError');
-    expect(caughtErr.context.actualType.name).toBe('number');
+  it('distribute on a scalar → EachSubjectNotContainerError, the kind of the subject among the facts', async () => {
+    const refused = await evalQuery('42 * add 1');
+    expect(refused.originalError.name).toBe('SubjectNotContainerError');
+    expect(refused.descriptor.get('actualType').name).toBe('number');
+    expect(refused.descriptor.has('actualValue')).toBe(false);
   });
 
   it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
     // Freeze a raw value, not a verb. Its record holds a
     // non-function, so captured args trigger CallValueTakesNoModifiersError on
     // the value the record holds.
-    const caughtErr = await catchOriginalError('5 | :five / | five 42');
-    expect(caughtErr.name).toBe('ValueTakesNoModifiersError');
-    expect(caughtErr.context.name.name).toBe('five');
-    expect(caughtErr.context.actualType.name).toBe('number');
+    const refused = await evalQuery('5 | :five / | five 42');
+    expect(refused.originalError.name).toBe('ValueTakesNoModifiersError');
+    expect(refused.descriptor.get('name').name).toBe('five');
+    expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
   it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
@@ -204,10 +206,10 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a tag of a pair that is a keyword is refused by the primitive of tag', async () => {
-    const caughtErr = await catchOriginalError('[:foo 42] | tag');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('PairTagNotTagError');
-    expect(caughtErr.context.actualType.name).toBe('keyword');
+    const refused = await evalQuery('[:foo 42] | tag');
+    expect(refused.originalError).toBeInstanceOf(QlangError);
+    expect(refused.originalError.name).toBe('PairTagNotTagError');
+    expect(refused.descriptor.get('actualType').name).toBe('keyword');
   });
 
   it('a value and a tag one vector holds meet by a name that keeps the vector', async () => {
@@ -260,11 +262,11 @@ describe('per-site error classes carry unique identity', () => {
 
   it('reduce with a non-binary reducer → AnyReduceReducerNotBinaryError (distinct from subject site)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
+    expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('ReduceReducerNotBinaryError');
   });
 
-  it('all per-site type errors inherit QlangTypeError and kind', async () => {
+  it('every refusal of the runtime is one kind of error, its message its address [D172]', async () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',
@@ -276,9 +278,8 @@ describe('per-site error classes carry unique identity', () => {
     ];
     for (const q of queries) {
       const caughtErr = await catchOriginalError(q);
-      expect(caughtErr).toBeInstanceOf(QlangTypeError);
       expect(caughtErr).toBeInstanceOf(QlangError);
-      expect(caughtErr.kind).toBe('typeError');
+      expect(caughtErr.message).toBe(`::${caughtErr.address}`);
     }
   });
 
@@ -299,11 +300,10 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce arityError sites carry unique per-site identity', () => {
-  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError as an ArityError', async () => {
+describe('coalesce refuses a call with no alternatives at a site of its own', () => {
+  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError', async () => {
     const caughtErr = await catchOriginalError('{} | coalesce');
-    expect(caughtErr).toBeInstanceOf(ArityError);
-    expect(caughtErr.kind).toBe('arityError');
+    expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('CoalesceNoAlternativesError');
   });
 });

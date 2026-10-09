@@ -2,10 +2,10 @@
 // source declares under `::vec` [D153] and a plain function over the
 // vector the walk served [D80], [D167].
 
-import { declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
+import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const VecTableRowNotMapError     = declareElementError('vec/TableRowNotMapError',     'table', 'map');
+const VecTableRowNotMapError     = declareRefusal('vec/TableRowNotMapError');
 
 // A cell is a view at the boundary: a String prints bare, null as an
 // empty cell, and every other value as its literal on one line.
@@ -28,7 +28,7 @@ function columnOrderOf(rows) {
 function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
-    if (!(row instanceof Map)) throw new VecTableRowNotMapError(rowIndex, row);
+    if (!(row instanceof Map)) throw new VecTableRowNotMapError({ index: rowIndex, actualValue: row });
   });
   const columnNames = columnOrderOf(subject);
   const widths = columnNames.map(columnName => columnName.length);

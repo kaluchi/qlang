@@ -8,10 +8,9 @@
 //
 // The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
-import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL } from '../types.mjs';
+import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL, typeKeyword } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import { declareComparabilityError, declareElementError } from '../operand-errors.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // A map minus or inter another map or a vector of keys drops or keeps
@@ -19,15 +18,15 @@ import { bindPrim } from '../primitives.mjs';
 // names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
 // string naming a key as `at` and `has` read it, and any other element
 // refused where it stands [D139].
-const MapMinusKeyNotKeywordOrStringError = declareElementError('map/MinusKeyNotKeywordOrStringError', '::map/minus', ['keyword', 'string']);
-const MapInterKeyNotKeywordOrStringError = declareElementError('map/InterKeyNotKeywordOrStringError', '::map/inter', ['keyword', 'string']);
+const MapMinusKeyNotKeywordOrStringError = declareRefusal('map/MinusKeyNotKeywordOrStringError');
+const MapInterKeyNotKeywordOrStringError = declareRefusal('map/InterKeyNotKeywordOrStringError');
 
 function keyNamesOf(keysValue, KeyError) {
   if (isQMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
     if (isKeyword(keyOfEntry)) return keyOfEntry.name;
     if (isString(keyOfEntry)) return keyOfEntry;
-    throw new KeyError(index, keyOfEntry);
+    throw new KeyError({ index, actualValue: keyOfEntry });
   }));
 }
 
@@ -61,22 +60,13 @@ function mergeSets(left, right, keeps) {
   return makeSet(merged);
 }
 
-const VecUnionOperandsMismatchedError = declareComparabilityError('vec/UnionOperandsMismatchedError', 'union');
-const VecMinusOperandsMismatchedError = declareComparabilityError('vec/MinusOperandsMismatchedError', 'minus');
-const VecInterOperandsMismatchedError = declareComparabilityError('vec/InterOperandsMismatchedError', 'inter');
+const VecUnionOperandsMismatchedError = declareRefusal('vec/UnionOperandsMismatchedError');
+const VecMinusOperandsMismatchedError = declareRefusal('vec/MinusOperandsMismatchedError');
+const VecInterOperandsMismatchedError = declareRefusal('vec/InterOperandsMismatchedError');
 
-const VecUnionOfNothingError = declareShapeError('vec/UnionOfNothingError',
-  () => 'union (bare form) requires a non-empty Vec of operands',
-  { operand: 'union' }
-);
-const VecMinusOfNothingError = declareShapeError('vec/MinusOfNothingError',
-  () => 'minus (bare form) requires a non-empty Vec of operands',
-  { operand: 'minus' }
-);
-const VecInterOfNothingError = declareShapeError('vec/InterOfNothingError',
-  () => 'inter (bare form) requires a non-empty Vec of operands',
-  { operand: 'inter' }
-);
+const VecUnionOfNothingError = declareRefusal('vec/UnionOfNothingError');
+const VecMinusOfNothingError = declareRefusal('vec/MinusOfNothingError');
+const VecInterOfNothingError = declareRefusal('vec/InterOfNothingError');
 
 function unionPair(left, right) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, UNION_KEEPS);
@@ -94,7 +84,7 @@ function unionPair(left, right) {
     }
     return new Map(merged);
   }
-  throw new VecUnionOperandsMismatchedError(left, right);
+  throw new VecUnionOperandsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
 }
 
 function minusPair(left, right) {
@@ -103,7 +93,7 @@ function minusPair(left, right) {
     const rightNames = keyNamesOf(right, MapMinusKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => !rightNames.has(k)));
   }
-  throw new VecMinusOperandsMismatchedError(left, right);
+  throw new VecMinusOperandsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
 }
 
 function interPair(left, right) {
@@ -112,7 +102,7 @@ function interPair(left, right) {
     const rightNames = keyNamesOf(right, MapInterKeyNotKeywordOrStringError);
     return new Map([...left].filter(([k]) => rightNames.has(k)));
   }
-  throw new VecInterOperandsMismatchedError(left, right);
+  throw new VecInterOperandsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
 }
 
 // A pair's answer for the verbs of sets and maps, and the fold of a

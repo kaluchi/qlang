@@ -6,21 +6,17 @@ import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
-import {
-  declareSubjectError,
-  declareElementError
-} from '../operand-errors.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `distinct`
 // mints [D16], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
 // are one value.
-const SetPayloadNotVecError = declareSubjectError('set/PayloadNotVecError', '::set', 'vec');
+const SetPayloadNotVecError = declareRefusal('set/PayloadNotVecError');
 
 function setConstructor(payload) {
-  if (!isVec(payload)) throw new SetPayloadNotVecError(payload);
+  if (!isVec(payload)) throw new SetPayloadNotVecError({ actualValue: payload });
   return makeSet(payload);
 }
 
@@ -31,18 +27,18 @@ bindPrim('set/construct', setConstructor);
 // value and print as the latter, and a payload of
 // another kind is refused at the site. A vector or a map under a tag of
 // its own reads as the bare one.
-const NullPayloadNotNullError       = declareSubjectError('null/PayloadNotNullError',       '::null',    'null');
-const BooleanPayloadNotBooleanError = declareSubjectError('boolean/PayloadNotBooleanError', '::boolean', 'boolean');
-const NumberPayloadNotNumberError   = declareSubjectError('number/PayloadNotNumberError',   '::number',  'number');
-const StringPayloadNotStringError   = declareSubjectError('string/PayloadNotStringError',   '::string',  'string');
-const KeywordPayloadNotKeywordError = declareSubjectError('keyword/PayloadNotKeywordError', '::keyword', 'keyword');
-const TagPayloadNotTagError         = declareSubjectError('tag/PayloadNotTagError',         '::tag',     'tag');
-const VecPayloadNotVecError         = declareSubjectError('vec/PayloadNotVecError',         '::vec',     'vec');
-const MapPayloadNotMapError         = declareSubjectError('map/PayloadNotMapError',         '::map',     ['map', 'vec']);
+const NullPayloadNotNullError       = declareRefusal('null/PayloadNotNullError');
+const BooleanPayloadNotBooleanError = declareRefusal('boolean/PayloadNotBooleanError');
+const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberError');
+const StringPayloadNotStringError   = declareRefusal('string/PayloadNotStringError');
+const KeywordPayloadNotKeywordError = declareRefusal('keyword/PayloadNotKeywordError');
+const TagPayloadNotTagError         = declareRefusal('tag/PayloadNotTagError');
+const VecPayloadNotVecError         = declareRefusal('vec/PayloadNotVecError');
+const MapPayloadNotMapError         = declareRefusal('map/PayloadNotMapError');
 
 function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
   return payload => {
-    if (!isOfKind(payload)) throw new ErrorCls(payload);
+    if (!isOfKind(payload)) throw new ErrorCls({ actualValue: payload });
     return bareValueOf(payload);
   };
 }
@@ -54,8 +50,7 @@ bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullErro
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
 // A number is a finite double: an answer brought under `::number` that
 // left the doubles' range is refused here, once for every word [D169].
-const NumberNotFiniteError = declareShapeError('number/NotFiniteError',
-  () => 'a number is a finite double, and the answer left their range', { operand: '::number' });
+const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
 bindPrim('number/construct', payload => {
   const number = finiteNumber(payload);
@@ -71,21 +66,21 @@ bindPrim('vec/construct',     coreKindConstructor(isVec, VecPayloadNotVecError, 
 // segments: a key is a keyword, or a string or a number naming the
 // keyword of its text, as the key of `groupBy` [D130], and of two pairs
 // with one key the last wins [D138].
-const MapElementNotPairError = declareElementError('map/ElementNotPairError', '::map', 'pair');
-const MapKeyNotKeywordError  = declareElementError('map/KeyNotKeywordError',  '::map', ['keyword', 'string', 'number']);
+const MapElementNotPairError = declareRefusal('map/ElementNotPairError');
+const MapKeyNotKeywordError  = declareRefusal('map/KeyNotKeywordError');
 
 function keyNameOfPair(pairKey, index) {
   if (isKeyword(pairKey)) return pairKey.name;
   if (isString(pairKey) || isNumber(pairKey)) return String(pairKey);
-  throw new MapKeyNotKeywordError(index, pairKey);
+  throw new MapKeyNotKeywordError({ index, actualValue: pairKey });
 }
 
 function mapConstructor(payload) {
   if (isQMap(payload)) return bareMapOf(payload);
-  if (!isVec(payload)) throw new MapPayloadNotMapError(payload);
+  if (!isVec(payload)) throw new MapPayloadNotMapError({ actualValue: payload });
   const built = new Map();
   payload.forEach((pair, index) => {
-    if (!isVec(pair) || pair.length !== 2) throw new MapElementNotPairError(index, pair);
+    if (!isVec(pair) || pair.length !== 2) throw new MapElementNotPairError({ index, actualValue: pair });
     built.set(keyNameOfPair(pair[0], index), pair[1]);
   });
   return built;
@@ -100,13 +95,13 @@ bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.
-const DocPayloadNotVecError     = declareSubjectError('doc/PayloadNotVecError', '::doc', 'vec');
-const DocElementNotSegmentError = declareElementError('doc/ElementNotSegmentError', '::doc', 'segment');
+const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
+const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
 
 function docConstructor(payload) {
-  if (!isVec(payload)) throw new DocPayloadNotVecError(payload);
+  if (!isVec(payload)) throw new DocPayloadNotVecError({ actualValue: payload });
   payload.forEach((element, index) => {
-    if (!isDocSegment(element)) throw new DocElementNotSegmentError(index, element);
+    if (!isDocSegment(element)) throw new DocElementNotSegmentError({ index, actualValue: element });
   });
   return makeDoc(payload);
 }
@@ -116,10 +111,10 @@ bindPrim('doc/construct', docConstructor);
 // `::builtin{…}` — the descriptor, the value of a name under a label
 // that a primitive answers, the `construct` of a kind among them [D164],
 // [D169]; its fields stay flat under its tag.
-const BuiltinPayloadNotMapError = declareSubjectError('builtin/PayloadNotMapError', '::builtin', 'map');
+const BuiltinPayloadNotMapError = declareRefusal('builtin/PayloadNotMapError');
 
 function builtinConstructor(payload) {
-  if (!isQMap(payload)) throw new BuiltinPayloadNotMapError(payload);
+  if (!isQMap(payload)) throw new BuiltinPayloadNotMapError({ actualValue: payload });
   const descriptor = new Map();
   for (const [k, v] of payload) descriptor.set(k, v);
   stampTagHeader(descriptor, BUILTIN_TAG);
@@ -128,13 +123,8 @@ function builtinConstructor(payload) {
 
 bindPrim('builtin/construct', builtinConstructor);
 
-const AnyTagPairTagNotTagError = declareShapeError('any/tag/PairTagNotTagError',
-  ({ actualType }) => `tag reads a pair [::Tag value] whose first element is a tag name, got ::${actualType.name}`,
-  { operand: 'tag', expectedType: 'tagKeyword' });
-const AnyTagSubjectNotPairError = declareShapeError('any/tag/SubjectNotPairError',
-  ({ actualType }) => `tag (bare form) requires a pair [::Tag value] as its subject, got ${actualType.name}`,
-  { operand: 'tag', position: 'subject', expectedType: 'vec' }
-);
+const AnyTagPairTagNotTagError = declareRefusal('any/tag/PairTagNotTagError');
+const AnyTagSubjectNotPairError = declareRefusal('any/tag/SubjectNotPairError');
 
 // The value beneath a tag: a copy of the vector or the map without the
 // tag, a set's vector among them, or the value a wrapper holds.
@@ -159,12 +149,11 @@ bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)
 async function mintPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
     throw new AnyTagSubjectNotPairError({
-      actualType: typeKeyword(pair),
       actualValue: pair
     });
   }
   const [pairTag, value] = pair;
-  if (!isTagKeyword(pairTag)) throw new AnyTagPairTagNotTagError({ actualType: typeKeyword(pairTag), actualValue: pairTag });
+  if (!isTagKeyword(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
   return await mintUnderTag(state, pairTag, value);
 }
 

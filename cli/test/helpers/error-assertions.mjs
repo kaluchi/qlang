@@ -1,74 +1,47 @@
-// Three-legged per-site assertion helper for the CLI operand tests.
+// Assertions for the refusals of the command line's operands.
 //
-// Every operand error site the cli binds lifts its throw onto the
-// fail-track as a qlang error value. The lift stores the per-site
-// tag under the descriptor's `:kind` slot (the universal
-// tagged-value identity invariant — `result !| type` surfaces it
-// as `::cli/OutSubjectNotStringError` and the like) and preserves the
-// original JS instance in the opaque `originalError` slot on the
-// error value (not qlang-visible — for host-boundary re-throwing
-// and for these assertions).
-//
-// A disciplined per-site assertion pins three independent legs of
-// the contract:
-//
-//   1. descriptor-visible tag identity — `:kind` carries
-//      the TagKeyword every qlang-side `!|` handler can match on
-//      through the `type` operand.
-//   2. JS-side per-site identity — `errorValue.originalError instanceof
-//      QlangTypeError` pins the inheritance root so every operand
-//      throw is uniformly reachable by embedders who want to
-//      catch type-errors generically. The per-site class name is
-//      re-asserted on the instance (`originalError.name`) so the
-//      descriptor TagKeyword and the JS instance stay in sync.
-//   3. structured context — `originalError.context` matches the
-//      expected shape (operand + position + actualType, or the
-//      declareShapeError site's custom payload).
-//
-// Context-shape drift (silent rename of a field a downstream catch
-// block reads) fails leg 3. Descriptor/instance desync fails leg 1
-// or 2.
+// A refusal reaches the query as an error value: its tag is the address
+// of what refused, `result !| type` answering
+// `::any/OutSubjectNotStringError` and the like, and its facts stand in
+// its descriptor in the order the catalog declares them [D172]. A
+// refusal a site of an operand raised keeps the JavaScript instance it
+// was raised as in the opaque `originalError` slot, which a host
+// re-throws, one kind of error named by the same address.
 
 import { expect } from 'vitest';
-import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core';
+import { isErrorValue } from '@kaluchi/qlang-core';
+import { QlangError } from '@kaluchi/qlang-core/errors';
+
+// A fact matches the shape listed for it: a value of the language that is
+// an object, a keyword or a tag, by the fields listed, any other by value.
+function expectFact(errorValue, fact, expected) {
+  const actual = errorValue.descriptor.get(fact);
+  if (expected !== null && typeof expected === 'object') expect(actual, `the fact :${fact}`).toMatchObject(expected);
+  else expect(actual, `the fact :${fact}`).toEqual(expected);
+}
 
 // expectRefusalByAddress(cellEntry, address, expectedFacts) → error value
 //
-// A refusal named by the address of what refused, a name's subject or a
-// part's law [D166]: an error value no JS throw stands behind, its facts
-// in its descriptor.
+// A refusal named by its address, the facts listed among those its error
+// value holds: a name's subject, a part's law, or a site of an operand.
 export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
   expect(cellEntry.error, 'cellEntry.error must be null (the refusal is a value)').toBeNull();
   const errorValue = cellEntry.result;
   expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
   expect(errorValue.tag.name).toBe(address);
-  for (const [fact, expected] of Object.entries(expectedFacts)) {
-    expect(errorValue.descriptor.get(fact)).toMatchObject(expected);
-  }
+  for (const [fact, expected] of Object.entries(expectedFacts)) expectFact(errorValue, fact, expected);
   return errorValue;
 }
 
-// expectOperandErrorThrown(cellEntry, address, expectedContext)
+// expectOperandErrorThrown(cellEntry, address, expectedFacts)
 //   → the JS error instance (for further ad-hoc assertions)
 //
-// `cellEntry.error` must be null (the throw was caught and lifted,
-// not propagated as a parse/setup failure). `expectedContext` is a
-// partial shape — only listed fields are checked, so a test can pin
-// the per-site-significant subset without re-asserting invariants
-// every site already shares.
-export function expectOperandErrorThrown(cellEntry, address, expectedContext) {
-  expect(cellEntry.error, 'cellEntry.error must be null (throw is lifted onto fail-track)').toBeNull();
-  const errorValue = cellEntry.result;
-  expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
-
-  const identityTag = errorValue.tag;
-  expect(isTagKeyword(identityTag), ':kind must be a TagKeyword').toBe(true);
-  expect(identityTag.name).toBe(address);
-
-  const originalError = errorValue.originalError;
-  expect(originalError, 'originalError must preserve the JS throw instance').toBeInstanceOf(QlangTypeError);
-  expect(originalError.address).toBe(address);
-  expect(originalError.context).toMatchObject(expectedContext);
-
-  return originalError;
+// A refusal a site of an operand raised, lifted onto the fail track
+// rather than failing the cell: its error value as above, and the
+// instance it was raised as, named by the same address.
+export function expectOperandErrorThrown(cellEntry, address, expectedFacts) {
+  const errorValue = expectRefusalByAddress(cellEntry, address, expectedFacts);
+  expect(errorValue.originalError, 'originalError must preserve the JS throw instance').toBeInstanceOf(QlangError);
+  expect(errorValue.originalError.address).toBe(address);
+  return errorValue.originalError;
 }

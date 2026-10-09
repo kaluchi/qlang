@@ -7,7 +7,7 @@
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
 import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf } from './nouns.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import {
   bindingValueOf, isDoc, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
   makeTagKeyword, makeTaggedInstance, typeKeyword
@@ -26,10 +26,7 @@ export async function mintUnderTag(state, tag, value) {
 
 // A call no kind of whose subject answers its word names what the reader
 // needs: where the word lives [D146], [D169].
-export const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
-  ({ name, addresses, actualType }) =>
-    `${actualType.literal} has no word ${name.name}; the words of the name live on ${[...addresses].map(address => address.literal).join(' ')}`,
-  { operand: '::call' });
+export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
 // ── kinds ──────────────────────────────────────────────────────
 

@@ -1,13 +1,10 @@
-// Tests for src/primitives.mjs — the primitive registry that bridges
-// qlang-level Map-form binding descriptors (carrying :impl
-// keywords) and their JS-level executable impls in runtime/*.mjs.
+// Tests for src/primitives.mjs — the table of the implementations of
+// the language by the address of the verb or the kind each serves,
+// which the bootstrap hands each source of the language [D157].
 //
-// Every test binds into an isolated registry via createPrimitiveRegistry()
-// so state does not leak between cases; PRIMITIVE_REGISTRY has a small
-// sanity test that confirms it exists and behaves like any other
-// instance but does NOT mutate it (production runtime/*.mjs modules
-// will bind into it under Variant B, and tests here run before those
-// modules exist so polluting it would poison later steps).
+// Every test binds into an isolated table via createPrimitiveRegistry()
+// so state does not leak between cases; PRIMITIVE_REGISTRY, which the
+// runtime modules bind into as they load, is read and never bound into.
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
@@ -15,7 +12,7 @@ import {
   PRIMITIVE_REGISTRY
 } from '../../src/primitives.mjs';
 
-import { QlangError, QlangInvariantError } from '../../src/errors.mjs';
+import { QlangInvariantError } from '../../src/errors.mjs';
 
 describe('createPrimitiveRegistry — lifecycle', () => {
   let registry;
@@ -34,7 +31,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
     const impl = (state, _lambdas) => state;
     registry.bind(k, impl);
     expect(registry.size).toBe(1);
-    expect(registry.resolve(k)).toBe(impl);
+    expect(registry.implsUnder('qlang/test-prim')[k]).toBe(impl);
   });
 
   it('bind returns the key to enable fluent re-export', () => {
@@ -45,7 +42,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
     const impl = () => null;
     const returned = registry.bind(k, impl);
     expect(returned).toBe(k);
-    expect(registry.resolve(returned)).toBe(impl);
+    expect(registry.implsUnder('qlang/test-prim')[returned]).toBe(impl);
   });
 
   it('has(key) reports binding state', () => {
@@ -73,12 +70,12 @@ describe('createPrimitiveRegistry — lifecycle', () => {
     expect(registry.isSealed).toBe(true);
   });
 
-  it('resolve still works after seal', () => {
+  it('the implementations stay readable after seal', () => {
     const k = 'qlang/test-prim/foo';
     const impl = () => 42;
     registry.bind(k, impl);
     registry.seal();
-    expect(registry.resolve(k)).toBe(impl);
+    expect(registry.implsUnder('qlang/test-prim')[k]).toBe(impl);
     expect(registry.has(k)).toBe(true);
   });
 });
@@ -112,7 +109,6 @@ describe('createPrimitiveRegistry — bind error classes', () => {
     } catch (e) {
       expect(e).toBeInstanceOf(QlangInvariantError);
       expect(e.name).toBe('AddressNotStringError');
-      expect(e.kind).toBe('invariantError');
       expect(e.context.actualType).toBe('object');
     }
   });
@@ -168,49 +164,6 @@ describe('createPrimitiveRegistry — bind error classes', () => {
   });
 });
 
-describe('createPrimitiveRegistry — resolve error class', () => {
-  let registry;
-
-  beforeEach(() => {
-    registry = createPrimitiveRegistry();
-  });
-
-  it('throws BuiltinImplementationNotHandedError on missing key', () => {
-    const k = 'qlang/test-prim/missing';
-    expect(() => registry.resolve(k))
-      .toThrow(/no implementation is handed for qlang\/test-prim\/missing/);
-  });
-
-  it('unbound-key is a QlangError (lifts to fail-track)', () => {
-    // Critical classification: this is a DATA error, not an invariant.
-    // A hand-crafted descriptor Map with a bad :impl keyword
-    // should fail gracefully through evalNode's try/catch and become
-    // an error value, not crash the evaluator.
-    const k = 'qlang/test-prim/missing';
-    try {
-      registry.resolve(k);
-      expect.fail('should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(QlangError);
-      expect(e).not.toBeInstanceOf(QlangInvariantError);
-      expect(e.kind).toBe('primitiveUnbound');
-      expect(e.name).toBe('ImplementationNotHandedError');
-      expect(e.context.name).toContain('qlang/test-prim/missing');
-    }
-  });
-
-  it('tolerates non-keyword lookup with a readable label', () => {
-    // resolve() is stricter than bind() because it only throws
-    // BuiltinImplementationNotHandedError when the key is unknown — it does not
-    // separately validate the key type. A non-keyword lookup
-    // produces the missing-key error with a typeof label.
-    expect(() => registry.resolve('not-a-keyword'))
-      .toThrow(/no implementation is handed for /);
-    expect(() => registry.resolve(42))
-      .toThrow(/no implementation is handed for 42/);
-  });
-});
-
 describe('createPrimitiveRegistry — isolation between instances', () => {
   it('isolated instances do not share state', () => {
     const a = createPrimitiveRegistry();
@@ -219,7 +172,6 @@ describe('createPrimitiveRegistry — isolation between instances', () => {
     a.bind(k, () => 'a-impl');
     expect(a.has(k)).toBe(true);
     expect(b.has(k)).toBe(false);
-    expect(() => b.resolve(k)).toThrow(/no implementation is handed/);
   });
 
   it('sealing one instance does not seal another', () => {
@@ -237,7 +189,7 @@ describe('PRIMITIVE_REGISTRY', () => {
   it('is the module-level singleton with the registry shape', () => {
     expect(PRIMITIVE_REGISTRY).toBeDefined();
     expect(typeof PRIMITIVE_REGISTRY.bind).toBe('function');
-    expect(typeof PRIMITIVE_REGISTRY.resolve).toBe('function');
+    expect(typeof PRIMITIVE_REGISTRY.implsUnder).toBe('function');
     expect(typeof PRIMITIVE_REGISTRY.has).toBe('function');
     expect(typeof PRIMITIVE_REGISTRY.seal).toBe('function');
     expect(typeof PRIMITIVE_REGISTRY.isSealed).toBe('boolean');

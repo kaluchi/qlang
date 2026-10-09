@@ -1,5 +1,5 @@
 {"name":"projection-on-number","query":"42 | /foo","expect":"::proj/SubjectNotProjectableError!{\n  :key :foo\n  :actualType ::number\n  :trail [\n    {\n      :step ~(/foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
-{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::proj/IndexNotIntegerError!{\n  :key :foo\n  :trail [\n    {\n      :step ~(/foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"projection-on-set-named-key","query":"#[:a] | /foo","expect":"::proj/IndexNotIntegerError!{\n  :key :foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(/foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":x"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":z"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::proj/IndexOutOfBoundsError"}

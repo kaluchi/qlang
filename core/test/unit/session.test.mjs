@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
-import { QlangInvariantError, declareShapeError } from '../../src/errors.mjs';
+import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
 
 describe('createSession lifecycle', () => {
   it('creates a session seeded with langRuntime builtins', async () => {
@@ -198,7 +198,7 @@ describe('the sources a host hands [D153]', () => {
   });
 
   it('declares a refusal of the host at its address again in every session of the process', async () => {
-    declareShapeError('SessionProbeRefusalError', () => 'a refusal of the host', { operand: '::Probe' });
+    declareRefusal('Probe/SessionProbeRefusalError');
     const sources = [{ uri: 'tests/refusal', source: ':Probe {} | :Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|' }];
     await createSession({ sources });
     expect((await (await createSession({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);

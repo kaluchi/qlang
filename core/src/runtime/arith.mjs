@@ -6,18 +6,13 @@
 //
 // The names live in lib/qlang/number.qlang.
 
-import { declareNumericDomainError, declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { typeKeyword } from '../types.mjs';
+import {  } from '../types.mjs';
 
-export const NumberDivByZeroError = declareNumericDomainError(
-  'number/div/ByZeroError', () => 'division by zero', { operand: 'div' }
-);
+export const NumberDivByZeroError = declareRefusal('number/div/ByZeroError');
 
-const NumberRoundDigitsNotIntegerError = declareShapeError('number/round/DigitsNotIntegerError',
-  ({ actualValue }) => `round takes a whole number of digits, got ${actualValue}`,
-  { operand: 'round', expectedType: 'integer' }
-);
+const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
 
 bindPrim('number/add', (augend, addend) => augend + addend);
 bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
@@ -30,7 +25,7 @@ bindPrim('number/div', (dividend, divisor) => {
 // A number rounds half away from zero to the digits after the point the
 // call gives, a negative count rounding to tens and beyond [D132].
 bindPrim('number/round', (subject, digits) => {
-  if (!Number.isInteger(digits)) throw new NumberRoundDigitsNotIntegerError({ actualValue: digits, actualType: typeKeyword(digits) });
+  if (!Number.isInteger(digits)) throw new NumberRoundDigitsNotIntegerError({ actualValue: digits });
   const factor = 10 ** digits;
   const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;
   return rounded === 0 ? 0 : rounded;

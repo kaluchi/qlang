@@ -6,12 +6,12 @@
 // so does a verb it names or a verb handed in its place [D67].
 //
 // Each per-site error class is asserted three ways per review
-// discipline: class name, `instanceof QlangTypeError`, and structured
+// discipline: class name, `instanceof QlangError`, and structured
 // context fields via the error-value descriptor.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { QlangTypeError } from '../../src/errors.mjs';
+import { QlangError } from '../../src/errors.mjs';
 import { isQMap, isQSet, keyword, makeTagKeyword } from '../../src/types.mjs';
 import {
   expectErrorThrown,
@@ -94,7 +94,7 @@ describe('filter — container polymorphism', () => {
 
   it('a non-container subject is refused where filter is looked up, on the fail-track [D169]', async () => {
     const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'call/KindAnswersNoVerbError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
+    const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
@@ -150,7 +150,7 @@ describe('every — container polymorphism', () => {
 
   it('a non-container subject is refused where every is looked up, on the fail-track [D169]', async () => {
     const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'call/KindAnswersNoVerbError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
+    const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
@@ -194,7 +194,7 @@ describe('any — container polymorphism', () => {
 
   it('a non-container subject is refused where any is looked up, on the fail-track [D169]', async () => {
     const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'call/KindAnswersNoVerbError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
+    const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 });

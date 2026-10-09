@@ -54,9 +54,9 @@ catalog: a doc whose laws run, each under a caption of its claim, whose
 links open the pages it rests on. An error leads to the page of its site.
 
 Check: a new verb, kind or refusal has its page under the noun of its kind,
-a refusal declared at its site, one tag for one site, through the
-factories of `core/src/errors.mjs` and `core/src/operand-errors.mjs`
-until decision D46 makes each a kind of the catalog;
+a refusal declared at its site by its address, one tag for one site,
+through `declareRefusal` of `core/src/errors.mjs`, each fact it carries
+a definition under its label or under `::error` (decision D172);
 a change of behaviour changes the laws of the page that states it; a page
 names no JavaScript file or symbol and no decision record; a markdown text
 that retells the catalog is a finding. Run `qlang '<address> | runLaws'`

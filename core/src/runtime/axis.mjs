@@ -28,7 +28,7 @@ import {
 import {
   addressesOf, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
@@ -36,25 +36,11 @@ import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
-export const AnySourceBindingNotFoundError = declareShapeError('any/SourceBindingNotFoundError',
-  ({ name }) =>
-    `source: no binding found for ${name.literal}`,
-  { operand: 'source' });
-export const AnyDocBindingNotFoundError = declareShapeError('any/DocBindingNotFoundError',
-  ({ name }) =>
-    `doc: no binding found for ${name.literal}`,
-  { operand: 'doc' });
-const AnyBindingNotFoundError = declareShapeError('any/BindingNotFoundError',
-  ({ name }) =>
-    `binding: no binding found for ${name.literal}`,
-  { operand: 'binding' });
-const AnyDocAnchorNotKeywordError = declareShapeError('any/DocAnchorNotKeywordError',
-  ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
-  { operand: 'doc', expectedType: 'keyword' });
-export const AnyExplainBindingNotFoundError = declareShapeError('any/ExplainBindingNotFoundError',
-  ({ name }) =>
-    `explain: no binding found for ${name.literal}`,
-  { operand: 'explain' });
+export const AnySourceBindingNotFoundError = declareRefusal('any/SourceBindingNotFoundError');
+export const AnyDocBindingNotFoundError = declareRefusal('any/DocBindingNotFoundError');
+const AnyBindingNotFoundError = declareRefusal('any/BindingNotFoundError');
+const AnyDocAnchorNotKeywordError = declareRefusal('any/DocAnchorNotKeywordError');
+export const AnyExplainBindingNotFoundError = declareRefusal('any/ExplainBindingNotFoundError');
 
 // The name a refusal says a subject read: a keyword or a tag name
 // itself, and for every other value the tag of its kind, the kind `type`
@@ -191,7 +177,7 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 function recordAlongPath(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocBindingNotFoundError);
   return anchors.reduce((reached, anchor, index) => {
-    if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
+    if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualValue: anchor });
     return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocBindingNotFoundError);
   }, subject);
 }

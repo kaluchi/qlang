@@ -3,20 +3,18 @@
 // each a plain function over the subject and the parts of its object
 // [D80], [D167].
 
-import {
-  declareSubjectError
-} from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
+import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const AnyOutSubjectNotStringError = declareSubjectError('any/OutSubjectNotStringError', '@out', 'string');
-const AnyErrSubjectNotStringError = declareSubjectError('any/ErrSubjectNotStringError', '@err', 'string');
+const AnyOutSubjectNotStringError = declareRefusal('any/OutSubjectNotStringError');
+const AnyErrSubjectNotStringError = declareRefusal('any/ErrSubjectNotStringError');
 
 // A writer takes the text the call gives, or bare, its subject, which is
 // then a string; the subject passes on either way.
 function makeWriter(writer, recordEffect, SubjectError) {
   return (subject, text) => {
     const written = text === null ? subject : text;
-    if (typeof written !== 'string') throw new SubjectError(subject);
+    if (typeof written !== 'string') throw new SubjectError({ actualValue: subject });
     writer(written + '\n');
     recordEffect();
     return subject;

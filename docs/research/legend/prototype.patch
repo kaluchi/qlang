@@ -1,0 +1,166 @@
+diff --git a/core/src/eval.mjs b/core/src/eval.mjs
+index f8245e9..c046131 100644
+--- a/core/src/eval.mjs
++++ b/core/src/eval.mjs
+@@ -2,6 +2,7 @@
+ // the steps, each node a function `(node, state) → state`.
+ 
+ import { parse } from './parse.mjs';
++import { ROOT_KEY } from './env-keys.mjs';
+ import {
+   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
+ } from './state.mjs';
+@@ -20,7 +21,7 @@ import { nearestNames, nearestTagNames } from './nearest-names.mjs';
+ import { classifyEffect } from './effect.mjs';
+ import { declareSubjectError } from './operand-errors.mjs';
+ import {
+-  isVec, isQMap, isErrorValue,
++  isVec, isQMap, isErrorValue, isQuote, isDoc,
+   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
+   makeDoc, makeSet,
+   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+@@ -340,6 +341,7 @@ async function evalSetLit(node, state) {
+ export async function mintTaggedInstance(tagName, payload, state) {
+   const declared = bindingValueOf(nodeOf(state.env, tagName));
+   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
++  if (isDoc(declared)) return await underPage(tagName, declared, payload, state);
+   if (!isSpec(declared)) {
+     throw new ConstructTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
+   }
+@@ -352,6 +354,20 @@ export async function mintTaggedInstance(tagName, payload, state) {
+   return makeTaggedInstance(makeTagKeyword(tagName), constructorResult);
+ }
+ 
++// A label declared by its page lays its tag over a payload that holds
++// every `::holds` of the page, each run on the value under the label.
++async function underPage(tagName, page, payload, state) {
++  const labelled = makeTaggedInstance(makeTagKeyword(tagName), payload);
++  for (const segment of page) {
++    if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
++    const answer = (await evalBody(astOfQuote(segment.payload), nestState(state, labelled, state.env))).pipeValue;
++    if (answer !== true) {
++      return makeErrorValue(makeTagKeyword(`${tagName}/HoldsNotMetError`), new Map([['holds', segment.payload], ['actualValue', payload]]));
++    }
++  }
++  return labelled;
++}
++
+ async function evalTaggedLit(node, state) {
+   const tagName = node.tag;
+   const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
+@@ -423,7 +439,8 @@ async function evalBindStep(node, state) {
+ // subject of its own [D72], [D153]; one under a noun that is no kind
+ // serves any value.
+ function declareVerbFirst(verb, name, nounName, env) {
+-  const underKind = nounName !== null && isSpec(bindingValueOf(nodeOf(env, nounName)));
++  const nounValue = nounName === null ? null : bindingValueOf(nodeOf(env, nounName));
++  const underKind = nounName !== null && (isSpec(nounValue) || isDoc(nounValue));
+   if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
+   declareVerbAt(verb, name, underKind ? nounName : null);
+ }
+@@ -525,11 +542,45 @@ async function callByName(lookupName, lambdas, state) {
+       identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
+     });
+   }
++  if (reach.underKind && isQuote(bindingValueOf(reach.record))) {
++    return await applyAspect(bindingValueOf(reach.record), reach.record, lambdas, state);
++  }
+   return reach.underKind
+     ? await callResidence(bindingValueOf(reach.record), lookupName, lambdas, state)
+     : await applyBinding(reach.record, lookupName, lambdas, state);
+ }
+ 
++// An aspect, a quote declared under a label, runs on the value it is
++// named on, in the scope of its declaration over the root as it stands.
++// The modifiers of the call are its object: their values, each computed
++// against the subject, as a vector under the aspect's own address, whose
++// parts the aspects declared under that address name and which every
++// `::holds` of the aspect's page checks; the body reads it as `object`.
++async function applyAspect(aspect, record, lambdas, state) {
++  const address = record.get('name').name;
++  let env = new Map(envToRun(aspect, state.env));
++  env.set(ROOT_KEY, rootOf(state.env));
++  if (lambdas.length > 0) {
++    const values = [];
++    for (const lambda of lambdas) {
++      const value = await lambda(state.pipeValue);
++      if (isErrorValue(value)) return withPipeValue(state, value);
++      values.push(value);
++    }
++    const object = makeTaggedInstance(makeTagKeyword(address), values);
++    for (const segment of record.get('docs').flat()) {
++      if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
++      const holds = (await evalBody(astOfQuote(segment.payload), nestState(state, object, env))).pipeValue;
++      if (holds !== true) {
++        return withPipeValue(state, makeErrorValue(makeTagKeyword(`${address}/HoldsNotMetError`), new Map([['holds', segment.payload], ['actualValue', object]])));
++      }
++    }
++    env = envSet(env, 'object', makeBinding({ name: keyword('object'), value: object }));
++  }
++  const answered = await evalBody(astOfQuote(aspect), withEnv(state, env));
++  return withPipeValue(state, answered.pipeValue);
++}
++
+ // A call with one modifier more than the slots of its verb reads the
+ // subject from its first modifier, and the verb of a name several kinds
+ // answer is found again from that subject [D72]; a call reaching a
+diff --git a/core/src/runtime/axis.mjs b/core/src/runtime/axis.mjs
+index 7623c9b..f8d3e2d 100644
+--- a/core/src/runtime/axis.mjs
++++ b/core/src/runtime/axis.mjs
+@@ -32,6 +32,7 @@ import {
+   addressesOf, isNoun, nodeOf, pageAddressesOf, nounMemberOf, residenceOnSubject
+ } from './nouns.mjs';
+ import { declareShapeError } from '../errors.mjs';
++import { legendOf } from './legend.mjs';
+ import { raisedFrom } from './raise.mjs';
+ import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
+ 
+@@ -211,8 +212,10 @@ function recordAlongPath(subject, anchors, state) {
+ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
+ 
+ // A set of anchors reads a page at each, in the order of the set.
+-bindStateReader('any/doc', (subject, anchor, state) =>
+-  isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
++bindStateReader('any/doc', (subject, anchor, state) => {
++  if (globalThis.process?.env?.QLANG_LEGEND !== 'off' && isNull(anchor) && !isKeyword(subject) && !isTagKeyword(subject) && !isBinding(subject)) return legendOf(subject, state);
++  return isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state);
++});
+ 
+ // The value as an explanation holds it: an error, a map under `::error`
+ // beneath the tags stacked over it, raised under the tag it shows, as it
+diff --git a/core/src/runtime/nouns.mjs b/core/src/runtime/nouns.mjs
+index d02ce65..55cb14a 100644
+--- a/core/src/runtime/nouns.mjs
++++ b/core/src/runtime/nouns.mjs
+@@ -8,7 +8,7 @@
+ // finds the verbs residing on each kind it passes [D34], [D72].
+ 
+ import {
+-  isBinding, isQMap, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
++  isBinding, isQMap, isQuote, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
+   typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
+ } from '../types.mjs';
+ import { rootOf } from '../state.mjs';
+@@ -38,9 +38,11 @@ export function nodeOf(env, tagName) {
+   return isBinding(entry) ? entry : null;
+ }
+ 
+-// Whether a record holds a verb residing on a kind.
++// Whether a record holds a verb residing on a kind, or an aspect of the
++// label it is declared under, a quote that runs on the value it is named on.
+ function residesOn(record, kindName) {
+   const value = bindingValueOf(record);
++  if (isQuote(value)) return true;
+   return isVerb(value) && residenceOfVerb(value) === kindName;
+ }
+ 
+@@ -191,7 +193,7 @@ export function verbsReaching(env, kindNames) {
+ }
+ 
+ // The nodes declared one name under a noun, by their last names.
+-function namesUnderOf(env, nounName) {
++export function namesUnderOf(env, nounName) {
+   const under = new Map();
+   for (const [name, record] of bindingsOf(env)) {
+     const [kindName, lastName] = splitAddress(name);

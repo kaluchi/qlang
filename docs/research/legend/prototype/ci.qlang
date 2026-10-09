@@ -1,0 +1,69 @@
+|~ A host's labels, written as the prototype proposes: a label is its
+   page, an aspect is a quote under it that runs on the value it is
+   named on, `::holds` is a law every value under the label keeps, and an
+   action is a verb under it. ~|
+
+:Stage
+  |~~ A stage of a run. ::holds~(seconds | gte 0) ~~|
+
+:Stage/name |~~ The name of the stage. ~~| ~(/0)
+:Stage/outcome
+  |~~ :ok passed, :flaky passed after a retry, :fail failed, :skip did
+      not run. ~~|
+  ~(/1)
+:Stage/seconds |~~ The seconds it took. ~~| ~(/2)
+
+:Fail
+  |~~ A test that failed at least once. ~~|
+
+:Fail/name |~~ The name of the test. ~~| ~(/0)
+:Fail/attempts |~~ The attempts it took; the last one passed unless the verdict is :red. ~~| ~(/1)
+
+:Pipe
+  |~~ One run of the CI pipeline. ~~|
+
+:Pipe/id |~~ The number of the run. ~~| ~(/id)
+:Pipe/verdict
+  |~~ The verdict: :green, every stage passed at its first attempt;
+      :amber, every stage passed, some after a retry; :red, some stage
+      failed. ~~|
+  ~(/st)
+:Pipe/stages |~~ The stages in the order they ran. ~~| ~(/stages * tag ::Stage)
+:Pipe/owners |~~ Who is paged when the verdict is :red. ~~| ~(/owners)
+:Pipe/fails |~~ The tests that failed at least once. ~~| ~(/fails * tag ::Fail)
+:Pipe/ok |~~ Whether the run counts as passed, true for :green and :amber. ~~| ~(verdict | ne :red)
+:Pipe/slowest |~~ The name of the stage that took longest. ~~| ~(stages | max ~(seconds) | name)
+:Pipe/flaky |~~ The names of the tests that passed only after a retry. ~~| ~(fails * name)
+:Pipe/@retry
+  |~~ Runs one stage again and answers the new ::Pipe.
+      ::call~(@retry :test) ~~|
+  ::verb~(:stage ::keyword | ::builtin{})
+
+:Box
+  |~~ A parcel as the courier measures it. ::holds~(length | gt 0) ~~|
+
+:Box/length |~~ The length, in centimetres. ~~| ~(/0)
+:Box/width |~~ The width, in centimetres. ~~| ~(/1)
+:Box/height |~~ The height, in centimetres. ~~| ~(/2)
+:Box/weight |~~ The weight of what is inside, in kilograms. ~~| ~(/3)
+:Box/volume |~~ The space inside, in cubic centimetres. ~~| ~(mul length (mul width height))
+:Box/density |~~ Kilograms per cubic centimetre. ~~| ~(div weight volume)
+:Box/empty
+  |~~ The same box with nothing inside.
+      ::call~(empty) ~~|
+  ~(within ~(take 3 | append 0))
+:Box/put
+  |~~ The same box with another weight inside.
+      ::call~(put 10)
+      ::holds~(weight | type | eq ::number) ~~|
+  ~(within ~(take 3 | append (object | weight)))
+:Box/put/weight |~~ The weight to put inside, in kilograms. ~~| ~(/0)
+
+:error/actualType |~~ The kind of the value the place refused. ~~| ~(/actualType)
+
+:run
+  |~~ The last run of the pipeline the tool answered. ~~|
+  ::Pipe{:id 8812 :st :red
+    :stages [[:checkout :ok 3.1] [:build :ok 41.2] [:unit :flaky 88.5] [:integration :fail 240.7] [:lint :skip 0] [:package :skip 0] [:deploy :skip 0]]
+    :owners #[:ann :bob]
+    :fails [["parse/empty" 2] ["eval/deep" 3] ["db/pool" 4] ["db/timeout" 4]]}

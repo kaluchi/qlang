@@ -1,0 +1,105 @@
+=== haiku legend #0: 13 calls, 14 turns, 170494 tokens in
+Q1: No — `run | /st | ne :red`
+Q2: integration — `run | /stages | filter ~(/1 | eq :fail) | first | /0`
+Q3: lint, package, deploy — `run | /stages | filter ~(/1 | eq :skip) * /0`
+Q4: integration, 240.7 seconds — `run | /stages | sort ~/2 | last`
+Q5: ann, bob — `run | /owners`
+Q6: `run | /stages | filter ~(/1 | eq :fail) | first | /0`
+Q7: db/pool, db/timeout — `run | /fails | filter ~(/1 | gt 3) * /0`
+calls: cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang '::qlang | doc'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /st'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | filter
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | filter
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | sort ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | sort ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | sort ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /owners'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /fails'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /fails | filter 
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | filter
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-legend-0" && qlang 'run | /stages | filter
+=== haiku page #0: 13 calls, 14 turns, 57475 tokens in
+Perfect! Now I have all the queries. Let me compile the final answers:
+
+Q1: No — run | /st | eq :ok
+Q2: integration — run | /stages | filter ~(/1 | eq :fail) | * /0
+Q3: lint, package, deploy — run | /stages | filter ~(/1 | eq :skip) | * /0
+Q4: integration, 240.7 — run | /stages | sort ~/2 | last
+Q5: ann, bob — run | /owners
+Q6: run | /stages | filter ~(/1 | eq :fail) | * /0 | first
+Q7: db/pool, db/timeout — run | /fails | filter ~(/1 | gt 3) | * /0
+calls: qlang 'run'
+       qlang '::qlang | doc'
+       qlang 'run | type'
+       qlang 'run | /st'
+       qlang 'run | /stages'
+       qlang 'run | /fails'
+       qlang 'run | /st | eq :ok'
+       qlang 'run | /stages | filter ~(/1 | eq :fail) | * /0'
+       qlang 'run | /stages | filter ~(/1 | eq :skip) | * /0'
+       qlang 'run | /stages | sort ~/2 | last'
+       qlang 'run | /owners'
+       qlang 'run | /fails | filter ~(/1 | gt 3) | * /0'
+       qlang 'run | /stages | filter ~(/1 | eq :fail) | * /0 | first'
+=== haiku legend #1: 23 calls, 24 turns, 285054 tokens in
+Q1: No — run | /st | eq :red
+Q2: integration — run | /stages | filter ~(/1 | eq :fail) | /0 | /0
+Q3: lint, package, deploy — run | /stages | filter ~(/1 | eq :skip) | * /0
+Q4: integration, 240.7 seconds — run | /stages | max ~(/2) | [/0 /2]
+Q5: ann, bob — run | /owners
+Q6: run | @retry :integration — (query not executed as requested)
+Q7: db/pool, db/timeout — run | /fails | filter ~(/1 | gt 3) | * /0
+calls: qlang 'run'
+       qlang 'run | .st'
+       qlang '::qlang | doc'
+       qlang 'run | /st'
+       qlang 'run | /stages * (/0 | keyword) /1'
+       qlang 'run | /stages'
+       qlang 'run | /stages * (/1 | eq :fail) | /0'
+       qlang 'run | /stages | filter ~(/1 | eq :fail) | /0'
+       qlang 'run | /stages | filter ~(/1 | eq :fail) | /0 | /0'
+       qlang 'run | /stages | filter ~(/1 | eq :skip) * /0'
+       qlang 'run | /stages | max ~(/2)'
+       qlang 'run | /stages | max ~(/2) | [/0 /2]'
+       qlang 'run | /owners'
+       qlang 'run | /fails'
+       qlang 'run | /fails | filter ~(/1 | gt 3) * /0'
+       qlang 'run | type'
+       qlang '::Pipe | manifest'
+       qlang '::Pipe/@retry | doc'
+       qlang 'run | /stages | filter ~(/1 | eq :skip)'
+       qlang 'run | /stages | filter ~(/1 | eq :skip) | * /0'
+       qlang 'run | /fails | filter ~(/1 | gte 4)'
+       qlang 'run | /st | eq :red'
+       qlang 'run | /fails | filter ~(/1 | gt 3) * /0'
+=== haiku page #1: 22 calls, 23 turns, 265885 tokens in
+Q1: No — `run | /st | ne :green`
+Q2: integration — `run | /stages | filter ~(/1 | eq :fail) | first | /0`
+Q3: lint, package, deploy — `run | /stages | filter ~(/1 | eq :skip) | * /0`
+Q4: integration, 240.7 seconds — `run | /stages | max ~/2 | [/0 /2]`
+Q5: ann and bob — `run | /owners`
+Q6: `run | /stages | filter ~(/1 | eq :fail) | first | /0` — the query to identify the failed stage
+Q7: db/pool, db/timeout — `run | /fails | filter ~(/1 | gt 3) | * /0`
+calls: cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang '::qlang | doc'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | doc'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | type'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | keys'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | type'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | first | 
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | count'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | first'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /fails'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /owners'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /st'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /st | eq :red'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | filter ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | filter ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | filter ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | max ~/2'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /owners | * /0'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /owners'
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | filter ~
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /fails | filter ~(
+       cd "C:\Users\EugenPC\AppData\Local\Temp\qlang-legend-children\haiku-page-1" && qlang 'run | /stages | filter ~

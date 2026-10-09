@@ -5,6 +5,7 @@
 // table.
 
 import { declareInvariantError } from './errors.mjs';
+import { splitAddress } from './address.mjs';
 
 const BuiltinAddressNotStringError = declareInvariantError(
   'builtin/AddressNotStringError',
@@ -48,7 +49,7 @@ export function createPrimitiveRegistry() {
     implsUnder(nounName) {
       const under = {};
       for (const [address, impl] of bindings) {
-        if (address.slice(0, address.lastIndexOf('/')) === nounName) under[address] = impl;
+        if (splitAddress(address)[0] === nounName) under[address] = impl;
       }
       return under;
     },

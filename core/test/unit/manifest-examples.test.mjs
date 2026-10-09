@@ -29,46 +29,46 @@ async function catalogReaders() {
   return rootAddressesOf(await langRuntime());
 }
 
-async function walkCatalogExamples() {
+async function failingLaws() {
   const failures = [];
   for (const reader of await catalogReaders()) {
     const [readerName, anchor = ''] = reader.split(' ');
-    const exampleResults = await evalQuery(`${readerName} | runLaws ${anchor}`);
-    if (!Array.isArray(exampleResults)) {
-      failures.push({ reader, snippet: 'runLaws', printed: safeprint(exampleResults) });
+    const outcomes = await evalQuery(`${readerName} | runLaws ${anchor}`);
+    if (!Array.isArray(outcomes)) {
+      failures.push({ reader, law: 'runLaws', printed: safeprint(outcomes) });
       continue;
     }
-    for (const exampleResult of exampleResults) {
-      if (exampleResult.get(OK_KW) === true) continue;
+    for (const outcome of outcomes) {
+      if (outcome.get(OK_KW) === true) continue;
       failures.push({
         reader,
-        snippet: safeprint(exampleResult.get(LAW_KW)),
-        error:   exampleResult.get(ERROR_KW),
-        printed: safeprint(exampleResult.get(ACTUAL_KW))
+        law:     safeprint(outcome.get(LAW_KW)),
+        error:   outcome.get(ERROR_KW),
+        printed: safeprint(outcome.get(ACTUAL_KW))
       });
     }
   }
   return failures;
 }
 
-describe('catalog self-test via runLaws', () => {
-  it('every Quote example evaluates truthy', async () => {
-    const failures = await walkCatalogExamples();
+describe('the laws of the catalog, run by runLaws', () => {
+  it('every law answers true', async () => {
+    const failures = await failingLaws();
     if (failures.length > 0) {
       const report = failures
-        .map(f => `[${f.reader}] ${f.snippet}\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
+        .map(f => `[${f.reader}] ${f.law}\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
         .join('\n');
-      throw new Error(`${failures.length} catalog example(s) failed:\n${report}`);
+      throw new Error(`${failures.length} law(s) of the catalog failed:\n${report}`);
     }
   }, 30000);
 
-  it('every example reads back as the steps it prints as', async () => {
-    // `parse` prints a quote and reads text back; an example that
-    // printed as text reading back as other steps would be a printer
-    // that loses code.
+  it('every law reads back as the steps it prints as', async () => {
+    // `parse` prints a quote and reads text back; a law that printed as
+    // text reading back as other steps would be a printer that loses
+    // code.
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | laws | vals * /1 | filter ~(:example / | parse | parse | eq example | not)`);
+      const changed = await evalQuery(`${reader} | laws | vals * /1 | filter ~(:law / | parse | parse | eq law | not)`);
       if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
@@ -86,7 +86,7 @@ describe('catalog self-test via runLaws', () => {
     expect(proseQuotes).toEqual([]);
   }, 30000);
 
-  it('the /ok distribution over every page is {true}', async () => {
+  it('the laws of every name answer true and nothing else', async () => {
     const readers = await catalogReaders();
     const distinctOkValues = await evalQuery(`[${readers.join(' ')}] * (runLaws * /ok) | flat | distinct`);
     expect(isErrorValue(distinctOkValues)).toBe(false);

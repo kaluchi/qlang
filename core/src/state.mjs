@@ -50,7 +50,7 @@ export function withEnv(state, nextEnv) {
 
 // nestState(state, pipeValue, env) → State one frame deeper, or
 // CallEvaluationDepthExceededError once the frame passes
-// EVAL_DEPTH_LIMIT. `context.depth` names the refused frame.
+// EVAL_DEPTH_LIMIT, its fact `:depth` the refused frame.
 export function nestState(state, pipeValue, env) {
   const depth = state.depth + 1;
   if (depth > EVAL_DEPTH_LIMIT) {

@@ -22,7 +22,7 @@
   ~(/0)
 
 :desc/gt/than/NotDescError
-  |~~ The than is a value of ::desc. ~~|
+  |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
 :desc/gt/greater
@@ -44,7 +44,7 @@
   ~(/0)
 
 :desc/gte/than/NotDescError
-  |~~ The than is a value of ::desc. ~~|
+  |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
 :desc/gte/atLeast
@@ -67,7 +67,7 @@
   ~(/0)
 
 :desc/lt/than/NotDescError
-  |~~ The than is a value of ::desc. ~~|
+  |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
 :desc/lt/less
@@ -89,7 +89,7 @@
   ~(/0)
 
 :desc/lte/than/NotDescError
-  |~~ The than is a value of ::desc. ~~|
+  |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
 :desc/lte/atMost

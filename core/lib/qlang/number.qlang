@@ -32,7 +32,7 @@
   |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
       adds element by element, `* add 1`, and sums by `sum`; a string is
       joined by `append`; two numbers one value holds add by `sumOf`,
-      `{:x 10 :y 3} | sumOf /x /y`. ::call~(add 3)
+      `{:x 10 :y 3} | sumOf /x /y`.
   ~~|
   ::builtin{}
 
@@ -68,7 +68,7 @@
   |~~ Subtracts a number from the subject, the minuend. A vector
       subtracts element by element, `* sub 1`; two numbers one value
       holds subtract by `subOf`, `{:total 10 :paid 3} | subOf /total
-      /paid`. ::call~(sub 3)
+      /paid`.
   ~~|
   ::builtin{}
 
@@ -99,7 +99,7 @@
 :number/mul
   |~~ Multiplies the subject by a number. A vector multiplies element by
       element, `* mul 2`; two numbers one value holds multiply by
-      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. ::call~(mul 3)
+      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`.
   ~~|
   ::builtin{}
 
@@ -131,7 +131,6 @@
   |~~ Divides the subject, the dividend, by a number. A vector divides
       element by element, `* div 2`; two numbers one value holds divide
       by `divOf`, `{:sum 20 :count 4} | divOf /sum /count`.
-      ::call~(div 2)
   ~~|
   ::builtin{}
 
@@ -173,8 +172,8 @@
 :number/round
   |~~ The number rounded half away from zero to the digits after the
       point the call gives, none when it gives none; a negative count
-      rounds to tens and beyond. A string holding a number is read first
-      by `parseJson`. ::call~(round 2)
+      rounds to tens and beyond. A string holding a number is no number:
+      `parseJson` reads one out of it first.
   ~~|
   ::builtin{}
 
@@ -209,7 +208,7 @@
   ~(at 0 0)
 
 :number/round/digits/NotNumberError
-  |~~ The digits is a number. ~~|
+  |~~ The count of digits is a number. ~~|
   ::holds~(is ::number)
 
 :number/round/DigitsNotIntegerError
@@ -231,16 +230,12 @@
   |~~ Ten is greater than five. ~~|
   ::law~(10 | gt 5 | eq true)
 
-:number/gt/refusesNullNamingTheVerb
-  |~~ Null has no `gt`, and the refusal names where `gt` lives. ~~|
-  ::law~(null | gt 1 !| /addresses | has ::number/gt)
-
 :number/gt/than
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
 :number/gt/than/NotNumberError
-  |~~ The than is a number. ~~|
+  |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
 :number/gt/greater
@@ -262,7 +257,7 @@
   ~(/0)
 
 :number/gte/than/NotNumberError
-  |~~ The than is a number. ~~|
+  |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
 :number/gte/atLeast
@@ -282,7 +277,7 @@
   ~(/0)
 
 :number/lt/than/NotNumberError
-  |~~ The than is a number. ~~|
+  |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
 :number/lt/less
@@ -304,7 +299,7 @@
   ~(/0)
 
 :number/lte/than/NotNumberError
-  |~~ The than is a number. ~~|
+  |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
 :number/lte/atMost

@@ -73,7 +73,7 @@
       that may lack a key is read by `at`, which answers null for it.
       A modifier reads the subject of its own step: after `/qty |` the
       subject is the number, so two parts of one record are read in one
-      step by a form whose objects they are, `mulOf /qty /price`.
+      step by a form whose args they are, `mulOf /qty /price`.
       ::link~(::proj | doc)
   ~~|
 

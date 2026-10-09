@@ -58,9 +58,9 @@ Check: a new verb, kind or refusal has its page under the noun of its kind,
 a refusal declared at its site by its address, one tag for one site,
 through `declareRefusal` of `core/src/errors.mjs`, each fact it carries
 a definition under its label or under `::error` (decision D172);
-a change of behaviour changes the laws of the page that states it; a page
-names no JavaScript file or symbol and no decision record; a markdown text
-that retells the catalog is a finding. Run `qlang '<address> | runLaws'`
+a change of behaviour changes the laws under the name whose behaviour
+it is; a page names no JavaScript file or symbol and no decision record;
+a markdown text that retells the catalog is a finding. Run `qlang '<address> | runLaws'`
 for every page the diff touches.
 
 ### One fact, one spelling

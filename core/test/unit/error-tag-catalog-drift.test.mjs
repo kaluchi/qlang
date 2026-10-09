@@ -10,7 +10,8 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { declaredRefusals } from '../../src/errors.mjs';
-import { nodeOf, splitAddress } from '../../src/runtime/nouns.mjs';
+import { nodeOf } from '../../src/runtime/nouns.mjs';
+import { splitAddress } from '../../src/address.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
 import { bindingValueOf, isDoc } from '../../src/types.mjs';
 

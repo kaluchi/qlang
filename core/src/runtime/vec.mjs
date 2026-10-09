@@ -1,5 +1,5 @@
 // Container primitives, each a plain function over the value the walk
-// served and the parts of the call's object [D167]. Every word of a kind
+// served and the parts of the call's args [D167]. Every word of a kind
 // has its own, since the walk of the subject's tags already chose the
 // word: a vector and a set, which read alike, share the one that reads
 // the elements in order [D16], a map's reads its values and keeps its
@@ -314,7 +314,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 // `reduce seed ~(reducer)` — the universal left-fold: the reducer is
 // applied as `reducer(acc, element)`, a name of two places through its
 // bound form (`acc | add element`), the element the first part of its
-// object [D67], [D167]; `seed` answers for an empty subject, and a
+// args [D67], [D167]; `seed` answers for an empty subject, and a
 // reducer error stops the fold.
 async function foldOf(elements, seed, reducer, ReducerNotBinaryError) {
   const combine = resolveBinaryReducer(reducer);

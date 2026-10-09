@@ -9,6 +9,8 @@
 //   .location — the position in the query of the step that raised it,
 //               set as it bubbles past a node, so an editor marks it.
 
+import { splitAddress } from './address.mjs';
+
 export class QlangError extends Error {
   constructor(message, facts = {}) {
     super(message);
@@ -44,13 +46,9 @@ export function declaredRefusals() {
 // A class answers the last name of its address as `name`, which a stack
 // frame reads, and carries the address, the tag of the error [D158].
 export function brand(Cls, address) {
-  Object.defineProperty(Cls, 'name', { value: lastNameOf(address) });
+  Object.defineProperty(Cls, 'name', { value: splitAddress(address)[1] });
   Object.defineProperty(Cls.prototype, 'address', { value: address });
   return Cls;
-}
-
-export function lastNameOf(address) {
-  return address.slice(address.lastIndexOf('/') + 1);
 }
 
 // declareRefusal(address) → the class of the refusal of one place, whose
@@ -61,7 +59,7 @@ export function declareRefusal(address) {
   const Cls = class extends QlangError {
     constructor(facts = {}) {
       super(`::${address}`, facts);
-      this.name = lastNameOf(address);
+      this.name = splitAddress(address)[1];
     }
   };
   return brand(Cls, address);
@@ -74,7 +72,7 @@ export function declareInvariantError(address, buildMessage) {
   const Cls = class extends QlangInvariantError {
     constructor(facts = {}) {
       super(buildMessage(facts), facts);
-      this.name = lastNameOf(address);
+      this.name = splitAddress(address)[1];
     }
   };
   return brand(Cls, address);
@@ -88,7 +86,7 @@ export function declareForeignError(address, buildMessage) {
   const Cls = class extends Error {
     constructor(facts = {}) {
       super(buildMessage(facts));
-      this.name = lastNameOf(address);
+      this.name = splitAddress(address)[1];
       this.facts = facts;
     }
   };

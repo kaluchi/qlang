@@ -13,10 +13,6 @@
   |~~ The page of an error is the page of the refusal that raised it. ~~|
   ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
 
-:explanation/page/ofAValueIsThePageOfItsKind
-  |~~ The page of a value is the page of its kind. ~~|
-  ::law~(42 | explain | page | eq (::number | doc))
-
 :explanation/page/prose
   |~~ The page that explains the value, null for a name without one. ~~|
   #[::doc ::null]

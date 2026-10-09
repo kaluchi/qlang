@@ -48,6 +48,18 @@
   ~~|
   ::any
 
+:error/name
+  |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
+  #[::keyword ::tag]
+
+:error/addresses
+  |~~ The addresses where a word of that name lives, one for each kind that answers it. ~~|
+  ::set
+
+:error/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
+
 :error/trail
   |~~ The path of the error: each step it passed, from the one
       that raised it, with the subject that step met and the steps

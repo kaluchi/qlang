@@ -5,3 +5,8 @@
 {"name":"a-link-under-a-host-tag-is-a-link","query":"|~~ ::Host::link~(1) ~~| | links | first | type","expect":"::Host","decision":"D108"}
 {"name":"the-content-of-a-doc-writes-the-stack-before-its-quote","query":"|~~ a ::link~(add 1) b ~~| | content","expect":"\" a ::link~(add 1) b \"","decision":"D108"}
 {"name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | :d / | print | parse | first | eq d","expect":"true","decision":"D108"}
+{"name":"a-quote-in-prose-that-does-not-parse-is-no-snippet","query":"|~~ see ::snippet~(1 | ) here ~~| | snippets | count","expect":"0","decision":"D175"}
+{"name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | open !| type","expect":"::number/add/SubjectNotNumberError","decision":"D175"}
+{"name":"a-snippet-opens-to-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open","expect":"2","decision":"D175"}
+{"name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec | doc) ~~| | links | first | open | type","expect":"::doc","decision":"D175"}
+{"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | * type","expect":"[::string ::quote ::string ::link ::string]","decision":"D175"}

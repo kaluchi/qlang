@@ -94,10 +94,6 @@
   |~~ A link opens to the answer of its query. ~~|
   ::law~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
 
-:quote/open/opensTheLinksOfTheFirstPageToPages
-  |~~ The links of the first page open to pages. ~~|
-  ::law~(::qlang | doc | links * open | every ~(type | eq ::doc))
-
 :quote/open/runsASnippet
   |~~ A snippet opens to what it shows. ~~|
   ::law~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])

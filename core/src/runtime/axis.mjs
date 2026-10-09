@@ -32,6 +32,7 @@ import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
 import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
+import { splitAddress } from '../address.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
 //
@@ -54,7 +55,7 @@ function nameReadOf(subject) {
 // tag name's path, `::any/links` naming `links` [D127], or its kind's.
 function nameOf(subject) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return subject.name.slice(subject.name.lastIndexOf('/') + 1);
+  if (isTagKeyword(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
 
@@ -87,13 +88,13 @@ export function declaringRecordOf(env, subject) {
 // The node a refusal named by the address of what refused reads its page
 // from, that address, when no node of its own declares it [D166].
 function nodeOfRefused(env, name) {
-  const cut = name.lastIndexOf('/');
-  return cut > 0 && name.endsWith('Error') ? nodeOf(env, name.slice(0, cut)) : null;
+  const [refusedName] = splitAddress(name);
+  return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
 }
 
 // The record of the member the subject holds under a name [D88], or
 // null: the name under the address a tag name writes, a part of the
-// object of a word among them, and otherwise the word the subject's walk
+// args of a word among them, and otherwise the word the subject's walk
 // reaches under the name [D117].
 function memberRecordOf(env, subject, memberName) {
   const under = isTagKeyword(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;

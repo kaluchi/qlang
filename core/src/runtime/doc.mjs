@@ -5,9 +5,18 @@
 
 import { bindPrim } from '../primitives.mjs';
 import { docText } from '../quote.mjs';
-import { holdsRole } from './nouns.mjs';
+import { isValueClass } from '../types.mjs';
 
 bindPrim('doc/content', docText);
 bindPrim('doc/segments', doc => Object.freeze([...doc]));
 bindPrim('doc/links', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'link'))));
 bindPrim('doc/snippets', doc => Object.freeze(doc.filter(segment => holdsRole(segment, 'snippet'))));
+
+// Whether a segment holds the tag of a role, `link` or `snippet`, under
+// the stack of tags over it, a host's among them [D108].
+function holdsRole(segment, roleName) {
+  for (let beneath = segment; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
+    if (beneath.tag.name === roleName) return true;
+  }
+  return false;
+}

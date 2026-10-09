@@ -4,12 +4,13 @@
 // live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTagKeyword, isValueClass, NULL } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTagKeyword, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { evalQuery } from '../eval.mjs';
+import { evalAst } from '../eval.mjs';
+import { nestState } from '../state.mjs';
 import { recordReadBy, pageOfRecord, pageTextOfRecord } from './axis.mjs';
-import { namesUnder, definitionsInRole } from './nouns.mjs';
-import { printQuoteSource } from '../quote.mjs';
+import { namesUnder, lawsUnder } from './nouns.mjs';
+import { astOfQuote } from '../quote.mjs';
 
 
 // The message of an error: its `:message` where it carries one, a raise's
@@ -27,28 +28,28 @@ bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subjec
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
 bindStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
-  return new Map(definitionsInRole(state.env, address, 'law').map(([lastName, record]) =>
-    [lastName, Object.freeze([pageOfRecord(record), lawQuoteOf(bindingValueOf(record))])]));
+  return new Map(lawsUnder(state.env, address).map(([lastName, record]) =>
+    [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
 });
 
 // A law runs one frame below the step in the caller's scope, the root
 // among it, and passes when it answers true [D14]; its result names the
 // law by its address and the claim it proves by its page [D124], [D174].
-async function runQuoteEntry({ law, quote, says }, callerState) {
-  const result = new Map();
-  result.set('law', law);
-  result.set('says', says);
-  const actualValue = await evalQuery(printQuoteSource(quote), callerState.env, callerState);
+async function runLaw({ law, quote, says }, callerState) {
+  const outcome = new Map();
+  outcome.set('law', law);
+  outcome.set('says', says);
+  const actualValue = (await evalAst(astOfQuote(quote), nestState(callerState, null, callerState.env))).pipeValue;
   if (isErrorValue(actualValue)) {
-    result.set('actual', null);
-    result.set('error', errorMessageOf(actualValue));
-    result.set('ok', false);
-    return result;
+    outcome.set('actual', null);
+    outcome.set('error', errorMessageOf(actualValue));
+    outcome.set('ok', false);
+    return outcome;
   }
-  result.set('actual', actualValue);
-  result.set('error', null);
-  result.set('ok', actualValue === true);
-  return result;
+  outcome.set('actual', actualValue);
+  outcome.set('error', null);
+  outcome.set('ok', actualValue === true);
+  return outcome;
 }
 
 // A name reads its record as the axes do, a keyword after it the member
@@ -56,21 +57,14 @@ async function runQuoteEntry({ law, quote, says }, callerState) {
 // its address [D174].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
-  const claims = definitionsInRole(state.env, address, 'law').map(([lastName, lawRecord]) => ({
+  const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
     law: makeTagKeyword(`${address}/${lastName}`),
-    quote: lawQuoteOf(bindingValueOf(lawRecord)),
+    quote: bindingValueOf(lawRecord).payload,
     says: pageTextOfRecord(lawRecord)
   }));
-  const entries = [];
-  for (const claim of claims) entries.push(await runQuoteEntry(claim, state));
-  return entries;
-}
-
-// The quote beneath the tags of a law, a host's tag over it among them.
-function lawQuoteOf(value) {
-  let beneath = value;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return beneath;
+  const outcomes = [];
+  for (const claim of claims) outcomes.push(await runLaw(claim, state));
+  return outcomes;
 }
 
 const TagRunLawsUnknownNameError = declareRefusal('tag/runLaws/UnknownNameError');

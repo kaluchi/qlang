@@ -19,7 +19,7 @@ const examples = [
   {
     tab: "name",
     file: "name with parts",
-    code: `|~| a name with the parts of its object\n> :string/surround ~(prepend pfx | append sfx)\n  | :string/surround/pfx ~(/0) | :string/surround/sfx ~(/1)\n  | "world" | surround "[" "]"\n"[world]"`,
+    code: `|~| a name with the parts of its args\n> :string/surround ~(prepend pfx | append sfx)\n  | :string/surround/pfx ~(/0) | :string/surround/sfx ~(/1)\n  | "world" | surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",
@@ -33,7 +33,7 @@ const features = [
   { title: "Immutable value types", desc: "Scalar, Vec, Map, Set, Error — all frozen. No mutation, no surprises." },
   { title: "Two-track error model", desc: "Success-track | deflects on errors, fail-track !| fires. Trail accumulates deflected steps as data." },
   { title: "Code as data", desc: "parse lifts source to an AST-Map, apply runs it against a subject. The ring closes." },
-  { title: "Names under labels", desc: "A kind is a label declared by its page; a name under it runs on its values, and the parts of a call's object are names under its address, each held to the laws of its page." },
+  { title: "Names under labels", desc: "A kind is a label declared by its page; a name under it runs on its values, and the parts of a call's args are names under its address, each held to the invariants declared under it." },
   { title: "Effect markers", desc: "@-prefixed identifiers carry side effects visibly. The runtime enforces propagation — no laundering." },
 ]
 ---

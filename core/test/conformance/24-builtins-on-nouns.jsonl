@@ -1,6 +1,6 @@
 {"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"[(5 | add 1) (\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]","decision":["D72","D164"]}
 {"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError]","decision":["D46","D168"]}
-{"name":"a-part-of-an-object-is-the-quote-that-reads-it","query":"::number/add/addend | binding | /value","expect":"~(/0)","decision":["D164","D169"]}
+{"name":"a-part-of-the-args-is-the-quote-that-reads-it","query":"::number/add/addend | binding | /value","expect":"~(/0)","decision":["D164","D169"]}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D72"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}
 {"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul /price /qty !| [type (explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]","decision":["D72","D165"]}
@@ -20,6 +20,6 @@
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
 {"name":"the-manifest-of-a-name-lists-the-parts-it-declares","query":"::map/at | manifest","expect":"#[::map/at/default ::map/at/key]","decision":["D167","D169"]}
 {"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
-{"name":"an-object-with-more-values-than-places-is-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondPartsError","decision":["D72","D165"]}
+{"name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondPartsError","decision":["D72","D165"]}
 {"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":any/s ~(mul k) | :any/s/k ~(/0) | :any/s/k/NotNumberError ::holds~(is ::number) | null | s (!{:k 1}) 2 !| type","expect":"::error","decision":"D167"}
 {"name":"a-builtin-body-without-a-handle-is-a-step","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}

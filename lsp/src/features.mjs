@@ -8,7 +8,7 @@ import {
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
-  callNameOf,
+  splitAddress,
   CALL_SPELLING,
   TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
@@ -436,7 +436,7 @@ function findLastVisibleDeclaration(ast, name, offset) {
   walkAst(ast, (node) => {
     if (node.type === 'DocLit') return false;
     const decl = bindingDeclarationOf(node);
-    if (decl === null || (decl.name !== name && (isTagName(name) || callNameOf(decl.name) !== name))) return;
+    if (decl === null || (decl.name !== name && (isTagName(name) || splitAddress(decl.name)[1] !== name))) return;
     if (!node.location || node.location.end.offset > offset) return;
     if (!isVisibleAcrossForks(node, offset)) return;
     lastVisible = {
@@ -478,14 +478,14 @@ export function referencesAtOffset(ast, offset) {
   // step calls it by, and a tag name.
   let name = null;
   if (node.type === 'OperandCall') {
-    name = callNameOf(node.name);
+    name = splitAddress(node.name)[1];
   } else if (node.type === 'BindStep') {
     const declared = bindingDeclarationOf(node).name;
-    name = isTagName(declared) ? declared : callNameOf(declared);
+    name = isTagName(declared) ? declared : splitAddress(declared)[1];
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
-      name = callNameOf(node.name);
+      name = splitAddress(node.name)[1];
     }
   } else if (node.type === 'BareTypeKeyword') {
     name = tagNameOf(node.tag);

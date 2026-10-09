@@ -11,6 +11,8 @@
 // `grammar.peggy` extends both this file and `quote.mjs`; every
 // downstream walker inherits the knowledge.
 
+import { splitAddress } from './address.mjs';
+
 // The two spellings of a name in source: called by its name, `count`,
 // or written as a tag, the address of a node, `::Box` [D152]. The
 // editor passes one to say which occurrences and declarations count.
@@ -106,12 +108,6 @@ export function originOf(node) {
   return root.uri;
 }
 
-// callNameOf(name) — the name a step calls a declaration by, its last:
-// a name with a path is called by it, `:any/double` by `double` and
-// `vec/count` by `count` [D164].
-export function callNameOf(name) {
-  return name.slice(name.lastIndexOf('/') + 1);
-}
 
 // declaredNameOf(bindStep) — the name a declaration writes, its keyword's
 // [D152].
@@ -186,8 +182,8 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'OperandCall' && callNameOf(node.name) === name) occurrences.push(node);
-    else if (node.type === 'BindStep' && callNameOf(node.key.name) === name) occurrences.push(node);
+    if (node.type === 'OperandCall' && splitAddress(node.name)[1] === name) occurrences.push(node);
+    else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -268,7 +264,7 @@ export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
       current = parent;
       parent = current.parent;
     }
-    visible.add(spelling === TAG_SPELLING ? bindingName : callNameOf(bindingName));
+    visible.add(spelling === TAG_SPELLING ? bindingName : splitAddress(bindingName)[1]);
   });
   return visible;
 }

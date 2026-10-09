@@ -48,6 +48,10 @@
   ~~|
   ::builtin{}
 
+:doc/segments/parts
+  |~~ The prose and the quotes of the doc. ~~|
+  ::vec
+
 :doc/segments/alternatesProseAndCode
   |~~ Prose and code alternate in the segments. ~~|
   ::law~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
@@ -61,6 +65,10 @@
       tags that holds `::link`, a query a reader follows.
   ~~|
   ::builtin{}
+
+:doc/links/jumps
+  |~~ The links of the doc, each a query that answers another page. ~~|
+  ::vec
 
 :doc/links/findsTheLinkInProse
   |~~ A link inside prose is found. ~~|
@@ -76,6 +84,10 @@
       it shows.
   ~~|
   ::builtin{}
+
+:doc/snippets/examples
+  |~~ The snippets of the doc, each a query a reader runs. ~~|
+  ::vec
 
 :doc/snippets/findsTheSnippetInProse
   |~~ A snippet inside prose is found. ~~|

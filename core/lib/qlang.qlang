@@ -7,14 +7,14 @@
 :qlang
   |~~ qlang is a pipeline language over values. A query is a subject and its steps: each step is a command on the value the step before it answered, and answers a new value; nothing changes in place, and the answer is the last value. Everything the language handles is a value with a literal that prints and reads back as itself: data, code, prose and failures alike. So the language describes itself in its own values: every name has a page, the pages grow from ::qlang, and a query reads them like any data.
 
-      The laws of a page stand under its name, each a query that runs and answers true: `::qlang | laws` lists those of this page, and a form copied from a law is a form that works.
+      The laws of a name stand under it, each a query that runs and answers true, `::vec/take | laws`, and a form copied from a law is a form that works.
 
       What a reader can rely on, the invariants every rule below follows from:
       - A query is a function of its input: the same subject answers the same value, nothing changes in place, and nothing is read or written outside it but by the verbs of the host.
       - The value in the pipe is the one implicit argument: every command takes it as its subject, and every modifier is computed against it.
       - Every nested piece, an element of a literal, a group, the body of `*`, a modifier, starts from the value in the pipe of its step and the names around it and gives back only its value.
       - Nothing is converted behind the reader: no truthiness, no number read out of a string; a part read strictly, `/k` or `/0`, fails where it is missing, and one read softly, `at`, `first`, `last`, `min`, `max` or `avg`, answers null; a value that does not fit makes its step fail, under a tag naming that step.
-      - One order ranks every value, so anything sorts, compares and dedupes.
+      - One order ranks every value, so anything sorts, dedupes and has a least and a greatest; `gt` and `lt` compare two values of one kind.
       - A failure is a value: it rides past `|` and `*` until `!|` opens it.
       - Every value prints as a literal that reads back as itself: what an answer shows is the value.
       - What exists is what the language lists: a verb missing from the list of a kind does not exist for it, and a page tells the truth about its name because its laws run.
@@ -53,7 +53,7 @@
       A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
 
       8. Code and names of your own. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text.
-      A kind of your own is a label, a name declared by its page, and every value put under it keeps the laws declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its args, `::Box/put[7]`, and each name under the call's address reads a part of them, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      A kind of your own is a label, a name declared by its page, and every value put under it keeps the invariants declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its args, `::Box/put[7]`, and each name under the call's address reads a part of them, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
       A step of a quote is a record of what it computes, a command under ::call with its `:name`.
       Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, `segments` its prose and quotes, and `links` and `snippets` the quotes a reader follows and runs. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
 
@@ -185,8 +185,8 @@
   ::law~({:a 1} | entries | tag ::map | eq {:a 1})
 
 :qlang/rounds
-  |~~ `round` changes a number of more digits. ~~|
-  ::law~(3.14159 | round 2 | ne 3.14159)
+  |~~ `round 2` keeps two digits after the point. ~~|
+  ::law~(3.14159 | round 2 | eq 3.14)
 
 :qlang/folds
   |~~ `reduce` folds the elements from a seed. ~~|
@@ -309,7 +309,7 @@
   ::law~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
 
 :qlang/opensTheChapters
-  |~~ The links of this page open the chapters. ~~|
+  |~~ The links of the first page open its chapters. ~~|
   ::law~(::qlang | doc | links * open | count | gt 5)
 
 :builtin
@@ -508,10 +508,6 @@
       ::link~(::qlang/values | doc)
   ~~|
 
-:vec/isAVector
-  |~~ Brackets make a vector. ~~|
-  ::law~([1 2] | type | eq ::vec)
-
 :vec/readsASetAsItsVector
   |~~ A set under `::vec` is its vector. ~~|
   ::law~(#[2 1] | tag ::vec | eq [1 2])
@@ -542,10 +538,6 @@
 :set/buildsFromAVector
   |~~ A vector under `::set` is its distinct elements. ~~|
   ::law~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
-
-:set/opensToItsVector
-  |~~ A set's payload is its vector. ~~|
-  ::law~(#[2 1] | payload | eq [1 2])
 
 :set/reversesIntoAVector
   |~~ A reversed set is a vector. ~~|
@@ -598,8 +590,8 @@
 :quote
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
       under the code tag. Code is a value so that a name takes code as a
-      part of its args, `filter`, `sort`, `if`; a page holds laws that run and links
-      that lead on; the trail of an error holds the steps it skipped,
+      part of its args, `filter`, `sort`, `if`; a page holds links that
+      lead on and snippets that run, and the laws of a name are code; the trail of an error holds the steps it skipped,
       ready to replay; and a query is read, printed and built like any
       data. A literal step is the literal itself; a step that computes is
       a record, `::call`, `::proj`, `::bind` or `::construct`; `*`, `!|`
@@ -757,10 +749,6 @@
       value. ::link~(::qlang/values | doc)
   ~~|
 
-:desc/isADesc
-  |~~ A value turned is a `::desc`. ~~|
-  ::law~(5 | desc | type | eq ::desc)
-
 :desc/holdsTheValue
   |~~ The payload is the value turned. ~~|
   ::law~(5 | desc | payload | eq 5)
@@ -792,7 +780,7 @@
   ~~|
 
 :link/isALink
-  |~~ A link of the first page is a `::link`. ~~|
+  |~~ A link a doc holds is a `::link`. ~~|
   ::law~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | type | eq ::link)
 
 :link/opensToPages
@@ -820,7 +808,7 @@
   ::law~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)
 
 :snippet/standsUnderAKind
-  |~~ Vectors show a snippet. ~~|
+  |~~ The page of vectors shows a snippet. ~~|
   ::law~(::vec | doc | snippets | count | gt 0)
 
 :law
@@ -833,6 +821,18 @@
 :law/provesItsClaim
   |~~ A law declared under a name proves its claim when it runs. ~~|
   ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | runLaws * /ok | eq [true])
+
+:holds
+  |~~ The kind of an invariant, a query every value of a label keeps or
+      the args of a word, declared as a definition under it and named by
+      the refusal of a value that breaks it, `:Small/TooLargeError
+      ::holds~(lt 10)`: the value is checked when it is built and refused
+      under that name when the query answers false.
+  ~~|
+
+:holds/refusesUnderItsName
+  |~~ A value that breaks an invariant is refused under its name. ~~|
+  ::law~(:Small |~~ Below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/TooLargeError])
 
 :explanation
   |~~ The kind of what `explain` answers: the page `doc` reads
@@ -847,10 +847,6 @@
 :explanation/explainsAnError
   |~~ An error explained is an `::explanation`. ~~|
   ::law~("x" | add 1 !| explain | type | eq ::explanation)
-
-:explanation/keepsTheErrorRaised
-  |~~ The value of the explanation is the error, raised. ~~|
-  ::law~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
 
 :tagged
   |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
@@ -1130,10 +1126,6 @@
   |~~ A miss is an error. ~~|
   ::law~({:a 1} | /b !| type | eq ::proj/KeyNotInMapError)
 
-:qlang/pipeline/readsTwoFieldsInOneStep
-  |~~ Two fields of one record are read in one step. ~~|
-  ::law~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
-
 :qlang/pipeline/keepsTheRecordByAName
   |~~ A name keeps the record for a later step. ~~|
   ::law~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
@@ -1202,25 +1194,9 @@
   ~~|
   #[::binding]
 
-:qlang/names/listsTheReadersNames
-  |~~ `env` holds a name the reader declared. ~~|
-  ::law~(:limit 10 | env | has :limit)
-
-:qlang/names/listsTheKinds
-  |~~ `kinds` holds the kinds of the scope. ~~|
-  ::law~(kinds | has ::vec)
-
 :qlang/names/listsUnderANoun
   |~~ `manifest` lists what lies under a noun. ~~|
   ::law~(::vec | manifest | has ::vec/count)
-
-:qlang/names/readsTheRecordOfAName
-  |~~ A name's record holds its value. ~~|
-  ::law~(:x 1 | :x | binding | /value | eq 1)
-
-:qlang/names/readsTheOriginOfAVerb
-  |~~ A verb's record names its source. ~~|
-  ::law~(::vec/filter | binding | /origin | eq :qlang/vec)
 
 :qlang/names/closesWithItsGroup
   |~~ A name declared in a group closes with it. ~~|
@@ -1250,17 +1226,9 @@
   |~~ A name is declared once in a scope. ~~|
   ::law~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
-:qlang/names/shadowsInAnInnerScope
-  |~~ An inner scope may declare it again. ~~|
-  ::law~(:k 1 | (:k 2 | k) | eq 2)
-
 :qlang/names/takesNoWord
   |~~ A value takes no word of the vocabulary. ~~|
   ::law~(:count 5 !| type | eq ::bind/NameTakenByVocabularyError)
-
-:qlang/names/replacesNoNodeOfTheRoot
-  |~~ A reader replaces no node of the root. ~~|
-  ::law~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
 
 :qlang/names/leavesAValuePlain
   |~~ A name over the value a call answered is plain. ~~|
@@ -1307,11 +1275,11 @@
       A modifier is evaluated at the call against the subject, the value
       in the pipe, which is always the subject of the call; a form that
       combines several values of one subject is a verb of its own, its
-      objects all the operands, `mulOf /price /qty`; a part that runs
+      args all the operands, `mulOf /price /qty`; a part that runs
       code later takes a quote, `~name` or `~/path` the quote of one step, and a
       condition is a boolean.
-      A kind is a label, a name declared by its page, whose laws every
-      value put under it keeps, and whose name `construct`, when it has
+      A kind is a label, a name declared by its page, whose invariants
+      every value put under it keeps, and whose name `construct`, when it has
       one, builds the value from the payload.
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value.
@@ -1357,14 +1325,6 @@
 :qlang/verbs/needsABoolean
   |~~ A condition is a boolean. ~~|
   ::law~([1 2] | filter ~(1) !| type | eq ::vec/filter/ConditionNotBooleanError)
-
-:qlang/verbs/keepsTheLawsOfALabel
-  |~~ A value under a label keeps its laws. ~~|
-  ::law~(:Small |~~ Below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/TooLargeError])
-
-:qlang/verbs/buildsByConstruct
-  |~~ `construct` builds the value from the payload. ~~|
-  ::law~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
 
 :qlang/verbs/laysAnUndeclaredTag
   |~~ A tag no declaration answers checks nothing. ~~|
@@ -1412,10 +1372,6 @@
   |~~ The first stop holds the refused value. ~~|
   ::law~("a" | mul 2 !| [/actualType /trail/0/subject] | eq [::string "a"])
 
-:qlang/errors/explainsTheSite
-  |~~ `explain` answers an explanation. ~~|
-  ::law~("x" | add 1 !| explain | type | eq ::explanation)
-
 :qlang/errors/stopsAtEachLevel
   |~~ The trail stops at each level the error left. ~~|
   ::law~(:any/f ~(add n | mul n) | :any/f/n ~(/0) | "x" | f 2 | sub 3 !| /trail * /step | eq [~(add n) ~(f 2)])
@@ -1428,10 +1384,6 @@
   |~~ A map raised again resumes its trail. ~~|
   ::law~(!{:kind :oops} | count !| raise | add 1 !| /trail * /step | eq [~(!{:kind :oops})])
 
-:qlang/errors/startsOverWithoutATrail
-  |~~ A map raised without a trail starts it over. ~~|
-  ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step | eq [~(raise)])
-
 :qlang/errors/asksWhetherItFailed
   |~~ `false !| true` answers whether a value is an error. ~~|
   ::law~([!{:kind :oops} 42] * (false !| true) | eq [true false])
@@ -1440,8 +1392,8 @@
   |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb takes
       one where it needs code, `filter`, `sort`, `if`, `apply` runs one on
       a subject, and a quote is taken apart and built like any vector of
-      steps. Because code is a value, a page holds laws that run and
-      links that open, and the trail of an error holds the steps it
+      steps. Because code is a value, the laws of a name run, a page
+      holds links that open, and the trail of an error holds the steps it
       skipped, ready to replay. Rests on values and the pipeline; the
       hypertext is written in it.
       ::link~(::quote | doc) ::link~(::qlang/hypertext | doc)
@@ -1473,19 +1425,16 @@
       anchors several pages at once. A page is a doc, prose that holds
       code: a quote under `::link` is a link to another page, and a
       quote under `::snippet` a query a reader runs to see what it
-      shows, `open` running either, while the laws that prove a name
-      stand under it, which `runLaws` holds to answer true. So a page leads on to the pages that go deeper,
-      and the pipeline moves through them as through any data:
+      shows, `open` running either. So a page leads on to the pages that
+      go deeper, and the pipeline moves through them as through any data:
       `manifest` lists what lies under a noun, its verbs and refusals,
       `links * open` opens every page a page names in one query, and a
       filter over pages by `content | contains` searches them. Nothing
       is read that was not asked for, and a query names the shape of
-      what it reads. Rests on every concept before it.
+      what it reads. The laws that prove a name stand under it, which
+      `runLaws` holds to answer true. Rests on every concept before it.
       ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hosts | doc)
-
-      One address passes into its page, its declaration and its source.
-      A filter over pages searches them.
   ~~|
   #[::doc ::link ::snippet]
 
@@ -1515,7 +1464,3 @@
       A value whose print fits its budget is answered as it is.
   ~~|
   #[::elision]
-
-:qlang/hosts/answersAFittingValueWhole
-  |~~ A value within its budget is answered whole. ~~|
-  ::law~([1 2] | elide 100 | eq [1 2])

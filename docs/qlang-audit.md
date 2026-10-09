@@ -937,24 +937,15 @@ catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
 paged with it [D124], [D174].
 
-The laws of a name have left its page for definitions under it [D174],
-and its links and snippets stand in its prose where it names them
-[D175]:
-
-```qlang
-> ::qlang | [(laws | count | gt 0) (doc | links | count | gt 0)]
-[true true]
-```
-
 The repair must give the language views sized to a budget, the cheap
 view the default [D27]. It must reduce catalog prose to what the facts
 do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
-rather than dumped. It must name a law by its refusal, and let a
-reader assemble from the definitions under an address the description
-a question needs, in one round trip [D168], [D169].
+rather than dumped. It must let a reader assemble from the definitions
+under an address the description a question needs, in one round trip
+[D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -1138,9 +1129,10 @@ a literal without a tag has one of the core's, which its brackets imply
 and its laws, while one rule of the core prints every literal [D33].
 
 One mechanism of operand. An operand is a name under the label of its
-subject, the parts of its args names under its address with their laws,
-the law of its answer and its doc its page, and the runtime
-executes the declaration [D164]. A built-in, a host's operand and a
+subject, the parts of its args names under its address with their
+invariants, its answer a name under it that names the kinds it answers,
+and its doc its page, and the runtime executes the declaration [D164],
+[D169]. A built-in, a host's operand and a
 declared pipeline are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
@@ -1404,9 +1396,10 @@ is reduced to what the facts do not say, every page telling what its
 name is for and the claims its laws prove [D110], [D124]; errors print
 as alerts; enrichment happens once per session; fields are documented
 by their records' tags and shared values by their own [D50]; a page
-holds prose alone, the first page's sections names under `::qlang`
-from which the first screen is assembled [D169]; and the
-first screen is written from the invariants of the language and held
+holds prose with the links and snippets it names, the laws of its name
+standing under the name [D174], [D175]; the first page's sections are
+names under `::qlang` from which the first screen is assembled [D169];
+and the first screen is written from the invariants of the language and held
 against probes its author never saw [D131], holding the weight it has
 until a pass on compactness can cut what a reader asks `manifest` for
 [D150].

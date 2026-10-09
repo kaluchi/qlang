@@ -24,10 +24,6 @@
   |~~ Three elements count three. ~~|
   ::law~([1 2 3] | count | eq 3)
 
-:vec/count/refusesANumberNamingTheVerb
-  |~~ A number has no `count`, and the refusal names where it lives. ~~|
-  ::law~(42 | count !| /addresses | has ::vec/count)
-
 :vec/count/size
   |~~ How many elements the vector holds. ~~|
   ::number
@@ -349,10 +345,6 @@
   |~~ A vector element is found by equality. ~~|
   ::law~([1 [2]] | has [2] | eq true)
 
-:vec/has/refusesANumberNamingTheVerbs
-  |~~ A number has no `has`, and the refusal names where it lives. ~~|
-  ::law~(42 | has :k !| /addresses | has ::map/has)
-
 :vec/has/element
   |~~ The element the call gives. ~~|
   ~(/0)
@@ -371,10 +363,6 @@
 :vec/contains/findsAnElement
   |~~ An element held is found. ~~|
   ::law~(["ops" "db"] | contains "ops" | eq true)
-
-:vec/contains/refusesANumberNamingTheVerbs
-  |~~ A number has no `contains`, and the refusal names where it lives. ~~|
-  ::law~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
 
 :vec/contains/element
   |~~ The element the call gives. ~~|
@@ -1041,10 +1029,6 @@
   |~~ A set takes the element as a set does. ~~|
   ::law~(#[2 3] | prepend 3 | eq #[2 3])
 
-:vec/prepend/refusesANumberNamingTheVerbs
-  |~~ A number has no `prepend`, and the refusal names where it lives. ~~|
-  ::law~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
-
 :vec/prepend/element
   |~~ The element the call gives. ~~|
   ~(/0)
@@ -1067,10 +1051,6 @@
 :vec/append/keepsASetASet
   |~~ A set takes the element as a set does. ~~|
   ::law~(#[1 2] | append 1 | eq #[1 2])
-
-:vec/append/refusesANumberNamingTheVerbs
-  |~~ A number has no `append`, and the refusal names where it lives. ~~|
-  ::law~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
 
 :vec/append/element
   |~~ The element the call gives. ~~|

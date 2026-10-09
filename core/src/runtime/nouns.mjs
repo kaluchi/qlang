@@ -13,18 +13,13 @@ import {
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
+import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
 
-// The noun a name with a path is declared under and its last name,
-// `['vec', 'count']`; a name of one segment is under no noun.
-export function splitAddress(name) {
-  const cut = name.lastIndexOf('/');
-  return cut < 0 ? [null, name] : [name.slice(0, cut), name.slice(cut + 1)];
-}
 
 // The bindings of a scope by name: the root's a name of the frame does
 // not stand over, then the frame's.
@@ -66,9 +61,9 @@ const CONSTRUCT_NAME = 'construct';
 // quote or a host's primitive under a label, the label's `construct`
 // apart; a word is the label of the args of a call of it [D169], [D173].
 export function isWord(env, address) {
-  const [labelName, lastName] = splitAddress(address);
-  return labelName !== null && lastName !== CONSTRUCT_NAME && isLabel(env, labelName)
-    && isMemberValue(bindingValueOf(nodeOf(env, address)));
+  const [labelName] = splitAddress(address);
+  const record = nodeOf(env, address);
+  return labelName !== null && record !== null && residesOn(record, labelName, env);
 }
 
 // A value a name under a label holds when it runs on the label's values.
@@ -95,16 +90,16 @@ export function answerOf(env, address) {
   return null;
 }
 
-// lawsUnder(env, address) → the laws declared under an address, each a
-// name whose value is a quote under `::holds`, `[address, law]` in the
-// order of their declarations [D169].
-export function lawsUnder(env, address) {
-  const laws = [];
+// invariantsUnder(env, address) → the invariants declared under an
+// address, each a name whose value is a quote under `::holds`,
+// `[address, query]` in the order of their declarations [D169].
+export function invariantsUnder(env, address) {
+  const invariants = [];
   for (const [, record] of namesUnderOf(env, address)) {
     const value = bindingValueOf(record);
-    if (isInvariant(value)) laws.push([record.get('name').name, value.payload]);
+    if (isInvariant(value)) invariants.push([record.get('name').name, value.payload]);
   }
-  return laws;
+  return invariants;
 }
 
 // Whether a value is an invariant, a quote under `::holds`, whose name is
@@ -115,21 +110,18 @@ export function isInvariant(value) {
 
 const INVARIANT_TAG_NAME = 'holds';
 
-// holdsRole(value, roleName) → whether a value holds the tag of a role,
-// `law`, `link` or `snippet`, under the stack of tags over it, a
-// host's among them [D108].
-export function holdsRole(value, roleName) {
-  for (let beneath = value; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) {
-    if (beneath.tag.name === roleName) return true;
-  }
-  return false;
+// Whether a value is a law, a quote under `::law`, which proves the
+// claim its name makes [D174].
+export function isLaw(value) {
+  return isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
 
-// definitionsInRole(env, address, roleName) → the definitions declared
-// one name under an address whose value holds the tag of a role, each
-// `[lastName, record]` in the order of their declarations [D169].
-export function definitionsInRole(env, address, roleName) {
-  return [...namesUnderOf(env, address)].filter(([, record]) => holdsRole(bindingValueOf(record), roleName));
+const LAW_TAG_NAME = 'law';
+
+// lawsUnder(env, address) → the laws declared one name under an address,
+// each `[lastName, record]` in the order of their declarations [D174].
+export function lawsUnder(env, address) {
+  return [...namesUnderOf(env, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
 }
 
 // The kinds a tag or a set of tags names, or null for any other value.
@@ -365,15 +357,15 @@ function rootIndexOf(root) {
 // `laws` [D174].
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]
-    .filter(([, record]) => !holdsRole(bindingValueOf(record), 'law'))
+    .filter(([, record]) => !isLaw(bindingValueOf(record)))
     .map(([name]) => makeTagKeyword(`${tagName}/${name}`)));
 }
 
 // declarationsUnder(env, address) → the records declared under an
-// address at any depth, in the order of their declarations, each before
-// the names under it [D168].
+// address at any depth, in the order they were written [D168].
 export function declarationsUnder(env, address) {
-  return [...namesUnderOf(env, address)].flatMap(([lastName, record]) => [record, ...declarationsUnder(env, `${address}/${lastName}`)]);
+  const prefix = `${address}/`;
+  return [...bindingsOf(env)].filter(([name]) => name.startsWith(prefix)).map(([, record]) => record);
 }
 
 // namesDeclaredUnder(env, address) → the last names of the nodes declared

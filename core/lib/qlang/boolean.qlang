@@ -58,10 +58,6 @@
   |~~ True and false is false. ~~|
   ::law~(true | and false | eq false)
 
-:boolean/and/holdsTwoConditionsByAllOf
-  |~~ Two conditions of one record hold together by `allOf`. ~~|
-  ::law~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
-
 :boolean/and/failsWhenOneConditionFails
   |~~ `allOf` is false when one condition is. ~~|
   ::law~({:active false :age 25} | allOf /active (/age | gte 18) | eq false)

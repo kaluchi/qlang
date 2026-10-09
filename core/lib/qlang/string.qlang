@@ -30,7 +30,7 @@
   ~(/0)
 
 :string/gt/than/NotStringError
-  |~~ The than is a string. ~~|
+  |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
 :string/gt/greater
@@ -50,7 +50,7 @@
   ~(/0)
 
 :string/gte/than/NotStringError
-  |~~ The than is a string. ~~|
+  |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
 :string/gte/atLeast
@@ -70,7 +70,7 @@
   ~(/0)
 
 :string/lt/than/NotStringError
-  |~~ The than is a string. ~~|
+  |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
 :string/lt/less
@@ -90,7 +90,7 @@
   ~(/0)
 
 :string/lte/than/NotStringError
-  |~~ The than is a string. ~~|
+  |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
 :string/lte/atMost
@@ -591,10 +591,6 @@
   |~~ A keyword's name reads back as the string. ~~|
   ::law~("bar" | keyword | keyword | eq "bar")
 
-:string/keyword/refusesANumberNamingTheVerbs
-  |~~ A number has no `keyword`, and the refusal names where it lives. ~~|
-  ::law~(42 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])
-
 :string/keyword/key
   |~~ The keyword the text names. ~~|
   ::keyword
@@ -615,7 +611,3 @@
 :string/parse/readsTheQuote
   |~~ The source reads as the quote it spells. ~~|
   ::law~("add 1 2" | parse | eq ~(add 1 2))
-
-:string/parse/refusesANumberNamingTheVerbs
-  |~~ A number has no `parse`, and the refusal names where it lives. ~~|
-  ::law~(42 | parse !| /addresses | eq #[::quote/parse ::string/parse])

@@ -8,8 +8,6 @@
 
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-// The digits of `round` are a whole number; the law `eq (round)` that
-// states it for a count would call `round` again on its own digits.
 const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
 
 bindPrim('number/add', (augend, addend) => augend + addend);

@@ -31,7 +31,7 @@
   ~(/0)
 
 :tag/gt/than/NotTagError
-  |~~ The than is a tag name. ~~|
+  |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
 :tag/gt/greater
@@ -53,7 +53,7 @@
   ~(/0)
 
 :tag/gte/than/NotTagError
-  |~~ The than is a tag name. ~~|
+  |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
 :tag/gte/atLeast
@@ -75,7 +75,7 @@
   ~(/0)
 
 :tag/lt/than/NotTagError
-  |~~ The than is a tag name. ~~|
+  |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
 :tag/lt/less
@@ -101,7 +101,7 @@
   ~(/0)
 
 :tag/lte/than/NotTagError
-  |~~ The than is a tag name. ~~|
+  |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
 :tag/lte/atMost
@@ -167,10 +167,6 @@
   |~~ `gt` has laws to run. ~~|
   ::law~(::number/gt | runLaws | count | gte 1)
 
-:tag/runLaws/refusesANumber
-  |~~ A number names nothing, and the refusal names where `runLaws` lives. ~~|
-  ::law~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
-
 :tag/runLaws/anchor
   |~~ The anchor within the page, null when it gives none. ~~|
   ~(at 0)
@@ -192,15 +188,3 @@
 :tag/runLaws/UnknownNameError/refusesATagNothingDeclares
   |~~ A tag nothing declares is refused. ~~|
   ::law~(::Nonexistent | runLaws !| [type /name] | eq [::tag/runLaws/UnknownNameError ::Nonexistent])
-
-:tag/runLaws/UnknownNameError/name
-  |~~ The name the axis read, a keyword or a tag. ~~|
-  #[::keyword ::tag]
-
-:tag/runLaws/UnknownNameError/addresses
-  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
-  ::set
-
-:tag/runLaws/UnknownNameError/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec

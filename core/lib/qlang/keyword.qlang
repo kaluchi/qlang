@@ -30,7 +30,7 @@
   ~(/0)
 
 :keyword/gt/than/NotKeywordError
-  |~~ The than is a keyword. ~~|
+  |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
 :keyword/gt/greater
@@ -56,7 +56,7 @@
   ~(/0)
 
 :keyword/gte/than/NotKeywordError
-  |~~ The than is a keyword. ~~|
+  |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
 :keyword/gte/atLeast
@@ -78,7 +78,7 @@
   ~(/0)
 
 :keyword/lt/than/NotKeywordError
-  |~~ The than is a keyword. ~~|
+  |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
 :keyword/lt/less
@@ -100,7 +100,7 @@
   ~(/0)
 
 :keyword/lte/than/NotKeywordError
-  |~~ The than is a keyword. ~~|
+  |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
 :keyword/lte/atMost
@@ -162,15 +162,3 @@
 :keyword/runLaws/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
   ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
-
-:keyword/runLaws/UnknownNameError/name
-  |~~ The name the axis read, a keyword or a tag. ~~|
-  #[::keyword ::tag]
-
-:keyword/runLaws/UnknownNameError/addresses
-  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
-  ::set
-
-:keyword/runLaws/UnknownNameError/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec

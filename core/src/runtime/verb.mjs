@@ -72,7 +72,7 @@ export async function keptAsSubject(answer, served, passedTags, state) {
 }
 
 // A primitive runs over the value the walk served and the values of the
-// parts of the call's object, a reader of the scope over the state of
+// parts of the call's args, a reader of the scope over the state of
 // the call after them [D79], and a reader of the tags its subject stood
 // beneath over the tags the walk passed [D86].
 export function runPrimitive(primitive, served, passedTags, partValues, state) {

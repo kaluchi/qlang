@@ -305,7 +305,7 @@ export async function hoverAtOffset(ast, source, offset) {
 }
 
 // The address a name of the runtime reaches and what a call of it takes,
-// the slots of a head or the parts of an object [D164].
+// the slots of a head or the parts of the args [D164].
 function signatureTextOf(runtime, name) {
   const shown = shownFor(runtime, name);
   return [shown.address.literal, ...shown.labels].join(' ');

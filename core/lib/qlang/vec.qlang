@@ -1,6 +1,6 @@
 |~ What is declared under `::vec`: the refusal of its constructor, and
-   the verbs of vectors, each with the parts of its object and its
-   answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its object, read and held
+   the verbs of vectors, each with the parts of its args and its
+   answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its args, read and held
    to their laws before the primitive runs. ~|
 
 :vec/construct
@@ -568,7 +568,7 @@
       ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
       ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
       ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
-      A name takes the accumulator as its subject and the element as the first part of its object:
+      A name takes the accumulator as its subject and the element as its first arg:
       ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
       ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
       The seed is the first accumulator, answered as it is for an empty subject:
@@ -599,8 +599,8 @@
 
 :vec/reduce/ReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
-      accumulator as its subject and the element as the first part of its
-      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      accumulator as its subject and the element as its first arg,
+      `reduce 0 ~(add)`; a quote of several steps, a literal or a
       name of no verb is refused. A fold of several steps is a name
       declared first, whose part names the element.
 

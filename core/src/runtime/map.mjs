@@ -1,5 +1,5 @@
 // The names of the keys of a map and of membership, each a plain
-// function over the subject and the parts of its object [D167]: `keys`,
+// function over the subject and the parts of its args [D167]: `keys`,
 // `vals` and `entries` reside on `::map`, and `has` on `::map`, whose key
 // is a keyword or a string, and on `::set` and `::vec`, whose element is
 // any value.

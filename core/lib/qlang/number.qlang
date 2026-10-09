@@ -1,6 +1,6 @@
 |~ What is declared under `::number`: the refusal of its
    constructor, and the names that run on a number. A name holds its
-   page and its primitive, the parts of the object of its call are
+   page and its primitive, the parts of the args of its call are
    declared under it, each with the law a part keeps, and the refusals
    its primitive raises sit under it too. ~|
 
@@ -36,8 +36,8 @@
       ~(10 | add 3 | eq 13)
       A subject that is no number is refused under the name:
       ~("hello" | add 1 !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
-      An object with more numbers than the call has places is refused:
-      ~(1 | add 1 2 !| type | eq ::number/add/ObjectBeyondPartsError)
+      Args with more numbers than the call has places are refused:
+      ~(1 | add 1 2 !| type | eq ::number/add/ArgsBeyondPartsError)
   ~~|
   ::builtin{}
 

@@ -1,6 +1,6 @@
 // The primitives of the streams of the command line, `@in`, `@out`,
 // `@err` and `@tap`, names its source declares under `::any` [D153],
-// each a plain function over the subject and the parts of its object
+// each a plain function over the subject and the parts of its args
 // [D80], [D167].
 
 import { printValue } from '@kaluchi/qlang-core';

@@ -1,5 +1,5 @@
 |~ What is declared under `::set`: the refusal of its constructor, and
-   the verbs of sets, each with the parts of its object and its answer.
+   the verbs of sets, each with the parts of its args and its answer.
    A set is the vector in the one order
    without duplicates: a verb that keeps its subject's kind answers a
    set through the constructor of `::set`, and one that imposes an order
@@ -405,8 +405,8 @@
 
 :set/reduce/ReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
-      accumulator as its subject and the element as the first part of its
-      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      accumulator as its subject and the element as its first arg,
+      `reduce 0 ~(add)`; a quote of several steps, a literal or a
       name of no verb is refused.
 
       ~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/ReducerNotBinaryError)

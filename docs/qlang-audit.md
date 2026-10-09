@@ -720,8 +720,9 @@ The repairs since have settled most of what grew around the core. Code
 is the vector of its steps, every step a command. There is one binding
 form, a name is declared once in a scope, and a verb is a name under the
 label of its subject, a host's primitive or a quote, the parts of its
-object names under its address with their laws [D164], [D166], [D167],
-[D168]. A comment is whitespace, and a doc the literal in the slot of
+args names under its address with their laws, its args the values a
+call gives under its tag, which read back as they print [D164], [D166],
+[D167], [D168], [D173]. A comment is whitespace, and a doc the literal in the slot of
 the declaration it documents. One order ranks every value, the set is
 the ordered vector under its tag, every value has a kind, and every
 condition is a boolean. A refusal is named by the address of the word
@@ -1136,8 +1137,8 @@ a literal without a tag has one of the core's, which its brackets imply
 and its laws, while one rule of the core prints every literal [D33].
 
 One mechanism of operand. An operand is a name under the label of its
-subject, the parts of its object names under its address with their
-laws, the law of its answer and its doc its page, and the runtime
+subject, the parts of its args names under its address with their laws,
+the law of its answer and its doc its page, and the runtime
 executes the declaration [D164]. A built-in, a host's operand and a
 declared pipeline are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
@@ -1162,8 +1163,8 @@ nothing but `apply` and a part whose law asks for a quote runs, and a
 quote handed over sees the names of its author [D43]. There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a name under the
-label of its subject whose value is a quote, the parts of its object
-and its answer names under its address, and it runs when its name is
+label of its subject whose value is a quote, the parts of its args and
+its answer names under its address, and it runs when its name is
 mentioned, as a built-in does [D44], [D164], [D169]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
@@ -1647,26 +1648,6 @@ address. The sister project's suite fails on this branch until it
 follows: its host declares its primitives as verbs with heads, which
 the root refuses [D167].
 
-The object of a call under the tag of its word [D165]. A part that
-reads the whole object, `~(/)`, holds it under the tag of the word, and
-a value under the tag of a declared word is no literal a reader reads
-back, since the word is no kind [D42]:
-
-```qlang
-> :any/all ~(rest) | :any/all/rest ~(/) | 5 | all 1 2
-::any/all[1 2]
-> ::any/coalesce[] !| type
-::construct/TagNotKindError
-```
-
-So a law of such a part cannot refuse with the value it refused, and the
-alternatives of `coalesce` and the clauses of `cond` stay counted by
-their primitives [D172]. The alternatives: a law's refusal hands the
-payload of the object, what the reader wrote, at the price of a second
-shape of the value a part holds; the object held under no tag, which
-costs the walk that lets the code of a part reach the names under the
-word; or the tag of a word read back as the object of a call of it.
-
 The wholeness of a number. A count of `take` is a whole number by the
 law `eq (round)` [D172], and the digits of `round` stay tested by its
 primitive, since the same law on them would call `round` on its own
@@ -1819,3 +1800,5 @@ whole, a primitive the law of every count calls; or the test kept in
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
 [D169]: decisions/D169.md
+[D172]: decisions/D172.md
+[D173]: decisions/D173.md

@@ -86,7 +86,7 @@ export function runPrimitive(primitive, served, passedTags, partValues, state) {
 
 // shownFor(env, name) → what a tool shows for a name, `{ address, labels }`:
 // the address the name reaches with no subject, or the first word of a
-// name several kinds answer, and the parts of the object of a call of it
+// name several kinds answer, and the parts of the args of a call of it
 // [D164], [D169]; undefined for a name that reaches no name under a
 // label.
 export function shownFor(env, name) {

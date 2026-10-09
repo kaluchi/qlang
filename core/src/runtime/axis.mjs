@@ -14,7 +14,7 @@
 //            source and module [D5].
 //
 // Given a name, each axis reads the member the subject holds under it
-// [D88]: for a tag name the name under its address, a part of the object
+// [D88]: for a tag name the name under its address, a part of the args
 // of a word among them, `::vec/take | doc :count`, and for any other
 // subject the word the name calls after it, `::map | doc :minus` the
 // page of `::map/minus`.

@@ -24,7 +24,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
+  addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, isWord, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
@@ -299,11 +299,14 @@ async function evalSetLit(node, state) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D168]; a tag no node answers is a kind of the
-// scope's own, identity. A value a verb returns under its subject's tag
-// is minted here again [D41]; no constructor meets an error [D86].
+// scope's own, identity, and the tag of a word lays itself over the args
+// of a call of it, which the call checks as it reads them, so the args a
+// call prints read back [D42], [D173]. A value a verb returns under its
+// subject's tag is minted here again [D41]; no constructor meets an
+// error [D86].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
-  if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  if (declared === null || declared === undefined || isWord(state.env, tagName)) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isDoc(declared)) {
     throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualValue: declared });
   }
@@ -376,7 +379,7 @@ function lawsOf(env, address) {
 // A refusal named by the address of what refused [D166], its facts with
 // the kind of the value refused in the order the catalog declares them
 // [D172]; the value itself rides the facts where the trail does not hold
-// it, a part or an object, and leaves them for the subject, which the
+// it, a part or the args, and leaves them for the subject, which the
 // trail's first stop holds [D85].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTagKeyword(tagName);
@@ -598,11 +601,11 @@ async function applyMember(record, lambdas, state) {
     return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.env, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
-  const objectParts = await objectOf(address, partsOfName(scope, address), lambdas, state, scope);
-  if (isErrorValue(objectParts)) return withPipeValue(state, objectParts);
+  const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope);
+  if (isErrorValue(called)) return withPipeValue(state, called);
   const answer = isQuote(member)
-    ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, objectParts.bodyEnv))).pipeValue
-    : await runHostMember(member, walked, objectParts, state);
+    ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
+    : await runHostMember(member, walked, called, state);
   if (isErrorValue(answer)) return withPipeValue(state, answer);
   const answerDefinition = answerOf(scope, address);
   const brought = answerDefinition === null ? answer : await answerUnderItsLabel(answer, answerDefinition, labelName, walked, state);
@@ -664,7 +667,7 @@ function scopeOfMember(member, state) {
 }
 
 // The places the parts read, one past the greatest a part reads strictly
-// or softly, or null when a part reads no place, the object whole, a
+// or softly, or null when a part reads no place, the args whole, a
 // place from its end or anything else, and so takes any number of
 // values.
 function placesReadBy(parts) {
@@ -677,15 +680,15 @@ function placesReadBy(parts) {
   return places;
 }
 
-// The object of a call, the values of its modifiers each computed against
-// the subject under the name's address, and its parts read from it: an
-// object with more values than the parts have places is refused under
-// the name, one that breaks a law declared under the name under the law,
-// a part the object does not hold under the part, and a part that breaks
-// a law declared under it under the law [D169]. Answers the values of
+// The args of a call, the values of its modifiers each computed against
+// the subject under the name's address, and its parts read from them:
+// args with more values than the parts have places are refused under the
+// name, args that break a law declared under the name under the law, a
+// part the args do not hold under the part, and a part that breaks a law
+// declared under it under the law [D169], [D173]. Answers the values of
 // the parts in their order and the scope of the body, where each part is
-// bound by its name and the object as `object`.
-async function objectOf(address, parts, lambdas, state, scope) {
+// bound by its name and the args as `args`.
+async function argsOf(address, parts, lambdas, state, scope) {
   if (lambdas.length === 0 && parts.length === 0) return { values: [], bodyEnv: scope };
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
@@ -693,26 +696,26 @@ async function objectOf(address, parts, lambdas, state, scope) {
     if (isErrorValue(value)) return refusalOfComputedCode(parts, place, value, scope);
     values.push(value);
   }
-  const object = makeTaggedInstance(makeTagKeyword(address), values);
+  const args = makeTaggedInstance(makeTagKeyword(address), values);
   const places = placesReadBy(parts);
-  if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object }, scope);
-  const objectRefused = await refusalOfLaws(address, object, state, scope);
-  if (objectRefused !== null) return objectRefused;
-  let bodyEnv = envSet(scope, 'object', makeBinding({ name: keyword('object'), value: object }));
+  if (places !== null && values.length > places) return refusalUnder(`${address}/ArgsBeyondPartsError`, { places, actualValue: args }, scope);
+  const argsRefused = await refusalOfLaws(address, args, state, scope);
+  if (argsRefused !== null) return argsRefused;
+  let bodyEnv = envSet(scope, 'args', makeBinding({ name: keyword('args'), value: args }));
   const partValues = [];
   const taken = [];
   for (const [partName, partRecord] of parts) {
     const partAddress = partRecord.get('name').name;
     const selector = selectorOf(partRecord);
-    const part = await partOf(selector, values, nestState(state, object, scope));
-    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object }, scope);
+    const part = await partOf(selector, values, nestState(state, args, scope));
+    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: args }, scope);
     if (isErrorValue(part)) return part;
     const refused = await refusalOfLaws(partAddress, part, state, scope);
     if (refused !== null) return refused;
     const kindLaw = kindLawOf(scope, partAddress);
     const handed = servedByLaw(kindLaw, part);
     partValues.push(handed);
-    taken.push({ readsObject: selector.readsObject, code: selector.readsObject || (kindLaw?.kinds?.includes('quote') ?? false) });
+    taken.push({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindLaw?.kinds?.includes('quote') ?? false) });
     bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
   return { values: partValues, taken, bodyEnv };
@@ -720,27 +723,27 @@ async function objectOf(address, parts, lambdas, state, scope) {
 
 // A value the call computed that answered an error where a part that
 // asks for code reads, by a law `is` of a quote or, for the part that
-// reads the object whole, `every ~(is …)` of one: the step ran on the
+// reads the args whole, `every ~(is …)` of one: the step ran on the
 // subject by mistake, `filter /active` for `filter ~(/active)`, and the
 // part's law refuses it with the error as its value, the part that reads
-// the object naming the place, from zero; anywhere else the error is the
+// the args naming the place, from zero; anywhere else the error is the
 // answer [D67], [D167], [D169].
 function refusalOfComputedCode(parts, place, error, scope) {
   const reading = parts.find(([, partRecord]) => selectorOf(partRecord).place === place)
-    ?? parts.find(([, partRecord]) => selectorOf(partRecord).readsObject);
+    ?? parts.find(([, partRecord]) => selectorOf(partRecord).readsArgs);
   if (reading === undefined) return error;
   const [, partRecord] = reading;
   const law = kindLawOf(scope, partRecord.get('name').name);
-  const { readsObject } = selectorOf(partRecord);
-  const asked = law === undefined ? null : readsObject ? law.elementKinds : law.kinds;
+  const { readsArgs } = selectorOf(partRecord);
+  const asked = law === undefined ? null : readsArgs ? law.elementKinds : law.kinds;
   if (asked === null || !asked.includes('quote')) return error;
-  return refusalUnder(law.address, readsObject ? { index: place, actualValue: error } : { actualValue: error }, scope);
+  return refusalUnder(law.address, readsArgs ? { index: place, actualValue: error } : { actualValue: error }, scope);
 }
 
-// The value a part's selector reads from the object: a selector of one
+// The value a part's selector reads from the args: a selector of one
 // step that reads a place, `/n` or `at n default`, is the value at the
 // place, read here as `at` reads it, so the parts of `at` itself read
-// without calling it; any other selector runs as code over the object.
+// without calling it; any other selector runs as code over the args.
 async function partOf({ ast, place, onePlace, strict, fallback }, values, state) {
   if (!onePlace) return (await evalBody(ast, state)).pipeValue;
   if (place < values.length) return values[place];
@@ -748,7 +751,7 @@ async function partOf({ ast, place, onePlace, strict, fallback }, values, state)
   return fallback === null ? null : (await evalBody(fallback, state)).pipeValue;
 }
 
-// A strict read of a place past the values of the object.
+// A strict read of a place past the values of the args.
 const MISSED_PLACE = Symbol('missedPlace');
 
 // A part handed as its law of kinds asks: for `is` the value of the kind
@@ -794,20 +797,20 @@ function refusedElementOf(elements, kinds) {
   return index === -1 ? null : { index, element: elements[index] };
 }
 
-// A strict read of a place the object does not hold.
+// A strict read of a place the args do not hold.
 function isMissedPlace(error) {
   return error.tag.name === 'proj/IndexOutOfBoundsError' || error.tag.name === 'proj/KeyNotInMapError';
 }
 
 // A primitive runs over the value the walk served and the values of the
 // parts, a quote closed at the call into code [D4] where the part takes
-// code, each element so for the part that reads the object whole
+// code, each element so for the part that reads the args whole
 // [D167].
-async function runHostMember(member, walked, objectParts, state) {
-  const handed = objectParts.values.map((value, index) => {
-    const { readsObject, code } = objectParts.taken[index];
+async function runHostMember(member, walked, called, state) {
+  const handed = called.values.map((value, index) => {
+    const { readsArgs, code } = called.taken[index];
     const takenBy = element => (code && isQuote(element) ? codeOf(element, state) : element);
-    const served = readsObject ? walkToKinds(value, ['vec'])?.served : undefined;
+    const served = readsArgs ? walkToKinds(value, ['vec'])?.served : undefined;
     return isVec(served) ? served.map(takenBy) : takenBy(value);
   });
   return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);

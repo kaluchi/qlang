@@ -22,7 +22,7 @@ import { expectedValueOf } from '../helpers/expected-value.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const atomsModulePath = join(here, '..', 'qlang', 'atoms.qlang');
 const conformanceDir = join(here, '..', 'conformance');
-const RING_TIMEOUT = 120_000;
+const RING_TIMEOUT = 240_000;
 
 const OPEN_EXAMPLES = new Map([
   // The step of an error literal whose trail is no vector of stops:

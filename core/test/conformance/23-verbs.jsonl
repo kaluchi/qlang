@@ -1,6 +1,6 @@
 {"name":"a-declaration-that-computes-begins-the-body","query":":any/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9","decision":"D70"}
 {"name":"a-required-part-left-out-is-refused-by-its-name","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m !| type","expect":"::any/m/x/NotGivenError","decision":"D166"}
-{"name":"a-name-refuses-modifiers-beyond-its-places","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m 1 2 3 !| [type /places]","expect":"[::any/m/ObjectBeyondPartsError 1]","decision":"D166"}
+{"name":"a-name-refuses-modifiers-beyond-its-places","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m 1 2 3 !| [type /places]","expect":"[::any/m/ArgsBeyondPartsError 1]","decision":"D166"}
 {"name":"a-part-is-held-to-the-law-of-its-kind","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m \"a\" !| type","expect":"::any/m/x/NotNumberError","decision":"D169"}
 {"name":"a-slot-takes-the-value-of-its-kind-beneath-the-tags","query":":any/m ~(x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)","expect":"5","decision":["D67","D68"]}
 {"name":"a-slot-whose-kinds-hold-null-may-be-left-out","query":":any/m ~(limit) | :any/m/limit ~(at 0) | :any/m/limit/NotNumberOrNullError ::holds~(is ::number ::null) | 5 | m","expect":"null","decision":"D67"}

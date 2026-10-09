@@ -106,7 +106,7 @@
       ~(~(add 1 | mul 2) | count | eq 2)
       ~(5 | apply ~(add 1 | mul 2) | eq 12)
       ~("add 1" | parse | eq ~(add 1))
-      A kind of your own is a label, a name declared by its page, and every value put under it keeps the laws declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      A kind of your own is a label, a name declared by its page, and every value put under it keeps the laws declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its args, `::Box/put[7]`, and each name under the call's address reads a part of them, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
       ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ~~| ~(/0) | :Box/put/w/NotNumberError ::holds~(is ::number) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/NotNumberError])
       ~(:number/plus ~(add by) | :number/plus/by ~(at 0 1) | 5 | [plus (plus 2)] | eq [6 7])
       ~(:q ~(add 1) | 5 | apply q | eq 6)
@@ -118,7 +118,7 @@
       9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, and `::vec/sort | doc` the page of a verb, with laws to copy.
       ~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
 
-      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::vec/sort | manifest` the parts of its object and its answer, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::vec/sort | manifest` the parts of its args and its answer, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
       ~(::qlang | doc | links * open | count | gt 5)
 
       11. The chapters, in the order they rest on each other, each naming its neighbours and its kinds:
@@ -311,7 +311,7 @@
 :quote
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
       under the code tag. Code is a value so that a name takes code as a
-      part of its object, `filter`, `sort`, `if`; a page holds laws that run and links
+      part of its args, `filter`, `sort`, `if`; a page holds laws that run and links
       that lead on; the trail of an error holds the steps it skipped,
       ready to replay; and a query is read, printed and built like any
       data. A literal step is the literal itself; a step that computes is
@@ -496,7 +496,7 @@
   ~~|
 
 :call
-  |~~ The step of a command, `verb object`: the name finds its verb
+  |~~ The step of a command, `verb args`: the name finds its verb
       through the kind of the subject and runs it with the modifiers.
       As a record, `:name` is the keyword of the name it calls and
       `:args` the quote of each argument's pipeline when the call has
@@ -748,7 +748,7 @@
       vector under a tag and keeps the tag:
       ~([3 1 2] | sort | eq [1 2 3])
       ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
-      A name declares the parts of its object as names under it, each
+      A name declares the parts of its args as names under it, each
       kind's word its own, and the label its answer goes under; `manifest`
       answers them before a call:
       ~(::map/at | manifest | eq #[::map/at/default ::map/at/key])
@@ -756,7 +756,7 @@
       An answer of the word's own label goes back under the tags the
       subject came through:
       ~(::Width(2) | add 3 | eq ::Width(5))
-      A reader's name under a noun takes the parts of its object after
+      A reader's name under a noun takes the parts of its args after
       it, each a name under the call's address:
       ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(is ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)
       A modifier is evaluated at the call against the subject, the value

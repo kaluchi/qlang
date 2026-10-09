@@ -112,10 +112,15 @@ describe('TaggedLit error paths', () => {
     expect(evalResult).toEqual(makeTagKeyword('unboundTag'));
   });
 
-  it('raises ConstructTagNotKindError when the node a tag addresses is no kind', async () => {
-    const err = await evalQuery('::vec/count[]');
+  it('raises ConstructTagNotKindError when the node a tag addresses is neither a kind nor a word', async () => {
+    const err = await evalQuery(':limit 5 | ::limit[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('construct/TagNotKindError'));
+  });
+
+  it('lays the tag of a word over the args of a call of it, which read back [D173]', async () => {
+    expect(await evalQuery('1 | add 1 2 !| /actualValue | eq ::number/add[1 2]')).toBe(true);
+    expect(await evalQuery('::vec/count[] | type')).toEqual(makeTagKeyword('vec/count'));
   });
 
   it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {

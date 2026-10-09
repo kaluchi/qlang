@@ -1,5 +1,5 @@
 |~ What is declared under `::map`: the refusal of its constructor, and
-   the verbs of maps, each with the parts of its object and its answer.
+   the verbs of maps, each with the parts of its args and its answer.
    A map's elements are its values, and
    its keys are the shape that travels with them: a verb that keeps the
    kind keeps the keys of the entries it keeps. ~|
@@ -391,8 +391,8 @@
 
 :map/reduce/ReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
-      accumulator as its subject and each value as the first part of its
-      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      accumulator as its subject and each value as its first arg,
+      `reduce 0 ~(add)`; a quote of several steps, a literal or a
       name of no verb is refused.
 
       ~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/ReducerNotBinaryError)

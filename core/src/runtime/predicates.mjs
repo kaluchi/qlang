@@ -1,5 +1,5 @@
 // The predicates and the reader of kinds, each a plain function over the
-// subject and the parts of its object [D167]: `not`, `and` and `or`
+// subject and the parts of its args [D167]: `not`, `and` and `or`
 // reside on `::boolean` and take booleans [D14], `eq` and `type` on
 // `::any`, and the comparisons on the kinds they compare [D65].
 //

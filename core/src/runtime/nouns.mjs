@@ -55,12 +55,21 @@ export function isUnderLabel(env, name) {
 // Whether a record holds a name declared under a label that runs on its
 // values, a quote or the descriptor of a primitive [D164], the label's
 // `construct` apart, which builds them [D169]; a name under such a name
-// is a part of its object and resides nowhere.
+// is a part of its args and resides nowhere.
 function residesOn(record, kindName, env) {
   return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName) && splitAddress(record.get('name').name)[1] !== CONSTRUCT_NAME;
 }
 
 const CONSTRUCT_NAME = 'construct';
+
+// isWord(env, address) → whether the name at the address is a word, a
+// quote or a host's primitive under a label, the label's `construct`
+// apart; a word is the label of the args of a call of it [D169], [D173].
+export function isWord(env, address) {
+  const [labelName, lastName] = splitAddress(address);
+  return labelName !== null && lastName !== CONSTRUCT_NAME && isLabel(env, labelName)
+    && isMemberValue(bindingValueOf(nodeOf(env, address)));
+}
 
 // A value a name under a label holds when it runs on the label's values.
 export function isMemberValue(value) {
@@ -236,7 +245,7 @@ export function verbsReaching(env, kindNames) {
   return reached;
 }
 
-// partsOfName(env, address) → the parts of the object of a call of the
+// partsOfName(env, address) → the parts of the args of a call of the
 // name at the address, by their names, in the order of their places: the
 // quotes declared under it, each kind's word declaring its own [D169].
 export function partsOfName(env, address) {
@@ -251,7 +260,7 @@ function quotesUnder(env, address) {
 
 // selectorOf(partRecord) → what a part's selector reads, once per part:
 // its tree, the place its first step reads, whether the selector is that
-// one step, and whether it reads the object whole, `~(/)`.
+// one step, and whether it reads the args whole, `~(/)`.
 const SELECTORS = new WeakMap();
 
 export function selectorOf(partRecord) {
@@ -264,7 +273,7 @@ export function selectorOf(partRecord) {
       ast, place, onePlace,
       strict: onePlace && ast.type === 'Projection',
       fallback: onePlace && ast.type === 'OperandCall' && ast.args.length === 2 ? ast.args[1] : null,
-      readsObject: ast.type === 'Projection' && ast.keys.length === 0
+      readsArgs: ast.type === 'Projection' && ast.keys.length === 0
     };
     SELECTORS.set(partRecord, selector);
   }
@@ -272,7 +281,7 @@ export function selectorOf(partRecord) {
 }
 
 // The place a selector's first step reads, by a projection or by `at`, a
-// whole number, or none for a selector that reads the object whole, a
+// whole number, or none for a selector that reads the args whole, a
 // place counted from its end or anything else.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;

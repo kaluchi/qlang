@@ -18,7 +18,7 @@
 {"name":"a-step-computed-where-no-part-reads-answers-its-error","query":"[1 2] | at 0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError","decision":"D167"}
 {"name":"a-place-counted-from-the-end-is-read-as-code","query":":any/lastOf ~(x) | :any/lastOf/x ~(/-1) | [(5 | lastOf 1 2) (5 | lastOf !| type)]","expect":"[2 ::any/lastOf/x/NotGivenError]","decision":"D167"}
 {"name":"a-soft-place-counted-from-the-end-is-read-as-at-reads-it","query":":any/lastOf ~(x) | :any/lastOf/x ~(at -1) | [(5 | lastOf 1 2) (5 | lastOf)]","expect":"[2 null]","decision":"D167"}
-{"name":"a-path-from-a-place-counts-that-place","query":":Box |~~ B ~~| | :Box/put ~(k) | :Box/put/k ~(/0/k) | ::Box[1] | [(put {:k 2}) (put {:k 2} 3 !| type)]","expect":"[2 ::Box/put/ObjectBeyondPartsError]","decision":"D167"}
+{"name":"a-path-from-a-place-counts-that-place","query":":Box |~~ B ~~| | :Box/put ~(k) | :Box/put/k ~(/0/k) | ::Box[1] | [(put {:k 2}) (put {:k 2} 3 !| type)]","expect":"[2 ::Box/put/ArgsBeyondPartsError]","decision":"D167"}
 {"name":"a-quote-under-a-noun-that-is-no-label-takes-no-mark","query":":x {} | :x/q ~(@out) | 5","expect":"5","decision":"D167"}
 {"name":"a-part-of-a-quote-under-a-label-takes-no-word-of-the-vocabulary","query":":vec/firstN ~([count (take count)]) | :vec/firstN/count ~(/0) !| [type /name]","expect":"[::bind/NameTakenByVocabularyError :count]","decision":"D167"}
 {"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| [type /index /actualType]","expect":"[::any/is/kinds/ElementNotTagError 0 ::keyword]","decision":"D167"}

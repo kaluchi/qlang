@@ -242,12 +242,13 @@
   |~~ The alternatives, in their order. ~~|
   ~(/)
 
-:any/coalesce/NoAlternativesError
+:any/coalesce/alternatives/EmptyError
   |~~ `coalesce` answers the first of its alternatives that answers a
       value, so it takes one at least, `coalesce ~(/nickname) ~("anonymous")`.
 
-      ~({} | coalesce !| type | eq ::any/coalesce/NoAlternativesError)
+      ~({} | coalesce !| [type /actualValue] | eq [::any/coalesce/alternatives/EmptyError ::any/coalesce[]])
   ~~|
+  ::holds~(count | gt 0)
 
 :any/cond
   |~~ The branch of the first predicate that answers true against the
@@ -270,17 +271,18 @@
   |~~ Each of the clauses is code, a quote. ~~|
   ::holds~(every ~(is ::quote))
 
-:any/cond/NoBranchesError
+:any/cond/clauses/NoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
       last clause alone the default; a call without one pair, a lone
       default among them, has nothing to answer.
 
-      ~(5 | cond !| type | eq ::any/cond/NoBranchesError)
+      ~(5 | cond !| type | eq ::any/cond/clauses/NoBranchesError)
   ~~|
+  ::holds~(count | gte 2)
 
 :any/cond/ConditionNotBooleanError
   |~~ Every predicate of `cond` answers a boolean; `:index` is the place
-      in the object, from zero, of the predicate that answered another
+      in the args, from zero, of the predicate that answered another
       kind.
       ~(
         5 | cond ~(1) ~("yes")
@@ -431,7 +433,7 @@
       host bound, answers null.
       Any other value reads the declaration of its kind. Given a name,
       it reads the name the subject holds under it: for a tag name the
-      name under its address, a part of the object of a word among them,
+      name under its address, a part of the args of a word among them,
       and for any other subject the word the name calls after it.
 
       ~(::vec/filter | source | parse | contains ":vec/filter")
@@ -497,7 +499,7 @@
       ~(5 | doc | eq (::number | doc))
       ~({:kind ::set} | doc | eq (::map | doc))
       A keyword reads the page of the member the subject holds under it,
-      the word it calls or a part of the object of a word:
+      the word it calls or a part of the args of a word:
       ~(::map | doc :minus | eq (::map/minus | doc))
       ~([1 2] | doc :count | eq (::vec/count | doc))
       ~(:any/f ~(add n) | :any/f/n |~~ how many ~~| ~(/0) | ::any/f | doc :n | content | eq " how many ")
@@ -836,7 +838,7 @@
 :any/is
   |~~ Whether the walk of the subject's tags reaches a value of one of the
       kinds the call gives: a number under a tag of its own is a number, a
-      set is a vector, a map under a tag is a map. A part of an object
+      set is a vector, a map under a tag is a map. A part of the args
       whose law asks `is` is handed to its name as the value of the kind
       the walk reached, and one whose law asks `every ~(is …)` as the
       vector, or the set, of each element's, a quote and a doc as they

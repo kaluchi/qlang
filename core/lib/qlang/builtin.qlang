@@ -102,7 +102,7 @@
       name. A verb runs its steps, a `::builtin{}` among them a step, and
       a bare name reads its value, so a host declares its primitive as a
       name under the label of its subject, `:any/@fetch ::builtin{}`, the
-      parts of its object names under it.
+      parts of its args names under it.
       A `::builtin{}` the host hands nothing for is refused with
       `::builtin/ImplementationNotHandedError`.
   ~~|

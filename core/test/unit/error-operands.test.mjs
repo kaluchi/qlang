@@ -296,11 +296,11 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce refuses a call with no alternatives under its address', () => {
-  it('coalesce with zero captured args raises AnyCoalesceNoAlternativesError [D172]', async () => {
-    const caughtErr = await catchOriginalError('{} | coalesce');
-    expect(caughtErr).toBeInstanceOf(QlangError);
-    expect(caughtErr.address).toBe('any/coalesce/NoAlternativesError');
+describe('coalesce refuses a call with no alternatives by the law of its part', () => {
+  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D172], [D173]', async () => {
+    const refused = await evalQuery('{} | coalesce');
+    expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');
+    expect(await evalQuery('{} | coalesce !| /actualValue | eq ::any/coalesce[]')).toBe(true);
   });
 });
 

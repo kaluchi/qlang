@@ -1,5 +1,5 @@
 // The names of strings, and `join`, `prepend` and `append` of vectors,
-// each a plain function over the subject and the parts of its object
+// each a plain function over the subject and the parts of its args
 // [D167]: `prepend` and `append` reside on `::string`, whose prefix and
 // suffix are strings, and on `::vec`, whose element is any value.
 //

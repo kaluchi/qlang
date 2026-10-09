@@ -41,17 +41,15 @@
 
 :construct/TagNotKindError
   |~~ The tag before a payload addresses a kind, a label, a name declared
-      by its page; a tag that addresses a name under a label, a host's
-      primitive or a quote, names no kind to build by.
+      by its page, or a word, whose args it lays itself over, `::vec/take[2]`;
+      a tag that addresses a name holding a value of its own names nothing
+      to build by.
       ::link~(::construct | doc)
 
-      ~(
-        ::vec/take[]
-        !| [type /tag /actualType]
-        |  eq [::construct/TagNotKindError ::vec/take ::builtin]
-       )
+      ~(:limit 5 | ::limit[1] !| [type /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
+      ~(::vec/take[2] | type | eq ::vec/take)
   ~~|
 
 :construct/TagNotKindError/tag
-  |~~ The tag, whose node is no label. ~~|
+  |~~ The tag, whose node is neither a label nor a word. ~~|
   ::tag

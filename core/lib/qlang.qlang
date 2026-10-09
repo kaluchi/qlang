@@ -40,7 +40,7 @@
       strings: split lines trim contains startsWith endsWith lower upper append prepend keyword, parseJson to read a number or any JSON out of text, and count take drop by characters; strings join from a vector by `join ","`.
       containers: count first last at take drop filter every any sort reverse distinct flat sum avg min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `max ~(key)`, and `sort ~([(/n | desc) /name])` ranks by n descending and then by name, and `flat` splices one level of nesting.
       every value: type eq ne print json if cond coalesce apply tag desc, and `payload` opens a value under a tag.
-      booleans: and or not.
+      booleans: and or not, and `allOf` and `anyOf` to hold conditions of one value together, `filter ~(allOf /active (/age | gte 18))`.
 
       6. What differs from the languages a reader knows.
       One order ranks every value: null, then booleans, numbers, strings, keywords, tag names, vectors, sets, maps; so anything sorts. A set is the vector in that order without duplicates: `distinct` and `keys` answer a set, `take`, `drop` and `filter` keep a set, and `sort` and `reverse` answer a vector.
@@ -859,7 +859,8 @@
       shape. The verbs that take a tag apart live here, `payload`, which
       answers the value beneath, and `within`, which edits it and puts
       the tag back through its constructor. A value is put under a tag
-      by a literal, `::T<payload>`, a step of its own kind, or by `tag`.
+      by a literal, `::T[1 2]` or `::T{:a 1}`, a step of its own kind,
+      or by `tag`.
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
 
@@ -876,10 +877,10 @@
   ::law~(~(::Box[1 2]) | first | type | eq ::construct)
 
 :construct
-  |~~ The step of a constructor invocation, `::T<payload>`: it puts a
-      payload under the tag `::T` through the tag's constructor, which
-      checks or builds the value. As a record, `:tag` is the tag and
-      `:payload` the step of its payload. ::link~(::tag | doc)
+  |~~ The step of a constructor invocation, `::T[…]`, `::T{…}`, `::T(…)`
+      or `::T"…"`: it puts a payload under the tag `::T` through the tag's
+      constructor, which checks or builds the value. As a record, `:tag`
+      is the tag and `:payload` the step of its payload. ::link~(::tag | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
 

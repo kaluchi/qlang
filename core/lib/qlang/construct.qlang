@@ -1,5 +1,5 @@
 |~ What is declared under `::construct`, the step that puts a
-   value under a tag through the tag's constructor, `::T<payload>`: the
+   value under a tag through the tag's constructor, `::T[…]`: the
    refusals of that step. ~|
 
 :construct/construct

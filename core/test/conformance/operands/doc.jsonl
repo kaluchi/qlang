@@ -19,7 +19,7 @@
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | content","expect":"\" second \"","decision":["D94","D95"]}
-{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::proj/IndexNotIntegerError!{\n  :key :unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n}","decision":"D94"}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::proj/SubjectNotProjectableError!{\n  :key :unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n}","decision":["D94","D168"]}
 {"name":"doc-type-is-not-vec","query":"|~~ x ~~| | type | eq ::vec","expect":"false"}
 {"name":"doc-type-is-not-map","query":"|~~ x ~~| | type | eq ::map","expect":"false"}
 {"name":"doc-type-is-not-string","query":"|~~ x ~~| | type | eq ::string","expect":"false"}
@@ -29,18 +29,12 @@
 {"name":"doc-eq-self","query":"|~~ same ~~| | :d / | eq d","expect":"true"}
 {"name":"doc-bound-by-a-freeze","query":"|~~ note ~~| | :n / | n | content","expect":"\" note \"","decision":["D94","D95"]}
 {"name":"keyword-naming-a-binding-type-is-not-doc","query":":isDoc | type | eq ::doc","expect":"false"}
-{"name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3","decision":["D94","D95"]}
-{"name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | /1","expect":"~(add 1)","decision":["D94","D95"]}
 {"name":"the-text-of-a-doc-is-its-content","query":"|~~ a ~(add 1) b ~~| | content","expect":"\" a ~(add 1) b \"","decision":["D94","D95"]}
-{"name":"a-span-that-reads-as-no-code-is-prose","query":"|~~ x ~(a |) y ~~| | segments | count","expect":"1","decision":["D94","D95"]}
-{"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | segments | count","expect":"1","decision":["D94","D95"]}
-{"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | segments | count","expect":"1","decision":["D94","D95"]}
-{"name":"a-doc-comes-back-from-its-segments-by-tag","query":"[\"a\" ~(add 1)] | tag ::doc | content","expect":"\"a~(add 1)\"","decision":["D94","D95"]}
-{"name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| type","expect":"::doc/ElementNotSegmentError","decision":"D94"}
-{"name":"a-doc-that-opens-on-a-quote-holds-no-prose-before-it","query":"|~~~(add 1) b~~| | segments | first | type","expect":"::quote","decision":["D94","D95"]}
-{"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | segments | count","expect":"1","decision":["D94","D95"]}
-{"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2","decision":["D94","D95"]}
+{"name":"a-span-that-reads-as-no-code-is-prose","query":"|~~ x ~(a |) y ~~| | content","expect":"\" x ~(a |) y \"","decision":["D94","D168"]}
+{"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | content","expect":"\" write `~(add 1)` here \"","decision":["D94","D168"]}
+{"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | content","expect":"\" see ::set[1 2] here \"","decision":["D94","D168"]}
+{"name":"a-doc-comes-back-from-its-text-by-tag","query":"\"a ~(add 1)\" | tag ::doc | content","expect":"\"a ~(add 1)\"","decision":["D94","D168"]}
+{"name":"a-doc-refuses-a-payload-that-is-no-text","query":"[1] | tag ::doc !| type","expect":"::doc/PayloadNotStringError","decision":["D94","D168"]}
+{"name":"a-doc-that-opens-on-a-quote-holds-it-as-text","query":"|~~~(add 1) b~~| | content","expect":"\"~(add 1) b\"","decision":["D94","D168"]}
+{"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | content","expect":"\" a ~(add 1 b \"","decision":["D94","D168"]}
 {"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\"","decision":["D83","D94","D95"]}
-{"name":"the-parts-of-a-doc-are-its-segments","query":"|~~ a ~(add 1) b ~~| | segments","expect":"[\" a \" ~(add 1) \" b \"]","decision":"D95"}
-{"name":"a-doc-answers-its-quotes","query":"|~~ a ~(add 1) b ~(mul 2) ~~| | laws","expect":"[~(add 1) ~(mul 2)]","decision":["D99","D123"]}
-{"name":"a-doc-of-prose-alone-has-no-quotes","query":"|~~ a b ~~| | laws","expect":"[]","decision":["D99","D123"]}

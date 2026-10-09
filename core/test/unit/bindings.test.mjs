@@ -6,7 +6,6 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, makeTagKeyword, describeType } from '../../src/types.mjs';
-import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
@@ -22,7 +21,7 @@ describe('BindStep — docs-only form', () => {
   it(':name |~~| short-doc-only binds the joined doc-content as a Doc value', async () => {
     const doc = await evalQuery(':forward |~~| placeholder note\n| forward');
     expect(describeType(doc)).toBe('Doc');
-    expect(docText(doc)).toBe(' placeholder note');
+    expect(doc.payload).toBe(' placeholder note');
   });
 
   it('a kind declared with a doc reads its page, the value of its record [D168]', async () => {

@@ -23,8 +23,8 @@ async function catalogLinks() {
   const links = [];
   const snippets = [];
   for (const address of addresses) {
-    for (const link of await evalQuery(`${address} | any/links | vals`)) links.push({ page: address, query: queryOfLink(link) });
-    for (const snippet of await evalQuery(`${address} | any/snippets | vals`)) snippets.push({ page: address, query: queryOfLink(snippet) });
+    for (const link of await evalQuery(`${address} | links | vals`)) links.push({ page: address, query: queryOfLink(link) });
+    for (const snippet of await evalQuery(`${address} | snippets | vals`)) snippets.push({ page: address, query: queryOfLink(snippet) });
   }
   return { links, snippets };
 }

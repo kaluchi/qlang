@@ -5,7 +5,7 @@
 import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
+  isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, makeDoc,
   isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -93,20 +93,14 @@ bindPrim('map/construct', mapConstructor);
 const DESC_TAG = makeTagKeyword('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
-// `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
-// a doc comes apart into its segments and back by `tag`.
-const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
-const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
+// `::doc"…"` — the doc of a text [D168], so a doc comes apart into its
+// text and back by `tag`.
+const DocPayloadNotStringError = declareRefusal('doc/PayloadNotStringError');
 
-function docConstructor(payload) {
-  if (!isVec(payload)) throw new DocPayloadNotVecError({ actualValue: payload });
-  payload.forEach((element, index) => {
-    if (!isDocSegment(element)) throw new DocElementNotSegmentError({ index, actualValue: element });
-  });
+bindPrim('doc/construct', payload => {
+  if (!isString(payload)) throw new DocPayloadNotStringError({ actualValue: payload });
   return makeDoc(payload);
-}
-
-bindPrim('doc/construct', docConstructor);
+});
 
 // `::builtin{…}` — the descriptor, the value of a name under a label
 // that a primitive answers, the `construct` of a kind among them [D164],

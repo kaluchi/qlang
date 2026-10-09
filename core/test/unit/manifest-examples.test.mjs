@@ -1,6 +1,6 @@
-// The laws of the catalog, run. Every page holds quotes that are its
-// laws; `runLaws` evaluates each in isolation and reports
-// {:law :actual :ok :error}, a law whose answer is truthy passing.
+// The laws of the catalog, run. The laws of a name are declared under
+// it [D174]; `runLaws` evaluates each in isolation and reports
+// {:law :says :actual :ok :error}, a law whose answer is true passing.
 //
 // The walk reads every name the root holds by its address [D153], and
 // names each failing reader in the assertion message.
@@ -11,10 +11,9 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { isErrorValue, isQSet } from '../../src/types.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
-import { printQuoteSource } from '../../src/quote.mjs';
 
 const OK_KW      = 'ok';
-const SNIPPET_KW = 'law';
+const LAW_KW     = 'law';
 const ERROR_KW   = 'error';
 const ACTUAL_KW  = 'actual';
 
@@ -43,7 +42,7 @@ async function walkCatalogExamples() {
       if (exampleResult.get(OK_KW) === true) continue;
       failures.push({
         reader,
-        snippet: printQuoteSource(exampleResult.get(SNIPPET_KW)),
+        snippet: safeprint(exampleResult.get(LAW_KW)),
         error:   exampleResult.get(ERROR_KW),
         printed: safeprint(exampleResult.get(ACTUAL_KW))
       });
@@ -57,7 +56,7 @@ describe('catalog self-test via runLaws', () => {
     const failures = await walkCatalogExamples();
     if (failures.length > 0) {
       const report = failures
-        .map(f => `[${f.reader}] ~(${f.snippet})\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
+        .map(f => `[${f.reader}] ${f.snippet}\n  => ${f.printed}${f.error ? '\n  error: ' + f.error : ''}`)
         .join('\n');
       throw new Error(`${failures.length} catalog example(s) failed:\n${report}`);
     }
@@ -69,20 +68,19 @@ describe('catalog self-test via runLaws', () => {
     // that loses code.
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | doc | laws | filter ~(:example / | parse | parse | eq example | not)`);
-      const declared = await evalQuery(`${reader} | any/laws | vals | filter ~(payload | :example / | parse | parse | eq example | not)`);
-      if (changed.length > 0 || declared.length > 0) unequal.push(reader);
+      const changed = await evalQuery(`${reader} | laws | vals | filter ~(payload | :example / | parse | parse | eq example | not)`);
+      if (changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
   }, 30000);
 
-  it('no law of a page is read as prose', async () => {
-    // A quote the parser refuses reads as prose [D94], so a law a change
-    // of the grammar breaks leaves its page with no failure to show;
-    // prose names code inside backticks alone.
+  it('a page names code between backquotes alone', async () => {
+    // A page is prose [D168]: what it shows as code it writes between
+    // backquotes, so a quote outside them is a law or a link left in its
+    // text, where it no longer runs.
     const proseQuotes = [];
     for (const reader of await catalogReaders()) {
-      const prose = await evalQuery(`${reader} | doc | segments | filter ~(type | eq ::string) | join ""`);
+      const prose = await evalQuery(`${reader} | doc | content`);
       if (prose.replace(/`[^`]*`/g, '').includes('~(')) proseQuotes.push(reader);
     }
     expect(proseQuotes).toEqual([]);

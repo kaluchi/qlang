@@ -400,12 +400,12 @@ describe('referencesAtOffset', () => {
 
 describe('foldingRangesOf', () => {
   it('folds a declaration, its doc as a comment, and a quote, leaving a closer alone open', () => {
-    const src = [':double', '  |~~ Doubles.', '      ~(', '        2 | double', '      )', '  ~~|', '  ~(mul 2)', ':x 1'].join('\n');
+    const src = [':double', '  |~~ Doubles', '      a number.', '  ~~|', '  ~(', '    mul 2', '  )', ':x 1'].join('\n');
     const { ast } = parseDocument(src, 'test.qlang');
     expect(foldingRangesOf(ast, src)).toEqual([
-      { startLine: 0, endLine: 6, kind: 'region' },
-      { startLine: 1, endLine: 4, kind: 'comment' },
-      { startLine: 2, endLine: 3, kind: 'region' }
+      { startLine: 0, endLine: 5, kind: 'region' },
+      { startLine: 1, endLine: 2, kind: 'comment' },
+      { startLine: 4, endLine: 5, kind: 'region' }
     ]);
   });
 

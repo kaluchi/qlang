@@ -55,7 +55,7 @@
       8. Code and names of your own. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text.
       A kind of your own is a label, a name declared by its page, and every value put under it keeps the laws declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its args, `::Box/put[7]`, and each name under the call's address reads a part of them, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
       A step of a quote is a record of what it computes, a command under ::call with its `:name`.
-      Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, `segments` its prose and quotes, and `laws` the quotes that run. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
+      Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, prose whatever it writes, code named between backquotes. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
 
       9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, `::vec/sort | doc` the page of a verb, and `::vec/sort | laws` its laws to copy.
 
@@ -301,8 +301,8 @@
   ::law~(~(add 1) | first | [type /name] | eq [::call :add])
 
 :qlang/readsADoc
-  |~~ A doc counts its segments and its laws. ~~|
-  ::law~(|~~ a ~(eq 1) b ~~| | [(segments | count) (laws | count)] | eq [3 1])
+  |~~ A doc's content is its text, a quote written in it among it. ~~|
+  ::law~(|~~ a ~(eq 1) b ~~| | content | eq " a ~(eq 1) b ")
 
 :qlang/looksAtTheInput
   |~~ The keys of the first element show the shape of the input. ~~|
@@ -760,14 +760,13 @@
 
 :doc
   |~~ The kind of a doc, prose as a value, the value of a doc literal:
-      text that carries quotes of qlang. It is how the language says what
-      it is: every page is a doc, `doc` answers the page of a name, and
-      because a doc is a value its code is checked and the next step can
-      take it apart. A quote with no tag is a law of the page, which
-      `runLaws` holds to answer true; a quote under `::link` is a
-      link, a query a reader follows. `content` answers its text,
-      `segments` its parts, `laws` its laws, `links` its links and
-      `snippets` its snippets.
+      the text it holds, which names code between backquotes. It is how
+      the language says what it is: every page is a doc, `doc` answers
+      the page of a name, and because a doc is a value the next step
+      reads it like any other. The laws, the links and the snippets of a
+      name stand under it as definitions of their own, which `laws`,
+      `links` and `snippets` read. `content` answers its text, and a
+      verb of strings reads it through its tag.
       `::doc | manifest` lists its verbs and refusals.
   ~~|
 
@@ -787,13 +786,17 @@
   |~~ The page of a name is a doc. ~~|
   ::law~(::number/add | doc | type | eq ::doc)
 
-:doc/splitsIntoSegments
-  |~~ A doc of prose, code and prose has three segments. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
+:doc/holdsItsTextAsWritten
+  |~~ A doc holds the text it was written in, a quote in it among it. ~~|
+  ::law~(|~~ a ~(add 1) b ~~| | payload | eq " a ~(add 1) b ")
 
-:doc/buildsFromSegments
-  |~~ Segments under `::doc` build the doc. ~~|
-  ::law~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
+:doc/buildsFromItsText
+  |~~ A text under `::doc` builds the doc. ~~|
+  ::law~("a ~(add 1)" | tag ::doc | eq (|~~a ~(add 1)~~|))
+
+:doc/readsAsAString
+  |~~ A verb of strings reads a doc through its tag. ~~|
+  ::law~(|~~ a page ~~| | contains "page")
 
 :binding
   |~~ The kind of the record a declaration writes into its scope. A name
@@ -1651,7 +1654,7 @@
 
 :qlang/verbs/takesAReadersPart
   |~~ A reader's word reads its part of the args. ~~|
-  ::law~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(is ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)
+  ::law~(:number/plus ~(add by) | :number/plus/by |~~ How much. ~~| ~(/0) | :number/plus/by/NotNumberError ::holds~(is ::number) | 5 | plus 2 | eq 7)
 
 :qlang/verbs/combinesOperands
   |~~ A word of several operands reads them all from the subject. ~~|

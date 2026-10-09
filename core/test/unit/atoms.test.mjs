@@ -15,7 +15,6 @@ import { createSession } from '../../src/session.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
-import { printQuoteSource } from '../../src/quote.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { expectedValueOf } from '../helpers/expected-value.mjs';
 
@@ -54,9 +53,8 @@ async function unbuiltOf(valuesBySource) {
 
 async function catalogExamples() {
   const addresses = rootAddressesOf(await langRuntime());
-  const onPages = [...await evalQuery(`[${addresses.join(' ')}] * (doc | laws) | flat`)];
-  const declared = [...await evalQuery(`[${addresses.join(' ')}] * (any/laws | vals) | flat`)];
-  return new Map([...onPages.map(example => [printQuoteSource(example), example]), ...declared.map(law => [printValue(law), law])]);
+  const laws = [...await evalQuery(`[${addresses.join(' ')}] * (laws | vals) | flat`)];
+  return new Map(laws.map(law => [printValue(law), law]));
 }
 
 async function conformanceLiterals() {

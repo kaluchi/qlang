@@ -65,22 +65,14 @@ export function quoteOfLiteral(node) {
   return quote;
 }
 
-// A doc literal's value, the prose the parser read and a quote for each
-// span of it that read as code [D94], read once per node as a quote is.
+// A doc literal's value, the text the parser read [D168], read once per
+// node as a quote is.
 const DOC_OF_LITERAL = new WeakMap();
-
-// The segment a part of a doc literal is: its prose, a quote, or a quote
-// under the stack of tags written before it, held as data [D108].
-function docSegmentOfPart(part) {
-  if (typeof part === 'string') return part;
-  if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
-  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTagKeyword(tagName), inner), quoteOfLiteral(part.quote));
-}
 
 export function docOfNode(node) {
   let doc = DOC_OF_LITERAL.get(node);
   if (doc === undefined) {
-    doc = makeDoc(node.segments.map(docSegmentOfPart));
+    doc = makeDoc(node.content);
     DOC_OF_LITERAL.set(node, doc);
   }
   return doc;
@@ -246,21 +238,6 @@ export function printQuoteSource(quote) {
   return printSteps(quote);
 }
 
-// The text a quote of a doc was written in, the source its literal
-// spelled, which reads back as the same steps; a quote assembled from
-// data, which has no source, is printed [D149].
-function writtenSourceOf(quote) {
-  const writtenText = quote[QUOTE_AST_SLOT]?.ast?.text;
-  return typeof writtenText === 'string' ? writtenText : printQuoteSource(quote);
-}
-
-// docText(doc) → its prose with each quote written where it stands as its
-// author wrote it, a quote under tags with its stack before it, the text
-// a doc's `content` answers [D95], [D108], [D149].
-export function docText(doc) {
-  return doc.map(segment => typeof segment === 'string' ? segment
-    : isQuote(segment) ? `~(${writtenSourceOf(segment)})` : printValue(segment)).join('');
-}
 
 function stepTagOf(step) {
   return step?.[TAG_HEADER_SYMBOL]?.name;

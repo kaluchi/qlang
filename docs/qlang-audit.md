@@ -622,19 +622,19 @@ c
 ```
 
 A quote has all three, being the vector of its steps [D53], and a doc
-answers its parts by its `segments`, the vector of its prose and its
-quotes [D19], [D95]:
+is the text it holds, which breaks into its lines as a string does
+[D168]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
 ~(add 1)
 
-> |~~ a ~(add 1) b ~~| | segments | count
-3
+> ::vec/sort | doc | content | lines | count | gt 1
+true
 ```
 
 The pageable shape is the vector, and a value that can overflow breaks
-into one, as the quote and the doc have, and a string does through its
+into one, as the quote has, and a string and a doc do through their
 lines.
 
 Next, every tag and keyword inside a value is an anchor that resolves
@@ -938,15 +938,15 @@ plane the language can reach, each named for the claim it proves and
 paged with it [D124], [D174].
 
 The laws, the links and the snippets of a name have left its page for
-definitions under it [D174], while the doc literal still reads a quote
-in its text as a segment of the page, so a page is not yet prose alone:
+definitions under it [D174], and a page is the prose of its text,
+where a quote is text like the rest [D168]:
 
 ```qlang
-> ::qlang | [(laws | count | gt 0) (doc | laws | count)]
-[true 0]
+> ::qlang | [(laws | count | gt 0) (doc | content | type)]
+[true ::string]
 
-> |~~ a ~(add 1) b ~~| | segments | count
-3
+> |~~ a ~(add 1) b ~~| | payload | trim
+a ~(add 1) b
 ```
 
 The repair must give the language views sized to a budget, the cheap
@@ -955,10 +955,9 @@ do not say, written in the language's own vocabulary, with no name of a
 file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
-rather than dumped. It must make a page prose about its name alone,
-its literal reading no code in its text, a law named by its refusal,
-and let a reader assemble from the definitions under an address the
-description a question needs, in one round trip [D168], [D169].
+rather than dumped. It must name a law by its refusal, and let a
+reader assemble from the definitions under an address the description
+a question needs, in one round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -1133,7 +1132,7 @@ once at the rewrap [D41]; every value comes apart into its atoms and a
 shape and is built back from them [D42]. The set, the error, the quote,
 the doc, a host's record and the elision marker are all this one thing:
 `#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a doc
-over its segments, and each keeps its own token in the editor while the
+over its text, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its JSON form, its order
@@ -1572,10 +1571,11 @@ REPL and running it, so that the answer reads as the next page: «что б
 в вебе, но и в repl-е и просто в баше в аргументах» (maintainer,
 2026-09-26 13:21, session 86982eb5). A link is then a query, the same
 text typed in the REPL or passed on the command line gives the same
-page, and the site is one renderer of it. The tree gives the segments
-of a doc, its prose apart from its runnable quotes, and a name to reach
-a page by [D88]; the prose that heads a source is a plain comment that
-no name reaches, and a tag or a keyword inside prose is no segment yet [D19].
+page, and the site is one renderer of it. The tree gives the text of a
+doc, the laws and the links declared under its name apart from it
+[D174], and a name to reach a page by [D88]; the prose that heads a
+source is a plain comment that no name reaches, and a tag or a keyword
+inside prose is text, no anchor yet [D19], [D168].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
 должен удовлетворять» (13:26).

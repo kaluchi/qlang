@@ -102,15 +102,14 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   });
 });
 
-describe(':name | doc | laws extracts Quote segments from docs', () => {
-  it('::vec/count | doc | laws returns Vec of Quotes', async () => {
-    const result = await evalQuery('::vec/count | doc | laws | count');
-    expect(typeof result).toBe('number');
-    expect(result).toBeGreaterThanOrEqual(0);
+describe(':name | laws reads the laws declared under a name', () => {
+  it('::vec/count | laws answers its laws by their names', async () => {
+    const result = await evalQuery('::vec/count | laws | count');
+    expect(result).toBeGreaterThan(0);
   });
 
-  it('a value that is no name reads the examples of its kind', async () => {
-    expect(await evalQuery('42 | doc | laws | eq (::number | doc | laws)')).toBe(true);
+  it('a value that is no name reads the laws of its kind', async () => {
+    expect(await evalQuery('42 | laws | eq (::number | laws)')).toBe(true);
   });
 });
 
@@ -162,9 +161,9 @@ describe('the axes read what a source of the root declared', () => {
     return await createSession({ sources: [{ uri: 'tests/demo', source }] });
   }
 
-  it('reads the laws of a page a source declared', async () => {
-    const session = await sessionOf(':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n99');
-    expect((await session.evalCell(':demo | doc | laws | count')).result).toBe(1);
+  it('reads the laws a source declared under a name', async () => {
+    const session = await sessionOf(':demo 99\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
+    expect((await session.evalCell(':demo | laws | count')).result).toBe(1);
   });
 
   it('reads the page a source declared', async () => {

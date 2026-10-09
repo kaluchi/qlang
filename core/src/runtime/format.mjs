@@ -9,7 +9,7 @@
 // decision sits in one place. A rendering for a terminal is a view
 // at a host's boundary, and the command line owns its `table`.
 
-import { printQuoteSource, docText } from '../quote.mjs';
+import { printQuoteSource } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareRefusal, declareInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -55,7 +55,7 @@ const TO_PLAIN_HANDLERS = {
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
   Quote:          q => `~(${printQuoteSource(q)})`,
-  Doc:            d => `|~~${docText(d)}~~|`,
+  Doc:            d => `|~~${d.payload}~~|`,
   Set:            s => s.map(toPlain),
   // An error writes its tag beside its descriptor; the literal, not
   // JSON, is the form that reads back.

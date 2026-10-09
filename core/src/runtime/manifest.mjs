@@ -7,7 +7,7 @@ import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTagKeyword, isValueClass, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { evalQuery } from '../eval.mjs';
-import { claimsOfRecord, recordReadBy, pageTextOfRecord } from './axis.mjs';
+import { recordReadBy, pageTextOfRecord } from './axis.mjs';
 import { namesUnder, definitionsInRole } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
@@ -40,8 +40,7 @@ bindStateReader('any/snippets', inRole('snippet', AnySnippetsUnknownNameError));
 
 // A law runs one frame below the step in the caller's scope, the root
 // among it, and passes when it answers true [D14]; its result names the
-// law and the claim it proves, a law of a page by its quote [D124], one
-// declared under the name by its address and its page [D174].
+// law by its address and the claim it proves by its page [D124], [D174].
 async function runQuoteEntry({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);
@@ -60,19 +59,15 @@ async function runQuoteEntry({ law, quote, says }, callerState) {
 }
 
 // A name reads its record as the axes do, a keyword after it the member
-// it holds, `::qlang | runLaws :values` [D124]: the laws of its page and
-// those declared under its address [D174].
+// it holds, `::qlang | runLaws :values` [D124]: the laws declared under
+// its address [D174].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
-  const record = recordReadBy(subject, anchor, state, UnknownNameError);
-  const address = record.get('name').name;
-  const claims = [
-    ...claimsOfRecord(record).map(({ law, says }) => ({ law, quote: law, says })),
-    ...definitionsInRole(state.env, address, 'law').map(([lastName, lawRecord]) => ({
-      law: makeTagKeyword(`${address}/${lastName}`),
-      quote: lawQuoteOf(bindingValueOf(lawRecord)),
-      says: pageTextOfRecord(lawRecord)
-    }))
-  ];
+  const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
+  const claims = definitionsInRole(state.env, address, 'law').map(([lastName, lawRecord]) => ({
+    law: makeTagKeyword(`${address}/${lastName}`),
+    quote: lawQuoteOf(bindingValueOf(lawRecord)),
+    says: pageTextOfRecord(lawRecord)
+  }));
   const entries = [];
   for (const claim of claims) entries.push(await runQuoteEntry(claim, state));
   return entries;

@@ -22,15 +22,14 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
-  makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  isKeyword, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
+  makeTagKeyword, joinedDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import {
   addressesOf, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
-import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -91,35 +90,6 @@ function nodeOfRefused(env, name) {
   return cut > 0 && name.endsWith('Error') ? nodeOf(env, name.slice(0, cut)) : null;
 }
 
-// The caption a run of prose gives the laws after it [D124]: the last
-// sentence of its last paragraph when that sentence ends in a colon and
-// no blank line stands between it and the law, its lines joined as one.
-// A run of whitespace alone keeps the caption above it unless it holds a
-// blank line.
-const BLANK_LINE = /\n[ \t]*\n/;
-function captionAfter(prose, captionAbove) {
-  const paragraphs = prose.split(BLANK_LINE);
-  const lastParagraph = paragraphs.at(-1).trim().replace(/\s+/g, ' ');
-  if (lastParagraph === '') return paragraphs.length > 1 ? null : captionAbove;
-  if (!lastParagraph.endsWith(':')) return null;
-  return lastParagraph.slice(0, -1).split(/(?<=[.!?])\s+/).at(-1);
-}
-
-// Every claim of a record's page: each law, a quote with no tag among the
-// segments of its docs, with the caption it proves, what `runLaws` runs
-// [D123], [D124].
-export function claimsOfRecord(record) {
-  const claims = [];
-  for (const doc of record.get('docs')) {
-    let caption = null;
-    for (const segment of doc) {
-      if (typeof segment === 'string') caption = captionAfter(segment, caption);
-      else if (isQuote(segment)) claims.push({ law: segment, says: caption ?? NULL });
-    }
-  }
-  return claims;
-}
-
 // The record of the member the subject holds under a name [D88], or
 // null: the name under the address a tag name writes, a part of the
 // object of a word among them, and otherwise the word the subject's walk
@@ -163,7 +133,7 @@ bindStateReader('any/source', (subject, memberName, state) =>
 // one, the sentence of a law among them [D174].
 export function pageTextOfRecord(record) {
   const page = pageOfRecord(record);
-  return isNull(page) ? NULL : docText(page).trim().replace(/\s+/g, ' ');
+  return isNull(page) ? NULL : page.payload.trim().replace(/\s+/g, ' ');
 }
 
 // The one page of a record: its docs joined, a line break between two,
@@ -171,7 +141,7 @@ export function pageTextOfRecord(record) {
 function pageOfRecord(record) {
   const docs = record.get('docs');
   if (docs.length <= 1) return docs[0] ?? NULL;
-  return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
+  return joinedDoc(docs);
 }
 
 // The anchors of a path: null the empty one, a keyword a path of one,

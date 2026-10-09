@@ -42,15 +42,13 @@ describe('the pages of the language read through `doc`', () => {
 
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { docText } = await import('../../src/quote.mjs');
-    const joined = docText(await evalQuery('::vec/count | doc'));
+    const joined = await evalQuery('::vec/count | doc | content');
     expect(joined).toContain('number of elements');
   });
 
   it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { docText } = await import('../../src/quote.mjs');
-    const joined = docText(await evalQuery('::vec/filter | doc'));
+    const joined = await evalQuery('::vec/filter | doc | content');
     expect(joined).toContain('predicate');
     expect(joined).toContain('true');
   });

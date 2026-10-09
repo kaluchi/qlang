@@ -96,8 +96,8 @@ export const TASKS = [
   },
   {
     id: 'L8',
-    question: 'write a doc of your own whose prose holds two laws, the code "eq 2" and the code "gt 1", and answer how many laws that doc has.',
-    reference: "|~~ two ~(eq 2) and ~(gt 1) ~~| | laws | count",
+    question: 'declare a name of your own holding 2 with two laws under it, the claims "eq 2" and "gt 1" of 2, and answer how many laws the name has.',
+    reference: ':two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | :two | laws | count',
     answer: "2"
   },
   {
@@ -129,7 +129,7 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'kinds | filter ~(any/links * (payload | parse) | any ~(contains "::error | doc"))',
+    reference: 'kinds | filter ~(links * (payload | parse) | any ~(contains "::error | doc"))',
     answer: '#[::explanation ::fail]'
   },
   {

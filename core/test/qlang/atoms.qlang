@@ -114,14 +114,15 @@
   ::holds~(is ::vec)
 
 :any/apart
-  |~~ The atoms of the subject and its shape.
-
-      ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])})
-  ~~|
+  |~~ The atoms of the subject and its shape. ~~|
   ~(:held [/]
     | :atoms (held | asPairs * atomsOf | flat | tag ::set)
     | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | /pairs | indexBy ~(first | placeKey))
     | {:atoms atoms :shape (held | asPairs | reduce {:numbered numbered :steps []} ~(intoShape) | /steps | tag ::quote)})
+
+:any/apart/takesAValueApart
+  |~~ A vector of a string, a vector and a map comes apart into four atoms and its shape. ~~|
+  ::law~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])})
 
 :any/rebuilt
   |~~ The value the shape of the subject builds from its atoms. ~~|

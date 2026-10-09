@@ -2,7 +2,7 @@
 // part a kind whose `print` is declared under it prints its own way taken from that kind before
 // the forms of the core write the rest [D96].
 
-import { printQuoteSource, docText } from '../quote.mjs';
+import { printQuoteSource } from '../quote.mjs';
 import {
   isVec,
   isQMap,
@@ -48,7 +48,7 @@ const PRINT_HANDLERS = {
   Map:        (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
   Set:        (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
   Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + docText(d) + '~~|',
+  Doc:        d => '|~~' + d.payload + '~~|',
   TaggedInstance: printTaggedInstance
 };
 

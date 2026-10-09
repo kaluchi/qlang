@@ -1,101 +1,37 @@
-|~ What is declared under `::doc`: the refusals of its constructor
-   and the verbs that read a doc's shape for the query. ~|
+|~ What is declared under `::doc`: the refusal of its constructor and
+   the verb that reads a doc's text. ~|
 
 :doc/construct
-  |~~ The doc of a vector of prose strings and quotes. ~~|
+  |~~ The doc of a text. ~~|
   ::builtin{}
 
-:doc/PayloadNotVecError
-  |~~ `::doc` builds a doc from the vector of its segments, prose
-      strings and quotes; a payload of another kind is refused.
+:doc/PayloadNotStringError
+  |~~ `::doc` builds a doc from its text, a string; a payload of another
+      kind is refused.
   ~~|
 
-:doc/PayloadNotVecError/refusesAString
-  |~~ A string payload is refused. ~~|
-  ::law~(::doc"x" !| [type /actualType] | eq [::doc/PayloadNotVecError ::string])
-
-:doc/ElementNotSegmentError
-  |~~ Every element of a doc is a segment, a string of prose or a
-      quote, and another value is refused at the index it stands at.
-  ~~|
-
-:doc/ElementNotSegmentError/refusesANumberAmongTheSegments
-  |~~ A number among the segments is refused at its index. ~~|
-  ::law~(["a" 1] | tag ::doc !| [type /index] | eq [::doc/ElementNotSegmentError 1])
+:doc/PayloadNotStringError/refusesAVector
+  |~~ A vector payload is refused. ~~|
+  ::law~(::doc["a" "b"] !| [type /actualType] | eq [::doc/PayloadNotStringError ::vec])
 
 :doc/content
-  |~~ The text of the doc: its prose with each quote written where it
-      stands.
+  |~~ The text of the doc, prose whatever it writes: a `~(…)` in it is
+      text, and code is named between backquotes.
   ~~|
   ::builtin{}
 
-:doc/content/writesEachQuoteWhereItStands
-  |~~ The content writes each quote where it stands in the prose. ~~|
+:doc/content/keepsCodeAsText
+  |~~ A quote written in a doc is text of it. ~~|
   ::law~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
 
 :doc/content/readsThePageOfAWord
   |~~ The content of a word's page is its text. ~~|
   ::law~(::vec/join | doc | content | contains "separator")
 
+:doc/content/isThePayload
+  |~~ The content of a doc is its payload. ~~|
+  ::law~(|~~ prose ~~| | [content payload] | eq [" prose " " prose "])
+
 :doc/content/text
   |~~ The text of the doc. ~~|
   ::string
-
-:doc/segments
-  |~~ The parts of the doc in their order: each run of prose a string
-      and each span that reads as code a quote, bare or under the tags
-      of its role.
-  ~~|
-  ::builtin{}
-
-:doc/segments/alternatesProseAndCode
-  |~~ Prose and code alternate in the segments. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
-
-:doc/segments/keepsTheProseAroundCode
-  |~~ The prose on each side of a quote is a segment of its own. ~~|
-  ::law~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
-
-:doc/laws
-  |~~ The laws of the doc in their order: each quote with no tag, which
-      `runLaws` holds to answer true; a quote under a tag, a link or a
-      snippet, is no law.
-  ~~|
-  ::builtin{}
-
-:doc/laws/answersTheQuotesInOrder
-  |~~ The laws are the quotes of the page in their order. ~~|
-  ::law~(|~~ a ~(add 1) b ~(mul 2) ~~| | laws | eq [~(add 1) ~(mul 2)])
-
-:doc/laws/takesNoLinkForALaw
-  |~~ A link on a page is no law. ~~|
-  ::law~(|~~ a ~(1) ~(2) ::link~(3) ~~| | laws | count | eq 2)
-
-:doc/links
-  |~~ The links of the doc in their order: each quote under a stack of
-      tags that holds `::link`, a query a reader follows.
-  ~~|
-  ::builtin{}
-
-:doc/links/findsTheLinkInProse
-  |~~ A link inside prose is found. ~~|
-  ::law~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
-
-:doc/links/runsWhereItLeads
-  |~~ A link runs the query it holds. ~~|
-  ::law~(|~~ ::link~(::vec | manifest) ~~| | links | first | :l / | null | apply l | has ::vec/count)
-
-:doc/snippets
-  |~~ The snippets of the doc in their order: each quote under a stack
-      of tags that holds `::snippet`, a query a reader runs to see what
-      it shows.
-  ~~|
-  ::builtin{}
-
-:doc/snippets/findsTheSnippetInProse
-  |~~ A snippet inside prose is found. ~~|
-  ::law~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
-
-:doc/snippets/opensToWhatItShows
-  |~~ A snippet opens to what it shows. ~~|
-  ::law~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])

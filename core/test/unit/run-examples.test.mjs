@@ -1,6 +1,5 @@
-// runLaws — execute each Quote segment in a binding's attached
-// docs as an executable test case. An example passes when it answers
-// `true`. The subject is a keyword (binding name) or a tag name, the
+// runLaws — run each law declared under a name as an executable test
+// case [D174]. A law passes when it answers `true`. The subject is a keyword (binding name) or a tag name, the
 // address of a verb among them, so `::qlang | manifest * manifest |
 // flat * runLaws` walks the whole catalog.
 
@@ -14,11 +13,6 @@ describe('runLaws reads a name as examples does', () => {
     const result = await evalQuery('::vec/count | runLaws * /ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
-  });
-
-  it('a quote under a link on a page is no law of it', async () => {
-    const result = await evalQuery(':any/k |~~ see ::link~(1) and ~(true) ~~| ~(5) | ::any/k | runLaws * /ok');
-    expect(result).toEqual([true]);
   });
 
   it('a binding without a doc runs no law, its page null', async () => {
@@ -55,10 +49,8 @@ describe('runLaws reads a name as examples does', () => {
 });
 
 describe('runLaws Quote-as-test outcomes', () => {
-  it('Quote that lifts an error → ok:false with error message', async () => {
-    const moduleSource =
-      ':demo |~~ broken example.\n    ~("x" | prepend 42 | eq 42) ~~|\n' +
-      '1';
+  it('a law that lifts an error → ok:false with error message', async () => {
+    const moduleSource = ':demo 1\n:demo/broken |~~ A broken law. ~~| ::law~("x" | prepend 42 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -67,14 +59,11 @@ describe('runLaws Quote-as-test outcomes', () => {
     expect(typeof cellEntry.result.get('error')).toBe('string');
   });
 
-  it('Quote that evaluates falsy → ok:false with no error', async () => {
-    // 5 | mul(2) = 10, eq(99) = false. The Quote eval'd cleanly
-    // but produced a falsy result, so runLaws reports ok:false
-    // with :error nil — there is no error message, the assertion
-    // just did not hold.
-    const moduleSource =
-      ':demo |~~ falsy example.\n    ~(5 | mul 2 | eq 99) ~~|\n' +
-      '1';
+  it('a law that answers false → ok:false with no error', async () => {
+    // 5 | mul(2) = 10, eq(99) = false. The law ran cleanly but
+    // answered false, so runLaws reports ok:false with :error nil —
+    // there is no error message, the claim just did not hold.
+    const moduleSource = ':demo 1\n:demo/falsy |~~ A false claim. ~~| ::law~(5 | mul 2 | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -84,9 +73,8 @@ describe('runLaws Quote-as-test outcomes', () => {
     expect(cellEntry.result.get('actual')).toBe(false);
   });
 
-  it('Quote that evaluates truthy → ok:true', async () => {
-    const moduleSource =
-      ':demo |~~ ~(5 | mul 2 | eq 10) ~~|\n1';
+  it('a law that answers true → ok:true', async () => {
+    const moduleSource = ':demo 1\n:demo/truthy ::law~(5 | mul 2 | eq 10)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -105,10 +93,7 @@ describe('runLaws Quote-as-test outcomes', () => {
   it('a law sees the names of the calling session', async () => {
     // A law runs in the scope of the session that asked for it, so a
     // name a source of the root declared resolves there [D14].
-    const moduleSource =
-      ':fortytwo |~~ tracks env propagation through runLaws.\n' +
-      '    ~(40 | add 2 | eq 42)\n ~~|\n' +
-      '1';
+    const moduleSource = ':fortytwo 1\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -118,15 +103,11 @@ describe('runLaws Quote-as-test outcomes', () => {
   });
 
   it('example does not leak BindStep writes back into the calling session', async () => {
-    // The Quote in `:writer`'s doc runs a BindStep — the
-    // session-env copy isolates the write so the calling session
-    // still sees no `:scratch` after runLaws completes. Reading
-    // `:scratch` on the session after `runLaws` therefore lifts
-    // ::call/UnknownNameError.
-    const moduleSource =
-      ':writer |~~ leaks BindStep into session env.\n' +
-      '    ~(:scratch 99 | scratch | eq 99)\n ~~|\n' +
-      '1';
+    // The law under `:writer` runs a BindStep — the session-env copy
+    // isolates the write so the calling session still sees no
+    // `:scratch` after runLaws completes. Reading `:scratch` on the
+    // session after `runLaws` therefore lifts ::call/UnknownNameError.
+    const moduleSource = ':writer 1\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -139,16 +120,14 @@ describe('runLaws Quote-as-test outcomes', () => {
       .toEqual(makeTagKeyword('call/UnknownNameError'));
   });
 
-  it('Quote that lifts a user-built error → :error reads :message from descriptor', async () => {
+  it('a law that lifts a user-built error → :error reads :message from descriptor', async () => {
     // User-built errors (via `raise(map)` operand) carry no
     // `.originalError` on the JS-level ErrorValue wrapper —
     // `errorMessageOf` falls through to the descriptor's :message
     // entry. Distinct from finding #41's "Quote that lifts an error"
     // case where the JS throw routed through `errorFromQlang` and
     // the wrapper retained `.originalError`.
-    const moduleSource =
-      ':demo |~~ user-built error.\n    ~({:message "hand-built failure" :kind :test} | raise)\n    ~~|\n' +
-      '1';
+    const moduleSource = ':demo 1\n:demo/raises |~~ A user-built error. ~~| ::law~({:message "hand-built failure" :kind :test} | raise)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });

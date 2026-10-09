@@ -2,6 +2,7 @@
 // the steps, each node a function `(node, state) → state`.
 
 import { parse } from './parse.mjs';
+import { ROOT_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
@@ -20,22 +21,24 @@ import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isErrorValue,
+  isVec, isQMap, isErrorValue, isQuote, isDoc, isLabelValue, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isTaggedInstance, isValueClass, isVerb, isSpec, verbEnvRef, quoteInEnv, quoteEnvRef, envToRun, addressOfVerb, declareVerbAt, makeVerb,
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
+import { readsState, readsPassedTags } from './primitives.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, nodeOf, residenceOnSubject, residencesOf, splitAddress
+  addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residenceOnSubject, residencesOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication
+  applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication,
+  underTags, walkToKinds
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -83,6 +86,13 @@ const EachSubjectNotContainerError = declareSubjectError('each/SubjectNotContain
 // subject of its own [D153].
 const BindVerbSubjectUnderKindError = declareShapeError('bind/VerbSubjectUnderKindError',
   ({ name }) => `${name} is declared under a kind, its subject, and its head names a subject of its own`,
+  { operand: '::bind' }
+);
+// A bare name the reader declares for a value takes no word of the
+// vocabulary, the name of a verb or of a name under a label, so no step
+// meets the reader's value where the subject's word was meant [D166].
+const BindNameTakenByVocabularyError = declareShapeError('bind/NameTakenByVocabularyError',
+  ({ name }) => `${name} is a word of the vocabulary, a verb or a name under a label; a value of the reader takes another name`,
   { operand: '::bind' }
 );
 const BindNounNotDeclaredError = declareShapeError('bind/NounNotDeclaredError',
@@ -340,6 +350,7 @@ async function evalSetLit(node, state) {
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  if (isDoc(declared)) return await underPage(tagName, payload, state);
   if (!isSpec(declared)) {
     throw new ConstructTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
@@ -350,6 +361,52 @@ export async function mintTaggedInstance(tagName, payload, state) {
   if (isErrorValue(constructorResult)) return constructorResult;
   if (isTaggedInstance(constructorResult) && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) return constructorResult;
   return makeTaggedInstance(makeTagKeyword(tagName), constructorResult);
+}
+
+// A label declared by its page lays its tag over a payload [D166]: the
+// `construct` declared under it builds the payload first when there is
+// one, and every law the page holds under `::holds` runs on the value
+// under the label, a broken one refusing it under the label's address.
+async function underPage(tagName, payload, state) {
+  const constructRecord = nodeOf(state.env, `${tagName}/construct`);
+  let built = payload;
+  if (constructRecord !== null && isMemberValue(bindingValueOf(constructRecord))) {
+    built = await constructedBy(bindingValueOf(constructRecord), payload, state);
+    if (isErrorValue(built)) return built;
+  }
+  const labelled = built?.[TAG_HEADER_SYMBOL]?.name === tagName ? built : makeTaggedInstance(makeTagKeyword(tagName), built);
+  const broken = await brokenLawOf(nodeOf(state.env, tagName), labelled, state, state.env);
+  if (broken !== null) return refusalUnder(`${tagName}/HoldsNotMetError`, { holds: broken, actualValue: payload });
+  return labelled;
+}
+
+// The payload a label's `construct` builds: a quote run on the payload,
+// or the primitive a host handed run over it.
+async function constructedBy(construct, payload, state) {
+  if (isQuote(construct)) return (await evalBody(astOfQuote(construct), withPipeValue(withEnv(state, scopeOfMember(construct, state)), payload))).pipeValue;
+  const impl = hostImplOf(construct);
+  return readsState(impl) ? await impl(payload, state) : await impl(payload);
+}
+
+// The first law under `::holds` of a record's page that the value does
+// not answer true to, or null.
+async function brokenLawOf(record, value, state, scope) {
+  for (const doc of record?.get('docs') ?? []) {
+    for (const segment of doc) {
+      if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
+      const answer = (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
+      if (answer !== true) return segment.payload;
+    }
+  }
+  return null;
+}
+
+// A refusal named by the address of what refused, its facts the value
+// refused and its kind [D166].
+function refusalUnder(tagName, facts) {
+  const descriptor = new Map(Object.entries(facts));
+  if (descriptor.has('actualValue')) descriptor.set('actualType', typeKeyword(descriptor.get('actualValue')));
+  return makeErrorValue(makeTagKeyword(tagName), descriptor);
 }
 
 async function evalTaggedLit(node, state) {
@@ -402,6 +459,9 @@ async function evalBindStep(node, state) {
   }
 
   const answered = (await evalNode(node.body, state)).pipeValue;
+  if (nounName === null && !isLabelValue(answered) && vocabularyWords(state.env).has(name)) {
+    throw new BindNameTakenByVocabularyError({ name, addresses: addressesOf(state.env, name) });
+  }
   if (isVerb(answered)) refuseVerbLaunderedByName(name, answered, node);
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
@@ -423,7 +483,7 @@ async function evalBindStep(node, state) {
 // subject of its own [D72], [D153]; one under a noun that is no kind
 // serves any value.
 function declareVerbFirst(verb, name, nounName, env) {
-  const underKind = nounName !== null && isSpec(bindingValueOf(nodeOf(env, nounName)));
+  const underKind = nounName !== null && isLabelValue(bindingValueOf(nodeOf(env, nounName)));
   if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
   declareVerbAt(verb, name, underKind ? nounName : null);
 }
@@ -525,6 +585,7 @@ async function callByName(lookupName, lambdas, state) {
       identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
     });
   }
+  if (reach.underKind && isMemberValue(bindingValueOf(reach.record))) return await applyMember(reach.record, lambdas, state);
   return reach.underKind
     ? await callResidence(bindingValueOf(reach.record), lookupName, lambdas, state)
     : await applyBinding(reach.record, lookupName, lambdas, state);
@@ -575,7 +636,130 @@ async function callByAddress(node, state) {
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
-  return await applyBinding(record, splitAddress(node.name)[1], node.args.map(argNode => makeLambda(argNode, state)), state);
+  const lambdas = node.args.map(argNode => makeLambda(argNode, state));
+  if (isMemberValue(bindingValueOf(record)) && isLabelValue(bindingValueOf(nodeOf(state.env, splitAddress(node.name)[0])))) {
+    return await applyMember(record, lambdas, state);
+  }
+  return await applyBinding(record, splitAddress(node.name)[1], lambdas, state);
+}
+
+// ─── Names under a label ───────────────────────────────────────
+
+// A name under a label runs on a value of the label [D164]: a quote in the
+// scope of its declaration over the root as it stands, so the names under
+// one label see each other whatever their order, and the descriptor of a
+// primitive by the implementation its host handed. A subject the walk of
+// whose tags reaches no value of the label is refused under the name's
+// address; an answer the name's page marks `::keeps~()` goes back under
+// the tags the walk passed [D166].
+async function applyMember(record, lambdas, state) {
+  const address = record.get('name').name;
+  const member = bindingValueOf(record);
+  const [labelName] = splitAddress(address);
+  const walked = walkToKinds(state.pipeValue, [labelName]);
+  if (walked === null) {
+    const labelWord = labelName.slice(labelName.lastIndexOf('/') + 1);
+    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, { actualValue: state.pipeValue }));
+  }
+  const scope = scopeOfMember(member, state);
+  const read = await objectOf(address, partsOf(scope, address), lambdas, state, scope);
+  if (isErrorValue(read)) return withPipeValue(state, read);
+  const answer = isQuote(member)
+    ? (await evalBody(astOfQuote(member), withEnv(state, read.bodyEnv))).pipeValue
+    : await runHostMember(member, walked, read.values, state);
+  if (isErrorValue(answer) || !hasPageRole(record, 'keeps')) return withPipeValue(state, answer);
+  return withPipeValue(state, await underTags(answer, walked.passedTags, state));
+}
+
+// The scope a name under a label runs in: a quote's own, over the tree of
+// names as it stands at the call, the root and every name with a path the
+// steps before the call declared, so the names under a label see each
+// other whatever their order and no bare name of the reader reaches in;
+// a primitive reads the call's.
+function scopeOfMember(member, state) {
+  if (!isQuote(member)) return state.env;
+  const scope = new Map(envToRun(member, state.env));
+  scope.set(ROOT_KEY, rootOf(state.env));
+  for (const [name, entry] of state.env) {
+    if (typeof name === 'string' && name.includes('/') && !scope.has(name)) scope.set(name, entry);
+  }
+  return scope;
+}
+
+// The parts of a call's object: the quotes declared under the name's
+// address, in their order.
+function partsOf(scope, address) {
+  return [...namesUnderOf(scope, address)].filter(([, partRecord]) => isQuote(bindingValueOf(partRecord)));
+}
+
+// The places the parts read, one past the greatest index a part reads
+// strictly or softly, or null when a part reads the object whole or its
+// tail and so takes any number of values.
+function placesReadBy(parts) {
+  let places = 0;
+  for (const [, partRecord] of parts) {
+    const ast = astOfQuote(bindingValueOf(partRecord));
+    const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
+    const index = head.type === 'Projection' && head.keys.length > 0 ? Number(head.keys[0])
+      : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
+      : NaN;
+    if (!Number.isInteger(index)) return null;
+    places = Math.max(places, index + 1);
+  }
+  return places;
+}
+
+// The object of a call, the values of its modifiers each computed against
+// the subject under the name's address, and its parts read from it: an
+// object with more values than the parts have places is refused under
+// the name, a part the object does not hold under the part, and a part
+// that breaks a law of its page under the part. Answers the values of
+// the parts in their order and the scope of the body, where each part is
+// bound by its name and the object as `object`.
+async function objectOf(address, parts, lambdas, state, scope) {
+  if (lambdas.length === 0 && parts.length === 0) return { values: [], bodyEnv: scope };
+  const values = [];
+  for (const lambda of lambdas) {
+    const value = await lambda(state.pipeValue);
+    if (isErrorValue(value)) return value;
+    values.push(value);
+  }
+  const object = makeTaggedInstance(makeTagKeyword(address), values);
+  const places = placesReadBy(parts);
+  if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object });
+  let bodyEnv = envSet(scope, 'object', makeBinding({ name: keyword('object'), value: object }));
+  const partValues = [];
+  for (const [partName, partRecord] of parts) {
+    const partAddress = `${address}/${partName}`;
+    const part = (await evalBody(astOfQuote(bindingValueOf(partRecord)), nestState(state, object, scope))).pipeValue;
+    if (isErrorValue(part)) return isMissedPlace(part) ? refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object }) : part;
+    const broken = await brokenLawOf(partRecord, part, state, scope);
+    if (broken !== null) return refusalUnder(`${partAddress}/HoldsNotMetError`, { holds: broken, actualValue: part });
+    partValues.push(part);
+    bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: part }));
+  }
+  return { values: partValues, bodyEnv };
+}
+
+// A strict read of a place the object does not hold.
+function isMissedPlace(error) {
+  return error.tag.name === 'proj/IndexOutOfBoundsError' || error.tag.name === 'proj/KeyNotInMapError';
+}
+
+// A primitive runs over the value the walk served and the values of the
+// parts, a quote closed at the call [D4], a reader of the scope over the
+// state after them [D79] and a reader of the passed tags over those [D86].
+async function runHostMember(member, walked, values, state) {
+  const impl = hostImplOf(member);
+  const handed = values.map(value => (isQuote(value) ? codeOf(value, state) : value));
+  if (readsState(impl)) return await impl(walked.served, ...handed, state);
+  if (readsPassedTags(impl)) return await impl(walked.served, ...handed, walked.passedTags);
+  return await impl(walked.served, ...handed);
+}
+
+// Whether a record's page holds a quote under the tag of a role.
+function hasPageRole(record, role) {
+  return record.get('docs').some(doc => doc.some(segment => isValueClass(segment, 'taggedInstance') && segment.tag.name === role));
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run
@@ -615,7 +799,8 @@ export function resolveBinaryReducer(reducerLambda) {
   if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   const reach = bareNameReach(callerState.env, lookupName);
-  const namesAVerb = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : isVerb(bindingValueOf(reach.record));
+  const reached = reach === null ? null : bindingValueOf(reach.record);
+  const namesAVerb = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : isVerb(reached) || (reach.underKind && isMemberValue(reached));
   if (!namesAVerb) return null;
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;

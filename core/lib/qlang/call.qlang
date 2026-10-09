@@ -78,7 +78,7 @@
       ~(1 | count !| [/actualType (/addresses | has ::vec/count)] | eq [::number true])
 
       ~(
-        :count ::verb~(:x ::number) | [1] | count 1
+        5 | count
         !| [type /addresses]
         |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]]
        )

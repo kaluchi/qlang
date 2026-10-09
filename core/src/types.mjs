@@ -317,6 +317,18 @@ export function isSpec(v) {
   return isValueClass(v, 'taggedInstance') && v.tag.name === SPEC_TAG.name && isQuote(v.payload);
 }
 
+// The descriptor of an implementation a host hands, `::builtin{}`, the
+// value of a name under a label that a primitive answers [D164].
+export function isBuiltinDescriptor(v) {
+  return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
+}
+
+// A label, a node a value is put under and names are declared under: a
+// page, or a kind's `::spec~(…)` [D164].
+export function isLabelValue(v) {
+  return isDoc(v) || isSpec(v);
+}
+
 export function verbEnvRef(verb) {
   return verb[VERB_ENV_REF_SLOT];
 }

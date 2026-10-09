@@ -70,6 +70,18 @@
   ~~|
   ::spec~()
 
+:bind/NameTakenByVocabularyError
+  |~~ A value the reader names takes no word of the vocabulary, the name
+      of a verb or of a name under a label, since a step that names the
+      word means the subject's: `:addresses` holds where the word lives,
+      and the value takes another name.
+      ::link~(::bind | doc)
+
+      ~(:count 5 !| [type /addresses] | eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
+      ~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
+  ~~|
+  ::spec~()
+
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline
       that the pipe or the fail track joins share one env, and a

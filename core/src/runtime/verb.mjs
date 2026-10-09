@@ -31,7 +31,7 @@ import {
 } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import {
-  bindingValueOf, isQuote, isVec, isQMap, isSpec, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
+  bindingValueOf, isBuiltinDescriptor, isDoc, isQuote, isVec, isQMap, isSpec, isVerb, isErrorValue, isTaggedInstance, isValueClass, keyword, makeTagKeyword,
   makeBinding,
   makeQuote, makeSet, makeTaggedInstance, makeVerb, quoteInEnv, residenceOfVerb, addressOfVerb, hostImplOf, isHostDeclared, typeKeyword,
   verbEnvRef,
@@ -42,6 +42,7 @@ import {
 // constructor that re-establishes the tag's invariant on a payload.
 function tagCarriesConstructor(state, tagName) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
+  if (isDoc(declared)) return true;
   return isSpec(declared) && Object.keys(constructorOfSpec(declared)).length > 0;
 }
 
@@ -215,8 +216,10 @@ function isBuiltinStep(body) {
 }
 
 // endsInBuiltin(value) → whether a verb or a kind ends in a `::builtin{}`
-// step, which runs an implementation of the host's.
+// step, or a name under a label is one, which runs an implementation of
+// the host's [D164].
 export function endsInBuiltin(value) {
+  if (isBuiltinDescriptor(value)) return true;
   return (isVerb(value) || isSpec(value)) && signatureOf(value.payload).builtin;
 }
 
@@ -264,7 +267,7 @@ function isOfKind(value, kindName) {
 
 // The value of one of the kinds a walk of the value's tags reaches from
 // the outside in, and the tags it passed [D34], or null.
-function walkToKinds(value, kindNames) {
+export function walkToKinds(value, kindNames) {
   const passedTags = [];
   let served = value;
   while (!kindNames.some(kindName => isOfKind(served, kindName))) {
@@ -299,7 +302,7 @@ async function servedByKinds(value, kindNames, state, place, siteRefusal) {
 // The value under the tags from the innermost out, their constructors
 // run again [D41]; an error passes as it is, as it does under every tag
 // [D86].
-async function underTags(value, tags, state) {
+export async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
   return wrapped;

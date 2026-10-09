@@ -8,7 +8,8 @@
 // finds the verbs residing on each kind it passes [D34], [D72].
 
 import {
-  isBinding, isQMap, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance, isValueClass, makeSet, makeTagKeyword,
+  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQuote, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance,
+  isValueClass, makeSet, makeTagKeyword,
   typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
@@ -38,16 +39,25 @@ export function nodeOf(env, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
-// Whether a record holds a verb residing on a kind.
-function residesOn(record, kindName) {
+// Whether a record holds a verb residing on a kind, or a name declared
+// under a label that runs on its values, a quote or the descriptor of a
+// primitive [D164]; a name under such a name is a part of its object and
+// resides nowhere.
+function residesOn(record, kindName, env) {
   const value = bindingValueOf(record);
-  return isVerb(value) && residenceOfVerb(value) === kindName;
+  if (isVerb(value)) return residenceOfVerb(value) === kindName;
+  return isMemberValue(value) && isLabelValue(bindingValueOf(nodeOf(env, kindName)));
+}
+
+// A value a name under a label holds when it runs on the label's values.
+export function isMemberValue(value) {
+  return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
 }
 
 // The record of the verb of `verbName` residing on a kind, or null.
 function residenceOf(env, kindName, verbName) {
   const record = nodeOf(env, `${kindName}/${verbName}`);
-  return record !== null && residesOn(record, kindName) ? record : null;
+  return record !== null && residesOn(record, kindName, env) ? record : null;
 }
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
@@ -111,7 +121,7 @@ export function residencesOf(env, verbName) {
   for (const [name, record] of bindingsOf(env)) {
     const [kindName, lastName] = splitAddress(name);
     if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
-    if (residesOn(record, kindName)) residences.push([kindName, record]);
+    if (residesOn(record, kindName, env)) residences.push([kindName, record]);
   }
   return residences;
 }
@@ -155,13 +165,16 @@ export function kindNamesOf(env) {
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isSpec(bindingValueOf(nodeOf(env, name))));
 }
 
+// A verb without a body, which answers for the verbs of its name.
+const isContractValue = value => isVerb(value) && isContract(value);
+
 // The addresses where the verbs of a name live, one for each kind a verb
 // of that name serves, any value among them when the verb there has a
 // body, which a refusal of the name hands on [D62].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTagKeyword(`${kindName}/${verbName}`));
   const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
-  if (onAnyValue !== null && !isContract(bindingValueOf(onAnyValue))) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
+  if (onAnyValue !== null && !isContractValue(bindingValueOf(onAnyValue))) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
   return makeSet(addresses);
 }
 
@@ -170,7 +183,7 @@ export function addressesOf(env, verbName) {
 // of the name [D137].
 export function pageAddressesOf(env, verbName) {
   const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
-  if (onAnyValue === null || !isContract(bindingValueOf(onAnyValue))) return addressesOf(env, verbName);
+  if (onAnyValue === null || !isContractValue(bindingValueOf(onAnyValue))) return addressesOf(env, verbName);
   return makeSet([...addressesOf(env, verbName), makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`)]);
 }
 
@@ -183,7 +196,7 @@ export function verbsReaching(env, kindNames) {
   for (const kindName of [...kindNames, ANY_KIND_NAME]) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
-      if (!residesOn(record, kindName) || reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
+      if (!residesOn(record, kindName, env) || reached.has(name) || (kindName === ANY_KIND_NAME && isVerb(verb) && isContract(verb))) continue;
       reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
     }
   }
@@ -191,7 +204,7 @@ export function verbsReaching(env, kindNames) {
 }
 
 // The nodes declared one name under a noun, by their last names.
-function namesUnderOf(env, nounName) {
+export function namesUnderOf(env, nounName) {
   const under = new Map();
   for (const [name, record] of bindingsOf(env)) {
     const [kindName, lastName] = splitAddress(name);
@@ -212,13 +225,26 @@ export function nodeAddresses(env) {
   return [...bindingsOf(env)].map(([name]) => name);
 }
 
-// The names the verbs go by, which a guessed name of a step is held
-// against beside the scope's [D118].
+// The names the verbs and the names under a label go by, which a guessed
+// name of a step is held against beside the scope's [D118].
 export function verbNames(env) {
   const names = new Set();
   for (const [name, record] of bindingsOf(env)) {
-    if (isVerb(bindingValueOf(record))) names.add(splitAddress(name)[1]);
+    const [nounName, lastName] = splitAddress(name);
+    if (isVerb(bindingValueOf(record)) || (nounName !== null && residesOn(record, nounName, env))) names.add(lastName);
   }
   return names;
+}
+
+// vocabularyWords(env) → the words of the vocabulary, the last names of
+// the verbs and of the names a label holds, each declared under a noun,
+// which a bare name of the reader may not take [D166].
+export function vocabularyWords(env) {
+  const words = new Set();
+  for (const [name, record] of bindingsOf(env)) {
+    const [nounName, lastName] = splitAddress(name);
+    if (nounName !== null && (isVerb(bindingValueOf(record)) || residesOn(record, nounName, env))) words.add(lastName);
+  }
+  return words;
 }
 

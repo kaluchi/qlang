@@ -71,8 +71,8 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
   });
 
-  it('an address reads the root\'s verb whatever the scope binds under its last name', async () => {
-    expect(await evalQuery(':count 5 | ::vec/count | doc | content | contains "number of elements"'))
+  it('an address reads the root\'s verb whatever the scope binds', async () => {
+    expect(await evalQuery(':limit 5 | ::vec/count | doc | content | contains "number of elements"'))
       .toBe(true);
   });
 
@@ -87,8 +87,8 @@ describe('an address reads the node its name declared', () => {
 });
 
 describe('a name with a path calls the verb its address names', () => {
-  it('calls past the bare names of the scope, with the modifiers the call takes', async () => {
-    expect(await evalQuery(':count 5 | [1 2 3] | vec/count')).toBe(3);
+  it('calls the verb its address names, with the modifiers the call takes', async () => {
+    expect(await evalQuery('[1 2 3] | vec/count')).toBe(3);
     expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
   });
 

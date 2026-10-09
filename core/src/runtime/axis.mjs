@@ -110,7 +110,15 @@ export function declaringRecordOf(env, subject) {
     const entry = envGet(env, subject.name);
     return isBinding(entry) ? entry : null;
   }
-  return nodeOf(env, isTagKeyword(subject) ? subject.name : typeKeyword(subject).name);
+  const name = isTagKeyword(subject) ? subject.name : typeKeyword(subject).name;
+  return nodeOf(env, name) ?? nodeOfRefused(env, name);
+}
+
+// The node a refusal named by the address of what refused reads its page
+// from, that address, when no node of its own declares it [D166].
+function nodeOfRefused(env, name) {
+  const cut = name.lastIndexOf('/');
+  return cut > 0 && name.endsWith('Error') ? nodeOf(env, name.slice(0, cut)) : null;
 }
 
 // The caption a run of prose gives the laws after it [D124]: the last

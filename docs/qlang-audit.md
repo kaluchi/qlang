@@ -1180,13 +1180,15 @@ order the concepts rest on each other, the layout of lines and
 comments, the fork rule and the scopes, application and the slots of
 code, the effect marker, the recursion of a verb and its budget, and
 the path of an error across a raise. The embedding API is the page of
-the package, `core/README.md`. The documents left are the measure and
-the decisions:
+the package, `core/README.md`. The documents left are the measure, the
+decisions, and the research of a design whose work has begun, which
+its records absorb as the work lands [D164]:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
 docs/qlang-audit.md
 docs/qlang-entrypoint.md
+docs/research/legend/README.md
 ```
 
 What remains of the scar is the editor's hand-written TextMate grammar,
@@ -1570,6 +1572,8 @@ below writes its targets before its work:
 
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
+"decision":"D165"
+"decision":"D166"
 "decision":"D46"
 ```
 
@@ -2063,3 +2067,4 @@ maintainer wants to explore it before it is fixed.
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md
+[D164]: decisions/D164.md

@@ -774,13 +774,14 @@
       ~(:A ::spec~() | :A/f ::verb~(1) | :B ::spec~() | :B/g (::A/f | binding | /value) | ::A{} | B/g | eq 1)
       ~(:Box/area ::verb~(1) !| type | eq ::bind/NounNotDeclaredError)
       A name is declared once in a scope and again in a scope inside it,
-      which shadows it for the steps after, a verb of a kind staying one
-      address away; an address the root holds is declared once at all,
-      so a reader extends a noun of the root and replaces none of its
-      nodes:
+      which shadows it for the steps after; a value the reader names
+      takes no word of the vocabulary, the name of a verb or of a name
+      under a label, so no step meets it where the subject's word was
+      meant; an address the root holds is declared once at all, so a
+      reader extends a noun of the root and replaces none of its nodes:
       ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
       ~(:k 1 | (:k 2 | k) | eq 2)
-      ~(:count 5 | [1 2 3] | vec/count | eq 3)
+      ~(:count 5 !| type | eq ::bind/NameTakenByVocabularyError)
       ~(:vec/count ::verb~(0) !| type | eq ::bind/NameDeclaredTwiceError)
       A name begins with a letter of any script, `_` or `@`; `@` marks a
       name whose call reaches outside the language, and a verb whose body

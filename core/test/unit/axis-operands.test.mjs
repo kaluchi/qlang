@@ -196,21 +196,26 @@ describe('a value that is no name reads the declaration of its kind', () => {
 
 describe('axis-operands resolve the binding the evaluator dispatches', () => {
   // The four axes project the one record the scope holds under the
-  // name, so a binding that shadows a built-in reads as itself — the
-  // case the hypertext chain exists for.
-  const shadowed = ':add ::verb~(mul 100) | ';
+  // name, so a binding of the reader reads as itself — the case the
+  // hypertext chain exists for. A name of the reader takes no word of the
+  // vocabulary [D166].
+  const shadowed = ':hundredfold ::verb~(mul 100) | ';
 
-  it('a binding shadowing a built-in is the one source reports', async () => {
-    expect(await evalQuery(shadowed + '2 | add')).toBe(200);
-    expect(await evalQuery(shadowed + ':add | source | parse')).toBe(':add ::verb~(mul 100)');
+  it('a binding of the reader takes no word of the vocabulary', async () => {
+    expect((await evalQuery(':add ::verb~(mul 100) | 2 | add')).tag.name).toBe('bind/NameTakenByVocabularyError');
   });
 
-  it('doc answers null for the shadowing binding, which carries no page', async () => {
-    expect(await evalQuery(shadowed + ':add | doc')).toBeNull();
+  it('a binding of the reader is the one source reports', async () => {
+    expect(await evalQuery(shadowed + '2 | hundredfold')).toBe(200);
+    expect(await evalQuery(shadowed + ':hundredfold | source | parse')).toBe(':hundredfold ::verb~(mul 100)');
+  });
+
+  it('doc answers null for a binding of the reader that carries no page', async () => {
+    expect(await evalQuery(shadowed + ':hundredfold | doc')).toBeNull();
   });
 
   it('spec answers the signature of the verb source reports', async () => {
-    expect(await evalQuery(shadowed + ':add | spec | type')).toEqual(makeTagKeyword('spec'));
+    expect(await evalQuery(shadowed + ':hundredfold | spec | type')).toEqual(makeTagKeyword('spec'));
   });
 
   // The reader's declaration of a name the root holds stands over it

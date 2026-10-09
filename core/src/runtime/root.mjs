@@ -12,7 +12,7 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isErrorValue, isSpec, isVerb, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isSpec, isVerb, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import {
@@ -54,7 +54,7 @@ export async function declareRoot(env, sources) {
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
       if (endsInBuiltin(value) && impls[name] === undefined) throw new BuiltinImplementationNotHandedError({ name });
-      if (isVerb(value) || isSpec(value)) declareHostValue(value, impls[name]);
+      if (isVerb(value) || isSpec(value) || isBuiltinDescriptor(value)) declareHostValue(value, impls[name]);
     }
     for (const implName of Object.keys(impls)) {
       if (!endsInBuiltin(bindingValueOf(declared.get(implName)))) {

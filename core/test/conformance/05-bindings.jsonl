@@ -16,4 +16,4 @@
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
 {"name":"a-distributed-step-declares-in-each-element","query":":x 1 | [2 3] * :x / | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
-{"name":"a-name-of-the-catalog-is-shadowed-by-a-declaration","query":":count 5 | count","expect":"5","decision":"D71"}
+{"name":"a-value-of-the-reader-takes-no-name-of-the-catalog","query":":count 5 | count !| type","expect":"::bind/NameTakenByVocabularyError","decision":["D71","D166"]}

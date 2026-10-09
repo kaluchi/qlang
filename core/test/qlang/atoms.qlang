@@ -45,7 +45,7 @@
     | :kind (type)
     | cond
         ~(kind | eq ::vec) ~({:parts / :glue ~()})
-        ~(kind | eq ::map) ~(:entries / | {:parts (keys | sort * (:key / | [key (entries | at key)])) :glue ~(indexBy ~(first) * last)})
+        ~(kind | eq ::map) ~(:whole / | {:parts (keys | sort * (:key / | [key (whole | at key)])) :glue ~(indexBy ~(first) * last)})
         ~({:parts [kind (payload)] :glue (if failed ~(~(tag | raise)) ~(~(tag)))}))
 
 :atomsOf

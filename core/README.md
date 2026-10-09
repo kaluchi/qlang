@@ -7,7 +7,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 > [1 2 3 4 5] | filter ~(gt 3) | count
 2
 
-> :double ::verb~(mul 2) | [10 20 30] * double
+> :number/double ~(mul 2) | [10 20 30] * double
 [20 40 60]
 
 > "10 | add 3" | parse | apply /
@@ -16,9 +16,9 @@ pipelines. Domain-agnostic. Pure. Composable.
 
 The language documents itself: every name has a page, a doc whose
 laws run. `::qlang | doc` opens the first page, `env | keys` lists the
-names in scope, the kinds among them, `::vec | manifest` the verbs and
-the refusals declared under one, and `::vec/sort | doc` the page of a
-verb. The command line, `@kaluchi/qlang-cli`, runs a query from the
+names in scope, the kinds among them, `::vec | manifest` the names
+declared under one, `::vec/sort | manifest` the parts of the object of a
+call, and `::vec/sort | doc` the page of a name. The command line, `@kaluchi/qlang-cli`, runs a query from the
 shell.
 
 ## Embedding
@@ -33,7 +33,7 @@ import { createSession, printValue } from '@kaluchi/qlang-core';
 const session = await createSession({
   sources: [{
     uri: 'my/tools',
-    source: ':string/@fetch ::verb~(::builtin{})',
+    source: ':string/@fetch ::builtin{}',
     impls: { 'string/@fetch': async (url) => fetchText(url) }
   }]
 });
@@ -48,10 +48,11 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   `{ source, uri, ast, result, error, envAfterCell }`; `bind(name, value)`
   installs a value under a name; `env` is the current scope.
 - A source is `{ uri, source, impls? }`: its declarations stand in the
-  root, a verb declared under the kind of its subject, `:string/@fetch`,
-  and each implementation is a plain function over the values the head
-  of the verb of its name checked, the subject first and the slots in
-  their order. A source that declares a name the root holds is refused.
+  root, a name declared under the kind of its subject whose value is
+  `::builtin{}`, `:string/@fetch`, the parts of its object names under
+  it, and each implementation is a plain function over the subject and
+  the values of the parts in their order. A source that declares a name
+  the root holds is refused.
 - `evalQuery(source)` evaluates one query in a fresh runtime.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `toPlain` and

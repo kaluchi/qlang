@@ -1942,6 +1942,51 @@ items are computed, and how the maintainer's intent enters the task:
 all of it is the subject of `docs/qlang-entrypoint.md`, and the
 maintainer wants to explore it before it is fixed.
 
+The heads that remain [D164], [D167]. The catalog's verbs are names
+under labels, but a reader's verb over `::verb~(…)` with its slots, the
+contracts, verbs without a body, and the kinds over `::spec~(…)` stay,
+and the suite and the laws of the catalog write them:
+
+```
+$ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
+370
+```
+
+One way writes every one as a name under the label of its subject or
+under `::any`, `:number/inc ~(add 1)`, which leaves `~name` the quote of
+one step and nothing else, the pages of `::verb` and `::spec` and the
+reading of heads in `core/src/runtime/verb.mjs`; its cost is each of
+those places and the cases of the head itself. The other keeps
+`::verb` as a reader's bare form of a name with parts, a second spelling
+of one fact.
+
+A contract as a page [D166], [D167]. A word several kinds answer has a
+contract on `::any`, a verb without a body, and each kind declares the
+parts of its call again, so the page of `take/count` is written once
+per kind. A page at `any/take` would hold the parts once, but a node
+whose value is a page is a label, and the names under it would reside
+on it. The alternatives: no label directly under `::any`, whose names
+are the words every value answers, so a page there is the contract of
+its word and the parts under it are shared, an exception to the rule of
+labels; or the contract as it is.
+
+A topic is a label [D166]. A page declared as a name is a label, a
+topic among them, so a name under a topic resides on it and refuses any
+other subject by its address:
+
+```qlang
+> :T |~~ A topic. ~~| | :T/h ~(type) | 5 | T/h !| type
+::T/h/SubjectNotTError
+```
+
+The helpers of the sister project, `jdt/@problemsVia` and its kin, are
+called by their addresses on a string or a node, so under this rule
+they move under `::any`, words of every value, or a topic is a page that
+no value goes under and whose names run on any subject by their
+address. The sister project's suite fails on this branch until it
+follows: its host declares its primitives as verbs with heads, which
+the root refuses [D167].
+
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md

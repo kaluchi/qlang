@@ -1,8 +1,8 @@
-// Every link of the catalog opens a page [D108], [D121]: a link is a
-// query a name holds for its reader to follow, declared under it [D174],
-// so a verb renamed or a tag removed under it fails here, where a mention
-// in the prose would have gone stale in silence. The links are read at
-// the address of every name the root holds.
+// Every link of every page of the catalog opens a page [D108], [D121]:
+// a link is a query a page names for its reader to follow, so a
+// verb renamed or a tag removed under it fails here, where a mention in
+// the prose would have gone stale in silence. The pages are read at the
+// address of every name the root holds.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -19,12 +19,12 @@ function queryOfLink(link) {
 }
 
 async function catalogLinks() {
-  const addresses = rootAddressesOf(await langRuntime());
+  const pageQueries = rootAddressesOf(await langRuntime()).map(address => `${address} | doc`);
   const links = [];
   const snippets = [];
-  for (const address of addresses) {
-    for (const link of await evalQuery(`${address} | links | vals`)) links.push({ page: address, query: queryOfLink(link) });
-    for (const snippet of await evalQuery(`${address} | snippets | vals`)) snippets.push({ page: address, query: queryOfLink(snippet) });
+  for (const pageQuery of pageQueries) {
+    for (const link of await evalQuery(`${pageQuery} | links`)) links.push({ page: pageQuery, query: queryOfLink(link) });
+    for (const snippet of await evalQuery(`${pageQuery} | snippets`)) snippets.push({ page: pageQuery, query: queryOfLink(snippet) });
   }
   return { links, snippets };
 }

@@ -10,6 +10,7 @@
   |~~ A `::call` is a map of `:name`, a keyword, and `:args`, a vector
       of quotes; `:field` names the field that does not fit, null when
       the payload is no map.
+      ::link~(::call | doc)
   ~~|
 
 :call/PayloadNotSchemaError/refusesANameThatIsNoKeyword
@@ -23,6 +24,7 @@
 :call/ReadBackDiffersError
   |~~ The `::call` prints as text that reads back as another step,
       or as none: `:printed` is that text.
+      ::link~(::call | doc)
   ~~|
 
 :call/ReadBackDiffersError/refusesANameOfTwoWords
@@ -44,6 +46,7 @@
       are those of any error; recovery is a `!|` step, and the repair
       belongs to the host, which declares a refusal of its own where it
       has facts to hand.
+      ::link~(::call | doc)
   ~~|
 
 :call/HostFailureError/message
@@ -58,6 +61,7 @@
   |~~ A name the scope binds to a value takes no modifiers.
       `:addresses` names where a verb of that name lives, one the
       declaration shadows among them, which a call by address reaches.
+      ::link~(::call | doc)
   ~~|
 
 :call/ValueTakesNoModifiersError/refusesModifiersOnAValue
@@ -110,6 +114,7 @@
       and of those the nearest alone, in the order of their spelling.
       An edit is an insertion, a deletion, a substitution or a swap of
       two neighbours. A name with nothing near holds `[]`.
+      ::link~(::call | doc)
   ~~|
 
 :call/UnknownNameError/refusesANameNothingDeclares
@@ -153,6 +158,7 @@
       address. `:address` holds the address as a tag name, which the
       axes read, and `:nearest` the addresses it was likely meant to
       be. An address that names a value reads it, as a bare name does.
+      ::link~(::call | doc)
   ~~|
 
 :call/UnknownAddressError/refusesAnAddressNothingDeclares
@@ -182,6 +188,7 @@
       frame and `:limit` the budget. A verb that calls itself without a
       base case is refused here, on the fail track, while the host's
       memory stays bounded.
+      ::link~(::call | doc)
   ~~|
 
 :call/EvaluationDepthExceededError/refusesARunawayRecursion

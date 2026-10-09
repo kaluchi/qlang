@@ -48,14 +48,10 @@
   |~~ The text stdin holds, read to its end whatever the subject, the
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
-      the text as it came: `@in | lines | count` counts the
+      the text as it came: ::snippet~(@in | lines | count) counts the
       lines piped in.
   ~~|
   ::builtin{}
-
-:any/@in/countsTheLines
-  |~~ The lines stdin holds. ~~|
-  ::snippet~(@in | lines | count)
 
 :any/@in/text
   |~~ The text stdin held, the empty string when nothing was piped. ~~|
@@ -66,13 +62,9 @@
       subject when it is a string, `"hi" | @out`, or the text a modifier
       computes from it, `42 | @out json`, the steps after still reading
       `42`. A query that writes by `@out` leaves its answer unwritten.
-      `[1 2] | @out json | count` writes `[1,2]`.
+      ::snippet~([1 2] | @out json | count) writes `[1,2]`.
   ~~|
   ::builtin{}
-
-:any/@out/writesJson
-  |~~ A vector written as json. ~~|
-  ::snippet~([1 2] | @out json | count)
 
 :any/@out/text
   |~~ The text the call gives, null when it gives none.
@@ -96,14 +88,10 @@
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
       writes to stdout, and answers its subject; the answer of the query
       is written as ever.
-      `[1 2 3] | @err "counting" | count` writes `counting` to
+      ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
       stderr and answers 3.
   ~~|
   ::builtin{}
-
-:any/@err/writesADiagnostic
-  |~~ A diagnostic written beside the answer. ~~|
-  ::snippet~([1 2 3] | @err "counting" | count)
 
 :any/@err/text
   |~~ The text the call gives, null when it gives none.
@@ -126,13 +114,10 @@
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject, a look at a value halfway through a query:
+      ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
       shows both vectors and answers 1.
   ~~|
   ::builtin{}
-
-:any/@tap/tapsBothSides
-  |~~ Both vectors around a filter. ~~|
-  ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
 
 :any/@tap/label
   |~~ The label the call gives.

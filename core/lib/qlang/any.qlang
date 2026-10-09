@@ -614,11 +614,8 @@
 :any/source/UnknownNameError
   |~~ `source` found no declaration of the name it read, as `binding`
       finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:any/source/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :any/source/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
@@ -713,11 +710,8 @@
   |~~ `doc` found no declaration of the name it read, as `binding` finds
       none, or no member of the page before it under an anchor of its
       path.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:any/doc/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :any/doc/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
@@ -780,11 +774,8 @@
 :any/explain/UnknownNameError
   |~~ `explain` found no declaration of the page of its subject, as
       `binding` finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:any/explain/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :any/explain/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
@@ -820,11 +811,8 @@
 :any/laws/UnknownNameError
   |~~ `laws` found no declaration of the name it read, as `binding`
       finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:any/laws/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :any/laws/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|
@@ -835,76 +823,6 @@
   ::set
 
 :any/laws/UnknownNameError/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec
-
-:any/links
-  |~~ The links declared under the name the value reads, as `doc` reads
-      it, in the order of their declarations: each one's name and its
-      query, which `open` follows to the page it names. ~~|
-  ::builtin{}
-
-:any/links/targets
-  |~~ The name of each link and its query. ~~|
-  ::map
-
-:any/links/opensThePagesTheyName
-  |~~ Each link opens the page it names. ~~|
-  ::law~(:any/k ~(5) | :any/k/seeNumber |~~ The page of numbers. ~~| ::link~(::number | doc) | ::any/k | links * open | /seeNumber | eq (::number | doc))
-
-:any/links/UnknownNameError
-  |~~ `links` found no declaration of the name it read, as `binding`
-      finds none.
-  ~~|
-
-:any/links/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
-
-:any/links/UnknownNameError/name
-  |~~ The name the axis read, a keyword or a tag. ~~|
-  #[::keyword ::tag]
-
-:any/links/UnknownNameError/addresses
-  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
-  ::set
-
-:any/links/UnknownNameError/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec
-
-:any/snippets
-  |~~ The snippets declared under the name the value reads, as `doc`
-      reads it, in the order of their declarations: each one's name and
-      its query, which `open` runs to show what it shows. ~~|
-  ::builtin{}
-
-:any/snippets/shows
-  |~~ The name of each snippet and its query. ~~|
-  ::map
-
-:any/snippets/runsEachToShowIt
-  |~~ Each snippet runs to show what it shows. ~~|
-  ::law~(:any/k ~(5) | :any/k/sorted |~~ A sort. ~~| ::snippet~([2 1] | sort) | ::any/k | snippets * open | eq {:sorted [1 2]})
-
-:any/snippets/UnknownNameError
-  |~~ `snippets` found no declaration of the name it read, as `binding`
-      finds none.
-  ~~|
-
-:any/snippets/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
-
-:any/snippets/UnknownNameError/name
-  |~~ The name the axis read, a keyword or a tag. ~~|
-  #[::keyword ::tag]
-
-:any/snippets/UnknownNameError/addresses
-  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
-  ::set
-
-:any/snippets/UnknownNameError/nearest
   |~~ The names nearest to it in spelling. ~~|
   ::vec
 
@@ -985,7 +903,7 @@
 :any/sumOf
   |~~ The sum of the numbers the call computes against the subject, as
       many as it gives, the subject only what they are read from: two
-      fields of one map add by `sumOf /x /y`. `sumOf /x /y`
+      fields of one map add by `sumOf /x /y`. ::call~(sumOf /x /y)
   ~~|
   ~(numbers | sum)
 
@@ -1017,7 +935,7 @@
 :any/mulOf
   |~~ The product of the numbers the call computes against the subject,
       as many as it gives: the price and the quantity of one line multiply
-      by `mulOf /price /qty`. `mulOf /price /qty`
+      by `mulOf /price /qty`. ::call~(mulOf /price /qty)
   ~~|
   ~(factors | reduce 1 ~(mul))
 
@@ -1045,6 +963,7 @@
 :any/subOf
   |~~ The first number the call computes against the subject less the
       second: what is left to pay is `subOf /total /paid`.
+      ::call~(subOf /total /paid)
   ~~|
   ~(minuend | sub subtrahend)
 
@@ -1073,7 +992,7 @@
 
 :any/divOf
   |~~ The first number the call computes against the subject divided by
-      the second: a mean is `divOf /sum /count`. `divOf /sum /count`
+      the second: a mean is `divOf /sum /count`. ::call~(divOf /sum /count)
   ~~|
   ~(dividend | div divisor)
 
@@ -1103,7 +1022,7 @@
 :any/allOf
   |~~ Whether every condition the call computes against the subject holds:
       two conditions of one record hold together by `allOf /active (/age |
-      gte 18)`. `allOf /active /verified`
+      gte 18)`. ::call~(allOf /active /verified)
   ~~|
   ~(conditions | every ~(/))
 
@@ -1134,7 +1053,7 @@
 
 :any/anyOf
   |~~ Whether some condition the call computes against the subject holds:
-      `anyOf /vip (/score | gt 95)`. `anyOf /vip /trial`
+      `anyOf /vip (/score | gt 95)`. ::call~(anyOf /vip /trial)
   ~~|
   ~(conditions | any ~(/))
 
@@ -1163,7 +1082,7 @@
   |~~ The union of the maps or the sets the call computes against the
       subject, in their order, a later key holding over an earlier: the
       value of a pair with its name beside it is `unionOf /1 {:name (/0 |
-      keyword)}`. `unionOf /a /b`
+      keyword)}`. ::call~(unionOf /a /b)
   ~~|
   ~(parts | drop 1 | reduce (parts | first) ~(union))
 
@@ -1191,6 +1110,7 @@
       the walk reached, and one whose law asks `every ~(is …)` as the
       vector, or the set, of each element's, a quote and a doc as they
       are, an element the walk refuses named by its index from zero.
+      ::call~(is ::number)
   ~~|
   ::builtin{}
 

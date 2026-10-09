@@ -334,16 +334,20 @@ describe('tokenize — the code a doc holds', () => {
     .filter(token => token.kind !== 'whitespace')
     .map(token => [src.slice(token.start, token.end), token.kind]);
 
-  it('paints a quote written in prose as prose [D168]', async () => {
-    expect(await paint('|~~ see ~(add 1) ~~|')).toEqual([['|~~ see ~(add 1) ~~|', 'comment']]);
+  it('paints a quote of the prose as code', async () => {
+    expect(await paint('|~~ see ~(add 1) ~~|')).toEqual([
+      ['|~~ see ', 'comment'], ['~(', 'quote'], ['add', 'operand'], ['1', 'number'], [')', 'quote'], [' ~~|', 'comment']
+    ]);
   });
 
   it('paints a span in backticks as the code it spells', async () => {
     expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'operand'], ['` b ~~|', 'comment']]);
   });
 
-  it('closes a doc at its own marker past a doc inside a quote of its text', async () => {
-    expect(await paint('|~~ ~(|~~ a ~~| | count) after ~~|')).toEqual([['|~~ ~(|~~ a ~~| | count) after ~~|', 'comment']]);
+  it('closes a doc inside a quote of a doc at its own marker', async () => {
+    const painted = await paint('|~~ ~(|~~ a ~~| | count) after ~~|');
+    expect(painted.at(-1)).toEqual([' after ~~|', 'comment']);
+    expect(painted).toContainEqual(['count', 'operand']);
   });
 });
 

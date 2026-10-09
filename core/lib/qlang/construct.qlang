@@ -9,6 +9,7 @@
 :construct/PayloadNotSchemaError
   |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
+      ::link~(::construct | doc)
   ~~|
 
 :construct/PayloadNotSchemaError/refusesATagThatIsAKeyword
@@ -23,6 +24,7 @@
   |~~ The `::construct` prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
       as a group.
+      ::link~(::construct | doc)
   ~~|
 
 :construct/ReadBackDiffersError/refusesAPayloadThatJoinsItsTag
@@ -38,6 +40,7 @@
       by its page, or a word, whose args it lays itself over, `::vec/take[2]`;
       a tag that addresses a name holding a value of its own names nothing
       to build by.
+      ::link~(::construct | doc)
   ~~|
 
 :construct/TagNotKindError/refusesTheTagOfAValue

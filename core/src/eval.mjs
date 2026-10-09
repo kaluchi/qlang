@@ -14,7 +14,7 @@ import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
-  joinedDoc, makeSet,
+  makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
@@ -432,7 +432,7 @@ async function evalBindStep(node, state) {
   }
 
   if (node.body === null) {
-    return withEnv(state, envSet(state.env, name, declarationRecord(node, joinedDoc(slotDocsOf(node)))));
+    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc])))));
   }
 
   const answered = (await evalNode(node.body, state)).pipeValue;

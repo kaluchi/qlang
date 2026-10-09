@@ -74,13 +74,13 @@ describe('catalog self-test via runLaws', () => {
     expect(unequal).toEqual([]);
   }, 30000);
 
-  it('a page names code between backquotes alone', async () => {
-    // A page is prose [D168]: what it shows as code it writes between
-    // backquotes, so a quote outside them is a law or a link left in its
-    // text, where it no longer runs.
+  it('no quote of a page is read as prose', async () => {
+    // A quote the parser refuses reads as prose [D94], so a link or a
+    // snippet a change of the grammar breaks leaves its page with no
+    // failure to show; prose names code inside backticks alone.
     const proseQuotes = [];
     for (const reader of await catalogReaders()) {
-      const prose = await evalQuery(`${reader} | doc | content`);
+      const prose = await evalQuery(`${reader} | doc | segments | filter ~(type | eq ::string) | join ""`);
       if (prose.replace(/`[^`]*`/g, '').includes('~(')) proseQuotes.push(reader);
     }
     expect(proseQuotes).toEqual([]);

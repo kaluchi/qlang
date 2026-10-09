@@ -103,11 +103,18 @@ function collectSemanticSpans(src, ast, builtinNames) {
     const endOffset   = node.location.end.offset;
 
     switch (node.type) {
-      case 'DocLit':
-        // The prose of a doc paints as a comment and the code it names
-        // between backquotes as the code it is [D83], [D168].
-        pushProseSpans(src, startOffset, endOffset, builtinNames, spans);
-        return false;
+      case 'DocLit': {
+        // The prose of a doc paints as a comment and the quotes it holds
+        // as the code they are, so only prose reads grey [D83].
+        let cursor = startOffset;
+        for (const segment of node.segments) {
+          if (typeof segment === 'string') continue;
+          pushProseSpans(src, cursor, segment.location.start.offset, builtinNames, spans);
+          cursor = segment.location.end.offset;
+        }
+        pushProseSpans(src, cursor, endOffset, builtinNames, spans);
+        return; // descend into the quotes
+      }
 
       case 'StringLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'string' });

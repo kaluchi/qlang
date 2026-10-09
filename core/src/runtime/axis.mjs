@@ -23,13 +23,14 @@ import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
   isKeyword, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
-  makeTagKeyword, makeQuote, joinedDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  makeTagKeyword, makeQuote, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
+import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -140,7 +141,7 @@ bindStateReader('any/source', (subject, memberName, state) => {
 // one, the sentence of a law among them [D174].
 export function pageTextOfRecord(record) {
   const page = pageOfRecord(record);
-  return isNull(page) ? NULL : page.payload.trim().replace(/\s+/g, ' ');
+  return isNull(page) ? NULL : docText(page).trim().replace(/\s+/g, ' ');
 }
 
 // The one page of a record: its docs joined, a line break between two,
@@ -148,7 +149,7 @@ export function pageTextOfRecord(record) {
 function pageOfRecord(record) {
   const docs = record.get('docs');
   if (docs.length <= 1) return docs[0] ?? NULL;
-  return joinedDoc(docs);
+  return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
 }
 
 // The anchors of a path: null the empty one, a keyword a path of one,

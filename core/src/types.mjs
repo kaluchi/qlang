@@ -189,29 +189,40 @@ export function makeErrorLiteralStep(fieldSteps, tag = ERROR_TAG) {
   }, 'error'));
 }
 
-// A doc is prose as a value, the text its literal holds under `::doc`
-// [D19], [D168], which reads a line break as one whatever bytes the
-// source wrote.
+// A doc is the vector of its prose strings and quotes under `::doc`
+// [D19], [D94], each run of prose one string that reads a line break as
+// one whatever bytes the source wrote.
 export const DOC_TAG_NAME = 'doc';
 
 export function isDoc(v) {
-  return isValueClass(v, 'taggedInstance') && v.tag.name === DOC_TAG_NAME && typeof v.payload === 'string';
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === DOC_TAG_NAME;
 }
 
-// Whether a value is a vector of a kind of its own, a set or a quote,
-// read as a vector wherever a vector is read and keeping its shape where
-// a plain vector gives way.
+// Whether a value is a vector of a kind of its own, a set, a quote or a
+// doc, read as a vector wherever a vector is read and keeping its shape
+// where a plain vector gives way.
 export function isVecOfOwnKind(v) {
-  return isQSet(v) || isQuote(v);
+  return isQSet(v) || isQuote(v) || isDoc(v);
 }
 
-export function makeDoc(text) {
-  return makeTaggedInstance(DOC_TAG, text.replace(/\r\n?/g, '\n'));
+// A segment of a doc: a run of its prose, a quote, or a quote under a
+// stack of tags, which gives the quote its role [D108].
+export function isDocSegment(v) {
+  let beneath = v;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  return typeof v === 'string' || isQuote(beneath);
 }
 
-// The one doc of several, their texts joined by a line break [D119].
-export function joinedDoc(docs) {
-  return makeDoc(docs.map(doc => doc.payload).join('\n'));
+export function makeDoc(segments) {
+  const doc = [];
+  for (const segment of segments) {
+    const piece = typeof segment === 'string' ? segment.replace(/\r\n?/g, '\n') : segment;
+    if (piece === '') continue;
+    if (typeof piece === 'string' && typeof doc[doc.length - 1] === 'string') doc[doc.length - 1] += piece;
+    else doc.push(piece);
+  }
+  stampTagHeader(doc, DOC_TAG);
+  return Object.freeze(doc);
 }
 
 // The tag of a vector or a map rides a hidden slot, out of the way of its

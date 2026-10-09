@@ -152,11 +152,8 @@
 :keyword/runLaws/UnknownNameError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
       finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:keyword/runLaws/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :keyword/runLaws/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|

@@ -32,7 +32,7 @@
   |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
       adds element by element, `* add 1`, and sums by `sum`; a string is
       joined by `append`; two numbers one value holds add by `sumOf`,
-      `{:x 10 :y 3} | sumOf /x /y`. `add 3`
+      `{:x 10 :y 3} | sumOf /x /y`. ::call~(add 3)
   ~~|
   ::builtin{}
 
@@ -68,7 +68,7 @@
   |~~ Subtracts a number from the subject, the minuend. A vector
       subtracts element by element, `* sub 1`; two numbers one value
       holds subtract by `subOf`, `{:total 10 :paid 3} | subOf /total
-      /paid`. `sub 3`
+      /paid`. ::call~(sub 3)
   ~~|
   ::builtin{}
 
@@ -99,7 +99,7 @@
 :number/mul
   |~~ Multiplies the subject by a number. A vector multiplies element by
       element, `* mul 2`; two numbers one value holds multiply by
-      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. `mul 3`
+      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. ::call~(mul 3)
   ~~|
   ::builtin{}
 
@@ -131,6 +131,7 @@
   |~~ Divides the subject, the dividend, by a number. A vector divides
       element by element, `* div 2`; two numbers one value holds divide
       by `divOf`, `{:sum 20 :count 4} | divOf /sum /count`.
+      ::call~(div 2)
   ~~|
   ::builtin{}
 
@@ -173,7 +174,7 @@
   |~~ The number rounded half away from zero to the digits after the
       point the call gives, none when it gives none; a negative count
       rounds to tens and beyond. A string holding a number is read first
-      by `parseJson`. `round 2`
+      by `parseJson`. ::call~(round 2)
   ~~|
   ::builtin{}
 

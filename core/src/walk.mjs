@@ -55,14 +55,20 @@ export function astChildrenOf(node) {
     case 'QuoteLit':
       if (node.pipeline !== null) out.push(node.pipeline);
       break;
+    case 'DocTaggedQuote':
+      out.push(node.quote);
+      break;
     case 'BindStep':
       out.push(node.key);
       for (const doc of node.docs ?? []) out.push(doc);
       if (node.body) out.push(node.body);
       break;
+    case 'DocLit':
+      for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
+      break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, BareTypeKeyword (a tag, the address of a node) and
-    // DocLit, prose whatever it writes [D168], have no semantic children.
+    // Projection, BareTypeKeyword (a tag, the address of a node) have no
+    // semantic children.
   }
   return out;
 }

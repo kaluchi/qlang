@@ -11,6 +11,7 @@
 :quote/PayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
+      ::link~(::quote | doc)
   ~~|
 
 :quote/PayloadNotVecError/refusesAMap
@@ -23,6 +24,7 @@
       `::proj` and their kin. A value with no reading as code, a value
       under a tag of another kind among them, is refused at the index it
       stands at.
+      ::link~(::quote | doc)
   ~~|
 
 :quote/ElementNotStepError/refusesAValueWithNoReading
@@ -33,6 +35,7 @@
   |~~ The source does not read as qlang: `:marker` points where the
       reading stopped, `:expected` lists what could stand there, and a
       source cut short names the bracket it left open.
+      ::link~(::quote | doc)
   ~~|
 
 :quote/ParseError/refusesASourceCutShort
@@ -89,12 +92,12 @@
 
 :quote/open/runsALink
   |~~ A link opens to the answer of its query. ~~|
-  ::law~(::link~(1 | add 1) | open | eq 2)
+  ::law~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
 
 :quote/open/opensTheLinksOfTheFirstPageToPages
   |~~ The links of the first page open to pages. ~~|
-  ::law~(::qlang | links * open | every ~(type | eq ::doc))
+  ::law~(::qlang | doc | links * open | every ~(type | eq ::doc))
 
 :quote/open/runsASnippet
   |~~ A snippet opens to what it shows. ~~|
-  ::law~(::snippet~([3 1 2] | sort) | open | eq [1 2 3])
+  ::law~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])

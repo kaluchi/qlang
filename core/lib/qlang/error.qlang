@@ -13,6 +13,7 @@
       refused as it makes the error. A `raise`
       that writes the `:trail` it read goes on with that path, and one
       that leaves it out starts a path at its own step.
+      ::link~(::error | doc)
   ~~|
 
 :error/TrailNotVecError/refusesANumberForATrail

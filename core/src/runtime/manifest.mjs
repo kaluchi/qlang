@@ -20,23 +20,14 @@ function errorMessageOf(errorValue) {
 
 bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
 
-// The definitions in a role under the address of the record a value reads,
-// as `doc` reads it: each one's last name and its value, in the order of
-// their declarations, a law a claim, a link a page to open and a snippet a
-// query to run [D169], [D174].
-function inRole(roleName, UnknownNameError) {
-  return (subject, state) => {
-    const address = recordReadBy(subject, NULL, state, UnknownNameError).get('name').name;
-    return new Map(definitionsInRole(state.env, address, roleName).map(([lastName, record]) => [lastName, bindingValueOf(record)]));
-  };
-}
-
+// The laws declared under the address of the record a value reads, as
+// `doc` reads it: each one's last name and its claim, in the order of
+// their declarations [D174].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
-const AnyLinksUnknownNameError = declareRefusal('any/links/UnknownNameError');
-const AnySnippetsUnknownNameError = declareRefusal('any/snippets/UnknownNameError');
-bindStateReader('any/laws', inRole('law', AnyLawsUnknownNameError));
-bindStateReader('any/links', inRole('link', AnyLinksUnknownNameError));
-bindStateReader('any/snippets', inRole('snippet', AnySnippetsUnknownNameError));
+bindStateReader('any/laws', (subject, state) => {
+  const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
+  return new Map(definitionsInRole(state.env, address, 'law').map(([lastName, record]) => [lastName, bindingValueOf(record)]));
+});
 
 // A law runs one frame below the step in the caller's scope, the root
 // among it, and passes when it answers true [D14]; its result names the

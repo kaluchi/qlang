@@ -622,19 +622,19 @@ c
 ```
 
 A quote has all three, being the vector of its steps [D53], and a doc
-is the text it holds, which breaks into its lines as a string does
-[D168]:
+answers its parts by its `segments`, the vector of its prose and its
+quotes [D19], [D95]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
 ~(add 1)
 
-> ::vec/sort | doc | content | lines | count | gt 1
-true
+> |~~ a ~(add 1) b ~~| | segments | count
+3
 ```
 
 The pageable shape is the vector, and a value that can overflow breaks
-into one, as the quote has, and a string and a doc do through their
+into one, as the quote and the doc have, and a string does through its
 lines.
 
 Next, every tag and keyword inside a value is an anchor that resolves
@@ -654,17 +654,17 @@ of addresses, and a verb passes from an address into one of its
 projections: `doc` into its page, `source` into its code, `binding`
 into its record [D5], [D119]. A keyword after
 `doc` is an anchor within the page, a vector of keywords a path and a
-set of them several pages at once. What proves and extends a name
-stands under it, each a definition whose value takes its role from the
-tag over its quote [D174]: `::law~(…)` is a law, which `runLaws` holds
-to answer true, its page the claim it proves [D123], [D124];
-`::link~(…)` names a page and `open` reaches it [D108], [D121];
-`::snippet~(…)` is a query a reader runs to see what it shows [D122].
-`laws`, `links` and `snippets` read them by their names, so the first
-page leads to every other in one query:
+set of them several pages at once. A page holds prose and quotes, and a
+quote takes its role from the tags over it: under `::link` it names a
+page and `open` reaches it, the jump from one page to another
+[D108], [D121], [D175]; under `::snippet` it is a query a reader runs to
+see what it shows [D122]; with none it is code the prose holds. The laws
+that prove a name stand under it, each a definition of `::law~(…)` that
+`runLaws` holds to answer true, its page the claim it proves [D123],
+[D124], [D174]. So the first page leads to every other in one query:
 
 ```qlang
-> ::qlang | links * open | every ~(type | eq ::doc)
+> ::qlang | doc | links * open | every ~(type | eq ::doc)
 true
 
 > ::qlang | doc #[:pipeline :errors] | count
@@ -937,16 +937,13 @@ catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
 paged with it [D124], [D174].
 
-The laws, the links and the snippets of a name have left its page for
-definitions under it [D174], and a page is the prose of its text,
-where a quote is text like the rest [D168]:
+The laws of a name have left its page for definitions under it [D174],
+and its links and snippets stand in its prose where it names them
+[D175]:
 
 ```qlang
-> ::qlang | [(laws | count | gt 0) (doc | content | type)]
-[true ::string]
-
-> |~~ a ~(add 1) b ~~| | payload | trim
-a ~(add 1) b
+> ::qlang | [(laws | count | gt 0) (doc | links | count | gt 0)]
+[true true]
 ```
 
 The repair must give the language views sized to a budget, the cheap
@@ -1132,7 +1129,7 @@ once at the rewrap [D41]; every value comes apart into its atoms and a
 shape and is built back from them [D42]. The set, the error, the quote,
 the doc, a host's record and the elision marker are all this one thing:
 `#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a doc
-over its text, and each keeps its own token in the editor while the
+over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its JSON form, its order
@@ -1306,13 +1303,13 @@ is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
-decisions leave in the conformance suite [D58]. The suite carries the
-targets of the decisions whose work has begun, and every other decision
-below writes its targets before its work:
+decisions leave in the conformance suite [D58]. The decisions whose
+work has begun meet their targets, so the suite carries none, and every
+other decision below writes its targets before its work:
 
 ```sh
-$ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *(\[[^]]*\]|"D[0-9]+")' | sort -u
-"decision":["D149","D174"]
+$ grep -rhE '"target": *true' core/test/conformance | wc -l
+0
 ```
 
 ### Milestone 4 · One spelling
@@ -1571,11 +1568,11 @@ REPL and running it, so that the answer reads as the next page: «что б
 в вебе, но и в repl-е и просто в баше в аргументах» (maintainer,
 2026-09-26 13:21, session 86982eb5). A link is then a query, the same
 text typed in the REPL or passed on the command line gives the same
-page, and the site is one renderer of it. The tree gives the text of a
-doc, the laws and the links declared under its name apart from it
-[D174], and a name to reach a page by [D88]; the prose that heads a
-source is a plain comment that no name reaches, and a tag or a keyword
-inside prose is text, no anchor yet [D19], [D168].
+page, and the site is one renderer of it. The tree gives the segments
+of a doc, its prose apart from its links and snippets, and a name to
+reach a page by [D88], [D175]; the prose that heads a source is a plain
+comment that no name reaches, and a tag or a keyword inside prose is no
+segment yet [D19].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
 должен удовлетворять» (13:26).
@@ -1805,3 +1802,5 @@ whole, a primitive the law of every count calls; or the test kept in
 [D169]: decisions/D169.md
 [D172]: decisions/D172.md
 [D173]: decisions/D173.md
+[D174]: decisions/D174.md
+[D175]: decisions/D175.md

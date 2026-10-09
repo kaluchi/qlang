@@ -25,6 +25,16 @@
     return { type, ...fields, location: loc, text: txt };
   }
 
+  // The segments of a doc: its prose, each run of it one string, and the
+  // quote nodes among it.
+  function proseJoined(parts) {
+    const segments = [];
+    for (const part of parts) {
+      if (typeof part === 'string' && typeof segments[segments.length - 1] === 'string') segments[segments.length - 1] += part;
+      else segments.push(part);
+    }
+    return segments;
+  }
 }}
 
 {
@@ -55,6 +65,10 @@
     error(`\`${second}\` stands in the place of \`${first}\`, not after it: write \`a ${second} b\``);
   }
 
+  // How deep the parser is in a `~(…)` of a doc it tries as code: there
+  // a shape it refuses elsewhere fails the try, and the span reads as
+  // prose [D94].
+  let docQuoteDepth = 0;
 }
 
 // A source of whitespace alone, comments among it, is the empty
@@ -94,20 +108,20 @@ PipelineHead
   / BindStep
   / TagDeclarationRefusal
   / Step
-  / &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
   = LineDocBeforeDeclaration
   / LineBindStep
   / TagDeclarationRefusal
   / LineStep
-  / &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
+  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 // A tag name in the place of a declaration's name declares nothing: a
 // name is declared by its keyword, and a value under a tag touches its
 // payload [D152].
 TagDeclarationRefusal
-  = BareTypeKeyword _h1 !Combinator (DocOpen / Word)
+  = &{ return docQuoteDepth === 0; } BareTypeKeyword _h1 !Combinator (DocOpen / Word)
     { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
@@ -139,7 +153,8 @@ LineContinuationUnit
 // before it; a slash written against a word is the dangling segment of
 // a projection, which the parser names by the key it expected.
 SpacingRefusal
-  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
+  = &{ return docQuoteDepth === 0; }
+    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
@@ -162,18 +177,18 @@ LineStepAfterCombinator
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [D83].
 DocBeforeDeclaration
-  = &DocOpen DocLit (_ DocLit)* _ &BindStep
+  = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &BindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 LineDocBeforeDeclaration
-  = &DocOpen DocLit (_ DocLit)* _ &LineBindStep
+  = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &LineBindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value is
 // piped to [D125].
 DocAfterStep
-  = &DocOpen DocOpen
+  = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
     { error('a doc after a step is a value, piped to as `| |~~ … ~~|`; a note inside a pipeline is a comment, `|~ … ~|`'); }
 
 DocOpen
@@ -232,15 +247,16 @@ BlockPlainContent
     { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 BlockDocContent
-  = ( "`" (!"`" !"~~|" .)* "`"
-    / QuoteSpan
-    / NestedLineDocSpan
-    / NestedLinePlainSpan
-    / NestedBlockDocSpan
-    / NestedBlockPlainSpan
-    / "~|"
-    / !"~~|" .
+  = chars:(
+      QuoteSpan
+      / NestedLineDocSpan
+      / NestedLinePlainSpan
+      / NestedBlockDocSpan
+      / NestedBlockPlainSpan
+      / "~|"
+      / (!"~~|" .)
     )*
+    { return chars.map(c => typeof c === 'string' ? c : c[1]).join(''); }
 
 // ── Steps ──────────────────────────────────────────────────────────
 
@@ -261,7 +277,7 @@ LineStep
 // A projection written before a word, the method call of other
 // languages, `/ne ""`: a verb is called by its name alone.
 ProjectionBeforeWord
-  = "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
+  = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
     { error('`/' + name + '` reads the key ' + name + '; a verb is called by its name alone, `' + name + ' …`'); }
 
 // A command's modifiers are words; the first may touch the name when
@@ -400,7 +416,7 @@ TagName
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, location(), text()); }
-  / "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
+  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
 // included (`~(* inc | sort)`, `~(!| /trail)`); `~()` is the empty
@@ -462,17 +478,17 @@ QuoteLinePlainSpan
 QuoteChar
   = ![()] c:. { return c; }
 
-// A doc value, in a line form and a block form, read as the text it
-// holds, prose whatever it writes [D168]: a span between backquotes, a
-// `~(…)` span and the markers of a doc or a comment nested in it are
-// kept as they stand, so none of them closes the doc. The printer writes
-// the block form. A parse error names its opening `doc` among the
-// continuations, where its markers would read as a comment's [D7].
+// A doc value, in a line form and a block form, read as its segments: a
+// `~(…)` that reads as code is a quote, a span between backquotes is
+// prose whole, and the rest is prose [D43], [D94]; a line doc's quote
+// stays on its line. The printer writes the block form. A parse error
+// names its opening `doc` among the continuations, where its markers
+// would read as a comment's [D7].
 DocLit
-  = LineDocOpen content:$[^\n]*
-    { return node('DocLit', { content }, location(), text()); }
-  / BlockDocOpen content:$BlockDocContent "~~|"
-    { return node('DocLit', { content }, location(), text()); }
+  = LineDocOpen segments:LineDocSegments
+    { return node('DocLit', { segments, content: text().slice(4) }, location(), text()); }
+  / BlockDocOpen segments:BlockDocSegments "~~|"
+    { return node('DocLit', { segments, content: text().slice(3, -3) }, location(), text()); }
 
 LineDocOpen "doc"
   = "|~~|"
@@ -480,6 +496,39 @@ LineDocOpen "doc"
 BlockDocOpen "doc"
   = "|~~" !"|"
 
+LineDocSegments
+  = parts:LineDocPart* { return proseJoined(parts); }
+
+LineDocPart
+  = quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
+  / "`" [^`\n]* "`" { return text(); }
+  / [^\n]
+
+BlockDocSegments
+  = parts:BlockDocPart* { return proseJoined(parts); }
+
+BlockDocPart
+  = DocQuote
+  / "`" (!"`" !"~~|" .)* "`" { return text(); }
+  / QuoteSpan
+  / NestedLineDocSpan
+  / NestedLinePlainSpan
+  / NestedBlockDocSpan
+  / NestedBlockPlainSpan
+  / "~|"
+  / !"~~|" c:. { return c; }
+
+// A quote of a doc, under the stack of tags written before it, which
+// gives it its role [D108]: the try counts its depth on the way in and
+// gives it back on the way out, having read a quote or not; the second
+// branch fails always, after its predicate gave the depth back.
+DocQuote
+  = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
+    { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, location(), text()); }
+  / &{ docQuoteDepth--; return false; } "~("
+
+DocQuoteTag
+  = "::" @TagName
 
 // ── Literals ───────────────────────────────────────────────────────
 
@@ -505,7 +554,7 @@ MapLit
     { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, location(), text()); }
-  / "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
+  / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
     { error('a map entry holds one word; a command with modifiers or a pipeline stands in parentheses there: `{:k (f x)}`'); }
 
 JsonMapEntry
@@ -541,7 +590,7 @@ ElementList
 // as two elements.
 LiteralGap
   = __
-  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
+  / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
 // `/` alone is the identity projection; a segment is a bare key, a
 // quoted key, a namespaced keyword after `:`, or an index.

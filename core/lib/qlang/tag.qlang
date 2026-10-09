@@ -110,26 +110,17 @@
 
 :tag/manifest
   |~~ Asked of a noun, answers the set of the nodes declared one name
-      under it, each by its address: `::number | manifest`
-      the verbs and the refusals of numbers, `::qlang |
-      manifest` the chapters of the language. The laws, the links and
-      the snippets of a name `laws`, `links` and `snippets` read, the
-      kinds of the scope `kinds` lists, and what the reader declared
-      `env`; what one node holds the axes read, `::vec/count | source`,
-      `| doc`.
+      under it, each by its address: ::snippet~(::number | manifest)
+      the verbs and the refusals of numbers, ::snippet~(::qlang |
+      manifest) the chapters of the language. The laws of a name `laws`
+      reads, the kinds of the scope `kinds` lists, and what the reader
+      declared `env`; what one node holds the axes read,
+      `::vec/count | source`, `| doc`.
 
       `manifest` is asked of a noun, a tag name in the subject
       position.
   ~~|
   ::builtin{}
-
-:tag/manifest/theVerbsAndRefusalsOfNumbers
-  |~~ The verbs and the refusals of numbers. ~~|
-  ::snippet~(::number | manifest)
-
-:tag/manifest/theChaptersOfTheFirstPage
-  |~~ The chapters of the first page. ~~|
-  ::snippet~(::qlang | manifest)
 
 :tag/manifest/holdsAVerbOfTheNoun
   |~~ The manifest of numbers holds `add`. ~~|
@@ -195,11 +186,8 @@
 :tag/runLaws/UnknownNameError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
       finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
   ~~|
-
-:tag/runLaws/UnknownNameError/seeTheRefusalOfBinding
-  |~~ The refusal of `binding`, which reads names as this word does. ~~|
-  ::link~(::any/binding/UnknownNameError | doc)
 
 :tag/runLaws/UnknownNameError/refusesATagNothingDeclares
   |~~ A tag nothing declares is refused. ~~|

@@ -30,6 +30,11 @@ const TAG_SIGIL = '::';
 const tagNameOf = tag => TAG_SIGIL + tag;
 const isTagName = name => name.startsWith(TAG_SIGIL);
 
+// The prose of a doc, its segments without its quotes [D94], which hover
+// and completion show; a doc the runtime answers is its segments, and a
+// doc of the document's tree holds them as the parser read them.
+const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');
+
 function tidyProse(prose) {
   return dedent(prose.replace(/\n{3,}/g, '\n\n').trim());
 }
@@ -54,20 +59,20 @@ function dedent(text) {
 
 // The contents of the page a name reads, once per name: a tag's own, the
 // page of a word of any value, or the page of the first address where
-// the word lives [D62], [D169], its text the prose hover shows [D168].
+// the word lives [D62], [D169].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
   const query = isTagName(name)
-    ? `${name} | doc | content`
-    : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc)) | content`;
+    ? `${name} | doc`
+    : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
   let page;
   try {
     page = await evalQuery(query);
   } catch {
     page = null;
   }
-  const contents = typeof page === 'string' ? [page] : [];
+  const contents = Array.isArray(page) ? [proseOfSegments(page)] : [];
   docsCache.set(name, contents);
   return contents;
 }
@@ -339,7 +344,7 @@ function findInDocumentDocs(ast, name) {
   walkAst(ast, (step) => {
     if (step.type === 'DocLit') return false;
     if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
-      lastDocs = (step.docs ?? []).map(doc => doc.content);
+      lastDocs = (step.docs ?? []).map(doc => proseOfSegments(doc.segments));
     }
   });
   return lastDocs ?? [];

@@ -354,14 +354,12 @@ function rootIndexOf(root) {
   return index;
 }
 
-const ROLES = ['law', 'link', 'snippet'];
-
 // namesUnder(env, tagName) → the nodes declared one name under a noun,
-// its verbs, refusals and pages, by address [D62]; its laws, links and
-// snippets are read by their words [D174].
+// its verbs, refusals and pages, by address [D62]; its laws are read by
+// `laws` [D174].
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]
-    .filter(([, record]) => !ROLES.some(roleName => holdsRole(bindingValueOf(record), roleName)))
+    .filter(([, record]) => !holdsRole(bindingValueOf(record), 'law'))
     .map(([name]) => makeTagKeyword(`${tagName}/${name}`)));
 }
 

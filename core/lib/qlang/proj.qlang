@@ -8,6 +8,7 @@
 :proj/PayloadNotSchemaError
   |~~ A `::proj` is a map of `:path`, a vector of keys and
       integers.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/PayloadNotSchemaError/refusesAPathThatIsAString
@@ -21,6 +22,7 @@
 :proj/ReadBackDiffersError
   |~~ The `::proj` prints as text that reads back as another step: a
       key that reads as an index is written as the index.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/ReadBackDiffersError/refusesAKeyThatReadsAsAnIndex
@@ -35,6 +37,7 @@
   |~~ An index reads within a vector or a set, from `/0` to the last,
       `/-1`; `take` and `drop` answer the part there is without refusing.
       `:length` holds the length of the subject.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/IndexOutOfBoundsError/refusesAnIndexPastTheEnd
@@ -53,6 +56,7 @@
   |~~ A projection names a key the map holds, so a misspelled field is
       found where it is read; `keys` lists the keys there are, and
       `at :key` answers null for a key that may be absent.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/KeyNotInMapError/refusesAKeyTheMapLacks
@@ -70,6 +74,7 @@
       A modifier reads the subject of its own step: after `/qty |` the
       subject is the number, so two parts of one record are read in one
       step by a form whose objects they are, `mulOf /qty /price`.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/SubjectNotProjectableError/readsTheValueThePipePassed
@@ -92,6 +97,7 @@
   |~~ A vector is read by an index, `/0`, a set's in its one order; a
       field of each element is read under `*`, `* /name`, and the
       elements a field picks are found by `filter`.
+      ::link~(::proj | doc)
   ~~|
 
 :proj/IndexNotIntegerError/refusesAFieldOfAVector

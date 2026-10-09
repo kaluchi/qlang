@@ -840,9 +840,11 @@ tasks a clean author writes and no one has read [D142]. On the set R,
 unread, the screen that teaches names under labels, saved as D166,
 solved every task in two of its three blind runs and in its run with the
 command line, missing R10 in the third, where the screens of D153 and
-D156 missed R3 in each of theirs; `node scripts/benchmark.mjs grade R`
-holds the runs side by side. What those repairs left is what the scars
-below describe.
+D156 missed R3 in each of theirs; on the set S, written after it, D166
+solved every task in two of its three blind runs and D156 in none of
+its three, missing S5 in each. `node scripts/benchmark.mjs grade R` and
+`grade S` hold the runs side by side. What those repairs left is what
+the scars below describe.
 
 ## The scars
 

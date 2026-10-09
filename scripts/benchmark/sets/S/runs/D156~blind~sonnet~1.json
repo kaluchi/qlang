@@ -1,0 +1,16 @@
+{
+ "set": "S",
+ "screen": "D156",
+ "screenHash": "5e52c304818c",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-09",
+ "commit": "5aa2713",
+ "result": "S1: filter ~(and (/state | eq \"open\") (/labels * lower | contains \"bug\")) | count\nS2: filter ~(/state | eq \"open\") | filter ~(/assignee | ne null) | groupBy ~/assignee * count\nS3: filter ~(/state | eq \"open\") | sort ~([(at :priority | coalesce 0 | desc) /id]) | take 3 * /id\nS4: [/dependencies /devDependencies] * (entries | filter ~(/1 | startsWith \"^\") * /0) | flat | distinct | sort\nS5: * {:customer /customer :total (/items * (mul /qty /price) | sum)} | groupBy ~/customer * {:customer (first | /customer) :total (* /total | sum | round 2)} | vals | sort ~(/total | desc) | take 2\nS6: /data/users | filter ~(at :profile | coalesce {} | at :city | coalesce \"\" | lower | eq \"berlin\") * (/email | lower) | sort\nS7: lines | filter ~(count | gt 0) * split \" \" | filter ~(/1 | upper | eq \"ERROR\") | groupBy ~/2 * count\nS8: lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/2 | count | gt 0) | groupBy ~(/1 | lower) * (* (/2 | parseJson) | avg | round 1)\nS9: filter ~(/published | eq true) * (at :tags | coalesce [] * lower | distinct | sort) | flat | groupBy ~(/) * count | entries * {:tag (/0 | keyword) :count /1} | sort ~([(/count | desc) /tag]) | take 3\nS10: /services | filter ~(at :enabled | eq true) * (at :port)\nS11: filter ~(at :stock | coalesce 0 | gt 0) * (/category | lower) | distinct | sort\nS12: \"The cat and the Hat and THE bat sat on a mat with the cat\" | split \" \" * lower | groupBy ~(/) * count | entries * {:word (/0 | keyword) :count /1} | sort ~([(/count | desc) /word]) | take 3\nS13: groupBy ~/user | vals * {:user (first | /user) :count count :first (* /ts | min)} | sort ~/user\nS14: lines | filter ~(count | gt 0) | filter ~(startsWith \"#\" | not) * split \"|\" | filter ~(and (/1 | lower | startsWith \"eu-\") (/2 | ne \"down\")) | sort ~(/3 | parseJson | desc) * /0 | join \",\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 10691,
+ "outputTokens": 3594,
+ "calls": []
+}

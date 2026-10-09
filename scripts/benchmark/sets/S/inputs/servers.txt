@@ -1,0 +1,9 @@
+# name|region|status|uptime_days
+web1|eu-west|up|120
+web2|eu-east|down|0
+db1|us-east|up|300
+db2|eu-west|up|45
+cache1|EU-north|degraded|200
+job1|ap-south|up|10
+
+api1|eu-west|up|200

@@ -34,6 +34,10 @@
       without its tag.
   ~~|
 
+:cli/AnswerNotJsonError/path
+  |~~ The path to the value JSON has no form for. ~~|
+  ::vec
+
 :any/@in
   |~~ The text stdin holds, read to its end whatever the subject, the
       text the command line also lifts into the subject; a terminal with

@@ -31,7 +31,7 @@ import {
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
-import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
+import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
   addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
@@ -58,21 +58,21 @@ const BuiltinUnknownCombinatorKindError = declareInvariantError(
 );
 
 const ProjSubjectNotProjectableError = declareShapeError('proj/SubjectNotProjectableError',
-  ({ key, actualType }) => `/${key} requires Map, Vec, or Set subject, got ${actualType.name}`,
+  ({ actualType }) => `a projection reads a map, a vector or a set, got ${actualType.name}`,
   { operand: '::proj' });
 const ProjKeyNotInMapError = declareShapeError('proj/KeyNotInMapError',
-  ({ key }) => `/${key} — key not present in Map subject`,
+  ({ key }) => `/${key.name} — key not present in Map subject`,
   { operand: '::proj' });
 const ProjIndexOutOfBoundsError = declareShapeError('proj/IndexOutOfBoundsError',
-  ({ key, length }) => `/${key} — index out of bounds for sequence of length ${length}`,
+  ({ index, length }) => `/${index} — index out of bounds for sequence of length ${length}`,
   { operand: '::proj' });
 const ProjIndexNotIntegerError = declareShapeError('proj/IndexNotIntegerError',
-  ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`,
+  ({ key }) => `/${key.name} — non-integer segment cannot index a Vec or Set subject`,
   { operand: '::proj' });
 // A tag whose node is no label, a word or a value, puts no value under
 // it [D168].
 const ConstructTagNotKindError = declareShapeError('construct/TagNotKindError',
-  ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a label, a name declared by its page, puts a value under its tag`,
+  ({ tag, actualType }) => `${tag.literal} — its node holds ${actualType.name}, and only a label, a name declared by its page, puts a value under its tag`,
   { operand: '::construct', expectedType: 'doc' }
 );
 // The combinator names its qlang kind, `distribute`, in the message
@@ -82,15 +82,15 @@ const EachSubjectNotContainerError = declareSubjectError('each/SubjectNotContain
 // vocabulary, the name of a verb or of a name under a label, so no step
 // meets the reader's value where the subject's word was meant [D166].
 const BindNameTakenByVocabularyError = declareShapeError('bind/NameTakenByVocabularyError',
-  ({ name }) => `${name} is a word of the vocabulary, a verb or a name under a label; a value of the reader takes another name`,
+  ({ name }) => `${name.literal} is a word of the vocabulary, a verb or a name under a label; a value of the reader takes another name`,
   { operand: '::bind' }
 );
 const BindNounNotDeclaredError = declareShapeError('bind/NounNotDeclaredError',
-  ({ name, noun }) => `${name} is declared under ${noun.literal}, which no declaration names`,
+  ({ name, noun }) => `${name.literal} is declared under ${noun.literal}, which no declaration names`,
   { operand: '::bind' }
 );
 const CallValueTakesNoModifiersError      = declareShapeError('call/ValueTakesNoModifiersError',
-  ({ name, actualType }) => `cannot apply arguments to ${name}: resolves to ${actualType.name}`,
+  ({ name, actualType }) => `cannot apply arguments to ${name.literal}: resolves to ${actualType.name}`,
   { operand: '::call', expectedType: 'function' }
 );
 // evalQuery(source, env?, callerState?) → the value a query answers from
@@ -103,7 +103,7 @@ export async function evalQuery(source, env, callerState = null) {
   try {
     ast = parse(source);
   } catch (parseErr) {
-    return errorFromParse(parseErr);
+    return errorFromParse(parseErr, initialEnv);
   }
   const initialState = callerState === null
     ? rootState(null, initialEnv)
@@ -160,7 +160,7 @@ async function evalNode(node, state) {
     if (caughtError instanceof QlangInvariantError) throw caughtError;
     // The error the node raised; the step that ran the node writes its
     // stop [D85].
-    const raised = caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue)
+    const raised = caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue, state.env)
       : errorFromForeign(caughtError, node);
     return withPipeValue(state, raisedBy(raised, node));
   }
@@ -198,7 +198,7 @@ async function applyCombinator(kind, state, stepNode) {
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode)));
   const answered = await evalNode(stepNode, state);
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue, state.env));
 }
 
 // A body, a query, a group, a verb's body or an applied quote among them,
@@ -221,8 +221,8 @@ async function distribute(state, bodyNode) {
   if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
     const distributeErr = new EachSubjectNotContainerError(state.pipeValue);
     distributeErr.location = bodyNode.location;
-    const refused = errorFromQlang(distributeErr, state.pipeValue);
-    return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue));
+    const refused = errorFromQlang(distributeErr, state.pipeValue, state.env);
+    return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue, state.env));
   }
   // The parentheses after `*` delimit its body, whose head takes the
   // track, so `[e 1] * (!| 0)` recovers an error element; the first error
@@ -232,11 +232,11 @@ async function distribute(state, bodyNode) {
   if (isQMap(subjectSeq)) {
     const mapEntries = [...subjectSeq];
     const entryAnswers = await forkEach(state, mapEntries.map(([, entryValue]) => entryValue), inner => evalBody(bodyPipeline, inner));
-    if (isErrorValue(entryAnswers)) return withPipeValue(state, failedInside(entryAnswers, bodyNode, state.pipeValue));
+    if (isErrorValue(entryAnswers)) return withPipeValue(state, failedInside(entryAnswers, bodyNode, state));
     return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, entryAnswers[index]])));
   }
   const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
-  if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state.pipeValue));
+  if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state));
   // A set distributes into the vector of its images, one per element in
   // the one order [D116].
   return withPipeValue(state, distributeResults);
@@ -244,8 +244,8 @@ async function distribute(state, bodyNode) {
 
 // The error an element of a distribute answered, which answers the
 // distribute with a stop of its own after the stops inside [D85].
-function failedInside(elementError, bodyNode, subject) {
-  return answerOfStep(elementError, () => makeQuote([eachStepOf(bodyNode)]), subject);
+function failedInside(elementError, bodyNode, state) {
+  return answerOfStep(elementError, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue, state.env);
 }
 
 // `!|` runs the step on a raised error alone, opened to the error
@@ -260,7 +260,7 @@ async function applyFailTrack(state, stepNode) {
   const errorOfKind = makeTaggedInstance(ERROR_TAG, new Map(raised.descriptor));
   const opened = raised.tag === ERROR_TAG ? errorOfKind : makeTaggedInstance(raised.tag, errorOfKind);
   const answered = await evalNode(stepNode, withPipeValue(state, opened));
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened, state.env));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -339,7 +339,7 @@ export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
   if (!isDoc(declared)) {
-    throw new ConstructTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
+    throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualType: typeKeyword(declared), actualValue: declared });
   }
   return await underPage(tagName, payload, state);
 }
@@ -379,13 +379,13 @@ async function refusalOfLaws(address, value, state, scope) {
     if (elements !== null) {
       const refused = refusedElementOf(elements.served, elementKinds);
       if (refused === null) continue;
-      return refusalUnder(lawAddress, { index: refused.index, actualValue: refused.element });
+      return refusalUnder(lawAddress, { index: refused.index, actualValue: refused.element }, scope);
     }
     const answer = kinds !== null
       ? walkToKinds(value, kinds) !== null
       : (await evalBody(astOfQuote(law), nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(lawAddress, { actualValue: value });
+    if (answer !== true) return refusalUnder(lawAddress, { actualValue: value }, scope);
   }
   return null;
 }
@@ -407,13 +407,14 @@ function lawsOf(env, address) {
   });
 }
 
-// A refusal named by the address of what refused [D166], its facts and
-// the kind of the value refused; the value itself rides the facts where
-// the trail does not hold it, a part or an object, and leaves them for
-// the subject, which the trail's first stop holds [D85].
-function refusalUnder(tagName, facts, refused = facts.actualValue) {
-  const descriptor = new Map(Object.entries(facts)).set('actualType', typeKeyword(refused));
-  return makeErrorValue(makeTagKeyword(tagName), descriptor);
+// A refusal named by the address of what refused [D166], its facts with
+// the kind of the value refused in the order the catalog declares them
+// [D172]; the value itself rides the facts where the trail does not hold
+// it, a part or an object, and leaves them for the subject, which the
+// trail's first stop holds [D85].
+function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
+  const tag = makeTagKeyword(tagName);
+  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
 }
 
 async function evalTaggedLit(node, state) {
@@ -455,10 +456,10 @@ async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
   if (repeatsDeclarationInScope(node) || (nounName !== null && rootOf(state.env).has(name))) {
-    throw new BindNameDeclaredTwiceError({ name });
+    throw new BindNameDeclaredTwiceError({ name: keyword(name) });
   }
   if (nounName !== null && !envHas(state.env, nounName)) {
-    throw new BindNounNotDeclaredError({ name, noun: makeTagKeyword(nounName) });
+    throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTagKeyword(nounName) });
   }
 
   if (node.body === null) {
@@ -467,11 +468,11 @@ async function evalBindStep(node, state) {
 
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (nounName === null && !isDoc(answered) && vocabularyWords(state.env).has(name)) {
-    throw new BindNameTakenByVocabularyError({ name, addresses: addressesOf(state.env, name) });
+    throw new BindNameTakenByVocabularyError({ name: keyword(name), addresses: addressesOf(state.env, name) });
   }
   const partName = nounName === null ? null : splitAddress(name)[1];
   if (isQuote(answered) && partName !== null && isQuoteUnderLabel(state.env, nounName) && vocabularyWords(state.env).has(partName)) {
-    throw new BindNameTakenByVocabularyError({ name: partName, addresses: addressesOf(state.env, partName) });
+    throw new BindNameTakenByVocabularyError({ name: keyword(partName), addresses: addressesOf(state.env, partName) });
   }
   if (isQuote(answered) && isUnderLabel(state.env, name)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
@@ -497,7 +498,7 @@ function isQuoteUnderLabel(env, nounName) {
 // it is a part of, which runs it at each call [D167].
 function refuseLaunderedByName(name, effectfulName, node) {
   if (effectfulName === null || classifyEffect(name)) return;
-  const laundering = new BindEffectMarkMissingError({ bindingName: name, effectfulName });
+  const laundering = new BindEffectMarkMissingError({ name: keyword(name), calls: keyword(effectfulName) });
   laundering.location = node.body.location;
   throw laundering;
 }
@@ -531,22 +532,22 @@ function evalProjection(node, state) {
 function projectSegment(subject, projKey) {
   const projected = containerBeneathTags(subject);
   if (isQMap(projected)) {
-    if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: projKey, actualValue: subject });
+    if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: keyword(projKey), actualValue: subject });
     return projected.get(projKey);
   }
   if (isVec(projected)) {
     const index = segmentIndex(projKey);
     if (Number.isNaN(index)) {
-      throw new ProjIndexNotIntegerError({ key: projKey, actualValue: subject });
+      throw new ProjIndexNotIntegerError({ key: keyword(projKey), actualValue: subject });
     }
     const resolvedIndex = index < 0 ? projected.length + index : index;
     if (resolvedIndex < 0 || resolvedIndex >= projected.length) {
-      throw new ProjIndexOutOfBoundsError({ key: projKey, index, length: projected.length, actualValue: subject });
+      throw new ProjIndexOutOfBoundsError({ index, length: projected.length, actualValue: subject });
     }
     return projected[resolvedIndex];
   }
   throw new ProjSubjectNotProjectableError({
-    key: projKey,
+    key: Number.isNaN(segmentIndex(projKey)) ? keyword(projKey) : segmentIndex(projKey),
     actualType: typeKeyword(subject),
     actualValue: subject
   });
@@ -568,10 +569,10 @@ async function callByName(lookupName, lambdas, state) {
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
-      throw new CallKindAnswersNoVerbError({ verbName: keyword(lookupName), addresses, actualType: typeKeyword(state.pipeValue) });
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, actualType: typeKeyword(state.pipeValue) });
     }
     throw new CallUnknownNameError({
-      identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses
+      name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
     });
   }
   if (reach.underKind) return await applyMember(reach.record, lambdas, state);
@@ -587,7 +588,7 @@ async function applyBinding(entry, lookupName, lambdas, state) {
   // name lives, one a declaration shadows among them [D62].
   if (lambdas.length > 0) {
     throw new CallValueTakesNoModifiersError({
-      name: lookupName,
+      name: keyword(lookupName),
       actualType: typeKeyword(resolved),
       actualValue: resolved,
       addresses: addressesOf(state.env, lookupName)
@@ -630,7 +631,7 @@ async function applyMember(record, lambdas, state) {
   const walked = walkToKinds(state.pipeValue, [labelName]);
   if (walked === null) {
     const labelWord = labelName.slice(labelName.lastIndexOf('/') + 1);
-    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.pipeValue));
+    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.env, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
   const objectParts = await objectOf(address, partsOfName(scope, address), lambdas, state, scope);
@@ -659,7 +660,7 @@ async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked
   if (reached !== null) return reached.served;
   if (kinds.includes(labelName)) return await keptAsSubject(answer, walked.served, walked.passedTags, state);
   if (kinds.length === 1) return await mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
-  return refusalUnder(`${address}/Not${kinds.map(capitalOf).join('Or')}Error`, { actualValue: answer });
+  return refusalUnder(`${address}/Not${kinds.map(capitalOf).join('Or')}Error`, { actualValue: answer }, state.env);
 }
 
 const ANY_KIND = 'any';
@@ -730,7 +731,7 @@ async function objectOf(address, parts, lambdas, state, scope) {
   }
   const object = makeTaggedInstance(makeTagKeyword(address), values);
   const places = placesReadBy(parts);
-  if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object });
+  if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object }, scope);
   const objectRefused = await refusalOfLaws(address, object, state, scope);
   if (objectRefused !== null) return objectRefused;
   let bodyEnv = envSet(scope, 'object', makeBinding({ name: keyword('object'), value: object }));
@@ -740,7 +741,7 @@ async function objectOf(address, parts, lambdas, state, scope) {
     const partAddress = partRecord.get('name').name;
     const selector = selectorOf(partRecord);
     const part = await partOf(selector, values, nestState(state, object, scope));
-    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object });
+    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object }, scope);
     if (isErrorValue(part)) return part;
     const refused = await refusalOfLaws(partAddress, part, state, scope);
     if (refused !== null) return refused;
@@ -769,7 +770,7 @@ function refusalOfComputedCode(parts, place, error, scope) {
   const { readsObject } = selectorOf(partRecord);
   const asked = law === undefined ? null : readsObject ? law.elementKinds : law.kinds;
   if (asked === null || !asked.includes('quote')) return error;
-  return refusalUnder(law.address, readsObject ? { index: place, actualValue: error } : { actualValue: error });
+  return refusalUnder(law.address, readsObject ? { index: place, actualValue: error } : { actualValue: error }, scope);
 }
 
 // The value a part's selector reads from the object: a selector of one

@@ -171,7 +171,7 @@ describe('per-site error classes carry unique identity', () => {
   it('projection on non-Map → ProjSubjectNotProjectableError', async () => {
     const caughtErr = await catchOriginalError('42 | /name');
     expect(caughtErr.name).toBe('SubjectNotProjectableError');
-    expect(caughtErr.context.key).toBe('name');
+    expect(caughtErr.context.key.name).toBe('name');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
@@ -187,7 +187,7 @@ describe('per-site error classes carry unique identity', () => {
     // the value the record holds.
     const caughtErr = await catchOriginalError('5 | :five / | five 42');
     expect(caughtErr.name).toBe('ValueTakesNoModifiersError');
-    expect(caughtErr.context.name).toBe('five');
+    expect(caughtErr.context.name.name).toBe('five');
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 

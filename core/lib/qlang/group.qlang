@@ -25,3 +25,7 @@
         |  eq [::group/ReadBackDiffersError "()"]
        )
   ~~|
+
+:group/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string

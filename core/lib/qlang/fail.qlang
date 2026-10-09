@@ -26,3 +26,7 @@
         |  eq [::fail/ReadBackDiffersError "!| a | b"]
        )
   ~~|
+
+:fail/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string

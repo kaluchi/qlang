@@ -19,6 +19,10 @@
        )
   ~~|
 
+:call/PayloadNotSchemaError/field
+  |~~ The field that does not fit, null when the payload is no map. ~~|
+  #[::keyword ::null]
+
 :call/ReadBackDiffersError
   |~~ The `::call` prints as text that reads back as another step,
       or as none: `:printed` is that text.
@@ -31,6 +35,10 @@
        )
   ~~|
 
+:call/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
+
 :call/HostFailureError
   |~~ A failure of the host's implementation: an error of the language
       the runtime is written in escaped a verb, which is a defect of
@@ -42,6 +50,22 @@
       the host.
       ::link~(::call | doc)
   ~~|
+
+:call/HostFailureError/message
+  |~~ The text of the host's error. ~~|
+  ::string
+
+:call/HostFailureError/name
+  |~~ The class of the host's error. ~~|
+  ::string
+
+:call/HostFailureError/causes
+  |~~ The host's errors behind it, each with its `:name` and its `:message`. ~~|
+  ::vec
+
+:call/HostFailureError/operand
+  |~~ The text of the step that ran the host's implementation. ~~|
+  ::string
 
 :call/ValueTakesNoModifiersError
   |~~ A name the scope binds to a value takes no modifiers.
@@ -56,6 +80,14 @@
        )
       ~(:sort 5 | [3 1] | sort ~(/a) !| /addresses | has ::vec/sort)
   ~~|
+
+:call/ValueTakesNoModifiersError/name
+  |~~ The name, which holds a value and no word. ~~|
+  ::keyword
+
+:call/ValueTakesNoModifiersError/addresses
+  |~~ The addresses where a word of that name lives, one a declaration shadows among them. ~~|
+  ::set
 
 :call/KindAnswersNoVerbError
   |~~ The kind of the subject has no verb of the name: `:actualType`
@@ -72,9 +104,17 @@
        )
   ~~|
 
+:call/KindAnswersNoVerbError/name
+  |~~ The word the step called. ~~|
+  ::keyword
+
+:call/KindAnswersNoVerbError/addresses
+  |~~ The addresses where the word lives, one for each kind that answers it. ~~|
+  ::set
+
 :call/UnknownNameError
   |~~ No name of the scope and no verb of the kinds of the subject
-      answers the name. `:identifierName` holds the name as typed,
+      answers the name. `:name` holds the name as typed,
       `:addresses` where verbs of that name live under other kinds, and
       `:nearest` the names it was likely meant to be: those
       within an edit distance of a third of its length, one at least,
@@ -100,6 +140,18 @@
       ~(zzzzqqq !| /nearest | eq [])
   ~~|
 
+:call/UnknownNameError/name
+  |~~ The name the step called. ~~|
+  ::keyword
+
+:call/UnknownNameError/nearest
+  |~~ The names of the scope nearest to it in spelling. ~~|
+  ::vec
+
+:call/UnknownNameError/addresses
+  |~~ The addresses where a word of that name lives, none where no kind answers it. ~~|
+  ::set
+
 :call/UnknownAddressError
   |~~ A name with a path names nothing: no declaration wrote that
       address. `:address` holds the address as a tag name, which the
@@ -115,6 +167,14 @@
       ~([1] | vec/countt !| /nearest | has ::vec/count)
       ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
   ~~|
+
+:call/UnknownAddressError/address
+  |~~ The address the step called. ~~|
+  ::tag
+
+:call/UnknownAddressError/nearest
+  |~~ The addresses nearest to it in spelling. ~~|
+  ::vec
 
 :call/EvaluationDepthExceededError
   |~~ A call too deep: every verb body, modifier, `apply` and
@@ -134,3 +194,11 @@
         !| :e / | /depth | gt (e | /limit)
        )
   ~~|
+
+:call/EvaluationDepthExceededError/depth
+  |~~ The frame the budget refused. ~~|
+  ::number
+
+:call/EvaluationDepthExceededError/limit
+  |~~ The budget, the frames one evaluation may nest. ~~|
+  ::number

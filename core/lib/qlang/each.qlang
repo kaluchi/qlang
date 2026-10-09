@@ -28,6 +28,10 @@
        )
   ~~|
 
+:each/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
+
 :each/SubjectNotContainerError
   |~~ `*` runs its step on each element of a vector or a set, or on each
       value of a map; a value of another kind has no elements, and `|`

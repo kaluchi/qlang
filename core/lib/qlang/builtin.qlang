@@ -46,6 +46,14 @@
       speak for both.
   ~~|
 
+:builtin/RefusalFactNotDeclaredError
+  |~~ A refusal of the runtime carried a fact that neither its label nor
+      `::error` declares, a defect of the runtime: the facts an error
+      holds are the definitions under the label that names it, and under
+      `::error` for those every refusal shares, each with its page and the
+      kind it holds.
+  ~~|
+
 :builtin/AddressNotStringError
   |~~ A file of the runtime bound an implementation under an address
       that is no string, a defect of the runtime found as it loads.

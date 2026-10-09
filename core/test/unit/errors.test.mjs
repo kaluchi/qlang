@@ -13,6 +13,7 @@ import {
   declarePerSiteError,
   declareForeignError
 } from '../../src/errors.mjs';
+import { keyword } from '../../src/types.mjs';
 import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
@@ -29,9 +30,9 @@ describe('QlangError base class', () => {
 });
 
 describe('UnknownNameError', () => {
-  it('sets identifierName, kind and name', () => {
-    const unresolvedErr = new CallUnknownNameError({ identifierName: 'foo' });
-    expect(unresolvedErr.context.identifierName).toBe('foo');
+  it('sets name, kind and the name of its class', () => {
+    const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
+    expect(unresolvedErr.context.name.name).toBe('foo');
     expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
     expect(unresolvedErr.name).toBe('UnknownNameError');
     expect(unresolvedErr.message).toContain('foo');

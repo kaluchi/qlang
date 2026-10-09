@@ -120,7 +120,7 @@ describe('eval — Map and projection', () => {
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);
     expect(result.tag.name).toBe('proj/KeyNotInMapError');
-    expect(result.descriptor.get('key')).toBe('age');
+    expect(result.descriptor.get('key').name).toBe('age');
   });
 
   it('chains nested projection', async () => {

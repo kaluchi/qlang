@@ -11,12 +11,12 @@ import { codeOf } from '../eval.mjs';
 
 // A source the parser refuses answers the `::ParseError` with the
 // location and the excerpt of the source.
-bindPrim(['string/parse', 'quote/parse'], subject => {
+bindStateReader(['string/parse', 'quote/parse'], (subject, state) => {
   if (isQuote(subject)) return printQuoteSource(subject);
   try {
     return quoteOfSource(subject, 'parse-operand');
   } catch (parseErr) {
-    return errorFromParse(parseErr);
+    return errorFromParse(parseErr, state.env);
   }
 });
 

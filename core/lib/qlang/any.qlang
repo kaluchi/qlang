@@ -526,7 +526,7 @@
   |~~ `binding` found no declaration of the name it read: a keyword that
       names no binding of its scope, the last name of a verb declared
       under a kind among them, or a tag name that names nothing.
-      `:bindingName` holds the name, and `:addresses` the addresses of
+      `:name` holds the name, and `:addresses` the addresses of
       the pages of that name, one for each kind that answers it. `source`, `doc`,
       `explain` and `runLaws` read a name as `binding` does, and
       each is refused under a tag of its own, so the tag says which of
@@ -534,10 +534,22 @@
 
       ~(
         :nonexistent-binding | binding
-        !| [type /bindingName]
+        !| [type /name]
         |  eq [::any/BindingNotFoundError :nonexistent-binding]
        )
   ~~|
+
+:any/BindingNotFoundError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/BindingNotFoundError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/BindingNotFoundError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
 
 :any/source
   |~~ The code of the declaration that binds a name in its scope, the
@@ -575,11 +587,23 @@
 
       ~(
         :nonexistent-binding | source
-        !| [type /bindingName]
+        !| [type /name]
         |  eq [::any/SourceBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
+
+:any/SourceBindingNotFoundError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/SourceBindingNotFoundError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/SourceBindingNotFoundError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
 
 :any/doc
   |~~ The page of a name, the passage from an address into its
@@ -631,12 +655,24 @@
 
       ~(
         :nonexistent-binding | doc
-        !| [type /bindingName]
+        !| [type /name]
         |  eq [::any/DocBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | doc !| /addresses | has ::vec/filter)
       ~(:reduce | doc !| /addresses | has ::vec/reduce)
   ~~|
+
+:any/DocBindingNotFoundError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/DocBindingNotFoundError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/DocBindingNotFoundError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
 
 :any/DocAnchorNotKeywordError
   |~~ An anchor of the path `doc` reads is no keyword: each step of the
@@ -669,10 +705,22 @@
 
       ~(
         :nonexistent-binding | explain
-        !| [type /bindingName]
+        !| [type /name]
         |  eq [::any/ExplainBindingNotFoundError :nonexistent-binding]
        )
   ~~|
+
+:any/ExplainBindingNotFoundError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/ExplainBindingNotFoundError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/ExplainBindingNotFoundError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
 
 :any/RunLawsBindingNotFoundError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
@@ -681,12 +729,24 @@
 
       ~(
         :nonexistent-binding | runLaws
-        !| [type /bindingName]
+        !| [type /name]
         |  eq [::any/RunLawsBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | runLaws !| /addresses | has ::vec/filter)
-      ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
+      ~(::Nonexistent | runLaws !| /name | eq ::Nonexistent)
   ~~|
+
+:any/RunLawsBindingNotFoundError/name
+  |~~ The name the axis read, a keyword or a tag. ~~|
+  #[::keyword ::tag]
+
+:any/RunLawsBindingNotFoundError/addresses
+  |~~ The addresses of the pages of that name, one for each kind that answers it. ~~|
+  ::set
+
+:any/RunLawsBindingNotFoundError/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
 
 :any/tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
@@ -733,8 +793,8 @@
 
 :any/tag/SubjectNotPairError
   |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
-      value it goes over; a subject of another shape is refused, and
-      `:actualLength` counts a vector of another length.
+      value it goes over; a subject of another shape is refused, a
+      vector of another length among them.
       ~(
         42 | tag
         !| [type /actualType]
@@ -742,8 +802,8 @@
        )
       ~(
         [::Foo 1 2] | tag
-        !| [type /actualLength]
-        |  eq [::any/tag/SubjectNotPairError 3]
+        !| [type /actualType]
+        |  eq [::any/tag/SubjectNotPairError ::vec]
        )
   ~~|
 

@@ -132,7 +132,8 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
   it('omits :uri from descriptor when ParseError has no .uri', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null });
     // no .uri property — tests the false arm of `if (parseError.uri)`
-    const errVal = errorFromParse(parseError);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const errVal = errorFromParse(parseError, await langRuntime());
     expect(isErrorValue(errVal)).toBe(true);
     expect(errVal.descriptor.has('uri')).toBe(false);
   });
@@ -164,7 +165,7 @@ describe('a part takes no modifiers', async () => {
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ValueTakesNoModifiersError');
-    expect(e.context.name).toBe('n');
+    expect(e.context.name.name).toBe('n');
   });
 });
 

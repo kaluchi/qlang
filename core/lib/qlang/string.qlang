@@ -29,6 +29,10 @@
       ~("1e400" | parseJson !| type | eq ::string/ParseJsonNumberNotFiniteError)
   ~~|
 
+:string/ParseJsonNumberNotFiniteError/path
+  |~~ The path to the number in the text. ~~|
+  ::vec
+
 :string/gt
   |~~ Whether the subject follows the string the call gives.
 
@@ -488,6 +492,10 @@
 
       ~("{not json" | parseJson !| type | eq ::string/ParseJsonTextNotJsonError)
   ~~|
+
+:string/ParseJsonTextNotJsonError/message
+  |~~ What the reader of JSON says of the text. ~~|
+  ::string
 
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON

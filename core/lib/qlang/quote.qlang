@@ -48,6 +48,34 @@
        )
   ~~|
 
+:quote/ParseError/source
+  |~~ The line of the text where the reading stopped. ~~|
+  ::string
+
+:quote/ParseError/marker
+  |~~ A caret under the place it stopped. ~~|
+  ::string
+
+:quote/ParseError/message
+  |~~ What the grammar says of the place, a bracket left open among it. ~~|
+  ::string
+
+:quote/ParseError/expected
+  |~~ What the reading could take there. ~~|
+  ::vec
+
+:quote/ParseError/found
+  |~~ What it found there. ~~|
+  ::string
+
+:quote/ParseError/location
+  |~~ The place, its offsets, lines and columns. ~~|
+  ::map
+
+:quote/ParseError/uri
+  |~~ The source the text came from. ~~|
+  ::string
+
 :quote/parse
   |~~ The source text of the quote, the reverse of `parse` on a string.
 

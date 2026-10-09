@@ -27,8 +27,8 @@ export async function mintUnderTag(state, tag, value) {
 // A call no kind of whose subject answers its word names what the reader
 // needs: where the word lives [D146], [D169].
 export const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
-  ({ verbName, addresses, actualType }) =>
-    `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`,
+  ({ name, addresses, actualType }) =>
+    `${actualType.literal} has no word ${name.name}; the words of the name live on ${[...addresses].map(address => address.literal).join(' ')}`,
   { operand: '::call' });
 
 // ── kinds ──────────────────────────────────────────────────────

@@ -17,6 +17,10 @@
        )
   ~~|
 
+:proj/PayloadNotSchemaError/field
+  |~~ The field that does not fit, null when the payload is no map. ~~|
+  #[::keyword ::null]
+
 :proj/ReadBackDiffersError
   |~~ The `::proj` prints as text that reads back as another step: a
       key that reads as an index is written as the index.
@@ -28,6 +32,10 @@
         |  eq [::proj/ReadBackDiffersError "/\"0\""]
        )
   ~~|
+
+:proj/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
 
 :proj/IndexOutOfBoundsError
   |~~ An index reads within a vector or a set, from `/0` to the last,
@@ -42,6 +50,14 @@
        )
   ~~|
 
+:proj/IndexOutOfBoundsError/index
+  |~~ The index the projection read, counted from the end when negative. ~~|
+  ::number
+
+:proj/IndexOutOfBoundsError/length
+  |~~ How many elements the value holds. ~~|
+  ::number
+
 :proj/KeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
       found where it is read; `keys` lists the keys there are, and
@@ -51,9 +67,13 @@
       ~(
         {:a 1} | /b
         !| [type /key]
-        |  eq [::proj/KeyNotInMapError "b"]
+        |  eq [::proj/KeyNotInMapError :b]
        )
   ~~|
+
+:proj/KeyNotInMapError/key
+  |~~ The key the projection read, which the map does not hold. ~~|
+  ::keyword
 
 :proj/SubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a
@@ -70,9 +90,13 @@
       ~(
         42 | /foo
         !| [type /key /actualType]
-        |  eq [::proj/SubjectNotProjectableError "foo" ::number]
+        |  eq [::proj/SubjectNotProjectableError :foo ::number]
        )
   ~~|
+
+:proj/SubjectNotProjectableError/key
+  |~~ The segment the projection read, a key or an index. ~~|
+  #[::keyword ::number]
 
 :proj/IndexNotIntegerError
   |~~ A vector is read by an index, `/0`, a set's in its one order; a
@@ -83,11 +107,15 @@
       ~(
         [10 20 30] | /name
         !| [type /key]
-        |  eq [::proj/IndexNotIntegerError "name"]
+        |  eq [::proj/IndexNotIntegerError :name]
        )
        ~(
         #[:a :b :c] | /name
         !| [type /key]
-        |  eq [::proj/IndexNotIntegerError "name"]
+        |  eq [::proj/IndexNotIntegerError :name]
        )
   ~~|
+
+:proj/IndexNotIntegerError/key
+  |~~ The segment the projection read, which names no index. ~~|
+  ::keyword

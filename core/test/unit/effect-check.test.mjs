@@ -165,8 +165,8 @@ describe('eval-time effect validation in evalBindStep', () => {
   it('error carries the offending binding name and effectful identifier', async () => {
     const effectErr = await catchOriginalError(':any/foo ~(@callers)');
     expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
-    expect(effectErr.context.bindingName).toBe('any/foo');
-    expect(effectErr.context.effectfulName).toBe('@callers');
+    expect(effectErr.context.name.name).toBe('any/foo');
+    expect(effectErr.context.calls.name).toBe('@callers');
   });
 
   it('error has a stable per-site name', async () => {

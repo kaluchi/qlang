@@ -38,7 +38,7 @@ describe('runLaws reads a name as examples does', () => {
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {
-    const bindingName = await evalQuery('::Nonexistent | runLaws !| /bindingName');
+    const bindingName = await evalQuery('::Nonexistent | runLaws !| /name');
     expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 

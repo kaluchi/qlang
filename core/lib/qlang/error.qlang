@@ -32,6 +32,26 @@
        )
   ~~|
 
+:error/index
+  |~~ The place of the element refused, counted from zero. ~~|
+  ::number
+
+:error/actualType
+  |~~ The kind of the value refused. ~~|
+  ::tag
+
+:error/places
+  |~~ How many places the parts of the word read, where the call gave
+      more values.
+  ~~|
+  ::number
+
+:error/actualValue
+  |~~ The value refused, where it is not the subject that the first stop
+      of the trail holds.
+  ~~|
+  ::any
+
 :error/trail
   |~~ The path of the error: each step it passed, from the one
       that raised it, with the subject that step met and the steps

@@ -334,6 +334,12 @@ export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName).keys()].map(name => makeTagKeyword(`${tagName}/${name}`)));
 }
 
+// namesDeclaredUnder(env, address) → the last names of the nodes declared
+// one name under an address, in the order of their declarations.
+export function namesDeclaredUnder(env, address) {
+  return [...namesUnderOf(env, address).keys()];
+}
+
 // The names of every node, which a guessed tag name is held against
 // [D118].
 export function nodeAddresses(env) {

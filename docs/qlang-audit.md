@@ -1050,20 +1050,26 @@ true
 Every other throw site in the runtime still declares its own error
 class, its name a function of the facts the site records, and the
 catalog carries a page for every one of them, so the prose about errors
-outweighs the prose about the operands themselves. Those facts live in
-the registry of the runtime alone: the kind the catalog declares for a
-refusal has no fields yet [D152].
+outweighs the prose about the operands themselves. The facts an error
+carries are definitions of the catalog, each a name, its page and the
+kind it holds, under the label of the refusal and under `::error` for
+those every refusal shares, and the error holds them in the order they
+are declared, the trail last; a fact the runtime raises that neither
+declares is a defect of the runtime [D172]:
 
-The facts the runtime records spell its vocabulary, `:operand`, a
-position counted from one and a type as a keyword where a kind is a
-tag.
+```qlang
+> 1 | add 1 2 !| entries * first
+[:actualType :places :actualValue :trail]
 
-Keeping the class names and the catalog in agreement requires a registry
-of throw-site specifications, a stamping pass at bootstrap that runs
-twice because there are two bootstrap paths, a test that checks six axes
-of agreement, and two tables in the error
-converter that spell the descriptor's field order and which fields are
-identifiers.
+> ::proj/IndexOutOfBoundsError | manifest
+#[::proj/IndexOutOfBoundsError/index ::proj/IndexOutOfBoundsError/length]
+```
+
+The facts the runtime records of each site besides, the category of its
+class, the operand, a position counted from one and the kind it
+expected, stay in a registry of the JavaScript, which no reader reaches,
+and the classes and the catalog are kept in agreement by that registry
+and a test that holds each throw site against its page.
 
 The alerts themselves are lit, where the cockpit wants them dark. An
 error carries its whole input, so one failing step over a large value
@@ -1611,7 +1617,7 @@ below writes its targets before its work:
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
 "decision":"D168"
-"decision":"D46"
+"decision":"D172"
 ```
 
 ### Milestone 4 · One spelling

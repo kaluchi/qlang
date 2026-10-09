@@ -22,13 +22,9 @@
 {"name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| /trail/-1/skipped","expect":"~(mul 3)","decision":"D85"}
 {"name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| /trail/-1/skipped","expect":"~(mul 3 | count)","decision":"D85"}
 {"name":"runtime-error-thrown","query":"\"hello\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"runtime-error-category","query":"\"hello\" | add 1 !| type | binding :category | /value","expect":":typeError","decision":"D46","target":true,"now":"::any/BindingNotFoundError"}
-{"name":"runtime-div-zero-category","query":"10 | div 0 !| type | binding :category | /value","expect":":numericDomain","decision":"D46","target":true,"now":"::any/BindingNotFoundError"}
-{"name":"runtime-unresolved-category","query":"blah !| type | binding :category | /value","expect":":unresolvedIdentifier","decision":"D46","target":true,"now":"::any/BindingNotFoundError"}
 {"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] * add 10 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D103"}
 {"name":"a-body-that-recovers-keeps-every-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]","decision":"D103"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]"}
-{"name":"error-descriptor-not-map","query":"42 | raise !| type | binding :category | /value","expect":":typeError","decision":"D46","target":true,"now":"::any/BindingNotFoundError"}
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | raise | add 1 !| /trail/-1/skipped | parse","expect":"\"count | add 1\"","decision":["D85","D97"]}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union {:request \"r-1\"} | raise | count !| /request","expect":"\"r-1\"","decision":"D97"}
 {"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] * (add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2","decision":"D103"}
@@ -54,3 +50,10 @@
 {"name":"a-distribute-stops-at-the-first-failure","query":"[1 \"x\" \"y\"] * (mul 2) !| /trail | first | /subject","expect":"\"x\"","decision":"D103"}
 {"name":"a-literal-holds-an-error-a-word-answers","query":"[1 (\"x\" | add 1)] | count","expect":"2","decision":["D87","D103"]}
 {"name":"a-distribute-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} * add 10 !| [type (/trail * /step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(* add 10)]]","decision":"D103"}
+{"name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries * first","expect":"[:actualType :places :actualValue :trail]","decision":"D172"}
+{"name":"the-name-a-step-read-is-a-keyword","query":"blah !| /name","expect":":blah","decision":"D172"}
+{"name":"the-key-a-projection-read-is-a-keyword","query":"{:a 1} | /b !| /key","expect":":b","decision":"D172"}
+{"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true","decision":"D172"}
+{"name":"a-refusal-of-a-primitive-sits-under-the-word-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError","decision":"D172","target":true,"now":"::any/SumElementNotNumberError"}
+{"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-part","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError","decision":"D172","target":true,"now":"::any/TakeCountNotIntegerError"}
+{"name":"the-segment-a-projection-read-as-an-index-is-a-number","query":"42 | /0 !| /key","expect":"0","decision":"D172"}

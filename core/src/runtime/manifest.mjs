@@ -11,8 +11,8 @@ import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
 const AnyRunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
-  ({ bindingName }) =>
-    `runLaws: no declaration found for '${bindingName}'`,
+  ({ name }) =>
+    `runLaws: no declaration found for ${name.literal}`,
   { operand: 'runLaws' });
 
 // The message of an error: a site's its own, a raised one's `:message`,

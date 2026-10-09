@@ -4,7 +4,7 @@
 // joins the `:skipped` of the last stop. The helpers build a new error
 // for every change; none re-enters the evaluator.
 //
-//   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step
+//   `answerOfStep(answer, stepQuoteOf, subject, env)` — the answer of a step
 //     of a pipeline: an error its subject was not passes a stop there,
 //     unless its maker wrote its trail and it resumes that path.
 //   `answerOfWord(answer, wordNode, subject)` — the value a word of a
@@ -58,18 +58,18 @@ function withStop(error, stepQuote, subject) {
   return withTrail(error, [...error.descriptor.get('trail'), stop]);
 }
 
-export function answerOfStep(answer, stepQuoteOf, subject) {
+export function answerOfStep(answer, stepQuoteOf, subject, env) {
   if (!isErrorValue(answer)) return answer;
   if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail'));
-  return withStop(onItsPath(answer, subject), stepQuoteOf(), subject);
+  return withStop(onItsPath(answer, subject, env), stepQuoteOf(), subject);
 }
 
 // The error a step raises: its answer, or the refusal of the step of an
 // error literal that carries no path.
-function onItsPath(answer, subject) {
+function onItsPath(answer, subject, env) {
   const trail = answer.descriptor.get('trail');
   if (isTrail(trail)) return answer;
-  return errorFromQlang(new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail }), subject);
+  return errorFromQlang(new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail }), subject, env);
 }
 
 export function answerOfWord(answer, wordNode, subject) {

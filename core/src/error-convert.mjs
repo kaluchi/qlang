@@ -3,127 +3,60 @@ import {
   makeErrorValue, makeTagKeyword
 } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
-import { recordThrowSiteSpec } from './errors.mjs';
-import { isTagLiteral, tagNameOfLiteral } from './env-keys.mjs';
+import { declareInvariantError, recordThrowSiteSpec } from './errors.mjs';
+import { namesDeclaredUnder } from './runtime/nouns.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
 recordThrowSiteSpec('quote/ParseError', 'parseError', { operand: '::quote' });
 recordThrowSiteSpec('call/HostFailureError', 'error', { operand: '::call' });
 
-// Descriptor field-order: high-entropy first. The per-site
-// identity (the same invariant every tagged-instance value-class
-// carries — verb, binding record, qlang, json, user `::Foo[…]`)
-// rides on the error value's JS-header `tag` slot, not on the
-// descriptor Map. The per-invocation context comes first
-// (`:actualType`, `:actualValue` when it differs from the subject of
-// the step, Comparability pair-fields, `:index`, dispatch-time
-// `:operandName`), and the path of the error, `:trail`, which names
-// the step and its subject, after it [D85]. Identity is
-// surfaced through the `type` operand (`result !| type |
-// eq ::Foo`), which reads `error.tag` straight off the JS
-// header. The facts of the site, `:category`, `:operand`,
-// `:position` and `:expectedType`, stay in the registry of the
-// throw sites, and the kind the catalog declares for the refusal
-// holds its page [D152].
-//
-// `:actualValue` lift rule: stamped only when the throw site
-// drilled below the subject of the step (multi-segment projection,
-// full-application captured-arg resolution, element-iteration).
-// Reader sees the presence-as-signal: absent → fault landed at
-// the subject the first stop of the trail names; present →
-// drill-down, look at `:actualValue` for the offending sub-value. The
-// dedup runs ref-equality against that subject inside the lift loop
-// below — no per-site code needs to know.
-const RUNTIME_FIELD_ORDER = [
-  'payloadValue', 'payloadType',
-  'actualValue', 'actualType',
-  'leftValue', 'leftType', 'rightValue', 'rightType',
-  'index',
-  'expectedType', 'operand', 'position',
-  'message'
-];
+// A refusal of the runtime that carries a fact neither its label nor the
+// kind of errors declares: the source of the refusal and the catalog
+// disagree, a defect of the runtime.
+const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
+  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`,
+  { operand: '::builtin' });
 
-// Identifier-shaped descriptor fields carrying a `name`-like string
-// from a JS throw site — a referenced module / parameter /
-// operand / axis / binding. The JS→qlang boundary lifts
-// each such string to a Keyword, and a string that writes a tag, `::Foo`,
-// to the tag, so the descriptor surface stays uniformly
-// identifier-typed: `printValue` prints `:name` rather than `"name"`,
-// `!| /operandName` projection reads as a Keyword, downstream
-// pattern-match against `eq :foo` or `eq ::Foo` works. Numeric and
-// non-string slots pass through unchanged (`fieldName in
-// IDENTIFIER_FIELDS` gate).
-const IDENTIFIER_FIELDS = new Set([
-  'name',
-  'operandName', 'paramName',
-  'effectfulName', 'bindingName',
-  'tag', 'exportName'
-]);
-function liftIdentifier(k, v) {
-  if (!IDENTIFIER_FIELDS.has(k) || typeof v !== 'string') return v;
-  return isTagLiteral(v) ? makeTagKeyword(tagNameOfLiteral(v)) : keyword(v);
+const ERROR_KIND_NAME = 'error';
+
+// factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
+// the order of the definitions that describe them, each named as its fact
+// [D172]: those under the refusal's label first, then those under
+// `::error`, which every refusal shares, the path an error takes coming
+// after them as the trail joins it [D85]. A fact neither declares is a
+// defect of the runtime.
+export function factsInOrder(tag, facts, env) {
+  const ordered = new Map();
+  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_KIND_NAME)]) {
+    if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
+  }
+  for (const name of facts.keys()) {
+    if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: keyword(name) });
+  }
+  return ordered;
 }
 
-export function errorFromQlang(qlangError, subject) {
+// The error a refusal of the runtime raised: the facts its site handed,
+// the value refused left out where it is the subject the first stop of
+// the trail holds, so its presence says the site reached below the
+// subject [D85].
+export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTagKeyword(qlangError.address);
-  const d = new Map();
-
-  // Instance carries only the dynamic facts the JS context attached
-  // (`:actualType`, comparability pair-types, `:index`, dispatch-time
-  // `:operandName`, etc.); `result !| type | doc` reads the page of
-  // the refusal's kind.
-  //
-  // `:actualValue` ref-eq dedup against the subject — when the
-  // throw site's per-instance `actualValue` is the very pipeValue
-  // the step received (subject-shape errors on a partial application,
-  // single-segment projection on a leaf subject), the redundant lift
-  // is skipped. When the throw site drilled below the subject
-  // (multi-segment projection, full-application captured-arg, element
-  // iteration), `actualValue` is stamped — its presence is the
-  // type-level signal «drill-down happened, look here».
-  // Every QlangError carries a context bag — the root's constructor
-  // defaults it to `{}` — and `evalNode` routes anything outside the
-  // hierarchy to `errorFromForeign` instead, so the walk needs no
-  // fallback.
-  const ctx = qlangError.context;
-  const liftedFromOrder = new Set();
-  for (const k of RUNTIME_FIELD_ORDER) {
-    if (!(k in ctx) || ctx[k] === undefined) continue;
-    if (k === 'actualValue' && ctx[k] === subject) continue;
-    d.set(k, liftIdentifier(k, ctx[k]));
-    liftedFromOrder.add(k);
+  const facts = new Map();
+  for (const [name, value] of Object.entries(qlangError.context)) {
+    if (value === undefined || (name === 'actualValue' && value === subject)) continue;
+    facts.set(name, value);
   }
-  for (const [k, v] of Object.entries(ctx)) {
-    if (liftedFromOrder.has(k)) continue;
-    // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
-    // against the subject runs in the loop above; tail-loop fields
-    // are exclusively per-site shape extras (operand-, module-,
-    // etc.) and never need the same gate.
-    if (RUNTIME_FIELD_ORDER.includes(k)) continue;
-    if (v === undefined) continue;
-    d.set(k, liftIdentifier(k, v));
-  }
-
-  // No `:message` field — the structured per-site fields
-  // (`:actualType`, `:leftType`, …) carry every input the JS-side
-  // template would re-format, the tag identity TagKeyword on the
-  // error's JS-header carries the template itself, and `::Tag |
-  // docs` resolves the canonical prose via hypertext navigation.
-  return makeErrorValue(tag, d, {
+  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
     location: qlangError.location,
     originalError: qlangError
   });
 }
 
-export function errorFromParse(parseError) {
-  // Field ordering — highest-information-density first. The eye lands
-  // on `:source` + `:marker` (visual pinpoint: WHERE the failure is)
-  // before consulting `:expected` / `:found` (WHAT the parser wanted
-  // vs. saw). Numeric `:location` and `:uri` trail since they are
-  // derivable / less-load-bearing for a human reading the diagnostic.
-  // The `::ParseError` tag identity rides on the error's JS-header
-  // `tag` slot.
+// The error of a text the parser refused: where it stopped and what it
+// wanted there, in the order its label declares them.
+export function errorFromParse(parseError, env) {
   const d = new Map();
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
@@ -139,7 +72,8 @@ export function errorFromParse(parseError) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  return makeErrorValue(makeTagKeyword('quote/ParseError'), d, {
+  const tag = makeTagKeyword('quote/ParseError');
+  return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,
     originalError: parseError
   });

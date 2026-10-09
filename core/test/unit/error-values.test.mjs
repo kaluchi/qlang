@@ -5,6 +5,7 @@ import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, describ
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 import { QlangTypeError, CallUnknownNameError, declareShapeError } from '../../src/errors.mjs';
 import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 
@@ -187,37 +188,41 @@ describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () =
 // ── errorFromQlang ──────────────────────────────────────────────
 
 describe('errorFromQlang', () => {
-  // The facts of the site come before the trail, and the step and the
-  // subject leave the descriptor for the first stop of the trail [D85].
-  it('converts a refusal — its address the tag, the facts of its site before the trail [D158]', () => {
+  // The facts of the site come in the order the catalog declares them,
+  // its label's first and those of `::error` after, and the trail last
+  // [D85], [D172].
+  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D158]', async () => {
     const TestsProbeTypeError = declareShapeError('tests/ProbeTypeError', () => 'bad type');
     const typeErr = new TestsProbeTypeError({
-      actualType: { name: 'string' },
-      actualValue: 'the-value'
+      actualValue: 'the-value',
+      actualType: makeTagKeyword('string')
     });
-    const errorVal = errorFromQlang(typeErr, 'the-subject');
+    const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.descriptor;
     expect(typeErr).toBeInstanceOf(QlangTypeError);
-    expect(typeErr.kind).toBe('typeError');
     expect(typeErr.name).toBe('ProbeTypeError');
     expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
-    expect(desc.get('actualType')).toEqual({ name: 'string' });
-    expect([...desc.keys()]).toEqual(['actualValue', 'actualType', 'trail']);
+    expect([...desc.keys()]).toEqual(['actualType', 'actualValue', 'trail']);
   });
 
-  it('converts CallUnknownNameError with its name before the trail', () => {
-    const unresolvedErr = new CallUnknownNameError({ identifierName: 'myName' });
-    const errorVal = errorFromQlang(unresolvedErr, 42);
-    expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
+  it('converts CallUnknownNameError with the facts its label declares before the trail', async () => {
+    const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
+    const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
     expect(errorVal.tag).toEqual(makeTagKeyword('call/UnknownNameError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['identifierName', 'trail']);
+    expect([...errorVal.descriptor.keys()]).toEqual(['name', 'addresses', 'trail']);
   });
 
-  it('converts NumberDivByZeroError, whose site has no facts, to the trail alone', () => {
+  it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
+    const TestsProbeFactError = declareShapeError('tests/ProbeFactError', () => 'undeclared');
+    const env = await langRuntime();
+    expect(() => errorFromQlang(new TestsProbeFactError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
+  });
+
+  it('converts NumberDivByZeroError, whose site has no facts, to the trail alone', async () => {
     const divErr = new NumberDivByZeroError();
-    const errorVal = errorFromQlang(divErr, 10);
+    const errorVal = errorFromQlang(divErr, 10, await langRuntime());
     expect(divErr.kind).toBe('numericDomain');
     expect(errorVal.tag).toEqual(makeTagKeyword('number/div/ByZeroError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
@@ -311,24 +316,11 @@ describe('errorFromForeign', () => {
 });
 
 describe('error-convert coercion edge cases', () => {
-  it('coerces qlang keyword values through errorFromQlang context', () => {
-    const typeErr = new QlangTypeError('test', { site: 'X', myKey: keyword('val') });
-    const errorVal = errorFromQlang(typeErr, 42);
-    expect(errorVal.descriptor.get('myKey')).toEqual(keyword('val'));
-  });
-
-  it('coerces null/undefined context values to null', () => {
-    const typeErr = new QlangTypeError('test', { site: 'X', nullField: null, undefField: undefined });
-    const errorVal = errorFromQlang(typeErr, null);
-    expect(errorVal.descriptor.get('nullField')).toBe(null);
-  });
-
-  it('coerces array context values to Vec', () => {
-    const typeErr = new QlangTypeError('test', { site: 'X', items: [1, 'two', true] });
-    const errorVal = errorFromQlang(typeErr, []);
-    const items = errorVal.descriptor.get('items');
-    expect(Array.isArray(items)).toBe(true);
-    expect(items).toEqual([1, 'two', true]);
+  it('leaves out a fact its site hands as undefined', async () => {
+    const typeErr = new QlangTypeError('test', { index: undefined, actualValue: null });
+    const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
+    expect(errorVal.descriptor.has('index')).toBe(false);
+    expect(errorVal.descriptor.get('actualValue')).toBe(null);
   });
 
   it('errorFromForeign with deeply nested cause chain caps at 8', () => {
@@ -339,9 +331,9 @@ describe('error-convert coercion edge cases', () => {
     expect(causes.length).toBe(8);
   });
 
-  it('errorFromQlang without context field', () => {
+  it('errorFromQlang without context field', async () => {
     const divErr = new NumberDivByZeroError();
-    const errorVal = errorFromQlang(divErr, 10);
+    const errorVal = errorFromQlang(divErr, 10, await langRuntime());
     expect(errorVal.tag.name).toBe('number/div/ByZeroError');
     expect(errorVal.descriptor.has('category')).toBe(false);
   });
@@ -390,7 +382,7 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.descriptor.get('message')).toBe('test');
   });
 
-  it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', () => {
+  it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {
     // Subject-shape error on a partial application: actualValue
     // (the JS context field) is the same reference as the subject
     // (the pipeValue the step received), which the first stop of the
@@ -398,12 +390,12 @@ describe('error-convert coercion edge cases', () => {
     // descriptor surface stays single-source-of-truth.
     const subject = { nested: 1 };
     const typeErr = new QlangTypeError('subject error', { actualValue: subject, actualType: keyword('map') });
-    const errorVal = errorFromQlang(typeErr, subject);
+    const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
     expect(errorVal.descriptor.has('actualValue')).toBe(false);
     expect(errorVal.descriptor.get('actualType').name).toBe('map');
   });
 
-  it('actualValue distinct from the subject is preserved on lift (drill-down signal)', () => {
+  it('actualValue distinct from the subject is preserved on lift (drill-down signal)', async () => {
     // Drill-down case (multi-segment projection, element iteration,
     // full-application captured-arg): actualValue is a different
     // reference. Lift proceeds so the presence-of-actualValue
@@ -411,7 +403,7 @@ describe('error-convert coercion edge cases', () => {
     const container = [1, 'x', 3];
     const drilled = 'x';
     const typeErr = new QlangTypeError('element error', { actualValue: drilled, actualType: keyword('string'), index: 1 });
-    const errorVal = errorFromQlang(typeErr, container);
+    const errorVal = errorFromQlang(typeErr, container, await langRuntime());
     expect(errorVal.descriptor.get('actualValue')).toBe(drilled);
     expect(errorVal.descriptor.get('index')).toBe(1);
   });

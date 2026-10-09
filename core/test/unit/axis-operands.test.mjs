@@ -98,7 +98,7 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   it('a value whose kind no binding declares is refused under its kind', async () => {
     // The fork of the parentheses drops the tag the literal declared,
     // and the value it minted leaves with the name of that kind.
-    expect(await evalQuery('(::Ghost(1)) | doc !| /bindingName')).toEqual(makeTagKeyword('Ghost'));
+    expect(await evalQuery('(::Ghost(1)) | doc !| /name')).toEqual(makeTagKeyword('Ghost'));
   });
 });
 
@@ -152,7 +152,7 @@ describe('axis-operands read the node a tag addresses', () => {
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.name).toBe('DocBindingNotFoundError');
     expect(result.originalError).toBeInstanceOf(QlangTypeError);
-    expect(result.originalError.context.bindingName).toBe('::Foo');
+    expect(result.originalError.context.name.literal).toBe('::Foo');
   });
 });
 

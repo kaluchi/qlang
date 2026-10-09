@@ -22,10 +22,9 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isNull, isQSet, isVec, typeKeyword, makeTaggedInstance,
+  isKeyword, isQuote, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
   makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
-import { tagLiteralOf } from '../env-keys.mjs';
 import {
   addressesOf, isNoun, nodeOf, residenceOnSubject
 } from './nouns.mjs';
@@ -33,37 +32,35 @@ import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 
-// `bindingName` is a name or a tag name, held among the facts as a
-// keyword or a tag.
+// `name` is the name an axis read, a keyword or a tag.
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
 export const AnySourceBindingNotFoundError = declareShapeError('any/SourceBindingNotFoundError',
-  ({ bindingName }) =>
-    `source: no binding found for '${bindingName}'`,
+  ({ name }) =>
+    `source: no binding found for ${name.literal}`,
   { operand: 'source' });
 export const AnyDocBindingNotFoundError = declareShapeError('any/DocBindingNotFoundError',
-  ({ bindingName }) =>
-    `doc: no binding found for '${bindingName}'`,
+  ({ name }) =>
+    `doc: no binding found for ${name.literal}`,
   { operand: 'doc' });
 const AnyBindingNotFoundError = declareShapeError('any/BindingNotFoundError',
-  ({ bindingName }) =>
-    `binding: no binding found for '${bindingName}'`,
+  ({ name }) =>
+    `binding: no binding found for ${name.literal}`,
   { operand: 'binding' });
 const AnyDocAnchorNotKeywordError = declareShapeError('any/DocAnchorNotKeywordError',
   ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
   { operand: 'doc', expectedType: 'keyword' });
 export const AnyExplainBindingNotFoundError = declareShapeError('any/ExplainBindingNotFoundError',
-  ({ bindingName }) =>
-    `explain: no binding found for '${bindingName}'`,
+  ({ name }) =>
+    `explain: no binding found for ${name.literal}`,
   { operand: 'explain' });
 
-// The name a refusal says a subject read: a keyword's, a tag name's, and
-// for every other value the tag of its kind, the kind `type` answers [D61].
-function bindingNameOf(subject) {
-  if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return tagLiteralOf(subject.name);
-  return tagLiteralOf(typeKeyword(subject).name);
+// The name a refusal says a subject read: a keyword or a tag name
+// itself, and for every other value the tag of its kind, the kind `type`
+// answers [D61].
+function nameReadOf(subject) {
+  return isKeyword(subject) || isTagKeyword(subject) ? subject : typeKeyword(subject);
 }
 
 // The name whose verbs a refusal lists: a keyword's, the last name of a
@@ -77,7 +74,7 @@ function nameOf(subject) {
 // What a refusal of an axis holds: the name it read and the addresses
 // where the pages of that name live [D62], [D137].
 export function refusalOf(env, subject) {
-  return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
+  return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
 
 // The names near the one a subject reads, tags for a tag name and the
@@ -151,7 +148,7 @@ function memberRecordOf(env, subject, memberName) {
 function memberRefusalOf(env, subject, memberName) {
   const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
   return {
-    bindingName: onNoun ? tagLiteralOf(`${subject.name}/${memberName}`) : memberName,
+    name: onNoun ? makeTagKeyword(`${subject.name}/${memberName}`) : keyword(memberName),
     addresses: addressesOf(env, memberName)
   };
 }

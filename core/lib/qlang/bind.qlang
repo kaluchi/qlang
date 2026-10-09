@@ -17,6 +17,10 @@
        )
   ~~|
 
+:bind/PayloadNotSchemaError/field
+  |~~ The field that does not fit, null when the payload is no map. ~~|
+  #[::keyword ::null]
+
 :bind/ReadBackDiffersError
   |~~ The `::bind` prints as text that reads back as another step: a
       declaration binds a body or docs, and a body that is a keyword
@@ -30,26 +34,38 @@
        )
   ~~|
 
+:bind/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
+
 :bind/EffectMarkMissingError
   |~~ A word whose body calls a name marked `@` reaches outside the
       language, and its own name carries the mark, `:any/@fetchAll
       ~(@fetch …)`, so every reader of the name sees it; a part whose
       selector calls a marked name is held to the mark of the name it is a
-      part of, which runs it at each call, `:bindingName` that name.
+      part of, which runs it at each call, `:name` that name.
       ::link~(::bind | doc)
 
       ~(
         1 | (:any/bad ~(@callers) | bad)
-        !| [type /bindingName /effectfulName]
+        !| [type /name /calls]
         |  eq [::bind/EffectMarkMissingError
                 :any/bad :@callers]
        )
       ~(
         :any/f ~(1) | :any/f/n ~(/0 | @out)
-        !| [type /bindingName /effectfulName]
+        !| [type /name /calls]
         |  eq [::bind/EffectMarkMissingError :any/f :@out]
        )
   ~~|
+
+:bind/EffectMarkMissingError/name
+  |~~ The name declared without the mark. ~~|
+  ::keyword
+
+:bind/EffectMarkMissingError/calls
+  |~~ The marked name its code calls. ~~|
+  ::keyword
 
 :bind/NounNotDeclaredError
   |~~ A name with a path is declared under the noun its path names
@@ -62,6 +78,14 @@
       ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
   ~~|
 
+:bind/NounNotDeclaredError/name
+  |~~ The name declared. ~~|
+  ::keyword
+
+:bind/NounNotDeclaredError/noun
+  |~~ The noun its path names, which no declaration names. ~~|
+  ::tag
+
 :bind/NameTakenByVocabularyError
   |~~ A value the reader names takes no word of the vocabulary, the name
       of a verb or of a name under a label, since a step that names the
@@ -72,6 +96,14 @@
       ~(:count 5 !| [type /addresses] | eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
       ~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
   ~~|
+
+:bind/NameTakenByVocabularyError/name
+  |~~ The name, a word of the vocabulary. ~~|
+  ::keyword
+
+:bind/NameTakenByVocabularyError/addresses
+  |~~ The addresses where the word lives. ~~|
+  ::set
 
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline
@@ -93,3 +125,7 @@
       ~(:k 1 | (:k 2 | k) | eq 2)
       ~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
   ~~|
+
+:bind/NameDeclaredTwiceError/name
+  |~~ The name declared again. ~~|
+  ::keyword

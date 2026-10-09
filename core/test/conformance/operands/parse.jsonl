@@ -9,9 +9,8 @@
 {"name":"parse-projection-path","query":"\"/a/b/0\" | parse | first | /path","expect":"[:a :b 0]"}
 {"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
-{"name":"parse-non-string-subject","query":"42 | parse","expect":"::call/KindAnswersNoVerbError!{\n  :actualType ::number\n  :verbName :parse\n  :addresses #[::quote/parse ::string/parse]\n  :trail [\n    {\n      :step ~(parse)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"parse-non-string-subject","query":"42 | parse","expect":"::call/KindAnswersNoVerbError!{\n  :name :parse\n  :addresses #[::quote/parse ::string/parse]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(parse)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"parse-quote-subject-prints-its-text","query":"~(5 | mul 2) | parse","expect":"\"5 | mul 2\""}
 {"name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
 {"name":"parse-blank-source-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
-{"name":"parse-malformed-source-category","query":"\"this is bad [\" | parse !| type | binding :category | /value","expect":":parseError","decision":"D46","target":true,"now":"::any/BindingNotFoundError"}
 {"name":"parse-malformed-source-thrown","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}

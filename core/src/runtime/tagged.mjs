@@ -132,10 +132,7 @@ const AnyTagPairTagNotTagError = declareShapeError('any/tag/PairTagNotTagError',
   ({ actualType }) => `tag reads a pair [::Tag value] whose first element is a tag name, got ::${actualType.name}`,
   { operand: 'tag', expectedType: 'tagKeyword' });
 const AnyTagSubjectNotPairError = declareShapeError('any/tag/SubjectNotPairError',
-  ({ actualType, actualLength }) =>
-    actualLength === undefined
-      ? `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got ${actualType.name}`
-      : `tag (bare form) requires a 2-element Vec [tagKeyword, value] subject, got Vec of length ${actualLength}`,
+  ({ actualType }) => `tag (bare form) requires a pair [::Tag value] as its subject, got ${actualType.name}`,
   { operand: 'tag', position: 'subject', expectedType: 'vec' }
 );
 
@@ -163,8 +160,7 @@ async function mintPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
     throw new AnyTagSubjectNotPairError({
       actualType: typeKeyword(pair),
-      actualValue: pair,
-      actualLength: isVec(pair) ? pair.length : undefined
+      actualValue: pair
     });
   }
   const [pairTag, value] = pair;

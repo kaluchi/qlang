@@ -571,6 +571,14 @@
        )
   ~~|
 
+:vec/UnionOperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:vec/UnionOperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
+
 :vec/minus
   |~~ The first operand the vector holds minus each one after it; another
       operand beside the vector is refused with the pair.
@@ -608,6 +616,14 @@
        )
   ~~|
 
+:vec/MinusOperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:vec/MinusOperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
+
 :vec/inter
   |~~ The intersection of the operands the vector holds; another operand
       beside the vector is refused with the pair.
@@ -644,6 +660,14 @@
         |  eq [::vec/InterOperandsMismatchedError ::set ::map]
        )
   ~~|
+
+:vec/InterOperandsMismatchedError/leftType
+  |~~ The kind of the operand on the left. ~~|
+  ::tag
+
+:vec/InterOperandsMismatchedError/rightType
+  |~~ The kind of the operand on the right. ~~|
+  ::tag
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between

@@ -49,7 +49,7 @@ export async function createSession(opts = {}) {
         // the host prints it as it prints any error and still tells a
         // syntactic failure by the error channel.
         if (evalCellErr instanceof ParseError) {
-          cellResult = errorFromParse(evalCellErr);
+          cellResult = errorFromParse(evalCellErr, env);
         }
         cellError = evalCellErr;
       }

@@ -264,7 +264,7 @@ export const BuiltinThrowSiteSpecAlreadyRecordedError = declareInvariantError(
 
 export const CallUnknownNameError = declarePerSiteError(
   'call/UnknownNameError', 'unresolvedIdentifier',
-  ({ identifierName }) => `no name ${identifierName} is declared, and no verb of the kinds of the subject answers it`,
+  ({ name }) => `no name ${name.name} is declared, and no word of the kinds of the subject answers it`,
   { operand: '::call' }
 );
 
@@ -293,7 +293,7 @@ export const CallEvaluationDepthExceededError = declarePerSiteError(
 // source that declares it again. `context.name` is the name the
 // declarations share.
 export const BindNameDeclaredTwiceError = declareShapeError('bind/NameDeclaredTwiceError',
-  ({ name }) => `${name} is declared once, and this declaration declares it again`,
+  ({ name }) => `${name.literal} is declared once, and this declaration declares it again`,
   { operand: '::bind' }
 );
 
@@ -301,8 +301,8 @@ export const BindNameDeclaredTwiceError = declareShapeError('bind/NameDeclaredTw
 
 export const BindEffectMarkMissingError = declareEffectLaunderingError(
   'bind/EffectMarkMissingError',
-  ({ bindingName, effectfulName }) =>
-    `${bindingName} declares a verb that calls ${effectfulName}, which reaches outside the language; ` +
-    `its name carries the mark too, @${bindingName}`,
+  ({ name, calls }) =>
+    `${name.literal} declares code that calls ${calls.literal}, which reaches outside the language; ` +
+    'its name carries the mark too',
   { operand: '::bind' }
 );

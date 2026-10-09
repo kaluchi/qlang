@@ -18,6 +18,10 @@
        )
   ~~|
 
+:construct/PayloadNotSchemaError/field
+  |~~ The field that does not fit, null when the payload is no map. ~~|
+  #[::keyword ::null]
+
 :construct/ReadBackDiffersError
   |~~ The `::construct` prints as text that reads back as another step: a
       payload that opens with a name, a digit or a slash is written
@@ -31,6 +35,10 @@
        )
   ~~|
 
+:construct/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
+
 :construct/TagNotKindError
   |~~ The tag before a payload addresses a kind, a label, a name declared
       by its page; a tag that addresses a name under a label, a host's
@@ -40,6 +48,10 @@
       ~(
         ::vec/take[]
         !| [type /tag /actualType]
-        |  eq [::construct/TagNotKindError :vec/take ::builtin]
+        |  eq [::construct/TagNotKindError ::vec/take ::builtin]
        )
   ~~|
+
+:construct/TagNotKindError/tag
+  |~~ The tag, whose node is no label. ~~|
+  ::tag

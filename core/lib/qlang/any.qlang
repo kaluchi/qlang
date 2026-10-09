@@ -174,7 +174,7 @@
   ::verb~()
 
 :any/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
   ~(at 0)
 
 :any/max
@@ -194,7 +194,7 @@
   ::verb~()
 
 :any/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null) ~~|
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
   ~(at 0)
 
 :any/filter
@@ -216,7 +216,7 @@
   ::verb~()
 
 :any/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
 
       The predicate of `filter` is code it runs on each element, so it takes a
       quote, `filter ~(gt 1)`; a value computed at the call is refused.
@@ -265,7 +265,7 @@
   ::verb~()
 
 :any/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
 
       The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
@@ -306,7 +306,7 @@
   ::verb~()
 
 :any/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(isA ::quote)
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
 
       The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
@@ -346,7 +346,7 @@
   ::verb~()
 
 :any/groupBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
 
       The key of `groupBy` is code it runs on each element, so it takes a
       quote, `groupBy ~(/kind)`; a value computed at the call is refused.
@@ -384,7 +384,7 @@
   ::verb~()
 
 :any/indexBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
 
       The key of `indexBy` is code it runs on each element, so it takes a
       quote, `indexBy ~(/id)`; a value computed at the call is refused.
@@ -448,7 +448,7 @@
   ::verb~()
 
 :any/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(isA ::quote ::null)
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
 
       The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
@@ -463,7 +463,7 @@
 :any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
       `sort`, `min` or `max`, or a place of a vector key, that ranks the
-      greater first, whatever the kind of what it ranks. ::holds~(isA ::desc)
+      greater first, whatever the kind of what it ranks. ::holds~(is ::desc)
 
       ~([1 3 2] | sort ~(desc) | eq [3 2 1])
       ~([{:n 1} {:n 2}] | max ~(/n | desc) | eq {:n 1})
@@ -485,7 +485,7 @@
   ::verb~()
 
 :any/take/count
-  |~~ How many. ::holds~(isA ::number) ~~|
+  |~~ How many. ::holds~(is ::number) ~~|
   ~(/0)
 
 :any/TakeCountNotIntegerError
@@ -514,7 +514,7 @@
   ::verb~()
 
 :any/drop/count
-  |~~ How many. ::holds~(isA ::number) ~~|
+  |~~ How many. ::holds~(is ::number) ~~|
   ~(/0)
 
 :any/DropCountNotIntegerError
@@ -545,7 +545,7 @@
   ::verb~()
 
 :any/at/index
-  |~~ The index, a negative one counting from the end. ::holds~(isA ::number) ~~|
+  |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~|
   ~(/0)
 
 :any/at/default
@@ -614,7 +614,7 @@
       ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
       A name takes the accumulator as its subject and the element as the
       first part of its object:
-      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(isA ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
+      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
       ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
       The seed is the first accumulator, answered as it is for an empty
       subject:
@@ -627,7 +627,7 @@
   ~(/0)
 
 :any/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(isA ::quote)
+  |~~ The code that folds an element into the value so far. ::holds~(is ::quote)
 
       The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
       quote, `reduce 0 ~(add)`; a value computed at the call is refused.
@@ -748,7 +748,7 @@
 
 :any/eq
   |~~ Whether the subject equals the value, by structural equality deep
-      across maps, vectors, sets and scalars. ::holds~(isA ::boolean)
+      across maps, vectors, sets and scalars. ::holds~(is ::boolean)
 
       ~(42 | eq 42 | eq true)
       ~({:a 1} | eq {:a 1} | eq true)
@@ -761,7 +761,7 @@
 
 :any/ne
   |~~ Whether the subject differs from the value, by the structural
-      equality of `eq`, whose negation it is. ::holds~(isA ::boolean)
+      equality of `eq`, whose negation it is. ::holds~(is ::boolean)
 
       ~(1 | ne 2 | eq true)
       ~({:a 1} | ne {:a 1} | eq false)
@@ -777,7 +777,7 @@
       verbs it answers: `type | doc` reads the kind's page, and asking
       what a value is composes `type` with `eq`, `filter ~(type | eq
       ::string)`. A kind of the core is named under the prefix `qlang/`
-      and written short. ::holds~(isA ::tag)
+      and written short. ::holds~(is ::tag)
 
       The literal of a value of the core implies its kind:
       ~(42 | type | eq ::number)
@@ -803,7 +803,7 @@
       lose their identity at this boundary: a keyword becomes its bare
       name, a key and a value alike (`:foo` → `"foo"`), a set flattens
       to an array, and a map writes its keys as the keys of an object.
-      It hands values to consumers that do not read qlang. ::holds~(isA ::string)
+      It hands values to consumers that do not read qlang. ::holds~(is ::string)
 
       ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
       ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
@@ -818,7 +818,7 @@
       the doc and the error by their own brackets, and any other value
       under a tag as its tag before the print of its payload. A kind may
       answer a `print` of its own declared under it, `:Box/print`, and the
-      print of a value takes it for each part of that kind. ::holds~(isA ::string)
+      print of a value takes it for each part of that kind. ::holds~(is ::string)
 
       ~(42 | print | eq "42")
       ~(#[2 1] | print | eq "#[1 2]")
@@ -844,7 +844,7 @@
   ::builtin{}
 
 :any/elide/budget
-  |~~ The budget, in characters of the print. ::holds~(isA ::number) ~~|
+  |~~ The budget, in characters of the print. ::holds~(is ::number) ~~|
   ~(/0)
 
 :any/if
@@ -864,7 +864,7 @@
   ::builtin{}
 
 :any/if/condition
-  |~~ The condition, a boolean. ::holds~(isA ::boolean)
+  |~~ The condition, a boolean. ::holds~(is ::boolean)
 
       The condition of `if` answers a boolean; null, a number, a string
       or any other value is refused where it stands.
@@ -877,7 +877,7 @@
   ~(/0)
 
 :any/if/then
-  |~~ The branch run when the condition holds. ::holds~(isA ::quote)
+  |~~ The branch run when the condition holds. ::holds~(is ::quote)
 
       The then branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
@@ -890,7 +890,7 @@
   ~(/1)
 
 :any/if/else
-  |~~ The branch run when it does not. ::holds~(isA ::quote)
+  |~~ The branch run when it does not. ::holds~(is ::quote)
 
       The else branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
@@ -952,7 +952,7 @@
   ::builtin{}
 
 :any/cond/clauses
-  |~~ The clauses, each a condition and its branch. ::holds~(every ~(isA ::quote)) ~~|
+  |~~ The clauses, each a condition and its branch. ::holds~(every ~(is ::quote)) ~~|
   ~(/)
 
 :any/CondNoBranchesError
@@ -1021,7 +1021,7 @@
   ::builtin{}
 
 :any/apply/code
-  |~~ The code the call runs. ::holds~(isA ::quote)
+  |~~ The code the call runs. ::holds~(is ::quote)
 
       The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
       or a name that holds one; a value computed at the call is refused,
@@ -1043,7 +1043,7 @@
       declarations among them inside the fork. What the language and the
       host declared stands apart: `kinds` lists their kinds, and
       `manifest` what lies under a noun. `env | /flag` hands one record
-      to the next step. ::holds~(isA ::map)
+      to the next step. ::holds~(is ::map)
 
       ~(:limit 10 | env | has :limit)
       ~(env | eq {})
@@ -1056,7 +1056,7 @@
   |~~ The kinds the scope reads, each by its tag: those the language
       and the host declared, then the reader's, so a query asks which
       kinds there are before it asks one of them for its page,
-      `::set | doc`, or for what lies under it, `::set | manifest`. ::holds~(isA ::set)
+      `::set | doc`, or for what lies under it, `::set | manifest`. ::holds~(is ::set)
 
       ~(kinds | has ::vec)
       ~(:Box ::spec~() | kinds | has ::Box)
@@ -1070,7 +1070,7 @@
       `:source` and its `:origin`, the source it was read from, so where
       a name was declared is read as data. The other axes project it:
       `doc` its page, `source` its quote, `spec` its value. A keyword
-      after it reads the record of the member the subject holds under it. ::holds~(isA ::binding)
+      after it reads the record of the member the subject holds under it. ::holds~(is ::binding)
 
       A verb by its address reads the record its source declared:
       ~(::vec/filter | binding | /origin | eq :qlang/vec)
@@ -1083,7 +1083,7 @@
   ::builtin{}
 
 :any/binding/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
 
 :any/BindingNotFoundError
@@ -1113,7 +1113,7 @@
       Any other value reads the declaration of its kind. Given a name,
       it reads the name the subject holds under it: a part of the object
       of a name, the slot a verb's head declares, and for any other
-      subject the verb the name calls after it. ::holds~(isA ::quote ::null)
+      subject the verb the name calls after it. ::holds~(is ::quote ::null)
 
       ~(::vec/filter | source | parse | contains ":vec/filter")
       ~(::number/add/ResultNotFiniteError | source | parse | contains "ResultNotFiniteError")
@@ -1123,7 +1123,7 @@
   ::builtin{}
 
 :any/source/name
-  |~~ The name the call gives, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
 
 :any/SourceBindingNotFoundError
@@ -1149,7 +1149,7 @@
       `links` and its snippets by `snippets`. A keyword after `doc` is an
       anchor within the page of its subject, a vector of anchors a path,
       each read within the page the one before it reached, and a set of
-      anchors several pages in one query. ::holds~(isA ::doc ::null ::vec)
+      anchors several pages in one query. ::holds~(is ::doc ::null ::vec)
 
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
@@ -1171,7 +1171,7 @@
   ::builtin{}
 
 :any/doc/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::vec ::set ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::vec ::set ::null) ~~|
   ~(at 0)
 
 :any/DocBindingNotFoundError
@@ -1203,7 +1203,7 @@
       the page `doc` reads for it, then the value itself, so it prints
       as the page above what it explains. A name reads its own
       page, a value the page of the kind it shows, and an error `!|`
-      opened the page of its site, which says what failed. ::holds~(isA ::explanation)
+      opened the page of its site, which says what failed. ::holds~(is ::explanation)
 
       ~(42 | explain | page | eq (::number | doc))
       ~(::number/add | explain | page | content | contains "Adds a number")
@@ -1247,7 +1247,7 @@
   ::builtin{}
 
 :any/spec/name
-  |~~ The name the call gives, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
 
 :any/SpecBindingNotFoundError
@@ -1281,7 +1281,7 @@
   ::verb~()
 
 :any/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(isA ::keyword ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
 
 :any/RunLawsBindingNotFoundError
@@ -1325,7 +1325,7 @@
   ::builtin{}
 
 :any/tag/name
-  |~~ The name the call gives, null when it gives none. ::holds~(isA ::tag ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ::holds~(is ::tag ::null) ~~|
   ~(at 0)
 
 :any/tag/PairTagNotTagError
@@ -1368,7 +1368,7 @@
 
 :any/sumOf/numbers
   |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(isA ::number)) ~~|
+      ::holds~(every ~(is ::number)) ~~|
   ~(/)
 
 :any/mulOf
@@ -1382,7 +1382,7 @@
 
 :any/mulOf/factors
   |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(isA ::number)) ~~|
+      ::holds~(every ~(is ::number)) ~~|
   ~(/)
 
 :any/subOf
@@ -1394,8 +1394,8 @@
   ~~|
   ~(minuend | sub subtrahend)
 
-:any/subOf/minuend |~~ The number subtracted from. ::holds~(isA ::number) ~~| ~(/0)
-:any/subOf/subtrahend |~~ The number subtracted. ::holds~(isA ::number) ~~| ~(/1)
+:any/subOf/minuend |~~ The number subtracted from. ::holds~(is ::number) ~~| ~(/0)
+:any/subOf/subtrahend |~~ The number subtracted. ::holds~(is ::number) ~~| ~(/1)
 
 :any/divOf
   |~~ The first number the call computes against the subject divided by
@@ -1405,8 +1405,8 @@
   ~~|
   ~(dividend | div divisor)
 
-:any/divOf/dividend |~~ The number divided. ::holds~(isA ::number) ~~| ~(/0)
-:any/divOf/divisor |~~ The number divided by. ::holds~(isA ::number) ~~| ~(/1)
+:any/divOf/dividend |~~ The number divided. ::holds~(is ::number) ~~| ~(/0)
+:any/divOf/divisor |~~ The number divided by. ::holds~(is ::number) ~~| ~(/1)
 
 :any/allOf
   |~~ Whether every condition the call computes against the subject holds:
@@ -1420,7 +1420,7 @@
 
 :any/allOf/conditions
   |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(isA ::boolean)) ~~|
+      ::holds~(every ~(is ::boolean)) ~~|
   ~(/)
 
 :any/anyOf
@@ -1433,7 +1433,7 @@
 
 :any/anyOf/conditions
   |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(isA ::boolean)) ~~|
+      ::holds~(every ~(is ::boolean)) ~~|
   ~(/)
 
 :any/unionOf
@@ -1451,29 +1451,29 @@
   |~~ The maps or the sets, one at least. ::holds~(count | gt 0) ~~|
   ~(/)
 
-:any/isA
+:any/is
   |~~ Whether the walk of the subject's tags reaches a value of one of the
       kinds the call gives: a number under a tag of its own is a number, a
       set is a vector, a map under a tag is a map. A part of an object
-      whose law asks `isA` is handed to its name as the value of the kind
-      the walk reached, and one whose law asks `every ~(isA …)` as the
+      whose law asks `is` is handed to its name as the value of the kind
+      the walk reached, and one whose law asks `every ~(is …)` as the
       vector, or the set, of each element's, a quote and a doc as they
       are, an element the walk refuses named by its index from zero.
-      ::call~(isA ::number)
+      ::call~(is ::number)
 
-      ~(5 | isA ::number | eq true)
-      ~(::Width(5) | isA ::number | eq true)
-      ~(#[1 2] | isA ::vec | eq true)
-      ~("5" | isA ::number ::null | eq false)
-      ~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ::holds~(every ~(isA ::number)) ~~| ~(/) | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
-      ~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ::holds~(every ~(isA ::number)) ~~| ~(/0) | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
+      ~(5 | is ::number | eq true)
+      ~(::Width(5) | is ::number | eq true)
+      ~(#[1 2] | is ::vec | eq true)
+      ~("5" | is ::number ::null | eq false)
+      ~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ::holds~(every ~(is ::number)) ~~| ~(/) | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
+      ~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ::holds~(every ~(is ::number)) ~~| ~(/0) | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
   ~~|
   ::builtin{}
 
-:any/isA/kinds
+:any/is/kinds
   |~~ The kinds, each a tag name; of none, no value is one.
-      ::holds~(every ~(isA ::tag))
+      ::holds~(every ~(is ::tag))
 
-      ~(5 | isA :number !| [type /index /actualType] | eq [::any/isA/kinds/HoldsNotMetError 0 ::keyword])
+      ~(5 | is :number !| [type /index /actualType] | eq [::any/is/kinds/HoldsNotMetError 0 ::keyword])
   ~~|
   ~(/)

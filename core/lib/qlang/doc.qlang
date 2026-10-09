@@ -27,7 +27,7 @@
 
 :doc/content
   |~~ The text of the doc: its prose with each quote written where it
-      stands. ::holds~(isA ::string)
+      stands. ::holds~(is ::string)
 
       ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
       ~(::vec/join | doc | content | contains "separator")
@@ -37,7 +37,7 @@
 :doc/segments
   |~~ The parts of the doc in their order: each run of prose a string
       and each span that reads as code a quote, bare or under the tags
-      of its role. ::holds~(isA ::vec)
+      of its role. ::holds~(is ::vec)
 
       ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
       ~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
@@ -47,7 +47,7 @@
 :doc/laws
   |~~ The laws of the doc in their order: each quote with no tag, which
       `runLaws` holds to answer true; a quote under a tag, a link or a
-      snippet, is no law. ::holds~(isA ::vec)
+      snippet, is no law. ::holds~(is ::vec)
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | laws | eq [~(add 1) ~(mul 2)])
       ~("x" | add 1 !| explain | page | laws | count | eq 3)
@@ -56,7 +56,7 @@
 
 :doc/links
   |~~ The links of the doc in their order: each quote under a stack of
-      tags that holds `::link`, a query a reader follows. ::holds~(isA ::vec)
+      tags that holds `::link`, a query a reader follows. ::holds~(is ::vec)
 
       ~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
       ~(|~~ ::link~(::vec | manifest) ~~| | links | first | :l / | null | apply l | has ::vec/count)
@@ -66,7 +66,7 @@
 :doc/snippets
   |~~ The snippets of the doc in their order: each quote under a stack
       of tags that holds `::snippet`, a query a reader runs to see what
-      it shows. ::holds~(isA ::vec)
+      it shows. ::holds~(is ::vec)
 
       ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
       ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])

@@ -30,7 +30,7 @@
   ::builtin{}
 
 :number/add/addend
-  |~~ The number added to the subject. ::holds~(isA ::number)
+  |~~ The number added to the subject. ::holds~(is ::number)
 
       ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/HoldsNotMetError ::string])
   ~~|
@@ -58,7 +58,7 @@
   ::builtin{}
 
 :number/sub/subtrahend
-  |~~ The number subtracted from the subject. ::holds~(isA ::number)
+  |~~ The number subtracted from the subject. ::holds~(is ::number)
 
       ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/HoldsNotMetError ::string])
   ~~|
@@ -85,7 +85,7 @@
   ::builtin{}
 
 :number/mul/multiplier
-  |~~ The number the subject is multiplied by. ::holds~(isA ::number)
+  |~~ The number the subject is multiplied by. ::holds~(is ::number)
 
       ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/HoldsNotMetError ::string])
   ~~|
@@ -113,7 +113,7 @@
   ::builtin{}
 
 :number/div/divisor
-  |~~ The number the subject is divided by. ::holds~(isA ::number)
+  |~~ The number the subject is divided by. ::holds~(is ::number)
 
       ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/HoldsNotMetError ::string])
   ~~|
@@ -154,7 +154,7 @@
 
 :number/round/digits
   |~~ The digits after the point, a whole number, none when the call
-      gives none. ::holds~(isA ::number) ~~|
+      gives none. ::holds~(is ::number) ~~|
   ~(at 0 0)
 
 :number/round/DigitsNotIntegerError
@@ -165,47 +165,47 @@
   ::spec~()
 
 :number/gt
-  |~~ Whether the subject is greater than the number the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject is greater than the number the call gives. ::holds~(is ::boolean)
 
       ~(10 | gt 5 | eq true)
   ~~|
   ::builtin{}
 
 :number/gt/than
-  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
 :number/gte
   |~~ Whether the subject is greater than or equal to the number the
-      call gives. ::holds~(isA ::boolean)
+      call gives. ::holds~(is ::boolean)
 
       ~(10 | gte 10 | eq true)
   ~~|
   ::builtin{}
 
 :number/gte/than
-  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
 :number/lt
-  |~~ Whether the subject is less than the number the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject is less than the number the call gives. ::holds~(is ::boolean)
 
       ~(5 | lt 10 | eq true)
   ~~|
   ::builtin{}
 
 :number/lt/than
-  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
 :number/lte
   |~~ Whether the subject is less than or equal to the number the call
-      gives. ::holds~(isA ::boolean)
+      gives. ::holds~(is ::boolean)
 
       ~(10 | lte 10 | eq true)
   ~~|
   ::builtin{}
 
 :number/lte/than
-  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)

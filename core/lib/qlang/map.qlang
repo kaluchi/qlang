@@ -39,14 +39,14 @@
   ::spec~()
 
 :map/count
-  |~~ The number of entries. ::holds~(isA ::number)
+  |~~ The number of entries. ::holds~(is ::number)
 
       ~({:x 1 :y 2 :z 3} | count | eq 3)
   ~~|
   ::builtin{}
 
 :map/empty
-  |~~ Whether the map holds no entry. ::holds~(isA ::boolean)
+  |~~ Whether the map holds no entry. ::holds~(is ::boolean)
 
       ~({} | empty | eq true)
   ~~|
@@ -67,7 +67,7 @@
   ::builtin{}
 
 :map/sum
-  |~~ The sum of the values, each a number. ::holds~(isA ::number)
+  |~~ The sum of the values, each a number. ::holds~(is ::number)
 
       ~({:a 10 :b 20} | sum | eq 30)
   ~~|
@@ -108,14 +108,14 @@
   ::builtin{}
 
 :map/every
-  |~~ Whether the predicate answers true for every value. ::holds~(isA ::boolean)
+  |~~ Whether the predicate answers true for every value. ::holds~(is ::boolean)
 
       ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
   ~~|
   ::builtin{}
 
 :map/any
-  |~~ Whether the predicate answers true for some value. ::holds~(isA ::boolean)
+  |~~ Whether the predicate answers true for some value. ::holds~(is ::boolean)
 
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
   ~~|
@@ -159,7 +159,7 @@
   ::builtin{}
 
 :map/at/key
-  |~~ The key the call gives. ::holds~(isA ::keyword ::string)
+  |~~ The key the call gives. ::holds~(is ::keyword ::string)
 
       The key of `at` on a map is a keyword or a string, both naming the
       key as the map stores it: `at :email`. A modifier is computed
@@ -192,7 +192,7 @@
   ::builtin{}
 
 :map/keys
-  |~~ The set of the keys, keywords in the one order: sorted by name. ::holds~(isA ::set)
+  |~~ The set of the keys, keywords in the one order: sorted by name. ::holds~(is ::set)
 
       ~({:name "Alice" :age 30} | keys | eq #[:age :name])
       ~({:name "Alice" :age 30} | keys | first | eq :age)
@@ -209,7 +209,7 @@
   ::builtin{}
 
 :map/vals
-  |~~ The vector of the values, in the order of the entries. ::holds~(isA ::vec)
+  |~~ The vector of the values, in the order of the entries. ::holds~(is ::vec)
 
       ~({:name "Alice" :age 30} | vals | eq ["Alice" 30])
 
@@ -227,7 +227,7 @@
   |~~ The vector of the pairs `[key value]` of the map, in the order of
       the entries, each key a keyword: the map with its keys as data, for
       a step that reads a key beside its value, as `[type payload]` reads
-      a tagged value. `tag ::map` builds the map back. ::holds~(isA ::vec)
+      a tagged value. `tag ::map` builds the map back. ::holds~(is ::vec)
 
       ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
       ~({:auth {:port 3000}} | entries * (unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
@@ -247,7 +247,7 @@
 :map/has
   |~~ Whether the map holds the key, a keyword or a string, both naming
       the key as the map stores it, so the `keys | first | has _` chain
-      composes. ::holds~(isA ::boolean)
+      composes. ::holds~(is ::boolean)
 
       ~({:name "Alice"} | has :name | eq true)
       ~({:name "Alice"} | has "name" | eq true)
@@ -255,7 +255,7 @@
   ::builtin{}
 
 :map/has/key
-  |~~ The key the call gives. ::holds~(isA ::keyword ::string)
+  |~~ The key the call gives. ::holds~(is ::keyword ::string)
 
       The key of `has` on a map is a keyword or a string, both naming
       the key as the map stores it.
@@ -276,7 +276,7 @@
   ::builtin{}
 
 :map/union/with
-  |~~ The value the subject is joined with. ::holds~(isA ::map) ~~|
+  |~~ The value the subject is joined with. ::holds~(is ::map) ~~|
   ~(/0)
 
 :map/minus
@@ -290,7 +290,7 @@
   ::builtin{}
 
 :map/minus/keys
-  |~~ The keys the call gives. ::holds~(isA ::map ::vec) ~~|
+  |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
   ~(/0)
 
 :map/inter
@@ -303,7 +303,7 @@
   ::builtin{}
 
 :map/inter/keys
-  |~~ The keys the call gives. ::holds~(isA ::map ::vec) ~~|
+  |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
   ~(/0)
 
 :map/MinusKeyNotKeywordOrStringError

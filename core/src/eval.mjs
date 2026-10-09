@@ -409,7 +409,7 @@ async function refusalOfLaws(record, value, state, scope, tagName) {
 
 // What the page of a record says, read once per record, which never
 // changes: the laws under `::holds`, each with the kinds it asks for when
-// it is one step `isA`, and whether the answer keeps the subject's kind.
+// it is one step `is`, and whether the answer keeps the subject's kind.
 const PAGES = new WeakMap();
 
 function pageOf(record) {
@@ -425,7 +425,7 @@ function pageOf(record) {
   return page;
 }
 
-// A law of a page with the kinds it asks for when it is one step `isA`,
+// A law of a page with the kinds it asks for when it is one step `is`,
 // of the value or of each element.
 function lawOfRole(law) {
   const ast = astOfQuote(law);
@@ -705,7 +705,7 @@ async function applyMember(record, lambdas, state) {
 
 // answerKindsOf(record, subjectKinds) → the kinds of the answer a name
 // under a label gives, for a tool: the subject's own where its page keeps
-// them, the kinds the first law `isA` of its page asks for, or null
+// them, the kinds the first law `is` of its page asks for, or null
 // [D166].
 export function answerKindsOf(record, subjectKinds) {
   return pageOf(record).keeps ? subjectKinds : lawKindsOf(record);
@@ -778,8 +778,8 @@ async function objectOf(address, parts, lambdas, state, scope) {
 }
 
 // A value the call computed that answered an error where a part that
-// asks for code reads, by a law `isA` of a quote or, for the part that
-// reads the object whole, `every ~(isA …)` of one: the step ran on the
+// asks for code reads, by a law `is` of a quote or, for the part that
+// reads the object whole, `every ~(is …)` of one: the step ran on the
 // subject by mistake, `filter /active` for `filter ~(/active)`, and the
 // part refuses it with the error as its value, the part that reads the
 // object naming the place, from zero; anywhere else the error is the
@@ -811,8 +811,8 @@ async function partOf({ ast, place, onePlace, strict, fallback }, values, state)
 // A strict read of a place past the values of the object.
 const MISSED_PLACE = Symbol('missedPlace');
 
-// A part handed as its law of kinds asks: for `isA` the value of the kind
-// the walk of its tags reaches, for `every ~(isA …)` the vector, or the
+// A part handed as its law of kinds asks: for `is` the value of the kind
+// the walk of its tags reaches, for `every ~(is …)` the vector, or the
 // set, of each element's, the tags passed left behind, as a subject is
 // served; a quote and a doc, whose elements are steps and segments, and
 // a part with no such law as they are [D166], [D167].
@@ -827,26 +827,26 @@ function servedByLaw(law, part) {
   return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
 }
 
-// The kinds the first law `isA` of a part's page asks for, or null: the
+// The kinds the first law `is` of a part's page asks for, or null: the
 // part is handed as the value of the kind the walk of its tags reaches,
 // and a part that asks for a quote takes code [D166], [D167].
 function lawKindsOf(partRecord) {
   return kindLawOf(partRecord)?.kinds ?? null;
 }
 
-// The first law of a page that asks for kinds, `isA` of the value or of
+// The first law of a page that asks for kinds, `is` of the value or of
 // each element, or undefined.
 function kindLawOf(record) {
   return pageOf(record).laws.find(law => law.kinds !== null || law.elementKinds !== null);
 }
 
-// The kinds a law of one step `isA ::k …` asks for, or null.
+// The kinds a law of one step `is ::k …` asks for, or null.
 function kindsAskedBy(ast) {
-  if (ast.type !== 'OperandCall' || ast.name !== 'isA') return null;
+  if (ast.type !== 'OperandCall' || ast.name !== 'is') return null;
   return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
 }
 
-// The kinds a law `every ~(isA ::k …)` asks of each element, or null.
+// The kinds a law `every ~(is ::k …)` asks of each element, or null.
 function elementKindsAskedBy(ast) {
   const asksEach = ast.type === 'OperandCall' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
   return asksEach ? kindsAskedBy(ast.args[0].pipeline) : null;

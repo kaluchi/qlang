@@ -16,14 +16,14 @@
   ::spec~()
 
 :vec/count
-  |~~ The number of elements. ::holds~(isA ::number)
+  |~~ The number of elements. ::holds~(is ::number)
 
       ~([1 2 3] | count | eq 3)
   ~~|
   ::builtin{}
 
 :vec/empty
-  |~~ Whether the vector holds no element. ::holds~(isA ::boolean)
+  |~~ Whether the vector holds no element. ::holds~(is ::boolean)
 
       ~([] | empty | eq true)
   ~~|
@@ -44,7 +44,7 @@
   ::builtin{}
 
 :vec/sum
-  |~~ The sum of the elements, each a number. ::holds~(isA ::number)
+  |~~ The sum of the elements, each a number. ::holds~(is ::number)
 
       ~([1 2 3 4] | sum | eq 10)
   ~~|
@@ -83,14 +83,14 @@
   ::builtin{}
 
 :vec/every
-  |~~ Whether the predicate answers true for every element. ::holds~(isA ::boolean)
+  |~~ Whether the predicate answers true for every element. ::holds~(is ::boolean)
 
       ~([2 4 6 8] | every ~(gt 0) | eq true)
   ~~|
   ::builtin{}
 
 :vec/any
-  |~~ Whether the predicate answers true for some element. ::holds~(isA ::boolean)
+  |~~ Whether the predicate answers true for some element. ::holds~(is ::boolean)
 
       ~([1 2 3] | any ~(gt 2) | eq true)
   ~~|
@@ -98,7 +98,7 @@
 
 :vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
-      membership of a JSON array. ::holds~(isA ::boolean)
+      membership of a JSON array. ::holds~(is ::boolean)
 
       ~(["ops" "db"] | has "ops" | eq true)
       ~([1 [2]] | has [2] | eq true)
@@ -108,7 +108,7 @@
 :vec/contains
   |~~ Whether the vector holds an element equal to the value, the
       membership `has` asks, under the word a string answers for its
-      substrings. ::holds~(isA ::boolean)
+      substrings. ::holds~(is ::boolean)
 
       ~(["ops" "db"] | contains "ops" | eq true)
   ~~|
@@ -118,7 +118,7 @@
   |~~ The map of vectors the key sorts the elements into. A key of a
       map is a keyword, and a key that answers a string, the field of a
       JSON object, or a number files its element under the keyword of
-      its text. ::holds~(isA ::map)
+      its text. ::holds~(is ::map)
 
       ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
       ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
@@ -132,7 +132,7 @@
 :vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
-      made a keyword first, as for `groupBy`. ::holds~(isA ::map)
+      made a keyword first, as for `groupBy`. ::holds~(is ::map)
 
       ~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
       ~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
@@ -221,7 +221,7 @@
   ::builtin{}
 
 :vec/union/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(isA ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
   ~(at 0)
 
 :vec/UnionOfNothingError
@@ -255,7 +255,7 @@
   ::builtin{}
 
 :vec/minus/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(isA ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
   ~(at 0)
 
 :vec/MinusOfNothingError
@@ -290,7 +290,7 @@
   ::builtin{}
 
 :vec/inter/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(isA ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
   ~(at 0)
 
 :vec/InterOfNothingError
@@ -318,7 +318,7 @@
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between
-      consecutive ones. Inverse of `split`. ::holds~(isA ::string)
+      consecutive ones. Inverse of `split`. ::holds~(is ::string)
 
       ~(["a" "b" "c"] | join "," | eq "a,b,c")
       ~([] | join "," | eq "")
@@ -334,7 +334,7 @@
   ::builtin{}
 
 :vec/join/separator
-  |~~ The separator the call gives. ::holds~(isA ::string)
+  |~~ The separator the call gives. ::holds~(is ::string)
 
       The separator of `join` is a string, `join ", "`.
       ~(

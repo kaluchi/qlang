@@ -105,8 +105,8 @@ describe('the sources a host hands [D153]', () => {
     uri: 'tests/host',
     source: [
       ':number/less |~~ The subject less the part. ~~| ::builtin{}',
-      ':number/less/by |~~ How much less. ::holds~(isA ::number) ~~| ~(/0)',
-      ':any/@fetch |~~ The text fetched. ::holds~(isA ::string) ~~| ::builtin{}',
+      ':number/less/by |~~ How much less. ::holds~(is ::number) ~~| ~(/0)',
+      ':any/@fetch |~~ The text fetched. ::holds~(is ::string) ~~| ::builtin{}',
       ':any/@doubled ~(@fetch | append @fetch)'
     ].join('\n'),
     impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
@@ -138,7 +138,7 @@ describe('the sources a host hands [D153]', () => {
   it('runs a host name whose descriptor names no primitive by the implementation handed for it', async () => {
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/handed',
-      source: ':any/twice ::builtin{} | :any/twice/by |~~ The factor. ::holds~(isA ::number) ~~| ~(/0)',
+      source: ':any/twice ::builtin{} | :any/twice/by |~~ The factor. ::holds~(is ::number) ~~| ~(/0)',
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);

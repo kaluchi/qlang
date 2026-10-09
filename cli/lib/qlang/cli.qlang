@@ -39,7 +39,7 @@
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
       the text as it came: ::snippet~(@in | lines | count) counts the
-      lines piped in. ::holds~(isA ::string)
+      lines piped in. ::holds~(is ::string)
   ~~|
   ::builtin{}
 
@@ -53,7 +53,7 @@
   ::builtin{}
 
 :any/@out/text
-  |~~ The text the call gives, null when it gives none. ::holds~(isA ::string ::null)
+  |~~ The text the call gives, null when it gives none. ::holds~(is ::string ::null)
 
       The text `@out` writes is a string; a modifier that answers
       another kind is refused, and `json` or `print` makes the text.
@@ -76,7 +76,7 @@
   ::builtin{}
 
 :any/@err/text
-  |~~ The text the call gives, null when it gives none. ::holds~(isA ::string ::null)
+  |~~ The text the call gives, null when it gives none. ::holds~(is ::string ::null)
 
       The text `@err` writes is a string; `json` or `print` makes one
       of any value.
@@ -98,7 +98,7 @@
   ::builtin{}
 
 :any/@tap/label
-  |~~ The label the call gives. ::holds~(isA ::keyword)
+  |~~ The label the call gives. ::holds~(is ::keyword)
 
       The label of `@tap` is a keyword, `@tap :before`, written before
       the value as `[tap before]`.
@@ -111,7 +111,7 @@
       order across all rows; missing keys render as empty cells. A
       string cell prints bare, null as an empty cell, and every other
       value as its literal on one line. The empty vector yields the marker
-      "(empty)". ::holds~(isA ::string)
+      "(empty)". ::holds~(is ::string)
 
       ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
       ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")

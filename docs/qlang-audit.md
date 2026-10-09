@@ -1041,7 +1041,7 @@ the procedure is written once [D166]:
 ::number/add/SubjectNotNumberError
 
 > 1 | add "x" !| [type /holds]
-[::number/add/addend/HoldsNotMetError ~(isA ::number)]
+[::number/add/addend/HoldsNotMetError ~(is ::number)]
 
 > "hello" | add 1 !| explain | page | content | contains "sumOf"
 true

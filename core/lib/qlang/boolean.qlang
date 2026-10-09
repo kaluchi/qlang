@@ -15,7 +15,7 @@
 
 :boolean/not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
-      subject of another kind is refused. ::holds~(isA ::boolean)
+      subject of another kind is refused. ::holds~(is ::boolean)
 
       ~(false | not | eq true)
       ~(true | not | eq false)
@@ -35,7 +35,7 @@
   |~~ Whether the subject and the right condition both hold, each a
       boolean. Two conditions of one record hold together by `allOf`,
       `allOf /active (/age | gte 18)`, which composes the clauses of a
-      predicate inside `filter`, `every` and `if`. ::holds~(isA ::boolean)
+      predicate inside `filter`, `every` and `if`. ::holds~(is ::boolean)
 
       ~(true | and false | eq false)
       ~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
@@ -51,7 +51,7 @@
   ::builtin{}
 
 :boolean/and/right
-  |~~ The condition on the right. ::holds~(isA ::boolean)
+  |~~ The condition on the right. ::holds~(is ::boolean)
 
       The right condition of `and` must answer a boolean.
       ~(
@@ -65,7 +65,7 @@
 :boolean/or
   |~~ Whether the subject or the right condition holds, each a boolean.
       Conditions of one subject hold by one of them through `anyOf`,
-      `5 | anyOf (eq 5) (eq 10)`. ::holds~(isA ::boolean)
+      `5 | anyOf (eq 5) (eq 10)`. ::holds~(is ::boolean)
 
       ~(false | or true | eq true)
       ~(5  | anyOf (eq 5) (eq 10) | eq true)
@@ -82,7 +82,7 @@
   ::builtin{}
 
 :boolean/or/right
-  |~~ The condition on the right. ::holds~(isA ::boolean)
+  |~~ The condition on the right. ::holds~(is ::boolean)
 
       The right condition of `or` must answer a boolean.
       ~(

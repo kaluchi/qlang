@@ -48,7 +48,7 @@
   ::spec~()
 
 :quote/parse
-  |~~ The source text of the quote, the reverse of `parse` on a string. ::holds~(isA ::string)
+  |~~ The source text of the quote, the reverse of `parse` on a string. ::holds~(is ::string)
 
       ~(~(add 1) | parse | eq "add 1")
   ~~|

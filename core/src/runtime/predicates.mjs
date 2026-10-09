@@ -29,4 +29,4 @@ bindPrim('any/type', subject => typeKeyword(subject));
 
 // Whether the walk of the subject's tags reaches a value of one of the
 // kinds, a set read as a vector and a tagged map as a map [D34], [D166].
-bindPrim('any/isA', (subject, kinds) => walkToKinds(subject, kinds.map(kind => kind.name)) !== null);
+bindPrim('any/is', (subject, kinds) => walkToKinds(subject, kinds.map(kind => kind.name)) !== null);

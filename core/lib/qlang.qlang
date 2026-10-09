@@ -107,7 +107,7 @@
       ~(5 | apply ~(add 1 | mul 2) | eq 12)
       ~("add 1" | parse | eq ~(add 1))
       A kind of your own is a label, a name declared by its page, whose laws, `::holds~(…)`, every value put under it keeps. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, checked by the laws of its page and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
-      ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ::holds~(isA ::number) ~~| ~(/0) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/HoldsNotMetError])
+      ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ::holds~(is ::number) ~~| ~(/0) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/HoldsNotMetError])
       ~(:number/plus ~(add by) | :number/plus/by ~(at 0 1) | 5 | [plus (plus 2)] | eq [6 7])
       ~(:q ~(add 1) | 5 | apply q | eq 6)
       A step of a quote is a record of what it computes, a command under ::call with its `:name`:
@@ -825,7 +825,7 @@
       ~(::any/at | manifest | eq #[::any/at/default ::any/at/index])
       A reader's name under a noun takes the parts of its object after
       it, each a name under the call's address:
-      ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(isA ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)
+      ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(is ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)
       A modifier is evaluated at the call against the subject, the value
       in the pipe, which is always the subject of the call; a form that
       combines several values of one subject is a verb of its own, its

@@ -249,7 +249,7 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, a name's the law `isA` of its page asks of its
+// container's through `*`, a name's the law `is` of its page asks of its
 // answer, the subject's own where the page keeps them [D166], and a
 // reader's verb's `:returns`; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {

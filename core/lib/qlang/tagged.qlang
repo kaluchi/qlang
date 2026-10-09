@@ -51,7 +51,7 @@
   ::builtin{}
 
 :tagged/within/code
-  |~~ The code the call runs. ::holds~(isA ::quote)
+  |~~ The code the call runs. ::holds~(is ::quote)
 
       The edit `within` runs is a quote, `within ~(reverse)`; a value
       computed at the call is refused, the error a step answered there

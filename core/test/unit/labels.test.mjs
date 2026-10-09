@@ -101,7 +101,7 @@ describe('a host\'s primitive under a label', () => {
           ':Gauge |~~ A reading. ~~|',
           ':Gauge/construct |~~ The reading as a number. ~~| ::builtin{}',
           ':Gauge/over |~~ Whether the reading passes the test. ~~| ::builtin{}',
-          ':Gauge/over/test |~~ The test. ::holds~(isA ::quote) ~~| ~(/0)',
+          ':Gauge/over/test |~~ The test. ::holds~(is ::quote) ~~| ~(/0)',
           ':Gauge/shifted |~~ The reading shifted. ~~| ::builtin{}',
           ':Gauge/shifted/by |~~ The shift. ~~| ~(/0)',
           ':Dial |~~ A reading of a dial. ~~|',

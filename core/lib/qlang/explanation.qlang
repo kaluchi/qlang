@@ -5,7 +5,7 @@
 :explanation/page
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
-      site; null for a declaration without one. ::holds~(isA ::doc ::null)
+      site; null for a declaration without one. ::holds~(is ::doc ::null)
 
       ~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
       ~(42 | explain | page | eq (::number | doc))

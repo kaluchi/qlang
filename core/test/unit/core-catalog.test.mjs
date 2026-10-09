@@ -34,7 +34,7 @@ describe('the verbs of the language reach their primitives', () => {
   it('spot-check — filter takes its predicate as a part of its contract whose law asks for a quote [D167]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::any/filter | manifest')).toEqual(makeSet([makeTagKeyword('any/filter/predicate')]));
-    expect(await evalQuery('::any/filter/predicate | doc | content | contains "::holds~(isA ::quote)"')).toBe(true);
+    expect(await evalQuery('::any/filter/predicate | doc | content | contains "::holds~(is ::quote)"')).toBe(true);
   });
 });
 

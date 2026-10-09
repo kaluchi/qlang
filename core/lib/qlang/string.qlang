@@ -29,52 +29,52 @@
   ::spec~()
 
 :string/gt
-  |~~ Whether the subject follows the string the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject follows the string the call gives. ::holds~(is ::boolean)
 
       ~("b" | gt "a" | eq true)
   ~~|
   ::builtin{}
 
 :string/gt/than
-  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
 :string/gte
-  |~~ Whether the subject follows or equals the string the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject follows or equals the string the call gives. ::holds~(is ::boolean)
 
       ~("b" | gte "b" | eq true)
   ~~|
   ::builtin{}
 
 :string/gte/than
-  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
 :string/lt
-  |~~ Whether the subject precedes the string the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject precedes the string the call gives. ::holds~(is ::boolean)
 
       ~("a" | lt "b" | eq true)
   ~~|
   ::builtin{}
 
 :string/lt/than
-  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
 :string/lte
-  |~~ Whether the subject precedes or equals the string the call gives. ::holds~(isA ::boolean)
+  |~~ Whether the subject precedes or equals the string the call gives. ::holds~(is ::boolean)
 
       ~("a" | lte "a" | eq true)
   ~~|
   ::builtin{}
 
 :string/lte/than
-  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
 :string/count
   |~~ The number of characters of the string, a letter of any script
-      one, the length every other language gives a string. ::holds~(isA ::number)
+      one, the length every other language gives a string. ::holds~(is ::number)
 
       ~("abc" | count | eq 3)
       ~("привет" | count | eq 6)
@@ -100,7 +100,7 @@
 
 :string/split
   |~~ The substrings between the occurrences of the separator, as a
-      vector. Inverse of `join`. ::holds~(isA ::vec)
+      vector. Inverse of `join`. ::holds~(is ::vec)
 
       ~("a,b,c" | split "," | eq ["a" "b" "c"])
       ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
@@ -116,7 +116,7 @@
   ::builtin{}
 
 :string/split/separator
-  |~~ The separator the call gives. ::holds~(isA ::string)
+  |~~ The separator the call gives. ::holds~(is ::string)
 
       The separator of `split` is a string, `split ","`.
       ~(
@@ -133,7 +133,7 @@
       closes the last line rather than opening an empty one, so a text
       reads alike with and without it, and the empty text has no lines.
       The text is then worked on as the vector it has become, and
-      `join "\n"` writes it back. ::holds~(isA ::vec)
+      `join "\n"` writes it back. ::holds~(is ::vec)
 
       ~("north\nsouth" | lines | eq ["north" "south"])
       ~("one\r\ntwo\n" | lines | eq ["one" "two"])
@@ -151,7 +151,7 @@
 
 :string/lower
   |~~ The string with every letter in lower case, so two strings that
-      differ in case alone compare equal once lowered. ::holds~(isA ::string)
+      differ in case alone compare equal once lowered. ::holds~(is ::string)
 
       ~("Ann@Example.COM" | lower | eq "ann@example.com")
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
@@ -167,7 +167,7 @@
   ::builtin{}
 
 :string/upper
-  |~~ The string with every letter in upper case. ::holds~(isA ::string)
+  |~~ The string with every letter in upper case. ::holds~(is ::string)
 
       ~("ok, go" | upper | eq "OK, GO")
 
@@ -184,7 +184,7 @@
 :string/trim
   |~~ The string without the whitespace at its two ends, spaces, tabs
       and line breaks, so a field cut out of a line compares as the text
-      it holds. ::holds~(isA ::string)
+      it holds. ::holds~(is ::string)
 
       ~("  db_host 
 " | trim | eq "db_host")
@@ -202,7 +202,7 @@
 
 :string/contains
   |~~ Whether the string holds the needle as a substring; the empty
-      needle is always held. Case-sensitive. ::holds~(isA ::boolean)
+      needle is always held. Case-sensitive. ::holds~(is ::boolean)
 
       ~("hello world" | contains "world" | eq true)
       ~("hello" | contains "xyz" | eq false)
@@ -219,7 +219,7 @@
   ::builtin{}
 
 :string/contains/needle
-  |~~ The text looked for. ::holds~(isA ::string)
+  |~~ The text looked for. ::holds~(is ::string)
 
       The needle of `contains` is a string, `contains "x"`; a keyword
       gives its name by `keyword`.
@@ -233,7 +233,7 @@
 
 :string/startsWith
   |~~ Whether the string begins with the prefix; the empty prefix
-      always begins it. Case-sensitive. ::holds~(isA ::boolean)
+      always begins it. Case-sensitive. ::holds~(is ::boolean)
 
       ~("hello world" | startsWith "hello" | eq true)
       ~("hello" | startsWith "world" | eq false)
@@ -249,7 +249,7 @@
   ::builtin{}
 
 :string/startsWith/prefix
-  |~~ The prefix the call gives. ::holds~(isA ::string)
+  |~~ The prefix the call gives. ::holds~(is ::string)
 
       The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
@@ -262,7 +262,7 @@
 
 :string/endsWith
   |~~ Whether the string ends with the suffix; the empty suffix always
-      ends it. Case-sensitive. ::holds~(isA ::boolean)
+      ends it. Case-sensitive. ::holds~(is ::boolean)
 
       ~("hello world" | endsWith "world" | eq true)
       ~("hello" | endsWith "xyz" | eq false)
@@ -278,7 +278,7 @@
   ::builtin{}
 
 :string/endsWith/suffix
-  |~~ The suffix the call gives. ::holds~(isA ::string)
+  |~~ The suffix the call gives. ::holds~(is ::string)
 
       The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
@@ -299,7 +299,7 @@
   ::builtin{}
 
 :string/prepend/prefix
-  |~~ The prefix the call gives. ::holds~(isA ::string)
+  |~~ The prefix the call gives. ::holds~(is ::string)
 
       The prefix a string takes is a string; a value of another kind
       becomes one by `print`, `prepend (n | print)`.
@@ -320,7 +320,7 @@
   ::builtin{}
 
 :string/append/suffix
-  |~~ The suffix the call gives. ::holds~(isA ::string)
+  |~~ The suffix the call gives. ::holds~(is ::string)
 
       The suffix a string takes is a string; a value of another kind
       becomes one by `print`, `append (n | print)`.
@@ -367,7 +367,7 @@
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON
       data and text built from parts, with the world of keywords, the
-      keys of maps and the discriminators of enums. ::holds~(isA ::keyword)
+      keys of maps and the discriminators of enums. ::holds~(is ::keyword)
 
       ~("foo" | keyword | eq :foo)
       ~("qlang/error" | keyword | eq :qlang/error)

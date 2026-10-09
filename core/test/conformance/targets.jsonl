@@ -75,7 +75,7 @@
 {"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::error/TrailNotVecError]","decision":"D86"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::proj/KeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
-{"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(spec :count) (doc :count | content)]","expect":"[~(/0) \" How many. ::holds~(isA ::number) \"]","decision":["D88","D119"]}
+{"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(spec :count) (doc :count | content)]","expect":"[~(/0) \" How many. ::holds~(is ::number) \"]","decision":["D88","D119"]}
 {"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content","expect":"\" how many \"","decision":["D88","D94","D95","D119"]}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /bindingName]","expect":"[::any/DocBindingNotFoundError ::map/nosuch]","decision":["D88","D119"]}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError","decision":["D88","D156"]}

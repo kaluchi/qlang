@@ -200,49 +200,52 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     };
   }
 
+  // The painted buffer of the last redraw: a move of the cursor leaves
+  // the text as it was, and its paint is not computed again.
+  let paintedText = null;
+  let painted = '';
+
+  function paintOf(text) {
+    if (text !== paintedText) {
+      painted = render(text).replace(/(?<!\r)\n/g, '\r\n');
+      paintedText = text;
+    }
+    return painted;
+  }
+
   function redrawCurrentLine() {
     const width = getColumns();
 
-    // Open a synchronized-output frame so a supporting terminal
-    // commits the whole clear-and-repaint sequence as one atomic
-    // update — without it, the empty window between `\x1b[J` and
-    // the prompt repaint flashes a blank cell on the screen. The
-    // hardware cursor is also hidden so a terminal without sync
-    // support cannot park it in an intermediate column either.
-    stdoutWrite(BEGIN_SYNC);
-    stdoutWrite(HIDE_CURSOR);
-
-    // 1. Walk the terminal cursor up to row 0 of the prior render.
-    if (lastCursorRow > 0) {
-      stdoutWrite(ESC + `[${lastCursorRow}A`);
-    }
-    // 2. Return to column 0 and clear everything from here down —
-    //    wipes the prior render in one go, including any soft-wrap
-    //    rows that a shrinking buffer would otherwise leak.
-    stdoutWrite('\r' + ESC + '[J');
-
-    // 3. Write prompt + highlighted buffer. In raw mode a bare `\n`
-    //    only advances the row; translate to CRLF so column 0 is
-    //    reset at each line break.
-    stdoutWrite(prompt);
-    stdoutWrite(render(buffer).replace(/(?<!\r)\n/g, '\r\n'));
-
-    // 4. Figure out where the hardware cursor landed and walk it
-    //    to the visual position that corresponds to `cursor`.
+    // The paint is computed before the frame opens, while the prior
+    // render still stands, and the frame goes out as one write inside a
+    // synchronized-output frame with the hardware cursor hidden, so no
+    // terminal shows the cleared line between the clear and the repaint.
+    // In raw mode a bare `\n` only advances the row, so the paint ends
+    // each line with CRLF.
+    const paintedBuffer = paintOf(buffer);
     const logicalLines  = buffer.split('\n');
     const totalRows     = countVisualRows(logicalLines, width);
     const cursorVisual  = locateCursorVisual(width);
     const rowsUp        = (totalRows - 1) - cursorVisual.row;
 
-    if (rowsUp > 0) stdoutWrite(ESC + `[${rowsUp}A`);
-    stdoutWrite('\r');
-    if (cursorVisual.col > 0) stdoutWrite(ESC + `[${cursorVisual.col}C`);
+    let frame = BEGIN_SYNC + HIDE_CURSOR;
+    // 1. Walk the terminal cursor up to row 0 of the prior render.
+    if (lastCursorRow > 0) frame += ESC + `[${lastCursorRow}A`;
+    // 2. Return to column 0 and clear everything from here down —
+    //    wipes the prior render in one go, including any soft-wrap
+    //    rows that a shrinking buffer would otherwise leak.
+    frame += '\r' + ESC + '[J';
+    // 3. The prompt and the painted buffer.
+    frame += prompt + paintedBuffer;
+    // 4. Walk the hardware cursor to the visual position of `cursor`.
+    if (rowsUp > 0) frame += ESC + `[${rowsUp}A`;
+    frame += '\r';
+    if (cursorVisual.col > 0) frame += ESC + `[${cursorVisual.col}C`;
+    frame += SHOW_CURSOR + END_SYNC;
+    stdoutWrite(frame);
 
     lastVisualRows = totalRows;
     lastCursorRow  = cursorVisual.row;
-
-    stdoutWrite(SHOW_CURSOR);
-    stdoutWrite(END_SYNC);
   }
 
   function submitCurrentLine() {

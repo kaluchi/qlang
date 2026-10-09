@@ -130,6 +130,23 @@ boundary to perform, the form the open question of effects as emitted
 values lacks, a value a reader builds, reads by its legend and hands on
 before anything acts.
 
+The address `::Box/put` is the verb under the noun of the subject's
+kind, and the vector is the object; the subject itself stays the value
+the step runs on. An object of one map takes named keys, the options
+D40 asked to be one map: each key is a part declared by its selector,
+a default a soft read, and a misspelled key is refused at the selector
+that reads it, with the object in the trail:
+
+```qlang
+:Box/pack/weight
+  |~~ The weight to put inside, in kilograms. ::holds~(type | eq ::number) ~~|
+  ~(/0/weight)
+:Box/pack/note |~~ A note for the courier, none when left out. ~~| ~(/0 | at :note | coalesce "")
+
+> ::Box[1 2 3 4] | pack {:weight 9}
+::Box[1 2 3 9]
+```
+
 A refusal is then named by the address of what refused, with no
 constant written for it: `put "x"` answers
 `::Box/put/weight/HoldsNotMetError`, and `::Box/put/weight | doc` is the
@@ -333,6 +350,38 @@ limit)` holds `~(gt 10)`, prints it, reads back as it and equals what it
 does, while the names of the tree stay names. The price is the print of
 a large value a quote captured, which a budget bounds as it bounds any.
 
+What the capture would touch is narrow: a free name of the quote that
+the reader's scope binds to a value. `~(/)` names nothing, `/` being the
+subject itself; a name the quote declares, `~(:n / | n)`, is its own; a
+word of the vocabulary or a name of the tree stays a name. The
+prototype does not carry the capture yet.
+
+## A name of the reader that takes a word of the subject's
+
+A reader's bare name is found before the verbs the walk of the subject
+reaches [D153], so a value named after a verb stands where the verb was
+meant, refused or answered silently:
+
+```qlang
+> :filter 5 | [1 2 3] | filter ~(gt 1)
+::call/ValueTakesNoModifiersError!{…}
+
+> :sort ~(reverse) | [3 1 2] | sort
+~(reverse)
+
+> :first 9 | {:a [1 2]} | /a | first
+9
+```
+
+Under the model a label controls its names, and the reader's bare names
+are values, since a verb of the reader is an aspect declared under the
+noun it serves, `:vec/second ~(/1)`. The prototype refuses a bare name
+of the reader that takes a word of the vocabulary, the name of a verb
+or of an aspect some label answers, where it is declared, with the
+addresses of the word, `:filter 5` answering
+`::bind/NameTakenByVocabularyError` with `#[::map/filter ::set/filter
+::vec/filter]`; `:limit 2 | [5 6 7] | take limit` answers `[5 6]`.
+
 ## Two thoughts of the maintainer
 
 A step on both tracks, `|!| legend` for `| explain !| explain`. The
@@ -364,7 +413,9 @@ what aspects say by name; the head is the concept the chronology above
 shows stalled. Both readings are withdrawn.
 
 [D2]: ../../decisions/D2.md
+[D40]: ../../decisions/D40.md
 [D50]: ../../decisions/D50.md
 [D61]: ../../decisions/D61.md
+[D153]: ../../decisions/D153.md
 [D161]: ../../decisions/D161.md
 [D162]: ../../decisions/D162.md

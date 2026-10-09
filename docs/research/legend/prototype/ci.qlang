@@ -68,3 +68,14 @@
     :stages [[:checkout :ok 3.1] [:build :ok 41.2] [:unit :flaky 88.5] [:integration :fail 240.7] [:lint :skip 0] [:package :skip 0] [:deploy :skip 0]]
     :owners #[:ann :bob]
     :fails [["parse/empty" 2] ["eval/deep" 3] ["db/pool" 4] ["db/timeout" 4]]}
+
+:Box/pack
+  |~~ The same box packed again: another weight inside, and a note on it.
+      ::call~(pack {:weight 9 :note "fragile"}) ~~|
+  ~(within ~(take 3 | append weight))
+:Box/pack/weight
+  |~~ The weight to put inside, in kilograms. ::holds~(type | eq ::number) ~~|
+  ~(/0/weight)
+:Box/pack/note
+  |~~ A note for the courier, none when left out. ~~|
+  ~(/0 | at :note | coalesce "")

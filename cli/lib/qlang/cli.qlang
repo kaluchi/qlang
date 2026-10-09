@@ -1,8 +1,8 @@
-|~ The command line: its topic, `::cli`, and the verbs it declares on
-   the kinds of their subjects, `table` under `::vec` and the verbs of
-   the streams under `::any`, each with the refusals of its places; their
+|~ The command line: its topic, `::cli`, and the names it declares
+   under the kinds of their subjects, `table` under `::vec` and the names
+   of the streams under `::any`, each with the parts of its object; their
    primitives, in `cli/src/io-operands.mjs` and `format-operands.mjs`,
-   are plain functions over the values the head of each verb checks. ~|
+   are plain functions over the served subject and the parts. ~|
 
 :cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
@@ -39,16 +39,26 @@
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
       the text as it came: ::snippet~(@in | lines | count) counts the
-      lines piped in. ~~|
-  ::verb~(:returns ::string | ::builtin{})
+      lines piped in. ::holds~(isA ::string)
+  ~~|
+  ::builtin{}
 
 :any/@out
   |~~ Writes a line to stdout and answers its subject as it came: the
       subject when it is a string, `"hi" | @out`, or the text a modifier
       computes from it, `42 | @out json`, the steps after still reading
       `42`. A query that writes by `@out` leaves its answer unwritten.
-      ::snippet~([1 2] | @out json | count) writes `[1,2]`. ~~|
-  ::verb~(:text #[::string ::null] | ::builtin{})
+      ::snippet~([1 2] | @out json | count) writes `[1,2]`.
+  ~~|
+  ::builtin{}
+
+:any/@out/text
+  |~~ The text the call gives, null when it gives none. ::holds~(isA ::string ::null)
+
+      The text `@out` writes is a string; a modifier that answers
+      another kind is refused, and `json` or `print` makes the text.
+  ~~|
+  ~(at 0)
 
 :any/OutSubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
@@ -56,18 +66,22 @@
       `42 | @out json` or `{:x 1} | @out print`. ~~|
   ::spec~()
 
-:any/OutRendererResultNotStringError
-  |~~ The text `@out` writes is a string; a modifier that answers
-      another kind is refused, and `json` or `print` makes the text. ~~|
-  ::spec~()
-
 :any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
       writes to stdout, and answers its subject; the answer of the query
       is written as ever.
       ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
-      stderr and answers 3. ~~|
-  ::verb~(:text #[::string ::null] | ::builtin{})
+      stderr and answers 3.
+  ~~|
+  ::builtin{}
+
+:any/@err/text
+  |~~ The text the call gives, null when it gives none. ::holds~(isA ::string ::null)
+
+      The text `@err` writes is a string; `json` or `print` makes one
+      of any value.
+  ~~|
+  ~(at 0)
 
 :any/ErrSubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
@@ -75,23 +89,21 @@
       json` or `@err print`. ~~|
   ::spec~()
 
-:any/ErrRendererResultNotStringError
-  |~~ The text `@err` writes is a string; `json` or `print` makes one
-      of any value. ~~|
-  ::spec~()
-
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject, a look at a value halfway through a query:
       ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
-      shows both vectors and answers 1. ~~|
-  ::verb~(:label ::keyword | ::builtin{})
+      shows both vectors and answers 1.
+  ~~|
+  ::builtin{}
 
-:any/TapLabelNotKeywordError
-  |~~ The label of `@tap` is a keyword, `@tap :before`, written before
-      the value as `[tap before]`. ~~|
-  ::spec~()
+:any/@tap/label
+  |~~ The label the call gives. ::holds~(isA ::keyword)
 
+      The label of `@tap` is a keyword, `@tap :before`, written before
+      the value as `[tap before]`.
+  ~~|
+  ~(/0)
 
 :vec/table
   |~~ A vector of maps drawn as a table of fixed-width columns, a view
@@ -99,24 +111,21 @@
       order across all rows; missing keys render as empty cells. A
       string cell prints bare, null as an empty cell, and every other
       value as its literal on one line. The empty vector yields the marker
-      "(empty)".
+      "(empty)". ::holds~(isA ::string)
 
       ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
       ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
       ~([] | table | eq "(empty)")
-  ~~|
-  ::verb~(:returns ::string | ::builtin{})
 
-:vec/TableSubjectNotVecError
-  |~~ `table` draws a vector of maps, a row each; a single map goes in a
+      `table` draws a vector of maps, a row each; a single map goes in a
       vector first, `[/] | table`.
       ~(
         42 | table
         !| [type /actualType]
-        |  eq [::vec/TableSubjectNotVecError ::number]
+        |  eq [::vec/table/SubjectNotVecError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :vec/TableRowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`

@@ -36,8 +36,8 @@ describe('the verbs that live on a kind', () => {
     expect(await evalQuery('::string | manifest | has ::string/doc')).toBe(false);
   });
 
-  it('an address the listing answers leads the axes to its verb', async () => {
-    expect(await evalQuery('[::number/gt ::number/lt] * (spec | /subject) | every ~(eq ::number)')).toBe(true);
+  it('an address the listing answers leads the axes to its name', async () => {
+    expect(await evalQuery('[::number/gt ::number/lt] * (manifest | first) | eq [::number/gt/than ::number/lt/than]')).toBe(true);
   });
 
   it('a verb of any tagged value lives on the kind of tagged values', async () => {
@@ -47,7 +47,7 @@ describe('the verbs that live on a kind', () => {
   it('a host verb declared under a kind serves its values beneath a tag', async () => {
     const session = await createSession({ sources: [{
       uri: 'tests/typed',
-      source: ':string/shout ::verb~(::builtin{})',
+      source: ':string/shout ::builtin{}',
       impls: { 'string/shout': text => text.toUpperCase() }
     }] });
     expect((await session.evalCell('::Box("hi") | shout')).result).toBe('HI');
@@ -64,7 +64,7 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
     expect(await evalQuery('::vec/count | doc | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | spec | /subject')).toEqual(makeTagKeyword('vec'));
+    expect(await evalQuery('::vec/count | spec | type')).toEqual(makeTagKeyword('builtin'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {

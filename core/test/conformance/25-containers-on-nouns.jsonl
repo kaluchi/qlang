@@ -1,5 +1,5 @@
-{"name":"a-key-of-a-map-is-refused-by-its-residence","query":"{:a 1} | at 42 !| [type /actualType]","expect":"[::map/AtKeyNotKeywordOrStringError ::number]","decision":"D73"}
-{"name":"an-index-of-a-vector-is-refused-by-its-verb","query":"[1 2] | at \"a\" !| type","expect":"::any/AtIndexNotIntegerError","decision":"D73"}
+{"name":"a-key-of-a-map-is-refused-by-its-residence","query":"{:a 1} | at 42 !| [type /actualType]","expect":"[::map/at/key/HoldsNotMetError ::number]","decision":"D73"}
+{"name":"an-index-of-a-vector-is-refused-by-its-part","query":"[1 2] | at \"a\" !| type","expect":"::vec/at/index/HoldsNotMetError","decision":"D73"}
 {"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]","decision":"D72"}
 {"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T","decision":["D41","D72"]}
 {"name":"a-set-reverses-into-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]","decision":["D16","D72"]}
@@ -19,10 +19,10 @@
 {"name":"a-vector-beside-another-operand-is-refused-with-the-pair","query":"[1] | union #[2] !| [type /leftType /rightType]","expect":"[::vec/UnionOperandsMismatchedError ::vec ::set]","decision":["D16","D74"]}
 {"name":"the-contract-of-union-names-its-residences","query":"42 | union !| /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]","decision":["D34","D67","D74"]}
-{"name":"a-set-refuses-another-operand-of-another-kind","query":"#[1] | union [2] !| [type /slot]","expect":"[::verb/SlotNotOfKindsError :with]","decision":"D74"}
-{"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::verb/SlotMissingError","decision":"D74"}
+{"name":"a-set-refuses-another-operand-of-another-kind","query":"#[1] | union [2] !| [type /actualType]","expect":"[::set/union/with/HoldsNotMetError ::vec]","decision":"D74"}
+{"name":"a-map-folds-no-operands","query":"{:a 1} | union !| type","expect":"::map/union/with/NotGivenError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
-{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::set/PayloadNotVecError]","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
-{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::map/PayloadNotMapError ::map/ElementNotPairError ::map/KeyNotKeywordError ::map/AtKeyNotKeywordOrStringError]","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::verb/SlotNotOfKindsError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | spec | /throws","expect":"[::set/PayloadNotVecError]","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
+{"name":"a-place-lists-the-refusal-its-residence-declares","query":"::map/at | spec | /throws","expect":"[::map/PayloadNotMapError ::map/ElementNotPairError ::map/KeyNotKeywordError ::map/at/key/HoldsNotMetError]","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union | spec | /throws | filter ~(eq ::verb/SlotNotOfKindsError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
 {"name":"a-noun-lists-each-refusal-once","query":"::vec | spec | /throws | filter ~(eq ::vec/PayloadNotVecError) | count","expect":"1","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}

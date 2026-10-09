@@ -55,7 +55,7 @@
       A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
       ~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
       ~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
-      ~([1 2 3] | filter (gt 1) !| type | eq ::any/FilterPredicateNotQuoteError)
+      ~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/HoldsNotMetError)
 
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | manifest`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
@@ -82,7 +82,7 @@
       ~({:a 1 :b 5} | filter ~(gt 2) | eq {:b 5})
       A condition is a boolean: `if`, `filter`, `every`, `any` and `cond` refuse any other value, so nothing is truthy.
       ~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
-      ~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/IfConditionNotBooleanError)
+      ~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/if/condition/HoldsNotMetError)
       A string and a keyword turn into each other by `keyword`; text and code turn into each other by `parse`; `print` answers the text a value reads back from, a string.
       ~("draft" | keyword | eq :draft)
       ~(:draft | keyword | eq "draft")
@@ -817,9 +817,9 @@
       vector under a tag and keeps the tag:
       ~([3 1 2] | sort | eq [1 2 3])
       ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
-      A verb declares its slots and the kinds it takes, which `spec`
-      answers before a call:
-      ~(::vec/sort | spec | type | eq ::spec)
+      A name declares the parts of its object as names under it, which
+      `manifest` answers before a call:
+      ~(::vec/sort | manifest | eq #[::vec/sort/key])
       A reader's verb is a name over `::verb` and a quote whose head
       declares its slots, and it takes its arguments after its name:
       ~(:inc ::verb~(:by ::number | add by) | 5 | inc 2 | eq 7)
@@ -925,7 +925,7 @@
       The links of a page open in one query:
       ~(::qlang | doc | links * open | count | gt 0)
       One address passes into its page, its declaration and its source:
-      ~(::vec/take | [(doc | type) (spec | type) (source | type)] | eq [::doc ::spec ::quote])
+      ~(::vec/take | [(doc | type) (spec | type) (source | type)] | eq [::doc ::builtin ::quote])
       A filter over pages searches them:
       ~(::vec | manifest | filter ~(doc | content | contains "after the first") | eq #[::vec/drop])
   ~~|

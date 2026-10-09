@@ -1149,7 +1149,7 @@ The pages of the refusals of the kernel speak the language's words:
 the page of an unknown node of the tree says it is “a defect of the
 runtime, and no failure of the query” (`core/lib/qlang/builtin.qlang`).
 A refusal is named by its address, the noun said once and the last name
-in the language's words, `::tagged/PayloadSubjectNotTaggedError` and
+in the language's words, `::tagged/payload/SubjectNotTaggedError` and
 `::bind/EffectMarkMissingError` among them [D46], [D158].
 
 Examples live on two planes: the conformance suite and the laws of the

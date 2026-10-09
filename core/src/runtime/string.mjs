@@ -6,32 +6,12 @@
 // The verbs live in lib/qlang/string.qlang and vec.qlang.
 
 import { isVec } from '../types.mjs';
-import {
-  declareModifierError,
-  declareSubjectError,
-  declareElementError
-} from '../operand-errors.mjs';
+import { declareElementError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // The refusals the heads raise at the places they declare; the prefix
 // and the suffix are the string's alone, a vector taking any element
 // [D73].
-declareModifierError('string/PrependPrefixNotStringError',     '::string/prepend', 2, 'string');
-declareModifierError('string/AppendSuffixNotStringError',      '::string/append',  2, 'string');
-declareModifierError('string/SplitSubjectNotStringError',      'split',      1, 'string');
-declareModifierError('string/SplitSeparatorNotStringError',    'split',      2, 'string');
-declareSubjectError('string/LinesSubjectNotStringError',       'lines',      'string');
-declareSubjectError('string/LowerSubjectNotStringError',       'lower',      'string');
-declareSubjectError('string/UpperSubjectNotStringError',       'upper',      'string');
-declareSubjectError('string/TrimSubjectNotStringError',        'trim',       'string');
-declareSubjectError('vec/JoinSubjectNotVecError',           'join',       'vec');
-declareModifierError('vec/JoinSeparatorNotStringError',     'join',       2, 'string');
-declareModifierError('string/ContainsSubjectNotStringError',   'contains',   1, 'string');
-declareModifierError('string/ContainsNeedleNotStringError',    'contains',   2, 'string');
-declareModifierError('string/StartsWithSubjectNotStringError', 'startsWith', 1, 'string');
-declareModifierError('string/StartsWithPrefixNotStringError',  'startsWith', 2, 'string');
-declareModifierError('string/EndsWithSubjectNotStringError',   'endsWith',   1, 'string');
-declareModifierError('string/EndsWithSuffixNotStringError',    'endsWith',   2, 'string');
 const VecJoinElementNotStringError = declareElementError('vec/JoinElementNotStringError', 'join', 'string');
 
 // A string takes its prefix or its suffix, a vector its element at the

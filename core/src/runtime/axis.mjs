@@ -29,7 +29,7 @@ import {
 import { signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagLiteralOf } from '../env-keys.mjs';
 import {
-  addressesOf, isNoun, nodeOf, pageAddressesOf, nounMemberOf, residenceOnSubject
+  addressesOf, isNoun, nodeOf, pageAddressesOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -157,9 +157,8 @@ export function claimsOfRecord(record) {
 function memberRecordOf(env, subject, memberName) {
   const declared = declaringRecordOf(env, subject)?.get('value');
   if (isVerb(declared)) return slotMemberOf(declared, memberName);
-  const residence = residenceOnSubject(env, memberName, subject);
-  if (residence !== null || !isTagKeyword(subject) || !isNoun(env, subject.name)) return residence;
-  return nounMemberOf(env, subject.name, memberName);
+  const under = isTagKeyword(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
+  return under ?? residenceOnSubject(env, memberName, subject);
 }
 
 // What the refusal of a member holds: the address the name would have
@@ -211,9 +210,14 @@ function recordAlongPath(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocBindingNotFoundError);
   return anchors.reduce((reached, anchor, index) => {
     if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
-    return recordReadBy(reached, anchor, state, AnyDocBindingNotFoundError);
+    return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocBindingNotFoundError);
   }, subject);
 }
+
+// What the next anchor of a path reads under: the address of the record
+// reached, so a name under a name is read by its address [D164], or the
+// verb, whose head holds its slots.
+const underRecord = record => (isVerb(record.get('value')) ? record : makeTagKeyword(record.get('name').name));
 
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));

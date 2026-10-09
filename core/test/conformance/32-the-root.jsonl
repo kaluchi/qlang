@@ -23,7 +23,7 @@
 {"name":"an-address-reads-a-value","query":":Box ::spec~() | :Box/side 3 | Box/side","expect":"3","decision":"D153"}
 {"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box ::spec~() | :Circle ::spec~() | :Box/area ::verb~(1) | :Circle/area ::verb~(2) | 5 | area !| /addresses","expect":"#[::Box/area ::Circle/area]","decision":"D153"}
 {"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ::verb~(1) !| [type /noun]","expect":"[::bind/NounNotDeclaredError ::Box]","decision":"D153"}
-{"name":"a-verb-resides-where-it-was-first-declared","query":":t {} | :t/tk (::vec/take | binding | /value) | [([1 2 3] | t/tk 2) (\"a\" | t/tk 1 !| type) (::t/tk | spec | /subject)]","expect":"[[1 2] ::verb/SlotNotOfKindsError ::vec]","decision":"D153"}
+{"name":"a-name-resides-under-the-label-it-is-declared-under","query":":T |~~ T ~~| | :T/tk (::vec/take | binding | /value) | :T/tk/count |~~ How many. ~~| ~(/0) | [(::T[1 2 3] | tk 2) ([1 2 3] | T/tk 2 !| type)]","expect":"[[1 2] ::T/tk/SubjectNotTError]","decision":"D164"}
 {"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box ::spec~(:w ::number) | :Box/w2 ::verb~(/w | mul 2) | [(::Box{:w 3} | Box/w2) ({:w 3} | Box/w2 !| type)]","expect":"[6 ::verb/SlotNotOfKindsError]","decision":["D153","D156"]}
 {"name":"a-reader-kind-of-a-builtin-step-runs-it-as-a-step","query":":B ::spec~(::builtin{}) | ::B[1] | type","expect":"::B","decision":["D73","D153"]}
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A ::spec~() | :B ::spec~() | ::verb~(:returns ::number | 1) | [(:A/f (/) | ::A{} | f) (:B/f (/) | ::B{} | f)]","expect":"[1 1]","decision":"D153"}

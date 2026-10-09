@@ -125,35 +125,8 @@ export function throwSiteSpecOf(address) {
   return throwSiteSpecs.get(address);
 }
 
-// The classes of the sites that refuse the value at one place of a verb,
-// the subject or a slot, which the runtime raises when the head it checks
-// refuses there [D72]; each takes the value it refuses.
-const placeRefusalClasses = new Map();
-
-export function recordPlaceRefusal(address, Cls) {
-  placeRefusalClasses.set(address, Cls);
-}
-
-// placeRefusalOf(operandName, positions) → the class of the refusal the
-// site of `operandName` declares at the first of `positions` one
-// declares, or undefined.
-export function placeRefusalOf(operandName, positions) {
-  for (const position of positions) {
-    for (const [address, Cls] of placeRefusalClasses) {
-      const { operand, position: declaredPosition } = throwSiteSpecs.get(address);
-      if (operand === operandName && declaredPosition === position) return Cls;
-    }
-  }
-  return undefined;
-}
-
 export function throwSiteSpecNames() {
   return throwSiteSpecs.keys();
-}
-
-// The name of a site that names a tag in the registry, `::map/at`.
-export function siteOfTag(tagName) {
-  return '::' + tagName;
 }
 
 // ── Per-site declaration ───────────────────────────────────────

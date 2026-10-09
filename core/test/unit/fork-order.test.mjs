@@ -11,7 +11,7 @@ const pause = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 async function sessionRecordingVisits(visits) {
   return await createSession({ sources: [{
     uri: 'probe',
-    source: ':any/@visit ::verb~(::builtin{})',
+    source: ':any/@visit ::builtin{}',
     impls: {
       'any/@visit': async element => {
         visits.push(['start', element]);

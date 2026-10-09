@@ -165,31 +165,47 @@
   ::spec~()
 
 :number/gt
-  |~~ Whether the subject is greater than the number the call gives.
+  |~~ Whether the subject is greater than the number the call gives. ::holds~(isA ::boolean)
 
       ~(10 | gt 5 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:number/gt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :number/gte
   |~~ Whether the subject is greater than or equal to the number the
-      call gives.
+      call gives. ::holds~(isA ::boolean)
 
       ~(10 | gte 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:number/gte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :number/lt
-  |~~ Whether the subject is less than the number the call gives.
+  |~~ Whether the subject is less than the number the call gives. ::holds~(isA ::boolean)
 
       ~(5 | lt 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:number/lt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :number/lte
   |~~ Whether the subject is less than or equal to the number the call
-      gives.
+      gives. ::holds~(isA ::boolean)
 
       ~(10 | lte 10 | eq true)
   ~~|
-  ::verb~(:than ::number | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:number/lte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::number) ~~|
+  ~(/0)

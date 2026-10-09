@@ -30,15 +30,15 @@
   ::spec~()
 
 :construct/TagNotKindError
-  |~~ The tag before a payload addresses a kind, whose declaration is a
-      spec; a tag that addresses a verb or a page names no kind to
-      build by.
+  |~~ The tag before a payload addresses a kind, a label whose
+      declaration is a page or a spec; a tag that addresses a name under
+      a label, a host's primitive or a quote, names no kind to build by.
       ::link~(::construct | doc)
 
       ~(
         ::vec/take[]
         !| [type /tag /actualType]
-        |  eq [::construct/TagNotKindError :vec/take ::verb]
+        |  eq [::construct/TagNotKindError :vec/take ::builtin]
        )
   ~~|
   ::spec~()

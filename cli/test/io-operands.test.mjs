@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
+import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 function captureIoContext(stdinPayload = '') {
   const stdoutChunks = [];
@@ -62,11 +62,11 @@ describe('@out — full-application form (1 captured)', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('lifts OutRendererResultNotStringError when the renderer returns a non-String value', async () => {
+  it('refuses a text of another kind by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out (add 1)', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'any/OutRendererResultNotStringError', {
+    expectRefusalByAddress(cellEntry, 'any/@out/text/HoldsNotMetError', {
       actualType: { name: 'number' }
     });
   });
@@ -75,7 +75,7 @@ describe('@out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'string/PrependPrefixNotStringError', {
+    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/HoldsNotMetError', {
       actualType: { name: 'number' }
     });
   });
@@ -108,10 +108,10 @@ describe('@err — full-application form', () => {
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
-  it('lifts ErrRendererResultNotStringError when the renderer returns a non-String', async () => {
+  it('refuses a text of another kind on stderr by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @err (add 1)', io);
-    expectOperandErrorThrown(cellEntry, 'any/ErrRendererResultNotStringError', {
+    expectRefusalByAddress(cellEntry, 'any/@err/text/HoldsNotMetError', {
       actualType: { name: 'number' }
     });
   });
@@ -127,10 +127,10 @@ describe('@tap', () => {
     expect(io.stdoutText()).toBe('');
   });
 
-  it('lifts TapLabelNotKeywordError onto the fail-track when the label is not a keyword', async () => {
+  it('refuses a label that is not a keyword by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @tap "oops"', io);
-    expectOperandErrorThrown(cellEntry, 'any/TapLabelNotKeywordError', {
+    expectRefusalByAddress(cellEntry, 'any/@tap/label/HoldsNotMetError', {
       actualType: { name: 'string' }
     });
   });

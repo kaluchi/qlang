@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeSet, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
@@ -31,9 +31,10 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(add)).toBe(true);
   });
 
-  it('spot-check — ::vec/filter takes its predicate in a slot of code [D72]', async () => {
+  it('spot-check — ::vec/filter takes its predicate as a part whose law asks for a quote [D166]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::vec/filter | spec | /predicate')).toEqual(makeTagKeyword('quote'));
+    expect(await evalQuery('::vec/filter | manifest')).toEqual(makeSet([makeTagKeyword('vec/filter/predicate')]));
+    expect(await evalQuery('::vec/filter/predicate | doc | content | contains "::holds~(isA ::quote)"')).toBe(true);
   });
 });
 
@@ -140,7 +141,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
-    expect(evalResult).toEqual(makeTagKeyword('any/ApplyCodeNotQuoteError'));
+    expect(evalResult).toEqual(makeTagKeyword('any/apply/code/HoldsNotMetError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {

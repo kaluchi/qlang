@@ -24,4 +24,12 @@
       ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
       ~({:a {:b 1}} | at :a | at :b | eq 1)
   ~~|
-  ::verb~(:place ::any | :default #[::any ::null] | ::builtin{})
+  ::builtin{}
+
+:null/at/place
+  |~~ The place the call reads. ~~|
+  ~(/0)
+
+:null/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)

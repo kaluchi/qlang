@@ -29,88 +29,111 @@
   ::spec~()
 
 :string/gt
-  |~~ Whether the subject follows the string the call gives.
+  |~~ Whether the subject follows the string the call gives. ::holds~(isA ::boolean)
 
       ~("b" | gt "a" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:string/gt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  ~(/0)
 
 :string/gte
-  |~~ Whether the subject follows or equals the string the call gives.
+  |~~ Whether the subject follows or equals the string the call gives. ::holds~(isA ::boolean)
 
       ~("b" | gte "b" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:string/gte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  ~(/0)
 
 :string/lt
-  |~~ Whether the subject precedes the string the call gives.
+  |~~ Whether the subject precedes the string the call gives. ::holds~(isA ::boolean)
 
       ~("a" | lt "b" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:string/lt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  ~(/0)
 
 :string/lte
-  |~~ Whether the subject precedes or equals the string the call gives.
+  |~~ Whether the subject precedes or equals the string the call gives. ::holds~(isA ::boolean)
 
       ~("a" | lte "a" | eq true)
   ~~|
-  ::verb~(:than ::string | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:string/lte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::string) ~~|
+  ~(/0)
 
 :string/count
   |~~ The number of characters of the string, a letter of any script
-      one, the length every other language gives a string.
+      one, the length every other language gives a string. ::holds~(isA ::number)
 
       ~("abc" | count | eq 3)
       ~("привет" | count | eq 6)
       ~("" | count | eq 0)
   ~~|
-  ::verb~(:returns ::number | ::builtin{})
+  ::builtin{}
 
 :string/take
-  |~~ The first count characters of the string.
+  |~~ The first count characters of the string. ::keeps~()
 
       ~("db_host" | take 2 | eq "db")
       ~("ab" | take 5 | eq "ab")
   ~~|
-  ::verb~(:count ::number | :returns / | ::builtin{})
+  ::builtin{}
+
+:string/take/count
+  |~~ How many. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :string/drop
   |~~ The string without its first count characters, the rest after a
-      prefix of known length.
+      prefix of known length. ::keeps~()
 
       ~("db_host" | drop 3 | eq "host")
   ~~|
-  ::verb~(:count ::number | :returns / | ::builtin{})
+  ::builtin{}
+
+:string/drop/count
+  |~~ How many. ::holds~(isA ::number) ~~|
+  ~(/0)
 
 :string/split
   |~~ The substrings between the occurrences of the separator, as a
-      vector. Inverse of `join`.
+      vector. Inverse of `join`. ::holds~(isA ::vec)
 
       ~("a,b,c" | split "," | eq ["a" "b" "c"])
       ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
-  ~~|
-  ::verb~(:separator ::string | :returns ::vec | ::builtin{})
 
-:string/SplitSubjectNotStringError
-  |~~ The subject of `split` is the string it cuts; a vector of strings
+      The subject of `split` is the string it cuts; a vector of strings
       is cut element by element, `* split ","`.
       ~(
         42 | split ","
         !| [type /actualType]
-        |  eq [::string/SplitSubjectNotStringError ::number]
+        |  eq [::string/split/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:string/SplitSeparatorNotStringError
-  |~~ The separator of `split` is a string, `split ","`.
+:string/split/separator
+  |~~ The separator the call gives. ::holds~(isA ::string)
+
+      The separator of `split` is a string, `split ","`.
       ~(
         "abc" | split 42
         !| [type /actualType]
-        |  eq [::string/SplitSeparatorNotStringError ::number]
+        |  eq [::string/split/separator/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/lines
   |~~ The lines of a text, as a vector of strings. A `\n` ends a line
@@ -118,215 +141,204 @@
       closes the last line rather than opening an empty one, so a text
       reads alike with and without it, and the empty text has no lines.
       The text is then worked on as the vector it has become, and
-      `join "\n"` writes it back.
+      `join "\n"` writes it back. ::holds~(isA ::vec)
 
       ~("north\nsouth" | lines | eq ["north" "south"])
       ~("one\r\ntwo\n" | lines | eq ["one" "two"])
       ~("" | lines | eq [])
-  ~~|
-  ::verb~(:returns ::vec | ::builtin{})
 
-:string/LinesSubjectNotStringError
-  |~~ `lines` breaks a string, the text the command line reads with
+      `lines` breaks a string, the text the command line reads with
       `--raw`; a vector of texts is broken element by element, `* lines`.
       ~(
         42 | lines
         !| [type /actualType]
-        |  eq [::string/LinesSubjectNotStringError ::number]
+        |  eq [::string/lines/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :string/lower
   |~~ The string with every letter in lower case, so two strings that
-      differ in case alone compare equal once lowered.
+      differ in case alone compare equal once lowered. ::holds~(isA ::string)
 
       ~("Ann@Example.COM" | lower | eq "ann@example.com")
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
-  ~~|
-  ::verb~(:returns ::string | ::builtin{})
 
-:string/LowerSubjectNotStringError
-  |~~ `lower` works on a string; a vector of strings takes it element by
+      `lower` works on a string; a vector of strings takes it element by
       element, `* lower`, and a field is read first, `/email | lower`.
       ~(
         42 | lower
         !| [type /actualType]
-        |  eq [::string/LowerSubjectNotStringError ::number]
+        |  eq [::string/lower/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :string/upper
-  |~~ The string with every letter in upper case.
+  |~~ The string with every letter in upper case. ::holds~(isA ::string)
 
       ~("ok, go" | upper | eq "OK, GO")
-  ~~|
-  ::verb~(:returns ::string | ::builtin{})
 
-:string/UpperSubjectNotStringError
-  |~~ `upper` works on a string; a vector of strings takes it element by
+      `upper` works on a string; a vector of strings takes it element by
       element, `* upper`.
       ~(
         42 | upper
         !| [type /actualType]
-        |  eq [::string/UpperSubjectNotStringError ::number]
+        |  eq [::string/upper/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :string/trim
   |~~ The string without the whitespace at its two ends, spaces, tabs
       and line breaks, so a field cut out of a line compares as the text
-      it holds.
+      it holds. ::holds~(isA ::string)
 
       ~("  db_host 
 " | trim | eq "db_host")
       ~("a, b ,c" | split "," * trim | eq ["a" "b" "c"])
-  ~~|
-  ::verb~(:returns ::string | ::builtin{})
 
-:string/TrimSubjectNotStringError
-  |~~ `trim` works on a string; a vector of strings takes it element by
+      `trim` works on a string; a vector of strings takes it element by
       element, `* trim`.
       ~(
         42 | trim
         !| [type /actualType]
-        |  eq [::string/TrimSubjectNotStringError ::number]
+        |  eq [::string/trim/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :string/contains
   |~~ Whether the string holds the needle as a substring; the empty
-      needle is always held. Case-sensitive.
+      needle is always held. Case-sensitive. ::holds~(isA ::boolean)
 
       ~("hello world" | contains "world" | eq true)
       ~("hello" | contains "xyz" | eq false)
-  ~~|
-  ::verb~(:needle ::string | :returns ::boolean | ::builtin{})
 
-:string/ContainsSubjectNotStringError
-  |~~ The subject of `::string/contains` is the string searched, where the
+      The subject of `::string/contains` is the string searched, where the
       address calls it; the name `contains` reaches a vector and a set by
       their elements.
       ~(
         42 | string/contains "x"
         !| [type /actualType]
-        |  eq [::string/ContainsSubjectNotStringError ::number]
+        |  eq [::string/contains/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:string/ContainsNeedleNotStringError
-  |~~ The needle of `contains` is a string, `contains "x"`; a keyword
+:string/contains/needle
+  |~~ The text looked for. ::holds~(isA ::string)
+
+      The needle of `contains` is a string, `contains "x"`; a keyword
       gives its name by `keyword`.
       ~(
         "hi" | contains 42
         !| [type /actualType]
-        |  eq [::string/ContainsNeedleNotStringError ::number]
+        |  eq [::string/contains/needle/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/startsWith
   |~~ Whether the string begins with the prefix; the empty prefix
-      always begins it. Case-sensitive.
+      always begins it. Case-sensitive. ::holds~(isA ::boolean)
 
       ~("hello world" | startsWith "hello" | eq true)
       ~("hello" | startsWith "world" | eq false)
-  ~~|
-  ::verb~(:prefix ::string | :returns ::boolean | ::builtin{})
 
-:string/StartsWithSubjectNotStringError
-  |~~ The subject of `startsWith` is the string whose beginning is read;
+      The subject of `startsWith` is the string whose beginning is read;
       a field is read first, `/name | startsWith "a"`.
       ~(
         42 | startsWith "x"
         !| [type /actualType]
-        |  eq [::string/StartsWithSubjectNotStringError ::number]
+        |  eq [::string/startsWith/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:string/StartsWithPrefixNotStringError
-  |~~ The prefix of `startsWith` is a string, `startsWith "he"`.
+:string/startsWith/prefix
+  |~~ The prefix the call gives. ::holds~(isA ::string)
+
+      The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
         "hi" | startsWith 42
         !| [type /actualType]
-        |  eq [::string/StartsWithPrefixNotStringError ::number]
+        |  eq [::string/startsWith/prefix/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/endsWith
   |~~ Whether the string ends with the suffix; the empty suffix always
-      ends it. Case-sensitive.
+      ends it. Case-sensitive. ::holds~(isA ::boolean)
 
       ~("hello world" | endsWith "world" | eq true)
       ~("hello" | endsWith "xyz" | eq false)
-  ~~|
-  ::verb~(:suffix ::string | :returns ::boolean | ::builtin{})
 
-:string/EndsWithSubjectNotStringError
-  |~~ The subject of `endsWith` is the string whose end is read; a field
+      The subject of `endsWith` is the string whose end is read; a field
       is read first, `/file | endsWith ".json"`.
       ~(
         42 | endsWith "x"
         !| [type /actualType]
-        |  eq [::string/EndsWithSubjectNotStringError ::number]
+        |  eq [::string/endsWith/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:string/EndsWithSuffixNotStringError
-  |~~ The suffix of `endsWith` is a string, `endsWith ".json"`.
+:string/endsWith/suffix
+  |~~ The suffix the call gives. ::holds~(isA ::string)
+
+      The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
         "hi" | endsWith 42
         !| [type /actualType]
-        |  eq [::string/EndsWithSuffixNotStringError ::number]
+        |  eq [::string/endsWith/suffix/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/prepend
   |~~ The string with the prefix in front; a tag over the string comes
-      back on the answer.
+      back on the answer. ::keeps~()
 
       ~("world" | prepend "hello " | eq "hello world")
       ~(::Box("b") | prepend "a" | eq ::Box("ab"))
   ~~|
-  ::verb~(:prefix ::string | :returns / | ::builtin{})
+  ::builtin{}
 
-:string/PrependPrefixNotStringError
-  |~~ The prefix a string takes is a string; a value of another kind
+:string/prepend/prefix
+  |~~ The prefix the call gives. ::holds~(isA ::string)
+
+      The prefix a string takes is a string; a value of another kind
       becomes one by `print`, `prepend (n | print)`.
       ~(
         "x" | prepend 42
         !| [type /actualType]
-        |  eq [::string/PrependPrefixNotStringError ::number]
+        |  eq [::string/prepend/prefix/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/append
   |~~ The string with the suffix after it; a tag over the string comes
-      back on the answer.
+      back on the answer. ::keeps~()
 
       ~("hello" | append " world" | eq "hello world")
   ~~|
-  ::verb~(:suffix ::string | :returns / | ::builtin{})
+  ::builtin{}
 
-:string/AppendSuffixNotStringError
-  |~~ The suffix a string takes is a string; a value of another kind
+:string/append/suffix
+  |~~ The suffix the call gives. ::holds~(isA ::string)
+
+      The suffix a string takes is a string; a value of another kind
       becomes one by `print`, `append (n | print)`.
       ~(
         "x" | append 42
         !| [type /actualType]
-        |  eq [::string/AppendSuffixNotStringError ::number]
+        |  eq [::string/append/suffix/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :string/parseJson
   |~~ The qlang value a string of plain JSON spells, the reverse of
@@ -340,20 +352,17 @@
       ~("\"hello\"" | parseJson | eq "hello")
       ~("[1,2,3]" | parseJson | eq [1 2 3])
       ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
-  ~~|
-  ::verb~(::builtin{})
 
-:string/ParseJsonSubjectNotStringError
-  |~~ `parseJson` reads a string of JSON text; a value becomes such text
+      `parseJson` reads a string of JSON text; a value becomes such text
       by `json`.
 
       ~(
         42 | parseJson
         !| [type /actualType]
-        |  eq [::string/ParseJsonSubjectNotStringError ::number]
+        |  eq [::string/parseJson/SubjectNotStringError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :string/ParseJsonTextNotJsonError
   |~~ `parseJson` could not parse the subject as JSON. The message
@@ -366,13 +375,13 @@
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON
       data and text built from parts, with the world of keywords, the
-      keys of maps and the discriminators of enums.
+      keys of maps and the discriminators of enums. ::holds~(isA ::keyword)
 
       ~("foo" | keyword | eq :foo)
       ~("qlang/error" | keyword | eq :qlang/error)
       ~("bar" | keyword | keyword | eq "bar")
   ~~|
-  ::verb~(:returns ::keyword | ::builtin{})
+  ::builtin{}
 
 :string/parse
   |~~ The quote of the steps the source text spells, the reverse of
@@ -384,4 +393,4 @@
       ~("1 | add 1" | parse | count | eq 2)
       ~("add 1 2" | parse | eq ~(add 1 2))
   ~~|
-  ::verb~(::builtin{})
+  ::builtin{}

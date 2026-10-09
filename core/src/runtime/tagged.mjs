@@ -120,7 +120,6 @@ function builtinConstructor(payload) {
 
 bindPrim('builtin', builtinConstructor);
 
-declareSubjectError('tagged/PayloadSubjectNotTaggedError', 'payload', 'taggedInstance');
 const AnyTagModifierNotTagKeywordError = declareModifierError(
   'any/TagModifierNotTagKeywordError', 'tag', 2, 'tagKeyword');
 const AnyTagSubjectNotPairError = declareShapeError('any/TagSubjectNotPairError',
@@ -167,6 +166,4 @@ async function mintPair(pair, state) {
 bindStateReader('any/tag', async (subject, tagName, state) =>
   (isNull(tagName) ? await mintPair(subject, state) : await mintUnderTag(state, tagName, subject)));
 
-declareSubjectError('tagged/WithinSubjectNotTaggedError', 'within', 'taggedInstance');
-declareModifierError('tagged/WithinCodeNotQuoteError', 'within', 2, 'quote');
 

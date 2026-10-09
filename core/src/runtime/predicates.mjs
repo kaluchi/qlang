@@ -13,15 +13,10 @@
 import { typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
-import { declareModifierError, declareSubjectError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
+import { walkToKinds } from './verb.mjs';
 
 // The refusals the heads raise at the places they declare.
-declareModifierError('boolean/AndLeftNotBooleanError',  'and', 1, 'boolean');
-declareModifierError('boolean/AndRightNotBooleanError', 'and', 2, 'boolean');
-declareModifierError('boolean/OrLeftNotBooleanError',   'or',  1, 'boolean');
-declareModifierError('boolean/OrRightNotBooleanError',  'or',  2, 'boolean');
-declareSubjectError('boolean/NotSubjectNotBooleanError', 'not', 'boolean');
 
 bindPrim('any/eq',  (subject, value) => deepEqual(subject, value));
 bindPrim('any/ne',  (subject, value) => !deepEqual(subject, value));
@@ -33,3 +28,7 @@ bindPrim('boolean/and', (left, right) => left && right);
 bindPrim('boolean/or',  (left, right) => left || right);
 bindPrim('boolean/not', subject => !subject);
 bindPrim('any/type', subject => typeKeyword(subject));
+
+// Whether the walk of the subject's tags reaches a value of one of the
+// kinds, a set read as a vector and a tagged map as a map [D34], [D166].
+bindPrim('any/isA', (subject, kinds) => walkToKinds(subject, kinds.map(kind => kind.name)) !== null);

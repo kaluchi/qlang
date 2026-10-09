@@ -3,7 +3,7 @@
 // the runtime modules, which bind their primitives as they load.
 
 export { parse, ParseError } from './parse.mjs';
-export { evalQuery } from './eval.mjs';
+export { evalQuery, answerKindsOf } from './eval.mjs';
 export { langRuntime } from './runtime/index.mjs';
 export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession } from './session.mjs';

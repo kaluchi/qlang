@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
+import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
@@ -64,9 +64,9 @@ describe('table — a view for a terminal', () => {
     expect(cellEntry.result).toBe('(empty)');
   });
 
-  it('lifts TableSubjectNotVecError on a subject other than a Vec', async () => {
+  it('refuses a subject other than a vector under the address of table', async () => {
     const cellEntry = await runQuery('42 | table', noopIo);
-    expectOperandErrorThrown(cellEntry, 'vec/TableSubjectNotVecError', { actualType: { name: 'number' } });
+    expectRefusalByAddress(cellEntry, 'vec/table/SubjectNotVecError', { actualType: { name: 'number' } });
   });
 
   it('lifts VecTableRowNotMapError on a row other than a Map, naming it', async () => {

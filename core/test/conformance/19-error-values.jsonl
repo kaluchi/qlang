@@ -28,7 +28,7 @@
 {"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] * add 10 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D103"}
 {"name":"a-body-that-recovers-keeps-every-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]","decision":"D103"}
 {"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]"}
-{"name":"error-descriptor-not-map","query":"42 | raise !| type | spec | /category","expect":":typeError","decision":"D46","target":true,"now":"::proj/FieldNotInSignatureError"}
+{"name":"error-descriptor-not-map","query":"42 | raise !| type | spec | /category","expect":":typeError","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | raise | add 1 !| /trail/-1/skipped | parse","expect":"\"count | add 1\"","decision":["D85","D97"]}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union {:request \"r-1\"} | raise | count !| /request","expect":"\"r-1\"","decision":"D97"}
 {"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] * (add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2","decision":"D103"}

@@ -8,13 +8,9 @@
 
 import { isNull, isErrorValue, typeKeyword, NULL } from '../types.mjs';
 import { declareArityError, declareShapeError } from '../errors.mjs';
-import { declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // The refusals the head of `if` raises at the places it declares.
-declareModifierError('any/IfConditionNotBooleanError', 'if', 2, 'boolean');
-declareModifierError('any/IfThenNotQuoteError',        'if', 3, 'quote');
-declareModifierError('any/IfElseNotQuoteError',        'if', 4, 'quote');
 
 const AnyCondConditionNotBooleanError = declareShapeError('any/CondConditionNotBooleanError',
   ({ index, actualType }) => `cond takes a boolean from each condition, the condition of modifier ${index} answered ${actualType.name}`,

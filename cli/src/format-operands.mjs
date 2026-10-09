@@ -2,10 +2,9 @@
 // source declares under `::vec` [D153] and a plain function over the
 // vector the head of its verb checks [D80].
 
-import { declareSubjectError, declareElementError } from '@kaluchi/qlang-core/operand-errors';
+import { declareElementError } from '@kaluchi/qlang-core/operand-errors';
 import { printValue } from '@kaluchi/qlang-core';
 
-declareSubjectError('vec/TableSubjectNotVecError', 'table', 'vec');
 const VecTableRowNotMapError     = declareElementError('vec/TableRowNotMapError',     'table', 'map');
 
 // A cell is a view at the boundary: a String prints bare, null as an

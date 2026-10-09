@@ -99,66 +99,60 @@ describe('createSession lifecycle', () => {
 });
 
 describe('the sources a host hands [D153]', () => {
-  // A source of the host declares a verb under the noun of its subject,
-  // with the implementation the host hands beside it [D80].
+  // A source of the host declares a name under the label of its subject,
+  // with the implementation the host hands beside it [D80], [D164].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less ::verb~(:by ::number | ::builtin{})',
-      ':any/@fetch ::verb~(:returns ::string | ::builtin{})',
-      ':any/@doubled ::verb~(@fetch | append @fetch)'
+      ':number/less |~~ The subject less the part. ~~| ::builtin{}',
+      ':number/less/by |~~ How much less. ::holds~(isA ::number) ~~| ~(/0)',
+      ':any/@fetch |~~ The text fetched. ::holds~(isA ::string) ~~| ::builtin{}',
+      ':any/@doubled ~(@fetch | append @fetch)'
     ].join('\n'),
     impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
   }];
 
-  it('runs a host verb through the implementation handed beside its source', async () => {
+  it('runs a host name through the implementation handed beside its source', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTagKeyword('number/PayloadNotNumberError'));
+      .toEqual(makeTagKeyword('number/less/by/HoldsNotMetError'));
   });
 
-  it('runs a verb of steps the source declares over the host\'s own', async () => {
+  it('runs a name of steps the source declares over the host\'s own', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('@doubled')).result).toBe('fetchedfetched');
   });
 
-  it('answers the head of a host verb as its signature', async () => {
+  it('answers a host name as its descriptor, whose answer its page holds a law of', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/@fetch | spec | [type /returns]')).result)
-      .toEqual([makeTagKeyword('spec'), makeTagKeyword('string')]);
+    expect((await sessionInstance.evalCell('::any/@fetch | spec | type')).result).toEqual(makeTagKeyword('builtin'));
+    expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTagKeyword('string'));
   });
 
-  it('records the source a host verb came from as its origin', async () => {
+  it('records the source a host name came from as its origin', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::number/less | binding | /origin')).result).toEqual(keyword('tests/host'));
   });
 
-  it('runs a host verb whose builtin step names no primitive by the implementation handed for it', async () => {
+  it('runs a host name whose descriptor names no primitive by the implementation handed for it', async () => {
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/handed',
-      source: ':any/twice ::verb~(:by ::number | ::builtin{})',
+      source: ':any/twice ::builtin{} | :any/twice/by |~~ The factor. ::holds~(isA ::number) ~~| ~(/0)',
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('number/PayloadNotNumberError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('any/twice/by/HoldsNotMetError'));
   });
 
-  it('calls a verb a source declares under no noun by its name, last of all', async () => {
-    const { verbShownFor } = await import('../../src/runtime/verb.mjs');
-    const sessionInstance = await createSession({ sources: [{
-      uri: 'tests/bare',
-      source: ':shout ::verb~(:subject ::string | ::builtin{})',
-      impls: { shout: text => text.toUpperCase() }
-    }] });
-    expect((await sessionInstance.evalCell('"hi" | shout')).result).toBe('HI');
-    expect((await sessionInstance.evalCell('5 | shout !| type')).result)
-      .toEqual(makeTagKeyword('verb/SlotNotOfKindsError'));
-    expect(verbShownFor(sessionInstance.env, 'shout')).toBe((await sessionInstance.evalCell(':shout | binding | /value')).result);
+  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {
+    await expect(createSession({ sources: [{
+      uri: 'tests/bare', source: ':shout ::verb~(::builtin{})', impls: { shout: text => text.toUpperCase() }
+    }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
-  it('refuses a verb ending in ::builtin{} the host hands nothing for, as the root is declared', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::verb~(::builtin{})' }] }))
+  it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
       .rejects.toMatchObject({ name: 'ImplementationNotHandedError', context: { name: 'any/hello' } });
   });
 
@@ -209,7 +203,7 @@ describe('a cell whose failure is no error value', () => {
     const sessionInstance = await createSession({
       sources: [{
         uri: 'tests/collapse',
-        source: ':any/collapse ::verb~(::builtin{})',
+        source: ':any/collapse ::builtin{}',
         impls: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
       }]
     });

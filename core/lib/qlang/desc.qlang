@@ -5,33 +5,49 @@
 :desc/gt
   |~~ Whether the subject follows the value the call gives among
       descending values, which holds when its payload precedes the
-      other's.
+      other's. ::holds~(isA ::boolean)
 
       ~(1 | desc | gt (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:desc/gt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::desc) ~~|
+  ~(/0)
 
 :desc/gte
   |~~ Whether the subject follows or equals the value the call gives
-      among descending values.
+      among descending values. ::holds~(isA ::boolean)
 
       ~(2 | desc | gte (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:desc/gte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::desc) ~~|
+  ~(/0)
 
 :desc/lt
   |~~ Whether the subject precedes the value the call gives among
       descending values, which holds when its payload follows the
-      other's.
+      other's. ::holds~(isA ::boolean)
 
       ~(2 | desc | lt (1 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:desc/lt/than
+  |~~ The value the subject is compared with. ::holds~(isA ::desc) ~~|
+  ~(/0)
 
 :desc/lte
   |~~ Whether the subject precedes or equals the value the call gives
-      among descending values.
+      among descending values. ::holds~(isA ::boolean)
 
       ~(2 | desc | lte (2 | desc) | eq true)
   ~~|
-  ::verb~(:than ::desc | :returns ::boolean | ::builtin{})
+  ::builtin{}
+
+:desc/lte/than
+  |~~ The value the subject is compared with. ::holds~(isA ::desc) ~~|
+  ~(/0)

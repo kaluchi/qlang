@@ -246,8 +246,9 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
 });
 
 describe(':name | spec returns the env-side declaration descriptor', () => {
-  it('::vec/take | spec answers the signature of the verb, its noun the subject [D72]', async () => {
-    expect(await evalQuery('::vec/take | spec | /subject')).toEqual(makeTagKeyword('vec'));
+  it('::vec/take | spec answers the value of the name, the descriptor of its primitive, and of a part its selector [D164]', async () => {
+    expect(printValue(await evalQuery('::vec/take | spec'))).toBe('::builtin{}');
+    expect(printValue(await evalQuery('::vec/take | spec :count'))).toBe('~(/0)');
   });
 
   it('a value that is no name reads the descriptor of its kind', async () => {

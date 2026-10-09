@@ -127,12 +127,6 @@ export function residencesOf(env, verbName) {
   return residences;
 }
 
-// The member a noun holds under a name that is no verb, or null [D117].
-export function nounMemberOf(env, nounName, memberName) {
-  const record = nodeOf(env, `${nounName}/${memberName}`);
-  return record !== null && !isVerb(bindingValueOf(record)) ? record : null;
-}
-
 // A noun: a node some declaration names a path under.
 export function isNoun(env, tagName) {
   const prefix = `${tagName}/`;

@@ -10,3 +10,11 @@
 {"name":"at-answers-its-default-for-a-place-it-does-not-find","query":"[] | at 0 7","expect":"7","decision":"D166"}
 {"name":"at-keeps-a-null-it-finds","query":"[null] | at 0 7","expect":"null","decision":"D166"}
 {"name":"a-bare-name-of-the-reader-takes-no-word-of-the-vocabulary","query":":filter 5 !| type","expect":"::bind/NameTakenByVocabularyError","decision":"D166"}
+{"name":"a-selector-of-steps-runs-them-after-the-place","query":":Box |~~ B ~~| | :Box/put |~~ P ~~| ~(weight) | :Box/put/weight |~~ W ~~| ~(/0 | div 0) | ::Box[1] | put 5 !| type","expect":"::number/div/ByZeroError","decision":"D166"}
+{"name":"a-key-a-selector-of-steps-misses-is-a-part-not-given","query":":Box |~~ B ~~| | :Box/put |~~ P ~~| ~(note) | :Box/put/note |~~ N ~~| ~(/0 | /note) | ::Box[1] | put {} !| type","expect":"::Box/put/note/NotGivenError","decision":"D166"}
+{"name":"a-place-a-selector-of-steps-misses-is-a-part-not-given","query":":Box |~~ B ~~| | :Box/put |~~ P ~~| ~(w) | :Box/put/w |~~ W ~~| ~(/1 | add 0) | ::Box[1] | put 5 !| type","expect":"::Box/put/w/NotGivenError","decision":"D166"}
+{"name":"a-law-isA-of-a-kind-computed-runs-as-code","query":":Box |~~ B ~~| | :Box/put |~~ P ~~| ~(weight) | :Box/put/weight |~~ W ::holds~(isA (::number)) ~~| ~(/0) | [(::Box[1] | put 5) (::Box[1] | put \"x\" !| type)]","expect":"[5 ::Box/put/weight/HoldsNotMetError]","decision":"D166"}
+{"name":"an-answer-that-breaks-the-law-of-its-name-is-refused-by-the-name","query":":Box |~~ B ~~| | :Box/half |~~ Half the first. ::holds~(isA ::string) ~~| ~(/0 | div 2) | ::Box[4] | half !| [type /actualType]","expect":"[::Box/half/HoldsNotMetError ::number]","decision":"D166"}
+{"name":"a-name-a-reader-verb-declares-no-slot-under-is-refused-with-no-addresses","query":":twice ::verb~(:x ::number | mul x) | :twice | doc :nosuch !| [type /addresses]","expect":"[::any/DocBindingNotFoundError #[]]","decision":"D119"}
+{"name":"a-path-of-anchors-reads-a-slot-of-a-verb-under-a-label","query":":Box |~~ B ~~| | :Box/twice ::verb~(:x ::number | mul x) | ::Box | doc [:twice :x]","expect":"null","decision":"D119"}
+{"name":"an-anchor-under-a-tag-that-names-nothing-is-refused-by-its-name","query":"::Nothing | doc :x !| [type /bindingName]","expect":"[::any/DocBindingNotFoundError :x]","decision":"D119"}

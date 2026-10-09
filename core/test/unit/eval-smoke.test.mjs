@@ -247,7 +247,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     const s = await createSession({
       sources: [{
         uri: 'tests/bomb',
-        source: ':any/bomb ::verb~(::builtin{})',
+        source: ':any/bomb ::builtin{}',
         impls: { 'any/bomb': () => { throw new Error('raw boom'); } }
       }]
     });

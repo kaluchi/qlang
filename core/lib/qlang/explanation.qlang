@@ -5,12 +5,12 @@
 :explanation/page
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
-      site; null for a declaration without one.
+      site; null for a declaration without one. ::holds~(isA ::doc ::null)
 
       ~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
       ~(42 | explain | page | eq (::number | doc))
   ~~|
-  ::verb~(:returns #[::doc ::null] | /page)
+  ~(/page)
 
 :explanation/value
   |~~ The value the explanation explains; an error among them raised, as
@@ -19,4 +19,4 @@
       ~(42 | explain | value | eq 42)
       ~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
-  ::verb~(/value)
+  ~(/value)

@@ -5,9 +5,11 @@
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
+import { createSession } from '../../src/session.mjs';
 import { shownFor, slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
 import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
-import { bindingValueOf, keyword, makeBinding, residenceOfVerb } from '../../src/types.mjs';
+import { answerKindsOf } from '../../src/eval.mjs';
+import { keyword, makeBinding } from '../../src/types.mjs';
 
 describe('the head of a verb as the tooling reads it', () => {
   it('labels the slots as the head writes them, the rest behind a star', async () => {
@@ -16,10 +18,11 @@ describe('the head of a verb as the tooling reads it', () => {
   });
 
   it('shows the verb a name binds, its slots labeled', async () => {
-    const env = await langRuntime();
-    const takeVerb = verbShownFor(env, 'take');
-    expect(slotLabelsOf(takeVerb)).toEqual([':count ::number']);
-    expect(shownFor(env, 'take').labels).toEqual([':count ::number']);
+    const env = new Map(await langRuntime());
+    const twice = await evalQuery('::verb~(:x ::number | mul x)');
+    env.set('twice', makeBinding({ name: keyword('twice'), value: twice }));
+    expect(slotLabelsOf(verbShownFor(env, 'twice'))).toEqual([':x ::number']);
+    expect(shownFor(env, 'twice').labels).toEqual([':x ::number']);
   });
 
   it('shows a name under a label by its address and the parts of its object [D164]', async () => {
@@ -32,15 +35,31 @@ describe('the head of a verb as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('shows the first verb a contract answers for', async () => {
-    const env = await langRuntime();
-    expect(residenceOfVerb(verbShownFor(env, 'gt'))).not.toBeNull();
+  it('shows the first name a contract answers for, and the parts of its object', async () => {
+    const shown = shownFor(await langRuntime(), 'gt');
+    expect(shown.address.name.endsWith('/gt')).toBe(true);
+    expect(shown.labels).toEqual(['than']);
   });
 
-  it('shows the verb any value answers, and nothing for a name no verb goes by', async () => {
+  it('shows the name any value answers, and nothing for a name no verb goes by', async () => {
     const env = await langRuntime();
-    expect(verbShownFor(env, 'type')).toBe(bindingValueOf(nodeOf(env, 'any/type')));
+    expect(shownFor(env, 'type').address.name).toBe('any/type');
+    expect(verbShownFor(env, 'type')).toBeUndefined();
     expect(verbShownFor(env, 'nosuchverb')).toBeUndefined();
+  });
+
+  it('shows the first verb a contract a reader declares answers for', async () => {
+    const session = await createSession();
+    await session.evalCell(':any/zap ::verb~() | :vec/zap ::verb~(count)');
+    const zap = (await session.evalCell('::vec/zap | binding | /value')).result;
+    expect(verbShownFor(session.env, 'zap')).toBe(zap);
+  });
+
+  it('reads the kinds of the answer of a name from its page, the subject\'s own where it keeps them [D166]', async () => {
+    const env = await langRuntime();
+    expect(answerKindsOf(nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
+    expect(answerKindsOf(nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
+    expect(answerKindsOf(nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
   it('shows a contract no verb answers for as it is', async () => {

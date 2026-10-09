@@ -15,85 +15,80 @@
 
 :boolean/not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
-      subject of another kind is refused.
+      subject of another kind is refused. ::holds~(isA ::boolean)
 
       ~(false | not | eq true)
       ~(true | not | eq false)
       ~(null | eq null | eq true)
-  ~~|
-  ::verb~(:returns ::boolean | ::builtin{})
 
-:boolean/NotSubjectNotBooleanError
-  |~~ `not` turns a boolean; a value is asked whether it is absent by
+      `not` turns a boolean; a value is asked whether it is absent by
       `eq null`, and a container whether it is empty by `empty`.
       ~(
         0 | not
         !| [type /actualType]
-        |  eq [::boolean/NotSubjectNotBooleanError ::number]
+        |  eq [::boolean/not/SubjectNotBooleanError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
 :boolean/and
   |~~ Whether the subject and the right condition both hold, each a
       boolean. Two conditions of one record hold together by `allOf`,
       `allOf /active (/age | gte 18)`, which composes the clauses of a
-      predicate inside `filter`, `every` and `if`.
+      predicate inside `filter`, `every` and `if`. ::holds~(isA ::boolean)
 
       ~(true | and false | eq false)
       ~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
       ~({:active false :age 25} | allOf /active (/age | gte 18) | eq false)
-  ~~|
-  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 
-:boolean/AndLeftNotBooleanError
-  |~~ The left condition of `and` must answer a boolean.
+      The left condition of `and` must answer a boolean.
       ~(
         1 | and true
         !| [type /actualType]
-        |  eq [::boolean/AndLeftNotBooleanError ::number]
+        |  eq [::boolean/and/SubjectNotBooleanError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:boolean/AndRightNotBooleanError
-  |~~ The right condition of `and` must answer a boolean.
+:boolean/and/right
+  |~~ The condition on the right. ::holds~(isA ::boolean)
+
+      The right condition of `and` must answer a boolean.
       ~(
         true | and 1
         !| [type /actualType]
-        |  eq [::boolean/AndRightNotBooleanError ::number]
+        |  eq [::boolean/and/right/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)
 
 :boolean/or
   |~~ Whether the subject or the right condition holds, each a boolean.
       Conditions of one subject hold by one of them through `anyOf`,
-      `5 | anyOf (eq 5) (eq 10)`.
+      `5 | anyOf (eq 5) (eq 10)`. ::holds~(isA ::boolean)
 
       ~(false | or true | eq true)
       ~(5  | anyOf (eq 5) (eq 10) | eq true)
       ~(7  | anyOf (eq 5) (eq 10) | eq false)
       ~({:role "admin"} | anyOf (/role | eq "admin") (/role | eq "owner") | eq true)
-  ~~|
-  ::verb~(:right ::boolean | :returns ::boolean | ::builtin{})
 
-:boolean/OrLeftNotBooleanError
-  |~~ The left condition of `or` must answer a boolean.
+      The left condition of `or` must answer a boolean.
       ~(
         1 | or true
         !| [type /actualType]
-        |  eq [::boolean/OrLeftNotBooleanError ::number]
+        |  eq [::boolean/or/SubjectNotBooleanError ::number]
        )
   ~~|
-  ::spec~()
+  ::builtin{}
 
-:boolean/OrRightNotBooleanError
-  |~~ The right condition of `or` must answer a boolean.
+:boolean/or/right
+  |~~ The condition on the right. ::holds~(isA ::boolean)
+
+      The right condition of `or` must answer a boolean.
       ~(
         false | or 1
         !| [type /actualType]
-        |  eq [::boolean/OrRightNotBooleanError ::number]
+        |  eq [::boolean/or/right/HoldsNotMetError ::number]
        )
   ~~|
-  ::spec~()
+  ~(/0)

@@ -111,8 +111,8 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site name is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('"x" | prepend 42');
-    expect(originalErr.name).toBe('PrependPrefixNotStringError');
+    const originalErr = await catchOriginalError('[1 2 3] | take 1.5');
+    expect(originalErr.name).toBe('TakeCountNotIntegerError');
   });
 });
 
@@ -123,11 +123,11 @@ describe('error class branding survives Object.defineProperty (minification prox
   // verify the contract here: even if we artificially shadow the
   // class identifier, the runtime `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('"x" | prepend 42');
-    expect(originalErr.name).toBe('PrependPrefixNotStringError');
+    const originalErr = await catchOriginalError('[1 2 3] | take 1.5');
+    expect(originalErr.name).toBe('TakeCountNotIntegerError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('PrependPrefixNotStringError');
+    expect(originalErr.constructor.name).toBe('TakeCountNotIntegerError');
   });
 });
 

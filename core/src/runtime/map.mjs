@@ -7,16 +7,11 @@
 // The verbs live in lib/qlang/map.qlang and set.qlang.
 
 import { keyword, isKeyword, isQMap, isQSet, makeSet } from '../types.mjs';
-import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
 // The refusals the heads raise at the places they declare; the key of
 // `has` is the map's alone, the element of a set being any value [D73].
-declareSubjectError('map/KeysSubjectNotMapError', 'keys', 'map');
-declareSubjectError('map/ValsSubjectNotMapError', 'vals', 'map');
-declareSubjectError('map/EntriesSubjectNotMapError', 'entries', 'map');
-declareModifierError('map/HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
 
 // `keys` answers a map's keys as the sorted Set of keywords [D15]
 // and `vals` its values as a Vec, in the order of the entries.

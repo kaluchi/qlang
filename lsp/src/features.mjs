@@ -3,7 +3,7 @@
 
 import {
   parse, ParseError,
-  langRuntime, evalQuery,
+  langRuntime, evalQuery, answerKindsOf, isVerb, bindingValueOf,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   writesTag,
@@ -249,8 +249,9 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, and a verb's `:returns`, `/` for its
-// subject's own [D67]; null where a step answers no declared kind.
+// container's through `*`, a name's the law `isA` of its page asks of its
+// answer, the subject's own where the page keeps them [D166], and a
+// reader's verb's `:returns`; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
@@ -269,6 +270,8 @@ async function kindsAfterStep(step, kinds) {
   const runtime = await langRuntime();
   const reached = verbsReaching(runtime, kinds).get(step.name);
   if (reached === undefined) return null;
+  const record = nodeOf(runtime, reached.address.name);
+  if (!isVerb(bindingValueOf(record))) return answerKindsOf(record, kinds);
   const returns = await evalQuery(`${reached.address.literal} | spec | /returns`, runtime);
   if (isTagKeyword(returns)) return [returns.name];
   return typeKeyword(returns).name === 'proj' ? kinds : null;

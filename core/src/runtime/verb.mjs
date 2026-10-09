@@ -18,16 +18,15 @@
 // verb without a body is a contract, which answers no call.
 
 import { bindPrim, readsState, readsPassedTags } from '../primitives.mjs';
-import { codeOf, evalAst, mintTaggedInstance } from '../eval.mjs';
-import { addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf, splitAddress } from './nouns.mjs';
+import { evalAst, mintTaggedInstance } from '../eval.mjs';
+import { addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf } from './nouns.mjs';
 import { envSet, nestState, withEnv, withPipeValue } from '../state.mjs';
 import { astOfQuote, printQuoteSource, quoteOfBody, quoteOfSource, slotDocsOf, stepOfNode } from '../quote.mjs';
 import { declaredNameOf, isPureLiteralAst, repeatsDeclarationInScope } from '../walk.mjs';
 import { classifyEffect } from '../effect.mjs';
 import { findFirstEffectfulIdentifier } from '../effect-check.mjs';
 import {
-  BindNameDeclaredTwiceError, CallEffectMarkMissingError, declareArityError, declareShapeError,
-  placeRefusalOf, siteOfTag
+  BindNameDeclaredTwiceError, CallEffectMarkMissingError, declareArityError, declareShapeError
 } from '../errors.mjs';
 import { declareSubjectError } from '../operand-errors.mjs';
 import {
@@ -85,10 +84,6 @@ const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbErro
   { operand: '::verb' });
 
 const ROLE_NAMES = new Set(['subject', 'returns']);
-// The positions a site's refusal declares for the subject; the k-th slot
-// is at k + 1 [D72].
-const SUBJECT_POSITIONS = ['subject', 1];
-const slotPositions = index => [index + 2];
 const RETURNS_SUBJECT = Symbol('returnsSubject');
 const CODE_KIND_NAMES = new Set(['quote', 'verb']);
 
@@ -215,12 +210,12 @@ function isBuiltinStep(body) {
   return body?.type === 'TaggedLit' && body.tag === BUILTIN_TAG.name && body.payload.type === 'MapLit';
 }
 
-// endsInBuiltin(value) → whether a verb or a kind ends in a `::builtin{}`
-// step, or a name under a label is one, which runs an implementation of
-// the host's [D164].
+// endsInBuiltin(value) → whether a kind ends in a `::builtin{}` step, or
+// a name under a label is one, which runs an implementation of the
+// host's [D164]; in a verb it is a step [D73].
 export function endsInBuiltin(value) {
   if (isBuiltinDescriptor(value)) return true;
-  return (isVerb(value) || isSpec(value)) && signatureOf(value.payload).builtin;
+  return isSpec(value) && signatureOf(value.payload).builtin;
 }
 
 // `::verb~(…)` — the verb over a quote, whose head is read here, so a
@@ -283,14 +278,10 @@ export function walkToKinds(value, kindNames) {
 // of one kind, the value its constructor reads, which is the check of the
 // kind [D60], [D68]; a subject and code are taken only as they are
 // [D156]. `place` names the slot or the role, `{ slot }`, and for a value of
-// the rest its index from 1, `{ slot, index }` [D77]; `siteRefusal`
-// finds the refusal a built-in's site declares there, raised in place of
-// the kind's [D72], and runs only for a value the kinds refuse.
-async function servedByKinds(value, kindNames, state, place, siteRefusal) {
+// the rest its index from 1, `{ slot, index }` [D77].
+async function servedByKinds(value, kindNames, state, place) {
   const walked = walkToKinds(value, kindNames);
   if (walked !== null) return walked;
-  const PlaceRefusal = siteRefusal?.();
-  if (PlaceRefusal !== undefined) throw new PlaceRefusal(value);
   const refusalFacts = { ...place, actualType: typeKeyword(value), actualValue: value };
   if (kindNames.length === 1 && CODE_KIND_NAMES.has(kindNames[0])) throw new VerbCodeNotQuoteError(refusalFacts);
   if (kindNames.length > 1 || place.slot.name === 'subject') {
@@ -336,67 +327,39 @@ function asCodeOfSlot(slot, kindNames, value, scopeEnv) {
   return quoteInEnv(quoteOfSource(slot.name), envSet(scopeEnv, slot.name, slotRecord(slot, value)));
 }
 
-// The refusal a built-in's site declares at one of `positions`: the one
-// that names the address of the residence, `::map/at`, where the verbs
-// of a name check a place differently, and otherwise the one that names
-// the verb, by the last name of its first declaration [D73], [D157];
-// undefined for a verb of steps.
-function siteRefusalAt(signature, verb, positions) {
-  if (!callsPrimitive(signature, verb)) return undefined;
-  const siteName = splitAddress(addressOfVerb(verb))[1];
-  const residence = residenceOfVerb(verb);
-  return (residence === null ? undefined : placeRefusalOf(siteOfTag(`${residence}/${siteName}`), positions))
-    ?? placeRefusalOf(siteName, positions);
-}
-
-// Whether a verb calls a primitive: one a host's source declared [D153];
-// a `::builtin` step in any other verb is a step, so no head a reader
-// writes reaches a primitive past its declaration's [D73].
-function callsPrimitive(signature, verb) {
-  return signature.builtin && isHostDeclared(verb);
-}
-
 // The scope of the body: the verb's own with each slot bound to the
-// record of its value, which a body of steps reads and a primitive does
-// not, and the values in the order of the slots, or the error a modifier
-// or a constructor answered. The kinds of the head are read in the
-// verb's scope.
-async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName) {
+// record of its value, or the error a modifier or a constructor
+// answered. The kinds of the head are read in the verb's scope.
+async function bodyScopeOf(signature, slotLambdas, state, scopeEnv, verbName) {
   const { slots, rest } = signature;
-  const bindsSlotNames = !callsPrimitive(signature, verb);
   const scopeState = withPipeValue(withEnv(state, scopeEnv), null);
-  const takeModifier = async (slot, kindNames, modifierLambda, positions, place) => {
+  const takeModifier = async (slot, kindNames, modifierLambda, place) => {
     const modifier = await modifierLambda(state.pipeValue);
     if (isErrorValue(modifier) && !takesCodeAlone(kindNames)) return modifier;
-    const { served } = await servedByKinds(modifier, kindNames, scopeState, place, () => siteRefusalAt(signature, verb, positions));
+    const { served } = await servedByKinds(modifier, kindNames, scopeState, place);
     return asCodeOfSlot(slot, kindNames, served, scopeEnv);
   };
   let bodyEnv = scopeEnv;
-  const slotValues = [];
   for (const [index, slot] of slots.entries()) {
     const { kindNames, defaultValue } = await kindNamesOfSlot(slot, scopeState);
     let value;
-    if (index < slotLambdas.length) {
-      value = await takeModifier(slot, kindNames, slotLambdas[index], slotPositions(index), { slot: keyword(slot.name) });
-    }
+    if (index < slotLambdas.length) value = await takeModifier(slot, kindNames, slotLambdas[index], { slot: keyword(slot.name) });
     else if (slot.optional) value = defaultValue;
     else throw new VerbSlotMissingError({ verbName, slot: keyword(slot.name) });
     if (isErrorValue(value)) return { failed: value };
-    slotValues.push(value);
-    if (bindsSlotNames) bodyEnv = envSet(bodyEnv, slot.name, slotRecord(slot, value));
+    bodyEnv = envSet(bodyEnv, slot.name, slotRecord(slot, value));
   }
   if (rest !== null) {
     const { kindNames } = await kindNamesOfSlot(rest, scopeState);
     const gathered = [];
     for (const [restIndex, modifierLambda] of slotLambdas.slice(slots.length).entries()) {
-      const value = await takeModifier(rest, kindNames, modifierLambda, [], { slot: keyword(rest.name), index: restIndex + 1 });
+      const value = await takeModifier(rest, kindNames, modifierLambda, { slot: keyword(rest.name), index: restIndex + 1 });
       if (isErrorValue(value)) return { failed: value };
       gathered.push(value);
     }
-    slotValues.push(Object.freeze(gathered));
-    if (bindsSlotNames) bodyEnv = envSet(bodyEnv, rest.name, slotRecord(rest, Object.freeze(gathered)));
+    bodyEnv = envSet(bodyEnv, rest.name, slotRecord(rest, Object.freeze(gathered)));
   }
-  return { bodyEnv, slotValues };
+  return { bodyEnv };
 }
 
 // The answer under the kind the verb returns: as it is without
@@ -407,6 +370,13 @@ async function bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbNa
 async function answerOfKind(answer, returns, served, passedTags, scopeState, state) {
   if (returns === null || isErrorValue(answer)) return answer;
   if (returns !== RETURNS_SUBJECT) return (await servedByKinds(answer, returns, scopeState, { slot: keyword('returns') })).served;
+  return await keptAsSubject(answer, served, passedTags, state);
+}
+
+// The answer of the subject's own kind, minted by its constructor, a
+// set's, a tag's or a quote's among them, under the tags the walk passed
+// [D41], [D166].
+export async function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeKeyword(served).name;
   const kept = walkToKinds(answer, [ownKind])?.served ?? await mintUnderTag(state, makeTagKeyword(ownKind), answer);
   return await underTags(kept, passedTags, state);
@@ -452,13 +422,10 @@ export async function callVerbOn(verb, subject, slotLambdas, state, verbName) {
   const subjectKinds = signature.subjectKinds ?? residenceKindsOf(verb);
   const { served, passedTags } = subjectKinds === null
     ? { served: subject, passedTags: [] }
-    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') }, () => siteRefusalAt(signature, verb, SUBJECT_POSITIONS));
-  const { bodyEnv, slotValues, failed } = await bodyScopeOf(signature, verb, slotLambdas, state, scopeEnv, verbName);
+    : await servedByKinds(subject, subjectKinds, scopeState, { slot: keyword('subject') });
+  const { bodyEnv, failed } = await bodyScopeOf(signature, slotLambdas, state, scopeEnv, verbName);
   if (failed !== undefined) return failed;
-  const primitive = callsPrimitive(signature, verb) ? hostImplOf(verb) : null;
-  const answer = primitive !== null
-    ? await runPrimitive(primitive, served, passedTags, primitiveArgumentsOf(signature, slotValues, state), state)
-    : (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
+  const answer = (await evalAst(signature.body, nestState(state, served, bodyEnv))).pipeValue;
   return await answerOfKind(answer, signature.returns, served, passedTags, scopeState, state);
 }
 
@@ -469,17 +436,6 @@ export function runPrimitive(primitive, served, passedTags, slotArguments, state
   if (readsState(primitive)) return primitive(served, ...slotArguments, state);
   if (readsPassedTags(primitive)) return primitive(served, ...slotArguments, passedTags);
   return primitive(served, ...slotArguments);
-}
-
-// What a primitive takes for its slots: each value as the head checked
-// it, a quote in a slot of code closed at the call into the code it runs
-// [D4], [D73], and the rest as the vector of its values, closed alike
-// [D77].
-function primitiveArgumentsOf(signature, slotValues, state) {
-  const takenBy = (slot, value) => (isQuote(value) && slot.kindNames?.includes('quote') ? codeOf(value, state) : value);
-  const fixed = signature.slots.map((slot, index) => takenBy(slot, slotValues[index]));
-  if (signature.rest === null) return fixed;
-  return [...fixed, slotValues[signature.slots.length].map(value => takenBy(signature.rest, value))];
 }
 
 // A name without the effect marker refuses a verb whose body calls one.
@@ -522,7 +478,8 @@ export function slotLabelsOf(verb) {
 export function verbShownFor(env, name) {
   const reached = bindingValueOf(bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1]);
   if (!isVerb(reached)) return undefined;
-  return isContract(reached) ? bindingValueOf(residencesOf(env, name)[0]?.[1]) ?? reached : reached;
+  const first = bindingValueOf(residencesOf(env, name)[0]?.[1]);
+  return isContract(reached) && isVerb(first) ? first : reached;
 }
 
 // shownFor(env, name) → what a tool shows for a name, `{ address, labels }`:
@@ -531,12 +488,11 @@ export function verbShownFor(env, name) {
 // it takes, the slots of a verb's head or the parts of the object of a
 // name under a label [D164]; undefined for a name that reaches neither.
 export function shownFor(env, name) {
-  const record = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
+  const reached = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
+  const answering = isVerb(bindingValueOf(reached)) && isContract(bindingValueOf(reached)) ? residencesOf(env, name)[0]?.[1] : undefined;
+  const record = answering ?? reached;
   const value = bindingValueOf(record);
-  if (isVerb(value)) {
-    const verb = verbShownFor(env, name);
-    return { address: makeTagKeyword(addressOfVerb(verb)), labels: slotLabelsOf(verb) };
-  }
+  if (isVerb(value)) return { address: makeTagKeyword(addressOfVerb(value)), labels: slotLabelsOf(value) };
   if (!isMemberValue(value)) return undefined;
   const address = record.get('name').name;
   const labels = [...namesUnderOf(env, address)].filter(([, part]) => isQuote(bindingValueOf(part))).map(([partName]) => partName);

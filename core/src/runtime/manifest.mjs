@@ -5,22 +5,22 @@
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
 import { declareShapeError } from '../errors.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
 import { evalQuery } from '../eval.mjs';
 import { claimsOfRecord, recordReadBy } from './axis.mjs';
 import { namesUnder } from './nouns.mjs';
 import { printQuoteSource } from '../quote.mjs';
 
-declareSubjectError('tag/ManifestSubjectNotTagError', 'manifest', 'tag');
 const AnyRunLawsBindingNotFoundError = declareShapeError('any/RunLawsBindingNotFoundError',
   ({ bindingName }) =>
     `runLaws: no declaration found for '${bindingName}'`,
   { operand: 'runLaws' });
 
-// The message of an error: a raised one's `:message`, a site's its own.
+// The message of an error: a site's its own, a raised one's `:message`,
+// and the address of a refusal by address or of a raise without one
+// [D166].
 function errorMessageOf(errorValue) {
   if (errorValue.originalError) return errorValue.originalError.message;
-  return errorValue.descriptor.get('message');
+  return errorValue.descriptor.get('message') ?? `::${errorValue.tag.name}`;
 }
 
 bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));

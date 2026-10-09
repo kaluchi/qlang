@@ -23,14 +23,10 @@
 // here extends `QlangTypeError`, so `instanceof QlangTypeError` holds
 // and `.kind` reads `typeError`, while the concrete class narrows the
 // throw site to one operand, place and condition:
-// `number/add/SubjectNotNumberError`, `map/KeysSubjectNotMapError`.
+// `number/add/SubjectNotNumberError`, `map/keys/SubjectNotMapError`.
 
 import {
-  QlangTypeError,
-  brand,
-  lastNameOf,
-  recordPlaceRefusal,
-  recordThrowSiteSpec
+  QlangTypeError, brand, lastNameOf, recordThrowSiteSpec
 } from './errors.mjs';
 import { typeKeyword } from './types.mjs';
 
@@ -40,12 +36,6 @@ import { typeKeyword } from './types.mjs';
 function lowerExpectedTypeHuman(input) {
   const tags = (Array.isArray(input) ? input : [input]).map(name => `::${name}`);
   return tags.length === 1 ? tags[0] : `${tags.slice(0, -1).join(', ')} or ${tags.at(-1)}`;
-}
-
-// The place a position names in a full application: 1 the subject, 2
-// the first modifier [D72].
-function placeOf(position) {
-  return position === 1 ? 'as its subject' : `in modifier ${position - 1}`;
 }
 
 // A refusal's identity is its address, which every factory below
@@ -70,7 +60,6 @@ export function declareSubjectError(address, operand, expectedTypeInput) {
       this.name = lastNameOf(address);
     }
   };
-  recordPlaceRefusal(address, Cls);
   return brand(Cls, address);
 }
 
@@ -85,13 +74,12 @@ export function declareModifierError(address, operand, position, expectedTypeInp
     constructor(actualValue) {
       const actualType = typeKeyword(actualValue);
       super(
-        `${operand} takes ${expectedTypeHuman} ${placeOf(position)}, got ::${actualType.name}`,
+        `${operand} takes ${expectedTypeHuman} in modifier ${position - 1}, got ::${actualType.name}`,
         { actualType, actualValue }
       );
       this.name = lastNameOf(address);
     }
   };
-  recordPlaceRefusal(address, Cls);
   return brand(Cls, address);
 }
 

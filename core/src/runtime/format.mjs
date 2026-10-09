@@ -12,7 +12,6 @@
 import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareInvariantError, declarePerSiteError, declareShapeError } from '../errors.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { dispatchQlangValue, printValue } from './print-value.mjs';
 
@@ -134,7 +133,6 @@ function plainObjectToQMap(plainObj, path) {
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the head of its verb checked [D72].
-declareSubjectError('string/ParseJsonSubjectNotStringError', 'parseJson', 'string');
 const StringParseJsonTextNotJsonError = declareShapeError('string/ParseJsonTextNotJsonError',
   ({ message }) => `parseJson: invalid JSON — ${message}`,
   { operand: 'parseJson' });

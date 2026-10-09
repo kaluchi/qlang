@@ -27,48 +27,48 @@
 
 :doc/content
   |~~ The text of the doc: its prose with each quote written where it
-      stands.
+      stands. ::holds~(isA ::string)
 
       ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
       ~(::vec/join | doc | content | contains "separator")
   ~~|
-  ::verb~(:returns ::string | ::builtin{})
+  ::builtin{}
 
 :doc/segments
   |~~ The parts of the doc in their order: each run of prose a string
       and each span that reads as code a quote, bare or under the tags
-      of its role.
+      of its role. ::holds~(isA ::vec)
 
       ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
       ~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
   ~~|
-  ::verb~(:returns ::vec | ::builtin{})
+  ::builtin{}
 
 :doc/laws
   |~~ The laws of the doc in their order: each quote with no tag, which
       `runLaws` holds to answer true; a quote under a tag, a link or a
-      snippet, is no law.
+      snippet, is no law. ::holds~(isA ::vec)
 
       ~(|~~ a ~(add 1) b ~(mul 2) ~~| | laws | eq [~(add 1) ~(mul 2)])
       ~("x" | add 1 !| explain | page | laws | count | eq 3)
   ~~|
-  ::verb~(:returns ::vec | ::builtin{})
+  ::builtin{}
 
 :doc/links
   |~~ The links of the doc in their order: each quote under a stack of
-      tags that holds `::link`, a query a reader follows.
+      tags that holds `::link`, a query a reader follows. ::holds~(isA ::vec)
 
       ~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
       ~(|~~ ::link~(::vec | manifest) ~~| | links | first | :l / | null | apply l | has ::vec/count)
   ~~|
-  ::verb~(:returns ::vec | ::builtin{})
+  ::builtin{}
 
 :doc/snippets
   |~~ The snippets of the doc in their order: each quote under a stack
       of tags that holds `::snippet`, a query a reader runs to see what
-      it shows.
+      it shows. ::holds~(isA ::vec)
 
       ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
       ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])
   ~~|
-  ::verb~(:returns ::vec | ::builtin{})
+  ::builtin{}

@@ -40,6 +40,22 @@ import { QlangTypeError, isErrorValue, isTagKeyword } from '@kaluchi/qlang-core'
 // partial shape — only listed fields are checked, so a test can pin
 // the per-site-significant subset without re-asserting invariants
 // every site already shares.
+// expectRefusalByAddress(cellEntry, address, expectedFacts) → error value
+//
+// A refusal named by the address of what refused, a name's subject or a
+// part's law [D166]: an error value no JS throw stands behind, its facts
+// in its descriptor.
+export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
+  expect(cellEntry.error, 'cellEntry.error must be null (the refusal is a value)').toBeNull();
+  const errorValue = cellEntry.result;
+  expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
+  expect(errorValue.tag.name).toBe(address);
+  for (const [fact, expected] of Object.entries(expectedFacts)) {
+    expect(errorValue.descriptor.get(fact)).toMatchObject(expected);
+  }
+  return errorValue;
+}
+
 export function expectOperandErrorThrown(cellEntry, address, expectedContext) {
   expect(cellEntry.error, 'cellEntry.error must be null (throw is lifted onto fail-track)').toBeNull();
   const errorValue = cellEntry.result;

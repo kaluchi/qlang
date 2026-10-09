@@ -5,13 +5,11 @@
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { isQuote } from '../types.mjs';
-import { declareModifierError } from '../operand-errors.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { codeOf } from '../eval.mjs';
 
 // The refusal the head of `apply` raises at the code it declares.
-declareModifierError('any/ApplyCodeNotQuoteError', 'apply', 2, 'quote');
 
 // A source the parser refuses answers the `::ParseError` with the
 // location and the excerpt of the source.

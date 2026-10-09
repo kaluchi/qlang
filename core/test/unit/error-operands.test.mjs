@@ -18,7 +18,7 @@ describe('raise operand', () => {
 
   it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
     const evalResult = await evalQuery('42 | raise !| type');
-    expect(evalResult).toEqual(makeTagKeyword('map/RaiseSubjectNotMapError'));
+    expect(evalResult).toEqual(makeTagKeyword('map/raise/SubjectNotMapError'));
   });
 
   it('an error in the pipe rides past raise', async () => {
@@ -149,9 +149,8 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
-  it('keys on non-Map → KeysSubjectNotMapError', async () => {
-    const caughtErr = await catchOriginalError('42 | keys');
-    expect(caughtErr.name).toBe('KeysSubjectNotMapError');
+  it('keys on non-Map is refused under the address of keys [D166]', async () => {
+    expect((await evalQuery('42 | keys')).tag.name).toBe('map/keys/SubjectNotMapError');
   });
 
   it('a subject of another kind is refused under the address of the name [D166]', async () => {
@@ -169,14 +168,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(tags).toEqual(['number/sub/SubjectNotNumberError', 'number/mul/SubjectNotNumberError', 'number/div/SubjectNotNumberError']);
   });
 
-  it('prepend modifier non-string → PrependPrefixNotStringError', async () => {
-    const caughtErr = await catchOriginalError('"x" | prepend 42');
-    expect(caughtErr.name).toBe('PrependPrefixNotStringError');
-  });
-
-  it('append modifier non-string → AppendSuffixNotStringError', async () => {
-    const caughtErr = await catchOriginalError('"x" | append 42');
-    expect(caughtErr.name).toBe('AppendSuffixNotStringError');
+  it('a prefix or a suffix of another kind is refused by the law of its part [D166]', async () => {
+    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/HoldsNotMetError');
+    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/HoldsNotMetError');
   });
 
   it('sum element non-number → AnySumElementNotNumberError', async () => {
@@ -186,10 +180,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('string');
   });
 
-  it('gt across kinds → the refusal of the head, by the kind of its slot [D65], [D72]', async () => {
-    const caughtErr = await catchOriginalError('"a" | gt 5');
-    expect(caughtErr.name).toBe('PayloadNotStringError');
-    expect(caughtErr.context.actualType.name).toBe('number');
+  it('gt across kinds is refused by the law of its part, the kind it met among the facts [D166]', async () => {
+    const refused = await evalQuery('"a" | gt 5');
+    expect(refused.tag.name).toBe('string/gt/than/HoldsNotMetError');
+    expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
   it('projection on non-Map → ProjSubjectNotProjectableError', async () => {
@@ -215,29 +209,20 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.context.actualType.name).toBe('number');
   });
 
-  it('at with non-keyword-and-non-string key on Map → AtKeyNotKeywordOrStringError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} | at 42');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('AtKeyNotKeywordOrStringError');
-    expect(caughtErr.context.actualType.name).toBe('number');
+  it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
+    for (const [query, address] of [['{:a 1} | at 42', 'map/at/key/HoldsNotMetError'], ['{:a 1} | has 42', 'map/has/key/HoldsNotMetError']]) {
+      const refused = await evalQuery(query);
+      expect(refused.tag.name).toBe(address);
+      expect(refused.descriptor.get('actualType').name).toBe('number');
+    }
   });
 
-  it('has with non-keyword-and-non-string key on Map → HasKeyNotKeywordOrStringError', async () => {
-    const caughtErr = await catchOriginalError('{:a 1} | has 42');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('HasKeyNotKeywordOrStringError');
-    expect(caughtErr.context.actualType.name).toBe('number');
+  it('payload on non-TaggedInstance is refused under the address of payload [D166]', async () => {
+    expect((await evalQuery('42 | payload')).tag.name).toBe('tagged/payload/SubjectNotTaggedError');
   });
 
-  it('payload on non-TaggedInstance → PayloadSubjectNotTaggedError', async () => {
-    const caughtErr = await catchOriginalError('42 | payload');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('PayloadSubjectNotTaggedError');
-    expect(caughtErr.context.actualType.name).toBe('number');
-  });
-
-  it('tag with non-TagKeyword captured-arg → AnyTagModifierNotTagKeywordError', async () => {
-    const caughtErr = await catchOriginalError('42 | tag :foo');
+  it('a tag of a pair that is a keyword is refused by the primitive of tag', async () => {
+    const caughtErr = await catchOriginalError('[:foo 42] | tag');
     expect(caughtErr).toBeInstanceOf(QlangTypeError);
     expect(caughtErr.name).toBe('TagModifierNotTagKeywordError');
     expect(caughtErr.context.actualType.name).toBe('keyword');
@@ -281,12 +266,12 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('take count non-integer → AnyTakeCountNotIntegerError', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | take "x"');
+    const caughtErr = await catchOriginalError('[1 2 3] | take 1.5');
     expect(caughtErr.name).toBe('TakeCountNotIntegerError');
   });
 
   it('drop count non-integer → AnyDropCountNotIntegerError (distinct from take)', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | drop "x"');
+    const caughtErr = await catchOriginalError('[1 2 3] | drop 1.5');
     expect(caughtErr.name).toBe('DropCountNotIntegerError');
   });
 
@@ -301,7 +286,6 @@ describe('per-site error classes carry unique identity', () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',
-      '"a" | gt 5',
       '42 | /name',
       '42 * add 1',
       '5 | :five / | five 42',
@@ -316,22 +300,20 @@ describe('per-site error classes carry unique identity', () => {
     }
   });
 
-  it('throw sites produce distinct class names (no sharing)', async () => {
-    const names = new Set();
+  it('throw sites refuse under addresses of their own (no sharing)', async () => {
+    const addresses = new Set();
     const queries = [
-      '42 | count',        // CallKindAnswersNoVerbError, the contract of count
-      '42 | keys',         // KeysSubjectNotMapError
-      '42 | vals',         // ValsSubjectNotMapError
-      '1 | /name',         // ProjSubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '42 * add 1',       // EachSubjectNotContainerError
-      '[1 2 3] | reduce 0 ~(42)' // AnyReduceReducerNotBinaryError
+      '42 | count',        // call/KindAnswersNoVerbError, the contract of count
+      '42 | keys',         // map/keys/SubjectNotMapError
+      '42 | vals',         // map/vals/SubjectNotMapError
+      '1 | /name',         // proj/SubjectNotProjectableError (Number subject — neither Map nor Vec)
+      '42 * add 1',       // each/SubjectNotContainerError
+      '[1 2 3] | reduce 0 ~(42)' // any/ReduceReducerNotBinaryError
     ];
     for (const q of queries) {
-      names.add((await catchOriginalError(q)).name);
+      addresses.add((await evalQuery(q)).tag.name);
     }
-    // Every query produces a distinct class — the whole point of
-    // the refactor is that no two sites share an exception type.
-    expect(names.size).toBe(queries.length);
+    expect(addresses.size).toBe(queries.length);
   });
 });
 

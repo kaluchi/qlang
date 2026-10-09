@@ -93,7 +93,7 @@ describe('the object of a call', () => {
 });
 
 describe('a host\'s primitive under a label', () => {
-  it('runs over the served value and the parts of the object, a quote closed at the call', async () => {
+  it('runs over the served value and the parts of the object, a quote closed at the call where the part asks for one', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/gauge',
@@ -101,7 +101,7 @@ describe('a host\'s primitive under a label', () => {
           ':Gauge |~~ A reading. ~~|',
           ':Gauge/construct |~~ The reading as a number. ~~| ::builtin{}',
           ':Gauge/over |~~ Whether the reading passes the test. ~~| ::builtin{}',
-          ':Gauge/over/test |~~ The test. ~~| ~(/0)',
+          ':Gauge/over/test |~~ The test. ::holds~(isA ::quote) ~~| ~(/0)',
           ':Gauge/shifted |~~ The reading shifted. ~~| ::builtin{}',
           ':Gauge/shifted/by |~~ The shift. ~~| ~(/0)',
           ':Dial |~~ A reading of a dial. ~~|',

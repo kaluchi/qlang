@@ -3,12 +3,12 @@
 {"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::any/EveryConditionNotBooleanError 1]","decision":"D14"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false","decision":"D14"}
 {"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::any/AnyConditionNotBooleanError 1]","decision":"D14"}
-{"name":"if-refuses-a-null-condition","query":"null | if (/) ~(1) ~(2) !| type","expect":"::any/IfConditionNotBooleanError","decision":"D14"}
+{"name":"if-refuses-a-null-condition","query":"null | if (/) ~(1) ~(2) !| type","expect":"::any/if/condition/HoldsNotMetError","decision":"D14"}
 {"name":"if-with-an-identity-branch-runs-the-branch","query":"5 | if (gt 0) ~(add 100) ~()","expect":"105","decision":"D14"}
 {"name":"if-with-an-identity-branch-leaves-the-subject","query":"-5 | if (gt 0) ~(add 100) ~()","expect":"-5","decision":"D14"}
 {"name":"cond-hands-on-the-error-of-a-predicate","query":"\"x\" | cond ~(noSuchName) ~(1) !| type","expect":"::call/UnknownNameError","decision":"D14"}
-{"name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/AndLeftNotBooleanError","decision":"D14"}
-{"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/OrRightNotBooleanError","decision":"D14"}
+{"name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError","decision":"D14"}
+{"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/HoldsNotMetError","decision":"D14"}
 {"name":"not-negates-a-boolean","query":"false | not","expect":"true","decision":"D14"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]","decision":"D14"}
 {"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x |~~ ~(1) ~~| 1 | :x | runLaws | first | /ok","expect":"false","decision":["D14","D123"]}

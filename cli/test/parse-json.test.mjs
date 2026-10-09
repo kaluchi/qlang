@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown } from './helpers/error-assertions.mjs';
+import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
@@ -39,9 +39,9 @@ describe('parseJson — happy path', () => {
 });
 
 describe('parseJson — error sites', () => {
-  it('lifts ParseJsonSubjectNotStringError when the subject is not a String', async () => {
+  it('refuses a subject that is not a string under the address of parseJson', async () => {
     const cellEntry = await runQuery('42 | parseJson', noopIo);
-    expectOperandErrorThrown(cellEntry, 'string/ParseJsonSubjectNotStringError', {
+    expectRefusalByAddress(cellEntry, 'string/parseJson/SubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });

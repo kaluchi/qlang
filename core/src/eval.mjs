@@ -29,7 +29,7 @@ import {
   BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -37,7 +37,7 @@ import {
 } from './runtime/nouns.mjs';
 import {
   applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
-  runPrimitive, underTags, walkToKinds
+  runPrimitive, keptAsSubject, walkToKinds
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -392,7 +392,10 @@ async function refusalOfLaws(record, value, state, scope, tagName) {
   for (const doc of record.get('docs')) {
     for (const segment of doc) {
       if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
-      const answer = (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
+      const kinds = kindsAskedBy(astOfQuote(segment.payload));
+      const answer = kinds !== null
+        ? walkToKinds(value, kinds) !== null
+        : (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
       if (isErrorValue(answer)) return answer;
       if (answer !== true) return refusalUnder(tagName, { holds: segment.payload, actualValue: value });
     }
@@ -650,9 +653,18 @@ async function applyMember(record, lambdas, state) {
   if (isErrorValue(read)) return withPipeValue(state, read);
   const answer = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, read.bodyEnv))).pipeValue
-    : await runHostMember(member, walked, read.values, state);
-  const keeps = !isErrorValue(answer) && hasPageRole(record, 'keeps');
-  return withPipeValue(state, keeps ? await underTags(answer, walked.passedTags, state) : answer);
+    : await runHostMember(member, walked, read, state);
+  if (isErrorValue(answer)) return withPipeValue(state, answer);
+  const given = hasPageRole(record, 'keeps') ? await keptAsSubject(answer, walked.served, walked.passedTags, state) : answer;
+  return withPipeValue(state, await refusalOfLaws(record, given, state, scope, `${address}/HoldsNotMetError`) ?? given);
+}
+
+// answerKindsOf(record, subjectKinds) → the kinds of the answer a name
+// under a label gives, for a tool: the subject's own where its page keeps
+// them, the kinds the first law `isA` of its page asks for, or null
+// [D166].
+export function answerKindsOf(record, subjectKinds) {
+  return hasPageRole(record, 'keeps') ? subjectKinds : lawKindsOf(record);
 }
 
 // The scope a name under a label runs in: a quote's own, over the tree of
@@ -693,8 +705,8 @@ function placesReadBy(parts) {
 // no integer for a part that reads the object whole or its tail.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  if (head.type === 'Projection') return Number(head.keys[0]);
-  return head.type === 'OperandCall' && head.name === 'at' ? head.args[0].value : NaN;
+  if (head.type === 'Projection') return head.keys.length === 1 ? Number(head.keys[0]) : NaN;
+  return head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value : NaN;
 }
 
 // The object of a call, the values of its modifiers each computed against
@@ -707,26 +719,88 @@ function placeReadBy(ast) {
 async function objectOf(address, parts, lambdas, state, scope) {
   if (lambdas.length === 0 && parts.length === 0) return { values: [], bodyEnv: scope };
   const values = [];
-  for (const lambda of lambdas) {
-    const value = await lambda(state.pipeValue);
-    if (isErrorValue(value)) return value;
-    values.push(value);
-  }
+  for (const lambda of lambdas) values.push(await lambda(state.pipeValue));
+  const failed = values.findIndex(isErrorValue);
+  if (failed !== -1) return refusalOfComputedCode(address, parts, failed, values[failed]);
   const object = makeTaggedInstance(makeTagKeyword(address), values);
   const places = placesReadBy(parts);
   if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object });
   let bodyEnv = envSet(scope, 'object', makeBinding({ name: keyword('object'), value: object }));
   const partValues = [];
+  const taken = [];
   for (const [partName, partRecord] of parts) {
     const partAddress = `${address}/${partName}`;
-    const part = (await evalBody(astOfQuote(bindingValueOf(partRecord)), nestState(state, object, scope))).pipeValue;
-    if (isErrorValue(part)) return isMissedPlace(part) ? refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object }) : part;
+    const part = await partOf(astOfQuote(bindingValueOf(partRecord)), values, nestState(state, object, scope));
+    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object });
+    if (isErrorValue(part)) return part;
     const refused = await refusalOfLaws(partRecord, part, state, scope, `${partAddress}/HoldsNotMetError`);
     if (refused !== null) return refused;
-    partValues.push(part);
-    bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: part }));
+    const kinds = lawKindsOf(partRecord);
+    const handed = kinds === null ? part : walkToKinds(part, kinds).served;
+    const rest = !Number.isInteger(placeReadBy(astOfQuote(bindingValueOf(partRecord))));
+    partValues.push(handed);
+    taken.push({ name: partName, rest, code: rest || (kinds?.includes('quote') ?? false) });
+    bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
-  return { values: partValues, bodyEnv };
+  return { values: partValues, taken, bodyEnv };
+}
+
+// A value the call computed that answered an error: where a part that
+// takes code reads its place, the step ran on the subject by mistake,
+// `filter /active` for `filter ~(/active)`, and the part refuses it with
+// the error as its value; elsewhere the error is the answer [D67].
+function refusalOfComputedCode(address, parts, place, error) {
+  for (const [partName, partRecord] of parts) {
+    if (placeReadBy(astOfQuote(bindingValueOf(partRecord))) !== place || !lawKindsOf(partRecord)?.includes('quote')) continue;
+    return refusalUnder(`${address}/${partName}/HoldsNotMetError`, { holds: lawOf(partRecord), actualValue: error });
+  }
+  return error;
+}
+
+// The value a part's selector reads from the object: a place read `/n`
+// or `at n default` is the value at the place, read here as `at` reads
+// it, so the selectors of `at` itself read without calling it; any
+// other selector runs as code over the object.
+async function partOf(ast, values, state) {
+  if (!readsOnePlace(ast)) return (await evalBody(ast, state)).pipeValue;
+  const index = placeReadBy(ast);
+  if (index < values.length) return values[index];
+  if (ast.type === 'Projection') return MISSED_PLACE;
+  return ast.args.length === 1 ? null : (await evalBody(ast.args[1], state)).pipeValue;
+}
+
+// A strict read of a place past the values of the object.
+const MISSED_PLACE = Symbol('missedPlace');
+
+// Whether a selector is one step that reads one place, `/n` or `at n`
+// with a default or none.
+function readsOnePlace(ast) {
+  return ast.type !== 'Pipeline' && Number.isInteger(placeReadBy(ast)) && (ast.type === 'Projection' || ast.args.length <= 2);
+}
+
+// The kinds the first law `isA` of a part's page asks for, or null: the
+// part is handed as the value of the kind the walk of its tags reaches,
+// the tags it passed left behind, as a subject is served, and a part
+// that asks for a quote takes code [D166].
+function lawKindsOf(partRecord) {
+  const law = lawOf(partRecord);
+  return law === undefined ? null : kindsAskedBy(astOfQuote(law));
+}
+
+// The first law of a page, the quote of its first `::holds`.
+function lawOf(record) {
+  for (const doc of record.get('docs')) {
+    for (const segment of doc) {
+      if (isValueClass(segment, 'taggedInstance') && segment.tag.name === 'holds') return segment.payload;
+    }
+  }
+  return undefined;
+}
+
+// The kinds a law of one step `isA ::k …` asks for, or null.
+function kindsAskedBy(ast) {
+  if (ast.type !== 'OperandCall' || ast.name !== 'isA') return null;
+  return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
 }
 
 // A strict read of a place the object does not hold.
@@ -736,9 +810,24 @@ function isMissedPlace(error) {
 
 // A primitive runs over the value the walk served and the values of the
 // parts, a quote closed at the call [D4], as a verb's primitive runs.
-async function runHostMember(member, walked, values, state) {
-  const handed = values.map(value => (isQuote(value) ? codeOf(value, state) : value));
+async function runHostMember(member, walked, read, state) {
+  const handed = read.values.map((value, index) => {
+    const { name, rest, code } = read.taken[index];
+    const takenBy = element => (!code ? element
+      : isQuote(element) ? codeOf(element, state)
+      : isVerb(element) ? codeOf(quoteOfVerb(element, name, state), state)
+      : element);
+    const served = rest ? walkToKinds(value, ['vec'])?.served : undefined;
+    return isVec(served) ? served.map(takenBy) : takenBy(value);
+  });
   return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
+}
+
+// A verb handed where code is taken is the quote that runs it, as a slot
+// of code took it [D67].
+function quoteOfVerb(verb, name, state) {
+  const scope = envSet(state.env, name, makeBinding({ name: keyword(name), value: verb }));
+  return quoteInEnv(quoteOfSource(name), scope);
 }
 
 // Whether a record's page holds a quote under the tag of a role.

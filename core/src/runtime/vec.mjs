@@ -43,13 +43,6 @@ const AnyIndexByKeyNotKeywordError = declareShapeError('any/IndexByKeyNotKeyword
 
 // The slot that runs code per element takes a quote, and a value
 // computed at the call is refused by the head at the site's place.
-declareModifierError('any/FilterPredicateNotQuoteError', 'filter',  2, 'quote');
-declareModifierError('any/EveryPredicateNotQuoteError',  'every',   2, 'quote');
-declareModifierError('any/AnyPredicateNotQuoteError',    'any',     2, 'quote');
-declareModifierError('any/GroupByKeyNotQuoteError',      'groupBy', 2, 'quote');
-declareModifierError('any/IndexByKeyNotQuoteError',      'indexBy', 2, 'quote');
-declareModifierError('any/SortKeyNotQuoteError',         'sort',    2, 'quote');
-declareModifierError('any/ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 
 // A count and an index are whole numbers: the head refuses a value of
 // another kind at the site's place, and the primitive a fraction. A key
@@ -57,7 +50,6 @@ declareModifierError('any/ReduceReducerNotQuoteError',   'reduce',  3, 'quote');
 const AnyTakeCountNotIntegerError = declareModifierError('any/TakeCountNotIntegerError', 'take', 2, 'integer');
 const AnyDropCountNotIntegerError = declareModifierError('any/DropCountNotIntegerError', 'drop', 2, 'integer');
 const AnyAtIndexNotIntegerError   = declareModifierError('any/AtIndexNotIntegerError',   'at',   2, 'integer');
-declareModifierError('map/AtKeyNotKeywordOrStringError', '::map/at', 2, ['keyword', 'string']);
 
 function wholeOrRefuse(value, ErrorCls) {
   if (!Number.isInteger(value)) throw new ErrorCls(value);

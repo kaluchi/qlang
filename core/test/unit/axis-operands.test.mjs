@@ -1,4 +1,4 @@
-// Axis-operands — `source`, `doc`, `spec` project the record a
+// Axis-operands — `source`, `doc`, `binding` project the record a
 // declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
@@ -241,24 +241,15 @@ describe('axis-operands resolve the binding the evaluator dispatches', () => {
   });
 });
 
-describe(':name | spec returns the env-side declaration descriptor', () => {
-  it('::vec/take | spec answers the value of the name, the descriptor of its primitive, and of a part its selector [D164]', async () => {
-    expect(printValue(await evalQuery('::vec/take | spec'))).toBe('::builtin{}');
-    expect(printValue(await evalQuery('::vec/take | spec :count'))).toBe('~(/0)');
+describe(':name | binding | /value answers the value of the declaration', () => {
+  it('::vec/take reads the descriptor of its primitive, and a part its selector [D164]', async () => {
+    expect(printValue(await evalQuery('::vec/take | binding | /value'))).toBe('::builtin{}');
+    expect(printValue(await evalQuery('::vec/take | binding :count | /value'))).toBe('~(/0)');
   });
 
-  it('a value that is no name reads the descriptor of its kind', async () => {
-    expect(printValue(await evalQuery('42 | spec'))).toBe('::spec~(::builtin{})');
-  });
-
-  it('keyword naming an unbound identifier lifts AnySpecBindingNotFoundError', async () => {
-    const evalResult = await evalQuery(':nonexistentBindingForSpec | spec !| type');
-    expect(evalResult).toEqual(makeTagKeyword('any/SpecBindingNotFoundError'));
-  });
-
-  it('spec of a freeze answers the value its record holds', async () => {
+  it('the record of a freeze holds the value', async () => {
     // `:name /` writes the record of a binding under :name in env
-    // [D63]; spec projects the record's value.
-    expect(await evalQuery('42 | :answer / | :answer | spec')).toBe(42);
+    // [D63], which `binding` reads.
+    expect(await evalQuery('42 | :answer / | :answer | binding | /value')).toBe(42);
   });
 });

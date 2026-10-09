@@ -9,7 +9,6 @@
       `<host-fn name>` and refuses any other, so a query projects around
       it, `/name`, before it writes JSON.
   ~~|
-  ::spec~()
 
 :any/SumElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
@@ -20,7 +19,6 @@
         |  eq [::any/SumElementNotNumberError ::string 1]
        )
   ~~|
-  ::spec~()
 
 :any/AvgElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
@@ -31,7 +29,6 @@
         |  eq [::any/AvgElementNotNumberError ::string 1]
        )
   ~~|
-  ::spec~()
 
 :any/FilterConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
@@ -42,7 +39,6 @@
         |  eq [::any/FilterConditionNotBooleanError 0 ::number]
        )
   ~~|
-  ::spec~()
 
 :any/EveryConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
@@ -53,7 +49,6 @@
         |  eq [::any/EveryConditionNotBooleanError 0 ::number]
        )
   ~~|
-  ::spec~()
 
 :any/AnyConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
@@ -64,7 +59,6 @@
         |  eq [::any/AnyConditionNotBooleanError 0 ::number]
        )
   ~~|
-  ::spec~()
 
 :any/GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, or a string
@@ -77,7 +71,6 @@
         |  eq [::any/GroupByKeyNotKeywordError ::boolean 0]
        )
   ~~|
-  ::spec~()
 
 :any/IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, or a string
@@ -90,7 +83,6 @@
         |  eq [::any/IndexByKeyNotKeywordError ::vec 0]
        )
   ~~|
-  ::spec~()
 
 :any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
@@ -115,7 +107,6 @@
         |  eq [::any/TakeCountNotIntegerError ::number]
        )
   ~~|
-  ::spec~()
 
 :any/DropCountNotIntegerError
   |~~ The count of `drop` must be a whole number — a fractional count
@@ -126,7 +117,6 @@
         |  eq [::any/DropCountNotIntegerError ::number]
        )
   ~~|
-  ::spec~()
 
 :any/AtIndexNotIntegerError
   |~~ The index of `at` on a vector or a set must be a whole number.
@@ -136,7 +126,6 @@
         |  eq [::any/AtIndexNotIntegerError ::number]
        )
   ~~|
-  ::spec~()
 
 :any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
@@ -155,7 +144,6 @@
         | eq 11
        )
   ~~|
-  ::spec~()
 
 :any/eq
   |~~ Whether the subject equals the value, by structural equality deep
@@ -374,7 +362,6 @@
         |  eq [::any/CoalesceNoAlternativesError]
        )
   ~~|
-  ::spec~()
 
 :any/cond
   |~~ The branch of the first predicate that answers true against the
@@ -406,7 +393,6 @@
         |  eq [::any/CondNoBranchesError]
        )
   ~~|
-  ::spec~()
 
 :any/CondConditionNotBooleanError
   |~~ Every predicate of `cond` answers a boolean; `:index` is the place
@@ -418,7 +404,6 @@
         |  eq [::any/CondConditionNotBooleanError 0 ::number]
        )
   ~~|
-  ::spec~()
 
 :any/apply
   |~~ The value of the code run against the subject, under the fork
@@ -469,7 +454,7 @@
 
       ~(:limit 10 | env | has :limit)
       ~(env | eq {})
-      ~(:Box ::spec~() | :Box/area ~(1) | env | keys | eq #[:Box :Box/area])
+      ~(:Box |~~ A box. ~~| | :Box/area ~(1) | env | keys | eq #[:Box :Box/area])
       ~(42 | :answer / | env | /answer | /value | eq 42)
   ~~|
   ::builtin{}
@@ -478,14 +463,15 @@
   ::map
 
 :any/kinds
-  |~~ The kinds the scope reads, each by its tag: those the language
-      and the host declared, then the reader's, so a query asks which
-      kinds there are before it asks one of them for its page,
-      `::set | doc`, or for what lies under it, `::set | manifest`.
+  |~~ The kinds the scope reads, each by its tag, the labels of one
+      segment, a topic among them: those the language and the host
+      declared, then the reader's, so a query asks which kinds there are
+      before it asks one of them for its page, `::set | doc`, or for what
+      lies under it, `::set | manifest`.
 
       ~(kinds | has ::vec)
-      ~(:Box ::spec~() | kinds | has ::Box)
-      ~(kinds | has ::qlang | not)
+      ~(:Box |~~ A box. ~~| | kinds | has ::Box)
+      ~(kinds | has ::qlang)
   ~~|
   ::builtin{}
 
@@ -497,7 +483,7 @@
       `::binding` with its `:name`, its `:docs`, its `:value`, its
       `:source` and its `:origin`, the source it was read from, so where
       a name was declared is read as data. The other axes project it:
-      `doc` its page, `source` its quote, `spec` its value. A keyword
+      `doc` its page, `source` its quote. A keyword
       after it reads the record of the member the subject holds under it.
 
       A verb by its address reads the record its source declared:
@@ -526,7 +512,7 @@
       under a kind among them, or a tag name that names nothing.
       `:bindingName` holds the name, and `:addresses` the addresses of
       the pages of that name, one for each kind that answers it. `source`, `doc`,
-      `spec`, `explain` and `runLaws` read a name as `binding` does, and
+      `explain` and `runLaws` read a name as `binding` does, and
       each is refused under a tag of its own, so the tag says which of
       them read it.
 
@@ -536,7 +522,6 @@
         |  eq [::any/BindingNotFoundError :nonexistent-binding]
        )
   ~~|
-  ::spec~()
 
 :any/source
   |~~ The code of the declaration that binds a name in its scope, the
@@ -577,7 +562,6 @@
        )
       ~(:filter | source !| /addresses | has ::vec/filter)
   ~~|
-  ::spec~()
 
 :any/doc
   |~~ The page of a name, the passage from an address into its
@@ -633,7 +617,6 @@
       ~(:filter | doc !| /addresses | has ::vec/filter)
       ~(:reduce | doc !| /addresses | has ::vec/reduce)
   ~~|
-  ::spec~()
 
 :any/DocAnchorNotKeywordError
   |~~ An anchor of the path `doc` reads is no keyword: each step of the
@@ -641,7 +624,6 @@
 
       ~(::vec | doc [:take 1] !| [type /index] | eq [::any/DocAnchorNotKeywordError 1])
   ~~|
-  ::spec~()
 
 :any/explain
   |~~ The explanation of the value, `::explanation{:page … :value …}`:
@@ -670,47 +652,6 @@
         |  eq [::any/ExplainBindingNotFoundError :nonexistent-binding]
        )
   ~~|
-  ::spec~()
-
-:any/spec
-  |~~ The declaration a name reads as it was written, what a reader
-      checks before a call: what a word runs, what a kind is made of. A
-      projection of a kind's declaration reads the body of the field it
-      names; any other binding answers the value its record holds, and
-      any other value the declaration of its kind. What lies under a
-      noun, its words and its refusals, `manifest` answers.
-
-      A name under a label answers its value, a host's primitive its
-      `::builtin{}` and a part of its object its selector:
-      ~(::vec/take | spec | type | eq ::builtin)
-      ~(::vec/take | spec :count | eq ~(/0))
-      A kind answers its declaration, a `::spec~(…)` whose body is its
-      constructor, a refusal among the kinds:
-      ~(::vec | spec | eq ::spec~(::builtin{}))
-      ~(::number/PayloadNotNumberError | spec | type | eq ::spec)
-  ~~|
-  ::builtin{}
-
-:any/spec/name
-  |~~ The name the call gives, null when it gives none. ~~|
-  ~(at 0)
-
-:any/spec/name/NotKeywordOrNullError |~~ The name is a keyword or null. ~~|
-  ::holds~(is ::keyword ::null)
-
-:any/SpecBindingNotFoundError
-  |~~ `spec` found no declaration of the name it read, as `binding`
-      finds none.
-      ::link~(::any/BindingNotFoundError | doc)
-
-      ~(
-        :nonexistent-binding | spec
-        !| [type /bindingName]
-        |  eq [::any/SpecBindingNotFoundError :nonexistent-binding]
-       )
-      ~(:filter | spec !| /addresses | has ::vec/filter)
-  ~~|
-  ::spec~()
 
 :any/RunLawsBindingNotFoundError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
@@ -725,7 +666,6 @@
       ~(:filter | runLaws !| /addresses | has ::vec/filter)
       ~(::Nonexistent | runLaws !| /bindingName | eq ::Nonexistent)
   ~~|
-  ::spec~()
 
 :any/tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
@@ -740,10 +680,10 @@
       ~([1 2 3] | tag ::Triple | type | eq ::Triple)
       A tagged value split into its type and payload tags back into
       itself:
-      ~(:Box ::spec~() | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
+      ~(:Box |~~ A box. ~~| | ::Box[1 2 3] | [type payload] | tag | eq ::Box[1 2 3])
       A tag over a tagged value nests it; replacing the tag goes through
       the payload, `tagged | payload | tag ::Other`:
-      ~(:Inner ::spec~() | :Outer ::spec~() | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
+      ~(:Inner |~~ An inner kind. ~~| | :Outer |~~ An outer kind. ~~| | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
       A tag laid over an error answers the error unchanged, since no tag
       stands over one; the fail track opens an error to its descriptor,
       which a tag and `raise` rename:
@@ -768,7 +708,6 @@
         |  eq [::any/tag/PairTagNotTagError ::keyword]
        )
   ~~|
-  ::spec~()
 
 :any/tag/SubjectNotPairError
   |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and the
@@ -785,7 +724,6 @@
         |  eq [::any/tag/SubjectNotPairError 3]
        )
   ~~|
-  ::spec~()
 
 :any/sumOf
   |~~ The sum of the numbers the call computes against the subject, as

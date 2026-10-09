@@ -31,7 +31,6 @@
         !| /trail * /step | eq [~(raise)]
        )
   ~~|
-  ::spec~()
 
 :error/trail
   |~~ The path of the error: each step it passed, from the one

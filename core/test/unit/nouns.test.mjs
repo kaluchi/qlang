@@ -8,20 +8,20 @@ import { createSession } from '../../src/session.mjs';
 import { makeTagKeyword } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the kinds of the root [D160]', async () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D169]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
     expect(await evalQuery('kinds | [(has ::number) (has ::qlang) (has ::number/add/SubjectNotNumberError)]'))
-      .toEqual([true, false, false]);
+      .toEqual([true, true, false]);
   });
 
   it('a kind the reader declares is a name of its scope', async () => {
-    expect(await evalQuery(':Box |~~ A box. ~~| ::spec~() | env | has :Box')).toBe(true);
+    expect(await evalQuery(':Box |~~ A box. ~~| | env | has :Box')).toBe(true);
   });
 
   it('a noun answers the nodes declared one name under it', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
-      source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~| ::spec~()\n:shop/Line |~~ A line. ~~| ::spec~()\n:shop/Line/qty ~(1)'
+      source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~|\n:shop/Line |~~ A line. ~~|\n:shop/Line/qty ~(1)'
     }] });
     expect([...(await session.evalCell('::shop | manifest')).result])
       .toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
@@ -52,11 +52,6 @@ describe('the verbs that live on a kind', () => {
     }] });
     expect((await session.evalCell('::Box("hi") | shout')).result).toBe('HI');
   });
-
-  it('a refusal and a tag the session declares carry no list of verbs', async () => {
-    expect(await evalQuery('::number/add/SubjectNotNumberError | spec | has :verbs')).toBe(false);
-    expect(await evalQuery(':Box ::spec~() | ::Box | spec | has :verbs')).toBe(false);
-  });
 });
 
 describe('an address reads the node its name declared', () => {
@@ -64,7 +59,7 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
     expect(await evalQuery('::vec/count | doc | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | spec | type')).toEqual(makeTagKeyword('builtin'));
+    expect(await evalQuery('::vec/count | binding | /value | type')).toEqual(makeTagKeyword('builtin'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {
@@ -78,7 +73,7 @@ describe('an address reads the node its name declared', () => {
 
   it('an address whose kind the verb does not live on names nothing', async () => {
     expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('any/DocBindingNotFoundError'));
-    expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('any/SpecBindingNotFoundError'));
+    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTagKeyword('any/BindingNotFoundError'));
   });
 
   it('a value whose tag no node answers reads no page', async () => {

@@ -2,6 +2,9 @@
    constructor, and the comparisons of keywords, which compare two
    keywords by their names in the one order. ~|
 
+:keyword/construct |~~ Reads a keyword as itself. ~~|
+  ::builtin{}
+
 :keyword/PayloadNotKeywordError
   |~~ `::keyword` reads its payload as the keyword it is; a string
       becomes one by `keyword`.
@@ -11,7 +14,6 @@
         |  eq [::keyword/PayloadNotKeywordError ::string]
        )
   ~~|
-  ::spec~()
 
 :keyword/gt
   |~~ Whether the subject's name follows the name of the keyword the

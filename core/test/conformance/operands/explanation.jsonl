@@ -8,5 +8,5 @@
 {"name":"a-number-explains-by-the-page-of-its-kind","query":"42 | explain | page | eq (::number | doc)","expect":"true","decision":["D100","D119"]}
 {"name":"an-explanation-holds-the-value-it-explains","query":"42 | explain | value","expect":"42","decision":"D100"}
 {"name":"a-name-explains-by-its-own-page","query":"::number/add | explain | page | eq (::number/add | doc)","expect":"true","decision":["D100","D119"]}
-{"name":"a-tagged-value-explains-by-the-page-of-its-tag","query":":Box |~~ A box. ~~| ::spec~() | ::Box{:a 1} | explain | page | content | contains \"A box\"","expect":"true","decision":["D100","D119"]}
+{"name":"a-tagged-value-explains-by-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box{:a 1} | explain | page | content | contains \"A box\"","expect":"true","decision":["D100","D119"]}
 {"name":"an-error-value-explains-raised","query":"::error{:k 1} | explain | value !| type","expect":"::error","decision":"D101"}

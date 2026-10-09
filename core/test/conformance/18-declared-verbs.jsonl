@@ -20,4 +20,4 @@
 {"name":"runaway-self-call-descriptor-depth-past-limit","query":":any/inf ~(add 1 | inf) | 0 | inf !| :e / | /depth | gt (e | /limit)","expect":"true"}
 {"name":"runaway-self-apply-lifts-depth-error","query":":q ~(apply q) | apply q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"runaway-distribute-lifts-depth-error","query":":any/f ~([/] * f | first) | 1 | f !| type","expect":"::call/EvaluationDepthExceededError"}
-{"name":"runaway-tag-constructor-lifts-depth-error","query":":T ::spec~(::T(/)) | ::T(1) !| type","expect":"::call/EvaluationDepthExceededError"}
+{"name":"runaway-tag-constructor-lifts-depth-error","query":":T |~~ T. ~~| | :T/construct ~(::T(/)) | ::T(1) !| type","expect":"::call/EvaluationDepthExceededError"}

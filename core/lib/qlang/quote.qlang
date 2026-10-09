@@ -4,6 +4,9 @@
    vectors read it as one, and a quote under a tag, a link or a snippet
    of a page, reads them through its shape. ~|
 
+:quote/construct |~~ The quote of a vector whose every element is a step. ~~|
+  ::builtin{}
+
 :quote/PayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
@@ -15,7 +18,6 @@
         |  eq [::quote/PayloadNotVecError ::map]
        )
   ~~|
-  ::spec~()
 
 :quote/ElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
@@ -31,7 +33,6 @@
         |  eq [::quote/ElementNotStepError 0]
        )
   ~~|
-  ::spec~()
 
 :quote/ParseError
   |~~ The source does not read as qlang: `:marker` points where the
@@ -45,7 +46,6 @@
         |  eq ::quote/ParseError
        )
   ~~|
-  ::spec~()
 
 :quote/parse
   |~~ The source text of the quote, the reverse of `parse` on a string.

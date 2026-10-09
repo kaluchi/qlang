@@ -172,7 +172,7 @@ describe('round-trip invariant — TaggedInstance constructors lifting to plain 
 // TaggedLit AST and re-evaluates to a deepEqual value.
 
 describe('round-trip invariant — TaggedLit payload covering every Primary form', () => {
-  const TAG_DECL = ':Tag1 ::spec~() | :Inner ::spec~()';
+  const TAG_DECL = ':Tag1 |~~ Tag1. ~~| | :Inner |~~ Inner. ~~|';
 
   for (const tail of [
     // VecLit payload (whitespace-separated)
@@ -249,7 +249,7 @@ describe('round-trip invariant — named-error literal self-evaluation', () => {
   // `printErrorValue` folds the header tag back into the head; the
   // resulting `::Tag!{…}` form re-parses as a TaggedLit whose
   // payload is an ErrorLit and recovers the same descriptor.
-  const TAG_DECL = ':ErrTag ::spec~()';
+  const TAG_DECL = ':ErrTag |~~ ErrTag. ~~|';
 
   for (const tail of [
     '::ErrTag!{}',

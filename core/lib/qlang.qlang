@@ -142,9 +142,8 @@
       to one reads it.
 
       ~(::builtin{} | :c / | [1 2] | c | type | eq ::builtin)
-      ~(::number/add | spec | eq ::builtin{})
+      ~(::number/add | binding | /value | eq ::builtin{})
   ~~|
-  ::spec~(::builtin{})
 
 :tag
   |~~ The kind of a tag name, `::Kind` taken as a value. A tag is the name
@@ -167,9 +166,8 @@
       ~(::tag::Box | eq ::Box)
       ~(5 | type | doc | type | eq ::doc)
       ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
-      ~(::Unbound[1] | type | spec !| type | eq ::any/SpecBindingNotFoundError)
+      ~(::Unbound[1] | type | binding !| type | eq ::any/BindingNotFoundError)
   ~~|
-  ::spec~(::builtin{})
 
 :null
   |~~ The kind of null, the absence of a value; a part a call may leave
@@ -181,7 +179,6 @@
       ~(null | type | eq ::null)
       ~(::null(null) | eq null)
   ~~|
-  ::spec~(::builtin{})
 
 :boolean
   |~~ The kind of `true` and `false`, the answer of a question about a
@@ -193,7 +190,6 @@
       ~(true | type | eq ::boolean)
       ~(::boolean(false) | eq false)
   ~~|
-  ::spec~(::builtin{})
 
 :number
   |~~ The kind of a number, a finite double: an infinity or NaN is no
@@ -212,7 +208,6 @@
       An integer and a decimal are one kind, rounded as a double rounds:
       ~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
   ~~|
-  ::spec~(::builtin{})
 
 :string
   |~~ The kind of a string, text as it came. A JSON string arrives as a
@@ -232,7 +227,6 @@
       ~("A\t\"" | eq "A	\"")
       ~("A" | eq "A")
   ~~|
-  ::spec~(::builtin{})
 
 :keyword
   |~~ The kind of a keyword, `:k`, a name that stands for itself. It is
@@ -252,7 +246,6 @@
       ~([:данные :domain/user :"$ref"] * keyword | eq ["данные" "domain/user" "$ref"])
       ~(:"foo" | eq :foo)
   ~~|
-  ::spec~(::builtin{})
 
 :vec
   |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
@@ -271,7 +264,6 @@
       ~(#[2 1] | tag ::vec | eq [1 2])
       ~([1, 2] | eq [1 2])
   ~~|
-  ::spec~(::builtin{})
 
 :set
   |~~ The set, the vector in the one order without duplicates, the value
@@ -292,7 +284,6 @@
       A set written with braces is refused with the brackets it takes:
       ~("#{1}" | parse !| /message | contains "#[")
   ~~|
-  ::spec~(::builtin{})
 
 :map
   |~~ The kind of a map, the value of a `{…}` literal: named facts under
@@ -316,7 +307,6 @@
       ~([[:a 1] ["b" 2]] | tag ::map | eq {:a 1 :b 2})
       ~({:a 1 :b 2} | entries | tag ::map | eq {:a 1 :b 2})
   ~~|
-  ::spec~(::builtin{})
 
 :quote
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
@@ -336,7 +326,6 @@
       ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
       ~(~(add 1 | mul 2) | filter ~(/name | eq :mul) | parse | eq "mul 2")
   ~~|
-  ::spec~(::builtin{})
 
 :doc
   |~~ The kind of a doc, prose as a value, the value of a doc literal:
@@ -355,22 +344,6 @@
       ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
       ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
   ~~|
-  ::spec~(::builtin{})
-
-:spec
-  |~~ The declaration of a kind, a quote under this tag: its leading
-      declarations with a literal body are its fields, and the steps
-      after them its constructor, which builds a value of the kind from
-      its payload. `spec` answers the declaration of a name, a kind's
-      `::spec~(…)` and a word's quote or `::builtin{}`, and `manifest`
-      what lies under it.
-      ::snippet~(:P ::spec~(:name ::string) | ::P | spec) shows one.
-      ::link~(::qlang/verbs | doc)
-
-      ~(:P ::spec~(:name ::string) | ::P | spec | type | eq ::spec)
-      ~(:P ::spec~(:name ::string) | ::P | spec | /name | eq ::string)
-  ~~|
-  ::spec~()
 
 :binding
   |~~ The kind of the record a declaration writes into its scope. A name
@@ -388,7 +361,6 @@
       ~(:x |~~ One. ~~| 1 | env | /x | doc | content | eq " One. ")
       ~(:x 1 | env | /x | /name | eq :x)
   ~~|
-  ::spec~()
 
 :error
   |~~ The kind of errors. A reader learning a tool fails often, and
@@ -416,7 +388,6 @@
       ~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
       ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
-  ::spec~()
 
 :elision
   |~~ The kind of the marker of what a view left out. A
@@ -434,7 +405,6 @@
       ~(::elision | doc | type | eq ::doc)
       ~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
   ~~|
-  ::spec~()
 
 :desc
   |~~ The kind of a value turned to descend: among the values of this
@@ -452,7 +422,6 @@
       ~([2 1 3] * desc | sort | * payload | eq [3 2 1])
       ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
   ~~|
-  ::spec~(::builtin{})
 
 :link
   |~~ The kind of a link, a query a page names for its reader to follow,
@@ -471,7 +440,6 @@
       ~(::qlang | doc | links * open | every ~(type | eq ::doc))
       ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
   ~~|
-  ::spec~()
 
 :snippet
   |~~ The kind of a snippet, a query a page shows its reader to run and
@@ -486,7 +454,6 @@
       ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)
       ~(::vec | doc | snippets | count | gt 0)
   ~~|
-  ::spec~()
 
 :explanation
   |~~ The kind of what `explain` answers: the page `doc` reads
@@ -500,7 +467,6 @@
       ~("x" | add 1 !| explain | type | eq ::explanation)
       ~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
-  ::spec~()
 
 :tagged
   |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
@@ -514,11 +480,10 @@
       ::link~(::qlang/values | doc)
 
       Every value under a tag reaches the verbs of this kind:
-      ~(:Box ::spec~() | ::Box[1 2] | payload | eq [1 2])
+      ~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
       The step that builds one is no value of this kind:
       ~(~(::Box[1 2]) | first | type | eq ::construct)
   ~~|
-  ::spec~()
 
 :construct
   |~~ The step of a constructor invocation, `::T<payload>`: it puts a
@@ -529,7 +494,6 @@
 
       ~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
   ~~|
-  ::spec~(::builtin{})
 
 :call
   |~~ The step of a command, `verb object`: the name finds its verb
@@ -545,7 +509,6 @@
       ~(~(count) | first | /name | eq :count)
       ~({:name :filter :args [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
   ~~|
-  ::spec~(::builtin{})
 
 :proj
   |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
@@ -565,7 +528,6 @@
       ~({:qlang {:error 2}} | /qlang/error | eq 2)
       ~(5 | mul / | eq 25)
   ~~|
-  ::spec~(::builtin{})
 
 :bind
   |~~ The step of a declaration, `:name body`: it names a value for the
@@ -578,7 +540,6 @@
 
       ~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
   ~~|
-  ::spec~(::builtin{})
 
 :each
   |~~ The step `* body`, the distribute: it runs its body on each
@@ -594,7 +555,6 @@
       ~(~(* add 1) | first | payload | eq ~(add 1))
       ~(~(* (add 1 | mul 2)) | first | payload | count | eq 2)
   ~~|
-  ::spec~(::builtin{})
 
 :fail
   |~~ The step `!| step`, the fail track: it runs its step on an error
@@ -606,7 +566,6 @@
 
       ~(~(!| /kind) | first | payload | eq ~(/kind))
   ~~|
-  ::spec~(::builtin{})
 
 :group
   |~~ The step `(pipeline)`, a group: it runs its steps on the value in
@@ -618,7 +577,6 @@
 
       ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
   ~~|
-  ::spec~(::builtin{})
 
 :any
   |~~ The kind beneath every kind, where the verbs every value answers
@@ -633,7 +591,6 @@
       ~(::any | manifest | has ::any/type)
       ~(5 | type | eq ::any | not)
   ~~|
-  ::spec~()
 
 :qlang/values
   |~~ Values. Everything qlang handles is a value, data, code, prose and
@@ -821,7 +778,7 @@
       nothing and lays the tag on the value:
       ~(::Small(12) | payload | eq 12)
   ~~|
-  #[::spec ::any]
+  #[::any]
 
 :qlang/errors
   |~~ Errors. A failure does not throw: a step that fails answers an
@@ -880,7 +837,7 @@
   |~~ The hypertext. The names are a space of addresses, `::` beginning
       an absolute one, `::vec/sort`, and a verb passes from an address
       into one of its projections, as a path reaches a file: `doc` into
-      its page, `spec` into its declaration, `source` into the code that
+      its page, `binding` into its record, `source` into the code that
       declared it, and `runLaws` runs the laws of its page. An address holds no one
       entity but a set of values, and each passage reads one of them; the
       address, the verb and what it reaches are all values, so the
@@ -905,7 +862,7 @@
       The links of a page open in one query:
       ~(::qlang | doc | links * open | count | gt 0)
       One address passes into its page, its declaration and its source:
-      ~(::vec/take | [(doc | type) (spec | type) (source | type)] | eq [::doc ::builtin ::quote])
+      ~(::vec/take | [(doc | type) (binding | type) (source | type)] | eq [::doc ::binding ::quote])
       A filter over pages searches them:
       ~(::vec | manifest | filter ~(doc | content | contains "after the first") | eq #[::vec/drop])
   ~~|

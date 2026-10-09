@@ -2,6 +2,9 @@
    value under a tag through the tag's constructor, `::T<payload>`: the
    refusals of that step. ~|
 
+:construct/construct |~~ The step of a constructor invocation from its record, `:tag` and `:payload`, which reads back as itself. ~~|
+  ::builtin{}
+
 :construct/PayloadNotSchemaError
   |~~ A `::construct` is a map of `:tag`, a tag, and `:payload`, a
       step.
@@ -13,7 +16,6 @@
         |  eq [::construct/PayloadNotSchemaError :tag]
        )
   ~~|
-  ::spec~()
 
 :construct/ReadBackDiffersError
   |~~ The `::construct` prints as text that reads back as another step: a
@@ -27,12 +29,11 @@
         |  eq [::construct/ReadBackDiffersError "::Box42"]
        )
   ~~|
-  ::spec~()
 
 :construct/TagNotKindError
-  |~~ The tag before a payload addresses a kind, a label whose
-      declaration is a page or a spec; a tag that addresses a name under
-      a label, a host's primitive or a quote, names no kind to build by.
+  |~~ The tag before a payload addresses a kind, a label, a name declared
+      by its page; a tag that addresses a name under a label, a host's
+      primitive or a quote, names no kind to build by.
       ::link~(::construct | doc)
 
       ~(
@@ -41,4 +42,3 @@
         |  eq [::construct/TagNotKindError :vec/take ::builtin]
        )
   ~~|
-  ::spec~()

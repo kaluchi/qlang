@@ -457,7 +457,7 @@ quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
 laws, the axes pass from a name to its projections, `doc` its page,
-`spec` its declaration, `source` its code and `binding` its record,
+`source` its code and `binding` its record,
 `manifest` enumerates what exists, and `runLaws` runs the laws of a
 page as tests, each with the claim it proves. The self-test over the
 whole catalog runs in under a second.
@@ -696,9 +696,9 @@ their kind as a string field, and the meaning of its fields is
 documented by its tag, a value shared by several kinds of record by its
 own [D50]. The shape of an answer is read the same way, before the
 answer is fetched: the operand's declaration names the tag or the type
-of its result, the tag's declaration names the fields, and `spec` and
-`doc` on the operand answer for one operand what a schema sheet would
-answer for all. The result of a word is the label its answer's
+of its result, the definitions under the tag's address say what its
+values hold, and those under the operand's address and its `doc`
+answer for one operand what a schema sheet would answer for all. The result of a word is the label its answer's
 definition names, `:number/add/sum ::number`, the catalog's and a
 reader's alike [D169]; the fields are
 declared with the tag, and the element shape of a container is spelled
@@ -708,8 +708,8 @@ an elided and enriched page travels on.
 
 The pages themselves are values of the same kind. The names are a space
 of addresses, and a verb passes from an address into one of its
-projections: `doc` into its page, `spec` into its declaration, `source`
-into its code, `binding` into its record [D5], [D119]. A keyword after
+projections: `doc` into its page, `source` into its code, `binding`
+into its record [D5], [D119]. A keyword after
 `doc` is an anchor within the page, a vector of keywords a path and a
 set of them several pages at once. A page holds prose and quotes, and a
 quote takes its role from the tags over it: with none it is a law, which
@@ -920,7 +920,7 @@ declared, and `kinds` the kinds the scope reads, the root's among them
 [D152]:
 
 ```qlang
-> :Width |~~ How many characters a line holds. ~~| ::spec~() | env | has :Width
+> :Width |~~ How many characters a line holds. ~~| | env | has :Width
 true
 ```
 
@@ -996,7 +996,7 @@ trace and pasted into a query:
 > ::app.m8.web.servlet.gwt.orgstructure.functask.ConfirmFtNewEmpHandler | source
 ```
 
-answers the type's source text, and `docs`, `spec` and the type's
+answers the type's source text, and `doc`, `binding` and the type's
 relations work on it as they work on any tag of the catalog. The slash
 is accepted inside a tag's name and the dot is not:
 
@@ -1070,7 +1070,7 @@ error carries its whole input, so one failing step over a large value
 prints the value:
 
 ```qlang
-> ::vec | spec | add 1 !| /trail * /subject * eq (::vec | spec)
+> ::vec | doc | add 1 !| /trail * /subject * eq (::vec | doc)
 [true]
 ```
 
@@ -1078,7 +1078,7 @@ The path of an error carries the subject of every level it left
 [D85], so the same failure one verb deeper prints the value twice:
 
 ```qlang
-> :any/g ~(add 1) | ::vec | spec | g !| /trail * /subject * eq (::vec | spec)
+> :any/g ~(add 1) | ::vec | doc | g !| /trail * /subject * eq (::vec | doc)
 [true true]
 ```
 
@@ -1618,14 +1618,19 @@ $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[
 
 Every fact has one spelling, and a kind owns what is said of its values.
 The keystone is the declaration of a kind, its schema or its constructor
-[D6], [D33]. A kind is declared by a keyword with a `::spec~(…)` for its
-value [D152], and the fields that spec declares check nothing today, so
-the fields of a record are spelled nowhere a reader can rely on before
-the record is fetched, which is the third requirement of the mission:
+[D6], [D33]. A kind is a label, a name declared by its page, which
+builds a value by the `construct` declared under it and checks it by
+the laws declared under it, each named by its refusal [D168], [D169],
+so a field of a record no law names is spelled nowhere a reader can
+rely on before the record is fetched, which is the third requirement of
+the mission:
 
 ```qlang
-> :P ::spec~(:name ::string) | ::P{:name 5}
+> :P |~~ A person. ~~| | ::P{:name 5}
 ::P{:name 5}
+
+> :P |~~ A person. ~~| | :P/NameNotStringError ::holds~(/name | is ::string) | ::P{:name 5} !| type
+::P/NameNotStringError
 ```
 
 The schema is the label's [D164], [D166]: a kind is a name declared by
@@ -1633,16 +1638,15 @@ its page, and what stands under it is the definitions under its
 address, each a name, its page and its value, the value saying what the
 definition is, a word's code, a part's selector, the label of a word's
 answer, a law under the name of its refusal [D168], [D169].
-`::spec~(…)` and `::verb~(…)` leave the language whole, a reader's verb
-being a name under the label of its subject, `:number/inc ~(add 1)`,
-and `~name` the quote of one step [D168]. `::verb` has left with its
-page and the reading of heads; the page of `::spec` and the reading of
-a kind's fields and constructor in `core/src/runtime/verb.mjs` remain,
-and the suite and the laws of the catalog write `::spec~(…)` still:
+`::spec~(…)` and `::verb~(…)` have left the language, with their pages,
+the reading of heads and the axis `spec`: a reader's verb is a name
+under the label of its subject, `:number/inc ~(add 1)`, `~name` the
+quote of one step, and a kind of the core a label whose constructor the
+host hands, `:number/construct ::builtin{}` [D168], [D169]:
 
-```
-$ grep -o '::spec~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-248
+```qlang
+> [::spec ::verb] * (doc !| type)
+[::any/DocBindingNotFoundError ::any/DocBindingNotFoundError]
 ```
 
 Three repairs rest on the schema. The tags of the refusing sites become
@@ -1708,8 +1712,8 @@ holds prose alone, the first page's sections names under `::qlang`
 from which the first screen is assembled [D169]; and the
 first screen is written from the invariants of the language and held
 against probes its author never saw [D131], holding the weight it has
-until a pass on compactness can cut what a reader asks `manifest` and
-`spec` for [D150].
+until a pass on compactness can cut what a reader asks `manifest` for
+[D150].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy and its suite passes against the baseline, on a

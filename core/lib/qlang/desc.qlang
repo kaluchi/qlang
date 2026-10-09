@@ -2,6 +2,9 @@
    in the one order is the reverse of its payload's: its comparisons,
    which compare two of its values by their payloads, reversed. ~|
 
+:desc/construct |~~ Lays the kind over any value, its place in the one order turned around. ~~|
+  ::builtin{}
+
 :desc/gt
   |~~ Whether the subject follows the value the call gives among
       descending values, which holds when its payload precedes the

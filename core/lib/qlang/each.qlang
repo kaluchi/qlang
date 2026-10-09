@@ -1,6 +1,9 @@
 |~ What is declared under `::each`, the step `*` runs on each
    element: its refusals. ~|
 
+:each/construct |~~ The step `* body` from the quote of its body. ~~|
+  ::builtin{}
+
 :each/PayloadNotQuoteError
   |~~ The payload of `::each` is the quote of its body.
       ::link~(::each | doc)
@@ -11,7 +14,6 @@
         |  eq [::each/PayloadNotQuoteError ::number]
        )
   ~~|
-  ::spec~()
 
 :each/ReadBackDiffersError
   |~~ The `::each` prints as text that reads back as another step, or
@@ -24,7 +26,6 @@
         |  eq [::each/ReadBackDiffersError "* ()"]
        )
   ~~|
-  ::spec~()
 
 :each/SubjectNotContainerError
   |~~ `*` runs its step on each element of a vector or a set, or on each
@@ -38,4 +39,3 @@
         |  eq [::each/SubjectNotContainerError ::number]
        )
   ~~|
-  ::spec~()

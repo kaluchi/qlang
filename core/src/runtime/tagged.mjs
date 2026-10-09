@@ -1,6 +1,6 @@
 // The constructors of the kinds, each `(payload, state) → value` under
-// `qlang/type/<tag>`, and the verbs that lay a tag over a value and
-// take it off.
+// the address of the kind's `construct`, `number/construct` [D169], and
+// the verbs that lay a tag over a value and take it off.
 
 import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader } from '../primitives.mjs';
@@ -24,7 +24,7 @@ function setConstructor(payload) {
   return makeSet(payload);
 }
 
-bindPrim('set', setConstructor);
+bindPrim('set/construct', setConstructor);
 
 // The constructors of the core's kinds [D32, D33]: each reads its
 // payload as the value of its kind, so `::vec[1 2]` and `[1 2]` are one
@@ -50,22 +50,22 @@ function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payloa
 const bareVecOf = vec => vec[TAG_HEADER_SYMBOL] === undefined ? vec : Object.freeze([...vec]);
 const bareMapOf = map => map[TAG_HEADER_SYMBOL] === undefined ? map : new Map(map);
 
-bindPrim('null',    coreKindConstructor(isNull, NullPayloadNotNullError));
-bindPrim('boolean', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
+bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullError));
+bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
 // A number is a finite double: an answer brought under `::number` that
 // left the doubles' range is refused here, once for every word [D169].
 const NumberNotFiniteError = declareShapeError('number/NotFiniteError',
   () => 'a number is a finite double, and the answer left their range', { operand: '::number' });
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
-bindPrim('number', payload => {
+bindPrim('number/construct', payload => {
   const number = finiteNumber(payload);
   if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
   return number;
 });
-bindPrim('string',  coreKindConstructor(isString, StringPayloadNotStringError));
-bindPrim('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
-bindPrim('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
-bindPrim('vec',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
+bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadNotStringError));
+bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
+bindPrim('tag/construct',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
+bindPrim('vec/construct',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
 // `::map[…]` also builds a map from the vector of its pairs `[key
 // value]`, the reverse of `entries`, as a doc comes back from its
 // segments: a key is a keyword, or a string or a number naming the
@@ -91,12 +91,12 @@ function mapConstructor(payload) {
   return built;
 }
 
-bindPrim('map', mapConstructor);
+bindPrim('map/construct', mapConstructor);
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [D140].
 const DESC_TAG = makeTagKeyword('desc');
-bindPrim('desc', payload => makeTaggedInstance(DESC_TAG, payload));
+bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
 // a doc comes apart into its segments and back by `tag`.
@@ -111,11 +111,11 @@ function docConstructor(payload) {
   return makeDoc(payload);
 }
 
-bindPrim('doc', docConstructor);
+bindPrim('doc/construct', docConstructor);
 
-// `::builtin{…}` — the descriptor: the step of a built-in verb that names
-// its primitive [D72], the declaration of a kind that names its
-// constructor [D79]; its fields stay flat under its tag.
+// `::builtin{…}` — the descriptor, the value of a name under a label
+// that a primitive answers, the `construct` of a kind among them [D164],
+// [D169]; its fields stay flat under its tag.
 const BuiltinPayloadNotMapError = declareSubjectError('builtin/PayloadNotMapError', '::builtin', 'map');
 
 function builtinConstructor(payload) {
@@ -126,7 +126,7 @@ function builtinConstructor(payload) {
   return descriptor;
 }
 
-bindPrim('builtin', builtinConstructor);
+bindPrim('builtin/construct', builtinConstructor);
 
 const AnyTagPairTagNotTagError = declareShapeError('any/tag/PairTagNotTagError',
   ({ actualType }) => `tag reads a pair [::Tag value] whose first element is a tag name, got ::${actualType.name}`,

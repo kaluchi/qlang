@@ -43,7 +43,7 @@ describe('depth budget — every re-entry seam', () => {
     ['captured-arg lambda naming its own verb',     ':any/p ~([/] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el ~(/0) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', ':T ::spec~(::T(/)) | ::T(1)']
+    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| | :T/construct ~(::T(/)) | ::T(1)']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {

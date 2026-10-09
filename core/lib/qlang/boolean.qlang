@@ -2,6 +2,9 @@
    constructor, the negation, and the two combinators of conditions,
    which take booleans. ~|
 
+:boolean/construct |~~ Reads a boolean as itself. ~~|
+  ::builtin{}
+
 :boolean/PayloadNotBooleanError
   |~~ `::boolean` reads its payload as the boolean it is; a payload of
       another kind is refused.
@@ -11,7 +14,6 @@
         |  eq [::boolean/PayloadNotBooleanError ::number]
        )
   ~~|
-  ::spec~()
 
 :boolean/not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a

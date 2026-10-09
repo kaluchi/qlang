@@ -14,7 +14,7 @@ import { createSession } from '../../src/session.mjs';
 import { throwSiteSpecOf, throwSiteSpecNames } from '../../src/errors.mjs';
 import { nodeOf, splitAddress } from '../../src/runtime/nouns.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
-import { bindingValueOf, isSpec } from '../../src/types.mjs';
+import { bindingValueOf, isDoc } from '../../src/types.mjs';
 
 // Refusals minted without going through a per-site factory, each with
 // the site that mints it.
@@ -30,7 +30,7 @@ const session = await createSession();
 const refusalKinds = [];
 for (const [address, record] of session.env.get(ROOT_KEY)) {
   const [nounName, name] = splitAddress(address);
-  if (nounName !== null && /Error$/.test(name) && isSpec(bindingValueOf(record))) refusalKinds.push([address, name]);
+  if (nounName !== null && /Error$/.test(name) && isDoc(bindingValueOf(record))) refusalKinds.push([address, name]);
 }
 
 describe('every refusal names the place it guards [D64]', () => {
@@ -43,7 +43,7 @@ describe('every refusal names the place it guards [D64]', () => {
 describe('every throw site has its kind in the tree of names [D152]', () => {
   for (const address of throwSiteSpecNames()) {
     it(`${address} is declared under the noun it guards`, () => {
-      expect(isSpec(bindingValueOf(nodeOf(session.env, address))),
+      expect(isDoc(bindingValueOf(nodeOf(session.env, address))),
         `${address} records a throw-site spec and no source of the language declares it under its noun`
       ).toBe(true);
     });
@@ -62,6 +62,6 @@ describe('every refusal of the catalog has a throw site', () => {
 
   it('the root holds the topic of the language and its kinds', () => {
     expect(nodeOf(session.env, 'qlang')).not.toBeNull();
-    expect(isSpec(bindingValueOf(nodeOf(session.env, 'number')))).toBe(true);
+    expect(isDoc(bindingValueOf(nodeOf(session.env, 'number')))).toBe(true);
   });
 });

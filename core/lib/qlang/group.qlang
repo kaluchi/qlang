@@ -1,6 +1,9 @@
 |~ What is declared under `::group`, the steps in parentheses run on
    the value in the pipe: its refusals. ~|
 
+:group/construct |~~ The step `(pipeline)` from the quote of its pipeline. ~~|
+  ::builtin{}
+
 :group/PayloadNotQuoteError
   |~~ The payload of `::group` is the quote of its pipeline.
 
@@ -10,7 +13,6 @@
         |  eq [::group/PayloadNotQuoteError ::number]
        )
   ~~|
-  ::spec~()
 
 :group/ReadBackDiffersError
   |~~ The `::group` prints as text that reads back as another step, or
@@ -22,4 +24,3 @@
         |  eq [::group/ReadBackDiffersError "()"]
        )
   ~~|
-  ::spec~()

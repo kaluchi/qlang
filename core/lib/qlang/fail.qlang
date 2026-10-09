@@ -1,6 +1,9 @@
 |~ What is declared under `::fail`, the step `!|` runs on an error
    alone: its refusals. ~|
 
+:fail/construct |~~ The step `!| step` from the quote of its step. ~~|
+  ::builtin{}
+
 :fail/PayloadNotQuoteError
   |~~ The payload of `::fail` is the quote of the step it wraps.
 
@@ -10,7 +13,6 @@
         |  eq [::fail/PayloadNotQuoteError ::number]
        )
   ~~|
-  ::spec~()
 
 :fail/ReadBackDiffersError
   |~~ The `::fail` prints as text that reads back as another step: it
@@ -23,4 +25,3 @@
         |  eq [::fail/ReadBackDiffersError "!| a | b"]
        )
   ~~|
-  ::spec~()

@@ -2,6 +2,9 @@
    refusals of a call, a name that names nothing, a value applied as a
    verb, a call too deep, a failure of a host's implementation. ~|
 
+:call/construct |~~ The step of a command from its record, `:name` and `:args`, which reads back as itself. ~~|
+  ::builtin{}
+
 :call/PayloadNotSchemaError
   |~~ A `::call` is a map of `:name`, a keyword, and `:args`, a vector
       of quotes; `:field` names the field that does not fit, null when
@@ -14,7 +17,6 @@
         |  eq [::call/PayloadNotSchemaError :name]
        )
   ~~|
-  ::spec~()
 
 :call/ReadBackDiffersError
   |~~ The `::call` prints as text that reads back as another step,
@@ -27,7 +29,6 @@
         |  eq [::call/ReadBackDiffersError "a b"]
        )
   ~~|
-  ::spec~()
 
 :call/HostFailureError
   |~~ A failure of the host's implementation: an error of the language
@@ -40,7 +41,6 @@
       the host.
       ::link~(::call | doc)
   ~~|
-  ::spec~()
 
 :call/ValueTakesNoModifiersError
   |~~ A name the scope binds to a value takes no modifiers.
@@ -55,7 +55,6 @@
        )
       ~(:sort 5 | [3 1] | sort ~(/a) !| /addresses | has ::vec/sort)
   ~~|
-  ::spec~()
 
 :call/KindAnswersNoVerbError
   |~~ The kind of the subject has no verb of the name: `:actualType`
@@ -71,7 +70,6 @@
         |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]]
        )
   ~~|
-  ::spec~()
 
 :call/UnknownNameError
   |~~ No name of the scope and no verb of the kinds of the subject
@@ -91,7 +89,7 @@
        )
       ~(fist !| /nearest | eq [:first])
       ~(
-        :Box ::spec~() | :Ring ::spec~()
+        :Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
         | :Box/area ~(1) | :Ring/area ~(2)
         | 5 | area
         !| /addresses
@@ -100,7 +98,6 @@
       ~(:limit 3 | limti !| /nearest | eq [:limit])
       ~(zzzzqqq !| /nearest | eq [])
   ~~|
-  ::spec~()
 
 :call/UnknownAddressError
   |~~ A name with a path names nothing: no declaration wrote that
@@ -115,9 +112,8 @@
         |  eq [::call/UnknownAddressError ::vec/nothing]
        )
       ~([1] | vec/countt !| /nearest | has ::vec/count)
-      ~(:Box ::spec~() | :Box/side 3 | Box/side | eq 3)
+      ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
   ~~|
-  ::spec~()
 
 :call/EvaluationDepthExceededError
   |~~ A call too deep: every verb body, modifier, `apply` and
@@ -137,4 +133,3 @@
         !| :e / | /depth | gt (e | /limit)
        )
   ~~|
-  ::spec~()

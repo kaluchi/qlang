@@ -1,37 +1,26 @@
 // What a call reads of the kinds [D34]: the walk of a value's tags to a
-// kind a name serves, the value put under a tag through its constructor
-// [D152], the answer kept as its subject's kind under the tags the walk
+// kind a name serves, the value put under a tag through its label
+// [D168], the answer kept as its subject's kind under the tags the walk
 // passed [D41], and the primitive a host handed run over the value the
-// walk served [D73]. A kind's `::spec~(…)` is read here as well: its
-// leading declarations of a kind are its fields, and the steps after
-// them its constructor, a `::builtin{}` among them a step [D167].
+// walk served [D73].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
 import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf } from './nouns.mjs';
-import { astOfQuote } from '../quote.mjs';
 import { declareShapeError } from '../errors.mjs';
 import {
-  bindingValueOf, isBuiltinDescriptor, isDoc, isVec, isQMap, isSpec, isErrorValue, isTaggedInstance, isValueClass,
-  makeTagKeyword, makeTaggedInstance, hostImplOf, isHostDeclared, typeKeyword,
-  BUILTIN_TAG
+  bindingValueOf, isDoc, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
+  makeTagKeyword, makeTaggedInstance, typeKeyword
 } from '../types.mjs';
 
-// Whether a tag's node is a kind whose declaration has a body, the
-// constructor that re-establishes the tag's invariant on a payload.
-function tagCarriesConstructor(state, tagName) {
-  const declared = bindingValueOf(nodeOf(state.env, tagName));
-  if (isDoc(declared)) return true;
-  return isSpec(declared) && Object.keys(constructorOfSpec(declared)).length > 0;
-}
-
-// The value under a tag: through the tag's constructor when it carries
-// one, as a bare overlay when the tag names an identity alone; the verbs
-// that keep a kind and `tag` share it. A tag laid over an error answers
-// the error, since no tag stands over one [D86].
+// The value under a tag: through its label, the construct and the laws
+// declared under it, when the tag names one, as a bare overlay when the
+// tag names an identity alone; the verbs that keep a kind and `tag`
+// share it. A tag laid over an error answers the error, since no tag
+// stands over one [D86].
 export async function mintUnderTag(state, tag, value) {
   if (isErrorValue(value)) return value;
-  if (!tagCarriesConstructor(state, tag.name)) return makeTaggedInstance(tag, value);
+  if (!isDoc(bindingValueOf(nodeOf(state.env, tag.name)))) return makeTaggedInstance(tag, value);
   return await mintTaggedInstance(tag.name, value, state);
 }
 
@@ -41,79 +30,6 @@ export const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoV
   ({ verbName, addresses, actualType }) =>
     `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`,
   { operand: '::call' });
-
-// ── the declaration of a kind ──────────────────────────────────
-
-// A quote is read once, and every kind over it shares the reading.
-const READING_OF_QUOTE = new WeakMap();
-
-function readingOf(quote) {
-  let reading = READING_OF_QUOTE.get(quote);
-  if (reading === undefined) {
-    reading = readSpec(quote);
-    READING_OF_QUOTE.set(quote, reading);
-  }
-  return reading;
-}
-
-// The steps of a quote's tree with the combinator each rides, resolved
-// as `evalPipeline` resolves it, so they stand one to one with the
-// quote's own steps; a quote without a step has none.
-function unitsOf(quote) {
-  if (quote.length === 0) return [];
-  const ast = astOfQuote(quote);
-  if (ast.type !== 'Pipeline') return [{ combinator: '|', step: ast }];
-  return [{ combinator: ast.leadingCombinator ?? '|', step: ast.steps[0] }, ...ast.steps.slice(1)];
-}
-
-// The fields of a kind, its leading declarations of a kind or a set of
-// kinds, `:w ::number`, up to the first step that computes.
-const FIELD_BODY_TYPES = new Set(['BareTypeKeyword', 'SetLit']);
-const isField = step => step.type === 'BindStep' && FIELD_BODY_TYPES.has(step.body?.type);
-
-function fieldCountOf(units) {
-  const count = units.findIndex(({ step }) => !isField(step));
-  return count < 0 ? units.length : count;
-}
-
-function bodyOf(bodyUnits, quote) {
-  if (bodyUnits.length === 0) return null;
-  const [first, ...rest] = bodyUnits;
-  if (rest.length === 0 && first.combinator === '|') return first.step;
-  const { location, text } = astOfQuote(quote);
-  return { type: 'Pipeline', steps: [first.step, ...rest], leadingCombinator: first.combinator, location, text };
-}
-
-function readSpec(quote) {
-  const units = unitsOf(quote);
-  const body = bodyOf(units.slice(fieldCountOf(units)), quote);
-  return { body, builtin: isBuiltinStep(body) };
-}
-
-// Whether a body is one `::builtin{}` step, which a host's declaration
-// runs as the implementation the host handed for it [D73], [D157].
-function isBuiltinStep(body) {
-  return body?.type === 'TaggedLit' && body.tag === BUILTIN_TAG.name && body.payload.type === 'MapLit';
-}
-
-// endsInBuiltin(value) → whether a kind ends in a `::builtin{}` step, or
-// a name under a label is one, which runs an implementation of the
-// host's [D164].
-export function endsInBuiltin(value) {
-  if (isBuiltinDescriptor(value)) return true;
-  return isSpec(value) && readingOf(value.payload).builtin;
-}
-
-// constructorOfSpec(spec) → what a kind's declaration constructs with
-// [D152]: `{ primitive }` for a body that is one `::builtin{}` step of a
-// kind a host's source declared, the implementation it handed [D73],
-// [D157], `{ body }` for a body of steps, and `{}` for a kind without a
-// body, which is identity.
-export function constructorOfSpec(spec) {
-  const { body, builtin } = readingOf(spec.payload);
-  if (builtin && isHostDeclared(spec)) return { primitive: hostImplOf(spec) };
-  return body === null ? {} : { body };
-}
 
 // ── kinds ──────────────────────────────────────────────────────
 

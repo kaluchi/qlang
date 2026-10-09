@@ -4,6 +4,9 @@
    its keys are the shape that travels with them: a verb that keeps the
    kind keeps the keys of the entries it keeps. ~|
 
+:map/construct |~~ Reads a map as the bare map, and builds one from the vector of its pairs `[key value]`. ~~|
+  ::builtin{}
+
 :map/PayloadNotMapError
   |~~ `::map` reads a map as the map it is and a vector as its pairs;
       a payload of another kind is refused.
@@ -13,7 +16,6 @@
         |  eq [::map/PayloadNotMapError ::number]
        )
   ~~|
-  ::spec~()
 
 :map/ElementNotPairError
   |~~ Each element of the vector `::map` builds from is a pair `[key
@@ -24,7 +26,6 @@
         |  eq [::map/ElementNotPairError 1]
        )
   ~~|
-  ::spec~()
 
 :map/KeyNotKeywordError
   |~~ The key of a pair is a keyword, or a string or a number naming the
@@ -36,7 +37,6 @@
         |  eq [::map/KeyNotKeywordError ::vec 0]
        )
   ~~|
-  ::spec~()
 
 :map/count
   |~~ The number of entries.
@@ -440,7 +440,6 @@
         |  eq [::map/MinusKeyNotKeywordOrStringError ::number 1]
        )
   ~~|
-  ::spec~()
 
 :map/InterKeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
@@ -451,7 +450,6 @@
         |  eq [::map/InterKeyNotKeywordOrStringError ::vec 0]
        )
   ~~|
-  ::spec~()
 
 :map/raise
   |~~ Puts the map on the fail track as an error, the act the `!{…}`

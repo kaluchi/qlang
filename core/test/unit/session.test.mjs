@@ -138,7 +138,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('answers a host name as its descriptor, whose answer is a definition of its label', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/@fetch | spec | type')).result).toEqual(makeTagKeyword('builtin'));
+    expect((await sessionInstance.evalCell('::any/@fetch | binding | /value | type')).result).toEqual(makeTagKeyword('builtin'));
     expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTagKeyword('string'));
   });
 
@@ -191,7 +191,7 @@ describe('the sources a host hands [D153]', () => {
   });
 
   it('refuses a source that declares a refusal of the root under another address', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError ::spec~()' }] }))
+    await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError |~~ AddLeftNotNumberError. ~~|' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
     expect((await (await createSession()).evalCell('"a" | add 1 !| type')).result)
       .toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
@@ -199,7 +199,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('declares a refusal of the host at its address again in every session of the process', async () => {
     declareShapeError('SessionProbeRefusalError', () => 'a refusal of the host', { operand: '::Probe' });
-    const sources = [{ uri: 'tests/refusal', source: ':Probe {} | :Probe/SessionProbeRefusalError ::spec~()' }];
+    const sources = [{ uri: 'tests/refusal', source: ':Probe {} | :Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|' }];
     await createSession({ sources });
     expect((await (await createSession({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);
   });

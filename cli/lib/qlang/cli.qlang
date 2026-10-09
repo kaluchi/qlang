@@ -32,7 +32,6 @@
       kind. The query ends before the answer is data: `* (…)` runs a body
       where `* ~(…)` hands each element the quote, and `payload` a value
       without its tag. ~~|
-  ::spec~()
 
 :any/@in
   |~~ The text stdin holds, read to its end whatever the subject, the
@@ -70,7 +69,6 @@
   |~~ `@out` alone writes its subject, a string, as a line; another
       value is written as the text a modifier computes from it,
       `42 | @out json` or `{:x 1} | @out print`. ~~|
-  ::spec~()
 
 :any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
@@ -96,7 +94,6 @@
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
       another value is written as the text a modifier computes, `@err
       json` or `@err print`. ~~|
-  ::spec~()
 
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
@@ -151,4 +148,3 @@
         |  eq [::vec/TableRowNotMapError 0 ::number]
        )
   ~~|
-  ::spec~()

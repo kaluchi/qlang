@@ -1,6 +1,6 @@
 {"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"[(5 | add 1) (\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]","decision":["D72","D164"]}
-{"name":"a-built-in-lists-its-refusals-in-its-signature","query":"::number/add | spec | /throws","expect":"[::number/add/SubjectNotNumberError ::number/add/addend/NotNumberError ::number/add/ResultNotFiniteError]","decision":"D46","target":true,"now":"::proj/KeyNotInMapError"}
-{"name":"a-part-of-an-object-is-the-quote-that-reads-it","query":"::number/add/addend | spec","expect":"~(/0)","decision":["D72","D164"]}
+{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError]","decision":["D46","D168"],"target":true,"now":"[]"}
+{"name":"a-part-of-an-object-is-the-quote-that-reads-it","query":"::number/add/addend | binding | /value","expect":"~(/0)","decision":["D164","D169"]}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D72"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}
 {"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul /price /qty !| [type (explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]","decision":["D72","D165"]}

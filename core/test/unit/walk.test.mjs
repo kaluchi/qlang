@@ -228,7 +228,7 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds the declaration of a kind written as a tag', () => {
-    const ast = parse(':Box ::spec~()');
+    const ast = parse(':Box |~~ Box. ~~|');
     const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
     expect(refs.some(n => n.type === 'BindStep' && n.key.name === 'Box')).toBe(true);
   });
@@ -317,7 +317,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING surfaces the declarations of kinds by their names', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = ':MyType ::spec~(42) | 42';
+    const source = ':MyType |~~ MyType. ~~| | :MyType/construct ~(42) | 42';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('MyType')).toBe(true);
@@ -335,7 +335,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING honours fork-isolation rules', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = '(:Local ::spec~(42)) | here';
+    const source = '(:Local |~~ Local. ~~| | :Local/construct ~(42)) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_SPELLING);

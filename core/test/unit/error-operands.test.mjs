@@ -223,7 +223,7 @@ describe('per-site error classes carry unique identity', () => {
     // the resulting error's `tag` slot and drops the field from
     // the descriptor — the same identity invariant the
     // `evalErrorLit` literal path enforces.
-    const result = await evalQuery(':MyTag ::spec~() | {:kind ::MyTag :detail "x"} | raise');
+    const result = await evalQuery(':MyTag |~~ MyTag. ~~| | {:kind ::MyTag :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
     expect(result.descriptor.has('kind')).toBe(false);
     expect(result.descriptor.get('detail')).toBe('x');
@@ -236,12 +236,12 @@ describe('per-site error classes carry unique identity', () => {
     // The tagged Vec / wrap-scalar branches are covered above via
     // the per-shape identity-overlay tests.
     const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
-    const setResult = await evalQuery(':Tags ::spec~() | ::Tags#[:b :a] | payload');
+    const setResult = await evalQuery(':Tags |~~ Tags. ~~| | ::Tags#[:b :a] | payload');
     expect(isQSet(setResult)).toBe(true);
     const vecResult = await evalQuery('#[:b :a] | payload');
     expect(isTaggedInstance(vecResult)).toBe(false);
     expect(vecResult.map(k => k.name)).toEqual(['a', 'b']);
-    const mapResult = await evalQuery(':User ::spec~() | ::User{:name "alice"} | payload');
+    const mapResult = await evalQuery(':User |~~ User. ~~| | ::User{:name "alice"} | payload');
     expect(mapResult instanceof Map).toBe(true);
     expect(isTaggedInstance(mapResult)).toBe(false);
     expect(mapResult.get('name')).toBe('alice');

@@ -4,6 +4,9 @@
    declared under it, each with the law a part keeps, and the refusals
    its primitive raises sit under it too. ~|
 
+:number/construct |~~ Reads a number as itself, a finite double. ~~|
+  ::builtin{}
+
 :number/PayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
       another kind is refused, and text is read by `parseJson`.
@@ -13,7 +16,6 @@
         |  eq [::number/PayloadNotNumberError ::string]
        )
   ~~|
-  ::spec~()
 
 :number/NotFiniteError
   |~~ A number is a finite double: an answer brought under `::number`
@@ -23,7 +25,6 @@
 
       ~(1e308 | mul 10 | add 1 !| [type (/trail * /step)] | eq [::number/NotFiniteError [~(mul 10)]])
   ~~|
-  ::spec~()
 
 :number/add
   |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
@@ -126,7 +127,6 @@
 
       ~(10 | div 0 !| type | eq ::number/div/ByZeroError)
   ~~|
-  ::spec~()
 
 :number/div/quotient |~~ The subject divided by the divisor. ~~|
   ::number
@@ -159,7 +159,6 @@
 
       ~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
   ~~|
-  ::spec~()
 
 :number/round/rounded |~~ The number rounded to the digits. ~~|
   ::number

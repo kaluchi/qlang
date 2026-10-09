@@ -105,7 +105,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('an in-document kind contributes to the completions of tags', async () => {
-    const src = ':MyTag ::spec~(42)';
+    const src = ':MyTag |~~ MyTag. ~~| | :MyTag/construct ~(42)';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);

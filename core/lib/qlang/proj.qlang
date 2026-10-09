@@ -1,6 +1,9 @@
 |~ What is declared under `::proj`, the step that reads a part of a
    value: the refusals of a read that misses. ~|
 
+:proj/construct |~~ The step of a projection from its record, `:path`, which reads back as itself. ~~|
+  ::builtin{}
+
 :proj/PayloadNotSchemaError
   |~~ A `::proj` is a map of `:path`, a vector of keys and
       integers.
@@ -12,7 +15,6 @@
         |  eq [::proj/PayloadNotSchemaError :path]
        )
   ~~|
-  ::spec~()
 
 :proj/ReadBackDiffersError
   |~~ The `::proj` prints as text that reads back as another step: a
@@ -25,23 +27,6 @@
         |  eq [::proj/ReadBackDiffersError "/\"0\""]
        )
   ~~|
-  ::spec~()
-
-:proj/FieldNotInSignatureError
-  |~~ A projection of a kind's declaration, `::P | spec | /name`, names
-      a field it declares; another name is refused, and the declaration
-      printed whole, `::P | spec`, shows the ones there are.
-      ::link~(::proj | doc)
-
-      ~(:P ::spec~(:name ::string) | ::P | spec | /name | eq ::string)
-
-      ~(
-        :P ::spec~(:name ::string) | ::P | spec | /missing
-        !| [type /key]
-        |  eq [::proj/FieldNotInSignatureError "missing"]
-       )
-  ~~|
-  ::spec~()
 
 :proj/IndexOutOfBoundsError
   |~~ An index reads within a vector or a set, from `/0` to the last,
@@ -55,7 +40,6 @@
         |  eq [::proj/IndexOutOfBoundsError 99 3]
        )
   ~~|
-  ::spec~()
 
 :proj/KeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
@@ -69,7 +53,6 @@
         |  eq [::proj/KeyNotInMapError "b"]
        )
   ~~|
-  ::spec~()
 
 :proj/SubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a
@@ -89,7 +72,6 @@
         |  eq [::proj/SubjectNotProjectableError "foo" ::number]
        )
   ~~|
-  ::spec~()
 
 :proj/IndexNotIntegerError
   |~~ A vector is read by an index, `/0`, a set's in its one order; a
@@ -108,4 +90,3 @@
         |  eq [::proj/IndexNotIntegerError "name"]
        )
   ~~|
-  ::spec~()

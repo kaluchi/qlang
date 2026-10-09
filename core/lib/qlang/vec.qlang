@@ -3,6 +3,9 @@
    answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its object, read and held
    to their laws before the primitive runs. ~|
 
+:vec/construct |~~ Reads a vector as the bare vector, and a set, a quote or a doc as the vector of its elements. ~~|
+  ::builtin{}
+
 :vec/PayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
       payload of another kind is refused.
@@ -12,7 +15,6 @@
         |  eq [::vec/PayloadNotVecError ::map]
        )
   ~~|
-  ::spec~()
 
 :vec/count
   |~~ The number of elements.
@@ -528,7 +530,6 @@
         |  eq [::vec/UnionOfNothingError]
        )
   ~~|
-  ::spec~()
 
 :vec/UnionOperandsMismatchedError
   |~~ The operands `union` joins are two sets or two maps.
@@ -538,7 +539,6 @@
         |  eq [::vec/UnionOperandsMismatchedError ::set ::map]
        )
   ~~|
-  ::spec~()
 
 :vec/minus
   |~~ The first operand the vector holds minus each one after it; another
@@ -565,7 +565,6 @@
         |  eq [::vec/MinusOfNothingError]
        )
   ~~|
-  ::spec~()
 
 :vec/MinusOperandsMismatchedError
   |~~ The operands `minus` joins are two sets, or a map and a map or a
@@ -576,7 +575,6 @@
         |  eq [::vec/MinusOperandsMismatchedError ::set ::map]
        )
   ~~|
-  ::spec~()
 
 :vec/inter
   |~~ The intersection of the operands the vector holds; another operand
@@ -603,7 +601,6 @@
         |  eq [::vec/InterOfNothingError]
        )
   ~~|
-  ::spec~()
 
 :vec/InterOperandsMismatchedError
   |~~ The operands `inter` joins are two sets, or a map and a map or a
@@ -614,7 +611,6 @@
         |  eq [::vec/InterOperandsMismatchedError ::set ::map]
        )
   ~~|
-  ::spec~()
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between
@@ -660,7 +656,6 @@
         |  eq [::vec/JoinElementNotStringError ::number 1]
        )
   ~~|
-  ::spec~()
 
 :vec/prepend
   |~~ The vector with the element at its head, any value; a set takes it

@@ -1,6 +1,9 @@
 |~ What is declared under `::bind`, the step that declares a name:
    the refusals of a declaration. ~|
 
+:bind/construct |~~ The step of a declaration from its record, `:name`, `:docs` and `:body`, which reads back as itself. ~~|
+  ::builtin{}
+
 :bind/PayloadNotSchemaError
   |~~ A `::bind` is a map of `:name`, a keyword or a tag, `:docs`, a
       vector of docs, and `:body`, a step.
@@ -12,7 +15,6 @@
         |  eq [::bind/PayloadNotSchemaError :docs]
        )
   ~~|
-  ::spec~()
 
 :bind/ReadBackDiffersError
   |~~ The `::bind` prints as text that reads back as another step: a
@@ -26,7 +28,6 @@
         |  eq [::bind/ReadBackDiffersError ":inc"]
        )
   ~~|
-  ::spec~()
 
 :bind/EffectMarkMissingError
   |~~ A word whose body calls a name marked `@` reaches outside the
@@ -48,7 +49,6 @@
         |  eq [::bind/EffectMarkMissingError :any/f :@out]
        )
   ~~|
-  ::spec~()
 
 :bind/NounNotDeclaredError
   |~~ A name with a path is declared under the noun its path names
@@ -58,9 +58,8 @@
       ::link~(::bind | doc)
 
       ~(:Box/area ~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
-      ~(:Box ::spec~() | :Box/area ~(1) | ::Box{} | area | eq 1)
+      ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
   ~~|
-  ::spec~()
 
 :bind/NameTakenByVocabularyError
   |~~ A value the reader names takes no word of the vocabulary, the name
@@ -72,7 +71,6 @@
       ~(:count 5 !| [type /addresses] | eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
       ~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
   ~~|
-  ::spec~()
 
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline
@@ -94,4 +92,3 @@
       ~(:k 1 | (:k 2 | k) | eq 2)
       ~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
   ~~|
-  ::spec~()

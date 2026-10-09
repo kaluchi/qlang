@@ -4,6 +4,9 @@
    a string, `count`, `take` and `drop` by its characters, and
    `prepend` and `append`. ~|
 
+:string/construct |~~ Reads a string as itself. ~~|
+  ::builtin{}
+
 :string/PayloadNotStringError
   |~~ `::string` reads its payload as the string it is; a value of
       another kind becomes text by `print`.
@@ -13,7 +16,6 @@
         |  eq [::string/PayloadNotStringError ::number]
        )
   ~~|
-  ::spec~()
 
 :string/ParseJsonNumberNotFiniteError
   |~~ JSON text may write a number past the range of the doubles a
@@ -25,7 +27,6 @@
 
       ~("1e400" | parseJson !| type | eq ::string/ParseJsonNumberNotFiniteError)
   ~~|
-  ::spec~()
 
 :string/gt
   |~~ Whether the subject follows the string the call gives.
@@ -453,7 +454,6 @@
 
       ~("{not json" | parseJson !| type | eq ::string/ParseJsonTextNotJsonError)
   ~~|
-  ::spec~()
 
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON

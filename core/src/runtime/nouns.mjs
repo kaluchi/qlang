@@ -8,7 +8,7 @@
 // finds the words residing on each kind it passes [D34], [D164].
 
 import {
-  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQSet, isQuote, isSpec, isVec, isTagKeyword, isTaggedInstance,
+  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTagKeyword, isTaggedInstance,
   isValueClass, makeSet, makeTagKeyword,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
@@ -40,10 +40,9 @@ export function nodeOf(env, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
-// Whether a node is a label, a name declared by its page or over a spec
-// [D166].
+// Whether a node is a label, a name declared by its page [D166], [D168].
 function isLabel(env, name) {
-  return isLabelValue(bindingValueOf(nodeOf(env, name)));
+  return isDoc(bindingValueOf(nodeOf(env, name)));
 }
 
 // Whether a name stands under a label, where a quote or a host's
@@ -54,11 +53,14 @@ export function isUnderLabel(env, name) {
 }
 
 // Whether a record holds a name declared under a label that runs on its
-// values, a quote or the descriptor of a primitive [D164]; a name under
-// such a name is a part of its object and resides nowhere.
+// values, a quote or the descriptor of a primitive [D164], the label's
+// `construct` apart, which builds them [D169]; a name under such a name
+// is a part of its object and resides nowhere.
 function residesOn(record, kindName, env) {
-  return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName);
+  return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName) && splitAddress(record.get('name').name)[1] !== CONSTRUCT_NAME;
 }
+
+const CONSTRUCT_NAME = 'construct';
 
 // A value a name under a label holds when it runs on the label's values.
 export function isMemberValue(value) {
@@ -203,11 +205,11 @@ export function readerNamesOf(env) {
   return readerNames;
 }
 
-// kindNamesOf(env) → the names of one segment whose tag addresses a
-// kind, the root's first, as a tag reads them, then the reader's.
+// kindNamesOf(env) → the labels of one segment, a topic among them, the
+// root's first, as a tag reads them, then the reader's [D169].
 export function kindNamesOf(env) {
   const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
-  return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isSpec(bindingValueOf(nodeOf(env, name))));
+  return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
 }
 
 // The addresses where the words of a name live, one for each kind that

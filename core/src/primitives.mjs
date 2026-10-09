@@ -63,13 +63,13 @@ export function createPrimitiveRegistry() {
       return bindings.has(key);
     },
 
-    // The implementations under a noun, by address; null for the kinds,
-    // which are under none.
+    // The implementations under a noun, by address, each a name under
+    // one; the language's own source, which declares under none, takes
+    // none.
     implsUnder(nounName) {
       const under = {};
       for (const [address, impl] of bindings) {
-        const cut = address.lastIndexOf('/');
-        if ((cut < 0 ? null : address.slice(0, cut)) === nounName) under[address] = impl;
+        if (address.slice(0, address.lastIndexOf('/')) === nounName) under[address] = impl;
       }
       return under;
     },

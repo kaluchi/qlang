@@ -25,11 +25,11 @@ describe('BindStep — docs-only form', () => {
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it('a kind declared with a doc reads its page and answers its spec by its tag [D152]', async () => {
-    const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | doc | content');
+  it('a kind declared with a doc reads its page, the value of its record [D168]', async () => {
+    const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
-    const spec = await evalQuery(':MyDocTag |~~ short tag prose ~~| ::spec~() | ::MyDocTag | spec | type');
-    expect(spec).toEqual(makeTagKeyword('spec'));
+    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | /value | type');
+    expect(value).toEqual(makeTagKeyword('doc'));
   });
 });
 

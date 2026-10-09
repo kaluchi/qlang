@@ -32,7 +32,7 @@ function quoteConstructor(payload) {
   return makeQuote(payload);
 }
 
-bindPrim('quote', quoteConstructor);
+bindPrim('quote/construct', quoteConstructor);
 
 // The step reads back as itself, or its refusal names the text it
 // printed as. Text that reads as no step at all is refused alike.
@@ -84,22 +84,22 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
   };
 }
 
-bindPrim('call', recordConstructor(CALL_TAG,
+bindPrim('call/construct', recordConstructor(CALL_TAG,
   { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
   declareShapeError('call/PayloadNotSchemaError', schemaMessage('::call'), { operand: '::call' }),
   declareShapeError('call/ReadBackDiffersError', readBackMessage('::call'), { operand: '::call' })));
 
-bindPrim('proj', recordConstructor(PROJ_TAG,
+bindPrim('proj/construct', recordConstructor(PROJ_TAG,
   { path: vecOf(isSegment) }, ['path'],
   declareShapeError('proj/PayloadNotSchemaError', schemaMessage('::proj'), { operand: '::proj' }),
   declareShapeError('proj/ReadBackDiffersError', readBackMessage('::proj'), { operand: '::proj' })));
 
-bindPrim('bind', recordConstructor(BIND_TAG,
+bindPrim('bind/construct', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareShapeError('bind/PayloadNotSchemaError', schemaMessage('::bind'), { operand: '::bind' }),
   declareShapeError('bind/ReadBackDiffersError', readBackMessage('::bind'), { operand: '::bind' })));
 
-bindPrim('construct', recordConstructor(CONSTRUCT_TAG,
+bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
   declareShapeError('construct/PayloadNotSchemaError', schemaMessage('::construct'), { operand: '::construct' }),
   declareShapeError('construct/ReadBackDiffersError', readBackMessage('::construct'), { operand: '::construct' })));
@@ -114,14 +114,14 @@ function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
   };
 }
 
-bindPrim('each', wrapperConstructor(EACH_TAG,
+bindPrim('each/construct', wrapperConstructor(EACH_TAG,
   declareSubjectError('each/PayloadNotQuoteError', '::each', 'quote'),
   declareShapeError('each/ReadBackDiffersError', readBackMessage('::each'), { operand: '::each' })));
 
-bindPrim('fail', wrapperConstructor(FAIL_TAG,
+bindPrim('fail/construct', wrapperConstructor(FAIL_TAG,
   declareSubjectError('fail/PayloadNotQuoteError', '::fail', 'quote'),
   declareShapeError('fail/ReadBackDiffersError', readBackMessage('::fail'), { operand: '::fail' })));
 
-bindPrim('group', wrapperConstructor(GROUP_TAG,
+bindPrim('group/construct', wrapperConstructor(GROUP_TAG,
   declareSubjectError('group/PayloadNotQuoteError', '::group', 'quote'),
   declareShapeError('group/ReadBackDiffersError', readBackMessage('::group'), { operand: '::group' })));

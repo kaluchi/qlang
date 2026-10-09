@@ -254,16 +254,17 @@ describe('PRIMITIVE_REGISTRY — the implementations of the language by address 
   it('binds one under the address of every verb and kind of the language that ends in ::builtin{}, and no other', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { ROOT_KEY } = await import('../../src/env-keys.mjs');
-    const { endsInBuiltin } = await import('../../src/runtime/verb.mjs');
+    const { isBuiltinDescriptor } = await import('../../src/types.mjs');
     const root = (await langRuntime()).get(ROOT_KEY);
-    const builtins = [...root].filter(([, record]) => endsInBuiltin(record.get('value'))).map(([name]) => name);
+    const builtins = [...root].filter(([, record]) => isBuiltinDescriptor(record.get('value'))).map(([name]) => name);
     expect(builtins.every(name => PRIMITIVE_REGISTRY.has(name))).toBe(true);
     expect(PRIMITIVE_REGISTRY.size).toBe(builtins.length);
-    expect(PRIMITIVE_REGISTRY.has('number/add') && PRIMITIVE_REGISTRY.has('vec')).toBe(true);
+    expect(PRIMITIVE_REGISTRY.has('number/add') && PRIMITIVE_REGISTRY.has('vec/construct')).toBe(true);
   });
 
   it('hands a source of the language the implementations under its noun', () => {
     expect(Object.keys(PRIMITIVE_REGISTRY.implsUnder('number'))).toContain('number/add');
-    expect(Object.keys(PRIMITIVE_REGISTRY.implsUnder(null))).toContain('vec');
+    expect(Object.keys(PRIMITIVE_REGISTRY.implsUnder('vec'))).toContain('vec/construct');
+    expect(PRIMITIVE_REGISTRY.implsUnder(null)).toEqual({});
   });
 });

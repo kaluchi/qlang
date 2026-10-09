@@ -1,6 +1,9 @@
 |~ What is declared under `::null`, the kind of the absent value: the
    soft read of it. ~|
 
+:null/construct |~~ Reads null as itself. ~~|
+  ::builtin{}
+
 :null/PayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is
       refused.
@@ -10,7 +13,6 @@
         |  eq [::null/PayloadNotNullError ::number]
        )
   ~~|
-  ::spec~()
 
 :null/at
   |~~ The default the call gives, null when it gives none, whatever the

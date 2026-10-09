@@ -251,7 +251,6 @@ export const DOC_TAG         = makeTagKeyword(DOC_TAG_NAME);
 export const ERROR_TAG       = makeTagKeyword('error');
 export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
-export const SPEC_TAG        = makeTagKeyword('spec');
 export const TAG_BINDING_TAG = makeTagKeyword('tag');
 
 // The kind of every value without a tag of its own, the one its literal
@@ -301,32 +300,20 @@ export function makeTaggedInstance(tag, payload) {
   return Object.freeze(wrap);
 }
 
-// A kind's declaration, a quote under `::spec` [D152].
-export function isSpec(v) {
-  return isValueClass(v, 'taggedInstance') && v.tag.name === SPEC_TAG.name && isQuote(v.payload);
-}
-
 // The descriptor of an implementation a host hands, `::builtin{}`, the
 // value of a name under a label that a primitive answers [D164].
 export function isBuiltinDescriptor(v) {
   return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
-// A label, a node a value is put under and names are declared under: a
-// page, or a kind's `::spec~(…)` [D164].
-export function isLabelValue(v) {
-  return isDoc(v) || isSpec(v);
-}
-
-// A name under a label or a kind a host's source declared, which alone
-// reaches a primitive [D73], and the implementation the host handed
-// beside that source, a plain function over the values of the parts of
-// the call's object [D4], [D80], null for a primitive of the core.
-const HOST_DECLARED = new WeakSet();
+// A name under a label a host's source declared, which alone reaches a
+// primitive [D73], with the implementation the host handed beside that
+// source, a plain function over the values of the parts of the call's
+// object [D4], [D80].
 const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {
-  return HOST_DECLARED.has(value);
+  return HOST_IMPLS.has(value);
 }
 
 export function hostImplOf(value) {
@@ -334,8 +321,7 @@ export function hostImplOf(value) {
 }
 
 export function declareHostValue(value, impl) {
-  HOST_DECLARED.add(value);
-  if (impl !== undefined) HOST_IMPLS.set(value, impl);
+  HOST_IMPLS.set(value, impl);
 }
 
 // An error carries its tag, the kind of errors for a literal that names

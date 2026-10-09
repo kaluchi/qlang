@@ -119,10 +119,10 @@ export function declaredNameOf(bindStep) {
   return bindStep.key.name;
 }
 
-// declaresKind(bindStep) — whether a declaration's body is a kind's,
-// `:Box ::spec~(…)` [D152].
+// declaresKind(bindStep) — whether a declaration declares a label, a name
+// by its page alone, `:Box |~~ A parcel. ~~|` [D168].
 export function declaresKind(bindStep) {
-  return bindStep.body?.type === 'TaggedLit' && bindStep.body.tag === 'spec';
+  return bindStep.body === null;
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
@@ -238,7 +238,7 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // `spelling` picks which declarations contribute:
 //   - `'call'` (default) — every declaration, `:name body`, by the name
 //     a step calls it by.
-//   - `'tag'` — the declarations of kinds, `:Box ::spec~(…)` [D152].
+//   - `'tag'` — the declarations of labels, `:Box |~~ A parcel. ~~|` [D168].
 //
 // Visibility rules, mirroring the runtime fork semantics:
 //   1. The declaring node must already have been completed at the

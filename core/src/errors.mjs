@@ -234,8 +234,8 @@ export function declareEffectLaunderingError(address, buildMessage, facts = {}) 
 // the query: the host could not hand the runtime something it asked
 // for. The class extends `Error`, so the deflect combinators never
 // see it and it rides out to the host that can act on it, while the
-// spec it records gives its `::Tag` the same `spec` reading every
-// other per-site error answers with.
+// record of its site gives its `::Tag` an address as every other
+// per-site error's.
 export function declareForeignError(address, buildMessage, facts = {}) {
   recordThrowSiteSpec(address, 'foreignError', facts);
   const Cls = class extends Error {

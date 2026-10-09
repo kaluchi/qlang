@@ -411,9 +411,9 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   return catalogCtx ? catalogDeclarationOf(catalogCtx, address) : null;
 }
 
-// The name a declaration binds and the symbol it shows as: a kind, its
-// tag, for a `::spec~(…)` as its body [D152], a word for a quote or a
-// host's `::builtin{}` under a noun [D164], [D168], a value otherwise.
+// The name a declaration binds and the symbol it shows as: a label, its
+// tag, for a page alone [D168], a word for a quote or a host's
+// `::builtin{}` under a noun [D164], a value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
   const kind = bindingKindForKeywordHead(node);
@@ -421,8 +421,8 @@ function bindingDeclarationOf(node) {
 }
 
 function bindingKindForKeywordHead({ key, body }) {
-  if (body?.type === 'TaggedLit' && body.tag === 'spec') return 'tag';
-  const runs = body?.type === 'QuoteLit' || (body?.type === 'TaggedLit' && body.tag === 'builtin');
+  if (body === null) return 'tag';
+  const runs = body.type === 'QuoteLit' || (body.type === 'TaggedLit' && body.tag === 'builtin');
   return runs && key.name.includes('/') ? 'verb' : 'value';
 }
 

@@ -25,7 +25,7 @@ describe('an unresolved name names the names nearest to it', () => {
 
   it('the names of the session count, a kind among them, and an address does not', async () => {
     expect(await nearestOf(':limit 3 | limti')).toEqual([keyword('limit')]);
-    expect(await nearestOf(':Limit ::spec~() | XLimit')).toEqual([keyword('Limit')]);
+    expect(await nearestOf(':Limit |~~ Limit. ~~| | XLimit')).toEqual([keyword('Limit')]);
     expect(await nearestOf('numbe')).toEqual([keyword('number')]);
   });
 

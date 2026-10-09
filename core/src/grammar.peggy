@@ -122,7 +122,7 @@ LinePipelineHead
 // payload [D152].
 TagDeclarationRefusal
   = &{ return docQuoteDepth === 0; } BareTypeKeyword _h1 !Combinator (DocOpen / Word)
-    { error('a name is declared by its keyword, `:Box ::spec~(…)`, and a value under a tag touches its payload, `::Box[…]`'); }
+    { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
   = _ DocBeforeDeclaration

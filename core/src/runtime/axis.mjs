@@ -10,7 +10,6 @@
 //            step declared, a value a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `spec`     the value the binding holds as it was declared [D152].
 // `binding`  the record itself, `::binding` with its name, docs, value,
 //            source and module [D5].
 //
@@ -58,10 +57,6 @@ export const AnyExplainBindingNotFoundError = declareShapeError('any/ExplainBind
   ({ bindingName }) =>
     `explain: no binding found for '${bindingName}'`,
   { operand: 'explain' });
-export const AnySpecBindingNotFoundError = declareShapeError('any/SpecBindingNotFoundError',
-  ({ bindingName }) =>
-    `spec: no binding found for '${bindingName}'`,
-  { operand: 'spec' });
 
 // The name a refusal says a subject read: a keyword's, a tag name's, and
 // for every other value the tag of its kind, the kind `type` answers [D61].
@@ -236,11 +231,4 @@ bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainBindingNotFoundError));
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
 });
-
-// `spec` — the value the record holds as it was declared [D152]: a
-// kind's `::spec~(…)`, its fields and its constructor, and the value
-// itself for any other binding; what lies under a noun `manifest`
-// answers.
-bindStateReader('any/spec', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnySpecBindingNotFoundError).get('value'));
 

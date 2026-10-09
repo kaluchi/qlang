@@ -3,6 +3,9 @@
    comparisons of tag names, which compare them by their names in the one
    order, `manifest` and `runLaws`. ~|
 
+:tag/construct |~~ Reads a tag name as itself. ~~|
+  ::builtin{}
+
 :tag/PayloadNotTagError
   |~~ `::tag` reads its payload as the tag name it is; a value's own
       tag is read by `type`.
@@ -12,7 +15,6 @@
         |  eq [::tag/PayloadNotTagError ::keyword]
        )
   ~~|
-  ::spec~()
 
 :tag/gt
   |~~ Whether the subject's name follows the name of the tag the call
@@ -98,7 +100,7 @@
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::qlang/values)
-      ~(:Box ::spec~() | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
+      ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
 
       `manifest` is asked of a noun, a tag name in the subject
       position.

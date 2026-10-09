@@ -57,7 +57,7 @@ describe('CLI host operands — every throw site has its kind in the source of t
       expect(refusalAddresses.has(address),
         `${file} throws ${address} and the source of the command line declares no kind of it`
       ).toBe(true);
-      expect(await ask(`::${address} | spec | type`)).toEqual(await evalQuery('::spec'));
+      expect(await ask(`::${address} | binding | /value | type`)).toEqual(await evalQuery('::doc'));
     });
   }
 });

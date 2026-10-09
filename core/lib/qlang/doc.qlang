@@ -1,6 +1,9 @@
 |~ What is declared under `::doc`: the refusals of its constructor
    and the verbs that read a doc's shape for the query. ~|
 
+:doc/construct |~~ The doc of a vector of prose strings and quotes. ~~|
+  ::builtin{}
+
 :doc/PayloadNotVecError
   |~~ `::doc` builds a doc from the vector of its segments, prose
       strings and quotes; a payload of another kind is refused.
@@ -11,7 +14,6 @@
         |  eq [::doc/PayloadNotVecError ::string]
        )
   ~~|
-  ::spec~()
 
 :doc/ElementNotSegmentError
   |~~ Every element of a doc is a segment, a string of prose or a
@@ -23,7 +25,6 @@
         |  eq [::doc/ElementNotSegmentError 1]
        )
   ~~|
-  ::spec~()
 
 :doc/content
   |~~ The text of the doc: its prose with each quote written where it

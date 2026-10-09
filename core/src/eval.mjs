@@ -22,12 +22,12 @@ import { classifyEffect } from './effect.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import { declareSubjectError } from './operand-errors.mjs';
 import {
-  isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, isLabelValue, hostImplOf,
+  isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
-  isTaggedInstance, isValueClass, isSpec, quoteInEnv, quoteEnvRef, envToRun,
-  BIND_TAG, ERROR_TAG, SPEC_TAG, TAG_HEADER_SYMBOL
+  isValueClass, quoteInEnv, quoteEnvRef, envToRun,
+  ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
@@ -37,7 +37,7 @@ import {
   addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, lawsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  constructorOfSpec, runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
+  runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -69,14 +69,11 @@ const ProjIndexOutOfBoundsError = declareShapeError('proj/IndexOutOfBoundsError'
 const ProjIndexNotIntegerError = declareShapeError('proj/IndexNotIntegerError',
   ({ key }) => `/${key} — non-integer segment cannot index a Vec or Set subject`,
   { operand: '::proj' });
-const ProjFieldNotInSignatureError = declareShapeError('proj/FieldNotInSignatureError',
-  ({ key, valueClass, availableFields }) =>
-    `/${key} — not a projectable field on ${valueClass}; available: ${availableFields.join(', ')}`,
-  { operand: '::proj' });
-// A tag whose node is no kind, a verb or a page, builds no value [D152].
+// A tag whose node is no label, a word or a value, puts no value under
+// it [D168].
 const ConstructTagNotKindError = declareShapeError('construct/TagNotKindError',
-  ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a kind, a ::spec, builds a value`,
-  { operand: '::construct', expectedType: 'spec' }
+  ({ tag, actualType }) => `::${tag} — its node holds ${actualType.name}, and only a label, a name declared by its page, puts a value under its tag`,
+  { operand: '::construct', expectedType: 'doc' }
 );
 // The combinator names its qlang kind, `distribute`, in the message
 // and in the `:operand` its site records.
@@ -335,31 +332,24 @@ async function evalSetLit(node, state) {
 // ─── TaggedLit / BareTypeKeyword ────────────────────────────────
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
-// through the constructor its kind declares [D152]: a primitive, a body of
-// steps whose answer takes the tag unless it carries it, or none, which
-// lays the tag on; a tag no node answers is a kind of the scope's own,
-// identity. A value a verb returns under its subject's tag is minted here
-// again [D41]; no constructor meets an error [D86].
+// through its label [D168]; a tag no node answers is a kind of the
+// scope's own, identity. A value a verb returns under its subject's tag
+// is minted here again [D41]; no constructor meets an error [D86].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || declared === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
-  if (isDoc(declared)) return await underPage(tagName, payload, state);
-  if (!isSpec(declared)) {
+  if (!isDoc(declared)) {
     throw new ConstructTagNotKindError({ tag: tagName, actualType: typeKeyword(declared), actualValue: declared });
   }
-  const { primitive, body } = constructorOfSpec(declared);
-  if (primitive !== undefined) return await primitive(payload, state);
-  if (body === undefined) return makeTaggedInstance(makeTagKeyword(tagName), payload);
-  const constructorResult = (await evalBody(body, nestState(state, payload, state.env))).pipeValue;
-  if (isErrorValue(constructorResult)) return constructorResult;
-  if (isTaggedInstance(constructorResult) && constructorResult[TAG_HEADER_SYMBOL]?.name === tagName) return constructorResult;
-  return makeTaggedInstance(makeTagKeyword(tagName), constructorResult);
+  return await underPage(tagName, payload, state);
 }
 
 // A label declared by its page lays its tag over a payload [D166]: the
 // `construct` declared under it builds the payload first when there is
-// one, and every law declared under it runs on the value under the label,
-// a broken one refusing it under the law's name [D169].
+// one, a value of the label's own kind, as the constructor of a kind of
+// the core answers, staying as it is, and every law declared under it
+// runs on the value under the label, a broken one refusing it under the
+// law's name [D169].
 async function underPage(tagName, payload, state) {
   const constructRecord = nodeOf(state.env, `${tagName}/construct`);
   let built = payload;
@@ -367,7 +357,7 @@ async function underPage(tagName, payload, state) {
     built = await constructedBy(bindingValueOf(constructRecord), payload, state);
     if (isErrorValue(built)) return built;
   }
-  const labelled = built?.[TAG_HEADER_SYMBOL]?.name === tagName ? built : makeTaggedInstance(makeTagKeyword(tagName), built);
+  const labelled = typeKeyword(built).name === tagName ? built : makeTaggedInstance(makeTagKeyword(tagName), built);
   return await refusalOfLaws(tagName, labelled, state, state.env) ?? labelled;
 }
 
@@ -476,7 +466,7 @@ async function evalBindStep(node, state) {
   }
 
   const answered = (await evalNode(node.body, state)).pipeValue;
-  if (nounName === null && !isLabelValue(answered) && vocabularyWords(state.env).has(name)) {
+  if (nounName === null && !isDoc(answered) && vocabularyWords(state.env).has(name)) {
     throw new BindNameTakenByVocabularyError({ name, addresses: addressesOf(state.env, name) });
   }
   const partName = nounName === null ? null : splitAddress(name)[1];
@@ -528,35 +518,17 @@ function declarationRecord(node, value) {
 
 // A projection walks its path segment by segment: a map by key, a vector,
 // a quote and a doc among them, by an index counted from the end when
-// negative, and a kind's declaration by the names of its fields; a miss
-// is a refusal that names its `:key`, where `at` answers null.
+// negative; a miss is a refusal that names its `:key`, where `at`
+// answers null.
 function evalProjection(node, state) {
   let projectionCurrent = state.pipeValue;
   for (const projKey of node.keys) projectionCurrent = projectSegment(projectionCurrent, projKey);
   return withPipeValue(state, projectionCurrent);
 }
 
-// A kind's declaration is read by the names of its fields, each answering
-// the literal it declares [D152].
-function projectSignature(signatureSpec, projKey) {
-  const declarations = signatureSpec.payload.filter(step => typeKeyword(step).name === BIND_TAG.name);
-  const declared = declarations.find(step => step.get('name').name === projKey);
-  if (declared === undefined) {
-    throw new ProjFieldNotInSignatureError({
-      key: projKey,
-      valueClass: SPEC_TAG.name,
-      availableFields: declarations.map(step => step.get('name').name)
-    });
-  }
-  return declared.get('body');
-}
-
 // A projection reads the map or the vector beneath the tags stacked over
 // its subject, so the facts of an opened error read by name [D97].
 function projectSegment(subject, projKey) {
-  if (isValueClass(subject, 'taggedInstance') && subject.tag.name === SPEC_TAG.name) {
-    return projectSignature(subject, projKey);
-  }
   const projected = containerBeneathTags(subject);
   if (isQMap(projected)) {
     if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: projKey, actualValue: subject });

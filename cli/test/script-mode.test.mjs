@@ -98,7 +98,7 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   });
 
   it('refuses a tagged value by the path of map keys and indices', async () => {
-    expect((await refusalOf(':Box ::spec~() | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
+    expect((await refusalOf(':Box |~~ Box. ~~| | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
   });
 
   it('answers an error a container holds as that error', async () => {

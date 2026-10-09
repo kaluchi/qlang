@@ -1,5 +1,5 @@
 diff --git a/core/src/eval.mjs b/core/src/eval.mjs
-index f8245e9..c046131 100644
+index f8245e9..6c2411a 100644
 --- a/core/src/eval.mjs
 +++ b/core/src/eval.mjs
 @@ -2,6 +2,7 @@
@@ -19,6 +19,15 @@ index f8245e9..c046131 100644
    typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
    makeDoc, makeSet,
    makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+@@ -32,7 +33,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
+ import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
+ import { langRuntime } from './runtime/index.mjs';
+ import {
+-  addressesOf, bareNameReach, nodeOf, residenceOnSubject, residencesOf, splitAddress
++  addressesOf, bareNameReach, namesUnderOf, nodeOf, residenceOnSubject, residencesOf, splitAddress
+ } from './runtime/nouns.mjs';
+ import {
+   applyVerb, applyVerbOn, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject, takesFullApplication
 @@ -340,6 +341,7 @@ async function evalSetLit(node, state) {
  export async function mintTaggedInstance(tagName, payload, state) {
    const declared = bindingValueOf(nodeOf(state.env, tagName));
@@ -58,7 +67,7 @@ index f8245e9..c046131 100644
    if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
    declareVerbAt(verb, name, underKind ? nounName : null);
  }
-@@ -525,11 +542,45 @@ async function callByName(lookupName, lambdas, state) {
+@@ -525,11 +542,59 @@ async function callByName(lookupName, lambdas, state) {
        identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
      });
    }
@@ -73,9 +82,9 @@ index f8245e9..c046131 100644
 +// An aspect, a quote declared under a label, runs on the value it is
 +// named on, in the scope of its declaration over the root as it stands.
 +// The modifiers of the call are its object: their values, each computed
-+// against the subject, as a vector under the aspect's own address, whose
-+// parts the aspects declared under that address name and which every
-+// `::holds` of the aspect's page checks; the body reads it as `object`.
++// against the subject, as a vector under the aspect's own address. Each
++// part declared under that address is read from the object, checked by
++// the `::holds` of its own page, and bound in the body by its name.
 +async function applyAspect(aspect, record, lambdas, state) {
 +  const address = record.get('name').name;
 +  let env = new Map(envToRun(aspect, state.env));
@@ -96,6 +105,20 @@ index f8245e9..c046131 100644
 +      }
 +    }
 +    env = envSet(env, 'object', makeBinding({ name: keyword('object'), value: object }));
++    for (const [partName, partRecord] of namesUnderOf(env, address)) {
++      const selector = bindingValueOf(partRecord);
++      if (!isQuote(selector)) continue;
++      const part = (await evalBody(astOfQuote(selector), nestState(state, object, env))).pipeValue;
++      if (isErrorValue(part)) return withPipeValue(state, part);
++      for (const segment of partRecord.get('docs').flat()) {
++        if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
++        const holds = (await evalBody(astOfQuote(segment.payload), nestState(state, part, env))).pipeValue;
++        if (holds !== true) {
++          return withPipeValue(state, makeErrorValue(makeTagKeyword(`${address}/${partName}/HoldsNotMetError`), new Map([['holds', segment.payload], ['actualValue', part]])));
++        }
++      }
++      env = envSet(env, partName, makeBinding({ name: keyword(partName), value: part }));
++    }
 +  }
 +  const answered = await evalBody(astOfQuote(aspect), withEnv(state, env));
 +  return withPipeValue(state, answered.pipeValue);

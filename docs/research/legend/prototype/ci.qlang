@@ -54,10 +54,11 @@
   ~(within ~(take 3 | append 0))
 :Box/put
   |~~ The same box with another weight inside.
-      ::call~(put 10)
-      ::holds~(weight | type | eq ::number) ~~|
-  ~(within ~(take 3 | append (object | weight)))
-:Box/put/weight |~~ The weight to put inside, in kilograms. ~~| ~(/0)
+      ::call~(put 10) ~~|
+  ~(within ~(take 3 | append weight))
+:Box/put/weight
+  |~~ The weight to put inside, in kilograms. ::holds~(type | eq ::number) ~~|
+  ~(/0)
 
 :error/actualType |~~ The kind of the value the place refused. ~~| ~(/actualType)
 

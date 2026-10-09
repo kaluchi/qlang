@@ -92,23 +92,35 @@ without named projections:
 :Box/volume |~~ The space inside, in cubic centimetres. ~~| ~(mul length (mul width height))
 ```
 
-An action is an aspect whose call carries an object. The modifiers of
-the call, each computed against the subject, become a value under the
-action's own address, `put 10` the object `::Box/put[10]`; the aspects
-declared under that address name its parts, a `::holds` of the action's
-page checks it, and the body reads it as `object`. What the head did,
-slots, their kinds, defaults, the rest, is the same legend the subject
-has: a default is an aspect that reads softly, `~(at 0 | coalesce 0)`,
-a check is a law, a rest is the tail of the object's vector.
+An action is an aspect whose call carries an object, the O of `S | V
+O`. The head moves out of the quote into the action's own namespace:
+each part of the object is declared under the action's address in the
+form a part of the payload takes, a name, its page and the selector
+that reads it, and a `::holds` on that page checks it. A call `put 10`
+makes the modifiers a value, `::Box/put[10]`, each computed against
+the subject as a modifier always is; each declared part is read from it,
+checked, and bound in the body by its name, so the body is a pipeline
+that says `weight`. What the head did, slots, their kinds, defaults,
+the rest, is the legend the subject has: a default is a part read
+softly, `~(at 0 | coalesce 0)`, a check is a law, a rest is a part that
+reads the tail, `~(drop 1)`, and the whole object stays reachable as
+`object`.
 
 ```qlang
 :Box/put
-  |~~ The same box with another weight inside.
-      ::call~(put 10)
-      ::holds~(weight | type | eq ::number) ~~|
-  ~(within ~(take 3 | append (object | weight)))
-:Box/put/weight |~~ The weight to put inside, in kilograms. ~~| ~(/0)
+  |~~ The same box with another weight inside. ::call~(put 10) ~~|
+  ~(within ~(take 3 | append weight))
+:Box/put/weight
+  |~~ The weight to put inside, in kilograms. ::holds~(type | eq ::number) ~~|
+  ~(/0)
 ```
+
+A refusal is then named by the address of what refused, with no
+constant written for it: `put "x"` answers
+`::Box/put/weight/HoldsNotMetError`, and `::Box/put/weight | doc` is the
+page of the part. Inside the body `weight` is the part of the object;
+outside it, in a modifier, `put (weight | add 1)`, it is the aspect of
+the box, since the modifier is computed against the subject.
 
 Nested structure follows D50 without a schema: the data stays rows, and
 an aspect lays a label over each when it is read, so the meaning of a
@@ -272,6 +284,27 @@ page of a kind.
   `length | mul (width | mul height)` reads the width of a number; the
   prototype's host source tripped over it too, and wrote `mul length
   (mul width height)`.
+
+## Two thoughts of the maintainer
+
+A step on both tracks, `|!| legend` for `| explain !| explain`. The
+language holds it as a composition of two steps already: `!|` passes a
+value untouched and `!| /` hands an error on as its opened facts, so `!|
+/ | doc` runs `doc` on whatever came. In the prototype `"x" | add 1 !| /
+| doc` answers the legend of the error, and `[("x" | add 1) 5] * (!| / |
+type)` answers `[::number/AddLeftNotNumberError ::number]`. A token of
+its own would spell what two steps say, the case D51 removed `>>` for;
+what the idiom lacks is a sentence of the first page that names it. And
+the legend a reader needs most arrives with the print, which no
+combinator writes.
+
+A path language after the tag, `::tag/v/v/v` with axes and names, as
+XPath has. The names it would give are what aspects give, each with its
+page and its selector, and the axes are steps the pipeline has, `*` for
+each element and `filter` for a predicate; a sub-language of paths would
+be a second language inside the first, which is what the head was. The
+reading of the model is to keep `/k` and `/0` as the one projection and
+let a label name its parts.
 
 ## Readings this note held before, set aside
 

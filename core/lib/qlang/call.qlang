@@ -10,14 +10,11 @@
   |~~ A `::call` is a map of `:name`, a keyword, and `:args`, a vector
       of quotes; `:field` names the field that does not fit, null when
       the payload is no map.
-      ::link~(::call | doc)
-
-      ~(
-        ::call{:name 42}
-        !| [type /field]
-        |  eq [::call/PayloadNotSchemaError :name]
-       )
   ~~|
+
+:call/PayloadNotSchemaError/refusesANameThatIsNoKeyword
+  |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
+  ::law~(::call{:name 42} !| [type /field] | eq [::call/PayloadNotSchemaError :name])
 
 :call/PayloadNotSchemaError/field
   |~~ The field that does not fit, null when the payload is no map. ~~|
@@ -26,14 +23,11 @@
 :call/ReadBackDiffersError
   |~~ The `::call` prints as text that reads back as another step,
       or as none: `:printed` is that text.
-      ::link~(::call | doc)
-
-      ~(
-        ::call{:name :"a b"}
-        !| [type /printed]
-        |  eq [::call/ReadBackDiffersError "a b"]
-       )
   ~~|
+
+:call/ReadBackDiffersError/refusesANameOfTwoWords
+  |~~ A name with a space prints as two words, which read back as another step. ~~|
+  ::law~(::call{:name :"a b"} !| [type /printed] | eq [::call/ReadBackDiffersError "a b"])
 
 :call/ReadBackDiffersError/printed
   |~~ The text the step prints as, which reads back as another step or as none. ~~|
@@ -50,7 +44,6 @@
       are those of any error; recovery is a `!|` step, and the repair
       belongs to the host, which declares a refusal of its own where it
       has facts to hand.
-      ::link~(::call | doc)
   ~~|
 
 :call/HostFailureError/message
@@ -65,15 +58,15 @@
   |~~ A name the scope binds to a value takes no modifiers.
       `:addresses` names where a verb of that name lives, one the
       declaration shadows among them, which a call by address reaches.
-      ::link~(::call | doc)
-
-      ~(
-        5 | :five / | five 42
-        !| [type /name /actualType]
-        |  eq [::call/ValueTakesNoModifiersError :five ::number]
-       )
-      ~(:sort 5 | [3 1] | sort ~(/a) !| /addresses | has ::vec/sort)
   ~~|
+
+:call/ValueTakesNoModifiersError/refusesModifiersOnAValue
+  |~~ A name that holds a value refuses the modifiers a call gives it. ~~|
+  ::law~(5 | :five / | five 42 !| [type /name /actualType] | eq [::call/ValueTakesNoModifiersError :five ::number])
+
+:call/ValueTakesNoModifiersError/namesTheVerbTheValueShadows
+  |~~ The refusal names where the verb the value shadows lives. ~~|
+  ::law~(:sort 5 | [3 1] | sort ~(/a) !| /addresses | has ::vec/sort)
 
 :call/ValueTakesNoModifiersError/name
   |~~ The name, which holds a value and no word. ~~|
@@ -88,15 +81,17 @@
       names the kind, and `:addresses` the verbs of the name and the kinds
       they serve, so the subject is turned into one of those kinds first,
       or a verb of another name was meant.
-
-      ~(1 | count !| [/actualType (/addresses | has ::vec/count)] | eq [::number true])
-
-      ~(
-        5 | count
-        !| [type /addresses]
-        |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]]
-       )
   ~~|
+
+:call/KindAnswersNoVerbError/namesTheKindAndTheVerbs
+  |~~ The refusal names the kind of the subject and where the verb lives. ~~|
+  ::law~(1 | count !| [/actualType (/addresses | has ::vec/count)] | eq [::number true])
+
+:call/KindAnswersNoVerbError/listsEveryKindTheVerbServes
+  |~~ `:addresses` lists every kind the verb serves. ~~|
+  ::law~(5 | count
+    !| [type /addresses]
+    |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]])
 
 :call/KindAnswersNoVerbError/name
   |~~ The word the step called. ~~|
@@ -115,24 +110,31 @@
       and of those the nearest alone, in the order of their spelling.
       An edit is an insertion, a deletion, a substitution or a swap of
       two neighbours. A name with nothing near holds `[]`.
-      ::link~(::call | doc)
-
-      ~(
-        thisIsNotDefined
-        !| [type]
-        |  eq [::call/UnknownNameError]
-       )
-      ~(fist !| /nearest | eq [:first])
-      ~(
-        :Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
-        | :Box/area ~(1) | :Ring/area ~(2)
-        | 5 | area
-        !| /addresses
-        |  eq #[::Box/area ::Ring/area]
-       )
-      ~(:limit 3 | limti !| /nearest | eq [:limit])
-      ~(zzzzqqq !| /nearest | eq [])
   ~~|
+
+:call/UnknownNameError/refusesANameNothingDeclares
+  |~~ A name nothing declares is refused. ~~|
+  ::law~(thisIsNotDefined !| [type] | eq [::call/UnknownNameError])
+
+:call/UnknownNameError/suggestsTheNearestName
+  |~~ The names nearest in spelling are suggested. ~~|
+  ::law~(fist !| /nearest | eq [:first])
+
+:call/UnknownNameError/namesTheAddressesOfTheName
+  |~~ Words of the name under other labels are named by their addresses. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
+    | :Box/area ~(1) | :Ring/area ~(2)
+    | 5 | area
+    !| /addresses
+    |  eq #[::Box/area ::Ring/area])
+
+:call/UnknownNameError/suggestsTheReadersNames
+  |~~ A reader's own names are suggested too. ~~|
+  ::law~(:limit 3 | limti !| /nearest | eq [:limit])
+
+:call/UnknownNameError/suggestsNothingFarAway
+  |~~ A name near nothing suggests nothing. ~~|
+  ::law~(zzzzqqq !| /nearest | eq [])
 
 :call/UnknownNameError/name
   |~~ The name the step called. ~~|
@@ -151,16 +153,19 @@
       address. `:address` holds the address as a tag name, which the
       axes read, and `:nearest` the addresses it was likely meant to
       be. An address that names a value reads it, as a bare name does.
-      ::link~(::call | doc)
-
-      ~(
-        [1 2 3] | vec/nothing
-        !| [type /address]
-        |  eq [::call/UnknownAddressError ::vec/nothing]
-       )
-      ~([1] | vec/countt !| /nearest | has ::vec/count)
-      ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
   ~~|
+
+:call/UnknownAddressError/refusesAnAddressNothingDeclares
+  |~~ An address no declaration wrote is refused. ~~|
+  ::law~([1 2 3] | vec/nothing !| [type /address] | eq [::call/UnknownAddressError ::vec/nothing])
+
+:call/UnknownAddressError/suggestsTheNearestAddress
+  |~~ The addresses nearest in spelling are suggested. ~~|
+  ::law~([1] | vec/countt !| /nearest | has ::vec/count)
+
+:call/UnknownAddressError/readsAValueByItsAddress
+  |~~ A value under a label is read by its address. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
 
 :call/UnknownAddressError/address
   |~~ The address the step called. ~~|
@@ -177,17 +182,15 @@
       frame and `:limit` the budget. A verb that calls itself without a
       base case is refused here, on the fail track, while the host's
       memory stays bounded.
-      ::link~(::call | doc)
-
-      ~(
-        :any/inf ~(add 1 | inf) | 0 | inf
-        !| type | eq ::call/EvaluationDepthExceededError
-       )
-      ~(
-        :q ~(apply q) | apply q
-        !| :e / | /depth | gt (e | /limit)
-       )
   ~~|
+
+:call/EvaluationDepthExceededError/refusesARunawayRecursion
+  |~~ A word that calls itself without end is refused past the budget. ~~|
+  ::law~(:any/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
+
+:call/EvaluationDepthExceededError/namesADepthPastTheLimit
+  |~~ The depth refused lies past the limit. ~~|
+  ::law~(:q ~(apply q) | apply q !| :e / | /depth | gt (e | /limit))
 
 :call/EvaluationDepthExceededError/depth
   |~~ The frame the budget refused. ~~|

@@ -10,60 +10,79 @@
 :vec/PayloadNotVecError
   |~~ `::vec` reads a vector, a set or a quote as the bare vector; a
       payload of another kind is refused.
-      ~(
-        ::vec{:a 1}
-        !| [type /actualType]
-        |  eq [::vec/PayloadNotVecError ::map]
-       )
   ~~|
+
+:vec/PayloadNotVecError/refusesAMap
+  |~~ A map payload is refused. ~~|
+  ::law~(::vec{:a 1} !| [type /actualType] | eq [::vec/PayloadNotVecError ::map])
 
 :vec/count
-  |~~ The number of elements.
-
-      ~([1 2 3] | count | eq 3)
-      ~(42 | count !| /addresses | has ::vec/count)
-  ~~|
+  |~~ The number of elements. ~~|
   ::builtin{}
+
+:vec/count/countsTheElements
+  |~~ Three elements count three. ~~|
+  ::law~([1 2 3] | count | eq 3)
+
+:vec/count/refusesANumberNamingTheVerb
+  |~~ A number has no `count`, and the refusal names where it lives. ~~|
+  ::law~(42 | count !| /addresses | has ::vec/count)
 
 :vec/count/size
   |~~ How many elements the vector holds. ~~|
   ::number
 
 :vec/empty
-  |~~ Whether the vector holds no element.
-
-      ~([] | empty | eq true)
-      ~([1] | empty | eq false)
-  ~~|
+  |~~ Whether the vector holds no element. ~~|
   ::builtin{}
+
+:vec/empty/holdsOfTheEmptyVector
+  |~~ The empty vector is empty. ~~|
+  ::law~([] | empty | eq true)
+
+:vec/empty/failsOfAnElement
+  |~~ A vector of one element is not empty. ~~|
+  ::law~([1] | empty | eq false)
 
 :vec/empty/vacant
   |~~ Whether the vector holds no element. ~~|
   ::boolean
 
 :vec/first
-  |~~ The first element, or null for the empty vector.
-
-      ~([10 20 30] | first | eq 10)
-      ~([] | first | eq null)
-  ~~|
+  |~~ The first element, or null for the empty vector. ~~|
   ::builtin{}
+
+:vec/first/answersTheFirst
+  |~~ The first element answers. ~~|
+  ::law~([10 20 30] | first | eq 10)
+
+:vec/first/answersNullOfNothing
+  |~~ The empty vector has no first element. ~~|
+  ::law~([] | first | eq null)
 
 :vec/last
-  |~~ The last element, or null for the empty vector.
-
-      ~([10 20 30] | last | eq 30)
-      ~([] | last | eq null)
-  ~~|
+  |~~ The last element, or null for the empty vector. ~~|
   ::builtin{}
+
+:vec/last/answersTheLast
+  |~~ The last element answers. ~~|
+  ::law~([10 20 30] | last | eq 30)
+
+:vec/last/answersNullOfNothing
+  |~~ The empty vector has no last element. ~~|
+  ::law~([] | last | eq null)
 
 :vec/sum
-  |~~ The sum of the elements, each a number; the empty vector sums to 0.
-
-      ~([1 2 3 4] | sum | eq 10)
-      ~([] | sum | eq 0)
-  ~~|
+  |~~ The sum of the elements, each a number; the empty vector sums to 0. ~~|
   ::builtin{}
+
+:vec/sum/addsTheElements
+  |~~ The sum adds every element. ~~|
+  ::law~([1 2 3 4] | sum | eq 10)
+
+:vec/sum/sumsNothingToZero
+  |~~ The empty vector sums to zero. ~~|
+  ::law~([] | sum | eq 0)
 
 :vec/sum/total
   |~~ The sum of the elements. ~~|
@@ -72,18 +91,27 @@
 :vec/sum/ElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
       none, and a field is read first, `* /amount | sum`.
-
-      ~([1 "two" 3] | sum !| [type /actualType /index] | eq [::vec/sum/ElementNotNumberError ::string 1])
   ~~|
+
+:vec/sum/ElementNotNumberError/refusesAString
+  |~~ A string among the numbers is refused at its index. ~~|
+  ::law~([1 "two" 3] | sum !| [type /actualType /index] | eq [::vec/sum/ElementNotNumberError ::string 1])
 
 :vec/avg
-  |~~ The mean of the elements, each a number, or null when there is none.
-
-      ~([1 2 3 4] | avg | eq 2.5)
-      ~([] | avg | eq null)
-      ~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
-  ~~|
+  |~~ The mean of the elements, each a number, or null when there is none. ~~|
   ::builtin{}
+
+:vec/avg/answersTheMean
+  |~~ The mean of one to four is two and a half. ~~|
+  ::law~([1 2 3 4] | avg | eq 2.5)
+
+:vec/avg/answersNullOfNothing
+  |~~ The empty vector has no mean. ~~|
+  ::law~([] | avg | eq null)
+
+:vec/avg/averagesEachGroup
+  |~~ The mean of each group comes under its key. ~~|
+  ::law~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
 
 :vec/avg/mean
   |~~ The mean of the elements, null for an empty vector. ~~|
@@ -92,21 +120,31 @@
 :vec/avg/ElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
       that is none, and a field is read first, `* /amount | avg`.
-
-      ~([1 "two" 3] | avg !| [type /actualType /index] | eq [::vec/avg/ElementNotNumberError ::string 1])
   ~~|
+
+:vec/avg/ElementNotNumberError/refusesAString
+  |~~ A string among the numbers is refused at its index. ~~|
+  ::law~([1 "two" 3] | avg !| [type /actualType /index] | eq [::vec/avg/ElementNotNumberError ::string 1])
 
 :vec/min
   |~~ The first element in the one order of values, or the one whose key
       answers the first value, the key read as `sort` reads it. The
       element itself is the answer, the first of equal ones, and the
       empty vector yields null.
-
-      ~([3 1 4 1 5] | min | eq 1)
-      ~([{:age 30} {:age 20}] | min ~(/age) | eq {:age 20})
-      ~([3 "a" null] | min | eq null)
   ~~|
   ::builtin{}
+
+:vec/min/answersTheLeast
+  |~~ The least element answers. ~~|
+  ::law~([3 1 4 1 5] | min | eq 1)
+
+:vec/min/answersTheElementOfTheLeastKey
+  |~~ The element whose key answers least answers whole. ~~|
+  ::law~([{:age 30} {:age 20}] | min ~(/age) | eq {:age 20})
+
+:vec/min/ordersAcrossKinds
+  |~~ Null precedes every other kind in the one order. ~~|
+  ::law~([3 "a" null] | min | eq null)
 
 :vec/min/key
   |~~ The key the call gives, null when it gives none. ~~|
@@ -121,12 +159,20 @@
       answers the last value, the key read as `sort` reads it. The
       element itself is the answer, the first of equal ones, and the
       empty vector yields null.
-
-      ~([3 1 4 1 5] | max | eq 5)
-      ~([{:age 30} {:age 40}] | max ~(/age) | eq {:age 40})
-      ~([3 "a" null] | max | eq "a")
   ~~|
   ::builtin{}
+
+:vec/max/answersTheGreatest
+  |~~ The greatest element answers. ~~|
+  ::law~([3 1 4 1 5] | max | eq 5)
+
+:vec/max/answersTheElementOfTheGreatestKey
+  |~~ The element whose key answers most answers whole. ~~|
+  ::law~([{:age 30} {:age 40}] | max ~(/age) | eq {:age 40})
+
+:vec/max/ordersAcrossKinds
+  |~~ A string follows a number in the one order. ~~|
+  ::law~([3 "a" null] | max | eq "a")
 
 :vec/max/key
   |~~ The key the call gives, null when it gives none. ~~|
@@ -137,35 +183,38 @@
   ::holds~(is ::quote ::null)
 
 :vec/filter
-  |~~ The elements whose predicate answers true, in their order.
-
-      ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
-      The predicate reads each element as its subject:
-      ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
-      A verb stands where a quote would:
-      ~([1 -2 3] | :any/positive ~(gt 0) | filter ~positive | eq [1 3])
-  ~~|
+  |~~ The elements whose predicate answers true, in their order. ~~|
   ::builtin{}
+
+:vec/filter/keepsWhatThePredicateHolds
+  |~~ The elements past two are kept in their order. ~~|
+  ::law~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
+
+:vec/filter/readsEachElement
+  |~~ The predicate reads each element as its subject. ~~|
+  ::law~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
+
+:vec/filter/takesAVerb
+  |~~ A verb stands where a quote would. ~~|
+  ::law~([1 -2 3] | :any/positive ~(gt 0) | filter ~positive | eq [1 3])
 
 :vec/filter/predicate
   |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `filter` is code it runs on each element, so it takes a
       quote, `filter ~(gt 1)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | filter (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/filter/predicate/NotQuoteError ::boolean]
-       )
-      A step written without its quote runs on the whole subject at the
-      call, and the error it answers is refused alike:
-      ~(
-        [{:a true}] | filter /a
-        !| [type /actualType]
-        |  eq [::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]
-       )
   ~~|
   ~(/0)
+
+:vec/filter/predicate/refusesABoolean
+  |~~ A value computed at the call is refused, a boolean among them. ~~|
+  ::law~([1 2 3] | filter (count | gt 1) !| [type /actualType] | eq [::vec/filter/predicate/NotQuoteError ::boolean])
+
+:vec/filter/predicate/refusesAStepWithoutItsQuote
+  |~~ A step written without its quote runs on the whole subject at the call, and the error it answers is refused alike. ~~|
+  ::law~([{:a true}] | filter /a
+    !| [type /actualType]
+    |  eq [::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError])
 
 :vec/filter/predicate/NotQuoteError
   |~~ The predicate is code, a quote. ~~|
@@ -178,35 +227,45 @@
 :vec/filter/ConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
-
-      ~([1 2] | filter ~(1) !| [type /index /actualType] | eq [::vec/filter/ConditionNotBooleanError 0 ::number])
   ~~|
+
+:vec/filter/ConditionNotBooleanError/refusesANumberAnswer
+  |~~ A predicate that answers a number is refused at the element. ~~|
+  ::law~([1 2] | filter ~(1) !| [type /index /actualType] | eq [::vec/filter/ConditionNotBooleanError 0 ::number])
 
 :vec/every
   |~~ Whether the predicate answers true for every element, the question
       a law asks of a listing; it stops at the first false.
-
-      ~([2 4 6 8] | every ~(gt 0) | eq true)
-      ~([1 2 3] | every ~(gt 2) | eq false)
-      A verb stands where a quote would:
-      ~([2 4 6] | :any/positive ~(gt 0) | every ~positive | eq true)
-      An empty container answers true:
-      ~([] | every ~(gt 0) | eq true)
   ~~|
   ::builtin{}
+
+:vec/every/holdsOfEveryElement
+  |~~ Every element is positive. ~~|
+  ::law~([2 4 6 8] | every ~(gt 0) | eq true)
+
+:vec/every/failsOnOneElement
+  |~~ One element below the bar fails it. ~~|
+  ::law~([1 2 3] | every ~(gt 2) | eq false)
+
+:vec/every/takesAVerb
+  |~~ A verb stands where a quote would. ~~|
+  ::law~([2 4 6] | :any/positive ~(gt 0) | every ~positive | eq true)
+
+:vec/every/holdsOfNothing
+  |~~ An empty container answers true. ~~|
+  ::law~([] | every ~(gt 0) | eq true)
 
 :vec/every/predicate
   |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | every (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/every/predicate/NotQuoteError ::boolean]
-       )
   ~~|
   ~(/0)
+
+:vec/every/predicate/refusesABoolean
+  |~~ A value computed at the call is refused, a boolean among them. ~~|
+  ::law~([1 2 3] | every (count | gt 1) !| [type /actualType] | eq [::vec/every/predicate/NotQuoteError ::boolean])
 
 :vec/every/predicate/NotQuoteError
   |~~ The predicate is code, a quote. ~~|
@@ -219,35 +278,45 @@
 :vec/every/ConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
-
-      ~([1 2] | every ~(1) !| [type /index /actualType] | eq [::vec/every/ConditionNotBooleanError 0 ::number])
   ~~|
+
+:vec/every/ConditionNotBooleanError/refusesANumberAnswer
+  |~~ A predicate that answers a number is refused at the element. ~~|
+  ::law~([1 2] | every ~(1) !| [type /index /actualType] | eq [::vec/every/ConditionNotBooleanError 0 ::number])
 
 :vec/any
   |~~ Whether the predicate answers true for some element; it stops at
       the first true.
-
-      ~([1 2 3] | any ~(gt 2) | eq true)
-      ~([1 2 3] | any ~(gt 99) | eq false)
-      A verb stands where a quote would:
-      ~([1 2 3] | :any/big ~(gt 2) | any ~big | eq true)
-      An empty container answers false:
-      ~([] | any ~(gt 0) | eq false)
   ~~|
   ::builtin{}
+
+:vec/any/holdsOfSomeElement
+  |~~ One element past two is enough. ~~|
+  ::law~([1 2 3] | any ~(gt 2) | eq true)
+
+:vec/any/failsOfNone
+  |~~ It is false when no element holds. ~~|
+  ::law~([1 2 3] | any ~(gt 99) | eq false)
+
+:vec/any/takesAVerb
+  |~~ A verb stands where a quote would. ~~|
+  ::law~([1 2 3] | :any/big ~(gt 2) | any ~big | eq true)
+
+:vec/any/failsOfNothing
+  |~~ An empty container answers false. ~~|
+  ::law~([] | any ~(gt 0) | eq false)
 
 :vec/any/predicate
   |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | any (count | gt 1)
-        !| [type /actualType]
-        |  eq [::vec/any/predicate/NotQuoteError ::boolean]
-       )
   ~~|
   ~(/0)
+
+:vec/any/predicate/refusesABoolean
+  |~~ A value computed at the call is refused, a boolean among them. ~~|
+  ::law~([1 2 3] | any (count | gt 1) !| [type /actualType] | eq [::vec/any/predicate/NotQuoteError ::boolean])
 
 :vec/any/predicate/NotQuoteError
   |~~ The predicate is code, a quote. ~~|
@@ -260,19 +329,29 @@
 :vec/any/ConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
-
-      ~([1 2] | any ~(1) !| [type /index /actualType] | eq [::vec/any/ConditionNotBooleanError 0 ::number])
   ~~|
+
+:vec/any/ConditionNotBooleanError/refusesANumberAnswer
+  |~~ A predicate that answers a number is refused at the element. ~~|
+  ::law~([1 2] | any ~(1) !| [type /index /actualType] | eq [::vec/any/ConditionNotBooleanError 0 ::number])
 
 :vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
       membership of a JSON array.
-
-      ~(["ops" "db"] | has "ops" | eq true)
-      ~([1 [2]] | has [2] | eq true)
-      ~(42 | has :k !| /addresses | has ::map/has)
   ~~|
   ::builtin{}
+
+:vec/has/findsAnElement
+  |~~ An element held is found. ~~|
+  ::law~(["ops" "db"] | has "ops" | eq true)
+
+:vec/has/findsAnEqualVector
+  |~~ A vector element is found by equality. ~~|
+  ::law~([1 [2]] | has [2] | eq true)
+
+:vec/has/refusesANumberNamingTheVerbs
+  |~~ A number has no `has`, and the refusal names where it lives. ~~|
+  ::law~(42 | has :k !| /addresses | has ::map/has)
 
 :vec/has/element
   |~~ The element the call gives. ~~|
@@ -286,11 +365,16 @@
   |~~ Whether the vector holds an element equal to the value, the
       membership `has` asks, under the word a string answers for its
       substrings.
-
-      ~(["ops" "db"] | contains "ops" | eq true)
-      ~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
   ~~|
   ::builtin{}
+
+:vec/contains/findsAnElement
+  |~~ An element held is found. ~~|
+  ::law~(["ops" "db"] | contains "ops" | eq true)
+
+:vec/contains/refusesANumberNamingTheVerbs
+  |~~ A number has no `contains`, and the refusal names where it lives. ~~|
+  ::law~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
 
 :vec/contains/element
   |~~ The element the call gives. ~~|
@@ -305,30 +389,40 @@
       map is a keyword, and a key that answers a string, the field of a
       JSON object, or a number files its element under the keyword of
       its text.
-
-      ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
-      ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
-
-      Without a key an element files under itself, so the occurrences
-      of each value are counted by `groupBy * count`:
-      ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
-      ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
-      ~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
   ~~|
   ::builtin{}
+
+:vec/groupBy/filesUnderTheKey
+  |~~ The elements file under the key they answer. ~~|
+  ::law~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
+
+:vec/groupBy/filesAStringUnderItsKeyword
+  |~~ A string key files under its keyword. ~~|
+  ::law~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
+
+:vec/groupBy/filesUnderItselfWithoutAKey
+  |~~ Without a key an element files under itself, so the occurrences of each value are counted by `groupBy * count`. ~~|
+  ::law~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
+
+:vec/groupBy/keepsTheOrderInAGroup
+  |~~ A group keeps its elements in their order. ~~|
+  ::law~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
+
+:vec/groupBy/filesANumberUnderItsText
+  |~~ A number key files under the keyword of its text. ~~|
+  ::law~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
 
 :vec/groupBy/key
   |~~ The key the call gives, null when it gives none.
 
       The key of `groupBy` is code it runs on each element, so it takes a
       quote, `groupBy ~(/kind)`; a value computed at the call is refused.
-      ~(
-        [{:kind :a}] | groupBy :a
-        !| [type /actualType]
-        |  eq [::vec/groupBy/key/NotQuoteOrNullError ::keyword]
-       )
   ~~|
   ~(at 0)
+
+:vec/groupBy/key/refusesAKeyword
+  |~~ A keyword given as the key is computed at the call, and refused. ~~|
+  ::law~([{:kind :a}] | groupBy :a !| [type /actualType] | eq [::vec/groupBy/key/NotQuoteOrNullError ::keyword])
 
 :vec/groupBy/key/NotQuoteOrNullError
   |~~ The key is code, a quote or null. ~~|
@@ -343,35 +437,50 @@
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
       the element.
-
-      ~([{:k true} {:k 2}] | groupBy ~(/k) !| [type /actualType /index] | eq [::vec/groupBy/KeyNotKeywordError ::boolean 0])
   ~~|
+
+:vec/groupBy/KeyNotKeywordError/refusesABooleanKey
+  |~~ A boolean key is refused at its element. ~~|
+  ::law~([{:k true} {:k 2}] | groupBy ~(/k) !| [type /actualType /index] | eq [::vec/groupBy/KeyNotKeywordError ::boolean 0])
 
 :vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
       made a keyword first, as for `groupBy`.
-
-      ~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
-      ~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
-      ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
-      ~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
-      ~([:x :y] | indexBy | eq {:x :x :y :y})
   ~~|
   ::builtin{}
+
+:vec/indexBy/filesEachUnderItsKey
+  |~~ Each element files under its key. ~~|
+  ::law~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
+
+:vec/indexBy/filesAStringUnderItself
+  |~~ Without a key a string files under its keyword. ~~|
+  ::law~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
+
+:vec/indexBy/readsAFieldOfAnEntry
+  |~~ An entry is read by its key and then by a field. ~~|
+  ::law~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
+
+:vec/indexBy/filesANumberUnderItsText
+  |~~ A number key files under the keyword of its text. ~~|
+  ::law~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
+
+:vec/indexBy/filesAKeywordUnderItself
+  |~~ Without a key a keyword files under itself. ~~|
+  ::law~([:x :y] | indexBy | eq {:x :x :y :y})
 
 :vec/indexBy/key
   |~~ The key the call gives, null when it gives none.
 
       The key of `indexBy` is code it runs on each element, so it takes a
       quote, `indexBy ~(/id)`; a value computed at the call is refused.
-      ~(
-        [{:id :a}] | indexBy :a
-        !| [type /actualType]
-        |  eq [::vec/indexBy/key/NotQuoteOrNullError ::keyword]
-       )
   ~~|
   ~(at 0)
+
+:vec/indexBy/key/refusesAKeyword
+  |~~ A keyword given as the key is computed at the call, and refused. ~~|
+  ::law~([{:id :a}] | indexBy :a !| [type /actualType] | eq [::vec/indexBy/key/NotQuoteOrNullError ::keyword])
 
 :vec/indexBy/key/NotQuoteOrNullError
   |~~ The key is code, a quote or null. ~~|
@@ -386,9 +495,11 @@
       or a number, filed under the keyword of its text, since the keys of
       a map are keywords; any other value is refused, and `:index` names
       the element.
-
-      ~([{:k [1]}] | indexBy ~(/k) !| [type /actualType /index] | eq [::vec/indexBy/KeyNotKeywordError ::vec 0])
   ~~|
+
+:vec/indexBy/KeyNotKeywordError/refusesAVectorKey
+  |~~ A vector key is refused at its element. ~~|
+  ::law~([{:k [1]}] | indexBy ~(/k) !| [type /actualType /index] | eq [::vec/indexBy/KeyNotKeywordError ::vec 0])
 
 :vec/sort
   |~~ The elements in the one order of values, the order every value
@@ -398,40 +509,67 @@
       ~([(/count | desc) /name])` reads as `ORDER BY count DESC, name`;
       elements the key leaves alike keep the order of the subject.
 
-      Numbers ascend, equal ones side by side:
-      ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
-      A key orders by what it answers for each element:
-      ~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
-      A key under `desc` descends, and a vector key breaks the ties by its
-      next place:
-      ~([{:age 30} {:age 40}] | sort ~(/age | desc) | first | /age | eq 40)
-      ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s | eq ["a" "c" "b"])
-      Kinds come first, null, boolean, number, string, keyword, tag name, vector, set, map, quote, doc, error, elision and desc, then every other tag by its name:
-      ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
-      ~([::B ::A] | sort | eq [::A ::B])
-      A vector key ranks by its first place, then by the next among the elements the first leaves alike:
-      ~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b | eq [9 1 2])
-      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
-      `desc` turns the key, or one place of it, to descend:
-      ~([{:k 1} {:k 2}] | sort ~(/k | desc) | eq [{:k 2} {:k 1}])
-      A key that answers an error answers the call, a place of a vector it answers among them, so a key that misses its field is refused where it is read:
-      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
-      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
+      Kinds come first, null, boolean, number, string, keyword, tag
+      name, vector, set, map, quote, doc, error, elision and desc, then
+      every other tag by its name.
   ~~|
   ::builtin{}
+
+:vec/sort/ordersNumbers
+  |~~ Numbers ascend, equal ones side by side. ~~|
+  ::law~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+
+:vec/sort/ordersByTheKey
+  |~~ A key orders by what it answers for each element. ~~|
+  ::law~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
+
+:vec/sort/descendsUnderDesc
+  |~~ A key under `desc` descends, and a vector key breaks the ties by its next place. ~~|
+  ::law~([{:age 30} {:age 40}] | sort ~(/age | desc) | first | /age | eq 40)
+
+:vec/sort/breaksTiesByTheNextPlace
+  |~~ A vector key breaks the ties of its first place by its next. ~~|
+  ::law~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s | eq ["a" "c" "b"])
+
+:vec/sort/ordersKindsFirst
+  |~~ Null comes before numbers, and numbers before strings. ~~|
+  ::law~([3 null "x" 1] | sort | eq [null 1 3 "x"])
+
+:vec/sort/ordersTagsByName
+  |~~ Tag names order by their names. ~~|
+  ::law~([::B ::A] | sort | eq [::A ::B])
+
+:vec/sort/ranksByTheFirstPlace
+  |~~ A vector key ranks by its first place, then by the next among the elements the first leaves alike. ~~|
+  ::law~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b | eq [9 1 2])
+
+:vec/sort/putsNullLast
+  |~~ A first place of `eq null` puts null last. ~~|
+  ::law~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
+
+:vec/sort/turnsTheKey
+  |~~ `desc` turns the key, or one place of it, to descend. ~~|
+  ::law~([{:k 1} {:k 2}] | sort ~(/k | desc) | eq [{:k 2} {:k 1}])
+
+:vec/sort/refusesAKeyThatMissesItsField
+  |~~ A key that answers an error answers the call, a place of a vector it answers among them, so a key that misses its field is refused where it is read. ~~|
+  ::law~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
+
+:vec/sort/refusesAPlaceThatMissesItsField
+  |~~ A place of a vector key that misses its field is refused alike. ~~|
+  ::law~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
 
 :vec/sort/key
   |~~ The key the call gives, null when it gives none.
 
       The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
-      ~(
-        [3 1 2] | sort 1
-        !| [type /actualType]
-        |  eq [::vec/sort/key/NotQuoteOrNullError ::number]
-       )
   ~~|
   ~(at 0)
+
+:vec/sort/key/refusesANumber
+  |~~ A number given as the key is computed at the call, and refused. ~~|
+  ::law~([3 1 2] | sort 1 !| [type /actualType] | eq [::vec/sort/key/NotQuoteOrNullError ::number])
 
 :vec/sort/key/NotQuoteOrNullError
   |~~ The key is code, a quote or null. ~~|
@@ -445,11 +583,16 @@
   |~~ The first count elements. The count is a whole number: past the
       length the whole vector comes back, and a negative count takes
       nothing.
-
-      ~([1 2 3 4 5] | take 3 | eq [1 2 3])
-      ~([1 2 3] | take -1 | eq [])
   ~~|
   ::builtin{}
+
+:vec/take/takesTheFirst
+  |~~ Three of five are the first three. ~~|
+  ::law~([1 2 3 4 5] | take 3 | eq [1 2 3])
+
+:vec/take/takesNothingByANegativeCount
+  |~~ A negative count takes nothing. ~~|
+  ::law~([1 2 3] | take -1 | eq [])
 
 :vec/take/count
   |~~ How many. ~~|
@@ -471,11 +614,16 @@
   |~~ The elements after the first count. The count is a whole number:
       past the length the empty vector comes back, and a negative count
       drops nothing.
-
-      ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
-      ~([1 2 3] | drop -1 | eq [1 2 3])
   ~~|
   ::builtin{}
+
+:vec/drop/dropsTheFirst
+  |~~ Dropping two leaves the last three. ~~|
+  ::law~([1 2 3 4 5] | drop 2 | eq [3 4 5])
+
+:vec/drop/dropsNothingByANegativeCount
+  |~~ A negative count drops nothing. ~~|
+  ::law~([1 2 3] | drop -1 | eq [1 2 3])
 
 :vec/drop/count
   |~~ How many. ~~|
@@ -497,14 +645,28 @@
   |~~ The element at the index, a negative one counting from the end,
       or past either end the default the call gives, null when it gives
       none; an element that is null stays null.
-
-      ~([10 20 30] | at 1 | eq 20)
-      ~([10 20 30] | at -1 | eq 30)
-      ~([] | at 0 7 | eq 7)
-      ~([null] | at 0 7 | eq null)
-      ~([10 20 30] | at 99 | eq null)
   ~~|
   ::builtin{}
+
+:vec/at/readsTheIndex
+  |~~ Index one is the second element. ~~|
+  ::law~([10 20 30] | at 1 | eq 20)
+
+:vec/at/countsFromTheEnd
+  |~~ A negative index counts from the end. ~~|
+  ::law~([10 20 30] | at -1 | eq 30)
+
+:vec/at/answersTheDefaultPastTheEnd
+  |~~ Past the end the default answers. ~~|
+  ::law~([] | at 0 7 | eq 7)
+
+:vec/at/keepsANullElement
+  |~~ An element that is null answers null, not the default. ~~|
+  ::law~([null] | at 0 7 | eq null)
+
+:vec/at/answersNullPastTheEnd
+  |~~ Past the end without a default null answers. ~~|
+  ::law~([10 20 30] | at 99 | eq null)
 
 :vec/at/default
   |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
@@ -526,34 +688,44 @@
   |~~ The set of the elements, the vector in the one order without
       duplicates. Two elements are one when `eq` says so, so two maps,
       vectors or sets of the same content collapse.
-
-      ~([2 1 2 3 1] | distinct | eq #[1 2 3])
-      ~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
-      ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
   ~~|
   ::builtin{}
+
+:vec/distinct/answersASet
+  |~~ The distinct elements are a set. ~~|
+  ::law~([2 1 2 3 1] | distinct | eq #[1 2 3])
+
+:vec/distinct/ordersByTheOneOrder
+  |~~ The set's vector is in the one order. ~~|
+  ::law~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
+
+:vec/distinct/mergesEqualMaps
+  |~~ Two maps of the same entries are one. ~~|
+  ::law~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
 
 :vec/distinct/unique
   |~~ The elements, each once, in the one order: a set. ~~|
   ::vec
 
 :vec/reverse
-  |~~ The elements in the reverse order.
-
-      ~([1 2 3] | reverse | eq [3 2 1])
-  ~~|
+  |~~ The elements in the reverse order. ~~|
   ::builtin{}
+
+:vec/reverse/reversesTheOrder
+  |~~ The elements come in reverse order. ~~|
+  ::law~([1 2 3] | reverse | eq [3 2 1])
 
 :vec/reverse/reversed
   |~~ The elements in reverse order. ~~|
   ::vec
 
 :vec/flat
-  |~~ The elements with one level of nesting spliced in.
-
-      ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
-  ~~|
+  |~~ The elements with one level of nesting spliced in. ~~|
   ::builtin{}
+
+:vec/flat/splicesOneLevel
+  |~~ The inner vectors splice into one. ~~|
+  ::law~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
 
 :vec/flat/flattened
   |~~ The elements with one level of nesting spliced in. ~~|
@@ -563,31 +735,48 @@
   |~~ The seed folded over the elements by the reducer, which runs as
       `accumulator | reducer element`; `sum`, `count`, `max` and the
       builders of structures all factor through it.
-
-      ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
-      ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
-      ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
-      ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
-      A name takes the accumulator as its subject and the element as its first arg:
-      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
-      ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
-      The seed is the first accumulator, answered as it is for an empty subject:
-      ~([] | reduce 42 ~(add) | eq 42)
   ~~|
   ::builtin{}
+
+:vec/reduce/sums
+  |~~ Adding from zero sums. ~~|
+  ::law~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
+
+:vec/reduce/multiplies
+  |~~ Multiplying from one gives the product. ~~|
+  ::law~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
+
+:vec/reduce/joinsStrings
+  |~~ Appending from the empty string joins. ~~|
+  ::law~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
+
+:vec/reduce/unitesSets
+  |~~ Uniting from the empty set merges. ~~|
+  ::law~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+
+:vec/reduce/takesAName
+  |~~ A name takes the accumulator as its subject and the element as its first arg. ~~|
+  ::law~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
+
+:vec/reduce/takesANameThatLeavesTheElement
+  |~~ A name may leave the element unread. ~~|
+  ::law~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
+
+:vec/reduce/answersTheSeedOfNothing
+  |~~ The seed is the first accumulator, answered as it is for an empty subject. ~~|
+  ::law~([] | reduce 42 ~(add) | eq 42)
 
 :vec/reduce/reducer
   |~~ The code that folds an element into the value so far.
 
       The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
       quote, `reduce 0 ~(add)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | reduce 0 1
-        !| [type /actualType]
-        |  eq [::vec/reduce/reducer/NotQuoteError ::number]
-       )
   ~~|
   ~(/1)
+
+:vec/reduce/reducer/refusesANumber
+  |~~ A number computed at the call is refused. ~~|
+  ::law~([1 2 3] | reduce 0 1 !| [type /actualType] | eq [::vec/reduce/reducer/NotQuoteError ::number])
 
 :vec/reduce/reducer/NotQuoteError
   |~~ The reducer is code, a quote. ~~|
@@ -603,25 +792,33 @@
       `reduce 0 ~(add)`; a quote of several steps, a literal or a
       name of no verb is refused. A fold of several steps is a name
       declared first, whose part names the element.
-
-      ~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/ReducerNotBinaryError)
-      ~(
-        :any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number)
-        | [1 2 3] | reduce 0 ~(step)
-        | eq 11
-       )
   ~~|
+
+:vec/reduce/ReducerNotBinaryError/refusesAPipeline
+  |~~ A reducer of two steps is refused. ~~|
+  ::law~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/ReducerNotBinaryError)
+
+:vec/reduce/ReducerNotBinaryError/takesANameForAPipeline
+  |~~ A pipeline under a name of its own folds as one verb. ~~|
+  ::law~(:any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number)
+    | [1 2 3] | reduce 0 ~(step)
+    | eq 11)
 
 :vec/union
   |~~ The union of the operands the vector holds, sets merged in the one
       order or maps merged with the last value winning a key. A vector is
       no set for the algebra, so another operand beside it is
       refused with the pair.
-
-      ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
-      ~([1] | union #[2] !| type | eq ::vec/union/OperandsMismatchedError)
   ~~|
   ::builtin{}
+
+:vec/union/unitesTheOperands
+  |~~ The sets the vector holds unite. ~~|
+  ::law~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
+
+:vec/union/refusesAnOperandBeside
+  |~~ An operand beside the vector is refused with the pair. ~~|
+  ::law~([1] | union #[2] !| type | eq ::vec/union/OperandsMismatchedError)
 
 :vec/union/with
   |~~ The value the subject is joined with, null when it gives none. ~~|
@@ -635,18 +832,25 @@
   |~~ `union` over a vector joins its operands from the first, `[a b c]
       | union`, so the vector holds one at least; two operands are
       written `a | union b`.
-
-      ~([] | union !| type | eq ::vec/union/NoOperandsError)
   ~~|
+
+:vec/union/NoOperandsError/refusesTheEmptyVector
+  |~~ The empty vector holds no operand. ~~|
+  ::law~([] | union !| type | eq ::vec/union/NoOperandsError)
 
 :vec/union/OperandsMismatchedError
   |~~ The operands `union` joins are two sets or two maps; a vector is
       none, so an operand its call gives beside the vector is refused with
       the pair.
-
-      ~([#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::set ::map])
-      ~([1] | union #[2] !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::vec ::set])
   ~~|
+
+:vec/union/OperandsMismatchedError/refusesASetAndAMap
+  |~~ A set and a map do not join. ~~|
+  ::law~([#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::set ::map])
+
+:vec/union/OperandsMismatchedError/refusesAVectorAndASet
+  |~~ A vector and a set do not join. ~~|
+  ::law~([1] | union #[2] !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::vec ::set])
 
 :vec/union/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
@@ -659,10 +863,12 @@
 :vec/minus
   |~~ The first operand the vector holds minus each one after it; another
       operand beside the vector is refused with the pair.
-
-      ~([#[:a :b :c] #[:b]] | minus | eq #[:a :c])
   ~~|
   ::builtin{}
+
+:vec/minus/subtractsTheRest
+  |~~ The first set loses what the next holds. ~~|
+  ::law~([#[:a :b :c] #[:b]] | minus | eq #[:a :c])
 
 :vec/minus/with
   |~~ The value the subject is joined with, null when it gives none. ~~|
@@ -676,18 +882,25 @@
   |~~ `minus` over a vector joins its operands from the first, `[a b c]
       | minus`, so the vector holds one at least; two operands are
       written `a | minus b`.
-
-      ~([] | minus !| type | eq ::vec/minus/NoOperandsError)
   ~~|
+
+:vec/minus/NoOperandsError/refusesTheEmptyVector
+  |~~ The empty vector holds no operand. ~~|
+  ::law~([] | minus !| type | eq ::vec/minus/NoOperandsError)
 
 :vec/minus/OperandsMismatchedError
   |~~ The operands `minus` joins are two sets, or a map and a map or a
       vector of keys; a vector is none, so an operand its call gives beside
       the vector is refused with the pair.
-
-      ~([#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::set ::map])
-      ~([1] | minus #[2] !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::vec ::set])
   ~~|
+
+:vec/minus/OperandsMismatchedError/refusesASetAndAMap
+  |~~ A set and a map do not join. ~~|
+  ::law~([#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::set ::map])
+
+:vec/minus/OperandsMismatchedError/refusesAVectorAndASet
+  |~~ A vector and a set do not join. ~~|
+  ::law~([1] | minus #[2] !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::vec ::set])
 
 :vec/minus/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
@@ -700,17 +913,21 @@
 :vec/minus/KeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
       names the first element of the vector of keys that is neither.
-
-      ~([{:a 1} [:a 1]] | minus !| [type /actualType /index] | eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
   ~~|
+
+:vec/minus/KeyNotKeywordOrStringError/refusesANumber
+  |~~ A number among the keys is refused at its index. ~~|
+  ::law~([{:a 1} [:a 1]] | minus !| [type /actualType /index] | eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
 
 :vec/inter
   |~~ The intersection of the operands the vector holds; another operand
       beside the vector is refused with the pair.
-
-      ~([#[:a :b :c] #[:b :d]] | inter | eq #[:b])
   ~~|
   ::builtin{}
+
+:vec/inter/keepsTheCommonElements
+  |~~ The elements both sets hold stay. ~~|
+  ::law~([#[:a :b :c] #[:b :d]] | inter | eq #[:b])
 
 :vec/inter/with
   |~~ The value the subject is joined with, null when it gives none. ~~|
@@ -724,18 +941,25 @@
   |~~ `inter` over a vector joins its operands from the first, `[a b c]
       | inter`, so the vector holds one at least; two operands are
       written `a | inter b`.
-
-      ~([] | inter !| type | eq ::vec/inter/NoOperandsError)
   ~~|
+
+:vec/inter/NoOperandsError/refusesTheEmptyVector
+  |~~ The empty vector holds no operand. ~~|
+  ::law~([] | inter !| type | eq ::vec/inter/NoOperandsError)
 
 :vec/inter/OperandsMismatchedError
   |~~ The operands `inter` joins are two sets, or a map and a map or a
       vector of keys; a vector is none, so an operand its call gives beside
       the vector is refused with the pair.
-
-      ~([#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::set ::map])
-      ~([1] | inter #[2] !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::vec ::set])
   ~~|
+
+:vec/inter/OperandsMismatchedError/refusesASetAndAMap
+  |~~ A set and a map do not join. ~~|
+  ::law~([#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::set ::map])
+
+:vec/inter/OperandsMismatchedError/refusesAVectorAndASet
+  |~~ A vector and a set do not join. ~~|
+  ::law~([1] | inter #[2] !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::vec ::set])
 
 :vec/inter/OperandsMismatchedError/leftType
   |~~ The kind of the operand on the left. ~~|
@@ -748,38 +972,43 @@
 :vec/inter/KeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
       names the first element of the vector of keys that is neither.
-
-      ~([{:a 1} [[:a]]] | inter !| [type /actualType /index] | eq [::vec/inter/KeyNotKeywordOrStringError ::vec 0])
   ~~|
+
+:vec/inter/KeyNotKeywordOrStringError/refusesAVector
+  |~~ A vector among the keys is refused at its index. ~~|
+  ::law~([{:a 1} [[:a]]] | inter !| [type /actualType /index] | eq [::vec/inter/KeyNotKeywordOrStringError ::vec 0])
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between
       consecutive ones. Inverse of `split`.
 
-      ~(["a" "b" "c"] | join "," | eq "a,b,c")
-      ~([] | join "," | eq "")
-
       The subject of `join` is the vector of strings it writes as one; a
       map's values are read first, `vals | join ","`.
-      ~(
-        42 | join ","
-        !| [type /actualType]
-        |  eq [::vec/join/SubjectNotVecError ::number]
-       )
   ~~|
   ::builtin{}
+
+:vec/join/joinsWithTheSeparator
+  |~~ The separator stands between the strings. ~~|
+  ::law~(["a" "b" "c"] | join "," | eq "a,b,c")
+
+:vec/join/joinsNothingToTheEmptyString
+  |~~ The empty vector joins to the empty string. ~~|
+  ::law~([] | join "," | eq "")
+
+:vec/join/refusesANumber
+  |~~ A number is no vector of strings. ~~|
+  ::law~(42 | join "," !| [type /actualType] | eq [::vec/join/SubjectNotVecError ::number])
 
 :vec/join/separator
   |~~ The separator the call gives.
 
       The separator of `join` is a string, `join ", "`.
-      ~(
-        ["a" "b"] | join 42
-        !| [type /actualType]
-        |  eq [::vec/join/separator/NotStringError ::number]
-       )
   ~~|
   ~(/0)
+
+:vec/join/separator/refusesANumber
+  |~~ A number separator is refused. ~~|
+  ::law~(["a" "b"] | join 42 !| [type /actualType] | eq [::vec/join/separator/NotStringError ::number])
 
 :vec/join/separator/NotStringError
   |~~ The separator is a string. ~~|
@@ -792,22 +1021,29 @@
 :vec/join/ElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
       that is not, and `* print` makes each value its text first.
-      ~(
-        ["a" 42 "c"] | join ","
-        !| [type /actualType /index]
-        |  eq [::vec/join/ElementNotStringError ::number 1]
-       )
   ~~|
+
+:vec/join/ElementNotStringError/refusesANumber
+  |~~ A number among the strings is refused at its index. ~~|
+  ::law~(["a" 42 "c"] | join "," !| [type /actualType /index] | eq [::vec/join/ElementNotStringError ::number 1])
 
 :vec/prepend
   |~~ The vector with the element at its head, any value; a set takes it
       through its constructor, so it stays a set.
-
-      ~([2 3] | prepend 1 | eq [1 2 3])
-      ~(#[2 3] | prepend 3 | eq #[2 3])
-      ~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
   ~~|
   ::builtin{}
+
+:vec/prepend/putsTheElementFirst
+  |~~ The element goes first. ~~|
+  ::law~([2 3] | prepend 1 | eq [1 2 3])
+
+:vec/prepend/keepsASetASet
+  |~~ A set takes the element as a set does. ~~|
+  ::law~(#[2 3] | prepend 3 | eq #[2 3])
+
+:vec/prepend/refusesANumberNamingTheVerbs
+  |~~ A number has no `prepend`, and the refusal names where it lives. ~~|
+  ::law~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
 
 :vec/prepend/element
   |~~ The element the call gives. ~~|
@@ -821,12 +1057,20 @@
   |~~ The vector with the element at its end, any value, so `[1] |
       append [2 3]` answers `[1 [2 3]]` and vectors join through
       `flat`; a set takes it through its constructor, so it stays a set.
-
-      ~([1 2] | append 3 | eq [1 2 3])
-      ~(#[1 2] | append 1 | eq #[1 2])
-      ~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
   ~~|
   ::builtin{}
+
+:vec/append/putsTheElementLast
+  |~~ The element goes last. ~~|
+  ::law~([1 2] | append 3 | eq [1 2 3])
+
+:vec/append/keepsASetASet
+  |~~ A set takes the element as a set does. ~~|
+  ::law~(#[1 2] | append 1 | eq #[1 2])
+
+:vec/append/refusesANumberNamingTheVerbs
+  |~~ A number has no `append`, and the refusal names where it lives. ~~|
+  ::law~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
 
 :vec/append/element
   |~~ The element the call gives. ~~|

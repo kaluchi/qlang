@@ -10,10 +10,12 @@
   |~~ Whether the subject follows the value the call gives among
       descending values, which holds when its payload precedes the
       other's.
-
-      ~(1 | desc | gt (2 | desc) | eq true)
   ~~|
   ::builtin{}
+
+:desc/gt/reversesTheOrder
+  |~~ Among descending values, one follows two. ~~|
+  ::law~(1 | desc | gt (2 | desc) | eq true)
 
 :desc/gt/than
   |~~ The value the subject is compared with. ~~|
@@ -30,10 +32,12 @@
 :desc/gte
   |~~ Whether the subject follows or equals the value the call gives
       among descending values.
-
-      ~(2 | desc | gte (2 | desc) | eq true)
   ~~|
   ::builtin{}
+
+:desc/gte/equalsWithOnePayload
+  |~~ Two descending values of one payload are equal. ~~|
+  ::law~(2 | desc | gte (2 | desc) | eq true)
 
 :desc/gte/than
   |~~ The value the subject is compared with. ~~|
@@ -51,10 +55,12 @@
   |~~ Whether the subject precedes the value the call gives among
       descending values, which holds when its payload follows the
       other's.
-
-      ~(2 | desc | lt (1 | desc) | eq true)
   ~~|
   ::builtin{}
+
+:desc/lt/reversesTheOrder
+  |~~ Among descending values, two precedes one. ~~|
+  ::law~(2 | desc | lt (1 | desc) | eq true)
 
 :desc/lt/than
   |~~ The value the subject is compared with. ~~|
@@ -71,10 +77,12 @@
 :desc/lte
   |~~ Whether the subject precedes or equals the value the call gives
       among descending values.
-
-      ~(2 | desc | lte (2 | desc) | eq true)
   ~~|
   ::builtin{}
+
+:desc/lte/equalsWithOnePayload
+  |~~ Two descending values of one payload are equal. ~~|
+  ::law~(2 | desc | lte (2 | desc) | eq true)
 
 :desc/lte/than
   |~~ The value the subject is compared with. ~~|

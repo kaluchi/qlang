@@ -11,42 +11,50 @@
 :number/PayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
       another kind is refused, and text is read by `parseJson`.
-      ~(
-        ::number"5"
-        !| [type /actualType]
-        |  eq [::number/PayloadNotNumberError ::string]
-       )
   ~~|
+
+:number/PayloadNotNumberError/refusesAString
+  |~~ A string payload is refused; `parseJson` reads a number from text. ~~|
+  ::law~(::number"5" !| [type /actualType] | eq [::number/PayloadNotNumberError ::string])
 
 :number/NotFiniteError
   |~~ A number is a finite double: an answer brought under `::number`
       that left their range, a sum or a product too large, is refused
       here, whichever word computed it, and the trail names the step and
       the subject it ran on.
-
-      ~(1e308 | mul 10 | add 1 !| [type (/trail * /step)] | eq [::number/NotFiniteError [~(mul 10)]])
   ~~|
+
+:number/NotFiniteError/refusesAProductPastTheRange
+  |~~ A product past the range of doubles is refused at the step that made it. ~~|
+  ::law~(1e308 | mul 10 | add 1 !| [type (/trail * /step)] | eq [::number/NotFiniteError [~(mul 10)]])
 
 :number/add
   |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
       adds element by element, `* add 1`, and sums by `sum`; a string is
       joined by `append`; two numbers one value holds add by `sumOf`,
-      `{:x 10 :y 3} | sumOf /x /y`. ::call~(add 3)
-
-      ~(10 | add 3 | eq 13)
-      A subject that is no number is refused under the name:
-      ~("hello" | add 1 !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
-      Args with more numbers than the call has places are refused:
-      ~(1 | add 1 2 !| type | eq ::number/add/ArgsBeyondPartsError)
+      `{:x 10 :y 3} | sumOf /x /y`. `add 3`
   ~~|
   ::builtin{}
 
-:number/add/addend
-  |~~ The number added to the subject.
+:number/add/addsTheNumber
+  |~~ `add` computes the sum. ~~|
+  ::law~(10 | add 3 | eq 13)
 
-      ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/NotNumberError ::string])
-  ~~|
+:number/add/refusesAStringSubject
+  |~~ A subject that is no number is refused under the name. ~~|
+  ::law~("hello" | add 1 !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
+
+:number/add/refusesArgsBeyondItsPlaces
+  |~~ Args with more numbers than the call has places are refused. ~~|
+  ::law~(1 | add 1 2 !| type | eq ::number/add/ArgsBeyondPartsError)
+
+:number/add/addend
+  |~~ The number added to the subject. ~~|
   ~(/0)
+
+:number/add/addend/refusesAString
+  |~~ A string addend is refused. ~~|
+  ::law~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/NotNumberError ::string])
 
 :number/add/addend/NotNumberError
   |~~ The addend is a number. ~~|
@@ -60,19 +68,25 @@
   |~~ Subtracts a number from the subject, the minuend. A vector
       subtracts element by element, `* sub 1`; two numbers one value
       holds subtract by `subOf`, `{:total 10 :paid 3} | subOf /total
-      /paid`. ::call~(sub 3)
-
-      ~(10 | sub 3 | eq 7)
-      ~("hello" | sub 1 !| [type /actualType] | eq [::number/sub/SubjectNotNumberError ::string])
+      /paid`. `sub 3`
   ~~|
   ::builtin{}
 
-:number/sub/subtrahend
-  |~~ The number subtracted from the subject.
+:number/sub/subtractsTheNumber
+  |~~ `sub` computes the difference. ~~|
+  ::law~(10 | sub 3 | eq 7)
 
-      ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
-  ~~|
+:number/sub/refusesAStringSubject
+  |~~ A subject that is no number is refused. ~~|
+  ::law~("hello" | sub 1 !| [type /actualType] | eq [::number/sub/SubjectNotNumberError ::string])
+
+:number/sub/subtrahend
+  |~~ The number subtracted from the subject. ~~|
   ~(/0)
+
+:number/sub/subtrahend/refusesAString
+  |~~ A string subtrahend is refused. ~~|
+  ::law~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
 
 :number/sub/subtrahend/NotNumberError
   |~~ The subtrahend is a number. ~~|
@@ -85,19 +99,25 @@
 :number/mul
   |~~ Multiplies the subject by a number. A vector multiplies element by
       element, `* mul 2`; two numbers one value holds multiply by
-      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. ::call~(mul 3)
-
-      ~(10 | mul 3 | eq 30)
-      ~("hello" | mul 2 !| [type /actualType] | eq [::number/mul/SubjectNotNumberError ::string])
+      `mulOf`, `{:price 4 :qty 3} | mulOf /price /qty`. `mul 3`
   ~~|
   ::builtin{}
 
-:number/mul/multiplier
-  |~~ The number the subject is multiplied by.
+:number/mul/multipliesByTheNumber
+  |~~ `mul` computes the product. ~~|
+  ::law~(10 | mul 3 | eq 30)
 
-      ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
-  ~~|
+:number/mul/refusesAStringSubject
+  |~~ A subject that is no number is refused. ~~|
+  ::law~("hello" | mul 2 !| [type /actualType] | eq [::number/mul/SubjectNotNumberError ::string])
+
+:number/mul/multiplier
+  |~~ The number the subject is multiplied by. ~~|
   ~(/0)
+
+:number/mul/multiplier/refusesAString
+  |~~ A string multiplier is refused. ~~|
+  ::law~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
 
 :number/mul/multiplier/NotNumberError
   |~~ The multiplier is a number. ~~|
@@ -111,19 +131,24 @@
   |~~ Divides the subject, the dividend, by a number. A vector divides
       element by element, `* div 2`; two numbers one value holds divide
       by `divOf`, `{:sum 20 :count 4} | divOf /sum /count`.
-      ::call~(div 2)
-
-      ~(10 | div 2 | eq 5)
-      ~("hello" | div 2 !| [type /actualType] | eq [::number/div/SubjectNotNumberError ::string])
   ~~|
   ::builtin{}
 
-:number/div/divisor
-  |~~ The number the subject is divided by.
+:number/div/dividesByTheNumber
+  |~~ `div` computes the quotient. ~~|
+  ::law~(10 | div 2 | eq 5)
 
-      ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/NotNumberError ::string])
-  ~~|
+:number/div/refusesAStringSubject
+  |~~ A subject that is no number is refused. ~~|
+  ::law~("hello" | div 2 !| [type /actualType] | eq [::number/div/SubjectNotNumberError ::string])
+
+:number/div/divisor
+  |~~ The number the subject is divided by. ~~|
   ~(/0)
+
+:number/div/divisor/refusesAString
+  |~~ A string divisor is refused. ~~|
+  ::law~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/NotNumberError ::string])
 
 :number/div/divisor/NotNumberError
   |~~ The divisor is a number. ~~|
@@ -133,10 +158,12 @@
   |~~ The divisor is not zero: a division by zero has no finite answer,
       and a divisor that may be zero is tested first,
       `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
-
-      ~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
   ~~|
   ::holds~(eq 0 | not)
+
+:number/div/divisor/ZeroError/refusesZero
+  |~~ A division by zero is refused. ~~|
+  ::law~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
 
 :number/div/quotient
   |~~ The subject divided by the divisor. ~~|
@@ -146,16 +173,33 @@
   |~~ The number rounded half away from zero to the digits after the
       point the call gives, none when it gives none; a negative count
       rounds to tens and beyond. A string holding a number is read first
-      by `parseJson`. ::call~(round 2)
-
-      ~(3.14159 | round 2 | eq 3.14)
-      ~(2.5 | round | eq 3)
-      ~(-2.5 | round | eq -3)
-      ~(1234 | round -2 | eq 1200)
-      ~(-0.4 | round | print | eq "0")
-      ~("2.5" | round !| [type /actualType] | eq [::number/round/SubjectNotNumberError ::string])
+      by `parseJson`. `round 2`
   ~~|
   ::builtin{}
+
+:number/round/keepsTheDigitsGiven
+  |~~ Two digits keep two places after the point. ~~|
+  ::law~(3.14159 | round 2 | eq 3.14)
+
+:number/round/roundsAHalfAwayFromZero
+  |~~ A half rounds away from zero. ~~|
+  ::law~(2.5 | round | eq 3)
+
+:number/round/roundsANegativeHalfAwayFromZero
+  |~~ A negative half rounds away from zero too. ~~|
+  ::law~(-2.5 | round | eq -3)
+
+:number/round/roundsToHundreds
+  |~~ A negative count rounds to tens and beyond. ~~|
+  ::law~(1234 | round -2 | eq 1200)
+
+:number/round/printsNoNegativeZero
+  |~~ A negative number rounded to zero prints as 0. ~~|
+  ::law~(-0.4 | round | print | eq "0")
+
+:number/round/refusesAString
+  |~~ A string is no number to round. ~~|
+  ::law~("2.5" | round !| [type /actualType] | eq [::number/round/SubjectNotNumberError ::string])
 
 :number/round/digits
   |~~ The digits after the point, a whole number, none when the call
@@ -168,22 +212,27 @@
   ::holds~(is ::number)
 
 :number/round/DigitsNotIntegerError
-  |~~ The digits of `round` are a whole number, `round 2`.
+  |~~ The digits of `round` are a whole number, `round 2`. ~~|
 
-      ~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
-  ~~|
+:number/round/DigitsNotIntegerError/refusesAFraction
+  |~~ Half a digit is refused. ~~|
+  ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
 
 :number/round/rounded
   |~~ The number rounded to the digits. ~~|
   ::number
 
 :number/gt
-  |~~ Whether the subject is greater than the number the call gives.
-
-      ~(10 | gt 5 | eq true)
-      ~(null | gt 1 !| /addresses | has ::number/gt)
-  ~~|
+  |~~ Whether the subject is greater than the number the call gives. ~~|
   ::builtin{}
+
+:number/gt/comparesNumbers
+  |~~ Ten is greater than five. ~~|
+  ::law~(10 | gt 5 | eq true)
+
+:number/gt/refusesNullNamingTheVerb
+  |~~ Null has no `gt`, and the refusal names where `gt` lives. ~~|
+  ::law~(null | gt 1 !| /addresses | has ::number/gt)
 
 :number/gt/than
   |~~ The value the subject is compared with. ~~|
@@ -200,10 +249,12 @@
 :number/gte
   |~~ Whether the subject is greater than or equal to the number the
       call gives.
-
-      ~(10 | gte 10 | eq true)
   ~~|
   ::builtin{}
+
+:number/gte/holdsOfItself
+  |~~ A number is greater than or equal to itself. ~~|
+  ::law~(10 | gte 10 | eq true)
 
 :number/gte/than
   |~~ The value the subject is compared with. ~~|
@@ -218,11 +269,12 @@
   ::boolean
 
 :number/lt
-  |~~ Whether the subject is less than the number the call gives.
-
-      ~(5 | lt 10 | eq true)
-  ~~|
+  |~~ Whether the subject is less than the number the call gives. ~~|
   ::builtin{}
+
+:number/lt/comparesNumbers
+  |~~ Five is less than ten. ~~|
+  ::law~(5 | lt 10 | eq true)
 
 :number/lt/than
   |~~ The value the subject is compared with. ~~|
@@ -239,10 +291,12 @@
 :number/lte
   |~~ Whether the subject is less than or equal to the number the call
       gives.
-
-      ~(10 | lte 10 | eq true)
   ~~|
   ::builtin{}
+
+:number/lte/holdsOfItself
+  |~~ A number is less than or equal to itself. ~~|
+  ::law~(10 | lte 10 | eq true)
 
 :number/lte/than
   |~~ The value the subject is compared with. ~~|

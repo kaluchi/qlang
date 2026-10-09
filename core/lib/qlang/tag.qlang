@@ -10,20 +10,21 @@
 :tag/PayloadNotTagError
   |~~ `::tag` reads its payload as the tag name it is; a value's own
       tag is read by `type`.
-      ~(
-        ::tag:k
-        !| [type /actualType]
-        |  eq [::tag/PayloadNotTagError ::keyword]
-       )
   ~~|
+
+:tag/PayloadNotTagError/refusesAKeyword
+  |~~ A keyword payload is refused. ~~|
+  ::law~(::tag:k !| [type /actualType] | eq [::tag/PayloadNotTagError ::keyword])
 
 :tag/gt
   |~~ Whether the subject's name follows the name of the tag the call
       gives.
-
-      ~(::b | gt ::a | eq true)
   ~~|
   ::builtin{}
+
+:tag/gt/ordersByName
+  |~~ `::b` follows `::a`. ~~|
+  ::law~(::b | gt ::a | eq true)
 
 :tag/gt/than
   |~~ The value the subject is compared with. ~~|
@@ -40,10 +41,12 @@
 :tag/gte
   |~~ Whether the subject's name follows or equals the name of the tag
       the call gives.
-
-      ~(::b | gte ::b | eq true)
   ~~|
   ::builtin{}
+
+:tag/gte/holdsOfItself
+  |~~ A tag follows or equals itself. ~~|
+  ::law~(::b | gte ::b | eq true)
 
 :tag/gte/than
   |~~ The value the subject is compared with. ~~|
@@ -60,10 +63,12 @@
 :tag/lt
   |~~ Whether the subject's name precedes the name of the tag the call
       gives.
-
-      ~(::a | lt ::b | eq true)
   ~~|
   ::builtin{}
+
+:tag/lt/ordersByName
+  |~~ `::a` precedes `::b`. ~~|
+  ::law~(::a | lt ::b | eq true)
 
 :tag/lt/than
   |~~ The value the subject is compared with. ~~|
@@ -80,11 +85,16 @@
 :tag/lte
   |~~ Whether the subject's name precedes or equals the name of the
       tag the call gives.
-
-      ~(::a | lte ::a | eq true)
-      ~(::a | lte ::b | eq true)
   ~~|
   ::builtin{}
+
+:tag/lte/holdsOfItself
+  |~~ A tag precedes or equals itself. ~~|
+  ::law~(::a | lte ::a | eq true)
+
+:tag/lte/ordersByName
+  |~~ `::a` precedes `::b`. ~~|
+  ::law~(::a | lte ::b | eq true)
 
 :tag/lte/than
   |~~ The value the subject is compared with. ~~|
@@ -100,46 +110,75 @@
 
 :tag/manifest
   |~~ Asked of a noun, answers the set of the nodes declared one name
-      under it, each by its address: ::snippet~(::number | manifest)
-      the verbs and the refusals of numbers, ::snippet~(::qlang |
-      manifest) the chapters of the language. The kinds of the scope
-      `kinds` lists, and what the reader declared `env`; what one node
-      holds the axes read, `::vec/count | source`, `| doc`, `| doc |
-      laws`.
-
-      ~(::number | manifest | has ::number/add)
-      ~(::qlang | manifest | has ::qlang/values)
-      ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
+      under it, each by its address: `::number | manifest`
+      the verbs and the refusals of numbers, `::qlang |
+      manifest` the chapters of the language. The laws, the links and
+      the snippets of a name `laws`, `links` and `snippets` read, the
+      kinds of the scope `kinds` lists, and what the reader declared
+      `env`; what one node holds the axes read, `::vec/count | source`,
+      `| doc`.
 
       `manifest` is asked of a noun, a tag name in the subject
       position.
-
-      ~(
-        5 | manifest
-        !| [type /actualType]
-        |  eq [::tag/manifest/SubjectNotTagError ::number]
-       )
   ~~|
   ::builtin{}
+
+:tag/manifest/theVerbsAndRefusalsOfNumbers
+  |~~ The verbs and the refusals of numbers. ~~|
+  ::snippet~(::number | manifest)
+
+:tag/manifest/theChaptersOfTheFirstPage
+  |~~ The chapters of the first page. ~~|
+  ::snippet~(::qlang | manifest)
+
+:tag/manifest/holdsAVerbOfTheNoun
+  |~~ The manifest of numbers holds `add`. ~~|
+  ::law~(::number | manifest | has ::number/add)
+
+:tag/manifest/holdsAChapter
+  |~~ The manifest of the first page holds its chapter on values. ~~|
+  ::law~(::qlang | manifest | has ::qlang/values)
+
+:tag/manifest/holdsTheNamesOfAReader
+  |~~ The manifest of a reader's noun holds the names declared under it. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
+
+:tag/manifest/refusesANumber
+  |~~ A number is no noun. ~~|
+  ::law~(5 | manifest !| [type /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
 
 :tag/manifest/names
   |~~ The addresses of the names declared one name under the noun. ~~|
   ::set
 
 :tag/runLaws
-  |~~ The results of the laws of the page of the declaration the tag
-      name reads, a verb by its address among them, one `{:law :says
-      :actual :ok :error}` per law, `:says` the caption of the claim the
-      law proves. A keyword after it runs the laws of the member the
-      name holds under it, a concept of the language among them.
-
-      ~(::number/add | runLaws | first | /ok | eq true)
-      ~(::qlang | runLaws :values | every ~(/ok))
-      ~(::number/add | runLaws * /ok | distinct | eq #[true])
-      ~(::number/gt | runLaws | count | gte 1)
-      ~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
+  |~~ The results of the laws under the declaration the tag name reads,
+      a verb by its address among them, one `{:law :says :actual :ok
+      :error}` per law, `:law` its address and `:says` its page, the
+      claim it proves. A keyword after it runs the laws of the member
+      the name holds under it, a concept of the language among them.
   ~~|
   ::builtin{}
+
+:tag/runLaws/runsTheLawsOfAVerb
+  |~~ The first law of `add` holds. ~~|
+  ::law~(::number/add | runLaws | first | /ok | eq true)
+
+:tag/runLaws/runsTheLawsUnderAnAnchor
+  |~~ An anchor runs the laws of the name under the one read. ~~|
+  ::law~(::qlang | runLaws :values | every ~(/ok))
+
+:tag/runLaws/holdsEveryLawOfAdd
+  |~~ Every law of `add` holds. ~~|
+  ::law~(::number/add | runLaws * /ok | distinct | eq #[true])
+
+:tag/runLaws/findsTheLawsOfAComparison
+  |~~ `gt` has laws to run. ~~|
+  ::law~(::number/gt | runLaws | count | gte 1)
+
+:tag/runLaws/refusesANumber
+  |~~ A number names nothing, and the refusal names where `runLaws` lives. ~~|
+  ::law~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
 
 :tag/runLaws/anchor
   |~~ The anchor within the page, null when it gives none. ~~|
@@ -156,10 +195,15 @@
 :tag/runLaws/UnknownNameError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
       finds none.
-      ::link~(::any/binding/UnknownNameError | doc)
-
-      ~(::Nonexistent | runLaws !| [type /name] | eq [::tag/runLaws/UnknownNameError ::Nonexistent])
   ~~|
+
+:tag/runLaws/UnknownNameError/seeTheRefusalOfBinding
+  |~~ The refusal of `binding`, which reads names as this word does. ~~|
+  ::link~(::any/binding/UnknownNameError | doc)
+
+:tag/runLaws/UnknownNameError/refusesATagNothingDeclares
+  |~~ A tag nothing declares is refused. ~~|
+  ::law~(::Nonexistent | runLaws !| [type /name] | eq [::tag/runLaws/UnknownNameError ::Nonexistent])
 
 :tag/runLaws/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|

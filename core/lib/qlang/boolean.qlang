@@ -9,30 +9,36 @@
 :boolean/PayloadNotBooleanError
   |~~ `::boolean` reads its payload as the boolean it is; a payload of
       another kind is refused.
-      ~(
-        ::boolean(1)
-        !| [type /actualType]
-        |  eq [::boolean/PayloadNotBooleanError ::number]
-       )
   ~~|
+
+:boolean/PayloadNotBooleanError/refusesANumber
+  |~~ A number is no boolean and is refused. ~~|
+  ::law~(::boolean(1) !| [type /actualType] | eq [::boolean/PayloadNotBooleanError ::number])
 
 :boolean/not
   |~~ The negation of a boolean. Null is tested with `eq null`, and a
       subject of another kind is refused.
 
-      ~(false | not | eq true)
-      ~(true | not | eq false)
-      ~(null | eq null | eq true)
-
       `not` turns a boolean; a value is asked whether it is absent by
       `eq null`, and a container whether it is empty by `empty`.
-      ~(
-        0 | not
-        !| [type /actualType]
-        |  eq [::boolean/not/SubjectNotBooleanError ::number]
-       )
   ~~|
   ::builtin{}
+
+:boolean/not/turnsFalseTrue
+  |~~ Not false is true. ~~|
+  ::law~(false | not | eq true)
+
+:boolean/not/turnsTrueFalse
+  |~~ Not true is false. ~~|
+  ::law~(true | not | eq false)
+
+:boolean/not/asksNullByEq
+  |~~ Null is asked for by `eq null`, not by `not`. ~~|
+  ::law~(null | eq null | eq true)
+
+:boolean/not/refusesANumber
+  |~~ A number is no boolean, and `not` refuses it. ~~|
+  ::law~(0 | not !| [type /actualType] | eq [::boolean/not/SubjectNotBooleanError ::number])
 
 :boolean/not/negation
   |~~ The other boolean. ~~|
@@ -44,30 +50,36 @@
       `allOf /active (/age | gte 18)`, which composes the clauses of a
       predicate inside `filter`, `every` and `if`.
 
-      ~(true | and false | eq false)
-      ~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
-      ~({:active false :age 25} | allOf /active (/age | gte 18) | eq false)
-
       The left condition of `and` must answer a boolean.
-      ~(
-        1 | and true
-        !| [type /actualType]
-        |  eq [::boolean/and/SubjectNotBooleanError ::number]
-       )
   ~~|
   ::builtin{}
+
+:boolean/and/isFalseWhenOneIsFalse
+  |~~ True and false is false. ~~|
+  ::law~(true | and false | eq false)
+
+:boolean/and/holdsTwoConditionsByAllOf
+  |~~ Two conditions of one record hold together by `allOf`. ~~|
+  ::law~({:active true :age 25} | allOf /active (/age | gte 18) | eq true)
+
+:boolean/and/failsWhenOneConditionFails
+  |~~ `allOf` is false when one condition is. ~~|
+  ::law~({:active false :age 25} | allOf /active (/age | gte 18) | eq false)
+
+:boolean/and/refusesASubjectOfAnotherKind
+  |~~ A subject that is no boolean is refused. ~~|
+  ::law~(1 | and true !| [type /actualType] | eq [::boolean/and/SubjectNotBooleanError ::number])
 
 :boolean/and/right
   |~~ The condition on the right.
 
       The right condition of `and` must answer a boolean.
-      ~(
-        true | and 1
-        !| [type /actualType]
-        |  eq [::boolean/and/right/NotBooleanError ::number]
-       )
   ~~|
   ~(/0)
+
+:boolean/and/right/refusesARightOfAnotherKind
+  |~~ A right condition that is no boolean is refused. ~~|
+  ::law~(true | and 1 !| [type /actualType] | eq [::boolean/and/right/NotBooleanError ::number])
 
 :boolean/and/right/NotBooleanError
   |~~ The right is a boolean. ~~|
@@ -82,31 +94,40 @@
       Conditions of one subject hold by one of them through `anyOf`,
       `5 | anyOf (eq 5) (eq 10)`.
 
-      ~(false | or true | eq true)
-      ~(5  | anyOf (eq 5) (eq 10) | eq true)
-      ~(7  | anyOf (eq 5) (eq 10) | eq false)
-      ~({:role "admin"} | anyOf (/role | eq "admin") (/role | eq "owner") | eq true)
-
       The left condition of `or` must answer a boolean.
-      ~(
-        1 | or true
-        !| [type /actualType]
-        |  eq [::boolean/or/SubjectNotBooleanError ::number]
-       )
   ~~|
   ::builtin{}
+
+:boolean/or/isTrueWhenOneIsTrue
+  |~~ False or true is true. ~~|
+  ::law~(false | or true | eq true)
+
+:boolean/or/holdsByAnyOfOneCondition
+  |~~ `anyOf` holds when one condition of the subject holds. ~~|
+  ::law~(5 | anyOf (eq 5) (eq 10) | eq true)
+
+:boolean/or/failsWhenNoConditionHolds
+  |~~ `anyOf` is false when no condition holds. ~~|
+  ::law~(7 | anyOf (eq 5) (eq 10) | eq false)
+
+:boolean/or/readsTheFieldsOfARecord
+  |~~ `anyOf` reads its conditions on the fields of a record. ~~|
+  ::law~({:role "admin"} | anyOf (/role | eq "admin") (/role | eq "owner") | eq true)
+
+:boolean/or/refusesASubjectOfAnotherKind
+  |~~ A subject that is no boolean is refused. ~~|
+  ::law~(1 | or true !| [type /actualType] | eq [::boolean/or/SubjectNotBooleanError ::number])
 
 :boolean/or/right
   |~~ The condition on the right.
 
       The right condition of `or` must answer a boolean.
-      ~(
-        false | or 1
-        !| [type /actualType]
-        |  eq [::boolean/or/right/NotBooleanError ::number]
-       )
   ~~|
   ~(/0)
+
+:boolean/or/right/refusesARightOfAnotherKind
+  |~~ A right condition that is no boolean is refused. ~~|
+  ::law~(false | or 1 !| [type /actualType] | eq [::boolean/or/right/NotBooleanError ::number])
 
 :boolean/or/right/NotBooleanError
   |~~ The right is a boolean. ~~|

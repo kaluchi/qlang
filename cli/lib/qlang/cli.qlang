@@ -18,10 +18,16 @@
       by `@out`, holds the channel, and its answer is left unwritten.
       Its verbs are declared under the kinds of their subjects, a query
       calls them by their names, and the manifest of each kind lists
-      them:
-      ~(::vec | manifest | has ::vec/table)
-      ~(::any | manifest | has ::any/@out)
+      them.
   ~~|
+
+:cli/declaresTable
+  |~~ The command line declares `table` under vectors. ~~|
+  ::law~(::vec | manifest | has ::vec/table)
+
+:cli/declaresTheStreams
+  |~~ The command line declares the streams under any value. ~~|
+  ::law~(::any | manifest | has ::any/@out)
 
 :cli/AnswerNotJsonError
   |~~ The input was JSON, so the answer is written as JSON, and a value
@@ -42,10 +48,14 @@
   |~~ The text stdin holds, read to its end whatever the subject, the
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
-      the text as it came: ::snippet~(@in | lines | count) counts the
+      the text as it came: `@in | lines | count` counts the
       lines piped in.
   ~~|
   ::builtin{}
+
+:any/@in/countsTheLines
+  |~~ The lines stdin holds. ~~|
+  ::snippet~(@in | lines | count)
 
 :any/@in/text
   |~~ The text stdin held, the empty string when nothing was piped. ~~|
@@ -56,9 +66,13 @@
       subject when it is a string, `"hi" | @out`, or the text a modifier
       computes from it, `42 | @out json`, the steps after still reading
       `42`. A query that writes by `@out` leaves its answer unwritten.
-      ::snippet~([1 2] | @out json | count) writes `[1,2]`.
+      `[1 2] | @out json | count` writes `[1,2]`.
   ~~|
   ::builtin{}
+
+:any/@out/writesJson
+  |~~ A vector written as json. ~~|
+  ::snippet~([1 2] | @out json | count)
 
 :any/@out/text
   |~~ The text the call gives, null when it gives none.
@@ -82,10 +96,14 @@
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
       writes to stdout, and answers its subject; the answer of the query
       is written as ever.
-      ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
+      `[1 2 3] | @err "counting" | count` writes `counting` to
       stderr and answers 3.
   ~~|
   ::builtin{}
+
+:any/@err/writesADiagnostic
+  |~~ A diagnostic written beside the answer. ~~|
+  ::snippet~([1 2 3] | @err "counting" | count)
 
 :any/@err/text
   |~~ The text the call gives, null when it gives none.
@@ -108,10 +126,13 @@
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject, a look at a value halfway through a query:
-      ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
       shows both vectors and answers 1.
   ~~|
   ::builtin{}
+
+:any/@tap/tapsBothSides
+  |~~ Both vectors around a filter. ~~|
+  ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
 
 :any/@tap/label
   |~~ The label the call gives.
@@ -133,19 +154,26 @@
       value as its literal on one line. The empty vector yields the marker
       "(empty)".
 
-      ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
-      ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
-      ~([] | table | eq "(empty)")
-
       `table` draws a vector of maps, a row each; a single map goes in a
       vector first, `[/] | table`.
-      ~(
-        42 | table
-        !| [type /actualType]
-        |  eq [::vec/table/SubjectNotVecError ::number]
-       )
   ~~|
   ::builtin{}
+
+:vec/table/drawsEachRow
+  |~~ Each row is drawn. ~~|
+  ::law~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+
+:vec/table/drawsANestedValueAsItsLiteral
+  |~~ A nested value is drawn as its literal. ~~|
+  ::law~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
+
+:vec/table/drawsNothingAsEmpty
+  |~~ An empty vector draws as `(empty)`. ~~|
+  ::law~([] | table | eq "(empty)")
+
+:vec/table/refusesANumber
+  |~~ A number is no vector of rows. ~~|
+  ::law~(42 | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::number])
 
 :vec/table/drawn
   |~~ The rows drawn as text, a line each. ~~|
@@ -154,9 +182,8 @@
 :vec/table/RowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`
       names the first that is not.
-      ~(
-        [42 "hello"] | table
-        !| [type /index /actualType]
-        |  eq [::vec/table/RowNotMapError 0 ::number]
-       )
   ~~|
+
+:vec/table/RowNotMapError/refusesARowThatIsNoMap
+  |~~ A row that is no map is refused at its index. ~~|
+  ::law~([42 "hello"] | table !| [type /index /actualType] | eq [::vec/table/RowNotMapError 0 ::number])

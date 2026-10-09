@@ -11,14 +11,11 @@
 :quote/PayloadNotVecError
   |~~ `::quote` builds code from the vector of its steps; a payload of
       another kind is refused.
-      ::link~(::quote | doc)
-
-      ~(
-        ::quote{:not :steps}
-        !| [type /actualType]
-        |  eq [::quote/PayloadNotVecError ::map]
-       )
   ~~|
+
+:quote/PayloadNotVecError/refusesAMap
+  |~~ A map payload is refused. ~~|
+  ::law~(::quote{:not :steps} !| [type /actualType] | eq [::quote/PayloadNotVecError ::map])
 
 :quote/ElementNotStepError
   |~~ Every element of a quote is a step: a literal, a quote, a
@@ -26,27 +23,21 @@
       `::proj` and their kin. A value with no reading as code, a value
       under a tag of another kind among them, is refused at the index it
       stands at.
-      ::link~(::quote | doc)
-
-      ~(
-        [::Box[1]] | tag ::quote
-        !| [type /index]
-        |  eq [::quote/ElementNotStepError 0]
-       )
   ~~|
+
+:quote/ElementNotStepError/refusesAValueWithNoReading
+  |~~ A value with no reading as a step is refused at its index. ~~|
+  ::law~([::Box[1]] | tag ::quote !| [type /index] | eq [::quote/ElementNotStepError 0])
 
 :quote/ParseError
   |~~ The source does not read as qlang: `:marker` points where the
       reading stopped, `:expected` lists what could stand there, and a
       source cut short names the bracket it left open.
-      ::link~(::quote | doc)
-
-      ~(
-        "42 |" | parse
-        !| type
-        |  eq ::quote/ParseError
-       )
   ~~|
+
+:quote/ParseError/refusesASourceCutShort
+  |~~ A source cut short after a pipe is refused. ~~|
+  ::law~("42 |" | parse !| type | eq ::quote/ParseError)
 
 :quote/ParseError/source
   |~~ The line of the text where the reading stopped. ~~|
@@ -77,11 +68,12 @@
   ::string
 
 :quote/parse
-  |~~ The source text of the quote, the reverse of `parse` on a string.
-
-      ~(~(add 1) | parse | eq "add 1")
-  ~~|
+  |~~ The source text of the quote, the reverse of `parse` on a string. ~~|
   ::builtin{}
+
+:quote/parse/answersTheSource
+  |~~ A quote parses to its source. ~~|
+  ::law~(~(add 1) | parse | eq "add 1")
 
 :quote/parse/text
   |~~ The text the quote reads back from. ~~|
@@ -92,9 +84,17 @@
       scope of the reader, beneath whatever tags stand over it: a link
       opens to the page it names, so `links * open` reads every page a
       page names in one query, and a snippet to the answer it shows.
-
-      ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
-      ~(::qlang | doc | links * open | every ~(type | eq ::doc))
-      ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
   ~~|
   ::builtin{}
+
+:quote/open/runsALink
+  |~~ A link opens to the answer of its query. ~~|
+  ::law~(::link~(1 | add 1) | open | eq 2)
+
+:quote/open/opensTheLinksOfTheFirstPageToPages
+  |~~ The links of the first page open to pages. ~~|
+  ::law~(::qlang | links * open | every ~(type | eq ::doc))
+
+:quote/open/runsASnippet
+  |~~ A snippet opens to what it shows. ~~|
+  ::law~(::snippet~([3 1 2] | sort) | open | eq [1 2 3])

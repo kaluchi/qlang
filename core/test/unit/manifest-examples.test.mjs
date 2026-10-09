@@ -70,7 +70,8 @@ describe('catalog self-test via runLaws', () => {
     const unequal = [];
     for (const reader of await catalogReaders()) {
       const changed = await evalQuery(`${reader} | doc | laws | filter ~(:example / | parse | parse | eq example | not)`);
-      if (changed.length > 0) unequal.push(reader);
+      const declared = await evalQuery(`${reader} | any/laws | vals | filter ~(payload | :example / | parse | parse | eq example | not)`);
+      if (changed.length > 0 || declared.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
   }, 30000);

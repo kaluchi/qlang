@@ -13,4 +13,4 @@
 {"name":"a-caption-is-the-last-sentence-before-the-law","query":":x |~~ Some prose here. Two is two: ~(2 | eq 2) ~~| 1 | :x | runLaws | first | /says","expect":"\"Two is two\"","decision":"D124"}
 {"name":"the-claims-of-sort-are-captioned","query":"::vec/sort | runLaws | every ~(/says | eq null | not)","expect":"true","decision":"D124"}
 {"name": "a-caption-may-take-several-lines", "query": ":x |~~ Some prose. Two is two,\n      whatever else holds:\n      ~(2 | eq 2) ~~| 1 | :x | runLaws | first | /says", "expect": "\"Two is two, whatever else holds\"", "decision": "D124"}
-{"name": "the-laws-of-a-concept-run-through-its-noun", "query": "::qlang | runLaws :errors * /says | first", "expect": "\"A failed step answers an error the tag of its site names\"", "decision": "D124"}
+{"name":"the-laws-of-a-concept-run-through-its-noun","query":"::qlang | runLaws :errors * /says | first","expect":"\"The error's tag names its site.\"","decision":["D124","D174"]}

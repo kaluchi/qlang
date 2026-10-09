@@ -8,12 +8,11 @@
 :null/PayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is
       refused.
-      ~(
-        ::null(1)
-        !| [type /actualType]
-        |  eq [::null/PayloadNotNullError ::number]
-       )
   ~~|
+
+:null/PayloadNotNullError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(::null(1) !| [type /actualType] | eq [::null/PayloadNotNullError ::number])
 
 :null/at
   |~~ The default the call gives, null when it gives none, whatever the
@@ -21,13 +20,24 @@
       chain, `at :address | at :city`, and a `coalesce` after them gives
       the fallback once. The strict `/k` refuses null as it refuses
       every value without parts.
-
-      ~(null | at :k | eq null)
-      ~(null | at :k "none" | eq "none")
-      ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
-      ~({:a {:b 1}} | at :a | at :b | eq 1)
   ~~|
   ::builtin{}
+
+:null/at/readsNullFromNull
+  |~~ A read of null answers null. ~~|
+  ::law~(null | at :k | eq null)
+
+:null/at/answersTheDefault
+  |~~ A read of null answers the default the call gives. ~~|
+  ::law~(null | at :k "none" | eq "none")
+
+:null/at/chainsThroughAnAbsentValue
+  |~~ Soft reads chain through an absent value. ~~|
+  ::law~({:a null} | at :a | at :b | coalesce "none" | eq "none")
+
+:null/at/chainsThroughPresentValues
+  |~~ Soft reads chain through present values to the one read. ~~|
+  ::law~({:a {:b 1}} | at :a | at :b | eq 1)
 
 :null/at/place
   |~~ The place the call reads. ~~|

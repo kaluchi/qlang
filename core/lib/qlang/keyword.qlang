@@ -9,20 +9,21 @@
 :keyword/PayloadNotKeywordError
   |~~ `::keyword` reads its payload as the keyword it is; a string
       becomes one by `keyword`.
-      ~(
-        ::keyword"k"
-        !| [type /actualType]
-        |  eq [::keyword/PayloadNotKeywordError ::string]
-       )
   ~~|
+
+:keyword/PayloadNotKeywordError/refusesAString
+  |~~ A string payload is refused; `keyword` turns a string into one. ~~|
+  ::law~(::keyword"k" !| [type /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
 
 :keyword/gt
   |~~ Whether the subject's name follows the name of the keyword the
       call gives.
-
-      ~(:b | gt :a | eq true)
   ~~|
   ::builtin{}
+
+:keyword/gt/ordersByName
+  |~~ `:b` follows `:a`. ~~|
+  ::law~(:b | gt :a | eq true)
 
 :keyword/gt/than
   |~~ The value the subject is compared with. ~~|
@@ -39,11 +40,16 @@
 :keyword/gte
   |~~ Whether the subject's name follows or equals the name of the
       keyword the call gives.
-
-      ~(:b | gte :b | eq true)
-      ~(:b | gte :a | eq true)
   ~~|
   ::builtin{}
+
+:keyword/gte/holdsOfItself
+  |~~ A keyword follows or equals itself. ~~|
+  ::law~(:b | gte :b | eq true)
+
+:keyword/gte/ordersByName
+  |~~ `:b` follows `:a`. ~~|
+  ::law~(:b | gte :a | eq true)
 
 :keyword/gte/than
   |~~ The value the subject is compared with. ~~|
@@ -60,10 +66,12 @@
 :keyword/lt
   |~~ Whether the subject's name precedes the name of the keyword the
       call gives.
-
-      ~(:a | lt :b | eq true)
   ~~|
   ::builtin{}
+
+:keyword/lt/ordersByName
+  |~~ `:a` precedes `:b`. ~~|
+  ::law~(:a | lt :b | eq true)
 
 :keyword/lt/than
   |~~ The value the subject is compared with. ~~|
@@ -80,10 +88,12 @@
 :keyword/lte
   |~~ Whether the subject's name precedes or equals the name of the
       keyword the call gives.
-
-      ~(:a | lte :a | eq true)
   ~~|
   ::builtin{}
+
+:keyword/lte/holdsOfItself
+  |~~ A keyword precedes or equals itself. ~~|
+  ::law~(:a | lte :a | eq true)
 
 :keyword/lte/than
   |~~ The value the subject is compared with. ~~|
@@ -100,25 +110,32 @@
 :keyword/keyword
   |~~ The name of the keyword, as a string: the reverse of `keyword` on
       a string, so `"foo" | keyword | keyword` answers `"foo"`.
-
-      ~(:foo | keyword | eq "foo")
-      ~(:"foo bar" | keyword | eq "foo bar")
   ~~|
   ::builtin{}
+
+:keyword/keyword/answersTheName
+  |~~ A keyword answers its name as a string. ~~|
+  ::law~(:foo | keyword | eq "foo")
+
+:keyword/keyword/keepsASpace
+  |~~ A name with a space keeps it. ~~|
+  ::law~(:"foo bar" | keyword | eq "foo bar")
 
 :keyword/keyword/text
   |~~ The name of the keyword, a string. ~~|
   ::string
 
 :keyword/runLaws
-  |~~ The results of the laws of the page of the binding the keyword
-      names in its scope, one `{:law :says :actual :ok :error}` per law,
-      `:says` the caption of the claim the law proves. A keyword after
-      it runs the laws of the member the binding holds under it.
-
-      ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runLaws * /ok | eq [true])
+  |~~ The results of the laws under the binding the keyword names in
+      its scope, one `{:law :says :actual :ok :error}` per law, `:law`
+      its address and `:says` its page, the claim it proves. A keyword
+      after it runs the laws of the member the binding holds under it.
   ~~|
   ::builtin{}
+
+:keyword/runLaws/runsTheLawsUnderTheName
+  |~~ The laws under the name the keyword reads run. ~~|
+  ::law~(:limit |~~ A limit. ~~| 10 | :limit/holds |~~ It holds. ~~| ::law~(true) | :limit | runLaws * /ok | eq [true])
 
 :keyword/runLaws/anchor
   |~~ The anchor within the page, null when it gives none. ~~|
@@ -135,11 +152,19 @@
 :keyword/runLaws/UnknownNameError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
       finds none.
-      ::link~(::any/binding/UnknownNameError | doc)
-
-      ~(:nonexistent-binding | runLaws !| [type /name] | eq [::keyword/runLaws/UnknownNameError :nonexistent-binding])
-      ~(:filter | runLaws !| /addresses | has ::vec/filter)
   ~~|
+
+:keyword/runLaws/UnknownNameError/seeTheRefusalOfBinding
+  |~~ The refusal of `binding`, which reads names as this word does. ~~|
+  ::link~(::any/binding/UnknownNameError | doc)
+
+:keyword/runLaws/UnknownNameError/refusesANameNothingDeclares
+  |~~ A name nothing declares is refused. ~~|
+  ::law~(:nonexistent-binding | runLaws !| [type /name] | eq [::keyword/runLaws/UnknownNameError :nonexistent-binding])
+
+:keyword/runLaws/UnknownNameError/namesWhereTheWordLives
+  |~~ A word's name is refused with the addresses where the word lives. ~~|
+  ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
 
 :keyword/runLaws/UnknownNameError/name
   |~~ The name the axis read, a keyword or a tag. ~~|

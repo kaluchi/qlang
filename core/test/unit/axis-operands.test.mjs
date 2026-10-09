@@ -136,8 +136,8 @@ describe('axis-operands read the node a tag addresses', () => {
     expect(result).toContain('Code as a value');
   });
 
-  it('::quote | doc | laws extracts the Quote segments from the type docstring', async () => {
-    const result = await evalQuery('::quote | doc | laws | count');
+  it('::quote | laws reads the laws declared under the kind', async () => {
+    const result = await evalQuery('::quote | laws | count');
     expect(result).toBeGreaterThanOrEqual(1);
   });
 

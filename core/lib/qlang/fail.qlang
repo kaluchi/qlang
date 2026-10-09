@@ -6,26 +6,21 @@
   ::builtin{}
 
 :fail/PayloadNotQuoteError
-  |~~ The payload of `::fail` is the quote of the step it wraps.
+  |~~ The payload of `::fail` is the quote of the step it wraps. ~~|
 
-      ~(
-        42 | tag ::fail
-        !| [type /actualType]
-        |  eq [::fail/PayloadNotQuoteError ::number]
-       )
-  ~~|
+:fail/PayloadNotQuoteError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(42 | tag ::fail !| [type /actualType] | eq [::fail/PayloadNotQuoteError ::number])
 
 :fail/ReadBackDiffersError
   |~~ The `::fail` prints as text that reads back as another step: it
       wraps one step, and a pipeline under `!|` is written as a
       group.
-
-      ~(
-        ~(a | b) | tag ::fail
-        !| [type /printed]
-        |  eq [::fail/ReadBackDiffersError "!| a | b"]
-       )
   ~~|
+
+:fail/ReadBackDiffersError/refusesAPipelineOutsideAGroup
+  |~~ A pipeline wrapped without a group prints as text that reads back as two steps. ~~|
+  ::law~(~(a | b) | tag ::fail !| [type /printed] | eq [::fail/ReadBackDiffersError "!| a | b"])
 
 :fail/ReadBackDiffersError/printed
   |~~ The text the step prints as, which reads back as another step or as none. ~~|

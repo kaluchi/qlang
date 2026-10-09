@@ -5,3 +5,4 @@
 {"name":"the-links-of-a-name-open-the-pages-they-name","query":":any/k ~(5) | :any/k/seeNumber |~~ The page of numbers. ~~| ::link~(::number | doc) | ::any/k | links * open | /seeNumber | eq (::number | doc)","expect":"true","decision":"D174"}
 {"name":"the-snippets-of-a-name-run-to-show-what-they-show","query":":any/k ~(5) | :any/k/sorted |~~ A sort. ~~| ::snippet~([2 1] | sort) | ::any/k | snippets * open","expect":"{:sorted [1 2]}","decision":"D174"}
 {"name":"a-name-with-no-laws-has-none","query":":any/k ~(5) | ::any/k | laws","expect":"{}","decision":"D174"}
+{"name":"the-manifest-of-a-name-leaves-its-laws-and-links-to-their-words","query":":any/k ~(5) | :any/k/answersFive ::law~(0 | k | eq 5) | :any/k/seeNumber ::link~(::number | doc) | :any/k/n ~(/0) | ::any/k | manifest","expect":"#[::any/k/n]","decision":"D174"}

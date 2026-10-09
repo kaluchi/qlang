@@ -6,25 +6,20 @@
   ::builtin{}
 
 :group/PayloadNotQuoteError
-  |~~ The payload of `::group` is the quote of its pipeline.
+  |~~ The payload of `::group` is the quote of its pipeline. ~~|
 
-      ~(
-        42 | tag ::group
-        !| [type /actualType]
-        |  eq [::group/PayloadNotQuoteError ::number]
-       )
-  ~~|
+:group/PayloadNotQuoteError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(42 | tag ::group !| [type /actualType] | eq [::group/PayloadNotQuoteError ::number])
 
 :group/ReadBackDiffersError
   |~~ The `::group` prints as text that reads back as another step, or
       as none: a group holds at least one step.
-
-      ~(
-        ~() | tag ::group
-        !| [type /printed]
-        |  eq [::group/ReadBackDiffersError "()"]
-       )
   ~~|
+
+:group/ReadBackDiffersError/refusesAnEmptyGroup
+  |~~ An empty group prints as text that reads back as none. ~~|
+  ::law~(~() | tag ::group !| [type /printed] | eq [::group/ReadBackDiffersError "()"])
 
 :group/ReadBackDiffersError/printed
   |~~ The text the step prints as, which reads back as another step or as none. ~~|

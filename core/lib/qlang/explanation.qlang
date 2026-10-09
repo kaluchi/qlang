@@ -6,11 +6,16 @@
   |~~ The page of what the explanation explains: of a name its own, of
       a value the page of the kind it shows, of an error the page of its
       site; null for a declaration without one.
-
-      ~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
-      ~(42 | explain | page | eq (::number | doc))
   ~~|
   ~(/page)
+
+:explanation/page/ofAnErrorIsThePageOfItsRefusal
+  |~~ The page of an error is the page of the refusal that raised it. ~~|
+  ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
+
+:explanation/page/ofAValueIsThePageOfItsKind
+  |~~ The page of a value is the page of its kind. ~~|
+  ::law~(42 | explain | page | eq (::number | doc))
 
 :explanation/page/prose
   |~~ The page that explains the value, null for a name without one. ~~|
@@ -19,8 +24,13 @@
 :explanation/value
   |~~ The value the explanation explains; an error among them raised, as
       it arrived before `!|` opened it.
-
-      ~(42 | explain | value | eq 42)
-      ~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
   ~~|
   ~(/value)
+
+:explanation/value/isTheValueExplained
+  |~~ The value is the one explained. ~~|
+  ::law~(42 | explain | value | eq 42)
+
+:explanation/value/keepsAnErrorRaised
+  |~~ An error explained stays raised. ~~|
+  ::law~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)

@@ -6,27 +6,20 @@
   ::builtin{}
 
 :each/PayloadNotQuoteError
-  |~~ The payload of `::each` is the quote of its body.
-      ::link~(::each | doc)
+  |~~ The payload of `::each` is the quote of its body. ~~|
 
-      ~(
-        42 | tag ::each
-        !| [type /actualType]
-        |  eq [::each/PayloadNotQuoteError ::number]
-       )
-  ~~|
+:each/PayloadNotQuoteError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(42 | tag ::each !| [type /actualType] | eq [::each/PayloadNotQuoteError ::number])
 
 :each/ReadBackDiffersError
   |~~ The `::each` prints as text that reads back as another step, or
       as none: a body holds at least one step.
-      ::link~(::each | doc)
-
-      ~(
-        ~() | tag ::each
-        !| [type /printed]
-        |  eq [::each/ReadBackDiffersError "* ()"]
-       )
   ~~|
+
+:each/ReadBackDiffersError/refusesAnEmptyBody
+  |~~ An each of an empty body prints as text that reads back as none. ~~|
+  ::law~(~() | tag ::each !| [type /printed] | eq [::each/ReadBackDiffersError "* ()"])
 
 :each/ReadBackDiffersError/printed
   |~~ The text the step prints as, which reads back as another step or as none. ~~|
@@ -36,11 +29,8 @@
   |~~ `*` runs its step on each element of a vector or a set, or on each
       value of a map; a value of another kind has no elements, and `|`
       runs a step on it whole.
-      ::link~(::each | doc)
-
-      ~(
-        42 * add 1
-        !| [type /actualType]
-        |  eq [::each/SubjectNotContainerError ::number]
-       )
   ~~|
+
+:each/SubjectNotContainerError/refusesANumber
+  |~~ A number has no elements to run on. ~~|
+  ::law~(42 * add 1 !| [type /actualType] | eq [::each/SubjectNotContainerError ::number])

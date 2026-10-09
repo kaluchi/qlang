@@ -13,24 +13,19 @@
       refused as it makes the error. A `raise`
       that writes the `:trail` it read goes on with that path, and one
       that leaves it out starts a path at its own step.
-      ::link~(::error | doc)
-
-      ~(
-        !{:kind :oops :trail 5}
-        !| [type /actualType]
-        |  eq [::error/TrailNotVecError ::number]
-       )
-      ~(
-        !{:kind :oops} | count
-        !| union {:trail 5} | raise
-        !| type | eq ::error/TrailNotVecError
-       )
-      ~(
-        !{:kind :oops} | count
-        !| minus #[:trail] | raise | add 1
-        !| /trail * /step | eq [~(raise)]
-       )
   ~~|
+
+:error/TrailNotVecError/refusesANumberForATrail
+  |~~ A number given as a trail is refused. ~~|
+  ::law~(!{:kind :oops :trail 5} !| [type /actualType] | eq [::error/TrailNotVecError ::number])
+
+:error/TrailNotVecError/refusesATrailLaidOverAnError
+  |~~ A trail of a number laid over an error is refused when it is raised. ~~|
+  ::law~(!{:kind :oops} | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
+
+:error/TrailNotVecError/startsATrailAtTheRaise
+  |~~ An error raised without a trail starts its trail at the raise. ~~|
+  ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step | eq [~(raise)])
 
 :error/index
   |~~ The place of the element refused, counted from zero. ~~|
@@ -56,11 +51,16 @@
   |~~ The path of the error: each step it passed, from the one
       that raised it, with the subject that step met and the steps
       skipped after it.
-
-      ~("x" | add 1 !| trail | count | eq 1)
-      ~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
   ~~|
   ~(/trail)
+
+:error/trail/holdsTheStepThatRaised
+  |~~ The trail of an error raised at once holds the one step. ~~|
+  ::law~("x" | add 1 !| trail | count | eq 1)
+
+:error/trail/namesTheStepsSkipped
+  |~~ The stop of the step that raised names the steps skipped after it. ~~|
+  ::law~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
 
 :error/trail/stops
   |~~ The stops of the path the error took. ~~|

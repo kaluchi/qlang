@@ -16,6 +16,11 @@ describe('runLaws reads a name as examples does', () => {
     expect([...result]).toEqual([true]);
   });
 
+  it('a quote under a link on a page is no law of it', async () => {
+    const result = await evalQuery(':any/k |~~ see ::link~(1) and ~(true) ~~| ~(5) | ::any/k | runLaws * /ok');
+    expect(result).toEqual([true]);
+  });
+
   it('a binding without a doc runs no law, its page null', async () => {
     // A host-installed binding (via `session.bind`) is the record of a
     // binding without a doc [D63].

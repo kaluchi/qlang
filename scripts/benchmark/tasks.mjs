@@ -129,7 +129,7 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'kinds | filter ~(doc | links * (payload | parse) | any ~(contains "::error | doc"))',
+    reference: 'kinds | filter ~(any/links * (payload | parse) | any ~(contains "::error | doc"))',
     answer: '#[::explanation ::fail]'
   },
   {

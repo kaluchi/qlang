@@ -50,8 +50,9 @@ put in the pipe with no literal is a finding.
 ### The language describes itself
 
 The only description of a verb, a kind or a refusal is its page in the
-catalog: a doc whose laws run, each under a caption of its claim, whose
-links open the pages it rests on. An error leads to the page of its site.
+catalog and the definitions under its name: laws that run, each named
+for its claim and paged with it, and links that open the pages it rests
+on (decision D174). An error leads to the page of its site.
 
 Check: a new verb, kind or refusal has its page under the noun of its kind,
 a refusal declared at its site by its address, one tag for one site,

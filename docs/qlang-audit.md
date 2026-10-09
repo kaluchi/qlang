@@ -449,8 +449,8 @@ kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
 laws, the axes pass from a name to its projections, `doc` its page,
 `source` its code and `binding` its record,
-`manifest` enumerates what exists, and `runLaws` runs the laws of a
-page as tests, each with the claim it proves. The self-test over the
+`manifest` enumerates what exists, and `runLaws` runs the laws
+declared under a name as tests, each with the claim its page states. The self-test over the
 whole catalog runs in under a second.
 
 Three of these are in the core for reasons the mechanisms do not show.
@@ -654,16 +654,17 @@ of addresses, and a verb passes from an address into one of its
 projections: `doc` into its page, `source` into its code, `binding`
 into its record [D5], [D119]. A keyword after
 `doc` is an anchor within the page, a vector of keywords a path and a
-set of them several pages at once. A page holds prose and quotes, and a
-quote takes its role from the tags over it: with none it is a law, which
-`runLaws` holds to answer true, the sentence ending in a colon above it
-the claim it proves [D123], [D124]; under `::link` it names a page and
-`open` reaches it [D108], [D121]; under `::snippet` it is a query a
-reader runs to see what it shows [D122]. So the first page leads to
-every other in one query:
+set of them several pages at once. What proves and extends a name
+stands under it, each a definition whose value takes its role from the
+tag over its quote [D174]: `::law~(…)` is a law, which `runLaws` holds
+to answer true, its page the claim it proves [D123], [D124];
+`::link~(…)` names a page and `open` reaches it [D108], [D121];
+`::snippet~(…)` is a query a reader runs to see what it shows [D122].
+`laws`, `links` and `snippets` read them by their names, so the first
+page leads to every other in one query:
 
 ```qlang
-> ::qlang | doc | links * open | every ~(type | eq ::doc)
+> ::qlang | links * open | every ~(type | eq ::doc)
 true
 
 > ::qlang | doc #[:pipeline :errors] | count
@@ -933,16 +934,19 @@ true
 
 Examples live on two planes, the conformance suite and the laws of the
 catalog, with a runner for each; the catalog's own laws are the only
-plane the language can reach, and most of them still stand under no
-caption of the claim they prove [D124].
+plane the language can reach, each named for the claim it proves and
+paged with it [D124], [D174].
 
-A page carries beside its prose what its name holds no prose about:
-the laws, the links and the snippets of a name ride the doc of its
-declaration, the first page's among them:
+The laws, the links and the snippets of a name have left its page for
+definitions under it [D174], while the doc literal still reads a quote
+in its text as a segment of the page, so a page is not yet prose alone:
 
 ```qlang
-> ::qlang | doc | [(laws | count | gt 0) (links | count | gt 0)]
-[true true]
+> ::qlang | [(laws | count | gt 0) (doc | laws | count)]
+[true 0]
+
+> |~~ a ~(add 1) b ~~| | segments | count
+3
 ```
 
 The repair must give the language views sized to a budget, the cheap
@@ -952,10 +956,9 @@ file, a symbol, a service or a section of another document in it. It
 must make examples live on one plane, and print errors and parse
 failures economically, with the full value reachable by projection
 rather than dumped. It must make a page prose about its name alone,
-every law, link and snippet a definition of its own under the address
-it concerns, a law named by its refusal, and let a reader assemble from
-the definitions under an address the description a question needs, in
-one round trip [D168], [D169].
+its literal reading no code in its text, a law named by its refusal,
+and let a reader assemble from the definitions under an address the
+description a question needs, in one round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -965,7 +968,7 @@ false in places because nothing did, the argument for executable over
 narrated in the project's own text; the reference was «это не
 спецификация, а скорее референс, туториал» (maintainer, 2026-09-23
 00:47, session 86982eb5). Both left the tree with their runner [D128],
-and what they said that the catalog did not stands as laws of its pages,
+and what they said that the catalog did not stands as laws of its names,
 the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, and the research of

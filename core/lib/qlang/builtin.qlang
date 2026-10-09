@@ -11,18 +11,15 @@
   |~~ `::builtin` holds its fields as a map, `::builtin{}` the step a
       host's verb or kind ends with; a payload of another kind is
       refused.
-
-      ~(
-        ::builtin"hello"
-        !| [type /actualType]
-        |  eq [::builtin/PayloadNotMapError ::string]
-       )
-      ~(
-        ::builtin[1 2 3]
-        !| [type /actualType]
-        |  eq [::builtin/PayloadNotMapError ::vec]
-       )
   ~~|
+
+:builtin/PayloadNotMapError/refusesAString
+  |~~ A string payload is refused. ~~|
+  ::law~(::builtin"hello" !| [type /actualType] | eq [::builtin/PayloadNotMapError ::string])
+
+:builtin/PayloadNotMapError/refusesAVector
+  |~~ A vector payload is refused. ~~|
+  ::law~(::builtin[1 2 3] !| [type /actualType] | eq [::builtin/PayloadNotMapError ::vec])
 
 :builtin/UnknownAstNodeTypeError
   |~~ The evaluator met a node of the parser's tree it has no rule for:

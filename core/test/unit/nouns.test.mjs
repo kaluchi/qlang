@@ -58,7 +58,7 @@ describe('an address reads the node its name declared', () => {
   it('an address with a kind reads the verb declared under that kind', async () => {
     expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
-    expect(await evalQuery('::vec/count | doc | laws | count | gt 0')).toBe(true);
+    expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
     expect(await evalQuery('::vec/count | binding | /value | type')).toEqual(makeTagKeyword('builtin'));
   });
 

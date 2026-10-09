@@ -1,5 +1,5 @@
-{"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::proj/KeyNotInMapError | doc | links * open | any ~(eq (::proj | doc))","expect":"true","decision":["D112","D119"]}
-{"name":"the-refusal-of-a-distribute-links-its-step","query":"::each/SubjectNotContainerError | doc | links * open | any ~(eq (::each | doc))","expect":"true","decision":["D112","D119"]}
+{"name":"a-refusal-sits-under-the-place-it-guards","query":"::proj | manifest | has ::proj/KeyNotInMapError","expect":"true","decision":["D112","D174"]}
+{"name":"the-refusal-of-a-distribute-sits-under-its-step","query":"::each | manifest | has ::each/SubjectNotContainerError","expect":"true","decision":["D112","D174"]}
 {"name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc","decision":["D113","D119"]}
 {"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct","decision":"D115"}
 {"name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"every value under a tag\"","expect":"true","decision":["D115","D119"]}

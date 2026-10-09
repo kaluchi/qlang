@@ -274,8 +274,8 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if only the selected branch runs (else branch never evaluates)', async () => {
-    // The else branch contains div(0), which would raise divisionByZero
-    // if evaluated. The cond is truthy so the else branch is skipped.
+    // The else branch contains div(0), which would break the law of the
+    // divisor if evaluated. The cond is truthy so the else branch is skipped.
     expect(await evalQuery('10 | if (gt 0) ~("positive") ~(div 0)')).toBe('positive');
   });
 

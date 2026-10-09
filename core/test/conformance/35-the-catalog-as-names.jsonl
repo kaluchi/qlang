@@ -14,8 +14,8 @@
 {"name":"a-law-of-each-value-the-call-gives-names-the-index-it-refuses","query":"{:a 1 :b \"x\"} | sumOf /a /b !| [type /index /actualType]","expect":"[::any/sumOf/numbers/ElementNotNumberError 1 ::string]","decision":["D167","D169"]}
 {"name":"a-step-computed-where-the-part-reading-the-object-asks-for-code-is-refused-by-it","query":"5 | cond /nope ~(1) !| [type /index]","expect":"[::any/cond/clauses/ElementNotQuoteError 0]","decision":"D167"}
 {"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce /a ~(1) !| type","expect":"::proj/KeyNotInMapError","decision":"D167"}
-{"name":"a-step-computed-where-a-part-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/ByZeroError","decision":"D167"}
-{"name":"a-step-computed-where-no-part-reads-answers-its-error","query":"[1 2] | at 0 5 (1 | div 0) !| type","expect":"::number/div/ByZeroError","decision":"D167"}
+{"name":"a-step-computed-where-a-part-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError","decision":"D167"}
+{"name":"a-step-computed-where-no-part-reads-answers-its-error","query":"[1 2] | at 0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError","decision":"D167"}
 {"name":"a-place-counted-from-the-end-is-read-as-code","query":":any/lastOf ~(x) | :any/lastOf/x ~(/-1) | [(5 | lastOf 1 2) (5 | lastOf !| type)]","expect":"[2 ::any/lastOf/x/NotGivenError]","decision":"D167"}
 {"name":"a-soft-place-counted-from-the-end-is-read-as-at-reads-it","query":":any/lastOf ~(x) | :any/lastOf/x ~(at -1) | [(5 | lastOf 1 2) (5 | lastOf)]","expect":"[2 null]","decision":"D167"}
 {"name":"a-path-from-a-place-counts-that-place","query":":Box |~~ B ~~| | :Box/put ~(k) | :Box/put/k ~(/0/k) | ::Box[1] | [(put {:k 2}) (put {:k 2} 3 !| type)]","expect":"[2 ::Box/put/ObjectBeyondPartsError]","decision":"D167"}

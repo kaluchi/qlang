@@ -30,17 +30,6 @@ function booleanOf(answer, index, ErrorCls) {
 const AnyGroupByKeyNotKeywordError = declareRefusal('any/GroupByKeyNotKeywordError');
 const AnyIndexByKeyNotKeywordError = declareRefusal('any/IndexByKeyNotKeywordError');
 
-// A count and an index are whole numbers: the law of the part refuses a
-// value of another kind, and the primitive a fraction.
-const AnyTakeCountNotIntegerError = declareRefusal('any/TakeCountNotIntegerError');
-const AnyDropCountNotIntegerError = declareRefusal('any/DropCountNotIntegerError');
-const AnyAtIndexNotIntegerError   = declareRefusal('any/AtIndexNotIntegerError');
-
-function wholeOrRefuse(value, ErrorCls) {
-  if (!Number.isInteger(value)) throw new ErrorCls({ actualValue: value });
-  return value;
-}
-
 const AnySumElementNotNumberError = declareRefusal('any/SumElementNotNumberError');
 const AnyReduceReducerNotBinaryError = declareRefusal('any/ReduceReducerNotBinaryError');
 
@@ -225,8 +214,8 @@ function sliceOf(container, start, end) {
   return isQMap(container) ? new Map([...container].slice(start, end)) : container.slice(start, end);
 }
 
-bindPrim(['string/take', 'vec/take', 'set/take', 'map/take'], (container, count) => sliceOf(container, 0, Math.max(0, wholeOrRefuse(count, AnyTakeCountNotIntegerError))));
-bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count) => sliceOf(container, Math.max(0, wholeOrRefuse(count, AnyDropCountNotIntegerError))));
+bindPrim(['string/take', 'vec/take', 'set/take', 'map/take'], (container, count) => sliceOf(container, 0, Math.max(0, count)));
+bindPrim(['string/drop', 'vec/drop', 'set/drop', 'map/drop'], (container, count) => sliceOf(container, Math.max(0, count)));
 
 // `at` — indexed access with Array.prototype.at-style negative indices
 // on a sequence, a set indexing in its one order, and a soft lookup by
@@ -240,8 +229,7 @@ bindPrim(['null/at', 'vec/at', 'set/at', 'map/at'], (container, place, fallback)
     const lookupKey = isKeyword(place) ? place.name : place;
     return container.has(lookupKey) ? container.get(lookupKey) : fallback;
   }
-  const index = wholeOrRefuse(place, AnyAtIndexNotIntegerError);
-  const resolvedIndex = index < 0 ? container.length + index : index;
+  const resolvedIndex = place < 0 ? container.length + place : place;
   return (resolvedIndex >= 0 && resolvedIndex < container.length) ? container[resolvedIndex] : fallback;
 });
 

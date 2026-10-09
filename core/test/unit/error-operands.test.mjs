@@ -249,14 +249,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('take count non-integer → AnyTakeCountNotIntegerError', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | take 1.5');
-    expect(caughtErr.name).toBe('TakeCountNotIntegerError');
-  });
-
-  it('drop count non-integer → AnyDropCountNotIntegerError (distinct from take)', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | drop 1.5');
-    expect(caughtErr.name).toBe('DropCountNotIntegerError');
+  it('a count that is no whole number breaks the law of the count of its word [D172]', async () => {
+    expect((await evalQuery('[1 2 3] | take 1.5')).tag.name).toBe('vec/take/count/NotIntegerError');
+    expect((await evalQuery('[1 2 3] | drop 1.5')).tag.name).toBe('vec/drop/count/NotIntegerError');
+    expect((await evalQuery('"abc" | take 1.5')).tag.name).toBe('string/take/count/NotIntegerError');
   });
 
 

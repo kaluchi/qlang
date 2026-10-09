@@ -230,6 +230,10 @@
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
+:map/take/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
+
 :map/take/taken
   |~~ The first entries. ~~|
   ::map
@@ -250,6 +254,10 @@
 :map/drop/count/NotNumberError
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
+
+:map/drop/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
 
 :map/drop/rest
   |~~ The entries after the ones dropped. ~~|

@@ -244,6 +244,10 @@
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
+:set/take/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
+
 :set/take/taken
   |~~ The least elements. ~~|
   ::set
@@ -262,6 +266,10 @@
 :set/drop/count/NotNumberError
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
+
+:set/drop/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
 
 :set/drop/rest
   |~~ The elements after the least ones dropped. ~~|
@@ -286,6 +294,10 @@
 :set/at/index/NotNumberError
   |~~ The index is a number. ~~|
   ::holds~(is ::number)
+
+:set/at/index/NotIntegerError
+  |~~ The index is a whole number. ~~|
+  ::holds~(eq (round))
 
 :set/distinct
   |~~ The set itself.

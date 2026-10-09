@@ -12,7 +12,6 @@ import {
   declareForeignError
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
-import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
@@ -26,6 +25,9 @@ describe('QlangError base class', () => {
   });
 });
 
+// A refusal whose site hands no facts.
+const TestsProbeError = declareRefusal('tests/ProbeError');
+
 describe('a refusal declared by its address [D172]', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
@@ -36,14 +38,14 @@ describe('a refusal declared by its address [D172]', () => {
   });
 
   it('says its address as its message, whatever facts its site hands', () => {
-    expect(new NumberDivByZeroError().message).toBe('::number/div/ByZeroError');
+    expect(new TestsProbeError().message).toBe('::tests/ProbeError');
     expect(new CallEvaluationDepthExceededError({ depth: 11, limit: 10 }).message).toBe('::call/EvaluationDepthExceededError');
   });
 
   it('hands no facts where its site hands none', () => {
-    const divErr = new NumberDivByZeroError();
-    expect(divErr.name).toBe('ByZeroError');
-    expect(divErr.context).toEqual({});
+    const probeErr = new TestsProbeError();
+    expect(probeErr.name).toBe('ProbeError');
+    expect(probeErr.context).toEqual({});
   });
 });
 
@@ -90,9 +92,9 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(5);
   });
 
-  it('per-site name is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('[1 2 3] | take 1.5');
-    expect(originalErr.name).toBe('TakeCountNotIntegerError');
+  it('per-site name is set on the refusals the runtime raises', async () => {
+    const originalErr = await catchOriginalError('42 * add 1');
+    expect(originalErr.name).toBe('SubjectNotContainerError');
   });
 });
 
@@ -103,11 +105,11 @@ describe('error class branding survives Object.defineProperty (minification prox
   // even if we artificially shadow the class identifier, the runtime
   // `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('[1 2 3] | take 1.5');
-    expect(originalErr.name).toBe('TakeCountNotIntegerError');
+    const originalErr = await catchOriginalError('42 * add 1');
+    expect(originalErr.name).toBe('SubjectNotContainerError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('TakeCountNotIntegerError');
+    expect(originalErr.constructor.name).toBe('SubjectNotContainerError');
   });
 });
 
@@ -118,15 +120,15 @@ describe('one address, one site', () => {
   it('refuses a second declaration of an address already declared', () => {
     let refusal = null;
     try {
-      declareRefusal('number/div/ByZeroError');
+      declareRefusal('call/UnknownNameError');
     } catch (caught) {
       refusal = caught;
     }
     expect(refusal).toBeInstanceOf(QlangInvariantError);
     expect(refusal).toBeInstanceOf(BuiltinRefusalDeclaredTwiceError);
     expect(refusal.name).toBe('RefusalDeclaredTwiceError');
-    expect(refusal.context.address).toBe('number/div/ByZeroError');
-    expect(refusal.message).toContain('number/div/ByZeroError');
+    expect(refusal.context.address).toBe('call/UnknownNameError');
+    expect(refusal.message).toContain('call/UnknownNameError');
   });
 });
 

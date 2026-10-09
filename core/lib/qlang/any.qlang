@@ -99,35 +99,6 @@
   |~~ The value turned to descend. ~~|
   ::desc
 
-:any/TakeCountNotIntegerError
-  |~~ The count of `take` must be a whole number — a fractional count
-      cannot name a prefix length.
-      ~(
-        [1 2 3] | take 0.5
-        !| [type /actualType]
-        |  eq [::any/TakeCountNotIntegerError ::number]
-       )
-  ~~|
-
-:any/DropCountNotIntegerError
-  |~~ The count of `drop` must be a whole number — a fractional count
-      cannot name how many to remove.
-      ~(
-        [1 2 3] | drop 0.5
-        !| [type /actualType]
-        |  eq [::any/DropCountNotIntegerError ::number]
-       )
-  ~~|
-
-:any/AtIndexNotIntegerError
-  |~~ The index of `at` on a vector or a set must be a whole number.
-      ~(
-        [1 2 3] | at 0.5
-        !| [type /actualType]
-        |  eq [::any/AtIndexNotIntegerError ::number]
-       )
-  ~~|
-
 :any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
       accumulator as its subject and the element as the first part of its

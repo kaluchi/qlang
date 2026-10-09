@@ -7,7 +7,6 @@ import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
-import { NumberDivByZeroError } from '../../src/runtime/arith.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -221,10 +220,9 @@ describe('errorFromQlang', () => {
     expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
   });
 
-  it('converts NumberDivByZeroError, whose site has no facts, to the trail alone', async () => {
-    const divErr = new NumberDivByZeroError();
-    const errorVal = errorFromQlang(divErr, 10, await langRuntime());
-    expect(errorVal.tag).toEqual(makeTagKeyword('number/div/ByZeroError'));
+  it('converts a refusal whose site hands no facts to the trail alone', async () => {
+    const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
+    expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
   });
 });
@@ -330,13 +328,6 @@ describe('error-convert coercion edge cases', () => {
     const errorVal = errorFromForeign(current, null);
     const causes = errorVal.descriptor.get('causes');
     expect(causes.length).toBe(8);
-  });
-
-  it('errorFromQlang without context field', async () => {
-    const divErr = new NumberDivByZeroError();
-    const errorVal = errorFromQlang(divErr, 10, await langRuntime());
-    expect(errorVal.tag.name).toBe('number/div/ByZeroError');
-    expect(errorVal.descriptor.has('category')).toBe(false);
   });
 
   it('errorFromForeign without cause (no causes field)', () => {

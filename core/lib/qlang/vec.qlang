@@ -406,6 +406,10 @@
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
+:vec/take/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
+
 :vec/take/taken
   |~~ The first elements. ~~|
   ::vec
@@ -427,6 +431,10 @@
 :vec/drop/count/NotNumberError
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
+
+:vec/drop/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
 
 :vec/drop/rest
   |~~ The elements after the ones dropped. ~~|
@@ -456,6 +464,10 @@
 :vec/at/index/NotNumberError
   |~~ The index is a number. ~~|
   ::holds~(is ::number)
+
+:vec/at/index/NotIntegerError
+  |~~ The index is a whole number. ~~|
+  ::holds~(eq (round))
 
 :vec/distinct
   |~~ The set of the elements, the vector in the one order without

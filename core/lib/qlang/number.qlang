@@ -129,12 +129,14 @@
   |~~ The divisor is a number. ~~|
   ::holds~(is ::number)
 
-:number/div/ByZeroError
-  |~~ A division by zero has no finite answer; a divisor that may be
-      zero is tested first, `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
+:number/div/divisor/ZeroError
+  |~~ The divisor is not zero: a division by zero has no finite answer,
+      and a divisor that may be zero is tested first,
+      `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
 
-      ~(10 | div 0 !| type | eq ::number/div/ByZeroError)
+      ~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
   ~~|
+  ::holds~(eq 0 | not)
 
 :number/div/quotient
   |~~ The subject divided by the divisor. ~~|

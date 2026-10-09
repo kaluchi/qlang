@@ -55,5 +55,5 @@
 {"name":"the-key-a-projection-read-is-a-keyword","query":"{:a 1} | /b !| /key","expect":":b","decision":"D172"}
 {"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true","decision":"D172"}
 {"name":"a-refusal-of-a-primitive-sits-under-the-word-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError","decision":"D172","target":true,"now":"::any/SumElementNotNumberError"}
-{"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-part","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError","decision":"D172","target":true,"now":"::any/TakeCountNotIntegerError"}
+{"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-part","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError","decision":"D172"}
 {"name":"the-segment-a-projection-read-as-an-index-is-a-number","query":"42 | /0 !| /key","expect":"0","decision":"D172"}

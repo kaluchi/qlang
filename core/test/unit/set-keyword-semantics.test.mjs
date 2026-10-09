@@ -217,10 +217,8 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
   });
 });
 
-// `at` on a Set subject — insertion-order indexing through the
-// polymorphic dispatch. Non-integer index pairs go through the
-// shared `AtIndexNotIntegerError` site that the Vec branch already
-// uses.
+// `at` on a Set subject — indexing in the one order, its index a
+// whole number by the law of its part [D172].
 describe('at on a Set subject', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -238,9 +236,9 @@ describe('at on a Set subject', async () => {
     expect(await evalQuery('#[:a :b :c] | at 99')).toBe(null);
   });
 
-  it('non-integer index raises AnyAtIndexNotIntegerError', async () => {
+  it('a non-integer index breaks the law of the index of set/at', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | at 0.5');
-    expect(err.tag.name).toBe('any/AtIndexNotIntegerError');
+    expect(err.tag.name).toBe('set/at/index/NotIntegerError');
   });
 });

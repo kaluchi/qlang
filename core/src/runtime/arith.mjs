@@ -1,26 +1,21 @@
 // Arithmetic primitives, each a plain function over the number the walk
 // served and the parts of the object its call gives [D164]. The laws of
-// the parts hold their kinds before a primitive runs [D166], and an
-// answer that left the finite doubles is refused as it is brought under
-// `::number` [D169]; `div` refuses a zero divisor itself.
+// the parts hold before a primitive runs, a divisor no zero among them
+// [D166], [D172], and an answer that left the finite doubles is refused
+// as it is brought under `::number` [D169].
 //
 // The names live in lib/qlang/number.qlang.
 
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import {  } from '../types.mjs';
-
-export const NumberDivByZeroError = declareRefusal('number/div/ByZeroError');
-
+// The digits of `round` are a whole number; the law `eq (round)` that
+// states it for a count would call `round` again on its own digits.
 const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
 
 bindPrim('number/add', (augend, addend) => augend + addend);
 bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
 bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
-bindPrim('number/div', (dividend, divisor) => {
-  if (divisor === 0) throw new NumberDivByZeroError();
-  return dividend / divisor;
-});
+bindPrim('number/div', (dividend, divisor) => dividend / divisor);
 
 // A number rounds half away from zero to the digits after the point the
 // call gives, a negative count rounding to tens and beyond [D132].

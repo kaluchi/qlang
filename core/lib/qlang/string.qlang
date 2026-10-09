@@ -139,6 +139,10 @@
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
 
+:string/take/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
+
 :string/take/taken
   |~~ The first characters. ~~|
   ::string
@@ -158,6 +162,10 @@
 :string/drop/count/NotNumberError
   |~~ The count is a number. ~~|
   ::holds~(is ::number)
+
+:string/drop/count/NotIntegerError
+  |~~ The count is a whole number. ~~|
+  ::holds~(eq (round))
 
 :string/drop/rest
   |~~ The characters after the ones dropped. ~~|

@@ -1,6 +1,5 @@
 |~ What is declared under `::verb`, the kind of a verb: the refusals
-   its head raises, of its declaration, of the slots a call fills and of
-   a contract called. ~|
+   its head raises, of its declaration and of the slots a call fills. ~|
 
 :verb/PayloadNotQuoteError
   |~~ `::verb` is a tag over a quote, and a payload of another kind is

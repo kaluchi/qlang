@@ -130,14 +130,13 @@ describe('a host\'s primitive under a label', () => {
     expect(noted).toBe(0);
   });
 
-  it('reads the parts of the contract at each place a primitive reads none of its own, the values after it by code over the object, in the order of their places [D167]', async () => {
+  it('reads the values after a primitive\'s lead by code over the object, its parts in the order of their places [D167], [D169]', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/zap',
         source: lines(
-          ':any/zap ::verb~()',
-          ':any/zap/rest |~~ The values after the lead. ~~| ~(drop 1)',
           ':vec/zap ::builtin{}',
+          ':vec/zap/rest |~~ The values after the lead. ~~| ~(drop 1)',
           ':vec/zap/lead |~~ The lead. ~~| ~(/0)'
         ),
         impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
@@ -157,10 +156,9 @@ describe('a host\'s primitive under a label', () => {
     expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);
   });
 
-  it('holds a part a host declares under its own primitive or under a contract to the mark of the name [D167]', async () => {
+  it('holds a part a host declares under its primitive to the mark of the name [D167]', async () => {
     for (const [source, primitive] of [
-      [lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'), 'vec/zap'],
-      [lines(':any/zip ::verb~()', ':any/zip/n ~(/0 | @note)', ':vec/zip ::builtin{}'), 'vec/zip']
+      [lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'), 'vec/zap']
     ]) {
       await expect(createSession({
         sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, [primitive]: subject => subject } }]

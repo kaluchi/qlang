@@ -5,7 +5,7 @@
 :desc/gt
   |~~ Whether the subject follows the value the call gives among
       descending values, which holds when its payload precedes the
-      other's. ::holds~(is ::boolean)
+      other's.
 
       ~(1 | desc | gt (2 | desc) | eq true)
   ~~|
@@ -15,9 +15,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
   ~(/0)
 
+:desc/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+  ::boolean
+
 :desc/gte
   |~~ Whether the subject follows or equals the value the call gives
-      among descending values. ::holds~(is ::boolean)
+      among descending values.
 
       ~(2 | desc | gte (2 | desc) | eq true)
   ~~|
@@ -27,10 +30,13 @@
   |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
   ~(/0)
 
+:desc/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+  ::boolean
+
 :desc/lt
   |~~ Whether the subject precedes the value the call gives among
       descending values, which holds when its payload follows the
-      other's. ::holds~(is ::boolean)
+      other's.
 
       ~(2 | desc | lt (1 | desc) | eq true)
   ~~|
@@ -40,9 +46,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
   ~(/0)
 
+:desc/lt/less |~~ Whether the subject comes before the value compared. ~~|
+  ::boolean
+
 :desc/lte
   |~~ Whether the subject precedes or equals the value the call gives
-      among descending values. ::holds~(is ::boolean)
+      among descending values.
 
       ~(2 | desc | lte (2 | desc) | eq true)
   ~~|
@@ -51,3 +60,6 @@
 :desc/lte/than
   |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
   ~(/0)
+
+:desc/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+  ::boolean

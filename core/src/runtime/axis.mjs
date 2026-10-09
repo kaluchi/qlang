@@ -29,7 +29,7 @@ import {
 import { signatureSpecOf, slotMemberOf } from './verb.mjs';
 import { tagLiteralOf } from '../env-keys.mjs';
 import {
-  addressesOf, isNoun, nodeOf, pageAddressesOf, partsOfName, residenceOnSubject
+  addressesOf, isNoun, nodeOf, partsOfName, residenceOnSubject
 } from './nouns.mjs';
 import { declareShapeError } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -81,10 +81,9 @@ function nameOf(subject) {
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live, the contract's among them [D62],
-// [D137].
+// where the pages of that name live [D62], [D137].
 export function refusalOf(env, subject) {
-  return { bindingName: bindingNameOf(subject), addresses: pageAddressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
+  return { bindingName: bindingNameOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
 
 // The names near the one a subject reads, tags for a tag name and the

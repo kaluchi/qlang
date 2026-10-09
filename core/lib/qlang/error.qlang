@@ -36,9 +36,12 @@
 :error/trail
   |~~ The path of the error: each step it passed, from the one
       that raised it, with the subject that step met and the steps
-      skipped after it. ::holds~(is ::vec)
+      skipped after it.
 
       ~("x" | add 1 !| trail | count | eq 1)
       ~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
   ~~|
   ~(/trail)
+
+:error/trail/stops |~~ The stops of the path the error took. ~~|
+  ::vec

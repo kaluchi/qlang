@@ -15,7 +15,7 @@
 
 :keyword/gt
   |~~ Whether the subject's name follows the name of the keyword the
-      call gives. ::holds~(is ::boolean)
+      call gives.
 
       ~(:b | gt :a | eq true)
   ~~|
@@ -25,11 +25,15 @@
   |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
   ~(/0)
 
+:keyword/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+  ::boolean
+
 :keyword/gte
   |~~ Whether the subject's name follows or equals the name of the
-      keyword the call gives. ::holds~(is ::boolean)
+      keyword the call gives.
 
       ~(:b | gte :b | eq true)
+      ~(:b | gte :a | eq true)
   ~~|
   ::builtin{}
 
@@ -37,9 +41,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
   ~(/0)
 
+:keyword/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+  ::boolean
+
 :keyword/lt
   |~~ Whether the subject's name precedes the name of the keyword the
-      call gives. ::holds~(is ::boolean)
+      call gives.
 
       ~(:a | lt :b | eq true)
   ~~|
@@ -49,9 +56,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
   ~(/0)
 
+:keyword/lt/less |~~ Whether the subject comes before the value compared. ~~|
+  ::boolean
+
 :keyword/lte
   |~~ Whether the subject's name precedes or equals the name of the
-      keyword the call gives. ::holds~(is ::boolean)
+      keyword the call gives.
 
       ~(:a | lte :a | eq true)
   ~~|
@@ -61,21 +71,32 @@
   |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
   ~(/0)
 
+:keyword/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+  ::boolean
+
 :keyword/keyword
   |~~ The name of the keyword, as a string: the reverse of `keyword` on
-      a string, so `"foo" | keyword | keyword` answers `"foo"`. ::holds~(is ::string)
+      a string, so `"foo" | keyword | keyword` answers `"foo"`.
 
       ~(:foo | keyword | eq "foo")
       ~(:"foo bar" | keyword | eq "foo bar")
   ~~|
   ::builtin{}
 
+:keyword/keyword/text |~~ The name of the keyword, a string. ~~|
+  ::string
+
 :keyword/runLaws
   |~~ The results of the laws of the page of the binding the keyword
       names in its scope, one `{:law :says :actual :ok :error}` per law,
       `:says` the caption of the claim the law proves. A keyword after
-      it runs the laws of the member the binding holds under it. ::holds~(is ::vec)
+      it runs the laws of the member the binding holds under it.
 
       ~(:limit |~~ Examples: ~(true) ~~| 10 | :limit | runLaws * /ok | eq [true])
   ~~|
   ::builtin{}
+
+:keyword/runLaws/anchor |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~| ~(at 0)
+
+:keyword/runLaws/results |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
+  ::vec

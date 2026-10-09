@@ -30,4 +30,4 @@ export {
 export {
   signatureSpecOf, slotLabelsOf, verbShownFor, shownFor
 } from './runtime/verb.mjs';
-export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach } from './runtime/nouns.mjs';
+export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf } from './runtime/nouns.mjs';

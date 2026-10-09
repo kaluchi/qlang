@@ -1,8 +1,8 @@
 // Arithmetic primitives, each a plain function over the number the walk
 // served and the parts of the object its call gives [D164]. The laws of
-// the parts hold their kinds before a primitive runs [D166]; a primitive
-// raises the refusals of the magnitude, declared under the name it
-// serves.
+// the parts hold their kinds before a primitive runs [D166], and an
+// answer that left the finite doubles is refused as it is brought under
+// `::number` [D169]; `div` refuses a zero divisor itself.
 //
 // The names live in lib/qlang/number.qlang.
 
@@ -10,9 +10,6 @@ import { declareNumericDomainError, declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { typeKeyword } from '../types.mjs';
 
-// `div` refuses two magnitudes: a zero divisor, and a quotient past
-// the finite-double range. Both are the same repair for a reader —
-// change a value — so both ride `NumericDomainError`.
 export const NumberDivByZeroError = declareNumericDomainError(
   'number/div/ByZeroError', () => 'division by zero', { operand: 'div' }
 );
@@ -22,44 +19,12 @@ const NumberRoundDigitsNotIntegerError = declareShapeError('number/round/DigitsN
   { operand: 'round', expectedType: 'integer' }
 );
 
-// A qlang Number is a finite double, as the page of `::number` says.
-// Both operands are finite by that same rule, so
-// the operation itself is the only way out of the domain, and each
-// site lifts its own class onto the fail-track — the second answer
-// `div` gives alongside `ByZeroError`.
-const NumberAddResultNotFiniteError = declareNumericDomainError('number/add/ResultNotFiniteError',
-  ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'add' }
-);
-const NumberSubResultNotFiniteError = declareNumericDomainError('number/sub/ResultNotFiniteError',
-  ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'sub' }
-);
-const NumberMulResultNotFiniteError = declareNumericDomainError('number/mul/ResultNotFiniteError',
-  ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'mul' }
-);
-const NumberDivResultNotFiniteError = declareNumericDomainError('number/div/ResultNotFiniteError',
-  ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'div' }
-);
-
-// The operands ride the descriptor as `:leftValue` / `:rightValue`
-// — both finite, so the error value itself stays renderable, where
-// stamping the overflowed result would plant the very shape this
-// site refuses.
-function finiteOrLift(arithResult, leftValue, rightValue, ErrorCls) {
-  if (!Number.isFinite(arithResult)) throw new ErrorCls({ leftValue, rightValue });
-  return arithResult;
-}
-
-bindPrim('number/add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, NumberAddResultNotFiniteError));
-bindPrim('number/sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, NumberSubResultNotFiniteError));
-bindPrim('number/mul', (multiplicand, multiplier) =>
-  finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, NumberMulResultNotFiniteError));
+bindPrim('number/add', (augend, addend) => augend + addend);
+bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
+bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
 bindPrim('number/div', (dividend, divisor) => {
   if (divisor === 0) throw new NumberDivByZeroError();
-  return finiteOrLift(dividend / divisor, dividend, divisor, NumberDivResultNotFiniteError);
+  return dividend / divisor;
 });
 
 // A number rounds half away from zero to the digits after the point the

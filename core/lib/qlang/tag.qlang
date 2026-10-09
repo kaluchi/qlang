@@ -16,7 +16,7 @@
 
 :tag/gt
   |~~ Whether the subject's name follows the name of the tag the call
-      gives. ::holds~(is ::boolean)
+      gives.
 
       ~(::b | gt ::a | eq true)
   ~~|
@@ -26,9 +26,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
   ~(/0)
 
+:tag/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+  ::boolean
+
 :tag/gte
   |~~ Whether the subject's name follows or equals the name of the tag
-      the call gives. ::holds~(is ::boolean)
+      the call gives.
 
       ~(::b | gte ::b | eq true)
   ~~|
@@ -38,9 +41,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
   ~(/0)
 
+:tag/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+  ::boolean
+
 :tag/lt
   |~~ Whether the subject's name precedes the name of the tag the call
-      gives. ::holds~(is ::boolean)
+      gives.
 
       ~(::a | lt ::b | eq true)
   ~~|
@@ -50,17 +56,24 @@
   |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
   ~(/0)
 
+:tag/lt/less |~~ Whether the subject comes before the value compared. ~~|
+  ::boolean
+
 :tag/lte
   |~~ Whether the subject's name precedes or equals the name of the
-      tag the call gives. ::holds~(is ::boolean)
+      tag the call gives.
 
       ~(::a | lte ::a | eq true)
+      ~(::a | lte ::b | eq true)
   ~~|
   ::builtin{}
 
 :tag/lte/than
   |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
   ~(/0)
+
+:tag/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+  ::boolean
 
 :tag/manifest
   |~~ Asked of a noun, answers the set of the nodes declared one name
@@ -69,7 +82,7 @@
       manifest) the chapters of the language. The kinds of the scope
       `kinds` lists, and what the reader declared `env`; what one node
       holds the axes read, `::vec/count | source`, `| doc`, `| doc |
-      laws`. ::holds~(is ::set)
+      laws`.
 
       ~(::number | manifest | has ::number/add)
       ~(::qlang | manifest | has ::qlang/values)
@@ -86,14 +99,27 @@
   ~~|
   ::builtin{}
 
+:tag/manifest/names |~~ The addresses of the names declared one name under the noun. ~~|
+  ::set
+
 :tag/runLaws
   |~~ The results of the laws of the page of the declaration the tag
       name reads, a verb by its address among them, one `{:law :says
       :actual :ok :error}` per law, `:says` the caption of the claim the
       law proves. A keyword after it runs the laws of the member the
-      name holds under it, a concept of the language among them. ::holds~(is ::vec)
+      name holds under it, a concept of the language among them.
 
       ~(::number/add | runLaws | first | /ok | eq true)
       ~(::qlang | runLaws :values | every ~(/ok))
+      ~(::number/add | runLaws * /ok | distinct | eq #[true])
+      ~(::number/gt | runLaws | count | gte 1)
+      ~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
   ~~|
   ::builtin{}
+
+:tag/runLaws/anchor
+  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
+  ~(at 0)
+
+:tag/runLaws/results |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
+  ::vec

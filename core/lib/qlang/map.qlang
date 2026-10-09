@@ -1,6 +1,6 @@
 |~ What is declared under `::map`: the refusal of its constructor, and
-   the verbs of maps, each under the contract of its name on `::any`,
-   whose page and laws it answers. A map's elements are its values, and
+   the verbs of maps, each with the parts of its object and its answer.
+   A map's elements are its values, and
    its keys are the shape that travels with them: a verb that keeps the
    kind keeps the keys of the entries it keeps. ~|
 
@@ -39,18 +39,24 @@
   ::spec~()
 
 :map/count
-  |~~ The number of entries. ::holds~(is ::number)
+  |~~ The number of entries.
 
       ~({:x 1 :y 2 :z 3} | count | eq 3)
   ~~|
   ::builtin{}
 
+:map/count/size |~~ How many entries the map holds. ~~|
+  ::number
+
 :map/empty
-  |~~ Whether the map holds no entry. ::holds~(is ::boolean)
+  |~~ Whether the map holds no entry.
 
       ~({} | empty | eq true)
   ~~|
   ::builtin{}
+
+:map/empty/vacant |~~ Whether the map holds no entry. ~~|
+  ::boolean
 
 :map/first
   |~~ The value of the first entry, or null for the empty map.
@@ -67,11 +73,14 @@
   ::builtin{}
 
 :map/sum
-  |~~ The sum of the values, each a number. ::holds~(is ::number)
+  |~~ The sum of the values, each a number.
 
       ~({:a 10 :b 20} | sum | eq 30)
   ~~|
   ::builtin{}
+
+:map/sum/total |~~ The sum of the values. ~~|
+  ::number
 
 :map/avg
   |~~ The mean of the values, each a number, or null when there is none.
@@ -79,6 +88,9 @@
       ~({:a 1 :b 3} | avg | eq 2)
   ~~|
   ::builtin{}
+
+:map/avg/mean |~~ The mean of the values, null for an empty map. ~~|
+  #[::number ::null]
 
 :map/min
   |~~ The first value in the one order of values, or the one whose key
@@ -89,6 +101,8 @@
   ~~|
   ::builtin{}
 
+:map/min/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
 :map/max
   |~~ The last value in the one order of values, or the one whose key
       answers the last value; the key of the entry is read by `entries`.
@@ -98,52 +112,89 @@
   ~~|
   ::builtin{}
 
+:map/max/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
 :map/filter
   |~~ The entries whose value the predicate answers true for, their keys
       kept; the joint test of a key with its value reads the keys, `m |
-      keys | filter ~(…)`, and `at` the value of each. ::keeps~()
+      keys | filter ~(…)`, and `at` the value of each.
 
       ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
+      ~({} | filter ~(gt 0) | eq {})
   ~~|
   ::builtin{}
+
+:map/filter/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:map/filter/kept |~~ The entries whose values the predicate accepted. ~~|
+  ::map
 
 :map/every
-  |~~ Whether the predicate answers true for every value. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for every value.
 
       ~({:a 1 :b 2 :c 3} | every ~(gt 0) | eq true)
+      ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
+      A map is asked of its values:
+      ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
   ~~|
   ::builtin{}
+
+:map/every/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:map/every/all |~~ Whether the predicate held for every value. ~~|
+  ::boolean
 
 :map/any
-  |~~ Whether the predicate answers true for some value. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for some value.
 
       ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
+      ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
   ~~|
   ::builtin{}
+
+:map/any/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:map/any/some |~~ Whether the predicate held for some value. ~~|
+  ::boolean
 
 :map/sort
   |~~ The entries ordered by their values, or by the value the key
-      answers for each, their keys kept. ::keeps~()
+      answers for each, their keys kept.
 
       ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
   ~~|
   ::builtin{}
 
+:map/sort/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
+:map/sort/sorted |~~ The entries in the order the key ranks their values. ~~|
+  ::map
+
 :map/take
-  |~~ The first count entries. ::keeps~()
+  |~~ The first count entries.
 
       ~({:a 1 :b 2 :c 3} | take 2 | eq {:a 1 :b 2})
   ~~|
   ::builtin{}
 
+:map/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:map/take/taken |~~ The first entries. ~~|
+  ::map
+
 :map/drop
   |~~ The entries after the first count, in the order of the map; a
-      key leaves a map by `minus`, which takes the keys to leave out. ::keeps~()
+      key leaves a map by `minus`, which takes the keys to leave out.
 
       ~({:a 1 :b 2 :c 3} | drop 2 | eq {:c 3})
       ~({:a 1 :b 2 :c 3} | minus #[:b] | eq {:a 1 :c 3})
   ~~|
   ::builtin{}
+
+:map/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:map/drop/rest |~~ The entries after the ones dropped. ~~|
+  ::map
 
 :map/at
   |~~ The value at the key, a keyword or a string, both naming the key
@@ -155,6 +206,7 @@
       ~({:a 1 :b 2} | at "a" | eq 1)
       ~({:a 1} | at :z | eq null)
       ~({:a 1} | at :z 0 | eq 0)
+      ~({:a null} | at :a | at :b | eq null)
   ~~|
   ::builtin{}
 
@@ -177,12 +229,17 @@
   ~~|
   ~(/0)
 
+:map/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
+
 :map/reverse
-  |~~ The entries in the reverse order, their keys kept. ::keeps~()
+  |~~ The entries in the reverse order, their keys kept.
 
       ~({:a 1 :b 2} | reverse | vals | eq [2 1])
   ~~|
   ::builtin{}
+
+:map/reverse/reversed |~~ The entries in reverse order. ~~|
+  ::map
 
 :map/reduce
   |~~ The seed folded over the values by the reducer.
@@ -191,8 +248,12 @@
   ~~|
   ::builtin{}
 
+:map/reduce/reducer |~~ The code that folds an element into the value so far. ::holds~(is ::quote) ~~| ~(/1)
+
+:map/reduce/seed |~~ The value the fold starts from. ~~| ~(/0)
+
 :map/keys
-  |~~ The set of the keys, keywords in the one order: sorted by name. ::holds~(is ::set)
+  |~~ The set of the keys, keywords in the one order: sorted by name.
 
       ~({:name "Alice" :age 30} | keys | eq #[:age :name])
       ~({:name "Alice" :age 30} | keys | first | eq :age)
@@ -208,8 +269,11 @@
   ~~|
   ::builtin{}
 
+:map/keys/keySet |~~ The keys of the map. ~~|
+  ::set
+
 :map/vals
-  |~~ The vector of the values, in the order of the entries. ::holds~(is ::vec)
+  |~~ The vector of the values, in the order of the entries.
 
       ~({:name "Alice" :age 30} | vals | eq ["Alice" 30])
 
@@ -223,11 +287,14 @@
   ~~|
   ::builtin{}
 
+:map/vals/values |~~ The values of the map, in order. ~~|
+  ::vec
+
 :map/entries
   |~~ The vector of the pairs `[key value]` of the map, in the order of
       the entries, each key a keyword: the map with its keys as data, for
       a step that reads a key beside its value, as `[type payload]` reads
-      a tagged value. `tag ::map` builds the map back. ::holds~(is ::vec)
+      a tagged value. `tag ::map` builds the map back.
 
       ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
       ~({:auth {:port 3000}} | entries * (unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
@@ -244,10 +311,13 @@
   ~~|
   ::builtin{}
 
+:map/entries/pairs |~~ The pairs of key and value, in order. ~~|
+  ::vec
+
 :map/has
   |~~ Whether the map holds the key, a keyword or a string, both naming
       the key as the map stores it, so the `keys | first | has _` chain
-      composes. ::holds~(is ::boolean)
+      composes.
 
       ~({:name "Alice"} | has :name | eq true)
       ~({:name "Alice"} | has "name" | eq true)
@@ -267,11 +337,15 @@
   ~~|
   ~(/0)
 
+:map/has/held |~~ Whether the map holds the key. ~~|
+  ::boolean
+
 :map/union
   |~~ The entries of both maps, the other map's value winning a key both
-      hold. ::keeps~()
+      hold.
 
       ~({:a 1 :b 2} | union {:b 3 :c 4} | eq {:a 1 :b 3 :c 4})
+      ~({:a 1} | union {:b 2} | eq {:a 1 :b 2})
   ~~|
   ::builtin{}
 
@@ -279,10 +353,13 @@
   |~~ The value the subject is joined with. ::holds~(is ::map) ~~|
   ~(/0)
 
+:map/union/merged |~~ The entries of both maps, the second one's value winning a key both hold. ~~|
+  ::map
+
 :map/minus
   |~~ The entries whose keys the other operand lacks: a map's keys, or the
       keys a vector or a set names, each a keyword or a string, as `at`
-      reads a key. ::keeps~()
+      reads a key.
 
       ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
       ~({:a 1 :b 2} | minus ["a"] | eq {:b 2})
@@ -293,9 +370,12 @@
   |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
   ~(/0)
 
+:map/minus/remaining |~~ The entries whose keys the other operand does not hold. ~~|
+  ::map
+
 :map/inter
   |~~ The entries whose keys the other operand holds: a map's keys, or
-      the keys a vector or a set names, each a keyword or a string. ::keeps~()
+      the keys a vector or a set names, each a keyword or a string.
 
       ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
       ~({:a 1 :b 2 :c 3} | inter ["a" :c] | eq {:a 1 :c 3})
@@ -305,6 +385,9 @@
 :map/inter/keys
   |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
   ~(/0)
+
+:map/inter/common |~~ The entries whose keys the other operand holds. ~~|
+  ::map
 
 :map/MinusKeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`

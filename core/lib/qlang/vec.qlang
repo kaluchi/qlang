@@ -1,7 +1,6 @@
 |~ What is declared under `::vec`: the refusal of its constructor, and
-   the verbs of vectors, each under the contract of its name on `::any`,
-   whose page and laws it answers; a quote reads as the vector of its
-   steps. Each verb is a name with the parts of its object, read and held
+   the verbs of vectors, each with the parts of its object and its
+   answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its object, read and held
    to their laws before the primitive runs. ~|
 
 :vec/PayloadNotVecError
@@ -16,23 +15,32 @@
   ::spec~()
 
 :vec/count
-  |~~ The number of elements. ::holds~(is ::number)
+  |~~ The number of elements.
 
       ~([1 2 3] | count | eq 3)
+      ~(42 | count !| /addresses | has ::vec/count)
   ~~|
   ::builtin{}
+
+:vec/count/size |~~ How many elements the vector holds. ~~|
+  ::number
 
 :vec/empty
-  |~~ Whether the vector holds no element. ::holds~(is ::boolean)
+  |~~ Whether the vector holds no element.
 
       ~([] | empty | eq true)
+      ~([1] | empty | eq false)
   ~~|
   ::builtin{}
+
+:vec/empty/vacant |~~ Whether the vector holds no element. ~~|
+  ::boolean
 
 :vec/first
   |~~ The first element, or null for the empty vector.
 
       ~([10 20 30] | first | eq 10)
+      ~([] | first | eq null)
   ~~|
   ::builtin{}
 
@@ -40,85 +48,196 @@
   |~~ The last element, or null for the empty vector.
 
       ~([10 20 30] | last | eq 30)
+      ~([] | last | eq null)
   ~~|
   ::builtin{}
 
 :vec/sum
-  |~~ The sum of the elements, each a number. ::holds~(is ::number)
+  |~~ The sum of the elements, each a number; the empty vector sums to 0.
 
       ~([1 2 3 4] | sum | eq 10)
+      ~([] | sum | eq 0)
   ~~|
   ::builtin{}
+
+:vec/sum/total |~~ The sum of the elements. ~~|
+  ::number
 
 :vec/avg
   |~~ The mean of the elements, each a number, or null when there is none.
 
       ~([1 2 3 4] | avg | eq 2.5)
+      ~([] | avg | eq null)
+      ~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
   ~~|
   ::builtin{}
+
+:vec/avg/mean |~~ The mean of the elements, null for an empty vector. ~~|
+  #[::number ::null]
 
 :vec/min
   |~~ The first element in the one order of values, or the one whose key
-      answers the first value.
+      answers the first value, the key read as `sort` reads it. The
+      element itself is the answer, the first of equal ones, and the
+      empty vector yields null.
 
       ~([3 1 4 1 5] | min | eq 1)
       ~([{:age 30} {:age 20}] | min ~(/age) | eq {:age 20})
+      ~([3 "a" null] | min | eq null)
   ~~|
   ::builtin{}
+
+:vec/min/key
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
+  ~(at 0)
 
 :vec/max
   |~~ The last element in the one order of values, or the one whose key
-      answers the last value.
+      answers the last value, the key read as `sort` reads it. The
+      element itself is the answer, the first of equal ones, and the
+      empty vector yields null.
 
       ~([3 1 4 1 5] | max | eq 5)
       ~([{:age 30} {:age 40}] | max ~(/age) | eq {:age 40})
+      ~([3 "a" null] | max | eq "a")
   ~~|
   ::builtin{}
+
+:vec/max/key
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
+  ~(at 0)
 
 :vec/filter
-  |~~ The elements whose predicate answers true, in their order. ::keeps~()
+  |~~ The elements whose predicate answers true, in their order.
 
       ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
+      The predicate reads each element as its subject:
+      ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
+      A verb stands where a quote would:
+      ~([1 -2 3] | :positive ::verb~(gt 0) | filter ~positive | eq [1 3])
   ~~|
   ::builtin{}
+
+:vec/filter/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+
+      The predicate of `filter` is code it runs on each element, so it takes a
+      quote, `filter ~(gt 1)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | filter (count | gt 1)
+        !| [type /actualType]
+        |  eq [::vec/filter/predicate/HoldsNotMetError ::boolean]
+       )
+      A step written without its quote runs on the whole subject at the
+      call, and the error it answers is refused alike:
+      ~(
+        [{:a true}] | filter /a
+        !| [type /actualType]
+        |  eq [::vec/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]
+       )
+  ~~|
+  ~(/0)
+
+:vec/filter/kept |~~ The elements the predicate accepted, in order. ~~|
+  ::vec
 
 :vec/every
-  |~~ Whether the predicate answers true for every element. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for every element, the question
+      a law asks of a listing; it stops at the first false.
 
       ~([2 4 6 8] | every ~(gt 0) | eq true)
+      ~([1 2 3] | every ~(gt 2) | eq false)
+      A verb stands where a quote would:
+      ~([2 4 6] | :positive ::verb~(gt 0) | every ~positive | eq true)
+      An empty container answers true:
+      ~([] | every ~(gt 0) | eq true)
   ~~|
   ::builtin{}
+
+:vec/every/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+
+      The predicate of `every` is code it runs on each element, so it takes a
+      quote, `every ~(gt 0)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | every (count | gt 1)
+        !| [type /actualType]
+        |  eq [::vec/every/predicate/HoldsNotMetError ::boolean]
+       )
+  ~~|
+  ~(/0)
+
+:vec/every/all |~~ Whether the predicate held for every element. ~~|
+  ::boolean
 
 :vec/any
-  |~~ Whether the predicate answers true for some element. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for some element; it stops at
+      the first true.
 
       ~([1 2 3] | any ~(gt 2) | eq true)
+      ~([1 2 3] | any ~(gt 99) | eq false)
+      A verb stands where a quote would:
+      ~([1 2 3] | :big ::verb~(gt 2) | any ~big | eq true)
+      An empty container answers false:
+      ~([] | any ~(gt 0) | eq false)
   ~~|
   ::builtin{}
+
+:vec/any/predicate
+  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+
+      The predicate of `any` is code it runs on each element, so it takes a
+      quote, `any ~(gt 2)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | any (count | gt 1)
+        !| [type /actualType]
+        |  eq [::vec/any/predicate/HoldsNotMetError ::boolean]
+       )
+  ~~|
+  ~(/0)
+
+:vec/any/some |~~ Whether the predicate held for some element. ~~|
+  ::boolean
 
 :vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
-      membership of a JSON array. ::holds~(is ::boolean)
+      membership of a JSON array.
 
       ~(["ops" "db"] | has "ops" | eq true)
       ~([1 [2]] | has [2] | eq true)
+      ~(42 | has :k !| /addresses | has ::map/has)
   ~~|
   ::builtin{}
+
+:vec/has/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
+
+:vec/has/held |~~ Whether the vector holds the element. ~~|
+  ::boolean
 
 :vec/contains
   |~~ Whether the vector holds an element equal to the value, the
       membership `has` asks, under the word a string answers for its
-      substrings. ::holds~(is ::boolean)
+      substrings.
 
       ~(["ops" "db"] | contains "ops" | eq true)
+      ~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
   ~~|
   ::builtin{}
+
+:vec/contains/element
+  |~~ The element the call gives. ~~|
+  ~(/0)
+
+:vec/contains/found |~~ Whether the vector holds the element. ~~|
+  ::boolean
 
 :vec/groupBy
   |~~ The map of vectors the key sorts the elements into. A key of a
       map is a keyword, and a key that answers a string, the field of a
       JSON object, or a number files its element under the keyword of
-      its text. ::holds~(is ::map)
+      its text.
 
       ~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
       ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
@@ -126,22 +245,63 @@
       Without a key an element files under itself, so the occurrences
       of each value are counted by `groupBy * count`:
       ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
+      ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
+      ~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
   ~~|
   ::builtin{}
+
+:vec/groupBy/key
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+
+      The key of `groupBy` is code it runs on each element, so it takes a
+      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
+      ~(
+        [{:kind :a}] | groupBy :a
+        !| [type /actualType]
+        |  eq [::vec/groupBy/key/HoldsNotMetError ::keyword]
+       )
+  ~~|
+  ~(at 0)
+
+:vec/groupBy/groups |~~ The elements filed under the keyword their key answered. ~~|
+  ::map
 
 :vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
-      made a keyword first, as for `groupBy`. ::holds~(is ::map)
+      made a keyword first, as for `groupBy`.
 
       ~([{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id) | /b/n | eq 2)
       ~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
+      ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
+      ~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
+      ~([:x :y] | indexBy | eq {:x :x :y :y})
   ~~|
   ::builtin{}
 
+:vec/indexBy/key
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+
+      The key of `indexBy` is code it runs on each element, so it takes a
+      quote, `indexBy ~(/id)`; a value computed at the call is refused.
+      ~(
+        [{:id :a}] | indexBy :a
+        !| [type /actualType]
+        |  eq [::vec/indexBy/key/HoldsNotMetError ::keyword]
+       )
+  ~~|
+  ~(at 0)
+
+:vec/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
+  ::map
+
 :vec/sort
-  |~~ The elements in the one order of values, the way a reader ranks
-      what a query found. ::keeps~()
+  |~~ The elements in the one order of values, the order every value
+      takes against every other, the way a reader ranks what a query
+      found. `sort ~(key)` ranks by the value the key answers for each
+      element, a vector it answers ranking place by place, so `sort
+      ~([(/count | desc) /name])` reads as `ORDER BY count DESC, name`;
+      elements the key leaves alike keep the order of the subject.
 
       Numbers ascend, equal ones side by side:
       ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
@@ -151,22 +311,69 @@
       next place:
       ~([{:age 30} {:age 40}] | sort ~(/age | desc) | first | /age | eq 40)
       ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s | eq ["a" "c" "b"])
+      Kinds come first, null, boolean, number, string, keyword, tag name, vector, set, map, quote, doc, error, elision and desc, then every other tag by its name:
+      ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
+      ~([::B ::A] | sort | eq [::A ::B])
+      A vector key ranks by its first place, then by the next among the elements the first leaves alike:
+      ~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b | eq [9 1 2])
+      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
+      `desc` turns the key, or one place of it, to descend:
+      ~([{:k 1} {:k 2}] | sort ~(/k | desc) | eq [{:k 2} {:k 1}])
+      A key that answers an error answers the call, a place of a vector it answers among them, so a key that misses its field is refused where it is read:
+      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
+      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
   ~~|
   ::builtin{}
+
+:vec/sort/key
+  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+
+      The key of `sort` is code it runs on each element, so it takes a
+      quote, `sort ~(/age)`; a value computed at the call is refused.
+      ~(
+        [3 1 2] | sort 1
+        !| [type /actualType]
+        |  eq [::vec/sort/key/HoldsNotMetError ::number]
+       )
+  ~~|
+  ~(at 0)
+
+:vec/sort/sorted |~~ The elements in the order the key ranks them. ~~|
+  ::vec
 
 :vec/take
-  |~~ The first count elements. ::keeps~()
+  |~~ The first count elements. The count is a whole number: past the
+      length the whole vector comes back, and a negative count takes
+      nothing.
 
       ~([1 2 3 4 5] | take 3 | eq [1 2 3])
+      ~([1 2 3] | take -1 | eq [])
   ~~|
   ::builtin{}
+
+:vec/take/count
+  |~~ How many. ::holds~(is ::number) ~~|
+  ~(/0)
+
+:vec/take/taken |~~ The first elements. ~~|
+  ::vec
 
 :vec/drop
-  |~~ The elements after the first count. ::keeps~()
+  |~~ The elements after the first count. The count is a whole number:
+      past the length the empty vector comes back, and a negative count
+      drops nothing.
 
       ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
+      ~([1 2 3] | drop -1 | eq [1 2 3])
   ~~|
   ::builtin{}
+
+:vec/drop/count
+  |~~ How many. ::holds~(is ::number) ~~|
+  ~(/0)
+
+:vec/drop/rest |~~ The elements after the ones dropped. ~~|
+  ::vec
 
 :vec/at
   |~~ The element at the index, a negative one counting from the end,
@@ -177,37 +384,85 @@
       ~([10 20 30] | at -1 | eq 30)
       ~([] | at 0 7 | eq 7)
       ~([null] | at 0 7 | eq null)
+      ~([10 20 30] | at 99 | eq null)
   ~~|
   ::builtin{}
+
+:vec/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
+
+:vec/at/index
+  |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~|
+  ~(/0)
 
 :vec/distinct
   |~~ The set of the elements, the vector in the one order without
-      duplicates. ::keeps~()
+      duplicates. Two elements are one when `eq` says so, so two maps,
+      vectors or sets of the same content collapse.
 
       ~([2 1 2 3 1] | distinct | eq #[1 2 3])
+      ~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
+      ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
   ~~|
   ::builtin{}
 
+:vec/distinct/unique |~~ The elements, each once, in the one order: a set. ~~|
+  ::vec
+
 :vec/reverse
-  |~~ The elements in the reverse order. ::keeps~()
+  |~~ The elements in the reverse order.
 
       ~([1 2 3] | reverse | eq [3 2 1])
   ~~|
   ::builtin{}
 
+:vec/reverse/reversed |~~ The elements in reverse order. ~~|
+  ::vec
+
 :vec/flat
-  |~~ The elements with one level of nesting spliced in. ::keeps~()
+  |~~ The elements with one level of nesting spliced in.
 
       ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
   ~~|
   ::builtin{}
 
+:vec/flat/flattened |~~ The elements with one level of nesting spliced in. ~~|
+  ::vec
+
 :vec/reduce
-  |~~ The seed folded over the elements by the reducer.
+  |~~ The seed folded over the elements by the reducer, which runs as
+      `accumulator | reducer element`; `sum`, `count`, `max` and the
+      builders of structures all factor through it.
 
       ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
+      ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
+      ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
+      ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+      A name takes the accumulator as its subject and the element as the first part of its object:
+      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
+      ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
+      The seed is the first accumulator, answered as it is for an empty subject:
+      ~([] | reduce 42 ~(add) | eq 42)
   ~~|
   ::builtin{}
+
+:vec/reduce/reducer
+  |~~ The code that folds an element into the value so far. ::holds~(is ::quote)
+
+      The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
+      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
+      ~(
+        [1 2 3] | reduce 0 1
+        !| [type /actualType]
+        |  eq [::vec/reduce/reducer/HoldsNotMetError ::number]
+       )
+  ~~|
+  ~(/1)
+
+:vec/reduce/seed
+  |~~ The value the fold starts from. ~~|
+  ~(/0)
 
 :vec/union
   |~~ The union of the operands the vector holds, sets merged in the one
@@ -318,7 +573,7 @@
 
 :vec/join
   |~~ The strings the vector holds joined with the separator between
-      consecutive ones. Inverse of `split`. ::holds~(is ::string)
+      consecutive ones. Inverse of `split`.
 
       ~(["a" "b" "c"] | join "," | eq "a,b,c")
       ~([] | join "," | eq "")
@@ -345,6 +600,9 @@
   ~~|
   ~(/0)
 
+:vec/join/joined |~~ The elements joined into one string by the separator. ~~|
+  ::string
+
 :vec/JoinElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
       that is not, and `* print` makes each value its text first.
@@ -358,10 +616,11 @@
 
 :vec/prepend
   |~~ The vector with the element at its head, any value; a set takes it
-      through its constructor, so it stays a set. ::keeps~()
+      through its constructor, so it stays a set.
 
       ~([2 3] | prepend 1 | eq [1 2 3])
       ~(#[2 3] | prepend 3 | eq #[2 3])
+      ~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
   ~~|
   ::builtin{}
 
@@ -369,16 +628,23 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
+:vec/prepend/prepended |~~ The vector with the value as its first element. ~~|
+  ::vec
+
 :vec/append
   |~~ The vector with the element at its end, any value, so `[1] |
       append [2 3]` answers `[1 [2 3]]` and vectors join through
-      `flat`; a set takes it through its constructor, so it stays a set. ::keeps~()
+      `flat`; a set takes it through its constructor, so it stays a set.
 
       ~([1 2] | append 3 | eq [1 2 3])
       ~(#[1 2] | append 1 | eq #[1 2])
+      ~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
   ~~|
   ::builtin{}
 
 :vec/append/element
   |~~ The element the call gives. ~~|
   ~(/0)
+
+:vec/append/appended |~~ The vector with the value as its last element. ~~|
+  ::vec

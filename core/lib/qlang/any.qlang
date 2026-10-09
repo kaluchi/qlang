@@ -1,9 +1,7 @@
 |~ What is declared under `::any`, the kind beneath every kind: the
-   verbs of any value, and the contracts of the verbs several kinds
-   answer. A contract is a verb without a body: its page and its laws
-   hold for every verb of its name, what the verb of a kind leaves out it
-   says, and a call whose subject no kind of its walk serves reaches it
-   and is refused with `:addresses`, where the verbs of the name live. ~|
+   verbs every value answers. A word several kinds answer is declared
+   under each of them, and a call whose subject no kind of its walk
+   answers is refused with `:addresses`, where the word lives. ~|
 
 :any/JsonValueNotEncodableError
   |~~ JSON has no form for a value a host put in the scope that is of
@@ -12,102 +10,6 @@
       it, `/name`, before it writes JSON.
   ~~|
   ::spec~()
-
-:any/gt
-  |~~ Whether the subject follows the value the call gives in the one
-      order of their kind. Numbers, strings, keywords and tag names each
-      compare with a value of their own kind, a residence on each of
-      them checking both; a subject of another kind reaches this
-      contract.
-
-      ~(10 | gt 5 | eq true)
-      ~("b" | gt "a" | eq true)
-      ~(null | gt 1 !| /addresses | has ::number/gt)
-  ~~|
-  ::verb~()
-
-:any/gte
-  |~~ Whether the subject follows or equals the value the call gives in
-      the one order of their kind, which `gt` states for every kind it
-      compares.
-
-      ~(10 | gte 10 | eq true)
-      ~(:b | gte :a | eq true)
-  ~~|
-  ::verb~()
-
-:any/lt
-  |~~ Whether the subject precedes the value the call gives in the one
-      order of their kind, which `gt` states for every kind it compares.
-
-      ~(5 | lt 10 | eq true)
-      ~("a" | lt "b" | eq true)
-  ~~|
-  ::verb~()
-
-:any/lte
-  |~~ Whether the subject precedes or equals the value the call gives in
-      the one order of their kind, which `gt` states for every kind it
-      compares.
-
-      ~(10 | lte 10 | eq true)
-      ~(::a | lte ::b | eq true)
-  ~~|
-  ::verb~()
-
-:any/count
-  |~~ The number of elements a container holds: a vector's, a set's,
-      and a map's entries; and the number of characters of a string.
-
-      ~([1 2 3] | count | eq 3)
-      ~(#[:a :b] | count | eq 2)
-      ~({:x 1 :y 2 :z 3} | count | eq 3)
-      ~("abc" | count | eq 3)
-      ~(42 | count !| /addresses | has ::vec/count)
-  ~~|
-  ::verb~()
-
-:any/empty
-  |~~ Whether a container holds no element.
-
-      ~([] | empty | eq true)
-      ~([1] | empty | eq false)
-      ~({} | empty | eq true)
-  ~~|
-  ::verb~()
-
-:any/first
-  |~~ The first element of a vector, the least of a set, or the first
-      value of a map, and null for an empty container.
-
-      ~([10 20 30] | first | eq 10)
-      ~(#[:c :a :b] | first | eq :a)
-      ~({:a 1 :b 2} | first | eq 1)
-      ~([] | first | eq null)
-  ~~|
-  ::verb~()
-
-:any/last
-  |~~ The last element of a vector, the greatest of a set, or the last
-      value of a map, and null for an empty container.
-
-      ~([10 20 30] | last | eq 30)
-      ~(#[:c :a :b] | last | eq :c)
-      ~({:a 1 :b 2} | last | eq 2)
-      ~([] | last | eq null)
-  ~~|
-  ::verb~()
-
-:any/sum
-  |~~ The sum of the elements of a vector or a set, or of the values of a
-      map, each a number; an empty container sums to 0.
-
-      ~([1 2 3 4] | sum | eq 10)
-      ~([] | sum | eq 0)
-      ~(#[1 2 3] | sum | eq 6)
-      ~({:a 10 :b 20} | sum | eq 30)
-  ~~|
-  ::verb~()
 
 :any/SumElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
@@ -120,33 +22,6 @@
   ~~|
   ::spec~()
 
-:any/SumResultNotFiniteError
-  |~~ Every element is of the right kind, and the running
-      total still answered outside the finite-double domain. The
-      total is read at each element in the subject's order, so a subject
-      whose partial sums leave the domain lifts here while its
-      mathematical total sits inside it — `:index` names the element
-      the total crossed at, and the subject splits there.
-
-      ~(
-        [1e308 1e308] | sum
-        !| [type /index]
-        |  eq [::any/SumResultNotFiniteError 1]
-       )
-  ~~|
-  ::spec~()
-
-:any/avg
-  |~~ The mean of the elements of a vector or a set, or of the values of
-      a map, each a number, and null for an empty container, which has
-      none; a group's mean is `avg` over each group.
-
-      ~([1 2 3 4] | avg | eq 2.5)
-      ~([] | avg | eq null)
-      ~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
-  ~~|
-  ::verb~()
-
 :any/AvgElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
       that is none, and a field is read first, `* /amount | avg`.
@@ -157,83 +32,6 @@
        )
   ~~|
   ::spec~()
-
-:any/min
-  |~~ The first element in the one order of values, the order `sort`
-      answers, of a vector, a set, or the values of a map, or the element
-      whose key answers the first value, the key read as `sort` reads it;
-      the element itself is the answer, the first of equal ones, and an
-      empty container yields null.
-
-      ~([3 1 4 1 5] | min | eq 1)
-      ~({:a 3 :b 1} | min | eq 1)
-      ~([3 "a" null] | min | eq null)
-      ~(#[3 1 4] | min | eq 1)
-      ~([{:age 30} {:age 20}] | min ~(/age) | eq {:age 20})
-  ~~|
-  ::verb~()
-
-:any/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
-  ~(at 0)
-
-:any/max
-  |~~ The last element in the one order of values, the order `sort`
-      answers, of a vector, a set, or the values of a map, or the element
-      whose key answers the last value, the key read as `sort` reads it;
-      the element itself is the answer, the first of equal ones, and an
-      empty container yields null.
-
-      ~([3 1 4 1 5] | max | eq 5)
-      ~({:a 3 :b 1} | max | eq 3)
-      ~([3 "a" null] | max | eq "a")
-      ~(#[3 1 4] | max | eq 4)
-      ~([{:age 30} {:age 40}] | max ~(/age) | eq {:age 40})
-      ~({:a 3 :b 1} | entries | max ~(/1) | /0 | eq :a)
-  ~~|
-  ::verb~()
-
-:any/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
-  ~(at 0)
-
-:any/filter
-  |~~ Keeps the elements of a container a predicate accepts, in a
-      container of the same kind, the way a query narrows what it found
-      before it reads it.
-
-      The predicate answers a boolean, and what it answers true for stays:
-      ~([1 2 3 4 5] | filter ~(gt 2) | eq [3 4 5])
-      The predicate reads each element as its subject:
-      ~([{:age 25} {:age 15}] | filter ~(/age | gte 18) | eq [{:age 25}])
-      A verb stands where a quote would:
-      ~([1 -2 3] | :positive ::verb~(gt 0) | filter ~positive | eq [1 3])
-      ~(#[1 -2 3] | filter ::verb~(gt 0) | eq #[1 3])
-      A map keeps the entries whose values the predicate accepts:
-      ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
-      ~({} | filter ~(gt 0) | eq {})
-  ~~|
-  ::verb~()
-
-:any/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
-
-      The predicate of `filter` is code it runs on each element, so it takes a
-      quote, `filter ~(gt 1)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | filter (count | gt 1)
-        !| [type /actualType]
-        |  eq [::any/filter/predicate/HoldsNotMetError ::boolean]
-       )
-      A step written without its quote runs on the whole subject at the
-      call, and the error it answers is refused alike:
-      ~(
-        [{:a true}] | filter /a
-        !| [type /actualType]
-        |  eq [::any/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]
-       )
-  ~~|
-  ~(/0)
 
 :any/FilterConditionNotBooleanError
   |~~ The predicate of `filter` answers a boolean for each element;
@@ -246,37 +44,6 @@
   ~~|
   ::spec~()
 
-:any/every
-  |~~ Whether a predicate holds for every element of a container, a
-      map's elements being its values: the question a law asks of a
-      listing, `every ~(…)`. It stops at the first false.
-
-      True when every element passes, false at the first that fails:
-      ~([2 4 6 8] | every ~(gt 0) | eq true)
-      ~([1 2 3] | every ~(gt 2) | eq false)
-      A verb stands where a quote would:
-      ~([2 4 6] | :positive ::verb~(gt 0) | every ~positive | eq true)
-      ~({:a 1 :b 2} | every ::verb~(gt 0) | eq true)
-      An empty container answers true:
-      ~([] | every ~(gt 0) | eq true)
-      A map is asked of its values:
-      ~({:a 1 :b -2 :c 3} | every ~(gt 0) | eq false)
-  ~~|
-  ::verb~()
-
-:any/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
-
-      The predicate of `every` is code it runs on each element, so it takes a
-      quote, `every ~(gt 0)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | every (count | gt 1)
-        !| [type /actualType]
-        |  eq [::any/every/predicate/HoldsNotMetError ::boolean]
-       )
-  ~~|
-  ~(/0)
-
 :any/EveryConditionNotBooleanError
   |~~ The predicate of `every` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
@@ -288,36 +55,6 @@
   ~~|
   ::spec~()
 
-:any/any
-  |~~ Whether a predicate holds for some element of a container, a map's
-      elements being its values. It stops at the first true.
-
-      True at the first element that passes, false when none does:
-      ~([1 2 3] | any ~(gt 2) | eq true)
-      ~([1 2 3] | any ~(gt 99) | eq false)
-      A verb stands where a quote would:
-      ~([1 2 3] | :big ::verb~(gt 2) | any ~big | eq true)
-      ~({:a -1 :b 2} | any ::verb~(gt 0) | eq true)
-      An empty container answers false:
-      ~([] | any ~(gt 0) | eq false)
-      A map is asked of its values:
-      ~({:a -1 :b 0 :c 2} | any ~(gt 0) | eq true)
-  ~~|
-  ::verb~()
-
-:any/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
-
-      The predicate of `any` is code it runs on each element, so it takes a
-      quote, `any ~(gt 2)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | any (count | gt 1)
-        !| [type /actualType]
-        |  eq [::any/any/predicate/HoldsNotMetError ::boolean]
-       )
-  ~~|
-  ~(/0)
-
 :any/AnyConditionNotBooleanError
   |~~ The predicate of `any` answers a boolean for each element;
       `:index` names the element whose predicate answered another kind.
@@ -328,35 +65,6 @@
        )
   ~~|
   ::spec~()
-
-:any/groupBy
-  |~~ Partitions a vector or a set into a map keyed by the keyword the key
-      answers for each element, a string or a number filed under the
-      keyword of its text, so a field of JSON groups as it is: a vector's
-      buckets are vectors and a set's are sets. The entries follow the
-      first occurrence of each key, and each bucket the subject's order.
-
-      ~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}] | groupBy ~(/dept) | /eng * /name | eq ["a" "c"])
-      A string or a number keys its bucket by the keyword of its text:
-      ~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
-      ~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
-      Without a key an element files under itself:
-      ~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
-  ~~|
-  ::verb~()
-
-:any/groupBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
-
-      The key of `groupBy` is code it runs on each element, so it takes a
-      quote, `groupBy ~(/kind)`; a value computed at the call is refused.
-      ~(
-        [{:kind :a}] | groupBy :a
-        !| [type /actualType]
-        |  eq [::any/groupBy/key/HoldsNotMetError ::keyword]
-       )
-  ~~|
-  ~(at 0)
 
 :any/GroupByKeyNotKeywordError
   |~~ The key `groupBy` files an element under is a keyword, or a string
@@ -371,31 +79,6 @@
   ~~|
   ::spec~()
 
-:any/indexBy
-  |~~ Collapses a vector or a set into a map keyed by the keyword the key
-      answers for each element, a string or a number filed under the
-      keyword of its text; of two elements the key answers alike, the
-      last wins. Without a key an element files under itself.
-
-      ~([{:id :a :name "alice"} {:id :b :name "bob"}] | indexBy ~(/id) | /a/name | eq "alice")
-      ~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
-      ~([:x :y] | indexBy | eq {:x :x :y :y})
-  ~~|
-  ::verb~()
-
-:any/indexBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
-
-      The key of `indexBy` is code it runs on each element, so it takes a
-      quote, `indexBy ~(/id)`; a value computed at the call is refused.
-      ~(
-        [{:id :a}] | indexBy :a
-        !| [type /actualType]
-        |  eq [::any/indexBy/key/HoldsNotMetError ::keyword]
-       )
-  ~~|
-  ~(at 0)
-
 :any/IndexByKeyNotKeywordError
   |~~ The key `indexBy` files an element under is a keyword, or a string
       or a number, filed under the keyword of its text, since the keys of
@@ -409,61 +92,10 @@
   ~~|
   ::spec~()
 
-:any/sort
-  |~~ The elements in the one order of values, the order every value of
-      the language takes against every other, so a listing can be ranked
-      before it is read; `sort ~(key)` ranks by the value the key answers
-      for each element. The key answers what to compare, and the one order
-      compares it: a vector it answers ranks element by element, the first
-      place first and each later one among the elements the places before
-      it leave alike, and `desc` turns a place to descend, so
-      `sort ~([(/count | desc) /name])` reads as `ORDER BY count DESC,
-      name`. Elements the key leaves alike keep the order of the subject.
-
-      Numbers ascend by value, equal ones side by side:
-      ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
-      Kinds come first, null, boolean, number, string, keyword, tag name,
-      vector, set, map, quote, doc, error, elision and desc, then every
-      other tag by its name:
-      ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
-      Keywords and tag names order by their names, and a set sorts into a
-      vector, since the order is imposed and a set keeps its own:
-      ~(#[:y :x :z] | sort | eq [:x :y :z])
-      ~([::B ::A] | sort | eq [::A ::B])
-      A vector key ranks by its first place, then by the next among the
-      elements the first leaves alike:
-      ~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b | eq [9 1 2])
-      ~([3 null 1] | sort ~([(eq null) /]) | eq [1 3 null])
-      `desc` turns the key, or one place of it, to descend:
-      ~([{:k 1} {:k 2}] | sort ~(/k | desc) | eq [{:k 2} {:k 1}])
-      ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s | eq ["a" "c" "b"])
-      A key that answers an error answers the call, a place of a vector it
-      answers among them, so a key that misses its field is refused where
-      it is read:
-      ~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
-      ~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
-      A map sorts its entries by their values and keeps the keys:
-      ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
-  ~~|
-  ::verb~()
-
-:any/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
-
-      The key of `sort` is code it runs on each element, so it takes a
-      quote, `sort ~(/age)`; a value computed at the call is refused.
-      ~(
-        [3 1 2] | sort 1
-        !| [type /actualType]
-        |  eq [::any/sort/key/HoldsNotMetError ::number]
-       )
-  ~~|
-  ~(at 0)
-
 :any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
       `sort`, `min` or `max`, or a place of a vector key, that ranks the
-      greater first, whatever the kind of what it ranks. ::holds~(is ::desc)
+      greater first, whatever the kind of what it ranks.
 
       ~([1 3 2] | sort ~(desc) | eq [3 2 1])
       ~([{:n 1} {:n 2}] | max ~(/n | desc) | eq {:n 1})
@@ -471,22 +103,8 @@
   ~~|
   ::builtin{}
 
-:any/take
-  |~~ The first count elements in the subject's order, a set's least
-      among them, a map's first count entries and a string's first count
-      characters, in a value of the subject's kind. The count is a whole number: past the length the
-      whole container comes back, and a negative count takes nothing.
-
-      ~([1 2 3 4 5] | take 3 | eq [1 2 3])
-      ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
-      ~([1 2 3] | take -1 | eq [])
-      ~("db_host" | take 2 | eq "db")
-  ~~|
-  ::verb~()
-
-:any/take/count
-  |~~ How many. ::holds~(is ::number) ~~|
-  ~(/0)
+:any/desc/descending |~~ The value turned to descend. ~~|
+  ::desc
 
 :any/TakeCountNotIntegerError
   |~~ The count of `take` must be a whole number — a fractional count
@@ -499,24 +117,6 @@
   ~~|
   ::spec~()
 
-:any/drop
-  |~~ The container with its first count elements removed, a map's first
-      count entries and a string's first count characters, in a value of
-      the subject's kind. The count is
-      a whole number: past the length the empty container comes back,
-      and a negative count drops nothing.
-
-      ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
-      ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
-      ~([1 2 3] | drop -1 | eq [1 2 3])
-      ~("db_host" | drop 3 | eq "host")
-  ~~|
-  ::verb~()
-
-:any/drop/count
-  |~~ How many. ::holds~(is ::number) ~~|
-  ~(/0)
-
 :any/DropCountNotIntegerError
   |~~ The count of `drop` must be a whole number — a fractional count
       cannot name how many to remove.
@@ -528,30 +128,6 @@
   ~~|
   ::spec~()
 
-:any/at
-  |~~ Indexed access: the element of a vector or a set at an integer
-      index, a set indexing in its one order and a negative index
-      counting from the end, or the value of a map at a key; a miss
-      answers null, the soft counterpart of the strict `/key`
-      projection, and a soft read of null answers null, so soft reads
-      chain.
-
-      ~([10 20 30] | at 1 | eq 20)
-      ~([10 20 30] | at 99 | eq null)
-      ~(#[:a :b :c] | at -1 | eq :c)
-      ~({:a 1 :b 2} | at :a | eq 1)
-      ~({:a null} | at :a | at :b | eq null)
-  ~~|
-  ::verb~()
-
-:any/at/index
-  |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~|
-  ~(/0)
-
-:any/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
-
 :any/AtIndexNotIntegerError
   |~~ The index of `at` on a vector or a set must be a whole number.
       ~(
@@ -561,83 +137,6 @@
        )
   ~~|
   ::spec~()
-
-:any/distinct
-  |~~ The constructor of the set: the elements of a vector in the one
-      order of values, each once, so a downstream verb receives a
-      value whose kind says «no duplicates»; a set passes through as it
-      is. Duplication is decided by structural equality, the axiom of
-      `eq`, so two maps, vectors or sets of the same content collapse;
-      `#[…]` and `::set[…]` mint the same value.
-
-      ~([2 1 2 3 1] | distinct | eq #[1 2 3])
-      ~([2 1 2 3 1] | distinct | payload | eq [1 2 3])
-      ~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
-      ~(#[1 2 3] | distinct | eq #[1 2 3])
-  ~~|
-  ::verb~()
-
-:any/reverse
-  |~~ The container in reverse order: a vector and a set reverse into a
-      vector, since a set keeps its own order, and a map reverses its
-      entries and keeps the keys.
-
-      ~([1 2 3] | reverse | eq [3 2 1])
-      ~(#[:a :b :c] | reverse | eq [:c :b :a])
-      ~({:a 1 :b 2} | reverse | vals | eq [2 1])
-  ~~|
-  ::verb~()
-
-:any/flat
-  |~~ One level of nesting flattened: the vectors and sets among the
-      elements are spliced in, the other elements pass through, and the
-      answer is of the subject's kind, so a set of sets flattens into
-      their union.
-
-      ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
-      ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
-  ~~|
-  ::verb~()
-
-:any/reduce
-  |~~ The universal left fold, which threads an accumulator across the
-      elements of a vector, a set in its order, or the values of a map,
-      and collapses them to one value; `sum`, `count`, `max` and the
-      builders of structures all factor through it. The reducer is
-      applied as `reducer accumulator element`.
-
-      An operand of two places folds through its bound form, `acc | add
-      element`:
-      ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
-      ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
-      ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
-      ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
-      A name takes the accumulator as its subject and the element as the
-      first part of its object:
-      ~(:number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x |~~ The element. ::holds~(is ::number) ~~| ~(/0) | [3 1 4 1 5] | reduce 0 ~max2 | eq 5)
-      ~(:any/tally ~(add 1) | :any/tally/el |~~ The element, unread. ~~| ~(/0) | [10 20 30] | reduce 0 ~tally | eq 3)
-      The seed is the first accumulator, answered as it is for an empty
-      subject:
-      ~([] | reduce 42 ~(add) | eq 42)
-  ~~|
-  ::verb~()
-
-:any/reduce/seed
-  |~~ The value the fold starts from. ~~|
-  ~(/0)
-
-:any/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(is ::quote)
-
-      The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
-      quote, `reduce 0 ~(add)`; a value computed at the call is refused.
-      ~(
-        [1 2 3] | reduce 0 1
-        !| [type /actualType]
-        |  eq [::any/reduce/reducer/HoldsNotMetError ::number]
-       )
-  ~~|
-  ~(/1)
 
 :any/ReduceReducerNotBinaryError
   |~~ The quote of `reduce` names one verb, which the fold calls with the
@@ -658,97 +157,9 @@
   ~~|
   ::spec~()
 
-:any/union
-  |~~ The union of two operands of one kind: two sets merged in the one
-      order, or two maps merged with the second one's value winning a
-      key both hold; over a vector of operands it folds them. The bound
-      form `a | union b` reads b against a, and the full form `union a
-      b` reads both against the value in the pipe.
-
-      ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
-      ~({:a 1} | union {:b 2} | eq {:a 1 :b 2})
-      ~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
-  ~~|
-  ::verb~()
-
-:any/minus
-  |~~ The first operand without what the second holds: a set without the
-      elements of another, a map without the keys of a map, or of a vector
-      or a set of keywords or strings; over a vector of operands it folds
-      them.
-
-      ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
-      ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
-      ~([#[:a :b :c] #[:b]] | minus | eq #[:a :c])
-  ~~|
-  ::verb~()
-
-:any/inter
-  |~~ What the first operand and the second both hold: the elements two
-      sets share, or the entries of a map whose keys a map, or a vector or
-      a set of keywords or strings, holds; over a vector of operands it
-      folds them.
-
-      ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
-      ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
-      ~([#[:a :b :c] #[:b :d]] | inter | eq #[:b])
-  ~~|
-  ::verb~()
-
-:any/has
-  |~~ Whether a map holds a key or a set holds an element.
-
-      ~({:name "Alice"} | has :name | eq true)
-      ~(#[:a :b :c] | has :b | eq true)
-      ~(42 | has :k !| /addresses | has ::map/has)
-  ~~|
-  ::verb~()
-
-:any/has/element
-  |~~ The element the call gives. ~~|
-  ~(/0)
-
-:any/contains
-  |~~ Whether the subject holds the value: a string a substring, a
-      vector or a set an element equal to it, the membership `has` asks.
-
-      ~("hello" | contains "ell" | eq true)
-      ~(["ops" "db"] | contains "ops" | eq true)
-      ~(42 | contains "x" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
-  ~~|
-  ::verb~()
-
-:any/contains/element
-  |~~ The element the call gives. ~~|
-  ~(/0)
-
-:any/prepend
-  |~~ The subject with the operand in front: a string takes a string as
-      its prefix, a vector any value as its first element. The subject
-      keeps its kind and the tags over it, a set staying a set through
-      its constructor.
-
-      ~("world" | prepend "hello " | eq "hello world")
-      ~([2 3] | prepend 1 | eq [1 2 3])
-      ~(42 | prepend "x" !| /addresses | eq #[::string/prepend ::vec/prepend])
-  ~~|
-  ::verb~()
-
-:any/append
-  |~~ The subject with the operand after it: a string takes a string as
-      its suffix, a vector any value as its last element. The subject
-      keeps its kind and the tags over it, a set staying a set through
-      its constructor.
-
-      ~("hello" | append " world" | eq "hello world")
-      ~([1 2] | append 3 | eq [1 2 3])
-      ~(42 | append "x" !| /addresses | eq #[::string/append ::vec/append])
-  ~~|
-  ::verb~()
-
 :any/eq
   |~~ Whether the subject equals the value, by structural equality deep
-      across maps, vectors, sets and scalars. ::holds~(is ::boolean)
+      across maps, vectors, sets and scalars.
 
       ~(42 | eq 42 | eq true)
       ~({:a 1} | eq {:a 1} | eq true)
@@ -759,9 +170,12 @@
   |~~ The value the call gives. ~~|
   ~(/0)
 
+:any/eq/same |~~ Whether the two values are equal. ~~|
+  ::boolean
+
 :any/ne
   |~~ Whether the subject differs from the value, by the structural
-      equality of `eq`, whose negation it is. ::holds~(is ::boolean)
+      equality of `eq`, whose negation it is.
 
       ~(1 | ne 2 | eq true)
       ~({:a 1} | ne {:a 1} | eq false)
@@ -772,12 +186,15 @@
   |~~ The value the call gives. ~~|
   ~(/0)
 
+:any/ne/different |~~ Whether the two values differ. ~~|
+  ::boolean
+
 :any/type
   |~~ The value's kind, a tag, which names the page of the value and the
       verbs it answers: `type | doc` reads the kind's page, and asking
       what a value is composes `type` with `eq`, `filter ~(type | eq
       ::string)`. A kind of the core is named under the prefix `qlang/`
-      and written short. ::holds~(is ::tag)
+      and written short.
 
       The literal of a value of the core implies its kind:
       ~(42 | type | eq ::number)
@@ -798,18 +215,24 @@
   ~~|
   ::builtin{}
 
+:any/type/kind |~~ The kind of the value, its outermost tag. ~~|
+  ::tag
+
 :any/json
   |~~ The subject rendered as a JSON string. The shapes of qlang alone
       lose their identity at this boundary: a keyword becomes its bare
       name, a key and a value alike (`:foo` → `"foo"`), a set flattens
       to an array, and a map writes its keys as the keys of an object.
-      It hands values to consumers that do not read qlang. ::holds~(is ::string)
+      It hands values to consumers that do not read qlang.
 
       ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
       ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
       ~(#[1 2 3] | json | eq "[1,2,3]")
   ~~|
   ::builtin{}
+
+:any/json/text |~~ The JSON text of the value. ~~|
+  ::string
 
 :any/print
   |~~ The text that reads back as the subject, which the command line
@@ -818,7 +241,7 @@
       the doc and the error by their own brackets, and any other value
       under a tag as its tag before the print of its payload. A kind may
       answer a `print` of its own declared under it, `:Box/print`, and the
-      print of a value takes it for each part of that kind. ::holds~(is ::string)
+      print of a value takes it for each part of that kind.
 
       ~(42 | print | eq "42")
       ~(#[2 1] | print | eq "#[1 2]")
@@ -826,6 +249,9 @@
       ~({:a [1 "x"]} | :v / | print | parse | :q / | apply q | eq v)
   ~~|
   ::builtin{}
+
+:any/print/literal |~~ The literal the value prints as, a string. ~~|
+  ::string
 
 :any/elide
   |~~ The value within a budget of characters of its print, what does
@@ -979,28 +405,6 @@
   ~~|
   ::spec~()
 
-:any/keyword
-  |~~ The involution of strings and keywords: a string names its
-      keyword, and a keyword answers its name, so `keyword | keyword`
-      round-trips.
-
-      ~("foo" | keyword | eq :foo)
-      ~(:foo | keyword | eq "foo")
-      ~(42 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])
-  ~~|
-  ::verb~()
-
-:any/parse
-  |~~ The involution of source text and quotes, the way `keyword` flips
-      a string and a keyword: text reads as the quote of its steps, and
-      a quote prints back as its text.
-
-      ~("add 1 2" | parse | eq ~(add 1 2))
-      ~(~(add 1) | parse | eq "add 1")
-      ~(42 | parse !| /addresses | eq #[::quote/parse ::string/parse])
-  ~~|
-  ::verb~()
-
 :any/apply
   |~~ The value of the code run against the subject, under the fork
       rule: the declarations the code makes stay inside it, and only its
@@ -1043,7 +447,7 @@
       declarations among them inside the fork. What the language and the
       host declared stands apart: `kinds` lists their kinds, and
       `manifest` what lies under a noun. `env | /flag` hands one record
-      to the next step. ::holds~(is ::map)
+      to the next step.
 
       ~(:limit 10 | env | has :limit)
       ~(env | eq {})
@@ -1052,11 +456,14 @@
   ~~|
   ::builtin{}
 
+:any/env/names |~~ The records of what the reader declared, by name. ~~|
+  ::map
+
 :any/kinds
   |~~ The kinds the scope reads, each by its tag: those the language
       and the host declared, then the reader's, so a query asks which
       kinds there are before it asks one of them for its page,
-      `::set | doc`, or for what lies under it, `::set | manifest`. ::holds~(is ::set)
+      `::set | doc`, or for what lies under it, `::set | manifest`.
 
       ~(kinds | has ::vec)
       ~(:Box ::spec~() | kinds | has ::Box)
@@ -1064,13 +471,16 @@
   ~~|
   ::builtin{}
 
+:any/kinds/labels |~~ The kinds the scope reads. ~~|
+  ::set
+
 :any/binding
   |~~ The record of a name, what a declaration wrote into its scope:
       `::binding` with its `:name`, its `:docs`, its `:value`, its
       `:source` and its `:origin`, the source it was read from, so where
       a name was declared is read as data. The other axes project it:
       `doc` its page, `source` its quote, `spec` its value. A keyword
-      after it reads the record of the member the subject holds under it. ::holds~(is ::binding)
+      after it reads the record of the member the subject holds under it.
 
       A verb by its address reads the record its source declared:
       ~(::vec/filter | binding | /origin | eq :qlang/vec)
@@ -1086,13 +496,15 @@
   |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
 
+:any/binding/record |~~ The record of the name. ~~|
+  ::binding
+
 :any/BindingNotFoundError
   |~~ `binding` found no declaration of the name it read: a keyword that
       names no binding of its scope, the last name of a verb declared
       under a kind among them, or a tag name that names nothing.
       `:bindingName` holds the name, and `:addresses` the addresses of
-      the pages of that name, the contract on any value among them,
-      whose page holds for every verb of the name. `source`, `doc`,
+      the pages of that name, one for each kind that answers it. `source`, `doc`,
       `spec`, `explain` and `runLaws` read a name as `binding` does, and
       each is refused under a tag of its own, so the tag says which of
       them read it.
@@ -1113,18 +525,21 @@
       Any other value reads the declaration of its kind. Given a name,
       it reads the name the subject holds under it: a part of the object
       of a name, the slot a verb's head declares, and for any other
-      subject the verb the name calls after it. ::holds~(is ::quote ::null)
+      subject the verb the name calls after it.
 
       ~(::vec/filter | source | parse | contains ":vec/filter")
-      ~(::number/add/ResultNotFiniteError | source | parse | contains "ResultNotFiniteError")
+      ~(::number/NotFiniteError | source | parse | contains "NotFiniteError")
       ~("text" | source | eq (::string | source))
-      ~(::vec/take | source :count | eq (::any/take/count | source))
+      ~(::vec/take | source :count | eq (::vec/take/count | source))
   ~~|
   ::builtin{}
 
 :any/source/name
   |~~ The name the call gives, null when it gives none. ::holds~(is ::keyword ::null) ~~|
   ~(at 0)
+
+:any/source/code |~~ The code of the declaration, null for a value a host bound. ~~|
+  #[::quote ::null]
 
 :any/SourceBindingNotFoundError
   |~~ `source` found no declaration of the name it read, as `binding`
@@ -1149,7 +564,7 @@
       `links` and its snippets by `snippets`. A keyword after `doc` is an
       anchor within the page of its subject, a vector of anchors a path,
       each read within the page the one before it reached, and a set of
-      anchors several pages in one query. ::holds~(is ::doc ::null ::vec)
+      anchors several pages in one query.
 
       A name reads its own page:
       ~(::vec/filter | doc | content | contains "predicate")
@@ -1174,6 +589,9 @@
   |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::vec ::set ::null) ~~|
   ~(at 0)
 
+:any/doc/page |~~ The page of the name, null for a declaration without one. ~~|
+  #[::doc ::null ::vec]
+
 :any/DocBindingNotFoundError
   |~~ `doc` found no declaration of the name it read, as `binding` finds
       none, or no member of the page before it under an anchor of its
@@ -1186,7 +604,7 @@
         |  eq [::any/DocBindingNotFoundError :nonexistent-binding]
        )
       ~(:filter | doc !| /addresses | has ::vec/filter)
-      ~(:reduce | doc !| /addresses | first | doc | eq (::any/reduce | doc))
+      ~(:reduce | doc !| /addresses | has ::vec/reduce)
   ~~|
   ::spec~()
 
@@ -1203,13 +621,16 @@
       the page `doc` reads for it, then the value itself, so it prints
       as the page above what it explains. A name reads its own
       page, a value the page of the kind it shows, and an error `!|`
-      opened the page of its site, which says what failed. ::holds~(is ::explanation)
+      opened the page of its site, which says what failed.
 
       ~(42 | explain | page | eq (::number | doc))
       ~(::number/add | explain | page | content | contains "Adds a number")
       ~("x" | add 1 !| explain | page | content | contains "Adds a number")
   ~~|
   ::builtin{}
+
+:any/explain/explanation |~~ The page above the value it explains. ~~|
+  ::explanation
 
 :any/ExplainBindingNotFoundError
   |~~ `explain` found no declaration of the page of its subject, as
@@ -1242,7 +663,7 @@
       A kind answers its declaration, a `::spec~(…)` whose body is its
       constructor, a refusal among the kinds:
       ~(::verb | spec | eq ::spec~(::builtin{}))
-      ~(::number/add/ResultNotFiniteError | spec | type | eq ::spec)
+      ~(::number/PayloadNotNumberError | spec | type | eq ::spec)
   ~~|
   ::builtin{}
 
@@ -1263,26 +684,6 @@
       ~(:filter | spec !| /addresses | has ::vec/filter)
   ~~|
   ::spec~()
-
-:any/runLaws
-  |~~ Walks every quote among the segments of the docs of the binding a
-      name reads, a keyword or a tag name, the address of a verb among
-      them, and answers a vector of result maps shaped `{:snippet
-      :actual :ok :error}`. Each quote runs in an isolated scope; `:ok`
-      is true iff the example answers true, every other answer, an
-      error value among them, failing it. The composition `::number |
-      manifest | every ~(runLaws | every ~(/ok))` runs every example of
-      what lies under numbers and must answer true.
-
-      ~(::number/add | runLaws * /ok | distinct | eq #[true])
-      ~(::number/gt | runLaws | count | gte 1)
-      ~(42 | runLaws !| /addresses | eq #[::keyword/runLaws ::tag/runLaws])
-  ~~|
-  ::verb~()
-
-:any/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
-  ~(at 0)
 
 :any/RunLawsBindingNotFoundError
   |~~ `runLaws` found no declaration of the name it read, as `binding`
@@ -1371,6 +772,9 @@
       ::holds~(every ~(is ::number)) ~~|
   ~(/)
 
+:any/sumOf/sum |~~ The numbers added. ~~|
+  ::number
+
 :any/mulOf
   |~~ The product of the numbers the call computes against the subject,
       as many as it gives: the price and the quantity of one line multiply
@@ -1385,6 +789,9 @@
       ::holds~(every ~(is ::number)) ~~|
   ~(/)
 
+:any/mulOf/product |~~ The numbers multiplied. ~~|
+  ::number
+
 :any/subOf
   |~~ The first number the call computes against the subject less the
       second: what is left to pay is `subOf /total /paid`.
@@ -1397,6 +804,9 @@
 :any/subOf/minuend |~~ The number subtracted from. ::holds~(is ::number) ~~| ~(/0)
 :any/subOf/subtrahend |~~ The number subtracted. ::holds~(is ::number) ~~| ~(/1)
 
+:any/subOf/difference |~~ The first number less the second. ~~|
+  ::number
+
 :any/divOf
   |~~ The first number the call computes against the subject divided by
       the second: a mean is `divOf /sum /count`. ::call~(divOf /sum /count)
@@ -1407,6 +817,9 @@
 
 :any/divOf/dividend |~~ The number divided. ::holds~(is ::number) ~~| ~(/0)
 :any/divOf/divisor |~~ The number divided by. ::holds~(is ::number) ~~| ~(/1)
+
+:any/divOf/quotient |~~ The first number divided by the second. ~~|
+  ::number
 
 :any/allOf
   |~~ Whether every condition the call computes against the subject holds:
@@ -1423,6 +836,9 @@
       ::holds~(every ~(is ::boolean)) ~~|
   ~(/)
 
+:any/allOf/all |~~ Whether every condition holds. ~~|
+  ::boolean
+
 :any/anyOf
   |~~ Whether some condition the call computes against the subject holds:
       `anyOf /vip (/score | gt 95)`. ::call~(anyOf /vip /trial)
@@ -1435,6 +851,9 @@
   |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
       ::holds~(every ~(is ::boolean)) ~~|
   ~(/)
+
+:any/anyOf/some |~~ Whether some condition holds. ~~|
+  ::boolean
 
 :any/unionOf
   |~~ The union of the maps or the sets the call computes against the
@@ -1477,3 +896,6 @@
       ~(5 | is :number !| [type /index /actualType] | eq [::any/is/kinds/HoldsNotMetError 0 ::keyword])
   ~~|
   ~(/)
+
+:any/is/reached |~~ Whether the walk of the tags reached one of the kinds. ~~|
+  ::boolean

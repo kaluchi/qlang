@@ -62,7 +62,7 @@ describe('completionsAtOffset', () => {
     const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.documentation).toBeTruthy();
-    expect(countItem.documentation).toMatch(/number of elements/);
+    expect(countItem.documentation).toMatch(/number of/);
   });
 
   it('includes user-defined bindings visible at offset', async () => {
@@ -92,7 +92,7 @@ describe('completionsAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, 3, src);
     expect(items.some(i => i.label === 'count')).toBe(true);
-    expect(items.some(i => i.label === '::number/add/ResultNotFiniteError')).toBe(true);
+    expect(items.some(i => i.label === '::number/NotFiniteError')).toBe(true);
   });
 
   it('cursor right after `::` filters to tags only', async () => {
@@ -219,12 +219,12 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for BareTypeKeyword tag reference', async () => {
-    const src = '::number/add/ResultNotFiniteError | doc';
+    const src = '::number/NotFiniteError | doc';
     const { ast } = parseDocument(src, 'test.qlang');
-    const tagOffset = src.indexOf('::number/add/ResultNotFiniteError') + 5;
+    const tagOffset = src.indexOf('::number/NotFiniteError') + 5;
     const hover = await hoverAtOffset(ast, src, tagOffset);
     expect(hover).not.toBeNull();
-    expect(hover.content).toContain("::number/add/ResultNotFiniteError");
+    expect(hover.content).toContain("::number/NotFiniteError");
     expect(hover.content).toMatch(/a name of the root/);
   });
 
@@ -242,12 +242,12 @@ describe('hoverAtOffset', () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
     // tag, so its head resolves like every tag head, and its braces,
     // which the literal owns, show no tag [D86].
-    const src = '::number/add/ResultNotFiniteError!{:leftValue 1e308}';
+    const src = '::number/NotFiniteError!{:step 1}';
     const { ast } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(ast, src, 5);
     expect(hover).not.toBeNull();
-    expect(hover.content).toContain("::number/add/ResultNotFiniteError");
-    expect(hover.endOffset - hover.startOffset).toBe('::number/add/ResultNotFiniteError'.length);
+    expect(hover.content).toContain("::number/NotFiniteError");
+    expect(hover.endOffset - hover.startOffset).toBe('::number/NotFiniteError'.length);
     expect(await hoverAtOffset(ast, src, src.indexOf('!{'))).toBeNull();
   });
 
@@ -275,7 +275,7 @@ describe('hoverAtOffset', () => {
 // each catalog file's source and URI onto every index entry so the goto
 // handler resolves offsets without re-reading the source — the test
 // mirror does the same.
-const catalogSrc = ':any/count ::verb~() | :vec/count ::verb~(1) | :number/add ::verb~(1)';
+const catalogSrc = ':vec/count ::verb~(1) | :number/add ::verb~(1)';
 const catalogAst = parseDocument(catalogSrc, 'qlang/any').ast;
 const testCatalogIndex = new Map();
 for (const [name, range] of buildCatalogIndex(catalogAst)) {
@@ -318,7 +318,7 @@ describe('definitionAtOffset', () => {
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
-  it('falls back to the contract of a bare name in the catalog', () => {
+  it('jumps from a word several kinds answer to the first of its words the catalog declares', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);

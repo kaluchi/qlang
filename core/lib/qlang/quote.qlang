@@ -48,11 +48,14 @@
   ::spec~()
 
 :quote/parse
-  |~~ The source text of the quote, the reverse of `parse` on a string. ::holds~(is ::string)
+  |~~ The source text of the quote, the reverse of `parse` on a string.
 
       ~(~(add 1) | parse | eq "add 1")
   ~~|
   ::builtin{}
+
+:quote/parse/text |~~ The text the quote reads back from. ~~|
+  ::string
 
 :quote/open
   |~~ The answer of the query the quote holds, run as it stands in the

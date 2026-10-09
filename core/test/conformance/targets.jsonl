@@ -93,7 +93,7 @@
 {"name":"a-pipe-before-distribute-stands-for-it","query":"[1 2] | * (add 1)","expect":"[2 3]","decision":"D130"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] * (mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}
-{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::any/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]","decision":"D129"}
+{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]","decision":"D129"}
 {"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::verb/CodeNotQuoteError","decision":"D129"}
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
@@ -102,7 +102,7 @@
 {"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc","decision":"D152"}
 {"name":"a-refusal-is-named-under-its-noun","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D152"}
 {"name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc","decision":"D152"}
-{"name":"a-noun-lists-the-refusals-its-module-declares","query":"::number/add | manifest | contains ::number/add/ResultNotFiniteError","expect":"true","decision":["D152","D164"]}
+{"name":"a-noun-lists-the-refusals-its-module-declares","query":"::number | manifest | contains ::number/NotFiniteError","expect":"true","decision":["D152","D164"]}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true","decision":"D152"}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| ::spec~(:a ::number) | ::Box{:a 1} | doc | content","expect":"\" A box. \"","decision":"D152"}
 {"name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError","decision":"D152"}

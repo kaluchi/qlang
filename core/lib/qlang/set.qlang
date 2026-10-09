@@ -1,6 +1,6 @@
 |~ What is declared under `::set`: the refusal of its constructor, and
-   the verbs of sets, each under the contract of its name on `::any`,
-   whose page and laws it answers. A set is the vector in the one order
+   the verbs of sets, each with the parts of its object and its answer.
+   A set is the vector in the one order
    without duplicates: a verb that keeps its subject's kind answers a
    set through the constructor of `::set`, and one that imposes an order
    answers the vector. ~|
@@ -18,18 +18,24 @@
   ::spec~()
 
 :set/count
-  |~~ The number of elements. ::holds~(is ::number)
+  |~~ The number of elements.
 
       ~(#[:a :b] | count | eq 2)
   ~~|
   ::builtin{}
 
+:set/count/size |~~ How many elements the set holds. ~~|
+  ::number
+
 :set/empty
-  |~~ Whether the set holds no element. ::holds~(is ::boolean)
+  |~~ Whether the set holds no element.
 
       ~(#[] | empty | eq true)
   ~~|
   ::builtin{}
+
+:set/empty/vacant |~~ Whether the set holds no element. ~~|
+  ::boolean
 
 :set/first
   |~~ The least element, or null for the empty set.
@@ -46,11 +52,14 @@
   ::builtin{}
 
 :set/sum
-  |~~ The sum of the elements, each a number. ::holds~(is ::number)
+  |~~ The sum of the elements, each a number.
 
       ~(#[1 2 3] | sum | eq 6)
   ~~|
   ::builtin{}
+
+:set/sum/total |~~ The sum of the elements. ~~|
+  ::number
 
 :set/avg
   |~~ The mean of the elements, each a number, or null when there is none.
@@ -59,6 +68,9 @@
   ~~|
   ::builtin{}
 
+:set/avg/mean |~~ The mean of the elements, null for an empty set. ~~|
+  #[::number ::null]
+
 :set/min
   |~~ The least element, or the one whose key answers the least value.
 
@@ -66,6 +78,8 @@
       ~(#[3 1 4] | min ~(desc) | eq 4)
   ~~|
   ::builtin{}
+
+:set/min/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
 
 :set/max
   |~~ The greatest element, or the one whose key answers the greatest
@@ -76,64 +90,107 @@
   ~~|
   ::builtin{}
 
+:set/max/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
 :set/filter
-  |~~ The set of the elements whose predicate answers true. ::keeps~()
+  |~~ The set of the elements whose predicate answers true.
 
       ~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
+      ~(#[1 -2 3] | filter ::verb~(gt 0) | eq #[1 3])
   ~~|
   ::builtin{}
 
+:set/filter/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:set/filter/kept |~~ The elements the predicate accepted. ~~|
+  ::set
+
 :set/every
-  |~~ Whether the predicate answers true for every element. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for every element.
 
       ~(#[2 4] | every ~(gt 0) | eq true)
   ~~|
   ::builtin{}
 
+:set/every/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:set/every/all |~~ Whether the predicate held for every element. ~~|
+  ::boolean
+
 :set/any
-  |~~ Whether the predicate answers true for some element. ::holds~(is ::boolean)
+  |~~ Whether the predicate answers true for some element.
 
       ~(#[1 2 3] | any ~(gt 2) | eq true)
   ~~|
   ::builtin{}
 
+:set/any/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+
+:set/any/some |~~ Whether the predicate held for some element. ~~|
+  ::boolean
+
 :set/groupBy
-  |~~ The map of sets the key sorts the elements into. ::holds~(is ::map)
+  |~~ The map of sets the key sorts the elements into.
 
       ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | /big | eq #[2 3])
   ~~|
   ::builtin{}
 
+:set/groupBy/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
+:set/groupBy/groups |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
+  ::map
+
 :set/indexBy
   |~~ The map of the elements under the key each answers, or under
-      itself without a key. ::holds~(is ::map)
+      itself without a key.
 
       ~(#[{:id :a}] | indexBy ~(/id) | /a | eq {:id :a})
   ~~|
   ::builtin{}
 
+:set/indexBy/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
+:set/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
+  ::map
+
 :set/sort
   |~~ The vector of the elements in the one order, or by the value the
       key answers for each; the order is imposed, so the answer is the
-      vector. ::holds~(is ::vec)
+      vector.
 
       ~(#[:y :x :z] | sort | eq [:x :y :z])
   ~~|
   ::builtin{}
 
+:set/sort/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+
+:set/sort/sorted |~~ The elements in the order the key ranks them, a vector. ~~|
+  ::vec
+
 :set/take
-  |~~ The set of the least count elements. ::keeps~()
+  |~~ The set of the least count elements.
 
       ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
   ~~|
   ::builtin{}
 
+:set/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:set/take/taken |~~ The least elements. ~~|
+  ::set
+
 :set/drop
-  |~~ The set of the elements after the least count. ::keeps~()
+  |~~ The set of the elements after the least count.
 
       ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
   ~~|
   ::builtin{}
+
+:set/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:set/drop/rest |~~ The elements after the least ones dropped. ~~|
+  ::set
 
 :set/at
   |~~ The element at the index in the one order, a negative one
@@ -143,27 +200,40 @@
   ~~|
   ::builtin{}
 
+:set/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
+
+:set/at/index |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~| ~(/0)
+
 :set/distinct
-  |~~ The set itself. ::keeps~()
+  |~~ The set itself.
 
       ~(#[1 2 3] | distinct | eq #[1 2 3])
   ~~|
   ::builtin{}
 
+:set/distinct/unique |~~ The set itself. ~~|
+  ::set
+
 :set/reverse
-  |~~ The vector of the elements in the reverse of the one order. ::holds~(is ::vec)
+  |~~ The vector of the elements in the reverse of the one order.
 
       ~(#[:a :b :c] | reverse | eq [:c :b :a])
   ~~|
   ::builtin{}
 
+:set/reverse/reversed |~~ The elements from the greatest down, a vector. ~~|
+  ::vec
+
 :set/flat
   |~~ The set of the elements with one level of nesting spliced in, so
-      a set of sets flattens into their union. ::keeps~()
+      a set of sets flattens into their union.
 
       ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
   ~~|
   ::builtin{}
+
+:set/flat/flattened |~~ The elements with the sets among them spliced in. ~~|
+  ::set
 
 :set/reduce
   |~~ The seed folded over the elements in the one order by the reducer.
@@ -172,9 +242,13 @@
   ~~|
   ::builtin{}
 
+:set/reduce/reducer |~~ The code that folds an element into the value so far. ::holds~(is ::quote) ~~| ~(/1)
+
+:set/reduce/seed |~~ The value the fold starts from. ~~| ~(/0)
+
 :set/union
   |~~ The set of the elements of either set, merged in the one order;
-      left without the other set, the union of the sets the set holds. ::keeps~()
+      left without the other set, the union of the sets the set holds.
 
       ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
       ~(#[#[1] #[2]] | union | eq #[1 2])
@@ -185,8 +259,11 @@
   |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
   ~(at 0)
 
+:set/union/merged |~~ The elements of both sets. ~~|
+  ::set
+
 :set/minus
-  |~~ The set of the elements the other set lacks. ::keeps~()
+  |~~ The set of the elements the other set lacks.
 
       ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
   ~~|
@@ -196,8 +273,11 @@
   |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
   ~(at 0)
 
+:set/minus/remaining |~~ The elements the other set does not hold. ~~|
+  ::set
+
 :set/inter
-  |~~ The set of the elements both sets hold. ::keeps~()
+  |~~ The set of the elements both sets hold.
 
       ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
   ~~|
@@ -207,18 +287,31 @@
   |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
   ~(at 0)
 
+:set/inter/common |~~ The elements both sets hold. ~~|
+  ::set
+
 :set/has
   |~~ Whether the set holds the element, found by a binary search in
-      the one order. ::holds~(is ::boolean)
+      the one order.
 
       ~(#[:a :b :c] | has :b | eq true)
   ~~|
   ::builtin{}
 
+:set/has/element |~~ The element the call gives. ~~| ~(/0)
+
+:set/has/held |~~ Whether the set holds the element. ~~|
+  ::boolean
+
 :set/contains
   |~~ Whether the set holds the element, the membership `has` asks,
-      under the word a string answers for its substrings. ::holds~(is ::boolean)
+      under the word a string answers for its substrings.
 
       ~(#[:a :b :c] | contains :b | eq true)
   ~~|
   ::builtin{}
+
+:set/contains/element |~~ The element the call gives. ~~| ~(/0)
+
+:set/contains/found |~~ Whether the set holds the element. ~~|
+  ::boolean

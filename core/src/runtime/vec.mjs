@@ -13,7 +13,7 @@ import { isQSet, isKeyword, isString, isNumber, keyword, isErrorValue, isVec, ty
 const DESC_TAG = makeTagKeyword('desc');
 import { compareValues } from '../ordering.mjs';
 import { declareModifierError, declareElementError } from '../operand-errors.mjs';
-import { declareShapeError, declareNumericDomainError } from '../errors.mjs';
+import { declareShapeError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 
@@ -54,14 +54,6 @@ function wholeOrRefuse(value, ErrorCls) {
 }
 
 const AnySumElementNotNumberError = declareElementError('any/SumElementNotNumberError', 'sum', 'number');
-// Every element is a finite double, yet their running total can
-// still leave the range. `:index` names the element the total
-// crossed at, so the subject can be split at that point.
-const AnySumResultNotFiniteError = declareNumericDomainError('any/SumResultNotFiniteError',
-  ({ index }) => `sum: the running total leaves the finite double range at element ${index}`,
-  { operand: 'sum' }
-);
-
 const AnyReduceReducerNotBinaryError = declareShapeError('any/ReduceReducerNotBinaryError',
   () => 'reduce reducer must be a binary operand (add / mul / union / …) or a name whose first part takes the element',
   { operand: 'reduce' }
@@ -137,7 +129,6 @@ bindPrim(['vec/sum', 'set/sum', 'map/sum'], container => {
   for (let i = 0; i < items.length; i++) {
     if (typeof items[i] !== 'number') throw new AnySumElementNotNumberError(i, items[i]);
     total += items[i];
-    if (!Number.isFinite(total)) throw new AnySumResultNotFiniteError({ index: i });
   }
   return total;
 });

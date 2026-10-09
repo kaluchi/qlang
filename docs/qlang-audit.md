@@ -1112,14 +1112,14 @@ them and whose document is the site's procedure; the throw site passes
 the facts, and the tag's constructor checks them. A refusal is declared
 under the noun of its place, where `manifest` lists it [D152], [D153], and
 a verb lists the refusals that guard it [D46]. A name under a label
-lists what its primitive raises and the parts it declares, the contract
-of its word the parts its kinds share, and the refusals of its places are named by their addresses with no declaration
-of their own, a part's under the part, whose page is its procedure, so
-no registry finds the refusal of a place [D167]:
+lists the parts it declares and its answer, each kind's word its own,
+and the refusals of its places are named by their addresses with no
+declaration of their own, a part's under the part, whose page is its
+procedure, so no registry finds the refusal of a place [D167], [D169]:
 
 ```qlang
 > ::number/add | manifest
-#[::number/add/ResultNotFiniteError ::number/add/addend]
+#[::number/add/addend ::number/add/sum]
 ```
 
 It must hold one law for an error inside a nested evaluation, derived
@@ -1642,7 +1642,7 @@ them [D168]. The suite and the laws of the catalog write them still:
 
 ```
 $ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-372
+335
 ```
 
 Three repairs rest on the schema. The tags of the refusing sites become

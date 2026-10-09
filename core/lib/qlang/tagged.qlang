@@ -34,7 +34,7 @@
       since an invariant holds of the result: a set's constructor
       normalizes the vector the edit answers, where a record's refuses
       it. An error the edit answers passes as it is, and a deeper stack
-      of tags is reached by nesting `within`. ::keeps~()
+      of tags is reached by nesting `within`.
 
       ~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
       ~(:Box ::spec~() | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
@@ -63,3 +63,6 @@
        )
   ~~|
   ~(/0)
+
+:tagged/within/edited |~~ The value edited beneath its tag, under the tag again. ~~|
+  ::tagged

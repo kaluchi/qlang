@@ -8,14 +8,13 @@
 // finds the verbs residing on each kind it passes [D34], [D72].
 
 import {
-  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQuote, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance,
+  isBinding, isBuiltinDescriptor, isHostDeclared, isLabelValue, isQMap, isQSet, isQuote, isSpec, isVec, isVerb, isTagKeyword, isTaggedInstance,
   isValueClass, makeSet, makeTagKeyword,
   typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
-import { isContract } from './verb.mjs';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
@@ -71,10 +70,28 @@ export function isMemberValue(value) {
 
 // Whether a call of the name reads the parts declared under it: a quote
 // or a `::builtin{}` under a label, the host's marked as such once its
-// source has run, or a contract [D167].
+// source has run [D167].
 export function readsParts(env, name) {
   const value = bindingValueOf(nodeOf(env, name));
-  return ((isQuote(value) || isBuiltinDescriptor(value)) && isUnderLabel(env, name)) || isContractValue(value);
+  return (isQuote(value) || isBuiltinDescriptor(value)) && isUnderLabel(env, name);
+}
+
+// answerOf(env, address) → the definition of the answer of the word at the
+// address, the name under it whose value is a tag or a set of tags, `{
+// address, kinds }`, or null for a word that answers any value [D169].
+export function answerOf(env, address) {
+  for (const [, record] of namesUnderOf(env, address)) {
+    const kinds = kindsNamedBy(bindingValueOf(record));
+    if (kinds !== null) return { address: record.get('name').name, kinds };
+  }
+  return null;
+}
+
+// The kinds a tag or a set of tags names, or null for any other value.
+function kindsNamedBy(value) {
+  if (isTagKeyword(value)) return [value.name];
+  if (isQSet(value) && value.length > 0 && value.every(isTagKeyword)) return value.map(tag => tag.name);
+  return null;
 }
 
 // The record of the verb of `verbName` residing on a kind, or null.
@@ -123,16 +140,17 @@ export function residenceOnSubject(env, verbName, subject) {
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
 // first [D62], [D153]: the reader's declaration, the verb residing on a
-// kind the walk of the subject reaches, the root's declaration, else the
-// one verb of the name residing on a kind, whose head refuses a subject
-// of another kind [D156]; `{ record, underKind }`, or null when no record
-// answers or verbs of several kinds do.
+// kind the walk of the subject reaches, the one verb of the name residing
+// on a kind, whose head refuses a subject of another kind [D156], and for
+// a name no kind answers the root's declaration [D169]; `{ record,
+// underKind }`, or null when no record answers or verbs of several kinds
+// do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
-  if (rootOf(env).has(name)) return { record: rootOf(env).get(name), underKind: false };
   const residences = residencesOf(env, name);
+  if (residences.length === 0 && rootOf(env).has(name)) return { record: rootOf(env).get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
 
@@ -182,38 +200,24 @@ export function kindNamesOf(env) {
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isSpec(bindingValueOf(nodeOf(env, name))));
 }
 
-// A verb without a body, which answers for the verbs of its name.
-const isContractValue = value => isVerb(value) && isContract(value);
-
-// The addresses where the verbs of a name live, one for each kind a verb
-// of that name serves, any value among them when the verb there has a
-// body, which a refusal of the name hands on [D62].
+// The addresses where the words of a name live, one for each kind that
+// answers it, any value among them, which a refusal of the name hands on
+// [D62], [D169].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTagKeyword(`${kindName}/${verbName}`));
-  const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
-  if (onAnyValue !== null && !isContractValue(bindingValueOf(onAnyValue))) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
+  if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
   return makeSet(addresses);
-}
-
-// The addresses where a reader finds the pages of a name: those of its
-// verbs, and the contract on any value, whose page holds for every verb
-// of the name [D137].
-export function pageAddressesOf(env, verbName) {
-  const onAnyValue = residenceOf(env, ANY_KIND_NAME, verbName);
-  if (onAnyValue === null || !isContractValue(bindingValueOf(onAnyValue))) return addressesOf(env, verbName);
-  return makeSet([...addressesOf(env, verbName), makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`)]);
 }
 
 // The verbs a value of the kinds reaches by name, each with its address,
 // from the outside in [D34]: those declared under each kind, then those
-// of any value that have a body, a contract there answering only
-// through its residences.
+// of any value.
 export function verbsReaching(env, kindNames) {
   const reached = new Map();
   for (const kindName of [...kindNames, ANY_KIND_NAME]) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
-      if (!residesOn(record, kindName, env) || reached.has(name) || (kindName === ANY_KIND_NAME && isVerb(verb) && isContract(verb))) continue;
+      if (!residesOn(record, kindName, env) || reached.has(name)) continue;
       reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
     }
   }
@@ -222,24 +226,9 @@ export function verbsReaching(env, kindNames) {
 
 // partsOfName(env, address) → the parts of the object of a call of the
 // name at the address, by their names, in the order of their places: the
-// quotes declared under it, and, for a host's primitive, at each place it
-// reads no part of its own, the part the contract of its word declares
-// once on `::any` [D167]; a quote's parts are its own alone, bound by
-// their names in its body.
+// quotes declared under it, each kind's word declaring its own [D169].
 export function partsOfName(env, address) {
-  const own = quotesUnder(env, address);
-  const contract = nodeOf(env, `${ANY_KIND_NAME}/${splitAddress(address)[1]}`);
-  const reads = isBuiltinDescriptor(bindingValueOf(nodeOf(env, address))) && contract !== null && isContractValue(bindingValueOf(contract))
-    ? [...own, ...sharedParts(own, quotesUnder(env, contract.get('name').name))]
-    : own;
-  return reads.sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
-}
-
-// The parts of a contract a primitive reads: those of a name it does not
-// declare, at a place none of its own parts reads.
-function sharedParts(own, contractParts) {
-  const ownPlaces = new Set(own.map(([, record]) => selectorOf(record).place).filter(Number.isInteger));
-  return contractParts.filter(([partName, record]) => !own.some(([ownName]) => ownName === partName) && !ownPlaces.has(selectorOf(record).place));
+  return quotesUnder(env, address).sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
 }
 
 const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);

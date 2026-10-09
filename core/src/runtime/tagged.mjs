@@ -52,7 +52,16 @@ const bareMapOf = map => map[TAG_HEADER_SYMBOL] === undefined ? map : new Map(ma
 
 bindPrim('null',    coreKindConstructor(isNull, NullPayloadNotNullError));
 bindPrim('boolean', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
-bindPrim('number',  coreKindConstructor(isNumber, NumberPayloadNotNumberError));
+// A number is a finite double: an answer brought under `::number` that
+// left the doubles' range is refused here, once for every word [D169].
+const NumberNotFiniteError = declareShapeError('number/NotFiniteError',
+  () => 'a number is a finite double, and the answer left their range', { operand: '::number' });
+const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
+bindPrim('number', payload => {
+  const number = finiteNumber(payload);
+  if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
+  return number;
+});
 bindPrim('string',  coreKindConstructor(isString, StringPayloadNotStringError));
 bindPrim('keyword', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
 bindPrim('tag',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));

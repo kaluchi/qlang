@@ -22,7 +22,8 @@ import {
   verbNames,
   nodeOf,
   nodeAddresses,
-  bareNameReach
+  bareNameReach,
+  residencesOf
 } from '@kaluchi/qlang-core';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
@@ -58,8 +59,8 @@ function dedent(text) {
 }
 
 // The contents of the page a name reads, once per name: a tag's own, the
-// page of a verb several kinds answer on its contract on any value [D72],
-// or the page of the first address where a verb of the name lives [D62].
+// page of a word of any value, or the page of the first address where
+// the word lives [D62], [D169].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
@@ -124,12 +125,16 @@ export function buildCatalogIndex(catalogAst) {
 }
 
 // The catalog's declaration of what a name reaches with no subject [D62],
-// [D153]: for a bare name the contract on any value, whose page every verb
-// of the name shares, else the one verb of the name under a kind; for an
-// address the node it names.
+// [D153]: the one word of the name, or of a word several kinds answer the
+// first the catalog declares [D169]; for an address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
   const reach = bareNameReach(runtime, name);
-  return index.get(reach === null ? name : reach.record.get('name').name) ?? null;
+  if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
+  for (const [, record] of residencesOf(runtime, name)) {
+    const span = index.get(record.get('name').name);
+    if (span !== undefined) return span;
+  }
+  return index.get(name) ?? null;
 }
 
 // ── Completion ────────────────────────────────────────────────
@@ -249,9 +254,9 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, a name's the law `is` of its page asks of its
-// answer, the subject's own where the page keeps them [D166], and a
-// reader's verb's `:returns`; null where a step answers no declared kind.
+// container's through `*`, a name's the labels its answer's definition
+// names, the subject's own where that is the word's own label [D169], and
+// a reader's verb's `:returns`; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
@@ -271,7 +276,7 @@ async function kindsAfterStep(step, kinds) {
   const reached = verbsReaching(runtime, kinds).get(step.name);
   if (reached === undefined) return null;
   const record = nodeOf(runtime, reached.address.name);
-  if (!isVerb(bindingValueOf(record))) return answerKindsOf(record, kinds);
+  if (!isVerb(bindingValueOf(record))) return answerKindsOf(runtime, record, kinds);
   const returns = await evalQuery(`${reached.address.literal} | spec | /returns`, runtime);
   if (isTagKeyword(returns)) return [returns.name];
   return typeKeyword(returns).name === 'proj' ? kinds : null;

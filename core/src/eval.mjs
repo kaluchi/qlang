@@ -34,11 +34,11 @@ import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astO
 import { errorFromQlang, errorFromForeign, errorFromParse } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, bareNameReach, isMemberValue, isUnderLabel, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
+  addressesOf, answerOf, bareNameReach, isMemberValue, isUnderLabel, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
   applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
-  runPrimitive, keptAsSubject, walkToKinds
+  runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
@@ -409,17 +409,14 @@ async function refusalOfLaws(record, value, state, scope, tagName) {
 
 // What the page of a record says, read once per record, which never
 // changes: the laws under `::holds`, each with the kinds it asks for when
-// it is one step `is`, and whether the answer keeps the subject's kind.
+// it is one step `is`.
 const PAGES = new WeakMap();
 
 function pageOf(record) {
   let page = PAGES.get(record);
   if (page === undefined) {
     const roles = record.get('docs').flat().filter(segment => isValueClass(segment, 'taggedInstance'));
-    page = {
-      laws: roles.filter(role => role.tag.name === 'holds').map(role => lawOfRole(role.payload)),
-      keeps: roles.some(role => role.tag.name === 'keeps')
-    };
+    page = { laws: roles.filter(role => role.tag.name === 'holds').map(role => lawOfRole(role.payload)) };
     PAGES.set(record, page);
   }
   return page;
@@ -623,13 +620,18 @@ async function evalOperandCall(node, state) {
 }
 
 // A bare name calls what it reaches for the subject [D62], [D153]; a
-// name that reaches nothing is refused with the names near it and the
-// addresses where verbs of it live.
+// word the kind of the subject does not answer is refused with the
+// addresses where the word lives [D169], and a name that reaches nothing
+// with the names near it.
 async function callByName(lookupName, lambdas, state) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
+    const addresses = addressesOf(state.env, lookupName);
+    if (addresses.length > 0) {
+      throw new CallKindAnswersNoVerbError({ verbName: keyword(lookupName), addresses, actualType: typeKeyword(state.pipeValue) });
+    }
     throw new CallUnknownNameError({
-      identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
+      identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses
     });
   }
   if (reach.underKind && isMemberValue(bindingValueOf(reach.record))) return await applyMember(reach.record, lambdas, state);
@@ -681,8 +683,8 @@ async function callByAddress(node, state) {
 // one label see each other whatever their order, and the descriptor of a
 // primitive by the implementation its host handed. A subject the walk of
 // whose tags reaches no value of the label is refused under the name's
-// address; an answer the name's page marks `::keeps~()` goes back under
-// the tags the walk passed [D166].
+// address, and the answer is brought to the label its definition names
+// [D169].
 async function applyMember(record, lambdas, state) {
   const address = record.get('name').name;
   const member = bindingValueOf(record);
@@ -699,16 +701,40 @@ async function applyMember(record, lambdas, state) {
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, objectParts.bodyEnv))).pipeValue
     : await runHostMember(member, walked, objectParts, state);
   if (isErrorValue(answer)) return withPipeValue(state, answer);
-  const kept = pageOf(record).keeps ? await keptAsSubject(answer, walked.served, walked.passedTags, state) : answer;
-  return withPipeValue(state, await refusalOfLaws(record, kept, state, scope, `${address}/HoldsNotMetError`) ?? kept);
+  const answerDefinition = answerOf(scope, address);
+  const brought = answerDefinition === null ? answer : await answerUnderItsLabel(answer, answerDefinition, labelName, walked, state);
+  if (isErrorValue(brought)) return withPipeValue(state, brought);
+  return withPipeValue(state, await refusalOfLaws(record, brought, state, scope, `${address}/HoldsNotMetError`) ?? brought);
 }
 
-// answerKindsOf(record, subjectKinds) → the kinds of the answer a name
-// under a label gives, for a tool: the subject's own where its page keeps
-// them, the kinds the first law `is` of its page asks for, or null
-// [D166].
-export function answerKindsOf(record, subjectKinds) {
-  return pageOf(record).keeps ? subjectKinds : lawKindsOf(record);
+// The answer brought to the label its definition names [D169]: any value
+// reaches `::any`; one that reaches another of the labels is the value it
+// reaches; one of the word's own label goes back under the tags the walk
+// passed, as the subject's kind; one label alone makes the value by its
+// constructor and laws; an answer of none of several labels is refused
+// under the answer's address.
+async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
+  if (kinds.includes(ANY_KIND)) return answer;
+  const others = kinds.filter(kind => kind !== labelName);
+  const reached = others.length === 0 ? null : walkToKinds(answer, others);
+  if (reached !== null) return reached.served;
+  if (kinds.includes(labelName)) return await keptAsSubject(answer, walked.served, walked.passedTags, state);
+  if (kinds.length === 1) return await mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
+  return refusalUnder(`${address}/Not${kinds.map(capitalOf).join('Or')}Error`, { actualValue: answer });
+}
+
+const ANY_KIND = 'any';
+const capitalOf = kind => { const word = kind.slice(kind.lastIndexOf('/') + 1); return word[0].toUpperCase() + word.slice(1); };
+
+// answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
+// name under a label gives, for a tool: the subject's own where the
+// answer's label is the word's own, the labels its definition names, or
+// null for a word that answers any value [D169].
+export function answerKindsOf(env, record, subjectKinds) {
+  const address = record.get('name').name;
+  const answerDefinition = answerOf(env, address);
+  if (answerDefinition === null || answerDefinition.kinds.includes(ANY_KIND)) return null;
+  return answerDefinition.kinds.includes(splitAddress(address)[0]) ? subjectKinds : answerDefinition.kinds;
 }
 
 // The scope a name under a label runs in: a quote's own, over the tree of

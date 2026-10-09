@@ -2,8 +2,7 @@
    constructor, and the verbs of strings: the comparisons, which compare
    two strings by their code units in the one order, the verbs that read
    a string, `count`, `take` and `drop` by its characters, and
-   `prepend` and `append`, under the contracts of their names on
-   `::any`. ~|
+   `prepend` and `append`. ~|
 
 :string/PayloadNotStringError
   |~~ `::string` reads its payload as the string it is; a value of
@@ -29,7 +28,7 @@
   ::spec~()
 
 :string/gt
-  |~~ Whether the subject follows the string the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject follows the string the call gives.
 
       ~("b" | gt "a" | eq true)
   ~~|
@@ -39,8 +38,11 @@
   |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
+:string/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+  ::boolean
+
 :string/gte
-  |~~ Whether the subject follows or equals the string the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject follows or equals the string the call gives.
 
       ~("b" | gte "b" | eq true)
   ~~|
@@ -50,8 +52,11 @@
   |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
+:string/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+  ::boolean
+
 :string/lt
-  |~~ Whether the subject precedes the string the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject precedes the string the call gives.
 
       ~("a" | lt "b" | eq true)
   ~~|
@@ -61,8 +66,11 @@
   |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
+:string/lt/less |~~ Whether the subject comes before the value compared. ~~|
+  ::boolean
+
 :string/lte
-  |~~ Whether the subject precedes or equals the string the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject precedes or equals the string the call gives.
 
       ~("a" | lte "a" | eq true)
   ~~|
@@ -72,9 +80,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
   ~(/0)
 
+:string/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+  ::boolean
+
 :string/count
   |~~ The number of characters of the string, a letter of any script
-      one, the length every other language gives a string. ::holds~(is ::number)
+      one, the length every other language gives a string.
 
       ~("abc" | count | eq 3)
       ~("привет" | count | eq 6)
@@ -82,25 +93,38 @@
   ~~|
   ::builtin{}
 
+:string/count/length |~~ How many characters the string holds. ~~|
+  ::number
+
 :string/take
-  |~~ The first count characters of the string. ::keeps~()
+  |~~ The first count characters of the string.
 
       ~("db_host" | take 2 | eq "db")
       ~("ab" | take 5 | eq "ab")
   ~~|
   ::builtin{}
 
+:string/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:string/take/taken |~~ The first characters. ~~|
+  ::string
+
 :string/drop
   |~~ The string without its first count characters, the rest after a
-      prefix of known length. ::keeps~()
+      prefix of known length.
 
       ~("db_host" | drop 3 | eq "host")
   ~~|
   ::builtin{}
 
+:string/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+
+:string/drop/rest |~~ The characters after the ones dropped. ~~|
+  ::string
+
 :string/split
   |~~ The substrings between the occurrences of the separator, as a
-      vector. Inverse of `join`. ::holds~(is ::vec)
+      vector. Inverse of `join`.
 
       ~("a,b,c" | split "," | eq ["a" "b" "c"])
       ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
@@ -127,13 +151,16 @@
   ~~|
   ~(/0)
 
+:string/split/pieces |~~ The pieces between the separators, in order. ~~|
+  ::vec
+
 :string/lines
   |~~ The lines of a text, as a vector of strings. A `\n` ends a line
       and a `\r` before it belongs to the ending; a newline at the end
       closes the last line rather than opening an empty one, so a text
       reads alike with and without it, and the empty text has no lines.
       The text is then worked on as the vector it has become, and
-      `join "\n"` writes it back. ::holds~(is ::vec)
+      `join "\n"` writes it back.
 
       ~("north\nsouth" | lines | eq ["north" "south"])
       ~("one\r\ntwo\n" | lines | eq ["one" "two"])
@@ -149,9 +176,12 @@
   ~~|
   ::builtin{}
 
+:string/lines/rows |~~ The lines of the text in order, without their breaks. ~~|
+  ::vec
+
 :string/lower
   |~~ The string with every letter in lower case, so two strings that
-      differ in case alone compare equal once lowered. ::holds~(is ::string)
+      differ in case alone compare equal once lowered.
 
       ~("Ann@Example.COM" | lower | eq "ann@example.com")
       ~(["Ann" "ANN"] * lower | distinct | count | eq 1)
@@ -166,8 +196,11 @@
   ~~|
   ::builtin{}
 
+:string/lower/lowercase |~~ The text in lower case. ~~|
+  ::string
+
 :string/upper
-  |~~ The string with every letter in upper case. ::holds~(is ::string)
+  |~~ The string with every letter in upper case.
 
       ~("ok, go" | upper | eq "OK, GO")
 
@@ -181,10 +214,13 @@
   ~~|
   ::builtin{}
 
+:string/upper/uppercase |~~ The text in upper case. ~~|
+  ::string
+
 :string/trim
   |~~ The string without the whitespace at its two ends, spaces, tabs
       and line breaks, so a field cut out of a line compares as the text
-      it holds. ::holds~(is ::string)
+      it holds.
 
       ~("  db_host 
 " | trim | eq "db_host")
@@ -200,9 +236,12 @@
   ~~|
   ::builtin{}
 
+:string/trim/trimmed |~~ The text without the whitespace at its ends. ~~|
+  ::string
+
 :string/contains
   |~~ Whether the string holds the needle as a substring; the empty
-      needle is always held. Case-sensitive. ::holds~(is ::boolean)
+      needle is always held. Case-sensitive.
 
       ~("hello world" | contains "world" | eq true)
       ~("hello" | contains "xyz" | eq false)
@@ -215,6 +254,7 @@
         !| [type /actualType]
         |  eq [::string/contains/SubjectNotStringError ::number]
        )
+      ~("hello" | contains "ell" | eq true)
   ~~|
   ::builtin{}
 
@@ -231,9 +271,12 @@
   ~~|
   ~(/0)
 
+:string/contains/found |~~ Whether the text holds the part. ~~|
+  ::boolean
+
 :string/startsWith
   |~~ Whether the string begins with the prefix; the empty prefix
-      always begins it. Case-sensitive. ::holds~(is ::boolean)
+      always begins it. Case-sensitive.
 
       ~("hello world" | startsWith "hello" | eq true)
       ~("hello" | startsWith "world" | eq false)
@@ -260,9 +303,12 @@
   ~~|
   ~(/0)
 
+:string/startsWith/starts |~~ Whether the text begins with the part. ~~|
+  ::boolean
+
 :string/endsWith
   |~~ Whether the string ends with the suffix; the empty suffix always
-      ends it. Case-sensitive. ::holds~(is ::boolean)
+      ends it. Case-sensitive.
 
       ~("hello world" | endsWith "world" | eq true)
       ~("hello" | endsWith "xyz" | eq false)
@@ -289,9 +335,12 @@
   ~~|
   ~(/0)
 
+:string/endsWith/ends |~~ Whether the text ends with the part. ~~|
+  ::boolean
+
 :string/prepend
   |~~ The string with the prefix in front; a tag over the string comes
-      back on the answer. ::keeps~()
+      back on the answer.
 
       ~("world" | prepend "hello " | eq "hello world")
       ~(::Box("b") | prepend "a" | eq ::Box("ab"))
@@ -311,9 +360,12 @@
   ~~|
   ~(/0)
 
+:string/prepend/prepended |~~ The text with the part before it. ~~|
+  ::string
+
 :string/append
   |~~ The string with the suffix after it; a tag over the string comes
-      back on the answer. ::keeps~()
+      back on the answer.
 
       ~("hello" | append " world" | eq "hello world")
   ~~|
@@ -331,6 +383,9 @@
        )
   ~~|
   ~(/0)
+
+:string/append/appended |~~ The text with the part after it. ~~|
+  ::string
 
 :string/parseJson
   |~~ The qlang value a string of plain JSON spells, the reverse of
@@ -367,13 +422,18 @@
 :string/keyword
   |~~ The keyword the string names, bridging the world of strings, JSON
       data and text built from parts, with the world of keywords, the
-      keys of maps and the discriminators of enums. ::holds~(is ::keyword)
+      keys of maps and the discriminators of enums. A keyword answers its
+      name by `keyword` again, so the two round-trip.
 
       ~("foo" | keyword | eq :foo)
       ~("qlang/error" | keyword | eq :qlang/error)
       ~("bar" | keyword | keyword | eq "bar")
+      ~(42 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])
   ~~|
   ::builtin{}
+
+:string/keyword/key |~~ The keyword the text names. ~~|
+  ::keyword
 
 :string/parse
   |~~ The quote of the steps the source text spells, the reverse of
@@ -384,5 +444,6 @@
 
       ~("1 | add 1" | parse | count | eq 2)
       ~("add 1 2" | parse | eq ~(add 1 2))
+      ~(42 | parse !| /addresses | eq #[::quote/parse ::string/parse])
   ~~|
   ::builtin{}

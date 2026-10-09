@@ -31,10 +31,10 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(add)).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as a part of its contract whose law asks for a quote [D167]', async () => {
+  it('spot-check — filter takes its predicate as a part whose law asks for a quote, on each kind that answers it [D169]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::any/filter | manifest')).toEqual(makeSet([makeTagKeyword('any/filter/predicate')]));
-    expect(await evalQuery('::any/filter/predicate | doc | content | contains "::holds~(is ::quote)"')).toBe(true);
+    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTagKeyword('set/filter/kept'), makeTagKeyword('set/filter/predicate')]));
+    expect(await evalQuery('::set/filter/predicate | doc | content | contains "::holds~(is ::quote)"')).toBe(true);
   });
 });
 
@@ -43,17 +43,16 @@ describe('the pages of the language read through `doc`', () => {
   it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
-    const joined = docText(await evalQuery('::any/count | doc'));
+    const joined = docText(await evalQuery('::vec/count | doc'));
     expect(joined).toContain('number of elements');
-    expect(joined).toContain('vector');
   });
 
   it('spot-check — ::vec/filter docs describe the predicate semantics', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
-    const joined = docText(await evalQuery('::any/filter | doc'));
+    const joined = docText(await evalQuery('::vec/filter | doc'));
     expect(joined).toContain('predicate');
-    expect(joined).toContain('boolean');
+    expect(joined).toContain('true');
   });
 });
 

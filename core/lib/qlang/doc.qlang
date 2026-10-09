@@ -27,12 +27,15 @@
 
 :doc/content
   |~~ The text of the doc: its prose with each quote written where it
-      stands. ::holds~(is ::string)
+      stands.
 
       ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
       ~(::vec/join | doc | content | contains "separator")
   ~~|
   ::builtin{}
+
+:doc/content/text |~~ The text of the doc. ~~|
+  ::string
 
 :doc/segments
   |~~ The parts of the doc in their order: each run of prose a string

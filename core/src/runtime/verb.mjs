@@ -74,10 +74,10 @@ const VerbSlotNotOfKindsError = declareShapeError('verb/SlotNotOfKindsError',
 const VerbCodeNotQuoteError = declareShapeError('verb/CodeNotQuoteError',
   ({ slot, actualType }) => `${slot.literal} takes code, a quote \`~(…)\` or a verb, got ${actualType.name}`,
   { operand: '::verb', expectedType: 'quote' });
-// A call that reaches a contract names what the reader needs: the kind of
-// its subject has no verb of the name, and where the verbs of the name
-// live [D146]; a contract with no verb under it answers no call at all.
-const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
+// A call no kind of whose subject answers its word names what the reader
+// needs: where the word lives [D146], [D169]; a verb without a body
+// answers no call at all.
+export const CallKindAnswersNoVerbError = declareShapeError('call/KindAnswersNoVerbError',
   ({ verbName, addresses, actualType }) => (addresses?.length > 0 && actualType !== undefined
     ? `${actualType.literal} has no verb ${verbName.name}; the verbs of the name live on ${[...addresses].map(address => address.literal).join(' ')}`
     : `${verbName.literal} declares a signature and no body, and answers no call`),
@@ -248,10 +248,12 @@ export function effectfulNameOfVerb(verb) {
 // ── kinds ──────────────────────────────────────────────────────
 
 // A vector, a set and a quote are read as vectors, a tagged map as a
-// map, and a verb is taken where code is [D67].
+// map, and a verb is taken where code is [D67]; a number is a finite
+// double [D169].
 function isOfKind(value, kindName) {
   switch (kindName) {
     case 'any':   return true;
+    case 'number': return Number.isFinite(value);
     case 'vec':   return isVec(value);
     case 'map':   return isQMap(value);
     case 'quote': return isQuote(value) || isVerb(value);
@@ -484,14 +486,12 @@ export function verbShownFor(env, name) {
 }
 
 // shownFor(env, name) → what a tool shows for a name, `{ address, labels }`:
-// the address the name reaches with no subject, a contract giving way to
-// the first residence it answers for, and the labels of what a call of
-// it takes, the slots of a verb's head or the parts of the object of a
-// name under a label [D164]; undefined for a name that reaches neither.
+// the address the name reaches with no subject, or the first word of a
+// name several kinds answer, and the labels of what a call of it takes,
+// the slots of a verb's head or the parts of the object of a name under a
+// label [D164], [D169]; undefined for a name that reaches neither.
 export function shownFor(env, name) {
-  const reached = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
-  const answering = isVerb(bindingValueOf(reached)) && isContract(bindingValueOf(reached)) ? residencesOf(env, name)[0]?.[1] : undefined;
-  const record = answering ?? reached;
+  const record = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
   const value = bindingValueOf(record);
   if (isVerb(value)) return { address: makeTagKeyword(addressOfVerb(value)), labels: slotLabelsOf(value) };
   if (!isMemberValue(value)) return undefined;

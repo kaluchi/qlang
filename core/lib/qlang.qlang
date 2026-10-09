@@ -55,7 +55,7 @@
       A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
       ~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
       ~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
-      ~([1 2 3] | filter (gt 1) !| type | eq ::any/filter/predicate/HoldsNotMetError)
+      ~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/HoldsNotMetError)
 
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | manifest`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
@@ -118,7 +118,7 @@
       9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, and `::vec/sort | doc` the page of a verb, with laws to copy.
       ~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
 
-      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::any/sort | doc` the page every `sort` shares and `::any/sort | manifest` the parts of its object, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::vec/sort | manifest` the parts of its object and its answer, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
       ~(::qlang | doc | links * open | count | gt 5)
 
       11. The chapters, in the order they rest on each other, each naming its neighbours and its kinds:
@@ -199,7 +199,7 @@
   |~~ The kind of null, the absence of a value; a part a call may leave
       out reads null, `~(at 0)`. Its constructor, as every
       constructor of a kind of the core, reads a payload of the kind as
-      the value itself. ::link~(::any/at | doc)
+      the value itself. ::link~(::null/at | doc)
       ::link~(::qlang/values | doc)
 
       ~(null | type | eq ::null)
@@ -232,7 +232,7 @@
       A literal past the range is no number the parser reads:
       ~("1e400" | parse !| type | eq ::quote/ParseError)
       A step whose result leaves the range answers an error:
-      ~(1e308 | mul 10 !| type | eq ::number/mul/ResultNotFiniteError)
+      ~(1e308 | mul 10 !| type | eq ::number/NotFiniteError)
       An integer and a decimal are one kind, rounded as a double rounds:
       ~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
   ~~|
@@ -387,8 +387,8 @@
       quote under this tag with its subject filled, which `spec` answers
       for a verb: what a verb takes and answers is known before it is
       called. `spec` of a name under a label answers its value, a quote
-      or a `::builtin{}`, and `manifest` the parts it declares, that of
-      the contract of its word the parts its kinds share.
+      or a `::builtin{}`, and `manifest` the parts it declares and its
+      answer.
       ::snippet~(:m ::verb~(:x ::number | add x) | :m | spec) shows one.
       ::link~(::qlang/verbs | doc)
 
@@ -816,13 +816,14 @@
       vector under a tag and keeps the tag:
       ~([3 1 2] | sort | eq [1 2 3])
       ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
-      A name declares the parts of its object as names under it, and a
-      word several kinds answer declares once, under its contract on
-      `::any`, the parts its kinds share, which a kind's primitive reads at
-      each place it reads no part of its own; `manifest` answers them
-      before a call:
-      ~(::map/at | manifest | eq #[::map/at/key])
-      ~(::any/at | manifest | eq #[::any/at/default ::any/at/index])
+      A name declares the parts of its object as names under it, each
+      kind's word its own, and the label its answer goes under; `manifest`
+      answers them before a call:
+      ~(::map/at | manifest | eq #[::map/at/default ::map/at/key])
+      ~(::vec/take | manifest | eq #[::vec/take/count ::vec/take/taken])
+      An answer of the word's own label goes back under the tags the
+      subject came through:
+      ~(::Width(2) | add 3 | eq ::Width(5))
       A reader's name under a noun takes the parts of its object after
       it, each a name under the call's address:
       ~(:number/plus ~(add by) | :number/plus/by |~~ How much. ::holds~(is ::number) ~~| ~(/0) | 5 | plus 2 | eq 7)

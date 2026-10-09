@@ -34,7 +34,7 @@ describe('runLaws reads a name as examples does', () => {
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
     const addresses = await evalQuery(':count | runLaws !| /addresses');
-    expect([...addresses].map(address => address.name).sort()).toEqual(['any/count', 'map/count', 'set/count', 'string/count', 'vec/count']);
+    expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {
@@ -42,7 +42,7 @@ describe('runLaws reads a name as examples does', () => {
     expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 
-  it('a subject no residence takes reaches the contract, which refuses it', async () => {
+  it('a subject no kind of which answers the word is refused where the word is looked up', async () => {
     const err = await evalQuery('42 | runLaws');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));

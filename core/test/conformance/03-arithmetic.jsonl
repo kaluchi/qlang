@@ -7,9 +7,9 @@
 {"name":"mulOf-multiplies-two-fields-of-one-map","query":"{:x 5 :y 4} | mulOf /x /y","expect":"20","decision":"D165"}
 {"name":"divOf-divides-the-first-field-by-the-second","query":"{:x 20 :y 4} | divOf /x /y","expect":"5","decision":"D165"}
 {"name":"chained-arith","query":"10 | add 5 | mul 2 | sub 10","expect":"20"}
-{"name":"add-overflow-lifts-not-finite","query":"1e308 | add 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169","target":true,"now":"::number/add/ResultNotFiniteError"}
-{"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169","target":true,"now":"::number/sub/ResultNotFiniteError"}
-{"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError","decision":"D169","target":true,"now":"::number/mul/ResultNotFiniteError"}
-{"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError","decision":"D169","target":true,"now":"::number/div/ResultNotFiniteError"}
-{"name":"overflow-descriptor-carries-both-operands","query":"1e308 | mul 10 !| [/leftValue /rightValue]","expect":"[1e308 10]"}
+{"name":"add-overflow-lifts-not-finite","query":"1e308 | add 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| /trail/0/subject","expect":"1e308","decision":"D169"}
 {"name":"finite-arithmetic-pays-no-toll","query":"[1 2 3] | sum | add 4 | mul 2 | div 4 | sub 1","expect":"4"}

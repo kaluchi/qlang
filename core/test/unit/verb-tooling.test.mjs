@@ -35,7 +35,7 @@ describe('the head of a verb as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('shows the first name a contract answers for, and the parts of its object', async () => {
+  it('shows the first kind\'s name of a word several kinds answer, and the parts of its object', async () => {
     const shown = shownFor(await langRuntime(), 'gt');
     expect(shown.address.name.endsWith('/gt')).toBe(true);
     expect(shown.labels).toEqual(['than']);
@@ -55,11 +55,11 @@ describe('the head of a verb as the tooling reads it', () => {
     expect(verbShownFor(session.env, 'zap')).toBe(zap);
   });
 
-  it('reads the kinds of the answer of a name from its page, the subject\'s own where it keeps them [D166]', async () => {
+  it('reads the kinds of the answer of a name from the definition of its answer, the subject\'s own where that is the word\'s own label [D169]', async () => {
     const env = await langRuntime();
-    expect(answerKindsOf(nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
-    expect(answerKindsOf(nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
-    expect(answerKindsOf(nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
+    expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
+    expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
+    expect(answerKindsOf(env, nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
   it('shows a contract no verb answers for as it is', async () => {
@@ -78,7 +78,7 @@ describe('the verbs a value of a kind reaches [D34]', () => {
     expect(reached.get('take')).toBeUndefined();
   });
 
-  it('leaves out a contract of any value its kind does not answer', async () => {
+  it('leaves out a word its kind does not answer', async () => {
     const env = await langRuntime();
     expect(verbsReaching(env, ['number']).has('count')).toBe(false);
     expect(verbsReaching(env, ['vec']).get('count').address.name).toBe('vec/count');

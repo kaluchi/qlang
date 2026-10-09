@@ -39,9 +39,12 @@
       text the command line also lifts into the subject; a terminal with
       nothing piped answers the empty string. It heads a query that reads
       the text as it came: ::snippet~(@in | lines | count) counts the
-      lines piped in. ::holds~(is ::string)
+      lines piped in.
   ~~|
   ::builtin{}
+
+:any/@in/text |~~ The text stdin held, the empty string when nothing was piped. ~~|
+  ::string
 
 :any/@out
   |~~ Writes a line to stdout and answers its subject as it came: the
@@ -111,7 +114,7 @@
       order across all rows; missing keys render as empty cells. A
       string cell prints bare, null as an empty cell, and every other
       value as its literal on one line. The empty vector yields the marker
-      "(empty)". ::holds~(is ::string)
+      "(empty)".
 
       ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
       ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
@@ -126,6 +129,9 @@
        )
   ~~|
   ::builtin{}
+
+:vec/table/drawn |~~ The rows drawn as text, a line each. ~~|
+  ::string
 
 :vec/TableRowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`

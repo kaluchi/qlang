@@ -119,9 +119,9 @@ describe('axis-operands read the node a tag addresses', () => {
     expect(await evalQuery(':"::verb" | source !| type')).toEqual(makeTagKeyword('any/SourceBindingNotFoundError'));
   });
 
-  it('a keyword naming a verb of a provider is refused with the addresses of its pages, its contract among them', async () => {
+  it('a keyword naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery(':count | doc !| /addresses')])
-      .toEqual([makeTagKeyword('any/count'), makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
+      .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
   });
 
   it('::verb | source reads the declaration of the kind in the language\'s module', async () => {

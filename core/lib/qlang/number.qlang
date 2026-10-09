@@ -15,6 +15,16 @@
   ~~|
   ::spec~()
 
+:number/NotFiniteError
+  |~~ A number is a finite double: an answer brought under `::number`
+      that left their range, a sum or a product too large, is refused
+      here, whichever word computed it, and the trail names the step and
+      the subject it ran on.
+
+      ~(1e308 | mul 10 | add 1 !| [type (/trail * /step)] | eq [::number/NotFiniteError [~(mul 10)]])
+  ~~|
+  ::spec~()
+
 :number/add
   |~~ Adds a number to the subject: `a | add b` computes a + b. A vector
       adds element by element, `* add 1`, and sums by `sum`; a string is
@@ -36,15 +46,8 @@
   ~~|
   ~(/0)
 
-:number/add/ResultNotFiniteError
-  |~~ `add` answered outside the finite doubles a number of qlang
-      is: both operands are numbers, held as `:leftValue` and
-      `:rightValue`, and the size of the answer is what the site
-      refuses.
-
-      ~(1e308 | add 1e308 !| [type /leftValue] | eq [::number/add/ResultNotFiniteError 1e308])
-  ~~|
-  ::spec~()
+:number/add/sum |~~ The subject and the addend added. ~~|
+  ::number
 
 :number/sub
   |~~ Subtracts a number from the subject, the minuend. A vector
@@ -64,15 +67,8 @@
   ~~|
   ~(/0)
 
-:number/sub/ResultNotFiniteError
-  |~~ `sub` answered outside the finite doubles a number of qlang
-      is: both operands are numbers, held as `:leftValue` and
-      `:rightValue`, and the size of the answer is what the site
-      refuses.
-
-      ~(-1e308 | sub 1e308 !| [type /leftValue] | eq [::number/sub/ResultNotFiniteError -1e308])
-  ~~|
-  ::spec~()
+:number/sub/difference |~~ The subject less the subtrahend. ~~|
+  ::number
 
 :number/mul
   |~~ Multiplies the subject by a number. A vector multiplies element by
@@ -91,15 +87,8 @@
   ~~|
   ~(/0)
 
-:number/mul/ResultNotFiniteError
-  |~~ `mul` answered outside the finite doubles a number of qlang
-      is: both operands are numbers, held as `:leftValue` and
-      `:rightValue`, and the size of the answer is what the site
-      refuses.
-
-      ~(1e308 | mul 10 !| [type /leftValue] | eq [::number/mul/ResultNotFiniteError 1e308])
-  ~~|
-  ::spec~()
+:number/mul/product |~~ The subject times the multiplier. ~~|
+  ::number
 
 :number/div
   |~~ Divides the subject, the dividend, by a number. A vector divides
@@ -119,16 +108,6 @@
   ~~|
   ~(/0)
 
-:number/div/ResultNotFiniteError
-  |~~ `div` answered outside the finite doubles a number of qlang
-      is: both operands are numbers, held as `:leftValue` and
-      `:rightValue`, and the size of the answer is what the site
-      refuses.
-
-      ~(1e308 | div 0.0001 !| [type /leftValue] | eq [::number/div/ResultNotFiniteError 1e308])
-  ~~|
-  ::spec~()
-
 :number/div/ByZeroError
   |~~ A division by zero has no finite answer; a divisor that may be
       zero is tested first, `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
@@ -136,6 +115,9 @@
       ~(10 | div 0 !| type | eq ::number/div/ByZeroError)
   ~~|
   ::spec~()
+
+:number/div/quotient |~~ The subject divided by the divisor. ~~|
+  ::number
 
 :number/round
   |~~ The number rounded half away from zero to the digits after the
@@ -164,10 +146,14 @@
   ~~|
   ::spec~()
 
+:number/round/rounded |~~ The number rounded to the digits. ~~|
+  ::number
+
 :number/gt
-  |~~ Whether the subject is greater than the number the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject is greater than the number the call gives.
 
       ~(10 | gt 5 | eq true)
+      ~(null | gt 1 !| /addresses | has ::number/gt)
   ~~|
   ::builtin{}
 
@@ -175,9 +161,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
+:number/gt/greater |~~ Whether the subject comes after the value compared. ~~|
+  ::boolean
+
 :number/gte
   |~~ Whether the subject is greater than or equal to the number the
-      call gives. ::holds~(is ::boolean)
+      call gives.
 
       ~(10 | gte 10 | eq true)
   ~~|
@@ -187,8 +176,11 @@
   |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
+:number/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
+  ::boolean
+
 :number/lt
-  |~~ Whether the subject is less than the number the call gives. ::holds~(is ::boolean)
+  |~~ Whether the subject is less than the number the call gives.
 
       ~(5 | lt 10 | eq true)
   ~~|
@@ -198,9 +190,12 @@
   |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
 
+:number/lt/less |~~ Whether the subject comes before the value compared. ~~|
+  ::boolean
+
 :number/lte
   |~~ Whether the subject is less than or equal to the number the call
-      gives. ::holds~(is ::boolean)
+      gives.
 
       ~(10 | lte 10 | eq true)
   ~~|
@@ -209,3 +204,6 @@
 :number/lte/than
   |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
   ~(/0)
+
+:number/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
+  ::boolean

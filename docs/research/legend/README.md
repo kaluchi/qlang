@@ -317,6 +317,74 @@ page of a kind.
   prototype's host source tripped over it too, and wrote `mul length
   (mul width height)`.
 
+## The catalog under the model
+
+The verbs of the catalog, written today with a head, as the model would
+write them. `add` today, its head and three refusals of its own:
+
+```qlang
+:number/add |~~ Adds two numbers: … ~~| ::verb~(:addend ::number | :returns ::number | ::builtin{})
+:number/AddLeftNotNumberError |~~ … ~~| ::spec~()
+:number/AddRightNotNumberError |~~ … ~~| ::spec~()
+:number/AddResultNotFiniteError |~~ … ~~| ::spec~()
+```
+
+Under the model: the action and its part, the part's page where the
+refusal of the right operand was, and the primitive's own refusal under
+the action's address. The form that reads two fields of one value,
+`{:x 10 :y 3} | add /x /y`, which the runtime made of a call with one
+modifier more than the slots, is a form of its own on any value, listed
+where a reader finds it:
+
+```qlang
+:number/add |~~ Adds a number to this one: `10 | add 3` is 13. ::call~(add 3) ~~| ::builtin{}
+:number/add/addend |~~ The number added. ::holds~(type | eq ::number) ~~| ~(/0)
+:number/add/ResultNotFiniteError |~~ … ~~|
+:any/add |~~ Adds two numbers the call computes against this value. ::call~(add /x /y) ~~| ~(left | add right)
+:any/add/left |~~ The first number. ::holds~(type | eq ::number) ~~| ~(/0)
+:any/add/right |~~ The second number. ::holds~(type | eq ::number) ~~| ~(/1)
+```
+
+The rest of the heads map the same way. A default is a part read
+softly, `round`'s `:number/round/digits ~(at 0 | coalesce 0)`; a rest is
+a part that reads the whole object or its tail, `coalesce`'s
+`:any/coalesce/alternatives ~(/)` with `::holds~(count | gt 0)` where
+`CoalesceNoAlternativesError` was; `reduce` has two parts, `seed ~(/0)`
+and `reducer ~(/1)`, and `if` three, `condition`, `then` and `else`,
+each with its law. A word several kinds answer, `filter` on vectors,
+maps and sets, declares its parts once, under its contract,
+`:any/filter/predicate ~(/0)` with `::holds~(type | eq ::quote)`, and
+each residence is its primitive alone; the refusal a primitive raises
+while it runs, a predicate answering no boolean, sits under the part.
+The arity is the positions the parts read, so a call that gives more is
+refused under the action's address rather than read another way, and a
+slot's kind that minted its modifier, `80` becoming `::Width(80)`, is a
+selector that lays the label, `~(/0 | tag ::Width)`. `:subject` is the
+residence already [D156]; `:returns` with a kind leaves, the page saying
+what the action answers; `:returns /`, that the answer goes back under
+the subject's labels, is the one role that stays, a mark on the
+action's page.
+
+The prototype runs the forms on a label of its own, `::Num`:
+
+```qlang
+> ::Num(10) | plus 3
+13
+> ::Num(10) | plus "x" !| type
+::Num/plus/addend/HoldsNotMetError
+> ::Num(1) | plus 1 2 !| [type /parts /actualValue]
+[::Num/plus/ObjectBeyondPartsError 1 ::Num/plus[1 2]]
+> {:x 10 :y 3} | plus /x /y
+13
+> ::Num(2.567) | [rounded (rounded 1)]
+[3 2.6]
+> {} | sumOf !| [type /actualValue]
+[::any/sumOf/numbers/HoldsNotMetError ::any/sumOf[]]
+```
+
+The tree today answers `1 | add 1 2` with `3`, reading the first
+modifier as the subject and dropping the value in the pipe.
+
 ## A quote that captures what its print does not show
 
 D44 split a declaration's body, computed once where it stands, from a
@@ -417,5 +485,6 @@ shows stalled. Both readings are withdrawn.
 [D50]: ../../decisions/D50.md
 [D61]: ../../decisions/D61.md
 [D153]: ../../decisions/D153.md
+[D156]: ../../decisions/D156.md
 [D161]: ../../decisions/D161.md
 [D162]: ../../decisions/D162.md

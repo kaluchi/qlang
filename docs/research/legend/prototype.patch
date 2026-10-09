@@ -1,5 +1,5 @@
 diff --git a/core/src/eval.mjs b/core/src/eval.mjs
-index f8245e9..b1a1ef6 100644
+index f8245e9..551f612 100644
 --- a/core/src/eval.mjs
 +++ b/core/src/eval.mjs
 @@ -2,6 +2,7 @@
@@ -92,7 +92,7 @@ index f8245e9..b1a1ef6 100644
    if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
    declareVerbAt(verb, name, underKind ? nounName : null);
  }
-@@ -525,11 +553,59 @@ async function callByName(lookupName, lambdas, state) {
+@@ -525,11 +553,82 @@ async function callByName(lookupName, lambdas, state) {
        identifierName: lookupName, nearest: nearestNames(state.env, lookupName), addresses: addressesOf(state.env, lookupName)
      });
    }
@@ -114,7 +114,7 @@ index f8245e9..b1a1ef6 100644
 +  const address = record.get('name').name;
 +  let env = new Map(envToRun(aspect, state.env));
 +  env.set(ROOT_KEY, rootOf(state.env));
-+  if (lambdas.length > 0) {
++  if (lambdas.length > 0 || positionsReadBy(env, address) !== 0) {
 +    const values = [];
 +    for (const lambda of lambdas) {
 +      const value = await lambda(state.pipeValue);
@@ -122,6 +122,10 @@ index f8245e9..b1a1ef6 100644
 +      values.push(value);
 +    }
 +    const object = makeTaggedInstance(makeTagKeyword(address), values);
++    const positions = positionsReadBy(env, address);
++    if (positions !== null && values.length > positions) {
++      return withPipeValue(state, makeErrorValue(makeTagKeyword(`${address}/ObjectBeyondPartsError`), new Map([['parts', positions], ['actualValue', object]])));
++    }
 +    for (const segment of record.get('docs').flat()) {
 +      if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
 +      const holds = (await evalBody(astOfQuote(segment.payload), nestState(state, object, env))).pipeValue;
@@ -147,6 +151,25 @@ index f8245e9..b1a1ef6 100644
 +  }
 +  const answered = await evalBody(astOfQuote(aspect), withEnv(state, env));
 +  return withPipeValue(state, answered.pipeValue);
++}
++
++// The positions the parts of an action read: one past the greatest
++// index a part projects or reads softly, or null when a part reads the
++// object whole or its tail, which takes any number of values.
++function positionsReadBy(env, address) {
++  let positions = 0;
++  for (const [, partRecord] of namesUnderOf(env, address)) {
++    const selector = bindingValueOf(partRecord);
++    if (!isQuote(selector)) continue;
++    const ast = astOfQuote(selector);
++    const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
++    const index = head.type === 'Projection' && head.keys.length > 0 ? Number(head.keys[0])
++      : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
++      : NaN;
++    if (!Number.isInteger(index)) return null;
++    positions = Math.max(positions, index + 1);
++  }
++  return positions;
 +}
 +
  // A call with one modifier more than the slots of its verb reads the
@@ -178,7 +201,7 @@ index 7623c9b..f8d3e2d 100644
  // The value as an explanation holds it: an error, a map under `::error`
  // beneath the tags stacked over it, raised under the tag it shows, as it
 diff --git a/core/src/runtime/nouns.mjs b/core/src/runtime/nouns.mjs
-index d02ce65..27e142f 100644
+index d02ce65..78f795e 100644
 --- a/core/src/runtime/nouns.mjs
 +++ b/core/src/runtime/nouns.mjs
 @@ -8,7 +8,7 @@
@@ -190,19 +213,46 @@ index d02ce65..27e142f 100644
    typeKeyword, bindingValueOf, residenceOfVerb, TAG_HEADER_SYMBOL
  } from '../types.mjs';
  import { rootOf } from '../state.mjs';
-@@ -38,9 +38,11 @@ export function nodeOf(env, tagName) {
+@@ -38,16 +38,18 @@ export function nodeOf(env, tagName) {
    return isBinding(entry) ? entry : null;
  }
  
 -// Whether a record holds a verb residing on a kind.
+-function residesOn(record, kindName) {
 +// Whether a record holds a verb residing on a kind, or an aspect of the
 +// label it is declared under, a quote that runs on the value it is named on.
- function residesOn(record, kindName) {
++function residesOn(record, kindName, env) {
    const value = bindingValueOf(record);
-+  if (isQuote(value)) return true;
++  if (isQuote(value)) return !isQuote(bindingValueOf(nodeOf(env, kindName)));
    return isVerb(value) && residenceOfVerb(value) === kindName;
  }
  
+ // The record of the verb of `verbName` residing on a kind, or null.
+ function residenceOf(env, kindName, verbName) {
+   const record = nodeOf(env, `${kindName}/${verbName}`);
+-  return record !== null && residesOn(record, kindName) ? record : null;
++  return record !== null && residesOn(record, kindName, env) ? record : null;
+ }
+ 
+ // The kinds a verb is looked for on, from the outside in [D34]: the kind
+@@ -111,7 +113,7 @@ export function residencesOf(env, verbName) {
+   for (const [name, record] of bindingsOf(env)) {
+     const [kindName, lastName] = splitAddress(name);
+     if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
+-    if (residesOn(record, kindName)) residences.push([kindName, record]);
++    if (residesOn(record, kindName, env)) residences.push([kindName, record]);
+   }
+   return residences;
+ }
+@@ -183,7 +185,7 @@ export function verbsReaching(env, kindNames) {
+   for (const kindName of [...kindNames, ANY_KIND_NAME]) {
+     for (const [name, record] of namesUnderOf(env, kindName)) {
+       const verb = bindingValueOf(record);
+-      if (!residesOn(record, kindName) || reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
++      if (!residesOn(record, kindName, env) || reached.has(name) || (kindName === ANY_KIND_NAME && isContract(verb))) continue;
+       reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
+     }
+   }
 @@ -191,7 +193,7 @@ export function verbsReaching(env, kindNames) {
  }
  

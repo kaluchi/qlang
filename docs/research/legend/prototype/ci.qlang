@@ -79,3 +79,20 @@
 :Box/pack/note
   |~~ A note for the courier, none when left out. ~~|
   ~(/0 | at :note | coalesce "")
+
+:Num |~~ A number of the demonstration. ~~|
+
+:Num/plus |~~ Adds a number to this one. ::call~(plus 3) ~~| ~(payload | add addend)
+:Num/plus/addend |~~ The number added. ::holds~(type | eq ::number) ~~| ~(/0)
+
+:Num/rounded |~~ This number rounded to the digits the call gives, none when it gives none. ::call~(rounded 1) ~~| ~(payload | round digits)
+:Num/rounded/digits |~~ The digits after the point; none when left out. ~~| ~(at 0 | coalesce 0)
+
+:any/plus
+  |~~ Adds two numbers the call computes against this value, whatever it is. ::call~(plus /x /y) ~~|
+  ~(left | add right)
+:any/plus/left |~~ The first number. ::holds~(type | eq ::number) ~~| ~(/0)
+:any/plus/right |~~ The second number. ::holds~(type | eq ::number) ~~| ~(/1)
+
+:any/sumOf |~~ The sum of the numbers the call computes against this value, as many as it gives. ::call~(sumOf /a /b 10) ~~| ~(numbers | sum)
+:any/sumOf/numbers |~~ The numbers, in their order. ::holds~(count | gt 0) ~~| ~(/)

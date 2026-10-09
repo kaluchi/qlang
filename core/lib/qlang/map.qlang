@@ -101,7 +101,10 @@
   ~~|
   ::builtin{}
 
-:map/min/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:map/min/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:map/min/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :map/max
   |~~ The last value in the one order of values, or the one whose key
@@ -112,7 +115,10 @@
   ~~|
   ::builtin{}
 
-:map/max/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:map/max/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:map/max/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :map/filter
   |~~ The entries whose value the predicate answers true for, their keys
@@ -124,7 +130,10 @@
   ~~|
   ::builtin{}
 
-:map/filter/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:map/filter/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:map/filter/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :map/filter/kept |~~ The entries whose values the predicate accepted. ~~|
   ::map
@@ -139,7 +148,10 @@
   ~~|
   ::builtin{}
 
-:map/every/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:map/every/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:map/every/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :map/every/all |~~ Whether the predicate held for every value. ~~|
   ::boolean
@@ -152,7 +164,10 @@
   ~~|
   ::builtin{}
 
-:map/any/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:map/any/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:map/any/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :map/any/some |~~ Whether the predicate held for some value. ~~|
   ::boolean
@@ -165,7 +180,10 @@
   ~~|
   ::builtin{}
 
-:map/sort/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:map/sort/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:map/sort/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :map/sort/sorted |~~ The entries in the order the key ranks their values. ~~|
   ::map
@@ -177,7 +195,10 @@
   ~~|
   ::builtin{}
 
-:map/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:map/take/count |~~ How many. ~~| ~(/0)
+
+:map/take/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :map/take/taken |~~ The first entries. ~~|
   ::map
@@ -191,7 +212,10 @@
   ~~|
   ::builtin{}
 
-:map/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:map/drop/count |~~ How many. ~~| ~(/0)
+
+:map/drop/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :map/drop/rest |~~ The entries after the ones dropped. ~~|
   ::map
@@ -211,7 +235,7 @@
   ::builtin{}
 
 :map/at/key
-  |~~ The key the call gives. ::holds~(is ::keyword ::string)
+  |~~ The key the call gives.
 
       The key of `at` on a map is a keyword or a string, both naming the
       key as the map stores it: `at :email`. A modifier is computed
@@ -222,12 +246,15 @@
       ~(
         {:a 1} | at 42
         !| [type /actualType]
-        |  eq [::map/at/key/HoldsNotMetError ::number]
+        |  eq [::map/at/key/NotKeywordOrStringError ::number]
        )
       ~({:email {:home "a@b"}} | at /email !| /actualValue | eq {:home "a@b"})
       ~({:email {:home "a@b"}} | at :email | eq {:home "a@b"})
   ~~|
   ~(/0)
+
+:map/at/key/NotKeywordOrStringError |~~ The key is a keyword or a string. ~~|
+  ::holds~(is ::keyword ::string)
 
 :map/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
 
@@ -248,7 +275,10 @@
   ~~|
   ::builtin{}
 
-:map/reduce/reducer |~~ The code that folds an element into the value so far. ::holds~(is ::quote) ~~| ~(/1)
+:map/reduce/reducer |~~ The code that folds an element into the value so far. ~~| ~(/1)
+
+:map/reduce/reducer/NotQuoteError |~~ The reducer is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :map/reduce/seed |~~ The value the fold starts from. ~~| ~(/0)
 
@@ -325,17 +355,20 @@
   ::builtin{}
 
 :map/has/key
-  |~~ The key the call gives. ::holds~(is ::keyword ::string)
+  |~~ The key the call gives.
 
       The key of `has` on a map is a keyword or a string, both naming
       the key as the map stores it.
       ~(
         {:a 1} | has 42
         !| [type /actualType]
-        |  eq [::map/has/key/HoldsNotMetError ::number]
+        |  eq [::map/has/key/NotKeywordOrStringError ::number]
        )
   ~~|
   ~(/0)
+
+:map/has/key/NotKeywordOrStringError |~~ The key is a keyword or a string. ~~|
+  ::holds~(is ::keyword ::string)
 
 :map/has/held |~~ Whether the map holds the key. ~~|
   ::boolean
@@ -350,8 +383,11 @@
   ::builtin{}
 
 :map/union/with
-  |~~ The value the subject is joined with. ::holds~(is ::map) ~~|
+  |~~ The value the subject is joined with. ~~|
   ~(/0)
+
+:map/union/with/NotMapError |~~ The with is a map. ~~|
+  ::holds~(is ::map)
 
 :map/union/merged |~~ The entries of both maps, the second one's value winning a key both hold. ~~|
   ::map
@@ -367,8 +403,11 @@
   ::builtin{}
 
 :map/minus/keys
-  |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
+  |~~ The keys the call gives. ~~|
   ~(/0)
+
+:map/minus/keys/NotMapOrVecError |~~ The keys is a map or a vector. ~~|
+  ::holds~(is ::map ::vec)
 
 :map/minus/remaining |~~ The entries whose keys the other operand does not hold. ~~|
   ::map
@@ -383,8 +422,11 @@
   ::builtin{}
 
 :map/inter/keys
-  |~~ The keys the call gives. ::holds~(is ::map ::vec) ~~|
+  |~~ The keys the call gives. ~~|
   ~(/0)
+
+:map/inter/keys/NotMapOrVecError |~~ The keys is a map or a vector. ~~|
+  ::holds~(is ::map ::vec)
 
 :map/inter/common |~~ The entries whose keys the other operand holds. ~~|
   ::map

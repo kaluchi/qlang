@@ -1032,16 +1032,16 @@ than from being asked for.
 ### Errors named by their site
 
 A name under a label refuses with no class of its own: a subject of
-another kind is refused under the name, a part that breaks its law
-under the part, and each refusal reads the page of what refused, where
-the procedure is written once [D166]:
+another kind is refused under the name, a part that breaks a law under
+the law, whose name is the refusal, and each refusal reads the page of
+what refused, where the procedure is written once [D166], [D169]:
 
 ```qlang
 > "hello" | add 1 !| type
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| [type /holds]
-[::number/add/addend/HoldsNotMetError ~(is ::number)]
+> 1 | add "x" !| [type /actualType]
+[::number/add/addend/NotNumberError ::string]
 
 > "hello" | add 1 !| explain | page | content | contains "sumOf"
 true
@@ -1611,7 +1611,6 @@ below writes its targets before its work:
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
 "decision":"D168"
-"decision":"D169"
 "decision":"D46"
 ```
 

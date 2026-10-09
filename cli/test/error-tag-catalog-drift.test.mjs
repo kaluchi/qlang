@@ -14,13 +14,14 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
-import { evalQuery, nodeAddresses, nodeOf } from '@kaluchi/qlang-core';
+import { evalQuery, nodeAddresses, nodeOf, typeKeyword } from '@kaluchi/qlang-core';
 import { cliSources } from '../src/cli-sources.mjs';
 import '../src/io-operands.mjs';
 import '../src/format-operands.mjs';
 import '../src/script-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
+const isLaw = value => typeKeyword(value).name === 'holds';
 const srcDir = join(here, '..', 'src');
 
 // Every form that puts a refusal in the throw-site registry opens with
@@ -41,10 +42,12 @@ const session = await createSession({
     stderrWrite: () => {}
   })
 });
-// The refusals the source of the command line declares, by address.
+// The refusals the source of the command line declares, by address; a
+// law, whose name is its refusal, is raised by the runtime [D169].
 const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
-  if (nodeOf(session.env, address).get('origin')?.name === 'cli' && address.endsWith('Error')) refusalAddresses.add(address);
+  const record = nodeOf(session.env, address);
+  if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isLaw(record.get('value'))) refusalAddresses.add(address);
 }
 const ask = async query => (await session.evalCell(query)).result;
 

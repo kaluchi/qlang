@@ -270,8 +270,11 @@
   ::builtin{}
 
 :any/elide/budget
-  |~~ The budget, in characters of the print. ::holds~(is ::number) ~~|
+  |~~ The budget, in characters of the print. ~~|
   ~(/0)
+
+:any/elide/budget/NotNumberError |~~ The budget is a number. ~~|
+  ::holds~(is ::number)
 
 :any/if
   |~~ The branch the condition chooses, run against the subject: `if
@@ -290,43 +293,52 @@
   ::builtin{}
 
 :any/if/condition
-  |~~ The condition, a boolean. ::holds~(is ::boolean)
+  |~~ The condition, a boolean.
 
       The condition of `if` answers a boolean; null, a number, a string
       or any other value is refused where it stands.
       ~(
         5 | if 1 ~("yes") ~("no")
         !| [type /actualType]
-        |  eq [::any/if/condition/HoldsNotMetError ::number]
+        |  eq [::any/if/condition/NotBooleanError ::number]
        )
   ~~|
   ~(/0)
 
+:any/if/condition/NotBooleanError |~~ The condition is a boolean. ~~|
+  ::holds~(is ::boolean)
+
 :any/if/then
-  |~~ The branch run when the condition holds. ::holds~(is ::quote)
+  |~~ The branch run when the condition holds.
 
       The then branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
         5 | if true "yes" ~("no")
         !| [type /actualType]
-        |  eq [::any/if/then/HoldsNotMetError ::string]
+        |  eq [::any/if/then/NotQuoteError ::string]
        )
   ~~|
   ~(/1)
 
+:any/if/then/NotQuoteError |~~ The then is code, a quote. ~~|
+  ::holds~(is ::quote)
+
 :any/if/else
-  |~~ The branch run when it does not. ::holds~(is ::quote)
+  |~~ The branch run when it does not.
 
       The else branch of `if` is code it runs only when chosen, so it
       takes a quote, `if (gt 0) ~("yes") ~("no")`; every branch is checked at the call.
       ~(
         5 | if true ~("yes") "no"
         !| [type /actualType]
-        |  eq [::any/if/else/HoldsNotMetError ::string]
+        |  eq [::any/if/else/NotQuoteError ::string]
        )
   ~~|
   ~(/2)
+
+:any/if/else/NotQuoteError |~~ The else is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :any/coalesce
   |~~ The first answer of the alternatives, run in order against the
@@ -378,8 +390,11 @@
   ::builtin{}
 
 :any/cond/clauses
-  |~~ The clauses, each a condition and its branch. ::holds~(every ~(is ::quote)) ~~|
+  |~~ The clauses, each a condition and its branch. ~~|
   ~(/)
+
+:any/cond/clauses/ElementNotQuoteError |~~ Each of the clauses is code, a quote. ~~|
+  ::holds~(every ~(is ::quote))
 
 :any/CondNoBranchesError
   |~~ `cond` takes its clauses in pairs, a predicate and its branch, a
@@ -425,7 +440,7 @@
   ::builtin{}
 
 :any/apply/code
-  |~~ The code the call runs. ::holds~(is ::quote)
+  |~~ The code the call runs.
 
       The code `apply` runs on its subject is a quote, `apply ~(add 1)`,
       or a name that holds one; a value computed at the call is refused,
@@ -434,10 +449,13 @@
       ~(
         42 | apply 1
         !| [type /actualType]
-        |  eq [::any/apply/code/HoldsNotMetError ::number]
+        |  eq [::any/apply/code/NotQuoteError ::number]
        )
   ~~|
   ~(/0)
+
+:any/apply/code/NotQuoteError |~~ The code is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :any/env
   |~~ What the reader declared, where the step stands: a map from each
@@ -493,8 +511,11 @@
   ::builtin{}
 
 :any/binding/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ~~|
   ~(at 0)
+
+:any/binding/anchor/NotKeywordOrNullError |~~ The anchor is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
 
 :any/binding/record |~~ The record of the name. ~~|
   ::binding
@@ -535,8 +556,11 @@
   ::builtin{}
 
 :any/source/name
-  |~~ The name the call gives, null when it gives none. ::holds~(is ::keyword ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ~~|
   ~(at 0)
+
+:any/source/name/NotKeywordOrNullError |~~ The name is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
 
 :any/source/code |~~ The code of the declaration, null for a value a host bound. ~~|
   #[::quote ::null]
@@ -586,8 +610,11 @@
   ::builtin{}
 
 :any/doc/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::vec ::set ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ~~|
   ~(at 0)
+
+:any/doc/anchor/NotKeywordOrVecOrSetOrNullError |~~ The anchor is a keyword, a vector, a set or null. ~~|
+  ::holds~(is ::keyword ::vec ::set ::null)
 
 :any/doc/page |~~ The page of the name, null for a declaration without one. ~~|
   #[::doc ::null ::vec]
@@ -668,8 +695,11 @@
   ::builtin{}
 
 :any/spec/name
-  |~~ The name the call gives, null when it gives none. ::holds~(is ::keyword ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ~~|
   ~(at 0)
+
+:any/spec/name/NotKeywordOrNullError |~~ The name is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
 
 :any/SpecBindingNotFoundError
   |~~ `spec` found no declaration of the name it read, as `binding`
@@ -721,13 +751,16 @@
       stands over one; the fail track opens an error to its descriptor,
       which a tag and `raise` rename:
       ~([::Box (!{:k 1})] | tag !| type | eq ::error)
-      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/add/addend/HoldsNotMetError)
+      ~(1 | add "1" !| [type payload] | tag | raise !| type | eq ::number/add/addend/NotNumberError)
   ~~|
   ::builtin{}
 
 :any/tag/name
-  |~~ The name the call gives, null when it gives none. ::holds~(is ::tag ::null) ~~|
+  |~~ The name the call gives, null when it gives none. ~~|
   ~(at 0)
+
+:any/tag/name/NotTagOrNullError |~~ The name is a tag name or null. ~~|
+  ::holds~(is ::tag ::null)
 
 :any/tag/PairTagNotTagError
   |~~ The tag of the pair `tag` reads is a tag name, `[::Box 5] | tag`; a
@@ -768,9 +801,15 @@
   ~(numbers | sum)
 
 :any/sumOf/numbers
-  |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(is ::number)) ~~|
+  |~~ The numbers, one at least.
+ ~~|
   ~(/)
+
+:any/sumOf/numbers/EmptyError |~~ The numbers hold at least one value. ~~|
+  ::holds~(count | gt 0)
+
+:any/sumOf/numbers/ElementNotNumberError |~~ Each of the numbers is a number. ~~|
+  ::holds~(every ~(is ::number))
 
 :any/sumOf/sum |~~ The numbers added. ~~|
   ::number
@@ -785,9 +824,15 @@
   ~(factors | reduce 1 ~(mul))
 
 :any/mulOf/factors
-  |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(is ::number)) ~~|
+  |~~ The numbers, one at least.
+ ~~|
   ~(/)
+
+:any/mulOf/factors/EmptyError |~~ The factors hold at least one value. ~~|
+  ::holds~(count | gt 0)
+
+:any/mulOf/factors/ElementNotNumberError |~~ Each of the factors is a number. ~~|
+  ::holds~(every ~(is ::number))
 
 :any/mulOf/product |~~ The numbers multiplied. ~~|
   ::number
@@ -801,8 +846,14 @@
   ~~|
   ~(minuend | sub subtrahend)
 
-:any/subOf/minuend |~~ The number subtracted from. ::holds~(is ::number) ~~| ~(/0)
-:any/subOf/subtrahend |~~ The number subtracted. ::holds~(is ::number) ~~| ~(/1)
+:any/subOf/minuend |~~ The number subtracted from. ~~| ~(/0)
+
+:any/subOf/minuend/NotNumberError |~~ The minuend is a number. ~~|
+  ::holds~(is ::number)
+:any/subOf/subtrahend |~~ The number subtracted. ~~| ~(/1)
+
+:any/subOf/subtrahend/NotNumberError |~~ The subtrahend is a number. ~~|
+  ::holds~(is ::number)
 
 :any/subOf/difference |~~ The first number less the second. ~~|
   ::number
@@ -815,8 +866,14 @@
   ~~|
   ~(dividend | div divisor)
 
-:any/divOf/dividend |~~ The number divided. ::holds~(is ::number) ~~| ~(/0)
-:any/divOf/divisor |~~ The number divided by. ::holds~(is ::number) ~~| ~(/1)
+:any/divOf/dividend |~~ The number divided. ~~| ~(/0)
+
+:any/divOf/dividend/NotNumberError |~~ The dividend is a number. ~~|
+  ::holds~(is ::number)
+:any/divOf/divisor |~~ The number divided by. ~~| ~(/1)
+
+:any/divOf/divisor/NotNumberError |~~ The divisor is a number. ~~|
+  ::holds~(is ::number)
 
 :any/divOf/quotient |~~ The first number divided by the second. ~~|
   ::number
@@ -832,9 +889,15 @@
   ~(conditions | every ~(/))
 
 :any/allOf/conditions
-  |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(is ::boolean)) ~~|
+  |~~ The conditions, booleans, one at least.
+ ~~|
   ~(/)
+
+:any/allOf/conditions/EmptyError |~~ The conditions hold at least one value. ~~|
+  ::holds~(count | gt 0)
+
+:any/allOf/conditions/ElementNotBooleanError |~~ Each of the conditions is a boolean. ~~|
+  ::holds~(every ~(is ::boolean))
 
 :any/allOf/all |~~ Whether every condition holds. ~~|
   ::boolean
@@ -848,9 +911,15 @@
   ~(conditions | any ~(/))
 
 :any/anyOf/conditions
-  |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(is ::boolean)) ~~|
+  |~~ The conditions, booleans, one at least.
+ ~~|
   ~(/)
+
+:any/anyOf/conditions/EmptyError |~~ The conditions hold at least one value. ~~|
+  ::holds~(count | gt 0)
+
+:any/anyOf/conditions/ElementNotBooleanError |~~ Each of the conditions is a boolean. ~~|
+  ::holds~(every ~(is ::boolean))
 
 :any/anyOf/some |~~ Whether some condition holds. ~~|
   ::boolean
@@ -867,8 +936,11 @@
   ~(parts | drop 1 | reduce (parts | first) ~(union))
 
 :any/unionOf/parts
-  |~~ The maps or the sets, one at least. ::holds~(count | gt 0) ~~|
+  |~~ The maps or the sets, one at least. ~~|
   ~(/)
+
+:any/unionOf/parts/EmptyError |~~ The parts hold at least one value. ~~|
+  ::holds~(count | gt 0)
 
 :any/is
   |~~ Whether the walk of the subject's tags reaches a value of one of the
@@ -884,18 +956,20 @@
       ~(::Width(5) | is ::number | eq true)
       ~(#[1 2] | is ::vec | eq true)
       ~("5" | is ::number ::null | eq false)
-      ~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ::holds~(every ~(is ::number)) ~~| ~(/) | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
-      ~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ::holds~(every ~(is ::number)) ~~| ~(/0) | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
+      ~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ~~| ~(/) | :any/kindsOf/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
+      ~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ~~| ~(/0) | :any/setOf/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
   ~~|
   ::builtin{}
 
 :any/is/kinds
   |~~ The kinds, each a tag name; of none, no value is one.
-      ::holds~(every ~(is ::tag))
 
-      ~(5 | is :number !| [type /index /actualType] | eq [::any/is/kinds/HoldsNotMetError 0 ::keyword])
+      ~(5 | is :number !| [type /index /actualType] | eq [::any/is/kinds/ElementNotTagError 0 ::keyword])
   ~~|
   ~(/)
+
+:any/is/kinds/ElementNotTagError |~~ Each of the kinds is a tag name. ~~|
+  ::holds~(every ~(is ::tag))
 
 :any/is/reached |~~ Whether the walk of the tags reached one of the kinds. ~~|
   ::boolean

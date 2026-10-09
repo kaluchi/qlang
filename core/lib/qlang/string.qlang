@@ -35,8 +35,11 @@
   ::builtin{}
 
 :string/gt/than
-  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:string/gt/than/NotStringError |~~ The than is a string. ~~|
+  ::holds~(is ::string)
 
 :string/gt/greater |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
@@ -49,8 +52,11 @@
   ::builtin{}
 
 :string/gte/than
-  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:string/gte/than/NotStringError |~~ The than is a string. ~~|
+  ::holds~(is ::string)
 
 :string/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
@@ -63,8 +69,11 @@
   ::builtin{}
 
 :string/lt/than
-  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:string/lt/than/NotStringError |~~ The than is a string. ~~|
+  ::holds~(is ::string)
 
 :string/lt/less |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
@@ -77,8 +86,11 @@
   ::builtin{}
 
 :string/lte/than
-  |~~ The value the subject is compared with. ::holds~(is ::string) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:string/lte/than/NotStringError |~~ The than is a string. ~~|
+  ::holds~(is ::string)
 
 :string/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
@@ -104,7 +116,10 @@
   ~~|
   ::builtin{}
 
-:string/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:string/take/count |~~ How many. ~~| ~(/0)
+
+:string/take/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :string/take/taken |~~ The first characters. ~~|
   ::string
@@ -117,7 +132,10 @@
   ~~|
   ::builtin{}
 
-:string/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:string/drop/count |~~ How many. ~~| ~(/0)
+
+:string/drop/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :string/drop/rest |~~ The characters after the ones dropped. ~~|
   ::string
@@ -140,16 +158,19 @@
   ::builtin{}
 
 :string/split/separator
-  |~~ The separator the call gives. ::holds~(is ::string)
+  |~~ The separator the call gives.
 
       The separator of `split` is a string, `split ","`.
       ~(
         "abc" | split 42
         !| [type /actualType]
-        |  eq [::string/split/separator/HoldsNotMetError ::number]
+        |  eq [::string/split/separator/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/split/separator/NotStringError |~~ The separator is a string. ~~|
+  ::holds~(is ::string)
 
 :string/split/pieces |~~ The pieces between the separators, in order. ~~|
   ::vec
@@ -259,17 +280,20 @@
   ::builtin{}
 
 :string/contains/needle
-  |~~ The text looked for. ::holds~(is ::string)
+  |~~ The text looked for.
 
       The needle of `contains` is a string, `contains "x"`; a keyword
       gives its name by `keyword`.
       ~(
         "hi" | contains 42
         !| [type /actualType]
-        |  eq [::string/contains/needle/HoldsNotMetError ::number]
+        |  eq [::string/contains/needle/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/contains/needle/NotStringError |~~ The needle is a string. ~~|
+  ::holds~(is ::string)
 
 :string/contains/found |~~ Whether the text holds the part. ~~|
   ::boolean
@@ -292,16 +316,19 @@
   ::builtin{}
 
 :string/startsWith/prefix
-  |~~ The prefix the call gives. ::holds~(is ::string)
+  |~~ The prefix the call gives.
 
       The prefix of `startsWith` is a string, `startsWith "he"`.
       ~(
         "hi" | startsWith 42
         !| [type /actualType]
-        |  eq [::string/startsWith/prefix/HoldsNotMetError ::number]
+        |  eq [::string/startsWith/prefix/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/startsWith/prefix/NotStringError |~~ The prefix is a string. ~~|
+  ::holds~(is ::string)
 
 :string/startsWith/starts |~~ Whether the text begins with the part. ~~|
   ::boolean
@@ -324,16 +351,19 @@
   ::builtin{}
 
 :string/endsWith/suffix
-  |~~ The suffix the call gives. ::holds~(is ::string)
+  |~~ The suffix the call gives.
 
       The suffix of `endsWith` is a string, `endsWith ".json"`.
       ~(
         "hi" | endsWith 42
         !| [type /actualType]
-        |  eq [::string/endsWith/suffix/HoldsNotMetError ::number]
+        |  eq [::string/endsWith/suffix/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/endsWith/suffix/NotStringError |~~ The suffix is a string. ~~|
+  ::holds~(is ::string)
 
 :string/endsWith/ends |~~ Whether the text ends with the part. ~~|
   ::boolean
@@ -348,17 +378,20 @@
   ::builtin{}
 
 :string/prepend/prefix
-  |~~ The prefix the call gives. ::holds~(is ::string)
+  |~~ The prefix the call gives.
 
       The prefix a string takes is a string; a value of another kind
       becomes one by `print`, `prepend (n | print)`.
       ~(
         "x" | prepend 42
         !| [type /actualType]
-        |  eq [::string/prepend/prefix/HoldsNotMetError ::number]
+        |  eq [::string/prepend/prefix/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/prepend/prefix/NotStringError |~~ The prefix is a string. ~~|
+  ::holds~(is ::string)
 
 :string/prepend/prepended |~~ The text with the part before it. ~~|
   ::string
@@ -372,17 +405,20 @@
   ::builtin{}
 
 :string/append/suffix
-  |~~ The suffix the call gives. ::holds~(is ::string)
+  |~~ The suffix the call gives.
 
       The suffix a string takes is a string; a value of another kind
       becomes one by `print`, `append (n | print)`.
       ~(
         "x" | append 42
         !| [type /actualType]
-        |  eq [::string/append/suffix/HoldsNotMetError ::number]
+        |  eq [::string/append/suffix/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:string/append/suffix/NotStringError |~~ The suffix is a string. ~~|
+  ::holds~(is ::string)
 
 :string/append/appended |~~ The text with the part after it. ~~|
   ::string

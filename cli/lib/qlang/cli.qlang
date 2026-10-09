@@ -56,12 +56,15 @@
   ::builtin{}
 
 :any/@out/text
-  |~~ The text the call gives, null when it gives none. ::holds~(is ::string ::null)
+  |~~ The text the call gives, null when it gives none.
 
       The text `@out` writes is a string; a modifier that answers
       another kind is refused, and `json` or `print` makes the text.
   ~~|
   ~(at 0)
+
+:any/@out/text/NotStringOrNullError |~~ The text is a string or null. ~~|
+  ::holds~(is ::string ::null)
 
 :any/OutSubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
@@ -79,12 +82,15 @@
   ::builtin{}
 
 :any/@err/text
-  |~~ The text the call gives, null when it gives none. ::holds~(is ::string ::null)
+  |~~ The text the call gives, null when it gives none.
 
       The text `@err` writes is a string; `json` or `print` makes one
       of any value.
   ~~|
   ~(at 0)
+
+:any/@err/text/NotStringOrNullError |~~ The text is a string or null. ~~|
+  ::holds~(is ::string ::null)
 
 :any/ErrSubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
@@ -101,12 +107,15 @@
   ::builtin{}
 
 :any/@tap/label
-  |~~ The label the call gives. ::holds~(is ::keyword)
+  |~~ The label the call gives.
 
       The label of `@tap` is a keyword, `@tap :before`, written before
       the value as `[tap before]`.
   ~~|
   ~(/0)
+
+:any/@tap/label/NotKeywordError |~~ The label is a keyword. ~~|
+  ::holds~(is ::keyword)
 
 :vec/table
   |~~ A vector of maps drawn as a table of fixed-width columns, a view

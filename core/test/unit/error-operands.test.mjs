@@ -160,7 +160,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a part that breaks its law is refused under the address of the part [D166]', async () => {
-    expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/HoldsNotMetError');
+    expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/NotNumberError');
   });
 
   it('each name refuses under its own address', async () => {
@@ -169,8 +169,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a prefix or a suffix of another kind is refused by the law of its part [D166]', async () => {
-    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/HoldsNotMetError');
-    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/HoldsNotMetError');
+    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotStringError');
+    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringError');
   });
 
   it('sum element non-number → AnySumElementNotNumberError', async () => {
@@ -182,7 +182,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('gt across kinds is refused by the law of its part, the kind it met among the facts [D166]', async () => {
     const refused = await evalQuery('"a" | gt 5');
-    expect(refused.tag.name).toBe('string/gt/than/HoldsNotMetError');
+    expect(refused.tag.name).toBe('string/gt/than/NotStringError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
@@ -210,7 +210,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
-    for (const [query, address] of [['{:a 1} | at 42', 'map/at/key/HoldsNotMetError'], ['{:a 1} | has 42', 'map/has/key/HoldsNotMetError']]) {
+    for (const [query, address] of [['{:a 1} | at 42', 'map/at/key/NotKeywordOrStringError'], ['{:a 1} | has 42', 'map/has/key/NotKeywordOrStringError']]) {
       const refused = await evalQuery(query);
       expect(refused.tag.name).toBe(address);
       expect(refused.descriptor.get('actualType').name).toBe('number');

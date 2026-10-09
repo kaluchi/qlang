@@ -54,16 +54,19 @@
   ::builtin{}
 
 :boolean/and/right
-  |~~ The condition on the right. ::holds~(is ::boolean)
+  |~~ The condition on the right.
 
       The right condition of `and` must answer a boolean.
       ~(
         true | and 1
         !| [type /actualType]
-        |  eq [::boolean/and/right/HoldsNotMetError ::number]
+        |  eq [::boolean/and/right/NotBooleanError ::number]
        )
   ~~|
   ~(/0)
+
+:boolean/and/right/NotBooleanError |~~ The right is a boolean. ~~|
+  ::holds~(is ::boolean)
 
 :boolean/and/both |~~ Whether the subject and the other condition both hold. ~~|
   ::boolean
@@ -88,16 +91,19 @@
   ::builtin{}
 
 :boolean/or/right
-  |~~ The condition on the right. ::holds~(is ::boolean)
+  |~~ The condition on the right.
 
       The right condition of `or` must answer a boolean.
       ~(
         false | or 1
         !| [type /actualType]
-        |  eq [::boolean/or/right/HoldsNotMetError ::number]
+        |  eq [::boolean/or/right/NotBooleanError ::number]
        )
   ~~|
   ~(/0)
+
+:boolean/or/right/NotBooleanError |~~ The right is a boolean. ~~|
+  ::holds~(is ::boolean)
 
 :boolean/or/either |~~ Whether the subject or the other condition holds. ~~|
   ::boolean

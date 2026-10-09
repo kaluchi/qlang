@@ -354,7 +354,7 @@ describe('a kind whose spec has a body of steps', () => {
       ':strictAdd ::spec~(add "not-a-number") | ::strictAdd(5)'
     );
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('number/add/addend/HoldsNotMetError'));
+    expect(err.tag).toEqual(makeTagKeyword('number/add/addend/NotNumberError'));
   });
 
 });
@@ -387,13 +387,13 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2}) !| /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| type')).toEqual(makeTagKeyword('tagged/within/code/HoldsNotMetError'));
+    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| type')).toEqual(makeTagKeyword('tagged/within/code/NotQuoteError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {
     expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
       .toEqual(makeTagKeyword('tagged/within/SubjectNotTaggedError'));
     expect(await evalQuery('#[1 2] | within 1 !| type'))
-      .toEqual(makeTagKeyword('tagged/within/code/HoldsNotMetError'));
+      .toEqual(makeTagKeyword('tagged/within/code/NotQuoteError'));
   });
 });

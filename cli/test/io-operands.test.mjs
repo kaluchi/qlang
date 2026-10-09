@@ -66,7 +66,7 @@ describe('@out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out (add 1)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'any/@out/text/HoldsNotMetError', {
+    expectRefusalByAddress(cellEntry, 'any/@out/text/NotStringOrNullError', {
       actualType: { name: 'number' }
     });
   });
@@ -75,7 +75,7 @@ describe('@out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/HoldsNotMetError', {
+    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/NotStringError', {
       actualType: { name: 'number' }
     });
   });
@@ -111,7 +111,7 @@ describe('@err — full-application form', () => {
   it('refuses a text of another kind on stderr by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @err (add 1)', io);
-    expectRefusalByAddress(cellEntry, 'any/@err/text/HoldsNotMetError', {
+    expectRefusalByAddress(cellEntry, 'any/@err/text/NotStringOrNullError', {
       actualType: { name: 'number' }
     });
   });
@@ -130,7 +130,7 @@ describe('@tap', () => {
   it('refuses a label that is not a keyword by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @tap "oops"', io);
-    expectRefusalByAddress(cellEntry, 'any/@tap/label/HoldsNotMetError', {
+    expectRefusalByAddress(cellEntry, 'any/@tap/label/NotKeywordError', {
       actualType: { name: 'string' }
     });
   });

@@ -23,8 +23,11 @@
   ::builtin{}
 
 :tag/gt/than
-  |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:tag/gt/than/NotTagError |~~ The than is a tag name. ~~|
+  ::holds~(is ::tag)
 
 :tag/gt/greater |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
@@ -38,8 +41,11 @@
   ::builtin{}
 
 :tag/gte/than
-  |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:tag/gte/than/NotTagError |~~ The than is a tag name. ~~|
+  ::holds~(is ::tag)
 
 :tag/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
@@ -53,8 +59,11 @@
   ::builtin{}
 
 :tag/lt/than
-  |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:tag/lt/than/NotTagError |~~ The than is a tag name. ~~|
+  ::holds~(is ::tag)
 
 :tag/lt/less |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
@@ -69,8 +78,11 @@
   ::builtin{}
 
 :tag/lte/than
-  |~~ The value the subject is compared with. ::holds~(is ::tag) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:tag/lte/than/NotTagError |~~ The than is a tag name. ~~|
+  ::holds~(is ::tag)
 
 :tag/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
@@ -118,8 +130,11 @@
   ::builtin{}
 
 :tag/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~|
+  |~~ The anchor within the page, null when it gives none. ~~|
   ~(at 0)
+
+:tag/runLaws/anchor/NotKeywordOrNullError |~~ The anchor is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
 
 :tag/runLaws/results |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec

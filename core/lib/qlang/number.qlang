@@ -40,11 +40,14 @@
   ::builtin{}
 
 :number/add/addend
-  |~~ The number added to the subject. ::holds~(is ::number)
+  |~~ The number added to the subject.
 
-      ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/HoldsNotMetError ::string])
+      ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/NotNumberError ::string])
   ~~|
   ~(/0)
+
+:number/add/addend/NotNumberError |~~ The addend is a number. ~~|
+  ::holds~(is ::number)
 
 :number/add/sum |~~ The subject and the addend added. ~~|
   ::number
@@ -61,11 +64,14 @@
   ::builtin{}
 
 :number/sub/subtrahend
-  |~~ The number subtracted from the subject. ::holds~(is ::number)
+  |~~ The number subtracted from the subject.
 
-      ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/HoldsNotMetError ::string])
+      ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
   ~~|
   ~(/0)
+
+:number/sub/subtrahend/NotNumberError |~~ The subtrahend is a number. ~~|
+  ::holds~(is ::number)
 
 :number/sub/difference |~~ The subject less the subtrahend. ~~|
   ::number
@@ -81,11 +87,14 @@
   ::builtin{}
 
 :number/mul/multiplier
-  |~~ The number the subject is multiplied by. ::holds~(is ::number)
+  |~~ The number the subject is multiplied by.
 
-      ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/HoldsNotMetError ::string])
+      ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
   ~~|
   ~(/0)
+
+:number/mul/multiplier/NotNumberError |~~ The multiplier is a number. ~~|
+  ::holds~(is ::number)
 
 :number/mul/product |~~ The subject times the multiplier. ~~|
   ::number
@@ -102,11 +111,14 @@
   ::builtin{}
 
 :number/div/divisor
-  |~~ The number the subject is divided by. ::holds~(is ::number)
+  |~~ The number the subject is divided by.
 
-      ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/HoldsNotMetError ::string])
+      ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/NotNumberError ::string])
   ~~|
   ~(/0)
+
+:number/div/divisor/NotNumberError |~~ The divisor is a number. ~~|
+  ::holds~(is ::number)
 
 :number/div/ByZeroError
   |~~ A division by zero has no finite answer; a divisor that may be
@@ -136,8 +148,11 @@
 
 :number/round/digits
   |~~ The digits after the point, a whole number, none when the call
-      gives none. ::holds~(is ::number) ~~|
+      gives none. ~~|
   ~(at 0 0)
+
+:number/round/digits/NotNumberError |~~ The digits is a number. ~~|
+  ::holds~(is ::number)
 
 :number/round/DigitsNotIntegerError
   |~~ The digits of `round` are a whole number, `round 2`.
@@ -158,8 +173,11 @@
   ::builtin{}
 
 :number/gt/than
-  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:number/gt/than/NotNumberError |~~ The than is a number. ~~|
+  ::holds~(is ::number)
 
 :number/gt/greater |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
@@ -173,8 +191,11 @@
   ::builtin{}
 
 :number/gte/than
-  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:number/gte/than/NotNumberError |~~ The than is a number. ~~|
+  ::holds~(is ::number)
 
 :number/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
@@ -187,8 +208,11 @@
   ::builtin{}
 
 :number/lt/than
-  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:number/lt/than/NotNumberError |~~ The than is a number. ~~|
+  ::holds~(is ::number)
 
 :number/lt/less |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
@@ -202,8 +226,11 @@
   ::builtin{}
 
 :number/lte/than
-  |~~ The value the subject is compared with. ::holds~(is ::number) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:number/lte/than/NotNumberError |~~ The than is a number. ~~|
+  ::holds~(is ::number)
 
 :number/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean

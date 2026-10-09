@@ -79,7 +79,10 @@
   ~~|
   ::builtin{}
 
-:set/min/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:set/min/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:set/min/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :set/max
   |~~ The greatest element, or the one whose key answers the greatest
@@ -90,7 +93,10 @@
   ~~|
   ::builtin{}
 
-:set/max/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:set/max/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:set/max/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :set/filter
   |~~ The set of the elements whose predicate answers true.
@@ -100,7 +106,10 @@
   ~~|
   ::builtin{}
 
-:set/filter/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:set/filter/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:set/filter/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :set/filter/kept |~~ The elements the predicate accepted. ~~|
   ::set
@@ -112,7 +121,10 @@
   ~~|
   ::builtin{}
 
-:set/every/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:set/every/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:set/every/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :set/every/all |~~ Whether the predicate held for every element. ~~|
   ::boolean
@@ -124,7 +136,10 @@
   ~~|
   ::builtin{}
 
-:set/any/predicate |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote) ~~| ~(/0)
+:set/any/predicate |~~ The code each element is run through, which answers a boolean. ~~| ~(/0)
+
+:set/any/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :set/any/some |~~ Whether the predicate held for some element. ~~|
   ::boolean
@@ -136,7 +151,10 @@
   ~~|
   ::builtin{}
 
-:set/groupBy/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:set/groupBy/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:set/groupBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :set/groupBy/groups |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
   ::map
@@ -149,7 +167,10 @@
   ~~|
   ::builtin{}
 
-:set/indexBy/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:set/indexBy/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:set/indexBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :set/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
@@ -163,7 +184,10 @@
   ~~|
   ::builtin{}
 
-:set/sort/key |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~| ~(at 0)
+:set/sort/key |~~ The key the call gives, null when it gives none. ~~| ~(at 0)
+
+:set/sort/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :set/sort/sorted |~~ The elements in the order the key ranks them, a vector. ~~|
   ::vec
@@ -175,7 +199,10 @@
   ~~|
   ::builtin{}
 
-:set/take/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:set/take/count |~~ How many. ~~| ~(/0)
+
+:set/take/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :set/take/taken |~~ The least elements. ~~|
   ::set
@@ -187,7 +214,10 @@
   ~~|
   ::builtin{}
 
-:set/drop/count |~~ How many. ::holds~(is ::number) ~~| ~(/0)
+:set/drop/count |~~ How many. ~~| ~(/0)
+
+:set/drop/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :set/drop/rest |~~ The elements after the least ones dropped. ~~|
   ::set
@@ -202,7 +232,10 @@
 
 :set/at/default |~~ The value answered for a place the subject does not hold, null when it gives none. ~~| ~(at 1)
 
-:set/at/index |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~| ~(/0)
+:set/at/index |~~ The index, a negative one counting from the end. ~~| ~(/0)
+
+:set/at/index/NotNumberError |~~ The index is a number. ~~|
+  ::holds~(is ::number)
 
 :set/distinct
   |~~ The set itself.
@@ -242,7 +275,10 @@
   ~~|
   ::builtin{}
 
-:set/reduce/reducer |~~ The code that folds an element into the value so far. ::holds~(is ::quote) ~~| ~(/1)
+:set/reduce/reducer |~~ The code that folds an element into the value so far. ~~| ~(/1)
+
+:set/reduce/reducer/NotQuoteError |~~ The reducer is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :set/reduce/seed |~~ The value the fold starts from. ~~| ~(/0)
 
@@ -256,8 +292,11 @@
   ::builtin{}
 
 :set/union/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:set/union/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+  ::holds~(is ::set ::null)
 
 :set/union/merged |~~ The elements of both sets. ~~|
   ::set
@@ -270,8 +309,11 @@
   ::builtin{}
 
 :set/minus/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:set/minus/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+  ::holds~(is ::set ::null)
 
 :set/minus/remaining |~~ The elements the other set does not hold. ~~|
   ::set
@@ -284,8 +326,11 @@
   ::builtin{}
 
 :set/inter/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:set/inter/with/NotSetOrNullError |~~ The with is a set or null. ~~|
+  ::holds~(is ::set ::null)
 
 :set/inter/common |~~ The elements both sets hold. ~~|
   ::set

@@ -12,8 +12,11 @@
   ::builtin{}
 
 :desc/gt/than
-  |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:desc/gt/than/NotDescError |~~ The than is a value of ::desc. ~~|
+  ::holds~(is ::desc)
 
 :desc/gt/greater |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
@@ -27,8 +30,11 @@
   ::builtin{}
 
 :desc/gte/than
-  |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:desc/gte/than/NotDescError |~~ The than is a value of ::desc. ~~|
+  ::holds~(is ::desc)
 
 :desc/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
@@ -43,8 +49,11 @@
   ::builtin{}
 
 :desc/lt/than
-  |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:desc/lt/than/NotDescError |~~ The than is a value of ::desc. ~~|
+  ::holds~(is ::desc)
 
 :desc/lt/less |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
@@ -58,8 +67,11 @@
   ::builtin{}
 
 :desc/lte/than
-  |~~ The value the subject is compared with. ::holds~(is ::desc) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:desc/lte/than/NotDescError |~~ The than is a value of ::desc. ~~|
+  ::holds~(is ::desc)
 
 :desc/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean

@@ -88,8 +88,11 @@
   ::builtin{}
 
 :vec/min/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
+  |~~ The key the call gives, null when it gives none. ~~|
   ~(at 0)
+
+:vec/min/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :vec/max
   |~~ The last element in the one order of values, or the one whose key
@@ -104,8 +107,11 @@
   ::builtin{}
 
 :vec/max/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null) ~~|
+  |~~ The key the call gives, null when it gives none. ~~|
   ~(at 0)
+
+:vec/max/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :vec/filter
   |~~ The elements whose predicate answers true, in their order.
@@ -119,24 +125,27 @@
   ::builtin{}
 
 :vec/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+  |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `filter` is code it runs on each element, so it takes a
       quote, `filter ~(gt 1)`; a value computed at the call is refused.
       ~(
         [1 2 3] | filter (count | gt 1)
         !| [type /actualType]
-        |  eq [::vec/filter/predicate/HoldsNotMetError ::boolean]
+        |  eq [::vec/filter/predicate/NotQuoteError ::boolean]
        )
       A step written without its quote runs on the whole subject at the
       call, and the error it answers is refused alike:
       ~(
         [{:a true}] | filter /a
         !| [type /actualType]
-        |  eq [::vec/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]
+        |  eq [::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]
        )
   ~~|
   ~(/0)
+
+:vec/filter/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :vec/filter/kept |~~ The elements the predicate accepted, in order. ~~|
   ::vec
@@ -155,17 +164,20 @@
   ::builtin{}
 
 :vec/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+  |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `every` is code it runs on each element, so it takes a
       quote, `every ~(gt 0)`; a value computed at the call is refused.
       ~(
         [1 2 3] | every (count | gt 1)
         !| [type /actualType]
-        |  eq [::vec/every/predicate/HoldsNotMetError ::boolean]
+        |  eq [::vec/every/predicate/NotQuoteError ::boolean]
        )
   ~~|
   ~(/0)
+
+:vec/every/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :vec/every/all |~~ Whether the predicate held for every element. ~~|
   ::boolean
@@ -184,17 +196,20 @@
   ::builtin{}
 
 :vec/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ::holds~(is ::quote)
+  |~~ The code each element is run through, which answers a boolean.
 
       The predicate of `any` is code it runs on each element, so it takes a
       quote, `any ~(gt 2)`; a value computed at the call is refused.
       ~(
         [1 2 3] | any (count | gt 1)
         !| [type /actualType]
-        |  eq [::vec/any/predicate/HoldsNotMetError ::boolean]
+        |  eq [::vec/any/predicate/NotQuoteError ::boolean]
        )
   ~~|
   ~(/0)
+
+:vec/any/predicate/NotQuoteError |~~ The predicate is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :vec/any/some |~~ Whether the predicate held for some element. ~~|
   ::boolean
@@ -251,17 +266,20 @@
   ::builtin{}
 
 :vec/groupBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+  |~~ The key the call gives, null when it gives none.
 
       The key of `groupBy` is code it runs on each element, so it takes a
       quote, `groupBy ~(/kind)`; a value computed at the call is refused.
       ~(
         [{:kind :a}] | groupBy :a
         !| [type /actualType]
-        |  eq [::vec/groupBy/key/HoldsNotMetError ::keyword]
+        |  eq [::vec/groupBy/key/NotQuoteOrNullError ::keyword]
        )
   ~~|
   ~(at 0)
+
+:vec/groupBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :vec/groupBy/groups |~~ The elements filed under the keyword their key answered. ~~|
   ::map
@@ -280,17 +298,20 @@
   ::builtin{}
 
 :vec/indexBy/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+  |~~ The key the call gives, null when it gives none.
 
       The key of `indexBy` is code it runs on each element, so it takes a
       quote, `indexBy ~(/id)`; a value computed at the call is refused.
       ~(
         [{:id :a}] | indexBy :a
         !| [type /actualType]
-        |  eq [::vec/indexBy/key/HoldsNotMetError ::keyword]
+        |  eq [::vec/indexBy/key/NotQuoteOrNullError ::keyword]
        )
   ~~|
   ~(at 0)
+
+:vec/indexBy/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :vec/indexBy/index |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
@@ -326,17 +347,20 @@
   ::builtin{}
 
 :vec/sort/key
-  |~~ The key the call gives, null when it gives none. ::holds~(is ::quote ::null)
+  |~~ The key the call gives, null when it gives none.
 
       The key of `sort` is code it runs on each element, so it takes a
       quote, `sort ~(/age)`; a value computed at the call is refused.
       ~(
         [3 1 2] | sort 1
         !| [type /actualType]
-        |  eq [::vec/sort/key/HoldsNotMetError ::number]
+        |  eq [::vec/sort/key/NotQuoteOrNullError ::number]
        )
   ~~|
   ~(at 0)
+
+:vec/sort/key/NotQuoteOrNullError |~~ The key is code, a quote or null. ~~|
+  ::holds~(is ::quote ::null)
 
 :vec/sort/sorted |~~ The elements in the order the key ranks them. ~~|
   ::vec
@@ -352,8 +376,11 @@
   ::builtin{}
 
 :vec/take/count
-  |~~ How many. ::holds~(is ::number) ~~|
+  |~~ How many. ~~|
   ~(/0)
+
+:vec/take/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :vec/take/taken |~~ The first elements. ~~|
   ::vec
@@ -369,8 +396,11 @@
   ::builtin{}
 
 :vec/drop/count
-  |~~ How many. ::holds~(is ::number) ~~|
+  |~~ How many. ~~|
   ~(/0)
+
+:vec/drop/count/NotNumberError |~~ The count is a number. ~~|
+  ::holds~(is ::number)
 
 :vec/drop/rest |~~ The elements after the ones dropped. ~~|
   ::vec
@@ -393,8 +423,11 @@
   ~(at 1)
 
 :vec/at/index
-  |~~ The index, a negative one counting from the end. ::holds~(is ::number) ~~|
+  |~~ The index, a negative one counting from the end. ~~|
   ~(/0)
+
+:vec/at/index/NotNumberError |~~ The index is a number. ~~|
+  ::holds~(is ::number)
 
 :vec/distinct
   |~~ The set of the elements, the vector in the one order without
@@ -448,17 +481,20 @@
   ::builtin{}
 
 :vec/reduce/reducer
-  |~~ The code that folds an element into the value so far. ::holds~(is ::quote)
+  |~~ The code that folds an element into the value so far.
 
       The reducer of `reduce` is code it runs on the accumulator with each element, so it takes a
       quote, `reduce 0 ~(add)`; a value computed at the call is refused.
       ~(
         [1 2 3] | reduce 0 1
         !| [type /actualType]
-        |  eq [::vec/reduce/reducer/HoldsNotMetError ::number]
+        |  eq [::vec/reduce/reducer/NotQuoteError ::number]
        )
   ~~|
   ~(/1)
+
+:vec/reduce/reducer/NotQuoteError |~~ The reducer is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :vec/reduce/seed
   |~~ The value the fold starts from. ~~|
@@ -476,8 +512,11 @@
   ::builtin{}
 
 :vec/union/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:vec/union/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+  ::holds~(is ::set ::map ::null)
 
 :vec/UnionOfNothingError
   |~~ `union` over a vector joins its operands from the first, `[a b c]
@@ -510,8 +549,11 @@
   ::builtin{}
 
 :vec/minus/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:vec/minus/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+  ::holds~(is ::set ::map ::null)
 
 :vec/MinusOfNothingError
   |~~ `minus` over a vector joins its operands from the first, `[a b c]
@@ -545,8 +587,11 @@
   ::builtin{}
 
 :vec/inter/with
-  |~~ The value the subject is joined with, null when it gives none. ::holds~(is ::set ::map ::null) ~~|
+  |~~ The value the subject is joined with, null when it gives none. ~~|
   ~(at 0)
+
+:vec/inter/with/NotSetOrMapOrNullError |~~ The with is a set, a map or null. ~~|
+  ::holds~(is ::set ::map ::null)
 
 :vec/InterOfNothingError
   |~~ `inter` over a vector joins its operands from the first, `[a b c]
@@ -589,16 +634,19 @@
   ::builtin{}
 
 :vec/join/separator
-  |~~ The separator the call gives. ::holds~(is ::string)
+  |~~ The separator the call gives.
 
       The separator of `join` is a string, `join ", "`.
       ~(
         ["a" "b"] | join 42
         !| [type /actualType]
-        |  eq [::vec/join/separator/HoldsNotMetError ::number]
+        |  eq [::vec/join/separator/NotStringError ::number]
        )
   ~~|
   ~(/0)
+
+:vec/join/separator/NotStringError |~~ The separator is a string. ~~|
+  ::holds~(is ::string)
 
 :vec/join/joined |~~ The elements joined into one string by the separator. ~~|
   ::string

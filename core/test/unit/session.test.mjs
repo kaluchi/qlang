@@ -105,8 +105,10 @@ describe('the sources a host hands [D153]', () => {
     uri: 'tests/host',
     source: [
       ':number/less |~~ The subject less the part. ~~| ::builtin{}',
-      ':number/less/by |~~ How much less. ::holds~(is ::number) ~~| ~(/0)',
-      ':any/@fetch |~~ The text fetched. ::holds~(is ::string) ~~| ::builtin{}',
+      ':number/less/by |~~ How much less. ~~| ~(/0)',
+      ':number/less/by/NotNumberError |~~ The amount is a number. ~~| ::holds~(is ::number)',
+      ':any/@fetch |~~ The text fetched. ~~| ::builtin{}',
+      ':any/@fetch/text |~~ The text. ~~| ::string',
       ':any/@doubled ~(@fetch | append @fetch)'
     ].join('\n'),
     impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
@@ -116,7 +118,7 @@ describe('the sources a host hands [D153]', () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTagKeyword('number/less/by/HoldsNotMetError'));
+      .toEqual(makeTagKeyword('number/less/by/NotNumberError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
@@ -124,7 +126,7 @@ describe('the sources a host hands [D153]', () => {
     expect((await sessionInstance.evalCell('@doubled')).result).toBe('fetchedfetched');
   });
 
-  it('answers a host name as its descriptor, whose answer its page holds a law of', async () => {
+  it('answers a host name as its descriptor, whose answer is a definition of its label', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::any/@fetch | spec | type')).result).toEqual(makeTagKeyword('builtin'));
     expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTagKeyword('string'));
@@ -138,11 +140,11 @@ describe('the sources a host hands [D153]', () => {
   it('runs a host name whose descriptor names no primitive by the implementation handed for it', async () => {
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/handed',
-      source: ':any/twice ::builtin{} | :any/twice/by |~~ The factor. ::holds~(is ::number) ~~| ~(/0)',
+      source: ':any/twice ::builtin{} | :any/twice/by |~~ The factor. ~~| ~(/0) | :any/twice/by/NotNumberError ::holds~(is ::number)',
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('any/twice/by/HoldsNotMetError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('any/twice/by/NotNumberError'));
   });
 
   it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {

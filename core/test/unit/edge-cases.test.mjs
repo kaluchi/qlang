@@ -84,7 +84,7 @@ describe('types.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison by the law of its part', async () => {
-    await expectErrorThrown('"a" | gt 5', 'string/gt/than/HoldsNotMetError');
+    await expectErrorThrown('"a" | gt 5', 'string/gt/than/NotStringError');
   });
   it('lt rejects non-comparable subject', async () => {
     await expectErrorCategory('null | lt 5', 'typeError');
@@ -96,7 +96,7 @@ describe('runtime/arith.mjs error paths', () => {
     await expectErrorThrown('"x" | add 1', 'number/add/SubjectNotNumberError');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorThrown('1 | add "x"', 'number/add/addend/HoldsNotMetError');
+    await expectErrorThrown('1 | add "x"', 'number/add/addend/NotNumberError');
   });
   it('sub rejects non-numeric subject', async () => {
     await expectErrorThrown('"x" | sub 1', 'number/sub/SubjectNotNumberError');
@@ -123,10 +123,10 @@ describe('runtime/vec.mjs error paths', () => {
     await expectErrorCategory('42 | filter ~(gt 1)', 'typeError');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/HoldsNotMetError');
+    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/NotNumberError');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/HoldsNotMetError');
+    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/NotNumberError');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort ~(/n)'))
@@ -145,13 +145,13 @@ describe('runtime/map.mjs error paths', () => {
     await expectErrorCategory('42 | has :foo', 'typeError');
   });
   it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/HoldsNotMetError');
+    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrStringError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/with/HoldsNotMetError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/with/NotSetOrNullError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -162,10 +162,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/with/HoldsNotMetError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/with/NotSetOrNullError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/with/HoldsNotMetError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/with/NotSetOrNullError');
   });
 });
 
@@ -196,7 +196,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('split with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('"abc" | split 42', 'string/split/separator/HoldsNotMetError');
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringError');
   });
 
   it('join on non-Vec subject is refused by the address of join', async () => {
@@ -210,7 +210,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('join with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/HoldsNotMetError');
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringError');
   });
 
   it('every split/join site has an address of its own', async () => {
@@ -279,7 +279,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if refuses a null condition', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('any/if/condition/HoldsNotMetError'));
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('any/if/condition/NotBooleanError'));
   });
 
   it('if treats false literal as falsy', async () => {

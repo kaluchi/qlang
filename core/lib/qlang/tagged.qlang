@@ -51,7 +51,7 @@
   ::builtin{}
 
 :tagged/within/code
-  |~~ The code the call runs. ::holds~(is ::quote)
+  |~~ The code the call runs.
 
       The edit `within` runs is a quote, `within ~(reverse)`; a value
       computed at the call is refused, the error a step answered there
@@ -59,10 +59,13 @@
       ~(
         #[3 1] | within 1
         !| [type /actualType]
-        |  eq [::tagged/within/code/HoldsNotMetError ::number]
+        |  eq [::tagged/within/code/NotQuoteError ::number]
        )
   ~~|
   ~(/0)
+
+:tagged/within/code/NotQuoteError |~~ The code is code, a quote. ~~|
+  ::holds~(is ::quote)
 
 :tagged/within/edited |~~ The value edited beneath its tag, under the tag again. ~~|
   ::tagged

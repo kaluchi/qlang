@@ -87,6 +87,20 @@ export function answerOf(env, address) {
   return null;
 }
 
+// lawsUnder(env, address) → the laws declared under an address, each a
+// name whose value is a quote under `::holds`, `[address, law]` in the
+// order of their declarations [D169].
+export function lawsUnder(env, address) {
+  const laws = [];
+  for (const [, record] of namesUnderOf(env, address)) {
+    const value = bindingValueOf(record);
+    if (isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload)) laws.push([record.get('name').name, value.payload]);
+  }
+  return laws;
+}
+
+const LAW_TAG_NAME = 'holds';
+
 // The kinds a tag or a set of tags names, or null for any other value.
 function kindsNamedBy(value) {
   if (isTagKeyword(value)) return [value.name];

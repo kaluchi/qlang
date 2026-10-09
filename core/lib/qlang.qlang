@@ -55,7 +55,7 @@
       A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
       ~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
       ~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
-      ~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/HoldsNotMetError)
+      ~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/NotQuoteError)
 
       5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | manifest`, and a verb outside its list does not exist for it. The verbs most queries use:
       numbers: add sub mul div round, and gt gte lt lte to compare.
@@ -82,7 +82,7 @@
       ~({:a 1 :b 5} | filter ~(gt 2) | eq {:b 5})
       A condition is a boolean: `if`, `filter`, `every`, `any` and `cond` refuse any other value, so nothing is truthy.
       ~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
-      ~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/if/condition/HoldsNotMetError)
+      ~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/if/condition/NotBooleanError)
       A string and a keyword turn into each other by `keyword`; text and code turn into each other by `parse`; `print` answers the text a value reads back from, a string.
       ~("draft" | keyword | eq :draft)
       ~(:draft | keyword | eq "draft")
@@ -91,10 +91,10 @@
       ~(5 | :n / | [n (n | add 1)] | eq [5 6])
       ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
-      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure is the address of what refused: ::number/add/SubjectNotNumberError is `add` refusing its subject for not being a number, ::number/add/addend/HoldsNotMetError its part `addend` breaking a law of its page. `!| explain` shows the page of what refused.
+      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure is the address of what refused: ::number/add/SubjectNotNumberError is `add` refusing its subject for not being a number, ::number/add/addend/NotNumberError the law of its part `addend` that the part is a number, broken. `!| explain` shows the page of what refused.
       ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
       ~("x" | add 1 !| /actualType | eq ::string)
-      ~(1 | add "x" !| type | eq ::number/add/addend/HoldsNotMetError)
+      ~(1 | add "x" !| type | eq ::number/add/addend/NotNumberError)
       ~(!{:reason :late} !| /reason | eq :late)
       A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
       ~({:reason :late} | raise !| [type /reason] | eq [::error :late])
@@ -106,8 +106,8 @@
       ~(~(add 1 | mul 2) | count | eq 2)
       ~(5 | apply ~(add 1 | mul 2) | eq 12)
       ~("add 1" | parse | eq ~(add 1))
-      A kind of your own is a label, a name declared by its page, whose laws, `::holds~(…)`, every value put under it keeps. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, checked by the laws of its page and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
-      ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ::holds~(is ::number) ~~| ~(/0) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/HoldsNotMetError])
+      A kind of your own is a label, a name declared by its page, and every value put under it keeps the laws declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, held to the laws declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      ~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ~~| ~(/0) | :Box/put/w/NotNumberError ::holds~(is ::number) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/NotNumberError])
       ~(:number/plus ~(add by) | :number/plus/by ~(at 0 1) | 5 | [plus (plus 2)] | eq [6 7])
       ~(:q ~(add 1) | 5 | apply q | eq 6)
       A step of a quote is a record of what it computes, a command under ::call with its `:name`:
@@ -187,7 +187,7 @@
       ::link~(::qlang/values | doc)
 
       ~(::Box | type | eq ::tag)
-      ~(:Pos |~~ A positive number. ::holds~(gt 0) ~~| | ::Pos(-3) !| type | eq ::Pos/HoldsNotMetError)
+      ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(-3) !| type | eq ::Pos/NotPositiveError)
       ~(::tag::Box | eq ::Box)
       ~(5 | type | doc | type | eq ::doc)
       ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
@@ -840,7 +840,7 @@
       A kind is a label, a name declared by its page, whose laws every
       value put under it keeps, and whose name `construct`, when it has
       one, builds the value from the payload:
-      ~(:Small |~~ Below ten. ::holds~(lt 10) ~~| | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/HoldsNotMetError])
+      ~(:Small |~~ Below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/TooLargeError])
       ~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value:

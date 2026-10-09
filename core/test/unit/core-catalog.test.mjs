@@ -34,7 +34,7 @@ describe('the verbs of the language reach their primitives', () => {
   it('spot-check — filter takes its predicate as a part whose law asks for a quote, on each kind that answers it [D169]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTagKeyword('set/filter/kept'), makeTagKeyword('set/filter/predicate')]));
-    expect(await evalQuery('::set/filter/predicate | doc | content | contains "::holds~(is ::quote)"')).toBe(true);
+    expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | /value | print')).toBe('::holds~(is ::quote)');
   });
 });
 
@@ -140,7 +140,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
-    expect(evalResult).toEqual(makeTagKeyword('any/apply/code/HoldsNotMetError'));
+    expect(evalResult).toEqual(makeTagKeyword('any/apply/code/NotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {

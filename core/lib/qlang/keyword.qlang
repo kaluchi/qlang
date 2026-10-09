@@ -22,8 +22,11 @@
   ::builtin{}
 
 :keyword/gt/than
-  |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:keyword/gt/than/NotKeywordError |~~ The than is a keyword. ~~|
+  ::holds~(is ::keyword)
 
 :keyword/gt/greater |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
@@ -38,8 +41,11 @@
   ::builtin{}
 
 :keyword/gte/than
-  |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:keyword/gte/than/NotKeywordError |~~ The than is a keyword. ~~|
+  ::holds~(is ::keyword)
 
 :keyword/gte/atLeast |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
@@ -53,8 +59,11 @@
   ::builtin{}
 
 :keyword/lt/than
-  |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:keyword/lt/than/NotKeywordError |~~ The than is a keyword. ~~|
+  ::holds~(is ::keyword)
 
 :keyword/lt/less |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
@@ -68,8 +77,11 @@
   ::builtin{}
 
 :keyword/lte/than
-  |~~ The value the subject is compared with. ::holds~(is ::keyword) ~~|
+  |~~ The value the subject is compared with. ~~|
   ~(/0)
+
+:keyword/lte/than/NotKeywordError |~~ The than is a keyword. ~~|
+  ::holds~(is ::keyword)
 
 :keyword/lte/atMost |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
@@ -96,7 +108,10 @@
   ~~|
   ::builtin{}
 
-:keyword/runLaws/anchor |~~ The anchor within the page, null when it gives none. ::holds~(is ::keyword ::null) ~~| ~(at 0)
+:keyword/runLaws/anchor |~~ The anchor within the page, null when it gives none. ~~| ~(at 0)
+
+:keyword/runLaws/anchor/NotKeywordOrNullError |~~ The anchor is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
 
 :keyword/runLaws/results |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec

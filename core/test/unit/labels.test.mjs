@@ -11,10 +11,12 @@ import { makeTagKeyword, makeTaggedInstance } from '../../src/types.mjs';
 const lines = (...steps) => steps.join('\n');
 
 const BOX = lines(
-  ':Box |~~ A parcel. ::holds~(/0 | gt 0) ~~|',
+  ':Box |~~ A parcel. ~~|',
+  ':Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(/0 | gt 0)',
   ':Box/length |~~ The length. ~~| ~(/0)',
   ':Box/put |~~ The same box with another weight inside. ~~| ~(within ~(take 1 | append weight))',
-  ':Box/put/weight |~~ The weight to put inside. ::holds~(type | eq ::number) ~~| ~(/0)',
+  ':Box/put/weight |~~ The weight to put inside. ~~| ~(/0)',
+  ':Box/put/weight/NotNumberError |~~ The weight is a number. ~~| ::holds~(type | eq ::number)',
   ':Box/scaled |~~ The length scaled. ~~| ~(length | mul (factor | add 1))',
   ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(/0 | add 1)',
   ':Box/tally |~~ The lead and the rest. ~~| ~([lead rest])',
@@ -71,9 +73,9 @@ describe('the object of a call', () => {
     expect(await evalQuery(BOX + '::Box[4 2] | [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
   });
 
-  it('reads the page of what refused for a refusal named by its address', async () => {
+  it('reads the page of the law that refused, named by its refusal [D169]', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
-      .toBe(' The weight to put inside. ::holds~(type | eq ::number) ');
+      .toBe(' The weight is a number. ');
   });
 
   it('lets a name under a label fold as a reducer', async () => {
@@ -101,7 +103,8 @@ describe('a host\'s primitive under a label', () => {
           ':Gauge |~~ A reading. ~~|',
           ':Gauge/construct |~~ The reading as a number. ~~| ::builtin{}',
           ':Gauge/over |~~ Whether the reading passes the test. ~~| ::builtin{}',
-          ':Gauge/over/test |~~ The test. ::holds~(is ::quote) ~~| ~(/0)',
+          ':Gauge/over/test |~~ The test. ~~| ~(/0)',
+          ':Gauge/over/test/NotQuoteError |~~ The test is code. ~~| ::holds~(is ::quote)',
           ':Gauge/shifted |~~ The reading shifted. ~~| ::builtin{}',
           ':Gauge/shifted/by |~~ The shift. ~~| ~(/0)',
           ':Dial |~~ A reading of a dial. ~~|',

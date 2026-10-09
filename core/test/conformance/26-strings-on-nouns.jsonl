@@ -2,6 +2,6 @@
 {"name":"an-address-of-a-verb-of-strings-checks-its-subject","query":"[1] | string/prepend 0 !| type","expect":"::string/prepend/SubjectNotStringError","decision":["D62","D75","D156"]}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box(\"b\") | prepend \"a\"","expect":"::Box\"ab\"","decision":["D34","D75"]}
 {"name":"a-verb-of-one-residence-refuses-its-subject-by-its-site","query":"[1] | split \",\" !| type","expect":"::string/split/SubjectNotStringError","decision":"D75"}
-{"name":"the-prefix-is-refused-at-its-residence","query":"::string/prepend/prefix/HoldsNotMetError | spec | /operand","expect":"::string/prepend","decision":"D46","target":true,"now":"::proj/IndexNotIntegerError"}
+{"name":"the-prefix-is-refused-at-its-residence","query":"::string/prepend/prefix/NotStringError | spec | /operand","expect":"::string/prepend","decision":"D46","target":true,"now":"::proj/IndexNotIntegerError"}
 {"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]","decision":"D75"}
 {"name":"join-resides-on-the-vector","query":"\"a\" | join \",\" !| type","expect":"::vec/join/SubjectNotVecError","decision":["D62","D75"]}

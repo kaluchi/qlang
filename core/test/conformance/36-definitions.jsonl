@@ -5,10 +5,11 @@
 {"name":"the-page-of-a-kind-holds-no-page-of-its-words","query":"::vec | doc | content | contains \"The first count elements\"","expect":"false","decision":"D168"}
 {"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width(2) | is ::number","expect":"true","decision":"D168"}
 {"name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width(2) | add 3","expect":"::Width(5)","decision":"D169"}
-{"name":"a-law-of-a-part-refuses-under-its-name","query":"1 | add \"x\" !| type","expect":"::number/add/addend/NotNumberError","decision":"D169","target":true,"now":"::number/add/addend/HoldsNotMetError"}
+{"name":"a-law-of-a-part-refuses-under-its-name","query":"1 | add \"x\" !| type","expect":"::number/add/addend/NotNumberError","decision":"D169"}
 {"name":"the-answer-of-a-word-is-a-name-under-it","query":"::number/add | manifest | has ::number/add/sum","expect":"true","decision":"D169"}
-{"name":"a-law-of-a-label-refuses-under-its-name","query":":Box |~~ A parcel. ~~| | :Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(/0 | gt 0) | ::Box[0] !| type","expect":"::Box/LengthNotPositiveError","decision":"D169","target":true,"now":"::Box[0]"}
+{"name":"a-law-of-a-label-refuses-under-its-name","query":":Box |~~ A parcel. ~~| | :Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(/0 | gt 0) | ::Box[0] !| type","expect":"::Box/LengthNotPositiveError","decision":"D169"}
 {"name":"a-call-no-kind-of-its-subject-answers-names-the-kinds-that-do","query":"5 | take 2 !| [type /addresses]","expect":"[::call/KindAnswersNoVerbError #[::map/take ::set/take ::string/take ::vec/take]]","decision":"D169"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number(5)","expect":"5","decision":"D169"}
 {"name":"an-answer-of-none-of-its-labels-is-refused-under-the-answer","query":":Box |~~ A box. ~~| | :Box/f ~(eq 1) | :Box/f/v |~~ The value. ~~| #[::number ::string] | ::Box[1] | f !| [type /actualValue]","expect":"[::Box/f/v/NotNumberOrStringError false]","decision":"D169"}
 {"name":"an-answer-of-any-value-goes-on-as-it-is","query":":any/twice ~([/ /]) | :any/twice/both |~~ The value twice. ~~| ::any | 5 | twice","expect":"[5 5]","decision":"D169"}
+{"name":"a-law-under-a-word-holds-its-object-whole","query":":Box |~~ B ~~| | :Box/pick ~(n) | :Box/pick/n |~~ N ~~| ~(at 0 1) | :Box/pick/NothingGivenError |~~ The call gives a value. ~~| ::holds~(count | gt 0) | ::Box[1] | [(pick 5) (pick !| type)]","expect":"[5 ::Box/pick/NothingGivenError]","decision":"D169"}

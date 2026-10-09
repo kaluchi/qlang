@@ -75,7 +75,7 @@
 {"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] * (!| type)","expect":"[::error/TrailNotVecError]","decision":"D86"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail * /step)]","expect":"[::proj/KeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
-{"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(spec :count) (doc :count | content)]","expect":"[~(/0) \" How many. ::holds~(is ::number) \"]","decision":["D88","D119"]}
+{"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(spec :count) (doc :count | content)]","expect":"[~(/0) \" How many. \"]","decision":["D88","D119"]}
 {"name":"the-doc-of-a-slot-in-a-head-is-reached-by-its-name","query":":f ::verb~(:n |~~ how many ~~| ::number | add n) | :f | doc :n | content","expect":"\" how many \"","decision":["D88","D94","D95","D119"]}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type /bindingName]","expect":"[::any/DocBindingNotFoundError ::map/nosuch]","decision":["D88","D119"]}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError","decision":["D88","D156"]}
@@ -93,7 +93,7 @@
 {"name":"a-pipe-before-distribute-stands-for-it","query":"[1 2] | * (add 1)","expect":"[2 3]","decision":"D130"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] * (mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/links | doc !| /addresses","expect":"#[::doc/links]","decision":"D127"}
-{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/HoldsNotMetError ::proj/IndexNotIntegerError]","decision":"D129"}
+{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
 {"name":"a-slot-of-code-of-a-reader-refuses-a-failed-modifier","query":":f ::verb~(:q ::quote | apply q) | 1 | f /x !| type","expect":"::verb/CodeNotQuoteError","decision":"D129"}
 {"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}

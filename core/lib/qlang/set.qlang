@@ -67,6 +67,13 @@
   |~~ The sum of the elements. ~~|
   ::number
 
+:set/sum/ElementNotNumberError
+  |~~ `sum` adds numbers; `:index` names the first element in the one
+      order that is none.
+
+      ~(#[1 "two"] | sum !| [type /actualType /index] | eq [::set/sum/ElementNotNumberError ::string 1])
+  ~~|
+
 :set/avg
   |~~ The mean of the elements, each a number, or null when there is none.
 
@@ -77,6 +84,13 @@
 :set/avg/mean
   |~~ The mean of the elements, null for an empty set. ~~|
   #[::number ::null]
+
+:set/avg/ElementNotNumberError
+  |~~ `avg` takes the mean of numbers; `:index` names the first element
+      in the one order that is none.
+
+      ~(#[1 "two"] | avg !| [type /actualType /index] | eq [::set/avg/ElementNotNumberError ::string 1])
+  ~~|
 
 :set/min
   |~~ The least element, or the one whose key answers the least value.
@@ -131,6 +145,13 @@
   |~~ The elements the predicate accepted. ~~|
   ::set
 
+:set/filter/ConditionNotBooleanError
+  |~~ The predicate of `filter` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~(#[1 2] | filter ~(1) !| [type /index /actualType] | eq [::set/filter/ConditionNotBooleanError 0 ::number])
+  ~~|
+
 :set/every
   |~~ Whether the predicate answers true for every element.
 
@@ -149,6 +170,13 @@
 :set/every/all
   |~~ Whether the predicate held for every element. ~~|
   ::boolean
+
+:set/every/ConditionNotBooleanError
+  |~~ The predicate of `every` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~(#[1 2] | every ~(1) !| [type /index /actualType] | eq [::set/every/ConditionNotBooleanError 0 ::number])
+  ~~|
 
 :set/any
   |~~ Whether the predicate answers true for some element.
@@ -169,6 +197,13 @@
   |~~ Whether the predicate held for some element. ~~|
   ::boolean
 
+:set/any/ConditionNotBooleanError
+  |~~ The predicate of `any` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~(#[1 2] | any ~(1) !| [type /index /actualType] | eq [::set/any/ConditionNotBooleanError 0 ::number])
+  ~~|
+
 :set/groupBy
   |~~ The map of sets the key sorts the elements into.
 
@@ -187,6 +222,14 @@
 :set/groupBy/groups
   |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
   ::map
+
+:set/groupBy/KeyNotKeywordError
+  |~~ The key `groupBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text; any other value is
+      refused, and `:index` names the element.
+
+      ~(#[true] | groupBy !| [type /actualType /index] | eq [::set/groupBy/KeyNotKeywordError ::boolean 0])
+  ~~|
 
 :set/indexBy
   |~~ The map of the elements under the key each answers, or under
@@ -207,6 +250,14 @@
 :set/indexBy/index
   |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
+
+:set/indexBy/KeyNotKeywordError
+  |~~ The key `indexBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text; any other value is
+      refused, and `:index` names the element.
+
+      ~(#[[1]] | indexBy !| [type /actualType /index] | eq [::set/indexBy/KeyNotKeywordError ::vec 0])
+  ~~|
 
 :set/sort
   |~~ The vector of the elements in the one order, or by the value the
@@ -351,6 +402,15 @@
 :set/reduce/seed
   |~~ The value the fold starts from. ~~|
   ~(/0)
+
+:set/reduce/ReducerNotBinaryError
+  |~~ The quote of `reduce` names one verb, which the fold calls with the
+      accumulator as its subject and the element as the first part of its
+      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      name of no verb is refused.
+
+      ~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/ReducerNotBinaryError)
+  ~~|
 
 :set/union
   |~~ The set of the elements of either set, merged in the one order;

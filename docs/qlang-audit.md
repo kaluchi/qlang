@@ -1619,7 +1619,6 @@ below writes its targets before its work:
 ```sh
 $ grep -rhE '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
 "decision":"D168"
-"decision":"D172"
 ```
 
 ### Milestone 4 · One spelling

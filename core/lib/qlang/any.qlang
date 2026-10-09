@@ -10,80 +10,6 @@
       it, `/name`, before it writes JSON.
   ~~|
 
-:any/SumElementNotNumberError
-  |~~ `sum` adds numbers; `:index` names the first element that is
-      none, and a field is read first, `* /amount | sum`.
-      ~(
-        [1 "two" 3] | sum
-        !| [type /actualType /index]
-        |  eq [::any/SumElementNotNumberError ::string 1]
-       )
-  ~~|
-
-:any/AvgElementNotNumberError
-  |~~ `avg` takes the mean of numbers; `:index` names the first element
-      that is none, and a field is read first, `* /amount | avg`.
-      ~(
-        [1 "two" 3] | avg
-        !| [type /actualType /index]
-        |  eq [::any/AvgElementNotNumberError ::string 1]
-       )
-  ~~|
-
-:any/FilterConditionNotBooleanError
-  |~~ The predicate of `filter` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-      ~(
-        [1 2] | filter ~(1)
-        !| [type /index /actualType]
-        |  eq [::any/FilterConditionNotBooleanError 0 ::number]
-       )
-  ~~|
-
-:any/EveryConditionNotBooleanError
-  |~~ The predicate of `every` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-      ~(
-        [1 2] | every ~(1)
-        !| [type /index /actualType]
-        |  eq [::any/EveryConditionNotBooleanError 0 ::number]
-       )
-  ~~|
-
-:any/AnyConditionNotBooleanError
-  |~~ The predicate of `any` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-      ~(
-        [1 2] | any ~(1)
-        !| [type /index /actualType]
-        |  eq [::any/AnyConditionNotBooleanError 0 ::number]
-       )
-  ~~|
-
-:any/GroupByKeyNotKeywordError
-  |~~ The key `groupBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text, since the keys of
-      a map are keywords; any other value is refused, and `:index` names
-      the element.
-      ~(
-        [{:k true} {:k 2}] | groupBy ~(/k)
-        !| [type /actualType /index]
-        |  eq [::any/GroupByKeyNotKeywordError ::boolean 0]
-       )
-  ~~|
-
-:any/IndexByKeyNotKeywordError
-  |~~ The key `indexBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text, since the keys of
-      a map are keywords; any other value is refused, and `:index` names
-      the element.
-      ~(
-        [{:k [1]}] | indexBy ~(/k)
-        !| [type /actualType /index]
-        |  eq [::any/IndexByKeyNotKeywordError ::vec 0]
-       )
-  ~~|
-
 :any/desc
   |~~ The subject turned to descend, a value of `::desc`: a key of
       `sort`, `min` or `max`, or a place of a vector key, that ranks the
@@ -98,24 +24,6 @@
 :any/desc/descending
   |~~ The value turned to descend. ~~|
   ::desc
-
-:any/ReduceReducerNotBinaryError
-  |~~ The quote of `reduce` names one verb, which the fold calls with the
-      accumulator as its subject and the element as the first part of its
-      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
-      name of no verb is refused. A fold of several steps is a name
-      declared first, whose part names the element.
-      ~(
-        [1 2 3] | reduce 0 ~(mul 2 | add)
-        !| type
-        |  eq ::any/ReduceReducerNotBinaryError
-       )
-      ~(
-        :any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number)
-        | [1 2 3] | reduce 0 ~(step)
-        | eq 11
-       )
-  ~~|
 
 :any/eq
   |~~ Whether the subject equals the value, by structural equality deep

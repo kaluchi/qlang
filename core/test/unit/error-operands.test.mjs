@@ -155,9 +155,9 @@ describe('per-site error classes carry unique identity', () => {
     expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringError');
   });
 
-  it('sum element non-number → AnySumElementNotNumberError, the element and its kind among the facts', async () => {
+  it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {
     const refused = await evalQuery('[1 "two" 3] | sum');
-    expect(refused.originalError.name).toBe('SumElementNotNumberError');
+    expect(refused.originalError.address).toBe('vec/sum/ElementNotNumberError');
     expect(refused.descriptor.get('index')).toBe(1);
     expect(refused.descriptor.get('actualType').name).toBe('string');
     expect(refused.descriptor.get('actualValue')).toBe('two');
@@ -256,10 +256,10 @@ describe('per-site error classes carry unique identity', () => {
   });
 
 
-  it('reduce with a non-binary reducer → AnyReduceReducerNotBinaryError (distinct from subject site)', async () => {
+  it('reduce with a non-binary reducer → VecReduceReducerNotBinaryError (distinct from subject site)', async () => {
     const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
     expect(caughtErr).toBeInstanceOf(QlangError);
-    expect(caughtErr.name).toBe('ReduceReducerNotBinaryError');
+    expect(caughtErr.address).toBe('vec/reduce/ReducerNotBinaryError');
   });
 
   it('every refusal of the runtime is one kind of error, its message its address [D172]', async () => {
@@ -287,7 +287,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | vals',         // map/vals/SubjectNotMapError
       '1 | /name',         // proj/SubjectNotProjectableError (Number subject — neither Map nor Vec)
       '42 * add 1',       // each/SubjectNotContainerError
-      '[1 2 3] | reduce 0 ~(42)' // any/ReduceReducerNotBinaryError
+      '[1 2 3] | reduce 0 ~(42)' // vec/reduce/ReducerNotBinaryError
     ];
     for (const q of queries) {
       addresses.add((await evalQuery(q)).tag.name);

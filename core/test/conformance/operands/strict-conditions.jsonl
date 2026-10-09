@@ -1,8 +1,8 @@
-{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::any/FilterConditionNotBooleanError 0 ::number]","decision":"D14"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /index","expect":"1","decision":"D14"}
-{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::any/EveryConditionNotBooleanError 1]","decision":"D14"}
+{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]","decision":"D14"}
+{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":["D14","D172"]}
+{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::vec/every/ConditionNotBooleanError 1]","decision":"D14"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false","decision":"D14"}
-{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::any/AnyConditionNotBooleanError 1]","decision":"D14"}
+{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::vec/any/ConditionNotBooleanError 1]","decision":"D14"}
 {"name":"if-refuses-a-null-condition","query":"null | if (/) ~(1) ~(2) !| type","expect":"::any/if/condition/NotBooleanError","decision":"D14"}
 {"name":"if-with-an-identity-branch-runs-the-branch","query":"5 | if (gt 0) ~(add 100) ~()","expect":"105","decision":"D14"}
 {"name":"if-with-an-identity-branch-leaves-the-subject","query":"-5 | if (gt 0) ~(add 100) ~()","expect":"-5","decision":"D14"}

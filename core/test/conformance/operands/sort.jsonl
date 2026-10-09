@@ -22,3 +22,4 @@
 {"name":"sort-orders-tagged-scalars-by-payload","query":"[::A(2) ::A(1)] | sort","expect":"[::A(1) ::A(2)]","decision":["D16","D48"]}
 {"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]","decision":["D16","D48"]}
 {"name":"sort-keeps-equal-maps","query":"[{:a 1} {:a 1}] | sort","expect":"[{:a 1} {:a 1}]","decision":["D16","D48"]}
+{"name":"a-key-that-answers-an-error-answers-it-over-a-map","query":"{:a {:n 1}} | sort ~(/b) !| type","expect":"::proj/KeyNotInMapError","decision":"D87"}

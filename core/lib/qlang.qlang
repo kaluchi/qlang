@@ -768,7 +768,7 @@
       ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
       ~([{:age 3} {:age 20}] | filter ~(/age | gt 18) | count | eq 1)
       ~([{:age 3}] | sort ~/age | first | /age | eq 3)
-      ~([1 2] | filter ~(1) !| type | eq ::any/FilterConditionNotBooleanError)
+      ~([1 2] | filter ~(1) !| type | eq ::vec/filter/ConditionNotBooleanError)
       A kind is a label, a name declared by its page, whose laws every
       value put under it keeps, and whose name `construct`, when it has
       one, builds the value from the payload:

@@ -86,6 +86,17 @@
   |~~ The sum of the values. ~~|
   ::number
 
+:map/sum/ElementNotNumberError
+  |~~ `sum` adds the numbers the map holds; `:key` names the first entry
+      whose value is none, and a field is read first, `* /amount | sum`.
+
+      ~({:a 1 :b "two"} | sum !| [type /actualType /key] | eq [::map/sum/ElementNotNumberError ::string :b])
+  ~~|
+
+:map/sum/ElementNotNumberError/key
+  |~~ The key of the first entry whose value is no number. ~~|
+  ::keyword
+
 :map/avg
   |~~ The mean of the values, each a number, or null when there is none.
 
@@ -96,6 +107,17 @@
 :map/avg/mean
   |~~ The mean of the values, null for an empty map. ~~|
   #[::number ::null]
+
+:map/avg/ElementNotNumberError
+  |~~ `avg` takes the mean of the numbers the map holds; `:key` names the
+      first entry whose value is none.
+
+      ~({:a 1 :b "two"} | avg !| [type /actualType /key] | eq [::map/avg/ElementNotNumberError ::string :b])
+  ~~|
+
+:map/avg/ElementNotNumberError/key
+  |~~ The key of the first entry whose value is no number. ~~|
+  ::keyword
 
 :map/min
   |~~ The first value in the one order of values, or the one whose key
@@ -153,6 +175,17 @@
   |~~ The entries whose values the predicate accepted. ~~|
   ::map
 
+:map/filter/ConditionNotBooleanError
+  |~~ The predicate of `filter` answers a boolean for the value of each
+      entry; `:key` names the entry whose predicate answered another kind.
+
+      ~({:a 1} | filter ~(1) !| [type /key /actualType] | eq [::map/filter/ConditionNotBooleanError :a ::number])
+  ~~|
+
+:map/filter/ConditionNotBooleanError/key
+  |~~ The key of the entry whose predicate answered another kind. ~~|
+  ::keyword
+
 :map/every
   |~~ Whether the predicate answers true for every value.
 
@@ -175,6 +208,17 @@
   |~~ Whether the predicate held for every value. ~~|
   ::boolean
 
+:map/every/ConditionNotBooleanError
+  |~~ The predicate of `every` answers a boolean for the value of each
+      entry; `:key` names the entry whose predicate answered another kind.
+
+      ~({:a 1} | every ~(1) !| [type /key /actualType] | eq [::map/every/ConditionNotBooleanError :a ::number])
+  ~~|
+
+:map/every/ConditionNotBooleanError/key
+  |~~ The key of the entry whose predicate answered another kind. ~~|
+  ::keyword
+
 :map/any
   |~~ Whether the predicate answers true for some value.
 
@@ -194,6 +238,17 @@
 :map/any/some
   |~~ Whether the predicate held for some value. ~~|
   ::boolean
+
+:map/any/ConditionNotBooleanError
+  |~~ The predicate of `any` answers a boolean for the value of each
+      entry; `:key` names the entry whose predicate answered another kind.
+
+      ~({:a 1} | any ~(1) !| [type /key /actualType] | eq [::map/any/ConditionNotBooleanError :a ::number])
+  ~~|
+
+:map/any/ConditionNotBooleanError/key
+  |~~ The key of the entry whose predicate answered another kind. ~~|
+  ::keyword
 
 :map/sort
   |~~ The entries ordered by their values, or by the value the key
@@ -333,6 +388,15 @@
 :map/reduce/seed
   |~~ The value the fold starts from. ~~|
   ~(/0)
+
+:map/reduce/ReducerNotBinaryError
+  |~~ The quote of `reduce` names one verb, which the fold calls with the
+      accumulator as its subject and each value as the first part of its
+      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      name of no verb is refused.
+
+      ~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/ReducerNotBinaryError)
+  ~~|
 
 :map/keys
   |~~ The set of the keys, keywords in the one order: sorted by name.

@@ -69,6 +69,13 @@
   |~~ The sum of the elements. ~~|
   ::number
 
+:vec/sum/ElementNotNumberError
+  |~~ `sum` adds numbers; `:index` names the first element that is
+      none, and a field is read first, `* /amount | sum`.
+
+      ~([1 "two" 3] | sum !| [type /actualType /index] | eq [::vec/sum/ElementNotNumberError ::string 1])
+  ~~|
+
 :vec/avg
   |~~ The mean of the elements, each a number, or null when there is none.
 
@@ -81,6 +88,13 @@
 :vec/avg/mean
   |~~ The mean of the elements, null for an empty vector. ~~|
   #[::number ::null]
+
+:vec/avg/ElementNotNumberError
+  |~~ `avg` takes the mean of numbers; `:index` names the first element
+      that is none, and a field is read first, `* /amount | avg`.
+
+      ~([1 "two" 3] | avg !| [type /actualType /index] | eq [::vec/avg/ElementNotNumberError ::string 1])
+  ~~|
 
 :vec/min
   |~~ The first element in the one order of values, or the one whose key
@@ -161,6 +175,13 @@
   |~~ The elements the predicate accepted, in order. ~~|
   ::vec
 
+:vec/filter/ConditionNotBooleanError
+  |~~ The predicate of `filter` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~([1 2] | filter ~(1) !| [type /index /actualType] | eq [::vec/filter/ConditionNotBooleanError 0 ::number])
+  ~~|
+
 :vec/every
   |~~ Whether the predicate answers true for every element, the question
       a law asks of a listing; it stops at the first false.
@@ -195,6 +216,13 @@
   |~~ Whether the predicate held for every element. ~~|
   ::boolean
 
+:vec/every/ConditionNotBooleanError
+  |~~ The predicate of `every` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~([1 2] | every ~(1) !| [type /index /actualType] | eq [::vec/every/ConditionNotBooleanError 0 ::number])
+  ~~|
+
 :vec/any
   |~~ Whether the predicate answers true for some element; it stops at
       the first true.
@@ -228,6 +256,13 @@
 :vec/any/some
   |~~ Whether the predicate held for some element. ~~|
   ::boolean
+
+:vec/any/ConditionNotBooleanError
+  |~~ The predicate of `any` answers a boolean for each element;
+      `:index` names the element whose predicate answered another kind.
+
+      ~([1 2] | any ~(1) !| [type /index /actualType] | eq [::vec/any/ConditionNotBooleanError 0 ::number])
+  ~~|
 
 :vec/has
   |~~ Whether the vector holds the element, an element equal to it; the
@@ -303,6 +338,15 @@
   |~~ The elements filed under the keyword their key answered. ~~|
   ::map
 
+:vec/groupBy/KeyNotKeywordError
+  |~~ The key `groupBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text, since the keys of
+      a map are keywords; any other value is refused, and `:index` names
+      the element.
+
+      ~([{:k true} {:k 2}] | groupBy ~(/k) !| [type /actualType /index] | eq [::vec/groupBy/KeyNotKeywordError ::boolean 0])
+  ~~|
+
 :vec/indexBy
   |~~ The map of the elements under the key each answers, the last
       element winning a key two share; a key that answers a string is
@@ -336,6 +380,15 @@
 :vec/indexBy/index
   |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
+
+:vec/indexBy/KeyNotKeywordError
+  |~~ The key `indexBy` files an element under is a keyword, or a string
+      or a number, filed under the keyword of its text, since the keys of
+      a map are keywords; any other value is refused, and `:index` names
+      the element.
+
+      ~([{:k [1]}] | indexBy ~(/k) !| [type /actualType /index] | eq [::vec/indexBy/KeyNotKeywordError ::vec 0])
+  ~~|
 
 :vec/sort
   |~~ The elements in the one order of values, the order every value
@@ -543,6 +596,21 @@
 :vec/reduce/seed
   |~~ The value the fold starts from. ~~|
   ~(/0)
+
+:vec/reduce/ReducerNotBinaryError
+  |~~ The quote of `reduce` names one verb, which the fold calls with the
+      accumulator as its subject and the element as the first part of its
+      object, `reduce 0 ~(add)`; a quote of several steps, a literal or a
+      name of no verb is refused. A fold of several steps is a name
+      declared first, whose part names the element.
+
+      ~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/ReducerNotBinaryError)
+      ~(
+        :any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number)
+        | [1 2 3] | reduce 0 ~(step)
+        | eq 11
+       )
+  ~~|
 
 :vec/union
   |~~ The union of the operands the vector holds, sets merged in the one

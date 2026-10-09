@@ -118,28 +118,19 @@ Some rules for whoever edits the document, each learnt at a cost:
   that produced it. The date and the source belong in the record's
   source line, not in the narrative.
 - The transcripts of the sessions are the only lossless record of what
-  was said. They are the `.jsonl` files of the Claude Code project
-  directory. A message the maintainer sends is a record whose `type` is
-  `user`; a message sent while the model works is a record whose `type`
-  is `queue-operation` and whose `operation` is `enqueue`, with the
-  text in `content`; the summary of a compaction is a `user` record
-  too, written by the model, so a quote found only there is the model's
-  paraphrase. `scripts/sensors/maintainer-messages.mjs` lists the
-  maintainer's words on any topic, and `scripts/sensors/check-quotes.mjs`
-  checks every quote of a document against them. When a record's quote is not
-  enough, the transcript around it is.
+  was said, the `.jsonl` files of the Claude Code project directory; the
+  summary of a compaction is the model's paraphrase, never a source.
+  `scripts/sensors/maintainer-messages.mjs` lists the maintainer's words
+  on any topic, and `scripts/sensors/check-quotes.mjs` checks every
+  quote of a document against them.
 - Before the first claim about the language, a session reads the
-  sources the instruction file names in its first tier, whole. The
-  file-reading tool cuts a read at its token cap, and the transcript
-  stores every read with the lines it returned and the lines the file
-  has, marking a cut read with `truncatedByTokenCap`; a read that
-  stopped there did not read the file, and
+  sources the instruction file names in its first tier, whole; a read
+  the tool cut at its token cap did not read the file, and
   `scripts/sensors/read-coverage.mjs` measures what a session has read.
 - A source outside the tree is read whole before a sentence here rests
-  on it. A search engine's digest of a page and a fetching tool's
-  summary are another model's retelling, and a sentence written from
-  one about two articles once said of one of them the opposite of what
-  it says.
+  on it: a search engine's digest and a fetching tool's summary are
+  another model's retelling, and a sentence written from one once said
+  of an article the opposite of what it says.
 - Nothing here is condensed or deleted without the maintainer's word,
   except a sentence that the tree proves wrong, which is replaced by
   the fact and its probe.
@@ -537,57 +528,36 @@ where judgement is needed. Aviation and the terminals of the paper age
 worked out the rules long ago, because output was expensive then as
 tokens are now, and the rules carry over:
 
-- The dark cockpit. When everything is normal the panel is silent, and
-  only what needs action lights up. An answer, a dashboard, an error
-  shows what deviates and nothing else. The Unix rule of silence says
-  the same: a program with nothing surprising to say says nothing.
-- One procedure per alert. Every message of VMS was one line,
-  `%FACILITY-S-IDENT, text`, and `HELP/MESSAGE IDENT` opened a page with
-  fixed sections, what it means and what the user does; IBM's manuals
-  of messages and codes gave each identifier an explanation, the
-  system's action and the programmer's response. The tag of an error
-  is the identifier, the descriptor carries the facts, and the
-  document behind the tag is the procedure.
-- Levels. ISPF on the mainframe showed a short message in the corner of
-  the screen; one key showed the long message, the same key again the
-  tutorial. The cord from an alert to its depth has levels, and the
-  reader chooses how far to follow it.
-- Every observation offers its next actions. IBM's console messages
-  that required a decision listed the replies they accepted; `git
-  status` ends with the command that would move each file on. An
-  answer names the queries that continue it.
-- Every handle says what is behind it and how heavy it is. A menu line
-  of Gopher began with a character naming the type of what it led to;
-  `ls -l` shows a size before `cat`. Pirolli and Card called the
-  property information scent. A link whose weight is unknown is opened
+- The dark cockpit: when everything is normal the panel is silent, and
+  an answer, a dashboard or an error shows what deviates and nothing
+  else, as the Unix rule of silence says.
+- One procedure per alert: VMS's `HELP/MESSAGE IDENT` and IBM's manuals
+  of messages gave each identifier a page of what it means and what the
+  user does; the tag of an error is the identifier, its facts are the
+  descriptor, and the page behind the tag is the procedure.
+- Levels: ISPF showed a short message, the long one a key away and the
+  tutorial behind it, and the reader chooses how far to follow the cord.
+- Every observation offers its next actions, as `git status` ends with
+  the command that moves each file on.
+- Every handle says what is behind it and how heavy it is, as `ls -l`
+  shows a size before `cat`; a link whose weight is unknown is opened
   blind, which is how a session once pulled a page of sixty-five
   kilobytes to learn one count.
-- Position, remainder, and completeness are stated. A pager prints how
-  far through the text it is; a report prints its total rows; batch
-  processing carried control totals so that a lost record could be
-  detected. An answer that left something out says how many it left
-  out, in the units the steps that read the rest count in.
-- A fragment identifies itself. Line printers repeated the job, the
-  date and the page on every sheet so that a torn-off page stayed
-  legible. A piece of an answer that survives compaction says where it
-  came from and how to get the rest.
-- The cheap path is declared. `head` prints ten lines, `ls` does not
-  recurse without a flag, and a job card declared its limit of printed
-  lines together with what to do when the limit was reached. A cut the
-  reader did not ask for is a surprise, so the budget is a request the
-  reader makes, and the marker of what it left out says how to read the
-  rest [D120].
-- Help comes from declared grammar. TOPS-20 answered `?` at any point
-  of a command with what was expected there, completed a word on
-  escape and printed guide words in parentheses, `COPY (FROM)`; every
-  program got that for free from one system parser to which it
-  declared its syntax. DCL prompted for a missing parameter by name;
-  Cisco's `?` lists the valid continuations with a line each. All of
-  them could help only because the syntax was declared to the system.
-  The operand declarations of qlang, once the runtime executes them,
-  are that declared grammar, and the help follows from them: after a
-  value, the verbs that accept it; inside a command, the name and kind
-  of the next slot; after an unknown name, the nearest known ones.
+- Position, remainder and completeness are stated: an answer that left
+  something out says how much, in the units the steps that read the
+  rest count in.
+- A fragment identifies itself, as a line printer repeated the job and
+  the page on every sheet, so a piece of an answer that survives
+  compaction says where it came from and how to get the rest.
+- The cheap path is declared, and a cut the reader did not ask for is a
+  surprise, so the budget is a request the reader makes and the marker
+  of what it left out says how to read the rest [D120].
+- Help comes from declared grammar: TOPS-20 answered `?` anywhere in a
+  command with what was expected there, because every program declared
+  its syntax to one parser. The declarations of the catalog are that
+  grammar, and the help follows from them: after a value, the verbs
+  that accept it; inside a command, the next part; after an unknown
+  name, the nearest known ones.
 
 The labour divides cleanly. The language computes the exact value of a
 query, whatever its size, and leaves nothing out; a literal can always
@@ -606,31 +576,20 @@ fits the next utility. On 24 September 2026:
 
 Enrichment is an act of the same kind. The host's renderer sees that a
 value, or an error, carries tags and keywords the session has not met,
-and loads their documents into the answer while the budget allows:
-first the documents of the tags in the literal, then whatever the
-keywords and quotes inside those documents lead to. The vocabulary of
-the value drives it, and nothing is authored per operand. Plan 9's
-plumber worked the same way: it recognized a file and line, a manual
-reference, an address in any text and routed it to its handler, so
-links were recognized rather than written. The games that carry a
-codex, an encyclopedia whose entries open the first time the player
-meets a concept, do exactly what enrichment once per session means.
+and loads their documents into the answer while the budget allows,
+first those of the tags, then whatever their keywords and quotes lead
+to; the vocabulary of the value drives it, links recognized rather than
+written, as Plan 9's plumber recognized them, and once per session, as
+a game's codex opens an entry the first time the player meets it.
 
-A host learns what its reader wants through negotiation. The terminal
-age did it by sniffing: a program asked `isatty` whether a human read
-its output and chose colour, columns and buffering, and the guess was
-wrong often enough that every tool grew `--color=always`, `NO_COLOR`,
-`FORCE_COLOR` and a way to fake a terminal. HTTP made the reader
-declare instead: `Accept` for the form, `Range` for a piece,
-`If-None-Match` for what the reader already holds, `Prefer:
-return=minimal` for the detail. Those are the four parameters of our
-contract, and the host takes them declared, with sniffing only as a
-default. A model is a new kind of reader, neither a terminal, for
-which colour codes are wasted tokens, nor a parser, since it reads
-prose; Claude Code already tells a command that a model is reading and
-which session it is, through `CLAUDECODE` and `CLAUDE_CODE_SESSION_ID`
-in the environment, so a host can keep its enrichment once per
-session by itself. On 23 September 2026:
+A host learns what its reader wants by the reader's declaration rather
+than by sniffing, as HTTP's `Accept`, `Range`, `If-None-Match` and
+`Prefer` replaced the guess of `isatty`: the form, the piece, what the
+reader already holds and the detail are the four parameters of the
+contract, sniffing only a default. A model is a reader of its own kind,
+and Claude Code already tells a command that a model is reading and in
+which session, so a host can keep its enrichment once per session by
+itself. On 23 September 2026:
 
 ```sh
 $ env | grep -E '^CLAUDECODE|^CLAUDE_CODE_(ENTRYPOINT|SESSION_ID)'
@@ -640,24 +599,17 @@ CLAUDE_CODE_ENTRYPOINT=cli
 ```
 
 What the language owes the host for all this is short. A tag goes over
-any payload without a declaration and prints faithfully; that holds.
-The pipeline is the cursor: a query is a pure path to its data, so the
-part of an answer that was left out is the same query with a tail, and
-no session is needed to read in pieces.
+any payload without a declaration and prints faithfully, and the
+pipeline is the cursor: the part of an answer that was left out is the
+same query with a tail, which works where every part of a value has a
+size, an address and a slice, as a vector, a set, a map, a value under
+a tag and an error do, and a string by its characters [D132] and its
+lines:
 
 ```qlang
 > [10 20 30 40 50] | drop 2 | take 2
 [30 40]
-```
 
-That works only where every part of a value has, inside the pipe, a
-size, an address and a slice. A vector, a set, a map, a value under a
-tag and an error on the fail track have them. A string has a size and
-a slice by its characters [D132] and an address by way of its lines,
-and strings are what overflows in the sister project, source text and
-rendered cards:
-
-```qlang
 > "hello world" | count
 11
 
@@ -681,30 +633,21 @@ quotes [D19], [D95]:
 3
 ```
 
-The pageable shape is the vector, and a value that can overflow has to
-break into one, as the quote and the doc have, and a string does
-through its lines.
+The pageable shape is the vector, and a value that can overflow breaks
+into one, as the quote and the doc have, and a string does through its
+lines.
 
-Next, every tag and keyword inside a value is an anchor that resolves to
-its document. A tag is one. A keyword resolves only as the name of a
-binding, so the keyword of a field and the keyword that is one of an
-enumeration lead nowhere, and one keyword means different things in
-different records: `:modifiers` on a node of the sister project's graph
-and `:modifiers` on an operand's descriptor. A record that is to be
-enriched therefore carries a tag, where the sister project's nodes carry
-their kind as a string field, and the meaning of its fields is
-documented by its tag, a value shared by several kinds of record by its
-own [D50]. The shape of an answer is read the same way, before the
-answer is fetched: the operand's declaration names the tag or the type
-of its result, the definitions under the tag's address say what its
-values hold, and those under the operand's address and its `doc`
-answer for one operand what a schema sheet would answer for all. The result of a word is the label its answer's
-definition names, `:number/add/sum ::number`, the catalog's and a
-reader's alike [D169]; the fields are
-declared with the tag, and the element shape of a container is spelled
-as the container's literal around the kind, `[::Method]` for a vector of
-methods. Last, everything prints as what it is, code included, because
-an elided and enriched page travels on.
+Next, every tag and keyword inside a value is an anchor that resolves
+to its document. A keyword resolves only as the name of a binding, so
+the keyword of a field leads nowhere and one keyword means different
+things in different records; a record that is to be enriched therefore
+carries a tag, which documents its fields, and a value shared by
+several kinds of record a tag of its own [D50]. The shape of an answer
+is read the same way, before the answer is fetched: the result of a
+word is the label its answer's definition names, `:number/add/sum
+::number`, and the definitions under that label say what its values
+hold [D169]. Last, everything prints as what it is, code included,
+because an elided and enriched page travels on.
 
 The pages themselves are values of the same kind. The names are a space
 of addresses, and a verb passes from an address into one of its
@@ -730,127 +673,67 @@ true
 ## How the project got here
 
 The core landed in three days in early April 2026, carried over from a
-specification written inside the sister project. The following ten
-days added, in the order the consumer asked for them, comments that
-behave as pipeline steps, effect markers on names, control flow, the
-error as a value, named pipelines with parameters, a module system, a
-language server, the catalog, and a command line. In the middle of May
-the hypertext ideas arrived: quote, doc, tags, the axis operands, and
-executable examples. They are the most fundamental concepts in the
-language, and they arrived a month after the grammar had frozen around
-comments, around the `as` operand, and around effect markers. Late May
-went to hardening under an external code reviewer; the summer fell
-silent; September brought a numeric model, an evaluation depth budget,
-and a single declaration site for each error.
+specification written inside the sister project, and the next ten days
+added what the consumer asked for in that order: comments that behave
+as steps, effect markers, control flow, the error as a value, named
+pipelines, modules, a language server, the catalog and a command line.
+The hypertext ideas, quote, doc, tags, the axes and executable examples,
+arrived in May, a month after the grammar had frozen around comments,
+the `as` operand and effect markers; September brought a numeric model,
+a depth budget and a single declaration site for each error.
 
-Neither the maintainer nor the model wanted the tree that resulted, so
-the causes are worth naming, because the process that follows has to
-remove them and not only their products.
+Neither the maintainer nor the model wanted the tree that resulted, and
+its causes are what the process has to remove, not only their products.
+The goal was never written down, so an experiment was judged by whether
+it worked and was layered rather than closed. Process substituted for
+design: review rules demanding prose in every comment and a class for
+every throw site, a coverage threshold demanding a test for every
+branch, each reasonable on a finished thing and damaging on a thing
+still designed, since it turns a design decision into a rule the design
+can no longer revisit. Features arrived in the order they were needed
+rather than the order they rest on each other: the quote after named
+pipelines had chosen how to pass arguments, the doc after comments had
+become the way to attach prose, tags after JSON containers had become a
+second type. And every fix added a guard rather than removing a cause,
+a drift test for two spellings of a fact, a wrapper unwrapped at every
+reader, a dynamic import for a cycle and a comment to explain the
+import, each surgery treating the one before it.
 
-The goal was never written down. Without a stated measure, each
-experiment was judged by whether it worked, not by whether it
-multiplied what existed; experiments were not closed, they were
-layered.
-
-Process substituted for design. The review rules demanded high-entropy
-prose in every comment and a distinct class for every throw site; the
-coverage threshold demanded a test for every branch; an observability
-fingerprint demanded stable class names. Each of those is a reasonable
-constraint on a finished thing and a damaging one on a thing still
-being designed, because each turns a design decision into a rule the
-design can no longer revisit.
-
-Features arrived in the order they were needed rather than in the order
-they depend on each other. The quote arrived after named pipelines had
-already chosen how to pass arguments; the doc arrived after comments had
-already become the way to attach prose; tags arrived after JSON
-containers had become a second type.
-
-Every fix added a guard rather than removing a cause. A drift test
-protects two spellings of a fact instead of one of them being deleted;
-a snapshot wrapper is unwrapped at every place the environment is read
-instead of not existing; a dynamic import breaks a module cycle instead
-of the cycle being cut.
-
-And the model that wrote the code, working under context compaction
-and under those rules, produced justification instead of deletion. The
-mechanism is worth stating in the model's own terms, since the next
-session will be a model too. A change the model is unsure of feels
-safer with a comment that explains it, so the doubt moves into the
-code and stays there; the tree carries thousands of lines of such
-comments, some of them now false. The model sees a few files, the
-cause lives in another, and so it repairs where it looks, which is how
-one wrapper came to be unwrapped at eight separate places.
-Rules that reward addition are obeyed by adding. And a model's report
-that it has read what it was told to read cannot be checked from the
-report: it can skim, read a file that the tool cut in half, and still
-say it read it. The maintainer met every one of these: the model «не
-раз меня обманывала говоря что выполнила бустрап, а сама вместо этого и
-половины нужных файлов не прочитала», and without the facts «та
-начинает гадать, или галюцинировать или превращается в
+The model that wrote the code, working under compaction and under those
+rules, produced justification instead of deletion: a change it was
+unsure of felt safer with a comment, so the doubt moved into the code
+and stayed there; it repaired where it looked while the cause lived in
+another file; and its report that it had read what it was told cannot
+be checked from the report. The maintainer met every one of these: the
+model «не раз меня обманывала говоря что выполнила бустрап, а сама
+вместо этого и половины нужных файлов не прочитала», and without the
+facts «та начинает гадать, или галюцинировать или превращается в
 секретаря-писаря вместо напарника по интеллектуально работе»
 (maintainer, 2026-09-23 03:09, session 86982eb5). The remedies are
-structural. Doubt goes into a decision recorded here, never into code.
-A branch starts from the full set of places where a cause shows and
-removes the cause. And what a session must have read, run or checked
-is measured by the environment from the transcript and the tree, the
-way a cockpit checklist closes a sensed item by itself; that belongs
-to the entrypoint.
+structural: doubt goes into a decision recorded here, never into code;
+a branch starts from the full set of places where a cause shows and
+removes the cause; and what a session must have read, run or checked is
+measured by the environment from the transcript and the tree, which
+belongs to the entrypoint.
 
-Three chains show the pattern concretely. Comments became pipeline
-steps; then they absorbed the combinators around them; then the
-grammar needed a marker for the absorbed combinator, two variants of
-the pipeline production, a side channel carrying the position of a doc
-comment, a special case for the `as` operand, and tests for the scope
-of attached docs. JSON containers became a second type; then a branch
-was needed to preserve their shape through transforms; then tag
-constructors had to be re-invoked after each transform; then a dynamic
-import was needed to break the module cycle that created; then a
-comment was needed to explain the import. Error identity lived in a map
-field; then it moved to a hidden header; then the surviving uses of the
-field were catalogued; then two drift tests and an injection script
-were written to keep the catalog and the classes in agreement. Each
-surgery treats the one before it.
-
-The repairs since have settled most of what grew around the core, and
-the tree holds what they settled. Code is the vector of its steps, which
-the language takes apart and assembles with its own verbs, and every
-step is a command. There is one binding form, a name is declared once in
-a scope, and a verb of the catalog is a name under the label of its
-subject, a host's primitive or a quote, the parts of its object names
-under the call's address, each read from the object and held to the
-laws of its page, the law of its answer on its own page [D164], [D166],
-[D167], and a reader's verb is written alike, `:number/inc ~(add 1)`
-[D168]. A comment is whitespace, and a doc is the literal in the slot of the
-declaration it documents. One order ranks every value, JSON syntax reads
-into the one map and the one vector, the set is the ordered vector under
-its tag, every value has a kind, and every condition is a boolean. The
-catalog is written by nouns: a verb lives on the kind its subject names
-and is found by walking the subject's tags, a refusal is named by the
-address of what refused, and the loader is a verb of any value. An error is a
-value of the kind `::error` under the tag of the site that refused, its
-trail the path it took, and `*` answers its first failure. The literal is
-the one lossless format of a value, the tagged JSON and the session
-envelope having left [D30]. The catalog is the reference of the language
-[D128]: the documents that retold it left, their facts laws of its pages,
-and a name answers one page, read within by anchors, its links opened,
-its snippets shown and its laws run. The first page tells the language
-from its invariants [D131], and the forms a clean session reached for
-and missed became the language's where they composed with it: a map
-coming apart into its pairs and back [D138], a fallback value for
-`coalesce` [D133], the size and the slices of a string [D132], a key
-that descends [D140]. The benchmark measures the first screen on sets of
-tasks a clean author writes and no one has read [D142]. On the set R,
-unread, the screen that teaches names under labels, saved as D166,
-solved every task in two of its three blind runs and in its run with the
-command line, missing R10 in the third, where the screens of D153 and
-D156 missed R3 in each of theirs; on the set S, written after it, D166
-solved every task in two of its three blind runs and D156 in none of
-its three, missing S5 in each; the screen as the reviews of the branch
-left it, saved as D167, solved every task of both sets in each of its
-three blind runs. `node scripts/benchmark.mjs grade R` and `grade S`
-hold the runs side by side. What those repairs left is what
-the scars below describe.
+The repairs since have settled most of what grew around the core. Code
+is the vector of its steps, every step a command. There is one binding
+form, a name is declared once in a scope, and a verb is a name under the
+label of its subject, a host's primitive or a quote, the parts of its
+object names under its address with their laws [D164], [D166], [D167],
+[D168]. A comment is whitespace, and a doc the literal in the slot of
+the declaration it documents. One order ranks every value, the set is
+the ordered vector under its tag, every value has a kind, and every
+condition is a boolean. A refusal is named by the address of the word
+that refused, its facts definitions of the catalog [D172]. The literal
+is the one lossless format [D30], the catalog is the reference of the
+language [D128], and its first page tells the language from its
+invariants [D131]; the forms a clean session reached for and missed
+became the language's where they composed with it [D132], [D133],
+[D138], [D140]. The benchmark measures the first screen on sets of
+tasks a clean author writes and no one has read [D142], and `node
+scripts/benchmark.mjs grade R` and `grade S` hold its runs side by side.
+What those repairs left is what the scars below describe.
 
 ## The scars
 
@@ -876,54 +759,14 @@ so that nothing of the runtime is exported for building operands [D46].
 
 ### Names in one root
 
-A declaration writes the record of its binding into its scope [D63],
-and a source of the root is a cell whose declarations stand in the root
-as a cell's stand in a session [D153]: what it declares bare is a name
-of every reader's scope, and what it declares with a path a node under
-a noun. A helper of one verb lives in the group of its declaration and
-closes with it, and a helper several verbs share is a node under their
-noun. The sister project declares the helpers behind `@problems` under
-its topic, `:jdt/@problemsVia`, so they leave its client's names. In
-the sister project:
-
-```sh
-$ node cli/bin/jdt q 'env | keys | inter #[:@problems :@problemsVia :@problemsForNodeVia :problemsInRangeOf]'
-#[]
-$ node cli/bin/jdt q '::jdt | manifest'
-#[::jdt/@problemsForMemberVia ::jdt/@problemsForNodeVia ::jdt/@problemsForStringVia ::jdt/@problemsVia ::jdt/problemsInRangeOf]
-```
-
-Every kind a source declares bare reaches the names of every reader
-the same way, so a host whose verbs name kinds of their own [D60]
-multiplies what a reader's `env` shows unless the source declares
-those kinds under its noun; the sister project's kinds, `JdtType` and
-its kin, and its refusals stand bare in the root.
-
-The verbs of the core are declared under their noun, `:vec/count`
-[D72], [D153]. The command line declares its verbs under the kinds of
-their subjects, `:vec/table` and `:any/@out`, and its topic `::cli`
-among the names of the root, and the sister project its verbs under
-`::any`, every value their subject, so a query calls them all by their
-names and none lands among a client's own [D80], [D153]. In the sister
-project:
-
-```sh
-$ node cli/bin/jdt q 'env | has :@type'
-false
-$ node cli/bin/jdt q '::any | manifest | has ::any/@type'
-true
-```
-
-Beside the names the environment holds one key of the runtime, the
-root, which every reader of it filters; `env` answers what the reader
-declared, and `kinds` the kinds the scope reads, the root's among them
-[D153], [D160]. A kind the scope declares is a name like any other
-[D152]:
-
-```qlang
-> :Width |~~ How many characters a line holds. ~~| | env | has :Width
-true
-```
+A source of the root is a cell whose declarations stand in the root as
+a cell's stand in a session [D153]: what it declares bare is a name of
+every reader's scope, and what it declares with a path a node under a
+noun, so the verbs of the core, the command line's and the sister
+project's live under the kinds of their subjects and none lands among a
+client's own names [D72], [D80]. A kind a source declares bare reaches
+every reader the same way, and the sister project's kinds, `JdtType`
+and its kin, and its refusals stand bare in the root.
 
 And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
@@ -942,56 +785,42 @@ $ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
 56
 ```
 
-That is the `ioctl` of Unix: every new capability a new verb in one
-shared space. Plan 9 answered the same growth by keeping the verbs
-fixed, the handful of operations of its file protocol, and letting the
-nouns grow, every resource a path in a per-process namespace; a host's
-catalog should grow the same way.
+That is the `ioctl` of Unix, every new capability a new verb in one
+shared space, where Plan 9 kept the verbs fixed and let the nouns grow;
+a host's catalog should grow the same way.
 
-[D153] repaired the surface and the loading: a helper stays lexically
-visible to the operands that use it and out of a reader's names, a host
-hands its names one way, its sources declared as cells into the root,
-the environment keeps one key of the runtime beside the names, and the
-catalog is written by its nouns, so a noun's verbs are read where they
-are written [D62], [D67]. What remains is the rest of the rule of
-collisions:
+[D153] repaired the surface and the loading: a helper stays out of a
+reader's names, a host hands its names one way, its sources declared as
+cells into the root, and the catalog is written by its nouns [D62],
+[D67]. What remains is the rest of the rule of collisions:
 
-- A verb and a kind may be joined by whoever owns one of them. This is
-  the orphan rule of Rust and the rule against type piracy in Julia: a
-  host may specialize a core verb on its own tags and may declare its
-  own verbs, but may not redefine a core verb on the core's kinds. The
-  rule separates the sister project's two collisions: `source` on its
-  own node tags is allowed and resolves by the subject, while
-  redefining `type`, the reader of identity every error handler and
-  sort relies on, is not, and the node's kind moves into a field or a
-  tag.
-- Extensions are switched on lexically. Ruby's global reopening of
-  classes broke libraries against each other until refinements made a
-  patch active only where `using` names it; a reader's verb under a
-  noun of the root, `:vec/second`, stands in its scope and nowhere
-  else, and a host's extensions stand in the root its sources declare
-  for its readers alone [D153].
-- Names without a prefix belong to the core. EDN reserves its
-  unprefixed tags for built-ins and requires every user tag to carry a
-  prefix the user owns, a domain or a mark; CBOR's registry gives its
-  short tag numbers only through a standard. JavaScript learnt the
-  cost of the alternative when `Array.prototype.flatten` could not ship
-  because an old library had already put a different `flatten` there,
-  and the method became `flat`: a shared space of verbs that hosts can
-  write into freezes the core out of its own names.
+- A verb and a kind may be joined by whoever owns one of them, the
+  orphan rule of Rust: a host may specialize a core verb on its own tags
+  and declare its own verbs, but may not redefine a core verb on the
+  core's kinds. So `source` on the sister project's node tags resolves
+  by the subject, while its `type`, the reader of identity every error
+  handler and sort relies on, moves into a field or a tag.
+- Extensions are switched on lexically, as Ruby's refinements made a
+  patch active only where `using` names it: a reader's verb under a
+  noun of the root, `:vec/second`, stands in its scope alone, and a
+  host's extensions in the root its sources declare for its readers
+  [D153].
+- Names without a prefix belong to the core, as EDN reserves its
+  unprefixed tags; JavaScript learnt the cost when
+  `Array.prototype.flatten` could not ship because a library had put
+  another `flatten` there, and a shared space hosts write into freezes
+  the core out of its own names.
 - One query shows every definition of a name and which one wins, as
   `type -a` does in bash.
 
-Namespaces that are too large to bind become mounted [D24]. The sister
-project's types are tens of thousands of names; they cannot live as
-bindings in an environment map. A host serves a namespace lazily, the
-way a file server was mounted into a namespace of Plan 9: a tag that no
-binding knows is asked of the mounted namespaces in order, and the
-first that knows it answers, with the order of mounting and the rule of
-ownership settling any overlap. The core knows nothing about Java; it knows how to ask a
+Namespaces too large to bind become mounted [D24]. The sister project's
+types are tens of thousands of names; a host serves them lazily, the way
+a file server was mounted into a namespace of Plan 9: a tag no binding
+knows is asked of the mounted namespaces in order, the first that knows
+it answers, and the order of mounting and the rule of ownership settle
+any overlap. The core knows nothing about Java; it knows how to ask a
 mounted namespace. With that, a Java type is a tag, written in Java's
-own spelling so that the name has one spelling, copied from a stack
-trace and pasted into a query:
+own spelling, copied from a stack trace and pasted into a query:
 
 ```qlang target
 > ::app.m8.web.servlet.gwt.orgstructure.functask.ConfirmFtNewEmpHandler | source
@@ -1009,33 +838,30 @@ is accepted inside a tag's name and the dot is not:
 ::quote/ParseError!{ … :found "." … }
 ```
 
-The dot is unused elsewhere in the grammar, and after `::` it is
-unambiguous, so admitting it inside a tag's name is a local change; a
-quoted form, `::"…"`, like the quoted keyword, covers the characters
-Java allows and an identifier does not, the `$` of a nested class
-among them. A member of a type is no kind of value and is no tag: it
-is a record under the host's tag that points at its type,
-`::JdtMethod{:of ::app.m8.Foo :sig "bar(int)"}`, a value that prints,
-reads back and resolves. And the sister project's sixty verbs shrink to
-about a dozen: the lookups become the tag literal, the accessors of the
-containing element become fields whose values are tags and therefore
-links, the enumerations by scope become one verb over any containing
-node, the relations become one verb with a map of options plus a few
-named ones where the name carries meaning, and the helpers stop being
-exported.
-
-A namespace is also what an agent sees. Plan 9 gave every process its
-own namespace and so decided what a program could reach by what was
-mounted for it; a session, and a sub-agent inside it, is given the
-namespaces its task needs, and focus comes from construction rather
-than from being asked for.
+The dot is unused elsewhere in the grammar, so admitting it inside a
+tag's name is a local change, and a quoted form, `::"…"`, covers the
+characters Java allows and an identifier does not, the `$` of a nested
+class among them. A member of a type is a record under the host's tag
+that points at its type, `::JdtMethod{:of ::app.m8.Foo :sig
+"bar(int)"}`, a value that prints, reads back and resolves. And the
+sister project's sixty verbs shrink to about a dozen: the lookups become
+the tag literal, the accessors of the containing element fields whose
+values are tags and therefore links, the enumerations by scope one verb
+over any containing node, the relations one verb with a map of options
+beside a few named ones, and the helpers stop being exported. A
+namespace is also what an agent sees: a session, and a sub-agent inside
+it, is given the namespaces its task needs, so focus comes from
+construction rather than from being asked for.
 
 ### Errors named by their site
 
-A name under a label refuses with no class of its own: a subject of
-another kind is refused under the name, a part that breaks a law under
-the law, whose name is the refusal, and each refusal reads the page of
-what refused, where the procedure is written once [D166], [D169]:
+A refusal is named by the address of what refused: a subject of
+another kind under the word, a part that breaks a law under the law,
+whose name is the refusal, and a primitive's refusal under the word
+that ran it, which lists it among its names. The facts an error carries
+are definitions under the label of the refusal and under `::error`, held
+in the order they are declared, the trail last, and a fact neither
+declares is a defect of the runtime [D166], [D169], [D172]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -1044,116 +870,51 @@ what refused, where the procedure is written once [D166], [D169]:
 > 1 | add "x" !| [type /actualType]
 [::number/add/addend/NotNumberError ::string]
 
+> [1 "x"] | sum !| [type /index]
+[::vec/sum/ElementNotNumberError 1]
+
+> ::vec/sum | manifest
+#[::vec/sum/ElementNotNumberError ::vec/sum/total]
+
 > "hello" | add 1 !| explain | page | content | contains "sumOf"
 true
 ```
 
-Every other throw site in the runtime still declares its own error
-class, its name a function of the facts the site records, and the
-catalog carries a page for every one of them, so the prose about errors
-outweighs the prose about the operands themselves. The facts an error
-carries are definitions of the catalog, each a name, its page and the
-kind it holds, under the label of the refusal and under `::error` for
-those every refusal shares, and the error holds them in the order they
-are declared, the trail last; a fact the runtime raises that neither
-declares is a defect of the runtime [D172]:
-
-```qlang
-> 1 | add 1 2 !| entries * first
-[:actualType :places :actualValue :trail]
-
-> ::proj/IndexOutOfBoundsError | manifest
-#[::proj/IndexOutOfBoundsError/index ::proj/IndexOutOfBoundsError/length]
-```
-
-Of its site the runtime records the address alone, which names the
-place, the laws of its page saying the kind it wants: one kind of
-refusal in the JavaScript, whose message is its address, with no
-category, operand or position beside it [D172]. The classes and the
-catalog are kept in agreement by the addresses the runtime declares and
-a test that holds each against its page.
-
-The alerts themselves are lit, where the cockpit wants them dark. An
-error carries its whole input, so one failing step over a large value
-prints the value:
+What remains is the alert itself, lit where the cockpit wants it dark.
+An error carries its whole input, so one failing step over a large
+value prints the value, and the path of an error carries the subject of
+every level it left [D85], so the same failure one verb deeper prints it
+twice:
 
 ```qlang
 > ::vec | doc | add 1 !| /trail * /subject * eq (::vec | doc)
 [true]
-```
 
-The path of an error carries the subject of every level it left
-[D85], so the same failure one verb deeper prints the value twice:
-
-```qlang
 > :any/g ~(add 1) | ::vec | doc | g !| /trail * /subject * eq (::vec | doc)
 [true true]
 ```
 
-A part of a call that meets an error hands it on unchanged, as the law
-of nested errors asks [D13], [D68]:
-
-```qlang
-> 1 | add (!{:k 1}) !| type
-::error
-```
-
 The ring of atoms [D42] stays open at one example of the catalog: an
-error literal whose trail is no vector of stops is a step that `raise`,
-the one verb that builds an error from its fields, refuses to build,
-since the error a step produces carries its path there [D82], [D85].
+error literal whose trail is no vector of stops is a step that `raise`
+refuses to build, since the error a step produces carries its path
+there [D82], [D85]:
 
 ```qlang
 > ~(!{:kind :oops :trail 5}) * (!| raise !| type)
 [::error/TrailNotVecError]
 ```
 
-The library of error-handling pipelines, retry and recover and assert
-and their kin, left the package: after `!|` each of its verbs is a line
-of the core, and the pages of `::error` and `raise` hold those lines as
-examples [D102].
+And a refusal of the runtime is still a class of the JavaScript for
+each address, which the runtime declares and a test holds against its
+page [D172].
 
-The repair must keep error identity per site and declare it once [D7],
-[D46]: each site's tag is a kind declared in the catalog beside its
-operand, whose schema owns the site's fields in the order a reader needs
-them and whose document is the site's procedure; the throw site passes
-the facts, and the tag's constructor checks them. A refusal is declared
-under the noun of its place, where `manifest` lists it [D152], [D153], and
-a verb lists the refusals that guard it [D46]. A name under a label
-lists the parts it declares and its answer, each kind's word its own,
-and the refusals of its places are named by their addresses with no
-declaration of their own, a part's under the part, whose page is its
-procedure, so no registry finds the refusal of a place [D167], [D169]:
-
-```qlang
-> ::number/add | manifest
-#[::number/add/addend ::number/add/sum]
-```
-
-It must hold one law for an error inside a nested evaluation, derived
-from the fork rule [D13]: the error of a fork is its value, handed to
-whatever ran the fork; the elements of a container keep it, the
-elements and entries of a literal and the results of a distribute; an
-argument of a step hands it on unchanged, whatever the law of its part,
-and a key hands it to the operand that runs it [D87], so a selector
-aborts on a failing predicate, a sort on a key that misses its field,
-and an arithmetic step stops nesting one error inside another; and an
-operand whose alternatives are the parts of its object, `coalesce` and its kin,
-runs them in order and treats an error result as no value, which is
-that operand's documented contract, so the misspelled field that becomes
-the fallback is the price of asking for a fallback, paid where it was
-asked. A value among the alternatives of `coalesce` answers itself,
-and alternatives that are all values put the subject first,
-`at :timeout | coalesce 30` [D133].
-
-It must make the document behind each tag a procedure. The page of a
-site says, in this order, what the refusal means in one sentence, which
-field of the descriptor names the culprit, the usual cause, how to
-recover with `!|` as a runnable example, and the refusals it is often
-confused with; the text that sites refusing for one reason share is
+The repair must make the page behind each refusal a procedure: what the
+refusal means in one sentence, which fact names the culprit, the usual
+cause, how to recover with `!|` as a runnable example, and the refusals
+it is often confused with, the text that refusals for one reason share
 written once, which is the task that would ask for a hierarchy of tags.
 It must print an error the way the cockpit shows an alert: the tag, the
-facts of the site in the order of its schema, a short excerpt of the
+facts in the order the catalog declares them, a short excerpt of the
 input, and the rest one projection away, the tail being what elision
 takes first.
 
@@ -1169,18 +930,10 @@ once, with no view of the verbs alone.
 true
 ```
 
-The pages of the refusals of the kernel speak the language's words:
-the page of an unknown node of the tree says it is “a defect of the
-runtime, and no failure of the query” (`core/lib/qlang/builtin.qlang`).
-A refusal is named by its address, the noun said once and the last name
-in the language's words, `::tagged/payload/SubjectNotTaggedError` and
-`::bind/EffectMarkMissingError` among them [D46], [D158].
-
-Examples live on two planes: the conformance suite and the laws of the
-catalog, with a runner for each.
-The catalog's own laws run in under a second and are the only plane the
-language can reach, and most of them still stand under no caption of
-the claim they prove [D124].
+Examples live on two planes, the conformance suite and the laws of the
+catalog, with a runner for each; the catalog's own laws are the only
+plane the language can reach, and most of them still stand under no
+caption of the claim they prove [D124].
 
 A page carries beside its prose what its name holds no prose about:
 the laws, the links and the snippets of a name ride the doc of its
@@ -1205,28 +958,18 @@ one round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
-The reference and the evaluation-model document held more than half as
-many lines as the code of the core and restated the catalog, their
-REPL pairs true because a runner executed them and their prose and
-tables false in places, because nothing did: a missing key answering
-`null`, a built-in without arguments answering its descriptor, a
-grammar with no quote, tag, doc or binding in it. The executable half
-was true and the narrated half false, inside one document, which is
-the argument for the principle of executable over narrated in the
-project's own text. The reference was a tutorial rather than a
-specification, as the maintainer put it: «это не спецификация, а скорее
-референс, туториал» (maintainer, 2026-09-23 00:47, session 86982eb5).
-
-Both left the tree with their runner [D128]. What they said that the
-catalog did not stands as laws of its pages: the lexicon of each
-literal on the page of its kind, and on the pages of `::qlang`, in the
-order the concepts rest on each other, the layout of lines and
-comments, the fork rule and the scopes, application and the parts that
-take code, the effect marker, the recursion of a verb and its budget, and
-the path of an error across a raise. The embedding API is the page of
-the package, `core/README.md`. The documents left are the measure, the
-decisions, and the research of a design whose work has begun, which
-its records absorb as the work lands [D164]:
+The reference and the evaluation-model document restated the catalog,
+their REPL pairs true because a runner executed them and their prose
+false in places because nothing did, the argument for executable over
+narrated in the project's own text; the reference was «это не
+спецификация, а скорее референс, туториал» (maintainer, 2026-09-23
+00:47, session 86982eb5). Both left the tree with their runner [D128],
+and what they said that the catalog did not stands as laws of its pages,
+the concepts on the pages of `::qlang` in the order they rest on each
+other; the embedding API is the page of the package, `core/README.md`.
+The documents left are the measure, the decisions, and the research of
+a design whose work has begun, which its records absorb as the work
+lands [D164]:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
@@ -1261,20 +1004,17 @@ session, which is to save as the source of its declarations [D30]. The noun of a
 onboards its user with a static guide.
 
 The repair must remove the effect marker from the language rather than
-relocate it [D2]: a naming convention would keep every `@`-name a
-different name from its plain twin, so that reading its documentation
-means remembering the sigil, and the core has no consumer of purity,
-since it neither reorders nor caches nor optimizes by it. A host whose
-operand reads an index or throws dice marks the provenance of the value
-it returns with a tag, which the language already has, so provenance
-moves from the source name onto the value. A tag can describe an
-effect as well, a write the host is to perform, and there the lesson
-of YAML applies: PyYAML's `load` executed code while reading, because a
-tag like `!!python/object/apply` called a constructor with a side
-effect, and a family of vulnerabilities followed until `safe_load`
-became the norm. A tag's constructor is pure; reading or constructing a
-literal performs nothing; an effect described by a value is performed
-by an explicit step at the host boundary and by nothing else.
+relocate it [D2]: a naming convention keeps every `@`-name a different
+name from its plain twin, and the core has no consumer of purity, since
+it neither reorders nor caches nor optimizes by it. A host whose operand
+reads an index or throws dice marks the provenance of the value it
+returns with a tag, so provenance moves from the source name onto the
+value. A tag can describe an effect as well, a write the host is to
+perform, and there the lesson of YAML applies, whose `load` ran code
+while reading until `safe_load` became the norm: a tag's constructor is
+pure, reading or constructing a literal performs nothing, and an effect
+described by a value is performed by an explicit step at the host
+boundary and by nothing else.
 
 A host's operands are then named as the core's are, under the rule of
 collisions [D23], and the marker leaves with the host's verbs moving
@@ -1311,56 +1051,33 @@ $ git ls-files --error-unmatch 'core/src/*.mjs' | xargs awk 'FNR==1 && f {if (c>
 0
 ```
 
-The rest of the scar is duplication the other sections name only in
-part:
+The rest of the scar is an embedding surface that was never designed.
+The package's entry point exports what the command line, the language
+server, the site and the sister project read, and no name besides;
+among them is still the Symbol slot of the headers, and the package
+exposes a subpath for the declaration of a refusal, which is what hosts
+build on:
 
-- Two codecs for one value, and no third. The literal and its parser
-  carry every value, which one query hands another over a pipe as
-  `print | @out` and `@in | parse | open`; the lossy JSON of the
-  boundary is `toPlain` and `fromPlain` in
-  `core/src/runtime/format.mjs`. The tagged JSON and the session
-  envelope left the package:
-
-  ```sh
-  $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /TaggedJSON|serialize/i.test(name)).length)"
-  0
-  ```
-- One way names come from a host: the root, the scope the host's sources
-  declare as cells before a reader's first step, the language's first
-  (`core/src/runtime/root.mjs`, `declareRoot`); the resolver of module
-  directories that tests alone used has left the package, and `use` the
-  language [D153].
-- An embedding surface that was never designed. The package's entry
-  point exports what the command line, the language server, the site
-  and the sister project read, and no name besides; among them is still
-  the Symbol slot of the headers, and the package exposes a subpath for
-  the declaration of a refusal, which is what hosts build on:
-
-  ```sh
-  $ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
-  TAG_HEADER_SYMBOL
-  $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
-  ./errors
-  ```
+```sh
+$ node --input-type=module -e "const core = await import('./core/src/index.mjs'); console.log(Object.keys(core).filter(name => /SYMBOL|SLOT|PREFIX|KEY/.test(name)).join(' '))"
+TAG_HEADER_SYMBOL
+$ node -p "Object.keys(require('./core/package.json').exports).filter(path => /error/.test(path)).join(' ')"
+./errors
+```
 
 The repair is a property of every branch [D30]. A branch leaves every
 file it touches with comments that state what holds in one sentence,
 moves every reason it finds in a comment into the record of the
 decision it belongs to or deletes it with the compromise it excuses,
-and replaces every false comment with nothing. The literal becomes the
-one lossless format: a descriptor prints with its tag like every other
-tagged value, tagged JSON and the session envelope go, a session saves
-as the source of its
-declarations, since a source prints as it is written, and JSON remains
-the lossy codec of the boundary. One way remains for a host to hand
-names, the catalog being sources like any other's [D153]. The embedding
-surface is designed with the argument model: a session, a source as
-`{ uri, source, impls }`, the
-parser, the printer and the JSON codec, and nothing of the runtime's
-internals. The unused session surface goes. The consumers read the
-catalog's declarations and the parser's tree and keep no rule of their
-own. The ratio of comment lines to code lines is measured on every
-branch against the baseline and falls.
+and replaces every false comment with nothing. A session saves as the
+source of its declarations, since a source prints as it is written. The
+embedding surface is designed with the argument model: a session, a
+source as `{ uri, source, impls }`, the parser, the printer and the
+JSON codec, and nothing of the runtime's internals; the unused session
+surface goes, and the consumers read the catalog's declarations and the
+parser's tree and keep no rule of their own. The ratio of comment lines
+to code lines is measured on every branch against the baseline and
+falls.
 
 ### A process that grows text
 
@@ -1437,35 +1154,25 @@ and a trail are written, and how a dashboard is delivered. JSON is the
 lossy codec of the boundary and nothing else.
 
 Around those three the language reads as follows. A pipeline carries
-values; code is a quote, written as such wherever it is passed. A step
-is a command, a name and its modifiers as words, bare where the pipeline
-delimits it, up to the end of its line, and in parentheses inside a
-modifier or a literal, so parentheses mean one thing, a pipeline as one
-word. A parameter holds a value, and so does every modifier, read by its
-own form: code is a quote, `~(…)`, shortened to `~add` for a single
-word, and nothing but `apply` runs it; an operand that runs code
-declares a part whose law asks for a quote and applies what it receives, and a quote
-handed over sees the names of its author [D43]. There is one binding
-form, `:name value`: its body is evaluated once at declaration against
-the current value and named as a value, a quote included, and a verb is
-a name under the label of its subject whose value is a quote, the parts
-of its object and its answer names under its address [D44], [D164],
-[D169]. A name is declared once in a scope. The
-pipe is linear continuation and the binding is a branch to the side. A
-verb runs when its name is mentioned, as a built-in does, so `apply` is
-only for a quote held as a value, from a name, a parameter, `parse`, a
-trail or a literal, and code moved into a declaration answers as it did
-inline. A command without modifiers is the bare name and has no second
-spelling. Comments are whitespace; documentation is a doc literal in the
-binding's slot.
+values, and a step is a command, a name and its modifiers as words, in
+parentheses inside a modifier or a literal, so parentheses mean one
+thing, a pipeline as one word. Every modifier holds a value read by its
+own form; code is a quote, `~(…)`, `~add` for a single word, which
+nothing but `apply` and a part whose law asks for a quote runs, and a
+quote handed over sees the names of its author [D43]. There is one
+binding form, `:name value`, evaluated once at declaration and named as
+a value, a name declared once in a scope; a verb is a name under the
+label of its subject whose value is a quote, the parts of its object
+and its answer names under its address, and it runs when its name is
+mentioned, as a built-in does [D44], [D164], [D169]. Comments are
+whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
 back. A map's elements are its values and its keys are the shape that
-travels with them, so one rule serves the record and the dictionary;
-`entries` makes the keys data as the pairs `[key value]`, and the
-constructor of `::map` builds a map back from them [D138], a string
-naming a key wherever a key is taken [D139]:
+travels with them; `entries` makes the keys data as the pairs `[key
+value]`, and the constructor of `::map` builds a map back from them
+[D138], a string naming a key wherever a key is taken [D139]:
 
 ```qlang
 > {:auth {:port 3000} :db {:port 5432}} | entries * (unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
@@ -1474,52 +1181,37 @@ naming a key wherever a key is taken [D139]:
 
 One order ranks every value, so anything sorts, and the set is the
 vector in that order without duplicates. A predicate answers a boolean
-or fails at its part. An error carries the tag of its site, a kind
-declared once whose schema puts the facts a reader needs first, and the
-tag leads to the site's procedure. A nested evaluation that fails yields
-its error as a value, and every operand treats that value by one rule.
+or fails at its part. An error carries the address of what refused,
+its facts the definitions under that label in the order a reader needs
+them, and the tag leads to its procedure; a nested evaluation that
+fails yields its error as a value, which every operand treats by one
+rule.
 
-A name is declared by its keyword, and a name with a path declares a
-node under the noun its path names before its last name, whose
-address its tag is
-[D152], [D153]. A path names a noun declared before it, and a name
-under a label resides on it, taking a subject the walk of its tags
-brings to the label and refusing any other, as every subject is taken
-[D153], [D156], [D164]. The root is the scope a host's sources declare as cells
-before a reader's first step, the language's first, and a source, a
-cell and a query are written alike; a namespace too large to declare,
-a host's tens of thousands of types, is mounted and served on demand
-[D24], [D36]. A name typed bare resolves nearest first, the reader's
-declarations, then the verbs of its subject, the root's names last, and
-a name with a path calls by address without a search [D62], [D153]; a
-tag in the subject position is dispatched to the noun it names, after
-the verbs of tag names, and each step resolves by its own subject
-[D88], while values carry their qualified tags [D35]; an axis with a
-name reads the member its subject holds under it, a part of a word or
-the word a noun holds [D88]; a host sets up a query by its sources and
-the first value of its pipe and nothing else [D37], [D153]. `env`
-answers what the reader declared and `kinds` the kinds of the scope
-[D160]. A
-declaration writes into its scope the record of its binding, with its
-name, its documentation, its source, its origin and its value, so the
-axes are projections of the record [D63], and a verb a declaration
-shadows stays one address away [D62]. A reader extends a noun of the
-root and replaces none of its nodes; a tag over a value changes what a
-name finds for it [D153]. Effect markers are gone; a host that wants provenance visible
-tags the value, and an effect described by a value is performed at the
-boundary and nowhere else.
+A name is declared by its keyword, a name with a path a node under the
+noun its path names, whose address its tag is, and a name under a label
+resides on it, taking a subject the walk of its tags brings to the
+label [D152], [D153], [D156], [D164]. The root is the scope a host's
+sources declare as cells before a reader's first step, a source, a cell
+and a query written alike, and a namespace too large to declare is
+mounted and served on demand [D24], [D36]. A name typed bare resolves
+nearest first, the reader's declarations, then the verbs of its
+subject, the root's names last, and a name with a path calls by address
+[D62], [D153]; a tag in the subject position is dispatched to the noun
+it names [D88]; a host sets up a query by its sources and the first
+value of its pipe and nothing else [D37], [D153]. A declaration writes
+into its scope the record of its binding, so the axes are projections
+of the record [D63]. Effect markers are gone; a host that wants
+provenance visible tags the value, and an effect described by a value
+is performed at the boundary and nowhere else.
 
-Fingerprints and terminal conveniences belong to hosts. So do the budget
-of an answer, the elision of what exceeds it, and the enrichment of an
-answer with the documents its tags and keywords lead to; the language
-computes whole values, and every part of a value, a string, a quote and
-a doc included, has a size, an address and a slice, so what a host left
-out is the same query with a tail. A record that a host wants explained
-carries a tag whose declaration documents its fields, and a value shared
-across kinds carries a tag of its own, which documents it once [D50].
-Code is a value, the quote, a vector of steps made of the language's
-values with an involution to and from its text, so a query reads,
-counts, transforms, and assembles code without leaving the language.
+Fingerprints, terminal conveniences, the budget of an answer, its
+elision and its enrichment belong to hosts; the language computes whole
+values, every part of which has a size, an address and a slice, so what
+a host left out is the same query with a tail. A record a host wants
+explained carries a tag whose declaration documents its fields, and a
+value shared across kinds a tag of its own [D50]. Code is the quote, a
+vector of steps with an involution to and from its text, so a query
+reads, transforms and assembles code without leaving the language.
 
 The catalog is the documentation. A root doc is the first thing a
 session reads: what the language is in a sentence, what a tag is in a
@@ -1568,12 +1260,11 @@ them may name them otherwise.
   for highlighting, derived from the grammar, for the language server,
   the site and the command line.
 
-What leaves the tree, as the repairs land: the classes of errors with
-their factories, the
-registry of throw sites, the stamping passes and the converter's
-tables; the primitive registry with its sealing; the effect marker and its checks; the character
-scanner of doc text; the housekeeping keys of the environment; the error prose of the catalog that
-restates the facts; the drift tests.
+What leaves the tree, as the repairs land: a class of the JavaScript
+for each refusal; the primitive registry with its sealing; the effect
+marker and its checks; the character scanner of doc text; the
+housekeeping keys of the environment; the error prose of the catalog
+that restates the facts; the drift tests.
 
 The documents at the finish are few. This audit and the entrypoint
 document, which are the measure, and the records of the decisions; the
@@ -1640,49 +1331,47 @@ the mission:
 ::P/NameNotStringError
 ```
 
-The schema is the label's [D164], [D166]: a kind is a name declared by
-its page, and what stands under it is the definitions under its
-address, each a name, its page and its value, the value saying what the
-definition is, a word's code, a part's selector, the label of a word's
-answer, a law under the name of its refusal [D168], [D169].
-`::spec~(…)` and `::verb~(…)` have left the language, with their pages,
-the reading of heads and the axis `spec`: a reader's verb is a name
-under the label of its subject, `:number/inc ~(add 1)`, `~name` the
-quote of one step, and a kind of the core a label whose constructor the
-host hands, `:number/construct ::builtin{}` [D168], [D169]:
+The schema is the label's [D164], [D166]: what stands under a kind is
+the definitions under its address, each a name, its page and its value,
+the value saying what the definition is, a word's code, a part's
+selector, the label of a word's answer, a law under the name of its
+refusal [D168], [D169]. `::spec~(…)` and `::verb~(…)` have left the
+language: a reader's verb is a name under the label of its subject,
+`:number/inc ~(add 1)`, and a kind of the core a label whose constructor
+the host hands, `:number/construct ::builtin{}`:
 
 ```qlang
 > [::spec ::verb] * (doc !| type)
 [::any/doc/UnknownNameError ::any/doc/UnknownNameError]
 ```
 
-Three repairs rest on the schema. The tags of the refusing sites become
-kinds with their schemas and procedures, where the JavaScript classes of
-errors, their factories, the registry of throw sites and the drift tests
-leave, and the facts of a refusal come to speak the language's
-vocabulary [D7], [D46]. A field is documented by its record's tag and a
-value shared across kinds by its own [D50]. And elision takes the tail of
-a schema [D21]. Apart from the schema stand the names, and the root
-of sources stands [D152], [D153]: every name declared by its keyword,
-a name with a path the address of a node under its noun, a refusal
-under the noun of its place, `::number/add/SubjectNotNumberError`, the
-root the scope a host's sources declare as cells before a reader's
-first step, read whole when the runtime starts, a helper in the group
-of its declaration, and `use` gone. What remains of the names: mounted
-namespaces for a host whose names are too many to declare [D24], [D36],
-and the rest of the rule of collisions, a verb and a kind joined only
-by whoever owns one of them [D23]. Beside both, the examples come to live on one plane, the editor's
-grammar is generated or reduced, and the entrypoint of the work gets its
-first version, the command that measures the tree and prints the state
-of the work as a dark cockpit, whose design is the entrypoint
-document's.
+The refusals rest on the schema as well: a refusal is named by the
+address of the word that refused, and its facts are definitions under
+its label, values of the language [D172]:
+
+```qlang
+> 1 | add "x" !| entries * first
+[:actualType :actualValue :trail]
+> 1 | add "x" !| /actualType
+::string
+```
+
+What remains on the schema: a field documented by its record's tag and
+a value shared across kinds by its own [D50], and elision taking the
+tail of a schema [D21]. What remains of the names: mounted namespaces
+for a host whose names are too many to declare [D24], [D36], and the
+rest of the rule of collisions, a verb and a kind joined only by
+whoever owns one of them [D23]. Beside both, the examples come to live
+on one plane, the editor's grammar is generated or reduced, and the
+entrypoint of the work gets its first version, the command that
+measures the tree and prints the state of the work as a dark cockpit,
+whose design is the entrypoint document's.
 
 Its answers are the targets of [D6], [D33], [D46], [D152] and [D153] in
-the conformance suite, those of the last two met, those of [D46] the facts its
-refusals are to hold, and those of the first two written when they are
-decided, the step of a constructor
-apart from the kind of tagged values having landed [D115]. Beside them:
-no factory-declared error class remains; no operand contract is spelled
+the conformance suite, those of the last two met, and those of the first
+two written when they are decided, the step of a constructor apart from
+the kind of tagged values having landed [D115]. Beside them: no class
+of the JavaScript stands for a refusal; no operand contract is spelled
 outside the catalog; one query shows every definition of a name and
 which one wins; and the environment holds no key of the runtime's own.
 
@@ -1692,18 +1381,9 @@ without it the shape of an answer cannot be known before it is fetched,
 and a host has nowhere to say what its records hold. The rule of
 collisions is the language's as soon as a host publishes a catalog of
 its own, which the sister project does, and mounting is the language's
-for a host whose names are too many to declare.
-The refusals as kinds are mostly the tree's debt: the pages of the
-refusals already teach, and a session meets the tag and the facts as
-they are, each fact a definition under the label of the refusal or under
-`::error`, the kind of the value refused a tag [D172]:
-
-```qlang
-> 1 | add "x" !| entries * first
-[:actualType :actualValue :trail]
-> 1 | add "x" !| /actualType
-::string
-```
+for a host whose names are too many to declare. A class of the
+JavaScript for each refusal is the tree's debt alone, since a session
+meets the tag and the facts.
 
 ### Milestone 5 · Front door
 
@@ -1760,40 +1440,29 @@ alone, with the other workspaces under a rule without a number.
 A branch repairs one scar or one part of one and names the decisions it
 implements. It starts from the full set of places where its cause
 shows, found by search rather than by memory, and its first commits
-delete. The cases that confirm it are written before its code, red, and
-the branch ends when they are green and nothing else turned red. Its
-diff is negative in the core sources, the documents and the tests it
-touches, and its catalog grows only by what the language gains [D151],
-or the branch introduces a model and says in its
-description what the next branch deletes because of it. The files it
-touches leave with comments that state what holds in one sentence
-[D30]. A branch that works targets, a session's or a subagent's in a
-worktree of its own, starts from a baseline whose suite is green and
-carries its targets; it leaves the records, the cases and the gates as
-it found them and drops only the mark of a target it met, and the
-baseline's copy of `node scripts/gate-diff.mjs --task Dnn` names for
-the review every move it made on them [D59]. A design question that appears during a branch is decided in
-this document on master before the branch goes on; an implementation
-session decides nothing silently, since a decision taken in code is a
-decision no one will find. What confuses a session on the way is
-settled where it is met, fixed when the decisions already choose the
-fix and otherwise recorded with its probe as a target, a decision or a
-question [D89]. The sister project receives every breaking change in
-the same move.
+delete; the cases that confirm it are written before its code, red, and
+it ends when they are green and nothing else turned red. Its diff is
+negative in the core sources, the documents and the tests it touches,
+its catalog growing only by what the language gains [D151], or it
+introduces a model and says what the next branch deletes because of
+it, and the files it touches leave with comments that state what holds
+in one sentence [D30]. A branch that works targets leaves the records,
+the cases and the gates as it found them and drops only the mark of a
+target it met [D59]. A design question that appears during a branch is
+decided in this document before the branch goes on, since a decision
+taken in code is a decision no one will find; what confuses a session
+on the way is settled where it is met, fixed when the decisions already
+choose the fix and otherwise recorded with its probe as a target, a
+decision or a question [D89]. The sister project receives every
+breaking change in the same move.
 
 A session is one of three kinds. A design session talks, decides, and
-updates this document; it reads this document, the sources the
-instruction file names in its first tier, and the file under dispute.
-An implementation session takes one scar, reads this document and the
-files it touches, runs the tests, and ends with its cases green. An
-audit session runs the probes and the metrics, checks each scar against
-the tree, replaces every sentence the tree contradicts, and removes the
-scars the tree no longer shows. Every session opens from the
-entrypoint's computed state, or, until it exists, by reading this
-document, running `git status` and the tests, and stating in one
-paragraph where the work stands; it closes by writing into this
-document what was decided, so that no decision survives only in a
-conversation.
+updates this document. An implementation session takes one scar and
+ends with its cases green. An audit session runs the probes and the
+metrics, replaces every sentence the tree contradicts, and removes the
+scars the tree no longer shows. Every session opens as the instruction
+file says and closes by writing what was decided into this document and
+its records, so that no decision survives only in a conversation.
 
 The model's work on this document is validation. The maintainer said
 so without ambiguity: «я не хочу КОДОГЕНЕРАТОРСТВО, Я НЕ ХОЧУ
@@ -1829,42 +1498,6 @@ root [D153], so a mount is a noun whose names a host answers on demand
 for a tag no declaration names [D24], [D36], and `manifest` lists them
 beside the declared nodes [D61]. Open: how a host declares the noun it
 answers on demand, and the exact record of a member.
-
-What a module of declarations answers [D35], [D63]. D63 has a module
-answer the Map of what it exposes, `env` as its last step exposing
-every name it declared, and sets aside a value taken from the scope
-when the module ends in a declaration. Written out on the catalog, the
-rule gives each of its two dozen modules of declarations the tail
-`| env`, which after a tag declared without a body needs a pipe of its
-own, since `env` on the next line reads as the tag's body; and a module
-run in a scope of its own needs the kernel's `use`, `env` and
-`::builtin` as a provider under a key of the runtime until the catalog
-documents them. The maintainer read both as a sign of a step taken too
-early: «странно это смотрится | env  .. как и 'qlang/kernel'»
-(maintainer, 2026-09-25 15:37, session 86982eb5). The other reading is
-D35's: a module runs from its provider's noun in the subject position,
-its declarations hand the noun on, and a module of declarations
-answers its noun, whose namespace holds what it declared, so a tail
-serves only a module that exposes a part of its names, `env | minus
-#[:helper]`, or data. The tail costs a ceremony on every module of
-declarations; the noun costs a noun for every provider, the core's
-modules and the sister project's among them, and the loader of the
-fourth milestone that keeps their namespaces. A third reading is the
-maintainer's: «в целом выходит что между модулем и спекой может и
-разницы особой нету .. это соглашение про имена ..  а такое навеное тэг
-может проверять в конструкторе..» (maintainer, 2026-09-25 18:52,
-session 86982eb5). A module is a pipeline of declarations, prose alone
-among them, «там какой ::qlang/vocabulary ::qlang/tutorial», whose doc's
-keywords name its own bindings [D62]; read as data, as a quote of
-declarations is [D53], it answers its declarations, which needs neither
-the tail nor the noun, and a tag over it names the convention its names
-follow and checks it in its constructor [D6]. A module that computes
-while it loads [D63] answers the spec its pipeline builds. [D153]
-answers the question by the cell of a session: a source of the root
-is written as a cell is, its declarations stand in the root, its value
-is no surface, and a name's path, `:vec/count`, is the convention of
-names the third reading asked for, with neither the tail nor a noun of
-the provider.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written
@@ -1940,13 +1573,8 @@ of a doc, its prose apart from its runnable quotes, and a name to reach
 a page by [D88]; the prose that heads a source is a plain comment that
 no name reaches, and a tag or a keyword inside prose is no segment yet [D19].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
-нравиться» (13:23). A tutorial that serves is also how the documents
-that retell the catalog leave: «и если интерактивный туториал
-действительно станет хорош, то тогда все эти референсы и прочие md
-файлы наконец можно будет удалить за ненадобностью», and «но сперва UIX
-в вебе и UIX в терминале нас должен удовлетворять» (13:26). The
-documents left before such a tutorial, by the maintainer's later word,
-their facts moved into laws of the catalog's pages [D128].
+нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
+должен удовлетворять» (13:26).
 
 How elision knows a kind [D21], [D34], [D46]. «просто рано или поздно все
 равно надо будет придумать как разбрасывать через мультидиспатч логику

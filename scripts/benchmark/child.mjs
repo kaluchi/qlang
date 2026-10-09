@@ -27,17 +27,20 @@ function textOfToolResult(content) {
   return (content ?? []).map(part => part.text ?? '').join('');
 }
 
-// The record of a run from the events the child streamed: its final
-// reply, its turns and tokens, and the calls of the command line in
-// their order.
+// The record of a run from the events the child streamed: the model
+// that answered, which an alias such as `haiku` names only until the
+// command line maps it anew, its final reply, its turns and tokens, and
+// the calls of the command line in their order.
 function recordOfStream(streamText) {
   const calls = [];
   const pendingById = new Map();
+  let modelId = null;
   let final = null;
   for (const line of streamText.split(/\r?\n/)) {
     if (line.trim() === '') continue;
     let streamEvent;
     try { streamEvent = JSON.parse(line); } catch { continue; }
+    if (streamEvent.type === 'system' && streamEvent.subtype === 'init') modelId = streamEvent.model ?? null;
     if (streamEvent.type === 'result') final = streamEvent;
     const parts = Array.isArray(streamEvent.message?.content) ? streamEvent.message.content : [];
     for (const part of parts) {
@@ -54,6 +57,7 @@ function recordOfStream(streamText) {
     }
   }
   return {
+    modelId,
     result: final?.result ?? null,
     failed: final === null || final.is_error === true,
     turns: final?.num_turns ?? null,

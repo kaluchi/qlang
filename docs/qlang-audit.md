@@ -2012,6 +2012,33 @@ address. The sister project's suite fails on this branch until it
 follows: its host declares its primitives as verbs with heads, which
 the root refuses [D167].
 
+The object of a call under the tag of its word [D165]. A part that
+reads the whole object, `~(/)`, holds it under the tag of the word, and
+a value under the tag of a declared word is no literal a reader reads
+back, since the word is no kind [D42]:
+
+```qlang
+> :any/all ~(rest) | :any/all/rest ~(/) | 5 | all 1 2
+::any/all[1 2]
+> ::any/coalesce[] !| type
+::construct/TagNotKindError
+```
+
+So a law of such a part cannot refuse with the value it refused, and the
+alternatives of `coalesce` and the clauses of `cond` stay counted by
+their primitives [D172]. The alternatives: a law's refusal hands the
+payload of the object, what the reader wrote, at the price of a second
+shape of the value a part holds; the object held under no tag, which
+costs the walk that lets the code of a part reach the names under the
+word; or the tag of a word read back as the object of a call of it.
+
+The wholeness of a number. A count of `take` is a whole number by the
+law `eq (round)` [D172], and the digits of `round` stay tested by its
+primitive, since the same law on them would call `round` on its own
+digits again. The alternatives: a word that answers whether a number is
+whole, a primitive the law of every count calls; or the test kept in
+`round` alone.
+
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md

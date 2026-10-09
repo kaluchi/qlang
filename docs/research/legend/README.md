@@ -300,6 +300,39 @@ page of a kind.
   prototype's host source tripped over it too, and wrote `mul length
   (mul width height)`.
 
+## A quote that captures what its print does not show
+
+D44 split a declaration's body, computed once where it stands, from a
+verb, computed at each mention against the subject there, and left a
+quote a value that only `apply` runs; the maintainer's words then were
+«методы вызываются по одной логике, квоты по apply .. все различимо и
+юзкейсы не перемешиваются». The second axis, where a quote's names
+resolve, rides a slot the print does not show. A quote written as a
+declaration's body or as a modifier carries the environment it was
+written in (`quoteInEnv` in `core/src/types.mjs`), a verb carries its
+own, and a quote read by `parse` or built from steps carries none and
+resolves where it is applied:
+
+```qlang
+> :a 1 | :q1 ~(a) | :q2 ("a" | parse) | (:a 2 | [(apply q1) (apply q2) (q1 | eq q2) (q1 | print) (q2 | print)])
+[1 2 true "~(a)" "~(a)"]
+
+> :limit 10 | :f ~(gt limit) | f | print
+~(gt limit)
+```
+
+Two quotes equal and printed alike answer apart, against the first
+page's «Every value prints as a literal that reads back as itself: what
+an answer shows is the value». The snapshot D5 removed with `as` lives
+on in the slot. Under the model an aspect needs no captured scope: what
+it names is an aspect of its subject, found by the walk, or a name of
+the tree, an address anyone reads. A quote of the reader can capture
+values instead of a scope: the names it reads that the reader's scope
+binds to values are put in at the moment it is written, so `filter ~(gt
+limit)` holds `~(gt 10)`, prints it, reads back as it and equals what it
+does, while the names of the tree stay names. The price is the print of
+a large value a quote captured, which a budget bounds as it bounds any.
+
 ## Two thoughts of the maintainer
 
 A step on both tracks, `|!| legend` for `| explain !| explain`. The

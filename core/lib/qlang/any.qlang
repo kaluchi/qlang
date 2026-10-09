@@ -1230,7 +1230,7 @@
 
 :any/sumOf/numbers
   |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(type | eq ::number)) ~~|
+      ::holds~(every ~(isA ::number)) ~~|
   ~(/)
 
 :any/mulOf
@@ -1244,7 +1244,7 @@
 
 :any/mulOf/factors
   |~~ The numbers, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(type | eq ::number)) ~~|
+      ::holds~(every ~(isA ::number)) ~~|
   ~(/)
 
 :any/subOf
@@ -1256,8 +1256,8 @@
   ~~|
   ~(minuend | sub subtrahend)
 
-:any/subOf/minuend |~~ The number subtracted from. ::holds~(type | eq ::number) ~~| ~(/0)
-:any/subOf/subtrahend |~~ The number subtracted. ::holds~(type | eq ::number) ~~| ~(/1)
+:any/subOf/minuend |~~ The number subtracted from. ::holds~(isA ::number) ~~| ~(/0)
+:any/subOf/subtrahend |~~ The number subtracted. ::holds~(isA ::number) ~~| ~(/1)
 
 :any/divOf
   |~~ The first number the call computes against the subject divided by
@@ -1267,8 +1267,8 @@
   ~~|
   ~(dividend | div divisor)
 
-:any/divOf/dividend |~~ The number divided. ::holds~(type | eq ::number) ~~| ~(/0)
-:any/divOf/divisor |~~ The number divided by. ::holds~(type | eq ::number) ~~| ~(/1)
+:any/divOf/dividend |~~ The number divided. ::holds~(isA ::number) ~~| ~(/0)
+:any/divOf/divisor |~~ The number divided by. ::holds~(isA ::number) ~~| ~(/1)
 
 :any/allOf
   |~~ Whether every condition the call computes against the subject holds:
@@ -1282,7 +1282,7 @@
 
 :any/allOf/conditions
   |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(type | eq ::boolean)) ~~|
+      ::holds~(every ~(isA ::boolean)) ~~|
   ~(/)
 
 :any/anyOf
@@ -1295,7 +1295,7 @@
 
 :any/anyOf/conditions
   |~~ The conditions, booleans, one at least. ::holds~(count | gt 0)
-      ::holds~(every ~(type | eq ::boolean)) ~~|
+      ::holds~(every ~(isA ::boolean)) ~~|
   ~(/)
 
 :any/unionOf
@@ -1327,4 +1327,10 @@
   ~~|
   ::builtin{}
 
-:any/isA/kinds |~~ The kinds; of none, no value is one. ~~| ~(/)
+:any/isA/kinds
+  |~~ The kinds, each a tag name; of none, no value is one.
+      ::holds~(every ~(isA ::tag))
+
+      ~(5 | isA :number !| [type /index /actualType] | eq [::any/isA/kinds/HoldsNotMetError 1 ::keyword])
+  ~~|
+  ~(/)

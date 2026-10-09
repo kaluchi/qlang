@@ -162,7 +162,9 @@ describe('the sources a host hands [D153]', () => {
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });
 
-  it('refuses an implementation handed for a name the source declares as no verb', async () => {
+  it('refuses an implementation handed for a name that is no ::builtin{} under a label', async () => {
+    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':shout ::builtin{}', impls: { shout: text => text } }] }))
+      .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
     await expect(createSession({ sources: [{ uri: 'tests/stray', source: ':limit 10', impls: { limit: () => 1 } }] }))
       .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
   });

@@ -293,7 +293,7 @@ async function servedByKinds(value, kindNames, state, place) {
 // The value under the tags from the innermost out, their constructors
 // run again [D41]; an error passes as it is, as it does under every tag
 // [D86].
-export async function underTags(value, tags, state) {
+async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
   return wrapped;

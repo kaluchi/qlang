@@ -17,9 +17,9 @@ const BOX = lines(
   ':Box/put/weight |~~ The weight to put inside. ::holds~(type | eq ::number) ~~| ~(/0)',
   ':Box/scaled |~~ The length scaled. ~~| ~(length | mul (factor | add 1))',
   ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(/0 | add 1)',
-  ':Box/tally |~~ The first and the rest. ~~| ~([first rest])',
-  ':Box/tally/first |~~ The first, null when left out. ~~| ~(at 0)',
-  ':Box/tally/rest |~~ The rest. ~~| ~(drop 1)',
+  ':Box/tally |~~ The lead and the tail. ~~| ~([lead tail])',
+  ':Box/tally/lead |~~ The lead, null when left out. ~~| ~(at 0)',
+  ':Box/tally/tail |~~ The tail. ~~| ~(drop 1)',
   ':Box/past |~~ A place past the end. ~~| ~(/9)',
   ''
 );
@@ -119,5 +119,14 @@ describe('a host\'s primitive under a label', () => {
     expect((await session.evalCell('::Gauge(5) | over ~(gt 9)')).result).toBe(true);
     expect((await session.evalCell('::Gauge(5) | shifted 3')).result).toBe(13);
     expect((await session.evalCell('::Dial(1) | payload')).result).toBe(2);
+  });
+
+  it('computes the modifiers of a call up to the first that answers an error, and runs none after it [D167]', async () => {
+    let noted = 0;
+    const session = await createSession({
+      sources: [{ uri: 'probe/note', source: ':any/@note ::builtin{}', impls: { 'any/@note': subject => { noted += 1; return subject; } } }]
+    });
+    expect((await session.evalCell('[1 2] | at /nope ("ran" | @note) !| type')).result).toEqual(makeTagKeyword('proj/IndexNotIntegerError'));
+    expect(noted).toBe(0);
   });
 });

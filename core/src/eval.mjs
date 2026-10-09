@@ -37,7 +37,7 @@ import {
   addressesOf, bareNameReach, isMemberValue, namesUnderOf, nodeOf, residencesOf, splitAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import {
-  applyVerb, constructorOfSpec, effectfulNameOfVerb, namesItsSubject,
+  applyVerb, constructorOfSpec, effectfulNameOfVerb, isContract, namesItsSubject,
   runPrimitive, keptAsSubject, walkToKinds
 } from './runtime/verb.mjs';
 import {
@@ -390,18 +390,45 @@ async function constructedBy(construct, payload, state) {
 // value does not answer true to, named under the address, or the error a
 // law answered, handed on as it is; null when every law holds.
 async function refusalOfLaws(record, value, state, scope, tagName) {
-  for (const doc of record.get('docs')) {
-    for (const segment of doc) {
-      if (!isValueClass(segment, 'taggedInstance') || segment.tag.name !== 'holds') continue;
-      const kinds = kindsAskedBy(astOfQuote(segment.payload));
-      const answer = kinds !== null
-        ? walkToKinds(value, kinds) !== null
-        : (await evalBody(astOfQuote(segment.payload), nestState(state, value, scope))).pipeValue;
-      if (isErrorValue(answer)) return answer;
-      if (answer !== true) return refusalUnder(tagName, { holds: segment.payload, actualValue: value });
+  for (const { law, kinds, elementKinds } of pageOf(record).laws) {
+    const elements = elementKinds === null ? null : walkToKinds(value, ['vec']);
+    if (elements !== null) {
+      const refused = refusedElementOf(elements.served, elementKinds);
+      if (refused === null) continue;
+      return refusalUnder(tagName, { holds: law, index: refused.index, actualValue: refused.element });
     }
+    const answer = kinds !== null
+      ? walkToKinds(value, kinds) !== null
+      : (await evalBody(astOfQuote(law), nestState(state, value, scope))).pipeValue;
+    if (isErrorValue(answer)) return answer;
+    if (answer !== true) return refusalUnder(tagName, { holds: law, actualValue: value });
   }
   return null;
+}
+
+// What the page of a record says, read once per record, which never
+// changes: the laws under `::holds`, each with the kinds it asks for when
+// it is one step `isA`, and whether the answer keeps the subject's kind.
+const PAGES = new WeakMap();
+
+function pageOf(record) {
+  let page = PAGES.get(record);
+  if (page === undefined) {
+    const roles = record.get('docs').flat().filter(segment => isValueClass(segment, 'taggedInstance'));
+    page = {
+      laws: roles.filter(role => role.tag.name === 'holds').map(role => lawOfRole(role.payload)),
+      keeps: roles.some(role => role.tag.name === 'keeps')
+    };
+    PAGES.set(record, page);
+  }
+  return page;
+}
+
+// A law of a page with the kinds it asks for when it is one step `isA`,
+// of the value or of each element.
+function lawOfRole(law) {
+  const ast = astOfQuote(law);
+  return { law, kinds: kindsAskedBy(ast), elementKinds: elementKindsAskedBy(ast) };
 }
 
 // A refusal named by the address of what refused [D166], its facts and
@@ -466,8 +493,14 @@ async function evalBindStep(node, state) {
   if (nounName === null && !isLabelValue(answered) && vocabularyWords(state.env).has(name)) {
     throw new BindNameTakenByVocabularyError({ name, addresses: addressesOf(state.env, name) });
   }
+  const partName = nounName === null ? null : splitAddress(name)[1];
+  if (isQuote(answered) && partName !== null && isQuoteUnderLabel(state.env, nounName) && vocabularyWords(state.env).has(partName)) {
+    throw new BindNameTakenByVocabularyError({ name: partName, addresses: addressesOf(state.env, partName) });
+  }
   if (isVerb(answered)) refuseLaunderedByName(name, effectfulNameOfVerb(answered), node);
-  else if (nounName !== null && isQuote(answered)) refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
+  else if (isQuote(answered) && nounName !== null && isLabelValue(bindingValueOf(nodeOf(state.env, nounName)))) {
+    refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
+  }
   const writtenQuote = node.body.type === 'QuoteLit';
   const writtenVerb = isVerb(answered) && node.body.type === 'TaggedLit';
   // A declaration writes into no verb it was handed: one no declaration
@@ -491,6 +524,14 @@ function declareVerbFirst(verb, name, nounName, env) {
   const underKind = nounName !== null && isLabelValue(bindingValueOf(nodeOf(env, nounName)));
   if (underKind && namesItsSubject(verb)) throw new BindVerbSubjectUnderKindError({ name });
   declareVerbAt(verb, name, underKind ? nounName : null);
+}
+
+// Whether a node is a quote under a label, whose parts are bound by name
+// in its body, so a part takes no word of the vocabulary, as a bare name
+// does not [D166].
+function isQuoteUnderLabel(env, nounName) {
+  const [labelName] = splitAddress(nounName);
+  return labelName !== null && isQuote(bindingValueOf(nodeOf(env, nounName))) && isLabelValue(bindingValueOf(nodeOf(env, labelName)));
 }
 
 // A name without the effect marker refuses a verb, or a quote under a
@@ -650,14 +691,14 @@ async function applyMember(record, lambdas, state) {
     return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.pipeValue));
   }
   const scope = scopeOfMember(member, state);
-  const read = await objectOf(address, partsOf(scope, address), lambdas, state, scope);
-  if (isErrorValue(read)) return withPipeValue(state, read);
+  const objectParts = await objectOf(address, partsOf(scope, address), lambdas, state, scope);
+  if (isErrorValue(objectParts)) return withPipeValue(state, objectParts);
   const answer = isQuote(member)
-    ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, read.bodyEnv))).pipeValue
-    : await runHostMember(member, walked, read, state);
+    ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, objectParts.bodyEnv))).pipeValue
+    : await runHostMember(member, walked, objectParts, state);
   if (isErrorValue(answer)) return withPipeValue(state, answer);
-  const given = hasPageRole(record, 'keeps') ? await keptAsSubject(answer, walked.served, walked.passedTags, state) : answer;
-  return withPipeValue(state, await refusalOfLaws(record, given, state, scope, `${address}/HoldsNotMetError`) ?? given);
+  const kept = pageOf(record).keeps ? await keptAsSubject(answer, walked.served, walked.passedTags, state) : answer;
+  return withPipeValue(state, await refusalOfLaws(record, kept, state, scope, `${address}/HoldsNotMetError`) ?? kept);
 }
 
 // answerKindsOf(record, subjectKinds) → the kinds of the answer a name
@@ -665,7 +706,7 @@ async function applyMember(record, lambdas, state) {
 // them, the kinds the first law `isA` of its page asks for, or null
 // [D166].
 export function answerKindsOf(record, subjectKinds) {
-  return hasPageRole(record, 'keeps') ? subjectKinds : lawKindsOf(record);
+  return pageOf(record).keeps ? subjectKinds : lawKindsOf(record);
 }
 
 // The scope a name under a label runs in: a quote's own, over the tree of
@@ -684,30 +725,72 @@ function scopeOfMember(member, state) {
 }
 
 // The parts of a call's object: the quotes declared under the name's
-// address, in their order.
+// address, in their order, or, for a name that declares none, those the
+// contract of its word declares once on `::any` [D167].
 function partsOf(scope, address) {
+  const own = quotesUnder(scope, address);
+  if (own.length > 0) return own;
+  const contract = nodeOf(scope, `any/${splitAddress(address)[1]}`);
+  return contract !== null && isVerb(bindingValueOf(contract)) && isContract(bindingValueOf(contract))
+    ? quotesUnder(scope, contract.get('name').name)
+    : own;
+}
+
+function quotesUnder(scope, address) {
   return [...namesUnderOf(scope, address)].filter(([, partRecord]) => isQuote(bindingValueOf(partRecord)));
 }
 
-// The places the parts read, one past the greatest index a part reads
-// strictly or softly, or null when a part reads the object whole or its
-// tail and so takes any number of values.
+// The places the parts read, one past the greatest a part reads strictly
+// or softly, or null when a part reads the object whole or its tail and
+// so takes any number of values.
 function placesReadBy(parts) {
   let places = 0;
   for (const [, partRecord] of parts) {
-    const index = placeReadBy(astOfQuote(bindingValueOf(partRecord)));
-    if (!Number.isInteger(index)) return null;
-    places = Math.max(places, index + 1);
+    const { place } = selectorOf(partRecord);
+    if (!Number.isInteger(place)) return null;
+    places = Math.max(places, place + 1);
   }
   return places;
 }
 
-// The index a part's first step reads, by a projection or by `at`, or
-// no integer for a part that reads the object whole or its tail.
+// What a part's selector reads, once per part: the place its first step
+// reads, whether the selector is that one step, and where the tail it
+// reads begins for a selector that reads no place.
+const SELECTORS = new WeakMap();
+
+function selectorOf(partRecord) {
+  let selector = SELECTORS.get(partRecord);
+  if (selector === undefined) {
+    const ast = astOfQuote(bindingValueOf(partRecord));
+    const place = placeReadBy(ast);
+    selector = { ast, place, onePlace: readsOnePlace(ast, place), restFrom: Number.isInteger(place) ? null : restStartOf(ast) };
+    SELECTORS.set(partRecord, selector);
+  }
+  return selector;
+}
+
+// The place a selector's first step reads, by a projection or by `at`, a
+// whole number, or none for a part that reads the object whole, its tail
+// or a place counted from its end.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  if (head.type === 'Projection') return head.keys.length === 1 ? Number(head.keys[0]) : NaN;
-  return head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value : NaN;
+  const place = head.type === 'Projection' ? Number(head.keys[0])
+    : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
+    : NaN;
+  return Number.isInteger(place) && place >= 0 ? place : NaN;
+}
+
+// Whether a selector is one step that reads one place, `/n` or `at n`
+// with a default or none.
+function readsOnePlace(ast, place) {
+  if (!Number.isInteger(place) || ast.type === 'Pipeline') return false;
+  return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;
+}
+
+// Where the tail a part reads begins: `drop n` from the n-th place, and
+// the object whole or any other selector from the first.
+function restStartOf(ast) {
+  return ast.type === 'OperandCall' && ast.name === 'drop' && ast.args[0]?.type === 'NumberLit' ? ast.args[0].value : 0;
 }
 
 // The object of a call, the values of its modifiers each computed against
@@ -720,9 +803,11 @@ function placeReadBy(ast) {
 async function objectOf(address, parts, lambdas, state, scope) {
   if (lambdas.length === 0 && parts.length === 0) return { values: [], bodyEnv: scope };
   const values = [];
-  for (const lambda of lambdas) values.push(await lambda(state.pipeValue));
-  const failed = values.findIndex(isErrorValue);
-  if (failed !== -1) return refusalOfComputedCode(address, parts, failed, values[failed]);
+  for (const [place, lambda] of lambdas.entries()) {
+    const value = await lambda(state.pipeValue);
+    if (isErrorValue(value)) return refusalOfComputedCode(parts, place, value);
+    values.push(value);
+  }
   const object = makeTaggedInstance(makeTagKeyword(address), values);
   const places = placesReadBy(parts);
   if (places !== null && values.length > places) return refusalUnder(`${address}/ObjectBeyondPartsError`, { places, actualValue: object });
@@ -730,42 +815,48 @@ async function objectOf(address, parts, lambdas, state, scope) {
   const partValues = [];
   const taken = [];
   for (const [partName, partRecord] of parts) {
-    const partAddress = `${address}/${partName}`;
-    const part = await partOf(astOfQuote(bindingValueOf(partRecord)), values, nestState(state, object, scope));
+    const partAddress = partRecord.get('name').name;
+    const selector = selectorOf(partRecord);
+    const part = await partOf(selector, values, nestState(state, object, scope));
     if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: object });
     if (isErrorValue(part)) return part;
     const refused = await refusalOfLaws(partRecord, part, state, scope, `${partAddress}/HoldsNotMetError`);
     if (refused !== null) return refused;
-    const kinds = lawKindsOf(partRecord);
-    const handed = kinds === null ? part : walkToKinds(part, kinds).served;
-    const rest = !Number.isInteger(placeReadBy(astOfQuote(bindingValueOf(partRecord))));
+    const handed = servedByLaw(kindLawOf(partRecord), part);
+    const rest = selector.restFrom !== null;
     partValues.push(handed);
-    taken.push({ name: partName, rest, code: rest || (kinds?.includes('quote') ?? false) });
+    taken.push({ name: partName, rest, code: rest || (lawKindsOf(partRecord)?.includes('quote') ?? false) });
     bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
   }
   return { values: partValues, taken, bodyEnv };
 }
 
-// A value the call computed that answered an error: where a part that
-// takes code reads its place, the step ran on the subject by mistake,
-// `filter /active` for `filter ~(/active)`, and the part refuses it with
-// the error as its value; elsewhere the error is the answer [D67].
-function refusalOfComputedCode(address, parts, place, error) {
-  for (const [partName, partRecord] of parts) {
-    if (placeReadBy(astOfQuote(bindingValueOf(partRecord))) !== place || !lawKindsOf(partRecord)?.includes('quote')) continue;
-    return refusalUnder(`${address}/${partName}/HoldsNotMetError`, { holds: lawOf(partRecord), actualValue: error });
-  }
-  return error;
+// A value the call computed that answered an error where a part that
+// asks for code reads, by a law `isA` of a quote or, for the tail, `every
+// ~(isA …)` of one: the step ran on the subject by mistake, `filter
+// /active` for `filter ~(/active)`, and the part refuses it with the
+// error as its value, a part of the tail naming its index from one;
+// anywhere else the error is the answer [D67], [D77], [D167].
+function refusalOfComputedCode(parts, place, error) {
+  const reading = parts.find(([, partRecord]) => selectorOf(partRecord).place === place)
+    ?? parts.find(([, partRecord]) => selectorOf(partRecord).restFrom !== null && selectorOf(partRecord).restFrom <= place);
+  if (reading === undefined) return error;
+  const [, partRecord] = reading;
+  const law = kindLawOf(partRecord);
+  const { restFrom } = selectorOf(partRecord);
+  const asked = law === undefined ? null : restFrom === null ? law.kinds : law.elementKinds;
+  if (asked === null || !asked.includes('quote')) return error;
+  const facts = restFrom === null ? { holds: law.law, actualValue: error } : { holds: law.law, index: place - restFrom + 1, actualValue: error };
+  return refusalUnder(`${partRecord.get('name').name}/HoldsNotMetError`, facts);
 }
 
-// The value a part's selector reads from the object: a place read `/n`
-// or `at n default` is the value at the place, read here as `at` reads
-// it, so the selectors of `at` itself read without calling it; any
-// other selector runs as code over the object.
-async function partOf(ast, values, state) {
-  if (!readsOnePlace(ast)) return (await evalBody(ast, state)).pipeValue;
-  const index = placeReadBy(ast);
-  if (index < values.length) return values[index];
+// The value a part's selector reads from the object: a selector of one
+// step that reads a place, `/n` or `at n default`, is the value at the
+// place, read here as `at` reads it, so the parts of `at` itself read
+// without calling it; any other selector runs as code over the object.
+async function partOf({ ast, place, onePlace }, values, state) {
+  if (!onePlace) return (await evalBody(ast, state)).pipeValue;
+  if (place < values.length) return values[place];
   if (ast.type === 'Projection') return MISSED_PLACE;
   return ast.args.length === 1 ? null : (await evalBody(ast.args[1], state)).pipeValue;
 }
@@ -773,35 +864,47 @@ async function partOf(ast, values, state) {
 // A strict read of a place past the values of the object.
 const MISSED_PLACE = Symbol('missedPlace');
 
-// Whether a selector is one step that reads one place, `/n` or `at n`
-// with a default or none.
-function readsOnePlace(ast) {
-  return ast.type !== 'Pipeline' && Number.isInteger(placeReadBy(ast)) && (ast.type === 'Projection' || ast.args.length <= 2);
+// A part handed as its law of kinds asks: for `isA` the value of the kind
+// the walk of its tags reaches, for `every ~(isA …)` the vector of each
+// element's, the tags passed left behind, as a subject is served; a part
+// with no such law as it is [D166], [D167].
+function servedByLaw(law, part) {
+  if (law === undefined) return part;
+  if (law.kinds !== null) return walkToKinds(part, law.kinds).served;
+  const elements = walkToKinds(part, ['vec']);
+  return elements === null ? part : Object.freeze(Array.from(elements.served, element => walkToKinds(element, law.elementKinds).served));
 }
 
 // The kinds the first law `isA` of a part's page asks for, or null: the
 // part is handed as the value of the kind the walk of its tags reaches,
-// the tags it passed left behind, as a subject is served, and a part
-// that asks for a quote takes code [D166].
+// and a part that asks for a quote takes code [D166], [D167].
 function lawKindsOf(partRecord) {
-  const law = lawOf(partRecord);
-  return law === undefined ? null : kindsAskedBy(astOfQuote(law));
+  return kindLawOf(partRecord)?.kinds ?? null;
 }
 
-// The first law of a page, the quote of its first `::holds`.
-function lawOf(record) {
-  for (const doc of record.get('docs')) {
-    for (const segment of doc) {
-      if (isValueClass(segment, 'taggedInstance') && segment.tag.name === 'holds') return segment.payload;
-    }
-  }
-  return undefined;
+// The first law of a page that asks for kinds, `isA` of the value or of
+// each element, or undefined.
+function kindLawOf(record) {
+  return pageOf(record).laws.find(law => law.kinds !== null || law.elementKinds !== null);
 }
 
 // The kinds a law of one step `isA ::k …` asks for, or null.
 function kindsAskedBy(ast) {
   if (ast.type !== 'OperandCall' || ast.name !== 'isA') return null;
   return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
+}
+
+// The kinds a law `every ~(isA ::k …)` asks of each element, or null.
+function elementKindsAskedBy(ast) {
+  const asksEach = ast.type === 'OperandCall' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
+  return asksEach ? kindsAskedBy(ast.args[0].pipeline) : null;
+}
+
+// The first element the walk of whose tags reaches none of the kinds,
+// with its index from one, or null when every one does.
+function refusedElementOf(elements, kinds) {
+  const index = elements.findIndex(element => walkToKinds(element, kinds) === null);
+  return index === -1 ? null : { index: index + 1, element: elements[index] };
 }
 
 // A strict read of a place the object does not hold.
@@ -829,11 +932,6 @@ async function runHostMember(member, walked, read, state) {
 function quoteOfVerb(verb, name, state) {
   const scope = envSet(state.env, name, makeBinding({ name: keyword(name), value: verb }));
   return quoteInEnv(quoteOfSource(name), scope);
-}
-
-// Whether a record's page holds a quote under the tag of a role.
-function hasPageRole(record, role) {
-  return record.get('docs').some(doc => doc.some(segment => isValueClass(segment, 'taggedInstance') && segment.tag.name === role));
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run

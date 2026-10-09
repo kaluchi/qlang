@@ -30,7 +30,7 @@
   ::builtin{}
 
 :number/add/addend
-  |~~ The number added to the subject. ::holds~(type | eq ::number)
+  |~~ The number added to the subject. ::holds~(isA ::number)
 
       ~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/HoldsNotMetError ::string])
   ~~|
@@ -58,7 +58,7 @@
   ::builtin{}
 
 :number/sub/subtrahend
-  |~~ The number subtracted from the subject. ::holds~(type | eq ::number)
+  |~~ The number subtracted from the subject. ::holds~(isA ::number)
 
       ~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/HoldsNotMetError ::string])
   ~~|
@@ -85,7 +85,7 @@
   ::builtin{}
 
 :number/mul/multiplier
-  |~~ The number the subject is multiplied by. ::holds~(type | eq ::number)
+  |~~ The number the subject is multiplied by. ::holds~(isA ::number)
 
       ~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/HoldsNotMetError ::string])
   ~~|
@@ -113,7 +113,7 @@
   ::builtin{}
 
 :number/div/divisor
-  |~~ The number the subject is divided by. ::holds~(type | eq ::number)
+  |~~ The number the subject is divided by. ::holds~(isA ::number)
 
       ~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/HoldsNotMetError ::string])
   ~~|
@@ -154,7 +154,7 @@
 
 :number/round/digits
   |~~ The digits after the point, a whole number, none when the call
-      gives none. ::holds~(type | eq ::number) ~~|
+      gives none. ::holds~(isA ::number) ~~|
   ~(at 0 0)
 
 :number/round/DigitsNotIntegerError

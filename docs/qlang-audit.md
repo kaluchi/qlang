@@ -1035,7 +1035,7 @@ the procedure is written once [D166]:
 ::number/add/SubjectNotNumberError
 
 > 1 | add "x" !| [type /holds]
-[::number/add/addend/HoldsNotMetError ~(type | eq ::number)]
+[::number/add/addend/HoldsNotMetError ~(isA ::number)]
 
 > "hello" | add 1 !| explain | page | content | contains "sumOf"
 true
@@ -1951,7 +1951,7 @@ and the suite and the laws of the catalog write them:
 
 ```
 $ grep -o '::verb~(' -r core/test/conformance core/test/unit core/test/qlang core/lib | wc -l
-370
+371
 ```
 
 One way writes every one as a name under the label of its subject or

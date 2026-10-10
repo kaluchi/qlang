@@ -10,13 +10,19 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { declaredRefusals } from '../../src/errors.mjs';
-import { nodeOf } from '../../src/runtime/nouns.mjs';
+import { isWord, nodeOf, ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
 import { splitAddress } from '../../src/address.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
 import { bindingValueOf, isDoc } from '../../src/types.mjs';
 
 const session = await createSession();
 const declared = new Set(declaredRefusals());
+
+// The refusals the words of the root raise by rule, which their
+// definitions page as the declared ones are paged [D179].
+const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
+  .filter(address => isWord(session.env, address))
+  .flatMap(address => ruleRefusalsOf(session.env, address)));
 
 // The refusals the root pages under a noun, `number/add/SubjectNotNumberError`.
 const refusalPages = [];
@@ -35,10 +41,10 @@ describe('every refusal a site of the runtime declares has its page under its no
   }
 });
 
-describe('every refusal the catalog pages is declared by a site of the runtime', () => {
+describe('every refusal the catalog pages is declared by a site of the runtime or raised by rule', () => {
   for (const address of refusalPages) {
-    it(`${address} is declared by its site`, () => {
-      expect(declared.has(address), `${address} has a page and no site under core/src declares it`).toBe(true);
+    it(`${address} is declared by its site or raised by rule`, () => {
+      expect(declared.has(address) || ruleBorn.has(address), `${address} has a page, no site under core/src declares it and no rule raises it`).toBe(true);
     });
   }
 

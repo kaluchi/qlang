@@ -276,6 +276,50 @@ export function partsOfName(env, address) {
 
 const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
 
+// The places the parts read, one past the greatest a part reads strictly
+// or softly, or null when a part reads no place, the args whole, a
+// place from its end or anything else, and so takes any number of
+// values.
+export function placesReadBy(parts) {
+  let places = 0;
+  for (const [, partRecord] of parts) {
+    const { place } = selectorOf(partRecord);
+    if (!Number.isInteger(place)) return null;
+    places = Math.max(places, place + 1);
+  }
+  return places;
+}
+
+// The refusals the runtime raises by rule under a word, each named by the
+// address of what refused [D166], [D169]: a subject the walk of whose
+// tags reaches no value of the word's label, args of more values than the
+// parts read places, a part the call leaves out where the part reads one,
+// and an answer that reaches none of the labels its definition names.
+export const subjectRefusalAddress = (address, labelName) => `${address}/SubjectNot${capitalOf(labelName)}Error`;
+export const argsBeyondPartsAddress = address => `${address}/ArgsBeyondPartsError`;
+export const notGivenAddress = partAddress => `${partAddress}/NotGivenError`;
+export const answerRefusalAddress = (answerAddress, kinds) => `${answerAddress}/Not${kinds.map(capitalOf).join('Or')}Error`;
+
+const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
+
+// ruleRefusalsOf(env, address) → the addresses of the refusals the word
+// at the address may raise by rule, which its definition pages [D179].
+export function ruleRefusalsOf(env, address) {
+  const [labelName] = splitAddress(address);
+  const parts = partsOfName(env, address);
+  const refusals = [subjectRefusalAddress(address, labelName)];
+  if (placesReadBy(parts) !== null) refusals.push(argsBeyondPartsAddress(address));
+  for (const [, partRecord] of parts) {
+    const { onePlace, strict, readsArgs } = selectorOf(partRecord);
+    if (!readsArgs && (strict || !onePlace)) refusals.push(notGivenAddress(partRecord.get('name').name));
+  }
+  const answer = answerOf(env, address);
+  if (answer !== null && answer.kinds.length > 1 && !answer.kinds.includes(ANY_KIND_NAME) && !answer.kinds.includes(labelName)) {
+    refusals.push(answerRefusalAddress(answer.address, answer.kinds));
+  }
+  return refusals;
+}
+
 function quotesUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isQuote(bindingValueOf(record)));
 }

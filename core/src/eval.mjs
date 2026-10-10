@@ -24,7 +24,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, vocabularyWords
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, partsOfName, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectRefusalAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -592,10 +592,7 @@ async function applyMember(record, lambdas, state) {
   const member = bindingValueOf(record);
   const [labelName] = splitAddress(address);
   const walked = walkToKinds(state.pipeValue, [labelName]);
-  if (walked === null) {
-    const [, labelWord] = splitAddress(labelName);
-    return withPipeValue(state, refusalUnder(`${address}/SubjectNot${labelWord[0].toUpperCase()}${labelWord.slice(1)}Error`, {}, state.env, state.pipeValue));
-  }
+  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, state);
   const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope, isQuote(member));
   if (isErrorValue(called)) return withPipeValue(state, called);
@@ -623,11 +620,10 @@ async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked
   if (reached !== null) return reached.served;
   if (kinds.includes(labelName)) return await keptAsSubject(answer, walked.served, walked.passedTags, state);
   if (kinds.length === 1) return await mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
-  return refusalUnder(`${address}/Not${kinds.map(capitalOf).join('Or')}Error`, { actualValue: answer }, state.env);
+  return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 
 const ANY_KIND = 'any';
-const capitalOf = kind => { const [, word] = splitAddress(kind); return word[0].toUpperCase() + word.slice(1); };
 
 // callMemberOn(record, subject, state) → the answer of the name under a
 // label the record holds, run on the subject with no modifiers, the
@@ -662,20 +658,6 @@ function scopeOfMember(member, state) {
   return scope;
 }
 
-// The places the parts read, one past the greatest a part reads strictly
-// or softly, or null when a part reads no place, the args whole, a
-// place from its end or anything else, and so takes any number of
-// values.
-function placesReadBy(parts) {
-  let places = 0;
-  for (const [, partRecord] of parts) {
-    const { place } = selectorOf(partRecord);
-    if (!Number.isInteger(place)) return null;
-    places = Math.max(places, place + 1);
-  }
-  return places;
-}
-
 // The args of a call, the values of its modifiers each computed against
 // the subject under the name's address, and its parts read from them:
 // args with more values than the parts have places are refused under the
@@ -694,7 +676,7 @@ async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
   }
   const args = makeTaggedInstance(makeTagKeyword(address), values);
   const places = placesReadBy(parts);
-  if (places !== null && values.length > places) return refusalUnder(`${address}/ArgsBeyondPartsError`, { places, actualValue: args }, scope);
+  if (places !== null && values.length > places) return refusalUnder(argsBeyondPartsAddress(address), { places, actualValue: args }, scope);
   const argsRefused = await refusalOfInvariants(address, args, state, scope);
   if (argsRefused !== null) return argsRefused;
   let bodyEnv = bindsNames ? envSet(scope, 'args', makeBinding({ name: keyword('args'), value: args })) : null;
@@ -704,7 +686,7 @@ async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
     const partAddress = partRecord.get('name').name;
     const selector = selectorOf(partRecord);
     const part = await partOf(selector, values, nestState(state, args, scope));
-    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(`${partAddress}/NotGivenError`, { actualValue: args }, scope);
+    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(notGivenAddress(partAddress), { actualValue: args }, scope);
     if (isErrorValue(part)) return part;
     const refused = await refusalOfInvariants(partAddress, part, state, scope);
     if (refused !== null) return refused;

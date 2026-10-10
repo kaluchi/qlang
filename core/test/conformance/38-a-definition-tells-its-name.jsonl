@@ -1,0 +1,4 @@
+{"name":"the-answer-of-a-word-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true","decision":"D179"}
+{"name":"a-refusal-raised-by-rule-pages-how-to-repair-it","query":"5 | eq !| explain | page | content | contains \"with no value\"","expect":"true","decision":"D179"}
+{"name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| explain | page | content | contains \"one of several\"","expect":"true","decision":"D179"}
+{"name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false","decision":"D179"}

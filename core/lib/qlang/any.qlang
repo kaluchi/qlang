@@ -34,48 +34,116 @@
   ::desc
 
 :any/eq
-  |~~ Whether the subject equals the value, by structural equality deep
-      across maps, vectors, sets and scalars.
+  |~~ Answers whether the subject and the value the call gives are one
+      value: of one kind, under the same tags, and equal part for part,
+      the order of a map's keys and of a set's elements aside. So a
+      keyword is not its string, `:a` and `"a"`; a vector is not the set
+      of its elements, `[1 2]` and `#[1 2]`; a value under a tag is not
+      its payload; and a number equals itself whatever its digits, `1`
+      and `1.0`, while a sum of doubles may miss, `0.1 | add 0.2`. The
+      value is computed against the subject, so two fields of one record
+      are compared through a name, `:r / | /a | eq (r | /b)`, and in a
+      condition the subject is the element, `filter ~(/status | eq
+      "open")`. `ne` answers the opposite.
+      ::link~(::any/ne | doc) ::link~(::qlang/values | doc)
   ~~|
   ::builtin{}
 
-:any/eq/holdsOfANumberAndItself
-  |~~ A number equals itself. ~~|
-  ::law~(42 | eq 42 | eq true)
-
-:any/eq/comparesMapsByStructure
-  |~~ Two maps of the same entries are equal. ~~|
-  ::law~({:a 1} | eq {:a 1} | eq true)
+:any/eq/answer
+  |~~ `true` when the subject and the value are one value, `false`
+      otherwise.
+  ~~|
+  ::boolean
 
 :any/eq/value
-  |~~ The value the call gives. ~~|
+  |~~ The value compared with the subject, any value, computed against
+      the subject.
+  ~~|
   ~(/0)
 
-:any/eq/same
-  |~~ Whether the two values are equal. ~~|
-  ::boolean
+:any/eq/value/NotGivenError
+  |~~ `eq` was called with no value: it compares the subject with one,
+      `5 | eq 5`.
+  ~~|
+
+:any/eq/ArgsBeyondPartsError
+  |~~ `eq` compares the subject with one value and was given more:
+      whether the subject is one of several is `:x / | [5 6] | contains
+      x`.
+  ~~|
+
+:any/eq/comparesPartForPart
+  |~~ Nested values compare part for part, a set without its order. ~~|
+  ::law~({:a [1 #[2 3]]} | eq {:a [1 #[3 2]]})
+
+:any/eq/keepsAKeywordApartFromItsString
+  |~~ A keyword is not its string. ~~|
+  ::law~(:a | eq "a" | not)
+
+:any/eq/keepsAVectorApartFromItsSet
+  |~~ A vector is not the set of its elements. ~~|
+  ::law~([1 2] | eq #[1 2] | not)
+
+:any/eq/keepsATagOverItsPayload
+  |~~ A value under a tag is not its payload. ~~|
+  ::law~(::Box[1] | eq [1] | not)
+
+:any/eq/readsANumberByItsValue
+  |~~ A number equals itself whatever its digits. ~~|
+  ::law~(1 | eq 1.0)
+
+:any/eq/comparesDoublesAsTheyAdd
+  |~~ A sum of doubles may miss the number it is written as. ~~|
+  ::law~(0.1 | add 0.2 | eq 0.3 | not)
+
+:any/eq/comparesTwoFieldsThroughAName
+  |~~ Two fields of one record compare through a name. ~~|
+  ::law~({:a 1 :b 1} | :r / | /a | eq (r | /b))
+
+:any/eq/value/NotGivenError/refusesACallWithNoValue
+  |~~ A call with no value is refused under the part. ~~|
+  ::law~(5 | eq !| type | eq ::any/eq/value/NotGivenError)
+
+:any/eq/ArgsBeyondPartsError/refusesTwoValues
+  |~~ A call with two values is refused under the word. ~~|
+  ::law~(5 | eq 5 6 !| type | eq ::any/eq/ArgsBeyondPartsError)
 
 :any/ne
-  |~~ Whether the subject differs from the value, by the structural
-      equality of `eq`, whose negation it is.
+  |~~ Answers whether the subject and the value the call gives differ, by
+      the equality of `eq`, whose opposite it is: a keyword differs from
+      its string, a vector from the set of its elements, a value under a
+      tag from its payload.
+      ::link~(::any/eq | doc)
   ~~|
   ::builtin{}
 
-:any/ne/holdsOfTwoNumbers
-  |~~ One differs from two. ~~|
-  ::law~(1 | ne 2 | eq true)
-
-:any/ne/failsOfEqualMaps
-  |~~ Two maps of the same entries do not differ. ~~|
-  ::law~({:a 1} | ne {:a 1} | eq false)
+:any/ne/answer
+  |~~ `true` when the subject and the value differ, `false` when they
+      are one value.
+  ~~|
+  ::boolean
 
 :any/ne/value
-  |~~ The value the call gives. ~~|
+  |~~ The value compared with the subject, any value, computed against
+      the subject.
+  ~~|
   ~(/0)
 
-:any/ne/different
-  |~~ Whether the two values differ. ~~|
-  ::boolean
+:any/ne/value/NotGivenError
+  |~~ `ne` was called with no value: it compares the subject with one,
+      `5 | ne 6`.
+  ~~|
+
+:any/ne/ArgsBeyondPartsError
+  |~~ `ne` compares the subject with one value and was given more. ~~|
+
+:any/ne/answersTheOppositeOfEq
+  |~~ Two values differ exactly when they are not one value. ~~|
+  ::law~([[1 2] [1 1] [:a "a"]] * (:p / | /0 | ne (p | /1)) | eq [true false true])
+
+:any/ne/keepsTheOrderOfKeysAside
+  |~~ Two maps of the same entries do not differ, whatever the order of their keys. ~~|
+  ::law~({:a 1 :b 2} | ne {:b 2 :a 1} | not)
 
 :any/type
   |~~ The value's kind, a tag, which names the page of the value and the

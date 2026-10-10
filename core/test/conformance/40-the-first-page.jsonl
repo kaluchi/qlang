@@ -4,3 +4,5 @@
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r / | /qty | mul (r | /price)","expect":"6","decision":"D185"}
 {"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r / | :r | type","expect":"::keyword","decision":"D185"}
 {"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (/email | ne null) (/email | endsWith \".org\") !| type","expect":"::string/endsWith/SubjectNotStringError","decision":"D185"}
+{"name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~([/ manifest])\"","expect":"true","decision":"D186"}
+{"name":"a-fan-out-over-kinds-answers-each-kind-beside-its-words","query":"[::vec ::any] | map ~([/ manifest]) | map ~([(/0) (/1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]","decision":"D186"}

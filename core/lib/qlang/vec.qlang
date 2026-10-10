@@ -2,9 +2,10 @@
    payload of another kind, and the words of vectors, each told in one
    order: the word and its page, its answer, its parts, its refusals, its
    laws. A word of vectors serves a vector under any tag, a quote and a
-   doc among them, and a set where the set has no word of its own; where
-   it answers a vector, it answers under the tags of the subject. Its
-   parts are read and held to their invariants before the word runs. ~|
+   doc among them, and a set where the set has no word of its own; a
+   word whose answer names the vector answers under the tags of the
+   subject, and `map`, whose answer is any value, under none. Its parts
+   are read and held to their invariants before the word runs. ~|
 
 :vec/construct
   |~~ Reads a vector as the bare vector, and a set, a quote or a doc as
@@ -1408,14 +1409,13 @@
 
 :vec/union
   |~~ Answers the union of the values the vector holds, from the first:
-      sets merge in the one order, `[#[:a :b] #[:b :c]] | union`
+      sets unite in the one order, `[#[:a :b] #[:b :c]] | union`
       answering `#[:a :b :c]`, maps merge with the last value winning a
       key, `[{:a 1} {:a 2 :b 3}] | union` answering `{:a 2 :b 3}`, and a
-      vector of one value answers it. The values are two sets or two
-      maps, so a set beside a map is refused with the pair, and the
-      vector holds one value at least. A vector is no value of the
-      algebra: two values are written `a | union b`, and a value the call
-      gives beside a vector is refused with the pair.
+      vector of one value answers it. The values are sets or maps: one
+      that is neither is refused at its index, a set beside a map with the
+      pair, and the vector holds one value at least. The call takes no
+      value, and two values unite as `a | union b`.
       ::link~(::vec/minus | doc) ::link~(::vec/inter | doc)
       ::link~(::set/union | doc)
   ~~|
@@ -1425,24 +1425,26 @@
   |~~ The union of the values, a set or a map. ~~|
   #[::set ::map]
 
-:vec/union/with
-  |~~ The value the subject is joined with, null when it gives none. ~~|
-  ~(at 0)
-
-:vec/union/with/NotSetOrMapOrNullError
-  |~~ The value joined is a set, a map or null. ~~|
-  ::holds~(is ::set ::map ::null)
-
 :vec/union/SubjectEmptyError
-  |~~ `union` over a vector joins its values from the first, `[a b c]
-      | union`, so the vector holds one at least; two values are
-      written `a | union b`.
+  |~~ `union` over a vector unites its values from the first, `[a b c]
+      | union`, so the vector holds one at least; two values unite as
+      `a | union b`.
+  ~~|
+
+:vec/union/ElementNotSetOrMapError
+  |~~ The values `union` unites are sets or maps; `:index` names the first
+      that is neither, and a vector of vectors unites once each is a set,
+      `map ~(distinct) | union`.
   ~~|
 
 :vec/union/KindsMismatchedError
-  |~~ The values `union` joins are two sets or two maps; a vector is
-      none, so a value its call gives beside the vector is refused with
-      the pair.
+  |~~ The values `union` unites are all sets or all maps; a set beside a
+      map is refused with the pair.
+  ~~|
+
+:vec/union/ArgsBeyondPartsError
+  |~~ `union` over a vector unites the values it holds and takes no value:
+      two values unite as `a | union b`, `#[1] | union #[2]`.
   ~~|
 
 :vec/union/unitesTheValues
@@ -1461,28 +1463,36 @@
   |~~ The empty vector holds no value. ~~|
   ::law~([] | union !| type | eq ::vec/union/SubjectEmptyError)
 
+:vec/union/ElementNotSetOrMapError/refusesANumberAtItsIndex
+  |~~ A value that is neither a set nor a map is refused at its index. ~~|
+  ::law~([#[:a] 2] | union
+    !| [type /index /actualType]
+    |  eq [::vec/union/ElementNotSetOrMapError 1 ::number])
+
+:vec/union/ElementNotSetOrMapError/unitesVectorsMadeSets
+  |~~ A vector of vectors unites once each is a set. ~~|
+  ::law~([[1 2] [2 3]] | map ~(distinct) | union | eq #[1 2 3])
+
 :vec/union/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+  |~~ A set and a map do not unite. ~~|
   ::law~([#[:a] {:b 1}] | union
     !| [type /leftType /rightType]
     |  eq [::vec/union/KindsMismatchedError ::set ::map])
 
-:vec/union/KindsMismatchedError/refusesAVectorAndASet
-  |~~ A vector and a set do not join. ~~|
-  ::law~([1] | union #[2]
-    !| [type /leftType /rightType]
-    |  eq [::vec/union/KindsMismatchedError ::vec ::set])
+:vec/union/ArgsBeyondPartsError/refusesAValueGiven
+  |~~ A value the call gives is refused under the word. ~~|
+  ::law~([#[1]] | union #[2] !| type | eq ::vec/union/ArgsBeyondPartsError)
 
 :vec/minus
-  |~~ Answers the first value the vector holds minus each one after it:
+  |~~ Answers the first value the vector holds less each one after it:
       a set loses the elements the next set holds, `[#[:a :b :c] #[:b]]
       | minus` answering `#[:a :c]`, and a map loses the keys of the
       next, which is a map, a set or a vector of keys, each a keyword or
-      a string, `[{:a 1 :b 2} [:a]] | minus` answering `{:b 2}`. A set
-      beside a map is refused with the pair, and the vector holds one
-      value at least. A vector is no value of the algebra: two values
-      are written `a | minus b`, and a value the call gives beside a
-      vector is refused with the pair.
+      a string, `[{:a 1 :b 2} [:a]] | minus` answering `{:b 2}`. The
+      first value is a set or a map, refused at its index when it is
+      neither, a value after it the algebra has no rule for is refused
+      with the pair, and the vector holds one value at least. The call
+      takes no value, and of two values `a | minus b` takes `b` from `a`.
       ::link~(::vec/union | doc) ::link~(::vec/inter | doc)
       ::link~(::set/minus | doc)
   ~~|
@@ -1492,29 +1502,31 @@
   |~~ The first value less the ones after it, a set or a map. ~~|
   #[::set ::map]
 
-:vec/minus/with
-  |~~ The value the subject is joined with, null when it gives none. ~~|
-  ~(at 0)
-
-:vec/minus/with/NotSetOrMapOrNullError
-  |~~ The value joined is a set, a map or null. ~~|
-  ::holds~(is ::set ::map ::null)
-
 :vec/minus/SubjectEmptyError
-  |~~ `minus` over a vector joins its values from the first, `[a b c]
-      | minus`, so the vector holds one at least; two values are
-      written `a | minus b`.
+  |~~ `minus` over a vector takes from its first value the ones after it,
+      `[a b c] | minus`, so the vector holds one at least; of two values
+      `a | minus b` takes `b` from `a`.
+  ~~|
+
+:vec/minus/ElementNotSetOrMapError
+  |~~ The value `minus` takes from is a set or a map; `:index` names the
+      first value of the vector, which is neither.
   ~~|
 
 :vec/minus/KindsMismatchedError
-  |~~ The values `minus` joins are two sets, or a map and a map or a
-      vector of keys; a vector is none, so a value its call gives beside
-      the vector is refused with the pair.
+  |~~ After a set `minus` takes a set, and after a map a map, a set or a
+      vector of keys; another value is refused with the pair.
   ~~|
 
 :vec/minus/KeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
       names the first element of the vector of keys that is neither.
+  ~~|
+
+:vec/minus/ArgsBeyondPartsError
+  |~~ `minus` over a vector takes from its first value the ones after it
+      and takes no value: of two values `a | minus b` takes `b` from `a`,
+      `#[1 2] | minus #[2]`.
   ~~|
 
 :vec/minus/subtractsTheRest
@@ -1533,17 +1545,15 @@
   |~~ The empty vector holds no value. ~~|
   ::law~([] | minus !| type | eq ::vec/minus/SubjectEmptyError)
 
-:vec/minus/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+:vec/minus/ElementNotSetOrMapError/refusesANumberFirst
+  |~~ A first value that is neither a set nor a map is refused at its index. ~~|
+  ::law~([1 #[1]] | minus !| [type /index] | eq [::vec/minus/ElementNotSetOrMapError 0])
+
+:vec/minus/KindsMismatchedError/refusesAMapAfterASet
+  |~~ A map after a set is refused with the pair. ~~|
   ::law~([#[:a] {:b 1}] | minus
     !| [type /leftType /rightType]
     |  eq [::vec/minus/KindsMismatchedError ::set ::map])
-
-:vec/minus/KindsMismatchedError/refusesAVectorAndASet
-  |~~ A vector and a set do not join. ~~|
-  ::law~([1] | minus #[2]
-    !| [type /leftType /rightType]
-    |  eq [::vec/minus/KindsMismatchedError ::vec ::set])
 
 :vec/minus/KeyNotKeywordOrStringError/refusesANumber
   |~~ A number among the keys is refused at its index. ~~|
@@ -1551,16 +1561,20 @@
     !| [type /actualType /index]
     |  eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
 
+:vec/minus/ArgsBeyondPartsError/refusesAValueGiven
+  |~~ A value the call gives is refused under the word. ~~|
+  ::law~([#[1]] | minus #[2] !| type | eq ::vec/minus/ArgsBeyondPartsError)
+
 :vec/inter
-  |~~ Answers the intersection of the values the vector holds: a set
-      keeps the elements every set after it holds, `[#[:a :b :c] #[:b
-      :d]] | inter` answering `#[:b]`, and a map keeps the keys of the
-      next, which is a map, a set or a vector of keys, with its own
-      values, `[{:a 1 :b 2} {:a 3}] | inter` answering `{:a 1}`. A set
-      beside a map is refused with the pair, and the vector holds one
-      value at least. A vector is no value of the algebra: two values
-      are written `a | inter b`, and a value the call gives beside a
-      vector is refused with the pair.
+  |~~ Answers what the values the vector holds share: a set keeps the
+      elements every set after it holds, `[#[:a :b :c] #[:b :d]] | inter`
+      answering `#[:b]`, and a map keeps the keys of the next, which is a
+      map, a set or a vector of keys, with its own values, `[{:a 1 :b 2}
+      {:a 3}] | inter` answering `{:a 1}`. The first value is a set or a
+      map, refused at its index when it is neither, a value after it the
+      algebra has no rule for is refused with the pair, and the vector
+      holds one value at least. The call takes no value, and of two
+      values `a | inter b` keeps what `a` shares with `b`.
       ::link~(::vec/union | doc) ::link~(::vec/minus | doc)
       ::link~(::set/inter | doc)
   ~~|
@@ -1570,29 +1584,31 @@
   |~~ What every value holds, a set or a map. ~~|
   #[::set ::map]
 
-:vec/inter/with
-  |~~ The value the subject is joined with, null when it gives none. ~~|
-  ~(at 0)
-
-:vec/inter/with/NotSetOrMapOrNullError
-  |~~ The value joined is a set, a map or null. ~~|
-  ::holds~(is ::set ::map ::null)
-
 :vec/inter/SubjectEmptyError
-  |~~ `inter` over a vector joins its values from the first, `[a b c]
-      | inter`, so the vector holds one at least; two values are
-      written `a | inter b`.
+  |~~ `inter` over a vector keeps what its values share from the first,
+      `[a b c] | inter`, so the vector holds one at least; of two values
+      `a | inter b` keeps what `a` shares with `b`.
+  ~~|
+
+:vec/inter/ElementNotSetOrMapError
+  |~~ The value `inter` keeps from is a set or a map; `:index` names the
+      first value of the vector, which is neither.
   ~~|
 
 :vec/inter/KindsMismatchedError
-  |~~ The values `inter` joins are two sets, or a map and a map or a
-      vector of keys; a vector is none, so a value its call gives beside
-      the vector is refused with the pair.
+  |~~ After a set `inter` takes a set, and after a map a map, a set or a
+      vector of keys; another value is refused with the pair.
   ~~|
 
 :vec/inter/KeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
       names the first element of the vector of keys that is neither.
+  ~~|
+
+:vec/inter/ArgsBeyondPartsError
+  |~~ `inter` over a vector keeps what its values share and takes no
+      value: of two values `a | inter b` keeps what `a` shares with `b`,
+      `#[1 2] | inter #[2]`.
   ~~|
 
 :vec/inter/keepsTheCommonElements
@@ -1611,23 +1627,25 @@
   |~~ The empty vector holds no value. ~~|
   ::law~([] | inter !| type | eq ::vec/inter/SubjectEmptyError)
 
-:vec/inter/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+:vec/inter/ElementNotSetOrMapError/refusesANumberFirst
+  |~~ A first value that is neither a set nor a map is refused at its index. ~~|
+  ::law~([1 #[1]] | inter !| [type /index] | eq [::vec/inter/ElementNotSetOrMapError 0])
+
+:vec/inter/KindsMismatchedError/refusesAMapAfterASet
+  |~~ A map after a set is refused with the pair. ~~|
   ::law~([#[:a] {:b 1}] | inter
     !| [type /leftType /rightType]
     |  eq [::vec/inter/KindsMismatchedError ::set ::map])
-
-:vec/inter/KindsMismatchedError/refusesAVectorAndASet
-  |~~ A vector and a set do not join. ~~|
-  ::law~([1] | inter #[2]
-    !| [type /leftType /rightType]
-    |  eq [::vec/inter/KindsMismatchedError ::vec ::set])
 
 :vec/inter/KeyNotKeywordOrStringError/refusesAVector
   |~~ A vector among the keys is refused at its index. ~~|
   ::law~([{:a 1} [[:a]]] | inter
     !| [type /actualType /index]
     |  eq [::vec/inter/KeyNotKeywordOrStringError ::vec 0])
+
+:vec/inter/ArgsBeyondPartsError/refusesAValueGiven
+  |~~ A value the call gives is refused under the word. ~~|
+  ::law~([#[1]] | inter #[2] !| type | eq ::vec/inter/ArgsBeyondPartsError)
 
 :vec/join
   |~~ Answers the strings the vector holds joined into one, the separator
@@ -1748,8 +1766,8 @@
 :vec/append
   |~~ Answers the vector with the element the call gives at its end, any
       value, `[1 2] | append 3` answering `[1 2 3]`; a vector given is one
-      element, so `[1] | append [2 3]` answers `[1 [2 3]]` and vectors
-      join through `flat` after it. The answer keeps the kind of the
+      element, so `[1] | append [2 3]` answers `[1 [2 3]]`, and `flat`
+      after it splices the vector in. The answer keeps the kind of the
       subject: a vector under a tag stays under it, a quote takes the
       element as its last step, a set takes it through its constructor,
       so it stays a set, and a doc takes a segment, a string or a quote,

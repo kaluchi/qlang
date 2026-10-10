@@ -3,9 +3,10 @@
    in one order: the word and its page, its answer, its parts, its
    refusals, its laws. A set is the vector in the one order without
    duplicates, and a vector to every word sets do not declare, `#["b"
-   "a"] | join ","` answering `"a,b"`. A word that keeps the one order
-   answers a set under the tags of the subject; one that imposes another
-   order answers a vector, which `distinct` makes a set again. A value
+   "a"] | join ","` answering `"a,b"`. A word whose answer names the
+   set keeps the one order and answers under the tags of the subject; one
+   that imposes another order answers a vector, which `distinct` makes a
+   set again, and `map` answers the vector of the images under no tag. A value
    of a kind no word of the name serves is refused by the call, which
    names the kinds that do. ~|
 
@@ -1086,11 +1087,12 @@
       under the tags of the subject: `#[:a :b] | union #[:b :c]` answers
       `#[:a :b :c]`. The other value is a set, or null; a vector or a map
       beside a set is refused under the part. With no other set the call
-      joins the values the set holds, all sets or all maps: `#[#[1] #[2]
+      unites the values the set holds, all sets or all maps: `#[#[1] #[2]
       #[3]] | union` answers `#[1 2 3]`, and a set of maps answers the map
       of their entries, the later in the one order winning a key both
-      hold. Values of two kinds are refused, and so are values that are
-      no sets nor maps; an empty set has nothing to join. `minus` and
+      hold. A value that is neither a set nor a map is refused at its
+      index, a set beside a map with the pair, and an empty set has
+      nothing to unite. `minus` and
       `inter` answer the difference and the common part.
       ::link~(::set/minus | doc) ::link~(::set/inter | doc)
       ::link~(::vec/union | doc)
@@ -1103,24 +1105,31 @@
   ~~|
   #[::set ::map]
 
-:set/union/with
-  |~~ The set the subject is joined with, null when the call gives none. ~~|
+:set/union/other
+  |~~ The other set, null when the call gives none. ~~|
   ~(at 0)
 
-:set/union/with/NotSetOrNullError
-  |~~ The value joined with a set is a set or null. ~~|
+:set/union/other/NotSetOrNullError
+  |~~ The other value is a set or null. ~~|
   ::holds~(is ::set ::null)
 
 :set/union/SubjectEmptyError
-  |~~ `union` over a set its call leaves without the other value joins
-      the values the set holds, so the set holds one at least.
+  |~~ `union` with no other value unites the values the set holds, so the
+      set holds one at least.
+  ~~|
+
+:set/union/ElementNotSetOrMapError
+  |~~ The values `union` unites inside a set are sets or maps; `:index`
+      names the first in the one order that is neither.
   ~~|
 
 :set/union/KindsMismatchedError
-  |~~ The values `union` joins inside a set are two sets or two maps. ~~|
+  |~~ The values `union` unites inside a set are all sets or all maps; a
+      set beside a map is refused with the pair.
+  ~~|
 
 :set/union/ArgsBeyondPartsError
-  |~~ `union` joins the subject with one set: several join one after
+  |~~ `union` unites the subject with one set: several unite one after
       another, `union #[2] | union #[3]`, or as a set of sets with no
       other value, `#[#[1] #[2] #[3]] | union`.
   ~~|
@@ -1142,24 +1151,24 @@
   ::law~(#[{:a 1} {:a 2}] | union | eq {:a 2})
 
 :set/union/unitesSeveralOneAfterAnother
-  |~~ Several sets join one after another. ~~|
+  |~~ Several sets unite one after another. ~~|
   ::law~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
 
-:set/union/with/NotSetOrNullError/refusesAVector
+:set/union/other/NotSetOrNullError/refusesAVector
   |~~ A vector beside a set is refused under the part. ~~|
-  ::law~(#[:a] | union [:b] !| type | eq ::set/union/with/NotSetOrNullError)
+  ::law~(#[:a] | union [:b] !| type | eq ::set/union/other/NotSetOrNullError)
 
 :set/union/SubjectEmptyError/refusesTheEmptySet
   |~~ The empty set holds no value. ~~|
   ::law~(#[] | union !| type | eq ::set/union/SubjectEmptyError)
 
 :set/union/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+  |~~ A set and a map do not unite. ~~|
   ::law~(#[#[:a] {:b 1}] | union !| [type /rightType] | eq [::set/union/KindsMismatchedError ::map])
 
-:set/union/KindsMismatchedError/refusesNumbers
-  |~~ Values that are no sets nor maps do not join. ~~|
-  ::law~(#[1 2] | union !| type | eq ::set/union/KindsMismatchedError)
+:set/union/ElementNotSetOrMapError/refusesANumberAtItsIndex
+  |~~ A value that is neither a set nor a map is refused at its index. ~~|
+  ::law~(#[1 2] | union !| [type /index] | eq [::set/union/ElementNotSetOrMapError 0])
 
 :set/union/ArgsBeyondPartsError/refusesTwoSets
   |~~ A call with two sets is refused under the word. ~~|
@@ -1174,8 +1183,9 @@
       all sets or all maps, the first in the one order, which need not be
       the first written: `::set[#[3] #[1 3]] | minus` answers `#[1]`, and
       of maps it keeps the entries of the first whose keys the others
-      lack. Values of two kinds are refused, and an empty set has nothing
-      to take from. `union` and `inter` answer the whole and the common
+      lack. A first value that is neither a set nor a map is refused at
+      its index, values of two kinds with the pair, and an empty set has
+      nothing to take from. `union` and `inter` answer the whole and the common
       part.
       ::link~(::set/union | doc) ::link~(::set/inter | doc)
       ::link~(::vec/minus | doc)
@@ -1189,21 +1199,28 @@
   ~~|
   #[::set ::map]
 
-:set/minus/with
+:set/minus/other
   |~~ The set whose elements go, null when the call gives none. ~~|
   ~(at 0)
 
-:set/minus/with/NotSetOrNullError
+:set/minus/other/NotSetOrNullError
   |~~ The value taken from a set is a set or null. ~~|
   ::holds~(is ::set ::null)
 
 :set/minus/SubjectEmptyError
-  |~~ `minus` over a set its call leaves without the other value joins
-      the values the set holds, so the set holds one at least.
+  |~~ `minus` with no other value takes from the first value the set
+      holds the ones after it, so the set holds one at least.
+  ~~|
+
+:set/minus/ElementNotSetOrMapError
+  |~~ The value `minus` takes from inside a set is a set or a map;
+      `:index` names the first in the one order, which is neither.
   ~~|
 
 :set/minus/KindsMismatchedError
-  |~~ The values `minus` joins inside a set are two sets or two maps. ~~|
+  |~~ The values `minus` meets inside a set are all sets or all maps; a
+      set beside a map is refused with the pair.
+  ~~|
 
 :set/minus/ArgsBeyondPartsError
   |~~ `minus` takes one set: several go one after another, `minus #[2] |
@@ -1226,17 +1243,21 @@
   |~~ Several sets go one after another. ~~|
   ::law~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
 
-:set/minus/with/NotSetOrNullError/refusesAMap
+:set/minus/other/NotSetOrNullError/refusesAMap
   |~~ A map beside a set is refused under the part. ~~|
-  ::law~(#[:a] | minus {:a 1} !| type | eq ::set/minus/with/NotSetOrNullError)
+  ::law~(#[:a] | minus {:a 1} !| type | eq ::set/minus/other/NotSetOrNullError)
 
 :set/minus/SubjectEmptyError/refusesTheEmptySet
   |~~ The empty set holds no value. ~~|
   ::law~(#[] | minus !| type | eq ::set/minus/SubjectEmptyError)
 
 :set/minus/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+  |~~ A set beside a map is refused with the pair. ~~|
   ::law~(#[#[:a] {:b 1}] | minus !| [type /rightType] | eq [::set/minus/KindsMismatchedError ::map])
+
+:set/minus/ElementNotSetOrMapError/refusesANumberFirst
+  |~~ A first value that is neither a set nor a map is refused at its index. ~~|
+  ::law~(#[1 #[2]] | minus !| [type /index] | eq [::set/minus/ElementNotSetOrMapError 0])
 
 :set/minus/ArgsBeyondPartsError/refusesTwoSets
   |~~ A call with two sets is refused under the word. ~~|
@@ -1251,8 +1272,9 @@
       keeps what every value the set holds shares, all sets or all maps:
       `#[#[1 2] #[2 3]] | inter` answers `#[2]`, and of maps it keeps the
       entries of the first, in the one order, whose keys every other
-      holds. Values of two kinds are refused, and an empty set has nothing
-      to keep.
+      holds. A first value that is neither a set nor a map is refused at
+      its index, values of two kinds with the pair, and an empty set has
+      nothing to keep.
       ::link~(::set/union | doc) ::link~(::set/minus | doc)
       ::link~(::vec/inter | doc) ::link~(::set/has | doc)
   ~~|
@@ -1265,21 +1287,28 @@
   ~~|
   #[::set ::map]
 
-:set/inter/with
+:set/inter/other
   |~~ The set whose elements stay, null when the call gives none. ~~|
   ~(at 0)
 
-:set/inter/with/NotSetOrNullError
-  |~~ The value a set is crossed with is a set or null. ~~|
+:set/inter/other/NotSetOrNullError
+  |~~ The other value is a set or null. ~~|
   ::holds~(is ::set ::null)
 
 :set/inter/SubjectEmptyError
-  |~~ `inter` over a set its call leaves without the other value joins
-      the values the set holds, so the set holds one at least.
+  |~~ `inter` with no other value keeps what the values the set holds
+      share, so the set holds one at least.
+  ~~|
+
+:set/inter/ElementNotSetOrMapError
+  |~~ The value `inter` keeps from inside a set is a set or a map;
+      `:index` names the first in the one order, which is neither.
   ~~|
 
 :set/inter/KindsMismatchedError
-  |~~ The values `inter` joins inside a set are two sets or two maps. ~~|
+  |~~ The values `inter` meets inside a set are all sets or all maps; a
+      set beside a map is refused with the pair.
+  ~~|
 
 :set/inter/ArgsBeyondPartsError
   |~~ `inter` takes one set: several cross one after another, `inter #[1
@@ -1302,17 +1331,21 @@
   |~~ Of maps, the entries of the first whose keys every other holds. ~~|
   ::law~(#[{:a 1} {:a 2 :b 3}] | inter | eq {:a 1})
 
-:set/inter/with/NotSetOrNullError/refusesAVector
+:set/inter/other/NotSetOrNullError/refusesAVector
   |~~ A vector beside a set is refused under the part. ~~|
-  ::law~(#[:a] | inter [:a] !| type | eq ::set/inter/with/NotSetOrNullError)
+  ::law~(#[:a] | inter [:a] !| type | eq ::set/inter/other/NotSetOrNullError)
 
 :set/inter/SubjectEmptyError/refusesTheEmptySet
   |~~ The empty set holds no value. ~~|
   ::law~(#[] | inter !| type | eq ::set/inter/SubjectEmptyError)
 
 :set/inter/KindsMismatchedError/refusesASetAndAMap
-  |~~ A set and a map do not join. ~~|
+  |~~ A set beside a map is refused with the pair. ~~|
   ::law~(#[#[:a] {:b 1}] | inter !| [type /rightType] | eq [::set/inter/KindsMismatchedError ::map])
+
+:set/inter/ElementNotSetOrMapError/refusesANumberFirst
+  |~~ A first value that is neither a set nor a map is refused at its index. ~~|
+  ::law~(#[1 #[2]] | inter !| [type /index] | eq [::set/inter/ElementNotSetOrMapError 0])
 
 :set/inter/ArgsBeyondPartsError/refusesTwoSets
   |~~ A call with two sets is refused under the word. ~~|

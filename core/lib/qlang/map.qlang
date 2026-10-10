@@ -2,8 +2,9 @@
    payload it cannot read, and the words of maps, each told in one order:
    the word and its page, its answer, its parts, its refusals, its laws.
    A map's elements are its values, and its keys are the shape that
-   travels with them: a word that keeps the kind keeps the keys of the
-   entries it keeps, and answers under the tags of the map. ~|
+   travels with them: a word whose answer names the map keeps the keys
+   of the entries it keeps and answers under the tags of the map, and
+   `map`, whose answer is any value, answers under none. ~|
 
 :map/construct
   |~~ Reads a map as the bare map beneath its tags, and a vector or a set
@@ -1064,26 +1065,26 @@
       the call gives, which wins a key both hold, under the tags of the
       subject: `{:a 1 :b 2} | union {:b 3 :c 4}` answers `{:a 1 :b 3 :c
       4}`. The values are not merged deeper; a key both hold takes the
-      value of the map it is joined with whole. A set or a vector of keys
-      joins no map; a set and a vector join by a `union` of their own.
+      value of the other map whole. A set or a vector of keys unites with
+      no map; a set and a vector unite by a `union` of their own.
       ::link~(::map/minus | doc) ::link~(::map/inter | doc)
       ::link~(::set/union | doc)
   ~~|
   ::builtin{}
 
 :map/union/answer
-  |~~ The entries of both maps, the one joined with winning a key both
-      hold, under the tags of the subject.
+  |~~ The entries of both maps, the other winning a key both hold, under
+      the tags of the subject.
   ~~|
   ::map
 
-:map/union/with
-  |~~ The map the subject is joined with. ~~|
+:map/union/other
+  |~~ The other map. ~~|
   ~(/0)
 
-:map/union/with/NotMapError
-  |~~ The subject is joined with a map, `union {:b 2}`: a key joins with
-      its value, and a set or a vector of keys alone is refused.
+:map/union/other/NotMapError
+  |~~ The subject unites with a map, `union {:b 2}`: a key comes with its
+      value, and a set or a vector of keys alone is refused.
   ~~|
   ::holds~(is ::map)
 
@@ -1103,9 +1104,9 @@
   |~~ A map under a tag answers under the tag. ~~|
   ::law~(::Box{:a 1} | union {:b 2} | eq ::Box{:a 1 :b 2})
 
-:map/union/with/NotMapError/refusesASetOfKeys
-  |~~ A set of keys joins no map. ~~|
-  ::law~({:a 1} | union #[:b] !| type | eq ::map/union/with/NotMapError)
+:map/union/other/NotMapError/refusesASetOfKeys
+  |~~ A set of keys unites with no map. ~~|
+  ::law~({:a 1} | union #[:b] !| type | eq ::map/union/other/NotMapError)
 
 :map/minus
   |~~ Answers the entries of the map whose keys are not among the keys the

@@ -134,7 +134,7 @@ describe('runtime/map.mjs error paths', () => {
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/with/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotSetOrNullError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -145,10 +145,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/with/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotSetOrNullError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/with/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotSetOrNullError');
   });
 });
 

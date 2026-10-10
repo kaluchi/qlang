@@ -75,7 +75,7 @@ review; findings 5 and 6 still stand for the laws declared under
 4. Duplicates among cases and unit tests. Answered by 08f332a5, the copy naming the decision staying.
 5. A test of the wrapper built under `::each`, a tag nothing answers. Answered by 08f332a5.
 6. Names of cases and tests after `*`. Answered by 08f332a5 for the tests and by 1389eb66 for the catalog.
-7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Open.
+7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Answered by 64908015: it reads the combinator from the parse of the source with a step at the cursor.
 8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
 10. Rule refusals with no page and no repair. Open.
@@ -87,7 +87,7 @@ review; findings 5 and 6 still stand for the laws declared under
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Answered by 610b05d4 for env, descriptor, rewrap, constructor invocation and edit, and by f3ebc9f4 for still and the two comments; the part `value` the pages of tags and keywords do not name, open.
 17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
 18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.
-19. A refusal of an unknown combinator the parser cannot produce; `fork.mjs` holding one function; broken comment lines. Open.
+19. A refusal of an unknown combinator the parser cannot produce; `fork.mjs` holding one function; broken comment lines. Answered by 4622ace2, the comment of the language server by 64908015.
 
 The question of the language server's precision after `map`, whose
 answer D182 declares `::any`: open.

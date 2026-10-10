@@ -1962,7 +1962,7 @@
 
 :any/unionOf/refusesAMapWithASet
   |~~ A map with a set is refused by `union`. ~~|
-  ::law~({:a {:x 1} :b #[2]} | unionOf /a /b !| type | eq ::map/union/with/NotMapError)
+  ::law~({:a {:x 1} :b #[2]} | unionOf /a /b !| type | eq ::map/union/other/NotMapError)
 
 :any/unionOf/keepsTheTagsOfTheFirst
   |~~ The union keeps the tags of the first part. ~~|

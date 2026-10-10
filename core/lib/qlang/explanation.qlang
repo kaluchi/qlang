@@ -1,32 +1,85 @@
-|~ What is declared under `::explanation`, the kind of what
-   `explain` answers, the page `doc` reads for a value and the value
-   itself: its verbs. ~|
+|~ What is declared under `::explanation`, the kind of what `explain`
+   answers, the page `doc` reads for a value and the value itself: the
+   words that read it, each told in one order: the word and its page,
+   its answer, its parts, its refusals, its laws. ~|
 
 :explanation/page
-  |~~ The page of what the explanation explains: of a name its own, of
-      a value the page of the kind it shows, of an error the page of its
-      site; null for a declaration without one.
+  |~~ Answers the page that explains what `explain` was asked of: of a
+      name its own page, `::vec/count | explain | page`; of a value the
+      page of its kind, `#[1] | explain | page` the page of sets; of an
+      error the page of the refusal it carries, the procedure that
+      repairs the call, `"x" | add 1 !| explain | page`; and null for a
+      name declared without a page. The subject is an explanation, what
+      `explain` answers, so a map is refused, its key `:page` read by
+      `/page`. `value` answers what was explained.
+      ::link~(::any/explain | doc) ::link~(::explanation/value | doc)
   ~~|
   ~(/page)
-
-:explanation/page/ofAnErrorIsThePageOfItsRefusal
-  |~~ The page of an error is the page of the refusal that raised it. ~~|
-  ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
 
 :explanation/page/answer
   |~~ The page that explains the value, null for a name without one. ~~|
   #[::doc ::null]
 
+:explanation/page/SubjectNotExplanationError
+  |~~ `page` reads what `explain` answers, `::vec/count | explain |
+      page`; the key `:page` of a map is read by `/page`.
+  ~~|
+
+:explanation/page/ofANameIsItsOwn
+  |~~ The page of a name is its own. ~~|
+  ::law~(::vec/count | explain | page | eq (::vec/count | doc))
+
+:explanation/page/ofAValueIsThePageOfItsKind
+  |~~ The page of a value is the page of its kind. ~~|
+  ::law~(#[1] | explain | page | eq (::set | doc))
+
+:explanation/page/ofAnErrorIsThePageOfItsRefusal
+  |~~ The page of an error is the page of the refusal that raised it. ~~|
+  ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
+
+:explanation/page/isNullForANameWithoutOne
+  |~~ A name declared without a page is explained by none. ~~|
+  ::law~(:x 1 | :x | explain | page | eq null)
+
+:explanation/page/SubjectNotExplanationError/refusesAMap
+  |~~ A map with a key `:page` is no explanation. ~~|
+  ::law~({:page 1} | page
+    !| [type /actualType] | eq [::explanation/page/SubjectNotExplanationError ::map])
+
 :explanation/value
-  |~~ The value the explanation explains; an error among them raised, as
-      it arrived before `!|` opened it.
+  |~~ Answers the value the explanation explains, `42 | explain | value`
+      answering `42`, and of a name the name, `::vec/count | explain |
+      value` answering `::vec/count`. An error explained answers raised,
+      as it arrived before `!|` opened it, so the steps after `value` are
+      skipped until a `!|` opens it again. The subject is an explanation,
+      so a map is refused, its key `:value` read by `/value`. `page`
+      answers what explains the value.
+      ::link~(::any/explain | doc) ::link~(::explanation/page | doc)
   ~~|
   ~(/value)
+
+:explanation/value/answer
+  |~~ The value explained, of any kind, an error among them raised. ~~|
+  ::any
+
+:explanation/value/SubjectNotExplanationError
+  |~~ `value` reads what `explain` answers, `42 | explain | value`; the
+      key `:value` of a map is read by `/value`.
+  ~~|
 
 :explanation/value/isTheValueExplained
   |~~ The value is the one explained. ~~|
   ::law~(42 | explain | value | eq 42)
 
+:explanation/value/isTheNameOfAName
+  |~~ A name explained answers the name. ~~|
+  ::law~(::vec/count | explain | value | eq ::vec/count)
+
 :explanation/value/keepsAnErrorRaised
   |~~ An error explained stays raised. ~~|
   ::law~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
+
+:explanation/value/SubjectNotExplanationError/refusesAMap
+  |~~ A map with a key `:value` is no explanation. ~~|
+  ::law~({:value 1} | value
+    !| [type /actualType] | eq [::explanation/value/SubjectNotExplanationError ::map])

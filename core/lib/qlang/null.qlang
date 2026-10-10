@@ -1,5 +1,7 @@
-|~ What is declared under `::null`, the kind of the absent value: the
-   soft read of it. ~|
+|~ What is declared under `::null`, the kind of the absent value: its
+   constructor and its refusal, and the soft read of it, told in one
+   order: the word and its page, its answer, its parts, its refusals,
+   its laws. ~|
 
 :null/construct
   |~~ Reads null as itself. ~~|
@@ -15,13 +17,30 @@
   ::law~(::null(1) !| [type /actualType] | eq [::null/PayloadNotNullError ::number])
 
 :null/at
-  |~~ The default the call gives, null when it gives none, whatever the
-      place: a soft read of the absent value is absent, so soft reads
-      chain, `at :address | at :city`, and a `coalesce` after them gives
-      the fallback once. The strict `/k` refuses null as it refuses
-      every value without parts.
+  |~~ Answers the default the call gives, null when it gives none,
+      whatever the place: null holds nothing, so a soft read of it is
+      absent, `null | at :k` answering `null` and `null | at :k "none"`
+      answering `"none"`. So soft reads chain through what is absent,
+      `at :address | at :city`, a step that misses answering null to the
+      end, and a `coalesce` after them gives the fallback once, where
+      the strict `/k` refuses null as it refuses every value without
+      parts. The place is not read, so any value stands there.
+      ::link~(::map/at | doc) ::link~(::vec/at | doc)
+      ::link~(::any/coalesce | doc)
   ~~|
   ::builtin{}
+
+:null/at/answer
+  |~~ The default, null when the call gives none. ~~|
+  ::any
+
+:null/at/place
+  |~~ The place the call names, any value, unread: null holds none. ~~|
+  ~(/0)
+
+:null/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
 
 :null/at/readsNullFromNull
   |~~ A read of null answers null. ~~|
@@ -39,11 +58,6 @@
   |~~ Soft reads chain through present values to the one read. ~~|
   ::law~({:a {:b 1}} | at :a | at :b | eq 1)
 
-:null/at/place
-  |~~ The place the call reads. ~~|
-  ~(/0)
-
-:null/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
-
+:null/at/readsNoPlace
+  |~~ Any value stands as the place. ~~|
+  ::law~(null | at [1 2] | eq null)

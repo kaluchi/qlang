@@ -1,97 +1,155 @@
-|~ What is declared under `::desc`, the kind of a value whose place
-   in the one order is the reverse of its payload's: its comparisons,
-   which compare two of its values by their payloads, reversed. ~|
+|~ What is declared under `::desc`, the kind of a value turned to
+   descend, whose place in the one order is the reverse of its payload's:
+   its constructor and the comparisons of values turned, each word told
+   in one order: the word and its page, its answer, its parts, its
+   refusals, its laws. ~|
 
 :desc/construct
   |~~ Lays the kind over any value, its place in the one order turned around. ~~|
   ::builtin{}
 
 :desc/gt
-  |~~ Whether the subject follows the value the call gives among
-      descending values, which holds when its payload precedes the
-      other's.
+  |~~ Answers whether the subject comes after the value the call gives
+      among values turned to descend, `1 | desc | gt (2 | desc)`
+      answering `true`: under `::desc` the one order runs in reverse, so
+      a value comes after another when its payload comes before the
+      other's, and the greater payload ranks first, as `sort` and `max`
+      rank a key turned by `desc`. A value turned compares with a value
+      turned alone: a number given is refused under the value, `1 | desc
+      | gt 2`, and is turned first, `gt (2 | desc)`. `gte` answers
+      whether the subject comes after the value or ranks with it, `lt`
+      and `lte` the reverse.
+      ::link~(::desc | doc) ::link~(::any/desc | doc)
+      ::link~(::desc/gte | doc) ::link~(::desc/lt | doc)
   ~~|
   ::builtin{}
 
-:desc/gt/reversesTheOrder
-  |~~ Among descending values, one follows two. ~~|
-  ::law~(1 | desc | gt (2 | desc) | eq true)
+:desc/gt/answer
+  |~~ `true` when the subject comes after the value among values turned
+      to descend, `false` otherwise.
+  ~~|
+  ::boolean
 
 :desc/gt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The value turned to descend the subject is compared with, computed
+      against the subject.
+  ~~|
   ~(/0)
 
 :desc/gt/value/NotDescError
-  |~~ The value compared is a value of ::desc. ~~|
+  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
   ::holds~(is ::desc)
 
-:desc/gt/answer
-  |~~ Whether the subject comes after the value compared. ~~|
-  ::boolean
+:desc/gt/reversesTheOrder
+  |~~ Among values turned to descend, one comes after two. ~~|
+  ::law~(1 | desc | gt (2 | desc))
+
+:desc/gt/ranksTheGreaterPayloadFirst
+  |~~ The greater payload does not come after the smaller. ~~|
+  ::law~(2 | desc | gt (1 | desc) | not)
+
+:desc/gt/value/NotDescError/refusesANumber
+  |~~ A number given is no value turned to compare with. ~~|
+  ::law~(1 | desc | gt 2 !| type | eq ::desc/gt/value/NotDescError)
 
 :desc/gte
-  |~~ Whether the subject follows or equals the value the call gives
-      among descending values.
+  |~~ Answers whether the subject comes after the value the call gives
+      among values turned to descend, or ranks with it,
+      `2 | desc | gte (2 | desc)` answering `true`. It compares as `gt`
+      does, a value turned with a value turned, the smaller payload
+      after the greater.
+      ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
   ~~|
   ::builtin{}
 
-:desc/gte/equalsWithOnePayload
-  |~~ Two descending values of one payload are equal. ~~|
-  ::law~(2 | desc | gte (2 | desc) | eq true)
+:desc/gte/answer
+  |~~ `true` when the subject comes after the value among values turned
+      to descend or ranks with it, `false` otherwise.
+  ~~|
+  ::boolean
 
 :desc/gte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The value turned to descend the subject is compared with, computed
+      against the subject.
+  ~~|
   ~(/0)
 
 :desc/gte/value/NotDescError
-  |~~ The value compared is a value of ::desc. ~~|
+  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
   ::holds~(is ::desc)
 
-:desc/gte/answer
-  |~~ Whether the subject comes after the value compared or equals it. ~~|
-  ::boolean
+:desc/gte/equalsWithOnePayload
+  |~~ Two values turned of one payload rank together. ~~|
+  ::law~(2 | desc | gte (2 | desc))
+
+:desc/gte/reversesTheOrder
+  |~~ Among values turned to descend, one comes after two. ~~|
+  ::law~(1 | desc | gte (2 | desc))
 
 :desc/lt
-  |~~ Whether the subject precedes the value the call gives among
-      descending values, which holds when its payload follows the
-      other's.
+  |~~ Answers whether the subject comes before the value the call gives
+      among values turned to descend, `2 | desc | lt (1 | desc)`
+      answering `true`: a value comes before another when its payload
+      comes after the other's. It compares as `gt` does, a value turned
+      with a value turned, and `lte` answers whether the subject comes
+      before the value or ranks with it.
+      ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
   ~~|
   ::builtin{}
 
-:desc/lt/reversesTheOrder
-  |~~ Among descending values, two precedes one. ~~|
-  ::law~(2 | desc | lt (1 | desc) | eq true)
+:desc/lt/answer
+  |~~ `true` when the subject comes before the value among values turned
+      to descend, `false` otherwise.
+  ~~|
+  ::boolean
 
 :desc/lt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The value turned to descend the subject is compared with, computed
+      against the subject.
+  ~~|
   ~(/0)
 
 :desc/lt/value/NotDescError
-  |~~ The value compared is a value of ::desc. ~~|
+  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
   ::holds~(is ::desc)
 
-:desc/lt/answer
-  |~~ Whether the subject comes before the value compared. ~~|
-  ::boolean
+:desc/lt/reversesTheOrder
+  |~~ Among values turned to descend, two comes before one. ~~|
+  ::law~(2 | desc | lt (1 | desc))
+
+:desc/lt/keepsTheSmallerPayloadBehind
+  |~~ The smaller payload does not come before the greater. ~~|
+  ::law~(1 | desc | lt (2 | desc) | not)
 
 :desc/lte
-  |~~ Whether the subject precedes or equals the value the call gives
-      among descending values.
+  |~~ Answers whether the subject comes before the value the call gives
+      among values turned to descend, or ranks with it,
+      `2 | desc | lte (2 | desc)` answering `true`. It compares as `gt`
+      does, a value turned with a value turned.
+      ::link~(::desc/lt | doc) ::link~(::desc/gte | doc)
   ~~|
   ::builtin{}
 
-:desc/lte/equalsWithOnePayload
-  |~~ Two descending values of one payload are equal. ~~|
-  ::law~(2 | desc | lte (2 | desc) | eq true)
+:desc/lte/answer
+  |~~ `true` when the subject comes before the value among values turned
+      to descend or ranks with it, `false` otherwise.
+  ~~|
+  ::boolean
 
 :desc/lte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The value turned to descend the subject is compared with, computed
+      against the subject.
+  ~~|
   ~(/0)
 
 :desc/lte/value/NotDescError
-  |~~ The value compared is a value of ::desc. ~~|
+  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
   ::holds~(is ::desc)
 
-:desc/lte/answer
-  |~~ Whether the subject comes before the value compared or equals it. ~~|
-  ::boolean
+:desc/lte/equalsWithOnePayload
+  |~~ Two values turned of one payload rank together. ~~|
+  ::law~(2 | desc | lte (2 | desc))
+
+:desc/lte/reversesTheOrder
+  |~~ Among values turned to descend, two comes before one. ~~|
+  ::law~(2 | desc | lte (1 | desc))

@@ -1,8 +1,10 @@
-|~ What is declared under `::quote`: the refusals of its
-   constructor, the refusal of text read as code, and the verbs of
-   quotes. A quote is also the vector of its steps, so the verbs of
-   vectors read it as one, and a quote under a tag, a link or a snippet
-   of a page, reads them through its shape. ~|
+|~ What is declared under `::quote`, the kind of code held as a value:
+   its constructor and its refusals, the refusal of text read as code and
+   the facts it carries, and the words that read a quote, each word told
+   in one order: the word and its page, its answer, its parts, its
+   refusals, its laws. A quote is also the vector of its steps, so the
+   words of vectors read it as one, and a quote under a tag, a link or a
+   snippet of a page, reads them through its shape. ~|
 
 :quote/construct
   |~~ The quote of a vector whose every element is a step. ~~|
@@ -71,24 +73,69 @@
   ::string
 
 :quote/parse
-  |~~ The source text of the quote, the reverse of `parse` on a string. ~~|
+  |~~ Answers the source of the quote, a string, `~(add 1 | mul 2) |
+      parse` answering `"add 1 | mul 2"`: the reverse of `parse` on a
+      string, which reads text as a quote, so the source parsed again is
+      the quote, `~(add 1) | parse | parse` answering `~(add 1)`. The
+      source is printed in one spelling, so the spaces and the line
+      breaks the quote was written with are not kept, `~(add   1) |
+      parse` answering `"add 1"`. A link or a snippet out of a page
+      answers the query it holds, without its tags, and the empty quote
+      the empty string.
+      ::link~(::string/parse | doc) ::link~(::quote/open | doc)
+  ~~|
   ::builtin{}
-
-:quote/parse/answersTheSource
-  |~~ A quote parses to its source. ~~|
-  ::law~(~(add 1) | parse | eq "add 1")
 
 :quote/parse/answer
   |~~ The text the quote reads back from. ~~|
   ::string
 
+:quote/parse/answersTheSource
+  |~~ A quote parses to its source. ~~|
+  ::law~(~(add 1) | parse | eq "add 1")
+
+:quote/parse/readsBackAsTheQuote
+  |~~ The source parsed again is the quote. ~~|
+  ::law~(~(add 1 | mul 2) | :q / | q | parse | parse | eq q)
+
+:quote/parse/printsOneSpelling
+  |~~ The spaces the quote was written with are not kept. ~~|
+  ::law~(~(add   1 |   mul 2) | parse | eq "add 1 | mul 2")
+
+:quote/parse/leavesTheTagsOfALink
+  |~~ A link answers the query it holds, without its tags. ~~|
+  ::law~(::link~(1 | add 1) | parse | eq "1 | add 1")
+
+:quote/parse/answersNothingForTheEmptyQuote
+  |~~ The empty quote parses to the empty string. ~~|
+  ::law~(~() | parse | eq "")
+
 :quote/open
-  |~~ The answer of the query the quote holds, run as it stands in the
-      scope of the reader, beneath whatever tags stand over it: a link
-      opens to the page it names, so `links * open` reads every page a
-      page names in one query, and a snippet to the answer it shows.
+  |~~ Answers what the query the quote holds answers, run beneath
+      whatever tags stand over it, `~(1 | add 1) | open` answering `2`:
+      a link opens to the page it names, so `links * open` reads every
+      page a page names in one query, and a snippet to the answer it
+      shows. The query runs in the scope of the reader, so a name bound
+      before it is read, `:k 5 | ~(k) | open` answering `5`, and the
+      names it binds stay inside it. It runs from null, not from the
+      subject of `open`: a query that reads a subject, `~(add 1)`, is
+      refused on null, and a quote meant for a subject runs against it
+      by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by
+      `parse`, `"1 | add 1" | parse | open`.
+      ::link~(::any/apply | doc) ::link~(::doc/links | doc)
+      ::link~(::doc/snippets | doc)
   ~~|
   ::builtin{}
+
+:quote/open/answer
+  |~~ What the query answers, a value of any kind. ~~|
+  ::any
+
+:quote/open/SubjectNotQuoteError
+  |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
+      quote first by `parse`, `"1 | add 1" | parse | open`, and the links
+      of a page are read by `links`, `::vec | doc | links * open`.
+  ~~|
 
 :quote/open/runsALink
   |~~ A link opens to the answer of its query. ~~|
@@ -97,3 +144,23 @@
 :quote/open/runsASnippet
   |~~ A snippet opens to what it shows. ~~|
   ::law~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
+
+:quote/open/readsTheScopeOfTheReader
+  |~~ A name bound before the quote is read inside it. ~~|
+  ::law~(:k 5 | ~(k) | open | eq 5)
+
+:quote/open/keepsItsNamesInside
+  |~~ A name the query binds stays inside it. ~~|
+  ::law~(:k 5 | ~(:k 1) | open | k | eq 5)
+
+:quote/open/runsFromNull
+  |~~ The query runs from null. ~~|
+  ::law~(~(type) | open | eq ::null)
+
+:quote/open/runsTextReadByParse
+  |~~ Text read as a quote by `parse` opens. ~~|
+  ::law~("1 | add 1" | parse | open | eq 2)
+
+:quote/open/SubjectNotQuoteError/refusesAString
+  |~~ Text is no quote until `parse` reads it. ~~|
+  ::law~("1 | add 1" | open !| [type /actualType] | eq [::quote/open/SubjectNotQuoteError ::string])

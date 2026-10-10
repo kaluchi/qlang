@@ -1,6 +1,7 @@
-|~ What is declared under `::keyword`: the refusal of its
-   constructor, and the comparisons of keywords, which compare two
-   keywords by their names in the one order. ~|
+|~ What is declared under `::keyword`: its constructor and its refusal,
+   the comparisons of keywords, and `keyword`, which answers the name of
+   a keyword as a string, each word told in one order: the word and its
+   page, its answer, its parts, its refusals, its laws. ~|
 
 :keyword/construct
   |~~ Reads a keyword as itself. ~~|
@@ -16,102 +17,169 @@
   ::law~(::keyword"k" !| [type /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
 
 :keyword/gt
-  |~~ Whether the subject's name follows the name of the keyword the
-      call gives.
+  |~~ Answers whether the subject, a keyword, comes after the keyword the
+      call gives, `:b | gt :a`. Keywords compare by their names as they
+      are spelled, letter by letter, so a capital comes before a small
+      letter, `:a | gt :B` answering `true`. A keyword compares with a
+      keyword alone: a string given is refused under the value, so text
+      read from JSON, which arrives as a string, is turned by `keyword`
+      first, `"b" | keyword | gt :a`, or compared with a string. `gte`
+      answers whether the subject comes after the value or is the same
+      keyword, `lt` and `lte` the reverse.
+      ::link~(::keyword/gte | doc) ::link~(::keyword/lt | doc)
+      ::link~(::keyword/lte | doc) ::link~(::string/keyword | doc)
   ~~|
   ::builtin{}
 
-:keyword/gt/ordersByName
-  |~~ `:b` follows `:a`. ~~|
-  ::law~(:b | gt :a | eq true)
+:keyword/gt/answer
+  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
+  ::boolean
 
 :keyword/gt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The keyword the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :keyword/gt/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gt/answer
-  |~~ Whether the subject comes after the value compared. ~~|
-  ::boolean
+:keyword/gt/ordersByName
+  |~~ `:b` comes after `:a`. ~~|
+  ::law~(:b | gt :a)
+
+:keyword/gt/putsACapitalFirst
+  |~~ A capital comes before a small letter. ~~|
+  ::law~(:a | gt :B)
+
+:keyword/gt/keepsOneKeywordApartFromItself
+  |~~ A keyword does not come after itself. ~~|
+  ::law~(:a | gt :a | not)
+
+:keyword/gt/comparesTextTurnedByKeyword
+  |~~ Text turned by `keyword` compares with a keyword. ~~|
+  ::law~("b" | keyword | gt :a)
+
+:keyword/gt/value/NotKeywordError/refusesAString
+  |~~ A string is no keyword to compare with. ~~|
+  ::law~(:a | gt "a" !| type | eq ::keyword/gt/value/NotKeywordError)
 
 :keyword/gte
-  |~~ Whether the subject's name follows or equals the name of the
-      keyword the call gives.
+  |~~ Answers whether the subject, a keyword, comes after the keyword the
+      call gives or is the same keyword, `:b | gte :b`. It compares as
+      `gt` does, keywords with keywords.
+      ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
   ::builtin{}
 
-:keyword/gte/holdsOfItself
-  |~~ A keyword follows or equals itself. ~~|
-  ::law~(:b | gte :b | eq true)
-
-:keyword/gte/ordersByName
-  |~~ `:b` follows `:a`. ~~|
-  ::law~(:b | gte :a | eq true)
+:keyword/gte/answer
+  |~~ `true` when the subject comes after the value or is the same
+      keyword, `false` otherwise.
+  ~~|
+  ::boolean
 
 :keyword/gte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The keyword the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :keyword/gte/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gte/answer
-  |~~ Whether the subject comes after the value compared or equals it. ~~|
-  ::boolean
+:keyword/gte/holdsOfItself
+  |~~ A keyword comes after or is itself. ~~|
+  ::law~(:b | gte :b)
+
+:keyword/gte/ordersByName
+  |~~ `:b` comes after `:a`. ~~|
+  ::law~(:b | gte :a)
 
 :keyword/lt
-  |~~ Whether the subject's name precedes the name of the keyword the
-      call gives.
+  |~~ Answers whether the subject, a keyword, comes before the keyword the
+      call gives, `:a | lt :b`. It compares as `gt` does, keywords with
+      keywords, a capital before a small letter, `:B | lt :a`.
+      ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
   ::builtin{}
 
-:keyword/lt/ordersByName
-  |~~ `:a` precedes `:b`. ~~|
-  ::law~(:a | lt :b | eq true)
+:keyword/lt/answer
+  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
+  ::boolean
 
 :keyword/lt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The keyword the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :keyword/lt/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lt/answer
-  |~~ Whether the subject comes before the value compared. ~~|
-  ::boolean
+:keyword/lt/ordersByName
+  |~~ `:a` comes before `:b`. ~~|
+  ::law~(:a | lt :b)
+
+:keyword/lt/putsACapitalFirst
+  |~~ A capital comes before a small letter. ~~|
+  ::law~(:B | lt :a)
+
+:keyword/lt/keepsOneKeywordApartFromItself
+  |~~ A keyword does not come before itself. ~~|
+  ::law~(:a | lt :a | not)
 
 :keyword/lte
-  |~~ Whether the subject's name precedes or equals the name of the
-      keyword the call gives.
+  |~~ Answers whether the subject, a keyword, comes before the keyword the
+      call gives or is the same keyword, `:a | lte :a`. It compares as
+      `gt` does, keywords with keywords.
+      ::link~(::keyword/lt | doc) ::link~(::keyword/gte | doc)
   ~~|
   ::builtin{}
 
-:keyword/lte/holdsOfItself
-  |~~ A keyword precedes or equals itself. ~~|
-  ::law~(:a | lte :a | eq true)
+:keyword/lte/answer
+  |~~ `true` when the subject comes before the value or is the same
+      keyword, `false` otherwise.
+  ~~|
+  ::boolean
 
 :keyword/lte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The keyword the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :keyword/lte/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lte/answer
-  |~~ Whether the subject comes before the value compared or equals it. ~~|
-  ::boolean
+:keyword/lte/holdsOfItself
+  |~~ A keyword comes before or is itself. ~~|
+  ::law~(:a | lte :a)
+
+:keyword/lte/ordersByName
+  |~~ `:a` comes before `:b`. ~~|
+  ::law~(:a | lte :b)
 
 :keyword/keyword
-  |~~ The name of the keyword, as a string: the reverse of `keyword` on
-      a string, so `"foo" | keyword | keyword` answers `"foo"`.
+  |~~ Answers the name of the keyword as a string, `:foo | keyword`
+      answering `"foo"`: the reverse of `keyword` on a string, which
+      turns text into a keyword, so the two turn a name back and forth,
+      `"foo" | keyword | keyword` answering `"foo"`. A quoted name and a
+      name with a path answer their text as written, `:"foo bar"` the
+      string `"foo bar"` and `:domain/user` the string `"domain/user"`.
+      A value that is neither a keyword nor a string answers no
+      `keyword`, which the refusal of the call names with the kinds that
+      do.
+      ::link~(::string/keyword | doc) ::link~(::keyword | doc)
   ~~|
   ::builtin{}
+
+:keyword/keyword/answer
+  |~~ The name of the keyword, a string. ~~|
+  ::string
 
 :keyword/keyword/answersTheName
   |~~ A keyword answers its name as a string. ~~|
@@ -121,6 +189,10 @@
   |~~ A name with a space keeps it. ~~|
   ::law~(:"foo bar" | keyword | eq "foo bar")
 
-:keyword/keyword/answer
-  |~~ The name of the keyword, a string. ~~|
-  ::string
+:keyword/keyword/keepsAPath
+  |~~ A name with a path answers it whole. ~~|
+  ::law~(:domain/user | keyword | eq "domain/user")
+
+:keyword/keyword/turnsATextBack
+  |~~ A string turned into a keyword turns back into the string. ~~|
+  ::law~("foo" | keyword | keyword | eq "foo")

@@ -1,7 +1,7 @@
-|~ What is declared under `::tag`, the kind of a tag name: the refusal
-   of its constructor, and the verbs that live on a tag name, the
-   comparisons of tag names, which compare them by their names in the one
-   order, and `manifest`. ~|
+|~ What is declared under `::tag`, the kind of a tag name: its
+   constructor and its refusal, the comparisons of tag names, and
+   `manifest`, each word told in one order: the word and its page, its
+   answer, its parts, its refusals, its laws. ~|
 
 :tag/construct
   |~~ Reads a tag name as itself. ~~|
@@ -17,110 +17,192 @@
   ::law~(::tag:k !| [type /actualType] | eq [::tag/PayloadNotTagError ::keyword])
 
 :tag/gt
-  |~~ Whether the subject's name follows the name of the tag the call
-      gives.
+  |~~ Answers whether the subject, a tag name, comes after the tag name
+      the call gives, `::b | gt ::a`. Tag names compare by their names as
+      they are spelled, letter by letter, so a capital comes before a
+      small letter, `::a | gt ::B` answering `true`, and a name comes
+      before the names that go on under it, `::vec/count | gt ::vec`
+      answering `true`; values sorted by `type` so fall in the order of
+      the names of their kinds. A tag name compares with a tag name
+      alone: a keyword, a string or any other value given is refused
+      under the value, `::status | gt :open` among them. `gte` answers
+      whether the subject comes after the value or is the same name,
+      `lt` and `lte` the reverse.
+      ::link~(::tag/gte | doc) ::link~(::tag/lt | doc)
+      ::link~(::tag/lte | doc) ::link~(::keyword/gt | doc)
   ~~|
   ::builtin{}
 
-:tag/gt/ordersByName
-  |~~ `::b` follows `::a`. ~~|
-  ::law~(::b | gt ::a | eq true)
+:tag/gt/answer
+  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
+  ::boolean
 
 :tag/gt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The tag name the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :tag/gt/value/NotTagError
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/gt/answer
-  |~~ Whether the subject comes after the value compared. ~~|
-  ::boolean
+:tag/gt/ordersByName
+  |~~ `::b` comes after `::a`. ~~|
+  ::law~(::b | gt ::a)
+
+:tag/gt/putsACapitalFirst
+  |~~ A capital comes before a small letter. ~~|
+  ::law~(::a | gt ::B)
+
+:tag/gt/putsANameBeforeTheNamesUnderIt
+  |~~ A name comes before the names that go on under it. ~~|
+  ::law~(::vec/count | gt ::vec)
+
+:tag/gt/keepsOneNameApartFromItself
+  |~~ A name does not come after itself. ~~|
+  ::law~(::a | gt ::a | not)
+
+:tag/gt/ordersValuesByTheNamesOfTheirKinds
+  |~~ Values sorted by `type` fall in the order of the names of their kinds. ~~|
+  ::law~([1 "a" :k] | sort ~(type) | eq [:k 1 "a"])
+
+:tag/gt/value/NotTagError/refusesAKeyword
+  |~~ A keyword is no tag name to compare with. ~~|
+  ::law~(::a | gt :a !| type | eq ::tag/gt/value/NotTagError)
 
 :tag/gte
-  |~~ Whether the subject's name follows or equals the name of the tag
-      the call gives.
+  |~~ Answers whether the subject, a tag name, comes after the tag name
+      the call gives or is the same name, `::b | gte ::b`. It compares as
+      `gt` does, tag names with tag names, by their names as they are
+      spelled.
+      ::link~(::tag/gt | doc) ::link~(::tag/lte | doc)
   ~~|
   ::builtin{}
 
-:tag/gte/holdsOfItself
-  |~~ A tag follows or equals itself. ~~|
-  ::law~(::b | gte ::b | eq true)
+:tag/gte/answer
+  |~~ `true` when the subject comes after the value or is the same name,
+      `false` otherwise.
+  ~~|
+  ::boolean
 
 :tag/gte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The tag name the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :tag/gte/value/NotTagError
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/gte/answer
-  |~~ Whether the subject comes after the value compared or equals it. ~~|
-  ::boolean
+:tag/gte/holdsOfItself
+  |~~ A name comes after or is itself. ~~|
+  ::law~(::b | gte ::b)
+
+:tag/gte/keepsAnEarlierNameApart
+  |~~ An earlier name does not come after a later one. ~~|
+  ::law~(::a | gte ::b | not)
 
 :tag/lt
-  |~~ Whether the subject's name precedes the name of the tag the call
-      gives.
+  |~~ Answers whether the subject, a tag name, comes before the tag name
+      the call gives, `::a | lt ::b`. It compares as `gt` does, tag names
+      with tag names, by their names as they are spelled, so `::B | lt
+      ::a` answers `true`.
+      ::link~(::tag/gt | doc) ::link~(::tag/lte | doc)
   ~~|
   ::builtin{}
 
-:tag/lt/ordersByName
-  |~~ `::a` precedes `::b`. ~~|
-  ::law~(::a | lt ::b | eq true)
+:tag/lt/answer
+  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
+  ::boolean
 
 :tag/lt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The tag name the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :tag/lt/value/NotTagError
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/lt/answer
-  |~~ Whether the subject comes before the value compared. ~~|
-  ::boolean
+:tag/lt/ordersByName
+  |~~ `::a` comes before `::b`. ~~|
+  ::law~(::a | lt ::b)
+
+:tag/lt/putsACapitalFirst
+  |~~ A capital comes before a small letter. ~~|
+  ::law~(::B | lt ::a)
+
+:tag/lt/keepsOneNameApartFromItself
+  |~~ A name does not come before itself. ~~|
+  ::law~(::a | lt ::a | not)
 
 :tag/lte
-  |~~ Whether the subject's name precedes or equals the name of the
-      tag the call gives.
+  |~~ Answers whether the subject, a tag name, comes before the tag name
+      the call gives or is the same name, `::a | lte ::a`. It compares as
+      `gt` does, tag names with tag names.
+      ::link~(::tag/lt | doc) ::link~(::tag/gte | doc)
   ~~|
   ::builtin{}
 
-:tag/lte/holdsOfItself
-  |~~ A tag precedes or equals itself. ~~|
-  ::law~(::a | lte ::a | eq true)
-
-:tag/lte/ordersByName
-  |~~ `::a` precedes `::b`. ~~|
-  ::law~(::a | lte ::b | eq true)
+:tag/lte/answer
+  |~~ `true` when the subject comes before the value or is the same name,
+      `false` otherwise.
+  ~~|
+  ::boolean
 
 :tag/lte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The tag name the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :tag/lte/value/NotTagError
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/lte/answer
-  |~~ Whether the subject comes before the value compared or equals it. ~~|
-  ::boolean
+:tag/lte/holdsOfItself
+  |~~ A name comes before or is itself. ~~|
+  ::law~(::a | lte ::a)
+
+:tag/lte/ordersByName
+  |~~ `::a` comes before `::b`. ~~|
+  ::law~(::a | lte ::b)
 
 :tag/manifest
-  |~~ Asked of a noun, answers the set of the nodes declared one name
-      under it, each by its address: ::snippet~(::number | manifest)
-      the verbs and the refusals of numbers, ::snippet~(::qlang |
-      manifest) the chapters of the language. The laws of a name `laws`
-      reads, the kinds of the scope `kinds` lists, and what the reader
-      declared `env`; what one node holds the axes read,
-      `::vec/count | source`, `| doc`.
-
-      `manifest` is asked of a noun, a tag name in the subject
-      position.
+  |~~ Answers the set of the names declared one name under the noun the
+      subject names, each by its address: `::number | manifest` the
+      words and the refusals of numbers, `::vec/take | manifest` the
+      parts and the answer of `take`, `::qlang | manifest` the chapters
+      of the language. A tag name that names nothing answers the empty
+      set. The laws of a name are no part of the answer, `laws` reads
+      them; the kinds of the scope `kinds` lists, and what the reader
+      declared `env`; and what one name holds the axes read,
+      `::vec/count | source`, `| doc`. The subject is the tag name of the
+      noun: a keyword, `:number`, names a binding and no noun, and is
+      refused as any other value is, and the call takes no value, so
+      `manifest ::vec` is refused.
+      ::snippet~(::number | manifest) ::link~(::any/laws | doc)
+      ::link~(::any/kinds | doc) ::link~(::any/env | doc)
+      ::link~(::any/source | doc)
   ~~|
   ::builtin{}
+
+:tag/manifest/answer
+  |~~ The addresses of the names declared one name under the noun. ~~|
+  ::set
+
+:tag/manifest/SubjectNotTagError
+  |~~ `manifest` is asked of a noun by its tag name, `::number |
+      manifest`; a keyword names a binding and no noun.
+  ~~|
+
+:tag/manifest/ArgsBeyondPartsError
+  |~~ `manifest` reads the noun of the subject and takes no value: the
+      manifest of vectors is `::vec | manifest`.
+  ~~|
 
 :tag/manifest/holdsAVerbOfTheNoun
   |~~ The manifest of numbers holds `add`. ~~|
@@ -130,14 +212,30 @@
   |~~ The manifest of the first page holds its chapter on values. ~~|
   ::law~(::qlang | manifest | has ::qlang/values)
 
+:tag/manifest/holdsThePartsOfAWord
+  |~~ The manifest of a word holds its parts. ~~|
+  ::law~(::vec/take | manifest | has ::vec/take/count)
+
 :tag/manifest/holdsTheNamesOfAReader
   |~~ The manifest of a reader's noun holds the names declared under it. ~~|
   ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
 
-:tag/manifest/refusesANumber
+:tag/manifest/leavesTheLawsToLaws
+  |~~ The laws of a name are no part of its manifest. ~~|
+  ::law~(::number/add | manifest | has ::number/add/addsTheNumber | not)
+
+:tag/manifest/answersNothingForANameThatNamesNothing
+  |~~ A tag name that names nothing answers the empty set. ~~|
+  ::law~(::Nothing | manifest | eq #[])
+
+:tag/manifest/SubjectNotTagError/refusesANumber
   |~~ A number is no noun. ~~|
   ::law~(5 | manifest !| [type /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
 
-:tag/manifest/answer
-  |~~ The addresses of the names declared one name under the noun. ~~|
-  ::set
+:tag/manifest/SubjectNotTagError/refusesAKeyword
+  |~~ A keyword names a binding and no noun. ~~|
+  ::law~(:number | manifest !| type | eq ::tag/manifest/SubjectNotTagError)
+
+:tag/manifest/ArgsBeyondPartsError/refusesANounGivenAsAValue
+  |~~ A noun given as a value is refused; it is the subject. ~~|
+  ::law~(::qlang | manifest ::vec !| type | eq ::tag/manifest/ArgsBeyondPartsError)

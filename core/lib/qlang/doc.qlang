@@ -1,5 +1,7 @@
-|~ What is declared under `::doc`: the refusals of its constructor
-   and the verbs that read a doc's shape for the query. ~|
+|~ What is declared under `::doc`, the kind of a page: its constructor
+   and the refusals of a payload that is no vector of segments, and the
+   words that read a doc, each told in one order: the word and its page,
+   its answer, its parts, its refusals, its laws. ~|
 
 :doc/construct
   |~~ The doc of a vector of prose strings and quotes. ~~|
@@ -24,33 +26,70 @@
   ::law~(["a" 1] | tag ::doc !| [type /index] | eq [::doc/ElementNotSegmentError 1])
 
 :doc/content
-  |~~ The text of the doc: its prose with each quote written where it
-      stands.
+  |~~ Answers the text of the doc, a string: its prose with each quote
+      written where it stands, `|~~ a ~(add 1) b ~~| | content` answering
+      `" a ~(add 1) b "`, and a link or a snippet with its tags,
+      `::link~(::vec | doc)`. The subject is a doc, so the page of a
+      name is read by `doc` first, `::vec/join | doc | content`; a name
+      declared without a page has none, `doc` answering null, which
+      `content` refuses as it refuses a string. The parts of the doc in
+      their order `segments` answers, and its links `links`.
+      ::link~(::any/doc | doc) ::link~(::doc/segments | doc)
+      ::link~(::doc/links | doc)
   ~~|
   ::builtin{}
+
+:doc/content/answer
+  |~~ The text of the doc, its quotes written where they stand. ~~|
+  ::string
+
+:doc/content/SubjectNotDocError
+  |~~ `content` reads a doc: the page of a name is read by `doc` first,
+      `::vec/join | doc | content`, and a name declared without a page
+      has none, `doc` answering null.
+  ~~|
 
 :doc/content/writesEachQuoteWhereItStands
   |~~ The content writes each quote where it stands in the prose. ~~|
   ::law~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
 
+:doc/content/writesALinkWithItsTags
+  |~~ A link is written with its tags. ~~|
+  ::law~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
+
 :doc/content/readsThePageOfAWord
   |~~ The content of a word's page is its text. ~~|
   ::law~(::vec/join | doc | content | contains "separator")
 
-:doc/content/answer
-  |~~ The text of the doc. ~~|
-  ::string
+:doc/content/SubjectNotDocError/refusesTheNullOfANameWithoutAPage
+  |~~ A name declared without a page has no content to read. ~~|
+  ::law~(:x 1 | :x | doc | content
+    !| [type /actualType] | eq [::doc/content/SubjectNotDocError ::null])
 
 :doc/segments
-  |~~ The parts of the doc in their order: each run of prose a string
-      and each span that reads as code a quote, bare or under the tags
-      of its role.
+  |~~ Answers the parts of the doc in their order, a vector: each run of
+      prose a string, and each span that reads as code a quote, bare or
+      under the tags of its role, a link under `::link` and a snippet
+      under `::snippet`, `|~~ a ~(add 1) b ~~| | segments` answering
+      `[" a " ~(add 1) " b "]`. A doc of prose alone answers one string.
+      A span that does not read as code stays prose, so a quote left
+      broken in a page is no link and no snippet. The segments are the
+      payload the doc was built from, so `segments | tag ::doc` answers
+      the doc again, and `content` writes them as one text. The subject
+      is a doc, the page of a name read by `doc` first.
+      ::link~(::doc/content | doc) ::link~(::doc/links | doc)
+      ::link~(::doc/snippets | doc)
   ~~|
   ::builtin{}
 
 :doc/segments/answer
-  |~~ The prose and the quotes of the doc. ~~|
+  |~~ The prose and the quotes of the doc, in their order. ~~|
   ::vec
+
+:doc/segments/SubjectNotDocError
+  |~~ `segments` reads a doc, not its text: the page of a name is read
+      by `doc` first, `::vec | doc | segments`.
+  ~~|
 
 :doc/segments/alternatesProseAndCode
   |~~ Prose and code alternate in the segments. ~~|
@@ -60,9 +99,36 @@
   |~~ The prose on each side of a quote is a segment of its own. ~~|
   ::law~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
 
+:doc/segments/keepsTheTagsOfALink
+  |~~ A link stands among the segments under its tag. ~~|
+  ::law~(|~~ a ::link~(1) ~~| | segments | /1 | type | eq ::link)
+
+:doc/segments/answersOneStringForProseAlone
+  |~~ A doc of prose alone is one segment of prose. ~~|
+  ::law~(|~~ only prose ~~| | segments | eq [" only prose "])
+
+:doc/segments/keepsABrokenQuoteInProse
+  |~~ A span that does not read as code stays prose. ~~|
+  ::law~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
+
+:doc/segments/buildsTheDocAgainUnderItsTag
+  |~~ The segments under `::doc` are the doc again. ~~|
+  ::law~(|~~ a ~(add 1) b ~~| | :d / | d | segments | tag ::doc | eq d)
+
+:doc/segments/SubjectNotDocError/refusesAString
+  |~~ A string is no doc. ~~|
+  ::law~("text" | segments !| [type /actualType] | eq [::doc/segments/SubjectNotDocError ::string])
+
 :doc/links
-  |~~ The links of the doc in their order: each quote under a stack of
-      tags that holds `::link`, a query a reader follows.
+  |~~ Answers the links of the doc in their order, a vector: each a quote
+      under a stack of tags that holds `::link`, `::link~(::vec | doc)`
+      or a host's `::Host::link~(…)`, the query a reader follows to
+      another page. A doc without links answers the empty vector, and a
+      snippet is no link. A link opens to what its query answers, so
+      `::vec | doc | links * open` reads every page the page of vectors
+      names, in one query, and `parse` spells its query. The subject is
+      a doc, the page of a name read by `doc` first.
+      ::link~(::quote/open | doc) ::link~(::doc/snippets | doc)
   ~~|
   ::builtin{}
 
@@ -70,18 +136,42 @@
   |~~ The links of the doc, each a query that answers another page. ~~|
   ::vec
 
+:doc/links/SubjectNotDocError
+  |~~ `links` reads a doc, not its text: the page of a name is read by
+      `doc` first, `::vec | doc | links`.
+  ~~|
+
 :doc/links/findsTheLinkInProse
   |~~ A link inside prose is found. ~~|
   ::law~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
 
+:doc/links/findsALinkUnderAHostTag
+  |~~ A link under a host's tag is a link. ~~|
+  ::law~(|~~ a ::Host::link~(1) b ~~| | links | count | eq 1)
+
+:doc/links/leavesTheSnippetsOut
+  |~~ A doc whose only quote is a snippet has no link. ~~|
+  ::law~(|~~ a ::snippet~(1) b ~~| | links | eq [])
+
 :doc/links/runsWhereItLeads
   |~~ A link runs the query it holds. ~~|
-  ::law~(|~~ ::link~(::vec | manifest) ~~| | links | first | :l / | null | apply l | has ::vec/count)
+  ::law~(|~~ ::link~(::vec | manifest) ~~| | links | first
+    | :l / | null | apply l | has ::vec/count)
+
+:doc/links/SubjectNotDocError/refusesItsText
+  |~~ The text of a page is no doc. ~~|
+  ::law~(::vec | doc | content | links
+    !| [type /actualType] | eq [::doc/links/SubjectNotDocError ::string])
 
 :doc/snippets
-  |~~ The snippets of the doc in their order: each quote under a stack
-      of tags that holds `::snippet`, a query a reader runs to see what
-      it shows.
+  |~~ Answers the snippets of the doc in their order, a vector: each a
+      quote under a stack of tags that holds `::snippet`, a query a
+      reader runs to see what it shows, `::snippet~([2 1] | sort)`. A
+      doc without snippets answers the empty vector, and a link is no
+      snippet. A snippet opens to the answer it shows, so `snippets *
+      open` runs every example of a page. The subject is a doc, the page
+      of a name read by `doc` first.
+      ::link~(::quote/open | doc) ::link~(::doc/links | doc)
   ~~|
   ::builtin{}
 
@@ -89,10 +179,23 @@
   |~~ The snippets of the doc, each a query a reader runs. ~~|
   ::vec
 
+:doc/snippets/SubjectNotDocError
+  |~~ `snippets` reads a doc, not its text: the page of a name is read
+      by `doc` first, `::tag/manifest | doc | snippets`.
+  ~~|
+
 :doc/snippets/findsTheSnippetInProse
   |~~ A snippet inside prose is found. ~~|
   ::law~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
 
+:doc/snippets/leavesTheLinksOut
+  |~~ A doc whose only quote is a link has no snippet. ~~|
+  ::law~(|~~ a ::link~(1) b ~~| | snippets | eq [])
+
 :doc/snippets/opensToWhatItShows
   |~~ A snippet opens to what it shows. ~~|
   ::law~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])
+
+:doc/snippets/SubjectNotDocError/refusesAString
+  |~~ A string is no doc. ~~|
+  ::law~("text" | snippets !| [type /actualType] | eq [::doc/snippets/SubjectNotDocError ::string])

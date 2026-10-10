@@ -113,7 +113,7 @@
 :quote/open
   |~~ Answers what the query the quote holds answers, run beneath
       whatever tags stand over it, `~(1 | add 1) | open` answering `2`:
-      a link opens to the page it names, so `links * open` reads every
+      a link opens to the page it names, so `links | map ~open` reads every
       page a page names in one query, and a snippet to the answer it
       shows. The query runs in the scope of the reader, so a name bound
       before it is read, `:k 5 | ~(k) | open` answering `5`, and the
@@ -134,7 +134,7 @@
 :quote/open/SubjectNotQuoteError
   |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
       quote first by `parse`, `"1 | add 1" | parse | open`, and the links
-      of a page are read by `links`, `::vec | doc | links * open`.
+      of a page are read by `links`, `::vec | doc | links | map ~open`.
   ~~|
 
 :quote/open/runsALink

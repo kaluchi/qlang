@@ -2,7 +2,7 @@
 {"name":"error-lit-empty","query":"!{}","expect":"!{\n  :trail [\n    {\n      :step ~(!{})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}","decision":"D97"}
 {"name":"raise-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}","decision":["D97","D165"]}
-{"name":"error-test-via-distribute-on-error","query":"[!{:kind :oops} 42] * (false !| true)","expect":"[true false]","decision":"D52"}
+{"name":"error-test-via-distribute-on-error","query":"[!{:kind :oops} 42] | map ~(false !| true)","expect":"[true false]","decision":"D52"}
 {"name":"fail-apply-deflects-map-with-kind","query":"{:kind :oops} !| /kind","expect":"{:kind :oops}"}
 {"name":"fail-apply-deflects-null","query":"null !| /kind","expect":"null"}
 {"name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} !| /kind","expect":":oops"}
@@ -22,35 +22,35 @@
 {"name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| /trail/-1/skipped","expect":"~(mul 3)","decision":"D85"}
 {"name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| /trail/-1/skipped","expect":"~(mul 3 | count)","decision":"D85"}
 {"name":"runtime-error-thrown","query":"\"hello\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] * add 10 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D103"}
-{"name":"a-body-that-recovers-keeps-every-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]","decision":"D103"}
-{"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] * (add 10 !| 0)","expect":"[11 0 13]"}
+{"name":"distribute-answers-its-first-failure","query":"[1 \"x\" 3] | map ~(add 10) !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D103"}
+{"name":"a-body-that-recovers-keeps-every-element","query":"[1 \"x\" 3] | map ~(add 10 !| 0)","expect":"[11 0 13]","decision":"D103"}
+{"name":"fail-apply-in-distribute-per-element","query":"[1 \"x\" 3] | map ~(add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | count !| union {:stage 1} | raise | add 1 !| /trail/-1/skipped | parse","expect":"\"count | add 1\"","decision":["D85","D97"]}
 {"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} !| union {:request \"r-1\"} | raise | count !| /request","expect":"\"r-1\"","decision":"D97"}
-{"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] * (add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2","decision":"D103"}
-{"name":"a-relift-without-its-trail-starts-a-path","query":"!{:kind :oops} | count | add 1 !| minus #[:trail] | raise !| /trail * /step","expect":"[~(raise)]","decision":"D85"}
+{"name":"a-body-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] | map ~(add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2","decision":"D103"}
+{"name":"a-relift-without-its-trail-starts-a-path","query":"!{:kind :oops} | count | add 1 !| minus #[:trail] | raise !| /trail | map ~/step","expect":"[~(raise)]","decision":"D85"}
 {"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail","expect":"[{:step ~(pre) :subject 1 :skipped ~()}]","decision":"D85"}
 {"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
 {"name":"trail-not-vec-in-literal","query":"!{:kind :oops :trail 5} !| [type /actualType]","expect":"[::error/TrailNotVecError ::number]","decision":"D85"}
 {"name":"trail-not-vec-on-relift","query":"!{:kind :oops} | count !| union {:trail 5} | raise !| type","expect":"::error/TrailNotVecError","decision":["D85","D97"]}
 {"name":"a-trail-that-is-a-quote-is-refused","query":"!{:kind :oops :trail ~(| pre)} !| [type /actualType]","expect":"[::error/TrailNotVecError ::quote]","decision":"D85"}
 {"name":"a-step-that-takes-out-an-error-step-without-a-path-refuses-it","query":"~(!{:kind :oops :trail 5}) | first !| [type /actualType /trail/0/step]","expect":"[::error/TrailNotVecError ::number ~(first)]","decision":"D85"}
-{"name":"an-error-step-without-a-path-fails-the-distribute","query":"~(!{:kind :oops :trail 5}) * count | type !| [type /actualValue]","expect":"[::error/TrailNotVecError 5]","decision":["D85","D103"]}
-{"name":"an-error-step-without-a-path-waits-in-a-container","query":"~(!{:kind :oops :trail 5}) | [/0] * (!| /trail)","expect":"[5]","decision":"D85"}
-{"name":"a-tagged-literal-whose-payload-raises-passes-a-stop-at-its-word","query":"[::Foo::Bar!{:trail 5}] * (!| [type (/trail * (/step | parse))])","expect":"[[::error/TrailNotVecError [\"::Foo::Bar!{:trail 5}\"]]]","decision":["D85","D86"]}
-{"name":"the-tag-a-tagged-literal-over-a-failure-skips-is-its-call","query":"[::Foo(nosuch)] * (!| /trail * [(/step | parse) (/skipped | parse)])","expect":"[[[\"nosuch\" \"tag ::Foo\"]]]","decision":"D86"}
-{"name":"a-tagged-literal-over-an-error-literal-that-writes-its-path-resumes-it","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail * [(/step | parse) (/skipped | parse)]","expect":"[[\"pre\" \"tag ::Foo\"]]","decision":["D85","D86"]}
+{"name":"an-error-step-without-a-path-fails-the-distribute","query":"~(!{:kind :oops :trail 5}) | map ~count | type !| [type /actualValue]","expect":"[::error/TrailNotVecError 5]","decision":["D85","D103"]}
+{"name":"an-error-step-without-a-path-waits-in-a-container","query":"~(!{:kind :oops :trail 5}) | [/0] | map ~(!| /trail)","expect":"[5]","decision":"D85"}
+{"name":"a-tagged-literal-whose-payload-raises-passes-a-stop-at-its-word","query":"[::Foo::Bar!{:trail 5}] | map ~(!| [type (/trail | map ~(/step | parse))])","expect":"[[::error/TrailNotVecError [\"::Foo::Bar!{:trail 5}\"]]]","decision":["D85","D86"]}
+{"name":"the-tag-a-tagged-literal-over-a-failure-skips-is-its-call","query":"[::Foo(nosuch)] | map ~(!| /trail | map ~([(/step | parse) (/skipped | parse)]))","expect":"[[[\"nosuch\" \"tag ::Foo\"]]]","decision":"D86"}
+{"name":"a-tagged-literal-over-an-error-literal-that-writes-its-path-resumes-it","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} !| /trail | map ~([(/step | parse) (/skipped | parse)])","expect":"[[\"pre\" \"tag ::Foo\"]]","decision":["D85","D86"]}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError","decision":["D86","D115"]}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
-{"name":"distribute-combinator-deflects-on-error","query":"!{:kind :oops} * add 1 !| /trail/-1/skipped | parse","expect":"\"* add 1\"","decision":"D85"}
+{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":["D85","D182"]}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"a-slot-of-any-hands-an-error-on","query":"[1] | append (!{:k 1}) !| type","expect":"::error","decision":"D87"}
-{"name":"a-slot-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1}) !| /trail * /step","expect":"[~(!{:k 1}) ~((!{:k 1})) ~(f (!{:k 1}))]","decision":"D87"}
+{"name":"a-slot-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1}) !| /trail | map ~/step","expect":"[~(!{:k 1}) ~((!{:k 1})) ~(f (!{:k 1}))]","decision":"D87"}
 {"name":"sort-without-a-key-ranks-an-error-it-holds","query":"[2 (!{:k 1}) 1] | sort | count","expect":"3","decision":"D87"}
-{"name":"a-distribute-stops-at-the-first-failure","query":"[1 \"x\" \"y\"] * (mul 2) !| /trail | first | /subject","expect":"\"x\"","decision":"D103"}
+{"name":"a-distribute-stops-at-the-first-failure","query":"[1 \"x\" \"y\"] | map ~(mul 2) !| /trail | first | /subject","expect":"\"x\"","decision":"D103"}
 {"name":"a-literal-holds-an-error-a-word-answers","query":"[1 (\"x\" | add 1)] | count","expect":"2","decision":["D87","D103"]}
-{"name":"a-distribute-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} * add 10 !| [type (/trail * /step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(* add 10)]]","decision":"D103"}
-{"name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries * first","expect":"[:actualType :places :actualValue :trail]","decision":"D172"}
+{"name":"a-distribute-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| [type (/trail | map ~/step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]","decision":"D103"}
+{"name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries | map ~first","expect":"[:actualType :places :actualValue :trail]","decision":"D172"}
 {"name":"the-name-a-step-read-is-a-keyword","query":"blah !| /name","expect":":blah","decision":"D172"}
 {"name":"the-key-a-projection-read-is-a-keyword","query":"{:a 1} | /b !| /key","expect":":b","decision":"D172"}
 {"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true","decision":"D172"}

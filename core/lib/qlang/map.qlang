@@ -186,7 +186,7 @@
   |~~ Answers the sum of the values, each a number, `{:a 10 :b 20} | sum`
       answering `30` and the empty map `0`; it takes no value. A value
       that is no number is refused with its key, and a field of each value
-      is read first under `*`, `* /amount | sum`. A vector and a set sum
+      is read first by `map`, `map ~/amount | sum`. A vector and a set sum
       their elements by a `sum` of their own, and two fields of one record
       add by `sumOf /x /y`.
       ::link~(::map/avg | doc) ::link~(::vec/sum | doc)
@@ -200,7 +200,7 @@
 
 :map/sum/ElementNotNumberError
   |~~ `sum` adds the numbers the map holds; `:key` names the first entry
-      whose value is none, and a field is read first, `* /amount | sum`.
+      whose value is none, and a field is read first, `map ~/amount | sum`.
   ~~|
 
 :map/sum/ElementNotNumberError/key
@@ -208,8 +208,8 @@
   ::keyword
 
 :map/sum/ArgsBeyondPartsError
-  |~~ `sum` takes no value: a field of each value is read first under
-      `*`, `* /amount | sum`.
+  |~~ `sum` takes no value: a field of each value is read first by
+      `map`, `map ~/amount | sum`.
   ~~|
 
 :map/sum/addsTheValues
@@ -221,8 +221,8 @@
   ::law~({} | sum | eq 0)
 
 :map/sum/readsAFieldUnderStar
-  |~~ A field of each value is read under `*` before the sum. ~~|
-  ::law~({:a {:amount 1} :b {:amount 2}} * /amount | sum | eq 3)
+  |~~ A field of each value is read by `map` before the sum. ~~|
+  ::law~({:a {:amount 1} :b {:amount 2}} | map ~/amount | sum | eq 3)
 
 :map/sum/ElementNotNumberError/refusesAString
   |~~ A string among the values is refused under its key. ~~|
@@ -235,14 +235,14 @@
   ::law~({:a null} | sum !| [type /key] | eq [::map/sum/ElementNotNumberError :a])
 
 :map/sum/ArgsBeyondPartsError/refusesAField
-  |~~ A field given to `sum` is refused; `*` reads it first. ~~|
+  |~~ A field given to `sum` is refused; `map` reads it first. ~~|
   ::law~({:a 1} | sum /a !| type | eq ::map/sum/ArgsBeyondPartsError)
 
 :map/avg
   |~~ Answers the mean of the values, each a number, `{:a 1 :b 2} | avg`
       answering `1.5`, or null for the empty map, which has no mean; it
       takes no value. A value that is no number is refused with its key,
-      and a field of each value is read first under `*`, `* /amount |
+      and a field of each value is read first by `map`, `map ~/amount |
       avg`. A vector and a set answer by an `avg` of their own.
       ::link~(::map/sum | doc) ::link~(::vec/avg | doc)
   ~~|
@@ -417,7 +417,8 @@
 
 :map/map/answersTheFirstError
   |~~ The first error answers the call. ~~|
-  ::law~({:a 1 :b "x"} | map ~(add 1) !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
+  ::law~({:a 1 :b "x"} | map ~(add 1) !| [type /actualType]
+    | eq [::number/add/SubjectNotNumberError ::string])
 
 :map/map/answersUnderNoTag
   |~~ The answers stand under no tag of the subject. ~~|
@@ -624,7 +625,7 @@
 
 :map/sort/ordersByTheKey
   |~~ The key ranks each value, and each value keeps its key. ~~|
-  ::law~({:a {:n 2} :b {:n 1}} | sort ~(/n) | entries * /0 | eq [:b :a])
+  ::law~({:a {:n 2} :b {:n 1}} | sort ~(/n) | entries | map ~/0 | eq [:b :a])
 
 :map/sort/descendsUnderDesc
   |~~ A key under `desc` descends. ~~|
@@ -917,7 +918,7 @@
 
 :map/keys/SubjectNotMapError
   |~~ `keys` reads a map: a vector of maps answers its keys element by
-      element, `* keys`, and a vector's own places are its indices, read
+      element, `map ~keys`, and a vector's own places are its indices, read
       by `/0`.
   ~~|
 
@@ -938,8 +939,8 @@
   ::law~({} | keys | eq #[])
 
 :map/keys/readsTheKeysOfEachMapUnderStar
-  |~~ A vector of maps answers their keys under `*`. ~~|
-  ::law~([{:a 1} {:b 2}] * keys | eq [#[:a] #[:b]])
+  |~~ A vector of maps answers their keys by `map`. ~~|
+  ::law~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
 
 :map/keys/SubjectNotMapError/refusesANumber
   |~~ A number has no keys. ~~|
@@ -960,7 +961,7 @@
 
 :map/vals/SubjectNotMapError
   |~~ `vals` reads a map: a vector is its own values, and a vector of
-      maps answers their values element by element, `* vals`.
+      maps answers their values element by element, `map ~vals`.
   ~~|
 
 :map/vals/keepsTheOrderOfTheEntries
@@ -993,7 +994,7 @@
 
 :map/entries/SubjectNotMapError
   |~~ `entries` reads a map: a vector of maps answers their pairs element
-      by element, `* entries`.
+      by element, `map ~entries`.
   ~~|
 
 :map/entries/pairsEachKeyWithItsValue
@@ -1002,7 +1003,8 @@
 
 :map/entries/spellsTheKeyWithTheValue
   |~~ The key and its value spell one string. ~~|
-  ::law~({:axios "^1.6.0"} | entries * ([(/0 | keyword) "@" /1] | join "") | eq ["axios@^1.6.0"])
+  ::law~({:axios "^1.6.0"} | entries | map ~([(/0 | keyword) "@" /1] | join "")
+    | eq ["axios@^1.6.0"])
 
 :map/entries/filtersByKeyAndBuildsBack
   |~~ Entries filtered by key build back into a map. ~~|
@@ -1232,8 +1234,8 @@
       fails. Its tag is the one its value shows: the outermost tag over
       the map, then the one the map carries, then a `:kind` that names a
       tag, then `::error`; a `:kind` written as a keyword stays a fact,
-      and an opened error raised again is itself. `|` and `*` step around
-      the raised error into its trail, and `!|` opens it to its facts. It
+      and an opened error raised again is itself. `|` steps around the
+      raised error into its trail, and `!|` opens it to its facts. It
       takes no value: what the error says is a fact of the map. A value
       of another kind is put in a map first, `{:value /} | raise`.
       ::link~(::error | doc) ::link~(::fail | doc)

@@ -93,8 +93,8 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site name is set on the refusals the runtime raises', async () => {
-    const originalErr = await catchOriginalError('42 * add 1');
-    expect(originalErr.name).toBe('SubjectNotContainerError');
+    const originalErr = await catchOriginalError('1 | /name');
+    expect(originalErr.name).toBe('SubjectNotProjectableError');
   });
 });
 
@@ -105,11 +105,11 @@ describe('error class branding survives Object.defineProperty (minification prox
   // even if we artificially shadow the class identifier, the runtime
   // `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('42 * add 1');
-    expect(originalErr.name).toBe('SubjectNotContainerError');
+    const originalErr = await catchOriginalError('1 | /name');
+    expect(originalErr.name).toBe('SubjectNotProjectableError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('SubjectNotContainerError');
+    expect(originalErr.constructor.name).toBe('SubjectNotProjectableError');
   });
 });
 

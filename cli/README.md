@@ -26,10 +26,10 @@ the answer is written as JSON; text input is a string and the answer is
 written as its print. `qlang -h` tells the flags.
 
 ```
-curl -s api/users | qlang '/data * /name'
+curl -s api/users | qlang '/data | map ~/name'
 printf hi         | qlang --raw 'append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
-qlang -i '::qlang | doc | links * open'
+qlang -i '::qlang | doc | links | map ~open'
 ```
 
 The language documents itself: `qlang '::qlang | doc'` reads the

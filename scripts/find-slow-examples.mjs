@@ -12,7 +12,7 @@ import { evalQuery } from '../core/src/eval.mjs';
 
 const RUN_EXAMPLES_BUDGET_MS = 10_000;
 
-const probedBindingNames = await evalQuery('manifest * /name');
+const probedBindingNames = await evalQuery('manifest | map ~/name');
 console.log(`Probing ${probedBindingNames.length} bindings, ${RUN_EXAMPLES_BUDGET_MS / 1000}s budget each…\n`);
 
 function probeBinding(bindingName) {

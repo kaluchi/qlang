@@ -37,8 +37,8 @@ import Base from "../layouts/Base.astro"
 
 [1 2 3 4 5] | filter ~(gt 2) | count
 
-:double mul 2
-| [10 20 30] * double"
+:number/double ~(mul 2)
+| [10 20 30] | map ~double"
             ></textarea>
           </div>
         </div>

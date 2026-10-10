@@ -7,7 +7,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 > [1 2 3 4 5] | filter ~(gt 3) | count
 2
 
-> :number/double ~(mul 2) | [10 20 30] * double
+> :number/double ~(mul 2) | [10 20 30] | map ~double
 [20 40 60]
 
 > "10 | add 3" | parse | apply /

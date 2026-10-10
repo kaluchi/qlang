@@ -159,8 +159,8 @@
   |~~ A name is declared once in a scope: the steps of a pipeline that
       the pipe or the fail track joins share one env, and a declaration
       of a name one of them declared before is refused where it stands,
-      `:name` the name. A group, an element, a modifier, a quote and a
-      step joined by `*` open scopes of their own, where a name of the
+      `:name` the name. A group, an element, a modifier and a quote open
+      scopes of their own, where a name of the
       scope around them is shadowed, so a second value takes another
       name or a group of its own, `(:k 2 | k)`. An address the root holds
       is declared once at all: a reader extends a noun of the root by a

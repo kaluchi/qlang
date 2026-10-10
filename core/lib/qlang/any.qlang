@@ -40,7 +40,7 @@
 :any/desc/turnsOnePlaceOfAVectorKey
   |~~ In a vector key `desc` turns its own place alone. ~~|
   ::law~([{:n 1 :s "b"} {:n 1 :s "a"} {:n 2 :s "c"}]
-    | sort ~([(/n | desc) /s]) * /s | eq ["c" "a" "b"])
+    | sort ~([(/n | desc) /s]) | map ~/s | eq ["c" "a" "b"])
 
 :any/desc/readsBackByPayload
   |~~ A map turns, and `payload` reads it back. ~~|
@@ -170,7 +170,7 @@
 
 :any/ne/answersTheOppositeOfEq
   |~~ Two values differ exactly when they are not one value. ~~|
-  ::law~([[1 2] [1 1] [:a "a"]] * (:p / | /0 | ne (p | /1)) | eq [true false true])
+  ::law~([[1 2] [1 1] [:a "a"]] | map ~(:p / | /0 | ne (p | /1)) | eq [true false true])
 
 :any/ne/keepsTheOrderOfKeysAside
   |~~ Two maps of the same entries do not differ, whatever the order of their keys. ~~|
@@ -459,7 +459,7 @@
       refused, and null and a number are refused too, having no second
       reading; a field the record lacks answers its error, which
       `at :flag | eq true` asks around. Over a vector the subject is
-      each element, `* if (gt 0) ~(/) ~(0)`. The call takes the
+      each element, `map ~(if (gt 0) ~(/) ~(0))`. The call takes the
       condition and both branches, and a chain of conditions is `cond`.
       ::link~(::any/cond | doc) ::link~(::any/coalesce | doc)
   ~~|
@@ -540,7 +540,7 @@
 
 :any/if/choosesForEachElement
   |~~ Over a vector the subject is each element. ~~|
-  ::law~([1 -2 3] * if (gt 0) ~(/) ~(0) | eq [1 0 3])
+  ::law~([1 -2 3] | map ~(if (gt 0) ~(/) ~(0)) | eq [1 0 3])
 
 :any/if/condition/NotBooleanError/refusesAQuote
   |~~ A condition given as a quote is code and no boolean. ~~|
@@ -649,7 +649,7 @@
 
 :any/coalesce/defaultsAMissingField
   |~~ A field missing or null takes the default. ~~|
-  ::law~([{:t 45} {:t null} {}] * (at :t | coalesce 30) | eq [45 30 30])
+  ::law~([{:t 45} {:t null} {}] | map ~(at :t | coalesce 30) | eq [45 30 30])
 
 :any/coalesce/keepsAValue
   |~~ A value present stays. ~~|
@@ -755,8 +755,8 @@
   |~~ Answers the code the call gives run against the subject,
       `5 | apply ~(add 1)` answering `6`. The code is a quote or a name
       that holds one, `apply double`, and its steps run in order, a
-      leading `*` or `!|` routing the first through that combinator, so
-      a pipeline suffix a `:trail` records runs again as it is. Code held
+      leading `!|` routing the first through the fail track, so a
+      pipeline suffix a `:trail` records runs again as it is. Code held
       as the subject runs on itself by `apply /`, and text runs once
       `parse` reads it, `"10 | add 3" | parse | apply /`. The code runs
       under the fork rule: its declarations stay inside it, and only its
@@ -807,7 +807,7 @@
 
 :any/apply/runsADistribute
   |~~ A distribute runs over the subject. ~~|
-  ::law~([1 2 3] | apply ~(* mul 2) | eq [2 4 6])
+  ::law~([1 2 3] | apply ~(map ~(mul 2)) | eq [2 4 6])
 
 :any/apply/runsParsedText
   |~~ Text parsed into a quote runs. ~~|
@@ -1061,12 +1061,12 @@
 
 :any/source/readsEveryDeclarationUnderAName
   |~~ The source of a word holds the declarations of its parts. ~~|
-  ::law~(::vec/take | source | * /name | has :vec/take/count)
+  ::law~(::vec/take | source | map ~/name | has :vec/take/count)
 
 :any/source/readsInTheOrderWritten
   |~~ The declarations under a name read in the order they were written. ~~|
   ::law~(:Box |~~ A box. ~~| | :Box/a ~(/0) | :Box/b ~(/1) | :Box/a/x ~(/0)
-    | ::Box | source | * /name
+    | ::Box | source | map ~/name
     | eq [:Box :Box/a :Box/b :Box/a/x])
 
 :any/source/printsTheDeclaration
@@ -1383,7 +1383,7 @@
 
 :any/runLaws/holdsEveryLawOfAdd
   |~~ Every law of `add` holds. ~~|
-  ::law~(::number/add | runLaws * /ok | distinct | eq #[true])
+  ::law~(::number/add | runLaws | map ~/ok | distinct | eq #[true])
 
 :any/runLaws/failsALawThatAnswersFalse
   |~~ A law that answers false fails. ~~|
@@ -1397,7 +1397,7 @@
 :any/runLaws/runsTheLawsUnderTheName
   |~~ The laws under the name a keyword reads run. ~~|
   ::law~(:limit |~~ A limit. ~~| 10 | :limit/holds |~~ It holds. ~~| ::law~(true)
-    | :limit | runLaws * /ok | eq [true])
+    | :limit | runLaws | map ~/ok | eq [true])
 
 :any/runLaws/runsTheLawsUnderAnAnchor
   |~~ An anchor runs the laws of the name under the one read. ~~|
@@ -2028,7 +2028,7 @@
 
 :any/is/takesAQuoteAndADocForVectors
   |~~ A quote is a vector of its steps, and a doc of its segments. ~~|
-  ::law~([~(add 1) |~~ A page. ~~|] * is ::vec | eq [true true])
+  ::law~([~(add 1) |~~ A page. ~~|] | map ~(is ::vec) | eq [true true])
 
 :any/is/keepsAVectorApartFromASet
   |~~ A vector is no set. ~~|
@@ -2058,13 +2058,13 @@
 
 :any/is/asksEachElementOfAPart
   |~~ The invariant of a part asks `is` of each element, a number under a tag among them. ~~|
-  ::law~(:any/kindsOf ~(xs * type) | :any/kindsOf/xs |~~ X ~~| ~(/)
+  ::law~(:any/kindsOf ~(xs | map ~type) | :any/kindsOf/xs |~~ X ~~| ~(/)
     | :any/kindsOf/xs/ElementNotNumberError ::holds~(every ~(is ::number))
     | 5 | kindsOf ::W(1) 2 | eq [::number ::number])
 
 :any/is/asksASetAsAVector
   |~~ A set given to a part is asked as its vector. ~~|
-  ::law~(:any/setOf ~([(xs | type) (xs * type)]) | :any/setOf/xs |~~ X ~~| ~(/0)
+  ::law~(:any/setOf ~([(xs | type) (xs | map ~type)]) | :any/setOf/xs |~~ X ~~| ~(/0)
     | :any/setOf/xs/ElementNotNumberError ::holds~(every ~(is ::number))
     | 5 | setOf #[::W(1) 2] | eq [::set [::number ::number]])
 

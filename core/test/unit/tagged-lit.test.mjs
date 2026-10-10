@@ -178,7 +178,7 @@ describe('a kind without a body — identity', () => {
     // Identity-overlay design: the tag stamps the JS-header
     // TAG_HEADER_SYMBOL slot on the Array payload itself. The
     // value stays `isVec`, indexes through `/n`, iterates via
-    // `*`, reduces via `count` / `first` — every Vec affordance
+    // `map`, reduces via `count` / `first` — every Vec affordance
     // unchanged. Identity reads through `type` operand.
     const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');

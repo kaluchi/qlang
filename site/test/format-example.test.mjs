@@ -79,15 +79,15 @@ describe('multi-line blocks', () => {
   it('multi-line expression: prompt + continuation share highlighting context', () => {
     const src = [
       '> :double mul(2)',
-      '  | [10 20] * double'
+      '  | [10 20] | map ~double'
     ].join('\n');
     const lines = fmt(src).split('\n');
     // prompt line has the > punct prefix
     expect(lines[0]).toContain('<span class="punct">&gt; </span>');
     // continuation line starts with two spaces
     expect(lines[1].startsWith('  ')).toBe(true);
-    // the continuation body is highlighted (double is a reader's name → name)
-    expect(lines[1]).toContain('<span class="name">double</span>');
+    // the continuation body is highlighted (double, a reader's name quoted, → a quoted name)
+    expect(lines[1]).toContain('<span class="name italic">double</span>');
   });
 
   it('multiple prompt lines each get their own > prefix', () => {

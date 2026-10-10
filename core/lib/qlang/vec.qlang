@@ -101,7 +101,7 @@
 
 :vec/first/leavesCountToTellNullApart
   |~~ A null element and no element both answer null, and `count` tells them apart. ~~|
-  ::law~([[null 1] []] * [(first) (count)] | eq [[null 2] [null 0]])
+  ::law~([[null 1] []] | map ~([(first) (count)]) | eq [[null 2] [null 0]])
 
 :vec/first/answersTheFirstStepOfAQuote
   |~~ A quote answers its first step. ~~|
@@ -137,10 +137,10 @@
   |~~ Answers the sum of the elements, each a number, `[1 2 3 4] | sum`
       answering `10`, and `0` for the empty vector. An element that is
       no number, a string, a record or null among them, is refused at its
-      index, so a field of each record is read first, `* /amount | sum`.
+      index, so a field of each record is read first, `map ~/amount | sum`.
       A set and a map answer `sum` by words of their own, a map summing
       its values. Two fields of one record add by `sumOf /x /y`, and a
-      number is added to each element by `* add 1`.
+      number is added to each element by `map ~(add 1)`.
       ::link~(::vec/avg | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::builtin{}
@@ -151,7 +151,7 @@
 
 :vec/sum/ElementNotNumberError
   |~~ `sum` adds numbers; `:index` names the first element that is
-      none, and a field is read first, `* /amount | sum`.
+      none, and a field is read first, `map ~/amount | sum`.
   ~~|
 
 :vec/sum/addsTheElements
@@ -164,7 +164,7 @@
 
 :vec/sum/sumsAFieldReadFirst
   |~~ A field of each record is read before the sum. ~~|
-  ::law~([{:n 1} {:n 2}] | * /n | sum | eq 3)
+  ::law~([{:n 1} {:n 2}] | map ~/n | sum | eq 3)
 
 :vec/sum/ElementNotNumberError/refusesAString
   |~~ A string among the numbers is refused at its index. ~~|
@@ -182,7 +182,7 @@
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
       answering `2.5`, or null for the empty vector, which has no mean.
       An element that is no number is refused at its index, as `sum`
-      refuses it, so a field of each record is read first, `* /n | avg`,
+      refuses it, so a field of each record is read first, `map ~/n | avg`,
       and the mean of each group of a `groupBy` comes under its key. A
       set and a map answer `avg` by words of their own.
       ::link~(::vec/sum | doc) ::link~(::vec/groupBy | doc)
@@ -195,7 +195,7 @@
 
 :vec/avg/ElementNotNumberError
   |~~ `avg` takes the mean of numbers; `:index` names the first element
-      that is none, and a field is read first, `* /amount | avg`.
+      that is none, and a field is read first, `map ~/amount | avg`.
   ~~|
 
 :vec/avg/answersTheMean
@@ -208,7 +208,8 @@
 
 :vec/avg/averagesEachGroup
   |~~ The mean of each group comes under its key. ~~|
-  ::law~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
+  ::law~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) | map ~(map ~/n | avg)
+    | eq {:a 2 :b 5})
 
 :vec/avg/ElementNotNumberError/refusesAString
   |~~ A string among the numbers is refused at its index. ~~|
@@ -384,9 +385,9 @@
   |~~ A path alone is written short. ~~|
   ::law~([{:n 1} {:n 2}] | map ~/n | eq [1 2])
 
-:vec/map/reshapesEachElementByALiteral
-  |~~ A literal reshapes each element. ~~|
-  ::law~([{:a 1 :b 2}] | map ~({:sum (sumOf /a /b)}) | eq [{:sum 3}])
+:vec/map/runsSeveralStepsInOneQuote
+  |~~ Several steps run in one quote on each element. ~~|
+  ::law~([1 2 3] | map ~(mul 2 | add 1) | eq [3 5 7])
 
 :vec/map/readsANameOfTheScope
   |~~ A name declared before the call is read inside. ~~|
@@ -395,10 +396,6 @@
 :vec/map/answersTheFirstError
   |~~ The first error answers the call, and the elements after it are not run. ~~|
   ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
-
-:vec/map/recoversEachElement
-  |~~ A code that recovers keeps every element. ~~|
-  ::law~(["1" 2] | map ~(add 1 !| 0) | eq [0 3])
 
 :vec/map/answersUnderNoTag
   |~~ The answers stand under no tag of the subject. ~~|
@@ -737,7 +734,7 @@
       its element under the keyword of its text, `:"1"` for `1`; any
       other key, a boolean or null among them, is refused at its
       element. Without a key an element files under itself, so
-      `groupBy * count` counts the occurrences of each value. The key
+      `groupBy | map ~count` counts the occurrences of each value. The key
       is code run on each element, a quote, `~(/k)`; a value computed at
       the call is refused, and a key that misses its field answers the
       error of the read. A set answers `groupBy` by a word of its own,
@@ -772,13 +769,13 @@
 
 :vec/groupBy/filesUnderTheKey
   |~~ The elements file under the key they answer. ~~|
-  ::law~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a * /v | eq [1 3])
+  ::law~([{:k :a :v 1} {:k :b :v 2} {:k :a :v 3}] | groupBy ~(/k) | /a | map ~/v | eq [1 3])
 
 :vec/groupBy/keepsTheOrderInAGroup
   |~~ A group keeps its elements in their order. ~~|
   ::law~([{:dept :eng :name "a"} {:dept :sales :name "b"} {:dept :eng :name "c"}]
     | groupBy ~(/dept)
-    | /eng * /name
+    | /eng | map ~/name
     | eq ["a" "c"])
 
 :vec/groupBy/answersTheEmptyMapOfNothing
@@ -787,7 +784,7 @@
 
 :vec/groupBy/filesAStringUnderItsKeyword
   |~~ A string key files under its keyword. ~~|
-  ::law~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) * count | eq {:paid 2 :open 1})
+  ::law~([{:s "paid"} {:s "open"} {:s "paid"}] | groupBy ~(/s) | map ~count | eq {:paid 2 :open 1})
 
 :vec/groupBy/filesANumberUnderItsText
   |~~ A number key files under the keyword of its text. ~~|
@@ -965,11 +962,11 @@
   |~~ A vector key ranks by its first place, then by the next among the
       elements the first leaves alike.
   ~~|
-  ::law~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) * /b | eq [9 1 2])
+  ::law~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) | map ~/b | eq [9 1 2])
 
 :vec/sort/breaksTiesByTheNextPlace
   |~~ A vector key breaks the ties of its first place by its next. ~~|
-  ::law~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) * /s
+  ::law~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~([(/n | desc) /s]) | map ~/s
     |  eq ["a" "c" "b"])
 
 :vec/sort/putsNullLast
@@ -978,7 +975,7 @@
 
 :vec/sort/keepsTheOrderOfAlikeElements
   |~~ Elements the key leaves alike keep the order of the subject. ~~|
-  ::law~([{:n 2 :s "b"} {:n 1 :s "c"} {:n 2 :s "a"}] | sort ~(/n) * /s | eq ["c" "b" "a"])
+  ::law~([{:n 2 :s "b"} {:n 1 :s "c"} {:n 2 :s "a"}] | sort ~(/n) | map ~/s | eq ["c" "b" "a"])
 
 :vec/sort/descendsUnderDesc
   |~~ A key under `desc` descends. ~~|
@@ -986,7 +983,7 @@
 
 :vec/sort/turnsTheKey
   |~~ `desc` turns one place of a vector key alone. ~~|
-  ::law~([{:a 1 :b 1} {:a 1 :b 2}] | sort ~([/a (/b | desc)]) * /b | eq [2 1])
+  ::law~([{:a 1 :b 1} {:a 1 :b 2}] | sort ~([/a (/b | desc)]) | map ~/b | eq [2 1])
 
 :vec/sort/readsAFieldSoftly
   |~~ A field an element may lack is read softly. ~~|
@@ -1664,7 +1661,7 @@
       answering `"a,b,c"`; the empty vector joins to the empty string,
       and `split` takes the string apart again. Every element is a
       string, and one that is not is refused at its index, so values are
-      made text first, `* print | join "+"`. A set joins its elements in
+      made text first, `map ~print | join "+"`. A set joins its elements in
       the one order; a map, a string or a number is refused under the
       word, and a map's values are read first, `vals | join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
@@ -1690,7 +1687,7 @@
 
 :vec/join/ElementNotStringError
   |~~ Every element `join` writes is a string; `:index` names the first
-      that is not, and `* print` makes each value its text first.
+      that is not, and `map ~print` makes each value its text first.
   ~~|
 
 :vec/join/joinsWithTheSeparator
@@ -1707,7 +1704,7 @@
 
 :vec/join/joinsValuesMadeText
   |~~ Values made text first join. ~~|
-  ::law~([1 2] * print | join "+" | eq "1+2")
+  ::law~([1 2] | map ~print | join "+" | eq "1+2")
 
 :vec/join/joinsASetInTheOneOrder
   |~~ A set joins its elements in the one order. ~~|

@@ -216,7 +216,7 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds a name with a path by the name a step calls it by', () => {
-    const ast = parse(':any/double ~(mul 2) | [1 2] * double | any/double');
+    const ast = parse(':any/double ~(mul 2) | [1 2] | map ~double | any/double');
     const refs = findIdentifierOccurrences(ast, 'double');
     expect(refs.map(n => n.type)).toEqual(['BindStep', 'Call', 'Call']);
   });

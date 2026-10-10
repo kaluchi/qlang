@@ -14,7 +14,7 @@ const examples = [
   {
     tab: "bind",
     file: "BindStep + distribute",
-    code: `|~| a name under a noun · spread over Vec\n> :number/double ~(mul 2) | [10 20 30] * double\n[20 40 60]`,
+    code: `|~| a name under a noun · run on each element\n> :number/double ~(mul 2) | [10 20 30] | map ~double\n[20 40 60]`,
   },
   {
     tab: "name",

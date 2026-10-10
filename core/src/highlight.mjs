@@ -35,8 +35,7 @@
 //                 tag sigil + the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
-//   'punct'       every other single-char or multi-char combinator
-//                 (`|`, `*`), the `{` / `}` of an ordinary
+//   'punct'       the pipe `|`, the `{` / `}` of an ordinary
 //                 MapLit, `(` / `)` of a group, the commas of a
 //                 JSON literal, and the `/` separator inside a
 //                 `Projection`

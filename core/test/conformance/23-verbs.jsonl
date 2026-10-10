@@ -31,7 +31,7 @@
 {"name":"a-slot-of-maps-reads-a-tagged-map-as-one","query":":any/m ~(fields | count) | :any/m/fields ~(/0) | :any/m/fields/NotMapError ::holds~(is ::map) | null | m ::T{:a 1}","expect":"1","decision":["D67","D68"]}
 {"name":"a-set-that-names-no-kind-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[1 2]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m","expect":"#[1 2]","decision":["D67","D68"]}
 {"name":"the-empty-set-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m #[3]","expect":"#[3]","decision":["D67","D68"]}
-{"name":"a-body-may-open-with-a-combinator","query":":any/m ~(* add n) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
+{"name":"a-body-may-open-with-a-combinator","query":":any/m ~(map ~(add n)) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
 {"name":"a-comment-in-the-head-is-layout","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 1 | m 2","expect":"3","decision":["D67","D68","D81"]}
 {"name":"a-declaration-on-the-fail-track-ends-the-head","query":":any/m ~(!| :k 2 | add n) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | 5 | m","expect":"6","decision":["D67","D68"]}
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m ~(x) | :any/m/x ~(/0) | 5 | m !{:k 1} !| /k","expect":"1","decision":["D67","D68"]}

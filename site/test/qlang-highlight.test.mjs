@@ -109,11 +109,6 @@ describe('punctuation', () => {
     expect(out).toContain('<span class="punct">|</span>');
   });
 
-  it('distribute * becomes punct', () => {
-    const out = hl('[1 2] * add 1');
-    expect(out).toContain('<span class="punct">*</span>');
-  });
-
   it('fail-track !| becomes err', () => {
     const out = hl('1 !| /k');
     expect(out).toContain('<span class="err">!|</span>');

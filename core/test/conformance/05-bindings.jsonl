@@ -2,8 +2,8 @@
 {"name":"freeze-then-other-step","query":"[1 2 3] | :nums / | nums | count","expect":"3"}
 {"name":"multi-stage-freeze","query":"[85 92 47 78 68 95 52] | :allScores / | filter ~(gte 70) | :passingScores / | [(allScores | count), (passingScores | count)]","expect":"[7 4]"}
 {"name":"bind-double","query":":any/double ~(mul 2) | 10 | double","expect":"20"}
-{"name":"bind-then-distribute","query":":any/plus10 ~(add 10) | [1 2 3] * plus10","expect":"[11 12 13]"}
-{"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] * (:item / | {:key /id :record item})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
+{"name":"bind-then-distribute","query":":any/plus10 ~(add 10) | [1 2 3] | map ~plus10","expect":"[11 12 13]"}
+{"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item / | {:key /id :record item})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
 {"name":"use-shadowable-by-let","query":":any/use ~(mul 2) | 5 | use","expect":"10"}
 {"name":"use-shadowable-by-a-freeze","query":"42 | :use / | use","expect":"42"}
 {"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":any/@two ~(2) | :n @two | n","expect":"2","decision":"D69"}
@@ -14,6 +14,6 @@
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71"}
 {"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
-{"name":"a-distributed-step-declares-in-each-element","query":":x 1 | [2 3] * :x / | x","expect":"1","decision":"D71"}
+{"name":"a-distributed-step-declares-in-each-element","query":":x 1 | [2 3] | map ~(:x /) | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
 {"name":"a-value-of-the-reader-takes-no-name-of-the-catalog","query":":count 5 | count !| type","expect":"::bind/NameTakenByVocabularyError","decision":["D71","D166"]}

@@ -35,10 +35,10 @@
 :any/triple |~~ Triples a number. ~~| ~(mul 3)
 
 |~| Ctrl+Click on double below → jumps to the BindStep above
-[1 2 3] * double
+[1 2 3] | map ~double
 
 |~| Ctrl+Click on triple below → jumps to the BindStep above
-[10 20] * triple
+[10 20] | map ~triple
 
 |~| Ctrl+Click on count below → jumps to core.qlang
 [1 2 3] | count
@@ -89,7 +89,7 @@ x
 
 [{:name "a" :age 25} {:name "b" :age 15}]
   | filter ~(/age | gte 18)
-  * /name
+  | map ~/name
 
 |~| Edit inside `add /x /y` below — the second modifier highlights
 {:x 10 :y 3} | add /x /y
@@ -138,7 +138,7 @@ x
 
 [{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
   | sort ~([/age /name])
-  * /name
+  | map ~/name
 
 
 |~| ── 13. Fail-apply combinator ─────────────────────────
@@ -155,7 +155,7 @@ x
 
 |~| Leading !| prefix inside a filter predicate —
 |~| per-element dispatch into the fail-track
-[1 "x" 3] * add 10 | filter ~(!| type | eq ::number/add/SubjectNotNumberError)
+[1 "x" 3] | map ~(add 10) | filter ~(!| type | eq ::number/add/SubjectNotNumberError)
 
 |~| Trail continuity across re-lift — | raise re-wraps the
 |~| enriched descriptor on the path it read, and a later !|

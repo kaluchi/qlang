@@ -17,7 +17,7 @@ import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource }
 import {
   keyword, isQMap, isQuote, isKeyword, isTagKeyword,
   isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
-  CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG, isVec
+  CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
 const QuotePayloadNotVecError = declareRefusal('quote/PayloadNotVecError');
@@ -105,10 +105,6 @@ function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
     return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
   };
 }
-
-bindPrim('each/construct', wrapperConstructor(EACH_TAG,
-  declareRefusal('each/PayloadNotQuoteError'),
-  declareRefusal('each/ReadBackDiffersError')));
 
 bindPrim('fail/construct', wrapperConstructor(FAIL_TAG,
   declareRefusal('fail/PayloadNotQuoteError'),

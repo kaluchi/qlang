@@ -127,7 +127,7 @@
 :proj/IndexNotIntegerError
   |~~ A vector is read by an index, `/0`, and a set by the index of an
       element in its one order; `:key` holds the field read. A field of
-      each element is read under `*`, `* /name`, and the elements a field
+      each element is read by `map`, `map ~/name`, and the elements a field
       picks are found by `filter`, `filter ~(/n | gt 1)`.
       ::link~(::proj | doc) ::link~(::vec/filter | doc)
   ~~|
@@ -145,5 +145,5 @@
   ::law~(#[:a :b :c] | /name !| [type /key] | eq [::proj/IndexNotIntegerError :name])
 
 :proj/IndexNotIntegerError/readsAFieldOfEachElement
-  |~~ A field of each element is read under `*`. ~~|
-  ::law~([{:name "a"} {:name "b"}] * /name | eq ["a" "b"])
+  |~~ A field of each element is read by `map`. ~~|
+  ::law~([{:name "a"} {:name "b"}] | map ~/name | eq ["a" "b"])

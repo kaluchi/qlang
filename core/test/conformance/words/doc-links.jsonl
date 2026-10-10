@@ -9,4 +9,4 @@
 {"name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | open !| type","expect":"::number/add/SubjectNotNumberError","decision":"D175"}
 {"name":"a-snippet-opens-to-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open","expect":"2","decision":"D175"}
 {"name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec | doc) ~~| | links | first | open | type","expect":"::doc","decision":"D175"}
-{"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | * type","expect":"[::string ::quote ::string ::link ::string]","decision":"D175"}
+{"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | map ~type","expect":"[::string ::quote ::string ::link ::string]","decision":"D175"}

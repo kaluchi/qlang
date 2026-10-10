@@ -6,21 +6,21 @@ import { ROOT_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
-import { fork, forkEach } from './fork.mjs';
+import { fork } from './fork.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
-  typeKeyword, keyword, NULL, makeErrorValue, makeQuote,
+  typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, eachStepOf, tagCallStepOf } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -51,7 +51,6 @@ const ProjIndexNotIntegerError = declareRefusal('proj/IndexNotIntegerError');
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a word, an invariant or a tag no node answers [D173].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
-const EachSubjectNotContainerError = declareRefusal('each/SubjectNotContainerError');
 // A bare name the reader declares for a value takes no word of the
 // vocabulary, the name of a verb or of a name under a label, so no step
 // meets the reader's value where the subject's word was meant [D166].
@@ -128,21 +127,20 @@ async function evalNode(node, state) {
 
 // ─── Pipeline ───────────────────────────────────────────────────
 
-// The head of a pipeline rides `|` unless it is written after `!|` or
-// `*`, so `~(* add 1)` replays through `apply` as it was written.
+// The head of a pipeline rides `|` unless it is written after `!|`, so
+// `~(!| 0)` replays through `apply` as it was written.
 async function evalPipeline(node, state) {
   let current = await applyCombinator(node.leadingCombinator ?? '|', state, node.steps[0]);
   for (const unit of node.steps.slice(1)) current = await applyCombinator(unit.combinator, current, unit.step);
   return current;
 }
 
-// The tracks live in the combinators alone: `|` and `*` step around an
-// error, the step joining the skipped steps of its last stop [D85], and
-// `!|` fires on an error alone [D51].
+// The tracks live in the combinators alone: `|` steps around an error,
+// the step joining the skipped steps of its last stop [D85], and `!|`
+// fires on an error alone [D51].
 const COMBINATOR_EVALUATORS = {
   '|':  applySuccessTrack,
-  '!|': applyFailTrack,
-  '*':  distribute
+  '!|': applyFailTrack
 };
 
 async function applyCombinator(kind, state, stepNode) {
@@ -167,45 +165,12 @@ function evalBody(node, state) {
   return node.type === 'Pipeline' ? evalNode(node, state) : applySuccessTrack(state, node);
 }
 
-// The container beneath every tag stacked over a value, which distribute
-// reaches as the walk hands a verb the value it serves [D34].
+// The container beneath every tag stacked over a value, which a
+// projection reads as the walk hands a verb the value it serves [D34].
 function containerBeneathTags(value) {
   let beneath = value;
   while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
   return beneath;
-}
-
-async function distribute(state, bodyNode) {
-  if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, eachStepOf(bodyNode)));
-  const subjectSeq = containerBeneathTags(state.pipeValue);
-  if (!isVec(subjectSeq) && !isQMap(subjectSeq)) {
-    const distributeErr = new EachSubjectNotContainerError({ actualValue: state.pipeValue });
-    distributeErr.location = bodyNode.location;
-    const refused = errorFromQlang(distributeErr, state.pipeValue, state.env);
-    return withPipeValue(state, answerOfStep(refused, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue, state.env));
-  }
-  // The parentheses after `*` delimit its body, whose head takes the
-  // track, so `[e 1] * (!| 0)` recovers an error element; the first error
-  // the body answers answers the distribute, the elements after it left
-  // unrun [D103]. A map's elements are its values.
-  const bodyPipeline = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
-  if (isQMap(subjectSeq)) {
-    const mapEntries = [...subjectSeq];
-    const entryAnswers = await forkEach(state, mapEntries.map(([, entryValue]) => entryValue), inner => evalBody(bodyPipeline, inner));
-    if (isErrorValue(entryAnswers)) return withPipeValue(state, failedInside(entryAnswers, bodyNode, state));
-    return withPipeValue(state, new Map(mapEntries.map(([entryKey], index) => [entryKey, entryAnswers[index]])));
-  }
-  const distributeResults = await forkEach(state, subjectSeq, inner => evalBody(bodyPipeline, inner));
-  if (isErrorValue(distributeResults)) return withPipeValue(state, failedInside(distributeResults, bodyNode, state));
-  // A set distributes into the vector of its images, one per element in
-  // the one order [D116].
-  return withPipeValue(state, distributeResults);
-}
-
-// The error an element of a distribute answered, which answers the
-// distribute with a stop of its own after the stops inside [D85].
-function failedInside(elementError, bodyNode, state) {
-  return answerOfStep(elementError, () => makeQuote([eachStepOf(bodyNode)]), state.pipeValue, state.env);
 }
 
 // `!|` runs the step on a raised error alone, opened to the error

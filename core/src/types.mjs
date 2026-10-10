@@ -265,13 +265,11 @@ export const CORE_KIND = Object.freeze({
 });
 
 // The tags of a quote's steps [D47]: the records of what computes,
-// and the wrappers a step takes on the fail track, under `*`, or in
-// parentheses.
+// and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTagKeyword('call');
 export const PROJ_TAG   = makeTagKeyword('proj');
 export const BIND_TAG   = makeTagKeyword('bind');
 export const CONSTRUCT_TAG = makeTagKeyword('construct');
-export const EACH_TAG   = makeTagKeyword('each');
 export const FAIL_TAG   = makeTagKeyword('fail');
 export const GROUP_TAG  = makeTagKeyword('group');
 

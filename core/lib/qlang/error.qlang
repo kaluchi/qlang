@@ -29,7 +29,7 @@
 :error/TrailNotVecError/startsATrailAtTheRaise
   |~~ An error raised without a trail starts its trail at the raise. ~~|
   ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
-    !| /trail * /step | eq [~(raise)])
+    !| /trail | map ~/step | eq [~(raise)])
 
 :error/name
   |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
@@ -69,10 +69,10 @@
       each a map of the `:step`, the `:subject` that step met, and the
       steps `:skipped` after it: `"x" | add 1 | mul 2 !| trail` answers
       the one stop of `add 1`, which met `"x"` and skipped `mul 2`. A
-      step that ran the step that raised adds its stop after it, the `*`
+      step that ran the step that raised adds its stop after it, the `map`
       that ran an element among them, so the path reads outward:
-      `[1 "x"] * (mul 2) !| trail * /step` answers
-      `[~(mul 2) ~(* mul 2)]`. The subject is an error opened by `!|`:
+      `[1 "x"] | map ~(mul 2) !| trail | map ~/step` answers
+      `[~(mul 2) ~(map ~(mul 2))]`. The subject is an error opened by `!|`:
       under `|` a raised error passes `trail` by, as it passes every
       step, and a value that is no error is refused, a map with the key
       `:trail` among them.
@@ -103,7 +103,7 @@
 
 :error/trail/readsOutward
   |~~ The step that ran an element adds its stop after the element's. ~~|
-  ::law~([1 "x"] * (mul 2) !| trail * /step | eq [~(mul 2) ~(* mul 2)])
+  ::law~([1 "x"] | map ~(mul 2) !| trail | map ~/step | eq [~(mul 2) ~(map ~(mul 2))])
 
 :error/trail/SubjectNotErrorError/refusesAMap
   |~~ A map with the key `:trail` is no error. ~~|

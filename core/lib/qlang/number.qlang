@@ -25,12 +25,14 @@
 
 :number/NotFiniteError/refusesAProductPastTheRange
   |~~ A product past the range of doubles is refused at the step that made it. ~~|
-  ::law~(1e308 | mul 10 | add 1 !| [type (/trail * /step)] | eq [::number/NotFiniteError [~(mul 10)]])
+  ::law~(1e308 | mul 10 | add 1 !| [type (/trail | map ~/step)]
+    | eq [::number/NotFiniteError [~(mul 10)]])
 
 :number/add
   |~~ Answers the subject plus the number the call gives, `10 | add 3`.
-      The subject is a number: a vector adds to each of its elements under
-      `*`, `* add 1`, and sums them by `sum`; a string joins by `append`;
+      The subject is a number: a vector adds to each of its elements by
+      `map`, `map ~(add 1)`, and sums them by `sum`; a string joins by
+      `append`;
       and text that holds a number is read first by `parseJson`, `"5" |
       parseJson | add 1`. The addend is computed against the subject, so
       `5 | add (mul 2)` adds ten, and two fields of one record add by
@@ -55,7 +57,7 @@
 
 :number/add/SubjectNotNumberError
   |~~ `add` adds to a number: two fields of one record add by `sumOf /x
-      /y`, a vector adds to each element under `*`, `* add 1`, a string
+      /y`, a vector adds to each element by `map`, `map ~(add 1)`, a string
       joins by `append`, and text that holds a number is read first by
       `parseJson`.
   ~~|
@@ -94,7 +96,7 @@
   |~~ Answers the subject, the minuend, less the number the call gives,
       `10 | sub 3`, which may fall below zero, `5 | sub 7` answering `-2`.
       The subject is a number: a vector subtracts from each of its
-      elements under `*`, `* sub 1`, and text that holds a number is read
+      elements by `map`, `map ~(sub 1)`, and text that holds a number is read
       first by `parseJson`. The subtrahend is computed against the
       subject, and two fields of one record subtract by `subOf /total
       /paid`. A number under a tag answers under the tag.
@@ -116,8 +118,8 @@
 
 :number/sub/SubjectNotNumberError
   |~~ `sub` subtracts from a number: two fields of one record subtract by
-      `subOf /total /paid`, a vector subtracts from each element under
-      `*`, `* sub 1`, and text that holds a number is read first by
+      `subOf /total /paid`, a vector subtracts from each element by
+      `map`, `map ~(sub 1)`, and text that holds a number is read first by
       `parseJson`.
   ~~|
 
@@ -140,8 +142,8 @@
 :number/mul
   |~~ Answers the subject times the number the call gives, `10 | mul 3`,
       a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
-      is a number: a vector multiplies each of its elements under `*`,
-      `* mul 2`, and text that holds a number is read first by
+      is a number: a vector multiplies each of its elements by `map`,
+      `map ~(mul 2)`, and text that holds a number is read first by
       `parseJson`. The multiplier is computed against the subject, so
       `5 | mul /` squares it, and two fields of one record multiply by
       `mulOf /price /qty`. A number under a tag answers under the tag,
@@ -164,8 +166,8 @@
 
 :number/mul/SubjectNotNumberError
   |~~ `mul` multiplies a number: two fields of one record multiply by
-      `mulOf /price /qty`, a vector multiplies each element under `*`,
-      `* mul 2`, and text that holds a number is read first by
+      `mulOf /price /qty`, a vector multiplies each element by `map`,
+      `map ~(mul 2)`, and text that holds a number is read first by
       `parseJson`.
   ~~|
 
@@ -187,7 +189,7 @@
       answering `3.5`. A divisor of zero is refused, so a divisor that may
       be zero is tested first, `if (/count | eq 0) ~(0) ~(divOf /sum
       /count)`. The subject is a number: a vector divides each of its
-      elements under `*`, `* div 2`. The divisor is computed against the
+      elements by `map`, `map ~(div 2)`. The divisor is computed against the
       subject, and two fields of one record divide by `divOf /sum
       /count`. A number under a tag answers under the tag.
       ::link~(::number/mul | doc) ::link~(::any/divOf | doc)
@@ -215,7 +217,7 @@
 
 :number/div/SubjectNotNumberError
   |~~ `div` divides a number: two fields of one record divide by `divOf
-      /sum /count`, a vector divides each element under `*`, `* div 2`,
+      /sum /count`, a vector divides each element by `map`, `map ~(div 2)`,
       and text that holds a number is read first by `parseJson`.
   ~~|
 

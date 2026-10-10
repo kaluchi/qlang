@@ -1,7 +1,7 @@
 // runLaws — run each law declared under a name as an executable test
 // case [D174]. A law passes when it answers `true`. The subject is a keyword (binding name) or a tag name, the
-// address of a verb among them, so `::qlang | manifest * manifest |
-// flat * runLaws` walks the whole catalog.
+// address of a verb among them, so `::qlang | manifest | map ~manifest |
+// flat | map ~runLaws` walks the whole catalog.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -10,7 +10,7 @@ import { createSession } from '../../src/session.mjs';
 
 describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
-    const result = await evalQuery('::vec/count | runLaws * /ok | distinct');
+    const result = await evalQuery('::vec/count | runLaws | map ~/ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });

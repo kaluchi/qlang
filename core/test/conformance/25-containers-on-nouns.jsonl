@@ -20,7 +20,7 @@
 {"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type /actualType]","expect":"[::set/union/with/NotSetOrNullError ::vec]","decision":"D74"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/with/NotGivenError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
-{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | * /name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":["D46","D168"]}
-{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:map/at/key/NotKeywordOrStringError]","decision":["D46","D168"]}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/with | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:set/union/with/NotSetOrNullError]","decision":["D46","D168"]}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | * /name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":["D46","D168"]}
+{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | map ~/name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":["D46","D168"]}
+{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | map ~/name | filter ~(keyword | endsWith \"Error\")","expect":"[:map/at/key/NotKeywordOrStringError]","decision":["D46","D168"]}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/with | source | map ~/name | filter ~(keyword | endsWith \"Error\")","expect":"[:set/union/with/NotSetOrNullError]","decision":["D46","D168"]}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | map ~/name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":["D46","D168"]}

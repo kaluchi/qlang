@@ -347,7 +347,7 @@
       as `count` counts them: a letter stands alone, and an emoji
       stays whole. `join` writes the pieces back, and
       `lines` breaks a text at its line breaks. A vector of strings
-      splits under `*`, each element into a vector of its own.
+      splits by `map`, each element into a vector of its own.
       ::link~(::string/lines | doc) ::link~(::vec/join | doc)
   ~~|
   ::builtin{}
@@ -370,8 +370,8 @@
   ~~|
 
 :string/split/SubjectNotStringError
-  |~~ `split` cuts a string: a vector of strings splits under `*`, `*
-      split ","`, and a value becomes text by `print`.
+  |~~ `split` cuts a string: a vector of strings splits by `map`,
+      `map ~(split ",")`, and a value becomes text by `print`.
   ~~|
 
 :string/split/cutsAtTheSeparator
@@ -415,8 +415,8 @@
   ::law~("a,b" | split "," | join "," | eq "a,b")
 
 :string/split/splitsEachElementUnderStar
-  |~~ A vector of strings splits under `*`, each into a vector of its own. ~~|
-  ::law~(["a,b" "c"] * split "," | eq [["a" "b"] ["c"]])
+  |~~ A vector of strings splits by `map`, each into a vector of its own. ~~|
+  ::law~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
 
 :string/split/SubjectNotStringError/refusesANumber
   |~~ A number is no string to cut. ~~|
@@ -442,7 +442,7 @@
 
       `lines` breaks a string, the text the command line reads with
       `--raw`, and takes no value; a vector of texts breaks element by
-      element under `*`, `* lines`.
+      element by `map`, `map ~lines`.
       ::link~(::string/split | doc) ::link~(::vec/join | doc)
   ~~|
   ::builtin{}
@@ -452,8 +452,8 @@
   ::vec
 
 :string/lines/SubjectNotStringError
-  |~~ `lines` breaks a string: a vector of texts breaks under `*`, `*
-      lines`, and a value becomes text by `print`.
+  |~~ `lines` breaks a string: a vector of texts breaks by `map`,
+      `map ~lines`, and a value becomes text by `print`.
   ~~|
 
 :string/lines/ArgsBeyondPartsError
@@ -490,8 +490,8 @@
   ::law~("a\nb" | lines | join "\n" | eq "a\nb")
 
 :string/lines/breaksEachTextUnderStar
-  |~~ A vector of texts breaks under `*`, each into a vector of its own. ~~|
-  ::law~(["a\nb" "c"] * lines | eq [["a" "b"] ["c"]])
+  |~~ A vector of texts breaks by `map`, each into a vector of its own. ~~|
+  ::law~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
 
 :string/lines/SubjectNotStringError/refusesANumber
   |~~ A number is no text. ~~|
@@ -509,7 +509,7 @@
       character, `"İ"` into an `i` and a combining dot, so the count may
       grow. A string under a tag answers under the tag. A keyword has no
       case to lower: `keyword` gives its name first. A vector of strings
-      lowers under `*`.
+      lowers by `map`.
       ::link~(::string/upper | doc)
   ~~|
   ::builtin{}
@@ -520,8 +520,8 @@
 
 :string/lower/SubjectNotStringError
   |~~ `lower` lowers a string: a keyword gives its name by `keyword`,
-      `:A | keyword | lower`, and a vector of strings lowers under `*`, `*
-      lower`.
+      `:A | keyword | lower`, and a vector of strings lowers by `map`,
+      `map ~lower`.
   ~~|
 
 :string/lower/lowersEveryLetter
@@ -534,7 +534,7 @@
 
 :string/lower/makesCaseVariantsEqual
   |~~ Two strings that differ in case alone are equal once lowered. ~~|
-  ::law~(["Ann" "ANN"] * lower | distinct | count | eq 1)
+  ::law~(["Ann" "ANN"] | map ~lower | distinct | count | eq 1)
 
 :string/lower/mayGrowTheCount
   |~~ A letter may lower into more than one character. ~~|
@@ -554,7 +554,7 @@
       they are. A letter may raise into more than one character, `ß`
       into `SS`, so the count may grow. A string under a tag answers
       under the tag. A keyword has no case to raise: `keyword` gives its
-      name first. A vector of strings raises under `*`.
+      name first. A vector of strings raises by `map`.
       ::link~(::string/lower | doc)
   ~~|
   ::builtin{}
@@ -565,7 +565,7 @@
 
 :string/upper/SubjectNotStringError
   |~~ `upper` raises a string: a keyword gives its name by `keyword`, and
-      a vector of strings raises under `*`, `* upper`.
+      a vector of strings raises by `map`, `map ~upper`.
   ~~|
 
 :string/upper/raisesEveryLetter
@@ -581,8 +581,8 @@
   ::law~(::Name("ab") | upper | eq ::Name("AB"))
 
 :string/upper/raisesEachElementUnderStar
-  |~~ A vector of strings raises under `*`. ~~|
-  ::law~(["a" "b"] * upper | eq ["A" "B"])
+  |~~ A vector of strings raises by `map`. ~~|
+  ::law~(["a" "b"] | map ~upper | eq ["A" "B"])
 
 :string/upper/SubjectNotStringError/refusesAKeyword
   |~~ A keyword has no case to raise. ~~|
@@ -593,7 +593,7 @@
       tabs, line breaks and the no-break space, so a field cut out of a
       line compares as the text it holds; the whitespace inside stays. A
       string under a tag answers under the tag. A vector of strings trims
-      under `*`, `split "," * trim`.
+      by `map`, `split "," | map ~trim`.
       ::link~(::string/split | doc)
   ~~|
   ::builtin{}
@@ -605,8 +605,8 @@
   ::string
 
 :string/trim/SubjectNotStringError
-  |~~ `trim` trims a string: a vector of strings trims under `*`, `*
-      trim`, and a value becomes text by `print`.
+  |~~ `trim` trims a string: a vector of strings trims by `map`,
+      `map ~trim`, and a value becomes text by `print`.
   ~~|
 
 :string/trim/dropsTheWhitespaceAtTheEnds
@@ -623,7 +623,7 @@
 
 :string/trim/cleansTheFieldsOfALine
   |~~ The fields of a line compare as the text they hold once trimmed. ~~|
-  ::law~("a, b ,c" | split "," * trim | eq ["a" "b" "c"])
+  ::law~("a, b ,c" | split "," | map ~trim | eq ["a" "b" "c"])
 
 :string/trim/answersUnderTheTagOfTheSubject
   |~~ A string under a tag answers under the tag. ~~|
@@ -700,7 +700,7 @@
       counts. The prefix is a string, and a keyword is refused. Only a
       string answers `startsWith`, and another value is refused: a field
       is read first, `/name | startsWith "a"`, and a vector of strings
-      asks under `*`, each element apart.
+      asks by `map`, each element apart.
       ::link~(::string/endsWith | doc) ::link~(::string/contains | doc)
   ~~|
   ::builtin{}
@@ -719,8 +719,8 @@
 
 :string/startsWith/SubjectNotStringError
   |~~ `startsWith` reads the beginning of a string: a field is read
-      first, `/name | startsWith "a"`, and a vector of strings asks under
-      `*`.
+      first, `/name | startsWith "a"`, and a vector of strings asks by
+      `map`.
   ~~|
 
 :string/startsWith/findsThePrefix
@@ -744,8 +744,8 @@
   ::law~("Hello" | startsWith "h" | not)
 
 :string/startsWith/asksEachElementUnderStar
-  |~~ A vector of strings asks under `*`, each element apart. ~~|
-  ::law~(["ab" "ba"] * startsWith "a" | eq [true false])
+  |~~ A vector of strings asks by `map`, each element apart. ~~|
+  ::law~(["ab" "ba"] | map ~(startsWith "a") | eq [true false])
 
 :string/startsWith/SubjectNotStringError/refusesAVector
   |~~ A vector is no string to read the beginning of. ~~|
@@ -761,7 +761,7 @@
       a suffix longer than the string ends none, and case counts. The
       suffix is a string, and a keyword is refused. Only a string answers
       `endsWith`, and another value is refused: a field is read first,
-      `/file | endsWith ".json"`, and a vector of strings asks under `*`,
+      `/file | endsWith ".json"`, and a vector of strings asks by `map`,
       each element apart.
       ::link~(::string/startsWith | doc) ::link~(::string/contains | doc)
   ~~|
@@ -781,7 +781,7 @@
 
 :string/endsWith/SubjectNotStringError
   |~~ `endsWith` reads the end of a string: a field is read first, `/file
-      | endsWith ".json"`, and a vector of strings asks under `*`.
+      | endsWith ".json"`, and a vector of strings asks by `map`.
   ~~|
 
 :string/endsWith/findsTheSuffix
@@ -805,8 +805,8 @@
   ::law~("Hello" | endsWith "O" | not)
 
 :string/endsWith/asksEachElementUnderStar
-  |~~ A vector of strings asks under `*`, each element apart. ~~|
-  ::law~(["ab" "ba"] * endsWith "a" | eq [false true])
+  |~~ A vector of strings asks by `map`, each element apart. ~~|
+  ::law~(["ab" "ba"] | map ~(endsWith "a") | eq [false true])
 
 :string/endsWith/SubjectNotStringError/refusesAVector
   |~~ A vector is no string to read the end of. ~~|

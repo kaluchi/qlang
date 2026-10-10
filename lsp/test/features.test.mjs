@@ -149,15 +149,15 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
-  it('reads through a declaration, a group and a distribute over a vector', async () => {
-    const labels = await labelsAt(':any/twice ~(mul 2) | ([1 2] * add 1) | ');
+  it('reads through a declaration and a group over a vector', async () => {
+    const labels = await labelsAt(':any/twice ~(mul 2) | ([1 2] | reverse) | ');
     expect(labels).toContain('twice');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
   });
 
   it('offers every name where no declaration names the kind of the subject', async () => {
-    for (const src of [':x 1 | x | ', '[1 2 3] * ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(']) {
+    for (const src of [':x 1 | x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(']) {
       const labels = await labelsAt(src);
       expect(labels).toContain('count');
       expect(labels).toContain('add');
@@ -370,10 +370,10 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a word a reader declares', () => {
-    const src = ':any/double ~(mul 2) | [1 2] * double';
+    const src = ':any/double ~(mul 2) | [1 2] | map ~double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
-    // declaration (`:any/double …`) + use site (`* double`)
+    // declaration (`:any/double …`) + use site (`map ~double`)
     expect(refs.length).toBe(2);
   });
 

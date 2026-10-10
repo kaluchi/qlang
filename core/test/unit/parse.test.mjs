@@ -281,12 +281,6 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].step.type).toBe('Call');
   });
 
-  it('parses a pipeline with distribute', () => {
-    const ast = parse('[1 2 3] * add 1');
-    expect(ast.steps).toHaveLength(2);
-    expect(ast.steps[1].combinator).toBe('*');
-  });
-
   it('parses the freeze inside a pipeline', () => {
     const ast = parse('foo | :snapshot / | bar');
     expect(ast.steps).toHaveLength(3);
@@ -305,13 +299,13 @@ describe('parse — Pipeline composition', () => {
 
 describe('parse — ParenGroup', () => {
   it('parses a parenthesized sub-pipeline', () => {
-    const ast = parse('([1 2] * add 1)');
+    const ast = parse('([1 2] | map ~(add 1))');
     expect(ast.type).toBe('ParenGroup');
     expect(ast.pipeline.type).toBe('Pipeline');
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs * (:elem / | {:k /id :v elem})');
+    const ast = parse('xs | (:elem / | {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });
@@ -339,7 +333,7 @@ describe('parse — comments and whitespace', () => {
 
   it('reads a comment where a word would touch another as no pipe', () => {
     expect(parse('|~ note ~| count').type).toBe('Call');
-    expect(parse('(|~ note ~| * add 1)').pipeline.leadingCombinator).toBe('*');
+    expect(parse('(|~ note ~| !| 0)').pipeline.leadingCombinator).toBe('!|');
     expect(() => parse('[1] |~ note ~| count')).toThrow(ParseError);
     expect(parse('[1] | |~ note ~| count').steps[1].combinator).toBe('|');
     expect(parse('|~ note ~| :x |~~| about x\n1').type).toBe('BindStep');
@@ -362,8 +356,7 @@ describe('parse — error handling', () => {
   });
 
   it('refuses a leading combinator and an explicit combinator on the first step after a comment head', () => {
-    expect(() => parse('!| |~ note ~| * add(1)')).toThrow(ParseError);
-    expect(() => parse('(* |~| note\n| count)')).toThrow(ParseError);
+    expect(() => parse('(!| |~| note\n| count)')).toThrow(ParseError);
     expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);
     expect(parse('!| |~ note ~| count').leadingCombinator).toBe('!|');
   });
@@ -643,7 +636,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | /foo | /docs * content'
+      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | /foo | /docs | map ~content'
     );
     expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
   });
@@ -651,7 +644,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('block doc preserves internal newlines as one entry', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | /foo | /docs * content'
+      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | /foo | /docs | map ~content'
     );
     expect(docsResult.length).toBe(1);
     expect(docsResult[0]).toContain('line one');
@@ -662,7 +655,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('mixes line and block docs preserving order', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | /foo | /docs * content'
+      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | /foo | /docs | map ~content'
     );
     expect(docsResult.length).toBe(3);
     expect(docsResult[0]).toBe(' line one');
@@ -673,7 +666,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('shadowing redeclare overrides docs Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | /foo | /docs * content)'
+      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | /foo | /docs | map ~content)'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });
@@ -771,7 +764,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests doc-pair as opaque content (attached docs)', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
@@ -779,7 +772,7 @@ describe('parse — block comment nesting', () => {
     it('doc block adjacent nested doc pairs', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' |~~ a ~~| middle |~~ b ~~| ']);
     });
@@ -787,7 +780,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests plain pair as opaque content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' holds |~ inner plain ~| inline ']);
     });
@@ -795,7 +788,7 @@ describe('parse — block comment nesting', () => {
     it('doc block accepts bare ~| (sibling close) as content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' plain-close marker ~| mentioned ']);
     });
@@ -803,7 +796,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~| line marker to 3-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~| line marker inline ']);
     });
@@ -811,7 +804,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~~| line-doc marker to 4-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | /foo | /docs * content'
+        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~~| line-doc marker inline ']);
     });
@@ -819,7 +812,7 @@ describe('parse — block comment nesting', () => {
     it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | /foo | /docs * content'
+        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });

@@ -82,12 +82,12 @@ Output colour:
                   always (the explicit --color flag overrides both).
 
 Examples:
-  curl -s api/users | qlang '/data * /name'
+  curl -s api/users | qlang '/data | map ~/name'
   cat data.json     | qlang '/glossary/title'
   echo hi           | qlang --raw 'append " world"'
   cat app.log       | qlang --raw 'lines | filter ~(contains "ERROR") | json'
   qlang '[1 2 3] | filter ~(gt 1) | count'
-  qlang -i '::qlang | doc | links * open'
+  qlang -i '::qlang | doc | links | map ~open'
 
 See https://github.com/kaluchi/qlang for the language reference.
 `;

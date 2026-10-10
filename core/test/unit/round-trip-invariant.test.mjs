@@ -126,7 +126,7 @@ describe('round-trip invariant — Quote', () => {
     '~(count)',
     '~([1 2 3] | filter ~(gt 1) | count)',
     '~(| count)',                              // pipeline-suffix form
-    '~(* mul 2)',
+    '~(map ~(mul 2))',
     '~(!| /trail)',
     '~("text with spaces")'
   ]) {

@@ -100,13 +100,13 @@ describe('eval — filter', () => {
   });
 });
 
-describe('eval — distribute', () => {
-  it('[1 2 3] * add(1) → [2 3 4]', async () => {
-    expect(await evalQuery('[1 2 3] * add 1')).toEqual([2, 3, 4]);
+describe('eval — map', () => {
+  it('[1 2 3] | map ~(add 1) → [2 3 4]', async () => {
+    expect(await evalQuery('[1 2 3] | map ~(add 1)')).toEqual([2, 3, 4]);
   });
 
-  it('[1 2 3] * mul(10) → [10 20 30]', async () => {
-    expect(await evalQuery('[1 2 3] * mul 10')).toEqual([10, 20, 30]);
+  it('[1 2 3] | map ~(mul 10) → [10 20 30]', async () => {
+    expect(await evalQuery('[1 2 3] | map ~(mul 10)')).toEqual([10, 20, 30]);
   });
 });
 

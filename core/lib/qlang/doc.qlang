@@ -125,7 +125,7 @@
       or a host's `::Host::link~(…)`, the query a reader follows to
       another page. A doc without links answers the empty vector, and a
       snippet is no link. A link opens to what its query answers, so
-      `::vec | doc | links * open` reads every page the page of vectors
+      `::vec | doc | links | map ~open` reads every page the page of vectors
       names, in one query, and `parse` spells its query. The subject is
       a doc, the page of a name read by `doc` first.
       ::link~(::quote/open | doc) ::link~(::doc/snippets | doc)
@@ -168,9 +168,9 @@
       quote under a stack of tags that holds `::snippet`, a query a
       reader runs to see what it shows, `::snippet~([2 1] | sort)`. A
       doc without snippets answers the empty vector, and a link is no
-      snippet. A snippet opens to the answer it shows, so `snippets *
-      open` runs every example of a page. The subject is a doc, the page
-      of a name read by `doc` first.
+      snippet. A snippet opens to the answer it shows, so
+      `snippets | map ~open` runs every example of a page. The subject is
+      a doc, the page of a name read by `doc` first.
       ::link~(::quote/open | doc) ::link~(::doc/links | doc)
   ~~|
   ::builtin{}
@@ -194,7 +194,7 @@
 
 :doc/snippets/opensToWhatItShows
   |~~ A snippet opens to what it shows. ~~|
-  ::law~(|~~ ::snippet~([2 1] | sort) ~~| | snippets * open | eq [[1 2]])
+  ::law~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
 
 :doc/snippets/SubjectNotDocError/refusesAString
   |~~ A string is no doc. ~~|

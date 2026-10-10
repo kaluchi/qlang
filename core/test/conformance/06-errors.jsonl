@@ -3,7 +3,6 @@
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | /0","expect":":x"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | /-1","expect":":z"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | /99 !| type","expect":"::proj/IndexOutOfBoundsError"}
-{"name":"distribute-on-number","query":"42 * add 1","expect":"::each/SubjectNotContainerError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(* add 1)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"div-by-zero","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"sum-non-numeric","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"count-on-number","query":"42 | count","expect":"::call/KindAnswersNoVerbError!{\n  :name :count\n  :addresses #[::map/count ::set/count ::string/count ::vec/count]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(count)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}

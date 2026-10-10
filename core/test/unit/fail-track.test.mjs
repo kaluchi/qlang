@@ -54,8 +54,8 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('distribute of add(10) over mixed elements answers the first failure [D103]', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] * add 10 !| type');
+  it('map of add 10 over mixed elements answers the first failure [D182]', async () => {
+    const evalResult = await evalQuery('[1 "x" 3] | map ~(add 10) !| type');
     expect(evalResult).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
   });
 
@@ -176,13 +176,6 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('distribute on a scalar → EachSubjectNotContainerError, the kind of the subject among the facts', async () => {
-    const refused = await evalQuery('42 * add 1');
-    expect(refused.originalError.name).toBe('SubjectNotContainerError');
-    expect(refused.descriptor.get('actualType').name).toBe('number');
-    expect(refused.descriptor.has('actualValue')).toBe(false);
-  });
-
   it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
     // Freeze a raw value, not a verb. Its record holds a
     // non-function, so captured args trigger CallValueTakesNoModifiersError on
@@ -267,7 +260,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',
       '[1 "two"] | sum',
       '42 | /name',
-      '42 * add 1',
+      '42 | map ~(add 1)',
       '5 | :five / | five 42',
       '42 | reduce 0 ~(add)',
       '[1 2 3] | reduce 0 ~(42)'
@@ -286,7 +279,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | keys',         // map/keys/SubjectNotMapError
       '42 | vals',         // map/vals/SubjectNotMapError
       '1 | /name',         // proj/SubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '42 * add 1',       // each/SubjectNotContainerError
+      '[1] | /a',          // proj/IndexNotIntegerError
       '[1 2 3] | reduce 0 ~(42)' // vec/reduce/ReducerNotBinaryError
     ];
     for (const q of queries) {

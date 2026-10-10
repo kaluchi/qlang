@@ -94,7 +94,7 @@ describe('the root of the language', () => {
   });
 
   it('no kind of the root is left a descriptor [D113]', async () => {
-    expect(await evalQuery('kinds * (binding | /value | type) | has ::builtin')).toBe(false);
+    expect(await evalQuery('kinds | map ~(binding | /value | type) | has ::builtin')).toBe(false);
   });
 });
 

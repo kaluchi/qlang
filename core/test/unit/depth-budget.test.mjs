@@ -28,7 +28,7 @@ describe('depth budget — self-calling verb', () => {
 
   it('leaves the budget intact for recursion that terminates', async () => {
     const nodeCount = await evalQuery(
-      ':any/total ~(sumOf 1 (/children * total | sum)) '
+      ':any/total ~(sumOf 1 (/children | map ~total | sum)) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
     );
     expect(nodeCount).toBe(4);
@@ -38,7 +38,7 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
-    ['distribute body naming its own verb',         ':any/f ~([/] * f | first) | 1 | f'],
+    ['distribute body naming its own verb',         ':any/f ~([/] | map ~f | first) | 1 | f'],
     ['captured-arg lambda naming its own verb',     ':any/p ~([/] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el ~(/0) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],

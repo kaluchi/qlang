@@ -222,7 +222,6 @@ const KIND_OF_LITERAL = {
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
   QuoteLit: 'quote', DocLit: 'doc', BareTypeKeyword: 'tag'
 };
-const CONTAINER_KINDS = new Set(['vec', 'set', 'map']);
 
 // Where the name being typed before the cursor begins.
 function wordStartBefore(source, offset) {
@@ -233,12 +232,12 @@ function wordStartBefore(source, offset) {
 
 // The subject of the step at the cursor, the word being typed aside: the
 // pipeline it continues after `|` or a line break, where that pipeline
-// parses and its value has kinds its declarations name; a step after `*`
-// or `!|` takes an element or an error, and has none.
+// parses and its value has kinds its declarations name; a step after `!|`
+// takes an error, and has none.
 async function subjectAt(source, offset) {
   const before = source.slice(0, wordStartBefore(source, offset));
-  const continued = before.match(/\s(!\||\||\*)\s*$/) ?? before.match(/\n\s*$/);
-  if (continued === null || continued[1] === '*' || continued[1] === '!|') return null;
+  const continued = before.match(/\s(!\||\|)\s*$/) ?? before.match(/\n\s*$/);
+  if (continued === null || continued[1] === '!|') return null;
   let pipeline;
   try {
     pipeline = parse(before.slice(0, continued.index));
@@ -255,16 +254,14 @@ function stepsOf(pipelineNode) {
 }
 
 // The kinds of the value the steps answer from a subject of the kinds: a
-// literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, and a name's the labels its answer's
-// definition names, the subject's own where that is the word's own label
+// literal's own, the subject's through a declaration and a `!|` step, and
+// a name's the labels its answer's definition names, the subject's own where that is the word's own label
 // [D169]; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
     if (combinator === '!|') continue;
-    if (combinator === '*') kinds = CONTAINER_KINDS.has(kinds?.[0]) ? kinds : null;
-    else kinds = await kindsAfterStep(step, kinds);
+    kinds = await kindsAfterStep(step, kinds);
   }
   return kinds;
 }

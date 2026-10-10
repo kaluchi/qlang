@@ -11,7 +11,7 @@
    doc among them, from its tag and its payload by `tag` [D94]; and an
    error from its descriptor by `raise`.
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
-   `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])`. The verbs
+   `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) | map ~last)])`. The verbs
    are the language's own, and the test of the ring runs them over every
    example of the catalog and every literal of the conformance cases. ~|
 
@@ -26,7 +26,7 @@
       second error past the step that pairs a value, which leaves its
       trail on the second.
   ~~|
-  ~(* (!| ({:failed /} | raise) | [false /] !| [true /failed]))
+  ~(map ~(!| ({:failed /} | raise) | [false /] !| [true /failed]))
 
 :any/groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the
@@ -52,7 +52,7 @@
   ~(:kind (type)
     | cond
         ~(kind | eq ::vec) ~({:parts / :glue ~()})
-        ~(kind | eq ::map) ~(:whole / | {:parts (keys | sort * (:key / | [key (whole | at key)])) :glue ~(indexBy ~(first) * last)})
+        ~(kind | eq ::map) ~(:whole / | {:parts (keys | sort | map ~(:key / | [key (whole | at key)])) :glue ~(indexBy ~(first) | map ~last)})
         ~({:parts [kind (payload)] :glue (if failed ~(~(tag | raise)) ~(~(tag)))}))
 
 :any/partsOf/failed
@@ -72,7 +72,7 @@
     | pair | /1
     | if (atomKinds | has (pair | /1 | type))
         ~([(pair | /1)])
-        ~(partsOf (pair | /0) | /parts | asPairs * atomsOf | flat))
+        ~(partsOf (pair | /0) | /parts | asPairs | map ~atomsOf | flat))
 
 :any/placeKey
   |~~ The key an atom's place is read by, the keyword of its print, which
@@ -116,13 +116,13 @@
 :any/apart
   |~~ The atoms of the subject and its shape. ~~|
   ~(:held [/]
-    | :atoms (held | asPairs * atomsOf | flat | tag ::set)
+    | :atoms (held | asPairs | map ~atomsOf | flat | tag ::set)
     | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | /pairs | indexBy ~(first | placeKey))
     | {:atoms atoms :shape (held | asPairs | reduce {:numbered numbered :steps []} ~(intoShape) | /steps | tag ::quote)})
 
 :any/apart/takesAValueApart
   |~~ A vector of a string, a vector and a map comes apart into four atoms and its shape. ~~|
-  ::law~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) * last)])})
+  ::law~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) | map ~last)])})
 
 :any/rebuilt
   |~~ The value the shape of the subject builds from its atoms. ~~|

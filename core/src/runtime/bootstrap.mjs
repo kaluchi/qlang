@@ -16,7 +16,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
   'qlang/keyword', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
   'qlang/error', 'qlang/desc',
   'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/proj', 'qlang/bind',
-  'qlang/each', 'qlang/fail', 'qlang/group', 'qlang/any'
+  'qlang/fail', 'qlang/group', 'qlang/any'
 ]);
 
 // A source of the language the locator does not serve leaves the root

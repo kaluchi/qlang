@@ -174,7 +174,7 @@
       element once, so the set of a vector's elements may sum to less
       than the vector: `[1 1 2] | sum` answers `4`, and `[1 1 2] |
       distinct | sum` answers `3`. The sum of a field of each element is
-      `* /price | sum`, where `*` answers a vector, which keeps a price
+      `map ~/price | sum`, where `map` answers a vector, which keeps a price
       two elements share twice. An element that is no number is refused,
       `:index` naming its place in the one order, not where it was
       written.
@@ -204,8 +204,8 @@
   ::law~([1 1 2] | [sum (distinct | sum)] | eq [4 3])
 
 :set/sum/addsAFieldOfEachElementThroughAVector
-  |~~ A field two elements share adds twice through `*`. ~~|
-  ::law~(#[{:p 1 :n :a} {:p 1 :n :b}] | * /p | sum | eq 2)
+  |~~ A field two elements share adds twice through `map`. ~~|
+  ::law~(#[{:p 1 :n :a} {:p 1 :n :b}] | map ~/p | sum | eq 2)
 
 :set/sum/ElementNotNumberError/refusesAString
   |~~ A string among the numbers is refused at its index. ~~|
@@ -1410,7 +1410,7 @@
   |~~ Answers whether the set holds the element the call gives, as `has`
       answers, `#[:a :b :c] | contains :b` answering `true`. `contains` is
       the word a string answers too, for a piece of its text, where a set
-      holds only whole elements: `["abc" #["abc"]] | * contains "b"`
+      holds only whole elements: `["abc" #["abc"]] | map ~(contains "b")`
       answers `[true false]`. So a query that may meet a string or a set
       asks `contains`.
       ::link~(::set/has | doc) ::link~(::vec/contains | doc)
@@ -1435,4 +1435,4 @@
 
 :set/contains/holdsOnlyWholeElements
   |~~ A string holds a piece of its text, a set only whole elements. ~~|
-  ::law~(["abc" #["abc"]] | * contains "b" | eq [true false])
+  ::law~(["abc" #["abc"]] | map ~(contains "b") | eq [true false])

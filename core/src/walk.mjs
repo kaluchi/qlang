@@ -122,8 +122,7 @@ export function declaresKind(bindStep) {
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
-// the same scope declared: the steps share one env but a step joined by
-// `*`, which runs in a fork of each element [D71].
+// the same scope declared, the steps sharing one env [D71].
 const REPEATED_DECLARATIONS_OF_PIPELINE = new WeakMap();
 
 function repeatedDeclarationsOf(pipeline) {
@@ -132,8 +131,8 @@ function repeatedDeclarationsOf(pipeline) {
   repeated = new Set();
   const declared = new Set();
   pipeline.steps.forEach((unit, index) => {
-    const [combinator, step] = index === 0 ? [pipeline.leadingCombinator, unit] : [unit.combinator, unit.step];
-    if (step.type !== 'BindStep' || combinator === '*') return;
+    const step = index === 0 ? unit : unit.step;
+    if (step.type !== 'BindStep') return;
     const name = declaredNameOf(step);
     if (declared.has(name)) repeated.add(step);
     declared.add(name);

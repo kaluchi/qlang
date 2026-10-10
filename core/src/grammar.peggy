@@ -96,12 +96,11 @@ LinePipeline
 // The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe.
 LeadingCombinator
-  = "!|" / "|" !"~" { return '|'; } / "*"
+  = "!|" / "|" !"~" { return '|'; }
 
 Combinator
   = "!|" { return '!|'; }
   / "|" !"~" { return '|'; }
-  / "*"  { return '*'; }
 
 PipelineHead
   = DocBeforeDeclaration
@@ -132,10 +131,10 @@ ContinuationUnit
   / __ c:PipedCombinator __ step:StepAfterCombinator { return { combinator: c, step }; }
   / SpacingRefusal
 
-// A pipe written before `*` or `!|`, the habit of a pipe before every
-// step, stands for the combinator after it [D130].
+// A pipe written before `!|`, the habit of a pipe before every step,
+// stands for it [D130].
 PipedCombinator
-  = "|" __ c:("*" { return '*'; } / "!|" { return '!|'; }) { return c; }
+  = "|" __ "!|" { return '!|'; }
 
 // A break with a combinator at neither end stands for `|` at the top
 // level.
@@ -419,8 +418,7 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(* inc | sort)`, `~(!| /trail)`); `~()` is the empty
-// quote. A single name, projection or tag name may drop the
+// included (`~(!| /trail)`); `~()` is the empty quote. A single name, projection or tag name may drop the
 // parentheses, `~add`, `~/age`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"

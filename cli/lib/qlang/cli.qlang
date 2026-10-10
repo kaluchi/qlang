@@ -35,9 +35,9 @@
       a set is written as the array of its elements, and a keyword as
       its name.
       `:path` holds the map keys and the indices to it, `:actualType` its
-      kind. The query ends before the answer is data: `* (…)` runs a body
-      where `* ~(…)` hands each element the quote, and `payload` a value
-      without its tag.
+      kind. The query ends before the answer is data: `payload` takes a
+      value from under its tag, and `print` writes a quote or a tag as
+      its text.
   ~~|
 
 :cli/AnswerNotJsonError/path
@@ -197,7 +197,8 @@
 
 :vec/table/RowNotMapError/refusesARowThatIsNoMap
   |~~ A row that is no map is refused at its index. ~~|
-  ::law~([42 "hello"] | table !| [type /index /actualType] | eq [::vec/table/RowNotMapError 0 ::number])
+  ::law~([42 "hello"] | table !| [type /index /actualType]
+    | eq [::vec/table/RowNotMapError 0 ::number])
 
 :vec/table/refusesANumber
   |~~ A number is no vector of rows. ~~|

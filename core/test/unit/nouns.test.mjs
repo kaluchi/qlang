@@ -37,7 +37,7 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('an address the listing answers leads the axes to its name', async () => {
-    expect(await evalQuery('[::number/gt ::number/lt] * manifest | eq [#[::number/gt/answer ::number/gt/value] #[::number/lt/answer ::number/lt/value]]')).toBe(true);
+    expect(await evalQuery('[::number/gt ::number/lt] | map ~manifest | eq [#[::number/gt/answer ::number/gt/value] #[::number/lt/answer ::number/lt/value]]')).toBe(true);
   });
 
   it('a verb of any tagged value lives on the kind of tagged values', async () => {

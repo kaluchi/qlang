@@ -421,10 +421,10 @@ shaking it. The evaluator threads a frozen pair of value and environment
 through steps, and every step returns a fresh pair; the only bookkeeping
 beyond the pair is a depth counter that stops runaway recursion. The `|`
 combinator applies a step and deflects on an error, recording the
-skipped step on the error's trail; `*` forks a step over each element
-and answers the first error an element answers [D103]; `!|` is the
-only combinator that fires on an error, and `|` and `*` step around it
-[D51]. Parentheses, vectors, maps, sets, and error literals all obey one
+skipped step on the error's trail, and `!|` is the only combinator that
+fires on an error, which `|` steps around [D51]; a step run on each
+element is the word `map`, whose code is a quote, and the first error an
+element answers is its answer [D181], [D182]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
 only its value, which is where every scoping rule of the page of the
 pipeline comes from. A literal is a step that replaces the value, and the values it
@@ -674,7 +674,7 @@ learns the name from [D176], [D177]:
 So the first page leads to every other in one query:
 
 ```qlang
-> ::qlang | doc | links * open | every ~(type | eq ::doc)
+> ::qlang | doc | links | map ~open | every ~(type | eq ::doc)
 true
 
 > ::qlang | doc #[:pipeline :errors] | count
@@ -899,10 +899,10 @@ every level it left [D85], so the same failure one verb deeper prints it
 twice:
 
 ```qlang
-> ::vec | doc | add 1 !| /trail * /subject * eq (::vec | doc)
+> ::vec | doc | add 1 !| /trail | map ~/subject | map ~(eq (::vec | doc))
 [true]
 
-> :any/g ~(add 1) | ::vec | doc | g !| /trail * /subject * eq (::vec | doc)
+> :any/g ~(add 1) | ::vec | doc | g !| /trail | map ~/subject | map ~(eq (::vec | doc))
 [true true]
 ```
 
@@ -912,7 +912,7 @@ refuses to build, since the error a step produces carries its path
 there [D82], [D85]:
 
 ```qlang
-> ~(!{:kind :oops :trail 5}) * (!| raise !| type)
+> ~(!{:kind :oops :trail 5}) | map ~(!| raise !| type)
 [::error/TrailNotVecError]
 ```
 
@@ -1180,7 +1180,7 @@ value]`, and the constructor of `::map` builds a map back from them
 [D138], a string naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries * (unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
+> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -1346,7 +1346,7 @@ language: a reader's verb is a name under the label of its subject,
 the host hands, `:number/construct ::builtin{}`:
 
 ```qlang
-> [::spec ::verb] * (doc !| type)
+> [::spec ::verb] | map ~(doc !| type)
 [::any/doc/UnknownNameError ::any/doc/UnknownNameError]
 ```
 
@@ -1355,7 +1355,7 @@ address of the word that refused, and its facts are definitions under
 its label, values of the language [D172]:
 
 ```qlang
-> 1 | add "x" !| entries * first
+> 1 | add "x" !| entries | map ~first
 [:actualType :actualValue :trail]
 > 1 | add "x" !| /actualType
 ::string
@@ -1547,7 +1547,7 @@ the first candidate, and it amends the state pair.
 
 Where a host's query runs. A host answers the language's calls one by
 one over its own boundary today, so a query that fans out over a large
-answer, `@members * @callers` on `java.lang.String`, pays a round trip
+answer, `@members | map ~@callers` on `java.lang.String`, pays a round trip
 per element, and its elements now run in their order [D84]. The
 maintainer's direction is the other end: «само qlang выражение мы будем
 отправлять через jdt в сам эклипс и пусть его процесс считает ... и
@@ -1633,8 +1633,8 @@ scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the contracts
 move onto the kinds [D6], [D33].
 
-A literal that holds an error a word answers [D87], [D103]. `*` answers
-its first failure, and a literal still keeps one, so
+A literal that holds an error a word answers [D87], [D103]. `map`
+answers its first failure [D182], and a literal still keeps one, so
 `[1 ("x" | add 1)] | count` answers `2`, and a failure inside a map a
 step builds reaches the answer as data:
 
@@ -1838,3 +1838,5 @@ whole, a primitive the law of every count calls; or the test kept in
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
 [D180]: decisions/D180.md
+[D181]: decisions/D181.md
+[D182]: decisions/D182.md

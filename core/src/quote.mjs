@@ -6,10 +6,10 @@
 // that literal itself, a nested quote included, and a container literal
 // holds the steps of its elements, a pipeline element as its group;
 // where the syntax computes, the step is a record, `::call`, `::proj`,
-// `::bind` or `::construct`; the fail track, the distribute and the
-// parentheses wrap the quote of their step as `::fail`, `::each` and
-// `::group` [D47, D52]. A comment leaves no step. A command's modifier
-// is one word and is stored as its step [D10, D47].
+// `::bind` or `::construct`; the fail track and the parentheses wrap the
+// quote of their step as `::fail` and `::group` [D47]. A comment leaves no
+// step. A command's modifier is one word and is stored as its step [D10,
+// D47].
 //
 // A quote read from text keeps the parser's node on its holder and runs
 // through it; a quote assembled from data is printed and parsed the
@@ -22,15 +22,14 @@ import {
   makeTaggedInstance, makeErrorLiteralStep,
   isQuote, isKeyword, isTagKeyword, isDoc, isVec, isVecOfOwnKind, isQMap, isQSet,
   isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
-  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG,
+  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
 } from './types.mjs';
 
-// The steps of code that stand in a pipeline alone, those that stand
-// inside a container too, and the wrappers.
-const PIPELINE_STEP_TAG_NAMES  = new Set(['each', 'fail', 'bind', 'call']);
+// The steps of code that stand in a pipeline alone and those that stand
+// inside a container too.
+const PIPELINE_STEP_TAG_NAMES  = new Set(['fail', 'bind', 'call']);
 const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'proj', 'construct', 'group']);
-const WRAPPER_TAG_NAMES        = new Set(['each', 'fail', 'group']);
 
 // ── the tree into steps ────────────────────────────────────────
 
@@ -102,13 +101,6 @@ export function tagCallStepOf(tag) {
   return record(CALL_TAG, [['name', keyword('tag')], ['modifiers', Object.freeze([tag])]]);
 }
 
-// eachStepOf(bodyNode) → the `::each` wrapper a `*` step leaves; the
-// parentheses after `*` delimit its body [D52].
-export function eachStepOf(bodyNode) {
-  const body = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
-  return makeTaggedInstance(EACH_TAG, quoteOfBody(body));
-}
-
 function stepsOfBody(node) {
   return node.type === 'Pipeline' ? stepsOfPipeline(node) : [stepOfNode(node)];
 }
@@ -125,7 +117,6 @@ function stepsOfPipeline(node) {
 
 function stepUnderCombinator(combinator, stepNode) {
   if (combinator === '!|') return makeTaggedInstance(FAIL_TAG, makeQuote([stepOfNode(stepNode)], stepNode));
-  if (combinator === '*') return eachStepOf(stepNode);
   return stepOfNode(stepNode);
 }
 
@@ -206,8 +197,8 @@ export function astOfQuote(quote) {
 // ── which values are steps ─────────────────────────────────────
 
 // isStep(value) — the one invariant of a quote: every element is a
-// step. The fail track, the distribute, a declaration and any call
-// stand in the quote itself; inside a container, a field or a payload a
+// step. The fail track, a declaration and any call stand in the quote
+// itself; inside a container, a field or a payload a
 // step is an element step.
 export function isStep(value) {
   return PIPELINE_STEP_TAG_NAMES.has(stepTagOf(value)) || isElementStep(value);
@@ -268,20 +259,9 @@ function stepTagOf(step) {
 
 function printSteps(steps) {
   return steps.map((step, index) => {
-    const stepTag = stepTagOf(step);
-    const lead = index === 0 ? '' : ' ';
-    if (stepTag === 'fail') return `${lead}!| ${printSteps(step.payload)}`;
-    if (stepTag === 'each') return `${lead}* ${printEachBody(step.payload)}`;
+    if (stepTagOf(step) === 'fail') return `${index === 0 ? '' : ' '}!| ${printSteps(step.payload)}`;
     return (index === 0 ? '' : ' | ') + printStep(step);
   }).join('');
-}
-
-// A lone step after `*` prints bare; anything else takes the
-// parentheses that delimit the body, a group inside them keeping its
-// own [D52].
-function printEachBody(quote) {
-  const bare = quote.length === 1 && !WRAPPER_TAG_NAMES.has(stepTagOf(quote[0]));
-  return bare ? printStep(quote[0]) : `(${printSteps(quote)})`;
 }
 
 function printStep(step) {

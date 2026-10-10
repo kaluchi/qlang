@@ -18,7 +18,7 @@
 {"name":"join-after-sort","query":"[\"c\" \"a\" \"b\"] | sort | join \",\"","expect":"\"a,b,c\""}
 {"name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take 2 | join \",\"","expect":"\"a,b\""}
 {"name":"join-after-reverse","query":"[\"a\" \"b\" \"c\"] | reverse | join \",\"","expect":"\"c,b,a\""}
-{"name":"join-after-distribute","query":"[\"a\" \"b\" \"c\"] * append \"!\" | join \",\"","expect":"\"a!,b!,c!\""}
+{"name":"join-after-distribute","query":"[\"a\" \"b\" \"c\"] | map ~(append \"!\") | join \",\"","expect":"\"a!,b!,c!\""}
 {"name":"join-error-non-vec-subject","query":"42 | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}","decision":"D95"}
 {"name":"join-error-string-subject","query":"\"abc\" | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n}","decision":"D95"}
 {"name":"join-set-subject-joins-in-its-order","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}

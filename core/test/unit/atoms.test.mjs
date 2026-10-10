@@ -53,7 +53,7 @@ async function unbuiltOf(valuesBySource) {
 
 async function catalogExamples() {
   const addresses = rootAddressesOf(await langRuntime());
-  const laws = [...await evalQuery(`[${addresses.join(' ')}] * (laws | vals * /1) | flat`)];
+  const laws = [...await evalQuery(`[${addresses.join(' ')}] | map ~(laws | vals | map ~/1) | flat`)];
   return new Map(laws.map(law => [printValue(law), law]));
 }
 
@@ -71,7 +71,7 @@ async function conformanceLiterals() {
 
 describe('the ring of atoms [D42]', () => {
   it('keeps the examples of its own verbs true', async () => {
-    expect((await ringSession.evalCell('::any/apart | runLaws * /ok')).result).toEqual([true]);
+    expect((await ringSession.evalCell('::any/apart | runLaws | map ~/ok')).result).toEqual([true]);
   });
 
   it('builds every example of the catalog back from its atoms but the open ones', async () => {

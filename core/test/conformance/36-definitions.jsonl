@@ -1,6 +1,6 @@
 {"name":"no-node-names-the-verb","query":"::verb | doc | type !| type","expect":"::any/doc/UnknownNameError","decision":"D168"}
 {"name":"no-node-names-the-spec","query":"::spec | doc | type !| type","expect":"::any/doc/UnknownNameError","decision":"D168"}
-{"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| ~(append w) | :Box/put/w |~~ The weight. ~~| ~(/0) | ::Box | source | * /name","expect":"[:Box :Box/put :Box/put/w]","decision":"D168"}
+{"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| ~(append w) | :Box/put/w |~~ The weight. ~~| ~(/0) | ::Box | source | map ~/name","expect":"[:Box :Box/put :Box/put/w]","decision":"D168"}
 {"name":"the-page-of-a-kind-holds-no-page-of-its-words","query":"::vec | doc | content | contains \"The first count elements\"","expect":"false","decision":"D168"}
 {"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width(2) | is ::number","expect":"true","decision":"D168"}
 {"name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width(2) | add 3","expect":"::Width(5)","decision":"D169"}

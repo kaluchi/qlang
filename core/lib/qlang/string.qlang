@@ -419,7 +419,7 @@
   |~~ `join` writes the pieces back. ~~|
   ::law~("a,b" | split "," | join "," | eq "a,b")
 
-:string/split/splitsEachElementUnderStar
+:string/split/splitsEachElementByMap
   |~~ A vector of strings splits by `map`, each into a vector of its own. ~~|
   ::law~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
 
@@ -494,7 +494,7 @@
   |~~ `join "\n"` writes the lines back. ~~|
   ::law~("a\nb" | lines | join "\n" | eq "a\nb")
 
-:string/lines/breaksEachTextUnderStar
+:string/lines/breaksEachTextByMap
   |~~ A vector of texts breaks by `map`, each into a vector of its own. ~~|
   ::law~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
 
@@ -585,7 +585,7 @@
   |~~ A string under a tag answers under the tag. ~~|
   ::law~(::Name("ab") | upper | eq ::Name("AB"))
 
-:string/upper/raisesEachElementUnderStar
+:string/upper/raisesEachElementByMap
   |~~ A vector of strings raises by `map`. ~~|
   ::law~(["a" "b"] | map ~upper | eq ["A" "B"])
 
@@ -748,7 +748,7 @@
   |~~ Case counts. ~~|
   ::law~("Hello" | startsWith "h" | not)
 
-:string/startsWith/asksEachElementUnderStar
+:string/startsWith/asksEachElementByMap
   |~~ A vector of strings asks by `map`, each element apart. ~~|
   ::law~(["ab" "ba"] | map ~(startsWith "a") | eq [true false])
 
@@ -809,7 +809,7 @@
   |~~ Case counts. ~~|
   ::law~("Hello" | endsWith "O" | not)
 
-:string/endsWith/asksEachElementUnderStar
+:string/endsWith/asksEachElementByMap
   |~~ A vector of strings asks by `map`, each element apart. ~~|
   ::law~(["ab" "ba"] | map ~(endsWith "a") | eq [false true])
 

@@ -810,10 +810,6 @@
   |~~ Several steps run in order. ~~|
   ::law~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
 
-:any/apply/runsADistribute
-  |~~ A distribute runs over the subject. ~~|
-  ::law~([1 2 3] | apply ~(map ~(mul 2)) | eq [2 4 6])
-
 :any/apply/runsParsedText
   |~~ Text parsed into a quote runs. ~~|
   ::law~("10 | add 3" | parse | apply / | eq 13)

@@ -220,7 +220,7 @@
   |~~ The empty map sums to zero. ~~|
   ::law~({} | sum | eq 0)
 
-:map/sum/readsAFieldUnderStar
+:map/sum/sumsAFieldReadFirst
   |~~ A field of each value is read by `map` before the sum. ~~|
   ::law~({:a {:amount 1} :b {:amount 2}} | map ~/amount | sum | eq 3)
 
@@ -935,7 +935,7 @@
   |~~ The empty map has no keys. ~~|
   ::law~({} | keys | eq #[])
 
-:map/keys/readsTheKeysOfEachMapUnderStar
+:map/keys/readsTheKeysOfEachMapByMap
   |~~ A vector of maps answers their keys by `map`. ~~|
   ::law~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
 

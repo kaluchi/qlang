@@ -11,10 +11,10 @@ A finding not yet settled says open.
 
 1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Open.
 2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Open.
-3. The page of a law of `map/raise` calls `map` as a word it is no longer. Open.
+3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
 4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Open.
-5. `vec/sort` says a map sorts by its keys; it sorts by its values. Open.
-6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Open.
+5. `vec/sort` says a map sorts by its keys; it sorts by its values. Answered by edac4969.
+6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Answered by edac4969, the law repeating `null/at` gone; `vec/at` still leads nowhere, open.
 7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Open, a change of the language's answers.
 8. The part `with` of the algebra of vectors names a value nothing is joined with. Open, with 7.
 9. The algebra says join, the name of the word that writes strings together. Open.
@@ -34,10 +34,10 @@ A finding not yet settled says open.
 
 [2026-10-10-first-page-any-number-string.md](2026-10-10-first-page-any-number-string.md), at 1c0758e3.
 
-1. The page of `::boolean` says `if` takes a quote that answers a boolean; it takes the boolean. Open.
-2. A page of `if` and its law speak of a subject of each element, the reading of `*`. Open.
-3. `parseJson` says an error reads back as a map of `$tag` and `payload`; it reads back under `$error`. Open.
-4. The page of `::builtin` names `::vec` among the values `::builtin{}`. Open.
+1. The page of `::boolean` says `if` takes a quote that answers a boolean; it takes the boolean. Answered by edac4969.
+2. A page of `if` and its law speak of a subject of each element, the reading of `*`. Answered by edac4969.
+3. `parseJson` says an error reads back as a map of `$tag` and `payload`; it reads back under `$error`. Answered by edac4969, with a sentence and a law on `json`.
+4. The page of `::builtin` names `::vec` among the values `::builtin{}`. Answered by edac4969.
 5. Laws of the first page repeating the laws of the chapters word for word, and `:qlang/rounds`. Open.
 6. Laws that nearly repeat each other. Open.
 7. Pages of kinds that repeat the pages of words. Open.
@@ -54,8 +54,8 @@ A finding not yet settled says open.
 18. A guardian with no payload, a word the language does not have. Open.
 19. The order of the kinds in `qlang.qlang` and of the words of `any.qlang`. Open.
 20. Pages of kinds that lead nowhere, and kinds in no chapter. Open.
-21. Strings say an emoji counts one; a modifier or a flag counts each code point. Open.
-22. `lines` and `join "\n"` do not write back a closing break; commas between elements. Open.
+21. Strings say an emoji counts one; a modifier or a flag counts each code point. Answered by edac4969, with a law.
+22. `lines` and `join "\n"` do not write back a closing break; commas between elements. Answered by edac4969, with a law on commas.
 23. Law literals whose characters the page cannot tell apart. Open.
 24. Generic words: schema, result, implicit argument, pages about tests. Open.
 25. `:any/JsonValueNotEncodableError` told inside `json`, which no query meets. Open.
@@ -77,7 +77,7 @@ review; findings 5 and 6 still stand for the laws declared under
 6. Names of cases and tests after `*`. Answered for the tests by 08f332a5; `:any/apply/runsADistribute` open with the catalog.
 7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Open.
 8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
-9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Open.
+9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
 10. Rule refusals with no page and no repair. Open.
 11. Invariant refusal pages that say what must hold and not how to repair the call. Open.
 12. The sister project still writes `*`. Awaits the maintainer's word.
@@ -85,7 +85,7 @@ review; findings 5 and 6 still stand for the laws declared under
 14. Claims with no law. Open.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Open.
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Open.
-17. The page of `::explanation` misses the case of a refusal with no page. Open.
+17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
 18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.
 19. A refusal of an unknown combinator the parser cannot produce; `fork.mjs` holding one function; broken comment lines. Open.
 

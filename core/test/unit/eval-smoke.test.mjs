@@ -166,21 +166,6 @@ describe('eval.mjs unknown node type', () => {
   });
 });
 
-describe('eval.mjs unknown combinator', () => {
-  it('throws on a hand-built unknown combinator', async () => {
-    const ast = {
-      type: 'Pipeline',
-      steps: [
-        { type: 'NumberLit', value: 1 },
-        { combinator: '?', step: { type: 'NumberLit', value: 2 } }
-      ]
-    };
-    const runtimeEnv = await langRuntime();
-    const state = rootState(null, runtimeEnv);
-    await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
-  });
-});
-
 describe('quoted keywords — eval-level identity and Map interop', () => {
   it(':"name" interns to the same keyword :name /', async () => {
     expect(await evalQuery(':"name" | eq :name')).toBe(true);

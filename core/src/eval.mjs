@@ -6,7 +6,6 @@ import { ROOT_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
-import { fork } from './fork.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
@@ -39,10 +38,6 @@ import {
 const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   'builtin/UnknownAstNodeTypeError',
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
-
-const BuiltinUnknownCombinatorKindError = declareInvariantError(
-  'builtin/UnknownCombinatorKindError',
-  ({ kind }) => `unknown combinator: ${kind}`);
 
 const ProjSubjectNotProjectableError = declareRefusal('proj/SubjectNotProjectableError');
 const ProjKeyNotInMapError = declareRefusal('proj/KeyNotInMapError');
@@ -137,18 +132,17 @@ async function evalPipeline(node, state) {
 
 // The tracks live in the combinators alone: `|` steps around an error,
 // the step joining the skipped steps of its last stop [D85], and `!|`
-// fires on an error alone [D51].
-const COMBINATOR_EVALUATORS = {
-  '|':  applySuccessTrack,
-  '!|': applyFailTrack
-};
-
+// fires on an error alone [D51]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
-  const evaluator = COMBINATOR_EVALUATORS[kind];
-  if (!evaluator) {
-    throw new BuiltinUnknownCombinatorKindError({ kind });
-  }
-  return await evaluator(state, stepNode);
+  return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
+}
+
+// The fork rule: a nested pipeline, a group or a word of a literal, starts
+// from the outer state and hands back its value alone, its declarations
+// left behind, on the outer frame of the depth budget.
+async function fork(state, sub) {
+  const innerEnd = await sub(state);
+  return withPipeValue(state, innerEnd.pipeValue);
 }
 
 // `|` runs the step on a value, an error it answers taking a stop there,

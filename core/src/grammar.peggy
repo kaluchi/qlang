@@ -418,8 +418,8 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(!| /trail)`); `~()` is the empty quote. A single name, projection or tag name may drop the
-// parentheses, `~add`, `~/age`.
+// included (`~(!| /trail)`); `~()` is the empty quote. A single name,
+// projection or tag name may drop the parentheses, `~add`, `~/age`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
     { return node('QuoteLit', { pipeline }, location(), text()); }

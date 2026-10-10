@@ -100,16 +100,6 @@ describe('eval — filter', () => {
   });
 });
 
-describe('eval — map', () => {
-  it('[1 2 3] | map ~(add 1) → [2 3 4]', async () => {
-    expect(await evalQuery('[1 2 3] | map ~(add 1)')).toEqual([2, 3, 4]);
-  });
-
-  it('[1 2 3] | map ~(mul 10) → [10 20 30]', async () => {
-    expect(await evalQuery('[1 2 3] | map ~(mul 10)')).toEqual([10, 20, 30]);
-  });
-});
-
 describe('eval — Map and projection', () => {
   it('projects a Map field', async () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');

@@ -1,5 +1,4 @@
-{"name":"distribute-replaces-the-values-under-their-keys","query":"{:a 1 :b 2} | map ~(add 1)","expect":"{:a 2 :b 3}","decision":"D15"}
-{"name":"distribute-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} | map ~(add 1) | vals","expect":"[3 2]","decision":"D15"}
+{"name":"map-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} | map ~(add 1) | vals","expect":"[3 2]","decision":"D15"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}","decision":"D15"}
 {"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]","decision":"D15"}
 {"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}","decision":"D15"}

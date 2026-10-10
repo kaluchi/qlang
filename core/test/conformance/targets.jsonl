@@ -37,8 +37,8 @@
 {"name":"manifest-lives-on-tags","query":"::tag | manifest | has ::tag/manifest","expect":"true","decision":"D62"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true","decision":["D62","D72","D157"]}
 {"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | /value | type","expect":"::builtin","decision":["D62","D164"]}
-{"name":"every-verb-of-the-core-has-a-doc","query":"::qlang | manifest | map ~manifest | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
-{"name":"every-example-of-the-core-passes","query":"::qlang | manifest | map ~manifest | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}
+{"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
+{"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
 {"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
@@ -89,7 +89,6 @@
 {"name":"a-doc-after-a-step-is-refused","query":"\"5 | add 1 |~~ why ~~|\" | parse !| /message | contains \"|~ … ~|\"","expect":"true","decision":"D125"}
 {"name":"a-doc-piped-to-is-a-value","query":"5 | |~~ note ~~| | type","expect":"::doc","decision":"D125"}
 {"name": "a-source-no-short-run-of-closers-completes-lists-the-continuations", "query": "\"[[[[[ |~~ a\" | parse !| /expected | has :any-character", "expect": "true", "decision": "D125"}
-{"name":"a-pipe-before-distribute-stands-for-it","query":"[1 2] | map ~(add 1)","expect":"[2 3]","decision":"D130"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| /addresses","expect":"#[::doc/content]","decision":"D127"}
 {"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}

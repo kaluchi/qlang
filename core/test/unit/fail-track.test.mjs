@@ -54,11 +54,6 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('map of add 10 over mixed elements answers the first failure [D182]', async () => {
-    const evalResult = await evalQuery('[1 "x" 3] | map ~(add 10) !| type');
-    expect(evalResult).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
-  });
-
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only

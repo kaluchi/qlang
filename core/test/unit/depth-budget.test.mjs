@@ -38,7 +38,7 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
-    ['distribute body naming its own verb',         ':any/f ~([/] | map ~f | first) | 1 | f'],
+    ['a body under map naming its own verb',         ':any/f ~([/] | map ~f | first) | 1 | f'],
     ['captured-arg lambda naming its own verb',     ':any/p ~([/] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el ~(/0) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],

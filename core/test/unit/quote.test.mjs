@@ -51,7 +51,7 @@ describe('assembling steps by hand', () => {
   });
 
   it('a wrapper stands in the quote itself and in no container', async () => {
-    expect(await refusal('[[(~(f) | tag ::each)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
+    expect(await refusal('[[(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
   });
 
   it('a declaration stands in a pipeline and in no container or argument head', async () => {

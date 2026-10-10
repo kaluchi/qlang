@@ -21,8 +21,8 @@
 {"name":"nested-if-three-way","query":"75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"B\""}
 {"name":"nested-if-A-grade","query":"95 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"A\""}
 {"name":"nested-if-C-grade","query":"55 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"C\""}
-{"name":"if-inside-distribute-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
-{"name":"if-inside-distribute-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
+{"name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
+{"name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
 {"name":"if-inside-filter-via-truthy-result","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
 {"name":"if-inside-reshape","query":"[{:n 5} {:n 15}] | map ~({:value /n :tier (if (/n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
 {"name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}

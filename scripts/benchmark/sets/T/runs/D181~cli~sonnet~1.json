@@ -1,4 +1,5 @@
 {
+ "requests": 11,
  "set": "T",
  "screen": "D181",
  "screenHash": "4b4c3bf5a1f5",
@@ -21,17 +22,17 @@
   },
   {
    "command": "qlang '/data/users | filter ~(allOf /active (/email | type | eq ::string) (/email | lower | endsWith \"@example.com\")) | count' < users.json; qlang '[\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | sort ~([(count | desc) /]) | join \"-\"' < /dev/null",
-   "answered": "value",
+   "answered": "string/lower/SubjectNotStringError",
    "head": "{ \"$error\": { \"$tag\": \"string/lower/SubjectNotStringError\", \"descriptor\": { \"actualType\": \"::null\", \"trail\": [ { \"step\": \"~(lower)\", \"subject\": null, \"skipped\": \"~(endsWith \\\"@example.com\\\")\" }, { \"step\": \"~((/email | lower | endsWith \\\"@ex"
   },
   {
    "command": "U='/data/users'\nqlang \"$U | filter ~(allOf /active (at :email | coalesce \\\"\\\" | lower | endsWith \\\"@example.com\\\")) | count\" < users.json\nqlang \"$U | filter ~(/roles | map ~(lower) | contains \\\"admin\\\") | sort ~(/name | lower) | map ~(/name)\" < users.json\nqlang \"$U | groupBy ~(at :profile | coalesce {} | at :country | coalesce \\\"unknown\\\") | map ~(count)\" < users.json\nqlang \"$U | map ~(at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2\" < users.json",
-   "answered": "value",
+   "answered": "quote/ParseError",
    "head": "4 ::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(/roles | map ~(lower) | contains \\\"admin\\\") | sort ~(/name | lower) | map ~(/name)\" :marker \" ^ \" :expected [:\"identifier continue (letter, digit, hyphen, underscore"
   },
   {
    "command": "qlang 'filter ~(/state | eq \"open\") | map ~(/labels | map ~(/name | lower)) | flat | distinct | sort' < issues.json\nqlang 'sort ~([(/comments | desc) /number]) | take 3 | map {:number /number :assignee (at :assignee | coalesce {} | at :login)}' < issues.json\nqlang 'filter ~(/state | eq \"open\") | map ~(at :assignee | coalesce {} | at :login) | filter ~(ne null) | groupBy ~() | map ~(count)' < issues.json",
-   "answered": "value",
+   "answered": "vec/map/code/NotQuoteError",
    "head": "[ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] { \"$error\": { \"$tag\": \"vec/map/code/NotQuoteError\", \"descriptor\": { \"actualType\": \"::map\", \"actualValue\": { \"number\": { \"$error\": { \"$tag\": \"proj/IndexNotIntegerError\", \"descriptor\": { "
   },
   {
@@ -41,7 +42,7 @@
   },
   {
    "command": "MSYS_NO_PATHCONV=1 qlang '/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | sort ~(/name | lower) | map ~(/name)' < users.json\nqlang 'sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at :assignee | coalesce {} | at :login)})' < issues.json\nMSYS_NO_PATHCONV=1 qlang '/dependencies | union /devDependencies' < package.json\nMSYS_NO_PATHCONV=1 qlang '/services | filter ~(allOf (at :enabled | coalesce false) (/port | gt 8000)) | map ~(/name | lower) | sort | join \",\"' < config.json\ncat logs.txt; cat orders.csv",
-   "answered": "value",
+   "answered": "proj/KeyNotInMapError",
    "head": "[ \"alice\", \"carol\", \"erin\", \"ivan\" ] [ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"$error\": { \"$tag\": \"proj/KeyNotInMapError\", \"descriptor\": { \"key\": \"devDependencies"
   },
   {
@@ -51,12 +52,12 @@
   },
   {
    "command": "MSYS_NO_PATHCONV=1 qlang ':dev /devDependencies | /dependencies | union dev | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | append \"@\" | append (:x /) )' < package.json | head -5\nqlang --raw 'lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) | map ~(count)' < logs.txt\nqlang --raw 'lines | filter ~(ne \"\") | map ~(split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(ne null) | map ~(drop 3 | parseJson) | avg | round 1' < logs.txt",
-   "answered": "value",
+   "answered": "call/KindAnswersNoVerbError",
    "head": "{ \"$error\": { \"$tag\": \"call/KindAnswersNoVerbError\", \"descriptor\": { \"name\": \"append\", { :db 3 :api 1 :worker 1 } 330.2"
   },
   {
    "command": "MSYS_NO_PATHCONV=1 qlang ':dev /devDependencies | /dependencies | union dev | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\")' < package.json\nqlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(allOf (/5 | lower | eq \"shipped\") (/4 | ne \"\")) | map ~((/3 | parseJson) | mul (/4 | parseJson)) | sum | round 2' < orders.csv",
-   "answered": "value",
+   "answered": "vec/join/ElementNotStringError",
    "head": "{ \"$error\": { \"$tag\": \"vec/join/ElementNotStringError\", \"descriptor\": { \"index\": 0, \"actualType\": \"::keyword\", \"actualValue\": \"eslint\", \"trail\": [ { \"step\": \"~(join \\\"\\\")\", \"subject\": [ \"eslint\", \"@\", \"^8.56.0\" ], \"skipped\": \"~()\" }, { \"ste"
   },
   {
@@ -208,5 +209,6 @@
    "solved": true
   }
  ],
- "scoredBy": "1c0758e3, after the run"
+ "scoredBy": "1c0758e3, after the run",
+ "recountedFrom": "the transcript of the run: its calls to the model and what its calls answered"
 }

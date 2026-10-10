@@ -14,10 +14,11 @@ const SYSTEM_PROMPT = 'You are a careful assistant.';
 const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(cat:*)', 'Bash(head:*)'];
 
 // What a tool result of the command line answered: the tag of the
-// failure it printed, or a value.
+// first failure it printed, as the language prints it or under JSON, or
+// a value.
 function answerKindOf(toolResultText) {
-  const failure = /::(\w+)!\{/.exec(toolResultText);
-  if (failure !== null) return failure[1];
+  const failure = /::([\w/@.-]+)!\{|"\$error": \{\s*"\$tag": "([^"]+)"/.exec(toolResultText);
+  if (failure !== null) return failure[1] ?? failure[2];
   if (/permission|requires approval/i.test(toolResultText)) return 'denied';
   return 'value';
 }
@@ -33,11 +34,13 @@ const LIMIT_REPLY = /^You've hit your .*limit/;
 
 // The record of a run from the events the child streamed: the model
 // that answered, which an alias such as `haiku` names only until the
-// command line maps it anew, its final reply, its turns and tokens, and
-// the calls of the command line in their order.
+// command line maps it anew, its final reply, its calls to the model,
+// one per answer it streamed whatever tools the answer called, its turns
+// and tokens, and the calls of the command line in their order.
 function recordOfStream(streamText) {
   const calls = [];
   const pendingById = new Map();
+  const answers = new Set();
   let modelId = null;
   let final = null;
   for (const line of streamText.split(/\r?\n/)) {
@@ -46,6 +49,7 @@ function recordOfStream(streamText) {
     try { streamEvent = JSON.parse(line); } catch { continue; }
     if (streamEvent.type === 'system' && streamEvent.subtype === 'init') modelId = streamEvent.model ?? null;
     if (streamEvent.type === 'result') final = streamEvent;
+    if (streamEvent.type === 'assistant' && streamEvent.message?.id) answers.add(streamEvent.message.id);
     const parts = Array.isArray(streamEvent.message?.content) ? streamEvent.message.content : [];
     for (const part of parts) {
       if (part.type === 'tool_use') {
@@ -64,6 +68,7 @@ function recordOfStream(streamText) {
     modelId,
     result: final?.result ?? null,
     failed: final === null || final.is_error === true || LIMIT_REPLY.test(final.result ?? ''),
+    requests: answers.size,
     turns: final?.num_turns ?? null,
     inputTokens: final?.usage ? final.usage.input_tokens + (final.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_creation_input_tokens ?? 0) : null,
     outputTokens: final?.usage?.output_tokens ?? null,

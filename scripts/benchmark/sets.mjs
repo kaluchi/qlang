@@ -234,7 +234,7 @@ export function grade(setId) {
       return answered !== null && sameJson(answered.answer, task.expected);
     }).map(task => task.id);
     const missed = tasks.map(task => task.id).filter(taskId => !solved.includes(taskId));
-    console.log(`${name.padEnd(30)} solved ${String(solved.length).padStart(2)}/${tasks.length}  turns ${String(record.turns ?? '').padStart(3)}  missed ${missed.join(' ')}`);
+    console.log(`${name.padEnd(30)} solved ${String(solved.length).padStart(2)}/${tasks.length}  requests ${String(record.requests ?? '').padStart(3)}  missed ${missed.join(' ')}`);
   }
 }
 

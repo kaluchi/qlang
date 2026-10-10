@@ -15,13 +15,14 @@ function runsOf(setId, screen) {
     .map(name => JSON.parse(readFileSync(join(runsDir, name), 'utf8')));
 }
 
-// What a run spent and scored: its calls to the model, the tokens it read
-// with the cache and wrote, and its solved tasks, null for a run that
-// fixed no score.
+// What a run spent and scored: its calls to the model, the calls of its
+// tools, the tokens it read with the cache and wrote, and its solved
+// tasks, null for a run that fixed no score.
 function figuresOf(record) {
   return {
     run: record.run,
-    requests: record.turns,
+    requests: record.requests ?? null,
+    calls: record.calls.length,
     read: record.inputTokens,
     written: record.outputTokens,
     solved: Array.isArray(record.score) ? record.score.filter(entry => entry.solved).length : null,
@@ -35,6 +36,7 @@ function figuresOf(record) {
 const shortAnswer = answer => (answer?.['$error'] !== undefined ? `отказ ${answer['$error']['$tag']}` : JSON.stringify(answer).slice(0, 100));
 
 const thousands = count => `${Math.round(count / 1000)}k`;
+const tenthsOf = value => String(Math.round(value * 10) / 10).replace('.', ',');
 const tenths = count => `${(count / 1000).toFixed(1).replace('.', ',')}k`;
 
 function span(values, show) {
@@ -108,7 +110,8 @@ export function verdict(setId, screen, baselineScreen = previousMeasurement(setI
     for (const reason of reasons) lines.push(`  Повторный замер: ${reason}`);
     const rows = [
       ['решено', figures => solvedSpan(figures)],
-      ['обращений к API', figures => span(figures.map(figure => figure.requests), value => String(Math.round(value * 10) / 10).replace('.', ','))],
+      ['обращений к API', figures => span(figures.map(figure => figure.requests), tenthsOf)],
+      ['вызовов инструмента', figures => span(figures.map(figure => figure.calls), tenthsOf)],
       ['токенов прочитано', figures => span(figures.map(figure => figure.read), thousands)],
       ['токенов написано', figures => span(figures.map(figure => figure.written), tenths)]
     ];
@@ -128,13 +131,14 @@ export function verdict(setId, screen, baselineScreen = previousMeasurement(setI
         `    ожидали ${JSON.stringify(task.expected)}`);
     }
     lines.push('', 'По прогонам');
-    const runLine = (label, figure) => `  ${label.padEnd(9)} ${figure.solved === null ? 'решено не записано' : `${figure.solved}/${figure.of}`}  обращений ${String(figure.requests).padStart(2)}  прочитано ${thousands(figure.read).padStart(5)}  написано ${tenths(figure.written)}`;
+    const runLine = (label, figure) => `  ${label.padEnd(9)} ${figure.solved === null ? 'решено не записано' : `${figure.solved}/${figure.of}`}  обращений ${String(figure.requests ?? '–').padStart(2)}  вызовов ${String(figure.calls).padStart(2)}  прочитано ${thousands(figure.read).padStart(5)}  написано ${tenths(figure.written)}`;
     for (const figure of baseFigures) lines.push(runLine(`старый ${figure.run}`, figure));
     for (const figure of nowFigures) lines.push(runLine(`новый ${figure.run}`, figure));
     lines.push('');
   }
   lines.push('Как считается',
     '  обращение к API — один ответ модели; при каждом Claude Code отправляет весь накопленный контекст',
+    '  вызов инструмента — одна команда, которую модель отдала; несколько вызовов идут в одном ответе',
     '  прочитано — входные токены, сложенные по всем обращениям, вместе с кешем; написано — выходные',
     '  решено — итоговые запросы прогона, сверенные с ответами автора деревом того коммита, где шёл прогон');
   console.log(lines.join('\n'));

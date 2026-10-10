@@ -1,4 +1,5 @@
 {
+ "requests": 12,
  "set": "T",
  "screen": "D181",
  "screenHash": "4b4c3bf5a1f5",
@@ -21,7 +22,7 @@
   },
   {
    "command": "qlang '/data/users | filter ~(allOf /active (/email | at \"x\" | coalesce \"\")) | count' < users.json; qlang '/data/users | filter ~(allOf (/active) (/email | endsWith \"@example.com\"))' < users.json | head -c 500",
-   "answered": "value",
+   "answered": "quote/ParseError",
    "head": "::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(allOf /active (/email | at \\\"x\\\" | coalesce \\\"\\\")) | count\" :marker \" ^ \" :expected [:\"identifier continue (letter, digit, hyphen, underscore)\" \"/\" :whitespace \"\\r\" \"\\"
   },
   {
@@ -36,17 +37,17 @@
   },
   {
    "command": "qlang '| /data/users | map ~(at :profile | coalesce {} | at :age) | filter ~(type | eq ::number) | avg | round 2' < users.json\nqlang '| filter ~(/state | eq \"open\") | map ~(/labels | map ~(/name | lower)) | flat | distinct | sort' < issues.json\nqlang '| sort ~([(/comments | desc) /number]) | take 3 | map ~{:number /number :assignee (at :assignee | coalesce {} | at :login)}' < issues.json\nqlang '| filter ~(/state | eq \"open\") | filter ~(at :assignee | coalesce {} | at :login | ne null) | groupBy ~(/assignee/login) | map ~(count)' < issues.json",
-   "answered": "value",
+   "answered": "quote/ParseError",
    "head": "33.17 [ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] ::quote/ParseError!{ :source \"| sort ~([(/comments | desc) /number]) | take 3 | map ~{:number /number :assignee (at :assignee | coalesce {} | at :login)}\" :marker \" ^ \" :expected "
   },
   {
    "command": "qlang '| sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at :assignee | coalesce {} | at :login)})' < issues.json\nqlang '| merge' < package.json | head -3; qlang '| [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | print)' < package.json",
-   "answered": "value",
+   "answered": "call/UnknownNameError",
    "head": "[ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"$error\": { \"$tag\": \"call/UnknownNameError\", [ \":eslint\", \":express\", \":jest\", \":typescript\", \":zod\" ]"
   },
   {
    "command": "qlang '| :d /devDependencies | /dependencies | union d | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | print | drop 1 | append \"@\" | append /1)' < package.json",
-   "answered": "value",
+   "answered": "proj/SubjectNotProjectableError",
    "head": "{ \"$error\": { \"$tag\": \"proj/SubjectNotProjectableError\", \"descriptor\": { \"key\": 1, \"actualType\": \"::string\", \"trail\": [ { \"step\": \"~(/1)\", \"subject\": \"eslint@\", \"skipped\": \"~()\" }, { \"step\": \"~(append /1)\", \"subject\": \"eslint@\", \"skipped\": "
   },
   {
@@ -56,17 +57,17 @@
   },
   {
    "command": "qlang --raw '| lines | map ~(split \" \" | filter ~(startsWith \"ms=\")) | filter ~(count | gt 0) | map ~(/0 | drop 3 | parseJson) | avg | round 1' < logs.txt\nqlang --raw '| lines | drop 1 | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~((/3 | parseJson) | mul (/4 | parseJson)) | sum | round 2' < orders.csv",
-   "answered": "value",
+   "answered": "proj/SubjectNotProjectableError",
    "head": "330.2 ::proj/SubjectNotProjectableError!{ :key 4 :actualType ::number :trail [ { :step ~(/4) :subject 10 :skipped ~(parseJson) } { :step ~((/4 | parseJson)) :subject 10 :skipped ~() } { :step ~(mul (/4 | parseJson)) :subject 10 :skipped ~()"
   },
   {
    "command": "qlang --raw '| lines | drop 1 | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\")| filter ~(/4 | ne \"\") | map ~([(/3 | parseJson) (/4 | parseJson)] | reduce ~(mul) 1) | sum | round 2' < orders.csv\nqlang --raw '| lines | drop 1 | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\")| filter ~(/4 | ne \"\") | map ~(mulOf (/3 | parseJson) (/4 | parseJson))' < orders.csv",
-   "answered": "value",
+   "answered": "quote/ParseError",
    "head": "Exit code 1 ::quote/ParseError!{ :source \"| lines | drop 1 | map ~(split \\\",\\\") | filter ~(/5 | lower | eq \\\"shipped\\\")| filter ~(/4 | ne \\\"\\\") | map ~([(/3 | parseJson) (/4 | parseJson)] | reduce ~(mul) 1) | sum | round 2\" :marker \" ^ \" :m"
   },
   {
    "command": "qlang --raw '| lines | drop 1 | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~(mulOf (/3 | parseJson) (/4 | parseJson))' < orders.csv\nqlang --raw '| lines | drop 1 | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~([(/3 | parseJson) (/4 | parseJson)] | reduce ~(mul) 1)' < orders.csv",
-   "answered": "value",
+   "answered": "vec/reduce/reducer/NotQuoteError",
    "head": "[25 59.97 39.98 79.96] ::vec/reduce/reducer/NotQuoteError!{ :actualType ::number :actualValue 1 :trail [ { :step ~(reduce ~(mul) 1) :subject [10 2.5] :skipped ~() } { :step ~(map ~([(/3 | parseJson) (/4 | parseJson)] | reduce ~(mul) 1)) :su"
   },
   {
@@ -213,5 +214,6 @@
    "solved": true
   }
  ],
- "scoredBy": "1c0758e3, after the run"
+ "scoredBy": "1c0758e3, after the run",
+ "recountedFrom": "the transcript of the run: its calls to the model and what its calls answered"
 }

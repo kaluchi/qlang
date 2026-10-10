@@ -143,6 +143,12 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
+  it('reads the pipe the cursor stands right after', async () => {
+    const labels = await labelsAt('[1 2 3] |');
+    expect(labels).toContain('count');
+    expect(labels).not.toContain('add');
+  });
+
   it('reads a line break at the top level as a pipe', async () => {
     const labels = await labelsAt('[1 2 3]\n');
     expect(labels).toContain('count');
@@ -157,7 +163,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
   });
 
   it('offers every name where no declaration names the kind of the subject', async () => {
-    for (const src of [':x 1 | x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(']) {
+    for (const src of [':x 1 | x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(', '"x" | add 1 !| ']) {
       const labels = await labelsAt(src);
       expect(labels).toContain('count');
       expect(labels).toContain('add');

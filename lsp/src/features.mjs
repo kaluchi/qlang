@@ -231,22 +231,25 @@ function wordStartBefore(source, offset) {
 }
 
 // The subject of the step at the cursor, the word being typed aside: the
-// pipeline it continues after `|` or a line break, where that pipeline
-// parses and its value has kinds its declarations name; a step after `!|`
-// takes an error, and has none.
+// steps before it, where the source with a step at the cursor parses, that
+// step follows `|` or a line break, and the value before it has kinds its
+// declarations name; a step after `!|` takes an error, and has none. The
+// parser tells the combinator, the grammar written once.
 async function subjectAt(source, offset) {
-  const before = source.slice(0, wordStartBefore(source, offset));
-  const continued = before.match(/\s(!\||\|)\s*$/) ?? before.match(/\n\s*$/);
-  if (continued === null || continued[1] === '!|') return null;
+  const start = wordStartBefore(source, offset);
   let pipeline;
   try {
-    pipeline = parse(before.slice(0, continued.index));
+    pipeline = parse(`${source.slice(0, start)}${STEP_AT_CURSOR}`);
   } catch {
     return null;
   }
-  const kinds = await kindsOfSteps(stepsOf(pipeline), null);
-  return kinds === null ? null : { kinds, pipeline, end: continued.index };
+  const steps = stepsOf(pipeline);
+  if (steps.length < 2 || steps[steps.length - 1].combinator === '!|') return null;
+  const kinds = await kindsOfSteps(steps.slice(0, -1), null);
+  return kinds === null ? null : { kinds, pipeline, end: start };
 }
+
+const STEP_AT_CURSOR = ' /';
 
 function stepsOf(pipelineNode) {
   if (pipelineNode.type !== 'Pipeline') return [{ combinator: '|', step: pipelineNode }];
@@ -255,8 +258,9 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and
-// a name's the labels its answer's definition names, the subject's own where that is the word's own label
-// [D169]; null where a step answers no declared kind.
+// a name's the labels its answer's definition names, the subject's own
+// where that is the word's own label [D169]; null where a step answers no
+// declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {

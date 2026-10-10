@@ -21,7 +21,7 @@ A finding not yet settled says open.
 10. Refusal pages that do not say how to repair the call. Open.
 11. Generic words where the language has its own: listing, container, bucket, pipeline. Open.
 12. Law names that do not say what their queries prove. Open.
-13. Laws that prove one claim twice. Open.
+13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
 14. One fact told in different words across the three kinds. Open.
 15. A refusal with a page under one kind and none under the others. Open.
 16. Claims of the pages with no law. Open.
@@ -83,7 +83,7 @@ review; findings 5 and 6 still stand for the laws declared under
 12. The sister project still writes `*`. Awaits the maintainer's word.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.
 14. Claims with no law. Open.
-15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field`; the laws, open.
+15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Open.
 17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
 18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.

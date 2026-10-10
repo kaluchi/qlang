@@ -48,18 +48,6 @@
   |~~ A group runs its steps on the value in the pipe. ~~|
   ::law~(5 | (add 1 | mul 2) | eq 12)
 
-:qlang/replacesTheSubjectByALiteral
-  |~~ A literal replaces the value in the pipe. ~~|
-  ::law~(5 | [1 2] | eq [1 2])
-
-:qlang/readsJson
-  |~~ JSON is a literal of the same map. ~~|
-  ::law~("{\"a\": 1, \"b\": [true, null]}" | parse | apply / | eq {:a 1 :b [true null]})
-
-:qlang/takesATagNameForAValue
-  |~~ A tag name is a value of its own. ~~|
-  ::law~([7 8] | ::Box | eq ::Box)
-
 :qlang/reshapesByALiteral
   |~~ A literal reshapes data, its parts read from the value. ~~|
   ::law~({:first "Ann" :age 30} | {:who /first :next (/age | add 1)} | eq {:who "Ann" :next 31})
@@ -75,10 +63,6 @@
 :qlang/readsAQuotedKey
   |~~ A key with a space is read quoted. ~~|
   ::law~({"first name": "Ann"} | /"first name" | eq "Ann")
-
-:qlang/failsOnAMissingKey
-  |~~ A strict read of a missing key fails. ~~|
-  ::law~({:a 1} | /b !| type | eq ::proj/KeyNotInMapError)
 
 :qlang/readsSoftly
   |~~ `at` reads a missing key as null. ~~|
@@ -104,10 +88,6 @@
   |~~ After `/qty |` a modifier reads the number, not the record. ~~|
   ::law~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/SubjectNotProjectableError)
 
-:qlang/keepsTheRecordByAName
-  |~~ `:r /` keeps the record for the steps after. ~~|
-  ::law~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
-
 :qlang/takesCodeAsAQuote
   |~~ Code a verb runs on each element is a quote. ~~|
   ::law~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
@@ -119,10 +99,6 @@
 :qlang/refusesAValueForCode
   |~~ A value computed at the call is refused where code is wanted. ~~|
   ::law~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/NotQuoteError)
-
-:qlang/namesEachKind
-  |~~ Every value has a kind, which `type` answers. ~~|
-  ::law~([42 "s" :k [1] {:k 1} #[1] true null] | map ~type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
 
 :qlang/splitsAndJoins
   |~~ A string splits into a vector and joins back. ~~|
@@ -143,10 +119,6 @@
 :qlang/buildsAMapFromEntries
   |~~ Entries build back into the map. ~~|
   ::law~({:a 1} | entries | tag ::map | eq {:a 1})
-
-:qlang/rounds
-  |~~ `round 2` keeps two digits after the point. ~~|
-  ::law~(3.14159 | round 2 | eq 3.14)
 
 :qlang/folds
   |~~ `reduce` folds the elements from a seed. ~~|
@@ -192,18 +164,6 @@
   |~~ `print` answers the text a value reads back from. ~~|
   ::law~(7 | print | eq "7")
 
-:qlang/namesTheValueInThePipe
-  |~~ `:n /` names the value in the pipe. ~~|
-  ::law~(5 | :n / | [n (n | add 1)] | eq [5 6])
-
-:qlang/declaresANameOnce
-  |~~ A name is declared once in a scope. ~~|
-  ::law~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
-
-:qlang/tagsAFailureByWhatRefused
-  |~~ The tag of a failure is the address of what refused. ~~|
-  ::law~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
-
 :qlang/opensAFailureToItsFacts
   |~~ `!|` opens a failure to its facts. ~~|
   ::law~("x" | add 1 !| /actualType | eq ::string)
@@ -231,10 +191,6 @@
 :qlang/holdsTheTrail
   |~~ The trail holds the steps a failure skipped. ~~|
   ::law~("x" | add 1 | mul 2 !| /trail/-1/skipped | eq ~(mul 2))
-
-:qlang/holdsItsSteps
-  |~~ A quote is the vector of its steps. ~~|
-  ::law~(~(add 1 | mul 2) | count | eq 2)
 
 :qlang/runsAQuote
   |~~ `apply` runs a quote on a subject. ~~|

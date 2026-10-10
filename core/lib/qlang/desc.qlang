@@ -25,7 +25,7 @@
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/gt/greater
+:desc/gt/answer
   |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
@@ -47,7 +47,7 @@
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/gte/atLeast
+:desc/gte/answer
   |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
@@ -70,7 +70,7 @@
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/lt/less
+:desc/lt/answer
   |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
@@ -92,6 +92,6 @@
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
-:desc/lte/atMost
+:desc/lte/answer
   |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean

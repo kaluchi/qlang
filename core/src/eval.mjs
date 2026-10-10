@@ -24,7 +24,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, partsOfName, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectRefusalAddress, vocabularyWords
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, partsOfName, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -591,7 +591,7 @@ async function applyMember(record, lambdas, state) {
   const address = record.get('name').name;
   const member = bindingValueOf(record);
   const [labelName] = splitAddress(address);
-  const walked = walkToKinds(state.pipeValue, [labelName]);
+  const walked = subjectServed(state.env, address, labelName, state.pipeValue);
   if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, state);
   const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope, isQuote(member));
@@ -606,6 +606,17 @@ async function applyMember(record, lambdas, state) {
   const refused = answerDefinition === null ? null : await refusalOfInvariants(answerDefinition.address, brought, state, scope);
   return withPipeValue(state, refused ?? brought);
 }
+
+// The subject a word serves: the value of its label the walk of the
+// subject's tags reaches, or, for a word of a noun itself, whose
+// `subject` names `::tag`, the tag name the call was made on [D88].
+function subjectServed(env, address, labelName, subject) {
+  const walked = walkToKinds(subject, [labelName]);
+  if (walked !== null || !isTagKeyword(subject)) return walked;
+  return subjectOf(env, address)?.includes(TAG_KIND) ? { served: subject, passedTags: [] } : null;
+}
+
+const TAG_KIND = 'tag';
 
 // The answer brought to the label its definition names [D169]: any value
 // reaches `::any`; one that reaches another of the labels is the value it

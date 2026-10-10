@@ -81,6 +81,6 @@
   |~~ The code is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:tagged/within/edited
+:tagged/within/answer
   |~~ The value edited beneath its tag, under the tag again. ~~|
   ::tagged

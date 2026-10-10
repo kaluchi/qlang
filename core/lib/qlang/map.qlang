@@ -44,7 +44,7 @@
   |~~ Three entries count three. ~~|
   ::law~({:x 1 :y 2 :z 3} | count | eq 3)
 
-:map/count/size
+:map/count/answer
   |~~ How many entries the map holds. ~~|
   ::number
 
@@ -56,7 +56,7 @@
   |~~ The empty map is empty. ~~|
   ::law~({} | empty | eq true)
 
-:map/empty/vacant
+:map/empty/answer
   |~~ Whether the map holds no entry. ~~|
   ::boolean
 
@@ -84,7 +84,7 @@
   |~~ The sum adds every value. ~~|
   ::law~({:a 10 :b 20} | sum | eq 30)
 
-:map/sum/total
+:map/sum/answer
   |~~ The sum of the values. ~~|
   ::number
 
@@ -109,7 +109,7 @@
   |~~ The mean of one and three is two. ~~|
   ::law~({:a 1 :b 3} | avg | eq 2)
 
-:map/avg/mean
+:map/avg/answer
   |~~ The mean of the values, null for an empty map. ~~|
   #[::number ::null]
 
@@ -193,7 +193,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:map/filter/kept
+:map/filter/answer
   |~~ The entries whose values the predicate accepted. ~~|
   ::map
 
@@ -234,7 +234,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:map/every/all
+:map/every/answer
   |~~ Whether the predicate held for every value. ~~|
   ::boolean
 
@@ -271,7 +271,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:map/any/some
+:map/any/answer
   |~~ Whether the predicate held for some value. ~~|
   ::boolean
 
@@ -306,7 +306,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:map/sort/sorted
+:map/sort/answer
   |~~ The entries in the order the key ranks their values. ~~|
   ::map
 
@@ -330,7 +330,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:map/take/taken
+:map/take/answer
   |~~ The first entries. ~~|
   ::map
 
@@ -360,7 +360,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:map/drop/rest
+:map/drop/answer
   |~~ The entries after the ones dropped. ~~|
   ::map
 
@@ -431,7 +431,7 @@
   |~~ The entries come in reverse order. ~~|
   ::law~({:a 1 :b 2} | reverse | vals | eq [2 1])
 
-:map/reverse/reversed
+:map/reverse/answer
   |~~ The entries in reverse order. ~~|
   ::map
 
@@ -487,7 +487,7 @@
   |~~ A number has no keys. ~~|
   ::law~(42 | keys !| [type /actualType] | eq [::map/keys/SubjectNotMapError ::number])
 
-:map/keys/keySet
+:map/keys/answer
   |~~ The keys of the map. ~~|
   ::set
 
@@ -507,7 +507,7 @@
   |~~ A vector has no values by key. ~~|
   ::law~([1 2] | vals !| [type /actualType] | eq [::map/vals/SubjectNotMapError ::vec])
 
-:map/vals/values
+:map/vals/answer
   |~~ The values of the map, in order. ~~|
   ::vec
 
@@ -542,7 +542,7 @@
   |~~ A vector has no entries. ~~|
   ::law~([1 2] | entries !| [type /actualType] | eq [::map/entries/SubjectNotMapError ::vec])
 
-:map/entries/pairs
+:map/entries/answer
   |~~ The pairs of key and value, in order. ~~|
   ::vec
 
@@ -577,7 +577,7 @@
   |~~ The key is a keyword or a string. ~~|
   ::holds~(is ::keyword ::string)
 
-:map/has/held
+:map/has/answer
   |~~ Whether the map holds the key. ~~|
   ::boolean
 
@@ -603,7 +603,7 @@
   |~~ The with is a map. ~~|
   ::holds~(is ::map)
 
-:map/union/merged
+:map/union/answer
   |~~ The entries of both maps, the second one's value winning a key both hold. ~~|
   ::map
 
@@ -630,7 +630,7 @@
   |~~ The keys is a map or a vector. ~~|
   ::holds~(is ::map ::vec)
 
-:map/minus/remaining
+:map/minus/answer
   |~~ The entries whose keys the other value does not hold. ~~|
   ::map
 
@@ -665,7 +665,7 @@
   |~~ The keys is a map or a vector. ~~|
   ::holds~(is ::map ::vec)
 
-:map/inter/common
+:map/inter/answer
   |~~ The entries whose keys the other value holds. ~~|
   ::map
 

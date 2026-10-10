@@ -40,7 +40,7 @@
   |~~ A number is no boolean, and `not` refuses it. ~~|
   ::law~(0 | not !| [type /actualType] | eq [::boolean/not/SubjectNotBooleanError ::number])
 
-:boolean/not/negation
+:boolean/not/answer
   |~~ The other boolean. ~~|
   ::boolean
 
@@ -81,7 +81,7 @@
   |~~ The right is a boolean. ~~|
   ::holds~(is ::boolean)
 
-:boolean/and/both
+:boolean/and/answer
   |~~ Whether the subject and the other condition both hold. ~~|
   ::boolean
 
@@ -129,6 +129,6 @@
   |~~ The right is a boolean. ~~|
   ::holds~(is ::boolean)
 
-:boolean/or/either
+:boolean/or/answer
   |~~ Whether the subject or the other condition holds. ~~|
   ::boolean

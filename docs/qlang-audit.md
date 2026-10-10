@@ -644,7 +644,7 @@ things in different records; a record that is to be enriched therefore
 carries a tag, which documents its fields, and a value shared by
 several kinds of record a tag of its own [D50]. The shape of an answer
 is read the same way, before the answer is fetched: the result of a
-word is the label its answer's definition names, `:number/add/sum
+word is the label its answer's definition names, `:number/add/answer
 ::number`, and the definitions under that label say what its values
 hold [D169]. Last, everything prints as what it is, code included,
 because an elided and enriched page travels on.
@@ -885,7 +885,7 @@ declares is a defect of the runtime [D166], [D169], [D172]:
 [::vec/sum/ElementNotNumberError 1]
 
 > ::vec/sum | manifest
-#[::vec/sum/ElementNotNumberError ::vec/sum/total]
+#[::vec/sum/ElementNotNumberError ::vec/sum/answer]
 
 > "hello" | add 1 !| explain | page | content | contains "sumOf"
 true

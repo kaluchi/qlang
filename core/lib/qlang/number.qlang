@@ -60,7 +60,7 @@
   |~~ The addend is a number. ~~|
   ::holds~(is ::number)
 
-:number/add/sum
+:number/add/answer
   |~~ The subject and the addend added. ~~|
   ::number
 
@@ -92,7 +92,7 @@
   |~~ The subtrahend is a number. ~~|
   ::holds~(is ::number)
 
-:number/sub/difference
+:number/sub/answer
   |~~ The subject less the subtrahend. ~~|
   ::number
 
@@ -123,7 +123,7 @@
   |~~ The multiplier is a number. ~~|
   ::holds~(is ::number)
 
-:number/mul/product
+:number/mul/answer
   |~~ The subject times the multiplier. ~~|
   ::number
 
@@ -165,7 +165,7 @@
   |~~ A division by zero is refused. ~~|
   ::law~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
 
-:number/div/quotient
+:number/div/answer
   |~~ The subject divided by the divisor. ~~|
   ::number
 
@@ -218,7 +218,7 @@
   |~~ Half a digit is refused. ~~|
   ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
 
-:number/round/rounded
+:number/round/answer
   |~~ The number rounded to the digits. ~~|
   ::number
 
@@ -238,7 +238,7 @@
   |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
-:number/gt/greater
+:number/gt/answer
   |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
@@ -260,7 +260,7 @@
   |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
-:number/gte/atLeast
+:number/gte/answer
   |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
@@ -280,7 +280,7 @@
   |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
-:number/lt/less
+:number/lt/answer
   |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
@@ -302,6 +302,6 @@
   |~~ The value compared is a number. ~~|
   ::holds~(is ::number)
 
-:number/lte/atMost
+:number/lte/answer
   |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean

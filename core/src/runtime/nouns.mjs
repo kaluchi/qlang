@@ -87,15 +87,26 @@ export function readsParts(env, name) {
 }
 
 // answerOf(env, address) → the definition of the answer of the word at the
-// address, the name under it whose value is a tag or a set of tags, `{
-// address, kinds }`, or null for a word that answers any value [D169].
+// address, the name `answer` under it, whose value is a tag or a set of
+// tags, `{ address, kinds }`, or null for a word that answers any value
+// [D169], [D179].
 export function answerOf(env, address) {
-  for (const [, record] of namesUnderOf(env, address)) {
-    const kinds = kindsNamedBy(bindingValueOf(record));
-    if (kinds !== null) return { address: record.get('name').name, kinds };
-  }
-  return null;
+  const record = nodeOf(env, `${address}/${ANSWER_NAME}`);
+  const kinds = record === null ? null : kindsNamedBy(bindingValueOf(record));
+  return kinds === null ? null : { address: record.get('name').name, kinds };
 }
+
+const ANSWER_NAME = 'answer';
+
+// subjectOf(env, address) → the kinds the name `subject` under the word at
+// the address names, `::tag` for a word of a noun itself, which takes a
+// tag name as its subject [D88], or null for a word of the label's values.
+export function subjectOf(env, address) {
+  const record = nodeOf(env, `${address}/${SUBJECT_NAME}`);
+  return record === null ? null : kindsNamedBy(bindingValueOf(record));
+}
+
+const SUBJECT_NAME = 'subject';
 
 // invariantsUnder(env, address) → the invariants declared under an
 // address, each a name whose value is a quote under `::holds`,

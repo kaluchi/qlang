@@ -2,13 +2,13 @@
 {"name":"a-quote-given-where-any-value-is-taken-stays-a-quote","query":"~(mul 2) | eq ~(mul 2)","expect":"true","decision":"D167"}
 {"name":"a-step-computed-where-a-part-takes-code-is-refused-by-the-part","query":"5 | apply /nope !| [type /actualType]","expect":"[::any/apply/code/NotQuoteError ::proj/SubjectNotProjectableError]","decision":"D167"}
 {"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort ~(/a) | first | /a","expect":"1","decision":"D167"}
-{"name":"the-law-of-an-answer-refuses-an-answer-that-breaks-it","query":":Box |~~ B ~~| | :Box/half |~~ Half. ~~| ~(/0 | div 2) | :Box/half/value |~~ The half. ~~| ::number | :Box/half/value/NotWholeError ::holds~(eq (round)) | ::Box[5] | half !| [type /actualValue]","expect":"[::Box/half/value/NotWholeError 2.5]","decision":["D167","D169"]}
+{"name":"the-law-of-an-answer-refuses-an-answer-that-breaks-it","query":":Box |~~ B ~~| | :Box/half |~~ Half. ~~| ~(/0 | div 2) | :Box/half/answer |~~ The half. ~~| ::number | :Box/half/answer/NotWholeError ::holds~(eq (round)) | ::Box[5] | half !| [type /actualValue]","expect":"[::Box/half/answer/NotWholeError 2.5]","decision":["D167","D169","D179"]}
 {"name":"a-set-answered-by-a-name-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]","decision":"D167"}
 {"name":"a-quote-under-a-label-that-calls-a-marked-name-takes-the-mark","query":":any/quiet ~(@out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
 {"name":"a-quote-under-a-label-with-its-mark-is-declared","query":":any/@loud ~(@out) | 5","expect":"5","decision":"D167"}
 {"name":"the-message-of-a-refusal-by-address-is-its-address","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | :d | runLaws | first | /error","expect":"\"::number/add/SubjectNotNumberError\"","decision":"D167"}
 {"name":"an-anchor-reads-the-part-of-a-kinds-word","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true","decision":["D167","D169"]}
-{"name":"the-answer-of-a-word-names-its-label","query":"::vec/count/size | binding | /value","expect":"::number","decision":"D169"}
+{"name":"the-answer-of-a-word-names-its-label","query":"::vec/count/answer | binding | /value","expect":"::number","decision":"D169"}
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-a-part-asks-for","query":"5 | add ::Width(2)","expect":"7","decision":"D167"}
 {"name":"each-value-a-law-of-each-element-asks-for-is-handed-as-its-kind","query":"{:a ::W(5) :b 2} | sumOf /a /b","expect":"7","decision":"D167"}
 {"name":"a-law-of-each-value-the-call-gives-names-the-index-it-refuses","query":"{:a 1 :b \"x\"} | sumOf /a /b !| [type /index /actualType]","expect":"[::any/sumOf/numbers/ElementNotNumberError 1 ::string]","decision":["D167","D169"]}
@@ -24,7 +24,7 @@
 {"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| [type /index /actualType]","expect":"[::any/is/kinds/ElementNotTagError 0 ::keyword]","decision":"D167"}
 {"name":"a-law-that-answers-an-error-hands-it-on","query":":Box |~~ B ~~| | :Box/NopeError ::holds~(/nope) | ::Box(5) !| type","expect":"::proj/SubjectNotProjectableError","decision":["D166","D169"]}
 {"name":"a-law-of-each-element-over-a-map-runs-as-code-and-hands-the-map-on","query":":Box |~~ B ~~| | :Box/sumIt ~(m | vals | sum) | :Box/sumIt/m |~~ M ~~| ~(/0) | :Box/sumIt/m/ElementNotNumberError ::holds~(every ~(is ::number)) | ::Box[1] | sumIt {:a 1 :b 2}","expect":"3","decision":"D167"}
-{"name":"each-kind-declares-the-parts-and-the-answer-of-its-word","query":"[(::vec/take | manifest) (::string/take | manifest)]","expect":"[#[::vec/take/count ::vec/take/taken] #[::string/take/count ::string/take/taken]]","decision":"D169"}
+{"name":"each-kind-declares-the-parts-and-the-answer-of-its-word","query":"[(::vec/take | manifest) (::string/take | manifest)]","expect":"[#[::vec/take/count ::vec/take/answer] #[::string/take/count ::string/take/answer]]","decision":"D169"}
 {"name":"a-part-refuses-under-the-address-of-its-kinds-word","query":"[(\"ab\" | take \"x\" !| type) ([1] | take \"x\" !| type)]","expect":"[::string/take/count/NotNumberError ::vec/take/count/NotNumberError]","decision":["D167","D169"]}
 {"name":"a-part-whose-selector-calls-a-marked-name-is-refused-by-its-name","query":":any/f ~(1) | :any/f/n ~(/0 | @out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
 {"name":"a-part-of-a-marked-name-may-call-a-marked-name","query":":any/@f ~(1) | :any/@f/n ~(/0 | @out) | 5","expect":"5","decision":"D167"}

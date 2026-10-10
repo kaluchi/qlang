@@ -25,7 +25,7 @@
   |~~ Three elements count three. ~~|
   ::law~([1 2 3] | count | eq 3)
 
-:vec/count/size
+:vec/count/answer
   |~~ How many elements the vector holds. ~~|
   ::number
 
@@ -41,7 +41,7 @@
   |~~ A vector of one element is not empty. ~~|
   ::law~([1] | empty | eq false)
 
-:vec/empty/vacant
+:vec/empty/answer
   |~~ Whether the vector holds no element. ~~|
   ::boolean
 
@@ -81,7 +81,7 @@
   |~~ The empty vector sums to zero. ~~|
   ::law~([] | sum | eq 0)
 
-:vec/sum/total
+:vec/sum/answer
   |~~ The sum of the elements. ~~|
   ::number
 
@@ -110,7 +110,7 @@
   |~~ The mean of each group comes under its key. ~~|
   ::law~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) * (* /n | avg) | eq {:a 2 :b 5})
 
-:vec/avg/mean
+:vec/avg/answer
   |~~ The mean of the elements, null for an empty vector. ~~|
   #[::number ::null]
 
@@ -217,7 +217,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/filter/kept
+:vec/filter/answer
   |~~ The elements the predicate accepted, in order. ~~|
   ::vec
 
@@ -268,7 +268,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/every/all
+:vec/every/answer
   |~~ Whether the predicate held for every element. ~~|
   ::boolean
 
@@ -319,7 +319,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:vec/any/some
+:vec/any/answer
   |~~ Whether the predicate held for some element. ~~|
   ::boolean
 
@@ -350,7 +350,7 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/has/held
+:vec/has/answer
   |~~ Whether the vector holds the element. ~~|
   ::boolean
 
@@ -369,7 +369,7 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/contains/found
+:vec/contains/answer
   |~~ Whether the vector holds the element. ~~|
   ::boolean
 
@@ -417,7 +417,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/groupBy/groups
+:vec/groupBy/answer
   |~~ The elements filed under the keyword their key answered. ~~|
   ::map
 
@@ -475,7 +475,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/indexBy/index
+:vec/indexBy/answer
   |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
 
@@ -564,7 +564,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:vec/sort/sorted
+:vec/sort/answer
   |~~ The elements in the order the key ranks them. ~~|
   ::vec
 
@@ -595,7 +595,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:vec/take/taken
+:vec/take/answer
   |~~ The first elements. ~~|
   ::vec
 
@@ -626,7 +626,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:vec/drop/rest
+:vec/drop/answer
   |~~ The elements after the ones dropped. ~~|
   ::vec
 
@@ -692,7 +692,7 @@
   |~~ Two maps of the same entries are one. ~~|
   ::law~([{:id 1} {:id 2} {:id 1}] | distinct | eq #[{:id 1} {:id 2}])
 
-:vec/distinct/unique
+:vec/distinct/answer
   |~~ The elements, each once, in the one order: a set. ~~|
   ::vec
 
@@ -704,7 +704,7 @@
   |~~ The elements come in reverse order. ~~|
   ::law~([1 2 3] | reverse | eq [3 2 1])
 
-:vec/reverse/reversed
+:vec/reverse/answer
   |~~ The elements in reverse order. ~~|
   ::vec
 
@@ -716,7 +716,7 @@
   |~~ The inner vectors splice into one. ~~|
   ::law~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
 
-:vec/flat/flattened
+:vec/flat/answer
   |~~ The elements with one level of nesting spliced in. ~~|
   ::vec
 
@@ -1003,7 +1003,7 @@
   |~~ The separator is a string. ~~|
   ::holds~(is ::string)
 
-:vec/join/joined
+:vec/join/answer
   |~~ The elements joined into one string by the separator. ~~|
   ::string
 
@@ -1034,7 +1034,7 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/prepend/prepended
+:vec/prepend/answer
   |~~ The vector with the value as its first element. ~~|
   ::vec
 
@@ -1057,6 +1057,6 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:vec/append/appended
+:vec/append/answer
   |~~ The vector with the value as its last element. ~~|
   ::vec

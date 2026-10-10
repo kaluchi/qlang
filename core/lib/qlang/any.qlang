@@ -29,7 +29,7 @@
   |~~ The answer is a value of `::desc`. ~~|
   ::law~(5 | desc | type | eq ::desc)
 
-:any/desc/descending
+:any/desc/answer
   |~~ The value turned to descend. ~~|
   ::desc
 
@@ -184,7 +184,7 @@
   |~~ A quote answers `::quote`. ~~|
   ::law~(~(42) | type | eq ::quote)
 
-:any/type/kind
+:any/type/answer
   |~~ The kind of the value, its outermost tag. ~~|
   ::tag
 
@@ -209,7 +209,7 @@
   |~~ A set is written as an array. ~~|
   ::law~(#[1 2 3] | json | eq "[1,2,3]")
 
-:any/json/text
+:any/json/answer
   |~~ The JSON text of the value. ~~|
   ::string
 
@@ -240,7 +240,7 @@
   |~~ The text reads back as the value. ~~|
   ::law~({:a [1 "x"]} | :v / | print | parse | :q / | apply q | eq v)
 
-:any/print/literal
+:any/print/answer
   |~~ The literal the value prints as, a string. ~~|
   ::string
 
@@ -531,7 +531,7 @@
   |~~ Each name holds the record its declaration wrote. ~~|
   ::law~(42 | :answer / | env | /answer | /value | eq 42)
 
-:any/env/names
+:any/env/answer
   |~~ The records of what the reader declared, by name. ~~|
   ::map
 
@@ -556,7 +556,7 @@
   |~~ The topic of the language is a label too. ~~|
   ::law~(kinds | has ::qlang)
 
-:any/kinds/labels
+:any/kinds/answer
   |~~ The kinds the scope reads. ~~|
   ::set
 
@@ -598,7 +598,7 @@
   |~~ The anchor is a keyword or null. ~~|
   ::holds~(is ::keyword ::null)
 
-:any/binding/record
+:any/binding/answer
   |~~ The record of the name. ~~|
   ::binding
 
@@ -663,7 +663,7 @@
   |~~ The name is a keyword or null. ~~|
   ::holds~(is ::keyword ::null)
 
-:any/source/code
+:any/source/answer
   |~~ The code written under the name, null for a value a host bound. ~~|
   #[::quote ::null]
 
@@ -747,7 +747,7 @@
   |~~ The anchor is a keyword, a vector, a set or null. ~~|
   ::holds~(is ::keyword ::vec ::set ::null)
 
-:any/doc/page
+:any/doc/answer
   |~~ The page of the name, null for a declaration without one. ~~|
   #[::doc ::null ::vec]
 
@@ -800,7 +800,7 @@
   |~~ An error is explained by the page of the word that refused. ~~|
   ::law~("x" | add 1 !| explain | page | content | contains "Adds a number")
 
-:any/explain/explanation
+:any/explain/answer
   |~~ The page above the value it explains. ~~|
   ::explanation
 
@@ -821,7 +821,7 @@
       claim, and its query, which answers true. `runLaws` runs them. ~~|
   ::builtin{}
 
-:any/laws/claims
+:any/laws/answer
   |~~ The name of each law and the pair of its page and its query. ~~|
   ::map
 
@@ -881,7 +881,7 @@
   |~~ The anchor is a keyword or null. ~~|
   ::holds~(is ::keyword ::null)
 
-:any/runLaws/results
+:any/runLaws/answer
   |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
   ::vec
 
@@ -910,7 +910,7 @@
       query. A name nothing declares is refused as `doc` refuses it. ~~|
   ~(:subject / | doc | [/ (subject | laws)])
 
-:any/tutorial/lesson
+:any/tutorial/answer
   |~~ The page and the laws. ~~|
   ::vec
 
@@ -1024,7 +1024,7 @@
   |~~ Each of the numbers is a number. ~~|
   ::holds~(every ~(is ::number))
 
-:any/sumOf/sum
+:any/sumOf/answer
   |~~ The numbers added. ~~|
   ::number
 
@@ -1052,7 +1052,7 @@
   |~~ Each of the factors is a number. ~~|
   ::holds~(every ~(is ::number))
 
-:any/mulOf/product
+:any/mulOf/answer
   |~~ The numbers multiplied. ~~|
   ::number
 
@@ -1081,7 +1081,7 @@
   |~~ The subtrahend is a number. ~~|
   ::holds~(is ::number)
 
-:any/subOf/difference
+:any/subOf/answer
   |~~ The first number less the second. ~~|
   ::number
 
@@ -1110,7 +1110,7 @@
   |~~ The divisor is a number. ~~|
   ::holds~(is ::number)
 
-:any/divOf/quotient
+:any/divOf/answer
   |~~ The first number divided by the second. ~~|
   ::number
 
@@ -1142,7 +1142,7 @@
   |~~ Each of the conditions is a boolean. ~~|
   ::holds~(every ~(is ::boolean))
 
-:any/allOf/all
+:any/allOf/answer
   |~~ Whether every condition holds. ~~|
   ::boolean
 
@@ -1169,7 +1169,7 @@
   |~~ Each of the conditions is a boolean. ~~|
   ::holds~(every ~(is ::boolean))
 
-:any/anyOf/some
+:any/anyOf/answer
   |~~ Whether some condition holds. ~~|
   ::boolean
 
@@ -1244,6 +1244,6 @@
   |~~ Each of the kinds is a tag name. ~~|
   ::holds~(every ~(is ::tag))
 
-:any/is/reached
+:any/is/answer
   |~~ Whether the walk of the tags reached one of the kinds. ~~|
   ::boolean

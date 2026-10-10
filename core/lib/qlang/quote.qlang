@@ -78,7 +78,7 @@
   |~~ A quote parses to its source. ~~|
   ::law~(~(add 1) | parse | eq "add 1")
 
-:quote/parse/text
+:quote/parse/answer
   |~~ The text the quote reads back from. ~~|
   ::string
 

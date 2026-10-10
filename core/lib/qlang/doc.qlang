@@ -37,7 +37,7 @@
   |~~ The content of a word's page is its text. ~~|
   ::law~(::vec/join | doc | content | contains "separator")
 
-:doc/content/text
+:doc/content/answer
   |~~ The text of the doc. ~~|
   ::string
 
@@ -48,7 +48,7 @@
   ~~|
   ::builtin{}
 
-:doc/segments/proseAndQuotes
+:doc/segments/answer
   |~~ The prose and the quotes of the doc. ~~|
   ::vec
 
@@ -66,7 +66,7 @@
   ~~|
   ::builtin{}
 
-:doc/links/jumps
+:doc/links/answer
   |~~ The links of the doc, each a query that answers another page. ~~|
   ::vec
 
@@ -85,7 +85,7 @@
   ~~|
   ::builtin{}
 
-:doc/snippets/examples
+:doc/snippets/answer
   |~~ The snippets of the doc, each a query a reader runs. ~~|
   ::vec
 

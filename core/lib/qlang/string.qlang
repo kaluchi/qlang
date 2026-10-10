@@ -33,7 +33,7 @@
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/gt/greater
+:string/gt/answer
   |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
@@ -53,7 +53,7 @@
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/gte/atLeast
+:string/gte/answer
   |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
@@ -73,7 +73,7 @@
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/lt/less
+:string/lt/answer
   |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
@@ -93,7 +93,7 @@
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/lte/atMost
+:string/lte/answer
   |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
 
@@ -115,7 +115,7 @@
   |~~ The empty string counts none. ~~|
   ::law~("" | count | eq 0)
 
-:string/count/length
+:string/count/answer
   |~~ How many characters the string holds. ~~|
   ::number
 
@@ -143,7 +143,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:string/take/taken
+:string/take/answer
   |~~ The first characters. ~~|
   ::string
 
@@ -169,7 +169,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:string/drop/rest
+:string/drop/answer
   |~~ The characters after the ones dropped. ~~|
   ::string
 
@@ -209,7 +209,7 @@
   |~~ The separator is a string. ~~|
   ::holds~(is ::string)
 
-:string/split/pieces
+:string/split/answer
   |~~ The pieces between the separators, in order. ~~|
   ::vec
 
@@ -242,7 +242,7 @@
   |~~ A number is no text. ~~|
   ::law~(42 | lines !| [type /actualType] | eq [::string/lines/SubjectNotStringError ::number])
 
-:string/lines/rows
+:string/lines/answer
   |~~ The lines of the text in order, without their breaks. ~~|
   ::vec
 
@@ -267,7 +267,7 @@
   |~~ A number has no letters. ~~|
   ::law~(42 | lower !| [type /actualType] | eq [::string/lower/SubjectNotStringError ::number])
 
-:string/lower/lowercase
+:string/lower/answer
   |~~ The text in lower case. ~~|
   ::string
 
@@ -287,7 +287,7 @@
   |~~ A number has no letters. ~~|
   ::law~(42 | upper !| [type /actualType] | eq [::string/upper/SubjectNotStringError ::number])
 
-:string/upper/uppercase
+:string/upper/answer
   |~~ The text in upper case. ~~|
   ::string
 
@@ -314,7 +314,7 @@
   |~~ A number has no whitespace to trim. ~~|
   ::law~(42 | trim !| [type /actualType] | eq [::string/trim/SubjectNotStringError ::number])
 
-:string/trim/trimmed
+:string/trim/answer
   |~~ The text without the whitespace at its ends. ~~|
   ::string
 
@@ -360,7 +360,7 @@
   |~~ The needle is a string. ~~|
   ::holds~(is ::string)
 
-:string/contains/found
+:string/contains/answer
   |~~ Whether the text holds the part. ~~|
   ::boolean
 
@@ -400,7 +400,7 @@
   |~~ The prefix is a string. ~~|
   ::holds~(is ::string)
 
-:string/startsWith/starts
+:string/startsWith/answer
   |~~ Whether the text begins with the part. ~~|
   ::boolean
 
@@ -440,7 +440,7 @@
   |~~ The suffix is a string. ~~|
   ::holds~(is ::string)
 
-:string/endsWith/ends
+:string/endsWith/answer
   |~~ Whether the text ends with the part. ~~|
   ::boolean
 
@@ -474,7 +474,7 @@
   |~~ The prefix is a string. ~~|
   ::holds~(is ::string)
 
-:string/prepend/prepended
+:string/prepend/answer
   |~~ The text with the part before it. ~~|
   ::string
 
@@ -504,7 +504,7 @@
   |~~ The suffix is a string. ~~|
   ::holds~(is ::string)
 
-:string/append/appended
+:string/append/answer
   |~~ The text with the part after it. ~~|
   ::string
 
@@ -591,7 +591,7 @@
   |~~ A keyword's name reads back as the string. ~~|
   ::law~("bar" | keyword | keyword | eq "bar")
 
-:string/keyword/key
+:string/keyword/answer
   |~~ The keyword the text names. ~~|
   ::keyword
 

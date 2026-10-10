@@ -75,6 +75,6 @@
   |~~ The stop of the step that raised names the steps skipped after it. ~~|
   ::law~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
 
-:error/trail/stops
+:error/trail/answer
   |~~ The stops of the path the error took. ~~|
   ::vec

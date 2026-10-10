@@ -26,7 +26,7 @@
   |~~ Two elements count two. ~~|
   ::law~(#[:a :b] | count | eq 2)
 
-:set/count/size
+:set/count/answer
   |~~ How many elements the set holds. ~~|
   ::number
 
@@ -38,7 +38,7 @@
   |~~ The empty set is empty. ~~|
   ::law~(#[] | empty | eq true)
 
-:set/empty/vacant
+:set/empty/answer
   |~~ Whether the set holds no element. ~~|
   ::boolean
 
@@ -66,7 +66,7 @@
   |~~ The sum adds every element. ~~|
   ::law~(#[1 2 3] | sum | eq 6)
 
-:set/sum/total
+:set/sum/answer
   |~~ The sum of the elements. ~~|
   ::number
 
@@ -87,7 +87,7 @@
   |~~ The mean of one, two and six is three. ~~|
   ::law~(#[1 2 6] | avg | eq 3)
 
-:set/avg/mean
+:set/avg/answer
   |~~ The mean of the elements, null for an empty set. ~~|
   #[::number ::null]
 
@@ -162,7 +162,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/filter/kept
+:set/filter/answer
   |~~ The elements the predicate accepted. ~~|
   ::set
 
@@ -191,7 +191,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/every/all
+:set/every/answer
   |~~ Whether the predicate held for every element. ~~|
   ::boolean
 
@@ -220,7 +220,7 @@
   |~~ The predicate is code, a quote. ~~|
   ::holds~(is ::quote)
 
-:set/any/some
+:set/any/answer
   |~~ Whether the predicate held for some element. ~~|
   ::boolean
 
@@ -249,7 +249,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/groupBy/groups
+:set/groupBy/answer
   |~~ The elements filed under the keyword their key answered, each bucket a set. ~~|
   ::map
 
@@ -281,7 +281,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/indexBy/index
+:set/indexBy/answer
   |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
   ::map
 
@@ -314,7 +314,7 @@
   |~~ The key is code, a quote or null. ~~|
   ::holds~(is ::quote ::null)
 
-:set/sort/sorted
+:set/sort/answer
   |~~ The elements in the order the key ranks them, a vector. ~~|
   ::vec
 
@@ -338,7 +338,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:set/take/taken
+:set/take/answer
   |~~ The least elements. ~~|
   ::set
 
@@ -362,7 +362,7 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:set/drop/rest
+:set/drop/answer
   |~~ The elements after the least ones dropped. ~~|
   ::set
 
@@ -400,7 +400,7 @@
   |~~ A set is distinct already. ~~|
   ::law~(#[1 2 3] | distinct | eq #[1 2 3])
 
-:set/distinct/unique
+:set/distinct/answer
   |~~ The set itself. ~~|
   ::set
 
@@ -412,7 +412,7 @@
   |~~ The reversed elements are a vector. ~~|
   ::law~(#[:a :b :c] | reverse | eq [:c :b :a])
 
-:set/reverse/reversed
+:set/reverse/answer
   |~~ The elements from the greatest down, a vector. ~~|
   ::vec
 
@@ -426,7 +426,7 @@
   |~~ A set of sets flattens into their union. ~~|
   ::law~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
 
-:set/flat/flattened
+:set/flat/answer
   |~~ The elements with the sets among them spliced in. ~~|
   ::set
 
@@ -483,7 +483,7 @@
   |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/union/merged
+:set/union/answer
   |~~ The elements of both sets. ~~|
   ::set
 
@@ -527,7 +527,7 @@
   |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/minus/remaining
+:set/minus/answer
   |~~ The elements the other set does not hold. ~~|
   ::set
 
@@ -571,7 +571,7 @@
   |~~ The with is a set or null. ~~|
   ::holds~(is ::set ::null)
 
-:set/inter/common
+:set/inter/answer
   |~~ The elements both sets hold. ~~|
   ::set
 
@@ -613,7 +613,7 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:set/has/held
+:set/has/answer
   |~~ Whether the set holds the element. ~~|
   ::boolean
 
@@ -631,6 +631,6 @@
   |~~ The element the call gives. ~~|
   ~(/0)
 
-:set/contains/found
+:set/contains/answer
   |~~ Whether the set holds the element. ~~|
   ::boolean

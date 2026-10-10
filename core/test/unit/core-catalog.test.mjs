@@ -33,7 +33,7 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — filter takes its predicate as a part whose law asks for a quote, on each kind that answers it [D169]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTagKeyword('set/filter/ConditionNotBooleanError'), makeTagKeyword('set/filter/kept'), makeTagKeyword('set/filter/predicate')]));
+    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTagKeyword('set/filter/ConditionNotBooleanError'), makeTagKeyword('set/filter/answer'), makeTagKeyword('set/filter/predicate')]));
     expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | /value | print')).toBe('::holds~(is ::quote)');
   });
 });

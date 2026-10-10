@@ -34,7 +34,7 @@
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/gt/greater
+:tag/gt/answer
   |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
@@ -56,7 +56,7 @@
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/gte/atLeast
+:tag/gte/answer
   |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
@@ -78,7 +78,7 @@
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/lt/less
+:tag/lt/answer
   |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
@@ -104,7 +104,7 @@
   |~~ The value compared is a tag name. ~~|
   ::holds~(is ::tag)
 
-:tag/lte/atMost
+:tag/lte/answer
   |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
 
@@ -138,6 +138,6 @@
   |~~ A number is no noun. ~~|
   ::law~(5 | manifest !| [type /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
 
-:tag/manifest/names
+:tag/manifest/answer
   |~~ The addresses of the names declared one name under the noun. ~~|
   ::set

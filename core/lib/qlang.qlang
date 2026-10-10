@@ -1283,6 +1283,11 @@
       one, builds the value from the payload.
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value.
+      A word answers under the label its `answer` names.
+      A word of a noun itself, whose `subject` names `::tag`, takes the
+      tag name as its subject, so a guardian with no payload is addressed
+      bare, `::Jenkins | builds`, while a word of the noun's values
+      refuses the tag name.
   ~~|
   #[::any]
 
@@ -1300,7 +1305,7 @@
 
 :qlang/verbs/declaresTheAnswer
   |~~ `take` declares its count and its answer. ~~|
-  ::law~(::vec/take | manifest | eq #[::vec/take/count ::vec/take/taken])
+  ::law~(::vec/take | manifest | eq #[::vec/take/count ::vec/take/answer])
 
 :qlang/verbs/answersUnderTheTags
   |~~ A sum goes back under the tag the subject came through. ~~|
@@ -1329,6 +1334,18 @@
 :qlang/verbs/laysAnUndeclaredTag
   |~~ A tag no declaration answers checks nothing. ~~|
   ::law~(::Small(12) | payload | eq 12)
+
+:qlang/verbs/answersUnderItsAnswer
+  |~~ A word answers under the label its `answer` names. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Box/half ~(/0 | div 2) | :Box/half/answer |~~ The half. ~~| ::number | ::Box[4] | half | eq 2)
+
+:qlang/verbs/takesTheTagOfItsNoun
+  |~~ A word of a noun itself takes the tag name as its subject. ~~|
+  ::law~(:Desk |~~ A help desk. ~~| | :Desk/hours ~("9 to 5") | :Desk/hours/subject |~~ The desk itself. ~~| ::tag | ::Desk | hours | eq "9 to 5")
+
+:qlang/verbs/refusesTheTagForAWordOfValues
+  |~~ A word of the noun's values refuses the tag name. ~~|
+  ::law~(:Desk |~~ A help desk. ~~| | :Desk/size ~(count) | ::Desk | size !| type | eq ::Desk/size/SubjectNotDeskError)
 
 :qlang/errors
   |~~ Errors. A failure does not throw: a step that fails answers an

@@ -33,7 +33,7 @@
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gt/greater
+:keyword/gt/answer
   |~~ Whether the subject comes after the value compared. ~~|
   ::boolean
 
@@ -59,7 +59,7 @@
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/gte/atLeast
+:keyword/gte/answer
   |~~ Whether the subject comes after the value compared or equals it. ~~|
   ::boolean
 
@@ -81,7 +81,7 @@
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lt/less
+:keyword/lt/answer
   |~~ Whether the subject comes before the value compared. ~~|
   ::boolean
 
@@ -103,7 +103,7 @@
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
-:keyword/lte/atMost
+:keyword/lte/answer
   |~~ Whether the subject comes before the value compared or equals it. ~~|
   ::boolean
 
@@ -121,6 +121,6 @@
   |~~ A name with a space keeps it. ~~|
   ::law~(:"foo bar" | keyword | eq "foo bar")
 
-:keyword/keyword/text
+:keyword/keyword/answer
   |~~ The name of the keyword, a string. ~~|
   ::string

@@ -62,7 +62,7 @@ describe('completionsAtOffset', () => {
     const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.documentation).toBeTruthy();
-    expect(countItem.documentation).toMatch(/number of/);
+    expect(countItem.documentation).toMatch(/how many/);
   });
 
   it('includes user-defined bindings visible at offset', async () => {

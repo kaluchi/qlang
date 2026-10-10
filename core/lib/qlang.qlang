@@ -589,11 +589,12 @@
       part of its args, `filter`, `sort`, `if`; a page holds links that
       lead on and snippets that run, and the laws of a name are code; the
       trail of an error holds the steps it skipped, ready to replay; and
-      a query is read, printed and built like any data. A literal step is the literal itself; a step that computes is
-      a record, `::call`, `::proj`, `::bind` or `::construct`; `*`, `!|`
-      and parentheses wrap their step as `::each`, `::fail` and
-      `::group`. `apply` runs a quote on the subject and `parse` prints
-      it back. ::link~(::each | doc) ::link~(::call | doc)
+      a query is read, printed and built like any data. A literal step is
+      the literal itself; a step that computes is a record, `::call`,
+      `::proj`, `::bind` or `::construct`; `*`, `!|` and parentheses wrap
+      their step as `::each`, `::fail` and `::group`. `apply` runs a quote
+      on the subject and `parse` prints it back.
+      ::link~(::each | doc) ::link~(::call | doc)
       ::link~(::qlang/code | doc)
   ~~|
 
@@ -1295,12 +1296,8 @@
   ::law~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
 
 :qlang/verbs/declaresTheParts
-  |~~ `at` declares its key and its default. ~~|
-  ::law~(::map/at | manifest | eq #[::map/at/default ::map/at/key])
-
-:qlang/verbs/declaresTheAnswer
-  |~~ `take` declares its count and its answer. ~~|
-  ::law~(::vec/take | manifest | eq #[::vec/take/count ::vec/take/answer])
+  |~~ `at` declares its answer, its key and its default. ~~|
+  ::law~(::map/at | manifest | eq #[::map/at/answer ::map/at/default ::map/at/key])
 
 :qlang/verbs/answersUnderTheTags
   |~~ A sum goes back under the tag the subject came through. ~~|

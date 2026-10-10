@@ -112,13 +112,17 @@ const SUBJECT_NAME = 'subject';
 // address, each a name whose value is a quote under `::holds`,
 // `[address, query]` in the order of their declarations [D169].
 export function invariantsUnder(env, address) {
-  const invariants = [];
-  for (const [, record] of namesUnderOf(env, address)) {
-    const value = bindingValueOf(record);
-    if (isInvariant(value)) invariants.push([record.get('name').name, value.payload]);
-  }
-  return invariants;
+  return derivedOf(namesUnderOf(env, address), INVARIANTS, under => {
+    const invariants = [];
+    for (const [, record] of under) {
+      const value = bindingValueOf(record);
+      if (isInvariant(value)) invariants.push([record.get('name').name, value.payload]);
+    }
+    return invariants;
+  });
 }
+
+const INVARIANTS = new WeakMap();
 
 // Whether a value is an invariant, a quote under `::holds`, whose name is
 // the refusal of a value that breaks it [D168].
@@ -282,8 +286,12 @@ export function verbsReaching(env, kindNames) {
 // name at the address, by their names, in the order of their places: the
 // quotes declared under it, each kind's word declaring its own [D169].
 export function partsOfName(env, address) {
-  return quotesUnder(env, address).sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
+  return derivedOf(namesUnderOf(env, address), PARTS, under => [...under]
+    .filter(([, record]) => isQuote(bindingValueOf(record)))
+    .sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place)));
 }
+
+const PARTS = new WeakMap();
 
 const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
 
@@ -329,10 +337,6 @@ export function ruleRefusalsOf(env, address) {
     refusals.push(answerRefusalAddress(answer.address, answer.kinds));
   }
   return refusals;
-}
-
-function quotesUnder(env, address) {
-  return [...namesUnderOf(env, address)].filter(([, record]) => isQuote(bindingValueOf(record)));
 }
 
 // selectorOf(partRecord) → what a part's selector reads, once per part:
@@ -382,17 +386,39 @@ function readsOnePlace(ast, place) {
   return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;
 }
 
-// The nodes declared one name under a noun, by their last names.
+// The nodes declared one name under a noun, by their last names: the
+// root's, read from its index, with the frame's over them, and the map of
+// the index itself where the frame declares none under the noun, so what
+// a call derives from it is read once for every frame.
 function namesUnderOf(env, nounName) {
-  const root = rootOf(env);
-  const under = new Map();
-  for (const [lastName, record] of rootIndexOf(root).get(nounName) ?? []) under.set(lastName, record);
+  const fromRoot = rootIndexOf(rootOf(env)).get(nounName) ?? NO_NAMES;
+  let under = fromRoot;
   for (const [name, entry] of env) {
-    if (!isBinding(entry)) continue;
-    const [kindName, lastName] = splitAddress(name);
-    if (kindName === nounName) under.set(lastName, entry);
+    if (!isBinding(entry) || !isOneNameUnder(name, nounName)) continue;
+    if (under === fromRoot) under = new Map(fromRoot);
+    under.set(name.slice(nounName.length + 1), entry);
   }
   return under;
+}
+
+const NO_NAMES = new Map();
+
+// Whether a name is declared one name under a noun, `vec/count` under
+// `vec`, the noun `splitAddress` reads of it.
+function isOneNameUnder(name, nounName) {
+  return name.length > nounName.length && name.startsWith(nounName)
+    && name[nounName.length] === '/' && !name.includes('/', nounName.length + 1);
+}
+
+// What a call derives from the names under a noun, read once for each
+// map of them and frozen, since every caller holds the same.
+function derivedOf(under, derivations, derive) {
+  let derived = derivations.get(under);
+  if (derived === undefined) {
+    derived = Object.freeze(derive(under));
+    derivations.set(under, derived);
+  }
+  return derived;
 }
 
 // The names of a root by the noun each is declared under, built once for

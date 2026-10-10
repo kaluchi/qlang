@@ -211,7 +211,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints within the budget a caller asked for, an error among
-// them [D120].
+// them [D120], and an error as its alert when none is [D184].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
@@ -219,6 +219,13 @@ describe('runRepl — the budget of an answer', () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80 });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
+  });
+
+  it('prints an error as its alert when no budget was asked for', async () => {
+    const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+    const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/1/subject)');
   });
 
   it('prints an error within the budget', async () => {

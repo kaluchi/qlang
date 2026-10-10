@@ -7,9 +7,18 @@
 // counted, `:read`, the quote that applied to the value taken answers the
 // part left out, and for a string `:head`, its first characters.
 //
+// An error a host prints is an alert [D184]: its tag and its facts, the
+// data it carries cut to what places the failure. The subject of the
+// first stop of its trail, where the failure arose, and every other fact
+// print within an excerpt each; the subject of every later stop, which
+// the failure only passed, gives way whole; an error among the facts is
+// an alert in its turn. Every `:read` reads its part beneath `!|`.
+//
 //   elide(value, budget) → the value within the budget
-//   elideAnswer(answer, budget) → an answer within the budget, a raised
-//     error among them, whose facts give way beneath `!|`
+//   alertOf(error) → the error as an alert
+//   elideAnswer(answer, budget) → an answer as a host prints it: a value
+//     whole, or within the budget asked for; an error an alert, within
+//     the budget when one is asked for
 
 import {
   isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
@@ -21,6 +30,8 @@ import { quoteOfSource } from './quote.mjs';
 
 const ELISION_TAG = makeTagKeyword('elision');
 const HEAD_CHARACTERS = 40;
+const EXCERPT_CHARACTERS = 300;
+const keepsNone = () => false;
 
 const printedSize = value => printValue(value).length;
 
@@ -121,16 +132,61 @@ function elideWithin(value, budget, prefix, keep) {
 }
 
 export function elide(value, budget) {
-  return elideWithin(value, budget, '', () => false);
+  return elideWithin(value, budget, '', keepsNone);
 }
 
-// A raised error gives way within its facts: its trail keeps its stops,
-// each of which may give way within, so the error stays one the core
-// builds, and every `:read` reads beneath `!|`.
+// A fact of an alert within its excerpt, beneath the read that reaches
+// it: a value the alert shows already gives way whole the second time, a
+// string past the excerpt gives way whole with its head, an error is an
+// alert in its turn, and any other value gives way within as `elide`
+// cuts it.
+function excerptOf(value, read, shown) {
+  if (typeof value === 'object' && value !== null) {
+    if (shown.has(value)) return passedOver(value, read);
+    shown.add(value);
+  }
+  if (isErrorValue(value)) return alertOf(value, `${read} !| `, shown);
+  if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return givenWay({ path: [], value }, read);
+  return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone);
+}
 
-export function elideAnswer(answer, budget) {
-  if (!isErrorValue(answer)) return elide(answer, budget);
-  const header = printValue(answer).length - printedSize(answer.descriptor);
-  const facts = elideWithin(new Map(answer.descriptor), budget - header, '!| ', path => path[0] === 'trail' && path.length <= 2);
-  return makeErrorValue(answer.tag, facts);
+// A subject the failure only passed, given way whole where its marker is
+// the shorter print: the elements, the entries or the characters it
+// stands for, and the read that reaches it.
+function passedOver(value, read) {
+  const size = isVec(value) ? value.length : isQMap(value) ? value.size : typeof value === 'string' ? value.length : printedSize(value);
+  const shown = marker([['size', size], ['read', readOf(read, [])]]);
+  return printedSize(shown) < printedSize(value) ? shown : value;
+}
+
+// The trail of an alert: each stop keeps its step and what it skipped,
+// the subject of the first within its excerpt, of every later one given
+// way whole.
+function stopsOf(trail, read, shown) {
+  return Object.freeze(trail.map((stop, index) => {
+    const subjectRead = `${read}/${index}/subject`;
+    const subject = stop.get('subject');
+    return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead, shown) : passedOver(subject, subjectRead)));
+  }));
+}
+
+export function alertOf(error, read = '!| ', shown = new Set()) {
+  const facts = new Map();
+  for (const [name, value] of error.descriptor) {
+    const factRead = `${read}${stepOf(name)}`;
+    facts.set(name, name === 'trail' ? stopsOf(value, factRead, shown) : excerptOf(value, factRead, shown));
+  }
+  return makeErrorValue(error.tag, facts);
+}
+
+// Within a budget an alert gives way within its facts: its trail keeps
+// its stops, each of which may give way within, so the error stays one
+// the core builds, and every `:read` reads beneath `!|`.
+export function elideAnswer(answer, budget = null) {
+  if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget);
+  const alert = alertOf(answer);
+  if (budget === null) return alert;
+  const header = printValue(alert).length - printedSize(alert.descriptor);
+  const facts = elideWithin(new Map(alert.descriptor), budget - header, '!| ', path => path[0] === 'trail' && path.length <= 2);
+  return makeErrorValue(alert.tag, facts);
 }

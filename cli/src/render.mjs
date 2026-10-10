@@ -30,7 +30,7 @@
 // REPL mode has its own renderer inline in repl.mjs — the per-cell
 // auto-print there stays qlang-native (print + ANSI).
 
-import { isErrorValue, printAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
+import { isErrorValue, printAnswer, elideAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
@@ -67,7 +67,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
     // caret-pointer-aware diagnostic; fall back to the raw JS
     // message for non-lifted host failures (setup errors, etc.).
     const diagnostic = isErrorValue(cellEntry.result)
-      ? await maybePaint(await printAnswer(cellEntry.result, cellEntry.envAfterCell), shouldColorize)
+      ? await maybePaint(await printAnswer(elideAnswer(cellEntry.result, budget), cellEntry.envAfterCell), shouldColorize)
       : `qlang: ${cellEntry.error.message}`;
     return {
       stdoutText: '',

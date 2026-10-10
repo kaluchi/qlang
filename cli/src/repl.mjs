@@ -159,8 +159,9 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
   });
 }
 
-// An answer prints whole, or within the budget the caller asked for,
-// what does not fit given way to markers that read it [D120].
+// An answer prints whole, an error as an alert, or within the budget
+// the caller asked for, what does not fit given way to markers that read
+// it [D120], [D184].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
   // Parse failures and runtime fail-track errors both surface as
   // `isErrorValue(cellEntry.result)` — session.evalCell lifts
@@ -168,6 +169,6 @@ async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrit
   // `::Tag!{…}` print path covers both, the path of the error in its
   // `:trail` [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
-  const shown = budget === null ? cellEntry.result : elideAnswer(cellEntry.result, budget);
+  const shown = elideAnswer(cellEntry.result, budget);
   sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
 }

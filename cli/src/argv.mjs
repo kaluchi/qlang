@@ -17,8 +17,9 @@
 // query as a String. `--json` forces the parse (and fails loudly
 // on malformed input); `--raw` skips parsing entirely.
 //
-// `budget` is null, an answer printing whole, or the characters every
-// answer prints within that `--budget=N` asked for [D120].
+// `budget` is null, a value printing whole and an error as its alert, or
+// the characters every answer prints within that `--budget=N` asked for
+// [D120], [D184].
 //
 // `colorMode` is one of 'auto' | 'always' | 'never' and decides
 // whether script-mode output runs through `highlightAnsi`. Default
@@ -66,7 +67,10 @@ Input mode (script):
               answer is written as its print
 
 Output budget:
-  (default)   an answer prints whole
+  (default)   a value prints whole, and an error as an alert: the
+              subject where it arose cut to an excerpt, each subject
+              it passed an ::elision marker whose :read continues the
+              query to it
   --budget=N  print every answer within N characters; what does not
               fit gives way to ::elision markers whose :read continues
               the query to the part left out; under JSON an error alone

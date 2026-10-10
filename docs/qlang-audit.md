@@ -506,7 +506,8 @@ name, progressive disclosure: an overview first, then zoom and filter,
 then details on demand [D21]. Seen from the session it has four
 clauses. The session controls the detail of an answer. An answer stays
 within the budget the session asks for, by `elide` in the query or by
-the host's flag, and prints whole when nobody asked [D120]. When the
+the host's flag, and prints whole when nobody asked [D120], an error as
+an alert whose markers say what the host left out [D184]. When the
 answer would have exceeded the budget, it says what was left out and
 how much of it there is. And the session can read what was left out,
 all of it or a part, through the same pipeline that produced the
@@ -892,11 +893,9 @@ declares is a defect of the runtime [D166], [D169], [D172]:
 true
 ```
 
-What remains is the alert itself, lit where the cockpit wants it dark.
-An error carries its whole input, so one failing step over a large
-value prints the value, and the path of an error carries the subject of
-every level it left [D85], so the same failure one verb deeper prints it
-twice:
+An error carries its whole input, and the path of an error carries the
+subject of every level it left [D85], so the same failure one verb
+deeper carries it twice:
 
 ```qlang
 > ::vec | doc | add 1 !| /trail | map ~/subject | map ~(eq (::vec | doc))
@@ -904,6 +903,24 @@ twice:
 
 > :any/g ~(add 1) | ::vec | doc | g !| /trail | map ~/subject | map ~(eq (::vec | doc))
 [true true]
+```
+
+The host shows such an error as an alert, [D184], its tag and its
+facts, the subject where it arose cut to an excerpt, and each subject
+it passed an `::elision` whose `:read` continues the query beneath
+`!|`, the error itself staying whole. Over the failing final queries
+the runs of [D181] recorded on set T, the alerts print about a third of
+what the errors printed whole:
+
+```sh
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
+1342
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | wc -c
+317
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
+1
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/subject | count" < /dev/null
+300
 ```
 
 The ring of atoms [D42] stays open at one example of the catalog: an
@@ -925,10 +942,10 @@ refusal means in one sentence, which fact names the culprit, the usual
 cause, how to recover with `!|` as a runnable example, and the refusals
 it is often confused with, the text that refusals for one reason share
 written once, which is the task that would ask for a hierarchy of tags.
-It must print an error the way the cockpit shows an alert: the tag, the
+The error it prints is the alert the cockpit shows [D184]: the tag, the
 facts in the order the catalog declares them, a short excerpt of the
-input, and the rest one projection away, the tail being what elision
-takes first.
+input, and the rest one projection away, the subjects the failure
+passed being what elision takes first.
 
 ### Self-description at full size
 
@@ -1840,3 +1857,4 @@ whole, a primitive the law of every count calls; or the test kept in
 [D180]: decisions/D180.md
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
+[D184]: decisions/D184.md

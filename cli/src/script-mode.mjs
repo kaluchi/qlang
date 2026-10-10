@@ -132,18 +132,18 @@ function liftParsedDocument(parsed, resolvedFormat) {
   }
 }
 
-// The answer a channel writes, whole unless the caller asked for a
-// budget [D120]: under JSON an error alone gives way within it, data
-// answering whole for the tools that read it; the print gives way
-// within it.
+// The answer a channel writes [D120], [D184]: a value whole unless the
+// caller asked for a budget, an error an alert; under JSON data answers
+// whole for the tools that read it, an error alone giving way within the
+// budget, and the print gives way within it.
 export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null) {
   if (resolvedFormat === 'json') {
     const answer = answerForJson(value);
-    const shown = budget !== null && isErrorValue(answer) ? elideAnswer(answer, budget) : answer;
+    const shown = isErrorValue(answer) ? elideAnswer(answer, budget) : answer;
     return JSON.stringify(toPlain(shown), null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
   // (the raw-in-raw-out contract); anything else goes out as its print.
   if (typeof value === 'string') return value;
-  return printAnswer(budget === null ? value : elideAnswer(value, budget), env);
+  return printAnswer(elideAnswer(value, budget), env);
 }

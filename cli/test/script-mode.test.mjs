@@ -117,7 +117,7 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
 
 
 // An answer prints within the budget a caller asked for, and the JSON
-// channel cuts an error alone [D120].
+// channel cuts an error alone [D120]; an error prints as its alert [D184].
 describe('encodeSuccessValueForFormat — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);
@@ -141,5 +141,11 @@ describe('encodeSuccessValueForFormat — the budget of the answer', () => {
   it('writes the answer whole when no budget was asked for', async () => {
     const text = await encodeSuccessValueForFormat(forty, 'raw', await langRuntime(), null);
     expect(text).not.toContain('::elision');
+  });
+
+  it('writes an error as its alert when no budget was asked for', async () => {
+    const failing = await evalQuery(`[${forty.map(index => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
+    expect(await encodeSuccessValueForFormat(failing, 'json', undefined, null)).toContain('"read": "~(!| /trail/1/subject)"');
+    expect(await encodeSuccessValueForFormat(failing, 'raw', await langRuntime(), null)).toContain(':read ~(!| /trail/1/subject)');
   });
 });

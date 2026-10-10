@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { elide, elideAnswer } from '../../src/elide.mjs';
+import { elide, alertOf, elideAnswer } from '../../src/elide.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
@@ -84,5 +84,66 @@ describe('elideAnswer [D109]', () => {
   it('elides a value that is no error as elide does', () => {
     const forty = Array.from({ length: 40 }, (_, index) => index + 1);
     expect(elideAnswer(forty, 80)).toEqual(elide(forty, 80));
+  });
+
+  it('answers a value whole and an error as its alert when no budget is asked for [D184]', async () => {
+    const forty = Array.from({ length: 40 }, (_, index) => index + 1);
+    expect(elideAnswer(forty)).toBe(forty);
+    const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
+    expect(printValue(elideAnswer(failing))).toBe(printValue(alertOf(failing)));
+  });
+});
+
+// An error a host prints is an alert [D184]: the subject where the
+// failure arose within an excerpt, a subject it only passed given way
+// whole, an error among its facts an alert in its turn, a value shown
+// once, and the read of every marker continuing the query beneath `!|`.
+describe('alertOf [D184]', () => {
+  const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+  const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
+
+  it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
+    const query = `${records} | filter ~(nope)`;
+    const [arose, passed] = alertOf(await evalQuery(query)).descriptor.get('trail');
+    expect(printValue(arose.get('subject'))).toBe('{:n 0}');
+    expect(passed.get('subject').get('size')).toBe(30);
+    expect(deepEqual(await continued(query, passed.get('subject')), await evalQuery(records))).toBe(true);
+  });
+
+  it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
+    const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+    const query = `${many} | add 1`;
+    const subject = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    const rest = subject[subject.length - 1];
+    expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
+  });
+
+  it('cuts a long string where the failure arose to its head', async () => {
+    const text = LONG.repeat(10);
+    const query = `"${text}" | add 1`;
+    const marker = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    expect(text.startsWith(marker.get('head'))).toBe(true);
+    expect(await continued(query, marker)).toBe(text);
+  });
+
+  it('gives a map and a string it passed way whole, and keeps what prints shorter than its marker', async () => {
+    const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).descriptor.get('trail');
+    expect(map.get('subject').get('size')).toBe(2);
+    const text = LONG.repeat(3);
+    const [, string] = alertOf(await evalQuery(`"${text}" | (add 1)`)).descriptor.get('trail');
+    expect(string.get('subject').get('size')).toBe(text.length);
+    const [, kept] = alertOf(await evalQuery('5 | (add "x")')).descriptor.get('trail');
+    expect(kept.get('subject')).toBe(5);
+  });
+
+  it('shows an error among its facts as an alert reached beneath the fact, and a value once', async () => {
+    const query = `${records} | map (/n)`;
+    const alert = alertOf(await evalQuery(query));
+    const inner = alert.descriptor.get('actualValue');
+    expect(isErrorValue(inner)).toBe(true);
+    const passed = inner.descriptor.get('trail')[1].get('subject');
+    expect(printValue(passed.get('read'))).toBe('~(!| /actualValue !| /trail/1/subject)');
+    expect(deepEqual(await continued(query, passed), await evalQuery(records))).toBe(true);
+    expect(alert.descriptor.get('trail')[0].get('subject').get('size')).toBe(30);
   });
 });

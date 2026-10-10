@@ -990,7 +990,7 @@ The documents left are the measure, the decisions, the research of a
 design whose work has begun, which its records absorb as the work lands
 [D164], the audit of a clean outside reader of the tree, kept as it
 wrote it, and the reviews of the catalog, kept as their reviewers wrote
-them:
+them beside the fate of each finding:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
@@ -1001,6 +1001,7 @@ docs/research/outside-audit/report.md
 docs/research/reviews/2026-10-10-first-page-any-number-string.md
 docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
 docs/research/reviews/2026-10-10-vec-set-map.md
+docs/research/reviews/README.md
 ```
 
 What remains of the scar is the editor's hand-written TextMate grammar,

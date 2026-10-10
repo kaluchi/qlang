@@ -19,7 +19,7 @@ A finding not yet settled says open.
 8. The part `with` of the algebra of vectors names a value nothing is joined with. Open, with 7.
 9. The algebra says join, the name of the word that writes strings together. Open.
 10. Refusal pages that do not say how to repair the call. Open.
-11. Generic words where the language has its own: listing, container, bucket, pipeline. Open.
+11. Generic words where the language has its own: listing, container, bucket, pipeline. Answered by 610b05d4 for bucket and the laws named after a pipeline, the listing following; listing and container had left the vectors with their rewrite.
 12. Law names that do not say what their queries prove. Open.
 13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
 14. One fact told in different words across the three kinds. Open.
@@ -28,7 +28,7 @@ A finding not yet settled says open.
 17. `minus` and `inter` over a vector take sets too, which their pages do not say. Open.
 18. The fold of a set of sets keeps the tag, the others do not. Open, with 7.
 19. The order of the words in the three files does not follow what rests on what. Open.
-20. Words of time and of mutation: already, instead, was called. Open.
+20. Words of time and of mutation: already, instead, was called. Answered by 610b05d4.
 
 ## 2026-10-10 · the first page, any value, numbers and strings
 
@@ -50,8 +50,8 @@ A finding not yet settled says open.
 14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
 15. Laws that prove nothing of their page. Open.
 16. Negations standing for definitions. Open.
-17. Words of mutation: edits, has become, is replaced. Open.
-18. A guardian with no payload, a word the language does not have. Open.
+17. Words of mutation: edits, has become, is replaced. Answered by edac4969 for has become and by 610b05d4 for edits and is replaced.
+18. A guardian with no payload, a word the language does not have. Answered by 610b05d4: a noun that stands for a thing outside the language.
 19. The order of the kinds in `qlang.qlang` and of the words of `any.qlang`. Open.
 20. Pages of kinds that lead nowhere, and kinds in no chapter. Open.
 21. Strings say an emoji counts one; a modifier or a flag counts each code point. Answered by edac4969, with a law.
@@ -84,7 +84,7 @@ review; findings 5 and 6 still stand for the laws declared under
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.
 14. Claims with no law. Open.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
-16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Open.
+16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Answered by 610b05d4 for env, descriptor, rewrap, constructor invocation and edit; still and the two comments follow; the part `value` the pages of tags and keywords do not name, open.
 17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
 18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.
 19. A refusal of an unknown combinator the parser cannot produce; `fork.mjs` holding one function; broken comment lines. Open.

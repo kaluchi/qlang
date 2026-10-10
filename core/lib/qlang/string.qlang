@@ -938,10 +938,10 @@
 :string/parseJson/NumberNotFiniteError
   |~~ JSON text may write a number past the range of the doubles a
       number of qlang is, `1e400`, which no number of the language holds,
-      so reading it is refused rather than turned into an infinity. It is
-      met where JSON text is read, by `parseJson` and by the command line
-      reading its input, and never in a literal of qlang, which the
-      parser refuses itself.
+      so reading it is refused, no number of the language holding it. It
+      is met where JSON text is read, by `parseJson` and by the command
+      line reading its input; a literal of qlang past the range is the
+      parser's own refusal.
   ~~|
 
 :string/parseJson/NumberNotFiniteError/path

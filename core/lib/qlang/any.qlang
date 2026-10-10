@@ -1357,7 +1357,7 @@
   ::builtin{}
 
 :any/runLaws/answer
-  |~~ One result for each law: the law, its claim, what it answered and
+  |~~ A map for each law: the law, its claim, what it answered and
       whether it held.
   ~~|
   ::vec
@@ -1598,11 +1598,11 @@
   ~(numbers | sum)
 
 :any/sumOf/answer
-  |~~ The numbers added. ~~|
+  |~~ The sum of the numbers. ~~|
   ::number
 
 :any/sumOf/numbers
-  |~~ The numbers added, one at least. ~~|
+  |~~ The numbers to add, one at least. ~~|
   ~(/)
 
 :any/sumOf/numbers/EmptyError

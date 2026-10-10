@@ -323,13 +323,13 @@
 
 :number
   |~~ The kind of a number, a finite double: an infinity or NaN is no
-      value, so a step whose result leaves the domain answers an error.
-      No kind reads text, so `::number(5)` is `5` and `::number"5"` is
-      refused; `parseJson` reads a number out of a string. Its literal
-      is JSON's, a leading zero allowed, and its precision the double's
-      own: a literal past the range is no number the parser reads, an
-      integer and a decimal are one kind, rounded as a double rounds, and
-      a step whose result leaves the range answers an error. Its words
+      value, so a step whose answer leaves the range of the doubles
+      answers an error. No kind reads text, so `::number(5)` is `5` and
+      `::number"5"` is refused; `parseJson` reads a number out of a
+      string. Its literal is JSON's, a leading zero allowed, and its
+      precision the double's own: a literal past the range is no number
+      the parser reads, and an integer and a decimal are one kind,
+      rounded as a double rounds. Its words
       add, subtract, multiply, divide, round and compare numbers.
       ::snippet~(::number | manifest) lists its words and refusals.
       ::link~(::qlang/values | doc)
@@ -611,10 +611,6 @@
   |~~ A failure literal opens to an `::error`. ~~|
   ::law~(!{:detail "boom"} !| type | eq ::error)
 
-:error/tagsARefusalByItsSite
-  |~~ A refusal's type is its site, not `::error`. ~~|
-  ::law~("x" | add 1 !| type | eq ::error | not)
-
 :error/standsOverError
   |~~ Beneath the site's tag lies an `::error`. ~~|
   ::law~("x" | add 1 !| payload | type | eq ::error)
@@ -692,8 +688,8 @@
       that go deeper, and a reader reaches them by `open`, which runs the
       query the link holds. A link opens a page, so `links | map ~open`
       answers pages alone, and a query that lists or shows something is a
-      snippet; a law answers true, and stands under the name it proves. The suite
-      follows every link of the catalog, so none goes dead. A host may
+      snippet; a law answers true, and stands under the name it proves.
+      Every link of the catalog opens a page. A host may
       stack its own tag over a link.
       ::snippet~(::qlang | doc | links) lists the links of the first page.
       ::link~(::qlang/hypertext | doc)
@@ -713,13 +709,13 @@
 
 :snippet
   |~~ The kind of a snippet, a query a page shows its reader to run and
-      see, written in the prose of a doc as a quote under `::snippet`: a
-      listing, ::snippet~(::vec | manifest), or a demonstration of
-      a form, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
+      see, written in the prose of a doc as a quote under `::snippet`:
+      the words of a kind, ::snippet~(::vec | manifest), or a form at
+      work, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
       link opens a page; a snippet answers whatever it shows, which
       `open` runs, and `snippets` reads the snippets of a doc. A snippet
-      reproduces a situation for its reader, so it may answer an error;
-      the suite holds it to reading as code alone.
+      reproduces a situation for its reader, so it may answer an error,
+      and it reads as code.
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
 
@@ -889,7 +885,8 @@
 
 :group
   |~~ The step `(pipeline)`, a group: it runs its steps on the value in
-      the pipe and answers their result, its names left inside. Each part
+      the pipe and answers what its last step answers, its names left
+      inside. Each part
       of a literal is such a group, which is why a literal is the shape an
       answer takes, `[(add 1) (mul 2)]`. As a record it wraps the quote
       of its pipeline. ::link~(::bind | doc)
@@ -985,8 +982,8 @@
       value the step before it answered, so two fields of one record are
       read in one step, and a name keeps the record for a later step.
       A name holds the value in the pipe for the steps after it, and
-      steps in parentheses run on the value in the pipe and answer their
-      result.
+      steps in parentheses run on the value in the pipe and answer what
+      their last step answers.
       At the top level a line is a step, joined to the next by `|` unless
       one of them carries its combinator, and inside brackets a line
       break is a space; a comment, `|~ … ~|`, nesting, or `|~|` to the

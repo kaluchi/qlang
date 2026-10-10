@@ -22,7 +22,9 @@ import {
   nodeOf,
   nodeAddresses,
   bareNameReach,
-  residencesOf
+  residencesOf,
+  isLabel,
+  CONSTRUCT_NAME
 } from '@kaluchi/qlang-core';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
@@ -411,19 +413,22 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   return catalogCtx ? catalogDeclarationOf(catalogCtx, address) : null;
 }
 
-// The name a declaration binds and the symbol it shows as: a label, its
-// tag, for a page alone [D168], a word for a quote or a host's
-// `::builtin{}` under a noun [D164], a value otherwise.
+// The name a declaration binds and what it declares: a label, its tag,
+// for a page alone [D168], a value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
-  const kind = bindingKindForKeywordHead(node);
-  return { name: kind === 'tag' ? tagNameOf(node.key.name) : node.key.name, kind };
+  return node.body === null
+    ? { name: tagNameOf(node.key.name), kind: 'tag' }
+    : { name: node.key.name, kind: 'value' };
 }
 
-function bindingKindForKeywordHead({ key, body }) {
-  if (body === null) return 'tag';
+// Whether a declaration of a value declares a word, as the core reads
+// one: a quote or a host's `::builtin{}` under a label, the label's
+// `construct` apart [D164], [D169].
+function declaresWord({ key, body }, isLabelName) {
   const runs = body.type === 'QuoteLit' || (body.type === 'TaggedLit' && body.tag === 'builtin');
-  return runs && key.name.includes('/') ? 'verb' : 'value';
+  const [labelName, lastName] = splitAddress(key.name);
+  return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
 }
 
 // The span of the last declaration of the name that stands before the
@@ -506,8 +511,19 @@ export function referencesAtOffset(ast, offset) {
 
 // ── Document Symbols ──────────────────────────────────────────
 
-export function documentSymbols(ast) {
+// documentSymbols(ast, runtime) → the declarations of a document, each
+// shown as a label, a word or a value; a label is a name the document
+// declares by its page alone, or a label of the language the runtime
+// holds.
+export function documentSymbols(ast, runtime = null) {
   if (!ast) return [];
+
+  const labels = new Set();
+  walkAst(ast, (node) => {
+    if (node.type === 'DocLit') return false;
+    if (node.type === 'BindStep' && node.body === null) labels.add(node.key.name);
+  });
+  const isLabelName = name => labels.has(name) || (runtime !== null && isLabel(runtime, name));
 
   const symbols = [];
   walkAst(ast, (node) => {
@@ -517,7 +533,7 @@ export function documentSymbols(ast) {
 
     symbols.push({
       name: decl.name,
-      kind: decl.kind,
+      kind: decl.kind === 'value' && declaresWord(node, isLabelName) ? 'verb' : decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });

@@ -253,12 +253,12 @@ const SYMBOL_KIND_MAP = {
   tag:      SymbolKind.Struct
 };
 
-connection.onDocumentSymbol((params) => {
+connection.onDocumentSymbol(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!state?.ast || !doc) return [];
 
-  const symbols = documentSymbols(state.ast);
+  const symbols = documentSymbols(state.ast, await langRuntime());
 
   return symbols.map(sym => ({
     name: sym.name,

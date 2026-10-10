@@ -415,16 +415,25 @@ describe('foldingRangesOf', () => {
 });
 
 describe('documentSymbols', () => {
-  it('collects the words a reader declares under a label as verb symbols', () => {
+  it('collects the words a reader declares under a label as verb symbols', async () => {
     const src = ':any/double ~(mul 2) | :any/triple ~(mul 3) | :q ~(add 1)';
     const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast);
+    const syms = documentSymbols(ast, await langRuntime());
     expect(syms).toHaveLength(3);
     expect(syms[0].name).toBe('any/double');
     expect(syms[0].kind).toBe('verb');
     expect(syms[2].kind).toBe('value');
     expect(syms[1].name).toBe('any/triple');
     expect(syms[1].kind).toBe('verb');
+  });
+
+  it('shows a part of a word, a label of the document and its construct as the core reads them', async () => {
+    const src = ':number/add/addend ~(/0) | :Box |~~ A box. ~~| | :Box/area ~(1) | :Box/construct ~(/) | :Ring/area ~(2)';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(ast, await langRuntime());
+    expect(syms.map(sym => [sym.name, sym.kind])).toEqual([
+      ['number/add/addend', 'value'], ['::Box', 'tag'], ['Box/area', 'verb'], ['Box/construct', 'value'], ['Ring/area', 'value']
+    ]);
   });
 
   it('collects a binding of a computed body as a value symbol', () => {

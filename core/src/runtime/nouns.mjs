@@ -36,7 +36,7 @@ export function nodeOf(env, tagName) {
 }
 
 // Whether a node is a label, a name declared by its page [D166], [D168].
-function isLabel(env, name) {
+export function isLabel(env, name) {
   return isDoc(bindingValueOf(nodeOf(env, name)));
 }
 
@@ -55,7 +55,7 @@ function residesOn(record, kindName, env) {
   return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName) && splitAddress(record.get('name').name)[1] !== CONSTRUCT_NAME;
 }
 
-const CONSTRUCT_NAME = 'construct';
+export const CONSTRUCT_NAME = 'construct';
 
 // isWord(env, address) → whether the name at the address is a word, a
 // quote or a host's primitive under a label, the label's `construct`

@@ -1390,7 +1390,7 @@
   |~~ A call of the reducer alone lacks the reducer. ~~|
   ::law~([1 2 3] | reduce ~(add) !| type | eq ::vec/reduce/reducer/NotGivenError)
 
-:vec/reduce/ReducerNotBinaryError/refusesAPipeline
+:vec/reduce/ReducerNotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
   ::law~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/ReducerNotBinaryError)
 
@@ -1398,8 +1398,8 @@
   |~~ A reducer that gives its word an arg of its own is refused. ~~|
   ::law~([1 2 3] | reduce 0 ~(add 1) !| type | eq ::vec/reduce/ReducerNotBinaryError)
 
-:vec/reduce/ReducerNotBinaryError/takesANameForAPipeline
-  |~~ A pipeline under a name of its own folds as one word. ~~|
+:vec/reduce/ReducerNotBinaryError/takesANameForTwoSteps
+  |~~ Two steps under a name of their own fold as one word. ~~|
   ::law~(:any/step ~(mul 2 | add el)
     | :any/step/el ~(/0)
     | :any/step/el/NotNumberError ::holds~(is ::number)

@@ -129,7 +129,7 @@
 
 :builtin/SourceLoadError
   |~~ The platform resolved a `#qlang/<ns>` logical name to a path or
-      URL the host could not read. The descriptor carries `:host`
+      URL the host could not read. The error carries `:host`
       (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and either
       the underlying `:cause` or the HTTP `:status`. A host that ships
       its own catalog hands the runtime a locator of the sources of the

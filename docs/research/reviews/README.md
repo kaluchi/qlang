@@ -38,8 +38,8 @@ A finding not yet settled says open.
 2. A page of `if` and its law speak of a subject of each element, the reading of `*`. Answered by edac4969.
 3. `parseJson` says an error reads back as a map of `$tag` and `payload`; it reads back under `$error`. Answered by edac4969, with a sentence and a law on `json`.
 4. The page of `::builtin` names `::vec` among the values `::builtin{}`. Answered by edac4969.
-5. Laws of the first page repeating the laws of the chapters word for word, and `:qlang/rounds`. Open.
-6. Laws that nearly repeat each other. Open.
+5. Laws of the first page repeating the laws of the chapters word for word, and `:qlang/rounds`. Answered by acbb73a2 from the other side: the first page of D185 shows its examples in its prose, which a test runs, so its copies leave and the chapters and words keep theirs; the sentences the page repeated left with the page of D185.
+6. Laws that nearly repeat each other. The laws that repeat each other query for query left with acbb73a2 and 0a6cdfd0, none left now; the near repeats, open.
 7. Pages of kinds that repeat the pages of words. Open.
 8. Pages of words that repeat the repair their refusals' pages give. Open.
 9. Refusal pages with no law under their address. Open.

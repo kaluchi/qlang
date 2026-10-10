@@ -562,7 +562,7 @@
 
 :set/groupBy
   |~~ Answers the map of the elements filed under the keyword their key
-      answers, each bucket a set: `#[1 2 3 4] | groupBy ~(if (gt 2)
+      answers, each group a set: `#[1 2 3 4] | groupBy ~(if (gt 2)
       ~(:big) ~(:small))` answers `{:small #[1 2] :big #[3 4]}`, where a
       vector files into vectors, each element as often as it was
       written. Without a key an element files under itself. A key that
@@ -577,7 +577,7 @@
 
 :set/groupBy/answer
   |~~ The elements filed under the keyword their key answered, each
-      bucket a set.
+      group a set.
   ~~|
   ::map
 
@@ -763,8 +763,8 @@
   ::holds~(eq (round))
 
 :set/take/count/NotGivenError
-  |~~ `take` was called with no count: it takes the least count
-      elements, `take 2`, and the least alone is `first`.
+  |~~ `take` takes as many of the least elements as its call counts,
+      `take 2`, and the least alone is `first`.
   ~~|
 
 :set/take/ArgsBeyondPartsError
@@ -898,8 +898,8 @@
   ::holds~(eq (round))
 
 :set/at/index/NotGivenError
-  |~~ `at` was called with no index: the least element is `at 0`, or
-      `first`.
+  |~~ `at` reads the element at the index its call gives: the least
+      element is `at 0`, or `first`.
   ~~|
 
 :set/at/default
@@ -933,8 +933,8 @@
   ::law~(#[1 2] | at !| type | eq ::set/at/index/NotGivenError)
 
 :set/distinct
-  |~~ Answers the set itself: a set holds each element once already, so
-      `distinct` changes nothing. Over a vector `distinct` answers the set
+  |~~ Answers the set itself: a set holds each element once, so
+      `distinct` answers it as it is. Over a vector `distinct` answers the set
       of its elements, and so brings a set back after `sort` or
       `reverse`.
       ::link~(::vec/distinct | doc) ::link~(::set/sort | doc)
@@ -1073,7 +1073,7 @@
   |~~ A reducer given alone stands as the seed and leaves no reducer. ~~|
   ::law~(#[1 2] | reduce ~(add) !| type | eq ::set/reduce/reducer/NotGivenError)
 
-:set/reduce/ReducerNotBinaryError/refusesAPipeline
+:set/reduce/ReducerNotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
   ::law~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/ReducerNotBinaryError)
 

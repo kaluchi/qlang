@@ -149,7 +149,7 @@
 
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline that
-      the pipe or the fail track joins share one env, and a declaration
+      the pipe or the fail track joins share one scope, and a declaration
       of a name one of them declared before is refused where it stands,
       `:name` the name. A group, an element, a modifier and a quote open
       scopes of their own, where a name of the

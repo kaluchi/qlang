@@ -7,7 +7,7 @@
    the map, so a word declared here reaches every error. ~|
 
 :error/TrailNotVecError
-  |~~ `:trail` on an error descriptor is the path of the error, a
+  |~~ `:trail` among the facts of an error is its path, a
       vector of stops the runtime writes, `{:step :subject :skipped}`,
       from the step where it arose to the step where it is read.
       An error literal or a `raise` that writes a value that is no plain

@@ -774,8 +774,9 @@
       whatever the payload: the walk from a tagged value to its verb
       passes its own tags, then this kind, then the kind of its payload's
       shape. The verbs that take a tag apart live here, `payload`, which
-      answers the value beneath, and `within`, which edits it and puts
-      the tag back through its constructor. A value is put under a tag
+      answers the value beneath, and `within`, which runs code on the
+      value beneath and puts its answer back under the tag through the
+      tag's constructor. A value is put under a tag
       by a literal, `::T[1 2]` or `::T{:a 1}`, or by `tag`; the literal
       in a quote is a step of its own kind, `::construct`, and no value of
       this one. Every value under a tag reaches the words of this kind.
@@ -792,9 +793,9 @@
   ::law~(~(::Box[1 2]) | first | type | eq ::construct)
 
 :construct
-  |~~ The step of a constructor invocation, `::T[…]`, `::T{…}`, `::T(…)`
-      or `::T"…"`: it puts a payload under the tag `::T` through the tag's
-      constructor, which checks or builds the value. As a record, `:tag`
+  |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
+      `::T(…)` or `::T"…"`, through the tag's constructor, which checks or
+      builds the value. As a record, `:tag`
       is the tag and `:payload` the step of its payload. ::link~(::tag | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
@@ -809,8 +810,8 @@
       As a record, `:name` is the keyword of the name it calls and
       `:modifiers` the step of each modifier, when the call gives any.
       Like every record, a `::call` is the step its own text reads back
-      as: the constructor checks the fields against the schema, prints
-      the step and reads it back. ::link~(::quote | doc)
+      as: the constructor checks the kind of each field, prints the step
+      and reads it back. ::link~(::quote | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
 
@@ -1176,8 +1177,8 @@
       nothing and lays the tag on the value.
       A word answers under the label its `answer` names.
       A word of a noun itself, whose `subject` names `::tag`, takes the
-      tag name as its subject, so a guardian with no payload is addressed
-      bare, `::Jenkins | builds`, while a word of the noun's values
+      tag name as its subject, so a noun that stands for a thing outside
+      the language is addressed bare, `::Jenkins | builds`, while a word of the noun's values
       refuses the tag name.
   ~~|
   #[::any]

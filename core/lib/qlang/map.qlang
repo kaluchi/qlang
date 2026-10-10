@@ -278,8 +278,8 @@
 :map/min
   |~~ Answers the least value in the one order of values, a number before
       a string, or null for the empty map: `{:a 3 :b 1} | min` answers
-      `1`. The key the call gives ranks each value instead, code run on
-      the value, `{:a {:n 2} :b {:n 1}} | min ~(/n)` answering `{:n 1}`,
+      `1`. A key the call gives, code run on each value, ranks the values,
+      `{:a {:n 2} :b {:n 1}} | min ~(/n)` answering `{:n 1}`,
       and a key under `desc` ranks in reverse. The entry of the least
       value, key and value, is `entries | min ~(/1)`. A vector and a set
       answer by a `min` of their own.
@@ -335,8 +335,8 @@
 
 :map/max
   |~~ Answers the greatest value in the one order of values, a string
-      after a number, or null for the empty map; the key the call gives
-      ranks each value instead, as for `min`. The entry of the greatest
+      after a number, or null for the empty map; a key the call gives
+      ranks the values, as for `min`. The entry of the greatest
       value, key and value, is `entries | max ~(/1)`. A vector and a set
       answer by a `max` of their own.
       ::link~(::map/min | doc) ::link~(::vec/max | doc)
@@ -595,8 +595,8 @@
 :map/sort
   |~~ Answers the entries ordered by their values in the one order, their
       keys kept, under the tags of the map: `{:a 3 :b 1} | sort` answers
-      `{:b 1 :a 3}`. The key the call gives ranks each value instead, code
-      run on the value, `sort ~(/n)`, and a key under `desc` descends,
+      `{:b 1 :a 3}`. A key the call gives, code run on each value, ranks
+      them, `sort ~(/n)`, and a key under `desc` descends,
       `sort ~(desc)`. The entries of the answer read in order by `entries`
       and `vals`, while `keys` answers its keys by name. A vector and a
       set order by a `sort` of their own.
@@ -884,7 +884,7 @@
   |~~ A reducer written without its quote is refused. ~~|
   ::law~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/NotQuoteError)
 
-:map/reduce/ReducerNotBinaryError/refusesAPipeline
+:map/reduce/ReducerNotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
   ::law~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/ReducerNotBinaryError)
 

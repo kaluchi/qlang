@@ -93,8 +93,8 @@
   ~(/0)
 
 :any/eq/value/NotGivenError
-  |~~ `eq` was called with no value: it compares the subject with one,
-      `5 | eq 5`.
+  |~~ `eq` compares the subject with the value its call gives,
+      `5 | eq 5`; a call with no value is refused.
   ~~|
 
 :any/eq/ArgsBeyondPartsError
@@ -161,8 +161,8 @@
   ~(/0)
 
 :any/ne/value/NotGivenError
-  |~~ `ne` was called with no value: it compares the subject with one,
-      `5 | ne 6`.
+  |~~ `ne` compares the subject with the value its call gives,
+      `5 | ne 6`; a call with no value is refused.
   ~~|
 
 :any/ne/ArgsBeyondPartsError
@@ -1550,8 +1550,8 @@
   ::law~(:Inner |~~ An inner kind. ~~| | :Outer |~~ An outer kind. ~~|
     | ::Inner[1] | tag ::Outer | payload | type | eq ::Inner)
 
-:any/tag/replacesATagThroughThePayload
-  |~~ A tag is replaced through the payload. ~~|
+:any/tag/putsAnotherTagOverThePayload
+  |~~ Another tag goes over the payload taken out. ~~|
   ::law~(::Box(1) | payload | tag ::Crate | eq ::Crate(1))
 
 :any/tag/leavesAnErrorUnchanged

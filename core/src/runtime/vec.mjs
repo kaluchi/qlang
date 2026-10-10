@@ -146,6 +146,27 @@ bindPrim('map/sort', async (map, key) => {
   return isErrorValue(sorted) ? sorted : new Map(sorted);
 });
 
+// ── code on each element ───────────────────────────────────────
+
+// `map` runs its code on each element in order and answers what each
+// answered, the first error the code answers answering for the call, the
+// elements after it left unrun [D182]; a map keeps its keys.
+async function answersOf(elements, code) {
+  const answers = [];
+  for (const element of elements) {
+    const answer = await code(element);
+    if (isErrorValue(answer)) return answer;
+    answers.push(answer);
+  }
+  return answers;
+}
+
+bindPrim(['vec/map', 'set/map'], (sequence, code) => answersOf(sequence, code));
+bindPrim('map/map', async (map, code) => {
+  const answers = await answersOf(map.values(), code);
+  return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
+});
+
 // ── predicates ─────────────────────────────────────────────────
 
 // A predicate answers a boolean for each element or fails [D14]: the

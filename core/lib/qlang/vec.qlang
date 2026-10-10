@@ -327,6 +327,103 @@
   |~~ Of elements whose keys are equal the first answers. ~~|
   ::law~([{:age 40 :n 1} {:age 40 :n 2}] | max ~(/age) | /n | eq 1)
 
+:vec/map
+  |~~ Answers the vector of what the code answers for each element, in
+      their order, `[1 2 3] | map ~(add 10)` answering `[11 12 13]`. The
+      code is a quote run on each element as its subject: a step of one
+      word or one path written short, `map ~/name` or `map ~count`,
+      several steps in one quote, `map ~(mul 2 | add 1)`, and a literal,
+      which reshapes each element, `map ~({:id /id :n (/tags | count)})`.
+      It runs in the scope of the call, so a name declared before the
+      call is read inside, and the names a run declares stay in it. The
+      first error the code answers for an element is the answer of the
+      call, the elements after it left unrun, and a code that recovers,
+      `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
+      vector of their own, under no tag of the subject, whose tags speak
+      of the elements it held; a quote maps its steps and a doc its
+      segments. A set and a map answer `map` by words of their own;
+      `filter` keeps the elements a predicate holds of, and `reduce`
+      folds them into one value.
+      ::link~(::vec/filter | doc) ::link~(::vec/reduce | doc)
+      ::link~(::map/map | doc) ::link~(::set/map | doc)
+  ~~|
+  ::builtin{}
+
+:vec/map/answer
+  |~~ What the code answered for each element, in their order, a vector
+      under no tag.
+  ~~|
+  ::any
+
+:vec/map/code
+  |~~ The code run on each element, a quote. ~~|
+  ~(/0)
+
+:vec/map/code/NotQuoteError
+  |~~ The code is a quote, `map ~(add 1)`; written without the tilde,
+      `map (add 1)`, it is computed once at the call, against the
+      vector, and refused with what it answered.
+  ~~|
+  ::holds~(is ::quote)
+
+:vec/map/code/NotGivenError
+  |~~ `map` runs the code the call gives on each element,
+      `map ~(add 1)`; a call without it has nothing to run.
+  ~~|
+
+:vec/map/ArgsBeyondPartsError
+  |~~ `map` takes one code: several steps run in order inside one quote,
+      `map ~(mul 2 | add 1)`.
+  ~~|
+
+:vec/map/answersWhatEachElementAnswers
+  |~~ Each element is replaced by what the code answers for it. ~~|
+  ::law~([1 2 3] | map ~(add 10) | eq [11 12 13])
+
+:vec/map/takesAPathShort
+  |~~ A path alone is written short. ~~|
+  ::law~([{:n 1} {:n 2}] | map ~/n | eq [1 2])
+
+:vec/map/reshapesEachElementByALiteral
+  |~~ A literal reshapes each element. ~~|
+  ::law~([{:a 1 :b 2}] | map ~({:sum (sumOf /a /b)}) | eq [{:sum 3}])
+
+:vec/map/readsANameOfTheScope
+  |~~ A name declared before the call is read inside. ~~|
+  ::law~(:k 10 | [1 2] | map ~(mul k) | eq [10 20])
+
+:vec/map/answersTheFirstError
+  |~~ The first error answers the call, and the elements after it are not run. ~~|
+  ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
+
+:vec/map/recoversEachElement
+  |~~ A code that recovers keeps every element. ~~|
+  ::law~(["1" 2] | map ~(add 1 !| 0) | eq [0 3])
+
+:vec/map/answersUnderNoTag
+  |~~ The answers stand under no tag of the subject. ~~|
+  ::law~(::Box[1 2] | map ~(add 1) | eq [2 3])
+
+:vec/map/mapsTheStepsOfAQuote
+  |~~ A quote maps its steps. ~~|
+  ::law~(~(add 1 | mul 2) | map ~/name | eq [:add :mul])
+
+:vec/map/answersTheEmptyVector
+  |~~ The empty vector answers the empty vector. ~~|
+  ::law~([] | map ~(add 1) | eq [])
+
+:vec/map/code/NotQuoteError/refusesAStepComputedAtTheCall
+  |~~ A step written without its quote is refused. ~~|
+  ::law~([1 2] | map (add 1) !| type | eq ::vec/map/code/NotQuoteError)
+
+:vec/map/code/NotGivenError/refusesACallWithoutCode
+  |~~ A call without code is refused under the part. ~~|
+  ::law~([1 2] | map !| type | eq ::vec/map/code/NotGivenError)
+
+:vec/map/ArgsBeyondPartsError/refusesTwoCodes
+  |~~ Two codes are refused under the word. ~~|
+  ::law~([1 2] | map ~(add 1) ~(mul 2) !| type | eq ::vec/map/ArgsBeyondPartsError)
+
 :vec/filter
   |~~ Answers the elements whose predicate answers `true`, in their
       order, `[1 2 3 4 5] | filter ~(gt 2)` answering `[3 4 5]`. The

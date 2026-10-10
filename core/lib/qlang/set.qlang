@@ -356,6 +356,52 @@
   |~~ A key computed at the call is refused under the part. ~~|
   ::law~(#[3 1 4] | max 4 !| type | eq ::set/max/key/NotQuoteOrNullError)
 
+:set/map
+  |~~ Answers the vector of what the code answers for each element, in
+      the one order, `::set[3 1 2] | map ~(mul 10)` answering `[10 20
+      30]`. The images of a set are no part of it, so equal images stand
+      each in its place, `#[1 2 3] | map ~(gt 1)` answering `[false true
+      true]`, and `distinct` after it makes a set of them. The code is a
+      quote run on each element as its subject, and the first error it
+      answers is the answer of the call. A vector and a map answer `map`
+      by words of their own.
+      ::link~(::vec/map | doc) ::link~(::vec/distinct | doc)
+  ~~|
+  ::builtin{}
+
+:set/map/answer
+  |~~ What the code answered for each element, in the one order, a
+      vector.
+  ~~|
+  ::vec
+
+:set/map/code
+  |~~ The code run on each element, a quote. ~~|
+  ~(/0)
+
+:set/map/code/NotQuoteError
+  |~~ The code is a quote, `map ~(add 1)`; written without the tilde,
+      `map (add 1)`, it is computed once at the call, against the set,
+      and refused with what it answered.
+  ~~|
+  ::holds~(is ::quote)
+
+:set/map/answersInTheOneOrder
+  |~~ The elements run in the one order. ~~|
+  ::law~(::set[3 1 2] | map ~(mul 10) | eq [10 20 30])
+
+:set/map/keepsEqualImages
+  |~~ Equal images stand each in its place. ~~|
+  ::law~(#[1 2 3] | map ~(gt 1) | eq [false true true])
+
+:set/map/makesASetByDistinct
+  |~~ `distinct` makes a set of the images. ~~|
+  ::law~(#[1 2 3] | map ~(gt 1) | distinct | eq #[false true])
+
+:set/map/code/NotQuoteError/refusesAStepComputedAtTheCall
+  |~~ A step written without its quote is refused. ~~|
+  ::law~(#[1] | map (add 1) !| type | eq ::set/map/code/NotQuoteError)
+
 :set/filter
   |~~ Answers the set of the elements whose predicate answers `true`, a
       set again, in the one order and under the tags of the subject:

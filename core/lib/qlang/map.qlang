@@ -371,6 +371,62 @@
   |~~ The empty map has no greatest value. ~~|
   ::law~({} | max | eq null)
 
+:map/map
+  |~~ Answers the map of what the code answers for each value, under the
+      same keys in their order, `{:a 1 :b 2} | map ~(add 1)` answering
+      `{:a 2 :b 3}`. The code is a quote run on each value as its
+      subject, not on its entry, so a key is read beside its value by
+      `entries | map ~(…)`, and the pairs build a map back by `tag
+      ::map`. The first error the code answers for a value is the
+      answer of the call, and the answers stand in a map of their own,
+      under no tag of the subject. A vector and a set answer `map` by
+      words of their own.
+      ::link~(::map/filter | doc) ::link~(::map/entries | doc)
+      ::link~(::vec/map | doc)
+  ~~|
+  ::builtin{}
+
+:map/map/answer
+  |~~ What the code answered for each value, under the same keys, a map
+      under no tag.
+  ~~|
+  ::any
+
+:map/map/code
+  |~~ The code run on each value, a quote. ~~|
+  ~(/0)
+
+:map/map/code/NotQuoteError
+  |~~ The code is a quote, `map ~(add 1)`; written without the tilde,
+      `map (add 1)`, it is computed once at the call, against the map,
+      and refused with what it answered.
+  ~~|
+  ::holds~(is ::quote)
+
+:map/map/keepsTheKeys
+  |~~ Each value is replaced under its key. ~~|
+  ::law~({:x 1 :y 2} | map ~(add 1) | eq {:x 2 :y 3})
+
+:map/map/runsOnTheValue
+  |~~ The code runs on the value, not on its entry. ~~|
+  ::law~({:a [1 2]} | map ~count | eq {:a 2})
+
+:map/map/readsAKeyThroughEntries
+  |~~ A key is read beside its value through the entries. ~~|
+  ::law~({:a 1} | entries | map ~(/0) | eq [:a])
+
+:map/map/answersTheFirstError
+  |~~ The first error answers the call. ~~|
+  ::law~({:a 1 :b "x"} | map ~(add 1) !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
+
+:map/map/answersUnderNoTag
+  |~~ The answers stand under no tag of the subject. ~~|
+  ::law~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
+
+:map/map/code/NotQuoteError/refusesAStepComputedAtTheCall
+  |~~ A step written without its quote is refused. ~~|
+  ::law~({:a 1} | map (add 1) !| type | eq ::map/map/code/NotQuoteError)
+
 :map/filter
   |~~ Answers the entries whose value the predicate answers true for,
       their keys kept, under the tags of the map: `{:a 1 :b 2 :c 3} |

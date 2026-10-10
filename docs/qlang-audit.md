@@ -450,8 +450,9 @@ catalog is qlang source: every verb is a binding with its page and its
 laws, the axes pass from a name to its projections, `doc` its page,
 `source` its code and `binding` its record,
 `manifest` enumerates what exists, and `runLaws` runs the laws
-declared under a name as tests, each with the claim its page states. The self-test over the
-whole catalog runs in under a second.
+declared under the name any value reads as tests, each with the claim
+its page states [D178]. The self-test over the whole catalog runs in
+under a second.
 
 Three of these are in the core for reasons the mechanisms do not show.
 The fail track is there because a session that is learning a tool fails
@@ -644,9 +645,9 @@ things in different records; a record that is to be enriched therefore
 carries a tag, which documents its fields, and a value shared by
 several kinds of record a tag of its own [D50]. The shape of an answer
 is read the same way, before the answer is fetched: the result of a
-word is the label its answer's definition names, `:number/add/answer
-::number`, and the definitions under that label say what its values
-hold [D169]. Last, everything prints as what it is, code included,
+word is the label its `answer` names, `:number/add/answer ::number`,
+and the definitions under that label say what its values hold [D169],
+[D180]. Last, everything prints as what it is, code included,
 because an elided and enriched page travels on.
 
 The pages themselves are values of the same kind. The names are a space
@@ -1139,9 +1140,10 @@ and its laws, while one rule of the core prints every literal [D33].
 
 One mechanism of operand. An operand is a name under the label of its
 subject, the parts of its args names under its address with their
-invariants, its answer a name under it that names the kinds it answers,
-and its doc its page, and the runtime executes the declaration [D164],
-[D169]. A built-in, a host's operand and a
+invariants, its answer the name `answer` under it, which names the
+kinds it answers, and its doc its page, a story of what it answers, takes
+and refuses, and the runtime executes the declaration [D164], [D169],
+[D179], [D180]. A built-in, a host's operand and a
 declared pipeline are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
@@ -1402,7 +1404,9 @@ misses are read [D142].
 What remains of it: a view takes its options beyond a few positional
 modifiers as one map whose keys it declares [D40]; the catalog's prose
 is reduced to what the facts do not say, every page telling what its
-name is for and the claims its laws prove [D110], [D124]; errors print
+name is for and the claims its laws prove [D110], [D124], each
+definition a story a reader falls into, the word, its answer, its
+parts, its refusals and its laws in that order [D179]; errors print
 as alerts; enrichment happens once per session; fields are documented
 by their records' tags and shared values by their own [D50]; the first
 page's sections are names under `::qlang` from which the first screen
@@ -1831,3 +1835,6 @@ whole, a primitive the law of every count calls; or the test kept in
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
 [D177]: decisions/D177.md
+[D178]: decisions/D178.md
+[D179]: decisions/D179.md
+[D180]: decisions/D180.md

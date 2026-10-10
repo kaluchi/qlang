@@ -408,13 +408,13 @@
       value, so a step whose result leaves the domain answers an error.
       No kind reads text, so `::number(5)` is `5` and `::number"5"` is
       refused; `parseJson` reads a number out of a string. Its literal
-      is JSON's, a leading zero allowed, and its precision the double's own.
-      ::snippet~(::number | manifest) lists its verbs and refusals.
+      is JSON's, a leading zero allowed, and its precision the double's
+      own: a literal past the range is no number the parser reads, an
+      integer and a decimal are one kind, rounded as a double rounds, and
+      a step whose result leaves the range answers an error. Its words
+      add, subtract, multiply, divide, round and compare numbers.
+      ::snippet~(::number | manifest) lists its words and refusals.
       ::link~(::qlang/values | doc)
-
-      A literal past the range is no number the parser reads.
-      A step whose result leaves the range answers an error.
-      An integer and a decimal are one kind, rounded as a double rounds.
   ~~|
 
 :number/isANumber
@@ -439,14 +439,11 @@
       since the keys of a map are keywords. Its verbs work on the text
       whole, by its characters, `count`, `take` and `drop`, or by its
       lines, and `lines` breaks it into the vector a pipeline reads in
-      pieces. Its literal is written in double quotes
-      with the escapes of JSON, any character raw between them, a line
-      break among them.
-      ::snippet~(::string | manifest) lists its verbs and refusals. ::link~(::keyword | doc)
-      ::link~(::qlang/values | doc)
-
-      The escapes are those of JSON, `\"`, `\\`, `\n`, `\t` and
-      `\uXXXX` among them.
+      pieces. Its literal is written in double quotes with the escapes of
+      JSON, `\"`, `\\`, `\n`, `\t` and `\uXXXX` among them, any other
+      character raw between them, a line break among them.
+      ::snippet~(::string | manifest) lists its words and refusals.
+      ::link~(::keyword | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :string/isAString
@@ -524,11 +521,10 @@
       constructor re-runs after them, and a word that imposes an order,
       `sort` or `reverse`, answers a vector. `*` over a set answers
       the vector of its images, one per element, and `distinct` after it
-      makes a set of them again.
+      makes a set of them again. A set written with braces, `#{…}`, is
+      refused with the brackets it takes.
       ::link~(::vec | doc)
       ::link~(::qlang/values | doc)
-
-      A set written with braces is refused with the brackets it takes.
   ~~|
 
 :set/dropsDuplicates
@@ -591,9 +587,9 @@
   |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
       under the code tag. Code is a value so that a name takes code as a
       part of its args, `filter`, `sort`, `if`; a page holds links that
-      lead on and snippets that run, and the laws of a name are code; the trail of an error holds the steps it skipped,
-      ready to replay; and a query is read, printed and built like any
-      data. A literal step is the literal itself; a step that computes is
+      lead on and snippets that run, and the laws of a name are code; the
+      trail of an error holds the steps it skipped, ready to replay; and
+      a query is read, printed and built like any data. A literal step is the literal itself; a step that computes is
       a record, `::call`, `::proj`, `::bind` or `::construct`; `*`, `!|`
       and parentheses wrap their step as `::each`, `::fail` and
       `::group`. `apply` runs a quote on the subject and `parse` prints
@@ -856,13 +852,11 @@
       shape. The verbs that take a tag apart live here, `payload`, which
       answers the value beneath, and `within`, which edits it and puts
       the tag back through its constructor. A value is put under a tag
-      by a literal, `::T[1 2]` or `::T{:a 1}`, a step of its own kind,
-      or by `tag`.
+      by a literal, `::T[1 2]` or `::T{:a 1}`, or by `tag`; the literal
+      in a quote is a step of its own kind, `::construct`, and no value of
+      this one. Every value under a tag reaches the words of this kind.
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
-
-      Every value under a tag reaches the verbs of this kind.
-      The step that builds one is no value of this kind.
   ~~|
 
 :tagged/reachesPayload
@@ -889,9 +883,10 @@
   |~~ The step of a command, `verb modifiers`: the name finds its verb
       through the kind of the subject and runs it with the modifiers.
       As a record, `:name` is the keyword of the name it calls and
-      `:modifiers` the step of each modifier, when the call gives any. Like every record, a `::call` is the step its own text
-      reads back as: the constructor checks the fields against the schema,
-      prints the step and reads it back. ::link~(::quote | doc)
+      `:modifiers` the step of each modifier, when the call gives any.
+      Like every record, a `::call` is the step its own text reads back
+      as: the constructor checks the fields against the schema, prints
+      the step and reads it back. ::link~(::quote | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
 

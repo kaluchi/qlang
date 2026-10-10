@@ -18,7 +18,9 @@ bindPrim('vec/prepend', (vector, element) => [element, ...vector]);
 bindPrim('string/append', (text, suffix) => text + suffix);
 bindPrim('vec/append', (vector, element) => [...vector, element]);
 
-bindPrim('string/split', (subject, separator) => subject.split(separator));
+// The empty separator cuts the text into its characters, the code points
+// `count` counts, so no character falls in halves.
+bindPrim('string/split', (subject, separator) => (separator === '' ? Array.from(subject) : subject.split(separator)));
 
 // The lines of a text [D49]: a `\n` ends a line and a `\r` before it
 // belongs to the ending; the text after the last ending is a line

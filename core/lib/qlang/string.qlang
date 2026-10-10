@@ -1,8 +1,7 @@
-|~ What is declared under `::string`: the refusal of its
-   constructor, and the verbs of strings: the comparisons, which compare
-   two strings by their code units in the one order, the verbs that read
-   a string, `count`, `take` and `drop` by its characters, and
-   `prepend` and `append`. ~|
+|~ What is declared under `::string`: its constructor and the refusal of
+   a payload of another kind, and the words that run on a string, each
+   told in one order: the word and its page, its answer, its parts, its
+   refusals, its laws. ~|
 
 :string/construct
   |~~ Reads a string as itself. ~~|
@@ -18,90 +17,186 @@
   ::law~(::string(1) !| [type /actualType] | eq [::string/PayloadNotStringError ::number])
 
 :string/gt
-  |~~ Whether the subject follows the string the call gives. ~~|
+  |~~ Answers whether the subject comes after the string the call gives,
+      the two compared code unit by code unit, `"b" | gt "a"`. So an
+      upper-case letter comes before every lower-case one, `"B" | gt
+      "a"` answering `false`; a letter outside the ASCII letters comes
+      after them, `"é" | gt "z"`; a string comes after its own beginning,
+      `"abc" | gt "ab"`; and digits compare as characters, not as
+      numbers, `"10" | gt "9"` answering `false`. A string compares with
+      a string: a number or a keyword given is refused. A keyword or a
+      number in the pipe compares by the `gt` of its own kind, and a
+      vector, a set, a map or null answers no `gt`, which the refusal of
+      the call names with the kinds that do. A string under a tag
+      compares as the string beneath. `gte` answers whether the subject
+      comes after or equals, `lt` and `lte` the reverse.
+      ::link~(::string/gte | doc) ::link~(::string/lt | doc)
+      ::link~(::string/lte | doc) ::link~(::number/gt | doc)
+  ~~|
   ::builtin{}
 
-:string/gt/ordersByCharacters
-  |~~ The string b follows the string a. ~~|
-  ::law~("b" | gt "a" | eq true)
+:string/gt/answer
+  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
+  ::boolean
 
 :string/gt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The string the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :string/gt/value/NotStringError
-  |~~ The value compared is a string. ~~|
+  |~~ The value compared is a string; a keyword gives its name by
+      `keyword`.
+  ~~|
   ::holds~(is ::string)
 
-:string/gt/answer
-  |~~ Whether the subject comes after the value compared. ~~|
-  ::boolean
+:string/gt/ordersByCharacters
+  |~~ The string b comes after the string a. ~~|
+  ::law~("b" | gt "a")
+
+:string/gt/putsTheUpperCaseFirst
+  |~~ An upper-case letter comes before every lower-case one. ~~|
+  ::law~("B" | gt "a" | not)
+
+:string/gt/putsALetterBeyondAsciiAfter
+  |~~ A letter outside the ASCII letters comes after them. ~~|
+  ::law~("é" | gt "z")
+
+:string/gt/followsItsOwnBeginning
+  |~~ A string comes after its own beginning. ~~|
+  ::law~("abc" | gt "ab")
+
+:string/gt/comparesDigitsAsCharacters
+  |~~ Digits compare as characters, not as numbers. ~~|
+  ::law~("10" | gt "9" | not)
+
+:string/gt/comparesTheStringUnderATag
+  |~~ A string under a tag compares as the string beneath. ~~|
+  ::law~(::Name("b") | gt "a")
+
+:string/gt/value/NotStringError/refusesAKeyword
+  |~~ A keyword is no string to compare with. ~~|
+  ::law~("a" | gt :a !| type | eq ::string/gt/value/NotStringError)
+
+:string/gt/value/NotStringError/refusesANumber
+  |~~ A number is no string to compare with. ~~|
+  ::law~("a" | gt 1 !| type | eq ::string/gt/value/NotStringError)
 
 :string/gte
-  |~~ Whether the subject follows or equals the string the call gives. ~~|
+  |~~ Answers whether the subject comes after the string the call gives
+      or equals it, in the order `gt` tells, `"b" | gte "b"`.
+      ::link~(::string/gt | doc) ::link~(::string/lte | doc)
+  ~~|
   ::builtin{}
 
-:string/gte/holdsOfItself
-  |~~ A string follows or equals itself. ~~|
-  ::law~("b" | gte "b" | eq true)
+:string/gte/answer
+  |~~ `true` when the subject comes after the value or equals it, `false`
+      otherwise.
+  ~~|
+  ::boolean
 
 :string/gte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The string the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :string/gte/value/NotStringError
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/gte/answer
-  |~~ Whether the subject comes after the value compared or equals it. ~~|
-  ::boolean
+:string/gte/holdsOfItself
+  |~~ A string comes after or equals itself. ~~|
+  ::law~("b" | gte "b")
+
+:string/gte/failsOfALaterString
+  |~~ A string does not come after a later one. ~~|
+  ::law~("a" | gte "b" | not)
 
 :string/lt
-  |~~ Whether the subject precedes the string the call gives. ~~|
+  |~~ Answers whether the subject comes before the string the call gives,
+      in the order `gt` tells, `"a" | lt "b"`; the empty string comes
+      before every other.
+      ::link~(::string/gt | doc) ::link~(::string/lte | doc)
+  ~~|
   ::builtin{}
 
-:string/lt/ordersByCharacters
-  |~~ The string a precedes the string b. ~~|
-  ::law~("a" | lt "b" | eq true)
+:string/lt/answer
+  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
+  ::boolean
 
 :string/lt/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The string the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :string/lt/value/NotStringError
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/lt/answer
-  |~~ Whether the subject comes before the value compared. ~~|
-  ::boolean
+:string/lt/ordersByCharacters
+  |~~ The string a comes before the string b. ~~|
+  ::law~("a" | lt "b")
+
+:string/lt/putsTheEmptyStringFirst
+  |~~ The empty string comes before every other. ~~|
+  ::law~("" | lt "a")
 
 :string/lte
-  |~~ Whether the subject precedes or equals the string the call gives. ~~|
+  |~~ Answers whether the subject comes before the string the call gives
+      or equals it, in the order `gt` tells, `"a" | lte "a"`.
+      ::link~(::string/lt | doc) ::link~(::string/gte | doc)
+  ~~|
   ::builtin{}
 
-:string/lte/holdsOfItself
-  |~~ A string precedes or equals itself. ~~|
-  ::law~("a" | lte "a" | eq true)
+:string/lte/answer
+  |~~ `true` when the subject comes before the value or equals it, `false`
+      otherwise.
+  ~~|
+  ::boolean
 
 :string/lte/value
-  |~~ The value the subject is compared with. ~~|
+  |~~ The string the subject is compared with, computed against the
+      subject.
+  ~~|
   ~(/0)
 
 :string/lte/value/NotStringError
   |~~ The value compared is a string. ~~|
   ::holds~(is ::string)
 
-:string/lte/answer
-  |~~ Whether the subject comes before the value compared or equals it. ~~|
-  ::boolean
+:string/lte/holdsOfItself
+  |~~ A string comes before or equals itself. ~~|
+  ::law~("a" | lte "a")
+
+:string/lte/failsOfAnEarlierString
+  |~~ A string does not come before an earlier one. ~~|
+  ::law~("b" | lte "a" | not)
 
 :string/count
-  |~~ The number of characters of the string, a letter of any script
-      one, the length every other language gives a string.
+  |~~ Answers how many characters the string holds, a letter of any
+      script one, `"привет" | count` answering `6`, and the empty string
+      none. A character is a code point: an emoji counts one, and a
+      letter written with a combining accent counts two, the letter and
+      the accent. The name `count` also counts the elements of a vector
+      or a set and the entries of a map, and a number or null answers no
+      `count`, which the refusal of the call names with the kinds that
+      do.
+      ::link~(::string/take | doc) ::link~(::vec/count | doc)
   ~~|
   ::builtin{}
+
+:string/count/answer
+  |~~ How many characters the string holds. ~~|
+  ::number
+
+:string/count/ArgsBeyondPartsError
+  |~~ `count` counts every character of the string and takes no value:
+      the occurrences of a piece count by `split`, `"banana" | split "a"
+      | count | sub 1` answering `3`.
+  ~~|
 
 :string/count/countsCharacters
   |~~ Three letters count three. ~~|
@@ -115,24 +210,38 @@
   |~~ The empty string counts none. ~~|
   ::law~("" | count | eq 0)
 
-:string/count/answer
-  |~~ How many characters the string holds. ~~|
-  ::number
+:string/count/countsAnEmojiOne
+  |~~ An emoji is one code point and counts one. ~~|
+  ::law~("😀" | count | eq 1)
+
+:string/count/countsACombiningAccentApart
+  |~~ A letter with a combining accent counts two. ~~|
+  ::law~("é" | count | eq 2)
+
+:string/count/ArgsBeyondPartsError/refusesAPiece
+  |~~ A piece given to `count` is refused under the word. ~~|
+  ::law~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondPartsError)
 
 :string/take
-  |~~ The first count characters of the string. ~~|
+  |~~ Answers the first characters of the string, as many as the count
+      the call gives, `"db_host" | take 2` answering `"db"`. A count past
+      the end takes the whole string, and a count of zero or below takes
+      none, the empty string. A character is a code point, as `count`
+      counts it, so an emoji is taken whole. The count is a whole number:
+      a fraction and a string are refused. A string under a tag answers
+      under the tag. The name `take` also takes the first elements of a
+      vector, a set or a map.
+      ::link~(::string/drop | doc) ::link~(::string/count | doc)
+      ::link~(::vec/take | doc)
+  ~~|
   ::builtin{}
 
-:string/take/takesTheFirstCharacters
-  |~~ Two characters of a string are its first two. ~~|
-  ::law~("db_host" | take 2 | eq "db")
-
-:string/take/takesNoMoreThanThereAre
-  |~~ A count past the end takes the whole string. ~~|
-  ::law~("ab" | take 5 | eq "ab")
+:string/take/answer
+  |~~ The first characters of the string, under the tags of the subject. ~~|
+  ::string
 
 :string/take/count
-  |~~ How many. ~~|
+  |~~ How many characters to take, computed against the subject. ~~|
   ~(/0)
 
 :string/take/count/NotNumberError
@@ -143,22 +252,55 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:string/take/answer
-  |~~ The first characters. ~~|
-  ::string
+:string/take/takesTheFirstCharacters
+  |~~ Two characters of a string are its first two. ~~|
+  ::law~("db_host" | take 2 | eq "db")
+
+:string/take/takesNoMoreThanThereAre
+  |~~ A count past the end takes the whole string. ~~|
+  ::law~("ab" | take 5 | eq "ab")
+
+:string/take/takesNoneBelowZero
+  |~~ A count below zero takes none. ~~|
+  ::law~("abc" | take -1 | eq "")
+
+:string/take/takesAnEmojiWhole
+  |~~ An emoji is one character, taken whole. ~~|
+  ::law~("😀x" | take 1 | eq "😀")
+
+:string/take/answersUnderTheTagOfTheSubject
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Name("ab") | take 1 | eq ::Name("a"))
+
+:string/take/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~("abc" | take "2" !| type | eq ::string/take/count/NotNumberError)
+
+:string/take/count/NotIntegerError/refusesAFraction
+  |~~ A fraction of a count is refused. ~~|
+  ::law~("abc" | take 1.5 !| type | eq ::string/take/count/NotIntegerError)
 
 :string/drop
-  |~~ The string without its first count characters, the rest after a
-      prefix of known length.
+  |~~ Answers the string without its first characters, as many as the
+      count the call gives, the rest after a prefix of known length,
+      `"db_host" | drop 3` answering `"host"`. A count past the end leaves
+      the empty string, and a count of zero or below leaves the whole
+      string. A character is a code point, as `count` counts it, so an
+      emoji is dropped whole. The count is a whole number. A string under
+      a tag answers under the tag. The name `drop` also drops the first
+      elements of a vector, a set or a map.
+      ::link~(::string/take | doc) ::link~(::vec/drop | doc)
   ~~|
   ::builtin{}
 
-:string/drop/dropsAPrefix
-  |~~ Dropping a prefix of known length leaves the rest. ~~|
-  ::law~("db_host" | drop 3 | eq "host")
+:string/drop/answer
+  |~~ The characters after the ones dropped, under the tags of the
+      subject.
+  ~~|
+  ::string
 
 :string/drop/count
-  |~~ How many. ~~|
+  |~~ How many characters to drop, computed against the subject. ~~|
   ~(/0)
 
 :string/drop/count/NotNumberError
@@ -169,357 +311,637 @@
   |~~ The count is a whole number. ~~|
   ::holds~(eq (round))
 
-:string/drop/answer
-  |~~ The characters after the ones dropped. ~~|
-  ::string
+:string/drop/dropsAPrefix
+  |~~ Dropping a prefix of known length leaves the rest. ~~|
+  ::law~("db_host" | drop 3 | eq "host")
+
+:string/drop/leavesNothingPastTheEnd
+  |~~ A count past the end leaves the empty string. ~~|
+  ::law~("abc" | drop 99 | eq "")
+
+:string/drop/leavesTheWholeStringBelowZero
+  |~~ A count below zero leaves the whole string. ~~|
+  ::law~("abc" | drop -1 | eq "abc")
+
+:string/drop/dropsAnEmojiWhole
+  |~~ An emoji is one character, dropped whole. ~~|
+  ::law~("😀x" | drop 1 | eq "x")
+
+:string/drop/answersUnderTheTagOfTheSubject
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Name("ab") | drop 1 | eq ::Name("b"))
+
+:string/drop/count/NotIntegerError/refusesAFraction
+  |~~ A fraction of a count is refused. ~~|
+  ::law~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
 
 :string/split
-  |~~ The substrings between the occurrences of the separator, as a
-      vector. Inverse of `join`.
-
-      The subject of `split` is the string it cuts; a vector of strings
-      is cut element by element, `* split ","`.
+  |~~ Answers the pieces of the string between the occurrences of the
+      separator the call gives, in order, a vector of strings: `"a,b,c" |
+      split ","` answers `["a" "b" "c"]`. Two separators side by side
+      leave an empty piece between them, a separator at an end an empty
+      piece there, and the empty string is one empty piece; a separator
+      the string lacks leaves it whole, one piece. The separator is any
+      string, a line break or `"::"` among them, and a keyword is
+      refused. The empty separator cuts the string into its characters,
+      as `count` counts them: a letter stands alone, and an emoji
+      stays whole. `join` writes the pieces back, and
+      `lines` breaks a text at its line breaks. A vector of strings
+      splits under `*`, each element into a vector of its own.
+      ::link~(::string/lines | doc) ::link~(::vec/join | doc)
   ~~|
   ::builtin{}
+
+:string/split/answer
+  |~~ The pieces between the separators, in order, each a string. ~~|
+  ::vec
+
+:string/split/separator
+  |~~ The string the subject is cut at, computed against the subject. ~~|
+  ~(/0)
+
+:string/split/separator/NotStringError
+  |~~ The separator is a string; a keyword gives its name by `keyword`. ~~|
+  ::holds~(is ::string)
+
+:string/split/separator/NotGivenError
+  |~~ `split` needs the separator to cut at, `split ","`: a text cuts at
+      its spaces by `split " "`, and at its line breaks by `lines`.
+  ~~|
+
+:string/split/SubjectNotStringError
+  |~~ `split` cuts a string: a vector of strings splits under `*`, `*
+      split ","`, and a value becomes text by `print`.
+  ~~|
 
 :string/split/cutsAtTheSeparator
   |~~ The pieces between the commas. ~~|
   ::law~("a,b,c" | split "," | eq ["a" "b" "c"])
 
+:string/split/leavesAnEmptyPieceBetweenTwoSeparators
+  |~~ Two separators side by side leave an empty piece between them. ~~|
+  ::law~("a,,b" | split "," | eq ["a" "" "b"])
+
+:string/split/leavesAnEmptyPieceAtAnEnd
+  |~~ A separator at an end leaves an empty piece there. ~~|
+  ::law~("a,b," | split "," | eq ["a" "b" ""])
+
+:string/split/cutsTheEmptyStringIntoOneEmptyPiece
+  |~~ The empty string is one empty piece. ~~|
+  ::law~("" | split "," | eq [""])
+
+:string/split/leavesAStringWithoutTheSeparatorWhole
+  |~~ A separator the string lacks leaves it whole. ~~|
+  ::law~("a,b" | split ";" | eq ["a,b"])
+
 :string/split/cutsAtALineBreak
   |~~ A line break separates as any separator does. ~~|
   ::law~("line1\nline2" | split "\n" | eq ["line1" "line2"])
 
-:string/split/refusesANumber
+:string/split/cutsAtASeparatorOfSeveralCharacters
+  |~~ A separator may be longer than one character. ~~|
+  ::law~("a::b" | split "::" | eq ["a" "b"])
+
+:string/split/cutsEveryLetterApartAtTheEmptySeparator
+  |~~ The empty separator leaves every letter alone. ~~|
+  ::law~("abc" | split "" | eq ["a" "b" "c"])
+
+:string/split/keepsAnEmojiWholeAtTheEmptySeparator
+  |~~ The empty separator keeps an emoji whole. ~~|
+  ::law~("😀x" | split "" | eq ["😀" "x"])
+
+:string/split/readsBackByJoin
+  |~~ `join` writes the pieces back. ~~|
+  ::law~("a,b" | split "," | join "," | eq "a,b")
+
+:string/split/splitsEachElementUnderStar
+  |~~ A vector of strings splits under `*`, each into a vector of its own. ~~|
+  ::law~(["a,b" "c"] * split "," | eq [["a" "b"] ["c"]])
+
+:string/split/SubjectNotStringError/refusesANumber
   |~~ A number is no string to cut. ~~|
   ::law~(42 | split "," !| [type /actualType] | eq [::string/split/SubjectNotStringError ::number])
 
-:string/split/separator
-  |~~ The separator the call gives.
+:string/split/separator/NotStringError/refusesAKeyword
+  |~~ A keyword is no separator. ~~|
+  ::law~("abc" | split :b !| type | eq ::string/split/separator/NotStringError)
 
-      The separator of `split` is a string, `split ","`.
-  ~~|
-  ~(/0)
-
-:string/split/separator/refusesANumber
-  |~~ A number separator is refused. ~~|
-  ::law~("abc" | split 42 !| [type /actualType] | eq [::string/split/separator/NotStringError ::number])
-
-:string/split/separator/NotStringError
-  |~~ The separator is a string. ~~|
-  ::holds~(is ::string)
-
-:string/split/answer
-  |~~ The pieces between the separators, in order. ~~|
-  ::vec
+:string/split/separator/NotGivenError/refusesACallWithNoSeparator
+  |~~ A call with no separator is refused under the part. ~~|
+  ::law~("abc" | split !| type | eq ::string/split/separator/NotGivenError)
 
 :string/lines
-  |~~ The lines of a text, as a vector of strings. A `\n` ends a line
-      and a `\r` before it belongs to the ending; a newline at the end
-      closes the last line rather than opening an empty one, so a text
-      reads alike with and without it, and the empty text has no lines.
-      The text is then worked on as the vector it has become, and
-      `join "\n"` writes it back.
+  |~~ Answers the lines of the text, a vector of strings without their
+      breaks: `"north\nsouth" | lines` answers `["north" "south"]`. A
+      `\n` ends a line and a `\r` before it belongs to the ending, while
+      a `\r` alone ends no line; a break at the end closes the last line
+      rather than opening an empty one, so a text reads alike with and
+      without it; an empty line between two breaks stays; and the empty
+      text holds no line. The text is then worked on as the vector it
+      has become, and `join "\n"` writes it back.
 
       `lines` breaks a string, the text the command line reads with
-      `--raw`; a vector of texts is broken element by element, `* lines`.
+      `--raw`, and takes no value; a vector of texts breaks element by
+      element under `*`, `* lines`.
+      ::link~(::string/split | doc) ::link~(::vec/join | doc)
   ~~|
   ::builtin{}
+
+:string/lines/answer
+  |~~ The lines of the text in order, without their breaks. ~~|
+  ::vec
+
+:string/lines/SubjectNotStringError
+  |~~ `lines` breaks a string: a vector of texts breaks under `*`, `*
+      lines`, and a value becomes text by `print`.
+  ~~|
+
+:string/lines/ArgsBeyondPartsError
+  |~~ `lines` breaks a text at its line breaks alone: a text breaks at
+      another separator by `split`, `split ";"`.
+  ~~|
 
 :string/lines/splitsAtLineBreaks
   |~~ Each line is a string. ~~|
   ::law~("north\nsouth" | lines | eq ["north" "south"])
 
 :string/lines/takesACarriageReturnWithItsBreak
-  |~~ A carriage return before a break belongs to the ending, and a closing break opens no line. ~~|
-  ::law~("one\r\ntwo\n" | lines | eq ["one" "two"])
+  |~~ A carriage return before a break belongs to the ending. ~~|
+  ::law~("one\r\ntwo" | lines | eq ["one" "two"])
+
+:string/lines/endsNoLineAtACarriageReturnAlone
+  |~~ A carriage return alone ends no line. ~~|
+  ::law~("a\rb" | lines | count | eq 1)
+
+:string/lines/closesTheLastLineAtAClosingBreak
+  |~~ A break at the end opens no empty line. ~~|
+  ::law~("one\ntwo\n" | lines | eq ["one" "two"])
+
+:string/lines/keepsAnEmptyLine
+  |~~ An empty line between two breaks stays. ~~|
+  ::law~("a\n\nb" | lines | eq ["a" "" "b"])
 
 :string/lines/findsNoLineInTheEmptyString
   |~~ The empty string holds no line. ~~|
   ::law~("" | lines | eq [])
 
-:string/lines/refusesANumber
+:string/lines/writesBackByJoin
+  |~~ `join "\n"` writes the lines back. ~~|
+  ::law~("a\nb" | lines | join "\n" | eq "a\nb")
+
+:string/lines/breaksEachTextUnderStar
+  |~~ A vector of texts breaks under `*`, each into a vector of its own. ~~|
+  ::law~(["a\nb" "c"] * lines | eq [["a" "b"] ["c"]])
+
+:string/lines/SubjectNotStringError/refusesANumber
   |~~ A number is no text. ~~|
   ::law~(42 | lines !| [type /actualType] | eq [::string/lines/SubjectNotStringError ::number])
 
-:string/lines/answer
-  |~~ The lines of the text in order, without their breaks. ~~|
-  ::vec
+:string/lines/ArgsBeyondPartsError/refusesASeparator
+  |~~ A separator given to `lines` is refused under the word. ~~|
+  ::law~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondPartsError)
 
 :string/lower
-  |~~ The string with every letter in lower case, so two strings that
-      differ in case alone compare equal once lowered.
-
-      `lower` works on a string; a vector of strings takes it element by
-      element, `* lower`, and a field is read first, `/email | lower`.
+  |~~ Answers the string with every letter in lower case, of any script,
+      `"Ann@Example.COM" | lower` answering `"ann@example.com"`, so two
+      strings that differ in case alone are equal once lowered; digits
+      and signs stay as they are. A letter may lower into more than one
+      character, `"İ"` into an `i` and a combining dot, so the count may
+      grow. A string under a tag answers under the tag. A keyword has no
+      case to lower: `keyword` gives its name first. A vector of strings
+      lowers under `*`.
+      ::link~(::string/upper | doc)
   ~~|
   ::builtin{}
+
+:string/lower/answer
+  |~~ The text in lower case, under the tags of the subject. ~~|
+  ::string
+
+:string/lower/SubjectNotStringError
+  |~~ `lower` lowers a string: a keyword gives its name by `keyword`,
+      `:A | keyword | lower`, and a vector of strings lowers under `*`, `*
+      lower`.
+  ~~|
 
 :string/lower/lowersEveryLetter
   |~~ Every letter becomes lower case. ~~|
   ::law~("Ann@Example.COM" | lower | eq "ann@example.com")
 
+:string/lower/lowersALetterOfAnyScript
+  |~~ A letter of any script lowers. ~~|
+  ::law~("Ä" | lower | eq "ä")
+
 :string/lower/makesCaseVariantsEqual
   |~~ Two strings that differ in case alone are equal once lowered. ~~|
   ::law~(["Ann" "ANN"] * lower | distinct | count | eq 1)
 
-:string/lower/refusesANumber
-  |~~ A number has no letters. ~~|
-  ::law~(42 | lower !| [type /actualType] | eq [::string/lower/SubjectNotStringError ::number])
+:string/lower/mayGrowTheCount
+  |~~ A letter may lower into more than one character. ~~|
+  ::law~("İ" | lower | count | eq 2)
 
-:string/lower/answer
-  |~~ The text in lower case. ~~|
-  ::string
+:string/lower/answersUnderTheTagOfTheSubject
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Name("Ab") | lower | eq ::Name("ab"))
+
+:string/lower/SubjectNotStringError/refusesAKeyword
+  |~~ A keyword has no case to lower. ~~|
+  ::law~(:Ab | lower !| type | eq ::string/lower/SubjectNotStringError)
 
 :string/upper
-  |~~ The string with every letter in upper case.
-
-      `upper` works on a string; a vector of strings takes it element by
-      element, `* upper`.
+  |~~ Answers the string with every letter in upper case, of any script,
+      `"ok, go" | upper` answering `"OK, GO"`; digits and signs stay as
+      they are. A letter may raise into more than one character, `ß`
+      into `SS`, so the count may grow. A string under a tag answers
+      under the tag. A keyword has no case to raise: `keyword` gives its
+      name first. A vector of strings raises under `*`.
+      ::link~(::string/lower | doc)
   ~~|
   ::builtin{}
+
+:string/upper/answer
+  |~~ The text in upper case, under the tags of the subject. ~~|
+  ::string
+
+:string/upper/SubjectNotStringError
+  |~~ `upper` raises a string: a keyword gives its name by `keyword`, and
+      a vector of strings raises under `*`, `* upper`.
+  ~~|
 
 :string/upper/raisesEveryLetter
   |~~ Every letter becomes upper case. ~~|
   ::law~("ok, go" | upper | eq "OK, GO")
 
-:string/upper/refusesANumber
-  |~~ A number has no letters. ~~|
-  ::law~(42 | upper !| [type /actualType] | eq [::string/upper/SubjectNotStringError ::number])
+:string/upper/mayGrowTheCount
+  |~~ A letter may raise into more than one character. ~~|
+  ::law~("Straße" | upper | eq "STRASSE")
 
-:string/upper/answer
-  |~~ The text in upper case. ~~|
-  ::string
+:string/upper/answersUnderTheTagOfTheSubject
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Name("ab") | upper | eq ::Name("AB"))
+
+:string/upper/raisesEachElementUnderStar
+  |~~ A vector of strings raises under `*`. ~~|
+  ::law~(["a" "b"] * upper | eq ["A" "B"])
+
+:string/upper/SubjectNotStringError/refusesAKeyword
+  |~~ A keyword has no case to raise. ~~|
+  ::law~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
 
 :string/trim
-  |~~ The string without the whitespace at its two ends, spaces, tabs
-      and line breaks, so a field cut out of a line compares as the text
-      it holds.
-
-      `trim` works on a string; a vector of strings takes it element by
-      element, `* trim`.
+  |~~ Answers the string without the whitespace at its two ends, spaces,
+      tabs, line breaks and the no-break space, so a field cut out of a
+      line compares as the text it holds; the whitespace inside stays. A
+      string under a tag answers under the tag. A vector of strings trims
+      under `*`, `split "," * trim`.
+      ::link~(::string/split | doc)
   ~~|
   ::builtin{}
 
+:string/trim/answer
+  |~~ The text without the whitespace at its ends, under the tags of the
+      subject.
+  ~~|
+  ::string
+
+:string/trim/SubjectNotStringError
+  |~~ `trim` trims a string: a vector of strings trims under `*`, `*
+      trim`, and a value becomes text by `print`.
+  ~~|
+
 :string/trim/dropsTheWhitespaceAtTheEnds
-  |~~ The spaces at both ends go. ~~|
-  ::law~("  db_host 
-" | trim | eq "db_host")
+  |~~ The tab, the spaces and the break at the ends go. ~~|
+  ::law~("\t db_host \n" | trim | eq "db_host")
+
+:string/trim/dropsTheNoBreakSpace
+  |~~ The no-break space at the ends goes too. ~~|
+  ::law~(" a " | trim | eq "a")
+
+:string/trim/keepsTheWhitespaceInside
+  |~~ The whitespace inside the string stays. ~~|
+  ::law~("a  b" | trim | eq "a  b")
 
 :string/trim/cleansTheFieldsOfALine
   |~~ The fields of a line compare as the text they hold once trimmed. ~~|
   ::law~("a, b ,c" | split "," * trim | eq ["a" "b" "c"])
 
-:string/trim/refusesANumber
+:string/trim/answersUnderTheTagOfTheSubject
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Name(" a ") | trim | eq ::Name("a"))
+
+:string/trim/SubjectNotStringError/refusesANumber
   |~~ A number has no whitespace to trim. ~~|
   ::law~(42 | trim !| [type /actualType] | eq [::string/trim/SubjectNotStringError ::number])
 
-:string/trim/answer
-  |~~ The text without the whitespace at its ends. ~~|
-  ::string
-
 :string/contains
-  |~~ Whether the string holds the needle as a substring; the empty
-      needle is always held. Case-sensitive.
-
-      The subject of `::string/contains` is the string searched, where the
-      address calls it; the name `contains` reaches a vector and a set by
-      their elements.
+  |~~ Answers whether the string holds the needle the call gives as a
+      piece of its text, anywhere, inside a word among it: `"hello" |
+      contains "ell"` answers `true`. Every string holds the empty
+      needle. Case counts, `"Hello" | contains "h"` answering `false`;
+      where it should not, `lower` comes first, `lower | contains "h"`.
+      The needle is a string: a keyword is refused, and `keyword` gives
+      its name. The name `contains` asks a vector and a set for an
+      element, whole, so `["ab"] | contains "a"` answers `false`, and a
+      number or a map answers no `contains`, which the refusal of the
+      call names with the kinds that do.
+      ::link~(::string/startsWith | doc) ::link~(::string/endsWith | doc)
+      ::link~(::vec/contains | doc)
   ~~|
   ::builtin{}
+
+:string/contains/answer
+  |~~ `true` when the text holds the needle, `false` otherwise. ~~|
+  ::boolean
+
+:string/contains/needle
+  |~~ The text looked for, computed against the subject. ~~|
+  ~(/0)
+
+:string/contains/needle/NotStringError
+  |~~ The needle is a string; a keyword gives its name by `keyword`. ~~|
+  ::holds~(is ::string)
 
 :string/contains/findsAWord
   |~~ A word of the string is found. ~~|
-  ::law~("hello world" | contains "world" | eq true)
-
-:string/contains/missesAbsentText
-  |~~ Text the string lacks is not found. ~~|
-  ::law~("hello" | contains "xyz" | eq false)
-
-:string/contains/refusesANumber
-  |~~ A number is no string to search. ~~|
-  ::law~(42 | string/contains "x" !| [type /actualType] | eq [::string/contains/SubjectNotStringError ::number])
+  ::law~("hello world" | contains "world")
 
 :string/contains/findsTextInside
   |~~ Text inside a word is found. ~~|
-  ::law~("hello" | contains "ell" | eq true)
+  ::law~("hello" | contains "ell")
 
-:string/contains/needle
-  |~~ The text looked for.
+:string/contains/missesAbsentText
+  |~~ Text the string lacks is not found. ~~|
+  ::law~("hello" | contains "xyz" | not)
 
-      The needle of `contains` is a string, `contains "x"`; a keyword
-      gives its name by `keyword`.
-  ~~|
-  ~(/0)
+:string/contains/holdsTheEmptyNeedle
+  |~~ Every string holds the empty needle. ~~|
+  ::law~("hello" | contains "")
 
-:string/contains/needle/refusesANumber
-  |~~ A number needle is refused. ~~|
-  ::law~("hi" | contains 42 !| [type /actualType] | eq [::string/contains/needle/NotStringError ::number])
+:string/contains/countsCase
+  |~~ Case counts. ~~|
+  ::law~("Hello" | contains "h" | not)
 
-:string/contains/needle/NotStringError
-  |~~ The needle is a string. ~~|
-  ::holds~(is ::string)
+:string/contains/ignoresCaseAfterLower
+  |~~ Lowered first, the string holds the needle whatever its case. ~~|
+  ::law~("Hello" | lower | contains "h")
 
-:string/contains/answer
-  |~~ Whether the text holds the part. ~~|
-  ::boolean
+:string/contains/asksAVectorForAWholeElement
+  |~~ A vector of strings is asked for a whole element, not a piece. ~~|
+  ::law~(["ab"] | contains "a" | not)
+
+:string/contains/needle/NotStringError/refusesAKeyword
+  |~~ A keyword is no needle. ~~|
+  ::law~("hi" | contains :h !| type | eq ::string/contains/needle/NotStringError)
 
 :string/startsWith
-  |~~ Whether the string begins with the prefix; the empty prefix
-      always begins it. Case-sensitive.
-
-      The subject of `startsWith` is the string whose beginning is read;
-      a field is read first, `/name | startsWith "a"`.
+  |~~ Answers whether the string begins with the prefix the call gives,
+      `"hello world" | startsWith "hello"`. The empty prefix begins every
+      string, a prefix longer than the string begins none, and case
+      counts. The prefix is a string, and a keyword is refused. Only a
+      string answers `startsWith`, and another value is refused: a field
+      is read first, `/name | startsWith "a"`, and a vector of strings
+      asks under `*`, each element apart.
+      ::link~(::string/endsWith | doc) ::link~(::string/contains | doc)
   ~~|
   ::builtin{}
 
-:string/startsWith/findsThePrefix
-  |~~ The string begins with its first word. ~~|
-  ::law~("hello world" | startsWith "hello" | eq true)
-
-:string/startsWith/missesAnotherPrefix
-  |~~ Another word does not begin it. ~~|
-  ::law~("hello" | startsWith "world" | eq false)
-
-:string/startsWith/refusesANumber
-  |~~ A number is no string. ~~|
-  ::law~(42 | startsWith "x" !| [type /actualType] | eq [::string/startsWith/SubjectNotStringError ::number])
+:string/startsWith/answer
+  |~~ `true` when the text begins with the prefix, `false` otherwise. ~~|
+  ::boolean
 
 :string/startsWith/prefix
-  |~~ The prefix the call gives.
-
-      The prefix of `startsWith` is a string, `startsWith "he"`.
-  ~~|
+  |~~ The text the string begins with, computed against the subject. ~~|
   ~(/0)
-
-:string/startsWith/prefix/refusesANumber
-  |~~ A number prefix is refused. ~~|
-  ::law~("hi" | startsWith 42 !| [type /actualType] | eq [::string/startsWith/prefix/NotStringError ::number])
 
 :string/startsWith/prefix/NotStringError
   |~~ The prefix is a string. ~~|
   ::holds~(is ::string)
 
-:string/startsWith/answer
-  |~~ Whether the text begins with the part. ~~|
-  ::boolean
+:string/startsWith/SubjectNotStringError
+  |~~ `startsWith` reads the beginning of a string: a field is read
+      first, `/name | startsWith "a"`, and a vector of strings asks under
+      `*`.
+  ~~|
+
+:string/startsWith/findsThePrefix
+  |~~ The string begins with its first word. ~~|
+  ::law~("hello world" | startsWith "hello")
+
+:string/startsWith/missesAnotherPrefix
+  |~~ Another word does not begin it. ~~|
+  ::law~("hello" | startsWith "world" | not)
+
+:string/startsWith/beginsWithTheEmptyPrefix
+  |~~ The empty prefix begins every string. ~~|
+  ::law~("hello" | startsWith "")
+
+:string/startsWith/missesALongerPrefix
+  |~~ A prefix longer than the string begins none. ~~|
+  ::law~("hi" | startsWith "hello" | not)
+
+:string/startsWith/countsCase
+  |~~ Case counts. ~~|
+  ::law~("Hello" | startsWith "h" | not)
+
+:string/startsWith/asksEachElementUnderStar
+  |~~ A vector of strings asks under `*`, each element apart. ~~|
+  ::law~(["ab" "ba"] * startsWith "a" | eq [true false])
+
+:string/startsWith/SubjectNotStringError/refusesAVector
+  |~~ A vector is no string to read the beginning of. ~~|
+  ::law~(["a"] | startsWith "a" !| type | eq ::string/startsWith/SubjectNotStringError)
+
+:string/startsWith/prefix/NotStringError/refusesAKeyword
+  |~~ A keyword is no prefix. ~~|
+  ::law~("hi" | startsWith :h !| type | eq ::string/startsWith/prefix/NotStringError)
 
 :string/endsWith
-  |~~ Whether the string ends with the suffix; the empty suffix always
-      ends it. Case-sensitive.
-
-      The subject of `endsWith` is the string whose end is read; a field
-      is read first, `/file | endsWith ".json"`.
+  |~~ Answers whether the string ends with the suffix the call gives,
+      `"x.json" | endsWith ".json"`. The empty suffix ends every string,
+      a suffix longer than the string ends none, and case counts. The
+      suffix is a string, and a keyword is refused. Only a string answers
+      `endsWith`, and another value is refused: a field is read first,
+      `/file | endsWith ".json"`, and a vector of strings asks under `*`,
+      each element apart.
+      ::link~(::string/startsWith | doc) ::link~(::string/contains | doc)
   ~~|
   ::builtin{}
 
-:string/endsWith/findsTheSuffix
-  |~~ The string ends with its last word. ~~|
-  ::law~("hello world" | endsWith "world" | eq true)
-
-:string/endsWith/missesAnotherSuffix
-  |~~ Another word does not end it. ~~|
-  ::law~("hello" | endsWith "xyz" | eq false)
-
-:string/endsWith/refusesANumber
-  |~~ A number is no string. ~~|
-  ::law~(42 | endsWith "x" !| [type /actualType] | eq [::string/endsWith/SubjectNotStringError ::number])
+:string/endsWith/answer
+  |~~ `true` when the text ends with the suffix, `false` otherwise. ~~|
+  ::boolean
 
 :string/endsWith/suffix
-  |~~ The suffix the call gives.
-
-      The suffix of `endsWith` is a string, `endsWith ".json"`.
-  ~~|
+  |~~ The text the string ends with, computed against the subject. ~~|
   ~(/0)
-
-:string/endsWith/suffix/refusesANumber
-  |~~ A number suffix is refused. ~~|
-  ::law~("hi" | endsWith 42 !| [type /actualType] | eq [::string/endsWith/suffix/NotStringError ::number])
 
 :string/endsWith/suffix/NotStringError
   |~~ The suffix is a string. ~~|
   ::holds~(is ::string)
 
-:string/endsWith/answer
-  |~~ Whether the text ends with the part. ~~|
-  ::boolean
+:string/endsWith/SubjectNotStringError
+  |~~ `endsWith` reads the end of a string: a field is read first, `/file
+      | endsWith ".json"`, and a vector of strings asks under `*`.
+  ~~|
+
+:string/endsWith/findsTheSuffix
+  |~~ The string ends with its last word. ~~|
+  ::law~("hello world" | endsWith "world")
+
+:string/endsWith/missesAnotherSuffix
+  |~~ Another word does not end it. ~~|
+  ::law~("hello" | endsWith "xyz" | not)
+
+:string/endsWith/endsWithTheEmptySuffix
+  |~~ The empty suffix ends every string. ~~|
+  ::law~("hello" | endsWith "")
+
+:string/endsWith/missesALongerSuffix
+  |~~ A suffix longer than the string ends none. ~~|
+  ::law~("hi" | endsWith "ohi" | not)
+
+:string/endsWith/countsCase
+  |~~ Case counts. ~~|
+  ::law~("Hello" | endsWith "O" | not)
+
+:string/endsWith/asksEachElementUnderStar
+  |~~ A vector of strings asks under `*`, each element apart. ~~|
+  ::law~(["ab" "ba"] * endsWith "a" | eq [false true])
+
+:string/endsWith/SubjectNotStringError/refusesAVector
+  |~~ A vector is no string to read the end of. ~~|
+  ::law~(["a"] | endsWith "a" !| type | eq ::string/endsWith/SubjectNotStringError)
+
+:string/endsWith/suffix/NotStringError/refusesAKeyword
+  |~~ A keyword is no suffix. ~~|
+  ::law~("hi" | endsWith :i !| type | eq ::string/endsWith/suffix/NotStringError)
 
 :string/prepend
-  |~~ The string with the prefix in front; a tag over the string comes
-      back on the answer.
+  |~~ Answers the string with the prefix the call gives in front of it,
+      `"world" | prepend "hello "` answering `"hello world"`. A string
+      under a tag answers under the tag. The prefix is a string: a value
+      of another kind becomes text by `print` first, `prepend (n |
+      print)`. The name `prepend` also puts an element in front of a
+      vector, `[1] | prepend 0`.
+      ::link~(::string/append | doc) ::link~(::vec/prepend | doc)
   ~~|
   ::builtin{}
+
+:string/prepend/answer
+  |~~ The text with the prefix before it, under the tags of the subject. ~~|
+  ::string
+
+:string/prepend/prefix
+  |~~ The text put in front, computed against the subject. ~~|
+  ~(/0)
+
+:string/prepend/prefix/NotStringError
+  |~~ The prefix is a string; `print` makes text of a value. ~~|
+  ::holds~(is ::string)
 
 :string/prepend/putsThePrefixInFront
   |~~ The prefix goes in front. ~~|
   ::law~("world" | prepend "hello " | eq "hello world")
 
 :string/prepend/keepsTheTag
-  |~~ A tag over the string comes back on the answer. ~~|
+  |~~ A string under a tag answers under the tag. ~~|
   ::law~(::Box("b") | prepend "a" | eq ::Box("ab"))
 
-:string/prepend/prefix
-  |~~ The prefix the call gives.
+:string/prepend/prependsTheTextOfAValue
+  |~~ A value becomes text by `print` before it goes in front. ~~|
+  ::law~("x" | prepend (42 | print) | eq "42x")
 
-      The prefix a string takes is a string; a value of another kind
-      becomes one by `print`, `prepend (n | print)`.
-  ~~|
-  ~(/0)
-
-:string/prepend/prefix/refusesANumber
+:string/prepend/prefix/NotStringError/refusesANumber
   |~~ A number prefix is refused; `print` makes it text. ~~|
-  ::law~("x" | prepend 42 !| [type /actualType] | eq [::string/prepend/prefix/NotStringError ::number])
-
-:string/prepend/prefix/NotStringError
-  |~~ The prefix is a string. ~~|
-  ::holds~(is ::string)
-
-:string/prepend/answer
-  |~~ The text with the part before it. ~~|
-  ::string
+  ::law~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotStringError)
 
 :string/append
-  |~~ The string with the suffix after it; a tag over the string comes
-      back on the answer.
+  |~~ Answers the string with the suffix the call gives after it, `"hello"
+      | append " world"` answering `"hello world"`. A string under a tag
+      answers under the tag. The suffix is a string: a value of another
+      kind becomes text by `print` first, `append (n | print)`. The name
+      `append` also puts an element after the last of a vector, `[1] |
+      append 2`.
+      ::link~(::string/prepend | doc) ::link~(::vec/append | doc)
   ~~|
   ::builtin{}
+
+:string/append/answer
+  |~~ The text with the suffix after it, under the tags of the subject. ~~|
+  ::string
+
+:string/append/suffix
+  |~~ The text put after, computed against the subject. ~~|
+  ~(/0)
+
+:string/append/suffix/NotStringError
+  |~~ The suffix is a string; `print` makes text of a value. ~~|
+  ::holds~(is ::string)
 
 :string/append/putsTheSuffixAfter
   |~~ The suffix goes after. ~~|
   ::law~("hello" | append " world" | eq "hello world")
 
-:string/append/suffix
-  |~~ The suffix the call gives.
+:string/append/keepsTheTag
+  |~~ A string under a tag answers under the tag. ~~|
+  ::law~(::Box("a") | append "b" | eq ::Box("ab"))
 
-      The suffix a string takes is a string; a value of another kind
-      becomes one by `print`, `append (n | print)`.
-  ~~|
-  ~(/0)
+:string/append/appendsTheTextOfAValue
+  |~~ A value becomes text by `print` before it goes after. ~~|
+  ::law~("x" | append (42 | print) | eq "x42")
 
-:string/append/suffix/refusesANumber
+:string/append/suffix/NotStringError/refusesANumber
   |~~ A number suffix is refused; `print` makes it text. ~~|
-  ::law~("x" | append 42 !| [type /actualType] | eq [::string/append/suffix/NotStringError ::number])
-
-:string/append/suffix/NotStringError
-  |~~ The suffix is a string. ~~|
-  ::holds~(is ::string)
-
-:string/append/answer
-  |~~ The text with the part after it. ~~|
-  ::string
+  ::law~("x" | append 42 !| type | eq ::string/append/suffix/NotStringError)
 
 :string/parseJson
-  |~~ The qlang value a string of plain JSON spells, the reverse of
-      `json`: the keys of an object become keywords, an array a vector,
-      and scalars pass through. Lossy for the shapes of qlang alone: a
-      set arriving from JSON reads as a vector, a keyword as a value as
-      a string, and errors have no plain form. It reads input from any
-      producer that speaks JSON.
-
-      `parseJson` reads a string of JSON text; a value becomes such text
-      by `json`.
+  |~~ Answers the value the JSON text of the string spells, the reverse
+      of `json`: an object is a map whose keys are keywords, a key with
+      a space among them quoted, an array a vector, and a number, a
+      string, `true`, `false` and `null` themselves; whitespace around
+      the text is read past, and a key written twice keeps its last
+      value. A string that holds a number reads as the number, `"42" |
+      parseJson`, which is how a number comes out of text. JSON has no
+      form for a set, a keyword or a tag: what `json` wrote of a set
+      reads back as a vector, of a keyword as a string, and of a value
+      under a tag, an error among them, as a map of its `$tag` and
+      `payload`. Text that is no JSON is refused with the message of the
+      reader of JSON, and a number past the doubles is refused with the
+      path to it in the text.
+      ::link~(::any/json | doc) ::link~(::string/parse | doc)
   ~~|
   ::builtin{}
+
+:string/parseJson/answer
+  |~~ The value the JSON text spells, of whatever kind it is. ~~|
+  ::any
+
+:string/parseJson/SubjectNotStringError
+  |~~ `parseJson` reads a string of JSON text; a value becomes such text
+      by `json`.
+  ~~|
+
+:string/parseJson/TextNotJsonError
+  |~~ `parseJson` could not read the subject as JSON. The message of the
+      reader of JSON rides on `:message`.
+  ~~|
+
+:string/parseJson/TextNotJsonError/message
+  |~~ What the reader of JSON says of the text. ~~|
+  ::string
+
+:string/parseJson/NumberNotFiniteError
+  |~~ JSON text may write a number past the range of the doubles a
+      number of qlang is, `1e400`, which no number of the language holds,
+      so reading it is refused rather than turned into an infinity. It is
+      met where JSON text is read, by `parseJson` and by the command line
+      reading its input, and never in a literal of qlang, which the
+      parser refuses itself.
+  ~~|
+
+:string/parseJson/NumberNotFiniteError/path
+  |~~ The path to the number in the text. ~~|
+  ::vec
 
 :string/parseJson/readsANumber
   |~~ A JSON number reads as a number. ~~|
@@ -537,47 +959,72 @@
   |~~ A JSON object reads as a map of keywords. ~~|
   ::law~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
 
-:string/parseJson/refusesANumber
-  |~~ A number is no text to read. ~~|
-  ::law~(42 | parseJson !| [type /actualType] | eq [::string/parseJson/SubjectNotStringError ::number])
+:string/parseJson/quotesAKeyWithASpace
+  |~~ A key with a space reads as a quoted keyword. ~~|
+  ::law~("{\"first name\": 1}" | parseJson | eq {:"first name" 1})
 
-:string/parseJson/TextNotJsonError
-  |~~ `parseJson` could not parse the subject as JSON. The message
-      of the host's parser rides on `:message`.
-  ~~|
+:string/parseJson/readsTheLiteralsAsThemselves
+  |~~ JSON true, false and null read as themselves. ~~|
+  ::law~("[true, false, null]" | parseJson | eq [true false null])
+
+:string/parseJson/readsPastTheWhitespaceAround
+  |~~ Whitespace around the text is read past. ~~|
+  ::law~(" 42 " | parseJson | eq 42)
+
+:string/parseJson/keepsTheLastOfAKeyWrittenTwice
+  |~~ A key written twice keeps its last value. ~~|
+  ::law~("{\"a\":1,\"a\":2}" | parseJson | eq {:a 2})
+
+:string/parseJson/readsBackWhatJsonWrote
+  |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
+  ::law~({:a [1 "x"]} | json | parseJson | eq {:a [1 "x"]})
+
+:string/parseJson/readsASetBackAsAVector
+  |~~ What `json` wrote of a set reads back as a vector. ~~|
+  ::law~(#[1 2] | json | parseJson | eq [1 2])
+
+:string/parseJson/readsAKeywordBackAsAString
+  |~~ What `json` wrote of a keyword reads back as a string. ~~|
+  ::law~(:a | json | parseJson | eq "a")
+
+:string/parseJson/readsATagBackAsAMap
+  |~~ What `json` wrote of a value under a tag reads back as a map. ~~|
+  ::law~(::Box("a") | json | parseJson | eq {:"$tag" "Box" :payload "a"})
+
+:string/parseJson/SubjectNotStringError/refusesANumber
+  |~~ A number is no text to read. ~~|
+  ::law~(42 | parseJson
+    !| [type /actualType]
+    |  eq [::string/parseJson/SubjectNotStringError ::number])
 
 :string/parseJson/TextNotJsonError/refusesBrokenText
   |~~ Text that is no JSON is refused. ~~|
   ::law~("{not json" | parseJson !| type | eq ::string/parseJson/TextNotJsonError)
 
-:string/parseJson/TextNotJsonError/message
-  |~~ What the reader of JSON says of the text. ~~|
-  ::string
-
-:string/parseJson/NumberNotFiniteError
-  |~~ JSON text may write a number past the range of the doubles a
-      number of qlang is, `1e400`, which no number of the language
-      holds, so reading it is refused rather than turned into an
-      infinity. It is met where JSON text is read, by `parseJson` and
-      by the command line reading its input, and never in a literal of
-      qlang, which the parser refuses itself.
-  ~~|
-
 :string/parseJson/NumberNotFiniteError/refusesANumberPastTheRange
   |~~ A number past the range of doubles is refused. ~~|
   ::law~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
 
-:string/parseJson/NumberNotFiniteError/path
-  |~~ The path to the number in the text. ~~|
-  ::vec
+:string/parseJson/NumberNotFiniteError/namesThePathToTheNumber
+  |~~ The refusal names the path to the number in the text. ~~|
+  ::law~("[1, 1e400]" | parseJson !| /path | eq [1])
 
 :string/keyword
-  |~~ The keyword the string names, bridging the world of strings, JSON
-      data and text built from parts, with the world of keywords, the
-      keys of maps and the discriminators of enums. A keyword answers its
-      name by `keyword` again, so the two round-trip.
+  |~~ Answers the keyword the string names, `"draft" | keyword` answering
+      `:draft`: the bridge from strings, JSON data and text built from
+      parts, to keywords, the keys of maps and the names of a scope, so
+      `at ("a" | keyword)` reads the key a string names. Any text names a
+      keyword: a slash makes a path, `:qlang/error`, and a space or the
+      empty string makes a quoted one, `:"a b"`. A keyword answers its
+      name by `keyword` again, so the two read back. A string under a tag
+      names the keyword of its text.
+      ::link~(::keyword/keyword | doc) ::link~(::keyword | doc)
   ~~|
   ::builtin{}
+
+:string/keyword/answer
+  |~~ The keyword the text names. ~~|
+  ::keyword
 
 :string/keyword/namesAKeyword
   |~~ A string names the keyword of its text. ~~|
@@ -587,22 +1034,40 @@
   |~~ A slash stays in the name. ~~|
   ::law~("qlang/error" | keyword | eq :qlang/error)
 
+:string/keyword/quotesAName
+  |~~ A space makes a quoted keyword. ~~|
+  ::law~("a b" | keyword | eq :"a b")
+
+:string/keyword/readsTheKeyAStringNames
+  |~~ A string names the key a map is read by. ~~|
+  ::law~({:a 1} | at ("a" | keyword) | eq 1)
+
 :string/keyword/readsBack
   |~~ A keyword's name reads back as the string. ~~|
   ::law~("bar" | keyword | keyword | eq "bar")
 
-:string/keyword/answer
-  |~~ The keyword the text names. ~~|
-  ::keyword
+:string/keyword/namesTheKeywordOfATaggedString
+  |~~ A string under a tag names the keyword of its text. ~~|
+  ::law~(::Name("ab") | keyword | eq :ab)
 
 :string/parse
-  |~~ The quote of the steps the source text spells, the reverse of
-      `parse` on a quote. Pair it with `apply /` to evaluate source
-      text without leaving qlang. A source the parser refuses answers a
-      `::quote/ParseError` on the fail-track, which `!|` reads like every
-      other error.
+  |~~ Answers the quote of the steps the source text spells, `"add 1 2" |
+      parse` answering `~(add 1 2)`, the reverse of `parse` on a quote,
+      which answers its text; the empty text spells the empty quote.
+      `apply` runs the quote on a subject, `5 | apply ("add 1" | parse)`,
+      and a source that starts from a value of its own runs by `apply /`,
+      so source text is evaluated without leaving the language. A source
+      the parser cannot read is refused with a `::quote/ParseError`,
+      whose `:expected` and `:location` tell what the parser wanted and
+      where, with `:found` when a token stood there, and `!|` reads it as
+      every other error.
+      ::link~(::quote/parse | doc) ::link~(::any/apply | doc)
   ~~|
   ::builtin{}
+
+:string/parse/answer
+  |~~ The quote of the steps the text spells. ~~|
+  ::quote
 
 :string/parse/readsTheSteps
   |~~ The source reads as its steps. ~~|
@@ -611,3 +1076,27 @@
 :string/parse/readsTheQuote
   |~~ The source reads as the quote it spells. ~~|
   ::law~("add 1 2" | parse | eq ~(add 1 2))
+
+:string/parse/readsTheEmptyQuote
+  |~~ The empty text spells the empty quote. ~~|
+  ::law~("" | parse | eq ~())
+
+:string/parse/readsBackByParse
+  |~~ `parse` on the quote answers the text again. ~~|
+  ::law~("add 1" | parse | parse | eq "add 1")
+
+:string/parse/runsByApply
+  |~~ `apply` runs the quote on a subject. ~~|
+  ::law~(5 | apply ("add 1" | parse) | eq 6)
+
+:string/parse/runsASourceWithItsOwnValueByApply
+  |~~ A source that starts from a value of its own runs by `apply /`. ~~|
+  ::law~("1 | add 1" | parse | apply / | eq 2)
+
+:string/parse/refusesASourceTheParserRefuses
+  |~~ A source the parser cannot read is refused. ~~|
+  ::law~("add (" | parse !| type | eq ::quote/ParseError)
+
+:string/parse/namesTheTokenFound
+  |~~ The refusal names the token that stood where the parser stopped. ~~|
+  ::law~("add )" | parse !| /found | eq ")")

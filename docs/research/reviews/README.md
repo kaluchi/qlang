@@ -10,7 +10,7 @@ A finding not yet settled says open.
 [2026-10-10-vec-set-map.md](2026-10-10-vec-set-map.md), at 1c0758e3.
 
 1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Open.
-2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Open.
+2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Answered by 1389eb66.
 3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
 4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Open.
 5. `vec/sort` says a map sorts by its keys; it sorts by its values. Answered by edac4969.
@@ -47,7 +47,7 @@ A finding not yet settled says open.
 11. Pages that do not say what a call with no value or with more values does. Open.
 12. Claims with no law under their name. Open.
 13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Open.
-14. `:any/apply/runsADistribute` and laws named after `*`. Open.
+14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
 15. Laws that prove nothing of their page. Open.
 16. Negations standing for definitions. Open.
 17. Words of mutation: edits, has become, is replaced. Open.
@@ -74,7 +74,7 @@ review; findings 5 and 6 still stand for the laws declared under
 3. Two target cases walked an empty set, `::qlang | manifest` naming chapters with nothing under them. Answered by 08f332a5: they walk `kinds | map ~(manifest) | flat`.
 4. Duplicates among cases and unit tests. Answered by 08f332a5, the copy naming the decision staying.
 5. A test of the wrapper built under `::each`, a tag nothing answers. Answered by 08f332a5.
-6. Names of cases and tests after `*`. Answered for the tests by 08f332a5; `:any/apply/runsADistribute` open with the catalog.
+6. Names of cases and tests after `*`. Answered by 08f332a5 for the tests and by 1389eb66 for the catalog.
 7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Open.
 8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.

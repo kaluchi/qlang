@@ -1447,14 +1447,6 @@
       the pair.
   ~~|
 
-:vec/union/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:vec/union/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
-
 :vec/union/unitesTheValues
   |~~ The sets the vector holds unite. ~~|
   ::law~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
@@ -1521,14 +1513,6 @@
       vector of keys; a vector is none, so a value its call gives beside
       the vector is refused with the pair.
   ~~|
-
-:vec/minus/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:vec/minus/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
 
 :vec/minus/KeyNotKeywordOrStringError
   |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
@@ -1607,14 +1591,6 @@
       vector of keys; a vector is none, so a value its call gives beside
       the vector is refused with the pair.
   ~~|
-
-:vec/inter/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:vec/inter/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
 
 :vec/inter/KeyNotKeywordOrStringError
   |~~ A key `inter` keeps of a map is a keyword or a string; `:index`

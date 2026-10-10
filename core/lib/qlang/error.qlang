@@ -63,6 +63,22 @@
   ~~|
   ::any
 
+:error/leftType
+  |~~ The kind of the value on the left. ~~|
+  ::tag
+
+:error/rightType
+  |~~ The kind of the value on the right. ~~|
+  ::tag
+
+:error/field
+  |~~ The field that does not fit, null when the payload is no map. ~~|
+  #[::keyword ::null]
+
+:error/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
+
 :error/trail
   |~~ Answers the path of the error, a vector of stops from the step
       that raised it to the `!|` that opened it, each a map of the `:step`, the `:subject` that step met, and the

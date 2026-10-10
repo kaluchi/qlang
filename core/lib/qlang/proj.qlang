@@ -16,10 +16,6 @@
       ::link~(::proj | doc)
   ~~|
 
-:proj/PayloadNotSchemaError/field
-  |~~ The field that does not fit, null when the payload is no map. ~~|
-  #[::keyword ::null]
-
 :proj/PayloadNotSchemaError/refusesAPathThatIsAString
   |~~ A path that is a string is refused, `:field` naming it. ~~|
   ::law~(::proj{:path "items"} !| [type /field] | eq [::proj/PayloadNotSchemaError :path])
@@ -36,10 +32,6 @@
       `{:"0" 5} | /0` answering `5`.
       ::link~(::proj | doc)
   ~~|
-
-:proj/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
 
 :proj/ReadBackDiffersError/refusesAKeyThatReadsAsAnIndex
   |~~ A key that reads as an index prints as the index. ~~|

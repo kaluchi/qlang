@@ -18,10 +18,6 @@
       ::link~(::call | doc)
   ~~|
 
-:call/PayloadNotSchemaError/field
-  |~~ The field that does not fit, null when the payload is no map. ~~|
-  #[::keyword ::null]
-
 :call/PayloadNotSchemaError/refusesANameThatIsNoKeyword
   |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
   ::law~(::call{:name 42} !| [type /field] | eq [::call/PayloadNotSchemaError :name])
@@ -39,10 +35,6 @@
       modifiers holds no `:modifiers`.
       ::link~(::call | doc)
   ~~|
-
-:call/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
 
 :call/ReadBackDiffersError/refusesANameOfTwoWords
   |~~ A name with a space prints as two words, which read back as another step. ~~|

@@ -29,10 +29,6 @@
       ::link~(::group | doc)
   ~~|
 
-:group/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
-
 :group/ReadBackDiffersError/refusesAnEmptyGroup
   |~~ An empty group prints as text that reads back as none. ~~|
   ::law~(~() | tag ::group !| [type /printed] | eq [::group/ReadBackDiffersError "()"])

@@ -18,10 +18,6 @@
       ::link~(::bind | doc)
   ~~|
 
-:bind/PayloadNotSchemaError/field
-  |~~ The field that does not fit, null when the payload is no map. ~~|
-  #[::keyword ::null]
-
 :bind/PayloadNotSchemaError/refusesDocsThatAreNoDocs
   |~~ Docs that are no vector of docs are refused, `:field` naming them. ~~|
   ::law~(::bind{:name :inc :docs [1]} !| [type /field] | eq [::bind/PayloadNotSchemaError :docs])
@@ -45,10 +41,6 @@
       a page, and a doc bound as the value is the body of a group.
       ::link~(::bind | doc)
   ~~|
-
-:bind/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
 
 :bind/ReadBackDiffersError/refusesABindOfNothing
   |~~ A bind with neither a body nor docs prints as a bare name, which

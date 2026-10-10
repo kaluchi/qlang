@@ -29,10 +29,6 @@
       ::link~(::fail | doc)
   ~~|
 
-:fail/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
-
 :fail/ReadBackDiffersError/refusesAPipelineOutsideAGroup
   |~~ A pipeline wrapped without a group prints as text that reads back as two steps. ~~|
   ::law~(~(a | b) | tag ::fail !| [type /printed] | eq [::fail/ReadBackDiffersError "!| a | b"])

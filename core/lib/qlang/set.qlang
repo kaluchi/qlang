@@ -1127,14 +1127,6 @@
 :set/union/KindsMismatchedError
   |~~ The values `union` joins inside a set are two sets or two maps. ~~|
 
-:set/union/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:set/union/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
-
 :set/union/ArgsBeyondPartsError
   |~~ `union` joins the subject with one set: several join one after
       another, `union #[2] | union #[3]`, or as a set of sets with no
@@ -1221,14 +1213,6 @@
 :set/minus/KindsMismatchedError
   |~~ The values `minus` joins inside a set are two sets or two maps. ~~|
 
-:set/minus/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:set/minus/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
-
 :set/minus/ArgsBeyondPartsError
   |~~ `minus` takes one set: several go one after another, `minus #[2] |
       minus #[3]`.
@@ -1304,14 +1288,6 @@
 
 :set/inter/KindsMismatchedError
   |~~ The values `inter` joins inside a set are two sets or two maps. ~~|
-
-:set/inter/KindsMismatchedError/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:set/inter/KindsMismatchedError/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
 
 :set/inter/ArgsBeyondPartsError
   |~~ `inter` takes one set: several cross one after another, `inter #[1

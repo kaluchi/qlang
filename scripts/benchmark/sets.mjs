@@ -7,14 +7,15 @@
 // A set lives under `sets/<id>/`: `set.json` (who wrote it, whether it
 // was seen), `tasks.json`, `inputs/`, the author's record under
 // `author/`, and the runs under `runs/`, each named
-// `<screen>~<mode>~<model>~<n>.json`.
+// `<screen>~<mode>~<model>~<n>.json`, the screen of a measurement the
+// number of the decision it measures [D183].
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
 import { runChild } from './child.mjs';
-import { screenText, screenHash } from './screens.mjs';
+import { screenText, fixScreen } from './screens.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
@@ -101,28 +102,65 @@ function blindPrompt(setId, screen) {
   ].join('\n');
 }
 
-// run(setId, { screen, mode, model, runs }) — the runs a record does not
-// hold yet, in parallel; each record names the screen, its hash and the
-// commit of the tree the children ran.
-export async function run(setId, { screen, mode, model, runs }) {
+// The numbers of the decisions the runs of every set measured.
+function measuredNumbers() {
+  const numbers = [];
+  for (const setId of readdirSync(setsDir)) {
+    const runsDir = join(setDirOf(setId), 'runs');
+    if (!existsSync(runsDir)) continue;
+    for (const name of readdirSync(runsDir)) {
+      const measured = /^D(\d+)[.~]/.exec(name);
+      if (measured !== null) numbers.push(Number(measured[1]));
+    }
+  }
+  return numbers;
+}
+
+// The changes of the tree outside its commit, the records of the
+// benchmark aside.
+function changesOutsideCommit() {
+  return execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' }).split('\n')
+    .filter(line => line.trim() !== '' && !/scripts\/benchmark\/(sets\/[^/]+\/runs|screens)\//.test(line));
+}
+
+// run(setId, { decision, mode, model, runs, reason }) — a measurement of a
+// decision [D183]: the numbers measured grow, a decision measured before is
+// measured again with a reason alone, and each run fixes the screen the
+// tree printed, the commit of a clean tree, the model that answered and
+// its score.
+export async function run(setId, { decision, mode, model, runs, reason }) {
+  if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, 'docs', 'decisions', `${decision}.md`))) {
+    throw new Error(`--decision names no decision: ${decision}`);
+  }
+  const changes = changesOutsideCommit();
+  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit:\n${changes.join('\n')}`);
+  const measured = measuredNumbers();
+  const number = Number(decision.slice(1));
+  const last = Math.max(0, ...measured);
+  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it`);
+  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason`);
+  const screen = fixScreen(decision);
   const runsDir = join(setDirOf(setId), 'runs');
   mkdirSync(runsDir, { recursive: true });
-  const prompt = mode === 'cli' ? cliPrompt(setId, screen) : blindPrompt(setId, screen);
+  const prefix = `${screen.name}~${mode}~${model}~`;
+  const taken = readdirSync(runsDir).filter(name => name.startsWith(prefix)).map(name => Number(name.slice(prefix.length, -'.json'.length)));
+  const first = Math.max(0, ...taken) + 1;
+  const prompt = mode === 'cli' ? cliPrompt(setId, screen.name) : blindPrompt(setId, screen.name);
+  const commit = commitOf();
   const jobs = [];
-  for (let runIndex = 1; runIndex <= runs; runIndex++) {
-    const recordPath = join(runsDir, `${screen}~${mode}~${model}~${runIndex}.json`);
-    if (existsSync(recordPath) && !JSON.parse(readFileSync(recordPath, 'utf8')).failed) continue;
-    const workDir = join(scratchRoot, 'children', `${setId}-${screen}-${mode}-${model}-${runIndex}`);
+  for (let runIndex = first; runIndex < first + runs; runIndex++) {
+    const workDir = join(scratchRoot, 'children', `${setId}-${screen.name}-${mode}-${model}-${runIndex}`);
     rmSync(workDir, { recursive: true, force: true });
     mkdirSync(workDir, { recursive: true });
     if (mode === 'cli') for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
-    jobs.push(runChild({ prompt, model, mode, workDir }).then(record => writeFileSync(recordPath, JSON.stringify({
-      set: setId, screen, screenHash: screenHash(screen), mode, model, run: runIndex,
-      date: new Date().toISOString().slice(0, 10), commit: commitOf(), ...record
+    jobs.push(runChild({ prompt, model, mode, workDir }).then(record => writeFileSync(join(runsDir, `${prefix}${runIndex}.json`), JSON.stringify({
+      set: setId, decision, screen: screen.name, screenHash: screen.hash, mode, model, run: runIndex,
+      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, ...record,
+      score: scoreOf(setId, record.result)
     }, null, 1) + '\n')));
   }
   await Promise.all(jobs);
-  console.log(`${setId} ${screen} ${mode} ${model}: ${jobs.length} runs`);
+  console.log(`${setId} ${decision} ${mode} ${model}: ${jobs.length} runs, screen ${screen.name} ${screen.hash}`);
 }
 
 // ── grade ──────────────────────────────────────────────────────
@@ -163,6 +201,17 @@ function sameJson(one, other) {
     return keys.length === Object.keys(other).length && keys.every(key => key in other && sameJson(one[key], other[key]));
   }
   return one === other;
+}
+
+// The score of a reply, each task's final query run by the tree of the
+// run against the answer of the task [D183].
+function scoreOf(setId, reply) {
+  const finals = finalQueriesOf(setId, reply);
+  return tasksOf(setId).map(task => {
+    const query = finals.get(task.id) ?? null;
+    const answered = query === null ? null : answerOf(setId, task, query);
+    return { task: task.id, query, answer: answered === null ? null : answered.answer, solved: answered !== null && sameJson(answered.answer, task.expected) };
+  });
 }
 
 function runRecordsOf(setId) {

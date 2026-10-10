@@ -1,0 +1,2218 @@
+{
+ "set": "T",
+ "screen": "D181",
+ "screenHash": "4b4c3bf5a1f5",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-10",
+ "commit": "1c0758e3",
+ "modelId": "claude-haiku-4-5-20251001",
+ "result": "Looking at this qlang documentation and the tasks, I need to write queries that work with the given input files. Let me work through each task systematically.\n\nKey concepts I'm using:\n- `/path` for reading map keys and array indices\n- `filter ~(...)` for filtering with conditions\n- `map ~(...)` for transforming elements\n- `allOf` for multiple conditions\n- `:name value` to bind values\n- Soft reads with `at` that return null if missing\n- Common verbs like `count`, `sum`, `avg`, `sort`, `groupBy`, etc.\n\nT1: Count users who are active AND have non-null email ending with @example.com (case-insensitive)\nT2: Get admin role users, extract names, sort by lowercase\nT3: Count users per country (handle missing/null as \"unknown\")\nT4: Average age of users with non-null age, rounded to 2 decimals\nT5: Lowercase labels from open issues, deduplicate and sort\nT6: Top 3 issues by comments desc then number asc, with specific fields\nT7: Count open issues per assignee login\nT8: Merge dependencies, filter entries starting with \"^\", format as \"name@version\"\nT9: Services with enabled=true and port > 8000, lowercase names, join with comma\nT10: Count ERROR log lines per service\nT11: Extract and average ms=<int> values from logs\nT12: Sum of qty*price for shipped orders, skip empty prices\nT13: Top 2 customers by total spend, excluding cancelled orders\nT14: Process word list - lowercase, deduplicate, sort by length then alphabetically\n\nT1: /data/users | filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")) | count\nT2: /data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map /name | sort ~(lower)\nT3: /data/users | groupBy ~(at /profile | coalesce {} | at /country | coalesce \"unknown\") | map ~(count)\nT4: /data/users | map ~(at /profile | coalesce {} | at /age) | filter ~(ne null) | avg | round 2\nT5: filter ~(/state | eq \"open\") | map /labels | flat | map ~(/name | lower) | distinct | sort\nT6: sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at /assignee | at /login)})\nT7: filter ~(allOf (/state | eq \"open\") (/assignee | ne null)) | groupBy ~(/assignee/login) | map ~(count)\nT8: :deps /dependencies | :devDeps /devDependencies | (:deps | union :devDeps) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\")\nT9: /services | filter ~(allOf (/enabled | coalesce false) (/port | gt 8000)) | map ~(/name | lower) | sort | join \",\"\nT10: lines | filter ~(split \" \" | /1 | eq \"ERROR\") | map ~(split \" \" | /2) | groupBy ~(/) | map ~(count)\nT11: lines | map ~(split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(ne null) | map ~(split \"=\" | /1) | map ~(parseJson) | avg | round 1\nT12: lines | drop 1 | map ~(split \",\") | filter ~(allOf (/5 | lower | eq \"shipped\") (/4 | ne \"\")) | map ~({:qty (/3 | parseJson) :price (/4 | parseJson)} | mulOf /qty /price) | sum | round 2\nT13: lines | drop 1 | map ~(split \",\") | filter ~(allOf (/5 | lower | ne \"cancelled\") (/4 | ne \"\")) | map ~({:customer /1 :amount ({:qty (/3 | parseJson) :price (/4 | parseJson)} | mulOf /qty /price)}) | groupBy ~(/customer) | map ~(map /amount | sum) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer /0 :total (/1 | round 2)})\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6568,
+ "outputTokens": 28887,
+ "calls": [],
+ "decision": "D181",
+ "score": [
+  {
+   "task": "T1",
+   "query": "/data/users | filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")) | count",
+   "answer": {
+    "$error": {
+     "$tag": "string/lower/SubjectNotStringError",
+     "descriptor": {
+      "actualType": "::null",
+      "trail": [
+       {
+        "step": "~(lower)",
+        "subject": null,
+        "skipped": "~(endsWith \"@example.com\")"
+       },
+       {
+        "step": "~((/email | lower | endsWith \"@example.com\"))",
+        "subject": {
+         "id": 2,
+         "name": "Bob",
+         "email": null,
+         "active": true,
+         "roles": [
+          "dev"
+         ],
+         "profile": {
+          "country": "DE",
+          "age": 28
+         }
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\"))",
+        "subject": {
+         "id": 2,
+         "name": "Bob",
+         "email": null,
+         "active": true,
+         "roles": [
+          "dev"
+         ],
+         "profile": {
+          "country": "DE",
+          "age": 28
+         }
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")))",
+        "subject": [
+         {
+          "id": 1,
+          "name": "alice",
+          "email": "Alice@Example.com",
+          "active": true,
+          "roles": [
+           "admin",
+           "dev"
+          ],
+          "profile": {
+           "country": "US",
+           "age": 34
+          }
+         },
+         {
+          "id": 2,
+          "name": "Bob",
+          "email": null,
+          "active": true,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 28
+          }
+         },
+         {
+          "id": 3,
+          "name": "carol",
+          "email": "carol@corp.org",
+          "active": false,
+          "roles": [
+           "Admin"
+          ],
+          "profile": {
+           "country": "US",
+           "age": null
+          }
+         },
+         {
+          "id": 4,
+          "name": "Dave",
+          "email": "dave@example.com",
+          "active": true,
+          "roles": [],
+          "profile": {
+           "country": null,
+           "age": 45
+          }
+         },
+         {
+          "id": 5,
+          "name": "erin",
+          "email": "erin@EXAMPLE.COM",
+          "active": true,
+          "roles": [
+           "ADMIN",
+           "ops"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 31
+          }
+         },
+         {
+          "id": 6,
+          "name": "Frank",
+          "active": false,
+          "roles": [
+           "ops"
+          ]
+         },
+         {
+          "id": 7,
+          "name": "grace",
+          "email": "grace@example.com",
+          "active": false,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 22
+          }
+         },
+         {
+          "id": 8,
+          "name": "Heidi",
+          "email": "heidi@example.com.au",
+          "active": true,
+          "roles": [
+           "dev",
+           "ops"
+          ],
+          "profile": {
+           "country": "US"
+          }
+         },
+         {
+          "id": 9,
+          "name": "ivan",
+          "email": "ivan@example.com",
+          "active": true,
+          "roles": [
+           "admin"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 39
+          }
+         }
+        ],
+        "skipped": "~(count)"
+       },
+       {
+        "step": "~((/data/users | filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")) | count))",
+        "subject": {
+         "status": "ok",
+         "data": {
+          "users": [
+           {
+            "id": 1,
+            "name": "alice",
+            "email": "Alice@Example.com",
+            "active": true,
+            "roles": [
+             "admin",
+             "dev"
+            ],
+            "profile": {
+             "country": "US",
+             "age": 34
+            }
+           },
+           {
+            "id": 2,
+            "name": "Bob",
+            "email": null,
+            "active": true,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 28
+            }
+           },
+           {
+            "id": 3,
+            "name": "carol",
+            "email": "carol@corp.org",
+            "active": false,
+            "roles": [
+             "Admin"
+            ],
+            "profile": {
+             "country": "US",
+             "age": null
+            }
+           },
+           {
+            "id": 4,
+            "name": "Dave",
+            "email": "dave@example.com",
+            "active": true,
+            "roles": [],
+            "profile": {
+             "country": null,
+             "age": 45
+            }
+           },
+           {
+            "id": 5,
+            "name": "erin",
+            "email": "erin@EXAMPLE.COM",
+            "active": true,
+            "roles": [
+             "ADMIN",
+             "ops"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 31
+            }
+           },
+           {
+            "id": 6,
+            "name": "Frank",
+            "active": false,
+            "roles": [
+             "ops"
+            ]
+           },
+           {
+            "id": 7,
+            "name": "grace",
+            "email": "grace@example.com",
+            "active": false,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 22
+            }
+           },
+           {
+            "id": 8,
+            "name": "Heidi",
+            "email": "heidi@example.com.au",
+            "active": true,
+            "roles": [
+             "dev",
+             "ops"
+            ],
+            "profile": {
+             "country": "US"
+            }
+           },
+           {
+            "id": 9,
+            "name": "ivan",
+            "email": "ivan@example.com",
+            "active": true,
+            "roles": [
+             "admin"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 39
+            }
+           }
+          ]
+         }
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T2",
+   "query": "/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map /name | sort ~(lower)",
+   "answer": {
+    "$error": {
+     "$tag": "vec/map/code/NotQuoteError",
+     "descriptor": {
+      "actualType": "::proj/IndexNotIntegerError",
+      "actualValue": {
+       "$error": {
+        "$tag": "proj/IndexNotIntegerError",
+        "descriptor": {
+         "key": "name",
+         "actualType": "::vec",
+         "trail": [
+          {
+           "step": "~(/name)",
+           "subject": [
+            {
+             "id": 1,
+             "name": "alice",
+             "email": "Alice@Example.com",
+             "active": true,
+             "roles": [
+              "admin",
+              "dev"
+             ],
+             "profile": {
+              "country": "US",
+              "age": 34
+             }
+            },
+            {
+             "id": 3,
+             "name": "carol",
+             "email": "carol@corp.org",
+             "active": false,
+             "roles": [
+              "Admin"
+             ],
+             "profile": {
+              "country": "US",
+              "age": null
+             }
+            },
+            {
+             "id": 5,
+             "name": "erin",
+             "email": "erin@EXAMPLE.COM",
+             "active": true,
+             "roles": [
+              "ADMIN",
+              "ops"
+             ],
+             "profile": {
+              "country": "DE",
+              "age": 31
+             }
+            },
+            {
+             "id": 9,
+             "name": "ivan",
+             "email": "ivan@example.com",
+             "active": true,
+             "roles": [
+              "admin"
+             ],
+             "profile": {
+              "country": "FR",
+              "age": 39
+             }
+            }
+           ],
+           "skipped": "~()"
+          }
+         ]
+        }
+       }
+      },
+      "trail": [
+       {
+        "step": "~(map /name)",
+        "subject": [
+         {
+          "id": 1,
+          "name": "alice",
+          "email": "Alice@Example.com",
+          "active": true,
+          "roles": [
+           "admin",
+           "dev"
+          ],
+          "profile": {
+           "country": "US",
+           "age": 34
+          }
+         },
+         {
+          "id": 3,
+          "name": "carol",
+          "email": "carol@corp.org",
+          "active": false,
+          "roles": [
+           "Admin"
+          ],
+          "profile": {
+           "country": "US",
+           "age": null
+          }
+         },
+         {
+          "id": 5,
+          "name": "erin",
+          "email": "erin@EXAMPLE.COM",
+          "active": true,
+          "roles": [
+           "ADMIN",
+           "ops"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 31
+          }
+         },
+         {
+          "id": 9,
+          "name": "ivan",
+          "email": "ivan@example.com",
+          "active": true,
+          "roles": [
+           "admin"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 39
+          }
+         }
+        ],
+        "skipped": "~(sort ~(lower))"
+       },
+       {
+        "step": "~((/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map /name | sort ~(lower)))",
+        "subject": {
+         "status": "ok",
+         "data": {
+          "users": [
+           {
+            "id": 1,
+            "name": "alice",
+            "email": "Alice@Example.com",
+            "active": true,
+            "roles": [
+             "admin",
+             "dev"
+            ],
+            "profile": {
+             "country": "US",
+             "age": 34
+            }
+           },
+           {
+            "id": 2,
+            "name": "Bob",
+            "email": null,
+            "active": true,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 28
+            }
+           },
+           {
+            "id": 3,
+            "name": "carol",
+            "email": "carol@corp.org",
+            "active": false,
+            "roles": [
+             "Admin"
+            ],
+            "profile": {
+             "country": "US",
+             "age": null
+            }
+           },
+           {
+            "id": 4,
+            "name": "Dave",
+            "email": "dave@example.com",
+            "active": true,
+            "roles": [],
+            "profile": {
+             "country": null,
+             "age": 45
+            }
+           },
+           {
+            "id": 5,
+            "name": "erin",
+            "email": "erin@EXAMPLE.COM",
+            "active": true,
+            "roles": [
+             "ADMIN",
+             "ops"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 31
+            }
+           },
+           {
+            "id": 6,
+            "name": "Frank",
+            "active": false,
+            "roles": [
+             "ops"
+            ]
+           },
+           {
+            "id": 7,
+            "name": "grace",
+            "email": "grace@example.com",
+            "active": false,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 22
+            }
+           },
+           {
+            "id": 8,
+            "name": "Heidi",
+            "email": "heidi@example.com.au",
+            "active": true,
+            "roles": [
+             "dev",
+             "ops"
+            ],
+            "profile": {
+             "country": "US"
+            }
+           },
+           {
+            "id": 9,
+            "name": "ivan",
+            "email": "ivan@example.com",
+            "active": true,
+            "roles": [
+             "admin"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 39
+            }
+           }
+          ]
+         }
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T3",
+   "query": "/data/users | groupBy ~(at /profile | coalesce {} | at /country | coalesce \"unknown\") | map ~(count)",
+   "answer": {
+    "$error": {
+     "$tag": "map/at/key/NotKeywordOrStringError",
+     "descriptor": {
+      "actualType": "::map",
+      "actualValue": {
+       "country": "US",
+       "age": 34
+      },
+      "trail": [
+       {
+        "step": "~(at /profile)",
+        "subject": {
+         "id": 1,
+         "name": "alice",
+         "email": "Alice@Example.com",
+         "active": true,
+         "roles": [
+          "admin",
+          "dev"
+         ],
+         "profile": {
+          "country": "US",
+          "age": 34
+         }
+        },
+        "skipped": "~(coalesce {} | at /country | coalesce \"unknown\")"
+       },
+       {
+        "step": "~(groupBy ~(at /profile | coalesce {} | at /country | coalesce \"unknown\"))",
+        "subject": [
+         {
+          "id": 1,
+          "name": "alice",
+          "email": "Alice@Example.com",
+          "active": true,
+          "roles": [
+           "admin",
+           "dev"
+          ],
+          "profile": {
+           "country": "US",
+           "age": 34
+          }
+         },
+         {
+          "id": 2,
+          "name": "Bob",
+          "email": null,
+          "active": true,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 28
+          }
+         },
+         {
+          "id": 3,
+          "name": "carol",
+          "email": "carol@corp.org",
+          "active": false,
+          "roles": [
+           "Admin"
+          ],
+          "profile": {
+           "country": "US",
+           "age": null
+          }
+         },
+         {
+          "id": 4,
+          "name": "Dave",
+          "email": "dave@example.com",
+          "active": true,
+          "roles": [],
+          "profile": {
+           "country": null,
+           "age": 45
+          }
+         },
+         {
+          "id": 5,
+          "name": "erin",
+          "email": "erin@EXAMPLE.COM",
+          "active": true,
+          "roles": [
+           "ADMIN",
+           "ops"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 31
+          }
+         },
+         {
+          "id": 6,
+          "name": "Frank",
+          "active": false,
+          "roles": [
+           "ops"
+          ]
+         },
+         {
+          "id": 7,
+          "name": "grace",
+          "email": "grace@example.com",
+          "active": false,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 22
+          }
+         },
+         {
+          "id": 8,
+          "name": "Heidi",
+          "email": "heidi@example.com.au",
+          "active": true,
+          "roles": [
+           "dev",
+           "ops"
+          ],
+          "profile": {
+           "country": "US"
+          }
+         },
+         {
+          "id": 9,
+          "name": "ivan",
+          "email": "ivan@example.com",
+          "active": true,
+          "roles": [
+           "admin"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 39
+          }
+         }
+        ],
+        "skipped": "~(map ~(count))"
+       },
+       {
+        "step": "~((/data/users | groupBy ~(at /profile | coalesce {} | at /country | coalesce \"unknown\") | map ~(count)))",
+        "subject": {
+         "status": "ok",
+         "data": {
+          "users": [
+           {
+            "id": 1,
+            "name": "alice",
+            "email": "Alice@Example.com",
+            "active": true,
+            "roles": [
+             "admin",
+             "dev"
+            ],
+            "profile": {
+             "country": "US",
+             "age": 34
+            }
+           },
+           {
+            "id": 2,
+            "name": "Bob",
+            "email": null,
+            "active": true,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 28
+            }
+           },
+           {
+            "id": 3,
+            "name": "carol",
+            "email": "carol@corp.org",
+            "active": false,
+            "roles": [
+             "Admin"
+            ],
+            "profile": {
+             "country": "US",
+             "age": null
+            }
+           },
+           {
+            "id": 4,
+            "name": "Dave",
+            "email": "dave@example.com",
+            "active": true,
+            "roles": [],
+            "profile": {
+             "country": null,
+             "age": 45
+            }
+           },
+           {
+            "id": 5,
+            "name": "erin",
+            "email": "erin@EXAMPLE.COM",
+            "active": true,
+            "roles": [
+             "ADMIN",
+             "ops"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 31
+            }
+           },
+           {
+            "id": 6,
+            "name": "Frank",
+            "active": false,
+            "roles": [
+             "ops"
+            ]
+           },
+           {
+            "id": 7,
+            "name": "grace",
+            "email": "grace@example.com",
+            "active": false,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 22
+            }
+           },
+           {
+            "id": 8,
+            "name": "Heidi",
+            "email": "heidi@example.com.au",
+            "active": true,
+            "roles": [
+             "dev",
+             "ops"
+            ],
+            "profile": {
+             "country": "US"
+            }
+           },
+           {
+            "id": 9,
+            "name": "ivan",
+            "email": "ivan@example.com",
+            "active": true,
+            "roles": [
+             "admin"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 39
+            }
+           }
+          ]
+         }
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T4",
+   "query": "/data/users | map ~(at /profile | coalesce {} | at /age) | filter ~(ne null) | avg | round 2",
+   "answer": {
+    "$error": {
+     "$tag": "map/at/key/NotKeywordOrStringError",
+     "descriptor": {
+      "actualType": "::map",
+      "actualValue": {
+       "country": "US",
+       "age": 34
+      },
+      "trail": [
+       {
+        "step": "~(at /profile)",
+        "subject": {
+         "id": 1,
+         "name": "alice",
+         "email": "Alice@Example.com",
+         "active": true,
+         "roles": [
+          "admin",
+          "dev"
+         ],
+         "profile": {
+          "country": "US",
+          "age": 34
+         }
+        },
+        "skipped": "~(coalesce {} | at /age)"
+       },
+       {
+        "step": "~(map ~(at /profile | coalesce {} | at /age))",
+        "subject": [
+         {
+          "id": 1,
+          "name": "alice",
+          "email": "Alice@Example.com",
+          "active": true,
+          "roles": [
+           "admin",
+           "dev"
+          ],
+          "profile": {
+           "country": "US",
+           "age": 34
+          }
+         },
+         {
+          "id": 2,
+          "name": "Bob",
+          "email": null,
+          "active": true,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 28
+          }
+         },
+         {
+          "id": 3,
+          "name": "carol",
+          "email": "carol@corp.org",
+          "active": false,
+          "roles": [
+           "Admin"
+          ],
+          "profile": {
+           "country": "US",
+           "age": null
+          }
+         },
+         {
+          "id": 4,
+          "name": "Dave",
+          "email": "dave@example.com",
+          "active": true,
+          "roles": [],
+          "profile": {
+           "country": null,
+           "age": 45
+          }
+         },
+         {
+          "id": 5,
+          "name": "erin",
+          "email": "erin@EXAMPLE.COM",
+          "active": true,
+          "roles": [
+           "ADMIN",
+           "ops"
+          ],
+          "profile": {
+           "country": "DE",
+           "age": 31
+          }
+         },
+         {
+          "id": 6,
+          "name": "Frank",
+          "active": false,
+          "roles": [
+           "ops"
+          ]
+         },
+         {
+          "id": 7,
+          "name": "grace",
+          "email": "grace@example.com",
+          "active": false,
+          "roles": [
+           "dev"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 22
+          }
+         },
+         {
+          "id": 8,
+          "name": "Heidi",
+          "email": "heidi@example.com.au",
+          "active": true,
+          "roles": [
+           "dev",
+           "ops"
+          ],
+          "profile": {
+           "country": "US"
+          }
+         },
+         {
+          "id": 9,
+          "name": "ivan",
+          "email": "ivan@example.com",
+          "active": true,
+          "roles": [
+           "admin"
+          ],
+          "profile": {
+           "country": "FR",
+           "age": 39
+          }
+         }
+        ],
+        "skipped": "~(filter ~(ne null) | avg | round 2)"
+       },
+       {
+        "step": "~((/data/users | map ~(at /profile | coalesce {} | at /age) | filter ~(ne null) | avg | round 2))",
+        "subject": {
+         "status": "ok",
+         "data": {
+          "users": [
+           {
+            "id": 1,
+            "name": "alice",
+            "email": "Alice@Example.com",
+            "active": true,
+            "roles": [
+             "admin",
+             "dev"
+            ],
+            "profile": {
+             "country": "US",
+             "age": 34
+            }
+           },
+           {
+            "id": 2,
+            "name": "Bob",
+            "email": null,
+            "active": true,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 28
+            }
+           },
+           {
+            "id": 3,
+            "name": "carol",
+            "email": "carol@corp.org",
+            "active": false,
+            "roles": [
+             "Admin"
+            ],
+            "profile": {
+             "country": "US",
+             "age": null
+            }
+           },
+           {
+            "id": 4,
+            "name": "Dave",
+            "email": "dave@example.com",
+            "active": true,
+            "roles": [],
+            "profile": {
+             "country": null,
+             "age": 45
+            }
+           },
+           {
+            "id": 5,
+            "name": "erin",
+            "email": "erin@EXAMPLE.COM",
+            "active": true,
+            "roles": [
+             "ADMIN",
+             "ops"
+            ],
+            "profile": {
+             "country": "DE",
+             "age": 31
+            }
+           },
+           {
+            "id": 6,
+            "name": "Frank",
+            "active": false,
+            "roles": [
+             "ops"
+            ]
+           },
+           {
+            "id": 7,
+            "name": "grace",
+            "email": "grace@example.com",
+            "active": false,
+            "roles": [
+             "dev"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 22
+            }
+           },
+           {
+            "id": 8,
+            "name": "Heidi",
+            "email": "heidi@example.com.au",
+            "active": true,
+            "roles": [
+             "dev",
+             "ops"
+            ],
+            "profile": {
+             "country": "US"
+            }
+           },
+           {
+            "id": 9,
+            "name": "ivan",
+            "email": "ivan@example.com",
+            "active": true,
+            "roles": [
+             "admin"
+            ],
+            "profile": {
+             "country": "FR",
+             "age": 39
+            }
+           }
+          ]
+         }
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T5",
+   "query": "filter ~(/state | eq \"open\") | map /labels | flat | map ~(/name | lower) | distinct | sort",
+   "answer": {
+    "$error": {
+     "$tag": "vec/map/code/NotQuoteError",
+     "descriptor": {
+      "actualType": "::proj/IndexNotIntegerError",
+      "actualValue": {
+       "$error": {
+        "$tag": "proj/IndexNotIntegerError",
+        "descriptor": {
+         "key": "labels",
+         "actualType": "::vec",
+         "trail": [
+          {
+           "step": "~(/labels)",
+           "subject": [
+            {
+             "number": 101,
+             "title": "Crash on start",
+             "state": "open",
+             "labels": [
+              {
+               "name": "bug"
+              },
+              {
+               "name": "Urgent"
+              }
+             ],
+             "assignee": {
+              "login": "alice"
+             },
+             "comments": 7
+            },
+            {
+             "number": 102,
+             "title": "Add dark mode",
+             "state": "open",
+             "labels": [
+              {
+               "name": "feature"
+              }
+             ],
+             "assignee": null,
+             "comments": 12
+            },
+            {
+             "number": 104,
+             "title": "Slow query",
+             "state": "open",
+             "labels": [
+              {
+               "name": "bug"
+              },
+              {
+               "name": "performance"
+              }
+             ],
+             "assignee": {
+              "login": "bob"
+             },
+             "comments": 7
+            },
+            {
+             "number": 105,
+             "title": "Upgrade deps",
+             "state": "open",
+             "labels": [],
+             "assignee": {
+              "login": "alice"
+             },
+             "comments": 0
+            },
+            {
+             "number": 107,
+             "title": "Refactor auth",
+             "state": "open",
+             "labels": [
+              {
+               "name": "Feature"
+              },
+              {
+               "name": "urgent"
+              }
+             ],
+             "assignee": {
+              "login": "alice"
+             },
+             "comments": 3
+            },
+            {
+             "number": 108,
+             "title": "Add CSV export",
+             "state": "open",
+             "labels": [
+              {
+               "name": "feature"
+              }
+             ],
+             "comments": 9
+            },
+            {
+             "number": 109,
+             "title": "Flaky test",
+             "state": "open",
+             "labels": [
+              {
+               "name": "bug"
+              },
+              {
+               "name": "tests"
+              }
+             ],
+             "assignee": null,
+             "comments": 7
+            }
+           ],
+           "skipped": "~()"
+          }
+         ]
+        }
+       }
+      },
+      "trail": [
+       {
+        "step": "~(map /labels)",
+        "subject": [
+         {
+          "number": 101,
+          "title": "Crash on start",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "Urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 7
+         },
+         {
+          "number": 102,
+          "title": "Add dark mode",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "assignee": null,
+          "comments": 12
+         },
+         {
+          "number": 104,
+          "title": "Slow query",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "performance"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 7
+         },
+         {
+          "number": 105,
+          "title": "Upgrade deps",
+          "state": "open",
+          "labels": [],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 0
+         },
+         {
+          "number": 107,
+          "title": "Refactor auth",
+          "state": "open",
+          "labels": [
+           {
+            "name": "Feature"
+           },
+           {
+            "name": "urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 3
+         },
+         {
+          "number": 108,
+          "title": "Add CSV export",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "comments": 9
+         },
+         {
+          "number": 109,
+          "title": "Flaky test",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "tests"
+           }
+          ],
+          "assignee": null,
+          "comments": 7
+         }
+        ],
+        "skipped": "~(flat | map ~(/name | lower) | distinct | sort)"
+       },
+       {
+        "step": "~((filter ~(/state | eq \"open\") | map /labels | flat | map ~(/name | lower) | distinct | sort))",
+        "subject": [
+         {
+          "number": 101,
+          "title": "Crash on start",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "Urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 7
+         },
+         {
+          "number": 102,
+          "title": "Add dark mode",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "assignee": null,
+          "comments": 12
+         },
+         {
+          "number": 103,
+          "title": "Docs typo",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "docs"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 1
+         },
+         {
+          "number": 104,
+          "title": "Slow query",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "performance"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 7
+         },
+         {
+          "number": 105,
+          "title": "Upgrade deps",
+          "state": "open",
+          "labels": [],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 0
+         },
+         {
+          "number": 106,
+          "title": "Memory leak",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "BUG"
+           }
+          ],
+          "assignee": {
+           "login": "carol"
+          },
+          "comments": 20
+         },
+         {
+          "number": 107,
+          "title": "Refactor auth",
+          "state": "open",
+          "labels": [
+           {
+            "name": "Feature"
+           },
+           {
+            "name": "urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 3
+         },
+         {
+          "number": 108,
+          "title": "Add CSV export",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "comments": 9
+         },
+         {
+          "number": 109,
+          "title": "Flaky test",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "tests"
+           }
+          ],
+          "assignee": null,
+          "comments": 7
+         }
+        ],
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T6",
+   "query": "sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at /assignee | at /login)})",
+   "answer": [
+    {
+     "number": 106,
+     "assignee": {
+      "$error": {
+       "$tag": "map/at/key/NotKeywordOrStringError",
+       "descriptor": {
+        "actualType": "::map",
+        "actualValue": {
+         "login": "carol"
+        },
+        "trail": [
+         {
+          "step": "~(at /assignee)",
+          "subject": {
+           "number": 106,
+           "title": "Memory leak",
+           "state": "closed",
+           "labels": [
+            {
+             "name": "BUG"
+            }
+           ],
+           "assignee": {
+            "login": "carol"
+           },
+           "comments": 20
+          },
+          "skipped": "~(at /login)"
+         }
+        ]
+       }
+      }
+     }
+    },
+    {
+     "number": 102,
+     "assignee": {
+      "$error": {
+       "$tag": "map/at/key/NotKeywordOrStringError",
+       "descriptor": {
+        "actualType": "::null",
+        "actualValue": null,
+        "trail": [
+         {
+          "step": "~(at /assignee)",
+          "subject": {
+           "number": 102,
+           "title": "Add dark mode",
+           "state": "open",
+           "labels": [
+            {
+             "name": "feature"
+            }
+           ],
+           "assignee": null,
+           "comments": 12
+          },
+          "skipped": "~(at /login)"
+         }
+        ]
+       }
+      }
+     }
+    },
+    {
+     "number": 108,
+     "assignee": {
+      "$error": {
+       "$tag": "proj/KeyNotInMapError",
+       "descriptor": {
+        "key": "assignee",
+        "actualType": "::map",
+        "trail": [
+         {
+          "step": "~(/assignee)",
+          "subject": {
+           "number": 108,
+           "title": "Add CSV export",
+           "state": "open",
+           "labels": [
+            {
+             "name": "feature"
+            }
+           ],
+           "comments": 9
+          },
+          "skipped": "~()"
+         },
+         {
+          "step": "~(at /assignee)",
+          "subject": {
+           "number": 108,
+           "title": "Add CSV export",
+           "state": "open",
+           "labels": [
+            {
+             "name": "feature"
+            }
+           ],
+           "comments": 9
+          },
+          "skipped": "~(at /login)"
+         }
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "solved": false
+  },
+  {
+   "task": "T7",
+   "query": "filter ~(allOf (/state | eq \"open\") (/assignee | ne null)) | groupBy ~(/assignee/login) | map ~(count)",
+   "answer": {
+    "$error": {
+     "$tag": "proj/KeyNotInMapError",
+     "descriptor": {
+      "key": "assignee",
+      "actualType": "::map",
+      "trail": [
+       {
+        "step": "~(/assignee)",
+        "subject": {
+         "number": 108,
+         "title": "Add CSV export",
+         "state": "open",
+         "labels": [
+          {
+           "name": "feature"
+          }
+         ],
+         "comments": 9
+        },
+        "skipped": "~(ne null)"
+       },
+       {
+        "step": "~((/assignee | ne null))",
+        "subject": {
+         "number": 108,
+         "title": "Add CSV export",
+         "state": "open",
+         "labels": [
+          {
+           "name": "feature"
+          }
+         ],
+         "comments": 9
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(allOf (/state | eq \"open\") (/assignee | ne null))",
+        "subject": {
+         "number": 108,
+         "title": "Add CSV export",
+         "state": "open",
+         "labels": [
+          {
+           "name": "feature"
+          }
+         ],
+         "comments": 9
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(filter ~(allOf (/state | eq \"open\") (/assignee | ne null)))",
+        "subject": [
+         {
+          "number": 101,
+          "title": "Crash on start",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "Urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 7
+         },
+         {
+          "number": 102,
+          "title": "Add dark mode",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "assignee": null,
+          "comments": 12
+         },
+         {
+          "number": 103,
+          "title": "Docs typo",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "docs"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 1
+         },
+         {
+          "number": 104,
+          "title": "Slow query",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "performance"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 7
+         },
+         {
+          "number": 105,
+          "title": "Upgrade deps",
+          "state": "open",
+          "labels": [],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 0
+         },
+         {
+          "number": 106,
+          "title": "Memory leak",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "BUG"
+           }
+          ],
+          "assignee": {
+           "login": "carol"
+          },
+          "comments": 20
+         },
+         {
+          "number": 107,
+          "title": "Refactor auth",
+          "state": "open",
+          "labels": [
+           {
+            "name": "Feature"
+           },
+           {
+            "name": "urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 3
+         },
+         {
+          "number": 108,
+          "title": "Add CSV export",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "comments": 9
+         },
+         {
+          "number": 109,
+          "title": "Flaky test",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "tests"
+           }
+          ],
+          "assignee": null,
+          "comments": 7
+         }
+        ],
+        "skipped": "~(groupBy ~(/assignee/login) | map ~(count))"
+       },
+       {
+        "step": "~((filter ~(allOf (/state | eq \"open\") (/assignee | ne null)) | groupBy ~(/assignee/login) | map ~(count)))",
+        "subject": [
+         {
+          "number": 101,
+          "title": "Crash on start",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "Urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 7
+         },
+         {
+          "number": 102,
+          "title": "Add dark mode",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "assignee": null,
+          "comments": 12
+         },
+         {
+          "number": 103,
+          "title": "Docs typo",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "docs"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 1
+         },
+         {
+          "number": 104,
+          "title": "Slow query",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "performance"
+           }
+          ],
+          "assignee": {
+           "login": "bob"
+          },
+          "comments": 7
+         },
+         {
+          "number": 105,
+          "title": "Upgrade deps",
+          "state": "open",
+          "labels": [],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 0
+         },
+         {
+          "number": 106,
+          "title": "Memory leak",
+          "state": "closed",
+          "labels": [
+           {
+            "name": "BUG"
+           }
+          ],
+          "assignee": {
+           "login": "carol"
+          },
+          "comments": 20
+         },
+         {
+          "number": 107,
+          "title": "Refactor auth",
+          "state": "open",
+          "labels": [
+           {
+            "name": "Feature"
+           },
+           {
+            "name": "urgent"
+           }
+          ],
+          "assignee": {
+           "login": "alice"
+          },
+          "comments": 3
+         },
+         {
+          "number": 108,
+          "title": "Add CSV export",
+          "state": "open",
+          "labels": [
+           {
+            "name": "feature"
+           }
+          ],
+          "comments": 9
+         },
+         {
+          "number": 109,
+          "title": "Flaky test",
+          "state": "open",
+          "labels": [
+           {
+            "name": "bug"
+           },
+           {
+            "name": "tests"
+           }
+          ],
+          "assignee": null,
+          "comments": 7
+         }
+        ],
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T8",
+   "query": ":deps /dependencies | :devDeps /devDependencies | (:deps | union :devDeps) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\")",
+   "answer": {
+    "$error": {
+     "$tag": "call/KindAnswersNoVerbError",
+     "descriptor": {
+      "name": "union",
+      "addresses": [
+       "::map/union",
+       "::set/union",
+       "::vec/union"
+      ],
+      "actualType": "::keyword",
+      "trail": [
+       {
+        "step": "~(union :devDeps)",
+        "subject": "deps",
+        "skipped": "~()"
+       },
+       {
+        "step": "~((:deps | union :devDeps))",
+        "subject": {
+         "name": "demo-app",
+         "version": "1.2.0",
+         "scripts": {
+          "build": "tsc -p .",
+          "test": "Jest --coverage",
+          "lint": "eslint src",
+          "test:watch": "jest --watch",
+          "start": "node dist/index.js"
+         },
+         "dependencies": {
+          "express": "^4.18.2",
+          "lodash": "~4.17.21",
+          "zod": "^3.22.0",
+          "chalk": "5.3.0"
+         },
+         "devDependencies": {
+          "jest": "^29.7.0",
+          "typescript": "^5.3.3",
+          "eslint": "^8.56.0",
+          "@types/node": "~20.11.0"
+         }
+        },
+        "skipped": "~(entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\"))"
+       },
+       {
+        "step": "~((:deps /dependencies | :devDeps /devDependencies | (:deps | union :devDeps) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\")))",
+        "subject": {
+         "name": "demo-app",
+         "version": "1.2.0",
+         "scripts": {
+          "build": "tsc -p .",
+          "test": "Jest --coverage",
+          "lint": "eslint src",
+          "test:watch": "jest --watch",
+          "start": "node dist/index.js"
+         },
+         "dependencies": {
+          "express": "^4.18.2",
+          "lodash": "~4.17.21",
+          "zod": "^3.22.0",
+          "chalk": "5.3.0"
+         },
+         "devDependencies": {
+          "jest": "^29.7.0",
+          "typescript": "^5.3.3",
+          "eslint": "^8.56.0",
+          "@types/node": "~20.11.0"
+         }
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T9",
+   "query": "/services | filter ~(allOf (/enabled | coalesce false) (/port | gt 8000)) | map ~(/name | lower) | sort | join \",\"",
+   "answer": {
+    "$error": {
+     "$tag": "proj/KeyNotInMapError",
+     "descriptor": {
+      "key": "enabled",
+      "actualType": "::map",
+      "trail": [
+       {
+        "step": "~(/enabled)",
+        "subject": {
+         "name": "admin",
+         "port": 9090,
+         "env": {
+          "region": "eu"
+         }
+        },
+        "skipped": "~(coalesce false)"
+       },
+       {
+        "step": "~((/enabled | coalesce false))",
+        "subject": {
+         "name": "admin",
+         "port": 9090,
+         "env": {
+          "region": "eu"
+         }
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(allOf (/enabled | coalesce false) (/port | gt 8000))",
+        "subject": {
+         "name": "admin",
+         "port": 9090,
+         "env": {
+          "region": "eu"
+         }
+        },
+        "skipped": "~()"
+       },
+       {
+        "step": "~(filter ~(allOf (/enabled | coalesce false) (/port | gt 8000)))",
+        "subject": [
+         {
+          "name": "auth",
+          "port": 8443,
+          "enabled": true,
+          "env": {
+           "region": "eu"
+          }
+         },
+         {
+          "name": "billing",
+          "port": 9000,
+          "enabled": false
+         },
+         {
+          "name": "search",
+          "port": 8080,
+          "enabled": true,
+          "env": {
+           "region": "us"
+          }
+         },
+         {
+          "name": "Mailer",
+          "port": 2525,
+          "enabled": true
+         },
+         {
+          "name": "admin",
+          "port": 9090,
+          "env": {
+           "region": "eu"
+          }
+         },
+         {
+          "name": "cache",
+          "port": 8000,
+          "enabled": true
+         },
+         {
+          "name": "reports",
+          "port": 9500,
+          "enabled": true,
+          "env": {}
+         }
+        ],
+        "skipped": "~(map ~(/name | lower) | sort | join \",\")"
+       },
+       {
+        "step": "~((/services | filter ~(allOf (/enabled | coalesce false) (/port | gt 8000)) | map ~(/name | lower) | sort | join \",\"))",
+        "subject": {
+         "app": "gateway",
+         "services": [
+          {
+           "name": "auth",
+           "port": 8443,
+           "enabled": true,
+           "env": {
+            "region": "eu"
+           }
+          },
+          {
+           "name": "billing",
+           "port": 9000,
+           "enabled": false
+          },
+          {
+           "name": "search",
+           "port": 8080,
+           "enabled": true,
+           "env": {
+            "region": "us"
+           }
+          },
+          {
+           "name": "Mailer",
+           "port": 2525,
+           "enabled": true
+          },
+          {
+           "name": "admin",
+           "port": 9090,
+           "env": {
+            "region": "eu"
+           }
+          },
+          {
+           "name": "cache",
+           "port": 8000,
+           "enabled": true
+          },
+          {
+           "name": "reports",
+           "port": 9500,
+           "enabled": true,
+           "env": {}
+          }
+         ]
+        },
+        "skipped": "~(json)"
+       }
+      ]
+     }
+    }
+   },
+   "solved": false
+  },
+  {
+   "task": "T10",
+   "query": "lines | filter ~(split \" \" | /1 | eq \"ERROR\") | map ~(split \" \" | /2) | groupBy ~(/) | map ~(count)",
+   "answer": {
+    "db": 3,
+    "api": 1,
+    "worker": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "T11",
+   "query": "lines | map ~(split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(ne null) | map ~(split \"=\" | /1) | map ~(parseJson) | avg | round 1",
+   "answer": 330.2,
+   "solved": true
+  },
+  {
+   "task": "T12",
+   "query": "lines | drop 1 | map ~(split \",\") | filter ~(allOf (/5 | lower | eq \"shipped\") (/4 | ne \"\")) | map ~({:qty (/3 | parseJson) :price (/4 | parseJson)} | mulOf /qty /price) | sum | round 2",
+   "answer": 204.91,
+   "solved": true
+  },
+  {
+   "task": "T13",
+   "query": "lines | drop 1 | map ~(split \",\") | filter ~(allOf (/5 | lower | ne \"cancelled\") (/4 | ne \"\")) | map ~({:customer /1 :amount ({:qty (/3 | parseJson) :price (/4 | parseJson)} | mulOf /qty /price)}) | groupBy ~(/customer) | map ~(map /amount | sum) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer /0 :total (/1 | round 2)})",
+   "answer": null,
+   "solved": false
+  },
+  {
+   "task": "T14",
+   "query": "[\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | sort ~([(count | desc) /]) | join \"-\"",
+   "answer": "elderberry-banana-cherry-apple-date-kiwi-fig",
+   "solved": true
+  }
+ ],
+ "scoredBy": "1c0758e3, after the run"
+}

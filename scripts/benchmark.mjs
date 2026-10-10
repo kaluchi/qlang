@@ -14,7 +14,8 @@
 //   node scripts/benchmark.mjs screen [--save NAME] [--query Q]   the hash of the first screen, or it or what Q prints saved under a name
 //   node scripts/benchmark.mjs report                 the runs of tasks.mjs side by side
 //   node scripts/benchmark.mjs author ID [--model M]  a clean author writes the set ID
-//   node scripts/benchmark.mjs run ID --screen NAME --mode blind|cli --model M --runs N
+//   node scripts/benchmark.mjs run ID --decision DNNN --mode blind|cli --model M --runs N [--reason TEXT]
+//   node scripts/benchmark.mjs verdict ID SCREEN [BASELINE]   the runs of a measurement beside a baseline, as they fixed them
 //   node scripts/benchmark.mjs grade ID               every run of a set held against its answers
 //   node scripts/benchmark.mjs misses ID RUN [TASK…]  what a run missed; marks the set seen
 //   node scripts/benchmark.mjs frictions ID           what the calls of its runs failed with; marks the set seen
@@ -30,6 +31,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { TASKS } from './benchmark/tasks.mjs';
 import { firstScreen, saveScreen } from './benchmark/screens.mjs';
 import { author, run, grade, misses, frictions } from './benchmark/sets.mjs';
+import { verdict } from './benchmark/verdict.mjs';
 import { predict, gradePredictions } from './benchmark/predict.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
@@ -133,7 +135,8 @@ const COMMANDS = {
   screen: () => (flags.save === undefined ? console.log(shortHash(firstScreen(flags.query))) : saveScreen(flags.save, flags.query)),
   report,
   author: () => author(positional[0], flags.model),
-  run: () => run(positional[0], { screen: flags.screen, mode: flags.mode, model: flags.model, runs: Number(flags.runs ?? 1) }),
+  run: () => run(positional[0], { decision: flags.decision, mode: flags.mode, model: flags.model, runs: Number(flags.runs ?? 1), reason: flags.reason }),
+  verdict: () => verdict(positional[0], positional[1], positional[2]),
   grade: () => grade(positional[0]),
   misses: () => misses(positional[0], positional[1], positional.slice(2)),
   frictions: () => frictions(positional[0]),

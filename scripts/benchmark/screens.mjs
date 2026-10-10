@@ -3,7 +3,7 @@
 // which page it read and two runs compare two pages. `none` is the
 // empty screen, a child with no page.
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -26,6 +26,19 @@ export function screenText(screenName) {
 export const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
 
 export const screenHash = screenName => shortHash(screenText(screenName));
+
+// fixScreen(decision) → the first screen the tree prints, saved under the
+// number of the decision a run measures, or under the number and its hash
+// when an earlier measurement of the number read another page [D183].
+export function fixScreen(decision) {
+  mkdirSync(screensDir, { recursive: true });
+  const text = firstScreen().trim();
+  const hash = shortHash(text);
+  const plain = join(screensDir, `${decision}.txt`);
+  const name = existsSync(plain) && readFileSync(plain, 'utf8').trim() !== text ? `${decision}.${hash}` : decision;
+  writeFileSync(join(screensDir, `${name}.txt`), `${text}\n`);
+  return { name, hash };
+}
 
 // saveScreen(name, query) — the first screen of the tree, or what the
 // query prints, under a name.

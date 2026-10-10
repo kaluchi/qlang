@@ -14,7 +14,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFi
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
-import { runChild } from './child.mjs';
+import { runChild, CHILD_ENVIRONMENT } from './child.mjs';
 import { screenText, fixScreen } from './screens.mjs';
 
 const benchDir = import.meta.dirname;
@@ -83,7 +83,7 @@ function cliPrompt(setId, screen) {
   return [
     'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below is the first page of its documentation, and you may run the `qlang` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. Always pass stdin: `qlang \'<query>\' < file.json` or `< /dev/null`; for a text file use `qlang --raw \'<query>\' < file.log`. In Git Bash prefix a query that begins with `/` with MSYS_NO_PATHCONV=1.',
+    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. Always pass stdin: `qlang \'<query>\' < file.json` or `< /dev/null`; for a text file use `qlang --raw \'<query>\' < file.log`.',
     '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
@@ -155,7 +155,7 @@ export async function run(setId, { decision, mode, model, runs, reason }) {
     if (mode === 'cli') for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
     jobs.push(runChild({ prompt, model, mode, workDir }).then(record => writeFileSync(join(runsDir, `${prefix}${runIndex}.json`), JSON.stringify({
       set: setId, decision, screen: screen.name, screenHash: screen.hash, mode, model, run: runIndex,
-      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, ...record,
+      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, environment: CHILD_ENVIRONMENT, ...record,
       score: scoreOf(setId, record.result)
     }, null, 1) + '\n')));
   }

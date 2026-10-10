@@ -13,6 +13,11 @@ import { mkdirSync } from 'node:fs';
 const SYSTEM_PROMPT = 'You are a careful assistant.';
 const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(cat:*)', 'Bash(head:*)'];
 
+// The environment a child runs in beside the session's [D187]: Git Bash
+// rewrites an argument that begins with `/` into a path of Windows, which
+// mangles a query that reads a part, and the conversion is off.
+export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
+
 // What a tool result of the command line answered: the tag of the
 // first failure it printed, as the language prints it or under JSON, or
 // a value.
@@ -87,7 +92,7 @@ export function runChild({ prompt, model, mode, workDir }) {
   const flags = ['-p', '--model', model, ...toolFlags, '--strict-mcp-config', '--restricted',
     '--system-prompt', SYSTEM_PROMPT, '--output-format', 'stream-json', '--verbose'];
   return new Promise(resolve => {
-    const child = spawn('claude', flags, { cwd: workDir });
+    const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...CHILD_ENVIRONMENT } });
     let streamText = '';
     child.stdout.on('data', chunk => { streamText += chunk; });
     child.on('close', () => resolve(recordOfStream(streamText)));

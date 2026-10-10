@@ -64,9 +64,8 @@
   ::any
 
 :error/trail
-  |~~ Answers the path of the error, a vector of stops, one for each step
-      it passed from the step that raised it to the `!|` that opened it,
-      each a map of the `:step`, the `:subject` that step met, and the
+  |~~ Answers the path of the error, a vector of stops from the step
+      that raised it to the `!|` that opened it, each a map of the `:step`, the `:subject` that step met, and the
       steps `:skipped` after it: `"x" | add 1 | mul 2 !| trail` answers
       the one stop of `add 1`, which met `"x"` and skipped `mul 2`. A
       step that ran the step that raised adds its stop after it, the `map`

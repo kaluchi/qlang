@@ -912,8 +912,8 @@
       read, so a field an element may lack is read softly, `~(at :a)`.
 
       The answer keeps the kind of the subject, a vector under a tag and a
-      quote among them; a set sorts into a vector, and a map by its keys,
-      by words of their own.
+      quote among them; a set sorts into a vector, and a map by its values, its
+      keys kept, by words of their own.
       ::link~(::vec/min | doc) ::link~(::desc | doc)
   ~~|
   ::builtin{}

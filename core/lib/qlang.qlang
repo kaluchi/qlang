@@ -275,9 +275,10 @@
 :builtin
   |~~ The descriptor, a map of fields under this tag. A host's primitive
       is a name under a label whose value is an empty one, `::builtin{}`,
-      and a kind a host declares ends with one: it runs the implementation
-      the host handed for its name, `::number/add` and `::vec` the
-      language's own, while a name written in steps is a quote.
+      and a kind a host declares builds its values by its `construct`,
+      one of them: it runs the implementation the host handed for its
+      name, `::number/add` and `::vec/construct` the language's own,
+      while a name written in steps is a quote.
       A descriptor is data and runs nothing by itself: a bare name bound
       to one reads it.
   ~~|
@@ -349,8 +350,9 @@
 
 :boolean
   |~~ The kind of `true` and `false`, the answer of a question about a
-      value: `filter`, `every` and `if` take a quote that answers one,
-      and `false !| true` after steps answers whether they failed.
+      value: `filter` and `every` take a quote that answers one, `if` the
+      boolean itself, computed at the call, and `false !| true` after
+      steps answers whether they failed.
       ::snippet~(::boolean | manifest) lists its verbs and refusals.
       ::link~(::qlang/values | doc)
   ~~|
@@ -470,8 +472,12 @@
   ::law~(#[2 1] | tag ::vec | eq [1 2])
 
 :vec/takesCommas
-  |~~ Commas between elements are spaces. ~~|
+  |~~ A comma between every two elements writes the same vector. ~~|
   ::law~("[1, 2]" | parse | apply / | eq [1 2])
+
+:vec/takesCommasBetweenAllOrNone
+  |~~ A literal writes a comma between every two elements or between none. ~~|
+  ::law~("[1, 2 3]" | parse !| type | eq ::quote/ParseError)
 
 :set
   |~~ The set, the vector in the one order without duplicates, the value

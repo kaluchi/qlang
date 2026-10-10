@@ -71,7 +71,7 @@
       prose a string, and each span that reads as code a quote, bare or
       under the tags of its role, a link under `::link` and a snippet
       under `::snippet`, `|~~ a ~(add 1) b ~~| | segments` answering
-      `[" a " ~(add 1) " b "]`. A doc of prose alone answers one string.
+      `[" a " ~(add 1) " b "]`. A doc of prose alone answers a vector of one string.
       A span that does not read as code stays prose, so a quote left
       broken in a page is no link and no snippet. The segments are the
       payload the doc was built from, so `segments | tag ::doc` answers

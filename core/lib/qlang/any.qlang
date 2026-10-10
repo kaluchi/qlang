@@ -264,7 +264,8 @@
       Every value answers, and the shapes of qlang alone give way at
       this boundary: a keyword writes as its bare name, a key and a
       value alike; a set as an array; a value under a tag as an object
-      of its `$tag` and its `payload`; a quote, a doc and a tag name as
+      of its `$tag` and its `payload`, an error as an object of its
+      `$error`, which holds its `$tag` and its `descriptor`; a quote, a doc and a tag name as
       the string of their print. So `parseJson` reads a keyword back as
       its string and a set as a vector: the text that reads back as the
       value is `print`. The call takes no value, an indent among them.
@@ -296,6 +297,10 @@
 :any/json/writesKeywordsAsNames
   |~~ A keyword is written as its bare name. ~~|
   ::law~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
+
+:any/json/writesAnErrorUnderItsKey
+  |~~ An error is written as an object of its `$error`. ~~|
+  ::law~([(!{:k 1})] | json | parseJson | /0 | keys | eq #[:"$error"])
 
 :any/json/writesASetAsAnArray
   |~~ A set is written as an array. ~~|
@@ -458,7 +463,7 @@
       as it is. So the condition is no quote, `if ~(gt 0)` being
       refused, and null and a number are refused too, having no second
       reading; a field the record lacks answers its error, which
-      `at :flag | eq true` asks around. Over a vector the subject is
+      `at :flag | eq true` asks around. Under `map` the subject is
       each element, `map ~(if (gt 0) ~(/) ~(0))`. The call takes the
       condition and both branches, and a chain of conditions is `cond`.
       ::link~(::any/cond | doc) ::link~(::any/coalesce | doc)
@@ -539,7 +544,7 @@
   ::law~({} | if (at :flag | eq true) ~(1) ~(2) | eq 2)
 
 :any/if/choosesForEachElement
-  |~~ Over a vector the subject is each element. ~~|
+  |~~ Under `map` the subject is each element. ~~|
   ::law~([1 -2 3] | map ~(if (gt 0) ~(/) ~(0)) | eq [1 0 3])
 
 :any/if/condition/NotBooleanError/refusesAQuote

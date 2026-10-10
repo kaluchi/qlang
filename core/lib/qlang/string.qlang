@@ -178,9 +178,10 @@
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
       script one, `"привет" | count` answering `6`, and the empty string
-      none. A character is a code point: an emoji counts one, and a
-      letter written with a combining accent counts two, the letter and
-      the accent. The name `count` also counts the elements of a vector
+      none. A character is a code point: an emoji of one code point counts
+      one, while a skin tone, a flag or a joined emoji counts each of its
+      code points, and a letter written with a combining accent counts
+      two, the letter and the accent. The name `count` also counts the elements of a vector
       or a set and the entries of a map, and a number or null answers no
       `count`, which the refusal of the call names with the kinds that
       do.
@@ -214,6 +215,10 @@
   |~~ An emoji is one code point and counts one. ~~|
   ::law~("😀" | count | eq 1)
 
+:string/count/countsEachCodePointOfATonedEmoji
+  |~~ An emoji with a skin tone counts its two code points. ~~|
+  ::law~("\ud83d\udc4d\ud83c\udffd" | count | eq 2)
+
 :string/count/countsACombiningAccentApart
   |~~ A letter with a combining accent counts two. ~~|
   ::law~("é" | count | eq 2)
@@ -227,7 +232,7 @@
       the call gives, `"db_host" | take 2` answering `"db"`. A count past
       the end takes the whole string, and a count of zero or below takes
       none, the empty string. A character is a code point, as `count`
-      counts it, so an emoji is taken whole. The count is a whole number:
+      counts it, so an emoji of one code point is taken whole. The count is a whole number:
       a fraction and a string are refused. A string under a tag answers
       under the tag. The name `take` also takes the first elements of a
       vector, a set or a map.
@@ -345,7 +350,7 @@
       string, a line break or `"::"` among them, and a keyword is
       refused. The empty separator cuts the string into its characters,
       as `count` counts them: a letter stands alone, and an emoji
-      stays whole. `join` writes the pieces back, and
+      of one code point stays whole. `join` writes the pieces back, and
       `lines` breaks a text at its line breaks. A vector of strings
       splits by `map`, each element into a vector of its own.
       ::link~(::string/lines | doc) ::link~(::vec/join | doc)
@@ -407,7 +412,7 @@
   ::law~("abc" | split "" | eq ["a" "b" "c"])
 
 :string/split/keepsAnEmojiWholeAtTheEmptySeparator
-  |~~ The empty separator keeps an emoji whole. ~~|
+  |~~ The empty separator keeps an emoji of one code point whole. ~~|
   ::law~("😀x" | split "" | eq ["😀" "x"])
 
 :string/split/readsBackByJoin
@@ -437,8 +442,8 @@
       a `\r` alone ends no line; a break at the end closes the last line
       rather than opening an empty one, so a text reads alike with and
       without it; an empty line between two breaks stays; and the empty
-      text holds no line. The text is then worked on as the vector it
-      has become, and `join "\n"` writes it back.
+      text holds no line. The text is then worked on as a vector, and
+      `join "\n"` writes it back without its closing break.
 
       `lines` breaks a string, the text the command line reads with
       `--raw`, and takes no value; a vector of texts breaks element by
@@ -904,8 +909,8 @@
       parseJson`, which is how a number comes out of text. JSON has no
       form for a set, a keyword or a tag: what `json` wrote of a set
       reads back as a vector, of a keyword as a string, and of a value
-      under a tag, an error among them, as a map of its `$tag` and
-      `payload`. Text that is no JSON is refused with the message of the
+      under a tag as a map of its `$tag` and `payload`, and of an error
+      as a map of its `$error`. Text that is no JSON is refused with the message of the
       reader of JSON, and a number past the doubles is refused with the
       path to it in the text.
       ::link~(::any/json | doc) ::link~(::string/parse | doc)

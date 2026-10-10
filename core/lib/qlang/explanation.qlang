@@ -8,8 +8,9 @@
       name its own page, `::vec/count | explain | page`; of a value the
       page of its kind, `#[1] | explain | page` the page of sets; of an
       error the page of the refusal it carries, the procedure that
-      repairs the call, `"x" | add 1 !| explain | page`; and null for a
-      name declared without a page. The subject is an explanation, what
+      repairs the call, `"x" | add 1 !| explain | page`, or the page of
+      what refused, the word or its part, where the refusal has none; and
+      null for a name declared without a page. The subject is an explanation, what
       `explain` answers, so a map is refused, its key `:page` read by
       `/page`. `value` answers what was explained.
       ::link~(::any/explain | doc) ::link~(::explanation/value | doc)
@@ -36,6 +37,10 @@
 :explanation/page/ofAnErrorIsThePageOfItsRefusal
   |~~ The page of an error is the page of the refusal that raised it. ~~|
   ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
+
+:explanation/page/ofARefusalWithoutAPageIsThePageOfWhatRefused
+  |~~ A refusal with no page of its own is explained by the page of what refused. ~~|
+  ::law~(::a | gt !| explain | page | eq (::tag/gt/value | doc))
 
 :explanation/page/isNullForANameWithoutOne
   |~~ A name declared without a page is explained by none. ~~|

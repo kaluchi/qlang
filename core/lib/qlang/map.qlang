@@ -745,8 +745,9 @@
       and chains through it, `at :a | at :b`. The key is computed against
       the subject, so `at /k` reads the key from the field `k`, and a
       field is read by the keyword that names it, `at :email`. A vector
-      reads a place and null answers null by an `at` of their own.
-      ::link~(::map/has | doc) ::link~(::proj | doc) ::link~(::vec/at | doc)
+      reads a place by an `at` of its own, and null answers the default,
+      null when the call gives none.
+      ::link~(::map/has | doc) ::link~(::proj | doc) ::link~(::vec/at | doc) ::link~(::null/at | doc)
   ~~|
   ::builtin{}
 
@@ -796,10 +797,6 @@
 :map/at/answersNullForANullValue
   |~~ A key held with a null value answers null, not the default. ~~|
   ::law~({:a null} | at :a 0 | eq null)
-
-:map/at/chainsThroughNull
-  |~~ Soft reads chain through null. ~~|
-  ::law~({:a null} | at :a | at :b | eq null)
 
 :map/at/computesTheKeyAgainstTheSubject
   |~~ A field of the subject gives the key. ~~|
@@ -1258,7 +1255,7 @@
   ~~|
 
 :map/raise/raisesTheSubject
-  |~~ `map | raise` raises the subject, a map the step builds among them. ~~|
+  |~~ `{…} | raise` raises the subject, a map the step builds among them. ~~|
   ::law~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
 
 :map/raise/raisesAMapTheStepBuilds

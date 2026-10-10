@@ -67,7 +67,7 @@ describe('types.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison by the law of its part', async () => {
-    await expectErrorThrown('"a" | gt 5', 'string/gt/than/NotStringError');
+    await expectErrorThrown('"a" | gt 5', 'string/gt/value/NotStringError');
   });
   it('lt rejects non-comparable subject', async () => {
     await expectErrorThrown('null | lt 5', 'call/KindAnswersNoVerbError');

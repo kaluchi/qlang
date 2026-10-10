@@ -794,11 +794,11 @@
 
 :any/explain/explainsAWordByItsPage
   |~~ A word is explained by its page. ~~|
-  ::law~(::number/add | explain | page | content | contains "Adds a number")
+  ::law~(::number/add | explain | page | content | contains "plus the number")
 
 :any/explain/explainsAnErrorByItsSite
-  |~~ An error is explained by the page of the word that refused. ~~|
-  ::law~("x" | add 1 !| explain | page | content | contains "Adds a number")
+  |~~ An error is explained by the page of the refusal it carries. ~~|
+  ::law~("x" | add 1 !| explain | page | content | contains "adds to a number")
 
 :any/explain/answer
   |~~ The page above the value it explains. ~~|

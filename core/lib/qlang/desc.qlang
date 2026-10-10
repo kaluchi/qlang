@@ -17,11 +17,11 @@
   |~~ Among descending values, one follows two. ~~|
   ::law~(1 | desc | gt (2 | desc) | eq true)
 
-:desc/gt/than
+:desc/gt/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/gt/than/NotDescError
+:desc/gt/value/NotDescError
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
@@ -39,11 +39,11 @@
   |~~ Two descending values of one payload are equal. ~~|
   ::law~(2 | desc | gte (2 | desc) | eq true)
 
-:desc/gte/than
+:desc/gte/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/gte/than/NotDescError
+:desc/gte/value/NotDescError
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
@@ -62,11 +62,11 @@
   |~~ Among descending values, two precedes one. ~~|
   ::law~(2 | desc | lt (1 | desc) | eq true)
 
-:desc/lt/than
+:desc/lt/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/lt/than/NotDescError
+:desc/lt/value/NotDescError
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 
@@ -84,11 +84,11 @@
   |~~ Two descending values of one payload are equal. ~~|
   ::law~(2 | desc | lte (2 | desc) | eq true)
 
-:desc/lte/than
+:desc/lte/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:desc/lte/than/NotDescError
+:desc/lte/value/NotDescError
   |~~ The value compared is a value of ::desc. ~~|
   ::holds~(is ::desc)
 

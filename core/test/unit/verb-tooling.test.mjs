@@ -21,7 +21,7 @@ describe('a word as the tooling reads it', () => {
   it('shows the first kind\'s name of a word several kinds answer, and the parts of its object', async () => {
     const shown = shownFor(await langRuntime(), 'gt');
     expect(shown.address.name.endsWith('/gt')).toBe(true);
-    expect(shown.labels).toEqual(['than']);
+    expect(shown.labels).toEqual(['value']);
   });
 
   it('shows the name any value answers', async () => {

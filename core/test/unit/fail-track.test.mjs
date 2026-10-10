@@ -165,7 +165,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('gt across kinds is refused by the law of its part, the kind it met among the facts [D166]', async () => {
     const refused = await evalQuery('"a" | gt 5');
-    expect(refused.tag.name).toBe('string/gt/than/NotStringError');
+    expect(refused.tag.name).toBe('string/gt/value/NotStringError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 

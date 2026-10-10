@@ -25,11 +25,11 @@
   |~~ `:b` follows `:a`. ~~|
   ::law~(:b | gt :a | eq true)
 
-:keyword/gt/than
+:keyword/gt/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/gt/than/NotKeywordError
+:keyword/gt/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
@@ -51,11 +51,11 @@
   |~~ `:b` follows `:a`. ~~|
   ::law~(:b | gte :a | eq true)
 
-:keyword/gte/than
+:keyword/gte/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/gte/than/NotKeywordError
+:keyword/gte/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
@@ -73,11 +73,11 @@
   |~~ `:a` precedes `:b`. ~~|
   ::law~(:a | lt :b | eq true)
 
-:keyword/lt/than
+:keyword/lt/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/lt/than/NotKeywordError
+:keyword/lt/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 
@@ -95,11 +95,11 @@
   |~~ A keyword precedes or equals itself. ~~|
   ::law~(:a | lte :a | eq true)
 
-:keyword/lte/than
+:keyword/lte/value
   |~~ The value the subject is compared with. ~~|
   ~(/0)
 
-:keyword/lte/than/NotKeywordError
+:keyword/lte/value/NotKeywordError
   |~~ The value compared is a keyword. ~~|
   ::holds~(is ::keyword)
 

@@ -1,5 +1,5 @@
 {"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"[(5 | add 1) (\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]","decision":["D72","D164"]}
-{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError]","decision":["D46","D168"]}
+{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | * /name | filter ~(keyword | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError :number/add/SubjectNotNumberError :number/add/ArgsBeyondPartsError]","decision":["D46","D168","D179"]}
 {"name":"a-part-of-the-args-is-the-quote-that-reads-it","query":"::number/add/addend | binding | /value","expect":"~(/0)","decision":["D164","D169"]}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D72"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}
@@ -10,7 +10,7 @@
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
-{"name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/than/NotNumberError","decision":["D65","D72"]}
+{"name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError","decision":["D65","D72"]}
 {"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72","D140"]}
 {"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt /a /b !| type","expect":"::call/KindAnswersNoVerbError","decision":["D72","D165"]}
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true","decision":"D72"}

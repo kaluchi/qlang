@@ -1,26 +1,42 @@
 |~ What is declared under `::group`, the steps in parentheses run on
-   the value in the pipe: its refusals. ~|
+   the value in the pipe: its constructor and its refusals, each told in
+   one order: the refusal and its page, which repairs the step, its
+   facts, its laws. ~|
 
 :group/construct
   |~~ The step `(pipeline)` from the quote of its pipeline. ~~|
   ::builtin{}
 
 :group/PayloadNotQuoteError
-  |~~ The payload of `::group` is the quote of its pipeline. ~~|
+  |~~ The payload of `::group` is the quote of its pipeline, so
+      `~(add 1 | mul 2) | tag ::group` is the step `(add 1 | mul 2)`.
+      ::link~(::group | doc)
+  ~~|
 
 :group/PayloadNotQuoteError/refusesANumber
   |~~ A number payload is refused. ~~|
   ::law~(42 | tag ::group !| [type /actualType] | eq [::group/PayloadNotQuoteError ::number])
 
+:group/PayloadNotQuoteError/buildsTheStepOfAPipeline
+  |~~ The quote of a pipeline builds the group that runs it. ~~|
+  ::law~(~(add 1 | mul 2) | tag ::group | [/] | tag ::quote | eq ~((add 1 | mul 2)))
+
 :group/ReadBackDiffersError
   |~~ The `::group` prints as text that reads back as another step, or
-      as none: a group holds at least one step.
+      as none, and `:printed` is that text: an empty group prints as
+      `()`, which reads as no step. A group holds one step at least, and
+      `/` keeps the value as it is, `~(/) | tag ::group`.
+      ::link~(::group | doc)
   ~~|
+
+:group/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
 
 :group/ReadBackDiffersError/refusesAnEmptyGroup
   |~~ An empty group prints as text that reads back as none. ~~|
   ::law~(~() | tag ::group !| [type /printed] | eq [::group/ReadBackDiffersError "()"])
 
-:group/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
+:group/ReadBackDiffersError/keepsTheValueByTheWholeValue
+  |~~ A group of `/` is a step that keeps the value. ~~|
+  ::law~(~(/) | tag ::group | [/] | tag ::quote | eq ~((/)))

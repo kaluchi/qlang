@@ -1,47 +1,88 @@
-|~ What is declared under `::bind`, the step that declares a name:
-   the refusals of a declaration. ~|
+|~ What is declared under `::bind`, the step that declares a name: its
+   constructor and the refusals of a declaration, each told in one
+   order: the refusal and its page, which repairs the declaration, its
+   facts, its laws. ~|
 
 :bind/construct
-  |~~ The step of a declaration from its record, `:name`, `:docs` and `:body`, which reads back as itself. ~~|
+  |~~ The step of a declaration from its record, `:name`, `:docs` and
+      `:body`, which reads back as itself.
+  ~~|
   ::builtin{}
 
 :bind/PayloadNotSchemaError
-  |~~ A `::bind` is a map of `:name`, a keyword or a tag, `:docs`, a
-      vector of docs, and `:body`, a step.
+  |~~ A `::bind` is a map of `:name`, a keyword, `:docs`, a vector of
+      docs, and `:body`, a step, and `:field` names the field that does
+      not fit: a tag is no name a declaration binds, and the body is the
+      step a quote holds, so the declaration `:inc add 1` is
+      `{:name :inc :body (~(add 1) | first)} | tag ::bind`.
       ::link~(::bind | doc)
   ~~|
-
-:bind/PayloadNotSchemaError/refusesDocsThatAreNoDocs
-  |~~ Docs that are no vector of docs are refused, `:field` naming them. ~~|
-  ::law~(::bind{:name :inc :docs [1]} !| [type /field] | eq [::bind/PayloadNotSchemaError :docs])
 
 :bind/PayloadNotSchemaError/field
   |~~ The field that does not fit, null when the payload is no map. ~~|
   #[::keyword ::null]
 
+:bind/PayloadNotSchemaError/refusesDocsThatAreNoDocs
+  |~~ Docs that are no vector of docs are refused, `:field` naming them. ~~|
+  ::law~(::bind{:name :inc :docs [1]} !| [type /field] | eq [::bind/PayloadNotSchemaError :docs])
+
+:bind/PayloadNotSchemaError/refusesATagForAName
+  |~~ A tag is no name a declaration binds. ~~|
+  ::law~({:name ::Box :body 1} | tag ::bind
+    !| [type /field] | eq [::bind/PayloadNotSchemaError :name])
+
+:bind/PayloadNotSchemaError/buildsTheDeclarationOfABody
+  |~~ A keyword and the step a quote holds build the declaration. ~~|
+  ::law~({:name :inc :body (~(add 1) | first)} | tag ::bind
+    | [/] | tag ::quote | eq ~(:inc add 1))
+
 :bind/ReadBackDiffersError
-  |~~ The `::bind` prints as text that reads back as another step: a
-      declaration binds a body or docs, and a body that is a keyword
-      or a tag is written as a group.
+  |~~ The `::bind` prints as text that reads back as another step, and
+      `:printed` is that text: a declaration with neither a body nor a
+      page prints as the bare keyword, which reads back as the keyword,
+      and a body that is a doc prints where a page of the declaration
+      stands, and reads back as its page. A declaration binds a body or
+      a page, and a doc bound as the value is the body of a group.
       ::link~(::bind | doc)
   ~~|
-
-:bind/ReadBackDiffersError/refusesABindOfNothing
-  |~~ A bind with neither a body nor docs prints as a bare name, which reads back as another step. ~~|
-  ::law~(::bind{:name :inc} !| [type /printed] | eq [::bind/ReadBackDiffersError ":inc"])
 
 :bind/ReadBackDiffersError/printed
   |~~ The text the step prints as, which reads back as another step or as none. ~~|
   ::string
 
+:bind/ReadBackDiffersError/refusesABindOfNothing
+  |~~ A bind with neither a body nor docs prints as a bare name, which
+      reads back as another step.
+  ~~|
+  ::law~(::bind{:name :inc} !| [type /printed] | eq [::bind/ReadBackDiffersError ":inc"])
+
+:bind/ReadBackDiffersError/refusesABodyThatIsADoc
+  |~~ A doc as the body reads back as the page of the declaration. ~~|
+  ::law~({:name :k :body (~(|~~ x ~~|) | first)} | tag ::bind
+    !| type | eq ::bind/ReadBackDiffersError)
+
+:bind/ReadBackDiffersError/bindsADocInAGroup
+  |~~ A doc in a group is the value a declaration binds. ~~|
+  ::law~(:k (|~~ x ~~|) | k | content | eq " x ")
+
 :bind/EffectMarkMissingError
   |~~ A word whose body calls a name marked `@` reaches outside the
-      language, and its own name carries the mark, `:any/@fetchAll
-      ~(@fetch …)`, so every reader of the name sees it; a part whose
-      selector calls a marked name is held to the mark of the name it is a
-      part of, which runs it at each call, `:name` that name.
+      language, and its own name carries the mark, so every reader of the
+      name sees it: `:name` holds the name declared and `:calls` the
+      marked name its code calls. The word is declared under its marked
+      name, `:any/@fetchAll ~(@fetch …)`. A part whose selector calls a
+      marked name is held to the mark of the name it is a part of, which
+      runs it at each call, and `:name` is that name.
       ::link~(::bind | doc)
   ~~|
+
+:bind/EffectMarkMissingError/name
+  |~~ The name declared without the mark. ~~|
+  ::keyword
+
+:bind/EffectMarkMissingError/calls
+  |~~ The marked name its code calls. ~~|
+  ::keyword
 
 :bind/EffectMarkMissingError/refusesAnUnmarkedWordThatCallsAMarkedName
   |~~ A word that calls a marked name and carries no mark is refused, naming both. ~~|
@@ -52,31 +93,22 @@
 
 :bind/EffectMarkMissingError/refusesAWordWhosePartCallsAMarkedName
   |~~ A part whose selector calls a marked name refuses its unmarked word. ~~|
-  ::law~(:any/f ~(1) | :any/f/n ~(/0 | @out) !| [type /name /calls] | eq [::bind/EffectMarkMissingError :any/f :@out])
+  ::law~(:any/f ~(1) | :any/f/n ~(/0 | @out)
+    !| [type /name /calls] | eq [::bind/EffectMarkMissingError :any/f :@out])
 
-:bind/EffectMarkMissingError/name
-  |~~ The name declared without the mark. ~~|
-  ::keyword
-
-:bind/EffectMarkMissingError/calls
-  |~~ The marked name its code calls. ~~|
-  ::keyword
+:bind/EffectMarkMissingError/takesAWordUnderItsMarkedName
+  |~~ A word declared under its marked name is taken. ~~|
+  ::law~(:any/@good ~(@callers) | ::any | manifest | has ::any/@good)
 
 :bind/NounNotDeclaredError
   |~~ A name with a path is declared under the noun its path names
       before its last name, and that noun is declared before it, so
       whether the noun is a kind, which the verbs under it serve, is
-      known where they are declared.
+      known where they are declared: `:name` holds the name and `:noun`
+      the noun no declaration made. The noun is declared first, by its
+      page, and the names under it after.
       ::link~(::bind | doc)
   ~~|
-
-:bind/NounNotDeclaredError/refusesANameUnderNoNoun
-  |~~ A name under a noun no declaration made is refused, naming the noun. ~~|
-  ::law~(:Box/area ~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
-
-:bind/NounNotDeclaredError/takesANameUnderADeclaredNoun
-  |~~ A name under a noun declared before it runs on the noun's values. ~~|
-  ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
 
 :bind/NounNotDeclaredError/name
   |~~ The name declared. ~~|
@@ -86,38 +118,61 @@
   |~~ The noun its path names, which no declaration names. ~~|
   ::tag
 
+:bind/NounNotDeclaredError/refusesANameUnderNoNoun
+  |~~ A name under a noun no declaration made is refused, naming the noun. ~~|
+  ::law~(:Box/area ~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
+
+:bind/NounNotDeclaredError/takesANameUnderADeclaredNoun
+  |~~ A name under a noun declared before it runs on the noun's values. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
+
 :bind/NameTakenByVocabularyError
   |~~ A value the reader names takes no word of the vocabulary, the name
       of a verb or of a name under a label, since a step that names the
-      word means the subject's: `:addresses` holds where the word lives,
-      and the value takes another name.
+      word means the subject's; a part of a word takes none either, since
+      the body reads the part by its name. `:name` holds the name and
+      `:addresses` where the word lives. The value or the part takes
+      another name, `:limit 5` where `:count 5` is refused.
       ::link~(::bind | doc)
   ~~|
-
-:bind/NameTakenByVocabularyError/refusesAValueNamedAsAWord
-  |~~ A value named as a word is refused with the addresses of the word. ~~|
-  ::law~(:count 5 !| [type /addresses] | eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
-
-:bind/NameTakenByVocabularyError/takesANameNoWordHolds
-  |~~ A name no word holds names a value. ~~|
-  ::law~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
 
 :bind/NameTakenByVocabularyError/name
   |~~ The name, a word of the vocabulary. ~~|
   ::keyword
 
+:bind/NameTakenByVocabularyError/refusesAValueNamedAsAWord
+  |~~ A value named as a word is refused with the addresses of the word. ~~|
+  ::law~(:count 5
+    !| [type /addresses]
+    |  eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
+
+:bind/NameTakenByVocabularyError/refusesAPartNamedAsAWord
+  |~~ A part of a word named as a word is refused. ~~|
+  ::law~(:any/f ~(1) | :any/f/count ~(/0)
+    !| [type /name] | eq [::bind/NameTakenByVocabularyError :count])
+
+:bind/NameTakenByVocabularyError/takesANameNoWordHolds
+  |~~ A name no word holds names a value. ~~|
+  ::law~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
+
 :bind/NameDeclaredTwiceError
-  |~~ A name is declared once in a scope: the steps of a pipeline
-      that the pipe or the fail track joins share one env, and a
-      declaration of a name one of them declared before is refused
-      where it stands. A group, an element, a modifier, a quote and
-      a step joined by `*` open scopes of their own, where a name
-      of the scope around them is shadowed. An address the root
-      holds is declared once at all: a reader extends a noun of the
-      root and replaces none of its nodes, and a source of the root
-      that declares a name the root holds is refused.
+  |~~ A name is declared once in a scope: the steps of a pipeline that
+      the pipe or the fail track joins share one env, and a declaration
+      of a name one of them declared before is refused where it stands,
+      `:name` the name. A group, an element, a modifier, a quote and a
+      step joined by `*` open scopes of their own, where a name of the
+      scope around them is shadowed, so a second value takes another
+      name or a group of its own, `(:k 2 | k)`. An address the root holds
+      is declared once at all: a reader extends a noun of the root by a
+      name of its own, `:vec/second ~(/1)`, and replaces none of its
+      names, and a source of the root that declares a name the root holds
+      is refused.
       ::link~(::bind | doc)
   ~~|
+
+:bind/NameDeclaredTwiceError/name
+  |~~ The name declared again. ~~|
+  ::keyword
 
 :bind/NameDeclaredTwiceError/refusesASecondDeclaration
   |~~ A name declared again in its scope is refused. ~~|
@@ -131,6 +186,6 @@
   |~~ A reader declares no name the root holds. ~~|
   ::law~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
 
-:bind/NameDeclaredTwiceError/name
-  |~~ The name declared again. ~~|
-  ::keyword
+:bind/NameDeclaredTwiceError/extendsANounOfTheRoot
+  |~~ A reader extends a noun of the root by a name of its own. ~~|
+  ::law~(:vec/second ~(/1) | [1 2] | second | eq 2)

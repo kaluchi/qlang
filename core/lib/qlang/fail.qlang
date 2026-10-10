@@ -1,27 +1,46 @@
 |~ What is declared under `::fail`, the step `!|` runs on an error
-   alone: its refusals. ~|
+   alone: its constructor and its refusals, each told in one order: the
+   refusal and its page, which repairs the step, its facts, its laws. ~|
 
 :fail/construct
   |~~ The step `!| step` from the quote of its step. ~~|
   ::builtin{}
 
 :fail/PayloadNotQuoteError
-  |~~ The payload of `::fail` is the quote of the step it wraps. ~~|
+  |~~ The payload of `::fail` is the quote of the step it wraps, so
+      `~(/kind) | tag ::fail` is the step `!| /kind`.
+      ::link~(::fail | doc)
+  ~~|
 
 :fail/PayloadNotQuoteError/refusesANumber
   |~~ A number payload is refused. ~~|
   ::law~(42 | tag ::fail !| [type /actualType] | eq [::fail/PayloadNotQuoteError ::number])
 
+:fail/PayloadNotQuoteError/buildsTheStepOfAStep
+  |~~ The quote of a step builds the step the fail track runs. ~~|
+  ::law~(~(/kind) | tag ::fail | [/] | tag ::quote | eq ~(!| /kind))
+
 :fail/ReadBackDiffersError
-  |~~ The `::fail` prints as text that reads back as another step: it
-      wraps one step, and a pipeline under `!|` is written as a
-      group.
+  |~~ The `::fail` prints as text that reads back as another step, or as
+      none, and `:printed` is that text: it wraps one step, so a pipeline
+      prints as `!| a | b`, where `!|` takes the first step alone, and an
+      empty quote as no step. A pipeline under `!|` is written as a group,
+      `~((/kind | print)) | tag ::fail` the step `!| (/kind | print)`.
+      ::link~(::fail | doc)
   ~~|
+
+:fail/ReadBackDiffersError/printed
+  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  ::string
 
 :fail/ReadBackDiffersError/refusesAPipelineOutsideAGroup
   |~~ A pipeline wrapped without a group prints as text that reads back as two steps. ~~|
   ::law~(~(a | b) | tag ::fail !| [type /printed] | eq [::fail/ReadBackDiffersError "!| a | b"])
 
-:fail/ReadBackDiffersError/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
-  ::string
+:fail/ReadBackDiffersError/refusesAnEmptyQuote
+  |~~ An empty quote prints as text that reads back as no step. ~~|
+  ::law~(~() | tag ::fail !| [type /printed] | eq [::fail/ReadBackDiffersError "!| "])
+
+:fail/ReadBackDiffersError/wrapsAPipelineInAGroup
+  |~~ A pipeline in a group is the one step the fail track runs. ~~|
+  ::law~(~((/kind | print)) | tag ::fail | [/] | tag ::quote | eq ~(!| (/kind | print)))

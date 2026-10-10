@@ -118,7 +118,8 @@ export async function run(setId, { screen, mode, model, runs }) {
     if (mode === 'cli') for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
     jobs.push(runChild({ prompt, model, mode, workDir }).then(record => writeFileSync(recordPath, JSON.stringify({
       set: setId, screen, screenHash: screenHash(screen), mode, model, run: runIndex,
-      date: new Date().toISOString().slice(0, 10), commit: commitOf(), ...record
+      date: new Date().toISOString().slice(0, 10), commit: commitOf(), ...record,
+      failed: record.failed || finalQueriesOf(setId, record.result).size === 0
     }, null, 1) + '\n')));
   }
   await Promise.all(jobs);

@@ -661,7 +661,16 @@ page and `open` reaches it, the jump from one page to another
 see what it shows [D122]; with none it is code the prose holds. The laws
 that prove a name stand under it, each a definition of `::law~(…)` that
 `runLaws` holds to answer true, its page the claim it proves [D123],
-[D124], [D174]. So the first page leads to every other in one query:
+[D124], [D174]; `laws` answers each as the pair of its page and its
+query, and `tutorial` a name's page and its laws, the pair a reader
+learns the name from [D176]:
+
+```qlang
+> ::vec/take | tutorial | [(/0 | type) (/1 | keys | count | gt 0)]
+[::doc true]
+```
+
+So the first page leads to every other in one query:
 
 ```qlang
 > ::qlang | doc | links * open | every ~(type | eq ::doc)
@@ -1799,3 +1808,4 @@ whole, a primitive the law of every count calls; or the test kept in
 [D173]: decisions/D173.md
 [D174]: decisions/D174.md
 [D175]: decisions/D175.md
+[D176]: decisions/D176.md

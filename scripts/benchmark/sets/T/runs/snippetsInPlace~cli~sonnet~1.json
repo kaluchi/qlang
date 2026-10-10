@@ -1,0 +1,58 @@
+{
+ "set": "T",
+ "screen": "snippetsInPlace",
+ "screenHash": "fb6b06e03ab2",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-10",
+ "commit": "14d351e",
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran all fourteen queries and checked the answers against the data files by hand where I could. T1, T4, T11, T12 and T13 I recomputed manually and they match. I didn't hand-check the rest, though T10's counts match the log lines.\n\nTwo of the answers print in a different shape from the others:\n- T10 prints with keyword keys (`:db 3`), not quoted strings.\n- T13 prints as qlang literals (`:customer \"Birch\"`), not JSON.\n\nOn Git Bash, queries that start with `/` get turned into a path, so I started those with `| /…` instead.\n\nT1: | /data/users | filter ~(/active | eq true) | filter ~(at :email | coalesce \"\" | lower | endsWith \"@example.com\") | count\nT2: | /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) * /name\nT3: | /data/users | groupBy ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") * count\nT4: | /data/users * (at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2\nT5: | filter ~(/state | eq \"open\") * /labels | flat * (/name | lower) | distinct | sort\nT6: | sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | coalesce {} | at :login)}\nT7: | filter ~(/state | eq \"open\") | filter ~(at :assignee | coalesce {} | at :login | ne null) | groupBy ~(/assignee/login) * count\nT8: | unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([(/0 | keyword) \"@\" /1] | join \"\")\nT9: | /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) * (/name | lower) | sort | join \",\"\nT10: | lines | filter ~(trim | ne \"\") | filter ~(split \" \" | /1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count\nT11: | lines | filter ~(contains \"ms=\") * (split \" \" | filter ~(startsWith \"ms=\") | first | drop 3 | parseJson) | avg | round 1\nT12: | lines | drop 1 | filter ~(trim | ne \"\") * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") * (mulOf (/3 | parseJson) (/4 | parseJson)) | sum | round 2\nT13: | lines | drop 1 | filter ~(trim | ne \"\") * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | ne \"cancelled\") | groupBy ~(/1) * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries * {:customer (/0 | keyword) :total (/1 | round 2)} | sort ~(/total | desc) | take 2\nT14: | [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] * lower | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 9,
+ "inputTokens": 120876,
+ "outputTokens": 4015,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 issues.json; echo; cat package.json | head -30; head -c 400 config.json; head -5 logs.txt; head -5 orders.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.csv package.json users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", "
+  },
+  {
+   "command": "qlang '/data/users | filter ~(/active | eq true) | filter ~(/email | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json\nqlang '/data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) * /name' < users.json\nqlang '/data/users | groupBy ~(/profile | at :country | coalesce \"unknown\") * count' < users.json\nqlang '/data/users | :u / | u * (at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2' < users.json",
+   "answered": "value",
+   "head": "::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(/active | eq true) | filter ~(/email | coalesce \\\"\\\" | lower | endsWith \\\"@example.com\\\") | count\" :marker \" ^ \" :expected [:\"identifier continue (letter, digit, hyphe"
+  },
+  {
+   "command": "qlang '| /data/users | filter ~(/active | eq true) | filter ~(at :email | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json\nqlang '| /data/users | groupBy ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") * count' < users.json\nqlang '| filter ~(/state | eq \"open\") | flat' < issues.json | head -3\nqlang '| filter ~(/state | eq \"open\") * /labels | flat * (/name | lower) | distinct | sort' < issues.json\nqlang '| sort ~[(/comments | desc) /number] | take 3 * {:number /number :assignee (at :assignee | coalesce {} | at :login)}' < issues.json\nqlang '| filter ~(/state ",
+   "answered": "value",
+   "head": "Contains zsh ~[ dynamic directory syntax"
+  },
+  {
+   "command": "qlang '| /data/users | filter ~(/active | eq true) | filter ~(at :email | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json\nqlang '| /data/users | groupBy ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") * count' < users.json\nqlang '| filter ~(/state | eq \"open\") * /labels | flat * (/name | lower) | distinct | sort' < issues.json\nqlang '| sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | coalesce {} | at :login)}' < issues.json\nqlang '| filter ~(/state | eq \"open\") | filter ~(at :assignee | coalesce {} | at :login | ne ",
+   "answered": "value",
+   "head": "4 { \"US\": 3, \"DE\": 2, \"unknown\": 2, \"FR\": 2 } [ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] [ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"alice\": 3, \"bob\": 1"
+  },
+  {
+   "command": "qlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * (/0 | append \"@\" | append (r | /1))' < package.json\nqlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([/0 \"@\" /1] | join \"\")' < package.json\nqlang '| /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) * (/name | lower) | sort | join \",\"' < config.json\nqlang --raw '| lines | filter ~(trim | ne \"\") | filter ~(split \" \" | /1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count' < logs.txt\nqlang --raw '| lines | filter ~(",
+   "answered": "denied",
+   "head": "This Bash command contains multiple operations. The following part requires approval: grep -v ' ms=[0-9]*$'"
+  },
+  {
+   "command": "qlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([/0 \"@\" /1] | join \"\")' < package.json\nqlang '| /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) * (/name | lower) | sort | join \",\"' < config.json\nqlang --raw '| lines | filter ~(trim | ne \"\") | filter ~(split \" \" | /1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count' < logs.txt\nqlang --raw '| lines | filter ~(contains \"ms=\") * (split \" \" | filter ~(startsWith \"ms=\") | first | drop 3 | parseJson) | avg | round 1' < logs.txt\ncat logs.txt",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"vec/join/ElementNotStringError\", \"descriptor\": { \"index\": 0, \"actualType\": \"::keyword\", \"actualValue\": \"eslint\", \"trail\": [ { \"step\": \"~(join \\\"\\\")\", \"subject\": [ \"eslint\", \"@\", \"^8.56.0\" ], \"skipped\": \"~()\" }, { \"ste"
+  },
+  {
+   "command": "qlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([(/0 | keyword) \"@\" /1] | join \"\")' < package.json\nqlang --raw '| lines | drop 1 | filter ~(trim | ne \"\") * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") * (mulOf (/3 | parseJson) (/4 | parseJson)) | sum | round 2' < orders.csv\nqlang --raw '| lines | drop 1 | filter ~(trim | ne \"\") * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | ne \"cancelled\") | groupBy ~(/1) * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries * {:customer (/0 | keyword) :to",
+   "answered": "value",
+   "head": "[ \"eslint@^8.56.0\", \"express@^4.18.2\", \"jest@^29.7.0\", \"typescript@^5.3.3\", \"zod@^3.22.0\" ] 204.91 [{:customer \"Birch\" :total 109.97} {:customer \"Acme\" :total 104.96}] elderberry-banana-cherry-apple-date-kiwi-fig"
+  },
+  {
+   "command": "cat orders.csv",
+   "answered": "value",
+   "head": "id,customer,product,qty,price,status 1,Acme,widget,10,2.50,shipped 2,Birch,gadget,3,19.99,Shipped 3,Acme,gizmo,1,100.00,cancelled 4,Cobalt,widget,5,,shipped 5,Birch,widget,20,2.50,pending 6,Cobalt,gadget,2,19.99,shipped 7,Acme,gadget,4,19.9"
+  }
+ ]
+}

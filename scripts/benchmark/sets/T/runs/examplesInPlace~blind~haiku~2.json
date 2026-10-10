@@ -1,0 +1,17 @@
+{
+ "set": "T",
+ "screen": "examplesInPlace",
+ "screenHash": "fceac5be0169",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 2,
+ "date": "2026-10-10",
+ "commit": "14d351e",
+ "modelId": "claude-haiku-4-5-20251001",
+ "result": "T1: /data/users | filter ~(:email (at :email) | /active | if () ~(email | ne null | if () ~(email | lower | endsWith \"@example.com\") ~(false)) ~(false)) | count\n\nT2: /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | map ~(/name) | sort ~(lower)\n\nT3: /data/users | map ~((at :profile) | if (ne null) ~(at :country | coalesce \"unknown\") ~(\"unknown\")) | groupBy | * count\n\nT4: /data/users | filter ~((at :profile) | ne null) | map ~(/profile/age) | filter ~(ne null) | avg | round 2\n\nT5: / | filter ~(/state | eq \"open\") | map ~(/labels) | flat | map ~(/name | lower) | distinct | sort\n\nT6: / | sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (/assignee | at :login)})\n\nT7: / | filter ~(/state | eq \"open\") | filter ~((at :assignee) | ne null) | map ~(/assignee/login) | groupBy | * count\n\nT8: /dependencies | union /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~([/0 \"@\" /1] | join \"\")\n\nT9: /services | filter ~((at :enabled | coalesce false) | if () ~(/port | gt 8000) ~(false)) | map ~(/name | lower) | sort | join \",\"\n\nT10: / | lines | filter ~((split \" \") | /1 | eq \"ERROR\") | map ~((split \" \") | /2) | groupBy | * count\n\nT11: / | lines | filter ~(contains \"ms=\") | map ~((split \"ms=\") | /1 | (split \" \") | /0 | parseJson) | avg | round 1\n\nT12: / | lines | drop 1 | map ~(split \",\") | filter ~((/5 | lower | eq \"shipped\") | if () ~(/4 | ne \"\") ~(false)) | map ~((/3 | parseJson) * (/4 | parseJson)) | sum | round 2\n\nT13: / | lines | drop 1 | map ~(split \",\") | filter ~(((/5 | lower | eq \"cancelled\") | not) | if () ~(/4 | ne \"\") ~(false)) | map ~([/1 (/3 | parseJson) * (/4 | parseJson)]) | groupBy ~(/0) | * (map ~(/1) | sum) | entries | map ~({:customer (/0 | keyword) :total (/1 | round 2)}) | sort ~(/total | desc) | take 2\n\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | map ~({:word / :len (| count)}) | sort ~([(/len | desc) /word]) | map ~(/word) | join \"-\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8137,
+ "outputTokens": 40147,
+ "calls": []
+}

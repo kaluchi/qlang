@@ -1486,6 +1486,24 @@ why.
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
 
+The examples of the first screen [D174], [D175], [D176]. The first page
+showed after a sentence the query that proves it, answering true; its
+laws left for definitions under its name, and its prose reads without
+them. A fresh reader pays for it. On set T, written by a clean author
+after the screens, sonnet with the command line solved every task on
+either page, in 7 to 10 calls over six runs with the examples in place
+and in 9 to 22 without them, and haiku blind solved 10 of 42 tasks with
+them and 4 without. The same examples below the prose, as `tutorial`
+answers them or listed plainly, or in place as a query and its answer,
+or under `::snippet`, did not reach the page with them in place over
+three runs each. The alternatives: the first page holds each example
+again as a bare quote in its prose, code the prose holds that is no law
+[D175], each held by a test to the query of a law of the page, which
+costs the text of a query written twice; the prose links to the laws it
+shows and the first screen writes the code of each such link in its
+place, which costs a renderer of the screen and has not been measured;
+or the page keeps its prose alone, and a fresh reader pays the calls.
+
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
 wants one, Clojure's multimethods show the form: a hierarchy of names

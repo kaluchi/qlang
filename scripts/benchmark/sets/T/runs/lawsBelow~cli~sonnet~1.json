@@ -1,0 +1,53 @@
+{
+ "set": "T",
+ "screen": "lawsBelow",
+ "screenHash": "0ea018bb79f3",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-10",
+ "commit": "14d351e",
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran all 14 queries against the input files and each returned a plausible answer. For T12 and T13 I also checked the sums by hand and they match.\n\nT1: /data/users | filter ~(allOf /active (at :email | coalesce \"\" | lower | endsWith \"@example.com\")) | count\nT2: /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) * /name\nT3: /data/users * (at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy * count\nT4: /data/users * (at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2\nT5: filter ~(/state | eq \"open\") * /labels | flat * (/name | lower) | distinct | sort\nT6: sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | coalesce {} | at :login)}\nT7: filter ~(/state | eq \"open\") * (at :assignee | coalesce {} | at :login) | filter ~(ne null) | groupBy * count\nT8: [/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([(/0 | keyword) \"@\" /1] | join \"\")\nT9: /services | filter ~(allOf (at :enabled | eq true) (/port | gt 8000)) * (/name | lower) | sort | join \",\"\nT10: lines | filter ~(split \" \" | /1 | eq \"ERROR\") * (split \" \" | /2) | groupBy * count\nT11: lines * (split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(ne null) * (drop 3 | parseJson) | avg | round 1\nT12: lines | drop 1 * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") * ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2\nT13: lines | drop 1 * split \",\" | filter ~(allOf (/4 | ne \"\") (/5 | lower | ne \"cancelled\")) * {:c /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)} | groupBy ~(/c) * (* /t | sum | round 2) | entries * {:customer (/0 | keyword) :total /1} | sort ~(/total | desc) | take 2\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] * lower | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 8,
+ "inputTokens": 112735,
+ "outputTokens": 3180,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 issues.json; echo; cat package.json | head -30; head -c 400 config.json; head -5 logs.txt; head -5 orders.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.csv package.json users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", "
+  },
+  {
+   "command": "qlang '/data/users | filter ~(allOf /active ((at :email) | ne null) (/email | lower | endsWith \"@example.com\")) | count' < users.json; qlang '/data/users | [(/0 | keys)] ' < users.json; qlang '/data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) * /name' < users.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"string/lower/SubjectNotStringError\", \"descriptor\": { \"actualType\": \"::null\", \"trail\": [ { \"step\": \"~(lower)\", \"subject\": null, \"skipped\": \"~(endsWith \\\"@example.com\\\")\" }, { \"step\": \"~((/email | lower | endsWith \\\"@ex"
+  },
+  {
+   "command": "qlang '/data/users | filter ~(allOf /active (at :email | coalesce \"\" | lower | endsWith \"@example.com\")) | count' < users.json\nqlang '/data/users * (at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy * count' < users.json\nqlang '/data/users * (at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2' < users.json\nqlang 'filter ~(/state | eq \"open\") * /labels * (/name | lower) | flat | distinct' < issues.json\nqlang 'sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | coalesce {} | at :login)}' < issues.json\nqlang 'filte",
+   "answered": "value",
+   "head": "4 { \"US\": 3, \"DE\": 2, \"unknown\": 2, \"FR\": 2 } 33.17 { \"$error\": { \"$tag\": \"proj/IndexNotIntegerError\", \"descriptor\": { \"key\": \"name\", \"actualType\": \"::vec\", \"trail\": [ { \"step\": \"~(/name)\", \"subject\": [ { \"name\": \"bug\" }, { \"name\": \"Urgent\""
+  },
+  {
+   "command": "qlang 'filter ~(/state | eq \"open\") * /labels | flat * (/name | lower) | distinct | sort' < issues.json\nqlang '[/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ((/0) | append \"@\" | append (/1))' < package.json\nqlang '/services | filter ~(allOf (at :enabled | eq true) (/port | gt 8000)) * (/name | lower) | sort | join \",\"' < config.json\nhead -3 config.json >/dev/null; cat logs.txt | wc -l",
+   "answered": "value",
+   "head": "[ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] { \"$error\": { \"$tag\": \"call/KindAnswersNoVerbError\", \"descriptor\": { \"name\": \"append\", \"addresses\": [ \"::string/append\", \"::vec/append\" ], \"actualType\": \"::keyword\", \"trail\": [ { \"step\""
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) * ([(/0 | keyword) \"@\" /1] | join \"\")' < package.json\ncat logs.txt; cat orders.csv",
+   "answered": "value",
+   "head": "[ \"eslint@^8.56.0\", \"express@^4.18.2\", \"jest@^29.7.0\", \"typescript@^5.3.3\", \"zod@^3.22.0\" ] 2026-03-01T10:00:01Z INFO api request path=/users ms=120 2026-03-01T10:00:05Z ERROR db connection lost retry=1 2026-03-01T10:00:07Z INFO api request"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(split \" \" | /1 | eq \"ERROR\") * (split \" \" | /2) | groupBy * count' < logs.txt\nqlang --raw 'lines * (split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(ne null) * (drop 3 | parseJson) | avg | round 1' < logs.txt\nqlang --raw 'lines | drop 1 * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") * ((/3 | parseJson) | mul (/4 | parseJson))' < orders.csv",
+   "answered": "value",
+   "head": "{ :db 3 :api 1 :worker 1 } 330.2 ::proj/SubjectNotProjectableError!{ :key 4 :actualType ::number :trail [ { :step ~(/4) :subject 10 :skipped ~(parseJson) } { :step ~((/4 | parseJson)) :subject 10 :skipped ~() } { :step ~(mul (/4 | parseJson"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") * ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2' < orders.csv\nqlang --raw 'lines | drop 1 * split \",\" | filter ~(allOf (/4 | ne \"\") (/5 | lower | ne \"cancelled\")) * {:c /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)} | groupBy ~(/c) * (* /t | sum | round 2) | entries * {:customer (/0 | keyword) :total /1} | sort ~(/total | desc) | take 2' < orders.csv\nqlang '[\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] * lower |",
+   "answered": "value",
+   "head": "204.91 [{:customer \"Birch\" :total 109.97} {:customer \"Acme\" :total 104.96}] elderberry-banana-cherry-apple-date-kiwi-fig"
+  }
+ ]
+}

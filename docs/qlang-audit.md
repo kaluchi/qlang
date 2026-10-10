@@ -740,8 +740,9 @@ the ordered vector under its tag, every value has a kind, and every
 condition is a boolean. A refusal is named by the address of the word
 that refused, its facts definitions of the catalog [D172]. The literal
 is the one lossless format [D30], the catalog is the reference of the
-language [D128], and its first page tells the language from its
-invariants [D131]; the forms a clean session reached for and missed
+language [D128], and its first page tells the language whole, in the
+order its parts rest on each other, the argument model one rule [D185];
+the forms a clean session reached for and missed
 became the language's where they composed with it [D132], [D133],
 [D138], [D140]. The benchmark measures the first screen on sets of
 tasks a clean author writes and no one has read [D142], and `node
@@ -1416,22 +1417,22 @@ conformance suite are the targets of [D7], [D107], [D108], [D109],
 one met. The benchmark runs [D26], each run recorded with the frictions
 it met [D104], [D105], [D106], each measurement on a set of tasks a
 clean author wrote, which measures once and serves the work once its
-misses are read [D142].
+misses are read [D142]. An error a host prints is an alert, the subject
+where it arose an excerpt and each subject it passed a marker [D184].
 
 What remains of it: a view takes its options beyond a few positional
 modifiers as one map whose keys it declares [D40]; the catalog's prose
 is reduced to what the facts do not say, every page telling what its
 name is for and the claims its laws prove [D110], [D124], each
 definition a story a reader falls into, the word, its answer, its
-parts, its refusals and its laws in that order [D179]; errors print
-as alerts; enrichment happens once per session; fields are documented
+parts, its refusals and its laws in that order [D179]; enrichment
+happens once per session; fields are documented
 by their records' tags and shared values by their own [D50]; the first
 page's sections are names under `::qlang` from which the first screen
 is assembled [D169];
-and the first screen is written from the invariants of the language and held
-against probes its author never saw [D131], holding the weight it has
-until a pass on compactness can cut what a reader asks `manifest` for
-[D150].
+and the first screen, told whole in the order its parts rest on each
+other [D185], within the weight it had [D150], is measured on a set of
+tasks no reader has seen [D131], [D142].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy and its suite passes against the baseline, on a
@@ -1527,6 +1528,9 @@ of its name, which costs the text of a query written twice; the prose links to t
 shows and the first screen writes the code of each such link in its
 place, which costs a renderer of the screen and has not been measured;
 or the page keeps its prose alone, and a fresh reader pays the calls.
+The page of [D185] holds its examples in place, each a query and its
+answer in the prose, which a test of the core runs as the page writes
+them; its measurement against [D184] answers the question.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
@@ -1858,3 +1862,4 @@ whole, a primitive the law of every count calls; or the test kept in
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
 [D184]: decisions/D184.md
+[D185]: decisions/D185.md

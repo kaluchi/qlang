@@ -1,4 +1,4 @@
-// Tests for the error operand and the `!|` fail-apply combinator, plus edge cases around trail accumulation, re-lift
+// Tests of `raise` and the `!|` fail-apply combinator, plus edge cases around trail accumulation, re-lift
 // continuity, and verb invocation on the fail-track.
 
 import { describe, it, expect } from 'vitest';
@@ -7,9 +7,9 @@ import { keyword, makeTagKeyword } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
-// ── raise operand ──────────────────────────────────────────────
+// ── raise ──────────────────────────────────────────────
 
-describe('raise operand', () => {
+describe('raise', () => {
   it('bare form wraps pipeValue Map', async () => {
     const evalResult = await evalQuery('{:kind :oops} | raise !| /kind');
     expect(evalResult).toEqual(keyword('oops'));
@@ -62,12 +62,12 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
-    // the operand-carrying step (`count`) joins them [D85].
+    // the step that calls a word (`count`) joins them [D85].
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
 
-  it('the steps skipped past a plain comment replay through apply as the bare operand suffix', async () => {
+  it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
   });
@@ -75,7 +75,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
 
 describe('source axis prints the declaration for rare body shapes', () => {
-  it('renders bare OperandCall (no args)', async () => {
+  it('renders bare Call (no args)', async () => {
     expect(await evalQuery(':x count | :x | source | parse')).toBe(':x count');
   });
 
@@ -84,7 +84,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(evalResult).toBe(':x (42)');
   });
 
-  it('a block doc in the slot surfaces through the docs axis operand', async () => {
+  it('a block doc in the slot surfaces through the doc axis', async () => {
     const evalResult = await evalQuery(':x |~~ doc ~~| 42 | :x | doc | content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
@@ -102,7 +102,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 });
 
-describe('json operand on error values inside containers', () => {
+describe('json on error values inside containers', () => {
   it('renders error value as $error wrapper when inside Vec', async () => {
     // A literal holds the error a word answers [D87]; json renders the Vec
     const evalResult = await evalQuery('[11 ("x" | add 10) 13] | json');
@@ -219,9 +219,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(r).toEqual(makeTagKeyword('Box'));
   });
 
-  it('error operand lifts `:kind ::TagKeyword` field onto the JS-header tag', async () => {
+  it('raise lifts a `:kind` tag field onto the JS-header tag', async () => {
     // When the source Map carries no JS-header tag but has a
-    // `:kind ::Foo` TagKeyword entry, the operand lifts it onto
+    // `:kind ::Foo` tag entry, raise lifts it onto
     // the resulting error's `tag` slot and drops the field from
     // the descriptor — the same identity invariant the
     // `evalErrorLit` literal path enforces.
@@ -232,7 +232,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('payload strips header off every TaggedInstance shape', async () => {
-    // Each shape exercises its own `payload` operand branch: a tag
+    // Each shape exercises its own branch of `payload`: a tag
     // over a set stacks on it and answers the set, a set answers its
     // vector, and a tagged Map returns a fresh Map without header.
     // The tagged Vec / wrap-scalar branches are covered above via

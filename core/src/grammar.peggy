@@ -285,11 +285,11 @@ ProjectionBeforeWord
 // the group `(gt(1))`. At the top level the modifiers end with the line.
 Command
   = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
-    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
 LineCommand
   = callName:CallName first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
-    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
 
 FirstModifierSeparator
   = __ / &"("
@@ -382,7 +382,7 @@ ModifierWord
 
 Name
   = callName:CallName
-    { return node('OperandCall', { ...callName, args: [] }, location(), text()); }
+    { return node('Call', { ...callName, args: [] }, location(), text()); }
 
 // A name with a path, the path of a noun and the name of a verb that
 // lives on it, calls the verb by its address, as the keyword and the tag

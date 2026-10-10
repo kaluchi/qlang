@@ -13,11 +13,11 @@
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     Plain comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
-//   'atom'        `:name` keyword (atom) OR an OperandCall name
+//   'atom'        `:name` keyword (atom) OR a call's name
 //                 that resolves through a user-defined binding
-//   'effect'      `:@name` keyword OR an `@`-prefixed OperandCall
-//                 name (effectful host operand or verb)
-//   'operand'     OperandCall name that resolves to a builtin
+//   'effect'      `:@name` keyword OR the name of a call marked
+//                 `@`, an effectful word
+//   'operand'     a call's name that resolves to a builtin
 //                 supplied by `langRuntime` AND each key segment
 //                 of a `Projection`
 //   'keyword'     the head Keyword/TagKeyword of a BindStep
@@ -200,12 +200,12 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitProjectionSpans(src, startOffset, endOffset, spans);
         return false;
 
-      case 'OperandCall': {
+      case 'Call': {
         const nameEndOffset = startOffset + node.name.length;
         spans.push({
           start: startOffset,
           end:   nameEndOffset,
-          kind:  classifyOperandName(node.name, builtinNames)
+          kind:  classifyCallName(node.name, builtinNames)
         });
         return; // descend into args
       }
@@ -231,9 +231,9 @@ function pushProseSpans(src, start, end, builtinNames, spans) {
   spans.push({ start: cursor, end, kind: 'comment' });
 }
 
-function classifyOperandName(operandName, builtinNames) {
-  if (operandName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
-  if (builtinNames.has(operandName))                return 'operand';
+function classifyCallName(callName, builtinNames) {
+  if (callName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
+  if (builtinNames.has(callName))                return 'operand';
   return 'atom';
 }
 
@@ -285,7 +285,7 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
 }
 
 // Sort by start, then a strict cursor drops overlaps — a parent
-// OperandCall whose name range was already emitted by the child
+// Call whose name range was already emitted by the child
 // rule must not duplicate. Two distinct spans never share the
 // same start offset under the current AST shape (the per-node
 // visitor emits at most one span per node), so the comparator

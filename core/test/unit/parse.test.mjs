@@ -208,31 +208,31 @@ describe('parse — Projection', () => {
   });
 });
 
-describe('parse — OperandCall', () => {
+describe('parse — Call', () => {
   it('parses a bare identifier', () => {
     const ast = parse('count');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('count');
     expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with @ prefix', () => {
     const ast = parse('@callers');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('@callers');
     expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with _ prefix', () => {
     const ast = parse('_private');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('_private');
     expect(ast.args).toEqual([]);
   });
 
   it('parses a single-arg call', () => {
     const ast = parse('add 2');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('add');
     expect(ast.args).toHaveLength(1);
     expect(ast.args[0].value).toBe(2);
@@ -265,7 +265,7 @@ describe('parse — bindings: BindStep and the freeze', () => {
     expect(ast.type).toBe('BindStep');
     expect(ast.key.type).toBe('Keyword');
     expect(ast.key.name).toBe('double');
-    expect(ast.body.type).toBe('OperandCall');
+    expect(ast.body.type).toBe('Call');
     expect(ast.body.name).toBe('mul');
   });
 
@@ -278,7 +278,7 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[0].type).toBe('VecLit');
     expect(ast.steps[1].combinator).toBe('|');
-    expect(ast.steps[1].step.type).toBe('OperandCall');
+    expect(ast.steps[1].step.type).toBe('Call');
   });
 
   it('parses a pipeline with distribute', () => {
@@ -338,7 +338,7 @@ describe('parse — comments and whitespace', () => {
   });
 
   it('reads a comment where a word would touch another as no pipe', () => {
-    expect(parse('|~ note ~| count').type).toBe('OperandCall');
+    expect(parse('|~ note ~| count').type).toBe('Call');
     expect(parse('(|~ note ~| * add 1)').pipeline.leadingCombinator).toBe('*');
     expect(() => parse('[1] |~ note ~| count')).toThrow(ParseError);
     expect(parse('[1] | |~ note ~| count').steps[1].combinator).toBe('|');
@@ -591,7 +591,7 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
 
   it('parses a Cyrillic operand-call identifier', () => {
     const ast = parse('посчитать(1)');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('посчитать');
   });
 

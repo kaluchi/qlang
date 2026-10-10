@@ -1,11 +1,11 @@
-// Effectful I/O operand coverage. Each operand is tested through a
-// real session evalCell with a captured ioContext, so the dispatch
+// The coverage of the effectful words of the streams. Each is tested
+// through a real session evalCell with a captured ioContext, so the dispatch
 // path, the per-site error sites, and the side-effect writers are
 // all exercised together — the same shape the real bin executes.
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
+import { expectRefusalRaised, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 function captureIoContext(stdinPayload = '') {
   const stdoutChunks = [];
@@ -47,7 +47,7 @@ describe('@out — bare form (0 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | @out', io);
     expect(io.stdoutText()).toBe('');
-    expectOperandErrorThrown(cellEntry, 'any/@out/SubjectNotStringError', {
+    expectRefusalRaised(cellEntry, 'any/@out/SubjectNotStringError', {
       actualType: { name: 'number' }
     });
   });
@@ -94,7 +94,7 @@ describe('@err — bare form', () => {
   it('lifts AnyErrSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | @err', io);
-    expectOperandErrorThrown(cellEntry, 'any/@err/SubjectNotStringError', {
+    expectRefusalRaised(cellEntry, 'any/@err/SubjectNotStringError', {
       actualType: { name: 'vec' }
     });
   });

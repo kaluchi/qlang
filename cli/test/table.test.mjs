@@ -1,9 +1,9 @@
-// format-operands coverage: `table` runs through runQuery, so the bind
+// The coverage of `table`: it runs through runQuery, so the bind
 // reaches the runtime and every refusal fires through real eval.
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
+import { expectRefusalRaised, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
@@ -71,6 +71,6 @@ describe('table — a view for a terminal', () => {
 
   it('lifts VecTableRowNotMapError on a row other than a Map, naming it', async () => {
     const cellEntry = await runQuery('[{:a 1} 42] | table', noopIo);
-    expectOperandErrorThrown(cellEntry, 'vec/table/RowNotMapError', { index: 1, actualType: { name: 'number' } });
+    expectRefusalRaised(cellEntry, 'vec/table/RowNotMapError', { index: 1, actualType: { name: 'number' } });
   });
 });

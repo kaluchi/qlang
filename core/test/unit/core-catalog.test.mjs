@@ -116,7 +116,7 @@ describe('parse / apply — code read, printed and run', () => {
     expect([...evalResult]).toEqual([42]);
   });
 
-  it('parse reads an OperandCall into a ::call step with :name / :args', async () => {
+  it('parse reads a call into a ::call step with :name / :args', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const callStep = (await evalQuery('"add 1 2" | parse'))[0];
     expect(isQMap(callStep)).toBe(true);

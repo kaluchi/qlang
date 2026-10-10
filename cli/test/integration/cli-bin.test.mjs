@@ -10,7 +10,7 @@
 //   * Argv parsing wired-up correctly (the unit suite tests
 //     parseArgv in isolation; this suite tests the full path
 //     through main → script-mode / runRepl).
-//   * Piped stdin reaches `@in` operand and the format auto-detection.
+//   * Piped stdin reaches the `@in` word and the format auto-detection.
 //   * REPL bootstrap loads every lazy-imported module without
 //     throwing on the first prompt.
 
@@ -84,10 +84,10 @@ describe('CLI: script mode — query argument', () => {
     expect(stderr).toMatch(/missing query/);
   });
 
-  it('axis-operands resolve cell-local BindStep declarations through script-mode', async () => {
+  it('the axes resolve cell-local BindStep declarations through script-mode', async () => {
     // Regression pin: script-mode goes through session.evalCell,
     // which must stamp the parsed cell AST under
-    // `qlang/ast/<cellUri>` so axis-operands find the inline
+    // `qlang/ast/<cellUri>` so the axes find the inline
     // `:foo |~~ note ~~|` BindStep declared by the same query.
     const { stdout, exitCode } = await runCli(
       [':foo |~~ note ~~| | :foo | doc | content'],

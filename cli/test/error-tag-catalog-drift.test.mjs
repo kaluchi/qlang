@@ -2,7 +2,7 @@
 //
 // The core suite pins the same contract for `core/src` against the
 // language's root; this file pins the host half, the source of the
-// command line [D153]. A refusal of a host operand is declared by its
+// command line [D153]. A refusal of a host's word is declared by its
 // address where its site raises it, and the source pages it under the
 // noun of the place it guards, with the prose and the laws
 // a reader reaches through `doc`. The two halves drift silently: a
@@ -16,8 +16,8 @@ import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
 import { evalQuery, nodeAddresses, nodeOf, typeKeyword } from '@kaluchi/qlang-core';
 import { cliSources } from '../src/cli-sources.mjs';
-import '../src/io-operands.mjs';
-import '../src/format-operands.mjs';
+import '../src/streams.mjs';
+import '../src/table.mjs';
 import '../src/script-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -51,7 +51,7 @@ for (const address of nodeAddresses(session.env)) {
 }
 const ask = async query => (await session.evalCell(query)).result;
 
-describe('CLI host operands — every throw site has its kind in the source of the command line', () => {
+describe('the words of the command line — every throw site has its kind in the source of the command line', () => {
   for (const [address, file] of throwSites) {
     it(`${address} is declared under the noun of its place`, async () => {
       expect(refusalAddresses.has(address),
@@ -62,7 +62,7 @@ describe('CLI host operands — every throw site has its kind in the source of t
   }
 });
 
-describe('CLI host operands — every refusal the source declares has a throw site', () => {
+describe('the words of the command line — every refusal the source declares has a throw site', () => {
   for (const address of refusalAddresses) {
     it(`${address} is raised somewhere under cli/src`, () => {
       expect(throwSites.has(address),

@@ -270,7 +270,7 @@ async function kindsAfterStep(step, kinds) {
   if (Object.hasOwn(KIND_OF_LITERAL, step.type)) return [KIND_OF_LITERAL[step.type]];
   if (step.type === 'BindStep') return kinds;
   if (step.type === 'ParenGroup') return await kindsOfSteps(stepsOf(step.pipeline), kinds);
-  if (step.type !== 'OperandCall' || kinds === null) return null;
+  if (step.type !== 'Call' || kinds === null) return null;
   const runtime = await langRuntime();
   const reached = verbsReaching(runtime, kinds).get(step.name);
   if (reached === undefined) return null;
@@ -285,8 +285,8 @@ export async function hoverAtOffset(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  if (node.type === 'OperandCall') {
-    return await hoverForOperand(node, ast);
+  if (node.type === 'Call') {
+    return await hoverForCall(node, ast);
   }
   if (node.type === 'BareTypeKeyword' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
@@ -311,7 +311,7 @@ function signatureTextOf(runtime, name) {
   return [shown.address.literal, ...shown.labels].join(' ');
 }
 
-async function hoverForOperand(node, documentAst) {
+async function hoverForCall(node, documentAst) {
   const runtime = await langRuntime();
   if (shownFor(runtime, node.name) !== undefined) {
     const docContents = await fetchDocsContents(node.name);
@@ -400,7 +400,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   if (!node) return null;
 
   let name, address;
-  if (node.type === 'OperandCall')        [name, address] = [node.name, node.name];
+  if (node.type === 'Call')        [name, address] = [node.name, node.name];
   else if (node.type === 'BareTypeKeyword') [name, address] = [tagNameOf(node.tag), node.tag];
   else if (isOnTagHead(node, offset))       [name, address] = [tagNameOf(node.tag), node.tag];
   else return null;
@@ -477,7 +477,7 @@ export function referencesAtOffset(ast, offset) {
   // A call, a declaration or the keyword of its name, each by the name a
   // step calls it by, and a tag name.
   let name = null;
-  if (node.type === 'OperandCall') {
+  if (node.type === 'Call') {
     name = splitAddress(node.name)[1];
   } else if (node.type === 'BindStep') {
     const declared = bindingDeclarationOf(node).name;
@@ -555,7 +555,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  const operandCall = findEnclosingOperandCall(node);
+  const operandCall = findEnclosingCall(node);
   if (!operandCall) return null;
 
   const runtime = await langRuntime();
@@ -577,10 +577,10 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   };
 }
 
-function findEnclosingOperandCall(node) {
+function findEnclosingCall(node) {
   let current = node;
   while (current) {
-    if (current.type === 'OperandCall' && current.args.length > 0) {
+    if (current.type === 'Call' && current.args.length > 0) {
       return current;
     }
     current = current.parent;

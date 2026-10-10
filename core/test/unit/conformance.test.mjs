@@ -38,16 +38,16 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .sort();
 
 // assertLiteralAst — walks the AST and rejects any node that performs
-// computation (OperandCall, Projection, ParenGroup with pipeline ops).
+// computation (Call, Projection, ParenGroup with pipeline ops).
 // Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
 function assertLiteralAst(ast, testName) {
   walkAst(ast, (node) => {
     if (node.type === 'QuoteLit') return false;
-    if (node.type === 'OperandCall') {
+    if (node.type === 'Call') {
       throw new Error(
-        `expect in "${testName}" contains OperandCall "${node.name}" — ` +
+        `expect in "${testName}" contains Call "${node.name}" — ` +
         `expected values must be pure literals, not computations`
       );
     }

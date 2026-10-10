@@ -18,7 +18,7 @@ describe('astChildrenOf', () => {
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('VecLit');
-    expect(children[1].type).toBe('OperandCall');
+    expect(children[1].type).toBe('Call');
     expect(children[1].name).toBe('count');
   });
 
@@ -40,12 +40,12 @@ describe('astChildrenOf', () => {
     expect(keyAndValue[0].name).toBe('name');
   });
 
-  it('yields args for a :name body OperandCall', () => {
+  it('yields args for a :name body call', () => {
     const ast = parse(':double mul 2');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('Keyword');
-    expect(children[1].type).toBe('OperandCall');
+    expect(children[1].type).toBe('Call');
     expect(children[1].name).toBe('mul');
   });
 
@@ -71,7 +71,7 @@ describe('astChildrenOf', () => {
     expect(astChildrenOf({})).toEqual([]);
   });
 
-  it('yields args for an OperandCall and nothing for a bare ident', () => {
+  it('yields args for a call and nothing for a bare ident', () => {
     const withArgs = parse('add 2 3');
     expect(astChildrenOf(withArgs)).toHaveLength(2);
     const bare = parse('count');
@@ -87,7 +87,7 @@ describe('walkAst', () => {
     expect(visited).toContain('Pipeline');
     expect(visited).toContain('VecLit');
     expect(visited).toContain('NumberLit');
-    expect(visited).toContain('OperandCall');
+    expect(visited).toContain('Call');
   });
 
   it('skips children when visitor returns false', () => {
@@ -154,7 +154,7 @@ describe('findAstNodeAtOffset', () => {
     const ast = parse(source);
     const node = findAstNodeAtOffset(ast, 19);
     expect(node).not.toBeNull();
-    expect(node.type).toBe('OperandCall');
+    expect(node.type).toBe('Call');
     expect(node.name).toBe('gt');
   });
 
@@ -168,11 +168,11 @@ describe('findAstNodeAtOffset', () => {
 });
 
 describe('findIdentifierOccurrences', () => {
-  it('finds OperandCall occurrences of a name', () => {
+  it('finds Call occurrences of a name', () => {
     const ast = parse('count | add count');
     const refs = findIdentifierOccurrences(ast, 'count');
     expect(refs.length).toBeGreaterThanOrEqual(2);
-    expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
+    expect(refs.every(n => n.type === 'Call' && n.name === 'count')).toBe(true);
   });
 
   it('finds :name ... declaration alongside read sites', () => {
@@ -181,7 +181,7 @@ describe('findIdentifierOccurrences', () => {
     // Both the `:double …` BindStep declaration and the bare
     // `double` read site land in the result — the BindStep matches
     // because its `.key` Keyword names `double`, the read site
-    // matches as an OperandCall named `double`.
+    // matches as a call named `double`.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -218,7 +218,7 @@ describe('findIdentifierOccurrences', () => {
   it('finds a name with a path by the name a step calls it by', () => {
     const ast = parse(':any/double ~(mul 2) | [1 2] * double | any/double');
     const refs = findIdentifierOccurrences(ast, 'double');
-    expect(refs.map(n => n.type)).toEqual(['BindStep', 'OperandCall', 'OperandCall']);
+    expect(refs.map(n => n.type)).toEqual(['BindStep', 'Call', 'Call']);
   });
 
   it('finds BareTypeKeyword occurrences written as a tag', () => {
@@ -265,7 +265,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('a non-binding Pipeline step does not contribute names', () => {
-    // `mul(2)` is an OperandCall, not a BindStep; the
+    // `mul(2)` is a call, not a BindStep; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
     const source = '42 | mul 2 | here';
@@ -366,7 +366,7 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     const ast = parse('42 | :snapshot / | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
     // The `:snapshot /` BindStep matches by its key; bare `snapshot`
-    // matches as a read-site OperandCall.
+    // matches as a read-site Call.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 });

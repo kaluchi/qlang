@@ -96,7 +96,7 @@ const AST_NODE_EVALUATORS = {
   TaggedLit:         evalTaggedLit,
   BareTypeKeyword:   evalBareTypeKeyword,
   Projection:        evalProjection,
-  OperandCall:       evalOperandCall,
+  Call:       evalCall,
   BindStep:          evalBindStep,
   ParenGroup:        evalParenGroup,
   Blank:             evalBlank,
@@ -519,7 +519,7 @@ function projectSegment(subject, projKey) {
 
 // ─── Identifier lookup ─────────────────────────────────────────
 
-async function evalOperandCall(node, state) {
+async function evalCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
   return await callByName(node.name, node.args.map(argNode => makeLambda(argNode, state)), state);
 }
@@ -776,13 +776,13 @@ function kindInvariantOf(env, address) {
 
 // The kinds an invariant of one step `is ::k …` asks for, or null.
 function kindsAskedBy(ast) {
-  if (ast.type !== 'OperandCall' || ast.name !== 'is') return null;
+  if (ast.type !== 'Call' || ast.name !== 'is') return null;
   return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
 }
 
 // The kinds an invariant `every ~(is ::k …)` asks of each element, or null.
 function elementKindsAskedBy(ast) {
-  const asksEach = ast.type === 'OperandCall' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
+  const asksEach = ast.type === 'Call' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
   return asksEach ? kindsAskedBy(ast.args[0].pipeline) : null;
 }
 
@@ -846,7 +846,7 @@ export function codeOf(code, callState) {
 export function resolveBinaryReducer(reducerLambda) {
   const callerState = reducerLambda.capturedState;
   const astNode = reducerLambda.astNode;
-  if (astNode.type !== 'OperandCall' || astNode.args.length !== 0) return null;
+  if (astNode.type !== 'Call' || astNode.args.length !== 0) return null;
   const lookupName = astNode.name;
   const reach = bareNameReach(callerState.env, lookupName);
   const namesAWord = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : reach.underKind;

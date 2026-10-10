@@ -12,7 +12,7 @@
 //     `builtins` Set<string> of operand names that resolve through
 //                langRuntime — the playground builds this once at
 //                startup and reuses it across every highlighted
-//                snippet. Pass null to treat every OperandCall name
+//                snippet. Pass null to treat the name of every call
 //                as user-defined.
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';

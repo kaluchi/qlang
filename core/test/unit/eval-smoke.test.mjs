@@ -259,10 +259,10 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
   });
 });
 
-describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
+describe('eval.mjs — Call node.docs missing (synthetic AST)', async () => {
   it('lambdas.docs falls back to [] when node has no .docs field', async () => {
-    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
-    const ast = { type: 'OperandCall', name: 'count', args: [], location: null };
+    // Synthetic Call without .docs — hits the `node.docs || []` false arm
+    const ast = { type: 'Call', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);
     const evalResult = await evalAst(ast, state);

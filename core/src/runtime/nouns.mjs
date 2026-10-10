@@ -287,7 +287,7 @@ export function selectorOf(partRecord) {
     selector = {
       ast, place, onePlace,
       strict: onePlace && ast.type === 'Projection',
-      fallback: onePlace && ast.type === 'OperandCall' && ast.args.length === 2 ? ast.args[1] : null,
+      fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
       readsArgs: ast.type === 'Projection' && ast.keys.length === 0
     };
     SELECTORS.set(partRecord, selector);
@@ -301,7 +301,7 @@ export function selectorOf(partRecord) {
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
   const place = head.type === 'Projection' ? segmentIndex(head.keys[0])
-    : head.type === 'OperandCall' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
+    : head.type === 'Call' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
     : NaN;
   return Number.isInteger(place) && place >= 0 ? place : NaN;
 }

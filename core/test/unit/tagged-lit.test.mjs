@@ -64,7 +64,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     expect(result).toEqual(makeTagKeyword('myType'));
   });
 
-  it('axis-operand finds the ::Tag … OperandCall form when navigating ::Tag | source', async () => {
+  it('axis-operand finds the ::Tag … Call form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
       ':myType |~~ myType. ~~| | :myType/construct ::builtin{} | ::myType | source'
     );

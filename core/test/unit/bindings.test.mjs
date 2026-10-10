@@ -47,7 +47,7 @@ describe('BindStep — value-body purity routing', () => {
     expect(await evalQuery(':xs [1 2 3] | xs')).toEqual([1, 2, 3]);
   });
 
-  it('impure body containing OperandCall fires the deferred body per call', async () => {
+  it('impure body containing Call fires the deferred body per call', async () => {
     expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 

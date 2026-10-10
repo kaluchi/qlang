@@ -182,7 +182,7 @@ const STEP_OF_NODE = {
   ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag)),
   TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
-  OperandCall:     callStepOf,
+  Call:     callStepOf,
   BindStep:        bindStepOf,
   ParenGroup:      node => groupOf(node.pipeline),
   Pipeline:        groupOf

@@ -1,10 +1,10 @@
-// Assertions for the refusals of the command line's operands.
+// Assertions for the refusals of the command line's words.
 //
 // A refusal reaches the query as an error value: its tag is the address
 // of what refused, `result !| type` answering
 // `::any/@out/SubjectNotStringError` and the like, and its facts stand in
 // its descriptor in the order the catalog declares them [D172]. A
-// refusal a site of an operand raised keeps the JavaScript instance it
+// refusal a site of a word raised keeps the JavaScript instance it
 // was raised as in the opaque `originalError` slot, which a host
 // re-throws, one kind of error named by the same address.
 
@@ -23,7 +23,7 @@ function expectFact(errorValue, fact, expected) {
 // expectRefusalByAddress(cellEntry, address, expectedFacts) → error value
 //
 // A refusal named by its address, the facts listed among those its error
-// value holds: a name's subject, a part's law, or a site of an operand.
+// value holds: a name's subject, a part's invariant, or a site of a word.
 export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
   expect(cellEntry.error, 'cellEntry.error must be null (the refusal is a value)').toBeNull();
   const errorValue = cellEntry.result;
@@ -33,13 +33,13 @@ export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
   return errorValue;
 }
 
-// expectOperandErrorThrown(cellEntry, address, expectedFacts)
+// expectRefusalRaised(cellEntry, address, expectedFacts)
 //   → the JS error instance (for further ad-hoc assertions)
 //
-// A refusal a site of an operand raised, lifted onto the fail track
+// A refusal a site of a word raised, lifted onto the fail track
 // rather than failing the cell: its error value as above, and the
 // instance it was raised as, named by the same address.
-export function expectOperandErrorThrown(cellEntry, address, expectedFacts) {
+export function expectRefusalRaised(cellEntry, address, expectedFacts) {
   const errorValue = expectRefusalByAddress(cellEntry, address, expectedFacts);
   expect(errorValue.originalError, 'originalError must preserve the JS throw instance').toBeInstanceOf(QlangError);
   expect(errorValue.originalError.address).toBe(address);

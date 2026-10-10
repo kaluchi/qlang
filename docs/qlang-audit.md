@@ -759,7 +759,7 @@ every probe of this chapter answered as its block records.
 
 A host declares its refusals by their addresses with `declareRefusal`,
 imported through the `errors` subpath of the core
-(`cli/src/io-operands.mjs`), and declares their facts under their
+(`cli/src/streams.mjs`), and declares their facts under their
 labels in its catalog [D172], so the declaration stays an interface of
 the runtime a host builds on. The sister project no longer imports them,
 and carries its own copy of `fromPlain`, named `jsonToQlang`

@@ -4,8 +4,8 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { makeIoImpls } from './io-operands.mjs';
-import { formatImpls } from './format-operands.mjs';
+import { makeIoImpls } from './streams.mjs';
+import { formatImpls } from './table.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI_SOURCE = readFileSync(join(__dirname, '..', 'lib', 'qlang', 'cli.qlang'), 'utf8');

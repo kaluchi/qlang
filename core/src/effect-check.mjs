@@ -9,7 +9,7 @@ import { classifyEffect } from './effect.mjs';
 export function decorateAstWithEffectMarkers(ast) {
   walkAst(ast, (node) => {
     switch (node.type) {
-      case 'OperandCall':
+      case 'Call':
         // A call by address carries the marker on the verb it names,
         // `any/@out`.
         node.effectful = classifyEffect(node.address?.verb ?? node.name);
@@ -31,8 +31,8 @@ export function findFirstEffectfulIdentifier(node) {
     if (offender !== null) return false;
     // A quote literal is data, its steps running where it is applied;
     // the modifier of a command is applied by that command.
-    if (n.type === 'QuoteLit' && n.parent?.type !== 'OperandCall') return false;
-    if (n.type === 'OperandCall' && n.effectful) {
+    if (n.type === 'QuoteLit' && n.parent?.type !== 'Call') return false;
+    if (n.type === 'Call' && n.effectful) {
       offender = n.name;
       return false;
     }

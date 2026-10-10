@@ -1,10 +1,10 @@
 // parseJson coverage. The parser is exercised through
-// runQuery so the bound operand path, the per-site error sites, and
+// runQuery so the bound word's path, the per-site error sites, and
 // the qlang-shape conversion all fire against a real session.
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectOperandErrorThrown, expectRefusalByAddress } from './helpers/error-assertions.mjs';
+import { expectRefusalRaised, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 
 const noopIo = {
   stdinReader: () => Promise.resolve(''),
@@ -48,7 +48,7 @@ describe('parseJson — error sites', () => {
 
   it('lifts StringParseJsonTextNotJsonError when the subject is not valid JSON', async () => {
     const cellEntry = await runQuery('"{not json" | parseJson', noopIo);
-    const thrown = expectOperandErrorThrown(cellEntry, 'string/parseJson/TextNotJsonError', {});
+    const thrown = expectRefusalRaised(cellEntry, 'string/parseJson/TextNotJsonError', {});
     expect(typeof thrown.facts.message).toBe('string');
     expect(thrown.facts.message.length).toBeGreaterThan(0);
   });

@@ -8,7 +8,7 @@
 //   1. Read piped stdin to a String.
 //   2. Resolve the inputFormat (auto / json / raw) into a concrete
 //      initial pipeValue and a resolvedFormat label.
-//   3. Bind I/O + format + parse operands, evaluate the query with
+//   3. Bind the words of the streams, of table and of parsing, evaluate the query with
 //      the initial pipeValue seeded via session.evalCell.
 //   4. If the query wrote to stdout via `@out`, stop — user is in
 //      control. Otherwise encode the success-track value back into
@@ -100,7 +100,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 1;
   }
 
-  // Memoised reader feeds the `@in` operand if the user's query
+  // Memoised reader feeds the `@in` word if the user's query
   // explicitly reaches for stdin. The stdin bytes are already in
   // hand as `stdinText`; returning them immediately avoids a
   // second pass over the stream.

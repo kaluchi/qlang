@@ -2,7 +2,7 @@
 // name is refused inside `evalBindStep` at eval-time when its body
 // calls an effectful name, which findFirstEffectfulIdentifier finds
 // over the verb's body; the parse-time AST decoration
-// (classifyEffect on OperandCall and Projection nodes) marks the
+// (classifyEffect on Call and Projection nodes) marks the
 // names it reads.
 
 import { describe, it, expect } from 'vitest';
@@ -46,15 +46,15 @@ describe('effect.mjs classifyEffect', () => {
 });
 
 describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
-  it('OperandCall with @-prefix gets effectful=true', () => {
+  it('Call with @-prefix gets effectful=true', () => {
     const ast = parse('@callers');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.effectful).toBe(true);
   });
 
-  it('OperandCall with clean name gets effectful=false', () => {
+  it('Call with clean name gets effectful=false', () => {
     const ast = parse('count');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.effectful).toBe(false);
   });
 
@@ -87,12 +87,12 @@ describe('findFirstEffectfulIdentifier', () => {
     expect(findFirstEffectfulIdentifier(ast)).toBeNull();
   });
 
-  it('returns the @-prefixed OperandCall name', () => {
+  it('returns the @-prefixed name of a call', () => {
     const ast = parse('@callers');
     expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
-  it('reaches into nested OperandCall arguments', () => {
+  it('reaches into nested Call arguments', () => {
     const ast = parse('filter ~(@callers | count)');
     expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });

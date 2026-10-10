@@ -1,4 +1,4 @@
-// Axis-operands — `source`, `doc`, `binding` project the record a
+// The axes — `source`, `doc`, `binding` project the record a
 // declaration wrote into its scope [D63].
 
 import { describe, it, expect } from 'vitest';
@@ -113,7 +113,7 @@ describe(':name | laws reads the laws declared under a name', () => {
   });
 });
 
-describe('axis-operands read the node a tag addresses', () => {
+describe('the axes read the node a tag addresses', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
     expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTagKeyword('any/source/UnknownNameError'));
   });
@@ -193,7 +193,7 @@ describe('a value that is no name reads the declaration of its kind', () => {
 
 });
 
-describe('axis-operands resolve the binding the evaluator dispatches', () => {
+describe('the axes resolve the binding the evaluator dispatches', () => {
   // The axes project the one record the scope holds under an address, so
   // a word the reader declares reads as itself, the case the hypertext
   // chain exists for. A name of the reader takes no word of the

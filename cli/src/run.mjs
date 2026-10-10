@@ -1,5 +1,5 @@
 // Run a qlang query through a freshly seeded session with the CLI's
-// I/O and format operands bound into env, then return the cell entry
+// words of the streams and of table bound into env, then return the cell entry
 // the session produced. The cell entry — the standard
 // Session.evalCell return shape — carries the parsed AST, the
 // success-track result (when the pipeline finished on success), the
@@ -7,8 +7,8 @@
 // the cell.
 //
 // The ioContext bag (stdinReader / stdoutWrite / stderrWrite /
-// recordStdoutEffect) is closed over by the operand impls in
-// io-operands.mjs, so any `@in` / `@out` / `@err` / `@tap` step
+// recordStdoutEffect) is closed over by the primitives of the streams
+// in streams.mjs, so any `@in` / `@out` / `@err` / `@tap` step
 // the user's query fires reaches exactly the writers passed in
 // here. Tests substitute captured chunks; bin.mjs passes `process.*`
 // adapters.

@@ -48,7 +48,7 @@ export function astChildrenOf(node) {
       out.push(node.key);
       out.push(node.value);
       break;
-    case 'OperandCall':
+    case 'Call':
       for (const arg of node.args) out.push(arg);
       break;
     case 'TaggedLit':
@@ -182,7 +182,7 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'OperandCall' && splitAddress(node.name)[1] === name) occurrences.push(node);
+    if (node.type === 'Call' && splitAddress(node.name)[1] === name) occurrences.push(node);
     else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });

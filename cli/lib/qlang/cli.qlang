@@ -1,8 +1,8 @@
 |~ The command line: its topic, `::cli`, and the names it declares
    under the kinds of their subjects, `table` under `::vec` and the names
    of the streams under `::any`, each with the parts of its args; their
-   primitives, in `cli/src/io-operands.mjs` and `format-operands.mjs`,
-   are plain functions over the served subject and the parts. ~|
+   primitives are plain functions over the served subject and the
+   parts. ~|
 
 :cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read

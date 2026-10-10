@@ -13,7 +13,7 @@
 // `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown
 // combinator / quoted-keyword identity` (→ `eval-smoke.test.mjs`),
 // `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
-// `per-site error tag identity` (→ `error-operands.test.mjs`),
+// `per-site error tag identity` (→ `fail-track.test.mjs`),
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
 // `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
 // `state.mjs` (→ `state.test.mjs`).
@@ -321,8 +321,8 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   // The refusal of a bare coalesce is pinned by
-  // `error-operands.test.mjs`; the control-flow block tests the operand
-  // semantics.
+  // `fail-track.test.mjs`; the control-flow block tests what the word
+  // does.
   it('coalesce answers its subject first when its alternatives are values', async () => {
     expect(await evalQuery('null | coalesce 30')).toBe(30);
   });

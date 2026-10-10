@@ -222,7 +222,7 @@
 
 :tag/manifest/leavesTheLawsToLaws
   |~~ The laws of a name are no part of its manifest. ~~|
-  ::law~(::number/add | manifest | has ::number/add/addsTheNumber | not)
+  ::law~(::number/add | [(manifest | filter ~(binding | /value | is ::law) | count) (laws | count | gt 0)] | eq [0 true])
 
 :tag/manifest/answersNothingForANameThatNamesNothing
   |~~ A tag name that names nothing answers the empty set. ~~|

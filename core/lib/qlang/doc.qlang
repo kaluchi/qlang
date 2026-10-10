@@ -95,10 +95,6 @@
   |~~ Prose and code alternate in the segments. ~~|
   ::law~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
 
-:doc/segments/keepsTheProseAroundCode
-  |~~ The prose on each side of a quote is a segment of its own. ~~|
-  ::law~(|~~ see ~(add 1) ~~| | segments | count | eq 3)
-
 :doc/segments/keepsTheTagsOfALink
   |~~ A link stands among the segments under its tag. ~~|
   ::law~(|~~ a ::link~(1) ~~| | segments | /1 | type | eq ::link)

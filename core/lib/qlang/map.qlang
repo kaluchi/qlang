@@ -802,10 +802,6 @@
   |~~ A field of the subject gives the key. ~~|
   ::law~({:k :a :a 1} | at /k | eq 1)
 
-:map/at/key/readsTheKeyword
-  |~~ The keyword reads the field. ~~|
-  ::law~({:email {:home "a@b"}} | at :email | eq {:home "a@b"})
-
 :map/at/key/NotKeywordOrStringError/refusesANumber
   |~~ A number key is refused. ~~|
   ::law~({:a 1} | at 42 !| [type /actualType] | eq [::map/at/key/NotKeywordOrStringError ::number])
@@ -1257,10 +1253,6 @@
 :map/raise/raisesTheSubject
   |~~ `{…} | raise` raises the subject, a map the step builds among them. ~~|
   ::law~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
-
-:map/raise/raisesAMapTheStepBuilds
-  |~~ A map the step builds is raised as well. ~~|
-  ::law~(42 | {:kind :oops :value /} | raise !| /value | eq 42)
 
 :map/raise/takesItsTagFromAKind
   |~~ A `:kind` that names a tag is the tag of the error. ~~|

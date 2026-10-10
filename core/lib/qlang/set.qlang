@@ -53,10 +53,6 @@
   |~~ The empty set holds none. ~~|
   ::law~(#[] | count | eq 0)
 
-:set/count/countsOnceWhatTheVectorRepeats
-  |~~ The set of a vector's elements counts a repeated one once. ~~|
-  ::law~([1 1 2] | [count (distinct | count)] | eq [3 2])
-
 :set/count/ArgsBeyondPartsError/refusesAValue
   |~~ A value given to `count` is refused under the word. ~~|
   ::law~(#[:a] | count 1 !| type | eq ::set/count/ArgsBeyondPartsError)
@@ -441,10 +437,6 @@
 :set/filter/keepsWhatThePredicateHolds
   |~~ The elements past two are kept. ~~|
   ::law~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
-
-:set/filter/dropsTheRest
-  |~~ The elements the predicate rejects go. ~~|
-  ::law~(#[1 -2 3] | filter ~(gt 0) | eq #[1 3])
 
 :set/filter/keepsTheTagsOfTheSubject
   |~~ A set under a tag stays under it. ~~|

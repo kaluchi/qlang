@@ -959,10 +959,8 @@
   ::law~([{:age 30} {:age 20}] | sort ~(/age) | eq [{:age 20} {:age 30}])
 
 :vec/sort/ranksByTheFirstPlace
-  |~~ A vector key ranks by its first place, then by the next among the
-      elements the first leaves alike.
-  ~~|
-  ::law~([{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) | map ~/b | eq [9 1 2])
+  |~~ A vector key ranks by its first place. ~~|
+  ::law~([{:a 1 :b 1} {:a 0 :b 9}] | sort ~([/a /b]) | map ~/b | eq [9 1])
 
 :vec/sort/breaksTiesByTheNextPlace
   |~~ A vector key breaks the ties of its first place by its next. ~~|

@@ -9,7 +9,7 @@ A finding not yet settled says open.
 
 [2026-10-10-vec-set-map.md](2026-10-10-vec-set-map.md), at 1c0758e3.
 
-1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Open.
+1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Answered by 1827f51b for `leftType` and `rightType`; `key` stays under each refusal, which names its own key, the first entry whose value is no number, the key a map lacks, the segment a projection read.
 2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Answered by 1389eb66.
 3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
 4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Open.
@@ -83,7 +83,7 @@ review; findings 5 and 6 still stand for the laws declared under
 12. The sister project still writes `*`. Awaits the maintainer's word.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.
 14. Claims with no law. Open.
-15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Open.
+15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field`; the laws, open.
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Open.
 17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
 18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.

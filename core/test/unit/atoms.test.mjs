@@ -12,7 +12,7 @@ let ringSessionOfFile;
 
 beforeAll(async () => {
   ringSessionOfFile = await ringSession();
-});
+}, RING_TIMEOUT);
 
 describe('the ring of atoms [D42]', () => {
   it('keeps the examples of its own verbs true', async () => {

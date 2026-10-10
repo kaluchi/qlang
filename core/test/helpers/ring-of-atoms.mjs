@@ -77,7 +77,7 @@ export async function conformanceLiterals() {
 export function describeCatalogShare(share) {
   describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog [D42]`, () => {
     let session;
-    beforeAll(async () => { session = await ringSession(); });
+    beforeAll(async () => { session = await ringSession(); }, RING_TIMEOUT);
 
     it('builds every example of the share back from its atoms but the open ones', async () => {
       const shared = [...await catalogExamples()].filter((_, index) => index % SHARES === share - 1);

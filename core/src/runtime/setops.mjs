@@ -2,8 +2,8 @@
 // over the subject and the parts of its args [D167], one for each word
 // of a kind [D172]. A set meets the other set its call gives, and a map
 // the other map or the keys a vector or a set names; a vector holds the
-// operands it folds, and a set its call leaves without the other operand
-// folds the operands it holds [D16]. Inside a fold the operands meet in
+// values it folds, and a set its call leaves without the other value
+// folds the values it holds [D16]. Inside a fold the values meet in
 // pairs, and a pair of kinds apart is refused by the word with the kinds
 // it met.
 //
@@ -79,49 +79,49 @@ const interOfMap = (map, keys, KeyNotKeywordOrStringError) => {
 // The pairs a fold meets: two sets merge, two maps merge, and a map
 // drops or keeps the keys a map, a vector or a set names; any other pair
 // is refused with the kinds it met.
-function mismatched(left, right, OperandsMismatchedError) {
-  return new OperandsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
+function mismatched(left, right, KindsMismatchedError) {
+  return new KindsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
 }
 
-function unionPair(left, right, { OperandsMismatchedError }) {
+function unionPair(left, right, { KindsMismatchedError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, UNION_KEEPS);
   if (isQMap(left) && isQMap(right)) return unionOfMaps(left, right);
-  throw mismatched(left, right, OperandsMismatchedError);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-function minusPair(left, right, { OperandsMismatchedError, KeyNotKeywordOrStringError }) {
+function minusPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) return minusOfMap(left, right, KeyNotKeywordOrStringError);
-  throw mismatched(left, right, OperandsMismatchedError);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-function interPair(left, right, { OperandsMismatchedError, KeyNotKeywordOrStringError }) {
+function interPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
   if (isQMap(left) && (isQMap(right) || isVec(right))) return interOfMap(left, right, KeyNotKeywordOrStringError);
-  throw mismatched(left, right, OperandsMismatchedError);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-// The fold of the operands a vector or a set holds, from the first; it
+// The fold of the values a vector or a set holds, from the first; it
 // holds one at least.
-function foldOf(operands, pair, refusals) {
-  if (operands.length === 0) throw new refusals.NoOperandsError();
-  return [...operands].reduce((left, right) => pair(left, right, refusals));
+function foldOf(values, pair, refusals) {
+  if (values.length === 0) throw new refusals.SubjectEmptyError();
+  return [...values].reduce((left, right) => pair(left, right, refusals));
 }
 
 // ── union ──────────────────────────────────────────────────────
 
-const VecUnionOperandsMismatchedError = declareRefusal('vec/union/OperandsMismatchedError');
-const VecUnionNoOperandsError = declareRefusal('vec/union/NoOperandsError');
-const SetUnionOperandsMismatchedError = declareRefusal('set/union/OperandsMismatchedError');
-const SetUnionNoOperandsError = declareRefusal('set/union/NoOperandsError');
+const VecUnionKindsMismatchedError = declareRefusal('vec/union/KindsMismatchedError');
+const VecUnionSubjectEmptyError = declareRefusal('vec/union/SubjectEmptyError');
+const SetUnionKindsMismatchedError = declareRefusal('set/union/KindsMismatchedError');
+const SetUnionSubjectEmptyError = declareRefusal('set/union/SubjectEmptyError');
 
-const VEC_UNION = { OperandsMismatchedError: VecUnionOperandsMismatchedError, NoOperandsError: VecUnionNoOperandsError };
-const SET_UNION = { OperandsMismatchedError: SetUnionOperandsMismatchedError, NoOperandsError: SetUnionNoOperandsError };
+const VEC_UNION = { KindsMismatchedError: VecUnionKindsMismatchedError, SubjectEmptyError: VecUnionSubjectEmptyError };
+const SET_UNION = { KindsMismatchedError: SetUnionKindsMismatchedError, SubjectEmptyError: SetUnionSubjectEmptyError };
 
-// A vector is no operand of the algebra, so an operand its call gives
+// A vector is no value of the algebra, so a value its call gives
 // beside it is refused with the pair.
 bindPrim('vec/union', (vector, other) => {
-  if (other !== NULL) throw mismatched(vector, other, VecUnionOperandsMismatchedError);
+  if (other !== NULL) throw mismatched(vector, other, VecUnionKindsMismatchedError);
   return foldOf(vector, unionPair, VEC_UNION);
 });
 bindPrim('set/union', (set, other) => (other === NULL ? foldOf(set, unionPair, SET_UNION) : mergeSets(set, other, UNION_KEEPS)));
@@ -129,24 +129,24 @@ bindPrim('map/union', (map, other) => unionOfMaps(map, other));
 
 // ── minus ──────────────────────────────────────────────────────
 
-const VecMinusOperandsMismatchedError = declareRefusal('vec/minus/OperandsMismatchedError');
-const VecMinusNoOperandsError = declareRefusal('vec/minus/NoOperandsError');
+const VecMinusKindsMismatchedError = declareRefusal('vec/minus/KindsMismatchedError');
+const VecMinusSubjectEmptyError = declareRefusal('vec/minus/SubjectEmptyError');
 const VecMinusKeyNotKeywordOrStringError = declareRefusal('vec/minus/KeyNotKeywordOrStringError');
-const SetMinusOperandsMismatchedError = declareRefusal('set/minus/OperandsMismatchedError');
-const SetMinusNoOperandsError = declareRefusal('set/minus/NoOperandsError');
+const SetMinusKindsMismatchedError = declareRefusal('set/minus/KindsMismatchedError');
+const SetMinusSubjectEmptyError = declareRefusal('set/minus/SubjectEmptyError');
 const MapMinusKeyNotKeywordOrStringError = declareRefusal('map/minus/KeyNotKeywordOrStringError');
 
 const VEC_MINUS = {
-  OperandsMismatchedError: VecMinusOperandsMismatchedError,
-  NoOperandsError: VecMinusNoOperandsError,
+  KindsMismatchedError: VecMinusKindsMismatchedError,
+  SubjectEmptyError: VecMinusSubjectEmptyError,
   KeyNotKeywordOrStringError: VecMinusKeyNotKeywordOrStringError
 };
 // A set holds a vector before a map in the one order, so its fold never
 // meets a map and the keys a vector names.
-const SET_MINUS = { OperandsMismatchedError: SetMinusOperandsMismatchedError, NoOperandsError: SetMinusNoOperandsError };
+const SET_MINUS = { KindsMismatchedError: SetMinusKindsMismatchedError, SubjectEmptyError: SetMinusSubjectEmptyError };
 
 bindPrim('vec/minus', (vector, other) => {
-  if (other !== NULL) throw mismatched(vector, other, VecMinusOperandsMismatchedError);
+  if (other !== NULL) throw mismatched(vector, other, VecMinusKindsMismatchedError);
   return foldOf(vector, minusPair, VEC_MINUS);
 });
 bindPrim('set/minus', (set, other) => (other === NULL ? foldOf(set, minusPair, SET_MINUS) : mergeSets(set, other, MINUS_KEEPS)));
@@ -154,22 +154,22 @@ bindPrim('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeyNotKeyword
 
 // ── inter ──────────────────────────────────────────────────────
 
-const VecInterOperandsMismatchedError = declareRefusal('vec/inter/OperandsMismatchedError');
-const VecInterNoOperandsError = declareRefusal('vec/inter/NoOperandsError');
+const VecInterKindsMismatchedError = declareRefusal('vec/inter/KindsMismatchedError');
+const VecInterSubjectEmptyError = declareRefusal('vec/inter/SubjectEmptyError');
 const VecInterKeyNotKeywordOrStringError = declareRefusal('vec/inter/KeyNotKeywordOrStringError');
-const SetInterOperandsMismatchedError = declareRefusal('set/inter/OperandsMismatchedError');
-const SetInterNoOperandsError = declareRefusal('set/inter/NoOperandsError');
+const SetInterKindsMismatchedError = declareRefusal('set/inter/KindsMismatchedError');
+const SetInterSubjectEmptyError = declareRefusal('set/inter/SubjectEmptyError');
 const MapInterKeyNotKeywordOrStringError = declareRefusal('map/inter/KeyNotKeywordOrStringError');
 
 const VEC_INTER = {
-  OperandsMismatchedError: VecInterOperandsMismatchedError,
-  NoOperandsError: VecInterNoOperandsError,
+  KindsMismatchedError: VecInterKindsMismatchedError,
+  SubjectEmptyError: VecInterSubjectEmptyError,
   KeyNotKeywordOrStringError: VecInterKeyNotKeywordOrStringError
 };
-const SET_INTER = { OperandsMismatchedError: SetInterOperandsMismatchedError, NoOperandsError: SetInterNoOperandsError };
+const SET_INTER = { KindsMismatchedError: SetInterKindsMismatchedError, SubjectEmptyError: SetInterSubjectEmptyError };
 
 bindPrim('vec/inter', (vector, other) => {
-  if (other !== NULL) throw mismatched(vector, other, VecInterOperandsMismatchedError);
+  if (other !== NULL) throw mismatched(vector, other, VecInterKindsMismatchedError);
   return foldOf(vector, interPair, VEC_INTER);
 });
 bindPrim('set/inter', (set, other) => (other === NULL ? foldOf(set, interPair, SET_INTER) : mergeSets(set, other, INTER_KEEPS)));

@@ -77,7 +77,7 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 }
 
 bindPrim('call/construct', recordConstructor(CALL_TAG,
-  { name: isKeyword, args: vecOf(isElementStep) }, ['name'],
+  { name: isKeyword, modifiers: vecOf(isElementStep) }, ['name'],
   declareRefusal('call/PayloadNotSchemaError'),
   declareRefusal('call/ReadBackDiffersError')));
 

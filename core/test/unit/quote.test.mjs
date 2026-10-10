@@ -42,7 +42,7 @@ describe('assembling steps by hand', () => {
   const tagOf = name => evalQuery(name);
 
   it('a record assembled from its fields reads back as itself', async () => {
-    expect(await evalQuery('{:name :filter :args [~(gt 1)]} | tag ::call | [/] | tag ::quote | parse'))
+    expect(await evalQuery('{:name :filter :modifiers [~(gt 1)]} | tag ::call | [/] | tag ::quote | parse'))
       .toBe('filter ~(gt 1)');
   });
 
@@ -56,12 +56,12 @@ describe('assembling steps by hand', () => {
 
   it('a declaration stands in a pipeline and in no container or argument head', async () => {
     expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
-    expect(await refusal('::call{:name :f :args [::bind{:name :x :body 1}]}'))
+    expect(await refusal('::call{:name :f :modifiers [::bind{:name :x :body 1}]}'))
       .toEqual(await tagOf('::call/PayloadNotSchemaError'));
   });
 
   it('the body of a declaration may be a command with its modifiers', async () => {
-    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :args [1]}} | [/] | tag ::quote | parse'))
+    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :modifiers [1]}} | [/] | tag ::quote | parse'))
       .toBe(':six add 1');
   });
 
@@ -87,7 +87,7 @@ describe('assembling steps by hand', () => {
   });
 
   it('a required field left out does not fit the schema', async () => {
-    expect(await evalQuery('::call{:args []} !| [type /field /actualType]'))
+    expect(await evalQuery('::call{:modifiers []} !| [type /field /actualType]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name ::null]'));
   });
 

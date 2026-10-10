@@ -1,7 +1,7 @@
 |~ What is declared under `::tag`, the kind of a tag name: the refusal
    of its constructor, and the verbs that live on a tag name, the
    comparisons of tag names, which compare them by their names in the one
-   order, `manifest` and `runLaws`. ~|
+   order, and `manifest`. ~|
 
 :tag/construct
   |~~ Reads a tag name as itself. ~~|
@@ -141,50 +141,3 @@
 :tag/manifest/names
   |~~ The addresses of the names declared one name under the noun. ~~|
   ::set
-
-:tag/runLaws
-  |~~ The results of the laws under the declaration the tag name reads,
-      a verb by its address among them, one `{:law :says :actual :ok
-      :error}` per law, `:law` its address and `:says` its page, the
-      claim it proves. A keyword after it runs the laws of the member
-      the name holds under it, a concept of the language among them.
-  ~~|
-  ::builtin{}
-
-:tag/runLaws/runsTheLawsOfAVerb
-  |~~ The first law of `add` holds. ~~|
-  ::law~(::number/add | runLaws | first | /ok | eq true)
-
-:tag/runLaws/runsTheLawsUnderAnAnchor
-  |~~ An anchor runs the laws of the name under the one read. ~~|
-  ::law~(::qlang | runLaws :values | every ~(/ok))
-
-:tag/runLaws/holdsEveryLawOfAdd
-  |~~ Every law of `add` holds. ~~|
-  ::law~(::number/add | runLaws * /ok | distinct | eq #[true])
-
-:tag/runLaws/findsTheLawsOfAComparison
-  |~~ `gt` has laws to run. ~~|
-  ::law~(::number/gt | runLaws | count | gte 1)
-
-:tag/runLaws/anchor
-  |~~ The anchor within the page, null when it gives none. ~~|
-  ~(at 0)
-
-:tag/runLaws/anchor/NotKeywordOrNullError
-  |~~ The anchor is a keyword or null. ~~|
-  ::holds~(is ::keyword ::null)
-
-:tag/runLaws/results
-  |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
-  ::vec
-
-:tag/runLaws/UnknownNameError
-  |~~ `runLaws` found no declaration of the name it read, as `binding`
-      finds none.
-      ::link~(::any/binding/UnknownNameError | doc)
-  ~~|
-
-:tag/runLaws/UnknownNameError/refusesATagNothingDeclares
-  |~~ A tag nothing declares is refused. ~~|
-  ::law~(::Nonexistent | runLaws !| [type /name] | eq [::tag/runLaws/UnknownNameError ::Nonexistent])

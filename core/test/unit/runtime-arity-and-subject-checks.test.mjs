@@ -137,7 +137,7 @@ describe('setops bare-form empty Vec', async () => {
     for (const kind of ['vec', 'set']) {
       for (const verb of ['union', 'minus', 'inter']) {
         const empty = kind === 'vec' ? '[]' : '#[]';
-        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/NoOperandsError`);
+        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/SubjectEmptyError`);
       }
     }
   });

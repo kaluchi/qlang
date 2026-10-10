@@ -34,7 +34,7 @@ describe('parseDocument', () => {
 });
 
 describe('completionsAtOffset', () => {
-  it('includes builtin operand names', async () => {
+  it('includes the names of the words of the language', async () => {
     const { ast } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(ast, 0);
     const labels = items.map(i => i.label);
@@ -166,7 +166,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
 });
 
 describe('hoverAtOffset', () => {
-  it('returns hover for a builtin operand', async () => {
+  it('returns hover for a word of the language', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const countOffset = src.indexOf('count');
@@ -386,7 +386,7 @@ describe('referencesAtOffset', () => {
     expect(refs.length).toBe(2);
   });
 
-  it('returns references for builtin operands', () => {
+  it('returns references for the words of the language', () => {
     const src = '[1 2 3] | count | add 1';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.indexOf('count'));
@@ -524,7 +524,7 @@ function decodeSemanticTokens(data, types) {
 }
 
 describe('semanticTokensFor', () => {
-  it('paints a builtin operand as `function`', async () => {
+  it('paints a word of the language as `function`', async () => {
     const { data } = await semanticTokensFor('[1 2 3] | count');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     const countTok = tokens.find(t => t.type === 'function');
@@ -532,7 +532,7 @@ describe('semanticTokensFor', () => {
     expect(countTok.line).toBe(0);
   });
 
-  it('paints an `@`-prefixed effectful operand as `decorator`', async () => {
+  it('paints an `@`-prefixed effectful word as `decorator`', async () => {
     const { data } = await semanticTokensFor(':any/@audit ~(add 1) | 5 | @audit');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);

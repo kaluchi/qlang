@@ -1,5 +1,5 @@
 // The forks of a sequence run in its order [D84]. A pure pipeline cannot
-// observe the order, so an operand of a host that records its calls
+// observe the order, so a word of a host that records its calls
 // does: each element's call finishes before the next one begins, though
 // the first element waits the longest.
 

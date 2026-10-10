@@ -771,6 +771,70 @@
       ::link~(::any/binding/UnknownNameError | doc)
   ~~|
 
+:any/runLaws
+  |~~ The results of the laws under the name the value reads, as `doc`
+      reads it, a verb by its address among them, one `{:law :says
+      :actual :ok :error}` per law, `:law` its address and `:says` its
+      page, the claim it proves. A keyword after it runs the laws of the
+      member the name holds under it, a concept of the language among
+      them.
+  ~~|
+  ::builtin{}
+
+:any/runLaws/runsTheLawsOfAVerb
+  |~~ The first law of `add` holds. ~~|
+  ::law~(::number/add | runLaws | first | /ok | eq true)
+
+:any/runLaws/runsTheLawsUnderAnAnchor
+  |~~ An anchor runs the laws of the name under the one read. ~~|
+  ::law~(::qlang | runLaws :values | every ~(/ok))
+
+:any/runLaws/holdsEveryLawOfAdd
+  |~~ Every law of `add` holds. ~~|
+  ::law~(::number/add | runLaws * /ok | distinct | eq #[true])
+
+:any/runLaws/findsTheLawsOfAComparison
+  |~~ `gt` has laws to run. ~~|
+  ::law~(::number/gt | runLaws | count | gte 1)
+
+:any/runLaws/runsTheLawsUnderTheName
+  |~~ The laws under the name a keyword reads run. ~~|
+  ::law~(:limit |~~ A limit. ~~| 10 | :limit/holds |~~ It holds. ~~| ::law~(true) | :limit | runLaws * /ok | eq [true])
+
+:any/runLaws/runsTheLawsOfTheKindOfAValue
+  |~~ A value runs the laws of its kind, as `doc` reads its page. ~~|
+  ::law~(5 | runLaws | count | eq (::number | runLaws | count))
+
+:any/runLaws/anchor
+  |~~ The anchor within the page, null when it gives none. ~~|
+  ~(at 0)
+
+:any/runLaws/anchor/NotKeywordOrNullError
+  |~~ The anchor is a keyword or null. ~~|
+  ::holds~(is ::keyword ::null)
+
+:any/runLaws/results
+  |~~ One result for each law: the law, its claim, what it answered and whether it held. ~~|
+  ::vec
+
+:any/runLaws/UnknownNameError
+  |~~ `runLaws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+  ~~|
+
+:any/runLaws/UnknownNameError/refusesANameNothingDeclares
+  |~~ A name nothing declares is refused. ~~|
+  ::law~(:nonexistent-binding | runLaws !| [type /name] | eq [::any/runLaws/UnknownNameError :nonexistent-binding])
+
+:any/runLaws/UnknownNameError/refusesATagNothingDeclares
+  |~~ A tag nothing declares is refused. ~~|
+  ::law~(::Nonexistent | runLaws !| [type /name] | eq [::any/runLaws/UnknownNameError ::Nonexistent])
+
+:any/runLaws/UnknownNameError/namesWhereTheWordLives
+  |~~ A word's name is refused with the addresses where the word lives. ~~|
+  ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
+
 :any/tutorial
   |~~ The page of the name the value reads and its laws, the pair a
       reader learns the name from: the prose that says what it is, and

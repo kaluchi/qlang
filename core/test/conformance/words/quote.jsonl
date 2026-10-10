@@ -9,7 +9,7 @@
 {"name":"quote-prints-as-its-text","query":"~(mul 2) | parse","expect":"\"mul 2\"","decision":"D8"}
 {"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\"","decision":"D8"}
 {"name":"quote-count-counts-steps","query":"~(1 | add 1 | mul 2) | count","expect":"3","decision":"D8"}
-{"name":"quote-payload-is-its-steps","query":"~(filter ~(gt 1)) | payload","expect":"[::call{:name :filter :args [~(gt 1)]}]","decision":["D8","D47"]}
+{"name":"quote-payload-is-its-steps","query":"~(filter ~(gt 1)) | payload","expect":"[::call{:name :filter :modifiers [~(gt 1)]}]","decision":["D8","D47"]}
 {"name":"quote-projects-its-steps-by-index","query":"~(mul 2) | /0 | /name","expect":":mul","decision":"D8"}
 {"name":"quote-step-carries-no-kind","query":"~(mul 2) | first | has :kind","expect":"false","decision":"D8"}
 {"name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | type","expect":"::call","decision":["D8","D47"]}

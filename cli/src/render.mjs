@@ -34,7 +34,7 @@ import { isErrorValue, printAnswer, langRuntime, verbNames } from '@kaluchi/qlan
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
-// Lazy-init the builtin-name set used by `highlightAnsi` for operand
+// Lazy-init the builtin-name set used by `highlightAnsi` for word
 // classification. langRuntime is cached, so a second call from any
 // script-mode invocation hits the same module-level promise and does
 // no extra parse work.

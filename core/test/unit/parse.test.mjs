@@ -361,7 +361,7 @@ describe('parse — error handling', () => {
     expect(() => parse('[1 2')).toThrow(ParseError);
   });
 
-  it('refuses a leading combinator and an explicit combinator on the first operand step after a comment head', () => {
+  it('refuses a leading combinator and an explicit combinator on the first step after a comment head', () => {
     expect(() => parse('!| |~ note ~| * add(1)')).toThrow(ParseError);
     expect(() => parse('(* |~| note\n| count)')).toThrow(ParseError);
     expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);

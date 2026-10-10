@@ -99,7 +99,7 @@ export function stepOfNode(node) {
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
 // stands for [D86].
 export function tagCallStepOf(tag) {
-  return record(CALL_TAG, [['name', keyword('tag')], ['args', Object.freeze([tag])]]);
+  return record(CALL_TAG, [['name', keyword('tag')], ['modifiers', Object.freeze([tag])]]);
 }
 
 // eachStepOf(bodyNode) → the `::each` wrapper a `*` step leaves; the
@@ -150,7 +150,7 @@ function segmentOf(key) {
 
 function callStepOf(node) {
   const fields = [['name', keyword(node.name)]];
-  if (node.args.length > 0) fields.push(['args', Object.freeze(node.args.map(stepOfNode))]);
+  if (node.args.length > 0) fields.push(['modifiers', Object.freeze(node.args.map(stepOfNode))]);
   return record(CALL_TAG, fields);
 }
 
@@ -225,7 +225,7 @@ export function isElementStep(value) {
   if (isErrorValue(value)) return [...value.descriptor.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
-  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('args'));
+  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('modifiers'));
   if (isVec(value)) return value.every(isElementStep);
   return isQMap(value) && [...value.values()].every(isElementStep);
 }
@@ -317,7 +317,7 @@ function printEntries(entries) {
 }
 
 function printCall(call) {
-  return [call.get('name').name, ...(call.get('args') ?? []).map(printStep)].join(' ');
+  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(printStep)].join(' ');
 }
 
 // A key prints bare when it reads as a bare keyword, behind a colon when

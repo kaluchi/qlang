@@ -3,7 +3,7 @@
 {"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo(5)","decision":["D79","D165"]}
 {"name":"tag-takes-a-pair-apart-without-a-name","query":"[::Foo 1] | tag","expect":"::Foo(1)","decision":"D79"}
 {"name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::tag/manifest/SubjectNotTagError","decision":["D62","D79"]}
-{"name":"the-refusal-of-runLaws-names-its-residences","query":"42 | runLaws !| /addresses","expect":"#[::keyword/runLaws ::tag/runLaws]","decision":["D79","D123"]}
+{"name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws * /ok | distinct","expect":"#[true]","decision":"D178"}
 {"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type /actualType]","expect":"[::any/tag/PairTagNotTagError ::keyword]","decision":"D79"}
 {"name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| [type /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]","decision":["D88","D119"]}
 {"name":"a-name-a-member-declares-no-part-under-is-refused","query":"::vec/take | doc :nosuch !| [type /name /addresses]","expect":"[::any/doc/UnknownNameError ::vec/take/nosuch #[]]","decision":["D88","D119"]}

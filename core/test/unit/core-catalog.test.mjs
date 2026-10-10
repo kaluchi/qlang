@@ -112,13 +112,13 @@ describe('parse / apply — code read, printed and run', () => {
     expect([...evalResult]).toEqual([42]);
   });
 
-  it('parse reads a call into a ::call step with :name / :args', async () => {
+  it('parse reads a call into a ::call step with :name / :modifiers', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const callStep = (await evalQuery('"add 1 2" | parse'))[0];
     expect(isQMap(callStep)).toBe(true);
     expect(callStep[TAG_HEADER_SYMBOL].name).toBe('call');
     expect(callStep.get('name')).toEqual(keyword('add'));
-    expect(callStep.get('args')).toHaveLength(2);
+    expect(callStep.get('modifiers')).toHaveLength(2);
   });
 
   it('parse errors on non-string subject', async () => {
@@ -129,7 +129,7 @@ describe('parse / apply — code read, printed and run', () => {
 
   it('apply runs a quote assembled from its steps', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('[42 ::call{:name :add :args [1]}] | tag ::quote | apply /');
+    const evalResult = await evalQuery('[42 ::call{:name :add :modifiers [1]}] | tag ::quote | apply /');
     expect(evalResult).toBe(43);
   });
 

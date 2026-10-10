@@ -3,12 +3,12 @@
    verb, a call too deep, a failure of a host's implementation. ~|
 
 :call/construct
-  |~~ The step of a command from its record, `:name` and `:args`, which reads back as itself. ~~|
+  |~~ The step of a command from its record, `:name` and `:modifiers`, which reads back as itself. ~~|
   ::builtin{}
 
 :call/PayloadNotSchemaError
-  |~~ A `::call` is a map of `:name`, a keyword, and `:args`, a vector
-      of quotes; `:field` names the field that does not fit, null when
+  |~~ A `::call` is a map of `:name`, a keyword, and `:modifiers`, a
+      vector of steps; `:field` names the field that does not fit, null when
       the payload is no map.
       ::link~(::call | doc)
   ~~|

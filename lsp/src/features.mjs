@@ -622,8 +622,8 @@ export const SEMANTIC_TOKEN_TYPES = [
 ];
 
 const KIND_TO_TYPE_INDEX = {
-  operand: 0,
-  atom:    1,
+  word:    0,
+  name:    1,
   effect:  2,
   keyword: 3,
   tag:     4,
@@ -634,7 +634,7 @@ const KIND_TO_TYPE_INDEX = {
   err:     3
 };
 
-// The names of the runtime, which `tokenize` paints as operands.
+// The names of the runtime, which `tokenize` paints as words.
 let _builtinNamesCache = null;
 async function builtinNamesForTokenize() {
   if (_builtinNamesCache) return _builtinNamesCache;

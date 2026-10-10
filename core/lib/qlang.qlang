@@ -886,19 +886,18 @@
   ::law~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
 
 :call
-  |~~ The step of a command, `verb args`: the name finds its verb
+  |~~ The step of a command, `verb modifiers`: the name finds its verb
       through the kind of the subject and runs it with the modifiers.
       As a record, `:name` is the keyword of the name it calls and
-      `:args` the quote of each argument's pipeline when the call has
-      parentheses. Like every record, a `::call` is the step its own text
+      `:modifiers` the step of each modifier, when the call gives any. Like every record, a `::call` is the step its own text
       reads back as: the constructor checks the fields against the schema,
       prints the step and reads it back. ::link~(::quote | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
 
-:call/holdsTheNameAndTheArgs
-  |~~ A command is a call of its name and its args. ~~|
-  ::law~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :args [~(gt 1)]}])
+:call/holdsTheNameAndTheModifiers
+  |~~ A command is a call of its name and its modifiers. ~~|
+  ::law~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :modifiers [~(gt 1)]}])
 
 :call/readsTheName
   |~~ The name of the call is a keyword. ~~|
@@ -906,7 +905,7 @@
 
 :call/buildsAStep
   |~~ A map under `::call` builds the step. ~~|
-  ::law~({:name :filter :args [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
+  ::law~({:name :filter :modifiers [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
 
 :proj
   |~~ The step of a projection, `/a/0/b`: it reads a part of the value in

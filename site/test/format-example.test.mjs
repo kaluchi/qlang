@@ -30,7 +30,7 @@ describe('prompt lines', () => {
   it('">" prefix becomes punct span, expression is highlighted', () => {
     const out = fmt('> count');
     expect(out).toContain('<span class="punct">&gt; </span>');
-    expect(out).toContain('<span class="operand">count</span>');
+    expect(out).toContain('<span class="word">count</span>');
   });
 
   it('strips "> " before passing to highlighter', () => {
@@ -45,7 +45,7 @@ describe('continuation lines', () => {
   it('two-space indent preserved, expression highlighted', () => {
     const out = fmt('  add 1');
     expect(out.startsWith('  ')).toBe(true);
-    expect(out).toContain('<span class="operand">add</span>');
+    expect(out).toContain('<span class="word">add</span>');
   });
 });
 
@@ -86,8 +86,8 @@ describe('multi-line blocks', () => {
     expect(lines[0]).toContain('<span class="punct">&gt; </span>');
     // continuation line starts with two spaces
     expect(lines[1].startsWith('  ')).toBe(true);
-    // the continuation body is highlighted (double is user-defined → atom)
-    expect(lines[1]).toContain('<span class="atom">double</span>');
+    // the continuation body is highlighted (double is a reader's name → name)
+    expect(lines[1]).toContain('<span class="name">double</span>');
   });
 
   it('multiple prompt lines each get their own > prefix', () => {
@@ -106,7 +106,7 @@ describe('real landing page example', () => {
     expect(() => fmt(src)).not.toThrow();
     const out = fmt(src);
     expect(out).toContain('class="comment"');
-    expect(out).toContain('class="operand"');
+    expect(out).toContain('class="word"');
     expect(out).toContain('<span class="number">2</span>');
   });
 });

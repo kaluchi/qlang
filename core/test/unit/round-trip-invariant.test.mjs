@@ -310,7 +310,7 @@ describe('round-trip invariant — BareTypeKeyword', () => {
   }
 });
 
-// ── env-as-Map — `env` operand output parses back ────────────
+// ── env-as-Map — what `env` answers parses back ───────────────
 
 describe('env output is parseable', () => {
   // The `env` operand exposes the records of the scope as a Map. Every

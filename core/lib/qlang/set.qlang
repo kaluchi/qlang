@@ -487,28 +487,28 @@
   |~~ The elements of both sets. ~~|
   ::set
 
-:set/union/NoOperandsError
-  |~~ `union` over a set its call leaves without the other operand joins
-      the operands the set holds, so the set holds one at least.
+:set/union/SubjectEmptyError
+  |~~ `union` over a set its call leaves without the other value joins
+      the values the set holds, so the set holds one at least.
   ~~|
 
-:set/union/NoOperandsError/refusesTheEmptySet
-  |~~ The empty set holds no operand. ~~|
-  ::law~(#[] | union !| type | eq ::set/union/NoOperandsError)
+:set/union/SubjectEmptyError/refusesTheEmptySet
+  |~~ The empty set holds no value. ~~|
+  ::law~(#[] | union !| type | eq ::set/union/SubjectEmptyError)
 
-:set/union/OperandsMismatchedError
-  |~~ The operands `union` joins inside a set are two sets or two maps. ~~|
+:set/union/KindsMismatchedError
+  |~~ The values `union` joins inside a set are two sets or two maps. ~~|
 
-:set/union/OperandsMismatchedError/refusesASetAndAMap
+:set/union/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~(#[#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::set/union/OperandsMismatchedError ::set ::map])
+  ::law~(#[#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::set/union/KindsMismatchedError ::set ::map])
 
-:set/union/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:set/union/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:set/union/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:set/union/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :set/minus
@@ -531,28 +531,28 @@
   |~~ The elements the other set does not hold. ~~|
   ::set
 
-:set/minus/NoOperandsError
-  |~~ `minus` over a set its call leaves without the other operand joins
-      the operands the set holds, so the set holds one at least.
+:set/minus/SubjectEmptyError
+  |~~ `minus` over a set its call leaves without the other value joins
+      the values the set holds, so the set holds one at least.
   ~~|
 
-:set/minus/NoOperandsError/refusesTheEmptySet
-  |~~ The empty set holds no operand. ~~|
-  ::law~(#[] | minus !| type | eq ::set/minus/NoOperandsError)
+:set/minus/SubjectEmptyError/refusesTheEmptySet
+  |~~ The empty set holds no value. ~~|
+  ::law~(#[] | minus !| type | eq ::set/minus/SubjectEmptyError)
 
-:set/minus/OperandsMismatchedError
-  |~~ The operands `minus` joins inside a set are two sets or two maps. ~~|
+:set/minus/KindsMismatchedError
+  |~~ The values `minus` joins inside a set are two sets or two maps. ~~|
 
-:set/minus/OperandsMismatchedError/refusesASetAndAMap
+:set/minus/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~(#[#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::set/minus/OperandsMismatchedError ::set ::map])
+  ::law~(#[#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::set/minus/KindsMismatchedError ::set ::map])
 
-:set/minus/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:set/minus/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:set/minus/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:set/minus/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :set/inter
@@ -575,28 +575,28 @@
   |~~ The elements both sets hold. ~~|
   ::set
 
-:set/inter/NoOperandsError
-  |~~ `inter` over a set its call leaves without the other operand joins
-      the operands the set holds, so the set holds one at least.
+:set/inter/SubjectEmptyError
+  |~~ `inter` over a set its call leaves without the other value joins
+      the values the set holds, so the set holds one at least.
   ~~|
 
-:set/inter/NoOperandsError/refusesTheEmptySet
-  |~~ The empty set holds no operand. ~~|
-  ::law~(#[] | inter !| type | eq ::set/inter/NoOperandsError)
+:set/inter/SubjectEmptyError/refusesTheEmptySet
+  |~~ The empty set holds no value. ~~|
+  ::law~(#[] | inter !| type | eq ::set/inter/SubjectEmptyError)
 
-:set/inter/OperandsMismatchedError
-  |~~ The operands `inter` joins inside a set are two sets or two maps. ~~|
+:set/inter/KindsMismatchedError
+  |~~ The values `inter` joins inside a set are two sets or two maps. ~~|
 
-:set/inter/OperandsMismatchedError/refusesASetAndAMap
+:set/inter/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~(#[#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::set/inter/OperandsMismatchedError ::set ::map])
+  ::law~(#[#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::set/inter/KindsMismatchedError ::set ::map])
 
-:set/inter/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:set/inter/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:set/inter/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:set/inter/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :set/has

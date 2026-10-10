@@ -15,7 +15,7 @@ import { tokenize } from '@kaluchi/qlang-core/highlight';
 const ANSI_RESET = '\x1b[0m';
 
 // Bright variants (9x) for the blue/magenta family so effect,
-// operand, and keyword stay legible on themes that render the
+// word, and keyword stay legible on themes that render the
 // base-intensity dark blue (34) and dark magenta (35) close to
 // black — Windows Terminal's default Campbell palette in
 // particular blends both into the background on a dark scheme.
@@ -30,10 +30,10 @@ const KIND_TO_SGR = {
                           // from the tokeniser's nested sub-tokens
   number:   '33',         // yellow
   comment:  '2',          // dim
-  atom:     '36',         // cyan
+  name:     '36',         // cyan
   effect:   '95',         // bright magenta
   tag:      '96',         // bright cyan — `::tag` identifier
-  operand:  '94',         // bright blue
+  word:     '94',         // bright blue
   keyword:  '1;94',       // bold bright blue
   err:      '91',         // bright red — `!{}` + `!|`
   set:      '92',         // bright green — `#[]` set brackets

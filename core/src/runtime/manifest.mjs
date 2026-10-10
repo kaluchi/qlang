@@ -50,9 +50,10 @@ async function runLaw({ law, quote, says }, callerState) {
   return result;
 }
 
-// A name reads its record as the axes do, a keyword after it the member
-// it holds, `::qlang | runLaws :values` [D124]: the laws declared under
-// its address [D174].
+// A value reads its record as the axes do, a name its own and any other
+// value its kind's, a keyword after it the member it holds, `::qlang |
+// runLaws :values` [D124]: the laws declared under its address [D174],
+// [D178].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
   const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
@@ -65,7 +66,5 @@ async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   return results;
 }
 
-const TagRunLawsUnknownNameError = declareRefusal('tag/runLaws/UnknownNameError');
-const KeywordRunLawsUnknownNameError = declareRefusal('keyword/runLaws/UnknownNameError');
-bindStateReader('tag/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, TagRunLawsUnknownNameError));
-bindStateReader('keyword/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, KeywordRunLawsUnknownNameError));
+const AnyRunLawsUnknownNameError = declareRefusal('any/runLaws/UnknownNameError');
+bindStateReader('any/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, AnyRunLawsUnknownNameError));

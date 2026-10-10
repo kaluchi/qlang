@@ -59,7 +59,7 @@ describe('tokenize — atomic literal kinds', () => {
     // renderer composes italic on top of each kind's colour.
     expect(tokenize('~(mul 2)', await builtins())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
-      { start: 2, end: 5, kind: 'operand',    italic: true },
+      { start: 2, end: 5, kind: 'word',    italic: true },
       { start: 5, end: 6, kind: 'whitespace', italic: true },
       { start: 6, end: 7, kind: 'number',     italic: true },
       { start: 7, end: 8, kind: 'quote' }
@@ -69,7 +69,7 @@ describe('tokenize — atomic literal kinds', () => {
   it('paints the tilde of the short form as the quote delimiter', async () => {
     expect(tokenize('~add', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'quote' },
-      { start: 1, end: 4, kind: 'operand', italic: true }
+      { start: 1, end: 4, kind: 'word', italic: true }
     ]);
   });
 
@@ -102,7 +102,7 @@ describe('tokenize — atomic literal kinds', () => {
 
   it('classifies a `:name` keyword atom', async () => {
     expect(tokenize(':foo', await builtins())).toEqual([
-      { start: 0, end: 4, kind: 'atom' }
+      { start: 0, end: 4, kind: 'name' }
     ]);
   });
 
@@ -135,10 +135,10 @@ describe('tokenize — atomic literal kinds', () => {
   });
 });
 
-describe('tokenize — operand call name classification', () => {
-  it('a builtin name resolves to `operand`', async () => {
+describe('tokenize — the kind of a call\'s name', () => {
+  it('the name of a word of the language resolves to `word`', async () => {
     const tokens = tokenize('count', await builtins());
-    expect(tokens[0].kind).toBe('operand');
+    expect(tokens[0].kind).toBe('word');
   });
 
   it('the `let` binding-introducer resolves to `keyword`', async () => {
@@ -153,22 +153,22 @@ describe('tokenize — operand call name classification', () => {
 
   it('a user-defined name (not in builtins, no `@`) resolves to `atom`', async () => {
     const tokens = tokenize('myVerb', await builtins());
-    expect(tokens[0].kind).toBe('atom');
+    expect(tokens[0].kind).toBe('name');
   });
 });
 
 describe('tokenize — projections', () => {
-  it('renders `/name` as a `punct` slash plus an `operand` key', async () => {
+  it('renders `/name` as a `punct` slash plus a `word` key', async () => {
     expect(tokenize('/name', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 5, kind: 'operand' }
+      { start: 1, end: 5, kind: 'word' }
     ]);
   });
 
   it('renders `/a/b` as two slash + key pairs', async () => {
     const tokens = tokenize('/a/b', await builtins());
     expect(tokens.filter(t => t.kind === 'punct')).toHaveLength(2);
-    expect(tokens.filter(t => t.kind === 'operand')).toHaveLength(2);
+    expect(tokens.filter(t => t.kind === 'word')).toHaveLength(2);
   });
 
   it('handles a Projection nested in a pipeline', async () => {
@@ -176,24 +176,24 @@ describe('tokenize — projections', () => {
     // appear in the token stream alongside the pipeline's own
     // structural punct.
     const tokens = tokenize('{:name "x"} | /name', await builtins());
-    expect(tokens.find(t => t.kind === 'operand' && t.end - t.start === 4)).toBeDefined();
+    expect(tokens.find(t => t.kind === 'word' && t.end - t.start === 4)).toBeDefined();
   });
 
-  it('keeps a quoted segment with an inner slash as one operand token', async () => {
+  it('keeps a quoted segment with an inner slash as one word token', async () => {
     // `/"a/b"` is a single projection segment `a/b`; the slash inside
-    // the quotes must not split it into two operand tokens.
+    // the quotes must not split it into two word tokens.
     expect(tokenize('/"a/b"', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 6, kind: 'operand' }
+      { start: 1, end: 6, kind: 'word' }
     ]);
   });
 
   it('keeps an escaped quote inside a quoted segment within the segment', async () => {
     // `/"a\"b"` — the escaped `"` stays inside the one segment, so the
-    // operand token spans the whole `"a\"b"` slice.
+    // word token spans the whole `"a\"b"` slice.
     expect(tokenize('/"a\\"b"', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 7, kind: 'operand' }
+      { start: 1, end: 7, kind: 'word' }
     ]);
   });
 });
@@ -306,7 +306,7 @@ describe('tokenize — a source that does not parse', () => {
   it('paints a source cut short through the closers that complete it [D125]', async () => {
     expect(tokenize('[unclosed', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'vec' },
-      { start: 1, end: 9, kind: 'atom' }
+      { start: 1, end: 9, kind: 'name' }
     ]);
   });
 
@@ -317,7 +317,7 @@ describe('tokenize — a source that does not parse', () => {
   it('paints a refused source up to the refusal, the rest as whitespace', async () => {
     const src = '{:a 1 | zz) 5';
     const tokens = tokenize(src, await builtins());
-    expect(tokens[1]).toEqual({ start: 1, end: 3, kind: 'atom' });
+    expect(tokens[1]).toEqual({ start: 1, end: 3, kind: 'name' });
     expect(tokens.at(-1)).toEqual({ start: src.indexOf('|'), end: src.length, kind: 'whitespace' });
   });
 
@@ -336,18 +336,18 @@ describe('tokenize — the code a doc holds', () => {
 
   it('paints a quote of the prose as code', async () => {
     expect(await paint('|~~ see ~(add 1) ~~|')).toEqual([
-      ['|~~ see ', 'comment'], ['~(', 'quote'], ['add', 'operand'], ['1', 'number'], [')', 'quote'], [' ~~|', 'comment']
+      ['|~~ see ', 'comment'], ['~(', 'quote'], ['add', 'word'], ['1', 'number'], [')', 'quote'], [' ~~|', 'comment']
     ]);
   });
 
   it('paints a span in backticks as the code it spells', async () => {
-    expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'operand'], ['` b ~~|', 'comment']]);
+    expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'word'], ['` b ~~|', 'comment']]);
   });
 
   it('closes a doc inside a quote of a doc at its own marker', async () => {
     const painted = await paint('|~~ ~(|~~ a ~~| | count) after ~~|');
     expect(painted.at(-1)).toEqual([' after ~~|', 'comment']);
-    expect(painted).toContainEqual(['count', 'operand']);
+    expect(painted).toContainEqual(['count', 'word']);
   });
 });
 

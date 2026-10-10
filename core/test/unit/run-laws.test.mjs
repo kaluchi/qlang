@@ -28,7 +28,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('a name that names no binding is refused as doc refuses it', async () => {
     const refusal = await evalQuery(':nothingBound | runLaws');
-    expect(refusal.tag).toEqual(makeTagKeyword('keyword/runLaws/UnknownNameError'));
+    expect(refusal.tag).toEqual(makeTagKeyword('any/runLaws/UnknownNameError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
@@ -41,10 +41,10 @@ describe('runLaws reads a name as laws does', () => {
     expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
   });
 
-  it('a subject no kind of which answers the word is refused where the word is looked up', async () => {
-    const err = await evalQuery('42 | runLaws');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
+  it('a value runs the laws of its kind, as doc reads its page [D178]', async () => {
+    const results = await evalQuery('42 | runLaws');
+    expect(isErrorValue(results)).toBe(false);
+    expect(results.map(result => result.get('law').name)).toEqual((await evalQuery('::number | runLaws')).map(result => result.get('law').name));
   });
 });
 

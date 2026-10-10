@@ -47,7 +47,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
 
   it('a doc ahead of any other step chains explicitly with `|`', async () => {
     // The doc value lands as a separate pipeline step that the next
-    // operand (here `segments`) sees as its subject.
+    // word (here `segments`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | segments | count');
     expect(result).toBe(1);
   });

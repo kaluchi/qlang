@@ -71,7 +71,7 @@ describe('runtime error location propagation via evalNode', () => {
     expect(typeof originalErr.location.start.offset).toBe('number');
   });
 
-  it('the attached location points to the failing operand call', async () => {
+  it('the attached location points to the failing call', async () => {
     const source = '[1 2 3] | filter ~(gt 0) | 99 | filter ~(gt 0)';
     //              0         1         2         3         4
     //              0123456789012345678901234567890123456789012345

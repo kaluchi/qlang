@@ -13,13 +13,13 @@
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     Plain comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
-//   'atom'        `:name` keyword (atom) OR a call's name
-//                 that resolves through a user-defined binding
+//   'name'        `:name` keyword OR a call's name that resolves
+//                 through a reader's binding
 //   'effect'      `:@name` keyword OR the name of a call marked
 //                 `@`, an effectful word
-//   'operand'     a call's name that resolves to a builtin
-//                 supplied by `langRuntime` AND each key segment
-//                 of a `Projection`
+//   'word'        a call's name that resolves to a word of the
+//                 language supplied by `langRuntime` AND each key
+//                 segment of a `Projection`
 //   'keyword'     the head Keyword/TagKeyword of a BindStep
 //                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
@@ -128,7 +128,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'Keyword': {
         const keywordText = src.slice(startOffset, endOffset);
-        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'atom';
+        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'name';
         spans.push({ start: startOffset, end: endOffset, kind });
         return false;
       }
@@ -233,8 +233,8 @@ function pushProseSpans(src, start, end, builtinNames, spans) {
 
 function classifyCallName(callName, builtinNames) {
   if (callName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
-  if (builtinNames.has(callName))                return 'operand';
-  return 'atom';
+  if (builtinNames.has(callName))                return 'word';
+  return 'name';
 }
 
 // Emit opener and closer spans for a literal with known bracket
@@ -264,7 +264,7 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
     while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
       // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
       // whole `"…"` span so a slash inside it does not split the
-      // segment into two operand tokens.
+      // segment into two word tokens.
       if (projectionText[segEnd] === '"') {
         segEnd += 1;
         while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
@@ -278,7 +278,7 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
     spans.push({
       start: startOffset + cursor,
       end:   startOffset + segEnd,
-      kind:  'operand'
+      kind:  'word'
     });
     cursor = segEnd;
   }

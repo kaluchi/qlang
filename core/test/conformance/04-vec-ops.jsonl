@@ -51,7 +51,7 @@
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]","decision":"D43"}
-{"name":"reduce-folds-with-the-quote-of-a-bare-operand","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
+{"name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
 {"name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | /items | take (count | sub 1)","expect":"[1 2]","decision":"D43"}
 {"name":"a-part-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotQuoteError","decision":["D56","D169"]}
 {"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}

@@ -48,11 +48,11 @@ describe('boolean and null literals', () => {
   });
 });
 
-// ── Keywords / atoms ──────────────────────────────────────────
+// ── Keywords as names ──────────────────────────────────────────
 
-describe('keyword atoms', () => {
-  it('wraps :name in atom span', () => {
-    expect(hl(':foo')).toBe('<span class="atom">:foo</span>');
+describe('keywords as names', () => {
+  it('wraps :name in a name span', () => {
+    expect(hl(':foo')).toBe('<span class="name">:foo</span>');
   });
 
   it('wraps :@name in effect span', () => {
@@ -60,12 +60,12 @@ describe('keyword atoms', () => {
   });
 });
 
-// ── Operand calls ─────────────────────────────────────────────
+// ── Calls of words ─────────────────────────────────────────────
 
-describe('builtin operands', () => {
-  it('wraps builtin name in operand span', () => {
+describe('the words of the language', () => {
+  it('wraps the name of a word in a word span', () => {
     const out = hl('count');
-    expect(out).toBe('<span class="operand">count</span>');
+    expect(out).toBe('<span class="word">count</span>');
   });
 
   it('BindStep key gets keyword span', () => {
@@ -78,25 +78,25 @@ describe('builtin operands', () => {
     expect(out).toContain('<span class="effect">@log</span>');
   });
 
-  it('user-defined name gets atom span (not operand)', () => {
+  it('the name of a reader gets a name span, not a word span', () => {
     const out = hl(':double mul 2 | 10 | double');
-    expect(out).toContain('<span class="atom">double</span>');
-    expect(out).not.toContain('<span class="operand">double</span>');
+    expect(out).toContain('<span class="name">double</span>');
+    expect(out).not.toContain('<span class="word">double</span>');
   });
 });
 
 // ── Projections ───────────────────────────────────────────────
 
 describe('projections', () => {
-  it('renders slash as punct and field as operand', () => {
+  it('renders slash as punct and field as word', () => {
     const out = hl('/name');
     expect(out).toContain('<span class="punct">/</span>');
-    expect(out).toContain('<span class="operand">name</span>');
+    expect(out).toContain('<span class="word">name</span>');
   });
 
   it('renders nested projection correctly', () => {
     const out = hl('/a/b');
-    expect(out.match(/<span class="operand">/g)).toHaveLength(2);
+    expect(out.match(/<span class="word">/g)).toHaveLength(2);
     expect(out.match(new RegExp('<span class="punct">/</span>', 'g'))).toHaveLength(2);
   });
 });
@@ -177,7 +177,7 @@ describe('full expressions', () => {
     expect(out).toContain('<span class="vec">[</span>');
     expect(out).toContain('<span class="vec">]</span>');
     expect(out).toContain('<span class="punct">|</span>');
-    expect(out).toContain('<span class="operand">count</span>');
+    expect(out).toContain('<span class="word">count</span>');
   });
 
   it('no raw < or > in output (always escaped)', () => {

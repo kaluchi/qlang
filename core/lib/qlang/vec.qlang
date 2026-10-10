@@ -794,20 +794,20 @@
     | eq 11)
 
 :vec/union
-  |~~ The union of the operands the vector holds, sets merged in the one
+  |~~ The union of the values the vector holds, sets merged in the one
       order or maps merged with the last value winning a key. A vector is
-      no set for the algebra, so another operand beside it is
+      no set for the algebra, so another value beside it is
       refused with the pair.
   ~~|
   ::builtin{}
 
-:vec/union/unitesTheOperands
+:vec/union/unitesTheValues
   |~~ The sets the vector holds unite. ~~|
   ::law~([#[:a :b] #[:b :c]] | union | eq #[:a :b :c])
 
-:vec/union/refusesAnOperandBeside
-  |~~ An operand beside the vector is refused with the pair. ~~|
-  ::law~([1] | union #[2] !| type | eq ::vec/union/OperandsMismatchedError)
+:vec/union/refusesAValueBeside
+  |~~ A value beside the vector is refused with the pair. ~~|
+  ::law~([1] | union #[2] !| type | eq ::vec/union/KindsMismatchedError)
 
 :vec/union/with
   |~~ The value the subject is joined with, null when it gives none. ~~|
@@ -817,41 +817,41 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/union/NoOperandsError
-  |~~ `union` over a vector joins its operands from the first, `[a b c]
-      | union`, so the vector holds one at least; two operands are
+:vec/union/SubjectEmptyError
+  |~~ `union` over a vector joins its values from the first, `[a b c]
+      | union`, so the vector holds one at least; two values are
       written `a | union b`.
   ~~|
 
-:vec/union/NoOperandsError/refusesTheEmptyVector
-  |~~ The empty vector holds no operand. ~~|
-  ::law~([] | union !| type | eq ::vec/union/NoOperandsError)
+:vec/union/SubjectEmptyError/refusesTheEmptyVector
+  |~~ The empty vector holds no value. ~~|
+  ::law~([] | union !| type | eq ::vec/union/SubjectEmptyError)
 
-:vec/union/OperandsMismatchedError
-  |~~ The operands `union` joins are two sets or two maps; a vector is
-      none, so an operand its call gives beside the vector is refused with
+:vec/union/KindsMismatchedError
+  |~~ The values `union` joins are two sets or two maps; a vector is
+      none, so a value its call gives beside the vector is refused with
       the pair.
   ~~|
 
-:vec/union/OperandsMismatchedError/refusesASetAndAMap
+:vec/union/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~([#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::set ::map])
+  ::law~([#[:a] {:b 1}] | union !| [type /leftType /rightType] | eq [::vec/union/KindsMismatchedError ::set ::map])
 
-:vec/union/OperandsMismatchedError/refusesAVectorAndASet
+:vec/union/KindsMismatchedError/refusesAVectorAndASet
   |~~ A vector and a set do not join. ~~|
-  ::law~([1] | union #[2] !| [type /leftType /rightType] | eq [::vec/union/OperandsMismatchedError ::vec ::set])
+  ::law~([1] | union #[2] !| [type /leftType /rightType] | eq [::vec/union/KindsMismatchedError ::vec ::set])
 
-:vec/union/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:vec/union/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:vec/union/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:vec/union/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :vec/minus
-  |~~ The first operand the vector holds minus each one after it; another
-      operand beside the vector is refused with the pair.
+  |~~ The first value the vector holds minus each one after it; another
+      value beside the vector is refused with the pair.
   ~~|
   ::builtin{}
 
@@ -867,36 +867,36 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/minus/NoOperandsError
-  |~~ `minus` over a vector joins its operands from the first, `[a b c]
-      | minus`, so the vector holds one at least; two operands are
+:vec/minus/SubjectEmptyError
+  |~~ `minus` over a vector joins its values from the first, `[a b c]
+      | minus`, so the vector holds one at least; two values are
       written `a | minus b`.
   ~~|
 
-:vec/minus/NoOperandsError/refusesTheEmptyVector
-  |~~ The empty vector holds no operand. ~~|
-  ::law~([] | minus !| type | eq ::vec/minus/NoOperandsError)
+:vec/minus/SubjectEmptyError/refusesTheEmptyVector
+  |~~ The empty vector holds no value. ~~|
+  ::law~([] | minus !| type | eq ::vec/minus/SubjectEmptyError)
 
-:vec/minus/OperandsMismatchedError
-  |~~ The operands `minus` joins are two sets, or a map and a map or a
-      vector of keys; a vector is none, so an operand its call gives beside
+:vec/minus/KindsMismatchedError
+  |~~ The values `minus` joins are two sets, or a map and a map or a
+      vector of keys; a vector is none, so a value its call gives beside
       the vector is refused with the pair.
   ~~|
 
-:vec/minus/OperandsMismatchedError/refusesASetAndAMap
+:vec/minus/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~([#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::set ::map])
+  ::law~([#[:a] {:b 1}] | minus !| [type /leftType /rightType] | eq [::vec/minus/KindsMismatchedError ::set ::map])
 
-:vec/minus/OperandsMismatchedError/refusesAVectorAndASet
+:vec/minus/KindsMismatchedError/refusesAVectorAndASet
   |~~ A vector and a set do not join. ~~|
-  ::law~([1] | minus #[2] !| [type /leftType /rightType] | eq [::vec/minus/OperandsMismatchedError ::vec ::set])
+  ::law~([1] | minus #[2] !| [type /leftType /rightType] | eq [::vec/minus/KindsMismatchedError ::vec ::set])
 
-:vec/minus/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:vec/minus/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:vec/minus/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:vec/minus/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :vec/minus/KeyNotKeywordOrStringError
@@ -909,7 +909,7 @@
   ::law~([{:a 1} [:a 1]] | minus !| [type /actualType /index] | eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
 
 :vec/inter
-  |~~ The intersection of the operands the vector holds; another operand
+  |~~ The intersection of the values the vector holds; another value
       beside the vector is refused with the pair.
   ~~|
   ::builtin{}
@@ -926,36 +926,36 @@
   |~~ The with is a set, a map or null. ~~|
   ::holds~(is ::set ::map ::null)
 
-:vec/inter/NoOperandsError
-  |~~ `inter` over a vector joins its operands from the first, `[a b c]
-      | inter`, so the vector holds one at least; two operands are
+:vec/inter/SubjectEmptyError
+  |~~ `inter` over a vector joins its values from the first, `[a b c]
+      | inter`, so the vector holds one at least; two values are
       written `a | inter b`.
   ~~|
 
-:vec/inter/NoOperandsError/refusesTheEmptyVector
-  |~~ The empty vector holds no operand. ~~|
-  ::law~([] | inter !| type | eq ::vec/inter/NoOperandsError)
+:vec/inter/SubjectEmptyError/refusesTheEmptyVector
+  |~~ The empty vector holds no value. ~~|
+  ::law~([] | inter !| type | eq ::vec/inter/SubjectEmptyError)
 
-:vec/inter/OperandsMismatchedError
-  |~~ The operands `inter` joins are two sets, or a map and a map or a
-      vector of keys; a vector is none, so an operand its call gives beside
+:vec/inter/KindsMismatchedError
+  |~~ The values `inter` joins are two sets, or a map and a map or a
+      vector of keys; a vector is none, so a value its call gives beside
       the vector is refused with the pair.
   ~~|
 
-:vec/inter/OperandsMismatchedError/refusesASetAndAMap
+:vec/inter/KindsMismatchedError/refusesASetAndAMap
   |~~ A set and a map do not join. ~~|
-  ::law~([#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::set ::map])
+  ::law~([#[:a] {:b 1}] | inter !| [type /leftType /rightType] | eq [::vec/inter/KindsMismatchedError ::set ::map])
 
-:vec/inter/OperandsMismatchedError/refusesAVectorAndASet
+:vec/inter/KindsMismatchedError/refusesAVectorAndASet
   |~~ A vector and a set do not join. ~~|
-  ::law~([1] | inter #[2] !| [type /leftType /rightType] | eq [::vec/inter/OperandsMismatchedError ::vec ::set])
+  ::law~([1] | inter #[2] !| [type /leftType /rightType] | eq [::vec/inter/KindsMismatchedError ::vec ::set])
 
-:vec/inter/OperandsMismatchedError/leftType
-  |~~ The kind of the operand on the left. ~~|
+:vec/inter/KindsMismatchedError/leftType
+  |~~ The kind of the value on the left. ~~|
   ::tag
 
-:vec/inter/OperandsMismatchedError/rightType
-  |~~ The kind of the operand on the right. ~~|
+:vec/inter/KindsMismatchedError/rightType
+  |~~ The kind of the value on the right. ~~|
   ::tag
 
 :vec/inter/KeyNotKeywordOrStringError

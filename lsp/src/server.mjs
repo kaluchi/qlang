@@ -312,8 +312,8 @@ connection.onSignatureHelp(async (params) => {
 // VS Code requests semantic tokens for the whole document; the
 // returned `{ data }` is a Uint32Array carrying the LSP-encoded
 // token stream (5 ints per token). The editor merges it on top of
-// the tmLanguage grammar tokens so `@`-prefixed effectful operands
-// pick up the `decorator` colour and user-bound atoms get the
+// the tmLanguage grammar tokens so `@`-prefixed effectful words
+// pick up the `decorator` colour and a reader's names get the
 // `variable` colour distinct from the `function` colour of
 // `langRuntime`-resolved built-ins.
 

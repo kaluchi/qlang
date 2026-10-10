@@ -8,7 +8,7 @@
 {"name":"use-shadowable-by-a-freeze","query":"42 | :use / | use","expect":"42"}
 {"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":any/@two ~(2) | :n @two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
-{"name":"as-is-no-operand","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D70"}
+{"name":"as-is-no-word","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D70"}
 {"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":["D44","D71"]}
 {"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":["D71","D85"]}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71"}

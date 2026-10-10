@@ -101,10 +101,6 @@
   |~~ The word the step called. ~~|
   ::keyword
 
-:call/KindAnswersNoVerbError/addresses
-  |~~ The addresses where the word lives, one for each kind that answers it. ~~|
-  ::set
-
 :call/UnknownNameError
   |~~ No name of the scope and no verb of the kinds of the subject
       answers the name. `:name` holds the name as typed,
@@ -144,14 +140,6 @@
 :call/UnknownNameError/name
   |~~ The name the step called. ~~|
   ::keyword
-
-:call/UnknownNameError/nearest
-  |~~ The names of the scope nearest to it in spelling. ~~|
-  ::vec
-
-:call/UnknownNameError/addresses
-  |~~ The addresses where a word of that name lives, none where no kind answers it. ~~|
-  ::set
 
 :call/UnknownAddressError
   |~~ A name with a path names nothing: no declaration wrote that

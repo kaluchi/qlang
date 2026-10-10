@@ -765,12 +765,18 @@
   |~~ Each law is the pair of its page and its query. ~~|
   ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | /answersFive | [(/0 | content) /1] | eq [" k answers five. " ~(0 | k | eq 5)])
 
+:any/laws/UnknownNameError
+  |~~ `laws` found no declaration of the name it read, as `binding`
+      finds none.
+      ::link~(::any/binding/UnknownNameError | doc)
+  ~~|
+
 :any/tutorial
   |~~ The page of the name the value reads and its laws, the pair a
       reader learns the name from: the prose that says what it is, and
       the laws that show it at work, each the pair of its claim and its
-      query. ~~|
-  ~([doc laws])
+      query. A name nothing declares is refused as `doc` refuses it. ~~|
+  ~(:subject / | doc | [/ (subject | laws)])
 
 :any/tutorial/lesson
   |~~ The page and the laws. ~~|
@@ -780,11 +786,9 @@
   |~~ A tutorial is the page of a name and its laws. ~~|
   ::law~(::number | tutorial | [(/0 | type) (/1 | type)] | eq [::doc ::map])
 
-:any/laws/UnknownNameError
-  |~~ `laws` found no declaration of the name it read, as `binding`
-      finds none.
-      ::link~(::any/binding/UnknownNameError | doc)
-  ~~|
+:any/tutorial/refusesANameNothingDeclares
+  |~~ A name nothing declares is refused as `doc` refuses it. ~~|
+  ::law~(:nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
 
 :any/tag
   |~~ Lays a tag over a value, the name of the kind it is read as, the
@@ -1065,10 +1069,10 @@
   |~~ Whether the walk of the subject's tags reaches a value of one of the
       kinds the call gives: a number under a tag of its own is a number, a
       set is a vector, a map under a tag is a map. A part of the args
-      whose law asks `is` is handed to its name as the value of the kind
-      the walk reached, and one whose law asks `every ~(is …)` as the
-      vector, or the set, of each element's, a quote and a doc as they
-      are, an element the walk refuses named by its index from zero.
+      whose invariant asks `is` is handed to its name as the value of the
+      kind the walk reached, and one whose invariant asks `every ~(is …)`
+      as the vector, or the set, of each element's, a quote and a doc as
+      they are, an element the walk refuses named by its index from zero.
   ~~|
   ::builtin{}
 

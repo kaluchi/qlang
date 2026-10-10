@@ -57,14 +57,10 @@ describe('the pages of the language read through `doc`', () => {
 });
 
 describe('bare-name verb call', () => {
-  // Bare operand identifier (no captured args) fires the operand
-  // against the current pipeValue regardless of arity. Non-nullary
-  // operands without captured args hit Rule 10's arity check and
-  // surface a per-site arityError; nullary operands fire because
-  // bare application IS their valid call shape. The introspection
-  // surface for "what does this operand do" is `:name | source` /
-  // `:name | doc` / `:name | doc | laws`, not a bare-name descriptor
-  // shortcut.
+  // A word called by its bare name, with no modifiers, runs on the
+  // value in the pipe; a part it reads that the call leaves out is
+  // refused under the part. What a word does is read by `:name |
+  // source`, `:name | doc` and `:name | laws`, not by a bare name.
 
   it('bare `count` fires against the inbound Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -77,7 +73,7 @@ describe('bare-name verb call', () => {
   });
 
   it('bare `mul` on a number gives no multiplier and is refused under the part', async () => {
-    // The part `multiplier` reads the first place of the object, which
+    // The part `multiplier` reads the first place of the args, which
     // a call without a modifier leaves empty [D166].
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
@@ -103,7 +99,7 @@ describe('the root of the language', () => {
 });
 
 describe('parse / apply — code read, printed and run', () => {
-  // The `parse` operand reads a source string into the quote of its
+  // `parse` reads a source string into the quote of its
   // steps and prints a quote back; `apply(/)` runs the quote against
   // the subject. Together they round-trip
   // source text → data → pipeValue without leaving the language,

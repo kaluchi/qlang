@@ -6,11 +6,9 @@
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTagKeyword, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { evalAst } from '../eval.mjs';
-import { nestState } from '../state.mjs';
+import { codeOf } from '../eval.mjs';
 import { recordReadBy, pageOfRecord, pageTextOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder } from './nouns.mjs';
-import { astOfQuote } from '../quote.mjs';
 
 
 // The message of an error: its `:message` where it carries one, a raise's
@@ -32,24 +30,24 @@ bindStateReader('any/laws', (subject, state) => {
     [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
 });
 
-// A law runs one frame below the step in the caller's scope, the root
-// among it, and passes when it answers true [D14]; its result names the
-// law by its address and the claim it proves by its page [D124], [D174].
+// A law runs as `apply` runs code, one frame below the step, and passes
+// when it answers true [D14]; its result names the law by its address and
+// the claim it proves by its page [D124], [D174].
 async function runLaw({ law, quote, says }, callerState) {
-  const outcome = new Map();
-  outcome.set('law', law);
-  outcome.set('says', says);
-  const actualValue = (await evalAst(astOfQuote(quote), nestState(callerState, null, callerState.env))).pipeValue;
+  const result = new Map();
+  result.set('law', law);
+  result.set('says', says);
+  const actualValue = await codeOf(quote, callerState)(null);
   if (isErrorValue(actualValue)) {
-    outcome.set('actual', null);
-    outcome.set('error', errorMessageOf(actualValue));
-    outcome.set('ok', false);
-    return outcome;
+    result.set('actual', null);
+    result.set('error', errorMessageOf(actualValue));
+    result.set('ok', false);
+    return result;
   }
-  outcome.set('actual', actualValue);
-  outcome.set('error', null);
-  outcome.set('ok', actualValue === true);
-  return outcome;
+  result.set('actual', actualValue);
+  result.set('error', null);
+  result.set('ok', actualValue === true);
+  return result;
 }
 
 // A name reads its record as the axes do, a keyword after it the member
@@ -62,9 +60,9 @@ async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
     quote: bindingValueOf(lawRecord).payload,
     says: pageTextOfRecord(lawRecord)
   }));
-  const outcomes = [];
-  for (const claim of claims) outcomes.push(await runLaw(claim, state));
-  return outcomes;
+  const results = [];
+  for (const claim of claims) results.push(await runLaw(claim, state));
+  return results;
 }
 
 const TagRunLawsUnknownNameError = declareRefusal('tag/runLaws/UnknownNameError');

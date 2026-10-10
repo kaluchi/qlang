@@ -27,6 +27,10 @@ function textOfToolResult(content) {
   return (content ?? []).map(part => part.text ?? '').join('');
 }
 
+// The reply the command line writes in place of an answer at the limit of
+// its use, `You've hit your session limit · resets …`.
+const LIMIT_REPLY = /^You've hit your .*limit/;
+
 // The record of a run from the events the child streamed: the model
 // that answered, which an alias such as `haiku` names only until the
 // command line maps it anew, its final reply, its turns and tokens, and
@@ -59,7 +63,7 @@ function recordOfStream(streamText) {
   return {
     modelId,
     result: final?.result ?? null,
-    failed: final === null || final.is_error === true,
+    failed: final === null || final.is_error === true || LIMIT_REPLY.test(final.result ?? ''),
     turns: final?.num_turns ?? null,
     inputTokens: final?.usage ? final.usage.input_tokens + (final.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_creation_input_tokens ?? 0) : null,
     outputTokens: final?.usage?.output_tokens ?? null,

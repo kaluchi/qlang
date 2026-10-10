@@ -589,7 +589,7 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('пользователь-42');
   });
 
-  it('parses a Cyrillic operand-call identifier', () => {
+  it('parses the Cyrillic name of a call', () => {
     const ast = parse('посчитать(1)');
     expect(ast.type).toBe('Call');
     expect(ast.name).toBe('посчитать');

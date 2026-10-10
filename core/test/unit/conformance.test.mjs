@@ -1,7 +1,7 @@
 // Conformance test runner.
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
-// expect (must be a pure literal — no operand calls, no pipelines).
+// expect (must be a pure literal — no calls, no pipelines).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where

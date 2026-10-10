@@ -24,7 +24,8 @@ import {
   bareNameReach,
   residencesOf,
   isLabel,
-  CONSTRUCT_NAME
+  isWord,
+  declaresWord
 } from '@kaluchi/qlang-core';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
@@ -422,13 +423,14 @@ function bindingDeclarationOf(node) {
     : { name: node.key.name, kind: 'value' };
 }
 
-// Whether a declaration of a value declares a word, as the core reads
-// one: a quote or a host's `::builtin{}` under a label, the label's
-// `construct` apart [D164], [D169].
-function declaresWord({ key, body }, isLabelName) {
-  const runs = body.type === 'QuoteLit' || (body.type === 'TaggedLit' && body.tag === 'builtin');
-  const [labelName, lastName] = splitAddress(key.name);
-  return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
+// Whether a declaration of a value declares a word, by the core's rule: a
+// name the runtime holds as the core answers it, and one of the document
+// as `declaresWord` reads it, a quote running where a reader's
+// `::builtin{}` reaches no primitive [D73], [D169].
+function declaresWordIn({ key, body }, runtime, isLabelName) {
+  return nodeOf(runtime, key.name) !== null
+    ? isWord(runtime, key.name)
+    : declaresWord(key.name, body.type === 'QuoteLit', isLabelName);
 }
 
 // The span of the last declaration of the name that stands before the
@@ -515,7 +517,7 @@ export function referencesAtOffset(ast, offset) {
 // shown as a label, a word or a value; a label is a name the document
 // declares by its page alone, or a label of the language the runtime
 // holds.
-export function documentSymbols(ast, runtime = null) {
+export function documentSymbols(ast, runtime) {
   if (!ast) return [];
 
   const labels = new Set();
@@ -523,7 +525,7 @@ export function documentSymbols(ast, runtime = null) {
     if (node.type === 'DocLit') return false;
     if (node.type === 'BindStep' && node.body === null) labels.add(node.key.name);
   });
-  const isLabelName = name => labels.has(name) || (runtime !== null && isLabel(runtime, name));
+  const isLabelName = name => labels.has(name) || isLabel(runtime, name);
 
   const symbols = [];
   walkAst(ast, (node) => {
@@ -533,7 +535,7 @@ export function documentSymbols(ast, runtime = null) {
 
     symbols.push({
       name: decl.name,
-      kind: decl.kind === 'value' && declaresWord(node, isLabelName) ? 'verb' : decl.kind,
+      kind: decl.kind === 'value' && declaresWordIn(node, runtime, isLabelName) ? 'verb' : decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
@@ -571,22 +573,22 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  const operandCall = findEnclosingCall(node);
-  if (!operandCall) return null;
+  const call = findEnclosingCall(node);
+  if (!call) return null;
 
   const runtime = await langRuntime();
-  const shown = shownFor(runtime, operandCall.name);
+  const shown = shownFor(runtime, call.name);
   if (shown === undefined) return null;
 
   const modifiers = shown.labels;
-  const docContents = await fetchDocsContents(operandCall.name);
+  const docContents = await fetchDocsContents(call.name);
 
   // The active parameter is the modifier the cursor stands on or after:
   // one per word that ends before it.
-  const activeParameter = operandCall.args.filter(arg => arg.location.end.offset < offset).length;
+  const activeParameter = call.args.filter(arg => arg.location.end.offset < offset).length;
 
   return {
-    label: [operandCall.name, ...modifiers].join(' '),
+    label: [call.name, ...modifiers].join(' '),
     documentation: tidyProse(docContents[0] ?? ''),
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter

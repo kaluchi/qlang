@@ -24,7 +24,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, bareNameReach, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, vocabularyWords
+  addressesOf, answerOf, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, partsOfName, readsParts, residencesOf, segmentIndex, selectorOf, vocabularyWords
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -311,11 +311,11 @@ export async function mintTaggedInstance(tagName, payload, state) {
 // A label declared by its page lays its tag over a payload [D166]: the
 // `construct` declared under it builds the payload first when there is
 // one, a value of the label's own kind, as the constructor of a kind of
-// the core answers, staying as it is, and every law declared under it
-// runs on the value under the label, a broken one refusing it under the
-// law's name [D169].
+// the core answers, staying as it is, and every invariant declared under
+// it runs on the value under the label, a broken one refusing it under
+// the invariant's name [D169].
 async function underPage(tagName, payload, state) {
-  const constructRecord = nodeOf(state.env, `${tagName}/construct`);
+  const constructRecord = nodeOf(state.env, `${tagName}/${CONSTRUCT_NAME}`);
   let built = payload;
   if (constructRecord !== null && isMemberValue(bindingValueOf(constructRecord))) {
     built = await constructedBy(bindingValueOf(constructRecord), payload, state);
@@ -614,7 +614,7 @@ async function applyMember(record, lambdas, state) {
 // reaches `::any`; one that reaches another of the labels is the value it
 // reaches; one of the word's own label goes back under the tags the walk
 // passed, as the subject's kind; one label alone makes the value by its
-// constructor and laws; an answer of none of several labels is refused
+// constructor and invariants; an answer of none of several labels is refused
 // under the answer's address.
 async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   if (kinds.includes(ANY_KIND)) return answer;
@@ -679,9 +679,9 @@ function placesReadBy(parts) {
 // The args of a call, the values of its modifiers each computed against
 // the subject under the name's address, and its parts read from them:
 // args with more values than the parts have places are refused under the
-// name, args that break a law declared under the name under the law, a
-// part the args do not hold under the part, and a part that breaks a law
-// declared under it under the law [D169], [D173]. Answers the values of
+// name, args that break an invariant declared under the name under the
+// invariant, a part the args do not hold under the part, and a part that
+// breaks an invariant declared under it under the invariant [D169], [D173]. Answers the values of
 // the parts in their order and, for a word of the language, the scope of
 // its body, where each part is bound by its name and the args as `args`;
 // a host's word reads the values alone.
@@ -718,10 +718,10 @@ async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
 }
 
 // A value the call computed that answered an error where a part that
-// asks for code reads, by a law `is` of a quote or, for the part that
-// reads the args whole, `every ~(is …)` of one: the step ran on the
+// asks for code reads, by an invariant `is` of a quote or, for the part
+// that reads the args whole, `every ~(is …)` of one: the step ran on the
 // subject by mistake, `filter /active` for `filter ~(/active)`, and the
-// part's law refuses it with the error as its value, the part that reads
+// part's invariant refuses it with the error as its value, the part that reads
 // the args naming the place, from zero; anywhere else the error is the
 // answer [D67], [D167], [D169].
 function refusalOfComputedCode(parts, place, error, scope) {

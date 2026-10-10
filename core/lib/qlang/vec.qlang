@@ -1,7 +1,8 @@
 |~ What is declared under `::vec`: the refusal of its constructor, and
    the verbs of vectors, each with the parts of its args and its
-   answer; a quote reads as the vector of its steps. Each verb is a name with the parts of its args, read and held
-   to their laws before the primitive runs. ~|
+   answer; a quote reads as the vector of its steps. Each verb is a name
+   with the parts of its args, read and held to their invariants before
+   the primitive runs. ~|
 
 :vec/construct
   |~~ Reads a vector as the bare vector, and a set, a quote or a doc as the vector of its elements. ~~|

@@ -21,7 +21,7 @@ bindPrim('any/if', async (subject, condition, thenCode, elseCode) =>
 // ~(/b) ~("default")` reads the first value defined. An alternative
 // that is no quote answers itself, and a call of such alternatives
 // alone reads the subject first, `/timeout | coalesce 30` [D133]; the
-// law of the alternatives holds one at least.
+// invariant of the alternatives holds one at least.
 bindPrim('any/coalesce', async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
@@ -34,7 +34,7 @@ bindPrim('any/coalesce', async (subject, alternatives) => {
 });
 
 // The clauses alternate a predicate and its branch, a pair at least by
-// the law of the clauses, and a clause left over is the default.
+// the invariant of the clauses, and a clause left over is the default.
 bindPrim('any/cond', async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {

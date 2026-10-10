@@ -436,31 +436,37 @@ describe('documentSymbols', () => {
     ]);
   });
 
-  it('collects a binding of a computed body as a value symbol', () => {
+  it('shows a reader\'s ::builtin{} under a label as a value, a primitive it reaches none', async () => {
+    const src = ':Box |~~ B. ~~| | :Box/area ::builtin{}';
+    const { ast } = parseDocument(src, 'test.qlang');
+    expect(documentSymbols(ast, await langRuntime()).map(sym => sym.kind)).toEqual(['tag', 'value']);
+  });
+
+  it('collects a binding of a computed body as a value symbol', async () => {
     const src = '[1 2] | :n count';
     const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast);
+    const syms = documentSymbols(ast, await langRuntime());
     expect(syms).toHaveLength(1);
     expect(syms[0].kind).toBe('value');
   });
 
-  it('collects a freeze as a value symbol', () => {
+  it('collects a freeze as a value symbol', async () => {
     const src = '42 | :answer /';
     const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast);
+    const syms = documentSymbols(ast, await langRuntime());
     expect(syms).toHaveLength(1);
     expect(syms[0].name).toBe('answer');
     expect(syms[0].kind).toBe('value');
   });
 
-  it('returns empty for plain pipeline with no bindings', () => {
+  it('returns empty for plain pipeline with no bindings', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(ast)).toHaveLength(0);
+    expect(documentSymbols(ast, await langRuntime())).toHaveLength(0);
   });
 
-  it('returns empty for null ast', () => {
-    expect(documentSymbols(null)).toEqual([]);
+  it('returns empty for null ast', async () => {
+    expect(documentSymbols(null, await langRuntime())).toEqual([]);
   });
 });
 

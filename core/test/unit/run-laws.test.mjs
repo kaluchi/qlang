@@ -8,7 +8,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
-describe('runLaws reads a name as examples does', () => {
+describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
     const result = await evalQuery('::vec/count | runLaws * /ok | distinct');
     expect(isQSet(result)).toBe(true);

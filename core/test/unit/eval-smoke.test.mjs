@@ -156,7 +156,7 @@ describe('eval — BindStep declaration', () => {
   });
 });
 
-describe('eval — env operand', () => {
+describe('eval — env', () => {
   it('env returns a Map', async () => {
     const envResult = await evalQuery('env');
     expect(envResult).toBeInstanceOf(Map);
@@ -219,7 +219,7 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
     expect(await evalQuery('{:"foo" 1} | keys | has :foo')).toBe(true);
   });
 
-  it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
+  it('json emits arbitrary JSON object keys via quoted Map keys', async () => {
     const jsonOutput = await evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
     expect(jsonOutput).toContain('"foo bar"');
     expect(jsonOutput).toContain('"$ref"');
@@ -240,7 +240,7 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from an operand as a foreign error value', async () => {
+  it('wraps a plain JS Error from a word as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.

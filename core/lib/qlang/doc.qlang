@@ -48,7 +48,7 @@
   ~~|
   ::builtin{}
 
-:doc/segments/parts
+:doc/segments/proseAndQuotes
   |~~ The prose and the quotes of the doc. ~~|
   ::vec
 

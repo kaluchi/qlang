@@ -1,7 +1,7 @@
 // Binding declarations — BindStep (`:name body`), the freeze
 // `:name /` among them.
 // Every binding declaration parses through `evalBindStep` at the
-// AST level — there is no operand-call ceremony around it.
+// AST level, with no call around it.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

@@ -663,7 +663,7 @@ that prove a name stand under it, each a definition of `::law~(…)` that
 `runLaws` holds to answer true, its page the claim it proves [D123],
 [D124], [D174]; `laws` answers each as the pair of its page and its
 query, and `tutorial` a name's page and its laws, the pair a reader
-learns the name from [D176]:
+learns the name from [D176], [D177]:
 
 ```qlang
 > ::vec/take | tutorial | [(/0 | type) (/1 | keys | count | gt 0)]
@@ -867,8 +867,8 @@ construction rather than from being asked for.
 ### Errors named by their site
 
 A refusal is named by the address of what refused: a subject of
-another kind under the word, a part that breaks a law under the law,
-whose name is the refusal, and a primitive's refusal under the word
+another kind under the word, a part that breaks an invariant under the
+invariant, whose name is the refusal, and a primitive's refusal under the word
 that ran it, which lists it among its names. The facts an error carries
 are definitions under the label of the refusal and under `::error`, held
 in the order they are declared, the trail last, and a fact neither
@@ -1161,7 +1161,7 @@ values, and a step is a command, a name and its modifiers as words, in
 parentheses inside a modifier or a literal, so parentheses mean one
 thing, a pipeline as one word. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
-nothing but `apply` and a part whose law asks for a quote runs, and a
+nothing but `apply` and a part whose invariant asks for a quote runs, and a
 quote handed over sees the names of its author [D43]. There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a name under the
@@ -1404,10 +1404,9 @@ modifiers as one map whose keys it declares [D40]; the catalog's prose
 is reduced to what the facts do not say, every page telling what its
 name is for and the claims its laws prove [D110], [D124]; errors print
 as alerts; enrichment happens once per session; fields are documented
-by their records' tags and shared values by their own [D50]; a page
-holds prose with the links and snippets it names, the laws of its name
-standing under the name [D174], [D175]; the first page's sections are
-names under `::qlang` from which the first screen is assembled [D169];
+by their records' tags and shared values by their own [D50]; the first
+page's sections are names under `::qlang` from which the first screen
+is assembled [D169];
 and the first screen is written from the invariants of the language and held
 against probes its author never saw [D131], holding the weight it has
 until a pass on compactness can cut what a reader asks `manifest` for
@@ -1489,17 +1488,21 @@ and their cost.
 The examples of the first screen [D174], [D175], [D176]. The first page
 showed after a sentence the query that proves it, answering true; its
 laws left for definitions under its name, and its prose reads without
-them. A fresh reader pays for it. On set T, written by a clean author
-after the screens, sonnet with the command line solved every task on
-either page, in 7 to 10 calls over six runs with the examples in place
-and in 9 to 22 without them, and haiku blind solved 10 of 42 tasks with
-them and 4 without. The same examples below the prose, as `tutorial`
-answers them or listed plainly, or in place as a query and its answer,
-or under `::snippet`, did not reach the page with them in place over
-three runs each. The alternatives: the first page holds each example
-again as a bare quote in its prose, code the prose holds that is no law
-[D175], each held by a test to the query of a law of the page, which
-costs the text of a query written twice; the prose links to the laws it
+them. Set T, written by a clean author after the screens, holds the
+runs under `scripts/benchmark/sets/T/runs/`, which `node
+scripts/benchmark.mjs grade T` grades, and they read two ways. Sonnet
+with the command line solved every task on every screen, in 7 to 10
+calls over six runs with the examples in place and in 9 to 22 without
+them; the same examples below the prose, as `tutorial` answers them or
+listed plainly, or in place as a query and its answer, or under
+`::snippet`, took 7 to 24 calls over three runs each. Haiku blind
+solved 4 of 42 tasks with no examples and 10 to 12 with them in any of
+these forms, from 0 to 9 of 14 in one run. So a fresh reader pays for
+the examples' absence, and the form sonnet's calls single out is the
+query in place after its sentence. The alternatives: the first page
+holds each example again as a bare quote in its prose, code the prose
+holds that is no law [D175], each held by a test to the query of a law
+of its name, which costs the text of a query written twice; the prose links to the laws it
 shows and the first screen writes the code of each such link in its
 place, which costs a renderer of the screen and has not been measured;
 or the page keeps its prose alone, and a fresh reader pays the calls.
@@ -1827,3 +1830,4 @@ whole, a primitive the law of every count calls; or the test kept in
 [D174]: decisions/D174.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
+[D177]: decisions/D177.md

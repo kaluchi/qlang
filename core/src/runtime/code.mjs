@@ -13,7 +13,7 @@ import { codeOf } from '../eval.mjs';
 // source it prints as.
 bindStateReader('string/parse', (source, state) => {
   try {
-    return quoteOfSource(source, 'parse-operand');
+    return quoteOfSource(source, 'string/parse');
   } catch (parseErr) {
     return errorFromParse(parseErr, state.env);
   }

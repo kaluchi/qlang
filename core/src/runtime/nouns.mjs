@@ -47,23 +47,30 @@ export function isUnderLabel(env, name) {
   return labelName !== null && isLabel(env, labelName);
 }
 
-// Whether a record holds a name declared under a label that runs on its
-// values, a quote or the descriptor of a primitive [D164], the label's
-// `construct` apart, which builds them [D169]; a name under such a name
-// is a part of its args and resides nowhere.
-function residesOn(record, kindName, env) {
-  return isMemberValue(bindingValueOf(record)) && isLabel(env, kindName) && splitAddress(record.get('name').name)[1] !== CONSTRUCT_NAME;
+// declaresWord(address, runs, isLabelName) → whether a declaration at the
+// address whose value runs is a word: a name under a label, the label's
+// `construct` apart, which builds the label's values [D164], [D169]; a
+// name under such a name is a part of its args and resides nowhere. The
+// core asks it of the records of a scope, the language server of the
+// declarations of a document.
+export function declaresWord(address, runs, isLabelName) {
+  const [labelName, lastName] = splitAddress(address);
+  return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
 }
 
 export const CONSTRUCT_NAME = 'construct';
 
-// isWord(env, address) → whether the name at the address is a word, a
-// quote or a host's primitive under a label, the label's `construct`
-// apart; a word is the label of the args of a call of it [D169], [D173].
+// Whether a record holds a word, its value a quote or the descriptor of a
+// host's primitive, which run on the label's values.
+function residesOn(record, env) {
+  return declaresWord(record.get('name').name, isMemberValue(bindingValueOf(record)), labelName => isLabel(env, labelName));
+}
+
+// isWord(env, address) → whether the name at the address is a word; a
+// word is the label of the args of a call of it [D169], [D173].
 export function isWord(env, address) {
-  const [labelName] = splitAddress(address);
   const record = nodeOf(env, address);
-  return labelName !== null && record !== null && residesOn(record, labelName, env);
+  return record !== null && residesOn(record, env);
 }
 
 // A value a name under a label holds when it runs on the label's values.
@@ -134,7 +141,7 @@ function kindsNamedBy(value) {
 // The record of the verb of `verbName` residing on a kind, or null.
 function residenceOf(env, kindName, verbName) {
   const record = nodeOf(env, `${kindName}/${verbName}`);
-  return record !== null && residesOn(record, kindName, env) ? record : null;
+  return record !== null && residesOn(record, env) ? record : null;
 }
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
@@ -198,7 +205,7 @@ export function residencesOf(env, verbName) {
   for (const [name, record] of bindingsOf(env)) {
     const [kindName, lastName] = splitAddress(name);
     if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
-    if (residesOn(record, kindName, env)) residences.push([kindName, record]);
+    if (residesOn(record, env)) residences.push([kindName, record]);
   }
   return residences;
 }
@@ -253,7 +260,7 @@ export function verbsReaching(env, kindNames) {
   for (const kindName of [...kindNames, ANY_KIND_NAME]) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
-      if (!residesOn(record, kindName, env) || reached.has(name)) continue;
+      if (!residesOn(record, env) || reached.has(name)) continue;
       reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
     }
   }
@@ -386,7 +393,7 @@ export function verbNames(env) {
   const names = new Set();
   for (const [name, record] of bindingsOf(env)) {
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(record, nounName, env)) names.add(lastName);
+    if (nounName !== null && residesOn(record, env)) names.add(lastName);
   }
   return names;
 }
@@ -399,7 +406,7 @@ export function vocabularyWords(env) {
   for (const [name, entry] of env) {
     if (!isBinding(entry)) continue;
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(entry, nounName, env)) words.add(lastName);
+    if (nounName !== null && residesOn(entry, env)) words.add(lastName);
   }
   return words;
 }
@@ -412,8 +419,8 @@ function rootWordsOf(root) {
   if (words === undefined) {
     const rootScope = new Map([[ROOT_KEY, root]]);
     words = new Set();
-    for (const [nounName, names] of rootIndexOf(root)) {
-      for (const [lastName, record] of names) if (residesOn(record, nounName, rootScope)) words.add(lastName);
+    for (const names of rootIndexOf(root).values()) {
+      for (const [lastName, record] of names) if (residesOn(record, rootScope)) words.add(lastName);
     }
     ROOT_WORDS.set(root, words);
   }

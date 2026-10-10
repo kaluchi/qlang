@@ -1,7 +1,7 @@
 |~ What is declared under `::number`: the refusal of its
    constructor, and the names that run on a number. A name holds its
    page and its primitive, the parts of the args of its call are
-   declared under it, each with the law a part keeps, and the refusals
+   declared under it, each with the invariant a part keeps, and the refusals
    its primitive raises sit under it too. ~|
 
 :number/construct

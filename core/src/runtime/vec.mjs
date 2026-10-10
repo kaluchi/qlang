@@ -264,7 +264,7 @@ bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordE
 
 // ── slices and lookup ──────────────────────────────────────────
 
-// A count is a whole number by the law of its part [D172]; a negative
+// A count is a whole number by the invariant of its part [D172]; a negative
 // one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));

@@ -106,10 +106,6 @@
   |~~ The name, a word of the vocabulary. ~~|
   ::keyword
 
-:bind/NameTakenByVocabularyError/addresses
-  |~~ The addresses where the word lives. ~~|
-  ::set
-
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline
       that the pipe or the fail track joins share one env, and a

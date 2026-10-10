@@ -28,6 +28,18 @@
   |~~ An error raised without a trail starts its trail at the raise. ~~|
   ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail * /step | eq [~(raise)])
 
+:error/name
+  |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
+  #[::keyword ::tag]
+
+:error/addresses
+  |~~ The addresses where a word of that name lives, one for each kind that answers it. ~~|
+  ::set
+
+:error/nearest
+  |~~ The names nearest to it in spelling. ~~|
+  ::vec
+
 :error/index
   |~~ The place of the element refused, counted from zero. ~~|
   ::number
@@ -47,18 +59,6 @@
       of the trail holds.
   ~~|
   ::any
-
-:error/name
-  |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
-  #[::keyword ::tag]
-
-:error/addresses
-  |~~ The addresses where a word of that name lives, one for each kind that answers it. ~~|
-  ::set
-
-:error/nearest
-  |~~ The names nearest to it in spelling. ~~|
-  ::vec
 
 :error/trail
   |~~ The path of the error: each step it passed, from the one

@@ -1,36 +1,10 @@
-// REPL for the qlang CLI. Persistent session across cells —
-// a BindStep `:x 42` followed by `x | print | @out` works inside
-// one session.
-//
-// Built on `cli/src/line-editor.mjs`:
-//   * In a real terminal: raw-mode keystroke capture, every byte
-//     re-renders the current line through `highlightAnsi` so input
-//     paints live as the user types; bracketed-paste support means
-//     a multi-line JSON paste lands as ONE cell — the terminal-
-//     emitted `\x1b[200~ … \x1b[201~` wrappers gate the newlines
-//     so the editor submits the whole block atomically; cursor
-//     motion (Left/Right/Home/End/Ctrl+A/E)
-//     and Backspace/Delete-forward all work.
-//   * In a pipe / scripted test: line-buffered passthrough, no
-//     escapes, no raw mode — the same handler reads `'line'`
-//     events identically.
-//
-// Contract differences from the script-mode runner:
-//   * Each cell's success-track value auto-prints (print +
-//     ANSI), the way every interactive REPL surfaces results;
-//     script mode stays silent without `@out` by design.
-//   * `@in` resolves to the empty String — interactive stdin is
-//     consumed by the prompt itself, so reading "stdin" from
-//     inside a cell would deadlock against the line editor.
-//   * `@out` / `@err` / `@tap` keep their normal contracts; their
-//     side-effects appear before the auto-printed result line.
-//
-// A query given after `-i` runs as the first cell, echoed after the
-// prompt, before the REPL waits for the next [D120].
-//
-// Meta commands (single dot prefix, exact match):
-//   .help    list meta commands
-//   .exit    close the REPL (Ctrl+D on an empty line works too)
+// The REPL: one session across its cells, each line a cell whose answer
+// prints, painted, after what its `@out`, `@err` and `@tap` wrote; in a
+// terminal the line paints as it is typed and a paste of several lines is
+// one cell, through the line editor; `@in` reads the empty string, since
+// the prompt holds standard input; a query given after `-i` runs as the
+// first cell [D120]; `.help` lists the commands of the REPL, and `.exit`
+// or Ctrl+D on an empty line closes it.
 
 import { createSession } from '@kaluchi/qlang-core/session';
 import {
@@ -83,12 +57,8 @@ session.
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null } = {}) {
   const builtinNames = verbNames(await langRuntime());
 
-  // In raw-mode TTY the terminal does not translate `\n` into CRLF
-  // — a bare LF moves the cursor down without resetting the
-  // column, leaving subsequent output stranded mid-line. Wrap the
-  // writers so every `\n` we emit becomes `\r\n` in the
-  // interactive case; in non-TTY (pipe / scripted test) the
-  // writers stay verbatim so byte-exact assertions still pass.
+  // A terminal in raw mode moves the cursor down at `\n` without
+  // returning it, so the writers of a terminal write `\r\n`.
   const isInteractiveTty = stdinStream.isTTY === true;
   const writeOutput = isInteractiveTty
     ? (text) => stdoutWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
@@ -111,12 +81,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
     columns: () => (stdinStream.columns || process.stdout.columns || 80)
   });
 
-  // The editor fires 'line' synchronously per submission, but the
-  // handler awaits evalCell. Serialise through one in-flight
-  // Promise so order is deterministic and 'close' waits for the
-  // queue to drain — otherwise piped multi-line input would race
-  // and the runRepl Promise could resolve before earlier evals
-  // finished writing their output.
+  // The cells run one after another, and the REPL closes once the last
+  // has written.
   return new Promise((resolve) => {
     let lineQueue = Promise.resolve();
 
@@ -163,11 +129,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // the caller asked for, what does not fit given way to markers that read
 // it [D120], [D184].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
-  // Parse failures and runtime fail-track errors both surface as
-  // `isErrorValue(cellEntry.result)` — session.evalCell lifts
-  // ParseError through `errorFromParse` so the same structured
-  // `::Tag!{…}` print path covers both, the path of the error in its
-  // `:trail` [D85].
+  // A query that does not parse answers its error as a value, so it
+  // prints as every failure does, on stderr [D85].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
   const shown = elideAnswer(cellEntry.result, budget);
   sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');

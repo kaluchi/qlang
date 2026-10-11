@@ -575,6 +575,48 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
+  it('takes every bracket marker out of a gathered paste [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_END, 'r\r\ns' + BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['p\nqr\ns']);
+  });
+
+  it('reads a key spelled by an escape after the Escape key [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'abc', ESC, ESC + '[D', 'X', SUBMIT);
+    expect(capture.lines).toEqual(['abXc']);
+  });
+
+  it('reads a bracketed paste after the Escape key [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, ESC, BRACKETED_PASTE_BEGIN + 'one\r\ntwo' + BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo']);
+  });
+
+  it('reads text whose one line feed ends it key by key [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'abc' + NEWLINE, 'd', SUBMIT);
+    expect(capture.lines).toEqual(['abc\nd']);
+  });
+
+  it('reads a character beyond the basic plane typed alone as one key, Alt with it doing nothing [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, ESC, '\u{1F600}', 'x', SUBMIT);
+    expect(capture.lines).toEqual(['x']);
+  });
+
+  it('drops an escape before a character beyond the basic plane, the keys after it typed [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, ESC + '\u{1F600}', '1', '2', SUBMIT);
+    expect(capture.lines).toEqual(['12']);
+  });
+
   it('reads an escape sequence split after its escape as one key [D204]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

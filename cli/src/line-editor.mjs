@@ -345,9 +345,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       submitCurrentLine();
       return;
     }
-    if (pendingEscape.length === 2 && pendingEscape[1] !== '[') {
-      // ESC before anything but `[` drops the sequence, so a pending
-      // escape past this point begins with `ESC[`.
+    if (pendingEscape[1] !== '[') {
+      // ESC before any character but `[`, Alt held with a key, drops the
+      // sequence, so a pending escape past this point begins with `ESC[`.
       pendingEscape = '';
       return;
     }
@@ -464,10 +464,12 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     const chunkText = utf8Decoder.write(chunk);
     if (chunkText.length === 0) return;
 
-    // A chunk of one character or one that begins with an escape is keys,
-    // Enter, a carriage return handed over alone, and a bracketed paste,
-    // read up to its end marker, among them; any other chunk is text.
-    const keys = chunkText.length === 1 || chunkText[0] === ESC;
+    // A chunk of one character, a key typed alone, or one that begins with
+    // an escape is keys, Enter, a carriage return handed over alone, and a
+    // bracketed paste whose begin marker opens a chunk, read up to its end
+    // marker, among them; any other chunk is text.
+    const typedAlone = [...chunkText].length === 1;
+    const keys = typedAlone || chunkText[0] === ESC;
 
     // Text joins the gathering, and keys end it before they are read.
     if (pasteAccumBuffer.length > 0) {
@@ -480,10 +482,10 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       flushPasteAccumulator();
     }
 
-    // An escape pending alone before text that does not begin with `[` is
-    // the Escape key, which does nothing, and before `[` it opens a
-    // sequence split after its escape.
-    if (pendingEscape === ESC && !keys && chunkText[0] !== '[') pendingEscape = '';
+    // An escape pending alone before a chunk of several characters that
+    // does not begin with `[` is the Escape key, which does nothing, and
+    // before `[` it opens a sequence split after its escape.
+    if (pendingEscape === ESC && !typedAlone && chunkText[0] !== '[') pendingEscape = '';
 
     // Text whose first line feed is not its last character starts the
     // gathering, unless a bracketed paste or an escape sequence is under
@@ -513,8 +515,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     redrawCurrentLine();
   }
 
+  // A gathered paste lands with every bracket marker it holds taken out.
   function stripPasteMarkers(text) {
-    return text.replace(BRACKETED_PASTE_BEGIN, '').replace(BRACKETED_PASTE_END, '');
+    return text.replaceAll(BRACKETED_PASTE_BEGIN, '').replaceAll(BRACKETED_PASTE_END, '');
   }
 
   emitter.start = function start() {

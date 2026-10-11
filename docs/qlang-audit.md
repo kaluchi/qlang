@@ -1741,6 +1741,14 @@ stands, which costs a name on a noun for every helper.
 
 The boot of the root, and a lazy one. The command line boots the whole
 root in each process, its sources parsed and their declarations run.
+On 12 October 2026, on the maintainer's machine, a run of `qlang '1'`
+took 0.74 to 0.84 s, five runs each its own process: node's own start
+0.08 s, the modules of the core 0.06 s, the boot of the root,
+`langRuntime`, 0.63 s, and the session of the command line with the
+query 0.02 s; within the boot the parse of the sources, half a million
+characters, took 0.26 to 0.31 s and the run of their declarations the
+rest. Every call a model makes pays it, a run of the benchmark a dozen
+times.
 The maintainer asked whether a lazy one pays: «потом уже переходи к
 ленивой загрузке.. потому как непонятно как это скажется на
 производительности и остальном.. или смысла нет там вообще.. т.к. есть

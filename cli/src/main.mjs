@@ -1,25 +1,8 @@
-// Top-level CLI orchestrator — reads a process-argv slice plus the
-// stdin / stdout / stderr stream trio, dispatches on the parsed
-// cliInvocation, and returns the exit code. bin.mjs is the
-// single-line bootstrap that wires the Node runtime and forwards
-// the resolved exit code to `process.exit`.
-//
-// Script mode (non-REPL) acts as a filter:
-//   1. Read piped stdin to a String.
-//   2. Resolve the inputFormat (auto / json / raw) into a concrete
-//      initial pipeValue and a resolvedFormat label.
-//   3. Bind the words of the streams, of table and of parsing, evaluate the query with
-//      the initial pipeValue seeded via session.evalCell.
-//   4. If the query wrote to stdout via `@out`, stop — user is in
-//      control. Otherwise encode the success-track value back into
-//      the resolvedFormat (JSON in → JSON out, raw in → raw out).
-//
-// Streams cross the boundary because the REPL needs an actual
-// Readable for raw-mode keystroke capture; the script-mode branch
-// derives its writers and the stdin text from the same stream
-// trio. The orchestrator stays free of direct `process.*`
-// references, keeping the entire flow unit-testable without
-// spawning a subprocess.
+// main(argv, stdin, stdout, stderr, env) → the exit code of the command
+// line: the help, the version, the REPL over the streams, or a query run
+// on what standard input lifts to, its answer written in the format of
+// the input unless the query wrote to stdout by `@out`; the streams are
+// handed in, so a test runs it without a process.
 
 import { existsSync } from 'node:fs';
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
@@ -29,20 +12,9 @@ import { runRepl } from './repl.mjs';
 import { readStdinToString, memoiseStdinReader } from './io-stdin.mjs';
 import { liftStdinToPipeValue } from './script-mode.mjs';
 
-// Resolve the user-facing `--color={auto,always,never}` argument
-// plus the `NO_COLOR` / `FORCE_COLOR` env vars plus the actual
-// `stdout.isTTY` flag into a single boolean: paint or not.
-//
-// Precedence — explicit > environment > terminal-detection:
-//   --color=always         → true
-//   --color=never          → false
-//   FORCE_COLOR set        → true     (only if --color=auto)
-//   NO_COLOR set           → false    (only if --color=auto)
-//   stdout is a TTY        → true     (auto, default)
-//   stdout is piped / file → false    (auto, default)
-//
-// The explicit flag wins over both env vars because the user typed
-// it for this invocation; env vars are the shell default.
+// Whether the answer is painted: as `--color` says, and under `auto` as
+// `FORCE_COLOR`, then `NO_COLOR` say, and otherwise where stdout is a
+// terminal.
 export function resolveShouldColorize(colorMode, stdoutStream, env) {
   if (colorMode === 'always') return true;
   if (colorMode === 'never')  return false;
@@ -51,9 +23,8 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
   return Boolean(stdoutStream.isTTY);
 }
 
-// A codec refusal carries `:path` — the keys and indices walked to
-// reach the refused scalar. Rendering it as a projection chain
-// points the reader straight at the slot in their document.
+// The path to the number a document holds past the doubles, written as
+// the projection that reads it.
 function slotSuffixOf(codecError) {
   const path = codecError.facts.path;
   return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
@@ -118,10 +89,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 1;
   }
 
-  // Memoised reader feeds the `@in` word if the user's query
-  // explicitly reaches for stdin. The stdin bytes are already in
-  // hand as `stdinText`; returning them immediately avoids a
-  // second pass over the stream.
+  // `@in` reads the text standard input already gave.
   const stdinReader = memoiseStdinReader(() => Promise.resolve(stdinText));
 
   let didExplicitStdoutEffect = false;

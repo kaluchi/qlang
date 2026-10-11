@@ -204,17 +204,25 @@ async function evalMapLit(node, state) {
   return withPipeValue(state, mapResult);
 }
 
-// The tag of an error literal is the one written before its bang,
-// `::Foo!{…}` [D86], else the kind of errors [D64]; every entry is a
-// fact, `:kind` among them [D190].
+// An error literal raises its facts under the kind of errors [D64], and
+// one written under a tag, `::Foo!{…}`, is `{…} | tag ::Foo | raise`
+// [D86]: the facts go under the tag through its label, a refusal of the
+// label answering for the literal, and the error takes the tag its
+// content shows; every entry is a fact, `:kind` among them [D190].
 async function evalErrorLit(node, state) {
   const errorDescriptor = new Map();
   for (const entry of node.entries) errorDescriptor.set(entry.key.name, await wordAnswer(entry.value, state));
-  const tag = node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag);
+  if (node.tag !== null) {
+    const content = await mintTaggedInstance(node.tag, errorDescriptor, state);
+    if (isErrorValue(content)) return withPipeValue(state, content);
+    return withPipeValue(state, await callMemberOn(nodeOf(state.env, RAISE_ADDRESS), content, state));
+  }
   // A literal that writes its `:trail` resumes that path [D85].
-  const minted = makeErrorValue(tag, errorDescriptor, { location: node.location });
+  const minted = makeErrorValue(ERROR_TAG, errorDescriptor, { location: node.location });
   return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
 }
+
+const RAISE_ADDRESS = 'map/raise';
 
 // The value a word of a literal answers, forked against the subject:
 // an error the word raised passes a stop at the word, and any other

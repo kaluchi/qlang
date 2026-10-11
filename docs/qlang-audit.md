@@ -1732,26 +1732,6 @@ it, and the verb `trail` with it, `~(/trail)`, unless the verb answers
 printing as its source was written, at the price of the line of the
 fifth milestone on `:trail`.
 
-An error literal under the tag of a kind [D86], [D97]. `!|` opens a
-raised error under its own tag laid over its facts as they are, so an
-error literal written under the tag of a kind, `::number!{:a 1}`, opens
-to a value the kind's constructor never made, which the command line
-cannot print:
-
-```qlang
-> ::number!{:a 1} !| type
-::number
-> ::number!{:a 1} !| keys
-#[:a :trail]
-```
-
-The alternatives are the literal refusing the tag of a kind, which costs
-a check at every error literal and takes the names of the kinds from
-the tags a refusal may carry; the opening running the kind's
-constructor over the facts, which refuses them inside the fail track;
-and the opening laying `::error` alone under such a tag, which loses the
-tag the literal wrote.
-
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed

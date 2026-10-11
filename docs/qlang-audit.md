@@ -1768,6 +1768,29 @@ the reader, a value named `match` refused once the word is there
 or the patterns left to a host, which leaves the readers of the
 command line without them.
 
+A value named by a word of the vocabulary [D166]. A bare name a reader
+declares for a value takes no word of the vocabulary, the name of a
+verb or of a name under a label, so a step never meets the reader's
+value where the subject's word was meant:
+
+```qlang
+> [1 2] | :first / | first !| type
+::bind/NameTakenByVocabularyError
+```
+
+Both outside audits dispute it, and the maintainer shares the concern
+and leaves it for later: `first`, `count`, `keys`, `type` and
+`doc` are names no reader may give a value, and every word the core or
+a host adds breaks the queries that named a value by it. The
+alternatives: the ban as it stands; the reader's name over the word, as
+a scope shadows in every other language, which lets a value named
+`count` answer where `count` was meant, silently; a step refused where
+both meet, the reader's value and a word that serves the subject, its
+refusal naming both, so a name is free until it is called on a subject
+its word serves and a new word breaks only the queries that call it so;
+or a reader's value read by a form of its own, a sigil before its name,
+which costs a second spelling of every name a query reads.
+
 The wholeness of a number. A count of `take` is a whole number by the
 law `eq (round)` [D172], and the digits of `round` stay tested by its
 primitive, since the same law on them would call `round` on its own

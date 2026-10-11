@@ -1,10 +1,9 @@
 |~ What is declared under `::quote`, the kind of code held as a value:
-   its constructor and its refusals, the refusal of text read as code and
-   the facts it carries, and the words that read a quote, each word told
-   in one order: the word and its page, its answer, its parts, its
-   refusals, its laws. A quote is also the vector of its steps, so the
-   words of vectors read it as one, and a quote under a tag, a link or a
-   snippet of a page, reads them through its shape. ~|
+   its constructor and its refusals, the refusal of text read as code
+   and the facts it carries, and the words that read a quote. A quote is
+   also the vector of its steps, so the words of vectors read it as one,
+   and a quote under a tag, a link or a snippet of a page, reads them
+   through its shape. ~|
 
 :quote/construct
   |~~ The quote of a vector whose every element is a step. ~~|
@@ -40,10 +39,6 @@
       ::link~(::quote | doc)
   ~~|
 
-:quote/ParseError/refusesASourceCutShort
-  |~~ A source cut short after a pipe is refused. ~~|
-  ::law~("42 |" | parse !| type | eq ::quote/ParseError)
-
 :quote/ParseError/source
   |~~ The line of the text where the reading stopped. ~~|
   ::string
@@ -71,6 +66,10 @@
 :quote/ParseError/uri
   |~~ The source the text came from. ~~|
   ::string
+
+:quote/ParseError/refusesASourceCutShort
+  |~~ A source cut short after a pipe is refused. ~~|
+  ::law~("42 |" | parse !| type | eq ::quote/ParseError)
 
 :quote/parse
   |~~ Answers the source of the quote, a string, `~(add 1 | mul 2) |

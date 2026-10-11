@@ -23,7 +23,7 @@ A finding not yet settled says open.
 12. Law names that do not say what their queries prove. Open.
 13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
 14. One fact told in different words across the three kinds. Open.
-15. A refusal with a page under one kind and none under the others. Open.
+15. A refusal with a page under one kind and none under the others. Answered by faf4c8cd for `at` with no index or key, of vectors, maps and null; the rest stays as the rule refusals of finding ten of the third review stay.
 16. Claims of the pages with no law. Open.
 17. `minus` and `inter` over a vector take sets too, which their pages do not say. Answered by 621a5b54: their pages name a map, a set or a vector of keys, and union's page says sets or maps of any count.
 18. The fold of a set of sets keeps the tag, the others do not. Set aside by D188: the rule of the answer's label decides, and a set's fold answers a set, under the subject's tags as every word whose answer names its own label.
@@ -44,7 +44,7 @@ A finding not yet settled says open.
 8. Pages of words that repeat the repair their refusals' pages give. Open.
 9. Refusal pages with no law under their address. Answered by cf359631 and e35d202c: every refusal of a part has its law; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
 10. Refusal pages that do not say how to repair the call. Answered by cf359631 and e35d202c: every refusal page shows the call that works.
-11. Pages that do not say what a call with no value or with more values does. Open.
+11. Pages that do not say what a call with no value or with more values does. Answered by faf4c8cd for the comparisons of numbers and strings, whose parts show their call; the other words, whose refusal by rule names the part a call lacks, stay as they are.
 12. Claims with no law under their name. Open.
 13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Open.
 14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
@@ -78,7 +78,7 @@ review; findings 5 and 6 still stand for the laws declared under
 7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Answered by 64908015: it reads the combinator from the parse of the source with a step at the cursor.
 8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
-10. Rule refusals with no page and no repair. Open.
+10. Rule refusals with no page and no repair. Answered by faf4c8cd where a repair helps: the compared value of every comparison shows its call on its part's page, which `!| explain` reads for a call with no value, and `at`, `within`, `not` and the streams page their refusal by rule with a law; the other refusals by rule stay without a page, their address naming what the call lacks.
 11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
 12. The sister project still writes `*`. Awaits the maintainer's word.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.

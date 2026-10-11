@@ -1,7 +1,5 @@
 |~ What is declared under `::string`: its constructor and the refusal of
-   a payload of another kind, and the words that run on a string, each
-   told in one order: the word and its page, its answer, its parts, its
-   refusals, its laws. ~|
+   a payload of another kind, and the words that run on a string. ~|
 
 :string/construct
   |~~ Reads a string as itself. ~~|
@@ -239,7 +237,7 @@
 
 :string/count/countsACombiningAccentApart
   |~~ A letter with a combining accent counts two. ~~|
-  ::law~("é" | count | eq 2)
+  ::law~("e\u0301" | count | eq 2)
 
 :string/count/ArgsBeyondPartsError/refusesAPiece
   |~~ A piece given to `count` is refused under the word. ~~|
@@ -650,7 +648,7 @@
 
 :string/trim/dropsTheNoBreakSpace
   |~~ The no-break space at the ends goes too. ~~|
-  ::law~(" a " | trim | eq "a")
+  ::law~("\u00a0a\u00a0" | trim | eq "a")
 
 :string/trim/keepsTheWhitespaceInside
   |~~ The whitespace inside the string stays. ~~|

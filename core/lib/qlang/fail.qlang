@@ -1,6 +1,5 @@
 |~ What is declared under `::fail`, the step `!|` runs on an error
-   alone: its constructor and its refusals, each told in one order: the
-   refusal and its page, which repairs the step, its facts, its laws. ~|
+   alone: its constructor and its refusals. ~|
 
 :fail/construct
   |~~ The step `!| step` from the quote of its step. ~~|

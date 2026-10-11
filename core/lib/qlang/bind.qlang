@@ -1,7 +1,5 @@
 |~ What is declared under `::bind`, the step that declares a name: its
-   constructor and the refusals of a declaration, each told in one
-   order: the refusal and its page, which repairs the declaration, its
-   facts, its laws. ~|
+   constructor and the refusals of a declaration. ~|
 
 :bind/construct
   |~~ The step of a declaration from its record, `:name`, `:docs` and

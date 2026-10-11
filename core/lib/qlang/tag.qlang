@@ -1,7 +1,6 @@
 |~ What is declared under `::tag`, the kind of a tag name: its
    constructor and its refusal, the comparisons of tag names, and
-   `manifest`, each word told in one order: the word and its page, its
-   answer, its parts, its refusals, its laws. ~|
+   `manifest`. ~|
 
 :tag/construct
   |~~ Reads a tag name as itself. ~~|
@@ -11,6 +10,10 @@
   |~~ `::tag` reads its payload as the tag name it is; a value's own
       tag is read by `type`.
   ~~|
+
+:tag/construct/readsATagNameAsItself
+  |~~ `::tag` over a tag name is that name. ~~|
+  ::law~(::tag::Box | eq ::Box)
 
 :tag/PayloadNotTagError/refusesAKeyword
   |~~ A keyword payload is refused. ~~|

@@ -1,7 +1,6 @@
 |~ What is declared under `::keyword`: its constructor and its refusal,
    the comparisons of keywords, and `keyword`, which answers the name of
-   a keyword as a string, each word told in one order: the word and its
-   page, its answer, its parts, its refusals, its laws. ~|
+   a keyword as a string. ~|
 
 :keyword/construct
   |~~ Reads a keyword as itself. ~~|

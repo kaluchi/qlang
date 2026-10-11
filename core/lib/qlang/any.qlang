@@ -1,9 +1,14 @@
 |~ What is declared under `::any`, the kind beneath every kind: the
-   words every value answers, each told in one order: the word and its
-   page, its answer, its parts, its refusals, its laws. A word several
-   kinds answer is declared under each of them, and a call whose subject
-   no kind of its walk answers is refused with `:addresses`, where the
-   word lives. ~|
+   refusal of a host's value JSON has no form for, and the words every
+   value answers. ~|
+
+:any/JsonValueNotEncodableError
+  |~~ A defect of a host, which no query meets: a value the host put in
+      the scope that is of none of the kinds of qlang has no form in
+      JSON. `json` writes such a value that runs as `<host-fn name>`,
+      and any other is thrown to the host, past the fail track, out of
+      reach of `!|`.
+  ~~|
 
 :any/desc
   |~~ Answers the subject under `::desc`, `5 | desc` answering
@@ -286,13 +291,6 @@
 :any/json/answer
   |~~ The JSON text of the subject. ~~|
   ::string
-
-:any/JsonValueNotEncodableError
-  |~~ JSON has no form for a value a host put in the scope that is of
-      none of the kinds of qlang: `json` writes such a value that runs as
-      `<host-fn name>` and refuses any other, so a query projects around
-      it, `/name`, before it writes JSON.
-  ~~|
 
 :any/json/ArgsBeyondPartsError
   |~~ `json` writes the whole subject on one line and takes no value, an
@@ -1362,8 +1360,9 @@
       as `doc` reads it, a word by its address among them, one
       `{:law :says :actual :ok :error}` per law in their order: `:law`
       its address, `:says` its page, the claim it proves, `:actual` what
-      its query answered, and `:ok` whether that is true, so a law that
-      answers false fails. A value runs the laws of its kind, and a name
+      its query answered, null where it answered an error, which `:error`
+      names by the print of its tag, and `:ok` whether the answer is
+      true, so a law that answers false or an error fails. A value runs the laws of its kind, and a name
       of the scope the laws declared under it. The anchor, a keyword
       after it, runs the laws of the member the name holds under it, a
       concept of the language among them. A name nothing declares is
@@ -1441,6 +1440,11 @@
 :any/runLaws/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
   ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
+
+:any/runLaws/failsALawThatAnswersAFailure
+  |~~ A law that answers an error fails, and `:error` names it. ~~|
+  ::law~(:any/k ~(5) | :any/k/bad |~~ b ~~| ::law~(add "x") | ::any/k | runLaws | first
+    | [(/ok) (/actual) (/error)] | eq [false null "::number/add/SubjectNotNumberError"])
 
 :any/tutorial
   |~~ Answers the page of the name the subject reads and its laws, the

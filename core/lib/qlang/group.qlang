@@ -1,7 +1,5 @@
-|~ What is declared under `::group`, the steps in parentheses run on
-   the value in the pipe: its constructor and its refusals, each told in
-   one order: the refusal and its page, which repairs the step, its
-   facts, its laws. ~|
+|~ What is declared under `::group`, the steps in parentheses run on the
+   value in the pipe: its constructor and its refusals. ~|
 
 :group/construct
   |~~ The step `(pipeline)` from the quote of its pipeline. ~~|

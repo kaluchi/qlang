@@ -237,6 +237,7 @@
       while a name written in steps is a quote.
       A descriptor is data and runs nothing by itself: a bare name bound
       to one reads it.
+      ::link~(::qlang/hosts | doc)
   ~~|
 
 :builtin/isAValueOfItsOwn
@@ -268,21 +269,9 @@
   |~~ A tag name is a value of `::tag`. ~~|
   ::law~(::Box | type | eq ::tag)
 
-:tag/keepsTheInvariantsOfItsLabel
-  |~~ A value put under a label keeps the label's invariants. ~~|
-  ::law~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(-3) !| type | eq ::Pos/NotPositiveError)
-
-:tag/buildsByItsConstructor
-  |~~ `::tag` over a tag name is that name. ~~|
-  ::law~(::tag::Box | eq ::Box)
-
 :tag/namesAPage
   |~~ The tag of a kind names its page. ~~|
   ::law~(5 | type | doc | type | eq ::doc)
-
-:tag/buildsThroughConstruct
-  |~~ A label's `construct` builds the payload. ~~|
-  ::law~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
 
 :tag/namesNothingUndeclared
   |~~ A tag no declaration answers names no record. ~~|
@@ -646,10 +635,6 @@
       ::link~(::qlang/hosts | doc)
   ~~|
 
-:elision/hasAPage
-  |~~ The kind has a page. ~~|
-  ::law~(::elision | doc | type | eq ::doc)
-
 :elision/measuresWhatItLeftOut
   |~~ An elision holds the size of what it left out. ~~|
   ::law~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
@@ -723,15 +708,13 @@
   |~~ A snippet opens to what it shows. ~~|
   ::law~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)
 
-:snippet/showsInThePageOfVectors
-  |~~ The page of vectors shows a snippet. ~~|
-  ::law~(::vec | doc | snippets | count | gt 0)
-
 :law
   |~~ The kind of a law, a query that answers true, declared as a
       definition under the name whose behaviour it proves: the name says
       the claim, the page is its sentence, and `laws` answers the laws
       of a name, which `runLaws` runs.
+      ::link~(::any/laws | doc) ::link~(::any/runLaws | doc)
+      ::link~(::qlang/hypertext | doc)
   ~~|
 
 :law/provesItsClaim
@@ -745,6 +728,7 @@
       refusal of a value that breaks it, `:Small/TooLargeError ::holds~(lt
       10)`: the value is checked when it is built, read or answered, and
       refused under that name when the query answers false.
+      ::link~(::qlang/verbs | doc)
   ~~|
 
 :holds/refusesUnderItsName
@@ -936,7 +920,7 @@
       A step answers a new value and the old one stays as it was.
       Every value prints as a literal that reads back as itself.
   ~~|
-  #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set]
+  #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set ::desc ::tagged]
 
 :qlang/values/impliesTheKinds
   |~~ Each literal answers its kind. ~~|
@@ -1175,10 +1159,14 @@
       A word answers under the label its `answer` names.
       A word of a noun itself, whose `subject` names `::tag`, takes the
       tag name as its subject, so a noun that stands for a thing outside
-      the language is addressed bare, `::Jenkins | builds`, while a word of the noun's values
-      refuses the tag name.
+      the language is addressed bare, `::Jenkins | builds`, while a word of
+      the noun's values refuses the tag name.
+      A word is told as a story, in one order: the word and its page, its
+      answer, its parts, its refusals, its laws; and the refusal of a step
+      as its page, which repairs the step, its facts and its laws. `source`
+      reads the story of a name as it is written, `::vec/sort | source`.
   ~~|
-  #[::any]
+  #[::any ::holds]
 
 :qlang/verbs/findsTheVerbOfTheKind
   |~~ `sort` finds the verb of vectors. ~~|
@@ -1232,6 +1220,14 @@
   |~~ A word of the noun's values refuses the tag name. ~~|
   ::law~(:Desk |~~ A help desk. ~~| | :Desk/size ~(count) | ::Desk | size !| type | eq ::Desk/size/SubjectNotDeskError)
 
+:qlang/verbs/keepsTheInvariantsOfItsLabel
+  |~~ A value put under a label keeps the label's invariants. ~~|
+  ::law~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(-3) !| type | eq ::Pos/NotPositiveError)
+
+:qlang/verbs/buildsThroughConstruct
+  |~~ A label's `construct` builds the payload. ~~|
+  ::law~(:d |~~ A d. ~~| | :d/construct ~({:s /}) | ::d(10) | [type payload] | eq [::d {:s 10}])
+
 :qlang/errors
   |~~ Errors. A failure does not throw: a step that fails answers an
       error, a value that carries the facts of the failure, the path it
@@ -1241,7 +1237,7 @@
       values, the pipeline and verbs; the hypertext holds the pages the
       sites name.
       ::link~(::error | doc) ::link~(::fail | doc)
-      ::link~(::explanation | doc)
+      ::link~(::explanation | doc) ::link~(::qlang/code | doc)
 
       A failed step answers an error the tag of its site names.
       `|` passes an error by, and `map` answers the first an element
@@ -1333,7 +1329,7 @@
       ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hosts | doc)
   ~~|
-  #[::doc ::link ::snippet]
+  #[::doc ::link ::snippet ::law]
 
 :qlang/hypertext/opensTheLinksOfAPage
   |~~ The links of a page open in one query. ~~|
@@ -1349,7 +1345,8 @@
 
 :qlang/hosts
   |~~ Hosts. The language runs inside a host, a tool that embeds it and
-      brings verbs of its own; the command line is one. A value is whole
+      brings verbs of its own, each a name whose value is `::builtin{}`;
+      the command line is one. A value is whole
       in the language, and the host prints a value whole unless a
       reader asks for a budget, by `elide` in the query or by the host's
       flag, the command line's `--budget=N`: an answer whose print fits
@@ -1361,5 +1358,6 @@
       The command line reads JSON or text from stdin and writes
       its answer back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)
+      ::link~(::builtin | doc)
   ~~|
-  #[::elision]
+  #[::elision ::builtin]

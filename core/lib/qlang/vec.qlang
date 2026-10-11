@@ -1,11 +1,10 @@
 |~ What is declared under `::vec`: its constructor and the refusal of a
-   payload of another kind, and the words of vectors, each told in one
-   order: the word and its page, its answer, its parts, its refusals, its
-   laws. A word of vectors serves a vector under any tag, a quote and a
-   doc among them, and a set where the set has no word of its own; a
-   word whose answer names the vector answers under the tags of the
-   subject, and `map`, whose answer is any value, under none. Its parts
-   are read and held to their invariants before the word runs. ~|
+   payload of another kind, and the words of vectors. A word of vectors
+   serves a vector under any tag, a quote and a doc among them, and a
+   set where the set has no word of its own; a word whose answer names
+   the vector answers under the tags of the subject, and `map`, whose
+   answer is any value, under none. Its parts are read and held to their
+   invariants before the word runs. ~|
 
 :vec/construct
   |~~ Reads a vector as the bare vector, and a set, a quote or a doc as
@@ -399,7 +398,7 @@
   ::law~(:k 10 | [1 2] | map ~(mul k) | eq [10 20])
 
 :vec/map/answersTheFirstFailure
-  |~~ The first error answers the call, and the elements after it are not run. ~~|
+  |~~ The first error answers the call. ~~|
   ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
 
 :vec/map/answersUnderNoTag
@@ -877,7 +876,7 @@
   |~~ A number key files under the keyword of its text. ~~|
   ::law~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
 
-:vec/indexBy/filesAStringUnderItself
+:vec/indexBy/filesAStringUnderItsKeyword
   |~~ Without a key a string files under its keyword. ~~|
   ::law~(["a" "b"] | indexBy | eq {:a "a" :b "b"})
 
@@ -996,11 +995,11 @@
   |~~ A vector under a tag sorts under it. ~~|
   ::law~(::Rows[{:n 2} {:n 1}] | sort ~(/n) | eq ::Rows[{:n 1} {:n 2}])
 
-:vec/sort/refusesAKeyThatMissesItsField
+:vec/sort/answersTheErrorOfTheKey
   |~~ A key that misses its field answers the error of the read. ~~|
   ::law~([{:a 2} {:b 1}] | sort ~(/a) !| type | eq ::proj/KeyNotInMapError)
 
-:vec/sort/refusesAPlaceThatMissesItsField
+:vec/sort/answersTheErrorOfAPlace
   |~~ A place of a vector key that misses its field answers the error alike. ~~|
   ::law~([{:a 2} {:b 1}] | sort ~([/a]) !| type | eq ::proj/KeyNotInMapError)
 

@@ -1,7 +1,6 @@
 |~ What is declared under `::explanation`, the kind of what `explain`
    answers, the page `doc` reads for a value and the value itself: the
-   words that read it, each told in one order: the word and its page,
-   its answer, its parts, its refusals, its laws. ~|
+   words that read it. ~|
 
 :explanation/page
   |~~ Answers the page that explains what `explain` was asked of: of a

@@ -1,8 +1,7 @@
-|~ The command line: its topic, `::cli`, and the names it declares
-   under the kinds of their subjects, `table` under `::vec` and the names
-   of the streams under `::any`, each told in one order: the word and its
-   page, its answer, its parts, its refusals, its laws. Their primitives
-   are plain functions over the served subject and the parts. ~|
+|~ The command line: its topic, `::cli`, and the names it declares under
+   the kinds of their subjects, `table` under `::vec` and the names of
+   the streams under `::any`. Their primitives are plain functions over
+   the served subject and the parts. ~|
 
 :cli
   |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
@@ -19,15 +18,8 @@
       Its words are declared under the kinds of their subjects, a query
       calls them by their names, and the manifest of each kind lists
       them.
+      ::link~(::qlang/hosts | doc)
   ~~|
-
-:cli/declaresTable
-  |~~ The command line declares `table` under vectors. ~~|
-  ::law~(::vec | manifest | has ::vec/table)
-
-:cli/declaresTheStreams
-  |~~ The command line declares the streams under any value. ~~|
-  ::law~(::any | manifest | has ::any/@out)
 
 :cli/AnswerNotJsonError
   |~~ The input was JSON, so the answer is written as JSON, and a value
@@ -43,6 +35,14 @@
 :cli/AnswerNotJsonError/path
   |~~ The path to the value JSON has no form for. ~~|
   ::vec
+
+:cli/declaresTable
+  |~~ The command line declares `table` under vectors. ~~|
+  ::law~(::vec | manifest | has ::vec/table)
+
+:cli/declaresTheStreams
+  |~~ The command line declares the streams under any value. ~~|
+  ::law~(::any | manifest | has ::any/@out)
 
 :any/@in
   |~~ Answers the text stdin holds, read to its end whatever the subject,
@@ -201,6 +201,11 @@
   |~~ The rows drawn as text, a line each. ~~|
   ::string
 
+:vec/table/SubjectNotVecError
+  |~~ `table` draws a vector of maps; a single map goes in a vector
+      first, `{:name "alice"} | [/] | table`.
+  ~~|
+
 :vec/table/RowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`
       names the first that is not.
@@ -222,11 +227,15 @@
   |~~ A single map is drawn in a vector. ~~|
   ::law~({:name "alice"} | [/] | table | contains "alice")
 
+:vec/table/SubjectNotVecError/refusesAMap
+  |~~ A single map is refused under the word. ~~|
+  ::law~({:name "alice"} | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::map])
+
+:vec/table/SubjectNotVecError/refusesANumber
+  |~~ A number is no vector of rows. ~~|
+  ::law~(42 | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::number])
+
 :vec/table/RowNotMapError/refusesARowThatIsNoMap
   |~~ A row that is no map is refused at its index. ~~|
   ::law~([42 "hello"] | table !| [type /index /actualType]
     | eq [::vec/table/RowNotMapError 0 ::number])
-
-:vec/table/refusesANumber
-  |~~ A number is no vector of rows. ~~|
-  ::law~(42 | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::number])

@@ -1,7 +1,6 @@
-|~ What is declared under `::number`: its constructor and the refusals of
-   a payload of another kind and of an answer that leaves the doubles,
-   and the words that run on a number, each told in one order: the word
-   and its page, its answer, its parts, its refusals, its laws. ~|
+|~ What is declared under `::number`: its constructor and the refusals
+   of a payload of another kind and of an answer that leaves the
+   doubles, and the words that run on a number. ~|
 
 :number/construct
   |~~ Reads a number as itself, a finite double. ~~|

@@ -1,9 +1,8 @@
-|~ What is declared under `::builtin`, the descriptor of a primitive: its
-   constructor and its refusal, and the refusals of the kernel no reader
-   reaches by a query, the table of primitives, the tree the evaluator
-   does not know, the session, the printer and the sources of the root,
-   each told in one order: the refusal and its page, which says who
-   repairs it and how, its laws. ~|
+|~ What is declared under `::builtin`, the descriptor of a primitive:
+   its constructor and its refusal, and the refusals of the kernel no
+   reader reaches by a query, the table of primitives, the tree the
+   evaluator does not know, the session, the printer and the sources of
+   the root. ~|
 
 :builtin/construct
   |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|

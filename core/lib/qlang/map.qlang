@@ -1,10 +1,9 @@
 |~ What is declared under `::map`: its constructor and the refusals of a
-   payload it cannot read, and the words of maps, each told in one order:
-   the word and its page, its answer, its parts, its refusals, its laws.
-   A map's elements are its values, and its keys are the shape that
-   travels with them: a word whose answer names the map keeps the keys
-   of the entries it keeps and answers under the tags of the map, and
-   `map`, whose answer is any value, answers under none. ~|
+   payload it cannot read, and the words of maps. A map's elements are
+   its values, and its keys are the shape that travels with them: a word
+   whose answer names the map keeps the keys of the entries it keeps and
+   answers under the tags of the map, and `map`, whose answer is any
+   value, answers under none. ~|
 
 :map/construct
   |~~ Reads a map as the bare map beneath its tags, and a vector or a set
@@ -421,9 +420,8 @@
   ::law~({:a 1} | entries | map ~(/0) | eq [:a])
 
 :map/map/answersTheFirstFailure
-  |~~ The first error answers the call. ~~|
-  ::law~({:a 1 :b "x"} | map ~(add 1) !| [type /actualType]
-    | eq [::number/add/SubjectNotNumberError ::string])
+  |~~ The first error, in the order of the keys, answers the call. ~~|
+  ::law~({:a "x" :b "y"} | map ~(add 1) !| /trail/0/subject | eq "x")
 
 :map/map/answersUnderNoTag
   |~~ The answers stand under no tag of the subject. ~~|
@@ -753,10 +751,6 @@
   |~~ A count past the size drops every entry. ~~|
   ::law~({:a 1} | drop 5 | eq {})
 
-:map/drop/leavesAKeyByMinus
-  |~~ A key leaves by `minus`. ~~|
-  ::law~({:a 1 :b 2 :c 3} | minus #[:b] | eq {:a 1 :c 3})
-
 :map/drop/count/NotNumberError/refusesAString
   |~~ A count written as a string is refused. ~~|
   ::law~({:a 1} | drop "1" !| type | eq ::map/drop/count/NotNumberError)
@@ -1016,8 +1010,10 @@
       order of the entries, each key a keyword: the map with its keys as
       data, for a step that reads a key beside its value, as `[type
       payload]` reads a tagged value. `tag ::map` builds the map back, so
-      a test of a key is `entries | filter ~(/0 | ne :tmp) | tag ::map`.
-      It takes no value, and the empty map answers `[]`.
+      a test of a key is `entries | filter ~(/0 | ne :tmp) | tag ::map`,
+      and a key is spelled with its value by turning it to text first,
+      `map ~([(/0 | keyword) "@" /1] | join "")`. It takes no value, and
+      the empty map answers `[]`.
       ::link~(::map/keys | doc) ::link~(::map/construct | doc)
       ::link~(::tagged/payload | doc)
   ~~|

@@ -1,7 +1,6 @@
 |~ What is declared under `::construct`, the step that puts a value
    under a tag through the tag's constructor, `::T[…]`: its constructor
-   and the refusals of that step, each told in one order: the refusal
-   and its page, which repairs the step, its facts, its laws. ~|
+   and the refusals of that step. ~|
 
 :construct/construct
   |~~ The step of a constructor invocation from its record, `:tag` and

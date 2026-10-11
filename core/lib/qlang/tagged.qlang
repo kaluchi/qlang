@@ -1,7 +1,6 @@
-|~ What is declared under `::tagged`, the kind of every value under
-   a tag, which the walk of a tagged value reaches after its own tags: the
-   words of tagged values, each told in one order: the word and its page,
-   its answer, its parts, its refusals, its laws. ~|
+|~ What is declared under `::tagged`, the kind of every value under a
+   tag, which the walk of a tagged value reaches after its own tags: the
+   words of tagged values. ~|
 
 :tagged/payload
   |~~ Answers the value beneath the tag of the subject, `::Box[42] |

@@ -1,14 +1,12 @@
 |~ What is declared under `::set`: its constructor and the refusal of a
-   payload that is no vector, and the words that run on a set, each told
-   in one order: the word and its page, its answer, its parts, its
-   refusals, its laws. A set is the vector in the one order without
-   duplicates, and a vector to every word sets do not declare, `#["b"
-   "a"] | join ","` answering `"a,b"`. A word whose answer names the
-   set keeps the one order and answers under the tags of the subject; one
-   that imposes another order answers a vector, which `distinct` makes a
-   set again, and `map` answers the vector of the images under no tag. A value
-   of a kind no word of the name serves is refused by the call, which
-   names the kinds that do. ~|
+   payload that is no vector, and the words that run on a set. A set is
+   the vector in the one order without duplicates, and a vector to every
+   word sets do not declare, `#["b" "a"] | join ","` answering `"a,b"`.
+   A word whose answer names the set keeps the one order and answers
+   under the tags of the subject; one that imposes another order answers
+   a vector, which `distinct` makes a set again, and `map` answers the
+   vector of the images under no tag. A value of a kind no word of the
+   name serves is refused by the call, which names the kinds that do. ~|
 
 :set/construct
   |~~ The set of the elements of a vector, in the one order without
@@ -282,7 +280,7 @@
   |~~ Without a key the least element answers. ~~|
   ::law~(#[3 1 4] | min | eq 1)
 
-:set/min/readsTheKey
+:set/min/turnsTheKeyByDesc
   |~~ A descending key turns the least into the greatest. ~~|
   ::law~(#[3 1 4] | min ~(desc) | eq 4)
 
@@ -333,7 +331,7 @@
   |~~ Without a key the greatest element answers. ~~|
   ::law~(#[3 1 4] | max | eq 4)
 
-:set/max/readsTheKey
+:set/max/turnsTheKeyByDesc
   |~~ A descending key turns the greatest into the least. ~~|
   ::law~(#[3 1 4] | max ~(desc) | eq 1)
 
@@ -974,10 +972,6 @@
   |~~ A set is distinct already. ~~|
   ::law~(#[1 2 3] | distinct | eq #[1 2 3])
 
-:set/distinct/bringsTheSetBackAfterReverse
-  |~~ A reversed set is a set again after `distinct`. ~~|
-  ::law~(#[3 1 2] | reverse | distinct | eq #[1 2 3])
-
 :set/reverse
   |~~ Answers the vector of the elements from the greatest down,
       `#[:a :b :c] | reverse` answering `[:c :b :a]`, where a vector
@@ -999,6 +993,10 @@
 :set/reverse/reversesTheOneOrderNotTheVector
   |~~ A vector reverses its order as written, its set the one order. ~~|
   ::law~([3 1 2] | [reverse (distinct | reverse)] | eq [[2 1 3] [3 2 1]])
+
+:set/reverse/answersAVectorThatDistinctMakesASet
+  |~~ A reversed set is a set again after `distinct`. ~~|
+  ::law~(#[3 1 2] | reverse | distinct | eq #[1 2 3])
 
 :set/flat
   |~~ Answers the set of the elements with one level of nesting spliced
@@ -1031,7 +1029,7 @@
   |~~ A map among the elements stays whole. ~~|
   ::law~(#[{:a 1} [2]] | flat | eq #[2 {:a 1}])
 
-:set/flat/splicesOneLevel
+:set/flat/keepsADeeperVectorWhole
   |~~ A vector nested deeper stays whole. ~~|
   ::law~(#[[[1]] 2] | flat | eq #[2 [1]])
 
@@ -1083,8 +1081,8 @@
   ~~|
 
 :set/reduce/foldsInTheOneOrder
-  |~~ The fold adds the elements to the seed. ~~|
-  ::law~(#[1 2 3] | reduce 0 ~(add) | eq 6)
+  |~~ The fold meets the elements in the one order. ~~|
+  ::law~(#["b" "a"] | reduce "" ~(append) | eq "ab")
 
 :set/reduce/foldsByTheOneOrderNotAsWritten
   |~~ A vector folds as written, its set in the one order. ~~|

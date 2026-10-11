@@ -1,7 +1,6 @@
 |~ What is declared under `::boolean`: its constructor and its refusal,
    and the words that run on a boolean, the negation and the two that
-   join booleans, each told in one order: the word and its page, its
-   answer, its parts, its refusals, its laws. ~|
+   join booleans. ~|
 
 :boolean/construct
   |~~ Reads a boolean as itself. ~~|

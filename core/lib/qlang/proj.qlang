@@ -1,7 +1,5 @@
 |~ What is declared under `::proj`, the step that reads a part of a
-   value: its constructor and the refusals of a read that misses, each
-   told in one order: the refusal and its page, which repairs the read,
-   its facts, its laws. ~|
+   value: its constructor and the refusals of a read that misses. ~|
 
 :proj/construct
   |~~ The step of a projection from its record, `:path`, which reads

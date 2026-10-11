@@ -1,9 +1,7 @@
 |~ What is declared under `::call`, the step that calls a name: its
    constructor and the refusals of a call, a name that names nothing, a
-   kind that answers no verb of the name, a value given modifiers, a call
-   too deep and a failure of a host's implementation, each told in one
-   order: the refusal and its page, which repairs the call, its facts,
-   its laws. ~|
+   kind that answers no verb of the name, a value given modifiers, a
+   call too deep and a failure of a host's implementation. ~|
 
 :call/construct
   |~~ The step of a command from its record, `:name` and `:modifiers`,

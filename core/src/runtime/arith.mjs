@@ -26,7 +26,7 @@ bindPrim('number/floor', subject => Math.floor(subject));
 bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
 // The whole numbers from zero below a whole count [D194], a count no
-// longer than the longest vector of the host, a JavaScript array's.
+// longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 bindPrim('number/range', count => {
   if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });

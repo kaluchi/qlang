@@ -363,10 +363,10 @@
       `::binding`, with its page, its source, its value and the source
       it came from, so where a thing was declared is read as data. The
       scope of a step is what the steps before it wrote; a step inside
-      `(…)` or a quote a word runs writes a scope that closes with it. Under
-      every scope lies the root, which the host's sources declared as
-      cells before the first step of a reader, the language's first; a
-      query, a cell of a session and a source of the root are written
+      `(…)` or a quote a word runs writes a scope that closes with it.
+      Under every scope lies the root, which the host's sources declared
+      as cells before the first step of a reader, the language's first;
+      a query, a cell of a session and a source of the root are written
       alike. Rests on values and the pipeline; the verbs are names that
       run. ::link~(::binding | doc) ::link~(::bind | doc)
       ::link~(::qlang/verbs | doc)
@@ -482,8 +482,8 @@
       later takes a quote, `~name` or `~/path` the quote of one step, and
       a condition is a boolean.
       A kind is a label, a name declared by its page, whose invariants
-      every value put under it keeps, and whose name `construct`, when it has
-      one, builds the value from the payload.
+      every value put under it keeps, and whose name `construct`, when
+      it has one, builds the value from the payload.
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value.
       A word answers under the label its `answer` names.
@@ -638,24 +638,26 @@
       an absolute one, `::vec/sort`, and a verb passes from an address
       into one of its projections, as a path reaches a file: `doc` into
       its page, `binding` into its record, `source` into the code
-      written under it, and `runLaws` runs the laws under it. An address holds no one
-      entity but a set of values, and each passage reads one of them; the
-      address, the verb and what it reaches are all values, so the
-      pipeline goes on from a projection as from any value, and a tag
-      you declare with verbs on it adds projections of its own.
+      written under it, and `runLaws` runs the laws under it. An address
+      holds no one entity but a set of values, and each passage reads
+      one of them; the address, the verb and what it reaches are all
+      values, so the pipeline goes on from a projection as from any
+      value, and a tag you declare with verbs on it adds projections of
+      its own.
       A keyword after `doc` is an anchor within the page of its subject,
       `::qlang/pipeline | doc`, a vector of anchors a path, a set of
       anchors several pages at once. A page is a doc, prose that holds
       code: a quote under `::link` is a link to another page, and a
       quote under `::snippet` a query a reader runs to see what it
       shows, `open` running either. So a page leads on to the pages that
-      go deeper, and the pipeline moves through them as through any data:
-      `manifest` lists what lies under a noun, its verbs and refusals,
-      `links | map ~open` opens every page a page names in one query, and a
-      filter over pages by `content | contains` searches them. Nothing
-      is read that was not asked for, and a query names the shape of
-      what it reads. The laws that prove a name stand under it, which
-      `runLaws` holds to answer true. Rests on every concept before it.
+      go deeper, and the pipeline moves through them as through any
+      data: `manifest` lists what lies under a noun, its verbs and
+      refusals, `links | map ~open` opens every page a page names in one
+      query, and a filter over pages by `content | contains` searches
+      them. Nothing is read that was not asked for, and a query names
+      the shape of what it reads. The laws that prove a name stand under
+      it, which `runLaws` holds to answer true. Rests on every concept
+      before it.
       ::link~(::doc | doc) ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hosts | doc)
   ~~|
@@ -676,19 +678,20 @@
 :qlang/hosts
   |~~ Hosts. The language runs inside a host, a tool that embeds it and
       brings verbs of its own, each a name whose value is `::builtin{}`;
-      the command line is one. A value is whole
-      in the language, and the host prints a value whole unless a
-      reader asks for a budget, by `elide` in the query or by the host's
-      flag, the command line's `--budget=N`: an answer whose print fits
-      the budget stays whole, and what a budget left out is an
-      `::elision` marker, whose `:read` continues the query to the part.
+      the command line is one. A value is whole in the language, and the
+      host prints a value whole unless a reader asks for a budget, by
+      `elide` in the query or by the host's flag, the command line's
+      `--budget=N`: an answer whose print fits the budget stays whole,
+      and what a budget left out is an `::elision` marker, whose `:read`
+      continues the query to the part.
       A failure the host prints is an alert: its tag and its facts, the
       subject where it arose within an excerpt, and a marker for each
       subject it passed, the failure itself staying whole; the command
-      line writes below it the prose of its refusal's page, as `!| explain`
-      reads it, so the reader repairs the call where it failed.
-      The command line reads JSON or text from stdin and writes
-      its answer back in the same form. Rests on values and the hypertext.
+      line writes below it the prose of its refusal's page, as
+      `!| explain` reads it, so the reader repairs the call where it
+      failed.
+      The command line reads JSON or text from stdin and writes its
+      answer back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)
       ::link~(::builtin | doc)
   ~~|

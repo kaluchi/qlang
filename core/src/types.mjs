@@ -19,8 +19,8 @@ export function finiteNumberOrLift(numberValue) {
 
 export const NULL = null;
 
-// The keyword, the tag name, the doc, the error and the wrapper of a tag are objects branded on a hidden slot, so data never
-// forges one.
+// The keyword, the tag name, the error and the wrapper of a tag are
+// objects branded on a hidden slot, so data never forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {
@@ -375,4 +375,4 @@ export function typeKeyword(v) {
 
 // What the runtime finds where no value of the language stands: a
 // host's raw object.
-const UNKNOWN_KIND  = makeTagKeyword('unknown');
+const UNKNOWN_KIND = makeTagKeyword('unknown');

@@ -10,8 +10,8 @@
       string. Its literal is JSON's, a leading zero allowed, and its
       precision the double's own: a literal past the range is no number
       the parser reads, and an integer and a decimal are one kind,
-      rounded as a double rounds. Its words
-      add, subtract, multiply, divide, round and compare numbers.
+      rounded as a double rounds. Its words add, subtract, multiply,
+      divide, round and compare numbers.
       ::snippet~(::number | manifest) lists its words and refusals.
       ::link~(::qlang/values | doc)
   ~~|
@@ -61,13 +61,12 @@
   |~~ Answers the subject plus the number the call gives, `10 | add 3`.
       The subject is a number: a vector adds to each of its elements by
       `map`, `map ~(add 1)`, and sums them by `sum`; a string joins by
-      `append`;
-      and text that holds a number is read first by `parseJson`, `"5" |
-      parseJson | add 1`. The addend is computed against the subject, so
-      `5 | add (mul 2)` adds ten, and two fields of one record add by
-      `sumOf /x /y`. A number under a tag answers under the tag,
-      `::Width(2) | add 3` answering `::Width(5)`, and a sum past the
-      doubles is refused as no number.
+      `append`; and text that holds a number is read first by
+      `parseJson`, `"5" | parseJson | add 1`. The addend is computed
+      against the subject, so `5 | add (mul 2)` adds ten, and two fields
+      of one record add by `sumOf /x /y`. A number under a tag answers
+      under the tag, `::Width(2) | add 3` answering `::Width(5)`, and a
+      sum past the doubles is refused as no number.
       ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::builtin{}
@@ -85,10 +84,10 @@
   ::holds~(is ::number)
 
 :number/add/SubjectNotNumberError
-  |~~ `add` adds to a number: two fields of one record add by `sumOf /x
-      /y`, a vector adds to each element by `map`, `map ~(add 1)`, a string
-      joins by `append`, and text that holds a number is read first by
-      `parseJson`.
+  |~~ `add` adds to a number: two fields of one record add by
+      `sumOf /x /y`, a vector adds to each element by `map`,
+      `map ~(add 1)`, a string joins by `append`, and text that holds a
+      number is read first by `parseJson`.
   ~~|
 
 :number/add/ArgsBeyondPartsError
@@ -127,12 +126,12 @@
 
 :number/sub
   |~~ Answers the subject, the minuend, less the number the call gives,
-      `10 | sub 3`, which may fall below zero, `5 | sub 7` answering `-2`.
-      The subject is a number: a vector subtracts from each of its
-      elements by `map`, `map ~(sub 1)`, and text that holds a number is read
-      first by `parseJson`. The subtrahend is computed against the
-      subject, and two fields of one record subtract by `subOf /total
-      /paid`. A number under a tag answers under the tag.
+      `10 | sub 3`, which may fall below zero, `5 | sub 7` answering
+      `-2`. The subject is a number: a vector subtracts from each of its
+      elements by `map`, `map ~(sub 1)`, and text that holds a number is
+      read first by `parseJson`. The subtrahend is computed against the
+      subject, and two fields of one record subtract by
+      `subOf /total /paid`. A number under a tag answers under the tag.
       ::link~(::number/add | doc) ::link~(::any/subOf | doc)
   ~~|
   ::builtin{}
@@ -239,12 +238,13 @@
 :number/div
   |~~ Answers the subject, the dividend, divided by the number the call
       gives, a fraction where the division leaves one, `7 | div 2`
-      answering `3.5`. A divisor of zero is refused, so a divisor that may
-      be zero is tested first, `if (/count | eq 0) ~(0) ~(divOf /sum
-      /count)`. The subject is a number: a vector divides each of its
-      elements by `map`, `map ~(div 2)`. The divisor is computed against the
-      subject, and two fields of one record divide by `divOf /sum
-      /count`. A number under a tag answers under the tag.
+      answering `3.5`. A divisor of zero is refused, so a divisor that
+      may be zero is tested first,
+      `if (/count | eq 0) ~(0) ~(divOf /sum /count)`. The subject is a
+      number: a vector divides each of its elements by `map`,
+      `map ~(div 2)`. The divisor is computed against the subject, and
+      two fields of one record divide by `divOf /sum /count`. A number
+      under a tag answers under the tag.
       ::link~(::number/mul | doc) ::link~(::any/divOf | doc)
   ~~|
   ::builtin{}
@@ -271,9 +271,10 @@
   ::holds~(eq 0 | not)
 
 :number/div/SubjectNotNumberError
-  |~~ `div` divides a number: two fields of one record divide by `divOf
-      /sum /count`, a vector divides each element by `map`, `map ~(div 2)`,
-      and text that holds a number is read first by `parseJson`.
+  |~~ `div` divides a number: two fields of one record divide by
+      `divOf /sum /count`, a vector divides each element by `map`,
+      `map ~(div 2)`, and text that holds a number is read first by
+      `parseJson`.
   ~~|
 
 :number/div/dividesByTheNumber
@@ -301,12 +302,12 @@
   ::law~(::Width(6) | div 3 | eq ::Width(2))
 
 :number/mod
-  |~~ Answers the remainder of the subject divided by the number the call
-      gives, its sign the divisor's: `7 | mod 3` answers `1` and `-7 |
-      mod 3` answers `2`, so `mod 2` tells an even number from an odd
-      one, and a fraction leaves its own, `7.5 | mod 2` answering `1.5`.
-      The divisor is computed against the subject, and a number under a
-      tag answers under the tag.
+  |~~ Answers the remainder of the subject divided by the number the
+      call gives, its sign the divisor's: `7 | mod 3` answers `1` and
+      `-7 | mod 3` answers `2`, so `mod 2` tells an even number from an
+      odd one, and a fraction leaves its own, `7.5 | mod 2` answering
+      `1.5`. The divisor is computed against the subject, and a number
+      under a tag answers under the tag.
       ::link~(::number/div | doc)
   ~~|
   ::builtin{}
@@ -393,10 +394,10 @@
   ::law~("-3" | abs !| [type /actualType] | eq [::number/abs/SubjectNotNumberError ::string])
 
 :number/floor
-  |~~ Answers the greatest whole number not above the subject, `2.7 |
-      floor` answering `2` and `-2.1 | floor` answering `-3`; `round`
-      answers the nearest and `ceil` the least not below. It takes no
-      value.
+  |~~ Answers the greatest whole number not above the subject,
+      `2.7 | floor` answering `2` and `-2.1 | floor` answering `-3`;
+      `round` answers the nearest and `ceil` the least not below. It
+      takes no value.
       ::link~(::number/ceil | doc) ::link~(::number/round | doc)
   ~~|
   ::builtin{}
@@ -493,8 +494,8 @@
   |~~ A fraction is no count. ~~|
   ::law~(2.5 | range !| [type /actualType] | eq [::number/range/CountNotIntegerError ::number])
 
-:number/range/CountTooLargeError/refusesACountPastTheLongestVector
-  |~~ A count past the longest vector is refused. ~~|
+:number/range/CountTooLargeError/refusesACountPastTheLongest
+  |~~ A count past the length `:longest` names is refused. ~~|
   ::law~(1e10 | range !| [type (/longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
 
 :number/range/SubjectNotNumberError/refusesAVector
@@ -504,12 +505,12 @@
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
       gives, none when it gives none: `3.14159 | round 2` answers `3.14`
-      and `2.5 | round` answers `3`. A half rounds away from zero, as the
-      digits are written, `1.005 | round 2` answering `1.01` and `-2.5 |
-      round` answering `-3`; a negative count rounds to tens and beyond,
-      `1234 | round -2` answering `1200`; and a number rounded to zero
-      prints as `0`. The digits are a whole number. The subject is a
-      number, and text that holds one is read first by `parseJson`.
+      and `2.5 | round` answers `3`. A half rounds away from zero, as
+      the digits are written, `1.005 | round 2` answering `1.01` and
+      `-2.5 | round` answering `-3`; a negative count rounds to tens and
+      beyond, `1234 | round -2` answering `1200`; and a number rounded
+      to zero prints as `0`. The digits are a whole number. The subject
+      is a number, and text that holds one is read first by `parseJson`.
       ::link~(::number/div | doc)
   ~~|
   ::builtin{}

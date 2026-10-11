@@ -51,7 +51,8 @@ const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 // meets the reader's value where the subject's word was meant [D166].
 const BindNameTakenByVocabularyError = declareRefusal('bind/NameTakenByVocabularyError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
-const CallValueTakesNoModifiersError      = declareRefusal('call/ValueTakesNoModifiersError');
+const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
+
 // evalQuery(source, env?) → the value a query answers from null, in the
 // runtime's environment unless `env` is given.
 export async function evalQuery(source, env) {
@@ -90,7 +91,7 @@ const AST_NODE_EVALUATORS = {
   TaggedLit:         evalTaggedLit,
   BareTypeKeyword:   evalBareTypeKeyword,
   Projection:        evalProjection,
-  Call:       evalCall,
+  Call:              evalCall,
   BindStep:          evalBindStep,
   ParenGroup:        evalParenGroup,
   Blank:             evalBlank,
@@ -625,10 +626,10 @@ function scopeOfMember(member, state) {
 // args with more values than the parts have places are refused under the
 // name, args that break an invariant declared under the name under the
 // invariant, a part the args do not hold under the part, and a part that
-// breaks an invariant declared under it under the invariant [D169], [D173]. Answers the values of
-// the parts in their order and, for a word of the language, the scope of
-// its body, where each part is bound by its name and the args as `args`;
-// a host's word reads the values alone.
+// breaks an invariant declared under it under the invariant [D169],
+// [D173]. Answers the values of the parts in their order and, for a word
+// of the language, the scope of its body, where each part is bound by its
+// name and the args as `args`; a host's word reads the values alone.
 async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
@@ -798,7 +799,6 @@ export function resolveBinaryReducer(reducerLambda) {
   return async (acc, item) =>
     (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
 }
-
 
 // ─── ParenGroup ─────────────────────────────────────────────────
 

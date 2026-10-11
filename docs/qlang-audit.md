@@ -1962,3 +1962,5 @@ whole, a primitive the law of every count calls; or the test kept in
 [D182]: decisions/D182.md
 [D184]: decisions/D184.md
 [D185]: decisions/D185.md
+[D195]: decisions/D195.md
+[D196]: decisions/D196.md

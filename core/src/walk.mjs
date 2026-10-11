@@ -94,7 +94,6 @@ export function originOf(node) {
   return root.uri;
 }
 
-
 // declaredNameOf(bindStep) — the name a declaration writes, its keyword's
 // [D152].
 export function declaredNameOf(bindStep) {
@@ -227,4 +226,3 @@ export function locationToQlangMap(loc) {
 function positionToQlangMap(pos) {
   return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
 }
-

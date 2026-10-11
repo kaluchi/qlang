@@ -357,9 +357,9 @@ async function evalBareTypeKeyword(node, state) {
 // at declaration against the current value, `42 | :x / | add 1 | x`
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
-// writes, its own name among it [D44]; a name is declared once in its scope [D71], a node the root holds
-// once at all [D153], and a name with a path under a noun declared before
-// it.
+// writes, its own name among it [D44]; a name is declared once in its
+// scope [D71], a node the root holds once at all [D153], and a name with a
+// path under a noun declared before it.
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
@@ -806,7 +806,6 @@ function modifierOf(argNode, state) {
 }
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
-
 
 // codeOf(code, callState) → lambda: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope

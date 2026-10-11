@@ -19,7 +19,6 @@ import { astOfQuote } from '../quote.mjs';
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
 
-
 // The bindings of a scope by name: the root's a name of the frame does
 // not stand over, then the frame's.
 function* bindingsOf(env) {
@@ -560,4 +559,3 @@ function rootWordsOf(root) {
   }
   return words;
 }
-

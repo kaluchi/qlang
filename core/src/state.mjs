@@ -1,12 +1,10 @@
-// The state of the evaluator: the value in the pipe, the scope and the
-// depth of the frames nested under the query; a step answers a new state,
-// so a fork leaves the declarations of its inside behind by keeping the
-// state it started from.
-//
-// The scope is a map from the names a reader declared to their records,
-// the frame, over the root the host's sources declared, which sits under
-// a key no name spells and is shared by every frame [D153]; a lookup
-// reads the frame, then the root.
+// The state of the evaluator, the value in the pipe, the scope and the
+// depth of the frames nested under the query, a new one at each step, so
+// a fork leaves the declarations of its inside behind by keeping the
+// state it started from; the scope maps the names a reader declared to
+// their records, the frame, over the root the host's sources declared,
+// under a key no name spells, a lookup reading the frame and then the
+// root [D153].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY } from './env-keys.mjs';
@@ -26,12 +24,13 @@ export function rootState(pipeValue, env) {
   return makeState(pipeValue, env, 0);
 }
 
-// withPipeValue(state, nextPipeValue) → State on the same frame
+// withPipeValue(state, nextPipeValue) → a state on the same frame holding
+// the value.
 export function withPipeValue(state, nextPipeValue) {
   return makeState(nextPipeValue, state.env, state.depth);
 }
 
-// withEnv(state, nextEnv) → State on the same frame
+// withEnv(state, nextEnv) → a state on the same frame holding the scope.
 export function withEnv(state, nextEnv) {
   return makeState(state.pipeValue, nextEnv, state.depth);
 }

@@ -97,7 +97,7 @@ function liftParsedDocument(parsed, resolvedFormat) {
 }
 
 // The answer a channel writes [D120], [D184]: a value whole unless the
-// caller asked for a budget and an error an alert, under JSON data whole
+// caller asked for a budget, an error an alert, under JSON data whole
 // for the tools that read it and an error alone giving way within the
 // budget, a failure carrying the prose of its refusal's page, under
 // `page` in JSON and below the print as comment lines a reading of the

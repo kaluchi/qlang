@@ -352,12 +352,12 @@ async function evalBareTypeKeyword(node, state) {
 
 // ─── BindStep ───────────────────────────────────────────────────
 
-// The one binding form [D44]: the value passes on, and the scope takes the
-// record of the binding [D63], whose value is the body evaluated once at
-// declaration against the current value, `42 | :x / | add 1 | x`
-// answering 42, a doc alone a page, and a quote written as the body
-// resolving in the scope the declaration writes, its own name among it
-// [D44]; a name is declared once in its scope [D71], a node the root holds
+// The one binding form [D44]: the value passes on, and a fresh scope holds
+// the record of the binding [D63], whose value is the body evaluated once
+// at declaration against the current value, `42 | :x / | add 1 | x`
+// answering 42, a declaration of docs alone binding them as a page, and a
+// quote written as the body resolving in the scope the declaration
+// writes, its own name among it [D44]; a name is declared once in its scope [D71], a node the root holds
 // once at all [D153], and a name with a path under a noun declared before
 // it.
 async function evalBindStep(node, state) {
@@ -551,6 +551,10 @@ async function applyMember(record, lambdas, state) {
   const refused = isThenable(refusing) ? await refusing : refusing;
   return withPipeValue(state, refused ?? brought);
 }
+
+// Whether an answer is waited on: anything with a `then`, so a host's
+// promise of another realm and a thenable resolve as the core's own do.
+const isThenable = value => typeof value?.then === 'function';
 
 // The definition of the word at an address as a call reads it, its parts
 // in the order of their places with their selectors and invariants, the
@@ -803,9 +807,6 @@ function modifierOf(argNode, state) {
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
 
-// Whether an answer is waited on: anything with a `then`, so a host's
-// promise of another realm and a thenable resolve as the core's own do.
-const isThenable = value => typeof value?.then === 'function';
 
 // codeOf(code, callState) → lambda: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope

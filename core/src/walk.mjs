@@ -5,14 +5,14 @@
 
 import { splitAddress } from './address.mjs';
 
-// The two spellings of a name in source: called by its name, `count`,
-// or written as a tag, the address of a node, `::Box` [D152]. The
-// editor passes one to say which occurrences and declarations count.
+// The two spellings of a name in source, which the editor passes to say
+// which occurrences and declarations count: called by its name, `count`,
+// or written as a tag, the address of a node, `::Box` [D152].
 export const CALL_SPELLING = 'call';
 export const TAG_SPELLING   = 'tag';
 
 // astChildrenOf(node) → the children of a node that hold meaning, the
-// step of a pipeline's unit rather than the unit, none for a leaf.
+// step of each unit of a pipeline among them, none for a leaf.
 export function astChildrenOf(node) {
   if (!node || typeof node !== 'object' || !('type' in node)) return [];
   const out = [];
@@ -148,10 +148,10 @@ export function findAstNodeAtOffset(ast, offset) {
 }
 
 // findIdentifierOccurrences(ast, name, spelling?) → the nodes that name
-// it: called, a call of the name, its declaration and a projection that
-// reads it as a key; written as a tag [D152], its declaration, a tagged
-// or an error literal that writes it [D86] and the tag name alone. A
-// keyword written as a value is no occurrence.
+// it, a keyword written as a value none of them: called, a call of the
+// name, its declaration and a projection that reads it as a key; written
+// as a tag [D152], its declaration, a tagged or an error literal that
+// writes it [D86] and the tag name alone.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];

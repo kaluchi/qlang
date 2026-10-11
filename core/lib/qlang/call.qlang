@@ -247,13 +247,14 @@
 
 :call/EvaluationDepthExceededError
   |~~ A call too deep: the body of a verb, a modifier computed at the
-      call, a part read from the args, `apply` and a constructor of a tag
-      each run one frame below the step that called them, a quote written
-      as a modifier being a value that runs nothing, and the frame past
-      the budget refuses, `:depth` the refused frame and `:limit` the
-      budget. A word that calls itself without a base
-      case is refused here, on the fail track, while the host's memory
-      stays bounded: the case that ends the recursion is tested first,
+      call, `apply`, a constructor of a tag and each run of the code a
+      verb runs, `map ~(…)`, run one frame below the step that called
+      them, a part read from its place meets the budget at that frame, a
+      quote written as a modifier is a value at the call, and the frame
+      past the budget refuses, `:depth` the refused frame and `:limit`
+      the budget. A word that calls itself without a base case is refused
+      here, on the fail track, while the host's memory stays bounded: the
+      case that ends the recursion is tested first,
       `:any/down ~(if (eq 0) ~(0) ~(sub 1 | down))`.
       ::link~(::call | doc) ::link~(::any/if | doc)
   ~~|

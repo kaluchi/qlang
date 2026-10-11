@@ -10,7 +10,7 @@ import { createLineEditor } from '../src/line-editor.mjs';
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
-const SUBMIT = '\r';   // plain Enter (CR) — the submit keystroke (PowerShell parity)
+const SUBMIT = '\r';   // plain Enter (CR), which submits
 const NEWLINE = '\n';  // Ctrl+Enter / Ctrl+J — soft newline at cursor
 
 function captureWrites() {
@@ -559,6 +559,13 @@ describe('createLineEditor — TTY paste fast-path', () => {
     editor.start();
     feed(stdinStream, '{\n  "a": 1\n} | /a', SUBMIT);
     expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
+  });
+
+  it('gathers a paste the host hands over in several chunks into one paste [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'one\r\ntw', 'o\r', '\nthree', SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo\nthree']);
   });
 
   it('strips a trailing newline that the clipboard end-of-block tends to carry', () => {

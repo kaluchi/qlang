@@ -54,7 +54,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   let historyIndex = 0;
   const historyDrafts = new Map();
 
-  // The column a run of Up and Down aims at, which any other key resets.
+  // The column a run of Up and Down across the lines aims at, which an
+  // edit, a move along the line and a walk of the history reset.
   let desiredColumn = null;
 
   // The width of the prompt on screen, its colour escapes taking none.
@@ -141,7 +142,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     const rowsUp        = (totalRows - 1) - cursorVisual.row;
 
     let frame = BEGIN_SYNC + HIDE_CURSOR;
-    // 1. Walk the terminal cursor up to row 0 of the prior render.
+    // 1. The cursor walks up to the first row of the last repaint.
     if (lastCursorRow > 0) frame += ESC + `[${lastCursorRow}A`;
     // 2. Column 0, and everything below it cleared, wrapped rows among it.
     frame += '\r' + ESC + '[J';
@@ -184,9 +185,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     history.push(lineText);
   }
 
-  // The recall helpers, reached once a step in their direction is in
-  // range, save the draft of the place left and load the next place's,
-  // the draft of the last place seeded when the walk leaves it.
+  // The recall of the history, reached once a step its way is in range,
+  // saves the draft of the place it leaves and loads the next place's, the
+  // draft of the last place seeded when the walk leaves it.
   function recallHistoryPrev() {
     historyDrafts.set(historyIndex, buffer);
     historyIndex -= 1;
@@ -320,7 +321,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (code === 0x1b) { pendingEscape = ESC; return; }
     if (code === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
     if (code === 0x04) { closeOnEmptyBuffer();     return; }   // Ctrl+D
-    if (code === 0x0d) { submitCurrentLine();      return; }   // Enter (CR) — submit (PowerShell / bash parity)
+    if (code === 0x0d) { submitCurrentLine();      return; }   // Enter (CR) submits
     if (code === 0x0a) { insertNewlineAtCursor();  return; }   // Ctrl+Enter / Ctrl+J — soft newline
     if (code === 0x08 || code === 0x7f) { backspaceAtCursor();  return; }
     if (code === 0x01) { moveCursorHome(); return; }            // Ctrl+A

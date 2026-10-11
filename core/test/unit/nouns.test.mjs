@@ -27,6 +27,15 @@ describe('the names of the scope', () => {
       .toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
     expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
+
+  it('a bare name reads a value a source of the root declares, and no label of the root [D191]', async () => {
+    const session = await createSession({ sources: [{
+      uri: 'shop',
+      source: ':shop |~~ A shop. ~~|\n:limit 5'
+    }] });
+    expect((await session.evalCell('limit')).result).toBe(5);
+    expect((await session.evalCell('shop !| type')).result).toEqual(makeTagKeyword('call/UnknownNameError'));
+  });
 });
 
 describe('the verbs that live on a kind', () => {

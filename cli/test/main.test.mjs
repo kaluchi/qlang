@@ -298,6 +298,13 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain('::Foo!{');
     expect(s.stdoutText()).not.toContain('|~|');
   });
+
+  it('writes a failure of the kind of errors, which no site refused, as it is [D195]', async () => {
+    const s = captureStreams();
+    await main(['!{:a 1}'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(s.stdoutText()).toContain('!{');
+    expect(s.stdoutText()).not.toContain('|~|');
+  });
 });
 
 describe('main — a query the shell turned into a path', () => {

@@ -127,6 +127,11 @@ install` at the root links the workspaces; the Node floor is the
   solve it blind or with the command line under a saved screen, the
   grade by the tree, and the reading of the misses, which marks the set
   seen [D142]. The usage is the header of the script.
+- `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
+  root run again with its literals changed to edge values; a variant
+  that makes a host fail, throws past the fail track or prints as a text
+  that reads back as another value fails it. Run it after a change to a
+  primitive, the evaluator, the printer or the grammar.
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.

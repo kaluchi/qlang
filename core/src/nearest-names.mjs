@@ -6,7 +6,7 @@
 // names one of which begins the other.
 
 import { keyword, makeTagKeyword } from './types.mjs';
-import { nodeAddresses, scopeNamesOf, verbNames } from './runtime/nouns.mjs';
+import { nodeAddresses, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -57,14 +57,21 @@ function nearestOf(names, typedName) {
   return [...new Set([...nearest, ...begun])].sort();
 }
 
-// The names a step reaches bare: those of the scope and the last names of
-// the verbs declared under a kind.
+// The names a step reaches: those of the scope and the last names of the
+// verbs declared under a kind, a label of the root among them as the tag
+// that reaches it [D191].
 function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
+// The names near a typed one, a label of the root that is no word
+// written as its tag, and the tag first when the typed name is the
+// label's own.
 export function nearestNames(env, typedName) {
-  return Object.freeze(nearestOf(namesOfSteps(env), typedName).map(name => keyword(name)));
+  const words = new Set(verbNames(env));
+  const onlyItsTag = name => !env.has(name) && !words.has(name) && isLabel(env, name);
+  const near = nearestOf(namesOfSteps(env), typedName).map(name => onlyItsTag(name) ? makeTagKeyword(name) : keyword(name));
+  return Object.freeze(onlyItsTag(typedName) ? [makeTagKeyword(typedName), ...near] : near);
 }
 
 // The tags an unknown tag name was likely meant to be [D118]: the

@@ -5,19 +5,26 @@
 :string
   |~~ The kind of a string, text as it came. A JSON string arrives as a
       string, and `keyword` makes one a keyword where a key is wanted,
-      since the keys of a map are keywords. Its verbs work on the text
+      since the keys of a map are keywords. A value of another kind
+      becomes text by `print`, its literal, `5 | print` answering `"5"`,
+      or by `json`, its JSON. Its verbs work on the text
       whole, by its characters, `count`, `take` and `drop`, or by its
       lines, and `lines` breaks it into the vector a pipeline reads in
       pieces. Its literal is written in double quotes with the escapes of
       JSON, `\"`, `\\`, `\n`, `\t` and `\uXXXX` among them, any other
       character raw between them, a line break among them.
       ::snippet~(::string | manifest) lists its words and refusals.
-      ::link~(::keyword | doc) ::link~(::qlang/values | doc)
+      ::link~(::keyword | doc) ::link~(::any/print | doc)
+      ::link~(::any/json | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :string/isAString
   |~~ Text in quotes is a string. ~~|
   ::law~("x" | type | eq ::string)
+
+:string/isMadeByPrint
+  |~~ A value of another kind becomes text by `print`. ~~|
+  ::law~(5 | print | eq "5")
 
 :string/buildsAString
   |~~ The constructor of a string answers it. ~~|

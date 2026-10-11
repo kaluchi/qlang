@@ -200,17 +200,22 @@ export function residenceOnSubject(env, verbName, subject) {
 // first [D62], [D153]: the reader's declaration, the word residing on a
 // kind the walk of the subject reaches, the one word of the name residing
 // on a kind, which refuses a subject of another kind [D156], and for a
-// name no kind answers the root's declaration [D169]; `{ record,
-// underKind }`, or null when no record answers or words of several kinds
-// do.
+// name no kind answers the root's declaration [D169], but for a label of
+// the root, a kind or a topic, which its tag alone reaches [D191];
+// `{ record, underKind }`, or null when no record answers or words of
+// several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
   const residences = residencesOf(env, name);
-  if (residences.length === 0 && rootOf(env).has(name)) return { record: rootOf(env).get(name), underKind: false };
+  const root = rootOf(env);
+  if (residences.length === 0 && root.has(name) && !holdsAPage(root.get(name))) return { record: root.get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
+
+// Whether a declaration of the root is a label, its value a page.
+const holdsAPage = record => isDoc(bindingValueOf(record));
 
 // residencesOf(env, verbName) → the words of a name residing on a kind,
 // each with its kind, in the order of their declarations, the one on

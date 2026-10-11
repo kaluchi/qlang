@@ -171,7 +171,10 @@
       verbs of other kinds answer is refused by
       `::call/KindAnswersNoVerbError`, which names them. A name is
       declared before the steps that read it, `:x 5 | x`, and a fact of a
-      record is no word but a key, read by projection, `/name`.
+      record is no word but a key, read by projection, `/name`. A kind is
+      no word either: its tag reaches it, which `:nearest` names first,
+      `5 | string` pointing to `::string`, whose page says how a value
+      becomes text.
       ::link~(::call | doc) ::link~(::call/KindAnswersNoVerbError | doc)
   ~~|
 
@@ -198,6 +201,10 @@
 :call/UnknownNameError/refusesANameReadBeforeItsDeclaration
   |~~ A name read before its declaration names nothing yet. ~~|
   ::law~(x | :x 5 !| type | eq ::call/UnknownNameError)
+
+:call/UnknownNameError/pointsAKindToItsTag
+  |~~ The name of a kind points to its tag. ~~|
+  ::law~(5 | string !| [type /nearest] | eq [::call/UnknownNameError [::string]])
 
 :call/UnknownNameError/readsNoFactAsAWord
   |~~ A fact of a record called as a word names nothing. ~~|

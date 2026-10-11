@@ -607,11 +607,11 @@
       ::link~(::qlang/errors | doc)
   ~~|
 
-:error/isAnError
+:error/opensAFailureLiteralToItsKind
   |~~ A failure literal opens to an `::error`. ~~|
   ::law~(!{:detail "boom"} !| type | eq ::error)
 
-:error/standsOverError
+:error/standsOverItsKind
   |~~ Beneath the site's tag lies an `::error`. ~~|
   ::law~("x" | add 1 !| payload | type | eq ::error)
 
@@ -761,7 +761,7 @@
       ::link~(::qlang/errors | doc)
   ~~|
 
-:explanation/explainsAnError
+:explanation/explainsAFailure
   |~~ An error explained is an `::explanation`. ~~|
   ::law~("x" | add 1 !| explain | type | eq ::explanation)
 

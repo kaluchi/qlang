@@ -372,6 +372,10 @@
   |~~ The empty map has no greatest value. ~~|
   ::law~({} | max | eq null)
 
+:map/max/key/NotQuoteOrNullError/refusesANumber
+  |~~ A key that is no quote is refused under the part. ~~|
+  ::law~({:a 1} | max 1 !| type | eq ::map/max/key/NotQuoteOrNullError)
+
 :map/map
   |~~ Answers the map of what the code answers for each value, under the
       same keys in their order, `{:a 1 :b 2} | map ~(add 1)` answering
@@ -416,7 +420,7 @@
   |~~ A key is read beside its value through the entries. ~~|
   ::law~({:a 1} | entries | map ~(/0) | eq [:a])
 
-:map/map/answersTheFirstError
+:map/map/answersTheFirstFailure
   |~~ The first error answers the call. ~~|
   ::law~({:a 1 :b "x"} | map ~(add 1) !| [type /actualType]
     | eq [::number/add/SubjectNotNumberError ::string])
@@ -546,6 +550,10 @@
     !| [type /key /actualType]
     |  eq [::map/every/ConditionNotBooleanError :a ::number])
 
+:map/every/predicate/NotQuoteError/refusesCodeComputedAtTheCall
+  |~~ A predicate written without its quote is computed at the call and refused. ~~|
+  ::law~({:a 1} | every (gt 0) !| type | eq ::map/every/predicate/NotQuoteError)
+
 :map/any
   |~~ Answers whether the predicate answers true for some value, `{:a -1
       :b 2} | any ~(gt 0)` answering `true`, and `false` for the empty
@@ -592,6 +600,10 @@
   ::law~({:a 1} | any ~(1)
     !| [type /key /actualType]
     |  eq [::map/any/ConditionNotBooleanError :a ::number])
+
+:map/any/predicate/NotQuoteError/refusesCodeComputedAtTheCall
+  |~~ A predicate written without its quote is computed at the call and refused. ~~|
+  ::law~({:a 1} | any (gt 0) !| type | eq ::map/any/predicate/NotQuoteError)
 
 :map/sort
   |~~ Answers the entries ordered by their values in the one order, their
@@ -661,11 +673,15 @@
   ~(/0)
 
 :map/take/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `{:a 1 :b 2 :c 3} | take 2`; text that holds one
+      is read by `parseJson` first, `take ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :map/take/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | take 2`; a fraction is
+      rounded first, `take (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :map/take/takesTheFirstEntries
@@ -687,6 +703,10 @@
 :map/take/count/NotIntegerError/refusesAFraction
   |~~ A fraction is no count. ~~|
   ::law~({:a 1} | take 1.5 !| type | eq ::map/take/count/NotIntegerError)
+
+:map/take/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~({:a 1} | take "1" !| type | eq ::map/take/count/NotNumberError)
 
 :map/drop
   |~~ Answers the entries after the first ones, as many as the count the
@@ -710,11 +730,15 @@
   ~(/0)
 
 :map/drop/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `{:a 1 :b 2 :c 3} | drop 2`; text that holds one
+      is read by `parseJson` first, `drop ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :map/drop/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | drop 2`; a fraction is
+      rounded first, `drop (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :map/drop/dropsTheFirstEntries
@@ -732,6 +756,14 @@
 :map/drop/leavesAKeyByMinus
   |~~ A key leaves by `minus`. ~~|
   ::law~({:a 1 :b 2 :c 3} | minus #[:b] | eq {:a 1 :c 3})
+
+:map/drop/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~({:a 1} | drop "1" !| type | eq ::map/drop/count/NotNumberError)
+
+:map/drop/count/NotIntegerError/refusesAFraction
+  |~~ A count that is no whole number is refused. ~~|
+  ::law~({:a 1} | drop 1.5 !| type | eq ::map/drop/count/NotIntegerError)
 
 :map/at
   |~~ Answers the value the map holds under the key the call gives, or the
@@ -1221,6 +1253,10 @@
   ::law~({:a 1} | inter [[:a]]
     !| [type /actualType /index]
     |  eq [::map/inter/KeyNotKeywordOrStringError ::vec 0])
+
+:map/inter/keys/NotMapOrVecError/refusesANumber
+  |~~ Keys that are no map, vector or set are refused under the part. ~~|
+  ::law~({:a 1} | inter 5 !| type | eq ::map/inter/keys/NotMapOrVecError)
 
 :map/raise
   |~~ Answers the map as an error on the fail track, the act the literal

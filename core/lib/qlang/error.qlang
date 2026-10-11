@@ -22,7 +22,7 @@
   |~~ A number given as a trail is refused. ~~|
   ::law~(!{:kind :oops :trail 5} !| [type /actualType] | eq [::error/TrailNotVecError ::number])
 
-:error/TrailNotVecError/refusesATrailLaidOverAnError
+:error/TrailNotVecError/refusesATrailLaidOverAFailure
   |~~ A trail of a number laid over an error is refused when it is raised. ~~|
   ::law~(!{:kind :oops} | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
 

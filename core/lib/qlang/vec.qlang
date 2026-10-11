@@ -329,6 +329,10 @@
   |~~ Of elements whose keys are equal the first answers. ~~|
   ::law~([{:age 40 :n 1} {:age 40 :n 2}] | max ~(/age) | /n | eq 1)
 
+:vec/max/key/NotQuoteOrNullError/refusesANumber
+  |~~ A key that is no quote is refused under the part. ~~|
+  ::law~([1 2] | max 1 !| type | eq ::vec/max/key/NotQuoteOrNullError)
+
 :vec/map
   |~~ Answers the vector of what the code answers for each element, in
       their order, `[1 2 3] | map ~(add 10)` answering `[11 12 13]`. The
@@ -394,7 +398,7 @@
   |~~ A name declared before the call is read inside. ~~|
   ::law~(:k 10 | [1 2] | map ~(mul k) | eq [10 20])
 
-:vec/map/answersTheFirstError
+:vec/map/answersTheFirstFailure
   |~~ The first error answers the call, and the elements after it are not run. ~~|
   ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
 
@@ -1031,11 +1035,15 @@
   ~(/0)
 
 :vec/take/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
+      is read by `parseJson` first, `take ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :vec/take/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
+      rounded first, `take (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :vec/take/takesTheFirst
@@ -1087,11 +1095,15 @@
   ~(/0)
 
 :vec/drop/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
+      is read by `parseJson` first, `drop ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :vec/drop/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
+      rounded first, `drop (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :vec/drop/dropsTheFirst
@@ -1113,6 +1125,10 @@
 :vec/drop/count/NotIntegerError/refusesAFraction
   |~~ A fraction is no count. ~~|
   ::law~([1 2 3] | drop 1.5 !| [type /actualType] | eq [::vec/drop/count/NotIntegerError ::number])
+
+:vec/drop/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~([1 2] | drop "1" !| type | eq ::vec/drop/count/NotNumberError)
 
 :vec/at
   |~~ Answers the element at the index the call gives, `[10 20 30] | at
@@ -1137,11 +1153,15 @@
   ~(/0)
 
 :vec/at/index/NotNumberError
-  |~~ The index is a number. ~~|
+  |~~ The index is a number, `[10 20] | at 1`; text that holds one is
+      read by `parseJson` first, `at ("1" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :vec/at/index/NotIntegerError
-  |~~ The index is a whole number. ~~|
+  |~~ The index is a whole number, `[10 20] | at 1`; a fraction is
+      rounded first, `at (0.6 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :vec/at/default
@@ -1183,6 +1203,10 @@
 :vec/at/index/NotIntegerError/refusesAFraction
   |~~ A fraction is no index. ~~|
   ::law~([10 20 30] | at 1.5 !| [type /actualType] | eq [::vec/at/index/NotIntegerError ::number])
+
+:vec/at/index/NotNumberError/refusesAString
+  |~~ An index written as a string is refused. ~~|
+  ::law~([1 2] | at "1" !| type | eq ::vec/at/index/NotNumberError)
 
 :vec/distinct
   |~~ Answers the set of the elements, the vector in the one order
@@ -1669,7 +1693,9 @@
   ~(/0)
 
 :vec/join/separator/NotStringError
-  |~~ The separator is a string. ~~|
+  |~~ The separator is a string, `["a" "b"] | join ","`; a number or a
+      keyword writes as text by `print` first, `join (1 | print)`.
+  ~~|
   ::holds~(is ::string)
 
 :vec/join/SubjectNotVecError

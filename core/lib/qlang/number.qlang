@@ -113,7 +113,9 @@
   ~(/0)
 
 :number/sub/subtrahend/NotNumberError
-  |~~ The subtrahend is a number. ~~|
+  |~~ The subtrahend is a number; text that holds one is read by
+      `parseJson` first, `10 | sub ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/sub/SubjectNotNumberError
@@ -161,7 +163,9 @@
   ~(/0)
 
 :number/mul/multiplier/NotNumberError
-  |~~ The multiplier is a number. ~~|
+  |~~ The multiplier is a number; text that holds one is read by
+      `parseJson` first, `2 | mul ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/mul/SubjectNotNumberError
@@ -205,7 +209,9 @@
   ~(/0)
 
 :number/div/divisor/NotNumberError
-  |~~ The divisor is a number. ~~|
+  |~~ The divisor is a number; text that holds one is read by `parseJson`
+      first, `6 | div ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/div/divisor/ZeroError
@@ -265,7 +271,7 @@
   ~(at 0 0)
 
 :number/round/digits/NotNumberError
-  |~~ The count of digits is a number. ~~|
+  |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
   ::holds~(is ::number)
 
 :number/round/DigitsNotIntegerError
@@ -333,7 +339,9 @@
   ~(/0)
 
 :number/gt/value/NotNumberError
-  |~~ The value compared is a number. ~~|
+  |~~ The value compared is a number; text that holds one is read by
+      `parseJson` first, `5 | gt ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/gt/comparesNumbers
@@ -356,6 +364,10 @@
   |~~ A string is no number to compare with. ~~|
   ::law~(5 | gt "a" !| type | eq ::number/gt/value/NotNumberError)
 
+:number/round/digits/NotNumberError/refusesAString
+  |~~ A count of digits that is no number is refused under the part. ~~|
+  ::law~(3.14 | round "2" !| type | eq ::number/round/digits/NotNumberError)
+
 :number/gte
   |~~ Answers whether the subject is greater than or equal to the number
       the call gives, `10 | gte 10`. It compares as `gt` does, numbers
@@ -374,7 +386,9 @@
   ~(/0)
 
 :number/gte/value/NotNumberError
-  |~~ The value compared is a number. ~~|
+  |~~ The value compared is a number; text that holds one is read by
+      `parseJson` first, `5 | gte ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/gte/holdsOfItself
@@ -384,6 +398,10 @@
 :number/gte/holdsOfItsDecimal
   |~~ A whole number equals its decimal. ~~|
   ::law~(5 | gte 5.0)
+
+:number/gte/value/NotNumberError/refusesAString
+  |~~ A string is no number to compare with. ~~|
+  ::law~(5 | gte "3" !| type | eq ::number/gte/value/NotNumberError)
 
 :number/lt
   |~~ Answers whether the subject is less than the number the call gives,
@@ -402,7 +420,9 @@
   ~(/0)
 
 :number/lt/value/NotNumberError
-  |~~ The value compared is a number. ~~|
+  |~~ The value compared is a number; text that holds one is read by
+      `parseJson` first, `5 | lt ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/lt/comparesNumbers
@@ -412,6 +432,10 @@
 :number/lt/keepsOneNumberApartFromItself
   |~~ A number is not less than itself. ~~|
   ::law~(5 | lt 5 | not)
+
+:number/lt/value/NotNumberError/refusesAString
+  |~~ A string is no number to compare with. ~~|
+  ::law~(5 | lt "3" !| type | eq ::number/lt/value/NotNumberError)
 
 :number/lte
   |~~ Answers whether the subject is less than or equal to the number the
@@ -430,9 +454,15 @@
   ~(/0)
 
 :number/lte/value/NotNumberError
-  |~~ The value compared is a number. ~~|
+  |~~ The value compared is a number; text that holds one is read by
+      `parseJson` first, `5 | lte ("3" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :number/lte/holdsOfItself
   |~~ A number is less than or equal to itself. ~~|
   ::law~(10 | lte 10)
+
+:number/lte/value/NotNumberError/refusesAString
+  |~~ A string is no number to compare with. ~~|
+  ::law~(5 | lte "3" !| type | eq ::number/lte/value/NotNumberError)

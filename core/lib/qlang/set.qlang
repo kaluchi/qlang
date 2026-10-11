@@ -756,11 +756,15 @@
   ~(/0)
 
 :set/take/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `#[1 2 3] | take 2`; text that holds one
+      is read by `parseJson` first, `take ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :set/take/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `#[1 2 3] | take 2`; a fraction is
+      rounded first, `take (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :set/take/count/NotGivenError
@@ -805,6 +809,10 @@
   |~~ A call with two counts is refused under the word. ~~|
   ::law~(#[:a :b :c] | take 1 2 !| type | eq ::set/take/ArgsBeyondPartsError)
 
+:set/take/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~(#[1 2] | take "1" !| type | eq ::set/take/count/NotNumberError)
+
 :set/drop
   |~~ Answers the set of the elements after the least count, the last in
       the one order: `#[:d :c :b :a] | drop 2` answers `#[:c :d]`, where
@@ -829,11 +837,15 @@
   ~(/0)
 
 :set/drop/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `#[1 2 3] | drop 2`; text that holds one
+      is read by `parseJson` first, `drop ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :set/drop/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `#[1 2 3] | drop 2`; a fraction is
+      rounded first, `drop (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :set/drop/ArgsBeyondPartsError
@@ -869,6 +881,10 @@
   |~~ A call with two counts is refused under the word. ~~|
   ::law~(#[:a :b :c] | drop 1 2 !| type | eq ::set/drop/ArgsBeyondPartsError)
 
+:set/drop/count/NotIntegerError/refusesAFraction
+  |~~ A count that is no whole number is refused. ~~|
+  ::law~(#[1 2] | drop 1.5 !| type | eq ::set/drop/count/NotIntegerError)
+
 :set/at
   |~~ Answers the element at the index in the one order, a negative
       index counting from the end, `#[:a :b :c] | at -1` answering `:c`;
@@ -891,11 +907,15 @@
   ~(/0)
 
 :set/at/index/NotNumberError
-  |~~ The index is a number. ~~|
+  |~~ The index is a number, `#[10 20] | at 1`; text that holds one is
+      read by `parseJson` first, `at ("1" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :set/at/index/NotIntegerError
-  |~~ The index is a whole number. ~~|
+  |~~ The index is a whole number, `#[10 20] | at 1`; a fraction is
+      rounded first, `at (0.6 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :set/at/index/NotGivenError
@@ -932,6 +952,10 @@
 :set/at/index/NotGivenError/refusesACallWithNoIndex
   |~~ A call with no index is refused under the part. ~~|
   ::law~(#[1 2] | at !| type | eq ::set/at/index/NotGivenError)
+
+:set/at/index/NotNumberError/refusesAString
+  |~~ An index written as a string is refused. ~~|
+  ::law~(#[1 2] | at "0" !| type | eq ::set/at/index/NotNumberError)
 
 :set/distinct
   |~~ Answers the set itself: a set holds each element once, so
@@ -1082,6 +1106,10 @@
   |~~ A reducer that gives its word a value of its own is refused. ~~|
   ::law~(#[1 2] | reduce 0 ~(add 1) !| type | eq ::set/reduce/ReducerNotBinaryError)
 
+:set/reduce/reducer/NotQuoteError/refusesCodeComputedAtTheCall
+  |~~ A reducer written without its quote is computed at the call and refused. ~~|
+  ::law~(#[1 2] | reduce 0 (add) !| type | eq ::set/reduce/reducer/NotQuoteError)
+
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and
       under the tags of the subject: `#[:a :b] | union #[:b :c]` answers
@@ -1110,7 +1138,9 @@
   ~(at 0)
 
 :set/union/other/NotSetOrNullError
-  |~~ The other value is a set or null. ~~|
+  |~~ The other value is a set or null; a vector is made a set by
+      `distinct` first, `#[1] | union ([2 3] | distinct)`.
+  ~~|
   ::holds~(is ::set ::null)
 
 :set/union/SubjectEmptyError
@@ -1204,7 +1234,9 @@
   ~(at 0)
 
 :set/minus/other/NotSetOrNullError
-  |~~ The value taken from a set is a set or null. ~~|
+  |~~ The value taken from a set is a set or null; a vector is made a set
+      by `distinct` first, `#[1 2] | minus ([2] | distinct)`.
+  ~~|
   ::holds~(is ::set ::null)
 
 :set/minus/SubjectEmptyError
@@ -1292,7 +1324,9 @@
   ~(at 0)
 
 :set/inter/other/NotSetOrNullError
-  |~~ The other value is a set or null. ~~|
+  |~~ The other value is a set or null; a vector is made a set by
+      `distinct` first, `#[1 2] | inter ([2] | distinct)`.
+  ~~|
   ::holds~(is ::set ::null)
 
 :set/inter/SubjectEmptyError

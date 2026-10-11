@@ -639,7 +639,7 @@
   |~~ When every alternative answers null or an error, the call answers null. ~~|
   ::law~({} | coalesce ~(/a) ~(/b) | eq null)
 
-:any/coalesce/passesOverAnError
+:any/coalesce/passesOverAFailure
   |~~ An error passes to the next alternative. ~~|
   ::law~({:a 2 :b 3} | coalesce ~(/missing) ~("fallback") | eq "fallback")
 
@@ -2035,7 +2035,7 @@
   |~~ A vector is no set. ~~|
   ::law~([1] | is ::set | not)
 
-:any/is/asksAnOpenedError
+:any/is/asksAnOpenedFailure
   |~~ An opened error is a value of `::error` and of its refusal. ~~|
   ::law~("x" | add 1
     !| [(is ::error) (is ::number/add/SubjectNotNumberError)]

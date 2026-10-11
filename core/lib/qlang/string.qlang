@@ -47,7 +47,7 @@
 
 :string/gt/value/NotStringError
   |~~ The value compared is a string; a keyword gives its name by
-      `keyword`.
+      `keyword` first, `"b" | gt (:a | keyword)`.
   ~~|
   ::holds~(is ::string)
 
@@ -103,7 +103,9 @@
   ~(/0)
 
 :string/gte/value/NotStringError
-  |~~ The value compared is a string. ~~|
+  |~~ The value compared is a string; a keyword gives its name by
+      `keyword` first, `"b" | gte (:a | keyword)`.
+  ~~|
   ::holds~(is ::string)
 
 :string/gte/holdsOfItself
@@ -113,6 +115,10 @@
 :string/gte/failsOfALaterString
   |~~ A string does not come after a later one. ~~|
   ::law~("a" | gte "b" | not)
+
+:string/gte/value/NotStringError/refusesANumber
+  |~~ A number is no string to compare with. ~~|
+  ::law~("a" | gte 1 !| type | eq ::string/gte/value/NotStringError)
 
 :string/lt
   |~~ Answers whether the subject comes before the string the call gives,
@@ -133,7 +139,9 @@
   ~(/0)
 
 :string/lt/value/NotStringError
-  |~~ The value compared is a string. ~~|
+  |~~ The value compared is a string; a keyword gives its name by
+      `keyword` first, `"b" | lt (:a | keyword)`.
+  ~~|
   ::holds~(is ::string)
 
 :string/lt/ordersByCharacters
@@ -143,6 +151,10 @@
 :string/lt/putsTheEmptyStringFirst
   |~~ The empty string comes before every other. ~~|
   ::law~("" | lt "a")
+
+:string/lt/value/NotStringError/refusesANumber
+  |~~ A number is no string to compare with. ~~|
+  ::law~("a" | lt 1 !| type | eq ::string/lt/value/NotStringError)
 
 :string/lte
   |~~ Answers whether the subject comes before the string the call gives
@@ -164,7 +176,9 @@
   ~(/0)
 
 :string/lte/value/NotStringError
-  |~~ The value compared is a string. ~~|
+  |~~ The value compared is a string; a keyword gives its name by
+      `keyword` first, `"b" | lte (:a | keyword)`.
+  ~~|
   ::holds~(is ::string)
 
 :string/lte/holdsOfItself
@@ -174,6 +188,10 @@
 :string/lte/failsOfAnEarlierString
   |~~ A string does not come before an earlier one. ~~|
   ::law~("b" | lte "a" | not)
+
+:string/lte/value/NotStringError/refusesANumber
+  |~~ A number is no string to compare with. ~~|
+  ::law~("a" | lte 1 !| type | eq ::string/lte/value/NotStringError)
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -250,11 +268,15 @@
   ~(/0)
 
 :string/take/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `"abc" | take 2`; text that holds one is
+      read by `parseJson` first, `take ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :string/take/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `"abc" | take 2`; a fraction is
+      rounded first, `take (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :string/take/takesTheFirstCharacters
@@ -309,11 +331,15 @@
   ~(/0)
 
 :string/drop/count/NotNumberError
-  |~~ The count is a number. ~~|
+  |~~ The count is a number, `"abc" | drop 2`; text that holds one is
+      read by `parseJson` first, `drop ("2" | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :string/drop/count/NotIntegerError
-  |~~ The count is a whole number. ~~|
+  |~~ The count is a whole number, `"abc" | drop 2`; a fraction is
+      rounded first, `drop (1.5 | round)`.
+  ~~|
   ::holds~(eq (round))
 
 :string/drop/dropsAPrefix
@@ -339,6 +365,10 @@
 :string/drop/count/NotIntegerError/refusesAFraction
   |~~ A fraction of a count is refused. ~~|
   ::law~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
+
+:string/drop/count/NotNumberError/refusesAString
+  |~~ A count written as a string is refused. ~~|
+  ::law~("abc" | drop "1" !| type | eq ::string/drop/count/NotNumberError)
 
 :string/split
   |~~ Answers the pieces of the string between the occurrences of the
@@ -719,7 +749,9 @@
   ~(/0)
 
 :string/startsWith/prefix/NotStringError
-  |~~ The prefix is a string. ~~|
+  |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword gives
+      its name by `keyword` first, `startsWith (:ab | keyword)`.
+  ~~|
   ::holds~(is ::string)
 
 :string/startsWith/SubjectNotStringError
@@ -781,7 +813,9 @@
   ~(/0)
 
 :string/endsWith/suffix/NotStringError
-  |~~ The suffix is a string. ~~|
+  |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword gives
+      its name by `keyword` first, `endsWith (:bc | keyword)`.
+  ~~|
   ::holds~(is ::string)
 
 :string/endsWith/SubjectNotStringError

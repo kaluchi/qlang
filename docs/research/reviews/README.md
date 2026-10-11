@@ -80,7 +80,7 @@ review; findings 5 and 6 still stand for the laws declared under
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
 10. Rule refusals with no page and no repair. Answered by faf4c8cd where a repair helps: the compared value of every comparison shows its call on its part's page, which `!| explain` reads for a call with no value, and `at`, `within`, `not` and the streams page their refusal by rule with a law; the other refusals by rule stay without a page, their address naming what the call lacks.
 11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
-12. The sister project still writes `*`. Answered by the port of the sister project onto D196 at the maintainer's word, its commits c04ba19 and 880b9fc there.
+12. The sister project still writes `*`. Answered by the port of the sister project onto D196, «ладно, jdt никуда не пуши, просто подтяни до актуального кода qlang и доработай проект если надо» (maintainer, 2026-10-11 02:52, session 22b934f8), its commits c04ba19 and 880b9fc on its local branch `feature/status-guide-newcomer-flow`.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Answered by 24c66f1e: the law of `ParseError` stands after its facts, the laws of `:cli` after its refusal, and `table` pages `SubjectNotVecError` with its repair and its two laws under it.
 14. Claims with no law. Answered by 68af9ab5: each claim holds by a law under its word or its refusal.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
@@ -99,7 +99,7 @@ answer D182 declares `::any`: open.
 1. A word of a source reached a bare value of its source after any word of that name, a reader's or a later source's, under D200's frame of the root alone. Answered by d6733d8c: the frame holds the source's bare values that hold no page over the root, two tests of the names of the scope hold it, D200 names D44 and the audit's lexical extension, and the comments of `types.mjs` and `eval.mjs` state the scope a declared quote runs in.
 2. A quote condition of `allOf` and `anyOf` answering another kind met the refusal of `every`. Answered by fba5256f: the words are primitives beside `cond`, each refusing as its own `ConditionNotBooleanError` with a page and a law, and D197's Set aside weighs the composition.
 3. `formOf` walked the predicates `typeKeyword` walks, a second table of the kinds, and its `tagged` narrower than `::tagged`. Answered by cae66823: the form is derived from `typeKeyword`, the second walk deleted, a value under any other tag `underTag`, and the ledger of the outside audits says so.
-4. The bound of `range` written twice, in its page and in the host, the page naming JavaScript and no repair. Answered by d6733d8c: the refusal carries the bound as its fact `:longest`, declared under it, and its page names the fact and says the call has no repair but a count within it; a count below the bound that outgrows the host's memory stays the host's.
+4. The bound of `range` written twice, in its page and in the host, the page naming JavaScript and no repair. Answered by d6733d8c: the refusal carries the bound as its fact `:longest`, declared under it, and its page names the fact and says the call has no repair but a count within it. A count below the bound that outgrows the host's memory, which no refusal names: open.
 5. A quote called a condition where the catalog defines a condition as a boolean. Answered by fba5256f: the pages, the first page and D197 say a condition, or a quote that answers one in its turn.
 6. A condition computed at the call refused at its first place under a repair, the quote, that changes nothing there. Answered by fba5256f: the pages of both refusals name the soft read of a field a record may lack beside the quote, a law at the first place under each, and D197 says the refusal holds at every place; the sister project's `problemsInRangeOf` meets an error for a marker without a start line on both trees.
 7. Statements of pages with no law under their address. Answered by fba5256f for `anyOf` and by 847a868e for the reducer written first on maps and sets, the boolean, null and tag name keys of `indexBy` and `groupBy` on vectors and sets, and the keyword separator of `join`.
@@ -112,4 +112,24 @@ answer D182 declares `::any`: open.
 14. A prefix of the map's writer that is always empty. Answered by cae66823.
 15. The ledger of the outside audits closed questions the audit holds open. Answered by 49830b60: both items say open and cite the audit's question of a helper of one word.
 16. The series named no deletion. Answered by cae66823, which names its deletions: the second walk of the kinds and the prefix of the map's writer.
+
+## 2026-10-11 · the repair of the series
+
+[2026-10-11-repair-of-the-series.md](2026-10-11-repair-of-the-series.md), at 1327c652, over cae66823~1..1327c652.
+
+Its check of the fates of the review of the series found some answered in part, and each part left open is one of its findings below.
+
+1. No test held that a label of a source is no bare name inside its words. Answered by a077e3ef: a test of the names of the scope holds it, `::shop{} | self` refused where `:shop/self ~(shop)`, and D200's Requirements name it.
+2. The frame of the root wrote again whether a record holds a page. Answered by a077e3ef: `nouns.mjs` exports `holdsAPage`, which `isLabel` and the frame read.
+3. D200 said the audit's lexical extension holds, that a call copies no frame, and that the tests of the scope hold a reader's frame. Answered by 9b3e058f: D200 says the extension stays unmet with the probe of `:vec/doc` inside `tutorial`, that a call copies the frame of its source's bare values alone, in the ledger of the outside audits too, cites the cases of D44, and says scope.
+4. The pages of the conditions' refusals called a condition a quote. Answered by 6750f841: a condition that fails where an earlier one decides is written as a quote that answers it in its turn.
+5. D197 set the composition aside by a reading of the principle the audit does not hold. Answered by 9b3e058f: no word of the catalog raises a refusal of its own, its error literals standing in laws and pages alone, so the word's own refusal at an index needs a site in the host.
+6. The property test of the round trip took no error, and the example test beside it makes the same claim. Answered in part by a077e3ef: the walk takes an error and a named error inside a vector, and its comment names the examples as the pins of the forms the walk does not take, the forms of JSON, every payload of a tag, declared tags, a leading combinator; deleting the suites the walk reaches is the work of the branch that grows its pools to those forms.
+7. Comments of the codec and titles of the edge cases in the words of an older model. Answered by a077e3ef.
+8. Comparisons of two states in D199, D197 and the commits of the repair. Answered by 9b3e058f for the records; the commits of this repair say what holds.
+9. D199's counts in words and D200's figures with no command. Answered by 9b3e058f: D199 names the grep, and D200 the command whose time it measured.
+10. The repairs the refusal pages of the conditions state had no law, and a law's page of `join` said a map's entries. Answered by 6750f841.
+11. The ledger answered a finding at the maintainer's word without his words, and gave a disposition no record holds. Answered by 9b3e058f: the ledger quotes his word with its time and session, and the count that outgrows the host's memory says open.
+
+The sister project's `problemsInRangeOf`, which the review noted reads a marker's start line strictly, stands a marker without one outside the range by d58c903 there.
 

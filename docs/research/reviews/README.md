@@ -119,17 +119,34 @@ answer D182 declares `::any`: open.
 
 Its check of the fates of the review of the series found some answered in part, and each part left open is one of its findings below.
 
-1. No test held that a label of a source is no bare name inside its words. Answered by a077e3ef: a test of the names of the scope holds it, `::shop{} | self` refused where `:shop/self ~(shop)`, and D200's Requirements name it.
+1. No test held that a label of a source is no bare name inside its words. Answered by a077e3ef, a test of the names of the scope holding it, `::shop{} | self` refused where `:shop/self ~(shop)`, and by 9b3e058f, D200's Requirements naming it.
 2. The frame of the root wrote again whether a record holds a page. Answered by a077e3ef: `nouns.mjs` exports `holdsAPage`, which `isLabel` and the frame read.
 3. D200 said the audit's lexical extension holds, that a call copies no frame, and that the tests of the scope hold a reader's frame. Answered by 9b3e058f: D200 says the extension stays unmet with the probe of `:vec/doc` inside `tutorial`, that a call copies the frame of its source's bare values alone, in the ledger of the outside audits too, cites the cases of D44, and says scope.
 4. The pages of the conditions' refusals called a condition a quote. Answered by 6750f841: a condition that fails where an earlier one decides is written as a quote that answers it in its turn.
 5. D197 set the composition aside by a reading of the principle the audit does not hold. Answered by 9b3e058f: no word of the catalog raises a refusal of its own, its error literals standing in laws and pages alone, so the word's own refusal at an index needs a site in the host.
-6. The property test of the round trip took no error, and the example test beside it makes the same claim. Answered in part by a077e3ef: the walk takes an error and a named error inside a vector, and its comment names the examples as the pins of the forms the walk does not take, the forms of JSON, every payload of a tag, declared tags, a leading combinator; deleting the suites the walk reaches is the work of the branch that grows its pools to those forms. Answered whole by ec0d6254: the walk takes every form of the examples, their file left, and its suites the round trip does not reach stand in the files of their topics.
+6. The property test of the round trip took no error, and the example test beside it makes the same claim. Answered in part by a077e3ef: the walk takes an error and a named error inside a vector, and its comment names the examples as the pins of the forms the walk does not take, the forms of JSON, every payload of a tag, declared tags, a leading combinator; deleting the suites the walk reaches is the work of the branch that grows its pools to those forms. Answered by ec0d6254 for the forms of JSON, the payloads under a tag no node answers and a leading combinator, the examples' file left and its suites the round trip does not reach moved to the files of their topics, and by 188bb5f7 for the two forms the third review found unpinned: an error with a stop on its trail, and a label the source declares.
 7. Comments of the codec and titles of the edge cases in the words of an older model. Answered by a077e3ef.
 8. Comparisons of two states in D199, D197 and the commits of the repair. Answered by 9b3e058f for the records; the commits of this repair say what holds.
 9. D199's counts in words and D200's figures with no command. Answered by 9b3e058f: D199 names the grep, and D200 the command whose time it measured.
 10. The repairs the refusal pages of the conditions state had no law, and a law's page of `join` said a map's entries. Answered by 6750f841.
-11. The ledger answered a finding at the maintainer's word without his words, and gave a disposition no record holds. Answered by 9b3e058f: the ledger quotes his word with its time and session, and the count that outgrows the host's memory says open.
+11. The ledger answered a finding at the maintainer's word without his words, and gave a disposition no record holds. Answered by 791c3a99: the ledger quotes his word with its time and session, and the count that outgrows the host's memory says open.
 
 The sister project's `problemsInRangeOf`, which the review noted reads a marker's start line strictly, stands a marker without one outside the range by d58c903 there.
 
+## 2026-10-11 · the plans, the grammar and the tests
+
+[2026-10-11-plans-grammar-and-tests.md](2026-10-11-plans-grammar-and-tests.md), at cd8829fe, over 1327c652..cd8829fe.
+
+1. Code of one scalar stepped past an error it was handed, `codeOf` building it as the value. Answered by 188bb5f7: code is a step on the success track whatever it holds, the quick lambdas serving the modifiers of a call alone, and code of one quote, which stepped past an error at b03223ee already, steps around it as all code does; two cases of D182 and a law under `:vec/map` hold it.
+2. A modifier of a scalar and a part read from its place opened no frame, against the page of the budget. Answered by 188bb5f7: both meet the budget at the frame below the call by `frameBelow`, a law of the budget holds a recursion that meets it in its frames, and D202 says so (3483289a).
+3. The example test's last pins left with it: an error with a stop on its trail and a label the source declares. Answered by 188bb5f7: the walk takes both, and the ledger's fate of the earlier finding says what each commit answered.
+4. The state unfrozen against the audit's frozen pair. Answered by 188bb5f7: the state is frozen and its test holds it, and D202 sets the unfrozen state aside (3483289a).
+5. Core sources grew with no deletion named. Answered by 188bb5f7: the cache of parts and the second cache of invariants left, `invariantsUnder` reading the kinds an invariant asks in its one cache, the repair's core sources +124 -140.
+6. The ledger credited the wrong commits. Answered by this ledger: 9b3e058f wrote D200's Requirements and 791c3a99 the quote and the open count.
+7. D200 and the ledger of the outside audits said a call copies its source's frame alone and walks it for parts and invariants. Answered by 3483289a: both say the names with a path of the caller's frame come with it, and D202 replaces D200 in part.
+8. The audit's question cut the maintainer's question and claimed an address read as data with no probe. Answered by 3483289a: it quotes his question whole, probes the shadowing the tree refuses and the address read as data, and prices the definition of a call inside a word of the root.
+9. D202 required what one case held and decided a non-change. Answered by 3483289a: two cases more, an invariant of the answer and a part a reader declares, and the slots stand in its Set aside.
+10. D203 claimed what a key of one letter meets. Answered by 3483289a: D203 says a key of one letter is near every other, with its probe; 4f1cc1b7 names D203 by a case.
+11. Comments with their reasons, and the grammar's `.location` called peggy's. Answered by 188bb5f7: the grammar, the evaluator and the extras of the printer say what holds in a sentence.
+12. "Plan" where the language says definition, comparisons of two states, environment for scope. Answered by 188bb5f7 and 3483289a for the code and the records; the commits of the range say what they said.
+13. The test of `env` held of an empty map, and a projection stood in the bridge of JSON. Answered by 188bb5f7: the test prints three records, and the projection is a case of the projections.

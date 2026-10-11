@@ -1019,6 +1019,7 @@ docs/research/outside-audit/README.md
 docs/research/reviews/2026-10-10-first-page-any-number-string.md
 docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
 docs/research/reviews/2026-10-10-vec-set-map.md
+docs/research/reviews/2026-10-11-an-escape-after-an-escape.md
 docs/research/reviews/2026-10-11-autonomous-series.md
 docs/research/reviews/2026-10-11-escapes-around-a-paste.md
 docs/research/reviews/2026-10-11-plans-grammar-and-tests.md

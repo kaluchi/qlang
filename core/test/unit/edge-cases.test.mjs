@@ -188,12 +188,12 @@ describe('runtime/string.mjs split and join error sites', () => {
 
   it('join with non-string element → VecJoinElementNotStringError', async () => {
     const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
-    expect(caughtErr.address).toBe('vec/join/ElementNotStringError');
+    expect(caughtErr.address).toBe('vec/join/ElementNotStringOrKeywordError');
     expect(caughtErr.facts.index).toBe(1);
   });
 
   it('join with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringError');
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringOrKeywordError');
   });
 
   it('every split/join site has an address of its own', async () => {

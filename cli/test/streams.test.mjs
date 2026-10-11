@@ -75,7 +75,7 @@ describe('@out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | @out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/NotStringError', {
+    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/NotStringOrKeywordError', {
       actualType: { name: 'number' }
     });
   });

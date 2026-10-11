@@ -1,21 +1,26 @@
 // The names of strings, and `join`, `prepend` and `append` of vectors,
 // each a plain function over the subject and the parts of its args
 // [D167]: `prepend` and `append` reside on `::string`, whose prefix and
-// suffix are strings, and on `::vec`, whose element is any value.
+// suffix are text, and on `::vec`, whose element is any value.
 //
 // The verbs live in lib/qlang/string.qlang and vec.qlang.
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { isKeyword } from '../types.mjs';
 
-// An element `join` writes is a string.
-const VecJoinElementNotStringError = declareRefusal('vec/join/ElementNotStringError');
+// A value a word writes into text: a string as it is and a keyword as
+// its name, as the JSON channel writes it [D148], [D198].
+const writtenAsText = value => (isKeyword(value) ? value.name : value);
+
+// An element `join` writes is a string or a keyword.
+const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
 // A string takes its prefix or its suffix, a vector its element at the
 // head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
-bindPrim('string/prepend', (text, prefix) => prefix + text);
+bindPrim('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
 bindPrim('vec/prepend', (vector, element) => [element, ...vector]);
-bindPrim('string/append', (text, suffix) => text + suffix);
+bindPrim('string/append', (text, suffix) => text + writtenAsText(suffix));
 bindPrim('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
@@ -33,9 +38,9 @@ bindPrim('string/lines', subject => {
 });
 
 bindPrim('vec/join', (subject, separator) => {
-  const stranger = subject.findIndex(element => typeof element !== 'string');
-  if (stranger >= 0) throw new VecJoinElementNotStringError({ index: stranger, actualValue: subject[stranger] });
-  return subject.join(separator);
+  const stranger = subject.findIndex(element => typeof element !== 'string' && !isKeyword(element));
+  if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
+  return subject.map(writtenAsText).join(writtenAsText(separator));
 });
 
 // The case of a text, folded letter by letter as Unicode maps it, so

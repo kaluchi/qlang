@@ -909,9 +909,10 @@
 :string/prepend
   |~~ Answers the string with the prefix the call gives in front of it,
       `"world" | prepend "hello "` answering `"hello world"`. A string
-      under a tag answers under the tag. The prefix is a string: a value
-      of another kind becomes text by `print` first, `prepend (n |
-      print)`. The name `prepend` also puts an element in front of a
+      under a tag answers under the tag. The prefix is a string, or a
+      keyword written as its name, `"x" | prepend :a` answering `"ax"`;
+      a value of another kind becomes text by `print` first, `prepend (n
+      | print)`. The name `prepend` also puts an element in front of a
       vector, `[1] | prepend 0`.
       ::link~(::string/append | doc) ::link~(::vec/prepend | doc)
   ~~|
@@ -925,9 +926,11 @@
   |~~ The text put in front, computed against the subject. ~~|
   ~(/0)
 
-:string/prepend/prefix/NotStringError
-  |~~ The prefix is a string; `print` makes text of a value. ~~|
-  ::holds~(is ::string)
+:string/prepend/prefix/NotStringOrKeywordError
+  |~~ The prefix is a string, or a keyword written as its name; `print`
+      makes text of another value.
+  ~~|
+  ::holds~(is ::string ::keyword)
 
 :string/prepend/putsThePrefixInFront
   |~~ The prefix goes in front. ~~|
@@ -941,14 +944,19 @@
   |~~ A value becomes text by `print` before it goes in front. ~~|
   ::law~("x" | prepend (42 | print) | eq "42x")
 
-:string/prepend/prefix/NotStringError/refusesANumber
+:string/prepend/writesAKeywordAsItsName
+  |~~ A keyword goes in front as its name. ~~|
+  ::law~("x" | prepend :a | eq "ax")
+
+:string/prepend/prefix/NotStringOrKeywordError/refusesANumber
   |~~ A number prefix is refused; `print` makes it text. ~~|
-  ::law~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotStringError)
+  ::law~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotStringOrKeywordError)
 
 :string/append
   |~~ Answers the string with the suffix the call gives after it, `"hello"
       | append " world"` answering `"hello world"`. A string under a tag
-      answers under the tag. The suffix is a string: a value of another
+      answers under the tag. The suffix is a string, or a keyword written
+      as its name, `"x" | append :a` answering `"xa"`; a value of another
       kind becomes text by `print` first, `append (n | print)`. The name
       `append` also puts an element after the last of a vector, `[1] |
       append 2`.
@@ -964,9 +972,11 @@
   |~~ The text put after, computed against the subject. ~~|
   ~(/0)
 
-:string/append/suffix/NotStringError
-  |~~ The suffix is a string; `print` makes text of a value. ~~|
-  ::holds~(is ::string)
+:string/append/suffix/NotStringOrKeywordError
+  |~~ The suffix is a string, or a keyword written as its name; `print`
+      makes text of another value.
+  ~~|
+  ::holds~(is ::string ::keyword)
 
 :string/append/putsTheSuffixAfter
   |~~ The suffix goes after. ~~|
@@ -980,9 +990,13 @@
   |~~ A value becomes text by `print` before it goes after. ~~|
   ::law~("x" | append (42 | print) | eq "x42")
 
-:string/append/suffix/NotStringError/refusesANumber
+:string/append/writesAKeywordAsItsName
+  |~~ A keyword goes after as its name. ~~|
+  ::law~("x" | append :a | eq "xa")
+
+:string/append/suffix/NotStringOrKeywordError/refusesANumber
   |~~ A number suffix is refused; `print` makes it text. ~~|
-  ::law~("x" | append 42 !| type | eq ::string/append/suffix/NotStringError)
+  ::law~("x" | append 42 !| type | eq ::string/append/suffix/NotStringOrKeywordError)
 
 :string/parseJson
   |~~ Answers the value the JSON text of the string spells, the reverse

@@ -146,8 +146,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a prefix or a suffix of another kind is refused by the law of its part [D166]', async () => {
-    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotStringError');
-    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringError');
+    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotStringOrKeywordError');
+    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringOrKeywordError');
   });
 
   it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {

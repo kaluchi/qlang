@@ -1782,10 +1782,13 @@
       the call gives between every two, `["a" "b" "c"] | join ","`
       answering `"a,b,c"`; the empty vector joins to the empty string,
       and `split` takes the string apart again. Every element is a
-      string, and one that is not is refused at its index, so values are
-      made text first, `map ~print | join "+"`. A set joins its elements in
-      the one order; a map, a string or a number is refused under the
-      word, and a map's values are read first, `vals | join ","`.
+      string or a keyword, written as its name, so the pairs of a map's
+      entries join as they stand, `{:host "x"} | entries | map ~(join
+      "=")` answering `["host=x"]`; another value is refused at its index,
+      and values are made text first, `map ~print | join "+"`. A set joins
+      its elements in the one order; a map, a string or a number is
+      refused under the word, and a map's values are read first, `vals |
+      join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
   ~~|
   ::builtin{}
@@ -1795,23 +1798,25 @@
   ::string
 
 :vec/join/separator
-  |~~ The string written between every two elements, `join ", "`. ~~|
+  |~~ The text written between every two elements, `join ", "`. ~~|
   ~(/0)
 
-:vec/join/separator/NotStringError
-  |~~ The separator is a string, `["a" "b"] | join ","`; a number or a
-      keyword writes as text by `print` first, `join (1 | print)`.
+:vec/join/separator/NotStringOrKeywordError
+  |~~ The separator is a string, `["a" "b"] | join ","`, or a keyword
+      written as its name; a number writes as text by `print` first,
+      `join (1 | print)`.
   ~~|
-  ::holds~(is ::string)
+  ::holds~(is ::string ::keyword)
 
 :vec/join/SubjectNotVecError
   |~~ `join` writes a vector of strings as one: a map's values are read
       first, `vals | join ","`, and a string is taken apart by `split`.
   ~~|
 
-:vec/join/ElementNotStringError
-  |~~ Every element `join` writes is a string; `:index` names the first
-      that is not, and `map ~print` makes each value its text first.
+:vec/join/ElementNotStringOrKeywordError
+  |~~ Every element `join` writes is a string or a keyword, written as
+      its name; `:index` names the first that is neither, and `map
+      ~print` makes each value its text first.
   ~~|
 
 :vec/join/joinsWithTheSeparator
@@ -1826,6 +1831,10 @@
   |~~ `split` takes the joined string apart again. ~~|
   ::law~(["a" "b"] | join "," | split "," | eq ["a" "b"])
 
+:vec/join/writesAKeywordAsItsName
+  |~~ The pairs of a map's entries join, each key written as its name. ~~|
+  ::law~({:host "x" :port "80"} | entries | map ~(join "=") | eq ["host=x" "port=80"])
+
 :vec/join/joinsValuesMadeText
   |~~ Values made text first join. ~~|
   ::law~([1 2] | map ~print | join "+" | eq "1+2")
@@ -1838,11 +1847,11 @@
   |~~ The values of a map are read first. ~~|
   ::law~({:a "x" :b "y"} | vals | join "," | eq "x,y")
 
-:vec/join/separator/NotStringError/refusesANumber
+:vec/join/separator/NotStringOrKeywordError/refusesANumber
   |~~ A number separator is refused. ~~|
   ::law~(["a" "b"] | join 42
     !| [type /actualType]
-    |  eq [::vec/join/separator/NotStringError ::number])
+    |  eq [::vec/join/separator/NotStringOrKeywordError ::number])
 
 :vec/join/SubjectNotVecError/refusesANumber
   |~~ A number is no vector of strings. ~~|
@@ -1852,11 +1861,11 @@
   |~~ A map is no vector of strings. ~~|
   ::law~({:a "x"} | join "," !| [type /actualType] | eq [::vec/join/SubjectNotVecError ::map])
 
-:vec/join/ElementNotStringError/refusesANumber
+:vec/join/ElementNotStringOrKeywordError/refusesANumber
   |~~ A number among the strings is refused at its index. ~~|
   ::law~(["a" 42 "c"] | join ","
     !| [type /actualType /index]
-    |  eq [::vec/join/ElementNotStringError ::number 1])
+    |  eq [::vec/join/ElementNotStringOrKeywordError ::number 1])
 
 :vec/prepend
   |~~ Answers the vector with the element the call gives at its head,

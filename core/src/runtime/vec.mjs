@@ -69,15 +69,17 @@ bindPrim('vec/sum', vector => totalOf(indexed(vector), VecSumElementNotNumberErr
 bindPrim('set/sum', set => totalOf(indexed(set), SetSumElementNotNumberError));
 bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
-// The mean of the numbers, kept as a running mean so no partial sum
-// leaves the finite doubles; an empty container has none, and answers
-// null as `min` and `max` do [D147].
+// The mean of the numbers, kept as a running mean whose step divides the
+// element and the mean before it subtracts, so neither a partial sum nor
+// the gap between two numbers at opposite ends leaves the finite doubles;
+// an empty container has none, and answers null as `min` and `max` do
+// [D147].
 function meanOf(places, ElementNotNumberError) {
   if (places.length === 0) return NULL;
   let mean = 0;
   for (const [count, [place, element]] of places.entries()) {
     if (!isNumber(element)) throw new ElementNotNumberError({ ...place, actualValue: element });
-    mean += (element - mean) / (count + 1);
+    mean += element / (count + 1) - mean / (count + 1);
   }
   return mean;
 }

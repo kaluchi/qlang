@@ -245,6 +245,14 @@
   ::law~([{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy ~(/d) | map ~(map ~/n | avg)
     | eq {:a 2 :b 5})
 
+:vec/avg/averagesTheOppositeEnds
+  |~~ The mean of the two ends of the doubles is zero. ~~|
+  ::law~([1e308 -1e308] | avg | eq 0)
+
+:vec/avg/averagesOneEnd
+  |~~ The mean of one end of the doubles taken twice is that end. ~~|
+  ::law~([1e308 1e308] | avg | eq 1e308)
+
 :vec/avg/ElementNotNumberError/refusesAString
   |~~ A string among the numbers is refused at its index. ~~|
   ::law~([1 "two" 3] | avg

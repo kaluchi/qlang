@@ -230,6 +230,18 @@ describe('the answer of a word of the host', async () => {
     });
     expect((await s.evalCell('[(41 | later | add 1) (41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
   });
+
+  it('refuses a number past the finite doubles under several labels as under ::number alone', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const s = await createSession({
+      sources: [{
+        uri: 'tests/past',
+        source: ':any/past ::builtin{}\n:any/past/answer #[::number ::null]',
+        impls: { 'any/past': () => Infinity }
+      }]
+    });
+    expect((await s.evalCell('1 | past !| type | eq ::number/NotFiniteError')).result).toBe(true);
+  });
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {

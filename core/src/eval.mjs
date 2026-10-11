@@ -616,7 +616,9 @@ const TAG_KIND = 'tag';
 // reaches `::any`; one that reaches another of the labels is the value it
 // reaches; one of the word's own label goes back under the tags the walk
 // passed, as the subject's kind; one label alone makes the value by its
-// constructor and invariants; an answer of none of several labels is refused
+// constructor and invariants, and so does a label of the answer's own kind
+// the walk passed by, a number past the finite doubles refused there as
+// under `::number` alone; an answer of none of several labels is refused
 // under the answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   if (kinds.includes(ANY_KIND)) return answer;
@@ -625,6 +627,8 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   if (reached !== null) return reached.served;
   if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
   if (kinds.length === 1) return mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
+  const ownKind = typeKeyword(answer).name;
+  if (kinds.includes(ownKind)) return mintUnderTag(state, makeTagKeyword(ownKind), answer);
   return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 

@@ -1,14 +1,14 @@
-// The line editor of the REPL, `start`ing, `prompt`ing, `submit`ting a
-// line as if typed and `close`ing, which emits 'line' with each cell and
-// 'close' at the end of the input or at Ctrl+D: in a terminal it reads
-// keys in raw mode and repaints the buffer through `render`, its lines
-// and wrapped rows among it, Enter or Alt+Enter submitting, Ctrl+Enter or
-// Ctrl+J breaking a line, a paste, bracketed or a chunk longer than one
-// character whose first line break is not its last, landing whole at
-// the cursor, the arrows, Home, End, Ctrl+A and Ctrl+E moving across the
-// lines, Up and Down at the first and the last line walking the history,
-// Backspace and Delete erasing, Ctrl+C clearing and Ctrl+D on an empty
-// buffer closing; over a pipe each line of the input is a cell.
+// The line editor of the REPL, `start`ing, `prompt`ing, `submit`ting a line
+// as if typed and `close`ing, which emits 'line' with each cell and 'close'
+// at the end of the input or at Ctrl+D: in a terminal it reads keys in raw
+// mode and repaints the buffer through `render`, its lines and wrapped rows
+// among it, Enter or Alt+Enter submitting, Ctrl+Enter or Ctrl+J breaking a
+// line, a paste, bracketed or text whose first line feed is not its last
+// character, landing whole at the cursor, the arrows, Home, End, Ctrl+A and
+// Ctrl+E moving across the lines, Up and Down at the first and the last
+// line walking the history, Backspace and Delete erasing, Ctrl+C clearing
+// and Ctrl+D on an empty buffer closing; over a pipe each line of the input
+// is a cell.
 
 import { EventEmitter } from 'node:events';
 import { StringDecoder } from 'node:string_decoder';
@@ -309,7 +309,11 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       return;
     }
 
+    // An escape that arrives while one is pending drops the one pending and
+    // opens its own, so Alt with an arrow, an escape before the arrow's,
+    // reads as the arrow.
     if (pendingEscape.length > 0) {
+      if (ch === ESC) { pendingEscape = ESC; return; }
       pendingEscape += ch;
       tryConsumeEscapeSequence();
       return;

@@ -582,6 +582,34 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['p\nqr\ns']);
   });
 
+  it('takes every begin marker out of a gathered paste [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_BEGIN + 'r', 's' + BRACKETED_PASTE_BEGIN + 't', SUBMIT);
+    expect(capture.lines).toEqual(['p\nqrst']);
+  });
+
+  it('ends the gathering at a character beyond the basic plane typed alone [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'one\r\ntwo\r\n', '\u{1F600}', SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo\u{1F600}']);
+  });
+
+  it('reads Alt with an arrow, an escape before the arrow\'s, as the arrow [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'abc', ESC + ESC + '[D', 'X', SUBMIT);
+    expect(capture.lines).toEqual(['abXc']);
+  });
+
+  it('reads a bracketed paste after an escape in the same chunk [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, ESC + BRACKETED_PASTE_BEGIN + 'one\r\ntwo' + BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo']);
+  });
+
   it('reads a key spelled by an escape after the Escape key [D204]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

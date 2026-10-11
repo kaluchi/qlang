@@ -9,7 +9,7 @@ const content = await evalQuery('::qlang | doc | content');
 
 // `query` answers `answer`, or answering, and a task, Over `input`,
 // `query` answers `answer`.
-const EXAMPLE = /(?:Over `([^`]+)`, )?`([^`]+)`\s+(?:answers|answering)\s+`([^`]+)`/g;
+const EXAMPLE = /(?:Over\s+`([^`]+)`,\s+)?`([^`]+)`\s+(?:answers|answering)\s+`([^`]+)`/g;
 
 const examples = [...content.matchAll(EXAMPLE)].map(([, input, query, answer]) => ({
   query: input === undefined ? query : `${input} | ${query}`,

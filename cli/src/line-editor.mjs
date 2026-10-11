@@ -434,9 +434,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (buffer.length === 0) emitter.emit('close');
   }
 
-  // A paste delivered over several chunks: each chunk that arrives within
-  // a short idle window joins the first, and the whole lands at the cursor
-  // as one paste, so no line break of its body submits.
+  // A paste a host hands over in several chunks gathers here, each chunk
+  // of a paste arriving within the window after the last joining it, and
+  // lands at the cursor as one paste [D204].
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;
@@ -464,21 +464,26 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     const chunkText = utf8Decoder.write(chunk);
     if (chunkText.length === 0) return;
 
-    // A single key while a paste gathers ends the paste and then acts as
-    // the key it is.
+    // A key, a chunk of one character or one that begins with an escape, a
+    // line break handed over alone among them, ends the gathering and is
+    // read as the key it is, and any other chunk joins the paste.
     if (pasteAccumBuffer.length > 0) {
-      if (chunkText.length === 1) {
-        clearTimeout(pasteAccumTimer);
-        pasteAccumTimer = null;
-        flushPasteAccumulator();
-      } else {
+      if (chunkText.length > 1 && chunkText[0] !== ESC) {
         continuePasteAccumulator(chunkText);
         return;
       }
+      clearTimeout(pasteAccumTimer);
+      pasteAccumTimer = null;
+      flushPasteAccumulator();
     }
 
-    // A chunk longer than one character whose first line break is not
-    // its last character starts a paste; a typed line ending in a line
+    // An escape pending alone before a chunk of several characters that
+    // does not begin with `[` is the Escape key, which does nothing.
+    if (pendingEscape === ESC && chunkText.length > 1 && chunkText[0] !== '[') pendingEscape = '';
+
+    // A chunk longer than one character whose first line break is not its
+    // last character starts the gathering, unless a bracketed paste or an
+    // escape sequence is under way, and a typed line ending in a line
     // break is keys.
     if (!pasteMode && pendingEscape.length === 0 && chunkText.length > 1) {
       const firstNewline = chunkText.indexOf('\n');

@@ -20,7 +20,7 @@
 {"name":"runaway-self-apply-lifts-depth-error","query":":q ~(apply q) | apply q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"a-runaway-under-map-lifts-depth-error","query":":any/f ~([/] | map ~f | first) | 1 | f !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"runaway-tag-constructor-lifts-depth-error","query":":T |~~ T. ~~| | :T/construct ~(::T(/)) | ::T(1) !| type","expect":"::call/EvaluationDepthExceededError"}
-{"name":"a-part-read-from-its-place-runs-a-frame-below-its-call","query":":any/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError","decision":"D202"}
-{"name":"a-modifier-of-a-scalar-runs-a-frame-below-its-call","query":":any/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError","decision":"D202"}
+{"name":"a-part-read-from-its-place-meets-the-budget-a-frame-below-its-call","query":":any/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError","decision":"D202"}
+{"name":"a-modifier-of-a-scalar-meets-the-budget-a-frame-below-its-call","query":":any/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError","decision":"D202"}
 {"name":"a-quote-written-as-a-modifier-runs-no-frame","query":":any/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count ~(x))))) | 498 | down !| type","expect":"::vec/count/ArgsBeyondPartsError","decision":"D202"}
 {"name":"each-run-of-the-code-a-verb-runs-runs-a-frame-below","query":":any/down ~(if (gt 0) ~([/] | map ~(sub 1 | down) | first) ~(0)) | 333 | down !| type","expect":"::call/EvaluationDepthExceededError","decision":"D202"}

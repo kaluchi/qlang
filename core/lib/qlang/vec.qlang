@@ -443,7 +443,7 @@
   ::law~([1 ("x" | add 1)] | map ~(add 1 !| 0) | eq [2 0])
 
 :vec/map/answersAFailedElementToCodeOfOneValue
-  |~~ An element that is an error passes code of one value by, as it passes every step. ~~|
+  |~~ An element that is an error passes code of one value by, as it passes every step that rides `|`. ~~|
   ::law~([1 ("x" | add 1)] | map ~(0) !| type | eq ::number/add/SubjectNotNumberError)
 
 :vec/map/answersUnderNoTag

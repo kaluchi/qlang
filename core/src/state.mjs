@@ -18,19 +18,19 @@ function makeState(pipeValue, env, depth) {
   return Object.freeze({ pipeValue, env, depth });
 }
 
-// rootState(pipeValue, env) → State at depth 0 — the entry frame of
-// a query, a session cell, a source of the root.
+// rootState(pipeValue, env) → a state at depth 0, the first of a query, a
+// cell of a session or a source of the root.
 export function rootState(pipeValue, env) {
   return makeState(pipeValue, env, 0);
 }
 
-// withPipeValue(state, nextPipeValue) → a state on the same frame holding
+// withPipeValue(state, nextPipeValue) → a state at the same depth holding
 // the value.
 export function withPipeValue(state, nextPipeValue) {
   return makeState(nextPipeValue, state.env, state.depth);
 }
 
-// withEnv(state, nextEnv) → a state on the same frame holding the scope.
+// withEnv(state, nextEnv) → a state at the same depth holding the scope.
 export function withEnv(state, nextEnv) {
   return makeState(state.pipeValue, nextEnv, state.depth);
 }

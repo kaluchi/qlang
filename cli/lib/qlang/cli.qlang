@@ -14,7 +14,9 @@
       where a value JSON has no form for is refused, the refusal holding
       the answer as its literal; text read
       as a string, whose answer is written as its `print`; and
-      `| json` writes JSON text. A query that writes to stdout itself,
+      `| json` writes JSON text. With nothing piped a query runs on the
+      noun of the language, `::qlang`, so `qlang 'doc'` reads its first
+      page. A query that writes to stdout itself,
       by `@out`, holds the channel, and its answer is left unwritten. A
       failure is written with the prose of its refusal's page, which
       tells how to repair the call: below its literal as line comments,

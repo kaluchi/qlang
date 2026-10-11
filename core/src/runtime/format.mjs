@@ -24,8 +24,8 @@ function dispatchPlainValue(v, handlers, path) {
 }
 
 // `toPlain` lifts a qlang value to a JSON-serializable plain JS
-// shape (Map → object with keyword-named string keys, Vec →
-// array, Set → array, error → `{$error: …}`); `fromPlain` lifts a
+// shape (a map → an object keyed by the names of its keywords, a vector
+// and a set → an array, an error → `{$error: …}`); `fromPlain` lifts a
 // plain JS shape back into qlang (object → Map keyed by interned
 // keywords, array → Vec, scalars pass through). Together they
 // bridge the language with any external system that speaks JSON —
@@ -42,12 +42,8 @@ const TO_PLAIN_HANDLERS = {
   tag:     k => k.literal,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,
-  // tagged: identity rides on the JS-header
-  // TAG_HEADER_SYMBOL slot, payload shape varies (Array /
-  // Map / opaque wrap-object). The envelope carries identity
-  // through `$tag` and encodes the payload through `toPlain`
-  // recursively — mirrors the symmetric `Error` envelope.
-  tagged:  t => {
+  // A value under a tag writes its tag as `$tag` beside its payload.
+  underTag: t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];
     else if (t instanceof Map) inner = new Map(t);

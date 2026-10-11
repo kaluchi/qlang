@@ -63,13 +63,13 @@ describe('equality.deepEqual rejection branches', async () => {
 describe('formOf for a verb and a binding record', async () => {
   it('formOf reads a binding record as the tagged Map it is', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
-    expect(formOf(record)).toBe('tagged');
+    expect(formOf(record)).toBe('underTag');
   });
 
-  it('formOf answers "tagged" for a map under a tag', async () => {
+  it('formOf answers "underTag" for a map under a tag', async () => {
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
-    expect(formOf(instance)).toBe('tagged');
+    expect(formOf(instance)).toBe('underTag');
   });
 
   it('TaggedInstance toPlain on Vec payload — overlay identity, encoded payload is the Array data', async () => {

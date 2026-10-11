@@ -186,7 +186,7 @@ describe('runtime/string.mjs split and join error sites', () => {
     await expectErrorThrown('42 | join ","', 'vec/join/SubjectNotVecError');
   });
 
-  it('join with non-string element → VecJoinElementNotStringError', async () => {
+  it('join with an element of neither kind → ElementNotStringOrKeywordError', async () => {
     const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
     expect(caughtErr.address).toBe('vec/join/ElementNotStringOrKeywordError');
     expect(caughtErr.facts.index).toBe(1);

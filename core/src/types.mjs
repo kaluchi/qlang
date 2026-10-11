@@ -142,9 +142,10 @@ export function makeQuote(steps, ast = undefined) {
 }
 
 // A quote written as a modifier carries the environment of its call
-// [D43], and one written as the body of a declaration that of its
-// declaration [D44], on a JS-internal slot; a quote held as data carries
-// none and runs where it is applied.
+// [D43], one written as the body of a reader's declaration that of its
+// declaration [D44], and one a source of the root declared the frame of
+// the source's bare values over the root [D200], on a JS-internal slot;
+// a quote held as data carries none and runs where it is applied.
 const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
 
 export function quoteInEnv(quote, env) {
@@ -155,7 +156,8 @@ export function quoteInEnv(quote, env) {
   return Object.freeze(carried);
 }
 
-// The holder a declaration fills with the scope it writes.
+// The holder of the scope a declared quote runs in, which its declaration
+// fills and the root sets for a quote of its sources [D200].
 export function quoteEnvRef(quote) {
   return quote[QUOTE_ENV_SLOT];
 }
@@ -342,25 +344,14 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }
 
-// formOf(v) → the form of the core that writes a value, by the name of
-// what it writes: a kind of the core, `tagged` for a value under a tag
-// of its own, `unknown` for a host's raw object. The printer and the
-// codecs choose their writer by it.
+// formOf(v) → the form a writer of the core reads a value by: the kind of
+// the core `typeKeyword` answers, `error`, `underTag` for a value under
+// any other tag, or `unknown` for a host's raw object.
 export function formOf(v) {
-  if (isNull(v)) return 'null';
-  if (isBoolean(v)) return 'boolean';
-  if (isNumber(v)) return 'number';
-  if (isString(v)) return 'string';
-  if (isKeyword(v)) return 'keyword';
-  if (isTagKeyword(v)) return 'tag';
-  if (isQuote(v)) return 'quote';
-  if (isDoc(v)) return 'doc';
-  if (isQSet(v)) return 'set';
-  if (isTaggedInstance(v)) return 'tagged';
-  if (isVec(v)) return 'vec';
-  if (isQMap(v)) return 'map';
   if (isErrorValue(v)) return 'error';
-  return 'unknown';
+  const kind = typeKeyword(v);
+  if (kind === UNKNOWN_KIND) return 'unknown';
+  return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
 // typeKeyword(v) — the kind of a value [D32]: its outermost tag, or

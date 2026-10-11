@@ -68,7 +68,7 @@ describe('makeErrorValue', () => {
 // ── formOf ────────────────────────────────────────────────
 
 describe('formOf for error values', () => {
-  it('returns "Error" for error values', () => {
+  it('answers "error" for an error value', () => {
     const errorVal = makeErrorValue(makeTagKeyword('Error'), new Map());
     expect(formOf(errorVal)).toBe('error');
   });

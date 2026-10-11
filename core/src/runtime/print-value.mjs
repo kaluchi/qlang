@@ -46,11 +46,11 @@ const PRINT_HANDLERS = {
   tag:     literalOfKeyword,
   error:   printErrorValue,
   vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
-  map:     (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
+  map:     (m, indent, printedOf) => printMapLike('{', m, indent, printedOf),
   set:     (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
   quote:   q => '~(' + printQuoteSource(q) + ')',
   doc:     d => '|~~' + docText(d) + '~~|',
-  tagged:  printTaggedInstance
+  underTag: printTaggedInstance
 };
 
 const printedByNoKind = () => undefined;

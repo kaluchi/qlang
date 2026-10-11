@@ -1022,6 +1022,7 @@ docs/research/reviews/2026-10-10-vec-set-map.md
 docs/research/reviews/2026-10-11-autonomous-series.md
 docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
 docs/research/reviews/2026-10-11-repair-of-the-series.md
+docs/research/reviews/2026-10-11-thenables-frames-and-the-line-editor.md
 docs/research/reviews/2026-10-11-waits-repairs-and-comments.md
 docs/research/reviews/README.md
 ```
@@ -1863,12 +1864,18 @@ from one, where a bare name and the definition of a call read the root
 alone and an address every node, which costs a set of the scopes marked
 and a lookup in each scope made from another, and which
 `docs/research/lexical-extension/marked-scopes.patch` makes of the tree:
-under it the probes above answer as the rule asks, `tutorial` reading
-the page of `doc` and `subOf` answering `300`, a reader's own call
-keeps the reader's word and invariant, and every case of the core
+under it the probes of the reach into a word of the root answer as the
+rule asks, `tutorial` answering the page of `::vec` and `subOf`
+answering `300`, the shadowing staying refused [D153], a reader's own
+call keeps the reader's word and invariant, and every case of the core
 holds; or the extension as it stands, which costs the hygiene the rule
 asks for and the definition of a call inside a word of the root read
-once whatever the reader declares.
+once whatever the reader declares. The patch applies to the tree:
+
+```sh
+$ git apply --check docs/research/lexical-extension/marked-scopes.patch && echo applies
+applies
+```
 
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md

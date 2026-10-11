@@ -169,3 +169,18 @@ Its check of the fates of the third review found three holding in part, each par
 10. The prototype the audit cited lived in a scratchpad. Answered by 4c241046: `docs/research/lexical-extension/marked-scopes.patch` holds it, it applies to the tree, and the audit names it.
 11. D200's mark of D202 stood mid-line, where the requirements do not read it. Answered by 4c241046: `node scripts/requirements.mjs D200` reads it.
 12. Comparisons in commits and in this ledger. Answered by this ledger for its line on code of one quote; the commits say what they said.
+
+## 2026-10-11 · the thenables, the frames and the line editor
+
+[2026-10-11-thenables-frames-and-the-line-editor.md](2026-10-11-thenables-frames-and-the-line-editor.md), at 95f12244, over 49cc8305..95f12244.
+
+Its check of the fates of the fourth review found four holding in part, each part one of its findings below.
+
+1. The line editor kept a terminal's reason, a generic word, a comparison of two repaints and a column whose reset its comment told wrong. Answered by 95a4474e: Enter submits, the recall of the history and the last repaint are named, and the column is reset by an edit, a move along the line and a walk of the history.
+2. Comments of two sentences or of none in the state, the walks, the binding and the channel. Answered by 95a4474e.
+3. The page of `:vec/map` said an error element passes every code by, which a code that recovers does not. Answered by 95a4474e: the page says the steps that ride `|` pass it by, and a law holds a code that recovers it.
+4. The page of the budget and D202 left out the frame of the code a verb runs and said a part read from its place runs. Answered by 95a4474e for the page and a case of the code `map` runs, and by dfc9aced for D202.
+5. The ledger of the outside audits said a call waits on a promise alone. Answered by dfc9aced.
+6. The audit's alternative of marked scopes named the answers loosely and its patch with no probe. Answered by dfc9aced: `tutorial` answers the page of `::vec`, the shadowing stays refused, and a shell probe holds that the patch applies.
+7. The line editor's two readings lost their reasons with no record. Answered by 95a4474e: D204 records them, and a test holds a paste over chunks, which fails with the window of the gathering off.
+8. `isThenable` stood far from its first reader. Answered by 95a4474e: it stands under `applyMember`.

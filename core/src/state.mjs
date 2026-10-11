@@ -71,12 +71,30 @@ export function envHas(env, name) {
 
 // envSet(env, name, value) → a new scope, the name holding the value.
 export function envSet(env, name, value) {
-  return new Map(env).set(name, value);
+  return asScopeOf(env, new Map(env).set(name, value));
+}
+
+// The scopes of the words of the root, where a bare name and the
+// definition of a call read the root alone [D23], and every scope made
+// from one.
+const ROOT_WORD_SCOPES = new WeakSet();
+
+export function markRootWordScope(scope) {
+  ROOT_WORD_SCOPES.add(scope);
+  return scope;
+}
+
+export function isRootWordScope(scope) {
+  return ROOT_WORD_SCOPES.has(scope);
+}
+
+export function asScopeOf(from, made) {
+  return ROOT_WORD_SCOPES.has(from) ? markRootWordScope(made) : made;
 }
 
 // envMerge(env, otherMap) → a new scope, the names of the map over its own.
 export function envMerge(env, otherMap) {
   const next = new Map(env);
   for (const [key, value] of otherMap) next.set(key, value);
-  return next;
+  return asScopeOf(env, next);
 }

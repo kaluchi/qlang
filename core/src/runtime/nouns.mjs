@@ -11,7 +11,7 @@ import {
   isValueClass, makeSet, makeTag,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { rootOf } from '../state.mjs';
+import { rootOf, isRootWordScope } from '../state.mjs';
 import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
@@ -176,11 +176,33 @@ function kindsNamedBy(value) {
   return null;
 }
 
+// Whether a scope reads what a reader declared under a noun: every scope
+// does but a word's of the root, which reads a noun of the root in the
+// root alone, a reader's extension of it staying in the reader's queries,
+// and a noun the reader declared, whose values carry it, as the reader
+// wrote it [D23], [D222].
+export function readsTheReaderUnder(env, nounName) {
+  return !isRootWordScope(env) || !rootOf(env).has(nounName);
+}
+
 // The record of the verb of `verbName` residing on a kind, or null; a
-// scope whose frame does not declare the address reads the root's.
+// scope whose frame does not declare the address, or reads the root alone
+// under the kind, reads the root's.
 function residenceOf(env, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
-  return pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, residenceAt);
+  return readsTheReaderUnder(env, kindName) && pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, rootResidenceAt);
+}
+
+const rootResidenceAt = (env, address) => residenceAt(rootScopeOf(env), address);
+
+// rootScopeOf(env) → the scope of the root alone beneath a scope.
+const ROOT_SCOPES = new WeakMap();
+
+export function rootScopeOf(env) {
+  const root = rootOf(env);
+  let scope = ROOT_SCOPES.get(root);
+  if (scope === undefined) ROOT_SCOPES.set(root, scope = new Map([[ROOT_KEY, root]]));
+  return scope;
 }
 
 const ROOT_RESIDENCES = new WeakMap();
@@ -264,7 +286,7 @@ export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
-  const residences = residencesOf(env, name);
+  const residences = residencesOf(isRootWordScope(env) ? rootScopeOf(env) : env, name);
   const root = rootOf(env);
   if (residences.length === 0 && root.has(name) && !holdsAPage(root.get(name))) return { record: root.get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;

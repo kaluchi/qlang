@@ -832,7 +832,17 @@ cells into the root, and the catalog is written by its nouns [D62],
   patch active only where `using` names it: a reader's verb under a
   noun of the root, `:vec/second`, stands in its scope alone, and a
   host's extensions in the root its sources declare for its readers
-  [D153].
+  [D153]. A word of the root reads a noun of the root in the root
+  alone, and a kind a reader declared as the reader wrote it, its
+  values carrying it in, the rule of the owner [D222]:
+
+  ```qlang
+  > :vec/doc ~("a reader page") | [1 2] | tutorial | first | type
+  ::doc
+
+  > :Box |~~ A box. ~~| | :Box/doc ~("box page") | ::Box{} | tutorial | first
+  "box page"
+  ```
 - Names without a prefix belong to the core, as EDN reserves its
   unprefixed tags; JavaScript learnt the cost when
   `Array.prototype.flatten` could not ship because a library had put
@@ -1829,66 +1839,6 @@ its word serves and a new word breaks only the queries that call it so;
 or a reader's value read by a form of its own, a sigil before its name,
 which costs a second spelling of every name a query reads.
 
-A reader's extension inside a word of the root [D23], [D200], [D202].
-The rule of collisions asks that a reader's word under a noun of the
-root stand in the reader's scope alone. The maintainer asked how a
-short name resolves under it: «хорошо, убедил с vec/filter  ...
-получается внутри своего модуля я могу написать любой костыль для
-действующих типов новые методы для стринга, булеана и так далее ..
-спокойно ими пользоваться и затенять, но наружу они не выскочат
-неявно.. т.к. короткое имя смотрит в локальную область видимости и
-потом прямо в то что привязано к типу текущего сабжекта? так..»
-(maintainer, 2026-09-25 09:28, session 86982eb5). The tree refuses the
-shadowing he names, an address the root holds being declared once at
-all [D153], and a word of the root reaches a reader's word through the
-walk of its subject, an invariant a reader declares under a part of a
-word of the root holding inside a word of the root that calls it:
-
-```qlang
-> :vec/count ~(99) | [1] | count !| type
-::bind/NameDeclaredTwiceError
-
-> :vec/doc ~("a reader page") | [1 2] | tutorial | first
-"a reader page"
-
-> :number/sub/subtrahend/OverError ::holds~(lt 100) | {:a 500 :b 200} | subOf /a /b !| type
-::number/sub/subtrahend/OverError
-```
-
-The same word reads an address the reader hands it as data, and that
-read reaches the reader's node, since a word's scope is one map for the
-names it calls and the addresses it reads:
-
-```qlang
-> :vec/second |~~ The second element. ~~| ~(/1) | ::vec/second | tutorial | first
-|~~ The second element. ~~|
-```
-
-The alternatives: the scope of a word of the root holding the reader's
-names under the reader's own nouns alone, and an address read as data
-reaching the reader's tree through a second map the state carries,
-which costs a field of the state and a lookup that knows which of the
-two reads it serves; the reader's names under a noun of the root marked
-in the scope, skipped by the walk of a bare name and read by an
-address, which costs the mark; the scopes of the words of the root
-marked, the frame a source gives its words [D200] and every scope made
-from one, where a bare name and the definition of a call read the root
-alone and an address every node, which costs a set of the scopes marked
-and a lookup in each scope made from another, and which
-`docs/research/lexical-extension/marked-scopes.patch` makes of the tree:
-under it the probes of the reach into a word of the root answer as the
-rule asks, `tutorial` answering the page of `::vec` and `subOf`
-answering `300`, the shadowing staying refused [D153], a reader's own
-call keeps the reader's word and invariant, and every case of the core
-holds; or the extension as it stands, which costs the hygiene the rule
-asks for and the definition of a call inside a word of the root read
-once whatever the reader declares. The patch applies to the tree:
-
-```sh
-$ git apply --check docs/research/lexical-extension/marked-scopes.patch && echo applies
-applies
-```
-
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md
@@ -2061,3 +2011,4 @@ applies
 [D219]: decisions/D219.md
 [D220]: decisions/D220.md
 [D221]: decisions/D221.md
+[D222]: decisions/D222.md

@@ -12,7 +12,7 @@
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
-import { rootState } from '../state.mjs';
+import { rootState, markRootWordScope } from '../state.mjs';
 import { isBinding, isBuiltinDescriptor, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
 import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
@@ -76,7 +76,7 @@ export async function declareRoot(env, sources) {
 // joined, so its words read those values first, and a label is no bare
 // name [D191], [D200].
 function runInTheRoot(declared, root) {
-  const frame = new Map([[ROOT_KEY, root]]);
+  const frame = markRootWordScope(new Map([[ROOT_KEY, root]]));
   for (const [name, record] of declared) {
     if (splitAddress(name)[0] === null && !holdsAPage(record)) frame.set(name, record);
   }

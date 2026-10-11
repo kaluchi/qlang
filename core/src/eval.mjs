@@ -4,7 +4,7 @@
 import { parse } from './parse.mjs';
 import { ROOT_KEY } from './env-keys.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf
+  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
@@ -14,7 +14,7 @@ import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet,
-  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, isTag, errorAtRest,
+  makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, isTag, errorAtRest,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
 } from './types.mjs';
@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, rootScopeOf, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -597,10 +597,13 @@ const isThenable = value => typeof value?.then === 'function';
 // in the order of their places with their selectors and invariants, the
 // tag and the invariants of its args and its answer with its invariants
 // [D179], read once for the root where the scope declares no name under
-// the address [D202].
+// the address, or reads the root alone under the word's noun [D202],
+// [D222].
 function definitionOf(scope, address) {
-  return declaresUnder(scope, address) ? definitionIn(scope, address) : onceForRoot(ROOT_DEFINITIONS, scope, address, definitionIn);
+  return readsTheReaderUnder(scope, splitAddress(address)[0]) && declaresUnder(scope, address) ? definitionIn(scope, address) : onceForRoot(ROOT_DEFINITIONS, scope, address, rootDefinitionIn);
 }
+
+const rootDefinitionIn = (scope, address) => definitionIn(rootScopeOf(scope), address);
 
 const ROOT_DEFINITIONS = new WeakMap();
 
@@ -690,15 +693,18 @@ export function answerKindsOf(env, record, subjectKinds) {
 
 // The scope a name under a label runs in: a quote's own, over the tree of
 // names as it stands at the call, the root and every name with a path the
-// steps before the call declared, so the names under a label see each
-// other whatever their order and no bare name of the reader reaches in;
-// a primitive reads the call's.
+// steps before the call declared and every label the reader declared, so
+// the names under a label see each other whatever their order and a value
+// of a kind the reader declared finds its page, while no bare value of the
+// reader reaches in [D222]; a primitive reads the call's.
 function scopeOfMember(member, state) {
   if (!isQuote(member)) return state.env;
-  const scope = new Map(envToRun(member, state.env));
+  const carried = envToRun(member, state.env);
+  const scope = asScopeOf(carried, new Map(carried));
   scope.set(ROOT_KEY, rootOf(state.env));
   for (const [name, entry] of state.env) {
-    if (typeof name === 'string' && name.includes('/') && !scope.has(name)) scope.set(name, entry);
+    if (typeof name !== 'string' || scope.has(name)) continue;
+    if (name.includes('/') || (isBinding(entry) && holdsAPage(entry))) scope.set(name, entry);
   }
   return scope;
 }

@@ -122,11 +122,12 @@ install` at the root links the workspaces; the Node floor is the
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
   runs recorded side by side [D104].
-- `node scripts/benchmark.mjs author | run | grade | misses | frictions |
-  predict`: a set of tasks a clean author writes, clean children that
-  solve it blind or with the command line under a saved screen, the
-  grade by the tree, and the reading of the misses, which marks the set
-  seen [D142]. The usage is the header of the script.
+- `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
+  a set of tasks a clean author writes, clean children that solve it
+  with the command line under a saved screen, the pages of the language
+  and the command line [D216], the grade by the tree, and the reading of
+  the misses, which marks the set seen [D142]. The usage is the header
+  of the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
   that makes a host fail, throws past the fail track or prints as a text

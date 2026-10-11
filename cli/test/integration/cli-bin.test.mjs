@@ -103,7 +103,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
       stdin: '{"name": "alice", "age": 30}'
     });
     expect(exitCode).toBe(0);
-    expect(stdout.trim()).toBe('"alice"');
+    expect(stdout.trim()).toBe('alice');
   });
 
   it('--raw treats stdin as a literal String subject', async () => {

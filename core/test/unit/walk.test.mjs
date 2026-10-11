@@ -9,7 +9,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
-  bindingNamesVisibleAt, TAG_SPELLING } from '../../src/walk.mjs';
+  bindingNamesVisibleAt, readsItsSubject, TAG_SPELLING } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
   it('yields steps for a Pipeline', () => {
@@ -377,5 +377,44 @@ describe('astChildrenOf on a stepless Pipeline', () => {
     // without steps; the walk reports it as a leaf rather than
     // reaching for a head step that is not there.
     expect(astChildrenOf({ type: 'Pipeline', steps: [] })).toEqual([]);
+  });
+});
+
+// A query reads its subject where its first step that declares nothing
+// does, or a declaration's body before it; a host waits on the stream it
+// lifts the subject from only then [D215].
+describe('readsItsSubject', () => {
+  const readsOf = query => readsItsSubject(parse(query));
+
+  it('holds that a literal of no parts reads no subject', () => {
+    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec']) expect(readsOf(query), query).toBe(false);
+  });
+
+  it('holds that a quote reads none, its code not run', () => {
+    expect(readsOf('~(/a)')).toBe(false);
+  });
+
+  it('holds that a literal of parts reads it where a part does', () => {
+    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '(1 | add 1)', '|~~ see ::link~(/x) ~~|']) {
+      expect(readsOf(query), query).toBe(false);
+    }
+    for (const query of ['[/a 1]', '{:a /b}', '::Box{:k /a}', '(/a)']) expect(readsOf(query), query).toBe(true);
+  });
+
+  it('holds that a projection, a call and a blank query read it', () => {
+    for (const query of ['/a', 'doc', '']) expect(readsOf(query), query).toBe(true);
+  });
+
+  it('reads a pipeline by its first step that declares nothing', () => {
+    expect(readsOf('1 | add 1')).toBe(false);
+    expect(readsOf('::vec | doc')).toBe(false);
+    expect(readsOf('doc | [1]')).toBe(true);
+    expect(readsOf(':two 2 | [1]')).toBe(false);
+  });
+
+  it('reads a declaration whose body reads, and a query of declarations alone', () => {
+    expect(readsOf(':x /a | [1]')).toBe(true);
+    expect(readsOf(':two 2')).toBe(true);
+    expect(readsOf(':a 1 | :b 2')).toBe(true);
   });
 });

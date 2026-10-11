@@ -828,8 +828,10 @@
       line writes below it the prose of its refusal's page, as
       `!| explain` reads it, so the reader repairs the call where it
       failed.
-      The command line reads JSON or text from stdin and writes its
-      answer back in the same form. Rests on values and the hypertext.
+      The command line reads JSON from stdin as values and other text as
+      a string, and prints its answer as the language prints it, a
+      string as its text, so `| json` writes JSON; its page,
+      `::cli | doc`, tells the rest. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)
       ::link~(::builtin | doc)
   ~~|

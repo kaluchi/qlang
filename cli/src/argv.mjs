@@ -9,24 +9,24 @@ Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
         qlang -h | --help
         qlang -V | --version
 
-Script mode evaluates the query against piped stdin and writes the
-answer to stdout in the form the input came in. JSON input is the
-subject as values, an object a map whose keys are keywords, and the
-answer is written as JSON, a set as an array and a keyword as its
-name, where a value JSON has no form for, a quote or a tag, is refused
-as ::cli/AnswerNotJsonError. Text input is a string, and the answer
-is written as its print; '| json' writes JSON text. Use -i for an
-interactive REPL, a query after it run as its first cell. Quote the
-query so the shell does not split on whitespace or pipe characters.
-qlang '::qlang | doc' reads the language, and qlang '::cli | doc'
-this command line.
+Script mode runs the query on what stdin holds and prints the answer
+as the language prints it. JSON input is the subject as values, an
+object a map whose keys are keywords, and other text a string. A
+query that reads no subject, '[1 2] | sum' or '::vec | doc', reads no
+stdin; one that reads it with nothing piped, a terminal or < /dev/null,
+runs on ::qlang. The answer is written as its literal and a string as
+its text, so '| json' writes JSON text and '!| json' a failure's; a
+failure prints as its alert, the prose of its refusal's page below it.
+Use -i for an interactive REPL, a query after it run as its first
+cell. Quote the query so the shell does not split on whitespace or
+pipe characters. qlang '::cli | doc' reads this command line, and
+qlang '::qlang | doc' the language.
 
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure
               hand the raw text to the query as a string
-  --json      force JSON.parse on stdin; exit 1 on parse failure
-  --raw       skip parsing — stdin is the string subject, and the
-              answer is written as its print
+  --json      stdin must be JSON; exit 1 when it does not parse
+  --raw       skip parsing — stdin is the string subject
 
 Output budget:
   (default)   a value prints whole, and an error as an alert: the
@@ -35,8 +35,7 @@ Output budget:
               query to it
   --budget=N  print every answer within N characters; what does not
               fit gives way to ::elision markers whose :read continues
-              the query to the part left out; under JSON an error alone
-              is cut, data answering whole. A query bounds its own
+              the query to the part left out. A query bounds its own
               answer the same way by '| elide N'.
 
 Output colour:
@@ -49,9 +48,10 @@ Output colour:
 
 Examples:
   curl -s api/users | qlang '/data | map ~/name'
-  cat data.json     | qlang '/glossary/title'
+  qlang '/glossary/title' < data.json
+  qlang '/users | filter ~(/active) | json' < data.json
   echo hi           | qlang --raw 'append " world"'
-  cat app.log       | qlang --raw 'lines | filter ~(contains "ERROR") | json'
+  qlang --raw 'lines | filter ~(contains "ERROR") | count' < app.log
   qlang '[1 2 3] | filter ~(gt 1) | count'
   qlang -i '::qlang | doc | links | map ~open'
 

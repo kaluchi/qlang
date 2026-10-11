@@ -1,7 +1,8 @@
 // main orchestrator coverage. Every cliInvocation kind dispatches
 // to its own branch; one test per branch, plus end-to-end flows
-// that cover the script-mode auto-pipe contract (JSON in → JSON
-// out, raw in → raw out, `@out` suppression).
+// that cover the script-mode auto-pipe contract (JSON in → the
+// literal out, text in → the text out, `@out` suppression, standard
+// input read only for a query that reads its subject).
 //
 // Tests inject Readable / Writable stream stubs so the orchestrator
 // runs without spawning a subprocess or touching `process.*`.
@@ -107,6 +108,31 @@ describe('main — flag dispatch', () => {
   });
 });
 
+// A query that reads no subject runs without waiting on standard input,
+// which a shell may hand open with nothing piped [D215].
+describe('main — standard input read for a query that reads its subject', () => {
+  const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
+
+  it('answers a query that reads no subject over a stdin that never ends', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['1 | add 1'], openStdin(), s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toBe('2\n');
+  });
+
+  it('reads stdin when `@in` is called by a query that reads no subject', async () => {
+    const s = captureStreams('piped text');
+    await main(['"x" | @in'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(s.stdoutText()).toBe('piped text\n');
+  });
+
+  it('refuses a query that does not parse without reading stdin', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['[1 2'], openStdin(), s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+  });
+});
+
 describe('main — script mode auto-pipe', () => {
   it('starts from the default subject when stdin carries no bytes', async () => {
     const s = captureStreams();
@@ -115,30 +141,40 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('::tag\n');
   });
 
-  it('feeds piped JSON as the initial pipeValue and emits JSON back', async () => {
+  it('feeds piped JSON as the initial pipeValue and writes a string answer as its text [D214]', async () => {
     const s = captureStreams('{"user": {"name": "alice"}}');
     const exitCode = await main(
       ['/user/name'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
-    // Raw JSON string output — a String success value under json
-    // format encodes as a JSON string literal.
-    expect(s.stdoutText()).toBe('"alice"\n');
+    expect(s.stdoutText()).toBe('alice\n');
     expect(s.stderrText()).toBe('');
   });
 
-  it('encodes a Map projection as pretty JSON when the input was JSON', async () => {
+  it('prints a map projection of a JSON input as its literal [D214]', async () => {
     const s = captureStreams('{"a": {"b": 1, "c": 2}}');
     const exitCode = await main(
       ['/a'],
       s.stdinStream, s.stdoutStream, s.stderrStream
     );
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toBe('{\n  "b": 1,\n  "c": 2\n}\n');
+    expect(s.stdoutText()).toBe('{:b 1 :c 2}\n');
   });
 
-  it('emits a literal query result as JSON when stdin was JSON', async () => {
+  it('prints a kind asked of a JSON input, which JSON has no form for [D214]', async () => {
+    const s = captureStreams('{"a": 1}');
+    await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(s.stdoutText()).toBe('::map\n');
+  });
+
+  it('writes JSON text for a query that ends in `| json` [D214]', async () => {
+    const s = captureStreams('{"a": [1, 2]}');
+    await main(['/a | json'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(s.stdoutText()).toBe('[1,2]\n');
+  });
+
+  it('prints the count of a JSON input as its literal', async () => {
     const s = captureStreams('[1, 2, 3]');
     const exitCode = await main(
       ['count'],
@@ -284,12 +320,12 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
-  it('writes the prose of the page under `page` in JSON [D195]', async () => {
+  it('writes a failure on a JSON input as its alert with the prose of its page [D214]', async () => {
     const s = captureStreams('{"a": 1}');
     await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
-    const written = JSON.parse(s.stdoutText()).$error;
-    expect(written.$tag).toBe('proj/KeyNotInMapError');
-    expect(written.page).toContain('a key that may be absent is read by `at`');
+    expect(s.stdoutText()).toMatch(/^::proj\/KeyNotInMapError!\{/);
+    const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
+    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
   it('writes a failure whose refusal has no page as it is [D195]', async () => {

@@ -1,157 +1,100 @@
-// script-mode symmetric-encoding coverage. `liftStdinToPipeValue`
-// resolves the `auto` / `json` / `raw` flag into a concrete initial
-// pipeValue plus the format label the renderer uses to encode the
-// success value back.
+// script-mode coverage. `liftStdinToPipeValue` resolves the `auto` /
+// `json` / `raw` flag into the query's first value, and `answerText`
+// writes the answer as the language prints it, whatever the input was
+// [D214].
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 import {
   DEFAULT_SUBJECT,
   liftStdinToPipeValue,
-  encodeSuccessValueForFormat
+  answerText
 } from '../src/script-mode.mjs';
 
 
 describe('liftStdinToPipeValue — auto detection', () => {
   it('starts from the default subject when stdin carries no bytes, in every mode', () => {
     for (const inputFormat of ['auto', 'json', 'raw']) {
-      expect(liftStdinToPipeValue('', inputFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT, resolvedFormat: 'raw' });
+      expect(liftStdinToPipeValue('', inputFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
     }
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
 
   it('parses JSON stdin into qlang shape when auto succeeds', () => {
-    const lifted = liftStdinToPipeValue('{"a": 1}', 'auto');
-    expect(lifted.resolvedFormat).toBe('json');
-    expect(lifted.pipeValue.get('a')).toBe(1);
+    expect(liftStdinToPipeValue('{"a": 1}', 'auto').pipeValue.get('a')).toBe(1);
   });
 
   it('falls back to raw String when stdin is not valid JSON', () => {
-    const lifted = liftStdinToPipeValue('plain text', 'auto');
-    expect(lifted).toEqual({ pipeValue: 'plain text', resolvedFormat: 'raw' });
+    expect(liftStdinToPipeValue('plain text', 'auto')).toEqual({ pipeValue: 'plain text' });
   });
 });
 
 describe('liftStdinToPipeValue — explicit formats', () => {
   it('parses strictly under --json', () => {
-    const lifted = liftStdinToPipeValue('[1, 2, 3]', 'json');
-    expect(lifted.resolvedFormat).toBe('json');
-    expect(lifted.pipeValue).toEqual([1, 2, 3]);
+    expect(liftStdinToPipeValue('[1, 2, 3]', 'json').pipeValue).toEqual([1, 2, 3]);
   });
 
   it('surfaces parseError on malformed --json input', () => {
     const lifted = liftStdinToPipeValue('not-json', 'json');
-    expect(lifted.resolvedFormat).toBe('json');
     expect(lifted.parseError).toBeInstanceOf(Error);
     expect(lifted.parseError.message).toMatch(/JSON/);
   });
 
   it('skips parsing entirely under --raw', () => {
-    const lifted = liftStdinToPipeValue('{"a":1}', 'raw');
-    expect(lifted).toEqual({ pipeValue: '{"a":1}', resolvedFormat: 'raw' });
+    expect(liftStdinToPipeValue('{"a":1}', 'raw')).toEqual({ pipeValue: '{"a":1}' });
   });
 });
 
-describe('encodeSuccessValueForFormat', () => {
-  it('encodes a qlang Map as pretty JSON under json format', async () => {
-    const value = new Map([
-      ['a', 1],
-      ['b', 2]
-    ]);
-    const text = await encodeSuccessValueForFormat(value, 'json');
-    expect(text).toBe('{\n  "a": 1,\n  "b": 2\n}');
+// The answer is written as the language prints it whatever the input was,
+// a string as its text, so a query converts it where a reader wants
+// another format [D214].
+describe('answerText — the answer as the language prints it', () => {
+  it('prints a keyword, a set, a tag and a quote as their literals', async () => {
+    expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))
+      .toBe('[:v #[1 2] ::vec ~(add 1) "s"]');
   });
 
-  it('encodes a String as a JSON string literal under json format', async () => {
-    expect(await encodeSuccessValueForFormat('hi', 'json')).toBe('"hi"');
+  it('prints a map whose keys a JSON object gave as keywords', async () => {
+    expect(await answerText(liftStdinToPipeValue('{"k": 1}', 'auto').pipeValue, await langRuntime())).toBe('{:k 1}');
   });
 
-  it('passes a String through raw under raw format (no quotes)', async () => {
-    expect(await encodeSuccessValueForFormat('hi', 'raw')).toBe('hi');
+  it('writes a string as its text, so `| json` writes JSON text', async () => {
+    expect(await answerText('hi', await langRuntime())).toBe('hi');
+    expect(await answerText(await evalQuery('{:a [1 :k #[2]]} | json'), await langRuntime())).toBe('{"a":[1,"k",[2]]}');
   });
 
-  it('prints a non-String composite under raw format', async () => {
-    const value = new Map([['k', 1]]);
-    expect(await encodeSuccessValueForFormat(value, 'raw', await langRuntime())).toBe('{:k 1}');
-  });
-});
-
-// Under JSON, the channel a JSON input chose, an answer holding a value
-// JSON has no form for is refused by an error naming its path and kind
-// [D103].
-describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => {
-  const refusalOf = async query => JSON.parse(await encodeSuccessValueForFormat(await evalQuery(query), 'json')).$error;
-
-  it('refuses a quote, naming its place and its kind', async () => {
-    const refusal = await refusalOf('[1 ~(add 1)]');
-    expect(refusal.$tag).toBe('cli/AnswerNotJsonError');
-    expect(refusal.facts.path).toEqual([1]);
-    expect(refusal.facts.actualType).toBe('::quote');
-  });
-
-  it('holds the answer as its literal, so a kind asked after is read [D192]', async () => {
-    const refusal = await refusalOf('[1 2] | type');
-    expect(refusal.$tag).toBe('cli/AnswerNotJsonError');
-    expect(refusal.facts).toMatchObject({ path: [], actualType: '::tag', printed: '::vec' });
-  });
-
-  it('writes a set as the array of its elements in the one order [D126]', async () => {
-    expect(JSON.parse(await encodeSuccessValueForFormat(await evalQuery('{:a #[3 1 2]}'), 'json'))).toEqual({ a: [1, 2, 3] });
-  });
-
-  it('writes a keyword as its name, as `json` writes it [D148]', async () => {
-    expect(JSON.parse(await encodeSuccessValueForFormat(await evalQuery('{:a [{:b :k}] :s #[1 :k]}'), 'json'))).toEqual({ a: [{ b: 'k' }], s: [1, 'k'] });
-  });
-
-  it('refuses a tagged value by the path of map keys and indices', async () => {
-    expect((await refusalOf(':Box |~~ Box. ~~| | {:a [::Box{:k 1}]}')).facts).toMatchObject({ path: ['a', 0], actualType: '::Box' });
-  });
-
-  it('answers an error a container holds as that error', async () => {
-    expect((await refusalOf('[1 ("x" | add 1)]')).$tag).toBe('number/add/SubjectNotNumberError');
-  });
-
-  it('keeps the form of an answer that is itself an error', async () => {
-    expect((await refusalOf('"x" | add 1')).$tag).toBe('number/add/SubjectNotNumberError');
-  });
-
-  it('writes JSON values as they are', async () => {
-    const text = await encodeSuccessValueForFormat(await evalQuery('{:a [1 "x" null true {:b 2.5}]}'), 'json');
-    expect(JSON.parse(text)).toEqual({ a: [1, 'x', null, true, { b: 2.5 }] });
+  it('writes a failure as its error at rest raised, and `!| json` as JSON text', async () => {
+    const env = await langRuntime();
+    expect(await answerText(await evalQuery('"x" | add 1'), env)).toMatch(/^::number\/add\/SubjectNotNumberError!\{[\s\S]*\} \| raise$/);
+    expect(JSON.parse(await answerText(await evalQuery('"x" | add 1 !| json'), env)).$tag).toBe('number/add/SubjectNotNumberError');
   });
 });
 
 
-// An answer prints within the budget a caller asked for, and the JSON
-// channel cuts an error alone [D120]; an error prints as its alert [D184].
-describe('encodeSuccessValueForFormat — the budget of the answer', () => {
+// An answer prints within the budget a caller asked for [D120]; an error
+// prints as its alert [D184].
+describe('answerText — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);
 
   it('prints a value past its budget with a marker that reads the rest', async () => {
-    const text = await encodeSuccessValueForFormat(forty, 'raw', await langRuntime(), 80);
+    const text = await answerText(forty, await langRuntime(), 80);
     expect(text).toContain('::elision{');
     expect(text).toContain(':read ~(drop ');
   });
 
-  it('writes JSON data whole, whatever its size', async () => {
-    expect(JSON.parse(await encodeSuccessValueForFormat(forty, 'json', undefined, budget))).toEqual(forty);
-  });
-
-  it('cuts an error under JSON within the budget', async () => {
-    const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
-    const text = await encodeSuccessValueForFormat(failing, 'json', undefined, budget);
-    expect(text).toContain('"$tag": "elision"');
+  it('cuts an error within the budget', async () => {
+    const failing = await evalQuery(`[${forty.map(index => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
+    expect(await answerText(failing, await langRuntime(), budget)).toContain(':read ~(!| /trail/0/subject)');
   });
 
   it('writes the answer whole when no budget was asked for', async () => {
-    const text = await encodeSuccessValueForFormat(forty, 'raw', await langRuntime(), null);
+    const text = await answerText(forty, await langRuntime(), null);
     expect(text).not.toContain('::elision');
   });
 
   it('writes an error as its alert when no budget was asked for', async () => {
     const failing = await evalQuery(`[${forty.map(index => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    expect(await encodeSuccessValueForFormat(failing, 'json', undefined, null)).toContain('"read": "~(!| /trail/1/subject)"');
-    expect(await encodeSuccessValueForFormat(failing, 'raw', await langRuntime(), null)).toContain(':read ~(!| /trail/1/subject)');
+    expect(await answerText(failing, await langRuntime(), null)).toContain(':read ~(!| /trail/1/subject)');
   });
 });

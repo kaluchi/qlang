@@ -65,6 +65,37 @@ export function astChildrenOf(node) {
   return out;
 }
 
+// The literals of no parts, which answer themselves whatever the subject,
+// and the literals whose parts run on the subject, `[/a 1]` reading it
+// where `[1 2]` does not.
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit']);
+const LITERALS_OF_PARTS = new Set([
+  'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
+]);
+
+// readsItsSubject(node) → whether a query reads the subject it is handed,
+// which a host that lifts the subject from a stream waits on only then
+// [D215]: a pipeline where its first step that declares nothing reads
+// it, or where a declaration before that step runs a body that does; a
+// literal of no parts never, nor a quote, whose code does not run; a
+// literal of parts where one of its parts reads it; a projection, a call,
+// a declaration, which answers its subject, and a node this walk does not
+// name always.
+export function readsItsSubject(node) {
+  if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);
+  if (node.type === 'QuoteLit' || LITERALS_OF_NO_PARTS.has(node.type)) return false;
+  if (LITERALS_OF_PARTS.has(node.type)) return astChildrenOf(node).some(readsItsSubject);
+  return true;
+}
+
+function stepsReadTheirSubject(steps) {
+  for (const step of steps) {
+    if (step.type !== 'BindStep') return readsItsSubject(step);
+    if (astChildrenOf(step).some(readsItsSubject)) return true;
+  }
+  return true;
+}
+
 // walkAst(node, visit) → a walk of the tree, each node before its
 // children, which it skips for a node `visit(node, parent)` answers false
 // for.

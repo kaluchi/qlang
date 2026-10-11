@@ -1,6 +1,6 @@
 // The tasks of the benchmark [D26]: each a question over an input of
-// `inputs/`, or over the language alone, the answer the command line
-// must print, as JSON or as a qlang literal, and the reference,
+// `inputs/`, or over the language alone, the answer, as JSON the query
+// over the input writes by `| json` or as a qlang literal, and the reference,
 // the shortest query the tree answers it with today. The reference is
 // no hint to a model under test, which never sees this file; it proves
 // the task solvable and names the price the language asks, so a
@@ -34,7 +34,7 @@ export const TASKS = [
   {
     id: 'T5', input: 'app.log', raw: true,
     question: 'the distinct messages of the ERROR lines, where the message is the text after the level word. Expected shape: a JSON list of strings.',
-    reference: 'lines | filter ~(contains "ERROR") | map ~(split "ERROR " | last) | distinct | sort | json',
+    reference: 'lines | filter ~(contains "ERROR") | map ~(split "ERROR " | last) | distinct | sort',
     answer: '["db timeout"]'
   },
   {

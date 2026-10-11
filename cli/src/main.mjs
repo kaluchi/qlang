@@ -1,10 +1,11 @@
 // main(argv, stdin, stdout, stderr, env) → the exit code of the command
 // line: the help, the version, the REPL over the streams, or a query run
-// on what standard input lifts to, its answer written in the format of
-// the input unless the query wrote to stdout by `@out`; the streams are
+// on what standard input lifts to, its answer written as the language
+// prints it unless the query wrote to stdout by `@out`; the streams are
 // handed in, so a test runs it without a process.
 
 import { existsSync } from 'node:fs';
+import { parse, readsItsSubject } from '@kaluchi/qlang-core';
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
@@ -55,6 +56,18 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
+// Whether a query reads the subject standard input lifts to [D215]; a
+// query that does not parse reads none, its refusal written at once.
+function queryReadsInput(queryText) {
+  let ast;
+  try {
+    ast = parse(queryText);
+  } catch {
+    return false;
+  }
+  return readsItsSubject(ast);
+}
+
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
@@ -77,7 +90,12 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: queryAsWritten(cliInvocation.initialQuery, env) });
   }
 
-  const stdinText = await readStdinToString(stdinStream);
+  // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
+  // without waiting on standard input, which a shell may hand open with
+  // nothing piped [D215].
+  const queryText = queryAsWritten(cliInvocation.queryText, env);
+  const readsInput = queryReadsInput(queryText);
+  const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
   const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
 
   if (lifted.parseError) {
@@ -89,13 +107,12 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 1;
   }
 
-  // `@in` reads the text standard input already gave.
-  const stdinReader = memoiseStdinReader(() => Promise.resolve(stdinText));
+  // `@in` reads the text standard input already gave, or reads it then.
+  const stdinReader = memoiseStdinReader(() => (readsInput ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
 
   let didExplicitStdoutEffect = false;
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
 
-  const queryText = queryAsWritten(cliInvocation.queryText, env);
   const cellEntry = await runQuery(
     queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
@@ -103,7 +120,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {
-    resolvedFormat: lifted.resolvedFormat,
     didExplicitStdoutEffect,
     shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
     budget: cliInvocation.budget

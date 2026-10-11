@@ -1,7 +1,7 @@
 // The benchmark of the first screen [D26], [D104], [D142]. A run hands a
-// clean child a screen, the first page of the language as a tree printed
-// it, and a set of tasks; the child answers blind or with the command
-// line, and the tree grades the queries it wrote. The sets are written by
+// clean child a screen, the pages of the language and the command line as
+// a tree printed them [D216], and a set of tasks; the child answers with
+// the command line, and the tree grades the queries it wrote. The sets are written by
 // a clean author who never saw the language, and a set measures once:
 // reading what its children missed marks it seen, and the next
 // measurement orders a new set. The set of `benchmark/tasks.mjs`, whose
@@ -14,13 +14,11 @@
 //   node scripts/benchmark.mjs screen [--save NAME] [--query Q]   the hash of the first screen, or it or what Q prints saved under a name
 //   node scripts/benchmark.mjs report                 the runs of tasks.mjs side by side
 //   node scripts/benchmark.mjs author ID [--model M]  a clean author writes the set ID
-//   node scripts/benchmark.mjs run ID --decision DNNN --mode blind|cli --model M --runs N [--reason TEXT]
+//   node scripts/benchmark.mjs run ID --decision DNNN --model M --runs N [--reason TEXT]
 //   node scripts/benchmark.mjs verdict ID SCREEN [BASELINE]   the runs of a measurement beside a baseline, as they fixed them
 //   node scripts/benchmark.mjs grade ID               every run of a set held against its answers
 //   node scripts/benchmark.mjs misses ID RUN [TASK…]  what a run missed; marks the set seen
 //   node scripts/benchmark.mjs frictions ID           what the calls of its runs failed with; marks the set seen
-//   node scripts/benchmark.mjs predict --screen NAME --model M --runs N
-//   node scripts/benchmark.mjs predictions            the predictions of conformance cases graded
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -32,7 +30,6 @@ import { TASKS } from './benchmark/tasks.mjs';
 import { firstScreen, saveScreen } from './benchmark/screens.mjs';
 import { author, run, grade, misses, frictions } from './benchmark/sets.mjs';
 import { verdict } from './benchmark/verdict.mjs';
-import { predict, gradePredictions } from './benchmark/predict.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const benchDir = join(repoRoot, 'scripts', 'benchmark');
@@ -47,15 +44,17 @@ const { deepEqual } = await core('equality.mjs');
 
 const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
 
+// What the command line answers for a query over the input of its task,
+// as JSON text, which `| json` writes [D214].
 function answerOf(query, task) {
-  const flags = task.raw ? ['--raw', query] : [query];
+  const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
   return execFileSync(process.execPath, [commandLine, ...flags],
     { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8' });
 }
 
-// A task over an input answers JSON or text through the command line;
-// a task of the language alone answers a value, held against the literal
-// of its answer.
+// A task over an input answers JSON through the command line; a task of
+// the language alone answers a value, held against the literal of its
+// answer.
 async function referenceHolds(task) {
   if (task.input === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
   return isDeepStrictEqual(JSON.parse(answerOf(task.reference, task)), JSON.parse(task.answer));
@@ -135,12 +134,10 @@ const COMMANDS = {
   screen: () => (flags.save === undefined ? console.log(shortHash(firstScreen(flags.query))) : saveScreen(flags.save, flags.query)),
   report,
   author: () => author(positional[0], flags.model),
-  run: () => run(positional[0], { decision: flags.decision, mode: flags.mode, model: flags.model, runs: Number(flags.runs ?? 1), reason: flags.reason }),
+  run: () => run(positional[0], { decision: flags.decision, model: flags.model, runs: Number(flags.runs ?? 1), reason: flags.reason }),
   verdict: () => verdict(positional[0], positional[1], positional[2]),
   grade: () => grade(positional[0]),
   misses: () => misses(positional[0], positional[1], positional.slice(2)),
-  frictions: () => frictions(positional[0]),
-  predict: () => predict({ screen: flags.screen, model: flags.model, runs: Number(flags.runs ?? 1) }),
-  predictions: () => gradePredictions()
+  frictions: () => frictions(positional[0])
 };
 (COMMANDS[process.argv[2] ?? 'check'] ?? (() => { console.error(`unknown command ${process.argv[2]}`); process.exit(2); }))();

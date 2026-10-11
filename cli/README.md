@@ -20,13 +20,15 @@ qlang -h | --help
 qlang -V | --version
 ```
 
-A query runs on what stdin holds and its answer is written to stdout
-in the form the input came in: JSON input is the subject as values and
-the answer is written as JSON; text input is a string and the answer is
-written as its print. `qlang -h` tells the flags.
+A query runs on what stdin holds, JSON as values and any other text as
+a string, and its answer is printed as the language prints it, a
+string as its text, so a query that ends in `| json` writes JSON. A
+query that reads no subject, `[1 2 3] | sum`, reads no stdin.
+`qlang -h` tells the flags.
 
 ```
 curl -s api/users | qlang '/data | map ~/name'
+qlang '/users | filter ~(/active) | json' < data.json
 printf hi         | qlang --raw 'append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
 qlang -i '::qlang | doc | links | map ~open'

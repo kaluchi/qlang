@@ -1,7 +1,7 @@
-// The screens a run hands a child [D142]: the first page of the
-// language as the tree printed it, saved under a name, so a run states
-// which page it read and two runs compare two pages. `none` is the
-// empty screen, a child with no page.
+// The screens a run hands a child [D142]: the pages of the language and
+// the command line as the tree printed them [D216], saved under a name,
+// so a run states which pages it read and two runs compare two screens.
+// `none` is the empty screen, a child with no page.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,9 +12,10 @@ const benchDir = import.meta.dirname;
 const screensDir = join(benchDir, 'screens');
 const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
 
-// The first screen the tree prints, `::qlang | doc | content`, or what
-// another query prints, a screen a run tries against it.
-export function firstScreen(query = '::qlang | doc | content') {
+// The first screen the tree prints, the pages of the language and the
+// command line, or what another query prints, a screen a run tries
+// against it.
+export function firstScreen(query = '[::qlang ::cli] | map ~([/ doc])') {
   return execFileSync(process.execPath, [commandLine, query], { input: '', encoding: 'utf8' });
 }
 

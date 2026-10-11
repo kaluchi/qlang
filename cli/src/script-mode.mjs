@@ -1,116 +1,56 @@
 // The streams of the command line: standard input lifts to the query's
 // first value, a JSON document as its value and any other text as a
-// string, and the answer goes back in the format of the input [D37].
+// string [D37], and the answer is written as the language prints it,
+// whatever the input was, a query converting it where a reader wants
+// another format, `| json` [D214].
 
-import {
-  fromPlain, toPlain, printAnswer, printValue, makeTag, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
-} from '@kaluchi/qlang-core';
-import { recordRefusal } from '@kaluchi/qlang-core/errors';
-
-const JSON_PRETTY_INDENT = 2;
-
-// Under JSON, the channel a JSON input chose, an answer holding a value
-// JSON has no form for is refused, naming the path of map keys and
-// indices to that value and its kind [D103]; a set is written as the
-// array of its elements in the one order [D126], and a keyword as its
-// name, as `json` writes it [D148]; the refusal is a value made where
-// the answer is written, its address recorded without a class.
-recordRefusal('cli/AnswerNotJsonError');
-
-const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
-
-// The first value beneath the answer that JSON has no form for, with the
-// path to it, or null.
-function firstNotJson(value, path) {
-  const kindName = typeKeyword(value).name;
-  if (!JSON_KINDS.has(kindName)) return { value, path };
-  const parts = kindName === 'vec' || kindName === 'set' ? value.map((element, index) => [index, element])
-    : kindName === 'map' ? [...value].map(([key, entryValue]) => [keyword(key), entryValue])
-    : [];
-  for (const [pathStep, part] of parts) {
-    const found = firstNotJson(part, [...path, pathStep]);
-    if (found !== null) return found;
-  }
-  return null;
-}
-
-// The answer the JSON channel writes: a failure, which no value holds
-// [D210], the answer itself, or the refusal of a value JSON has no form
-// for, which holds the answer as its literal, so a query that asks after
-// a kind, a page or a tag reads its answer on that channel too [D192].
-function answerForJson(value) {
-  if (isErrorValue(value)) return value;
-  const notJson = firstNotJson(value, []);
-  if (notJson === null) return value;
-  return makeErrorValue(makeTag('cli/AnswerNotJsonError'), new Map([
-    ['path', notJson.path], ['actualType', typeKeyword(notJson.value)], ['printed', printValue(value)]]));
-}
+import { fromPlain, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
 // bytes, outside any project [D37]; the noun of the nearest `.qlang/`
 // folder comes with the sources a project ships.
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
-// liftStdinToPipeValue(text, inputFormat) → the first value and the
-// format the input resolved to: the noun of the language with no bytes,
-// the text under `raw`, the document under `json`, which refuses a text
-// that does not parse, and under `auto` the document where the text
-// parses and the text where it does not.
+// liftStdinToPipeValue(text, inputFormat) → the first value: the noun of
+// the language with no bytes, the text under `raw`, the document under
+// `json`, which refuses a text that does not parse, and under `auto` the
+// document where the text parses and the text where it does not.
 export function liftStdinToPipeValue(stdinText, inputFormat) {
   if (stdinText.length === 0) {
-    return { pipeValue: DEFAULT_SUBJECT, resolvedFormat: 'raw' };
+    return { pipeValue: DEFAULT_SUBJECT };
   }
   if (inputFormat === 'raw') {
-    return { pipeValue: stdinText, resolvedFormat: 'raw' };
+    return { pipeValue: stdinText };
   }
 
-  // `JSON.parse` alone stands in each `try`, so a document that parses
+  // `JSON.parse` alone stands in the `try`, so a document that parses
   // and holds a number past the doubles is refused as a document.
-  if (inputFormat === 'json') {
-    let parsed;
-    try {
-      parsed = JSON.parse(stdinText);
-    } catch (jsParseError) {
-      return { parseError: jsParseError, resolvedFormat: 'json' };
-    }
-    return liftParsedDocument(parsed, 'json');
-  }
-
-  // inputFormat === 'auto'.
   let parsed;
   try {
     parsed = JSON.parse(stdinText);
-  } catch {
-    return { pipeValue: stdinText, resolvedFormat: 'raw' };
+  } catch (jsParseError) {
+    return inputFormat === 'json' ? { parseError: jsParseError } : { pipeValue: stdinText };
   }
-  return liftParsedDocument(parsed, 'json');
+  return liftParsedDocument(parsed);
 }
 
 // The document lifted to a value, or the refusal of a number past the
 // doubles at the path `fromPlain` names.
-function liftParsedDocument(parsed, resolvedFormat) {
+function liftParsedDocument(parsed) {
   try {
-    return { pipeValue: fromPlain(parsed), resolvedFormat };
+    return { pipeValue: fromPlain(parsed) };
   } catch (codecRefusal) {
-    return { codecError: codecRefusal, resolvedFormat };
+    return { codecError: codecRefusal };
   }
 }
 
-// The answer a channel writes [D120], [D184]: a value whole unless the
-// caller asked for a budget, an error an alert, under JSON data whole
-// for the tools that read it and an error alone giving way within the
-// budget, a failure carrying the prose of its refusal's page, under
-// `page` in JSON and below the print as comment lines a reading of the
-// literal passes over [D195].
-export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null, page = null) {
-  if (resolvedFormat === 'json') {
-    const answer = answerForJson(value);
-    const shown = isErrorValue(answer) ? elideAnswer(answer, budget) : answer;
-    const plain = toPlain(shown);
-    if (page !== null) plain.$error.page = oneLine(page);
-    return JSON.stringify(plain, null, JSON_PRETTY_INDENT);
-  }
-  // A string goes out as it is, any other answer as its print.
+// answerText(value, env, budget, page) → the text the command line writes
+// for an answer [D214]: a string as it is, so `| json` writes JSON text
+// and `| table` a table, and any other value as its print, whole unless
+// the caller asked for a budget [D120], an error as its alert [D184], a
+// failure carrying the prose of its refusal's page below it as line
+// comments a reading of the literal passes over [D195].
+export async function answerText(value, env, budget = null, page = null) {
   if (typeof value === 'string') return value;
   const printed = await printAnswer(elideAnswer(value, budget), env);
   return page === null ? printed : `${printed}\n${commentLinesOf(page)}`;

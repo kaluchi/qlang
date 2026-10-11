@@ -1,11 +1,10 @@
 // A clean child [D142]: `claude -p` started from a directory of its own,
 // with no settings, no memory, no MCP server and a one-line system
 // prompt, so its context is the prompt it is handed and nothing the
-// session that runs it knows. A blind child has no tool and answers in
-// one reply; a child of the command line runs `qlang` alone, on the
-// input files copied beside it, and its record keeps every call it made
-// and what the language answered, the frictions a reading of the run
-// looks for.
+// session that runs it knows. It runs `qlang` alone, on the input files
+// copied beside it [D216], and its record keeps every call it made and
+// what the language answered, the frictions a reading of the run looks
+// for.
 
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -81,15 +80,12 @@ function recordOfStream(streamText) {
   };
 }
 
-// runChild({ prompt, model, mode, workDir }) → the record of the run;
-// `mode` is `blind` or `cli`, and `workDir` the directory the child
-// starts in, which holds the input files for `cli`.
-export function runChild({ prompt, model, mode, workDir }) {
+// runChild({ prompt, model, workDir }) → the record of the run;
+// `workDir` the directory the child starts in, which holds the input
+// files.
+export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });
-  const toolFlags = mode === 'cli'
-    ? ['--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS]
-    : ['--tools', ''];
-  const flags = ['-p', '--model', model, ...toolFlags, '--strict-mcp-config', '--restricted',
+  const flags = ['-p', '--model', model, '--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS, '--strict-mcp-config', '--restricted',
     '--system-prompt', SYSTEM_PROMPT, '--output-format', 'stream-json', '--verbose'];
   return new Promise(resolve => {
     const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...CHILD_ENVIRONMENT } });

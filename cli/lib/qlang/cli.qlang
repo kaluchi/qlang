@@ -4,45 +4,46 @@
    the served subject and the parts. ~|
 
 :cli
-  |~~ The command line runs a query on what a shell hands it and writes
-      the answer back: `qlang '…'` in a script, `qlang -i` as a session
-      of cells. It is the host a reader meets first, and the words it
-      adds read and write the streams of the process.
+  |~~ The command line runs a query on what a shell hands it and prints
+      the answer: `qlang '/users | count' < data.json` in a script, and
+      `qlang -i` a session of cells. It is the host a reader meets first,
+      and the words it adds read and write the streams of the process.
 
-      A query runs on what stdin holds: JSON is read as values, an
-      object a map whose keys are keywords, and the answer is written
-      back as JSON, a value JSON has no form for refused with the answer
-      as its literal; any other text is read as a string, and the answer
-      written as its `print`. With nothing piped a query runs on the
-      noun of the language, `::qlang`, so `qlang 'doc'` reads the first
-      page. A failure is written as its alert with the prose of its
-      refusal's page below it as line comments, `|~| …`, which tell how
-      to repair the call, and under `page` in JSON.
+      A query runs on what stdin holds. JSON is read as values, an object
+      a map whose keys are keywords, `{"name": "Ann"}` arriving as
+      `{:name "Ann"}`; any other text is one string, and `--raw` reads
+      JSON text as a string too. A query that reads no subject,
+      `qlang '::vec | doc'` or `qlang '[1 2] | sum'`, runs at once and
+      reads no stdin. One that reads it with nothing piped, a terminal or
+      `< /dev/null`, runs on the noun of the language, `::qlang`, so
+      `qlang 'doc'` reads the first page; where a shell leaves stdin
+      open, it waits for the end, as every reader of a pipe does.
 
-      `@in`, `@out`, `@err` and `@tap` read and write the streams,
-      `table` renders a vector of maps as text, and `| json` writes JSON
-      text. A value one query hands another over a pipe keeps its kinds
-      as its literal, `print | @out` writing it and `@in | parse | open`
-      reading it back; a query that writes to stdout by `@out` holds the
-      channel, and its answer is left unwritten.
-      ::link~(::qlang/hosts | doc)
+      The answer is printed as the language prints it, whatever the input
+      was: a map as `{:name "Ann" :tags #["a"]}`, a kind as `::map`. A
+      string goes out as its text, so a query that ends in a conversion
+      writes what the conversion made: `| json` the JSON text of the
+      answer, `| table` a vector of maps drawn as a table, `| print` the
+      literal of the answer, a string in its quotes. A failure prints as
+      its alert, `::Tag!{…} | raise`, the subject where it arose cut to an
+      excerpt, and below it, as line comments `|~| …`, the prose of its
+      refusal's page, which tells how to repair the call; `!| json`
+      writes a failure as JSON. The exit code is 0 for every answer, a
+      failure among them, and 1 for a query that does not parse or an
+      input `--json` cannot read.
+
+      An answer prints whole, and `--budget=N` or `| elide N` bounds it,
+      what is left out an `::elision` marker whose `:read` continues the
+      query to it. `@in`, `@out`, `@err` and `@tap` read and write the
+      streams, `@tap` showing a value halfway through a query on stderr;
+      a query that writes to stdout by `@out` holds the channel, and its
+      answer is left unwritten. A value one query hands another over a
+      pipe keeps its kinds as its literal, `print | @out` writing it and
+      `@in | parse | open` reading it back.
+      ::link~(::any/json | doc) ::link~(::vec/table | doc)
+      ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
+      ::link~(::any/@tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
-
-:cli/AnswerNotJsonError
-  |~~ The input was JSON, so the answer is written as JSON, and a value
-      under it has no form there: a quote, a tag or a value under a tag;
-      a set is written as the array of its elements, and a keyword as
-      its name.
-      `:path` holds the map keys and the indices to it, `:actualType` its
-      kind, and `:printed` the answer as its literal, so a query that asks
-      after a kind, a page or a tag reads its answer there. The query
-      ends before the answer is data: `payload` takes a value from under
-      its tag, and `print` writes a quote or a tag as its text.
-  ~~|
-
-:cli/AnswerNotJsonError/path
-  |~~ The path to the value JSON has no form for. ~~|
-  ::vec
 
 :cli/declaresTable
   |~~ The command line declares `table` under vectors. ~~|

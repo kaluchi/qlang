@@ -1337,8 +1337,19 @@ applies to the core alone.
 
 The consumers at the finish carry no language of their own. The
 command line is a thin host: standard input lifted only when it
-carries bytes, the default subject otherwise [D37], the budget and the
-rendering at the end of the pipe, no `table`, no `template`. The
+carries bytes, the default subject otherwise [D37], and read only for a
+query that reads its subject, so a pipe left open never holds a query
+that reads none [D215]; the answer written as its literal whatever the
+input was, a string as its text, and converted by the query, `| json`
+[D214]; the budget and the rendering at the end of the pipe, no
+`table`, no `template`.
+
+```sh
+$ sleep 4 | timeout 2 node cli/src/bin.mjs '1 | add 1'
+2
+$ echo '{"name":"Ann"}' | node cli/src/bin.mjs 'type'
+::map
+``` The
 language server reads the declarations and the parser's tree and
 nothing else. The editor's
 grammar is generated from the grammar's tokens or reduced to what the
@@ -1449,8 +1460,10 @@ conformance suite are the targets of [D7], [D107], [D108], [D109],
 one met. The benchmark runs [D26], each run recorded with the frictions
 it met [D104], [D105], [D106], each measurement on a set of tasks a
 clean author wrote, which measures once and serves the work once its
-misses are read [D142]. An error a host prints is an alert, the subject
-where it arose an excerpt and each subject it passed a marker [D184].
+misses are read [D142], its children running the command line from the
+pages of the language and the command line [D216]. An error a host
+prints is an alert, the subject where it arose an excerpt and each
+subject it passed a marker [D184].
 
 What remains of it: a view takes its options beyond a few positional
 modifiers as one map whose keys it declares [D40]; the catalog's prose
@@ -1858,36 +1871,6 @@ $ git apply --check docs/research/lexical-extension/marked-scopes.patch && echo 
 applies
 ```
 
-Standard input with nothing piped. The command line reads its subject
-from standard input and waits until the input ends, so a query run with
-no input and no `< /dev/null` waits for ever where the shell hands an
-open input that nothing writes, as the shell of Claude Code does; the
-rules of the benchmark's runs tell every child to pass its input, which
-hides the wait from the measurement; an input left open and empty:
-
-```sh
-$ sleep 10 | timeout 3 node cli/src/bin.mjs '1 | add 1'; echo $?
-124
-```
-
-The alternatives: an input that sends no byte within a short time read
-as no input, which risks a slow producer, `curl` over a network, read
-as none; the same only where the host is told a model reads, `CLAUDECODE`
-set, a rule of the host's own; or the wait as it stands, the benchmark
-keeping its rule.
-
-Where a reader lands [D214]. A child of the benchmark is handed the first
-page, `::qlang | doc`, and reads nothing of the command line it runs:
-no child of set U read `--help` or `::cli | doc`. The maintainer: «а на
-что мы сейчас высаживаем модель? на tutorial или на doc ?  даже если не
-[::qlang ::cli] | map ~([/ doc])  .. то сделать недостающий tutorial для cli
-и нормально там по линкам и частям разложить..» (maintainer, 2026-10-11
-20:10, session 22b934f8). The alternatives: the first screen the page of
-the language and the page of the command line together; the page of the
-language alone, a link of it leading to the command line's page, which
-tells the default and links the rest; or the tutorial of each, a page and
-its laws.
-
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md
@@ -2053,3 +2036,5 @@ its laws.
 [D210]: decisions/D210.md
 [D211]: decisions/D211.md
 [D214]: decisions/D214.md
+[D215]: decisions/D215.md
+[D216]: decisions/D216.md

@@ -2,10 +2,10 @@
 // for a cell and its exit code: a query that does not parse or a defect
 // raised past the fail track on stderr with exit 1, nothing once the
 // query wrote to stdout by `@out`, and any other answer, a failure among
-// them, in the format of the input with exit 0 [D96], [D103].
+// them, as the language prints it with exit 0 [D96], [D214].
 
 import { isErrorValue, printAnswer, elideAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
-import { encodeSuccessValueForFormat } from './script-mode.mjs';
+import { answerText } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
 // The names of the verbs the highlighter marks, read once.
@@ -24,7 +24,7 @@ async function maybePaint(text, shouldColorize) {
 }
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
-  const { resolvedFormat, didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
+  const { didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
 
   if (cellEntry.error !== null) {
     // A query that does not parse prints its error, a defect its message.
@@ -40,10 +40,6 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (didExplicitStdoutEffect) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
-  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
-  // The print alone is painted; JSON stays plain for the tools it feeds.
-  const painted = resolvedFormat === 'raw'
-    ? await maybePaint(encoded, shouldColorize)
-    : encoded;
-  return { stdoutText: painted + '\n', stderrText: '', exitCode: 0 };
+  const written = await answerText(cellEntry.result, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
+  return { stdoutText: await maybePaint(written, shouldColorize) + '\n', stderrText: '', exitCode: 0 };
 }

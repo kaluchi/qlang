@@ -781,9 +781,12 @@
       group keeps its elements in their order, and the empty vector
       answers the empty map. A key of a map is a keyword, so a key that
       answers a string, the field of a JSON object, or a number files
-      its element under the keyword of its text, `:"1"` for `1`; any
-      other key, a boolean or null among them, is refused at its
-      element. Without a key an element files under itself, so
+      its element under the keyword of its text, `:"1"` for `1`, a
+      boolean or null under the keyword of its literal, so a condition
+      partitions, `[1 2 3] | groupBy ~(gt 1)` answering `{:false [1]
+      :true [2 3]}`, and a tag name under the keyword of its name, so
+      `groupBy ~(type)` files by kind; a key of another kind, a vector or
+      a map, is refused at its element. Without a key an element files under itself, so
       `groupBy | map ~count` counts the occurrences of each value. The key
       is code run on each element, a quote, `~(/k)`; a value computed at
       the call is refused, and a key that misses its field answers the
@@ -811,10 +814,11 @@
   ::holds~(is ::quote ::null)
 
 :vec/groupBy/KeyNotKeywordError
-  |~~ The key `groupBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text, since the keys of
-      a map are keywords; any other value is refused, and `:index` names
-      the element.
+  |~~ The key `groupBy` files an element under is a keyword, since the
+      keys of a map are keywords: a string or a number files under the
+      keyword of its text, a boolean or null under that of its literal
+      and a tag name under that of its name; a vector, a set, a map or a
+      quote is refused, and `:index` names the element.
   ~~|
 
 :vec/groupBy/filesUnderTheKey
@@ -840,6 +844,18 @@
   |~~ A number key files under the keyword of its text. ~~|
   ::law~([{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys | eq #[:"1" :"2"])
 
+:vec/groupBy/partitionsByACondition
+  |~~ A boolean key files under the keyword of its literal. ~~|
+  ::law~([1 2 3] | groupBy ~(gt 1) | eq {:false [1] :true [2 3]})
+
+:vec/groupBy/filesNullUnderItsLiteral
+  |~~ A null key files under `:null`. ~~|
+  ::law~([{:c "US"} {}] | groupBy ~(at :c) | keys | eq #[:US :null])
+
+:vec/groupBy/filesATagUnderItsName
+  |~~ A tag name files under the keyword of its name. ~~|
+  ::law~([1 "a" 2] | groupBy ~(type) | eq {:number [1 2] :string ["a"]})
+
 :vec/groupBy/filesUnderItselfWithoutAKey
   |~~ Without a key an element files under itself. ~~|
   ::law~(["b" "a" "b"] | groupBy | eq {:b ["b" "b"] :a ["a"]})
@@ -854,26 +870,21 @@
     !| [type /actualType]
     |  eq [::vec/groupBy/key/NotQuoteOrNullError ::keyword])
 
-:vec/groupBy/KeyNotKeywordError/refusesABooleanKey
-  |~~ A boolean key is refused at its element. ~~|
-  ::law~([{:k true} {:k 2}] | groupBy ~(/k)
+:vec/groupBy/KeyNotKeywordError/refusesAVectorKey
+  |~~ A vector key is refused at its element. ~~|
+  ::law~([{:k 2} {:k [1]}] | groupBy ~(/k)
     !| [type /actualType /index]
-    |  eq [::vec/groupBy/KeyNotKeywordError ::boolean 0])
-
-:vec/groupBy/KeyNotKeywordError/refusesANullKey
-  |~~ A null key is refused at its element. ~~|
-  ::law~([{:k null}] | groupBy ~(/k)
-    !| [type /actualType]
-    |  eq [::vec/groupBy/KeyNotKeywordError ::null])
+    |  eq [::vec/groupBy/KeyNotKeywordError ::vec 1])
 
 :vec/indexBy
   |~~ Answers the map of the elements, each under the keyword its key
       answered, `[{:id :a :n 1} {:id :b :n 2}] | indexBy ~(/id)`
       answering `{:a {:id :a :n 1} :b {:id :b :n 2}}`, so an entry is
       read by its key and then by a field, `/a/n`. Of elements that share
-      a key the last wins. A key that answers a string or a number files
-      under the keyword of its text, as `groupBy` files it, and any other
-      key is refused at its element. Without a key an element files
+      a key the last wins. A key files under a keyword as `groupBy` files
+      it, a string or a number under the keyword of its text, a boolean
+      or null under that of its literal and a tag name under that of its
+      name, and a key of another kind is refused at its element. Without a key an element files
       under itself, a string under its keyword. The key is code run on
       each element, a quote, `~(/id)`; a value computed at the call is
       refused. A set answers `indexBy` by a word of its own, and
@@ -900,10 +911,11 @@
   ::holds~(is ::quote ::null)
 
 :vec/indexBy/KeyNotKeywordError
-  |~~ The key `indexBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text, since the keys of
-      a map are keywords; any other value is refused, and `:index` names
-      the element.
+  |~~ The key `indexBy` files an element under is a keyword, since the
+      keys of a map are keywords: a string or a number files under the
+      keyword of its text, a boolean or null under that of its literal
+      and a tag name under that of its name; a vector, a set, a map or a
+      quote is refused, and `:index` names the element.
   ~~|
 
 :vec/indexBy/filesEachUnderItsKey
@@ -921,6 +933,10 @@
 :vec/indexBy/filesANumberUnderItsText
   |~~ A number key files under the keyword of its text. ~~|
   ::law~([{:id 7 :name "ann"}] | indexBy ~(/id) | /7/name | eq "ann")
+
+:vec/indexBy/filesABooleanUnderItsLiteral
+  |~~ A boolean key files under the keyword of its literal. ~~|
+  ::law~([{:ok true :n 1} {:ok false :n 2}] | indexBy ~(/ok) | /true/n | eq 1)
 
 :vec/indexBy/filesAStringUnderItsKeyword
   |~~ Without a key a string files under its keyword. ~~|

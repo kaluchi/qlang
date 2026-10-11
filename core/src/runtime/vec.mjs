@@ -7,7 +7,7 @@
 // names the word that refused [D172]. A part that takes code arrives
 // closed at the call, a lambda over the element [D73], [D167].
 
-import { isKeyword, isString, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
+import { isBoolean, isKeyword, isString, isNumber, isTagKeyword, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -247,13 +247,16 @@ bindPrim('map/any', (map, predicate) => firstVerdict(keyed(map), predicate, true
 
 // ── partitions ─────────────────────────────────────────────────
 
-// The keyword the key of `groupBy` or `indexBy` answers for an element,
-// a string or a number filed under the keyword of its text [D130], or the
-// error it answered; without a key the element is its own [D135].
+// The keyword the key of `groupBy` or `indexBy` answers for an element:
+// a string or a number filed under the keyword of its text [D130], a
+// boolean or null under that of its literal and a tag name under that of
+// its name [D201], or the error it answered; without a key the element
+// is its own [D135].
 async function keywordOf(key, element, index, KeyNotKeywordError) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer) || isKeyword(answer)) return answer;
-  if (isString(answer) || isNumber(answer)) return keyword(String(answer));
+  if (isString(answer) || isNumber(answer) || isBoolean(answer) || answer === NULL) return keyword(String(answer));
+  if (isTagKeyword(answer)) return keyword(answer.name);
   throw new KeyNotKeywordError({ index, actualValue: answer });
 }
 

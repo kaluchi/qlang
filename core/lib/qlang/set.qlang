@@ -597,8 +597,9 @@
       vector files into vectors, each element as often as it was
       written. Without a key an element files under itself. A key that
       answers a string or a number files under the keyword of its text,
-      `#[1 2] | groupBy` answering `{:"1" #[1] :"2" #[2]}`; any other
-      answer, a boolean among them, is refused, `:index` naming the
+      `#[1 2] | groupBy` answering `{:"1" #[1] :"2" #[2]}`, a boolean
+      or null under the keyword of its literal and a tag name under that
+      of its name; a key of another kind is refused, `:index` naming the
       element. The key is code, a quote run on each element, or null:
       `groupBy ~(/k)`, where `groupBy /k` is refused under the part.
       ::link~(::set/indexBy | doc) ::link~(::vec/groupBy | doc)
@@ -623,9 +624,11 @@
   ::holds~(is ::quote ::null)
 
 :set/groupBy/KeyNotKeywordError
-  |~~ The key `groupBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text; any other value is
-      refused, and `:index` names the element.
+  |~~ The key `groupBy` files an element under is a keyword: a string or
+      a number files under the keyword of its text, a boolean or null
+      under that of its literal and a tag name under that of its name; a
+      vector, a set, a map or a quote is refused, and `:index` names the
+      element.
   ~~|
 
 :set/groupBy/filesIntoSets
@@ -644,13 +647,17 @@
   |~~ A number files under the keyword of its text. ~~|
   ::law~(#[1 2] | groupBy | keys | eq #[:"1" :"2"])
 
+:set/groupBy/filesABooleanUnderItsLiteral
+  |~~ A boolean files under the keyword of its literal. ~~|
+  ::law~(#[true false] | groupBy | eq {:false #[false] :true #[true]})
+
 :set/groupBy/key/NotQuoteOrNullError/refusesAKeyWithoutItsQuote
   |~~ A key written without its quote mark is refused under the part. ~~|
   ::law~(#[{:k 1}] | groupBy /k !| type | eq ::set/groupBy/key/NotQuoteOrNullError)
 
-:set/groupBy/KeyNotKeywordError/refusesABooleanKey
-  |~~ An element that is a boolean files under no key. ~~|
-  ::law~(#[true] | groupBy !| [type /index] | eq [::set/groupBy/KeyNotKeywordError 0])
+:set/groupBy/KeyNotKeywordError/refusesAVectorKey
+  |~~ An element that is a vector files under no key. ~~|
+  ::law~(#[[1]] | groupBy !| [type /index] | eq [::set/groupBy/KeyNotKeywordError 0])
 
 :set/indexBy
   |~~ Answers the map of each element under the keyword its key answers,
@@ -658,8 +665,10 @@
       elements whose keys are alike, the last in the one order stays.
       Without a key an element files under itself, `#[:a] | indexBy`
       answering `{:a :a}`. A key that answers a string or a number files
-      under the keyword of its text, `2` under `:"2"`; any other answer is
-      refused, `:index` naming the element. The key is code, a quote run
+      under the keyword of its text, `2` under `:"2"`, a boolean or null
+      under the keyword of its literal and a tag name under that of its
+      name; a key of another kind is refused, `:index` naming the
+      element. The key is code, a quote run
       on each element, or null: `indexBy ~(/id)`, where `indexBy /id` is
       refused under the part.
       ::link~(::set/groupBy | doc) ::link~(::vec/indexBy | doc)
@@ -684,9 +693,11 @@
   ::holds~(is ::quote ::null)
 
 :set/indexBy/KeyNotKeywordError
-  |~~ The key `indexBy` files an element under is a keyword, or a string
-      or a number, filed under the keyword of its text; any other value is
-      refused, and `:index` names the element.
+  |~~ The key `indexBy` files an element under is a keyword: a string or
+      a number files under the keyword of its text, a boolean or null
+      under that of its literal and a tag name under that of its name; a
+      vector, a set, a map or a quote is refused, and `:index` names the
+      element.
   ~~|
 
 :set/indexBy/filesEachUnderItsKey

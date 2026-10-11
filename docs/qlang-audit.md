@@ -1026,6 +1026,7 @@ docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
 docs/research/reviews/2026-10-11-repair-of-the-series.md
 docs/research/reviews/2026-10-11-the-escape-key-before-keys.md
 docs/research/reviews/2026-10-11-the-gathering-of-a-paste.md
+docs/research/reviews/2026-10-11-the-mean-at-the-ends.md
 docs/research/reviews/2026-10-11-thenables-frames-and-the-line-editor.md
 docs/research/reviews/2026-10-11-waits-repairs-and-comments.md
 docs/research/reviews/README.md

@@ -239,3 +239,15 @@ The fates of the eighth review it found holding in part stand in its findings be
 5. The comment at the head of the line editor named a chunk longer than one character as a paste. Answered by e194acda: text whose first line feed is not its last character.
 
 The gatherings with a second marker, which the review found left out of a summary, stand in the last paragraph of the eighth review's fates.
+
+## 2026-10-11 · the mean at the ends
+
+[2026-10-11-the-mean-at-the-ends.md](2026-10-11-the-mean-at-the-ends.md), at 7ae8d5c6, over e129cd54..7ae8d5c6.
+
+1. The step of the mean rounded three times, so `avg` answered other last digits on ordinary numbers. Answered by 62d138f6: the step divides the gap where the gap stays finite and divides first where it does not, answering the digits of e129cd54 wherever its mean was finite, and `:vec/avg/answersTheSumOverTheCount` fails on the step of 7ae8d5c6.
+2. The comment of the mean defined it by two values it never forms, one of them false. Answered by 62d138f6: every step stays among the finite doubles.
+3. The laws of the ends settled a question no page asked, named `1e308` an end, and left the set and the map without one. Answered by 62d138f6: each page of `avg` says the mean of finite numbers stays among the doubles, the laws name numbers near the opposite ends, and `:set/avg` and `:map/avg` hold them too.
+4. 7ae8d5c6 told a count of mutants no script in the tree prints. The message stands, since a commit is never amended; the scripts of the fuzz stay in the session's scratch folder, and the messages after it tell no count of them.
+5. The constructor step of an answer stood twice. Answered by 62d138f6: one statement names the label.
+
+Outside the commit, `::number!{:a 1} !| /` lays a kind's tag over the opened facts of an error without its constructor, and the command line exits printing it; it stands unrepaired, a question of which tags an error literal may carry.

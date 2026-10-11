@@ -1804,6 +1804,38 @@ digits again. The alternatives: a word that answers whether a number is
 whole, a primitive the law of every count calls; or the test kept in
 `round` alone.
 
+A reader's extension inside a word of the root [D23], [D200], [D202].
+The rule of collisions asks that a reader's word under a noun of the
+root stand in the reader's scope alone, and the maintainer read the
+rule so: «получается внутри своего модуля я могу написать любой костыль
+для действующих типов новые методы для стринга, булеана и так далее ..
+спокойно ими пользоваться и затенять, но наружу они не выскочат
+неявно..» (maintainer, 2026-09-25 09:28, session 86982eb5). A word of
+the root reaches it through the walk of its subject, and an invariant a
+reader declares under a part of a word of the root holds inside a word
+of the root that calls it:
+
+```qlang
+> :vec/doc ~("a reader page") | [1 2] | tutorial | first
+"a reader page"
+
+> :number/sub/subtrahend/OverError ::holds~(lt 100) | {:a 500 :b 200} | subOf /a /b !| type
+::number/sub/subtrahend/OverError
+```
+
+The same word reads an address the reader hands it as data,
+`::vec/second | tutorial`, and that read reaches the reader's node, since
+a word's scope is one map for the names it calls and the addresses it
+reads. The alternatives: the scope of a word of the root holding the
+reader's names under the reader's own nouns alone, and an address read
+as data reaching the reader's tree through a second map the state
+carries, which costs a field of the state and a lookup that knows which
+of the two reads it serves; the reader's names under a noun of the root
+marked in the scope, skipped by the walk of a bare name and read by an
+address, which costs the mark; or the extension as it stands, which
+costs the hygiene the rule asks for and the plan of a word of the root
+read once whatever the reader declares.
+
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md
@@ -1964,3 +1996,5 @@ whole, a primitive the law of every count calls; or the test kept in
 [D185]: decisions/D185.md
 [D195]: decisions/D195.md
 [D196]: decisions/D196.md
+[D200]: decisions/D200.md
+[D202]: decisions/D202.md

@@ -76,6 +76,9 @@ const IGNORE_DIRS = new Set([
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D142]
   'vscode'
 ]);
+// A report a reviewer or an outside auditor wrote, named by its date,
+// stands as it was written, and its ledger beside it is checked.
+const VERBATIM_REPORT = /^docs\/research\/(reviews|outside-audit)\/\d{4}-\d{2}-\d{2}[^/]*\.md$/;
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
 const RULESET_FILES = new Set([
@@ -111,7 +114,7 @@ function* walkSourceTree(rootDir) {
       yield* walkSourceTree(entryPath);
       continue;
     }
-    if (!/\.(mjs|js|md|qlang)$/.test(entry)) continue;
+    if (!/\.(mjs|js|md|qlang)$/.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
     yield entryPath;
   }
 }

@@ -1727,25 +1727,27 @@ costs a closure each quote carries; and the helper as a word, as it
 stands, which costs a name on a noun for every helper.
 
 The boot of the root, and a lazy one. The command line boots the whole
-root in each process: of a start near three quarters of a second, the
-parse of the sources, near half a megabyte of text, takes near 280
-milliseconds and the run of their declarations near 100, read source by
-source on 11 October. The maintainer asked whether a source loaded when
-a name it declares is first read pays at all, since words read the
-whole universe; they do: a bare name the walk of its subject does not
-answer, a name a reader declares, held against the words of every kind
-[D166], the nearest names of a refusal, `kinds`, and the words of
-`::any`, which several sources declare, each read the whole root, so a
-query that fails, the common query of a reader learning a tool, loads
-it all, and a loader needs the names each source declares before it
-runs it. The alternatives: the root booted whole, as it stands; the
-trees of the sources kept beside them as JSON, near seven megabytes,
-read back in near 35 milliseconds where the parse takes 240, each
-checked against a hash of its source, which costs an artifact the build
-writes and the package carries, and a site that boots in a browser
-parses still; and sources loaded by an index of their names, which
-costs the loader and a rewrite of every reader of the whole root, and
-spares a query that fails nothing.
+root in each process, its sources parsed and their declarations run.
+The maintainer asked whether a lazy one pays: «потом уже переходи к
+ленивой загрузке.. потому как непонятно как это скажется на
+производительности и остальном.. или смысла нет там вообще.. т.к. есть
+операнды которые работают над всей вселенной..» (maintainer, 2026-10-07
+21:23, session 22b934f8). Words read the whole root: a bare name the walk
+of its subject does not answer, `residencesOf` in
+`core/src/runtime/nouns.mjs`; a name a reader declares, held against
+the words of every kind, `vocabularyWords` there [D166]; the words of
+`::any`, which several sources declare, `namesUnderOf` there; `kinds`,
+`kindNamesOf` there; and the names near a name a refusal offers,
+`nearestNames` in `core/src/nearest-names.mjs`. So a query that fails,
+the common query of a reader learning a tool, loads it all, and a
+loader needs the names each source declares before it runs it. The
+alternatives: the root booted whole, as it stands; the trees of the
+sources kept beside them as JSON, which spares the parse, each checked
+against a hash of its source, at the cost of an artifact the build
+writes and the package carries, a site that boots in a browser parsing
+still; and sources loaded by an index of their names, which costs the
+loader and a rewrite of every reader of the whole root, and spares a
+query that fails nothing.
 
 Regular expressions. Both outside audits name their absence. Text comes
 apart by `split` and `lines` and is read by `contains`, `startsWith`

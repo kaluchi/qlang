@@ -9,7 +9,7 @@ const examples = [
   {
     tab: "pipeline",
     file: "filter + count",
-    code: `|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2`,
+    code: `|~| a vector · filter · count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2`,
   },
   {
     tab: "bind",
@@ -30,9 +30,9 @@ const examples = [
 
 const features = [
   { title: "Pipeline composition", desc: "Thread values through chains of steps with |; a step on each element is the word map." },
-  { title: "Immutable value types", desc: "Scalar, Vec, Map, Set, Error — all frozen. No mutation, no surprises." },
-  { title: "Two-track error model", desc: "Success-track | deflects on errors, fail-track !| fires. Trail accumulates deflected steps as data." },
-  { title: "Code as data", desc: "parse lifts source to an AST-Map, apply runs it against a subject. The ring closes." },
+  { title: "Everything a value", desc: "Numbers, strings, keywords, vectors, maps, sets, code, prose and failures each have a literal that prints and reads back as itself, and nothing changes in place." },
+  { title: "Failures as values", desc: "| passes a failure by and !| runs its step on a failure alone; the trail holds the steps a failure skipped, ready to replay." },
+  { title: "Code as data", desc: "A quote is code held unrun as a vector of steps: parse turns text into one, and apply runs it on a subject." },
   { title: "Names under labels", desc: "A kind is a label declared by its page; a name under it runs on its values, and the parts of a call's args are names under its address, each held to the invariants declared under it." },
   { title: "Effect markers", desc: "@-prefixed identifiers carry side effects visibly. The runtime enforces propagation — no laundering." },
 ]
@@ -114,10 +114,10 @@ const features = [
         <section class="features-section">
           <h2>What is qlang?</h2>
           <p>
-            A pure expression language for transforming immutable values through
-            pipelines. Built-in words, five value types, two-track error
-            model, names whose parts are held to the invariants declared under
-            them, live REPL in the browser.
+            A pipeline language over values: a query starts from a subject and
+            passes it through steps, each answering a new value. Every name has
+            a page a query reads as data, a failure is a value that carries its
+            trail, and the REPL below runs in the browser.
           </p>
           <div class="features-grid">
             {features.map(f => (

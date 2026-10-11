@@ -1983,7 +1983,7 @@
       condition at least.
       ::link~(::any/allOf | doc) ::link~(::vec/any | doc)
   ~~|
-  ~(:subject / | conditions | vec/any ~(if (is ::quote) ~(:condition / | subject | apply condition) ~(/)))
+  ~(:subject / | conditions | any ~(if (is ::quote) ~(:condition / | subject | apply condition) ~(/)))
 
 :any/anyOf/answer
   |~~ Whether some condition holds. ~~|

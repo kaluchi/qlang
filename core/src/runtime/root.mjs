@@ -13,7 +13,7 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
@@ -65,6 +65,18 @@ export async function declareRoot(env, sources) {
       }
     }
     root = new Map([...root, ...declared]);
+    runInTheRoot(declared, root);
   }
   return new Map(env).set(ROOT_KEY, root);
+}
+
+// A quote a source declared runs over the root the source joined, which
+// holds the records of the frame the source wrote, so a call of a word of
+// the root copies no frame of its source [D200].
+function runInTheRoot(declared, root) {
+  const rootFrame = new Map([[ROOT_KEY, root]]);
+  for (const record of declared.values()) {
+    const value = bindingValueOf(record);
+    if (isQuote(value) && quoteEnvRef(value) !== undefined) quoteEnvRef(value).env = rootFrame;
+  }
 }

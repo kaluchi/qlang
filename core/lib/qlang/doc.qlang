@@ -18,7 +18,8 @@
 
 :doc/ElementNotSegmentError
   |~~ Every element of a doc is a segment, a string of prose or a
-      quote, and another value is refused at the index it stands at.
+      quote, and another value is refused at the index it stands at; a
+      value is made prose by `print` first, `["a" (5 | print)] | tag ::doc`.
   ~~|
 
 :doc/ElementNotSegmentError/refusesANumberAmongTheSegments

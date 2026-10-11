@@ -91,7 +91,9 @@
   ~(/0)
 
 :boolean/and/right/NotBooleanError
-  |~~ The right is a boolean. ~~|
+  |~~ The right is a boolean, `true | and (5 | gt 3)`; the conditions of
+      one value hold together by `allOf`.
+  ~~|
   ::holds~(is ::boolean)
 
 :boolean/and/SubjectNotBooleanError
@@ -152,7 +154,9 @@
   ~(/0)
 
 :boolean/or/right/NotBooleanError
-  |~~ The right is a boolean. ~~|
+  |~~ The right is a boolean, `false | or (5 | gt 3)`; the conditions of
+      one value hold together by `anyOf`.
+  ~~|
   ::holds~(is ::boolean)
 
 :boolean/or/SubjectNotBooleanError

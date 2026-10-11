@@ -166,7 +166,9 @@
   ~~|
 
 :any/ne/ArgsBeyondPartsError
-  |~~ `ne` compares the subject with one value and was given more. ~~|
+  |~~ `ne` compares the subject with one value, `5 | ne 6`; a call with
+      more is refused.
+  ~~|
 
 :any/ne/answersTheOppositeOfEq
   |~~ Two values differ exactly when they are not one value. ~~|
@@ -175,6 +177,14 @@
 :any/ne/keepsTheOrderOfKeysAside
   |~~ Two maps of the same entries do not differ, whatever the order of their keys. ~~|
   ::law~({:a 1 :b 2} | ne {:b 2 :a 1} | not)
+
+:any/ne/value/NotGivenError/refusesACallWithNoValue
+  |~~ A call with no value is refused under the part. ~~|
+  ::law~(5 | ne !| type | eq ::any/ne/value/NotGivenError)
+
+:any/ne/ArgsBeyondPartsError/refusesTwoValues
+  |~~ A call with two values is refused under the word. ~~|
+  ::law~(5 | ne 6 7 !| type | eq ::any/ne/ArgsBeyondPartsError)
 
 :any/type
   |~~ Answers the kind of the subject, the tag its value stands under,
@@ -966,7 +976,9 @@
   ~(at 0)
 
 :any/binding/anchor/NotKeywordOrNullError
-  |~~ The anchor is a keyword or null. ~~|
+  |~~ The anchor is a keyword or null, the last name of a name under the
+      subject, `::vec | binding :sort`.
+  ~~|
   ::holds~(is ::keyword ::null)
 
 :any/binding/UnknownNameError
@@ -1051,7 +1063,9 @@
   ~(at 0)
 
 :any/source/name/NotKeywordOrNullError
-  |~~ The name is a keyword or null. ~~|
+  |~~ The name is a keyword or null, the last name of a name under the
+      subject, `::vec | source :sort`.
+  ~~|
   ::holds~(is ::keyword ::null)
 
 :any/source/UnknownNameError
@@ -1136,7 +1150,9 @@
   ~(at 0)
 
 :any/doc/anchor/NotKeywordOrVecOrSetOrNullError
-  |~~ The anchor is a keyword, a vector, a set or null. ~~|
+  |~~ The anchor is a keyword, a vector, a set or null, the last names of
+      names under the subject, `::qlang | doc :pipeline`.
+  ~~|
   ::holds~(is ::keyword ::vec ::set ::null)
 
 :any/doc/UnknownNameError
@@ -1369,7 +1385,9 @@
   ~(at 0)
 
 :any/runLaws/anchor/NotKeywordOrNullError
-  |~~ The anchor is a keyword or null. ~~|
+  |~~ The anchor is a keyword or null, the last name of a name under the
+      subject, `::vec | runLaws :sort`.
+  ~~|
   ::holds~(is ::keyword ::null)
 
 :any/runLaws/UnknownNameError
@@ -1715,7 +1733,9 @@
   ~(/0)
 
 :any/subOf/minuend/NotNumberError
-  |~~ The minuend is a number. ~~|
+  |~~ The minuend is a number, `{:a 5 :b 3} | subOf /a /b`; text that holds
+      one is read by `parseJson` first, `subOf (/a | parseJson) /b`.
+  ~~|
   ::holds~(is ::number)
 
 :any/subOf/subtrahend
@@ -1723,7 +1743,9 @@
   ~(/1)
 
 :any/subOf/subtrahend/NotNumberError
-  |~~ The subtrahend is a number. ~~|
+  |~~ The subtrahend is a number, `{:a 5 :b 3} | subOf /a /b`; text that
+      holds one is read by `parseJson` first, `subOf /a (/b | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :any/subOf/subtrahend/NotGivenError
@@ -1754,6 +1776,10 @@
   |~~ A third number is refused under the word. ~~|
   ::law~({:t 10 :p 3 :q 1} | subOf /t /p /q !| type | eq ::any/subOf/ArgsBeyondPartsError)
 
+:any/subOf/subtrahend/NotNumberError/refusesAString
+  |~~ A subtrahend that is no number is refused under the part. ~~|
+  ::law~({:a 5 :b "3"} | subOf /a /b !| type | eq ::any/subOf/subtrahend/NotNumberError)
+
 :any/divOf
   |~~ Answers the dividend the call computes against the subject divided
       by the divisor: a mean is `divOf /sum /count`,
@@ -1775,7 +1801,9 @@
   ~(/0)
 
 :any/divOf/dividend/NotNumberError
-  |~~ The dividend is a number. ~~|
+  |~~ The dividend is a number, `{:a 6 :b 3} | divOf /a /b`; text that holds
+      one is read by `parseJson` first, `divOf (/a | parseJson) /b`.
+  ~~|
   ::holds~(is ::number)
 
 :any/divOf/divisor
@@ -1783,7 +1811,9 @@
   ~(/1)
 
 :any/divOf/divisor/NotNumberError
-  |~~ The divisor is a number. ~~|
+  |~~ The divisor is a number, `{:a 6 :b 3} | divOf /a /b`; text that holds
+      one is read by `parseJson` first, `divOf /a (/b | parseJson)`.
+  ~~|
   ::holds~(is ::number)
 
 :any/divOf/divisor/NotGivenError
@@ -1815,6 +1845,14 @@
 :any/divOf/ArgsBeyondPartsError/refusesAThirdNumber
   |~~ A third number is refused under the word. ~~|
   ::law~({:s 20 :c 4 :x 1} | divOf /s /c /x !| type | eq ::any/divOf/ArgsBeyondPartsError)
+
+:any/divOf/dividend/NotNumberError/refusesAString
+  |~~ A dividend that is no number is refused under the part. ~~|
+  ::law~({:a "6" :b 3} | divOf /a /b !| type | eq ::any/divOf/dividend/NotNumberError)
+
+:any/divOf/divisor/NotNumberError/refusesAString
+  |~~ A divisor that is no number is refused under the part. ~~|
+  ::law~({:a 6 :b "3"} | divOf /a /b !| type | eq ::any/divOf/divisor/NotNumberError)
 
 :any/allOf
   |~~ Answers whether every condition the call computes against the

@@ -18,7 +18,7 @@ A finding not yet settled says open.
 7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Open, a change of the language's answers.
 8. The part `with` of the algebra of vectors names a value nothing is joined with. Open, with 7.
 9. The algebra says join, the name of the word that writes strings together. Open.
-10. Refusal pages that do not say how to repair the call. Open.
+10. Refusal pages that do not say how to repair the call. Answered by cf359631: every refusal page of the three kinds shows the call that works.
 11. Generic words where the language has its own: listing, container, bucket, pipeline. Answered by 610b05d4 for bucket and the laws named after a pipeline and by f3ebc9f4 for the listing; listing and container had left the vectors with their rewrite.
 12. Law names that do not say what their queries prove. Open.
 13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
@@ -42,8 +42,8 @@ A finding not yet settled says open.
 6. Laws that nearly repeat each other. The laws that repeat each other query for query left with acbb73a2 and 0a6cdfd0, none left now; the near repeats, open.
 7. Pages of kinds that repeat the pages of words. Answered by f3ebc9f4 for the twice told range of `::number`; the rest, open.
 8. Pages of words that repeat the repair their refusals' pages give. Open.
-9. Refusal pages with no law under their address. Open.
-10. Refusal pages that do not say how to repair the call. Open.
+9. Refusal pages with no law under their address. Answered by cf359631 for numbers and strings, any value and the small kinds following; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
+10. Refusal pages that do not say how to repair the call. Answered by cf359631 for numbers and strings, any value following.
 11. Pages that do not say what a call with no value or with more values does. Open.
 12. Claims with no law under their name. Open.
 13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Open.
@@ -59,7 +59,7 @@ A finding not yet settled says open.
 23. Law literals whose characters the page cannot tell apart. Open.
 24. Generic words: schema, result, implicit argument, pages about tests. Answered by 610b05d4 for schema and by f3ebc9f4 for result, the pages of the suite and the parts of `sumOf`; implicit argument left with the page of D185 and the part named X with an earlier rewrite; the part `value` that number and string pages do not name, open.
 25. `:any/JsonValueNotEncodableError` told inside `json`, which no query meets. Open.
-26. Headers of the sources that repeat the order of a story. Open.
+26. Headers of the sources that repeat the order of a story. Answered by cf359631 for the laws named as refusals are; the headers, open.
 
 The first page itself was written anew by D185 and D186 after this
 review; findings 5 and 6 still stand for the laws declared under

@@ -42,7 +42,9 @@
   ~(/0)
 
 :keyword/gt/value/NotKeywordError
-  |~~ The value compared is a keyword. ~~|
+  |~~ The value compared is a keyword, `:b | gt :a`; a string is
+      turned by `keyword` first, `:b | gt ("a" | keyword)`.
+  ~~|
   ::holds~(is ::keyword)
 
 :keyword/gt/ordersByName
@@ -86,7 +88,9 @@
   ~(/0)
 
 :keyword/gte/value/NotKeywordError
-  |~~ The value compared is a keyword. ~~|
+  |~~ The value compared is a keyword, `:b | gte :a`; a string is
+      turned by `keyword` first, `:b | gte ("a" | keyword)`.
+  ~~|
   ::holds~(is ::keyword)
 
 :keyword/gte/holdsOfItself
@@ -96,6 +100,10 @@
 :keyword/gte/ordersByName
   |~~ `:b` comes after `:a`. ~~|
   ::law~(:b | gte :a)
+
+:keyword/gte/value/NotKeywordError/refusesANumber
+  |~~ A number is no keyword to compare with. ~~|
+  ::law~(:b | gte 1 !| type | eq ::keyword/gte/value/NotKeywordError)
 
 :keyword/lt
   |~~ Answers whether the subject, a keyword, comes before the keyword the
@@ -116,7 +124,9 @@
   ~(/0)
 
 :keyword/lt/value/NotKeywordError
-  |~~ The value compared is a keyword. ~~|
+  |~~ The value compared is a keyword, `:b | lt :a`; a string is
+      turned by `keyword` first, `:b | lt ("a" | keyword)`.
+  ~~|
   ::holds~(is ::keyword)
 
 :keyword/lt/ordersByName
@@ -130,6 +140,10 @@
 :keyword/lt/keepsOneKeywordApartFromItself
   |~~ A keyword does not come before itself. ~~|
   ::law~(:a | lt :a | not)
+
+:keyword/lt/value/NotKeywordError/refusesANumber
+  |~~ A number is no keyword to compare with. ~~|
+  ::law~(:b | lt 1 !| type | eq ::keyword/lt/value/NotKeywordError)
 
 :keyword/lte
   |~~ Answers whether the subject, a keyword, comes before the keyword the
@@ -152,7 +166,9 @@
   ~(/0)
 
 :keyword/lte/value/NotKeywordError
-  |~~ The value compared is a keyword. ~~|
+  |~~ The value compared is a keyword, `:b | lte :a`; a string is
+      turned by `keyword` first, `:b | lte ("a" | keyword)`.
+  ~~|
   ::holds~(is ::keyword)
 
 :keyword/lte/holdsOfItself
@@ -162,6 +178,10 @@
 :keyword/lte/ordersByName
   |~~ `:a` comes before `:b`. ~~|
   ::law~(:a | lte :b)
+
+:keyword/lte/value/NotKeywordError/refusesANumber
+  |~~ A number is no keyword to compare with. ~~|
+  ::law~(:b | lte 1 !| type | eq ::keyword/lte/value/NotKeywordError)
 
 :keyword/keyword
   |~~ Answers the name of the keyword as a string, `:foo | keyword`

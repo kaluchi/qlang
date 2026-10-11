@@ -44,7 +44,9 @@
   ~(/0)
 
 :tag/gt/value/NotTagError
-  |~~ The value compared is a tag name. ~~|
+  |~~ The value compared is a tag name, `::b | gt ::a`; a keyword
+      compares by the `gt` of keywords, `:b | gt :a`.
+  ~~|
   ::holds~(is ::tag)
 
 :tag/gt/ordersByName
@@ -93,7 +95,9 @@
   ~(/0)
 
 :tag/gte/value/NotTagError
-  |~~ The value compared is a tag name. ~~|
+  |~~ The value compared is a tag name, `::b | gte ::a`; a keyword
+      compares by the `gte` of keywords, `:b | gte :a`.
+  ~~|
   ::holds~(is ::tag)
 
 :tag/gte/holdsOfItself
@@ -103,6 +107,10 @@
 :tag/gte/keepsAnEarlierNameApart
   |~~ An earlier name does not come after a later one. ~~|
   ::law~(::a | gte ::b | not)
+
+:tag/gte/value/NotTagError/refusesANumber
+  |~~ A number is no tag name to compare with. ~~|
+  ::law~(::b | gte 1 !| type | eq ::tag/gte/value/NotTagError)
 
 :tag/lt
   |~~ Answers whether the subject, a tag name, comes before the tag name
@@ -124,7 +132,9 @@
   ~(/0)
 
 :tag/lt/value/NotTagError
-  |~~ The value compared is a tag name. ~~|
+  |~~ The value compared is a tag name, `::b | lt ::a`; a keyword
+      compares by the `lt` of keywords, `:b | lt :a`.
+  ~~|
   ::holds~(is ::tag)
 
 :tag/lt/ordersByName
@@ -138,6 +148,10 @@
 :tag/lt/keepsOneNameApartFromItself
   |~~ A name does not come before itself. ~~|
   ::law~(::a | lt ::a | not)
+
+:tag/lt/value/NotTagError/refusesANumber
+  |~~ A number is no tag name to compare with. ~~|
+  ::law~(::b | lt 1 !| type | eq ::tag/lt/value/NotTagError)
 
 :tag/lte
   |~~ Answers whether the subject, a tag name, comes before the tag name
@@ -160,7 +174,9 @@
   ~(/0)
 
 :tag/lte/value/NotTagError
-  |~~ The value compared is a tag name. ~~|
+  |~~ The value compared is a tag name, `::b | lte ::a`; a keyword
+      compares by the `lte` of keywords, `:b | lte :a`.
+  ~~|
   ::holds~(is ::tag)
 
 :tag/lte/holdsOfItself
@@ -170,6 +186,10 @@
 :tag/lte/ordersByName
   |~~ `::a` comes before `::b`. ~~|
   ::law~(::a | lte ::b)
+
+:tag/lte/value/NotTagError/refusesANumber
+  |~~ A number is no tag name to compare with. ~~|
+  ::law~(::b | lte 1 !| type | eq ::tag/lte/value/NotTagError)
 
 :tag/manifest
   |~~ Answers the set of the names declared one name under the noun the

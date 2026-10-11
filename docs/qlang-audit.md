@@ -1747,6 +1747,27 @@ parses still; and sources loaded by an index of their names, which
 costs the loader and a rewrite of every reader of the whole root, and
 spares a query that fails nothing.
 
+Regular expressions. Both outside audits name their absence. Text comes
+apart by `split` and `lines` and is read by `contains`, `startsWith`
+and `endsWith`, each of a fixed text, and no composition of them
+matches a pattern, so a line whose fields vary in their order and their
+width, the line of a log, is out of reach:
+
+```qlang
+> "took 12ms" | matches "\\d+ms" !| type
+::call/UnknownNameError
+```
+
+The alternatives: words of strings over the patterns of JavaScript,
+`matches` asking whether a pattern holds, `match` answering the first
+match as the vector of its whole and its groups, or null, and `replace`
+putting a text in the place of every match, a pattern written in a
+string as JSON writes one, `"\\d+"`, which costs the names they take from
+the reader, a value named `match` refused once the word is there
+[D166], and a dialect of patterns every host of the language carries;
+or the patterns left to a host, which leaves the readers of the
+command line without them.
+
 The wholeness of a number. A count of `take` is a whole number by the
 law `eq (round)` [D172], and the digits of `round` stay tested by its
 primitive, since the same law on them would call `round` on its own

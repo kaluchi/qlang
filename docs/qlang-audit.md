@@ -391,6 +391,11 @@ not shape the semantics of the core.
 The sign of the diff. There is no compatibility to preserve before the
 first stable release. A change answers the question "what became
 shorter"; a replacement is radical and lands in every consumer at once.
+The sign by area, which the history answers, is read over a piece of
+work against what it delivered: less code at the same behaviour is a
+refactoring, less with a new feature the work to praise, as much with a
+feature good work, and more with features asks what they are worth to
+qlang [D208].
 
 The hierarchy of texts. This audit and its principles come first, then
 the catalog and the conformance cases, which are the reference of the

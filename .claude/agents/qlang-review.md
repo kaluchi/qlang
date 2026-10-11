@@ -167,7 +167,12 @@ There is no compatibility to preserve before the first stable release. A
 change answers what became shorter; a replacement lands in every consumer at
 once, the sister project `D:\git\eclipse-jdt-search` among them.
 
-Check: the branch reports the sign of its diff by area; a fallback for an
+Check: compute the sign of the range by area, `node scripts/measure.mjs
+--steps`, and read it against what the range delivered: less code at the
+same behaviour is a refactoring, less with a new feature the work to
+praise, as much with a feature good work, and more with features asks
+what they are worth to qlang; a commit message that carries a count the
+history answers is a finding (`docs/decisions/D208.md`); a fallback for an
 old shape, an alias, a shim or a re-export kept for a caller is a finding; a
 branch that claims to cut noise shows a negative diff. The catalog grows by
 what the language gains; a growth of the core sources or of the tests is a

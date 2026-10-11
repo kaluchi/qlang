@@ -1858,6 +1858,36 @@ $ git apply --check docs/research/lexical-extension/marked-scopes.patch && echo 
 applies
 ```
 
+Standard input with nothing piped. The command line reads its subject
+from standard input and waits until the input ends, so a query run with
+no input and no `< /dev/null` waits for ever where the shell hands an
+open input that nothing writes, as the shell of Claude Code does; the
+rules of the benchmark's runs tell every child to pass its input, which
+hides the wait from the measurement; an input left open and empty:
+
+```sh
+$ sleep 10 | timeout 3 node cli/src/bin.mjs '1 | add 1'; echo $?
+124
+```
+
+The alternatives: an input that sends no byte within a short time read
+as no input, which risks a slow producer, `curl` over a network, read
+as none; the same only where the host is told a model reads, `CLAUDECODE`
+set, a rule of the host's own; or the wait as it stands, the benchmark
+keeping its rule.
+
+Where a reader lands [D214]. A child of the benchmark is handed the first
+page, `::qlang | doc`, and reads nothing of the command line it runs:
+no child of set U read `--help` or `::cli | doc`. The maintainer: «а на
+что мы сейчас высаживаем модель? на tutorial или на doc ?  даже если не
+[::qlang ::cli] | map ~([/ doc])  .. то сделать недостающий tutorial для cli
+и нормально там по линкам и частям разложить..» (maintainer, 2026-10-11
+20:10, session 22b934f8). The alternatives: the first screen the page of
+the language and the page of the command line together; the page of the
+language alone, a link of it leading to the command line's page, which
+tells the default and links the rest; or the tutorial of each, a page and
+its laws.
+
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
 [D3]: decisions/D3.md
@@ -2022,3 +2052,4 @@ applies
 [D202]: decisions/D202.md
 [D210]: decisions/D210.md
 [D211]: decisions/D211.md
+[D214]: decisions/D214.md

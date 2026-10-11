@@ -462,6 +462,12 @@
       rounded first, `7.5 | floor | range`.
   ~~|
 
+:number/range/CountTooLargeError
+  |~~ The count of `range` is no longer than the longest vector the host
+      holds, 4294967295 for JavaScript: a count past it, `1e10`, makes no
+      vector, and a count of such size is read some other way.
+  ~~|
+
 :number/range/SubjectNotNumberError
   |~~ `range` counts up to a number: the count of a vector is read first,
       `[:a :b] | count | range`.
@@ -482,6 +488,10 @@
 :number/range/CountNotIntegerError/refusesAFraction
   |~~ A fraction is no count. ~~|
   ::law~(2.5 | range !| [type /actualType] | eq [::number/range/CountNotIntegerError ::number])
+
+:number/range/CountTooLargeError/refusesACountPastTheLongestVector
+  |~~ A count past the longest vector is refused. ~~|
+  ::law~(1e10 | range !| [type /actualType] | eq [::number/range/CountTooLargeError ::number])
 
 :number/range/SubjectNotNumberError/refusesAVector
   |~~ A vector is counted first. ~~|

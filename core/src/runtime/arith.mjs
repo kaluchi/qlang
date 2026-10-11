@@ -10,6 +10,7 @@ import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
 const NumberRangeCountNotIntegerError = declareRefusal('number/range/CountNotIntegerError');
+const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
 bindPrim('number/add', (augend, addend) => augend + addend);
 bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
@@ -24,9 +25,12 @@ bindPrim('number/abs', subject => Math.abs(subject));
 bindPrim('number/floor', subject => Math.floor(subject));
 bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
-// The whole numbers from zero below a whole count [D194].
+// The whole numbers from zero below a whole count [D194], a count no
+// longer than the longest vector of the host, a JavaScript array's.
+const LONGEST_VECTOR = 2 ** 32 - 1;
 bindPrim('number/range', count => {
   if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });
+  if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ actualValue: count });
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 

@@ -11,7 +11,7 @@
 
       3. Reading parts. `/k` reads a key, `/0` an element, `/-1` the last, `/a/b/0` a path, `/` the whole value: `{:a {:b [10 20]}} | /a/b/-1` answers `20`. A part that is not there is a failure. `at` reads softly and answers null where the part is missing, and `coalesce` puts a fallback in its place: `{:a 1} | at :b | coalesce 0` answers `0`.
 
-      4. Commands. A command is a word and its modifiers, separated by spaces: `add 1`, `split ","`, `take 2`. The word is found through the kind of the subject: `count` counts the elements of a vector and the characters of a string. Every modifier is computed once, at the call, against the subject of the step, and the word receives the values: `10 | add 3` answers `13`, and `{:price 4 :qty 3} | mulOf /price /qty` answers `12`, both modifiers read from the record in the pipe. A modifier of more than one word stands in parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
+      4. Commands. A command is a word and its modifiers, separated by spaces: `add 1`, `split ","`, `take 2`. The word is found through the kind of the subject: `count` counts the elements of a vector and the characters of a string. Every modifier is computed once, at the call, against the subject of the step, and the word receives the values: `10 | add 3` answers `13`, and `{:price 4 :qty 3} | mulOf /price /qty` answers `12`, both modifiers read from the record in the pipe. The subject of a step is what the step before it answered, so in `{:price 4 :qty 3} | /price | mul /qty` the `/qty` is read from the price, a number with no parts, and the call is refused, `::proj/SubjectNotProjectableError`: two values of one record meet in one step, `mulOf /price /qty`. A modifier of more than one word stands in parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
 
       5. Code. A quote, `~(…)`, is code, and a quote computes to itself, so the word receives it unrun and runs it where it needs. `map` runs its code on each element, that element its subject: `[1 2 3] | map ~(mul 2)` answers `[2 4 6]`. `filter` keeps the elements its code holds of, `[1 2 3] | filter ~(gt 1)` answering `[2 3]`; `sort` ranks by what its code answers, `[{:n 2} {:n 1}] | sort ~(/n)` answering `[{:n 1} {:n 2}]`; `groupBy` files the elements under what its code answers, `["b" "a" "b"] | groupBy ~(/) | map ~(count)` answering `{:b 2 :a 1}`; `reduce` folds the elements into a seed, calling its word with the value so far as the subject and the element as the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`. Several steps stand in one quote, `map ~(/price | mul 2)`. Without the quote the same text is a modifier computed at the call: in `[{:n 1}] | map /n` the `/n` is read from the vector itself, not from each element, and `map` refuses what it is handed, `::vec/map/code/NotQuoteError`.
 
@@ -73,6 +73,10 @@
 :qlang/multipliesTwoFields
   |~~ Two fields of one record multiply by `mulOf`. ~~|
   ::law~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
+
+:qlang/readsAModifierFromTheSubjectOfItsStep
+  |~~ After `/price |` a modifier is read from the price. ~~|
+  ::law~({:price 4 :qty 3} | /price | mul /qty !| type | eq ::proj/SubjectNotProjectableError)
 
 :qlang/subtractsTwoFields
   |~~ Two fields of one record subtract by `subOf`. ~~|

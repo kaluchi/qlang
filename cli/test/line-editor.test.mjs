@@ -638,6 +638,26 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['x']);
   });
 
+  it('reads a character beyond the basic plane as it reads a letter over every delivery of up to three chunks [D204]', () => {
+    const EMOJI = '\u{1F600}';
+    const LETTER = 'é';
+    const CHUNKS = [ESC, '[D', ESC + '[D', 'a', 'one\r\ntwo', 'x' + NEWLINE, SUBMIT, NEWLINE,
+      BRACKETED_PASTE_BEGIN, BRACKETED_PASTE_END, ESC + SUBMIT, EMOJI, ESC + EMOJI];
+    const linesOf = (chunks) => {
+      const { stdinStream, editor, capture } = makeTtySetup();
+      editor.start();
+      feed(stdinStream, ...chunks, SUBMIT);
+      editor.close();
+      return JSON.stringify(capture.lines);
+    };
+    for (const first of CHUNKS) for (const second of CHUNKS) for (const third of CHUNKS) {
+      const chunks = [first, second, third];
+      if (!chunks.some(chunk => chunk.includes(EMOJI))) continue;
+      const withLetter = linesOf(chunks.map(chunk => chunk.split(EMOJI).join(LETTER)));
+      expect(linesOf(chunks)).toBe(withLetter.split(LETTER).join(EMOJI));
+    }
+  });
+
   it('drops an escape before a character beyond the basic plane, the keys after it typed [D204]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

@@ -1937,8 +1937,9 @@
       computed at every place, the first among them, and one that
       answered an error is refused here, the error its value: a field a
       record may lack is read softly, `allOf (at :b | eq 1)`, and a
-      condition that fails where an earlier one does not hold is a quote,
-      which runs only once every condition before it held.
+      condition that fails where an earlier one does not hold is written
+      as a quote that answers it in its turn, which runs only once every
+      condition before it held.
   ~~|
   ::holds~(every ~(is ::boolean ::quote))
 
@@ -1995,6 +1996,10 @@
     !| [type /index /actualType]
     |  eq [::any/allOf/ConditionNotBooleanError 1 ::string])
 
+:any/allOf/ConditionNotBooleanError/holdsAQuoteThatCompares
+  |~~ A quote that compares the field it reads answers a condition. ~~|
+  ::law~({:email "a@b.org"} | allOf true ~(/email | ne null))
+
 :any/allOf/conditions/EmptyError/refusesNoCondition
   |~~ A call with no condition is refused under the part. ~~|
   ::law~({} | allOf !| type | eq ::any/allOf/conditions/EmptyError)
@@ -2034,8 +2039,9 @@
       at every place, the first among them, and one that answered an
       error is refused here, the error its value: a field a record may
       lack is read softly, `anyOf (at :vip | eq true)`, and a condition
-      that fails where an earlier one holds is a quote, which runs only
-      once no condition before it held.
+      that fails where an earlier one holds is written as a quote that
+      answers it in its turn, which runs only once no condition before it
+      held.
   ~~|
   ::holds~(every ~(is ::boolean ::quote))
 
@@ -2091,6 +2097,10 @@
   ::law~({:score 99} | anyOf false ~(/score)
     !| [type /index /actualType]
     |  eq [::any/anyOf/ConditionNotBooleanError 1 ::number])
+
+:any/anyOf/ConditionNotBooleanError/holdsAQuoteThatCompares
+  |~~ A quote that compares the field it reads answers a condition. ~~|
+  ::law~({:score 99} | anyOf false ~(/score | gt 95))
 
 :any/anyOf/conditions/EmptyError/refusesNoCondition
   |~~ A call with no condition is refused under the part. ~~|

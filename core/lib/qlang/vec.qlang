@@ -1876,7 +1876,7 @@
   ::law~(["a" "b"] | join "," | split "," | eq ["a" "b"])
 
 :vec/join/writesAKeywordAsItsName
-  |~~ The pairs of a map's entries join, each key written as its name. ~~|
+  |~~ The pairs of the entries of a map of strings join, each key written as its name. ~~|
   ::law~({:host "x" :port "80"} | entries | map ~(join "=") | eq ["host=x" "port=80"])
 
 :vec/join/writesAKeywordSeparatorAsItsName

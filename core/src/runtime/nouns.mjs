@@ -279,13 +279,6 @@ export function residencesOf(env, verbName) {
   return residences;
 }
 
-// A noun: a node some declaration names a path under.
-export function isNoun(env, tagName) {
-  const prefix = `${tagName}/`;
-  for (const [name] of bindingsOf(env)) if (name.startsWith(prefix)) return true;
-  return false;
-}
-
 // The names of a scope, those of one segment: the nouns of the root and
 // what the reader declared; a name with a path is a member of its noun
 // [D153].

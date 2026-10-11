@@ -170,14 +170,17 @@ function containerBeneathTags(value) {
 
 // `!|` runs the step on a raised error alone, opened to the map of its
 // facts, `:trail` among them, under `::error` and the tag of the site
-// that refused, so `!| type` reads the site and a verb of `::error`
-// reaches every error [D97], a value passing, and a raise that writes
-// the `:trail` it read resuming that path [D85].
+// that refused laid through its label as a tagged literal lays it, so
+// `!| type` reads the site and a verb of `::error` reaches every error
+// [D97], [D206], a value passing, a label's refusal answering for the
+// opening, and a raise that writes the `:trail` it read resuming that
+// path [D85].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
   const errorOfKind = makeTaggedInstance(ERROR_TAG, new Map(raised.descriptor));
-  const opened = raised.tag === ERROR_TAG ? errorOfKind : makeTaggedInstance(raised.tag, errorOfKind);
+  const opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTaggedInstance(raised.tag.name, errorOfKind, state);
+  if (isErrorValue(opened)) return withPipeValue(state, opened);
   const answered = await evalNode(stepNode, withPipeValue(state, opened));
   return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened, state.env));
 }
@@ -236,7 +239,19 @@ function evalQuoteLit(node, state) {
   return withPipeValue(state, quoteOfLiteral(node));
 }
 
-function evalDocLit(node, state) {
+// A doc's quote takes the role the tags written before it give [D108],
+// each laid over the quote through its label as a tagged literal lays a
+// payload, so a tag whose label takes no quote refuses the doc,
+// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [D206].
+async function evalDocLit(node, state) {
+  for (const part of node.segments) {
+    if (part.type !== 'DocTaggedQuote') continue;
+    let laid = quoteOfLiteral(part.quote);
+    for (const tagName of [...part.tags].reverse()) {
+      laid = await mintTaggedInstance(tagName, laid, state);
+      if (isErrorValue(laid)) return withPipeValue(state, laid);
+    }
+  }
   return withPipeValue(state, docOfNode(node));
 }
 

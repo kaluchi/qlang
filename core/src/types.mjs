@@ -344,11 +344,13 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }
 
-// formOf(v) → the form a writer of the core reads a value by: the kind of
-// the core `typeKeyword` answers, `error`, `underTag` for a value under
-// any other tag, or `unknown` for a host's raw object.
+// formOf(v) → the form a writer of the core reads a value by: `error`,
+// `underTag` for a value under a tag, a quote's data written under the
+// tag of a kind among them [D206], the kind of the core `typeKeyword`
+// answers, or `unknown` for a host's raw object.
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
+  if (isValueClass(v, 'taggedInstance')) return 'underTag';
   const kind = typeKeyword(v);
   if (kind === UNKNOWN_KIND) return 'unknown';
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';

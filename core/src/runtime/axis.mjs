@@ -26,7 +26,7 @@ import {
   makeTagKeyword, makeQuote, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import {
-  addressesOf, declarationsUnder, isNoun, nodeOf, residenceOnSubject
+  addressesOf, declarationsUnder, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { raisedFrom } from './raise.mjs';
@@ -101,13 +101,11 @@ function memberRecordOf(env, subject, memberName) {
   return under ?? residenceOnSubject(env, memberName, subject);
 }
 
-// What the refusal of a member holds: the address the name would have
-// under a noun, or the name alone, and where the words of that name
-// live.
-function memberRefusalOf(env, subject, memberName) {
-  const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
+// What the refusal of a member holds: the name the reader asked, a
+// keyword, and where the words of that name live [D206].
+function memberRefusalOf(env, memberName) {
   return {
-    name: onNoun ? makeTagKeyword(`${subject.name}/${memberName}`) : keyword(memberName),
+    name: keyword(memberName),
     addresses: addressesOf(env, memberName)
   };
 }
@@ -119,7 +117,7 @@ function memberRefusalOf(env, subject, memberName) {
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, memberName.name));
     return member;
   }
   const record = declaringRecordOf(state.env, subject);

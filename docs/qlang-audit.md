@@ -791,12 +791,14 @@ publishes names without a prefix. The sister project's names meet the
 core's on `type` and on `source`, kept apart by the effect marker alone,
 and its graph alone declares under `::any` the verbs a query calls, six
 lookups by kind of element, four accessors of the containing element,
-four enumerations by scope and some fifteen relations among them. In the
-sister project:
+four enumerations by scope and some fifteen relations among them, and
+beside them the helpers of `@problems`, since a word under a topic
+serves the topic's values alone [D166]. In the sister project, on 11
+October 2026:
 
 ```sh
 $ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
-56
+60
 ```
 
 That is the `ioctl` of Unix, every new capability a new verb in one
@@ -1007,6 +1009,7 @@ docs/research/outside-audit/README.md
 docs/research/reviews/2026-10-10-first-page-any-number-string.md
 docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
 docs/research/reviews/2026-10-10-vec-set-map.md
+docs/research/reviews/2026-10-11-autonomous-series.md
 docs/research/reviews/README.md
 ```
 

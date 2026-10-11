@@ -163,6 +163,10 @@
   |~~ A call with two values is refused under the word. ~~|
   ::law~(5 | eq 5 6 !| type | eq ::any/eq/ArgsBeyondPartsError)
 
+:any/eq/keepsTheOrderOfKeysAside
+  |~~ Two maps of the same entries are one value, whatever the order of their keys. ~~|
+  ::law~({:a 1 :b 2} | eq {:b 2 :a 1})
+
 :any/ne
   |~~ Answers whether the subject and the value the call gives differ, by
       the equality of `eq`, whose opposite it is: a keyword differs from
@@ -197,10 +201,6 @@
 :any/ne/answersTheOppositeOfEq
   |~~ Two values differ exactly when they are not one value. ~~|
   ::law~([[1 2] [1 1] [:a "a"]] | map ~(:p / | /0 | ne (p | /1)) | eq [true false true])
-
-:any/ne/keepsTheOrderOfKeysAside
-  |~~ Two maps of the same entries do not differ, whatever the order of their keys. ~~|
-  ::law~({:a 1 :b 2} | ne {:b 2 :a 1} | not)
 
 :any/ne/value/NotGivenError/refusesACallWithNoValue
   |~~ A call with no value is refused under the part. ~~|
@@ -697,6 +697,10 @@
     !| [type /actualValue]
     |  eq [::any/coalesce/alternatives/EmptyError ::any/coalesce[]])
 
+:any/coalesce/keepsZeroAndTheEmptyString
+  |~~ Zero and the empty string end the walk. ~~|
+  ::law~([0 ""] | map ~(coalesce 1) | eq [0 ""])
+
 :any/cond
   |~~ Answers the branch of the first predicate that holds of the
       subject, the clauses alternating predicate and branch, each a
@@ -862,6 +866,14 @@
 :any/apply/ArgsBeyondPartsError/refusesTwoCodes
   |~~ A call with two codes is refused under the word. ~~|
   ::law~(5 | apply ~(add 1) ~(mul 2) !| type | eq ::any/apply/ArgsBeyondPartsError)
+
+:any/apply/passesAValueByALeadingFailStep
+  |~~ A leading `!|` passes a value on. ~~|
+  ::law~(5 | apply ~(!| 0) | eq 5)
+
+:any/apply/runsARecordedSuffixAgain
+  |~~ The steps a trail skipped run again on a value. ~~|
+  ::law~(1 | add "x" | mul 2 | add 3 !| (:rest /trail/0/skipped | 5 | apply rest) | eq 13)
 
 :any/env
   |~~ Answers what the reader declared before the step, whatever the
@@ -1737,6 +1749,10 @@
     !| [type /index]
     |  eq [::any/mulOf/factors/ElementNotNumberError 1])
 
+:any/mulOf/multipliesTwoFields
+  |~~ The price and the quantity of one line multiply. ~~|
+  ::law~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
+
 :any/subOf
   |~~ Answers the minuend the call computes against the subject less the
       subtrahend: what is left to pay is `subOf /total /paid`,
@@ -1802,6 +1818,10 @@
 :any/subOf/subtrahend/NotNumberError/refusesAString
   |~~ A subtrahend that is no number is refused under the part. ~~|
   ::law~({:a 5 :b "3"} | subOf /a /b !| type | eq ::any/subOf/subtrahend/NotNumberError)
+
+:any/subOf/subtractsTwoFields
+  |~~ What is left to pay is the total less what was paid. ~~|
+  ::law~({:total 10 :paid 3} | subOf /total /paid | eq 7)
 
 :any/divOf
   |~~ Answers the dividend the call computes against the subject divided

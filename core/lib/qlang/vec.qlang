@@ -76,6 +76,10 @@
   |~~ The empty vector counts zero. ~~|
   ::law~([] | count | eq 0)
 
+:vec/count/countsTheSegmentsOfADoc
+  |~~ A doc counts its segments, its prose and its quotes. ~~|
+  ::law~(|~~ a ::link~(1) b ~~| | count | eq 3)
+
 :vec/empty
   |~~ Answers whether the vector holds no element, `[] | empty`
       answering `true`; a vector of null holds an element, so it is not
@@ -203,6 +207,10 @@
   ::law~([{:n 1} {:n 2}] | sum
     !| [type /actualType /index]
     |  eq [::vec/sum/ElementNotNumberError ::map 0])
+
+:vec/sum/ElementNotNumberError/refusesNull
+  |~~ Null is no number to add. ~~|
+  ::law~([1 null] | sum !| [type /index] | eq [::vec/sum/ElementNotNumberError 1])
 
 :vec/avg
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
@@ -450,6 +458,18 @@
 :vec/map/ArgsBeyondPartsError/refusesTwoCodes
   |~~ Two codes are refused under the word. ~~|
   ::law~([1 2] | map ~(add 1) ~(mul 2) !| type | eq ::vec/map/ArgsBeyondPartsError)
+
+:vec/map/reshapesEachElementByALiteral
+  |~~ A literal reshapes each element. ~~|
+  ::law~([{:id 1 :tags [:a :b]}] | map ~({:id /id :n (/tags | count)}) | eq [{:id 1 :n 2}])
+
+:vec/map/keepsTheNamesOfARunInside
+  |~~ The names a run declares stay in it. ~~|
+  ::law~([1 2] | map ~(:x 5 | add x) | x !| type | eq ::call/UnknownNameError)
+
+:vec/map/keepsEveryElementByARecoveringCode
+  |~~ A code that recovers keeps every element. ~~|
+  ::law~([1 "a" 3] | map ~(add 1 !| 0) | eq [2 0 4])
 
 :vec/filter
   |~~ Answers the elements whose predicate answers `true`, in their
@@ -1099,6 +1119,10 @@
   |~~ A fraction is no count. ~~|
   ::law~([1 2 3] | take 1.5 !| [type /actualType] | eq [::vec/take/count/NotIntegerError ::number])
 
+:vec/take/keepsTheTag
+  |~~ A vector under a tag keeps its tag. ~~|
+  ::law~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
+
 :vec/drop
   |~~ Answers the elements after the first ones, as many as the count the
       call gives, `[1 2 3 4 5] | drop 2` answering `[3 4 5]`. The count
@@ -1316,9 +1340,11 @@
       vector splices its elements whatever tag it stands under, so a set,
       a quote and a doc splice too, a quote its steps and a doc its
       segments; a vector deeper inside stays whole, and an element that
-      is no vector stays as it is, `[1 [2]] | flat` answering `[1 2]`. A
-      set answers `flat` by a word of its own; `append` puts a vector in
-      as one element, and `flat` after it splices it.
+      is no vector stays as it is, `[1 [2]] | flat` answering `[1 2]`. The
+      answer keeps the tags of the subject, `::Box[[1] [2]] | flat`
+      answering `::Box[1 2]`. A set answers `flat` by a word of its own;
+      `append` puts a vector in as one element, and `flat` after it
+      splices it.
       ::link~(::vec/append | doc)
   ~~|
   ::builtin{}
@@ -1346,6 +1372,10 @@
 :vec/flat/keepsAnElementThatIsNoVector
   |~~ An element that is no vector stays as it is. ~~|
   ::law~([1 [2]] | flat | eq [1 2])
+
+:vec/flat/keepsTheTagOfTheSubject
+  |~~ The tags of the subject stay over the answer. ~~|
+  ::law~(::Box[[1] [2]] | flat | eq ::Box[1 2])
 
 :vec/reduce
   |~~ Answers the seed folded over the elements by the reducer, each

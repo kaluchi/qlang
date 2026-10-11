@@ -244,3 +244,7 @@
 :keyword/keyword/turnsATextBack
   |~~ A string turned into a keyword turns back into the string. ~~|
   ::law~("foo" | keyword | keyword | eq "foo")
+
+:keyword/keyword/namesTheKindsThatAnswerIt
+  |~~ A number answers no `keyword`, and the refusal names the kinds that do. ~~|
+  ::law~(5 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])

@@ -194,3 +194,7 @@
 :quote/open/SubjectNotQuoteError/refusesAString
   |~~ Text is no quote until `parse` reads it. ~~|
   ::law~("1 | add 1" | open !| [type /actualType] | eq [::quote/open/SubjectNotQuoteError ::string])
+
+:quote/open/refusesAQueryThatReadsASubject
+  |~~ A query that reads a subject is refused on null. ~~|
+  ::law~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)

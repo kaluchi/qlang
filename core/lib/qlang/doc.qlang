@@ -93,6 +93,10 @@
   ::law~(:x 1 | :x | doc | content
     !| [type /actualType] | eq [::doc/content/SubjectNotDocError ::null])
 
+:doc/content/SubjectNotDocError/refusesAString
+  |~~ A string is no doc. ~~|
+  ::law~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
+
 :doc/segments
   |~~ Answers the parts of the doc in their order, a vector: each run of
       prose a string, and each span that reads as code a quote, bare or

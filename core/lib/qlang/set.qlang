@@ -1416,8 +1416,7 @@
 
 :set/has
   |~~ Answers whether the set holds the element the call gives,
-      `#[:a :b :c] | has :b` answering `true`, found by a binary search in
-      the one order. An element matches as `eq` matches: a keyword is not
+      `#[:a :b :c] | has :b` answering `true`. An element matches as `eq` matches: a keyword is not
       its string, `#[:a] | has "a"` answering `false`, and a number is
       found whatever its digits, `#[1] | has 1.0`. A vector given is one
       element, `#[1 2] | has [1 2]` answering `false`: whether the set

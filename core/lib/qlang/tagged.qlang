@@ -152,3 +152,7 @@
 :tagged/within/code/NotGivenError/refusesACallWithNoCode
   |~~ A call with no code is refused under the part. ~~|
   ::law~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)
+
+:tagged/within/checksTheAnswerAlone
+  |~~ The steps between may break the tag's invariant, and the answer alone is checked. ~~|
+  ::law~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))

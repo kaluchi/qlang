@@ -73,6 +73,10 @@
   ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
     !| /trail | map ~/step | eq [~(raise)])
 
+:error/TrailNotVecError/refusesASetAQuoteAndADoc
+  |~~ A set, a quote and a doc are no plain vector of stops. ~~|
+  ::law~([#[1] ~(a) |~~ d ~~|] | map ~({:trail /} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
+
 :error/name
   |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
   #[::keyword ::tag]

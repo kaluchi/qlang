@@ -111,6 +111,10 @@
   |~~ A number is no string to compare with. ~~|
   ::law~("a" | gt 1 !| type | eq ::string/gt/value/NotStringError)
 
+:string/gt/namesTheKindsThatAnswerIt
+  |~~ Null answers no `gt`, and the refusal names the kinds that do. ~~|
+  ::law~(null | gt "a" !| /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
+
 :string/gte
   |~~ Answers whether the subject comes after the string the call gives
       or equals it, in the order `gt` tells, `"b" | gte "b"`.
@@ -183,6 +187,10 @@
 :string/lt/value/NotStringError/refusesANumber
   |~~ A number is no string to compare with. ~~|
   ::law~("a" | lt 1 !| type | eq ::string/lt/value/NotStringError)
+
+:string/lt/failsAfter
+  |~~ A string after the value is not before it. ~~|
+  ::law~("b" | lt "a" | not)
 
 :string/lte
   |~~ Answers whether the subject comes before the string the call gives
@@ -272,6 +280,10 @@
 :string/count/ArgsBeyondPartsError/refusesAPiece
   |~~ A piece given to `count` is refused under the word. ~~|
   ::law~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondPartsError)
+
+:string/count/namesTheKindsThatAnswerIt
+  |~~ A number answers no `count`, and the refusal names the kinds that do. ~~|
+  ::law~(5 | count !| /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
 
 :string/take
   |~~ Answers the first characters of the string, as many as the count
@@ -755,6 +767,10 @@
 :string/contains/needle/NotStringError/refusesAKeyword
   |~~ A keyword is no needle. ~~|
   ::law~("hi" | contains :h !| type | eq ::string/contains/needle/NotStringError)
+
+:string/contains/namesTheKindsThatAnswerIt
+  |~~ A map answers no `contains`, and the refusal names the kinds that do. ~~|
+  ::law~({:a 1} | contains "a" !| /addresses | eq #[::set/contains ::string/contains ::vec/contains])
 
 :string/startsWith
   |~~ Answers whether the string begins with the prefix the call gives,

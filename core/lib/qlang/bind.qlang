@@ -193,3 +193,15 @@
 :bind/NameDeclaredTwiceError/extendsANounOfTheRoot
   |~~ A reader extends a noun of the root by a name of its own. ~~|
   ::law~(:vec/second ~(/1) | [1 2] | second | eq 2)
+
+:bind/NameDeclaredTwiceError/letsAnElementDeclareAgain
+  |~~ A declaration inside an element stays in it. ~~|
+  ::law~(:k 1 | [(:k 2 | k) k] | eq [2 1])
+
+:bind/NameDeclaredTwiceError/letsAModifierDeclareAgain
+  |~~ A declaration inside a modifier stays in it. ~~|
+  ::law~(:k 1 | 5 | add (:k 2 | k) | eq 7)
+
+:bind/NameDeclaredTwiceError/letsAQuoteDeclareAgain
+  |~~ A quote declares in a scope of its own. ~~|
+  ::law~(:k 1 | apply ~(:k 2 | k) | eq 2)

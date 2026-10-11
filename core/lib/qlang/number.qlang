@@ -121,6 +121,10 @@
   |~~ Args of two numbers are refused under the word. ~~|
   ::law~(1 | add 1 2 !| type | eq ::number/add/ArgsBeyondPartsError)
 
+:number/add/answersUnderTheTag
+  |~~ A number under a tag answers under the tag. ~~|
+  ::law~(::Width(2) | add 3 | eq ::Width(5))
+
 :number/sub
   |~~ Answers the subject, the minuend, less the number the call gives,
       `10 | sub 3`, which may fall below zero, `5 | sub 7` answering `-2`.
@@ -170,6 +174,10 @@
   |~~ A subtrahend that is no number is refused under the part. ~~|
   ::law~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
 
+:number/sub/answersUnderTheTag
+  |~~ A number under a tag answers under the tag. ~~|
+  ::law~(::Width(5) | sub 3 | eq ::Width(2))
+
 :number/mul
   |~~ Answers the subject times the number the call gives, `10 | mul 3`,
       a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
@@ -215,6 +223,18 @@
 :number/mul/multiplier/NotNumberError/refusesAString
   |~~ A multiplier that is no number is refused under the part. ~~|
   ::law~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
+
+:number/mul/answersUnderTheTag
+  |~~ A number under a tag answers under the tag. ~~|
+  ::law~(::Width(2) | mul 3 | eq ::Width(6))
+
+:number/mul/multipliesByAFraction
+  |~~ A fraction multiplies. ~~|
+  ::law~(7 | mul 0.5 | eq 3.5)
+
+:number/mul/computesTheMultiplierAgainstTheSubject
+  |~~ The multiplier is computed against the subject. ~~|
+  ::law~(5 | mul / | eq 25)
 
 :number/div
   |~~ Answers the subject, the dividend, divided by the number the call
@@ -275,6 +295,10 @@
 :number/div/divisor/ZeroError/refusesZero
   |~~ A division by zero is refused under the divisor. ~~|
   ::law~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
+
+:number/div/answersUnderTheTag
+  |~~ A number under a tag answers under the tag. ~~|
+  ::law~(::Width(6) | div 3 | eq ::Width(2))
 
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
@@ -395,6 +419,10 @@
   |~~ A string is no number to compare with. ~~|
   ::law~(5 | gt "a" !| type | eq ::number/gt/value/NotNumberError)
 
+:number/gt/namesTheKindsThatAnswerIt
+  |~~ A vector answers no `gt`, and the refusal names the kinds that do. ~~|
+  ::law~([1] | gt [0] !| /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
+
 :number/round/digits/NotNumberError/refusesAString
   |~~ A count of digits that is no number is refused under the part. ~~|
   ::law~(3.14 | round "2" !| type | eq ::number/round/digits/NotNumberError)
@@ -435,6 +463,10 @@
 :number/gte/value/NotNumberError/refusesAString
   |~~ A string is no number to compare with. ~~|
   ::law~(5 | gte "3" !| type | eq ::number/gte/value/NotNumberError)
+
+:number/gte/failsBelow
+  |~~ A smaller number is not at least the value. ~~|
+  ::law~(2 | gte 3 | not)
 
 :number/lt
   |~~ Answers whether the subject is less than the number the call gives,
@@ -503,3 +535,7 @@
 :number/lte/value/NotNumberError/refusesAString
   |~~ A string is no number to compare with. ~~|
   ::law~(5 | lte "3" !| type | eq ::number/lte/value/NotNumberError)
+
+:number/lte/failsAbove
+  |~~ A greater number is not at most the value. ~~|
+  ::law~(2 | lte 1 | not)

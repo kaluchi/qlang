@@ -87,6 +87,10 @@
   |~~ A condition given to `not` leaves it a subject that is no boolean. ~~|
   ::law~(5 | not (eq 5) !| type | eq ::boolean/not/SubjectNotBooleanError)
 
+:boolean/not/SubjectNotBooleanError/refusesAnEmptyVector
+  |~~ An empty vector is no boolean. ~~|
+  ::law~([] | not !| type | eq ::boolean/not/SubjectNotBooleanError)
+
 :boolean/not/ArgsBeyondPartsError/refusesAConditionGiven
   |~~ A condition given to the call is refused under the word. ~~|
   ::law~(true | not (eq 5) !| type | eq ::boolean/not/ArgsBeyondPartsError)
@@ -156,6 +160,10 @@
   |~~ A third condition is refused under the word. ~~|
   ::law~(true | and true true !| type | eq ::boolean/and/ArgsBeyondPartsError)
 
+:boolean/and/asksTheRightOfTheBoolean
+  |~~ The right is asked of the boolean the left answered, so a comparison of the element there is refused. ~~|
+  ::law~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| [type /actualType] | eq [::call/KindAnswersNoVerbError ::boolean])
+
 :boolean/or
   |~~ Answers whether the subject or the boolean the call gives holds,
       `false | or true` answering `true`, and `false` when neither does.
@@ -219,3 +227,7 @@
 :boolean/or/ArgsBeyondPartsError/refusesTwoBooleans
   |~~ A third condition is refused under the word. ~~|
   ::law~(false | or true true !| type | eq ::boolean/or/ArgsBeyondPartsError)
+
+:boolean/or/asksTheRightOfTheBoolean
+  |~~ The right is asked of the boolean the left answered, so a comparison of the element there is refused. ~~|
+  ::law~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| [type /actualType] | eq [::call/KindAnswersNoVerbError ::boolean])

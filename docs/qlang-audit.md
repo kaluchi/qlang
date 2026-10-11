@@ -1024,6 +1024,8 @@ docs/qlang-audit.md
 docs/qlang-entrypoint.md
 docs/research/legend/README.md
 docs/research/outside-audit/2026-10-10.md
+docs/research/outside-audit/2026-10-11-6f8c9422-reading.md
+docs/research/outside-audit/2026-10-11-6f8c9422.md
 docs/research/outside-audit/2026-10-11.md
 docs/research/outside-audit/README.md
 docs/research/reviews/2026-10-10-first-page-any-number-string.md

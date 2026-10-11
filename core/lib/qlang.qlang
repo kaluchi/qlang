@@ -121,14 +121,13 @@
       `!|` alone catches it, its step running on the error at rest, a
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
       holds a failure, so a literal whose part fails answers it, while an
-      error at rest, written `!{:k 1}`, sits anywhere and `raise`
-      raises it. A failure
-      carries its facts and its trail, the steps it
-      passed with their subjects, and prints as an alert: the subject
-      where it arose cut to an excerpt, and each subject it passed an
-      ::elision, whose `:read` continues the query to it,
-      `!| /trail/1/subject`. `!| explain` answers the page of what
-      refused above the failure, the page saying how to repair the call.
+      error at rest, written `!{:k 1}`, sits anywhere and `raise` raises
+      it. A failure carries its facts and its trail, the steps it passed
+      with their subjects, and prints as an alert: the subject where it
+      arose cut to an excerpt, and each subject it passed an ::elision,
+      whose `:read` continues the query to it, `!| /trail/1/subject`.
+      `!| explain` answers the page of what refused above the failure,
+      the page saying how to repair the call.
 
       12. Asking. `::vec | manifest` answers the words of a kind, and
       `map` asks several kinds at once, each beside its words:

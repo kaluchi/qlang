@@ -328,6 +328,14 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
+  it('writes a query that does not parse with the prose of its refusal\'s page below it, on stderr [D195]', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(exitCode).toBe(1);
+    expect(s.stderrText()).toContain('::quote/ParseError!{');
+    expect(s.stderrText()).toContain('|~| The source does not read as qlang');
+  });
+
   it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
     const s = captureStreams();
     await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);

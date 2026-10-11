@@ -422,7 +422,7 @@ TagName
 ParenGroup
   = "(" _ p:Pipeline _ ")"
     { return node('ParenGroup', { pipeline: p }, span(), text()); }
-  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
+  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
 // included (`~(!| /trail)`); `~()` is the empty quote. A single name,

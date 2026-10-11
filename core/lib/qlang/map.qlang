@@ -1331,13 +1331,14 @@
 :map/raise
   |~~ Answers the map as an error on the fail track, an error at rest,
       `!{:reason :late} | raise`, among them, so a query fails where its
-      own check fails. Its tag is the one its value shows: the outermost tag over
-      the map, then the one the map carries, `::Oops{:message "boom"} |
-      raise`, then `::error`, every entry of the map a fact; and an
-      error at rest raised again is itself. `|` steps around the
-      failure, writing its trail, and `!|` catches it to its facts. It
-      takes no value: what the error says is a fact of the map. A value
-      of another kind is put in a map first, `{:value /} | raise`.
+      own check fails. Its tag is the one its value shows: the outermost
+      tag over the map, then the one the map carries,
+      `::Oops{:message "boom"} | raise`, then `::error`, every entry of
+      the map a fact; and an error at rest raised again is itself. `|`
+      steps around the failure, writing its trail, and `!|` catches it
+      to its facts. It takes no value: what the error says is a fact of
+      the map. A value of another kind is put in a map first,
+      `{:value /} | raise`.
       ::link~(::error | doc) ::link~(::fail | doc)
   ~~|
   ::builtin{}

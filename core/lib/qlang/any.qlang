@@ -1409,12 +1409,12 @@
       `{:law :says :actual :ok :error}` per law in their order: `:law`
       its address, `:says` its page, the claim it proves, `:actual` what
       its query answered, null where it answered an error, which `:error`
-      names by the print of its tag, and `:ok` whether the answer is
-      true, so a law that answers false or an error fails. A value runs the laws of its kind, and a name
-      of the scope the laws declared under it. The anchor, a keyword
-      after it, runs the laws of the member the name holds under it, a
-      concept of the language among them. A name nothing declares is
-      refused as `binding` refuses it.
+      holds as the error at rest, and `:ok` whether the answer is true,
+      so a law that answers false or an error fails. A value runs the
+      laws of its kind, and a name of the scope the laws declared under
+      it. The anchor, a keyword after it, runs the laws of the member the
+      name holds under it, a concept of the language among them. A name
+      nothing declares is refused as `binding` refuses it.
       ::link~(::any/laws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::builtin{}
@@ -1490,9 +1490,9 @@
   ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
 
 :any/runLaws/failsALawThatAnswersAFailure
-  |~~ A law that answers an error fails, and `:error` names it. ~~|
+  |~~ A law that answers an error fails, and `:error` holds it at rest. ~~|
   ::law~(:any/k ~(5) | :any/k/bad |~~ b ~~| ::law~(add "x") | ::any/k | runLaws | first
-    | [(/ok) (/actual) (/error)] | eq [false null "::number/add/SubjectNotNumberError"])
+    | [(/ok) (/actual) (/error | type)] | eq [false null ::number/add/SubjectNotNumberError])
 
 :any/tutorial
   |~~ Answers the page of the name the subject reads and its laws, the

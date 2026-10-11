@@ -29,7 +29,6 @@ import {
   addressesOf, declarationsUnder, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
@@ -135,13 +134,6 @@ bindStateReader('any/source', (subject, memberName, state) => {
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
   return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
 });
-// The text of the page of a record, or null for a declaration without
-// one, the sentence of a law among them [D174].
-export function pageTextOfRecord(record) {
-  const page = pageOfRecord(record);
-  return isNull(page) ? NULL : docText(page).trim().replace(/\s+/g, ' ');
-}
-
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
 export function pageOfRecord(record) {

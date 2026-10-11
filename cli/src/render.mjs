@@ -4,7 +4,7 @@
 // query wrote to stdout by `@out`, and any other answer, a failure among
 // them, as the language prints it with exit 0 [D96], [D214].
 
-import { isErrorValue, printAnswer, elideAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
+import { isErrorValue, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { answerText } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
@@ -27,9 +27,10 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   const { didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
 
   if (cellEntry.error !== null) {
-    // A query that does not parse prints its error, a defect its message.
+    // A query that does not parse prints its error with the prose of its
+    // page below it, as any failure does [D195], a defect its message.
     const diagnostic = isErrorValue(cellEntry.result)
-      ? await maybePaint(await printAnswer(elideAnswer(cellEntry.result, budget), cellEntry.envAfterCell), shouldColorize)
+      ? await maybePaint(await answerText(cellEntry.result, cellEntry.envAfterCell, budget, cellEntry.page ?? null), shouldColorize)
       : `qlang: ${cellEntry.error.message}`;
     return {
       stdoutText: '',

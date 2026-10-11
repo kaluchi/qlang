@@ -49,14 +49,14 @@ describe('runLaws reads a name as laws does', () => {
 });
 
 describe('runLaws Quote-as-test outcomes', () => {
-  it('a law that lifts an error → ok:false with error message', async () => {
+  it('a law that lifts an error → ok:false with the error at rest [D220]', async () => {
     const moduleSource = ':demo 1\n:demo/broken |~~ A broken law. ~~| ::law~("x" | prepend 42 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellEntry = await session.evalCell(':demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
-    expect(typeof cellEntry.result.get('error')).toBe('string');
+    expect(cellEntry.result.get('error').tag.name).toMatch(/Error$/);
   });
 
   it('a law that answers false → ok:false with no error', async () => {
@@ -120,19 +120,16 @@ describe('runLaws Quote-as-test outcomes', () => {
       .toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a law that lifts a user-built error → :error reads :message from descriptor', async () => {
-    // User-built errors (via `raise(map)` operand) carry no
-    // `.originalError` on the JS-level ErrorValue wrapper —
-    // `errorMessageOf` falls through to the descriptor's :message
-    // entry. Distinct from finding #41's "Quote that lifts an error"
-    // case where the JS throw routed through `errorFromQlang` and
-    // the wrapper retained `.originalError`.
+  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [D220]', async () => {
+    // A map raised is an error of the kind of errors, and the law's
+    // result holds it at rest as `!|` grounds it, every entry of the
+    // map a fact.
     const moduleSource = ':demo 1\n:demo/raises |~~ A user-built error. ~~| ::law~({:message "hand-built failure" :kind :test} | raise)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellEntry = await session.evalCell(':demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
-    expect(cellEntry.result.get('error')).toBe('hand-built failure');
+    expect(cellEntry.result.get('error').get('message')).toBe('hand-built failure');
   });
 });

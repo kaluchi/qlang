@@ -4,18 +4,12 @@
 // live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTag, NULL } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
-import { recordReadBy, pageOfRecord, pageTextOfRecord } from './axis.mjs';
+import { recordReadBy, pageOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder } from './nouns.mjs';
 
-
-// The message of an error: its `:message` where it carries one, a raise's
-// or a host's failure's, and the address of any other [D166], [D172].
-function errorMessageOf(errorValue) {
-  return errorValue.descriptor.get('message') ?? `::${errorValue.tag.name}`;
-}
 
 bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
 
@@ -32,7 +26,8 @@ bindStateReader('any/laws', (subject, state) => {
 
 // A law runs as `apply` runs code, one frame below the step, and passes
 // when it answers true [D14]; its result names the law by its address and
-// the claim it proves by its page [D124], [D174].
+// the claim it proves by its page [D124], [D174], and holds the error it
+// answered at rest, as `!|` grounds it [D210], [D220].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);
@@ -40,7 +35,7 @@ async function runLaw({ law, quote, says }, callerState) {
   const actualValue = await codeOf(quote, callerState)(null);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
-    result.set('error', errorMessageOf(actualValue));
+    result.set('error', errorAtRest(actualValue.tag, new Map(actualValue.descriptor)));
     result.set('ok', false);
     return result;
   }
@@ -59,7 +54,7 @@ async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
     law: makeTag(`${address}/${lastName}`),
     quote: bindingValueOf(lawRecord).payload,
-    says: pageTextOfRecord(lawRecord)
+    says: pageOfRecord(lawRecord)
   }));
   const results = [];
   for (const claim of claims) results.push(await runLaw(claim, state));

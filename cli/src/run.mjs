@@ -14,7 +14,7 @@ export async function runQuery(queryText, ioContext, runOpts = {}) {
     ? { initialPipeValue: runOpts.initialPipeValue }
     : {};
   const cellEntry = await session.evalCell(queryText, evalOpts);
-  if (cellEntry.error !== null || !isErrorValue(cellEntry.result) || cellEntry.result.tag.name === ERROR_KIND) return cellEntry;
+  if (!isErrorValue(cellEntry.result) || cellEntry.result.tag.name === ERROR_KIND) return cellEntry;
   const explained = await session.evalCell(PROSE_OF_THE_PAGE, { initialPipeValue: cellEntry.result });
   return { ...cellEntry, page: typeof explained.result === 'string' ? explained.result : null };
 }

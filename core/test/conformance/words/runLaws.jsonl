@@ -7,4 +7,4 @@
 {"name":"a-number-runs-the-laws-of-its-kind","query":"42 | runLaws | count | eq (::number | runLaws | count)","expect":"true","decision":"D178"}
 {"name":"a-map-runs-the-laws-of-its-kind","query":"{:kind :builtin} | runLaws | count | eq (::map | runLaws | count)","expect":"true","decision":"D178"}
 {"name":"every-law-of-sort-says-its-claim","query":"::vec/sort | runLaws | every ~(/says | eq null | not)","expect":"true","decision":"D124"}
-{"name":"the-laws-of-a-concept-run-through-its-noun","query":"::qlang | runLaws :errors | map ~/says | first","expect":"\"The error's tag names its site.\"","decision":["D124","D174"]}
+{"name":"the-laws-of-a-concept-run-through-its-noun","query":"::qlang | runLaws :errors | map ~/says | first","expect":"|~~ The error's tag names its site. ~~|","decision":["D124","D174","D220"]}

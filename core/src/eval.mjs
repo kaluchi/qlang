@@ -294,21 +294,29 @@ async function refusalOfInvariants(address, value, state, scope) {
   return await refusalOf(invariantsOf(scope, address), value, state, scope);
 }
 
-async function refusalOf(invariants, value, state, scope) {
-  for (const { address: invariantAddress, query, kinds, elementKinds } of invariants) {
+// Answered at once while the invariants ask for kinds, and as a promise
+// from the first that runs a query.
+function refusalOf(invariants, value, state, scope, from = 0) {
+  for (let at = from; at < invariants.length; at++) {
+    const { address: invariantAddress, kinds, elementKinds } = invariants[at];
     const elements = elementKinds === null ? null : walkToKinds(value, ['vec']);
     if (elements !== null) {
       const refused = refusedElementOf(elements.served, elementKinds);
       if (refused === null) continue;
       return refusalUnder(invariantAddress, { index: refused.index, actualValue: refused.element }, scope);
     }
-    const answer = kinds !== null
-      ? walkToKinds(value, kinds) !== null
-      : (await evalBody(astOfQuote(query), nestState(state, value, scope))).pipeValue;
-    if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(invariantAddress, { actualValue: value }, scope);
+    if (kinds === null) return refusalOfQuery(invariants, at, value, state, scope);
+    if (walkToKinds(value, kinds) === null) return refusalUnder(invariantAddress, { actualValue: value }, scope);
   }
   return null;
+}
+
+async function refusalOfQuery(invariants, at, value, state, scope) {
+  const { address: invariantAddress, query } = invariants[at];
+  const answer = (await evalBody(astOfQuote(query), nestState(state, value, scope))).pipeValue;
+  if (isErrorValue(answer)) return answer;
+  if (answer !== true) return refusalUnder(invariantAddress, { actualValue: value }, scope);
+  return await refusalOf(invariants, value, state, scope, at + 1);
 }
 
 // The invariants declared under an address, each with the kinds it asks
@@ -554,13 +562,16 @@ async function applyMember(record, lambdas, state) {
   const plan = planOf(scope, address);
   const called = await argsOf(plan, lambdas, state, scope, isQuote(member));
   if (isErrorValue(called)) return withPipeValue(state, called);
-  const answer = isQuote(member)
+  const running = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
-    : await runHostMember(member, walked, called, state);
+    : runHostMember(member, walked, called, state);
+  const answer = running instanceof Promise ? await running : running;
   if (isErrorValue(answer)) return withPipeValue(state, answer);
-  const brought = plan.answer === null ? answer : await answerUnderItsLabel(answer, plan.answer, labelName, walked, state);
+  const bringing = plan.answer === null ? answer : answerUnderItsLabel(answer, plan.answer, labelName, walked, state);
+  const brought = bringing instanceof Promise ? await bringing : bringing;
   if (isErrorValue(brought)) return withPipeValue(state, brought);
-  const refused = plan.answer === null ? null : await refusalOf(plan.answerInvariants, brought, state, scope);
+  const refusing = plan.answer === null ? null : refusalOf(plan.answerInvariants, brought, state, scope);
+  const refused = refusing instanceof Promise ? await refusing : refusing;
   return withPipeValue(state, refused ?? brought);
 }
 
@@ -627,13 +638,13 @@ const TAG_KIND = 'tag';
 // passed, as the subject's kind; one label alone makes the value by its
 // constructor and invariants; an answer of none of several labels is refused
 // under the answer's address.
-async function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
+function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   if (kinds.includes(ANY_KIND)) return answer;
   const others = kinds.filter(kind => kind !== labelName);
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
   if (reached !== null) return reached.served;
-  if (kinds.includes(labelName)) return await keptAsSubject(answer, walked.served, walked.passedTags, state);
-  if (kinds.length === 1) return await mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
+  if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
+  if (kinds.length === 1) return mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
   return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 
@@ -684,7 +695,8 @@ function scopeOfMember(member, state) {
 async function argsOf(plan, lambdas, state, scope, bindsNames) {
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
-    const value = await lambda(state.pipeValue);
+    const computing = lambda(state.pipeValue);
+    const value = computing instanceof Promise ? await computing : computing;
     if (isErrorValue(value)) return refusalOfComputedCode(plan.parts, place, value, scope);
     values.push(value);
   }
@@ -697,10 +709,12 @@ async function argsOf(plan, lambdas, state, scope, bindsNames) {
   const overArgs = () => nestState(state, argsValue(), scope);
   const partValues = [];
   for (const { name, address: partAddress, selector, invariants, kindInvariant } of plan.parts) {
-    const part = await partOf(selector, values, overArgs);
+    const reading = partOf(selector, values, overArgs);
+    const part = reading instanceof Promise ? await reading : reading;
     if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(notGivenAddress(partAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(part)) return part;
-    const refused = await refusalOf(invariants, part, state, scope);
+    const refusing = refusalOf(invariants, part, state, scope);
+    const refused = refusing instanceof Promise ? await refusing : refusing;
     if (refused !== null) return refused;
     const handed = servedByInvariant(kindInvariant, part);
     partValues.push(handed);
@@ -732,11 +746,15 @@ function refusalOfComputedCode(parts, place, error, scope) {
 // place, read here as `at` reads it, so the parts of `at` itself read
 // without calling it; any other selector runs as code over the args, a
 // frame below the call.
-async function partOf({ ast, place, onePlace, strict, fallback }, values, overArgs) {
-  if (!onePlace) return (await evalBody(ast, overArgs())).pipeValue;
+function partOf({ ast, place, onePlace, strict, fallback }, values, overArgs) {
+  if (!onePlace) return answerOfBody(ast, overArgs());
   if (place < values.length) return values[place];
   if (strict) return MISSED_PLACE;
-  return fallback === null ? null : (await evalBody(fallback, overArgs())).pipeValue;
+  return fallback === null ? null : answerOfBody(fallback, overArgs());
+}
+
+async function answerOfBody(ast, state) {
+  return (await evalBody(ast, state)).pipeValue;
 }
 
 // A strict read of a place past the values of the args.
@@ -786,14 +804,14 @@ function isMissedPlace(error) {
 // parts, a quote closed at the call into code [D4] where the part takes
 // code, each element so for the part that reads the args whole
 // [D167].
-async function runHostMember(member, walked, called, state) {
+function runHostMember(member, walked, called, state) {
   const handed = called.values.map((value, index) => {
     const { readsArgs, code } = called.taken[index];
     const takenBy = element => (code && isQuote(element) ? codeOf(element, state) : element);
     const served = readsArgs ? walkToKinds(value, ['vec'])?.served : undefined;
     return isVec(served) ? served.map(takenBy) : takenBy(value);
   });
-  return await runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
+  return runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
 }
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run
@@ -805,7 +823,7 @@ async function runHostMember(member, walked, called, state) {
 function makeLambda(astNode, capturedState) {
   const lambda = astNode.type === 'QuoteLit'
     ? async () => quoteInEnv(quoteOfLiteral(astNode), capturedState.env)
-    : SCALAR_LITERALS.has(astNode.type) ? async () => AST_NODE_EVALUATORS[astNode.type](astNode, capturedState).pipeValue
+    : SCALAR_LITERALS.has(astNode.type) ? () => AST_NODE_EVALUATORS[astNode.type](astNode, capturedState).pipeValue
     : async (lambdaInput) => {
       const subState = nestState(capturedState, lambdaInput, capturedState.env);
       const evaluatedState = await evalBody(astNode, subState);

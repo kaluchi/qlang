@@ -163,7 +163,7 @@ function kindsNamedBy(value) {
 // scope whose frame declares no name with a path reads the root's.
 function residenceOf(env, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
-  return pathNamesOf(env).length === 0 ? onceForRoot(ROOT_RESIDENCES, env, address, residenceAt) : residenceAt(env, address);
+  return pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, residenceAt);
 }
 
 const ROOT_RESIDENCES = new WeakMap();

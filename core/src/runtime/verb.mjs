@@ -64,10 +64,17 @@ async function underTags(value, tags, state) {
 
 // The answer of the subject's own kind, minted by its constructor, a
 // set's, a tag's or a quote's among them, under the tags the walk passed
-// [D41], [D166].
-export async function keptAsSubject(answer, served, passedTags, state) {
+// [D41], [D166], and at once where it is of the kind and the walk passed
+// no tag.
+export function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeKeyword(served).name;
-  const kept = walkToKinds(answer, [ownKind])?.served ?? await mintUnderTag(state, makeTagKeyword(ownKind), answer);
+  const reached = walkToKinds(answer, [ownKind]);
+  if (reached !== null && passedTags.length === 0) return reached.served;
+  return keptUnderTags(answer, reached, ownKind, passedTags, state);
+}
+
+async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
+  const kept = reached?.served ?? await mintUnderTag(state, makeTagKeyword(ownKind), answer);
   return await underTags(kept, passedTags, state);
 }
 

@@ -16,8 +16,11 @@ import {
   makeTag,
   makeErrorValue,
   isDoc,
-  isQMap
+  isQMap,
+  isErrorValue
 } from '../../src/types.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
+import { printAnswer } from '../../src/runtime/print.mjs';
 
 describe('printValue — binding record / Function branches', () => {
   it('renders a binding record as the tagged Map it is', () => {
@@ -53,13 +56,22 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [D32], [D64].
     const err = makeErrorValue(makeTag('error'), new Map());
-    expect(printValue(err)).toBe('!{\n  :trail []\n} | raise');
+    expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });
 
-  it('a failure that flew no step prints its empty path, so its print reads back as itself [D210]', async () => {
+  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [D210], [D219]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
-    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n} | raise');
-    expect(deepEqual(await evalQuery(printValue(err)), err)).toBe(true);
+    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
+    expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
+    expect(deepEqual(await evalQuery(`${printValue(err)} | raise`), err)).toBe(true);
+  });
+
+  it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [D219]', async () => {
+    const env = await langRuntime();
+    const failure = await evalQuery('"x" | add 1');
+    expect(await printAnswer(failure, env)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
+    const atRest = await evalQuery('"x" | add 1 !| /');
+    expect(await printAnswer(atRest, env)).toBe(printValue(atRest));
   });
 
   it('a :kind in the descriptor is a fact like any other', async () => {
@@ -68,7 +80,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n} | raise');
+    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n}');
   });
 
   it(':message rides through the printer verbatim — user content, not template-fill', async () => {
@@ -80,7 +92,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n} | raise');
+    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n}');
   });
 });
 

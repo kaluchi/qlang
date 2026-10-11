@@ -373,7 +373,8 @@
       it a value under that tag, `[` a vector, `#[` a set, `{` a map,
       `~(` a quote, `|~~` a doc, `!{` an error at rest, a digit or a
       minus a number, and `true`, `false` and `null` themselves; a
-      failure prints as its error at rest followed by `| raise`.
+      failure a host prints is its error at rest under the line
+      `|~| raised, and no !| caught it`.
       A kind of the core reads a payload of its own kind under its tag
       as the value itself, `::set[2 1]` printing `#[1 2]`.
   ~~|

@@ -101,12 +101,12 @@ describe('the literal reads back error values and tagged instances', () => {
   // `printValue` writes the literal the parser reads, so every value
   // the host builds survives the trip; each shape exercises a distinct
   // branch of the printer.
-  it('reads back an error value, and a tag over each payload shape', async () => {
+  it('reads back an error value raised, and a tag over each payload shape', async () => {
     const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { evalQuery } = await import('../../src/eval.mjs');
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
-    const restoredError = await evalQuery(printValue(errorVal));
+    const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
     expect(isErrorValue(restoredError)).toBe(true);
     expect(restoredError.tag.name).toBe('Oops');
     expect(restoredError.descriptor.get('message')).toBe('something went wrong');

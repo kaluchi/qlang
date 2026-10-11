@@ -323,23 +323,23 @@ describe('main — error paths', () => {
   it('writes a failure on a JSON input as its alert with the prose of its page [D214]', async () => {
     const s = captureStreams('{"a": 1}');
     await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
-    expect(s.stdoutText()).toMatch(/^::proj\/KeyNotInMapError!\{/);
+    expect(s.stdoutText()).toMatch(/^\|~\| raised, and no !\| caught it\n::proj\/KeyNotInMapError!\{/);
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
-  it('writes a failure whose refusal has no page as it is [D195]', async () => {
+  it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
     const s = captureStreams();
     await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(s.stdoutText()).toContain('::Foo!{');
-    expect(s.stdoutText()).not.toContain('|~|');
+    expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
 
-  it('writes a failure of the kind of errors, which no site refused, as it is [D195]', async () => {
+  it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D195], [D219]', async () => {
     const s = captureStreams();
     await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(s.stdoutText()).toContain('!{');
-    expect(s.stdoutText()).not.toContain('|~|');
+    expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
 });
 

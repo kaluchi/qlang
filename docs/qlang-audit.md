@@ -448,7 +448,9 @@ Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. An error at
 rest is a value with a tag and a descriptor, its literal the bang,
 `!{…}`, and raised by `raise` it is a failure, which lives in the pipe
-alone and which `!|` alone catches [D210], [D211]; its
+alone and which `!|` alone catches [D210], [D211], and a host prints a
+failure as its error at rest under a line that says it was raised
+[D219]; its
 trail is the path it flew, a stop at every step that raised it or handed
 it on, and the steps its last stop skipped, applied to a fresh subject,
 replay them [D85]. A
@@ -939,16 +941,18 @@ facts, the subject where it arose cut to an excerpt, and each subject
 it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
 the runs of [D181] recorded on set T, the alerts print about a third of
-what the errors printed whole, and the command line writes below an
-alert the prose of its refusal's page as line comments, the repair a
-reader acts on [D195]:
+what the errors printed whole, and the command line writes above an
+alert the line that says it was raised [D219] and below it the prose of
+its refusal's page as line comments, the repair a reader acts on
+[D195]:
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
 1336
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -v '^|~|' | wc -c
-325
+317
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
+|~| raised, and no !| caught it
 |~| The addend is a number; text that holds one is read by `parseJson`.
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
 1
@@ -2049,3 +2053,4 @@ applies
 [D216]: decisions/D216.md
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
+[D219]: decisions/D219.md

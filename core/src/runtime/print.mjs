@@ -3,7 +3,7 @@
 // [D96], and of `elide`, the value within a budget of its print [D120].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
-import { TAG_HEADER_SYMBOL } from '../types.mjs';
+import { TAG_HEADER_SYMBOL, isErrorValue } from '../types.mjs';
 import { elide } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
@@ -12,12 +12,18 @@ import { callMemberOn } from '../eval.mjs';
 
 // printAnswer(value, env, state?) → the print of a value: a part under a
 // tag whose kind answers a `print` of its own prints through it, and the
-// forms of the core print the rest.
+// forms of the core print the rest. An answer that is a failure, which a
+// host meets alone since a step skips it, prints as its error at rest
+// under a line comment that says it was raised, which a reading of the
+// literal passes over [D219].
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printedByKind = new Map();
   await collectPrintsOfKinds(value, env, state, nodeOf(env, 'any/print'), printedByKind);
-  return printValue(value, 0, part => printedByKind.get(part));
+  const printed = printValue(value, 0, part => printedByKind.get(part));
+  return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
+
+const RAISED_LINE = '|~| raised, and no !| caught it';
 
 async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind) {
   if (part === null || typeof part !== 'object') return;

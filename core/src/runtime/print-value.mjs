@@ -81,14 +81,15 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes its error at rest raised: the tag of its site before
-// the bang, none for the kind of errors [D64], its facts and the path it
-// flew, `:trail []` for one that flew no step, and `| raise`, so its print
-// reads back as itself [D210], [D211].
+// A failure writes its error at rest, as `!|` grounds it: the tag of its
+// site before the bang, none for the kind of errors [D64], its facts and
+// the path it flew, `:trail []` for one that flew no step, so its print
+// reads back as the error at rest, a value that stands in a vector or a
+// map; the answer of a host says above it that it was raised [D219].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
-  return `${tagHead}${printMapLike('!{', facts, indent, printedOf)} | raise`;
+  return `${tagHead}${printMapLike('!{', facts, indent, printedOf)}`;
 }
 
 const NO_PATH = Object.freeze([]);

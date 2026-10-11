@@ -102,8 +102,9 @@ async function printedByCore(query) {
   try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
-// The print of an error begins with its literal, `::Tag!{` or `!{`.
-const readsAsError = text => /^(::[\w/.-]+)?!\{/.test(text);
+// The print of an error begins with its literal, `::Tag!{` or `!{`, a
+// failure's under the line that says it was raised [D219].
+const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints. An answer with … holds

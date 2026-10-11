@@ -22,7 +22,9 @@
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
-      alone and prints as its error at rest raised, `!{:k 1} | raise`.
+      alone; a host prints it as its error at rest under the line
+      `|~| raised, and no !| caught it`, which a reading passes over, so
+      the print reads back as the error at rest, as `!|` grounds it.
       `|` passes a failure by, writing its path, and `!|` alone catches
       it, its step running on the error at rest: `"x" | add 1 !| type`
       answers the site, `::number/add/SubjectNotNumberError`, and

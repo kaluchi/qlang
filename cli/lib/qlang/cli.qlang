@@ -25,10 +25,11 @@
       writes what the conversion made: `| json` the JSON text of the
       answer, `| table` a vector of maps drawn as a table, `| print` the
       literal of the answer, a string in its quotes. A failure prints as
-      its alert, `::Tag!{…} | raise`, the subject where it arose cut to an
-      excerpt, and below it, as line comments `|~| …`, the prose of its
-      refusal's page, which tells how to repair the call; `!| json`
-      writes a failure as JSON. The exit code is 0 for every answer, a
+      its alert, the error at rest `::Tag!{…}` with the subject where it
+      arose cut to an excerpt, under the line
+      `|~| raised, and no !| caught it` and above the prose of its
+      refusal's page as line comments `|~| …`, which tells how to repair
+      the call; `!| json` writes a failure as JSON. The exit code is 0 for every answer, a
       failure among them, and 1 for a query that does not parse or an
       input `--json` cannot read.
 

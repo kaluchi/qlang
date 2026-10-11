@@ -68,7 +68,7 @@ async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
   const query = isTagName(name)
     ? `${name} | doc`
-    : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
+    : `::any/${name} | doc !| (::${name} | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
   let page;
   try {
     page = await evalQuery(query);

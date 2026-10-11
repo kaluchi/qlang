@@ -798,12 +798,14 @@ async function runHostMember(member, walked, called, state) {
 
 // makeLambda(astNode, capturedState) → (input) → value: a modifier run
 // against the input it is handed, one frame below the call and in its
-// scope, a quote written there carrying the scope of the call [D43]; it
-// keeps its tree and its state, so `reduce` finds the verb a quote of one
-// name holds [D56].
+// scope, a quote written there carrying the scope of the call [D43], and a
+// literal of a scalar its value, which reads nothing; it keeps its tree
+// and its state, so `reduce` finds the verb a quote of one name holds
+// [D56].
 function makeLambda(astNode, capturedState) {
   const lambda = astNode.type === 'QuoteLit'
     ? async () => quoteInEnv(quoteOfLiteral(astNode), capturedState.env)
+    : SCALAR_LITERALS.has(astNode.type) ? async () => AST_NODE_EVALUATORS[astNode.type](astNode, capturedState).pipeValue
     : async (lambdaInput) => {
       const subState = nestState(capturedState, lambdaInput, capturedState.env);
       const evaluatedState = await evalBody(astNode, subState);
@@ -813,6 +815,8 @@ function makeLambda(astNode, capturedState) {
   lambda.capturedState = capturedState;
   return lambda;
 }
+
+const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
 
 // codeOf(code, callState) → lambda: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the

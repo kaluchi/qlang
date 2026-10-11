@@ -1466,8 +1466,10 @@
   ~(/1)
 
 :vec/reduce/reducer/NotQuoteError
-  |~~ The reducer is a quote, `reduce 0 ~(add)`; written without the
-      tilde, `(add)`, it is computed once at the call and refused.
+  |~~ The reducer is a quote, `reduce 0 ~(add)`, after the seed: written
+      first, `reduce ~(add) 0`, it stands in the seed's place and hands
+      the reducer's place the seed, and written without the tilde,
+      `(add)`, it is computed once at the call; either is refused.
   ~~|
   ::holds~(is ::quote)
 
@@ -1530,6 +1532,12 @@
 :vec/reduce/reducer/NotQuoteError/refusesANumber
   |~~ A number computed at the call is refused. ~~|
   ::law~([1 2 3] | reduce 0 1
+    !| [type /actualType]
+    |  eq [::vec/reduce/reducer/NotQuoteError ::number])
+
+:vec/reduce/reducer/NotQuoteError/refusesTheReducerFirst
+  |~~ A reducer written before the seed hands the reducer's place the seed. ~~|
+  ::law~([1 2 3] | reduce ~(add) 0
     !| [type /actualType]
     |  eq [::vec/reduce/reducer/NotQuoteError ::number])
 

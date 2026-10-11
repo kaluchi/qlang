@@ -232,7 +232,7 @@ describe('runtime/string.mjs lines', () => {
 });
 
 describe('source axis on verb / freeze / tag subjects', () => {
-  // `:name | source` returns the quote of the declaring BindStep,
+  // `::name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers a name (Keyword
   // subject) and a node of the tree (tag subject).
 
@@ -247,7 +247,7 @@ describe('source axis on verb / freeze / tag subjects', () => {
   });
 
   it('source on a freeze returns its declaration', async () => {
-    const source = await evalQuery('42 | :snap / | :snap | source | parse');
+    const source = await evalQuery('42 | :snap / | ::snap | source | parse');
     expect(source).toBe(':snap /');
   });
 });

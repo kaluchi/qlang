@@ -20,19 +20,19 @@ describe('runLaws reads a name as laws does', () => {
     // binding without a doc [D63].
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
-    const cellEntry = await sessionInstance.evalCell(':hostInjected | runLaws');
+    const cellEntry = await sessionInstance.evalCell('::hostInjected | runLaws');
     expect(cellEntry.result).toEqual([]);
-    const pageEntry = await sessionInstance.evalCell(':hostInjected | doc');
+    const pageEntry = await sessionInstance.evalCell('::hostInjected | doc');
     expect(pageEntry.result).toBeNull();
   });
 
   it('a name that names no binding is refused as doc refuses it', async () => {
-    const refusal = await evalQuery(':nothingBound | runLaws');
+    const refusal = await evalQuery('::nothingBound | runLaws');
     expect(refusal.tag).toEqual(makeTag('any/runLaws/UnknownNameError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
-    const addresses = await evalQuery(':count | runLaws !| /addresses');
+    const addresses = await evalQuery('::count | runLaws !| /addresses');
     expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
@@ -54,7 +54,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell(':demo | runLaws | first');
+    const cellEntry = await session.evalCell('::demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error').tag.name).toMatch(/Error$/);
   });
@@ -67,7 +67,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell(':demo | runLaws | first');
+    const cellEntry = await session.evalCell('::demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error')).toBeNull();
     expect(cellEntry.result.get('actual')).toBe(false);
@@ -78,7 +78,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell(':demo | runLaws | first | /ok');
+    const cellEntry = await session.evalCell('::demo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -86,7 +86,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: ':bare 42' }]
     });
-    const cellEntry = await session.evalCell(':bare | runLaws | count');
+    const cellEntry = await session.evalCell('::bare | runLaws | count');
     expect(cellEntry.result).toBe(0);
   });
 
@@ -98,7 +98,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellEntry = await session.evalCell(
-      ':fortytwo | runLaws | first | /ok');
+      '::fortytwo | runLaws | first | /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -112,7 +112,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellRun = await session.evalCell(
-      ':writer | runLaws | first | /ok');
+      '::writer | runLaws | first | /ok');
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
@@ -128,7 +128,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell(':demo | runLaws | first');
+    const cellEntry = await session.evalCell('::demo | runLaws | first');
     expect(cellEntry.result.get('ok')).toBe(false);
     expect(cellEntry.result.get('error').get('message')).toBe('hand-built failure');
   });

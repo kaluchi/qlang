@@ -1045,7 +1045,7 @@
 
 :any/binding/readsTheValueOfAName
   |~~ A name's record holds its value. ~~|
-  ::law~(:x 1 | :x | binding | /value | eq 1)
+  ::law~(:x 1 | ::x | binding | /value | eq 1)
 
 :any/binding/readsTheKindOfAValue
   |~~ A number reads the record of `::number`. ~~|
@@ -1061,7 +1061,7 @@
 
 :any/binding/holdsThePageDocReads
   |~~ The record holds the page `doc` reads. ~~|
-  ::law~(:x |~~ The x. ~~| 1 | :x | binding | /docs | first | eq (:x | doc))
+  ::law~(:x |~~ The x. ~~| 1 | ::x | binding | /docs | first | eq (::x | doc))
 
 :any/binding/anchor/NotKeywordOrNullError/refusesANumber
   |~~ An anchor that is a number is refused under the part. ~~|
@@ -1069,13 +1069,13 @@
 
 :any/binding/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | binding
+  ::law~(::nonexistent-binding | binding
     !| [type /name]
-    |  eq [::any/binding/UnknownNameError :nonexistent-binding])
+    |  eq [::any/binding/UnknownNameError ::nonexistent-binding])
 
 :any/binding/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
-  ::law~(:filter | binding !| /addresses | has ::vec/filter)
+  ::law~(::filter | binding !| /addresses | has ::vec/filter)
 
 :any/source
   |~~ Answers the code written under a name, one quote of its
@@ -1156,23 +1156,24 @@
 
 :any/source/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | source
+  ::law~(::nonexistent-binding | source
     !| [type /name]
-    |  eq [::any/source/UnknownNameError :nonexistent-binding])
+    |  eq [::any/source/UnknownNameError ::nonexistent-binding])
 
 :any/source/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
-  ::law~(:filter | source !| /addresses | has ::vec/filter)
+  ::law~(::filter | source !| /addresses | has ::vec/filter)
 
 :any/doc
   |~~ Answers the page of a name, the passage from an address into its
-      description: `::vec/filter | doc` the page of a word by its
-      address, `:limit | doc` the page of the declaration that binds
-      `:limit` in its scope, null for a declaration without one. A page
-      answers its text by `content`, its links by `links` and its
+      description: a name is read by its tag, `::vec/filter | doc` the
+      page of a word, `::limit | doc` the page of the declaration that
+      binds `limit` in the scope, null for a declaration without one. A
+      page answers its text by `content`, its links by `links` and its
       snippets by `snippets`, and the laws of the name stand under it,
-      `::vec/take | laws`. Any other value reads the page of its kind,
-      and the `:kind` field of a map names nothing. The anchor, a keyword
+      `::vec/take | laws`. Any other value reads the page of its kind, a
+      keyword among them, `:limit | doc` the page of `::keyword`, and the
+      `:kind` field of a map names nothing. The anchor, a keyword
       after `doc`, reads the page of the member the subject holds under
       it, the word a value calls or a part of a word; a vector of
       anchors walks a path, each read within the page the one before
@@ -1225,7 +1226,7 @@
 
 :any/doc/answersNullForADeclarationWithoutAPage
   |~~ A declaration without a page answers null. ~~|
-  ::law~(:x 1 | :x | doc | eq null)
+  ::law~(:x 1 | ::x | doc | eq null)
 
 :any/doc/readsThePageOfARefusal
   |~~ A refusal's page is a doc. ~~|
@@ -1234,6 +1235,14 @@
 :any/doc/readsThePageOfAKind
   |~~ A number reads the page of `::number`. ~~|
   ::law~(5 | doc | eq (::number | doc))
+
+:any/doc/readsAKeywordByItsKind
+  |~~ A keyword is a value and names nothing: it reads the page of
+      `::keyword`, and the declaration it spells is read by its tag.
+  ~~|
+  ::law~(:limit |~~ The cap. ~~| 5
+    | [(:limit | doc) (::limit | doc | content)]
+    | eq [(::keyword | doc) " The cap. "])
 
 :any/doc/readsNoKindFromAField
   |~~ A map reads the page of maps, whatever its `:kind` says. ~~|
@@ -1266,17 +1275,17 @@
 
 :any/doc/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | doc
+  ::law~(::nonexistent-binding | doc
     !| [type /name]
-    |  eq [::any/doc/UnknownNameError :nonexistent-binding])
+    |  eq [::any/doc/UnknownNameError ::nonexistent-binding])
 
 :any/doc/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
-  ::law~(:filter | doc !| /addresses | has ::vec/filter)
+  ::law~(::filter | doc !| /addresses | has ::vec/filter)
 
 :any/doc/UnknownNameError/namesWhereAnotherWordLives
   |~~ Another word's name is refused with its addresses. ~~|
-  ::law~(:reduce | doc !| /addresses | has ::vec/reduce)
+  ::law~(::reduce | doc !| /addresses | has ::vec/reduce)
 
 :any/doc/UnknownNameError/refusesAnAnchorNoMemberAnswers
   |~~ An anchor no member answers is refused with the name it read. ~~|
@@ -1337,9 +1346,9 @@
 
 :any/explain/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | explain
+  ::law~(::nonexistent-binding | explain
     !| [type /name]
-    |  eq [::any/explain/UnknownNameError :nonexistent-binding])
+    |  eq [::any/explain/UnknownNameError ::nonexistent-binding])
 
 :any/explain/ArgsBeyondPartsError/refusesAnAnchor
   |~~ An anchor given to `explain` is refused under the word. ~~|
@@ -1395,9 +1404,9 @@
 
 :any/laws/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | laws
+  ::law~(::nonexistent-binding | laws
     !| [type /name]
-    |  eq [::any/laws/UnknownNameError :nonexistent-binding])
+    |  eq [::any/laws/UnknownNameError ::nonexistent-binding])
 
 :any/laws/ArgsBeyondPartsError/refusesAnAnchor
   |~~ An anchor given to `laws` is refused under the word. ~~|
@@ -1463,7 +1472,7 @@
 :any/runLaws/runsTheLawsUnderTheName
   |~~ The laws under the name a keyword reads run. ~~|
   ::law~(:limit |~~ A limit. ~~| 10 | :limit/holds |~~ It holds. ~~| ::law~(true)
-    | :limit | runLaws | map ~/ok | eq [true])
+    | ::limit | runLaws | map ~/ok | eq [true])
 
 :any/runLaws/runsTheLawsUnderAnAnchor
   |~~ An anchor runs the laws of the name under the one read. ~~|
@@ -1475,9 +1484,9 @@
 
 :any/runLaws/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
-  ::law~(:nonexistent-binding | runLaws
+  ::law~(::nonexistent-binding | runLaws
     !| [type /name]
-    |  eq [::any/runLaws/UnknownNameError :nonexistent-binding])
+    |  eq [::any/runLaws/UnknownNameError ::nonexistent-binding])
 
 :any/runLaws/UnknownNameError/refusesATagNothingDeclares
   |~~ A tag nothing declares is refused. ~~|
@@ -1487,7 +1496,7 @@
 
 :any/runLaws/UnknownNameError/namesWhereTheWordLives
   |~~ A word's name is refused with the addresses where the word lives. ~~|
-  ::law~(:filter | runLaws !| /addresses | has ::vec/filter)
+  ::law~(::filter | runLaws !| /addresses | has ::vec/filter)
 
 :any/runLaws/failsALawThatAnswersAFailure
   |~~ A law that answers an error fails, and `:error` holds it at rest. ~~|
@@ -1525,7 +1534,7 @@
 
 :any/tutorial/refusesANameNothingDeclares
   |~~ A name nothing declares is refused as `doc` refuses it. ~~|
-  ::law~(:nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
+  ::law~(::nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
 
 :any/tutorial/ArgsBeyondPartsError/refusesAnAnchor
   |~~ An anchor given to `tutorial` is refused under the word. ~~|

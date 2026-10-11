@@ -1269,7 +1269,10 @@ subject, the root's names last, and a name with a path calls by address
 it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A declaration writes
 into its scope the record of its binding, so the axes are projections
-of the record [D63]. Effect markers are gone; a host that wants
+of the record [D63], each reading a name by its tag, a label of the
+root from the root and any other name at its nearest declaration, while
+a keyword is a value that names nothing, `:limit | doc` the page of
+`::keyword` [D221]. Effect markers are gone; a host that wants
 provenance visible tags the value, and an effect described by a value
 is performed at the boundary and nowhere else.
 
@@ -2056,3 +2059,5 @@ applies
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
 [D219]: decisions/D219.md
+[D220]: decisions/D220.md
+[D221]: decisions/D221.md

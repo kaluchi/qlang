@@ -6,7 +6,7 @@
 {"name":"a-set-answered-by-a-name-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]","decision":"D167"}
 {"name":"a-quote-under-a-label-that-calls-a-marked-name-takes-the-mark","query":":any/quiet ~(@out) !| type","expect":"::bind/EffectMarkMissingError","decision":"D167"}
 {"name":"a-quote-under-a-label-with-its-mark-is-declared","query":":any/@loud ~(@out) | 5","expect":"5","decision":"D167"}
-{"name":"a-law-that-answers-a-refusal-holds-it-at-rest-under-its-address","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | :d | runLaws | first | /error | type","expect":"::number/add/SubjectNotNumberError","decision":["D167","D220"]}
+{"name":"a-law-that-answers-a-refusal-holds-it-at-rest-under-its-address","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | ::d | runLaws | first | /error | type","expect":"::number/add/SubjectNotNumberError","decision":["D167","D220"]}
 {"name":"an-anchor-reads-the-part-of-a-kinds-word","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true","decision":["D167","D169"]}
 {"name":"the-answer-of-a-word-names-its-label","query":"::vec/count/answer | binding | /value","expect":"::number","decision":"D169"}
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-a-part-asks-for","query":"5 | add ::Width(2)","expect":"7","decision":"D167"}

@@ -98,7 +98,7 @@
 
 :doc/content/SubjectNotDocError/refusesTheNullOfANameWithoutAPage
   |~~ A name declared without a page has no content to read. ~~|
-  ::law~(:x 1 | :x | doc | content
+  ::law~(:x 1 | ::x | doc | content
     !| [type /actualType] | eq [::doc/content/SubjectNotDocError ::null])
 
 :doc/content/SubjectNotDocError/refusesAString

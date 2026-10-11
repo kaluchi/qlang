@@ -26,10 +26,14 @@ function* bindingsOf(env) {
   for (const [name, entry] of env) if (isBinding(entry)) yield [name, entry];
 }
 
-// nodeOf(env, tagName) → the record of the node a tag name addresses,
-// the root's under that name, else the reader's, or null.
+// nodeOf(env, tagName) → the record of the node a tag name addresses, or
+// null: a label of the root, a kind or a topic, which no reader declares
+// over [D153], else the nearest declaration of the name, as a step reads
+// it, the reader's before the root's [D221].
 export function nodeOf(env, tagName) {
-  const entry = rootOf(env).get(tagName) ?? env.get(tagName);
+  const rootEntry = rootOf(env).get(tagName);
+  if (isBinding(rootEntry) && holdsAPage(rootEntry)) return rootEntry;
+  const entry = env.get(tagName) ?? rootEntry;
   return isBinding(entry) ? entry : null;
 }
 

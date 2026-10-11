@@ -8,7 +8,7 @@ import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
-describe(':name | source returns the BindStep source as Quote', () => {
+describe('::name | source returns the BindStep source as Quote', () => {
   it('::vec/count | source carries the declaration by its address', async () => {
     const result = await evalQuery('::vec/count | source');
     expect(isQuote(result)).toBe(true);
@@ -18,14 +18,14 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('a source of the root that declares nothing writes no record to read', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({ sources: [{ uri: 'tests/scalar-only', source: '42' }] });
-    const cellEntry = await session.evalCell(':missing | source !| type');
+    const cellEntry = await session.evalCell('::missing | source !| type');
     expect(cellEntry.result).toEqual(makeTag('any/source/UnknownNameError'));
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
     // A declaration of the query writes its record into the query's
     // scope, which the axes read.
-    const result = await evalQuery(':myLocal 42 | :myLocal | source');
+    const result = await evalQuery(':myLocal 42 | ::myLocal | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result)).toBe(':myLocal 42');
   });
@@ -33,12 +33,12 @@ describe(':name | source returns the BindStep source as Quote', () => {
   it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
     // A cell's declaration writes its record into the session's scope;
     // the regression that first flagged the gap was `qlang ':foo |~~
-    // note ~~| | :foo | doc'` returning AnyDocUnknownNameError
+    // note ~~| | ::foo | doc'` returning AnyDocUnknownNameError
     // instead of the attached doc.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
-      ':foo |~~ a note ~~| | :foo | doc | content');
+      ':foo |~~ a note ~~| | ::foo | doc | content');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(' a note ');
   });
@@ -49,7 +49,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
-    const cellEntry = await sessionInstance.evalCell(':foo | doc | content');
+    const cellEntry = await sessionInstance.evalCell('::foo | doc | content');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(' first cell ');
   });
@@ -62,7 +62,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
-      ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | :landing/chapter01 | doc | content');
+      ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toBe(' Глава из лендинг пейджа ');
   });
@@ -73,7 +73,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
   });
 });
 
-describe(':name | doc returns the page its attached prefixes make', () => {
+describe('::name | doc returns the page its attached prefixes make', () => {
   it('::vec/count | doc returns a page', async () => {
     const result = await evalQuery('::vec/count | doc | type');
     expect(result).toEqual(makeTag('doc'));
@@ -90,7 +90,7 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   });
 
   it('unknown binding raises AnyDocUnknownNameError', async () => {
-    const err = await evalQuery(':totallyMadeUp | doc');
+    const err = await evalQuery('::totallyMadeUp | doc');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('any/doc/UnknownNameError'));
   });
@@ -102,7 +102,7 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   });
 });
 
-describe(':name | laws reads the laws declared under a name', () => {
+describe('::name | laws reads the laws declared under a name', () => {
   it('::vec/count | laws answers its laws by their names', async () => {
     const result = await evalQuery('::vec/count | laws | count');
     expect(result).toBeGreaterThan(0);
@@ -114,12 +114,12 @@ describe(':name | laws reads the laws declared under a name', () => {
 });
 
 describe('the axes read the node a tag addresses', () => {
-  it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTag('any/source/UnknownNameError'));
+  it('a keyword is a value and names nothing: it reads the source of its kind [D221]', async () => {
+    expect(await evalQuery(':"::vec" | source')).toEqual(await evalQuery('::keyword | source'));
   });
 
-  it('a keyword naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
-    expect([...await evalQuery(':count | doc !| /addresses')])
+  it('a tag naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
+    expect([...await evalQuery('::count | doc !| /addresses')])
       .toEqual([makeTag('map/count'), makeTag('set/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
@@ -163,22 +163,22 @@ describe('the axes read what a source of the root declared', () => {
 
   it('reads the laws a source declared under a name', async () => {
     const session = await sessionOf(':demo 99\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
-    expect((await session.evalCell(':demo | laws | count')).result).toBe(1);
+    expect((await session.evalCell('::demo | laws | count')).result).toBe(1);
   });
 
   it('reads the page a source declared', async () => {
     const session = await sessionOf(':demo |~~ A short note. ~~|\n1');
-    expect((await session.evalCell(':demo | doc | content')).result).toBe(' A short note. ');
+    expect((await session.evalCell('::demo | doc | content')).result).toBe(' A short note. ');
   });
 
   it('answers null for the page of a declaration without one', async () => {
     const session = await sessionOf(':bare 42');
-    expect((await session.evalCell(':bare | doc')).result).toBeNull();
+    expect((await session.evalCell('::bare | doc')).result).toBeNull();
   });
 
   it('refuses a name no source declares', async () => {
     const session = await sessionOf(':somethingElse 1');
-    expect((await session.evalCell(':notHere | source !| type')).result.name).toBe('any/source/UnknownNameError');
+    expect((await session.evalCell('::notHere | source !| type')).result.name).toBe('any/source/UnknownNameError');
   });
 });
 
@@ -222,7 +222,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | ' +
-      '[contested, (:contested | source | parse), (:contested | doc | content)]');
+      '[contested, (::contested | source | parse), (::contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
@@ -233,14 +233,14 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInstalled', null);
-    const sourceEntry = await sessionInstance.evalCell(':hostInstalled | source');
+    const sourceEntry = await sessionInstance.evalCell('::hostInstalled | source');
     expect(sourceEntry.result).toBeNull();
-    const docsEntry = await sessionInstance.evalCell(':hostInstalled | doc');
+    const docsEntry = await sessionInstance.evalCell('::hostInstalled | doc');
     expect(docsEntry.result).toBeNull();
   });
 });
 
-describe(':name | binding | /value answers the value of the declaration', () => {
+describe('::name | binding | /value answers the value of the declaration', () => {
   it('::vec/take reads the descriptor of its primitive, and a part its selector [D164]', async () => {
     expect(printValue(await evalQuery('::vec/take | binding | /value'))).toBe('::builtin{}');
     expect(printValue(await evalQuery('::vec/take | binding :count | /value'))).toBe('~(/0)');
@@ -249,6 +249,6 @@ describe(':name | binding | /value answers the value of the declaration', () => 
   it('the record of a freeze holds the value', async () => {
     // `:name /` writes the record of a binding under :name in env
     // [D63], which `binding` reads.
-    expect(await evalQuery('42 | :answer / | :answer | binding | /value')).toBe(42);
+    expect(await evalQuery('42 | :answer / | ::answer | binding | /value')).toBe(42);
   });
 });

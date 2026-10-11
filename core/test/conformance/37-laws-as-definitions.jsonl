@@ -6,4 +6,4 @@
 {"name":"the-manifest-of-a-name-leaves-its-laws-to-laws","query":":any/k ~(5) | :any/k/answersFive ::law~(0 | k | eq 5) | :any/k/n ~(/0) | ::any/k | manifest","expect":"#[::any/k/n]","decision":"D174"}
 {"name":"a-law-reads-as-the-pair-of-its-page-and-its-query","query":":any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | laws | /answersFive | [(/0 | content) /1]","expect":"[\" k answers five. \" ~(0 | k | eq 5)]","decision":"D176"}
 {"name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":any/k |~~ Answers five. ~~| ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | tutorial | [(/0 | content) (/1 | keys)]","expect":"[\" Answers five. \" #[:answersFive]]","decision":"D176"}
-{"name":"the-tutorial-of-a-name-nothing-declares-is-refused-as-doc-refuses-it","query":":nothere | tutorial !| type","expect":"::any/doc/UnknownNameError","decision":"D177"}
+{"name":"the-tutorial-of-a-name-nothing-declares-is-refused-as-doc-refuses-it","query":"::nothere | tutorial !| type","expect":"::any/doc/UnknownNameError","decision":"D177"}

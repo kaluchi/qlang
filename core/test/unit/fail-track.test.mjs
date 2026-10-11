@@ -71,16 +71,16 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
 describe('source axis prints the declaration for rare body shapes', () => {
   it('renders bare Call (no args)', async () => {
-    expect(await evalQuery('[1 2] | :x count | :x | source | parse')).toBe(':x count');
+    expect(await evalQuery('[1 2] | :x count | ::x | source | parse')).toBe(':x count');
   });
 
   it('a LinePlainComment inside a declaration body leaves no step', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | :x | source | parse');
+    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | parse');
     expect(evalResult).toBe(':x (42)');
   });
 
   it('a block doc in the slot surfaces through the doc axis', async () => {
-    const evalResult = await evalQuery(':x |~~ doc ~~| 42 | :x | doc | content');
+    const evalResult = await evalQuery(':x |~~ doc ~~| 42 | ::x | doc | content');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('doc');
   });
@@ -93,7 +93,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
     // BindStep body is a single Primary, so a `!|` leading
     // Pipeline-step is wrapped in a ParenGroup at the source level,
     // and the group keeps its parentheses in print.
-    expect(await evalQuery(':handler (!| /kind) | :handler | source | parse')).toBe(':handler (!| /kind)');
+    expect(await evalQuery(':handler (!| /kind) | ::handler | source | parse')).toBe(':handler (!| /kind)');
   });
 });
 

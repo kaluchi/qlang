@@ -104,7 +104,7 @@ describe('createSession lifecycle', () => {
     const other = await createSession();
     other.bind('answer', record);
     expect(other.env.get('answer')).toBe(record);
-    expect((await other.evalCell(':answer | doc | content')).result).toBe(' The answer. ');
+    expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
   });
 });
 

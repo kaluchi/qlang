@@ -60,7 +60,7 @@ describe('bare-name verb call', () => {
   // A word called by its bare name, with no modifiers, runs on the
   // value in the pipe; a part it reads that the call leaves out is
   // refused under the part. What a word does is read by `:name |
-  // source`, `:name | doc` and `:name | laws`, not by a bare name.
+  // source`, `::name | doc` and `::name | laws`, not by a bare name.
 
   it('bare `count` fires against the inbound Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

@@ -62,7 +62,7 @@
 
 :explanation/page/isNullForANameWithoutOne
   |~~ A name declared without a page is explained by none. ~~|
-  ::law~(:x 1 | :x | explain | page | eq null)
+  ::law~(:x 1 | ::x | explain | page | eq null)
 
 :explanation/page/SubjectNotExplanationError/refusesAMap
   |~~ A map with a key `:page` is no explanation. ~~|

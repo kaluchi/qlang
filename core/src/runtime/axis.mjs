@@ -20,7 +20,6 @@
 // page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { envGet } from '../state.mjs';
 import {
   isKeyword, isTag, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
   makeTag, makeQuote, makeDoc, NULL
@@ -29,7 +28,7 @@ import {
   addressesOf, declarationsUnder, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
+import { nearestTagNames } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -42,17 +41,15 @@ const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError'
 const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
 export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
-// The name a refusal says a subject read: a keyword or a tag name
-// itself, and for every other value the tag of its kind, the kind `type`
-// answers [D61].
+// The name a refusal says a subject read: a tag name itself, and for
+// every other value the tag of its kind, the kind `type` answers [D61].
 function nameReadOf(subject) {
-  return isKeyword(subject) || isTag(subject) ? subject : typeKeyword(subject);
+  return isTag(subject) ? subject : typeKeyword(subject);
 }
 
-// The name whose verbs a refusal lists: a keyword's, the last name of a
-// tag name's path, `::any/links` naming `links` [D127], or its kind's.
+// The name whose verbs a refusal lists: the last name of a tag name's
+// path, `::any/links` naming `links` [D127], or its kind's.
 function nameOf(subject) {
-  if (isKeyword(subject)) return subject.name;
   if (isTag(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
@@ -63,22 +60,18 @@ export function refusalOf(env, subject) {
   return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
 
-// The names near the one a subject reads, tags for a tag name and the
-// names of the scope for a keyword [D118].
+// The names near the one a tag name reads, the reader's own among them
+// [D118].
 function nearestOfSubject(env, subject) {
-  if (isTag(subject)) return nearestTagNames(env, subject.name);
-  return isKeyword(subject) ? nearestNames(env, subject.name) : Object.freeze([]);
+  return isTag(subject) ? nearestTagNames(env, subject.name) : Object.freeze([]);
 }
 
 // The record a subject names, the one record every axis and
-// `runLaws` read, or null when it names none: a value a host bound
-// under a name is no record.
+// `runLaws` read, or null when it names none: a name by its tag, the
+// address of its node, and any other value, a keyword among them, by its
+// kind [D221]; a value a host bound under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
-  if (isKeyword(subject)) {
-    const entry = envGet(env, subject.name);
-    return isBinding(entry) ? entry : null;
-  }
   const name = isTag(subject) ? subject.name : typeKeyword(subject).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name);
 }

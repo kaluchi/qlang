@@ -365,9 +365,9 @@ async function foldOf(elements, seed, reducer, ReducerNotBinaryError) {
   return acc;
 }
 
-const VecReduceReducerNotBinaryError = declareRefusal('vec/reduce/ReducerNotBinaryError');
-const SetReduceReducerNotBinaryError = declareRefusal('set/reduce/ReducerNotBinaryError');
-const MapReduceReducerNotBinaryError = declareRefusal('map/reduce/ReducerNotBinaryError');
+const VecReduceReducerNotBinaryError = declareRefusal('vec/reduce/reducer/NotBinaryError');
+const SetReduceReducerNotBinaryError = declareRefusal('set/reduce/reducer/NotBinaryError');
+const MapReduceReducerNotBinaryError = declareRefusal('map/reduce/reducer/NotBinaryError');
 bindPrim('vec/reduce', (vector, seed, reducer) => foldOf(vector, seed, reducer, VecReduceReducerNotBinaryError));
 bindPrim('set/reduce', (set, seed, reducer) => foldOf(set, seed, reducer, SetReduceReducerNotBinaryError));
 bindPrim('map/reduce', (map, seed, reducer) => foldOf(map.values(), seed, reducer, MapReduceReducerNotBinaryError));

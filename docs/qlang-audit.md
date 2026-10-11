@@ -893,8 +893,11 @@ construction rather than from being asked for.
 
 A refusal is named by the address of what refused: a subject of
 another kind under the word, a part that breaks an invariant under the
-invariant, whose name is the refusal, and a primitive's refusal under the word
-that ran it, which lists it among its names. The facts an error carries
+invariant, whose name is the refusal, a primitive's refusal of a part's
+value or of an element of it under the part, and a primitive's refusal
+of its run under the word that ran it, which lists it among its names;
+a number is whole where it equals its floor, `eq (floor)`, the law of
+every count and of the digits of `round` [D218]. The facts an error carries
 are definitions under the label of the refusal and under `::error`, held
 in the order they are declared, the trail last, and a fact neither
 declares is a defect of the runtime [D166], [D169], [D172]:
@@ -908,6 +911,9 @@ declares is a defect of the runtime [D166], [D169], [D172]:
 
 > [1 "x"] | sum !| [type /index]
 [::vec/sum/ElementNotNumberError 1]
+
+> 2.5 | round 0.5 !| type
+::number/round/digits/NotIntegerError
 
 > ::vec/sum | manifest
 #[::vec/sum/ElementNotNumberError ::vec/sum/answer]
@@ -1741,7 +1747,7 @@ stands, which costs a name on a noun for every helper.
 
 The boot of the root, and a lazy one. The command line boots the whole
 root in each process, its sources parsed and their declarations run.
-On 12 October 2026, on the maintainer's machine, a run of `qlang '1'`
+On 11 October 2026, on the maintainer's machine, a run of `qlang '1'`
 took 0.74 to 0.84 s, five runs each its own process: node's own start
 0.08 s, the modules of the core 0.06 s, the boot of the root,
 `langRuntime`, 0.63 s, and the session of the command line with the
@@ -1813,13 +1819,6 @@ refusal naming both, so a name is free until it is called on a subject
 its word serves and a new word breaks only the queries that call it so;
 or a reader's value read by a form of its own, a sigil before its name,
 which costs a second spelling of every name a query reads.
-
-The wholeness of a number. A count of `take` is a whole number by the
-law `eq (round)` [D172], and the digits of `round` stay tested by its
-primitive, since the same law on them would call `round` on its own
-digits again. The alternatives: a word that answers whether a number is
-whole, a primitive the law of every count calls; or the test kept in
-`round` alone.
 
 A reader's extension inside a word of the root [D23], [D200], [D202].
 The rule of collisions asks that a reader's word under a noun of the
@@ -2049,3 +2048,4 @@ applies
 [D215]: decisions/D215.md
 [D216]: decisions/D216.md
 [D217]: decisions/D217.md
+[D218]: decisions/D218.md

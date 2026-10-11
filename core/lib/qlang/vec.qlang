@@ -1162,7 +1162,7 @@
   |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
       rounded first, `take (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :vec/take/takesTheFirst
   |~~ Three of five are the first three. ~~|
@@ -1226,7 +1226,7 @@
   |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
       rounded first, `drop (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :vec/drop/dropsTheFirst
   |~~ Dropping two leaves the last three. ~~|
@@ -1289,7 +1289,7 @@
   |~~ The index is a whole number, `[10 20] | at 1`; a fraction is
       rounded first, `at (0.6 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :vec/at/default
   |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
@@ -1535,7 +1535,7 @@
       ~(add)`; a call of the reducer alone reads it as the seed.
   ~~|
 
-:vec/reduce/ReducerNotBinaryError
+:vec/reduce/reducer/NotBinaryError
   |~~ The quote of `reduce` names one word, which the fold calls with the
       value so far as its subject and the element as its first arg,
       `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
@@ -1602,15 +1602,15 @@
   |~~ A call of the reducer alone lacks the reducer. ~~|
   ::law~([1 2 3] | reduce ~(add) !| type | eq ::vec/reduce/reducer/NotGivenError)
 
-:vec/reduce/ReducerNotBinaryError/refusesTwoSteps
+:vec/reduce/reducer/NotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
-  ::law~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/ReducerNotBinaryError)
+  ::law~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/reducer/NotBinaryError)
 
-:vec/reduce/ReducerNotBinaryError/refusesAStepWithItsArg
+:vec/reduce/reducer/NotBinaryError/refusesAStepWithItsArg
   |~~ A reducer that gives its word an arg of its own is refused. ~~|
-  ::law~([1 2 3] | reduce 0 ~(add 1) !| type | eq ::vec/reduce/ReducerNotBinaryError)
+  ::law~([1 2 3] | reduce 0 ~(add 1) !| type | eq ::vec/reduce/reducer/NotBinaryError)
 
-:vec/reduce/ReducerNotBinaryError/takesANameForTwoSteps
+:vec/reduce/reducer/NotBinaryError/takesANameForTwoSteps
   |~~ Two steps under a name of their own fold as one word. ~~|
   ::law~(:any/step ~(mul 2 | add el)
     | :any/step/el ~(/0)

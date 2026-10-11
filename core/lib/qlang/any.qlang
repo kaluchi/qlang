@@ -1201,16 +1201,16 @@
   ~~|
   ::holds~(is ::keyword ::vec ::set ::null)
 
+:any/doc/anchor/ElementNotKeywordError
+  |~~ An anchor of the path `doc` reads is no keyword: each step of the
+      path names a member by a keyword, `doc [:take :count]`.
+  ~~|
+
 :any/doc/UnknownNameError
   |~~ `doc` found no declaration of the name it read, as `binding` finds
       none, or no member of the page before it under an anchor of its
       path.
       ::link~(::any/binding/UnknownNameError | doc)
-  ~~|
-
-:any/doc/AnchorNotKeywordError
-  |~~ An anchor of the path `doc` reads is no keyword: each step of the
-      path names a member by a keyword, `doc [:take :count]`.
   ~~|
 
 :any/doc/ArgsBeyondPartsError
@@ -1282,9 +1282,9 @@
   |~~ An anchor no member answers is refused with the name it read. ~~|
   ::law~(::vec/take | doc :nope !| [type /name] | eq [::any/doc/UnknownNameError :nope])
 
-:any/doc/AnchorNotKeywordError/refusesANumberInThePath
+:any/doc/anchor/ElementNotKeywordError/refusesANumberInThePath
   |~~ A number in the path is refused at its index. ~~|
-  ::law~(::vec | doc [:take 1] !| [type /index] | eq [::any/doc/AnchorNotKeywordError 1])
+  ::law~(::vec | doc [:take 1] !| [type /index] | eq [::any/doc/anchor/ElementNotKeywordError 1])
 
 :any/doc/ArgsBeyondPartsError/refusesTwoAnchors
   |~~ Two anchors given apart are refused under the word. ~~|

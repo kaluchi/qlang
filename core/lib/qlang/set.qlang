@@ -846,7 +846,7 @@
   |~~ The count is a whole number, `#[1 2 3] | take 2`; a fraction is
       rounded first, `take (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :set/take/count/NotGivenError
   |~~ `take` takes as many of the least elements as its call counts,
@@ -927,7 +927,7 @@
   |~~ The count is a whole number, `#[1 2 3] | drop 2`; a fraction is
       rounded first, `drop (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :set/drop/ArgsBeyondPartsError
   |~~ `drop` takes one count: the two elements after the least are `drop
@@ -997,7 +997,7 @@
   |~~ The index is a whole number, `#[10 20] | at 1`; a fraction is
       rounded first, `at (0.6 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :set/at/index/NotGivenError
   |~~ `at` reads the element at the index its call gives: the least
@@ -1158,7 +1158,7 @@
       seed and leaves the reducer out. The sum of numbers is `sum`.
   ~~|
 
-:set/reduce/ReducerNotBinaryError
+:set/reduce/reducer/NotBinaryError
   |~~ The reducer of `reduce` is the quote of one word, which the fold
       calls with the value so far as its subject and the element as its
       first arg, `reduce 0 ~(add)`; a quote of several steps, a literal, a
@@ -1181,13 +1181,13 @@
   |~~ A reducer given alone stands as the seed and leaves no reducer. ~~|
   ::law~(#[1 2] | reduce ~(add) !| type | eq ::set/reduce/reducer/NotGivenError)
 
-:set/reduce/ReducerNotBinaryError/refusesTwoSteps
+:set/reduce/reducer/NotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
-  ::law~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/ReducerNotBinaryError)
+  ::law~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/reducer/NotBinaryError)
 
-:set/reduce/ReducerNotBinaryError/refusesAWordGivenAValue
+:set/reduce/reducer/NotBinaryError/refusesAWordGivenAValue
   |~~ A reducer that gives its word a value of its own is refused. ~~|
-  ::law~(#[1 2] | reduce 0 ~(add 1) !| type | eq ::set/reduce/ReducerNotBinaryError)
+  ::law~(#[1 2] | reduce 0 ~(add 1) !| type | eq ::set/reduce/reducer/NotBinaryError)
 
 :set/reduce/reducer/NotQuoteError/refusesCodeComputedAtTheCall
   |~~ A reducer written without its quote is computed at the call and refused. ~~|

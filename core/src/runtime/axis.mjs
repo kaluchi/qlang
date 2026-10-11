@@ -40,7 +40,7 @@ import { splitAddress } from '../address.mjs';
 export const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 export const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
-const AnyDocAnchorNotKeywordError = declareRefusal('any/doc/AnchorNotKeywordError');
+const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
 export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
 // The name a refusal says a subject read: a keyword or a tag name
@@ -161,7 +161,7 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 function recordAlongPath(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
-    if (!isKeyword(anchor)) throw new AnyDocAnchorNotKeywordError({ index, actualValue: anchor });
+    if (!isKeyword(anchor)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
     return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocUnknownNameError);
   }, subject);
 }

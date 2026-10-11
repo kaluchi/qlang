@@ -737,7 +737,7 @@
   |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | take 2`; a fraction is
       rounded first, `take (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :map/take/takesTheFirstEntries
   |~~ Two entries of a map are its first two. ~~|
@@ -794,7 +794,7 @@
   |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | drop 2`; a fraction is
       rounded first, `drop (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :map/drop/dropsTheFirstEntries
   |~~ Dropping two leaves the last. ~~|
@@ -956,7 +956,7 @@
   ~~|
   ::holds~(is ::quote)
 
-:map/reduce/ReducerNotBinaryError
+:map/reduce/reducer/NotBinaryError
   |~~ The quote of `reduce` names one word, which the fold calls with the
       value so far as its subject and each value as its first arg,
       `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
@@ -985,13 +985,13 @@
     !| [type /actualType]
     |  eq [::map/reduce/reducer/NotQuoteError ::number])
 
-:map/reduce/ReducerNotBinaryError/refusesTwoSteps
+:map/reduce/reducer/NotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
-  ::law~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/ReducerNotBinaryError)
+  ::law~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/reducer/NotBinaryError)
 
-:map/reduce/ReducerNotBinaryError/refusesALiteral
+:map/reduce/reducer/NotBinaryError/refusesALiteral
   |~~ A literal names no word. ~~|
-  ::law~({:a 1} | reduce 0 ~(1) !| type | eq ::map/reduce/ReducerNotBinaryError)
+  ::law~({:a 1} | reduce 0 ~(1) !| type | eq ::map/reduce/reducer/NotBinaryError)
 
 :map/keys
   |~~ Answers the set of the keys, each a keyword, in the order of their

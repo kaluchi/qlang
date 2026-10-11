@@ -330,7 +330,7 @@
   |~~ The count is a whole number, `"abc" | take 2`; a fraction is
       rounded first, `take (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :string/take/takesTheFirstCharacters
   |~~ Two characters of a string are its first two. ~~|
@@ -393,7 +393,7 @@
   |~~ The count is a whole number, `"abc" | drop 2`; a fraction is
       rounded first, `drop (1.5 | round)`.
   ~~|
-  ::holds~(eq (round))
+  ::holds~(eq (floor))
 
 :string/drop/dropsAPrefix
   |~~ Dropping a prefix of known length leaves the rest. ~~|

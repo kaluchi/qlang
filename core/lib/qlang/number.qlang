@@ -538,8 +538,9 @@
   |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
   ::holds~(is ::number)
 
-:number/round/DigitsNotIntegerError
+:number/round/digits/NotIntegerError
   |~~ The digits of `round` are a whole number, `round 2`. ~~|
+  ::holds~(eq (floor))
 
 :number/round/SubjectNotNumberError
   |~~ `round` rounds a number: text that holds one is read first by
@@ -574,9 +575,9 @@
   |~~ A string is no number to round. ~~|
   ::law~("2.5" | round !| [type /actualType] | eq [::number/round/SubjectNotNumberError ::string])
 
-:number/round/DigitsNotIntegerError/refusesAFraction
+:number/round/digits/NotIntegerError/refusesAFraction
   |~~ Half a digit is refused. ~~|
-  ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
+  ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/digits/NotIntegerError ::number])
 
 :number/round/digits/NotNumberError/refusesAString
   |~~ A count of digits that is no number is refused under the part. ~~|

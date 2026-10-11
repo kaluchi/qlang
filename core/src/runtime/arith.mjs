@@ -8,7 +8,6 @@
 
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
 const NumberRangeCountNotIntegerError = declareRefusal('number/range/CountNotIntegerError');
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
@@ -35,9 +34,9 @@ bindPrim('number/range', count => {
 });
 
 // A number rounds half away from zero to the digits after the point the
-// call gives, a negative count rounding to tens and beyond [D132].
+// call gives, a whole number its part holds [D218], a negative count
+// rounding to tens and beyond [D132].
 bindPrim('number/round', (subject, digits) => {
-  if (!Number.isInteger(digits)) throw new NumberRoundDigitsNotIntegerError({ actualValue: digits });
   const factor = 10 ** digits;
   const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;
   return rounded === 0 ? 0 : rounded;

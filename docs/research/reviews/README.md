@@ -80,7 +80,7 @@ review; findings 5 and 6 still stand for the laws declared under
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
 10. Rule refusals with no page and no repair. Answered by faf4c8cd where a repair helps: the compared value of every comparison shows its call on its part's page, which `!| explain` reads for a call with no value, and `at`, `within`, `not` and the streams page their refusal by rule with a law; the other refusals by rule stay without a page, their address naming what the call lacks.
 11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
-12. The sister project still writes `*`. Awaits the maintainer's word.
+12. The sister project still writes `*`. Answered by the port of the sister project onto D196 at the maintainer's word, its commits c04ba19 and 880b9fc there.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Answered by 24c66f1e: the law of `ParseError` stands after its facts, the laws of `:cli` after its refusal, and `table` pages `SubjectNotVecError` with its repair and its two laws under it.
 14. Claims with no law. Answered by 68af9ab5: each claim holds by a law under its word or its refusal.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
@@ -91,3 +91,25 @@ review; findings 5 and 6 still stand for the laws declared under
 
 The question of the language server's precision after `map`, whose
 answer D182 declares `::any`: open.
+
+## 2026-10-11 · the autonomous series, D197 to D201
+
+[2026-10-11-autonomous-series.md](2026-10-11-autonomous-series.md), at 832df32c, over 3c986534..832df32c.
+
+1. A word of a source reached a bare value of its source after any word of that name, a reader's or a later source's, under D200's frame of the root alone. Answered by d6733d8c: the frame holds the source's bare values that hold no page over the root, two tests of the names of the scope hold it, D200 names D44 and the audit's lexical extension, and the comments of `types.mjs` and `eval.mjs` state the scope a declared quote runs in.
+2. A quote condition of `allOf` and `anyOf` answering another kind met the refusal of `every`. Answered by fba5256f: the words are primitives beside `cond`, each refusing as its own `ConditionNotBooleanError` with a page and a law, and D197's Set aside weighs the composition.
+3. `formOf` walked the predicates `typeKeyword` walks, a second table of the kinds, and its `tagged` narrower than `::tagged`. Answered by cae66823: the form is derived from `typeKeyword`, the second walk deleted, a value under any other tag `underTag`, and the ledger of the outside audits says so.
+4. The bound of `range` written twice, in its page and in the host, the page naming JavaScript and no repair. Answered by d6733d8c: the refusal carries the bound as its fact `:longest`, declared under it, and its page names the fact and says the call has no repair but a count within it; a count below the bound that outgrows the host's memory stays the host's.
+5. A quote called a condition where the catalog defines a condition as a boolean. Answered by fba5256f: the pages, the first page and D197 say a condition, or a quote that answers one in its turn.
+6. A condition computed at the call refused at its first place under a repair, the quote, that changes nothing there. Answered by fba5256f: the pages of both refusals name the soft read of a field a record may lack beside the quote, a law at the first place under each, and D197 says the refusal holds at every place; the sister project's `problemsInRangeOf` meets an error for a marker without a start line on both trees.
+7. Statements of pages with no law under their address. Answered by fba5256f for `anyOf` and by 847a868e for the reducer written first on maps and sets, the boolean, null and tag name keys of `indexBy` and `groupBy` on vectors and sets, and the keyword separator of `join`.
+8. Values of two kinds whose text is one share a key of `groupBy` and `indexBy`, told nowhere. Answered by 847a868e: the pages of the four words say it, a law under each holds it, and D201's Set aside weighs a refusal of such a key.
+9. D199 counted the paths of the shell from the first runs to the last, where all fall before D187. Answered by 49830b60: D199 places them before D187, names the reader it serves outside the benchmark, and says why a reading in the command line escapes D187's reason.
+10. The open question of the root's boot wrote numbers no command printed and paraphrased the maintainer. Answered by 49830b60: it quotes his words, keeps no number, and anchors each reader of the whole root by its file and symbol; the ledger of the outside audits keeps no number of the parse either.
+11. Comparisons of two states in a comment, the records and the commits. Answered by d6733d8c for the comment of the grammar and D200, by 847a868e for D198 and D201, and by 49830b60 for D199; the commits of the repair say what holds.
+12. D198 claimed every word that writes text writes a keyword's name, which `print` refutes, and `join`'s page joined a map's pairs whose values may be numbers. Answered by 847a868e: D198 names `join`, `append` and `prepend`, and the page joins the pairs of a map of strings.
+13. Names and comments of the implementation in files the series touched. Answered by cae66823.
+14. A prefix of the map's writer that is always empty. Answered by cae66823.
+15. The ledger of the outside audits closed questions the audit holds open. Answered by 49830b60: both items say open and cite the audit's question of a helper of one word.
+16. The series named no deletion. Answered by cae66823, which names its deletions: the second walk of the kinds and the prefix of the map's writer.
+

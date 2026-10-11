@@ -1,72 +1,14 @@
-// Raw-mode terminal line editor with live syntax-highlighting,
-// bracketed-paste support, and multi-line buffer rendering, plus a
-// line-buffered flavour for non-TTY stdin (pipes, scripted tests).
-// The TTY flavour reads stdin in raw mode so every keystroke can
-// redraw the current buffer through the caller-supplied
-// `render(buffer)` step — line-buffered input drops the
-// keystroke-level redraw and ships a single line at a time; both
-// flavours coexist in one factory so callers pick by stdin shape.
-//
-// Two editor flavours, picked by `stdinStream.isTTY`:
-//
-//   TTY (interactive terminal):
-//     * Raw mode keystroke capture; per-keystroke redraw of the
-//       current buffer via the caller-supplied `render(buffer)` —
-//       the REPL passes `(s) => highlightAnsi(s, builtinNames)` so
-//       every byte is painted as it lands, including inside a
-//       multi-line buffer.
-//     * Multi-line redraw: `\n` in the buffer is a real line break
-//       on screen. The editor tracks how many visual rows the last
-//       render occupied (logical `\n` count plus terminal soft-wrap
-//       at column width), then walks the cursor up that many rows
-//       and clears to end of screen before re-rendering. Long lines that wrap across
-//       terminal columns collapse back correctly when the buffer
-//       shrinks.
-//     * Bracketed paste — terminal-emitted `\x1b[200~ … \x1b[201~`
-//       wrappers around a multi-line paste are detected and the
-//       enclosed content (newlines and all) is inserted at the
-//       cursor with its structure preserved; the user can edit,
-//       append a projection like `| /key`, then submit.
-//     * Chunk-level paste heuristic for hosts that strip BPM
-//       markers (PowerShell, ssh without BPM negotiation): any
-//       data event longer than one byte and containing `\n` is
-//       treated as a paste and routed through the same insert
-//       path. A solitary LF that arrives with the paste closes
-//       the accumulator window deterministically rather than
-//       being mistaken for a submit.
-//     * Enter (CR 0x0d) submits the current buffer as one cell —
-//       PowerShell / bash / cmd.exe parity, so muscle memory from
-//       any host shell carries over.
-//     * Ctrl+Enter / Ctrl+J inserts a soft newline at the cursor.
-//       Ctrl+Enter emits LF (0x0a) in every modern terminal that
-//       distinguishes it from plain Enter; Ctrl+J emits the same
-//       LF, so the two are one binding. Multi-line cell composition
-//       (continuing a pipeline across rows) uses this keystroke.
-//     * Alt+Enter (`ESC + CR` / `ESC + LF`) also submits — alternate
-//       submit binding for hosts that intercept Ctrl+Enter or where
-//       a single physical Enter press is the natural muscle memory.
-//     * Cursor: Left / Right / Home / End / Ctrl+A / Ctrl+E walk
-//       across the multi-line layout, stepping across embedded
-//       `\n` the same way any GUI editor handles line breaks.
-//     * Backspace / Delete-forward.
-//     * Ctrl+C clears the buffer and re-prompts; Ctrl+D on an
-//       empty buffer closes the editor.
-//
-//   Non-TTY (pipe, file, scripted test):
-//     * Line-buffered chunk reader. No raw mode, no rendering, no
-//       paste sequences — every `\n` boundary fires `'line'`.
-//     * Tail content with no trailing newline still emits before
-//       `'close'`.
-//
-// Both flavours share the same EventEmitter contract:
-//   editor.start()           begin reading from the stream
-//   editor.prompt()          (re)render the prompt
-//   editor.close()           tear down listeners and disable raw
-//                            mode + bracketed paste if applicable
-//   editor.on('line', fn)    fired with the submitted buffer text
-//                            (newlines preserved across soft-
-//                            newline and paste)
-//   editor.on('close', fn)   fired on EOF or Ctrl+D
+// The line editor of the REPL, which `start`s reading, `prompt`s, and
+// `close`s, emitting 'line' with each cell's text and 'close' at the end
+// of the input or at Ctrl+D. In a terminal it reads keys in raw mode and
+// repaints the buffer through `render` as it changes, its lines and the
+// rows the terminal wraps among them: Enter or Alt+Enter submits,
+// Ctrl+Enter or Ctrl+J breaks a line, a paste, bracketed or a chunk that
+// holds a line break, lands whole at the cursor, the arrows, Home, End,
+// Ctrl+A and Ctrl+E move across the lines, Backspace and Delete erase,
+// Ctrl+C clears, and Ctrl+D on an empty buffer closes. Over a pipe each
+// line of the input is a cell, the last one without its line break
+// among them.
 
 import { EventEmitter } from 'node:events';
 import { StringDecoder } from 'node:string_decoder';

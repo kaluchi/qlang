@@ -7,25 +7,28 @@
    error. ~|
 
 :error
-  |~~ The kind of errors. A reader learning a tool fails often, and
-      a failure is the moment when the knowledge it needs is cheapest to
-      give, so a failure carries it: the facts of the failure, the path
-      it took, and the tag of the site that refused, which names the page
-      of the procedure. An error at rest is a value like any other, a map
-      of facts under `::error`, `::error{:k 1}`, and every refusal a tag
-      of its own stacked over it, named for what failed,
-      `::number/add/SubjectNotNumberError::error{…}`, whose literal is
-      the bang, `!{:k 1}` and `::number/add/SubjectNotNumberError!{…}`,
-      as `#[…]` is the set's: a container holds it, a step reads it,
-      `print` writes it. Raised by `raise`, an error is a failure, which
-      lives in the pipe alone and prints as its error at rest raised,
-      `!{:k 1} | raise`: `|` passes it by, writing its path as it goes,
-      and `!|` alone catches it, its step
-      running on the error at rest, so `!| type` reads the site and the
-      verbs of this kind reach every error. A literal, a name or a fact
-      whose part fails answers the failure, since no value holds one.
-      The verbs and refusals of this kind are listed by
-      ::snippet~(::error | manifest).
+  |~~ An error is the facts of a failure as a value: what refused, on
+      what, and the path the failure took, under the tag of the site
+      that refused, which names the page that tells how to repair the
+      call. A step that fails answers an error raised, a failure; a
+      reader learning a tool fails often, and the failure brings what
+      the reader needs at the moment it is cheapest to give.
+
+      An error at rest is written with a bang, `!{:reason :late}`, the
+      tag of its site before the bang, `::Late!{:by 3}`; it is
+      `::error{…}` under that tag, and prints with its bang, as a set
+      prints with its hash. It is a value like any other: a container
+      holds it, its facts read as fields, `!{:reason :late} | /reason`
+      answering `:late`, and JSON writes it as a value under its tag.
+
+      Raised by `raise`, an error is a failure, which lives in the pipe
+      alone and prints as its error at rest raised, `!{:k 1} | raise`.
+      `|` passes a failure by, writing its path, and `!|` alone catches
+      it, its step running on the error at rest: `"x" | add 1 !| type`
+      answers the site, `::number/add/SubjectNotNumberError`, and
+      `trail` the path. No value holds a failure, so a literal, a name
+      or a fact whose part fails answers the failure.
+      ::snippet~(::error | manifest) lists its words and refusals.
       ::link~(::explanation | doc) ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
   ~~|

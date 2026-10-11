@@ -2,16 +2,18 @@
    under it: its constructor and the refusals of a read that misses. ~|
 
 :proj
-  |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
-      the pipe by keys and indices, a negative index from the end, and a
-      miss answers an error, never null, so a misspelled field is found
-      where it is read. `/` is the value itself. A key is written as a
-      keyword is, bare, in quotes, `/"foo bar"`, or with its colon when it
-      is a path, `/:qlang/error`, which is one key where `/qlang/error`
-      is two. As a record, `:path` is the keys and indices it walks,
-      `[]` for `/`.
+  |~~ A projection, `/a/0/b`, reads a part of the value in the pipe by
+      its keys and places, a negative place from the end, and `/` is the
+      value itself. A missing part is a failure, never null, so a
+      misspelled field is found where it is read; `at` reads softly.
+
+      A key is written as a keyword is, bare, `/name`, quoted,
+      `/"first name"`, or with its colon when it holds a slash,
+      `/:qlang/error`, one key where `/qlang/error` is two. In a quote
+      the step is a record, `~(/a/0) | first` answering
+      `::proj{:path [:a 0]}`, `:path` the keys and places it walks.
       ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
-      ::link~(::qlang/pipeline | doc)
+      ::link~(::map/at | doc) ::link~(::qlang/pipeline | doc)
   ~~|
 
 :proj/holdsThePath

@@ -4,27 +4,27 @@
    the served subject and the parts. ~|
 
 :cli
-  |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
-      and write the streams of the process, and `table` renders a
-      vector of maps as text. A value one query hands another over a
-      pipe keeps its kinds as its literal: `print | @out` writes it and
-      `@in | parse | open` reads it back.
-      A query runs on what stdin holds: JSON read as values, an object
-      a map whose keys are keywords, whose answer is written as JSON,
-      where a value JSON has no form for is refused, the refusal holding
-      the answer as its literal; text read
-      as a string, whose answer is written as its `print`; and
-      `| json` writes JSON text. With nothing piped a query runs on the
-      noun of the language, `::qlang`, so `qlang 'doc'` reads its first
-      page. A query that writes to stdout itself,
-      by `@out`, holds the channel, and its answer is left unwritten. A
-      failure is written with the prose of its refusal's page, which
-      tells how to repair the call: below its literal as line comments,
-      `|~| …`, which a reading of the literal passes over, and under
-      `page` in JSON.
-      Its words are declared under the kinds of their subjects, a query
-      calls them by their names, and the manifest of each kind lists
-      them.
+  |~~ The command line runs a query on what a shell hands it and writes
+      the answer back: `qlang '…'` in a script, `qlang -i` as a session
+      of cells. It is the host a reader meets first, and the words it
+      adds read and write the streams of the process.
+
+      A query runs on what stdin holds: JSON is read as values, an
+      object a map whose keys are keywords, and the answer is written
+      back as JSON, a value JSON has no form for refused with the answer
+      as its literal; any other text is read as a string, and the answer
+      written as its `print`. With nothing piped a query runs on the
+      noun of the language, `::qlang`, so `qlang 'doc'` reads the first
+      page. A failure is written as its alert with the prose of its
+      refusal's page below it as line comments, `|~| …`, which tell how
+      to repair the call, and under `page` in JSON.
+
+      `@in`, `@out`, `@err` and `@tap` read and write the streams,
+      `table` renders a vector of maps as text, and `| json` writes JSON
+      text. A value one query hands another over a pipe keeps its kinds
+      as its literal, `print | @out` writing it and `@in | parse | open`
+      reading it back; a query that writes to stdout by `@out` holds the
+      channel, and its answer is left unwritten.
       ::link~(::qlang/hosts | doc)
   ~~|
 

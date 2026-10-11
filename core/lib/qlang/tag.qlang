@@ -3,19 +3,22 @@
    `manifest`. ~|
 
 :tag
-  |~~ The kind of a tag name, `::Kind` taken as a value. A tag is the name
-      of a kind, the interpretation of the value it stands on, and the
-      model of the language hangs on it: a value carries its kind as the
-      tag over it, a name finds its verb through that tag, and the tag
-      names the page of the kind, so `type | doc` reads the page of a
-      value's kind. Tags stack over any payload and read from the outside
-      in; behaviour does not travel with a value, it is found again
-      through the tag wherever the value goes. A kind is a label, a name
-      declared by its page, and the tag is the address of that name, so a
-      page declared as `:d` makes the kind `::d`; a tag no node answers is
-      a kind of identity, which declares nothing.
-      ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
-      ::snippet~(kinds) lists the kinds the scope reads.
+  |~~ A tag names a kind, and a value carries its kind as the tag over
+      it: `[1 2]` is of `::vec`, `::Box[1 2]` a vector under `::Box`.
+      Taken alone, `::Box` is a value of this kind, the name a query
+      asks about the kind: `::vec | doc` reads its page and
+      `::vec | manifest` lists what lies under it, and `type` answers
+      the tag of any value, `[1 2] | type` answering `::vec`.
+
+      It is written `::` and a name, a slash joining names into an
+      address, `::vec/count`; a tag that touches a payload puts the
+      payload under it, which ::link~(::tagged | doc) tells. A kind is
+      declared by its page, and its tag is the address of that name; a
+      tag nothing declares is a kind of identity, which checks nothing
+      and lays itself over the value. Tags rank after keywords and
+      before vectors, and JSON writes a tag as its literal, `"::Box"`.
+      ::snippet~(kinds) lists the kinds the scope reads, and
+      ::snippet~(::Box::Crate{:a 1} | type) answers the outer tag.
       ::link~(::qlang/values | doc)
   ~~|
 

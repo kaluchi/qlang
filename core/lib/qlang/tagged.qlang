@@ -3,16 +3,27 @@
    it: the words of tagged values. ~|
 
 :tagged
-  |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
-      whatever the payload: the walk from a tagged value to its verb
-      passes its own tags, then this kind, then the kind of its payload's
-      shape. The verbs that take a tag apart live here, `payload`, which
-      answers the value beneath, and `within`, which runs code on the
-      value beneath and puts its answer back under the tag through the
-      tag's constructor. A value is put under a tag
-      by a literal, `::T[1 2]` or `::T{:a 1}`, or by `tag`; the literal
-      in a quote is a step of its own kind, `::construct`, and no value of
-      this one. Every value under a tag reaches the words of this kind.
+  |~~ A value under a tag is a payload read by the kind its tag names,
+      `::Box[1 2]`, `::Box{:a 1}`, `::Box(5)`, `::Box"s"`: the tag says
+      how to read the data beneath, and the data keeps its shape, so the
+      words of the payload's kind still serve it, `::Box[1 2] | count`
+      answering `2`. Tags stack and read from the outside in,
+      `::Box::Crate{:a 1} | type` answering `::Box`.
+
+      It is written as the tag touching its payload, whatever brackets
+      hold the payload, or made by `tag`, `[1 2] | tag ::Box` answering
+      `::Box[1 2]`. A tag declared as a kind runs its constructor and
+      its invariants over the payload, and one nothing declares lays
+      itself as it is. `payload` takes the outer tag off, and
+      `within ~(…)` edits the payload under the tag, which checks it
+      again. JSON writes it as an object of its `$tag` and its
+      `payload`.
+
+      A verb finds a value under a tag through its tags from the outside
+      in, then this kind, then the kind of its payload, so every value
+      under a tag reaches the words of this kind, a reader's kind adds
+      words over the core's, and a vector under a tag stays a vector.
+      ::snippet~(::tagged | manifest) lists its words.
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
   ~~|

@@ -6,19 +6,25 @@
    reads them through its shape. ~|
 
 :quote
-  |~~ Code as a value, the value of a `~(…)` literal: a vector of steps
-      under the code tag. Code is a value so that a name takes code as a
-      part of its args, `filter`, `sort`, `if`; a page holds links that
-      lead on and snippets that run, and the laws of a name are code; the
-      trail of an error holds the steps it skipped, ready to replay; and
-      a query is read, printed and built like any data. A literal step is
-      the literal itself; a step that computes is a record, `::call`,
-      `::proj`, `::bind` or `::construct`; `!|` and parentheses wrap their
-      step as `::fail` and `::group`. `apply` runs a quote on the subject
-      and `parse` prints it back, a quote of declarations alone a
-      declaration a line, each after the first led by its pipe, as a
-      source is written.
-      ::link~(::call | doc) ::link~(::fail | doc)
+  |~~ A quote is code held as a value, `~(add 1 | mul 2)`: steps that
+      run only when something runs them. A word that runs code later
+      takes a quote, `map ~(mul 2)`, `filter ~(gt 1)`, `sort ~/name`,
+      and `apply` runs one on a subject, `5 | apply ~(add 1)` answering
+      `6`.
+
+      It is written `~(…)` around a pipeline, and one name or one path
+      drops the parentheses, `~count`, `~/name`. A quote is the vector
+      of its steps under `::quote`, `~(add 1 | mul 2) | count` answering
+      `2`, and each step reads as data: a literal as itself, and a step
+      that computes as a record, `~(add 1) | first` answering
+      `::call{:name :add :modifiers [1]}`. `parse` turns text into a
+      quote and a quote into its text, and JSON writes a quote as its
+      text.
+
+      Because code is a value, a page holds links and snippets that run,
+      the laws of a name are quotes that answer true, and the trail of a
+      failure holds the steps it skipped, ready to replay.
+      ::link~(::call | doc) ::link~(::any/apply | doc)
       ::link~(::qlang/code | doc)
   ~~|
 

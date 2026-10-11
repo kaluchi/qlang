@@ -3,19 +3,25 @@
    string. ~|
 
 :string
-  |~~ The kind of a string, text as it came. A JSON string arrives as a
-      string, and `keyword` makes one a keyword where a key is wanted,
-      since the keys of a map are keywords. A value of another kind
-      becomes text by `print`, its literal, `5 | print` answering `"5"`,
-      or by `json`, its JSON. Its verbs work on the text
-      whole, by its characters, `count`, `take` and `drop`, or by its
-      lines, and `lines` breaks it into the vector a pipeline reads in
-      pieces. Its literal is written in double quotes with the escapes of
-      JSON, `\"`, `\\`, `\n`, `\t` and `\uXXXX` among them, any other
-      character raw between them, a line break among them.
+  |~~ A string is text, kept as it came: the value of a JSON string, a
+      line of a log, a message. Text is never read as another kind by
+      its look, so `"42"` stays text until `parseJson` reads it, and
+      `"draft"` is no keyword until `keyword` makes one.
+
+      It is written in double quotes with the escapes of JSON, `\"`,
+      `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
+      them, `"line one\nline two"`, and JSON writes it the same.
+      `::string"s"` is `"s"`. Strings rank after numbers and before
+      keywords, by their characters.
+
+      Its words read it whole or by its characters, `count`, `take`,
+      `drop`, `contains`, `startsWith`, `upper`, and break it, `split`
+      and `lines`, into a vector that `join` makes text again. `print`
+      turns any value into the text of its literal, `5 | print`
+      answering `"5"`, and `json` into JSON.
       ::snippet~(::string | manifest) lists its words and refusals.
       ::link~(::keyword | doc) ::link~(::any/print | doc)
-      ::link~(::any/json | doc) ::link~(::qlang/values | doc)
+      ::link~(::qlang/values | doc)
   ~~|
 
 :string/isAString

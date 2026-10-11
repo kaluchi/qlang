@@ -3,12 +3,17 @@
    it: the words that read it. ~|
 
 :explanation
-  |~~ The kind of what `explain` answers: the page `doc` reads
-      for a value under `:page`, then the value itself under `:value`, so
-      it prints as the page above what it explains, an error at rest as
-      `!|` caught it. It is the cord from a value to its procedure in one
-      answer; `page` and `value` answer its parts.
-      ::link~(::error | doc)
+  |~~ An explanation sets a value beside the page that explains it, the
+      answer of `explain`: the cord from what a reader holds to the page
+      that tells what it is, in one answer. A value is explained by the
+      page of its kind, a name by its own page, and a failure `!|`
+      caught by the page of its refusal, which tells how to repair the
+      call.
+
+      It prints as a map under its tag, the page under `:page` above the
+      value under `:value`, `::explanation{:page … :value 42}` for
+      `42 | explain`; `page` and `value` read its parts.
+      ::link~(::any/explain | doc) ::link~(::error | doc)
       ::link~(::qlang/errors | doc)
   ~~|
 

@@ -6,18 +6,26 @@
    answer is any value, answers under none. ~|
 
 :map
-  |~~ The kind of a map, the value of a `{…}` literal: named facts under
-      keywords, the shape a JSON object arrives in. A map literal is also
-      the shape an answer takes, each value a group run on the subject,
-      `{:id /id :n (/tags | count)}`; `/k` reads a field, and `map` over
-      a map runs a step on each value under its key. A JSON object is a
-      map literal too, its string keys read as keywords, so JSON pastes
-      into a query as it is; one literal is written in one of the two
-      forms, and a key written twice holds its last value. A map comes
-      apart into its pairs `[key value]` by `entries` and back by
-      `tag ::map`, which reads a key written as a string or a number as
-      the keyword of its text.
-      ::snippet~(::map | manifest) lists its verbs and refusals. ::link~(::proj | doc)
+  |~~ A map holds named values under keywords, `{:id 7 :tags ["a"]}`:
+      the value of a JSON object, a record of facts, and the shape an
+      answer is written in. A value is read by its key, `/id`, a missing
+      key a failure and `at :id` null; `keys` answers the keys as a set,
+      and `entries` the pairs `[key value]`.
+
+      It is written in braces, each keyword followed by its value,
+      `{:a 1 :b 2}`, or as JSON writes it, `{"a": 1, "b": 2}`, whose
+      keys read as keywords, so JSON pastes into a query as it is; one
+      form a literal, and a key written twice keeps its last value.
+      `::map{:a 1}` is `{:a 1}`. JSON writes a map as an object, and
+      maps rank after sets.
+
+      A map literal is the shape of an answer, each value computed
+      against the subject, `{:first "Ann" :age 30} | {:who /first}`
+      answering `{:who "Ann"}`. `map ~(…)` runs a step on each value
+      under its key, `filter ~(…)` keeps the entries whose value holds,
+      and `tag ::map` builds a map back from its pairs.
+      ::snippet~(::map | manifest) lists its words and refusals.
+      ::link~(::keyword | doc) ::link~(::proj | doc)
       ::link~(::qlang/values | doc)
   ~~|
 

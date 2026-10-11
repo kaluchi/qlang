@@ -3,13 +3,15 @@
    every value answers. ~|
 
 :any
-  |~~ The kind beneath every kind, where the verbs every value answers
-      live: `type`, `eq`, `doc`, `print`, `explain`, `elide` and
-      their kin. A verb that means the same for any value is written once
-      here, and the walk from a name to its verb ends here, after the
-      kinds of the subject. No value answers it as its `type`, since each
-      has a kind of its own above it.
-      ::snippet~(::any | manifest) lists the verbs of every value.
+  |~~ Any is the kind beneath every kind, where the words every value
+      answers live: `type`, `eq`, `doc`, `print`, `json`, `explain`,
+      `elide`, `if` and their kin. A word that means the same for every
+      value is written once here, and the walk from a name to its verb
+      ends here, after the kinds of the subject.
+
+      No value is of this kind alone, since `type` answers the kind
+      above it, and every value answers the words listed here.
+      ::snippet~(::any | manifest) lists the words of every value.
       ::link~(::qlang/verbs | doc)
   ~~|
 

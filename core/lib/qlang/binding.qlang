@@ -2,16 +2,22 @@
    scope, and the laws declared under it. ~|
 
 :binding
-  |~~ The kind of the record a declaration writes into its scope. A name
-      is a record that carries its page and its source, so what is named
-      can be listed and asked: `:name`, the keyword it binds, `:docs`,
-      one doc per doc of its slot, `:value`, `:source`, the quote of the
-      declaring step, and `:origin`, the source or the cell it was read
-      from. `env` answers the records of the scope, a name reads the value
-      its record holds, and the axes project the record, so `env | /x |
-      doc` answers the page of `x`. A value a host binds is a binding
-      without a doc and without a source. ::link~(::bind | doc)
-      ::link~(::qlang/verbs | doc)
+  |~~ A binding is the record a declaration writes: a name with its
+      page, its value and where it came from, so what is named can be
+      listed and asked like data. `env` answers the bindings a reader
+      declared, and `binding` the record of a name,
+      `::vec/count | binding | /origin` answering `:qlang/vec`.
+
+      It prints as a map under its tag; in the command line the record
+      of `:x 5` is
+      `::binding{:name :x :docs [] :value 5 :source ~(:x 5) :origin :cell-1}`.
+      `:name` is the keyword it binds, `:docs` one doc for each doc of
+      its slot, `:value` what the name holds, `:source` the quote of the
+      step that declared it, and `:origin` the source or the cell it was
+      read from. A value a host binds is a binding without a page or a
+      source.
+      ::link~(::bind | doc) ::link~(::any/binding | doc)
+      ::link~(::qlang/names | doc)
   ~~|
 
 :binding/holdsTheValue

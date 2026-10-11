@@ -10,17 +10,23 @@
    the kinds that do. ~|
 
 :set
-  |~~ The set, the vector in the one order without duplicates, the value
-      of a `#[…]` literal, of `distinct` and of `keys`; `has` asks it
-      for membership. A set is read as a vector wherever a vector is
-      read; `filter`, `take`, `drop` and `flat` keep it, since its
-      constructor re-runs after them, and a word that imposes an order,
-      `sort` or `reverse`, answers a vector. `map` over a set answers
-      the vector of its images, one per element, and `distinct` after it
-      makes a set of them again. A set written with braces, `#{…}`, is
-      refused with the brackets it takes.
-      ::link~(::vec | doc)
-      ::link~(::qlang/values | doc)
+  |~~ A set is a vector in the one order without duplicates, `#[1 2 3]`:
+      the answer of `distinct` and of `keys`, and the value to ask
+      membership of, `#[:a :b] | has :a` answering `true`. Its order is
+      the one order of values, never the order written, `#[3 1 3]`
+      answering `#[1 3]`.
+
+      It is written as a vector after a hash, `#[…]`, and `::set[3 1]`
+      is `#[1 3]`; a set written in braces, `#{…}`, is refused with the
+      brackets it takes. It reads as a vector wherever a vector is read,
+      `/0` its least element. JSON writes it as an array, which reads
+      back as a vector, and sets rank after vectors and before maps.
+
+      `union`, `inter` and `minus` combine sets; `filter`, `take` and
+      `drop` keep a set, while `sort`, `reverse` and `map` answer a
+      vector, which `distinct` makes a set again.
+      ::snippet~(::set | manifest) lists its words and refusals.
+      ::link~(::vec | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :set/dropsDuplicates

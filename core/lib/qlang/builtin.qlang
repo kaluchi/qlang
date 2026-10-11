@@ -5,14 +5,16 @@
    sources of the root. ~|
 
 :builtin
-  |~~ The descriptor, a map of fields under this tag. A host's primitive
-      is a name under a label whose value is an empty one, `::builtin{}`,
-      and a kind a host declares builds its values by its `construct`,
-      one of them: it runs the implementation the host handed for its
-      name, `::number/add` and `::vec/construct` the language's own,
-      while a name written in steps is a quote.
-      A descriptor is data and runs nothing by itself: a bare name bound
-      to one reads it.
+  |~~ A builtin marks a word a host implements: the value of a name
+      whose code the host hands as a function, `::builtin{}`, where a
+      word written in steps holds a quote.
+      `::number/add | binding | /value` answers `::builtin{}`, and a
+      kind the host declares builds its values by a `construct` that is
+      one.
+
+      It is a map under its tag and runs nothing by itself: a name bound
+      to one reads it as data, and a call of the word runs the
+      implementation its host handed.
       ::link~(::qlang/hosts | doc)
   ~~|
 

@@ -132,7 +132,7 @@ describe('the axes read the node a tag addresses', () => {
   it('::quote | doc returns the attached Doc-prefix on the type BindStep', async () => {
     const result = await evalQuery('::quote | doc | content');
     expect(typeof result).toBe('string');
-    expect(result).toContain('Code as a value');
+    expect(result).toContain('code held as a value');
   });
 
   it('::quote | laws reads the laws declared under the kind', async () => {

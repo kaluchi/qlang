@@ -3,14 +3,19 @@
    it: its constructor and the comparisons of values turned. ~|
 
 :desc
-  |~~ The kind of a value turned to descend: among the values of this
-      kind the one order runs in reverse, the greater payload first, so a
-      key of `sort`, `min` or `max` under `desc` descends whatever the
-      kind of what it ranks, a string among them, and a place of a vector
-      key descends alone, `sort ~([(/count | desc) /name])`. Every
-      comparison agrees, `gt` and `lt` here as `sort` and `max`, and
-      `payload` opens the value beneath. `desc` lays the kind over any
-      value. ::link~(::qlang/values | doc)
+  |~~ A desc turns a value to descend: among values of this kind the one
+      order runs in reverse, so a key of `sort`, `min` or `max` under
+      `desc` ranks the greater first, whatever the kind it ranks,
+      `[{:n 1} {:n 2}] | sort ~(/n | desc)` answering `[{:n 2} {:n 1}]`.
+      A place of a vector key descends alone,
+      `sort ~([(/n | desc) /name])` ranking by n descending, then by
+      name.
+
+      It is a value under its tag, `::desc(5)`, which `desc` lays over
+      any value and `payload` opens. Every comparison agrees with it,
+      `gt` and `lt` as `sort` and `max`.
+      ::snippet~(::desc | manifest) lists its words.
+      ::link~(::vec/sort | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :desc/holdsTheValue

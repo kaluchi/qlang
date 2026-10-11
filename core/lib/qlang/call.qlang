@@ -5,14 +5,17 @@
    ~|
 
 :call
-  |~~ The step of a command, `verb modifiers`: the name finds its verb
-      through the kind of the subject and runs it with the modifiers.
-      As a record, `:name` is the keyword of the name it calls and
-      `:modifiers` the step of each modifier, when the call gives any.
-      Like every record, a `::call` is the step its own text reads back
-      as: the constructor checks the kind of each field, prints the step
-      and reads it back. ::link~(::quote | doc)
-      ::link~(::qlang/pipeline | doc)
+  |~~ A call, `add 1`, runs a command: its name finds its verb through
+      the kind of the subject, its modifiers are computed against the
+      subject, and the verb runs on the subject with their values,
+      `10 | add 3` answering `13`.
+
+      In a quote the step is a record, `~(add 1) | first` answering
+      `::call{:name :add :modifiers [1]}`: `:name` is the keyword of the
+      name it calls and `:modifiers` the step of each modifier, where
+      the call gives any. Like every record of a step, its constructor
+      checks each field, prints the step and reads it back.
+      ::link~(::quote | doc) ::link~(::qlang/verbs | doc)
   ~~|
 
 :call/holdsTheNameAndTheModifiers

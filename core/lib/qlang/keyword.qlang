@@ -3,15 +3,22 @@
    the name of a keyword as a string. ~|
 
 :keyword
-  |~~ The kind of a keyword, `:k`, a name that stands for itself. It is
-      apart from the string so that no name is read by its look: every
-      key of a map is a keyword, `/k` reads a field by it, and a keyword
-      names a binding of the scope; `keyword` makes one of a string and
-      a string of one. A bare keyword is a name that begins with a letter
-      of any script, `_` or `@` and goes on with letters, digits, `_` and
-      `-`; a slash joins names into a path, `:domain/user`;
-      any other text is written in quotes, `:"foo bar"`, and the quotes
-      around a bare name change nothing. ::link~(::map | doc) ::link~(::binding | doc)
+  |~~ A keyword is a name that stands for itself, `:name`. It is apart
+      from the string so that no name is read by its look: every key of
+      a map is a keyword, `/k` reads the field a keyword names, and a
+      keyword names a declaration, `:x 5` declaring `x`.
+
+      A bare keyword is a colon and a name that begins with a letter of
+      any script, `_` or `@` and goes on with letters, digits, `_` and
+      `-`, `:id`, `:first-name`; a slash joins names into a path,
+      `:domain/user`; any other text is quoted, `:"first name"`, and
+      quotes around a bare name change nothing. A keyword is no string,
+      `:a | eq "a"` answering `false`, and `keyword` turns either into
+      the other, `"draft" | keyword` answering `:draft`. JSON writes a
+      keyword as its name, `"draft"`, and keywords rank after strings
+      and before tags.
+      ::snippet~(::keyword | manifest) lists its words.
+      ::link~(::map | doc) ::link~(::string | doc)
       ::link~(::qlang/values | doc)
   ~~|
 

@@ -2,14 +2,15 @@
    ~|
 
 :snippet
-  |~~ The kind of a snippet, a query a page shows its reader to run and
-      see, written in the prose of a doc as a quote under `::snippet`:
-      the words of a kind, ::snippet~(::vec | manifest), or a form at
-      work, ::snippet~({:a [5 6]} | /a/-1). A law answers true and a
-      link opens a page; a snippet answers whatever it shows, which
-      `open` runs, and `snippets` reads the snippets of a doc. A snippet
-      reproduces a situation for its reader, so it may answer an error,
-      and it reads as code.
+  |~~ A snippet is a query a page shows its reader to run and see,
+      written in the prose of a doc as a quote under this tag:
+      ::snippet~(::vec | manifest) lists the words of vectors, and
+      ::snippet~({:a [5 6]} | /a/-1) shows a projection at work. `open`
+      runs it, and `snippets` reads the snippets of a doc.
+
+      A snippet answers whatever it shows, a failure among them, since
+      it reproduces a situation for its reader; a link opens a page, and
+      a law answers true.
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
 

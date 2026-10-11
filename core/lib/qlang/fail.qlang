@@ -2,12 +2,14 @@
    under it: its constructor and its refusals. ~|
 
 :fail
-  |~~ The step `!| step`, the fail track: it alone catches a failure,
-      its step running on the error at rest, and passes any other value
-      by, so it is where a failure is read, recovered or raised again,
-      while `|` passes the failure by. As a record it wraps the quote of
-      that one step. ::link~(::error | doc)
-      ::link~(::qlang/errors | doc)
+  |~~ The fail track, `a !| b`: the step `b` runs on a failure alone,
+      caught to its error at rest, and any other value passes it by, so
+      it is where a failure is read, recovered or raised again, while
+      `|` passes a failure by. `"x" | add 1 !| 0` answers `0`.
+
+      In a quote the step is a record that wraps the quote of its one
+      step, `~(!| /kind) | first` answering `::fail~(/kind)`.
+      ::link~(::error | doc) ::link~(::qlang/errors | doc)
   ~~|
 
 :fail/holdsItsStep

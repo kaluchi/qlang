@@ -3,12 +3,19 @@
    two that join booleans. ~|
 
 :boolean
-  |~~ The kind of `true` and `false`, the answer of a question about a
-      value: `filter` and `every` take a quote that answers one, `if` the
-      boolean itself, computed at the call, and `false !| true` after
-      steps answers whether they failed.
-      ::snippet~(::boolean | manifest) lists its verbs and refusals.
-      ::link~(::qlang/values | doc)
+  |~~ A boolean is `true` or `false`, the answer to a question about a
+      value. A condition is a boolean and nothing else is truthy:
+      `filter` and `every` take code that answers one, `if` takes one
+      computed at the call, and any other value is refused there.
+
+      It is written `true` or `false`, as JSON writes it, and ranks
+      after null and before every number. The words that ask answer one,
+      `eq`, `gt`, `has`, `contains`, `is`; `not` turns it over, `and`
+      and `or` join two, and `allOf` and `anyOf` join the conditions of
+      one value, `5 | allOf (gt 0) (lt 10)` answering `true`. After
+      steps, `false !| true` answers whether they failed.
+      ::snippet~(::boolean | manifest) lists its words and refusals.
+      ::link~(::any/if | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :boolean/isABoolean

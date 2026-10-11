@@ -2,10 +2,19 @@
    it: its constructor and its refusal, and the soft read of it. ~|
 
 :null
-  |~~ The kind of null, the absence of a value; a part a call may leave
-      out reads null, `~(at 0)`. Its constructor, as every
-      constructor of a kind of the core, reads a payload of the kind as
-      the value itself. ::link~(::null/at | doc)
+  |~~ Null is the absence of a value, the one value of its kind. It
+      stands where a part is missing: `at` reads a part softly and
+      answers null where there is none, `{:a 1} | at :b` answering
+      `null`, a JSON `null` reads as it, and `coalesce` puts a fallback
+      in its place, `{:a 1} | at :b | coalesce 0` answering `0`.
+
+      It is written `null`, and `::null(null)` is the same value. It
+      ranks first in the one order, before every boolean, and JSON
+      writes it as `null`. A projection, `/b`, reads strictly: a missing
+      part is a failure there, never null, so a misspelled field is
+      found where it is read.
+      ::snippet~(::null | manifest) lists its words.
+      ::link~(::any/coalesce | doc) ::link~(::proj | doc)
       ::link~(::qlang/values | doc)
   ~~|
 

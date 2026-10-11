@@ -2,13 +2,17 @@
    what is declared under it: its constructor and its refusals. ~|
 
 :group
-  |~~ The step `(pipeline)`, a group: it runs its steps on the value in
-      the pipe and answers what its last step answers, its names left
-      inside. Each part
-      of a literal is such a group, which is why a literal is the shape an
-      answer takes, `[(add 1) (mul 2)]`. As a record it wraps the quote
-      of its pipeline. ::link~(::bind | doc)
-      ::link~(::qlang/pipeline | doc)
+  |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the
+      value in the pipe, it answers what its last step answers, and the
+      names it declares stay inside. Each part of a literal is one,
+      which is why a literal is the shape an answer takes,
+      `5 | [(add 1) (mul 2)]` answering `[6 10]`, and a modifier of more
+      than one word stands in one, `take (count | sub 1)`.
+
+      In a quote the step is a record that wraps the quote of its
+      pipeline, `~((add 1 | mul 2)) | first` answering
+      `::group~(add 1 | mul 2)`.
+      ::link~(::bind | doc) ::link~(::qlang/pipeline | doc)
   ~~|
 
 :group/holdsItsSteps

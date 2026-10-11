@@ -2,13 +2,18 @@
    it: its constructor and the refusals of a declaration. ~|
 
 :bind
-  |~~ The step of a declaration, `:name body`: it names a value for the
-      steps after it, in the scope where it stands, and a group, an
-      element of a literal and a quote a word runs each open a scope of
-      their own, so a name never leaks out of the fork that declared it. As a
-      record, `:name` is the keyword or tag it binds, `:docs` its prose
-      and `:body` the step of its body. ::link~(::binding | doc)
-      ::link~(::qlang/pipeline | doc)
+  |~~ A declaration, `:name body`, names a value for the steps after it,
+      in the scope where it stands:
+      `{:qty 2 :price 3} | :r / | /qty | mul (r | /price)` keeps the
+      record for a later step and answers `6`. The value in the pipe
+      passes on unchanged; a group, a part of a literal and a quote a
+      word runs each close the names declared inside, and a name is
+      declared once in its scope.
+
+      In a quote the step is a record, `~(:x 1) | first` answering
+      `::bind{:name :x :body 1}`: `:name` the keyword or tag it binds,
+      `:docs` its pages and `:body` the step of its body.
+      ::link~(::binding | doc) ::link~(::qlang/names | doc)
   ~~|
 
 :bind/holdsTheNameAndTheBody

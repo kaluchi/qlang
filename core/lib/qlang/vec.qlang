@@ -7,17 +7,27 @@
    and held to their invariants before the word runs. ~|
 
 :vec
-  |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
-      long value takes: its parts have an index, a size and a slice,
-      `drop` and `take`, so the rest of a long answer is the same query
-      with a tail, and `map` runs a step on each element. A set, a quote
-      and a doc are vectors under their tags, read as vectors wherever a
-      vector is read; over them the constructor answers the vector of
-      their elements, and `::vec[1 2]` reads as `[1 2]`. A JSON array is
-      a vector literal too, a comma between every two elements; one literal
-      is written in one of the two forms, as a map's is.
-      ::snippet~(::vec | manifest) lists its verbs and refusals.
-      ::link~(::vec/map | doc) ::link~(::qlang/values | doc)
+  |~~ A vector is an ordered list of values of any kinds, `[1 "a" [2]]`:
+      the value of a JSON array and the shape most answers take. Its
+      elements are read by their place from zero, `/0`, a negative place
+      from the end, `/-1`; a place past the end is a failure, and `at`
+      reads softly.
+
+      It is written in brackets, its elements set off by spaces,
+      `[1 2 3]`, or by commas as JSON writes them, `[1, 2, 3]`, one form
+      a literal; and `::vec[1 2]` is `[1 2]`. A set, a quote and a doc
+      are vectors under their tags and read as vectors wherever a vector
+      is read. JSON writes a vector as an array, and vectors rank after
+      tags and before sets, element by element.
+
+      Its words count and cut, `count`, `first`, `last`, `take`, `drop`,
+      reshape each element, `map ~(…)`, keep some, `filter ~(…)`, rank
+      them, `sort`, fold them, `reduce`, and sum their numbers, `sum`. A
+      long answer is read in pieces, `drop 20 | take 20`, the rest of it
+      the same query with a tail.
+      ::snippet~(::vec | manifest) lists its words and refusals.
+      ::link~(::vec/map | doc) ::link~(::set | doc)
+      ::link~(::qlang/values | doc)
   ~~|
 
 :vec/readsASetAsItsVector

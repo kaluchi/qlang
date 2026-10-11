@@ -251,3 +251,16 @@ The gatherings with a second marker, which the review found left out of a summar
 5. The constructor step of an answer stood twice. Answered by 62d138f6: one statement names the label.
 
 Outside the commit, `::number!{:a 1} !| /` lays a kind's tag over the opened facts of an error without its constructor, and the command line exits printing it; it stands unrepaired, a question of which tags an error literal may carry.
+
+## 2026-10-11 · the digits of the running mean
+
+[2026-10-11-the-digits-of-the-running-mean.md](2026-10-11-the-digits-of-the-running-mean.md), at 5269315e, over 7ae8d5c6..5269315e.
+
+The fate of the tenth review it found true to the tree but untrue of the mean stands in its findings below.
+
+1. A law said the mean of numbers whose sum stays among the doubles is their sum over their count, which the running mean is not, `[0 1 6 1] | avg` answering `1.9999999999999998`. The law is named for its instance, `:vec/avg/averagesZeroOneAndFour`, and the page of `:vec/avg` says the last digit is the running mean's, with `:vec/avg/keepsTheLastDigitOfTheRunningMean`.
+2. The laws of the ends spoke of any two numbers near the opposite ends, and the pages of the doubles where the language says the finite doubles. The laws speak of a number and its negation, and the pages of the finite doubles.
+3. No law held the divisor of the step past the ends. `:vec/avg/dividesPastTheEndsByTheCount` holds `[1e308 1e308 1e308 -1e308] | avg` answering `5e307`.
+4. The opened error under a kind's tag stood in a fate alone. The audit's chapter of open questions asks it, with its probe, its alternatives and their cost.
+
+The catalog answers by ef006452, and the audit and this ledger by the commit that keeps the review.

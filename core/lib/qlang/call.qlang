@@ -272,6 +272,10 @@
   |~~ The depth refused lies past the limit. ~~|
   ::law~(:q ~(apply q) | apply q !| :e / | /depth | gt (e | /limit))
 
+:call/EvaluationDepthExceededError/countsTheFrameOfEveryModifier
+  |~~ A level of a recursion runs its body, its branch and the modifiers of its calls a frame below each other, so a recursion short of the budget in its words meets it in its frames. ~~|
+  ::law~(:any/down ~(if (gt 0) ~(sub 1 | down) ~(0)) | 499 | down !| type | eq ::call/EvaluationDepthExceededError)
+
 :call/EvaluationDepthExceededError/endsARecursionByItsBaseCase
   |~~ A recursion that tests its base case first ends. ~~|
   ::law~(:any/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down | eq 0)

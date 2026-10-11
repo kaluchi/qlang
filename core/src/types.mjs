@@ -141,11 +141,11 @@ export function makeQuote(steps, ast = undefined) {
   return Object.freeze(quote);
 }
 
-// A quote written as a modifier carries the environment of its call
-// [D43], one written as the body of a reader's declaration that of its
-// declaration [D44], and one a source of the root declared the frame of
-// the source's bare values over the root [D200], on a JS-internal slot;
-// a quote held as data carries none and runs where it is applied.
+// A quote written as a modifier carries the scope of its call [D43], one
+// written as the body of a reader's declaration that of its declaration
+// [D44], and one a source of the root declared the frame of the source's
+// bare values over the root [D200], on a JS-internal slot; a quote held as
+// data carries none and runs where it is applied.
 const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
 
 export function quoteInEnv(quote, env) {

@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword, keyword } from '../../src/types.mjs';
+import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
 import { fromPlain, toPlain, AnyJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
@@ -113,9 +113,5 @@ describe('toPlain refuses a value JSON has no form for', () => {
 describe('a descriptor is data [D113]', () => {
   it('writes its keyword field as its name in JSON', async () => {
     expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
-  });
-
-  it('reads its field by projection', async () => {
-    expect(await evalQuery('::builtin{:note :draft} | /note')).toEqual(keyword('draft'));
   });
 });

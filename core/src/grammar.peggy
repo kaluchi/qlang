@@ -7,10 +7,10 @@
 // brackets a newline is whitespace. Every combinator is set off by
 // whitespace on both sides.
 //
-// Every produced node carries `.location` (peggy's start/end offsets,
-// lines and columns) and `.text` (the matched source slice). The
-// post-parse pass in src/parse.mjs adds `.id` and `.parent` on every
-// node and `.source`, `.uri` and `.comments` on the root.
+// Every node carries `.location`, its span, the offsets, lines and
+// columns `span()` reads, and `.text`, the source it matched; the pass
+// after the parse in src/parse.mjs adds `.id` and `.parent` on every node
+// and `.source`, `.uri` and `.comments` on the root.
 //
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [D81]; the parser records each on
@@ -40,9 +40,8 @@
 {
   const commentTrivia = options.commentTrivia;
 
-  // The offsets where the lines of the input begin, from which the span
-  // of a node reads its lines and columns by a search, where peggy's
-  // `location()` walks the input to each position.
+  // The offsets where the lines of the input begin, which `span()` reads
+  // a node's lines and columns from.
   const lineStarts = [0];
   for (let at = input.indexOf('\n'); at !== -1; at = input.indexOf('\n', at + 1)) lineStarts.push(at + 1);
 

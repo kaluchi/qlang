@@ -17,7 +17,7 @@ import { ROOT_KEY } from './env-keys.mjs';
 export const EVAL_DEPTH_LIMIT = 1000;
 
 function makeState(pipeValue, env, depth) {
-  return { pipeValue, env, depth };
+  return Object.freeze({ pipeValue, env, depth });
 }
 
 // rootState(pipeValue, env) → State at depth 0 — the entry frame of
@@ -36,15 +36,19 @@ export function withEnv(state, nextEnv) {
   return makeState(state.pipeValue, nextEnv, state.depth);
 }
 
-// nestState(state, pipeValue, env) → State one frame deeper, or
-// CallEvaluationDepthExceededError once the frame passes
-// EVAL_DEPTH_LIMIT, its fact `:depth` the refused frame.
-export function nestState(state, pipeValue, env) {
+// frameBelow(state) → the depth of the frame one below a state, or
+// CallEvaluationDepthExceededError once it passes EVAL_DEPTH_LIMIT, its
+// fact `:depth` the refused frame; a frame read with no state of its own
+// meets the budget by it alone.
+export function frameBelow(state) {
   const depth = state.depth + 1;
-  if (depth > EVAL_DEPTH_LIMIT) {
-    throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
-  }
-  return makeState(pipeValue, env, depth);
+  if (depth > EVAL_DEPTH_LIMIT) throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
+  return depth;
+}
+
+// nestState(state, pipeValue, env) → the state one frame below.
+export function nestState(state, pipeValue, env) {
+  return makeState(pipeValue, env, frameBelow(state));
 }
 
 const NO_ROOT = new Map();

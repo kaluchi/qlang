@@ -115,20 +115,36 @@ export function subjectOf(env, address) {
 const SUBJECT_NAME = 'subject';
 
 // invariantsUnder(env, address) → the invariants declared under an
-// address, each a name whose value is a quote under `::holds`,
-// `[address, query]` in the order of their declarations [D169].
+// address, each a name whose value is a quote under `::holds`, with the
+// kinds it asks for when it is one step `is`, of the value or of each
+// element, `{ address, query, kinds, elementKinds }` in the order of
+// their declarations [D169].
 export function invariantsUnder(env, address) {
   return derivedOf(namesUnderOf(env, address), INVARIANTS, under => {
     const invariants = [];
     for (const [, record] of under) {
       const value = bindingValueOf(record);
-      if (isInvariant(value)) invariants.push([record.get('name').name, value.payload]);
+      if (!isInvariant(value)) continue;
+      const ast = astOfQuote(value.payload);
+      invariants.push({ address: record.get('name').name, query: value.payload, kinds: kindsAskedBy(ast), elementKinds: elementKindsAskedBy(ast) });
     }
     return invariants;
   });
 }
 
 const INVARIANTS = new WeakMap();
+
+// The kinds an invariant of one step `is ::k …` asks for, or null.
+function kindsAskedBy(ast) {
+  if (ast.type !== 'Call' || ast.name !== 'is') return null;
+  return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
+}
+
+// The kinds an invariant `every ~(is ::k …)` asks of each element, or null.
+function elementKindsAskedBy(ast) {
+  const asksEach = ast.type === 'Call' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
+  return asksEach ? kindsAskedBy(ast.args[0].pipeline) : null;
+}
 
 // Whether a value is an invariant, a quote under `::holds`, whose name is
 // the refusal of a value that breaks it [D168].
@@ -327,12 +343,10 @@ export function verbsReaching(env, kindNames) {
 // name at the address, by their names, in the order of their places: the
 // quotes declared under it, each kind's word declaring its own [D169].
 export function partsOfName(env, address) {
-  return derivedOf(namesUnderOf(env, address), PARTS, under => [...under]
+  return [...namesUnderOf(env, address)]
     .filter(([, record]) => isQuote(bindingValueOf(record)))
-    .sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place)));
+    .sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
 }
-
-const PARTS = new WeakMap();
 
 const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
 

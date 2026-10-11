@@ -1,10 +1,11 @@
 // Every value prints as a literal that reads back as itself [D30]: values
 // built from a seeded walk over the literals of the language, scalars with
 // their escapes, vectors and maps in both their spellings, sets with a
-// duplicate among them, values under a tag over every payload, the
-// constructors of `::qlang` and `::json`, quotes, docs and errors inside a
-// vector, each printed, parsed and applied, and held equal to itself by
-// `eq`.
+// duplicate among them, values under a tag over every payload, a label
+// the source declares among the tags, the constructors of `::qlang` and
+// `::json`, quotes, docs and errors inside a vector, one with a stop on its
+// trail among them, each printed, parsed and applied, and held equal to
+// itself by `eq`.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -45,10 +46,12 @@ function literalsOf(count, seed) {
       () => `~(${pick(STEPS)})`,
       () => `[!{:k ${literal(depth - 1)}}]`,
       () => `[::E!{:k ${literal(depth - 1)}}]`,
-      () => pick(['[!{}]', '[::number/add/SubjectNotNumberError!{:actualType ::string}]'])
+      () => pick(['[!{}]', '[::number/add/SubjectNotNumberError!{:actualType ::string}]', '[("x" | add 1)]',
+        '[!{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]'])
     ])();
   };
-  return Array.from({ length: count }, () => literal(2));
+  const underALabel = () => `:L |~~ L. ~~| | ${literal(2).replaceAll('::T', '::L')}`;
+  return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2)));
 }
 
 describe('the round trip of the print [D30]', () => {

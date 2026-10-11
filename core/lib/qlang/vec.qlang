@@ -435,6 +435,10 @@
   |~~ The first error answers the call. ~~|
   ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
 
+:vec/map/answersAFailedElementToCodeOfOneValue
+  |~~ An element that is an error passes code of one value by, as it passes every step. ~~|
+  ::law~([1 ("x" | add 1)] | map ~(0) !| type | eq ::number/add/SubjectNotNumberError)
+
 :vec/map/answersUnderNoTag
   |~~ The answers stand under no tag of the subject. ~~|
   ::law~(::Box[1 2] | map ~(add 1) | eq [2 3])

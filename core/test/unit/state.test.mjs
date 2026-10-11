@@ -34,6 +34,7 @@ describe('state.mjs frames', () => {
   it('rootState opens depth 0; withPipeValue and withEnv stay on the frame', () => {
     const root = rootState(null, new Map());
     expect(root.depth).toBe(0);
+    expect(Object.isFrozen(root)).toBe(true);
     const nextValue = withPipeValue(root, 42);
     expect(nextValue.pipeValue).toBe(42);
     expect(nextValue.env).toBe(root.env);

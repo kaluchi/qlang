@@ -1,8 +1,7 @@
-// Unit coverage for printValue branches that fire only when a
-// binding record / Function value lands in pipeValue — paths
-// reachable via `env | /name` ceremony (env-walk drops the descriptor
-// Map directly into pipeValue) but not exercised by ordinary pipeline
-// execution. Tests build the values directly and call printValue.
+// The print and the JSON of the values the printer meets at its edges: a
+// binding record, a doc, a value under a tag, an error and its facts, the
+// doubles at their bounds, the print a kind declares, and the scope `env`
+// answers, which the parser reads back.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -262,7 +261,8 @@ describe('print — the print declared under a kind', () => {
 
 describe('the print of env reads back', () => {
   it('prints a literal the parser reads, and no source of a function', async () => {
-    const printed = printValue(await evalQuery('env'));
+    const printed = printValue(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env'));
+    expect(printed).toContain('::binding{');
     expect(() => parse(printed, { uri: 'env-round-trip' })).not.toThrow();
     expect(printed).not.toMatch(/async function\b/);
     expect(printed).not.toMatch(/=>\s*\{/);

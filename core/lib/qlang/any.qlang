@@ -1067,9 +1067,9 @@
 :any/source
   |~~ Answers the code written under a name, one quote of its
       declarations in the order they were written, which `parse` prints
-      as its text: the declaration that binds the name in its scope and
-      every declaration under its address, its parts, its answer, its
-      refusals and its laws. `::Tag | source` reads what was written
+      as its text, a declaration a line: the declaration that binds the
+      name in its scope and every declaration under its address, its
+      parts, its answer, its refusals and its laws. `::Tag | source` reads what was written
       under the tag, a refusal its own declaration, and any other value
       the declaration of its kind. A binding no step declared, a value a
       host bound, answers null. Given a name, it reads the name the
@@ -1116,6 +1116,10 @@
 :any/source/printsTheDeclaration
   |~~ The source of a word prints as its declaration. ~~|
   ::law~(::vec/filter | source | parse | contains ":vec/filter")
+
+:any/source/printsADeclarationALine
+  |~~ The source of a word prints a declaration a line. ~~|
+  ::law~(::number/round | source | parse | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
 
 :any/source/printsARefusal
   |~~ A refusal's source prints as its declaration. ~~|

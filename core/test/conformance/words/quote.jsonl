@@ -42,3 +42,6 @@
 {"name":"quote-with-leading-combinator-trail-style","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\"","decision":"D8"}
 {"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)","decision":"D8"}
 {"name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)","decision":"D43"}
+{"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | parse","expect":"\":a 1\n| :b 2\"","decision":"D193"}
+{"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\"","decision":"D193"}
+{"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true","decision":"D193"}

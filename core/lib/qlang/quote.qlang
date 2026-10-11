@@ -15,7 +15,9 @@
       the literal itself; a step that computes is a record, `::call`,
       `::proj`, `::bind` or `::construct`; `!|` and parentheses wrap their
       step as `::fail` and `::group`. `apply` runs a quote on the subject
-      and `parse` prints it back.
+      and `parse` prints it back, a quote of declarations alone a
+      declaration a line, each after the first led by its pipe, as a
+      source is written.
       ::link~(::call | doc) ::link~(::fail | doc)
       ::link~(::qlang/code | doc)
   ~~|
@@ -23,6 +25,11 @@
 :quote/countsItsSteps
   |~~ A quote of three steps counts three. ~~|
   ::law~(~(1 | add 1 | mul 2) | count | eq 3)
+
+:quote/printsADeclarationALine
+  |~~ A quote of declarations alone prints a declaration a line. ~~|
+  ::law~(~(:a 1 | :b 2) | parse | eq ":a 1
+| :b 2")
 
 :quote/equalsItsCopy
   |~~ Two quotes of one code are equal. ~~|

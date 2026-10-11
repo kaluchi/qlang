@@ -257,10 +257,14 @@ function stepTagOf(step) {
   return step?.[TAG_HEADER_SYMBOL]?.name;
 }
 
+// A quote of declarations alone, the story `source` reads, prints one
+// declaration a line, each after the first led by its pipe, as the
+// catalog writes it [D193].
 function printSteps(steps) {
+  const pipe = steps.length > 1 && steps.every(step => stepTagOf(step) === 'bind') ? '\n| ' : ' | ';
   return steps.map((step, index) => {
     if (stepTagOf(step) === 'fail') return `${index === 0 ? '' : ' '}!| ${printSteps(step.payload)}`;
-    return (index === 0 ? '' : ' | ') + printStep(step);
+    return (index === 0 ? '' : pipe) + printStep(step);
   }).join('');
 }
 

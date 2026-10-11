@@ -1,33 +1,17 @@
-// ANSI renderer over core's AST tokenizer. Same token stream that
-// site/src/lib/qlang-highlight.js paints into HTML spans, here
-// painted into terminal-grade ANSI escapes for the CLI REPL.
-//
-// Colour palette is intentionally narrow — eight ANSI colours plus
-// dim/bold modifiers. Renders identically across every standard
-// terminal emulator and degrades gracefully if a downstream pipe
-// strips the escapes.
-//
-// Usage:
-//   highlightAnsi(src, builtinNames) → String with embedded ANSI escapes
+// highlightAnsi(src, builtinNames) → the source painted for a terminal:
+// the tokens of the core's tokenizer, which the site paints as HTML, each
+// in the colour of its kind among the eight of ANSI and their bright and
+// dim variants.
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 const ANSI_RESET = '\x1b[0m';
 
-// Bright variants (9x) for the blue/magenta family so effect,
-// word, and keyword stay legible on themes that render the
-// base-intensity dark blue (34) and dark magenta (35) close to
-// black — Windows Terminal's default Campbell palette in
-// particular blends both into the background on a dark scheme.
-// SGR parameters per kind — numeric codes joined with `;` and
-// wrapped in `\x1b[…m`. Stored as comma-list strings so the
-// italic modifier can be merged into the same escape sequence
-// (italic = `3`).
+// The parameters of the escape of each kind, the blue and the magenta
+// bright so a dark scheme does not swallow them; whitespace has none.
 const KIND_TO_SGR = {
   string:   '32',         // green
-  quote:    '32',         // green — `~(` / `)` delimiters; body
-                          // spans get their per-kind colour + italic
-                          // from the tokeniser's nested sub-tokens
+  quote:    '32',         // green — `~(` and `)`, the body in italics
   number:   '33',         // yellow
   comment:  '2',          // dim
   name:     '36',         // cyan
@@ -39,15 +23,11 @@ const KIND_TO_SGR = {
   set:      '92',         // bright green — `#[]` set brackets
   vec:      '93',         // bright yellow — `[]` vec brackets
   punct:    '90'          // bright black (subtle grey)
-  // 'whitespace' has no entry — emitted raw, no escape sequence.
 };
 
 function sgrFor(kind, italic) {
   const base = KIND_TO_SGR[kind];
-  // Italic-only escape (`\x1b[3m`) when the span has no per-kind
-  // colour but does carry the italic modifier — e.g. an unparseable
-  // Quote body falls back to `whitespace` kind, but the body is still
-  // inside a `~(...)` so the italic cue belongs.
+  // A span of a quote with no colour of its kind keeps the italics.
   if (base === undefined) return italic ? '\x1b[3m' : undefined;
   return italic ? `\x1b[3;${base}m` : `\x1b[${base}m`;
 }

@@ -1,39 +1,6 @@
-// Script-mode I/O shape: the symmetric pair that turns piped stdin
-// into an initial pipeValue and the cell's success-track value back
-// into stdout bytes, so `cat data.json | qlang '/path'` acts as a
-// filter — JSON in → JSON out, text in → text out — without the
-// `@in | parseJson | … | json | @out` ceremony.
-//
-// REPL mode prints each cell's value through `print` (qlang-native
-// display); this module is the script-mode encoder only.
-// `@out`/`@err`/`@tap` remain available in both modes as explicit
-// dump channels.
-//
-// Two entrypoints:
-//
-//   `liftStdinToPipeValue(text, inputFormat)`
-//     → { pipeValue, resolvedFormat } on success, or
-//     → { parseError, resolvedFormat } on a forced-parse failure
-//
-//     Standard input lifts only when it carries bytes; with none the
-//     pipe starts from `DEFAULT_SUBJECT` [D37]. Otherwise resolves
-//     the auto / json / raw mode into a concrete format
-//     and a pipeValue. `auto` tries JSON.parse; on success it
-//     lifts to qlang via `fromPlain` and reports `resolvedFormat:
-//     'json'`, otherwise it hands back the raw String with
-//     `resolvedFormat: 'raw'`. `json` is strict — a parse failure
-//     surfaces as `parseError` for the caller to report as a host-
-//     level error and exit 1. `raw` skips parsing entirely.
-//
-//   `encodeSuccessValueForFormat(value, resolvedFormat, env)`
-//     → String bytes for stdout (no trailing newline — caller adds)
-//
-//     Symmetric to liftStdinToPipeValue. `json` input → JSON output
-//     via `toPlain` + `JSON.stringify(_, null, 2)`. `raw` input →
-//     raw pass-through for String success values, and the `print` of
-//     anything else in the environment the query left [D96]. The
-//     input format is the contract the user established; the output
-//     honours it.
+// The streams of the command line: standard input lifts to the query's
+// first value, a JSON document as its value and any other text as a
+// string, and the answer goes back in the format of the input [D37].
 
 import {
   fromPlain, toPlain, printAnswer, printValue, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
@@ -46,9 +13,8 @@ const JSON_PRETTY_INDENT = 2;
 // JSON has no form for is refused, naming the path of map keys and
 // indices to that value and its kind [D103]; a set is written as the
 // array of its elements in the one order [D126], and a keyword as its
-// name, as `json` writes it [D148].
-// The refusal is minted as a value where the answer is written, so its
-// site records its address without a class.
+// name, as `json` writes it [D148]; the refusal is a value made where
+// the answer is written, its address recorded without a class.
 recordRefusal('cli/AnswerNotJsonError');
 
 const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
@@ -85,6 +51,11 @@ function answerForJson(value) {
 // folder comes with the sources a project ships.
 export const DEFAULT_SUBJECT = makeTagKeyword('qlang');
 
+// liftStdinToPipeValue(text, inputFormat) → the first value and the
+// format the input resolved to: the noun of the language with no bytes,
+// the text under `raw`, the document under `json`, which refuses a text
+// that does not parse, and under `auto` the document where the text
+// parses and the text where it does not.
 export function liftStdinToPipeValue(stdinText, inputFormat) {
   if (stdinText.length === 0) {
     return { pipeValue: DEFAULT_SUBJECT, resolvedFormat: 'raw' };
@@ -93,13 +64,8 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
     return { pipeValue: stdinText, resolvedFormat: 'raw' };
   }
 
-  // Each branch keeps `JSON.parse` alone inside its `try`: a
-  // syntactic failure is what the mode decides on — `json` reports
-  // it, `auto` falls back to the raw-String reading. `fromPlain`
-  // runs outside, because a codec refusal (a magnitude outside the
-  // finite-double domain) is a decision about the document's
-  // content, and swallowing it would re-label a JSON document as
-  // text under `auto` or as a syntax failure under `json`.
+  // `JSON.parse` alone stands in each `try`, so a document that parses
+  // and holds a number past the doubles is refused as a document.
   if (inputFormat === 'json') {
     let parsed;
     try {
@@ -120,16 +86,12 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
   return liftParsedDocument(parsed, 'json');
 }
 
-// `fromPlain` refuses a magnitude outside the finite-double domain
-// a qlang Number lives in — `JSON.parse` reads `1e400` as an
-// infinity. The refusal reaches the caller as `codecError` so the
-// CLI reports it verbatim, naming the slot it walked to.
+// The document lifted to a value, or the refusal of a number past the
+// doubles at the path `fromPlain` names.
 function liftParsedDocument(parsed, resolvedFormat) {
   try {
     return { pipeValue: fromPlain(parsed), resolvedFormat };
   } catch (codecRefusal) {
-    // `fromPlain` raises one class — `ParseJsonNumberNotFiniteError`,
-    // carrying `:path` — so the caller reads that field directly.
     return { codecError: codecRefusal, resolvedFormat };
   }
 }
@@ -148,8 +110,7 @@ export async function encodeSuccessValueForFormat(value, resolvedFormat, env, bu
     if (page !== null) plain.$error.page = oneLine(page);
     return JSON.stringify(plain, null, JSON_PRETTY_INDENT);
   }
-  // resolvedFormat === 'raw'. A String success value goes out as-is
-  // (the raw-in-raw-out contract); anything else goes out as its print.
+  // A string goes out as it is, any other answer as its print.
   if (typeof value === 'string') return value;
   const printed = await printAnswer(elideAnswer(value, budget), env);
   return page === null ? printed : `${printed}\n${commentLinesOf(page)}`;

@@ -1,9 +1,6 @@
-// The names of strings, and `join`, `prepend` and `append` of vectors,
-// each a plain function over the subject and the parts of its args
-// [D167]: `prepend` and `append` reside on `::string`, whose prefix and
-// suffix are text, and on `::vec`, whose element is any value.
-//
-// The verbs live in lib/qlang/string.qlang and vec.qlang.
+// The primitives of strings, and `join`, `prepend` and `append` of
+// vectors, whose words the catalog declares under `::string` and `::vec`
+// [D167].
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -16,8 +13,6 @@ const writtenAsText = value => (isKeyword(value) ? value.name : value);
 // An element `join` writes is a string or a keyword.
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
-// A string takes its prefix or its suffix, a vector its element at the
-// head or at the end, so `[1] | append [2 3]` answers `[1 [2 3]]`.
 bindPrim('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
 bindPrim('vec/prepend', (vector, element) => [element, ...vector]);
 bindPrim('string/append', (text, suffix) => text + writtenAsText(suffix));
@@ -27,10 +22,8 @@ bindPrim('vec/append', (vector, element) => [...vector, element]);
 // `count` counts, so no character falls in halves.
 bindPrim('string/split', (subject, separator) => (separator === '' ? Array.from(subject) : subject.split(separator)));
 
-// The lines of a text [D49]: a `\n` ends a line and a `\r` before it
-// belongs to the ending; the text after the last ending is a line
-// unless it is empty, so a final newline closes the last line rather
-// than opening one, and the empty text has no lines.
+// A `\n` ends a line, a `\r` before it belongs to the ending, and a
+// final ending opens no line [D49].
 bindPrim('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();

@@ -1,14 +1,6 @@
-// The predicates and the reader of kinds, each a plain function over the
-// subject and the parts of its args [D167]: `not`, `and` and `or`
-// reside on `::boolean` and take booleans [D14], `eq` and `type` on
-// `::any`, and the comparisons on the kinds they compare [D65].
-//
-// Equality is the shared deepEqual. `type` answers a value's kind, a
-// tag: the tag of a tagged value, and for every other value the kind of
-// the core its literal implies [D32].
-//
-// The verbs live in lib/qlang/boolean.qlang, any.qlang and the sources
-// of the kinds the comparisons compare.
+// The primitives of equality, of the comparisons, of the booleans and of
+// the kinds, whose words the catalog declares under `::any`, `::boolean`
+// and the kinds they compare [D14], [D32], [D65], [D167].
 
 import { typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
@@ -18,10 +10,10 @@ import { walkToKinds } from './verb.mjs';
 
 bindPrim('any/eq',  (subject, value) => deepEqual(subject, value));
 bindPrim('any/ne',  (subject, value) => !deepEqual(subject, value));
-bindPrim(['tag/gt', 'number/gt', 'string/gt', 'keyword/gt', 'desc/gt'],  (subject, than) => compareValues(subject, than) > 0);
-bindPrim(['tag/lt', 'number/lt', 'string/lt', 'keyword/lt', 'desc/lt'],  (subject, than) => compareValues(subject, than) < 0);
-bindPrim(['tag/gte', 'number/gte', 'string/gte', 'keyword/gte', 'desc/gte'], (subject, than) => compareValues(subject, than) >= 0);
-bindPrim(['tag/lte', 'number/lte', 'string/lte', 'keyword/lte', 'desc/lte'], (subject, than) => compareValues(subject, than) <= 0);
+bindPrim(['tag/gt', 'number/gt', 'string/gt', 'keyword/gt', 'desc/gt'],  (subject, value) => compareValues(subject, value) > 0);
+bindPrim(['tag/lt', 'number/lt', 'string/lt', 'keyword/lt', 'desc/lt'],  (subject, value) => compareValues(subject, value) < 0);
+bindPrim(['tag/gte', 'number/gte', 'string/gte', 'keyword/gte', 'desc/gte'], (subject, value) => compareValues(subject, value) >= 0);
+bindPrim(['tag/lte', 'number/lte', 'string/lte', 'keyword/lte', 'desc/lte'], (subject, value) => compareValues(subject, value) <= 0);
 bindPrim('boolean/and', (left, right) => left && right);
 bindPrim('boolean/or',  (left, right) => left || right);
 bindPrim('boolean/not', subject => !subject);

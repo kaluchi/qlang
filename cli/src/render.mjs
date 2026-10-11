@@ -1,43 +1,14 @@
-// Project a session cell entry onto the CLI script-mode outcome:
-// stdout bytes to emit, stderr bytes to emit, exit code.
-//
-// Output shape follows from the input shape (JSON in → JSON out,
-// raw in → raw out) plus one explicit override:
-//
-//   * `didExplicitStdoutEffect` — the user's query already pushed
-//     bytes to stdout via `@out`. Script mode stops echoing; the
-//     user is in control of the channel. `@err`/`@tap` stream to
-//     stderr and do not trip this flag.
-//
-// Outcome rules:
-//
-//   - host-level JS throw (parse / setup error)      → stderr, exit 1
-//   - stdout effect was fired                        → silent stdout, exit 0
-//   - success-track value (plain or error value)     → encode value
-//                                                      in resolved format,
-//                                                      stdout + '\n', exit 0
-//
-// Error values travel as data on the same channel as plain values —
-// they are first-class qlang values per the spec, flowing through
-// the success-channel render path. Agent harnesses parallelise
-// `qlang` invocations and rely on exit-0 for a completed run; a
-// non-zero exit on a fail-track result would cancel sibling tool
-// calls. `print` renders the descriptor in qlang-rich form
-// (`::Foo!{... :trail ...}`) [D96]; `toPlain` writes it as
-// `{$error: {...}}` for the json channel, which refuses any other
-// value JSON has no form for [D103].
-//
-// REPL mode has its own renderer inline in repl.mjs — the per-cell
-// auto-print there stays qlang-native (print + ANSI).
+// renderCellOutcome(cellEntry, outcomeOpts) → what the command line writes
+// for a cell and its exit code: a query that does not parse or a session
+// that fails to start on stderr with exit 1, nothing once the query wrote
+// to stdout by `@out`, and any other answer, a failure among them, in the
+// format of the input with exit 0 [D96], [D103].
 
 import { isErrorValue, printAnswer, elideAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
-// Lazy-init the builtin-name set used by `highlightAnsi` for word
-// classification. langRuntime is cached, so a second call from any
-// script-mode invocation hits the same module-level promise and does
-// no extra parse work.
+// The names of the verbs the highlighter marks, read once.
 let _builtinNamesPromise = null;
 async function getBuiltinNames() {
   if (_builtinNamesPromise === null) {
@@ -46,11 +17,7 @@ async function getBuiltinNames() {
   return _builtinNamesPromise;
 }
 
-// Apply ANSI highlighting when the caller has resolved `shouldColorize`
-// to true (TTY-detection or explicit `--color=always`). The raw form
-// (no highlighting) keeps the output clean for pipelines like
-// `qlang '…' | jq` where ANSI escapes would corrupt the downstream
-// reader.
+// The text painted for a terminal where the caller asks for colour.
 async function maybePaint(text, shouldColorize) {
   if (!shouldColorize) return text;
   return highlightAnsi(text, await getBuiltinNames());
@@ -60,12 +27,8 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   const { resolvedFormat, didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
 
   if (cellEntry.error !== null) {
-    // Parse failures land both as a host-error marker (so the exit
-    // code reflects the syntactic failure) AND as a structured
-    // `::quote/ParseError!{…}` ErrorValue on the result channel. Render
-    // the ErrorValue when present — `print` produces the
-    // caret-pointer-aware diagnostic; fall back to the raw JS
-    // message for non-lifted host failures (setup errors, etc.).
+    // A query that does not parse prints its error, a session that fails
+    // to start its message.
     const diagnostic = isErrorValue(cellEntry.result)
       ? await maybePaint(await printAnswer(elideAnswer(cellEntry.result, budget), cellEntry.envAfterCell), shouldColorize)
       : `qlang: ${cellEntry.error.message}`;
@@ -79,10 +42,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
   const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
-  // Only the qlang-form output (the print, used when the input
-  // format is `raw`) gets colorized — JSON output stays raw so
-  // downstream readers (jq, et al.) see the structured payload
-  // without ANSI escapes even when piped to a TTY.
+  // The print alone is painted; JSON stays plain for the tools it feeds.
   const painted = resolvedFormat === 'raw'
     ? await maybePaint(encoded, shouldColorize)
     : encoded;

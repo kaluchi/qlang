@@ -1023,6 +1023,7 @@ docs/research/reviews/2026-10-11-autonomous-series.md
 docs/research/reviews/2026-10-11-escapes-around-a-paste.md
 docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
 docs/research/reviews/2026-10-11-repair-of-the-series.md
+docs/research/reviews/2026-10-11-the-escape-key-before-keys.md
 docs/research/reviews/2026-10-11-the-gathering-of-a-paste.md
 docs/research/reviews/2026-10-11-thenables-frames-and-the-line-editor.md
 docs/research/reviews/2026-10-11-waits-repairs-and-comments.md
@@ -1725,8 +1726,8 @@ source; the descriptor of an error whose path is empty holding no
 `:trail`, which changes the shape of a value and refuses `/trail` on
 it, and the verb `trail` with it, `~(/trail)`, unless the verb answers
 `[]` for the key it misses; and the two as they stand, the literal
-reading back to the error it was and the descriptor printing as any map
-does.
+printing as its source was written, at the price of the line of the
+fifth milestone on `:trail`.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

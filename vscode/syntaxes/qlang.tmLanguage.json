@@ -11,7 +11,7 @@
     { "include": "#string" },
     { "include": "#tagKeyword" },
     { "include": "#map-key" },
-    { "include": "#keyword-atom" },
+    { "include": "#keyword" },
     { "include": "#number" },
     { "include": "#constant" },
     { "include": "#projection" },
@@ -109,7 +109,7 @@
     },
 
     "tagKeyword": {
-      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword-atom so leading `::` does not split into two keyword sigils.",
+      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
@@ -134,8 +134,8 @@
       ]
     },
 
-    "keyword-atom": {
-      "comment": "qlang keyword/symbol literals used as values",
+    "keyword": {
+      "comment": "Keyword literals, a name used as a value and a key of a map",
       "patterns": [
         {
           "comment": "quoted keyword :\"...\"",
@@ -221,7 +221,7 @@
     },
 
     "effect-identifier": {
-      "comment": "@-prefixed identifiers — effectful host operands per spec §'Effect markers'. @ sigil gets punctuation scope so themes can color it separately from the name.",
+      "comment": "@-prefixed names, the effectful words of a host. The @ sigil gets punctuation scope so themes can color it apart from the name.",
       "match": "(@)([a-zA-Z_][a-zA-Z0-9_-]*)",
       "captures": {
         "1": { "name": "punctuation.definition.variable.qlang" },
@@ -230,7 +230,7 @@
     },
 
     "identifier": {
-      "comment": "User-defined operand calls and verb references.",
+      "comment": "Names called as words, and addresses of words.",
       "name": "entity.name.function.qlang",
       "match": "[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },

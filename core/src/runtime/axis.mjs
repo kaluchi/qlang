@@ -11,7 +11,7 @@
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
 // `binding`  the record itself, `::binding` with its name, docs, value,
-//            source and module [D5].
+//            source and origin, the source it was read from [D153].
 //
 // Given a name, each axis reads the member the subject holds under it
 // [D88]: for a tag name the name under its address, a part of the args

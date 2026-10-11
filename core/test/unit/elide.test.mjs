@@ -72,6 +72,13 @@ describe('elide [D109]', () => {
     expect(await readBack(value, marker)).toBe(LONG);
   });
 
+  it('gives the largest part way first, the others staying once the print fits', async () => {
+    const value = await evalQuery(`{:a "${'a'.repeat(100)}" :b "${'b'.repeat(300)}" :c "${'c'.repeat(120)}"}`);
+    const view = elide(value, 400);
+    expect(view.get('b')[TAG_HEADER_SYMBOL].name).toBe('elision');
+    expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
+  });
+
   it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D217]', async () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);

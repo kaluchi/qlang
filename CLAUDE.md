@@ -93,10 +93,10 @@ tree cannot answer; no retelling, no tables unless asked, no next-step
 pitches, no talk of commits or pull requests.
 
 Verify before asserting. Any claim about behaviour is run with
-`qlang '…'` in script mode or in `qlang -i`; in Git Bash prefix the
-call with `MSYS_NO_PATHCONV=1` when the query begins with `/`. A tool
-output above thirty kilobytes is persisted with a short preview;
-filter it instead of reading it back whole.
+`qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
+begins with `/` arrives as a path, which the command line reads back
+[D199]. A tool output above thirty kilobytes is persisted with a short
+preview; filter it instead of reading it back whole.
 
 ## Workspaces
 

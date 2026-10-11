@@ -21,6 +21,7 @@
 // references, keeping the entire flow unit-testable without
 // spawning a subprocess.
 
+import { existsSync } from 'node:fs';
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
@@ -66,6 +67,23 @@ const SHELL_PATH_OF_A_QUERY = /^[A-Za-z]:\//;
 const SHELL_PATH_HINT = 'qlang: the shell turned a query that began with `/` into a path; '
   + "begin it with a pipe, `| /data/users`, or run it as `MSYS_NO_PATHCONV=1 qlang '/data/users'`\n";
 
+// The runtime of MSYS, the shell beneath Git Bash, under the root it
+// writes a path from.
+const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
+
+// queryAsWritten(queryText, env, exists?) → the query as the reader
+// wrote it: under MSYS, whose `MSYSTEM` names it, a query that begins
+// with the root of the shell, the nearest directory of its path that
+// holds the runtime, is read from the slash after the root, which the
+// shell wrote the root before [D199]; any other query as it came.
+export function queryAsWritten(queryText, env, exists = existsSync) {
+  if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
+  for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {
+    if (exists(queryText.slice(0, slash + 1) + MSYS_RUNTIME)) return queryText.slice(slash);
+  }
+  return queryText;
+}
+
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
@@ -85,7 +103,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: cliInvocation.initialQuery });
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: queryAsWritten(cliInvocation.initialQuery, env) });
   }
 
   const stdinText = await readStdinToString(stdinStream);
@@ -109,8 +127,9 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   let didExplicitStdoutEffect = false;
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
 
+  const queryText = queryAsWritten(cliInvocation.queryText, env);
   const cellEntry = await runQuery(
-    cliInvocation.queryText,
+    queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
     { initialPipeValue: lifted.pipeValue }
   );
@@ -124,6 +143,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);
   if (cliOutcome.stderrText) stderrWrite(cliOutcome.stderrText);
-  if (cliOutcome.exitCode !== 0 && SHELL_PATH_OF_A_QUERY.test(cliInvocation.queryText)) stderrWrite(SHELL_PATH_HINT);
+  if (cliOutcome.exitCode !== 0 && SHELL_PATH_OF_A_QUERY.test(queryText)) stderrWrite(SHELL_PATH_HINT);
   return cliOutcome.exitCode;
 }

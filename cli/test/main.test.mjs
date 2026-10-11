@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'node:stream';
-import { main, resolveShouldColorize } from '../src/main.mjs';
+import { main, queryAsWritten, resolveShouldColorize } from '../src/main.mjs';
 
 describe('resolveShouldColorize — explicit flag, env vars, TTY detection', () => {
   // Five-way precedence: --color=always > --color=never > FORCE_COLOR
@@ -301,9 +301,29 @@ describe('main — error paths', () => {
 });
 
 describe('main — a query the shell turned into a path', () => {
+  const UNDER_MSYS = { MSYSTEM: 'MINGW64' };
+  const ROOT_OF_GIT = path => path === 'C:/Program Files/Git/usr/bin/msys-2.0.dll';
+
+  it('reads a query from the slash after the root of MSYS, which the shell wrote before it [D199]', () => {
+    expect(queryAsWritten('C:/Program Files/Git/data/users | count', UNDER_MSYS, ROOT_OF_GIT)).toBe('/data/users | count');
+  });
+
+  it('leaves a query a shell other than MSYS handed as it came [D199]', () => {
+    expect(queryAsWritten('C:/Program Files/Git/data/users', {}, ROOT_OF_GIT)).toBe('C:/Program Files/Git/data/users');
+  });
+
+  it('leaves a path with no runtime of MSYS on its way as it came [D199]', () => {
+    expect(queryAsWritten('C:/data/users', UNDER_MSYS, () => false)).toBe('C:/data/users');
+  });
+
+  it('leaves a query of the language and the absent query of a REPL as they came [D199]', () => {
+    expect(queryAsWritten('/data/users', UNDER_MSYS, () => true)).toBe('/data/users');
+    expect(queryAsWritten(null, UNDER_MSYS, () => true)).toBe(null);
+  });
+
   it('names the shell and the two ways around it when the query begins with a drive', async () => {
     const s = captureStreams('{"a": 1}');
-    const exitCode = await main(['C:/Program Files/Git/a'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['C:/Program Files/Git/a'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stderrText()).toMatch(/the shell turned a query that began with `\/` into a path/);
     expect(s.stderrText()).toMatch(/MSYS_NO_PATHCONV=1/);

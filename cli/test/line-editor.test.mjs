@@ -582,6 +582,13 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['abXc']);
   });
 
+  it('reads an escape sequence split after its bracket as one key [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'abc', ESC + '[', '1~', 'X', SUBMIT);
+    expect(capture.lines).toEqual(['Xabc']);
+  });
+
   it('reads a bracketed paste whose begin marker is split after its escape [D204]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();

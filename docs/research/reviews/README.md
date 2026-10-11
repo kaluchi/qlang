@@ -174,7 +174,7 @@ Its check of the fates of the third review found three holding in part, each par
 
 [2026-10-11-thenables-frames-and-the-line-editor.md](2026-10-11-thenables-frames-and-the-line-editor.md), at 95f12244, over 49cc8305..95f12244.
 
-Its check of the fates of the fourth review found four holding in part, each part one of its findings below.
+Each fate of the fourth review that it found holding in part is one of its findings below.
 
 1. The line editor kept a terminal's reason, a generic word, a comparison of two repaints and a column whose reset its comment told wrong. Answered by 95a4474e: Enter submits, the recall of the history and the last repaint are named, and the column is reset by an edit, a move along the line and a walk of the history.
 2. Comments of two sentences or of none in the state, the walks, the binding and the channel. Answered by 95a4474e.

@@ -137,7 +137,7 @@ The sister project's `problemsInRangeOf`, which the review noted reads a marker'
 
 [2026-10-11-plans-grammar-and-tests.md](2026-10-11-plans-grammar-and-tests.md), at cd8829fe, over 1327c652..cd8829fe.
 
-1. Code of one scalar stepped past an error it was handed, `codeOf` building it as the value. Answered by 188bb5f7: code is a step on the success track whatever it holds, the quick lambdas serving the modifiers of a call alone, and code of one quote, which stepped past an error at b03223ee already, steps around it as all code does; two cases of D182 and a law under `:vec/map` hold it.
+1. Code of one scalar stepped past an error it was handed, `codeOf` building it as the value. Answered by 188bb5f7: code is a step on the success track whatever it holds, the quick lambdas serving the modifiers of a call alone, and code of one quote, which b03223ee ran on an error element, steps around it as all code does; two cases of D182 and a law under `:vec/map` hold it.
 2. A modifier of a scalar and a part read from its place opened no frame, against the page of the budget. Answered by 188bb5f7: both meet the budget at the frame below the call by `frameBelow`, a law of the budget holds a recursion that meets it in its frames, and D202 says so (3483289a).
 3. The example test's last pins left with it: an error with a stop on its trail and a label the source declares. Answered by 188bb5f7: the walk takes both, and the ledger's fate of the earlier finding says what each commit answered.
 4. The state unfrozen against the audit's frozen pair. Answered by 188bb5f7: the state is frozen and its test holds it, and D202 sets the unfrozen state aside (3483289a).
@@ -150,3 +150,22 @@ The sister project's `problemsInRangeOf`, which the review noted reads a marker'
 11. Comments with their reasons, and the grammar's `.location` called peggy's. Answered by 188bb5f7: the grammar, the evaluator and the extras of the printer say what holds in a sentence.
 12. "Plan" where the language says definition, comparisons of two states, environment for scope. Answered by 188bb5f7 and 3483289a for the code and the records; the commits of the range say what they said.
 13. The test of `env` held of an empty map, and a projection stood in the bridge of JSON. Answered by 188bb5f7: the test prints three records, and the projection is a case of the projections.
+
+## 2026-10-11 · the waits, the repairs and the comments
+
+[2026-10-11-waits-repairs-and-comments.md](2026-10-11-waits-repairs-and-comments.md), at 49cc8305, over cd8829fe..49cc8305.
+
+Its check of the fates of the third review found three holding in part, each part one of its findings below.
+
+1. A host's answer that has a `then` but is no promise of the core's realm reached the pipe unresolved. Answered by f69b68bf: every wait of a call reads `isThenable`, and a test of the evaluator holds a thenable and a promise of another realm, which fails on the evaluator of 49cc8305.
+2. The comment of the names visible at a cursor said both halves wrong. Answered by f69b68bf: it says what the code computes, a declaration inside a node whose declarations stay inside it seen only from within the part that holds it, its end included.
+3. The line editor kept the terminals' reasons and comparisons, and its head left out the history and `submit`. Answered by f69b68bf: every comment says what holds in a sentence, and the head names the history, `submit` and the chunk a paste starts with.
+4. The law of the budget held two frames only together. Answered by f69b68bf: `runLaws` runs a law some frames deep, so three cases of the declared verbs, which run from the top, hold the frame of each and the quote written as a modifier; each case fails when its frame is dropped.
+5. Three texts said every modifier meets the budget. Answered by f69b68bf for the page of the budget, by the cases for the law, and by 4c241046 for D202: a modifier computed at the call runs a frame below, a quote written as one is a value.
+6. The law of an error element under `map` proved a claim the page did not make. Answered by f69b68bf: the page says it.
+7. The comment of the residence said a scope with no name with a path. Answered by f69b68bf: a scope that does not declare the address.
+8. Comments of several sentences or of none, a peggy location, a session that fails to start, `parseArgv`'s comment far from it. Answered by f69b68bf.
+9. D202's timing gave the word in steps the filter's ratio. Answered by 4c241046: the filter under a third of its time at b03223ee, the word in steps about two thirds, in D202 and in the ledger of the outside audits.
+10. The prototype the audit cited lived in a scratchpad. Answered by 4c241046: `docs/research/lexical-extension/marked-scopes.patch` holds it, it applies to the tree, and the audit names it.
+11. D200's mark of D202 stood mid-line, where the requirements do not read it. Answered by 4c241046: `node scripts/requirements.mjs D200` reads it.
+12. Comparisons in commits and in this ledger. Answered by this ledger for its line on code of one quote; the commits say what they said.

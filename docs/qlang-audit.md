@@ -1022,6 +1022,7 @@ docs/research/reviews/2026-10-10-vec-set-map.md
 docs/research/reviews/2026-10-11-autonomous-series.md
 docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
 docs/research/reviews/2026-10-11-repair-of-the-series.md
+docs/research/reviews/2026-10-11-waits-repairs-and-comments.md
 docs/research/reviews/README.md
 ```
 

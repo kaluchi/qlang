@@ -244,7 +244,7 @@
 :set/avg
   |~~ Answers the mean of the elements, each a number, `#[1 2 6] | avg`
       answering `3`, and null for the empty set, which has no mean; the
-      mean of finite numbers stays among the doubles,
+      mean of numbers stays among the finite doubles,
       `#[1e308 -1e308] | avg` answering `0`. As with `sum`, a set counts
       each element once: `[1 1 4] | avg` answers
       `2`, and `[1 1 4] | distinct | avg` answers `2.5`. An element that
@@ -272,7 +272,7 @@
   ::law~(#[] | avg | eq null)
 
 :set/avg/averagesTheOppositeEnds
-  |~~ The mean of two numbers near the opposite ends of the doubles is zero. ~~|
+  |~~ The mean of a number near one end of the doubles and its negation is zero. ~~|
   ::law~(#[1e308 -1e308] | avg | eq 0)
 
 :set/avg/countsOnceWhatTheVectorRepeats

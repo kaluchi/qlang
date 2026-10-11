@@ -215,12 +215,13 @@
 :vec/avg
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
       answering `2.5`, or null for the empty vector, which has no mean;
-      the mean of finite numbers stays among the doubles,
-      `[1e308 -1e308] | avg` answering `0`. An element that is no number
-      is refused at its index, as `sum` refuses it, so a field of each
-      record is read first, `map ~/n | avg`, and the mean of each group of
-      a `groupBy` comes under its key. A set and a map answer `avg` by
-      words of their own.
+      the mean of numbers stays among the finite doubles,
+      `[1e308 -1e308] | avg` answering `0`, and its last digit is the
+      running mean's, `[0 1 6 1] | avg` answering `1.9999999999999998`.
+      An element that is no number is refused at its index, as `sum`
+      refuses it, so a field of each record is read first,
+      `map ~/n | avg`, and the mean of each group of a `groupBy` comes
+      under its key. A set and a map answer `avg` by words of their own.
       ::link~(::vec/sum | doc) ::link~(::vec/groupBy | doc)
   ~~|
   ::builtin{}
@@ -238,9 +239,13 @@
   |~~ The mean of one to four is two and a half. ~~|
   ::law~([1 2 3 4] | avg | eq 2.5)
 
-:vec/avg/answersTheSumOverTheCount
-  |~~ The mean of numbers whose sum stays among the doubles is that sum over their count. ~~|
+:vec/avg/averagesZeroOneAndFour
+  |~~ The mean of zero, one and four is their sum over three. ~~|
   ::law~([0 1 4] | avg | eq ([0 1 4] | sum | div 3))
+
+:vec/avg/keepsTheLastDigitOfTheRunningMean
+  |~~ The running mean of zero, one, six and one ends a digit below two. ~~|
+  ::law~([0 1 6 1] | avg | eq 1.9999999999999998)
 
 :vec/avg/answersNullOfNothing
   |~~ The empty vector has no mean. ~~|
@@ -252,8 +257,12 @@
     | eq {:a 2 :b 5})
 
 :vec/avg/averagesTheOppositeEnds
-  |~~ The mean of two numbers near the opposite ends of the doubles is zero. ~~|
+  |~~ The mean of a number near one end of the doubles and its negation is zero. ~~|
   ::law~([1e308 -1e308] | avg | eq 0)
+
+:vec/avg/dividesPastTheEndsByTheCount
+  |~~ The mean of three numbers near one end and one near the other is half of one of them. ~~|
+  ::law~([1e308 1e308 1e308 -1e308] | avg | eq 5e307)
 
 :vec/avg/averagesOneEnd
   |~~ The mean of a number near one end of the doubles taken twice is that number. ~~|

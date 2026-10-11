@@ -281,7 +281,7 @@
 :map/avg
   |~~ Answers the mean of the values, each a number, `{:a 1 :b 2} | avg`
       answering `1.5`, or null for the empty map, which has no mean, the
-      mean of finite numbers staying among the doubles,
+      mean of numbers staying among the finite doubles,
       `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A value that is no number is refused with its key,
       and a field of each value is read first by `map`, `map ~/amount |
       avg`. A vector and a set answer by an `avg` of their own.
@@ -311,7 +311,7 @@
   ::law~({} | avg | eq null)
 
 :map/avg/averagesTheOppositeEnds
-  |~~ The mean of two numbers near the opposite ends of the doubles is zero. ~~|
+  |~~ The mean of a number near one end of the doubles and its negation is zero. ~~|
   ::law~({:a 1e308 :b -1e308} | avg | eq 0)
 
 :map/avg/ElementNotNumberError/refusesAString

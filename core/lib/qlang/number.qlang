@@ -487,7 +487,6 @@
   |~~ A vector is counted first. ~~|
   ::law~([:a :b] | range !| [type /actualType] | eq [::number/range/SubjectNotNumberError ::vec])
 
-
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
       gives, none when it gives none: `3.14159 | round 2` answers `3.14`
@@ -555,6 +554,10 @@
   |~~ Half a digit is refused. ~~|
   ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/DigitsNotIntegerError ::number])
 
+:number/round/digits/NotNumberError/refusesAString
+  |~~ A count of digits that is no number is refused under the part. ~~|
+  ::law~(3.14 | round "2" !| type | eq ::number/round/digits/NotNumberError)
+
 :number/gt
   |~~ Answers whether the subject is greater than the number the call
       gives, `10 | gt 5`, a decimal against a whole number among them,
@@ -610,10 +613,6 @@
 :number/gt/namesTheKindsThatAnswerIt
   |~~ A vector answers no `gt`, and the refusal names the kinds that do. ~~|
   ::law~([1] | gt [0] !| /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
-
-:number/round/digits/NotNumberError/refusesAString
-  |~~ A count of digits that is no number is refused under the part. ~~|
-  ::law~(3.14 | round "2" !| type | eq ::number/round/digits/NotNumberError)
 
 :number/gte
   |~~ Answers whether the subject is greater than or equal to the number

@@ -198,3 +198,16 @@ The fates of the fifth review it found holding in part stand in its findings bel
 5. The fates of the fifth review counted the fates of the fourth holding in part, wrongly. Answered by 9f476293: they name them by their findings, with no count.
 6. The state's comments named the depth a frame and kept a fragment. Answered by 7e292e7b.
 7. The line editor's tests kept comments of several sentences, reasons among them. Answered by 7e292e7b: each says in one sentence what its case holds, one is deleted where its case's name says it, and the inline comments that defined by negation say what holds.
+
+## 2026-10-11 · the escapes around a paste
+
+[2026-10-11-escapes-around-a-paste.md](2026-10-11-escapes-around-a-paste.md), at a22bfa72, over 8f36d29e..a22bfa72.
+
+The fates of the sixth review it found holding in part stand in its findings below.
+
+1. The clause that keeps an escape split before `[` one key was held by no test. Answered by d0e9e21c: two tests hold a split arrow and a split begin marker, and fail with the clause taken out; and by 70738672 for D204's Requirements.
+2. A chunk that begins with an escape and holds a line feed started a gathering of its own, its escape landing as text, and a bracketed paste whose begin marker shared its first chunk with its body was cut by a pause. Answered by d0e9e21c: a chunk that begins with an escape is keys and starts no gathering, and two tests hold both cases, failing on the editor of ef973523; and by 70738672 for D204, under which a bracketed paste is read up to its end marker.
+3. D204 and the name of a test said a line break handed over alone submits. Answered by d0e9e21c and 70738672: Enter, a carriage return handed over alone, submits.
+4. The comment of the gathering said each chunk of a paste joins it. Answered by d0e9e21c: each chunk of text joins it, and keys end it.
+5. The fates of the sixth review said each fate of the fifth it found holding in part is one finding, and named a fate by its alternative. Answered by 70738672.
+6. Three commit messages told loosely what they did. The messages stand, since a commit is never amended, and the fates say what each did.

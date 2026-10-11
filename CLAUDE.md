@@ -115,9 +115,9 @@ install` at the root links the workspaces; the Node floor is the
 
 - `npm test`: every workspace's suite. Use it in the inner loop.
 - `npm run ci`: the gate for anything meant to be pushed. Build,
-  eslint, `check:conventions`, `check:probes`, `check:benchmark`, every
-  suite, coverage thresholds, CLI integration, site build, in that
-  order. Judge it by its real exit code, captured to a file, never
+  eslint, `check:conventions`, `check:probes`, `check:fuzz`,
+  `check:benchmark`, every suite, coverage thresholds, CLI integration,
+  site build, in that order. Judge it by its real exit code, captured to a file, never
   through a pipe.
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
@@ -130,8 +130,9 @@ install` at the root links the workspaces; the Node floor is the
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
   that makes a host fail, throws past the fail track or prints as a text
-  that reads back as another value fails it. Run it after a change to a
-  primitive, the evaluator, the printer or the grammar.
+  that reads back as another value fails it. The gate runs ten variants
+  of each law under the first seed; more variants and other seeds after
+  a change to a primitive, the evaluator, the printer or the grammar.
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.

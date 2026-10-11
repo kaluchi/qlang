@@ -89,6 +89,11 @@
       `42 | @out json` or `{:x 1} | @out print`.
   ~~|
 
+:any/@out/ArgsBeyondPartsError
+  |~~ `@out` writes its subject, or the one text its call gives, `"hi" |
+      @out`; texts are joined first, `@out (["a" "b"] | join "")`.
+  ~~|
+
 :any/@out/SubjectNotStringError/refusesANumber
   |~~ A number is no line `@out` writes alone. ~~|
   ::law~(42 | @out !| type | eq ::any/@out/SubjectNotStringError)
@@ -96,6 +101,10 @@
 :any/@out/text/NotStringOrNullError/refusesANumber
   |~~ A number is no text to write. ~~|
   ::law~("hi" | @out 5 !| type | eq ::any/@out/text/NotStringOrNullError)
+
+:any/@out/ArgsBeyondPartsError/refusesTwoTexts
+  |~~ A call with two texts is refused under the word. ~~|
+  ::law~("hi" | @out "a" "b" !| type | eq ::any/@out/ArgsBeyondPartsError)
 
 :any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
@@ -128,9 +137,18 @@
       `@err json` or `@err print`.
   ~~|
 
+:any/@err/ArgsBeyondPartsError
+  |~~ `@err` writes its subject, or the one text its call gives, `"hi" |
+      @err`; texts are joined first, `@err (["a" "b"] | join "")`.
+  ~~|
+
 :any/@err/SubjectNotStringError/refusesANumber
   |~~ A number is no line `@err` writes alone. ~~|
   ::law~(42 | @err !| type | eq ::any/@err/SubjectNotStringError)
+
+:any/@err/ArgsBeyondPartsError/refusesTwoTexts
+  |~~ A call with two texts is refused under the word. ~~|
+  ::law~("hi" | @err "a" "b" !| type | eq ::any/@err/ArgsBeyondPartsError)
 
 :any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
@@ -155,9 +173,18 @@
   ~~|
   ::holds~(is ::keyword)
 
+:any/@tap/ArgsBeyondPartsError
+  |~~ `@tap` writes its subject under one label its call gives, `5 | @tap
+      :n`; a call with more labels is refused.
+  ~~|
+
 :any/@tap/label/NotKeywordError/refusesAString
   |~~ A string is no label. ~~|
   ::law~(1 | @tap "x" !| type | eq ::any/@tap/label/NotKeywordError)
+
+:any/@tap/ArgsBeyondPartsError/refusesTwoLabels
+  |~~ A call with two labels is refused under the word. ~~|
+  ::law~(5 | @tap :a :b !| type | eq ::any/@tap/ArgsBeyondPartsError)
 
 :vec/table
   |~~ Answers a vector of maps drawn as a table of fixed-width columns, a

@@ -86,6 +86,11 @@
   ~~|
   ::holds~(is ::quote)
 
+:tagged/within/code/NotGivenError
+  |~~ `within` runs the code its call gives beneath the tag, `::Box[1 2] |
+      within ~(reverse)`; a call with no code is refused.
+  ~~|
+
 :tagged/within/SubjectNotTaggedError
   |~~ `within` edits a value beneath its tag; a value under no tag, a
       vector or a plain map, is edited by `apply`, `[1 2] | apply
@@ -121,3 +126,7 @@
   |~~ A vector under no tag is refused. ~~|
   ::law~([1 2] | within ~(reverse)
     !| [type /actualType] | eq [::tagged/within/SubjectNotTaggedError ::vec])
+
+:tagged/within/code/NotGivenError/refusesACallWithNoCode
+  |~~ A call with no code is refused under the part. ~~|
+  ::law~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)

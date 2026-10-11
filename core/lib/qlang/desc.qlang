@@ -32,7 +32,7 @@
 
 :desc/gt/value
   |~~ The value turned to descend the subject is compared with, computed
-      against the subject.
+      against the subject, `2 | desc | gt (3 | desc)`.
   ~~|
   ~(/0)
 
@@ -70,7 +70,7 @@
 
 :desc/gte/value
   |~~ The value turned to descend the subject is compared with, computed
-      against the subject.
+      against the subject, `2 | desc | gte (3 | desc)`.
   ~~|
   ~(/0)
 
@@ -109,7 +109,7 @@
 
 :desc/lt/value
   |~~ The value turned to descend the subject is compared with, computed
-      against the subject.
+      against the subject, `2 | desc | lt (3 | desc)`.
   ~~|
   ~(/0)
 
@@ -146,7 +146,7 @@
 
 :desc/lte/value
   |~~ The value turned to descend the subject is compared with, computed
-      against the subject.
+      against the subject, `2 | desc | lte (3 | desc)`.
   ~~|
   ~(/0)
 

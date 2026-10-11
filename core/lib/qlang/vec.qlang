@@ -1152,6 +1152,11 @@
   |~~ The index, a whole number, a negative one counting from the end. ~~|
   ~(/0)
 
+:vec/at/index/NotGivenError
+  |~~ `at` reads the element at the index its call gives, `[10 20] | at 1`;
+      a call with no index is refused.
+  ~~|
+
 :vec/at/index/NotNumberError
   |~~ The index is a number, `[10 20] | at 1`; text that holds one is
       read by `parseJson` first, `at ("1" | parseJson)`.
@@ -1207,6 +1212,10 @@
 :vec/at/index/NotNumberError/refusesAString
   |~~ An index written as a string is refused. ~~|
   ::law~([1 2] | at "1" !| type | eq ::vec/at/index/NotNumberError)
+
+:vec/at/index/NotGivenError/refusesACallWithNoIndex
+  |~~ A call with no index is refused under the part. ~~|
+  ::law~([1 2] | at !| type | eq ::vec/at/index/NotGivenError)
 
 :vec/distinct
   |~~ Answers the set of the elements, the vector in the one order

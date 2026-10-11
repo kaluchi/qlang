@@ -335,7 +335,9 @@
   ::boolean
 
 :number/gt/value
-  |~~ The number the subject is compared with, computed against the subject. ~~|
+  |~~ The number the subject is compared with, computed against the
+      subject, `5 | gt 3`.
+  ~~|
   ~(/0)
 
 :number/gt/value/NotNumberError
@@ -382,7 +384,9 @@
   ::boolean
 
 :number/gte/value
-  |~~ The number the subject is compared with, computed against the subject. ~~|
+  |~~ The number the subject is compared with, computed against the
+      subject, `5 | gte 3`.
+  ~~|
   ~(/0)
 
 :number/gte/value/NotNumberError
@@ -416,7 +420,9 @@
   ::boolean
 
 :number/lt/value
-  |~~ The number the subject is compared with, computed against the subject. ~~|
+  |~~ The number the subject is compared with, computed against the
+      subject, `5 | lt 3`.
+  ~~|
   ~(/0)
 
 :number/lt/value/NotNumberError
@@ -450,7 +456,9 @@
   ::boolean
 
 :number/lte/value
-  |~~ The number the subject is compared with, computed against the subject. ~~|
+  |~~ The number the subject is compared with, computed against the
+      subject, `5 | lte 3`.
+  ~~|
   ~(/0)
 
 :number/lte/value/NotNumberError

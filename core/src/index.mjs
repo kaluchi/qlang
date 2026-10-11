@@ -28,4 +28,4 @@ export {
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';
 export { shownFor } from './runtime/verb.mjs';
-export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isWord, declaresWord } from './runtime/nouns.mjs';
+export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isWord, declaresWord, ruleRefusalsOf } from './runtime/nouns.mjs';

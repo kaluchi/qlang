@@ -39,7 +39,7 @@
 
 :tag/gt/value
   |~~ The tag name the subject is compared with, computed against the
-      subject.
+      subject, `::b | gt ::a`.
   ~~|
   ~(/0)
 
@@ -90,7 +90,7 @@
 
 :tag/gte/value
   |~~ The tag name the subject is compared with, computed against the
-      subject.
+      subject, `::b | gte ::a`.
   ~~|
   ~(/0)
 
@@ -127,7 +127,7 @@
 
 :tag/lt/value
   |~~ The tag name the subject is compared with, computed against the
-      subject.
+      subject, `::b | lt ::a`.
   ~~|
   ~(/0)
 
@@ -169,7 +169,7 @@
 
 :tag/lte/value
   |~~ The tag name the subject is compared with, computed against the
-      subject.
+      subject, `::b | lte ::a`.
   ~~|
   ~(/0)
 

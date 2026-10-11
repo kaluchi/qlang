@@ -41,7 +41,7 @@
 
 :string/gt/value
   |~~ The string the subject is compared with, computed against the
-      subject.
+      subject, `"b" | gt "a"`.
   ~~|
   ~(/0)
 
@@ -98,7 +98,7 @@
 
 :string/gte/value
   |~~ The string the subject is compared with, computed against the
-      subject.
+      subject, `"b" | gte "a"`.
   ~~|
   ~(/0)
 
@@ -134,7 +134,7 @@
 
 :string/lt/value
   |~~ The string the subject is compared with, computed against the
-      subject.
+      subject, `"b" | lt "a"`.
   ~~|
   ~(/0)
 
@@ -171,7 +171,7 @@
 
 :string/lte/value
   |~~ The string the subject is compared with, computed against the
-      subject.
+      subject, `"b" | lte "a"`.
   ~~|
   ~(/0)
 

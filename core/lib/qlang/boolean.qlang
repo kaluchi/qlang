@@ -42,6 +42,11 @@
       empty by `empty`.
   ~~|
 
+:boolean/not/ArgsBeyondPartsError
+  |~~ `not` takes no value: it answers the opposite of the boolean in the
+      pipe, and a condition goes before it as a step, `5 | eq 5 | not`.
+  ~~|
+
 :boolean/not/turnsTrueFalse
   |~~ Not true is false. ~~|
   ::law~(true | not | eq false)
@@ -65,6 +70,10 @@
 :boolean/not/SubjectNotBooleanError/refusesAConditionGivenAsAValue
   |~~ A condition given to `not` leaves it a subject that is no boolean. ~~|
   ::law~(5 | not (eq 5) !| type | eq ::boolean/not/SubjectNotBooleanError)
+
+:boolean/not/ArgsBeyondPartsError/refusesAConditionGiven
+  |~~ A condition given to the call is refused under the word. ~~|
+  ::law~(true | not (eq 5) !| type | eq ::boolean/not/ArgsBeyondPartsError)
 
 :boolean/and
   |~~ Answers whether the subject and the boolean the call gives both

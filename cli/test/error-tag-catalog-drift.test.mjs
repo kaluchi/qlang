@@ -14,7 +14,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createSession } from '@kaluchi/qlang-core/session';
-import { evalQuery, nodeAddresses, nodeOf, typeKeyword } from '@kaluchi/qlang-core';
+import { evalQuery, nodeAddresses, nodeOf, typeKeyword, isWord, ruleRefusalsOf } from '@kaluchi/qlang-core';
 import { cliSources } from '../src/cli-sources.mjs';
 import '../src/streams.mjs';
 import '../src/table.mjs';
@@ -49,6 +49,11 @@ for (const address of nodeAddresses(session.env)) {
   const record = nodeOf(session.env, address);
   if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isLaw(record.get('value'))) refusalAddresses.add(address);
 }
+// The refusals the words of the command line raise by rule, which the
+// runtime raises and the source pages where a repair helps [D179].
+const ruleBorn = new Set([...nodeAddresses(session.env)]
+  .filter(address => isWord(session.env, address))
+  .flatMap(address => ruleRefusalsOf(session.env, address)));
 const ask = async query => (await session.evalCell(query)).result;
 
 describe('the words of the command line — every throw site has its kind in the source of the command line', () => {
@@ -63,7 +68,7 @@ describe('the words of the command line — every throw site has its kind in the
 });
 
 describe('the words of the command line — every refusal the source declares has a throw site', () => {
-  for (const address of refusalAddresses) {
+  for (const address of [...refusalAddresses].filter(address => !ruleBorn.has(address))) {
     it(`${address} is raised somewhere under cli/src`, () => {
       expect(throwSites.has(address),
         `the source of the command line declares ${address} with no throw site under cli/src`

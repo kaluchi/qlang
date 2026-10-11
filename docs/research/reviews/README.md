@@ -12,12 +12,12 @@ A finding not yet settled says open.
 1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Answered by 1827f51b for `leftType` and `rightType`; `key` stays under each refusal, which names its own key, the first entry whose value is no number, the key a map lacks, the segment a projection read.
 2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Answered by 1389eb66.
 3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
-4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Open.
+4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Answered by 621a5b54: the headers say which answers go back under the subject's tags, by the label each word's answer names.
 5. `vec/sort` says a map sorts by its keys; it sorts by its values. Answered by edac4969.
 6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Answered by edac4969, the law repeating `null/at` gone; `vec/at` still leads nowhere, open.
-7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Open, a change of the language's answers.
-8. The part `with` of the algebra of vectors names a value nothing is joined with. Open, with 7.
-9. The algebra says join, the name of the word that writes strings together. Open.
+7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Answered by 621a5b54 (D188): a value of no kind of the algebra is refused at its index by `ElementNotSetOrMapError`, a set beside a map with the pair.
+8. The part `with` of the algebra of vectors names a value nothing is joined with. Answered by 621a5b54 (D188): a vector's word takes no value, refused beyond its parts with a page of `a | union b`, and the part of sets and maps is `other`.
+9. The algebra says join, the name of the word that writes strings together. Answered by 621a5b54: the pages say unite, take from and keep what values share.
 10. Refusal pages that do not say how to repair the call. Answered by cf359631: every refusal page of the three kinds shows the call that works.
 11. Generic words where the language has its own: listing, container, bucket, pipeline. Answered by 610b05d4 for bucket and the laws named after a pipeline and by f3ebc9f4 for the listing; listing and container had left the vectors with their rewrite.
 12. Law names that do not say what their queries prove. Open.
@@ -25,8 +25,8 @@ A finding not yet settled says open.
 14. One fact told in different words across the three kinds. Open.
 15. A refusal with a page under one kind and none under the others. Open.
 16. Claims of the pages with no law. Open.
-17. `minus` and `inter` over a vector take sets too, which their pages do not say. Open.
-18. The fold of a set of sets keeps the tag, the others do not. Open, with 7.
+17. `minus` and `inter` over a vector take sets too, which their pages do not say. Answered by 621a5b54: their pages name a map, a set or a vector of keys, and union's page says sets or maps of any count.
+18. The fold of a set of sets keeps the tag, the others do not. Set aside by D188: the rule of the answer's label decides, and a set's fold answers a set, under the subject's tags as every word whose answer names its own label.
 19. The order of the words in the three files does not follow what rests on what. Open.
 20. Words of time and of mutation: already, instead, was called. Answered by 610b05d4.
 
@@ -42,8 +42,8 @@ A finding not yet settled says open.
 6. Laws that nearly repeat each other. The laws that repeat each other query for query left with acbb73a2 and 0a6cdfd0, none left now; the near repeats, open.
 7. Pages of kinds that repeat the pages of words. Answered by f3ebc9f4 for the twice told range of `::number`; the rest, open.
 8. Pages of words that repeat the repair their refusals' pages give. Open.
-9. Refusal pages with no law under their address. Answered by cf359631 for numbers and strings, any value and the small kinds following; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
-10. Refusal pages that do not say how to repair the call. Answered by cf359631 for numbers and strings, any value following.
+9. Refusal pages with no law under their address. Answered by cf359631 and e35d202c: every refusal of a part has its law; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
+10. Refusal pages that do not say how to repair the call. Answered by cf359631 and e35d202c: every refusal page shows the call that works.
 11. Pages that do not say what a call with no value or with more values does. Open.
 12. Claims with no law under their name. Open.
 13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Open.
@@ -79,7 +79,7 @@ review; findings 5 and 6 still stand for the laws declared under
 8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
 9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
 10. Rule refusals with no page and no repair. Open.
-11. Invariant refusal pages that say what must hold and not how to repair the call. Open.
+11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
 12. The sister project still writes `*`. Awaits the maintainer's word.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.
 14. Claims with no law. Open.

@@ -794,6 +794,11 @@
   ~~|
   ~(/0)
 
+:map/at/key/NotGivenError
+  |~~ `at` reads the value at the key its call gives, `{:a 1} | at :a`; a
+      call with no key is refused.
+  ~~|
+
 :map/at/key/NotKeywordOrStringError
   |~~ The key is a keyword or a string: a field is read by the keyword
       that names it, `at :email`, while `at /email` hands the value of the
@@ -842,6 +847,10 @@
 :map/at/key/NotKeywordOrStringError/refusesAProjectionForAKey
   |~~ A projection is computed at the call, and its answer is no key. ~~|
   ::law~({:email {:home "a@b"}} | at /email !| /actualValue | eq {:home "a@b"})
+
+:map/at/key/NotGivenError/refusesACallWithNoKey
+  |~~ A call with no key is refused under the part. ~~|
+  ::law~({:a 1} | at !| type | eq ::map/at/key/NotGivenError)
 
 :map/reverse
   |~~ Answers the entries in the reverse order, their keys kept, under the

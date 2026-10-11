@@ -42,6 +42,12 @@
   |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
   ~(at 1)
 
+:null/at/place/NotGivenError
+  |~~ `at` reads the place its call gives and answers the default, null when
+      the call gives none, `null | at :a 7` answering `7`; a call with no
+      place is refused.
+  ~~|
+
 :null/at/readsNullFromNull
   |~~ A read of null answers null. ~~|
   ::law~(null | at :k | eq null)
@@ -61,3 +67,7 @@
 :null/at/readsNoPlace
   |~~ Any value stands as the place. ~~|
   ::law~(null | at [1 2] | eq null)
+
+:null/at/place/NotGivenError/refusesACallWithNoPlace
+  |~~ A call with no place is refused under the part. ~~|
+  ::law~(null | at !| type | eq ::null/at/place/NotGivenError)

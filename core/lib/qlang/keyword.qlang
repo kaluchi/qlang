@@ -37,7 +37,7 @@
 
 :keyword/gt/value
   |~~ The keyword the subject is compared with, computed against the
-      subject.
+      subject, `:b | gt :a`.
   ~~|
   ~(/0)
 
@@ -83,7 +83,7 @@
 
 :keyword/gte/value
   |~~ The keyword the subject is compared with, computed against the
-      subject.
+      subject, `:b | gte :a`.
   ~~|
   ~(/0)
 
@@ -119,7 +119,7 @@
 
 :keyword/lt/value
   |~~ The keyword the subject is compared with, computed against the
-      subject.
+      subject, `:b | lt :a`.
   ~~|
   ~(/0)
 
@@ -161,7 +161,7 @@
 
 :keyword/lte/value
   |~~ The keyword the subject is compared with, computed against the
-      subject.
+      subject, `:b | lte :a`.
   ~~|
   ~(/0)
 

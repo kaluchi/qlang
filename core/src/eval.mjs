@@ -626,9 +626,8 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
   if (reached !== null) return reached.served;
   if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
-  if (kinds.length === 1) return mintUnderTag(state, makeTagKeyword(kinds[0]), answer);
-  const ownKind = typeKeyword(answer).name;
-  if (kinds.includes(ownKind)) return mintUnderTag(state, makeTagKeyword(ownKind), answer);
+  const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
+  if (constructing !== undefined) return mintUnderTag(state, makeTagKeyword(constructing), answer);
   return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 

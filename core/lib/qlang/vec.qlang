@@ -214,11 +214,13 @@
 
 :vec/avg
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
-      answering `2.5`, or null for the empty vector, which has no mean.
-      An element that is no number is refused at its index, as `sum`
-      refuses it, so a field of each record is read first, `map ~/n | avg`,
-      and the mean of each group of a `groupBy` comes under its key. A
-      set and a map answer `avg` by words of their own.
+      answering `2.5`, or null for the empty vector, which has no mean;
+      the mean of finite numbers stays among the doubles,
+      `[1e308 -1e308] | avg` answering `0`. An element that is no number
+      is refused at its index, as `sum` refuses it, so a field of each
+      record is read first, `map ~/n | avg`, and the mean of each group of
+      a `groupBy` comes under its key. A set and a map answer `avg` by
+      words of their own.
       ::link~(::vec/sum | doc) ::link~(::vec/groupBy | doc)
   ~~|
   ::builtin{}
@@ -236,6 +238,10 @@
   |~~ The mean of one to four is two and a half. ~~|
   ::law~([1 2 3 4] | avg | eq 2.5)
 
+:vec/avg/answersTheSumOverTheCount
+  |~~ The mean of numbers whose sum stays among the doubles is that sum over their count. ~~|
+  ::law~([0 1 4] | avg | eq ([0 1 4] | sum | div 3))
+
 :vec/avg/answersNullOfNothing
   |~~ The empty vector has no mean. ~~|
   ::law~([] | avg | eq null)
@@ -246,11 +252,11 @@
     | eq {:a 2 :b 5})
 
 :vec/avg/averagesTheOppositeEnds
-  |~~ The mean of the two ends of the doubles is zero. ~~|
+  |~~ The mean of two numbers near the opposite ends of the doubles is zero. ~~|
   ::law~([1e308 -1e308] | avg | eq 0)
 
 :vec/avg/averagesOneEnd
-  |~~ The mean of one end of the doubles taken twice is that end. ~~|
+  |~~ The mean of a number near one end of the doubles taken twice is that number. ~~|
   ::law~([1e308 1e308] | avg | eq 1e308)
 
 :vec/avg/ElementNotNumberError/refusesAString

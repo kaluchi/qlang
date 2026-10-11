@@ -243,8 +243,10 @@
 
 :set/avg
   |~~ Answers the mean of the elements, each a number, `#[1 2 6] | avg`
-      answering `3`, and null for the empty set, which has no mean. As
-      with `sum`, a set counts each element once: `[1 1 4] | avg` answers
+      answering `3`, and null for the empty set, which has no mean; the
+      mean of finite numbers stays among the doubles,
+      `#[1e308 -1e308] | avg` answering `0`. As with `sum`, a set counts
+      each element once: `[1 1 4] | avg` answers
       `2`, and `[1 1 4] | distinct | avg` answers `2.5`. An element that
       is no number is refused, `:index` naming its place in the one
       order.
@@ -268,6 +270,10 @@
 :set/avg/answersNullForTheEmptySet
   |~~ The empty set has no mean. ~~|
   ::law~(#[] | avg | eq null)
+
+:set/avg/averagesTheOppositeEnds
+  |~~ The mean of two numbers near the opposite ends of the doubles is zero. ~~|
+  ::law~(#[1e308 -1e308] | avg | eq 0)
 
 :set/avg/countsOnceWhatTheVectorRepeats
   |~~ The set of a vector's elements counts a repeated one once. ~~|

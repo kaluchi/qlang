@@ -3,7 +3,7 @@
 // [D96], and of `elide`, the value within a budget of its print [D120].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
-import { isErrorValue, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { TAG_HEADER_SYMBOL } from '../types.mjs';
 import { elide } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
@@ -29,8 +29,7 @@ async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind)
       return;
     }
   }
-  const parts = isErrorValue(part) ? part.descriptor.values()
-    : part instanceof Map ? part.values()
+  const parts = part instanceof Map ? part.values()
     : Array.isArray(part) ? part
     : 'payload' in part ? [part.payload] : [];
   for (const inner of parts) await collectPrintsOfKinds(inner, env, state, printOfAny, printedByKind);

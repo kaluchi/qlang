@@ -1,12 +1,9 @@
 // The value an expectation spells, the `expect` of a conformance case or
-// the result a document shows. Its literal is read where a word stands,
-// so an error literal there is the value it spells and raises nothing
-// [D85].
+// the result a document shows, read as a query: a failure's print reads
+// back as the failure with the path it flew [D210].
 
 import { evalQuery } from '../../src/eval.mjs';
 
 export async function expectedValueOf(expectSource) {
-  const [expectedValue] = await evalQuery(`[${expectSource}
-]`);
-  return expectedValue;
+  return await evalQuery(expectSource);
 }

@@ -94,10 +94,11 @@ describe('elideAnswer [D109]', () => {
   });
 });
 
-// An error a host prints is an alert [D184]: the subject where the
+// A failure a host prints is an alert [D184]: the subject where the
 // failure arose within an excerpt, a subject it only passed given way
-// whole, an error among its facts an alert in its turn, a value shown
-// once, and the read of every marker continuing the query beneath `!|`.
+// whole, an error at rest among its facts a value cut within its excerpt
+// [D210], a value shown once, and the read of every marker continuing the
+// query beneath `!|`.
 describe('alertOf [D184]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
   const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
@@ -136,14 +137,13 @@ describe('alertOf [D184]', () => {
     expect(kept.get('subject')).toBe(5);
   });
 
-  it('shows an error among its facts as an alert reached beneath the fact, and a value once', async () => {
+  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D210]', async () => {
     const query = `${records} | map (/n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');
-    expect(isErrorValue(inner)).toBe(true);
-    const passed = inner.descriptor.get('trail')[1].get('subject');
-    expect(printValue(passed.get('read'))).toBe('~(!| /actualValue !| /trail/1/subject)');
-    expect(deepEqual(await continued(query, passed), await evalQuery(records))).toBe(true);
-    expect(alert.descriptor.get('trail')[0].get('subject').get('size')).toBe(30);
+    expect(isErrorValue(inner)).toBe(false);
+    const marker = inner.payload.get('trail');
+    expect(printValue(marker.get('read'))).toBe('~(!| /actualValue/trail)');
+    expect((await continued(query, marker)).length).toBe(2);
   });
 });

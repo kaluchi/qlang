@@ -445,10 +445,12 @@ type of a bare word; the Norway problem is the standard warning
 against resolving untyped text by its look.
 
 Naming is lexical: a binding sees itself and everything declared before
-it, and recursion through the pipeline value is correct. The error is a
-value with a tag and a descriptor; its trail is the path it took, a stop
-at every step that raised it or handed it on, and the steps its last
-stop skipped, applied to a fresh subject, replay them [D85]. A
+it, and recursion through the pipeline value is correct. An error at
+rest is a value with a tag and a descriptor, and raised it is a failure,
+which lives in the pipe alone and which `!|` alone catches [D210]; its
+trail is the path it flew, a stop at every step that raised it or handed
+it on, and the steps its last stop skipped, applied to a fresh subject,
+replay them [D85]. A
 quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
@@ -943,16 +945,6 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | 
 1
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/subject | count" < /dev/null
 300
-```
-
-The ring of atoms [D42] stays open at one example of the catalog: an
-error literal whose trail is no vector of stops is a step that `raise`
-refuses to build, since the error a step produces carries its path
-there [D82], [D85]:
-
-```qlang
-> ~(!{:kind :oops :trail 5}) | map ~(!| raise !| type)
-[::error/TrailNotVecError]
 ```
 
 And a refusal of the runtime is still a class of the JavaScript for
@@ -1690,26 +1682,6 @@ scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. It returns where the contracts
 move onto the kinds [D6], [D33].
 
-A literal that holds an error a word answers [D87], [D103]. `map`
-answers its first failure [D182], and a literal still keeps one, so
-`[1 ("x" | add 1)] | count` answers `2`, and a failure inside a map a
-step builds reaches the answer as data:
-
-```qlang
-> [1 ("x" | add 1)] | count
-2
-```
-
-The alternatives are a literal that answers the first word that fails,
-which refuses the step of an error literal inside a quote, since a
-quote read as its steps holds that step as the error it spells [D86],
-and the ring of atoms builds a quote from the vector of its steps
-[D42], so it waits on what such a step is as data; the step of an error
-literal read as the error unraised, `::error{…}`, which lets a literal
-fail and a quote be built from its steps at the price of what `first`
-answers on a quote today; and the literal as it is, whose failure
-reaches the command line, which refuses it under JSON [D103].
-
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed
@@ -2047,3 +2019,4 @@ applies
 [D196]: decisions/D196.md
 [D200]: decisions/D200.md
 [D202]: decisions/D202.md
+[D210]: decisions/D210.md

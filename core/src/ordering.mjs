@@ -1,6 +1,6 @@
 // One order ranks every value [D16, D48]: first by kind, null,
 // boolean, number, string, keyword, tag name, vector, set, map, quote,
-// doc, error, elision and desc, then every other tag by its name; within
+// doc, elision and desc, then every other tag by its name; within
 // a kind numbers by value, strings by their code units, vectors element
 // by element, a set as its vector, maps by their keys and then their
 // values, a desc by the reverse of its payload's place [D140], and a
@@ -9,7 +9,7 @@
 // values of one kind [D65], [D72].
 
 import {
-  isKeyword, isTag, isDoc, isErrorValue, isValueClass,
+  isKeyword, isTag, isDoc, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
 
@@ -25,10 +25,9 @@ const SET_KIND      = 7;
 const MAP_KIND      = 8;
 const QUOTE_KIND    = 9;
 const DOC_KIND      = 10;
-const ERROR_KIND    = 11;
-const ELISION_KIND  = 12;
-const DESC_KIND     = 13;
-const TAGGED_KIND   = 14;
+const ELISION_KIND  = 11;
+const DESC_KIND     = 12;
+const TAGGED_KIND   = 13;
 
 const ELISION_TAG_NAME = 'elision';
 const DESC_TAG_NAME = 'desc';
@@ -41,7 +40,6 @@ function kindOf(value) {
   if (isKeyword(value)) return KEYWORD_KIND;
   if (isTag(value)) return TAG_NAME_KIND;
   if (isDoc(value)) return DOC_KIND;
-  if (isErrorValue(value)) return ERROR_KIND;
   const headerTag = value[TAG_HEADER_SYMBOL];
   if (headerTag === undefined) return shapeKindOf(value);
   if (headerTag.name === SET_TAG_NAME) return SET_KIND;
@@ -89,10 +87,6 @@ function compareKinded(leftKind, left, rightKind, right) {
       return compareMaps(left, right);
     case DOC_KIND:
       return compareSequences(left, right);
-    case ERROR_KIND: {
-      const byErrorTag = compareCodeUnits(left.tag.name, right.tag.name);
-      return byErrorTag !== 0 ? byErrorTag : compareMaps(left.descriptor, right.descriptor);
-    }
     case ELISION_KIND:
       return comparePayloads(left, right);
     case DESC_KIND:

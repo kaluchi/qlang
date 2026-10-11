@@ -219,9 +219,9 @@
       `::keyword`, `::vec` and `::set`; null `::null`; a quote, a doc and
       a tag name `::quote`, `::doc` and `::tag`. A value under tags
       answers the outermost, `::Width(5)` answering `::Width`, while `is`
-      walks the tags to the kind beneath. An error passes over the step;
-      `!|` opens it, and its descriptor answers the tag of the refusal it
-      carries. The call takes no value: whether the subject is of a kind
+      walks the tags to the kind beneath. A failure passes over the
+      step; `!|` catches it, and the error at rest answers the tag of the
+      refusal it carries. The call takes no value: whether the subject is of a kind
       is `is`.
       ::link~(::any/is | doc) ::link~(::any/tag | doc)
   ~~|
@@ -298,8 +298,8 @@
       Every value answers, and the shapes of qlang alone give way at
       this boundary: a keyword writes as its bare name, a key and a
       value alike; a set as an array; a value under a tag as an object
-      of its `$tag` and its `payload`, an error as an object of its
-      `$error`, which holds its `$tag` and its `descriptor`; a quote, a doc and a tag name as
+      of its `$tag` and its `payload`, an error at rest among them; a
+      quote, a doc and a tag name as
       the string of their print. So `parseJson` reads a keyword back as
       its string and a set as a vector: the text that reads back as the
       value is `print`. The call takes no value, an indent among them.
@@ -325,9 +325,9 @@
   |~~ A keyword is written as its bare name. ~~|
   ::law~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
 
-:any/json/writesAnErrorUnderItsKey
-  |~~ An error is written as an object of its `$error`. ~~|
-  ::law~([(!{:k 1})] | json | parseJson | /0 | keys | eq #[:"$error"])
+:any/json/writesAnErrorAtRestUnderItsTag
+  |~~ An error at rest is written as a value under its tag. ~~|
+  ::law~(::error{:k 1} | json | parseJson | keys | eq #[:"$tag" :payload])
 
 :any/json/writesASetAsAnArray
   |~~ A set is written as an array. ~~|
@@ -2169,8 +2169,9 @@
       one of the kinds the call gives, `5 | is ::number`. A number under
       a tag of its own is a number, while `type` answers the tag over
       it; a map under a tag is a map; and a set is a vector, as a quote
-      and a doc are, while a vector is no set. An error is asked once
-      `!|` opens it, a value of `::error` and of its refusal. Given
+      and a doc are, while a vector is no set. A failure is asked once
+      `!|` catches it, an error at rest, a value of `::error` and of its
+      refusal. Given
       several kinds, it answers whether the subject is of one of them,
       and given none, false. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is

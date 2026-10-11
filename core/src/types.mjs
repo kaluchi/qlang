@@ -180,14 +180,12 @@ export function makeSet(elements) {
   return Object.freeze(set);
 }
 
-// The step an error literal leaves in a quote: an error of the tag written
-// before its bang, or of the kind of errors [D86], whose fields hold the
-// steps that compute them as written, no `:trail` where the literal writes
-// none, so the error its fields build is the step [D42], [D209].
-export function makeErrorLiteralStep(fieldSteps, tag = ERROR_TAG) {
-  return Object.freeze(brandValueClass({
-    tag, descriptor: fieldSteps, location: null, originalError: null
-  }, 'error'));
+// An error at rest, a value like any other: its facts under `::error` and
+// the tag of its site over them, none for the kind of errors, what `!|`
+// opens a failure to and `raise` raises [D97], [D210].
+export function errorAtRest(tag, facts) {
+  const ofKind = makeTaggedInstance(ERROR_TAG, facts);
+  return tag.name === ERROR_TAG.name ? ofKind : makeTaggedInstance(tag, ofKind);
 }
 
 // A doc is the vector of its prose strings and quotes under `::doc`
@@ -373,7 +371,6 @@ export function typeKeyword(v) {
   }
   if (isVec(v)) return CORE_KIND.vec;
   if (isQMap(v)) return CORE_KIND.map;
-  if (isErrorValue(v)) return v.tag;
   return UNKNOWN_KIND;
 }
 

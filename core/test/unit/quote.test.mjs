@@ -25,7 +25,7 @@ describe('the empty quote', () => {
 describe('isStep — the invariant of a quote', () => {
   it('takes literals, containers of steps, docs, quotes and error literals', async () => {
     const assembled = await evalQuery(
-      '[:k ::T |~~ d ~~| ~(x) !{:k 1} [1] #[2] {:a 3} [1, 2] {"j": 4}] | tag ::quote | count');
+      '[:k ::T |~~ d ~~| ~(x) ::error{:k 1} [1] #[2] {:a 3} [1, 2] {"j": 4}] | tag ::quote | count');
     expect(assembled).toBe(10);
   });
 
@@ -79,10 +79,11 @@ describe('assembling steps by hand', () => {
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
-  it('an error of a tag is the step of the literal that spells it', async () => {
+  it('an error at rest of a tag is the step of the literal that spells it', async () => {
     // The tag an error literal writes before its bang is the tag of the
-    // error it spells, so an error of any tag stands in a quote [D86].
-    expect(await evalQuery('[("x" | add 1)] | tag ::quote | parse'))
+    // error at rest it spells, so an error of any tag stands in a quote
+    // [D86], [D210].
+    expect(await evalQuery('[("x" | add 1 !| /)] | tag ::quote | parse'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });
 

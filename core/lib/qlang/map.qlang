@@ -1326,8 +1326,8 @@
       fails. Its tag is the one its value shows: the outermost tag over
       the map, then the one the map carries, `::Oops{:message "boom"} |
       raise`, then `::error`, every entry of the map a fact; and an
-      opened error raised again is itself. `|` steps around the
-      raised error into its trail, and `!|` opens it to its facts. It
+      error at rest raised again is itself. `|` steps around the
+      failure, writing its trail, and `!|` catches it to its facts. It
       takes no value: what the error says is a fact of the map. A value
       of another kind is put in a map first, `{:value /} | raise`.
       ::link~(::error | doc) ::link~(::fail | doc)
@@ -1362,11 +1362,11 @@
   ::law~({:kind ::Oops} | raise !| [type /kind] | eq [::error ::Oops])
 
 :map/raise/raisesAnOpenedErrorAsItself
-  |~~ An opened error raised again is itself. ~~|
+  |~~ An error caught and raised again is itself. ~~|
   ::law~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
 
 :map/raise/renamesByATag
-  |~~ A step that lays a tag over an opened error renames it. ~~|
+  |~~ A step that lays a tag over an error caught renames it. ~~|
   ::law~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
 
 :map/raise/guardsAValue

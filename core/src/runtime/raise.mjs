@@ -10,7 +10,7 @@ import { resumingItsTrail } from '../eval-trail.mjs';
 // outermost tag the walk passed, an opened error's among them, then the
 // one the map carries, then the kind of errors; every entry is a fact
 // [D190]. A map that writes `:trail` resumes that path [D85].
-export function raisedFrom(sourceMap, passedTags) {
+function raisedFrom(sourceMap, passedTags) {
   const tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
   const minted = makeErrorValue(tag, new Map(sourceMap));
   return sourceMap.has('trail') ? resumingItsTrail(minted) : minted;

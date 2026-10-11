@@ -1,25 +1,29 @@
 |~ `::error`, the kind every error is a value of, and what is declared
    under it: the refusal of an error whose path is no vector of stops,
-   the facts a refusal may carry, and the words of errors. The error
-   `!|` opens is `::error{…}`, or the tag of the site that refused
-   stacked over it, and its walk passes `::error` on its way to the map,
-   so a word declared here reaches every error. ~|
+   the facts a refusal may carry, and the words of errors. The error at
+   rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
+   of the site that refused stacked over it, and its walk passes
+   `::error` on its way to the map, so a word declared here reaches every
+   error. ~|
 
 :error
   |~~ The kind of errors. A reader learning a tool fails often, and
       a failure is the moment when the knowledge it needs is cheapest to
-      give, so a failure is a value that carries it: the facts of the
-      failure, the path it took, and the tag of the site that refused,
-      which names the page of the procedure. An error is a map of facts
-      under `::error`, `::error{:k 1}`, a value like any other until it
-      is raised, and the bang of a literal raises it, `!{:k 1}`. Every
-      refusal is a tag of its own, named for what failed,
-      `::number/add/SubjectNotNumberError`, stacked over the error. `|` passes a
-      raised error by, `map` stops on one, and `!|` opens it to that
-      stack, so `!| type` reads the site, the verbs of this kind reach
-      every error, and every step works on it as on any value: a fact is
-      added and the error raised again, or it is recovered by the tag of
-      its site. ::snippet~(::error | manifest) lists its verbs and refusals.
+      give, so a failure carries it: the facts of the failure, the path
+      it took, and the tag of the site that refused, which names the page
+      of the procedure. An error at rest is a value like any other, a map
+      of facts under `::error`, `::error{:k 1}`, and every refusal a tag
+      of its own stacked over it, named for what failed,
+      `::number/add/SubjectNotNumberError::error{…}`: a container holds
+      it, a step reads it, `print` writes it. Raised, an error is a
+      failure, which lives in the pipe alone: the bang of a literal
+      raises it, `!{:k 1}`, and so does `raise`; `|` passes it by,
+      writing its path as it goes, and `!|` alone catches it, its step
+      running on the error at rest, so `!| type` reads the site and the
+      verbs of this kind reach every error. A literal, a name or a fact
+      whose part fails answers the failure, since no value holds one.
+      The verbs and refusals of this kind are listed by
+      ::snippet~(::error | manifest).
       ::link~(::explanation | doc) ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
   ~~|
@@ -136,26 +140,28 @@
       step that raised adds its stop after it, the `map` that ran an
       element among them, so the path reads outward:
       `[1 "x"] | map ~(mul 2) !| trail | map ~/step` answers
-      `[~(mul 2) ~(map ~(mul 2))]`. An error no step raised holds no
-      `:trail` and answers `[]`, `[!{:a 1}] | map ~(!| trail)` answering
-      `[[]]`. The subject is an error opened by `!|`: under `|` a raised
-      error passes `trail` by, as it passes every step, and a value that
-      is no error is refused, a map with the key `:trail` among them.
+      `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
+      holds no `:trail` and answers `[]`, `::error{:a 1} | trail`. The
+      subject is an error at rest, the value `!|` catches a failure to:
+      under `|` a failure passes `trail` by, as it passes every step, and
+      a value that is no error is refused, a map with the key `:trail`
+      among them.
       ::link~(::qlang/errors | doc) ::link~(::error | doc)
   ~~|
   ~(at :trail | coalesce [])
 
-:error/trail/answersNothingForAnErrorNoStepRaised
-  |~~ An error no step raised holds no path. ~~|
-  ::law~([!{:a 1}] | map ~(!| trail) | eq [[]])
+:error/trail/answersNothingForAnErrorThatFlewNoStep
+  |~~ An error that flew no step holds no path. ~~|
+  ::law~(::error{:a 1} | trail | eq [])
 
 :error/trail/answer
   |~~ The stops of the path the error took. ~~|
   ::vec
 
 :error/trail/SubjectNotErrorError
-  |~~ `trail` reads the path of an error opened by `!|`, `"x" | add 1 !|
-      trail`; the key `:trail` of a plain map is read by `/trail`.
+  |~~ `trail` reads the path of an error at rest, the value `!|`
+      catches a failure to, `"x" | add 1 !| trail`; the key `:trail` of a
+      plain map is read by `/trail`.
   ~~|
 
 :error/trail/holdsTheStepThatRaised

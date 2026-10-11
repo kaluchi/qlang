@@ -3,9 +3,9 @@
 // their escapes, vectors and maps in both their spellings, sets with a
 // duplicate among them, values under a tag over every payload, a label
 // the source declares among the tags, the constructors of `::qlang` and
-// `::json`, quotes, docs and errors inside a vector, one with a stop on its
-// trail among them, each printed, parsed and applied, and held equal to
-// itself by `eq`.
+// `::json`, quotes, docs and errors at rest inside a vector [D210], one with
+// a stop on its trail among them, each printed, parsed and applied, and
+// held equal to itself by `eq`.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -44,10 +44,10 @@ function literalsOf(count, seed) {
       () => `::T${pick([...STRINGS, ...KEYWORDS, ...TAGS, ...DOCS])}`,
       () => `${pick(['::qlang', '::json'])}{${entries()}}`,
       () => `~(${pick(STEPS)})`,
-      () => `[!{:k ${literal(depth - 1)}}]`,
-      () => `[::E!{:k ${literal(depth - 1)}}]`,
-      () => pick(['[!{}]', '[::number/add/SubjectNotNumberError!{:actualType ::string}]', '[("x" | add 1)]',
-        '[!{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]'])
+      () => `[::error{:k ${literal(depth - 1)}}]`,
+      () => `[::E::error{:k ${literal(depth - 1)}}]`,
+      () => pick(['[::error{}]', '[::number/add/SubjectNotNumberError::error{:actualType ::string}]', '[("x" | add 1 !| /)]',
+        '[::error{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]'])
     ])();
   };
   const underALabel = () => `:L |~~ L. ~~| | ${literal(2).replaceAll('::T', '::L')}`;

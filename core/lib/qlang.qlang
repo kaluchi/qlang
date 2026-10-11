@@ -118,8 +118,11 @@
       11. Failures. A step that fails answers a failure, a value under
       the tag of what refused: `"x" | add 1 !| type` answers
       `::number/add/SubjectNotNumberError`. `|` passes a failure by, and
-      `!|` runs its step only on a failure: `"x" | add 1 !| 0` answers
-      `0`. A failure carries its facts and its trail, the steps it
+      `!|` alone catches it, its step running on the error at rest, a
+      value like any other: `"x" | add 1 !| 0` answers `0`. No value
+      holds a failure, so a literal whose part fails answers it, while an
+      error at rest sits anywhere and `raise` raises it again. A failure
+      carries its facts and its trail, the steps it
       passed with their subjects, and prints as an alert: the subject
       where it arose cut to an excerpt, and each subject it passed an
       ::elision, whose `:read` continues the query to it,
@@ -302,8 +305,8 @@
   ::law~(::Late!{:by 3} !| [type /by] | eq [::Late 3])
 
 :qlang/asksWhetherAValueFailed
-  |~~ `false !| true` asks whether a value is a failure. ~~|
-  ::law~([!{:k 1} 5] | map ~(false !| true) | eq [true false])
+  |~~ `false !| true` asks whether the step before failed. ~~|
+  ::law~([(!{:k 1} | false !| true) (5 | false !| true)] | eq [true false])
 
 :qlang/holdsTheTrail
   |~~ The trail holds the steps a failure skipped. ~~|
@@ -684,19 +687,22 @@
       ::link~(::error | doc) ::link~(::fail | doc)
       ::link~(::explanation | doc) ::link~(::qlang/code | doc)
 
-      A failed step answers an error the tag of its site names.
-      `|` passes an error by, and `map` answers the first an element
+      A failed step answers a failure the tag of its site names.
+      `|` passes a failure by, and `map` answers the first an element
       answers.
-      `a !| b` runs `b` on an error alone, opened to its facts, and
-      recovers each failure where it is read.
+      `a !| b` alone catches a failure, running `b` on the error at rest,
+      a value like any other, and recovers each failure where it is read.
+      No value holds a failure: a literal, a name or a fact whose part
+      fails answers it.
       The facts name what refused, and the first stop of the trail holds
       the value the step refused.
       `explain` shows the page of the site above the error.
-      The trail holds a stop for each level the error left, and the last
-      stop the steps it skipped, a quote ready to replay.
-      A map raised again after `!|` resumes the trail it holds, and one
+      The trail is written as the failure flies: a stop for each level it
+      left, and the last stop the steps it skipped, a quote ready to
+      replay.
+      An error at rest raised again resumes the trail it holds, and one
       without `:trail` starts it over.
-      Whether a value is an error is `false !| true`.
+      Whether the step before failed is `false !| true`.
   ~~|
   #[::error ::fail ::explanation]
 
@@ -725,8 +731,8 @@
   ::law~(!{:kind :oops} | count !| raise | add 1 !| /trail | map ~/step | eq [~(!{:kind :oops})])
 
 :qlang/errors/asksWhetherItFailed
-  |~~ `false !| true` answers whether a value is an error. ~~|
-  ::law~([!{:kind :oops} 42] | map ~(false !| true) | eq [true false])
+  |~~ `false !| true` answers whether the step before failed. ~~|
+  ::law~([(!{:kind :oops} | false !| true) (42 | false !| true)] | eq [true false])
 
 :qlang/code
   |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb takes

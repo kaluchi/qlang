@@ -71,7 +71,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
 describe('source axis prints the declaration for rare body shapes', () => {
   it('renders bare Call (no args)', async () => {
-    expect(await evalQuery(':x count | :x | source | parse')).toBe(':x count');
+    expect(await evalQuery('[1 2] | :x count | :x | source | parse')).toBe(':x count');
   });
 
   it('a LinePlainComment inside a declaration body leaves no step', async () => {
@@ -86,7 +86,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 
   it('renders ErrorLit body', async () => {
-    expect(await evalQuery(':x !{:a 1} | :x | source | parse')).toBe(':x !{:a 1}');
+    expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
   });
 
   it('renders leading fail-apply prefix in a declaration body', async () => {
@@ -97,12 +97,11 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 });
 
-describe('json on error values inside containers', () => {
-  it('renders error value as $error wrapper when inside Vec', async () => {
-    // A literal holds the error a word answers [D87]; json renders the Vec
-    const evalResult = await evalQuery('[11 ("x" | add 10) 13] | json');
+describe('json on errors at rest inside containers', () => {
+  it('renders an error at rest as the value under its tags [D210]', async () => {
+    const evalResult = await evalQuery('[11 ("x" | add 10 !| /) 13] | json');
     expect(typeof evalResult).toBe('string');
-    expect(evalResult).toContain('$error');
+    expect(evalResult).toContain('"$tag":"number/add/SubjectNotNumberError"');
   });
 });
 

@@ -40,7 +40,7 @@
 {"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
 {"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
-{"name":"a-binding-record-holds-its-name","query":":foo mul 2 | env | /foo | /name","expect":":foo","decision":"D63"}
+{"name":"a-binding-record-holds-its-name","query":":foo 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true","decision":"D64"}
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | map ~/name | filter ~(eq :number/add/addend/NotNumberError) | count","expect":"1","decision":["D46","D168"]}
@@ -57,21 +57,21 @@
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
 {"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]","decision":"D67"}
 {"name":"a-member-answers-its-descriptor","query":"::vec/sort | binding | /value | type","expect":"::builtin","decision":"D164"}
-{"name":"a-nested-error-keeps-the-stop-of-its-level","query":"[(!{:k 1} | add 1)] | eq [!{:k 1}]","expect":"false","decision":"D85"}
+{"name":"a-nested-error-keeps-the-stop-of-its-level","query":"5 | (!{:k 1} | add 1) !| trail | map ~/step","expect":"[~(!{:k 1}) ~((!{:k 1} | add 1))]","decision":"D85"}
 {"name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]","decision":"D85"}
 {"name":"a-stop-at-every-step-that-handed-the-error-on","query":":any/g ~(add n | mul n) | :any/g/n ~(/0) | :any/g/n/NotNumberError ::holds~(is ::number) | \"x\" | g 2 | sub 3 !| /trail","expect":"[{:step ~(add n) :subject \"x\" :skipped ~(mul n)} {:step ~(g 2) :subject \"x\" :skipped ~(sub 3)}]","decision":"D85"}
 {"name":"the-last-stop-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| /trail/-1/skipped","expect":"~(mul 2)","decision":"D85"}
 {"name":"a-stop-of-an-operand-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| /trail | map ~/step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]","decision":"D85"}
-{"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first !| /trail | map ~/step","expect":"[~(first)]","decision":"D85"}
+{"name":"an-error-literal-where-a-word-stands-fails-the-literal","query":"[!{:k 1}] !| trail | map ~/step","expect":"[~([!{:k 1}])]","decision":"D210"}
 {"name":"the-fault-fields-leave-the-descriptor","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]","decision":"D85"}
-{"name":"a-tag-over-a-failed-payload-answers-the-failure","query":"[::Foo(nosuch)] | map ~(!| type)","expect":"[::call/UnknownNameError]","decision":"D86"}
-{"name":"a-constructor-of-the-core-never-meets-a-failure","query":"[::set(nosuch)] | map ~(!| type)","expect":"[::call/UnknownNameError]","decision":"D86"}
-{"name":"the-tag-of-a-literal-over-a-failure-joins-its-skipped-steps","query":":P |~~ P. ~~| | :P/construct ~(add 1) | [::P(nosuch)] | map ~(!| /trail | map ~/skipped)","expect":"[[~(tag ::P)]]","decision":"D86"}
-{"name":"tag-over-an-error-it-takes-out-of-a-pair-answers-the-error","query":"[::Foo (!{:k 1})] | tag !| [type (/trail | map ~/step)]","expect":"[::error [~(!{:k 1}) ~(tag)]]","decision":"D86"}
+{"name":"a-tag-over-a-failed-payload-answers-the-failure","query":"::Foo(nosuch) !| type","expect":"::call/UnknownNameError","decision":"D86"}
+{"name":"a-constructor-of-the-core-never-meets-a-failure","query":"::set(nosuch) !| type","expect":"::call/UnknownNameError","decision":"D86"}
+{"name":"the-tag-of-a-literal-over-a-failure-joins-its-skipped-steps","query":":P |~~ P. ~~| | :P/construct ~(add 1) | ::P(nosuch) !| /trail | map ~/skipped","expect":"[~(tag ::P) ~()]","decision":"D86"}
+{"name":"a-pair-whose-payload-fails-answers-the-failure-before-tag","query":"[::Foo (!{:k 1})] | tag !| [type (/trail | map ~/step)]","expect":"[::error [~(!{:k 1}) ~([::Foo (!{:k 1})])]]","decision":"D210"}
 {"name":"the-tag-a-step-lays-over-the-descriptor-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| [type (/trail | map ~/step)]","expect":"[::Foo [~(add 1)]]","decision":["D86","D97"]}
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar","decision":["D86","D97"]}
-{"name":"the-step-of-a-tagged-error-literal-is-the-error-it-spells","query":"~(::Foo!{:k 1}) | first !| [type /k]","expect":"[::Foo 1]","decision":"D86"}
-{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"[::Foo!{:trail 5}] | map ~(!| type)","expect":"[::error/TrailNotVecError]","decision":"D86"}
+{"name":"the-step-of-a-tagged-error-literal-is-the-error-at-rest-it-spells","query":"~(::Foo!{:k 1}) | first | [type /k]","expect":"[::Foo 1]","decision":["D86","D210"]}
+{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"::Foo!{:trail 5} !| type","expect":"::error/TrailNotVecError","decision":"D86"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort ~(/a) !| [type (/trail | map ~/step)]","expect":"[::proj/KeyNotInMapError [~(/a) ~(sort ~(/a))]]","decision":"D87"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true","decision":["D88","D119"]}
 {"name":"an-axis-reads-the-part-a-member-holds-under-a-name","query":"::vec/take | [(binding :count | /value) (doc :count | content)]","expect":"[~(/0) \" How many. \"]","decision":["D88","D119"]}

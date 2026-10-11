@@ -14,7 +14,7 @@ import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet,
-  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, isTag,
+  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, isTag, errorAtRest,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
 } from './types.mjs';
@@ -110,15 +110,18 @@ async function evalNode(node, state) {
   try {
     return await evaluator(node, state);
   } catch (caughtError) {
-    if (caughtError instanceof QlangError && !caughtError.location && node.location)
-      caughtError.location = node.location;
-    if (caughtError instanceof QlangInvariantError) throw caughtError;
     // The error the node raised; the step that ran the node writes its
     // stop [D85].
-    const raised = caughtError instanceof QlangError ? errorFromQlang(caughtError, state.pipeValue, state.env)
-      : errorFromForeign(caughtError, node, state.env);
-    return withPipeValue(state, raisedBy(raised, node));
+    return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
+}
+
+// The failure a throw at a node raised against the subject it met, a
+// defect of the runtime riding past the fail track.
+function errorOfThrow(caughtError, node, subject, env) {
+  if (caughtError instanceof QlangError && !caughtError.location && node.location) caughtError.location = node.location;
+  if (caughtError instanceof QlangInvariantError) throw caughtError;
+  return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, env) : errorFromForeign(caughtError, node, env);
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -151,7 +154,7 @@ async function fork(state, sub) {
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode)));
   const answered = await evalNode(stepNode, state);
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue, state.env));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue));
 }
 
 // A body, a query, a group, a verb's body or an applied quote among them,
@@ -168,21 +171,26 @@ function containerBeneathTags(value) {
   return beneath;
 }
 
-// `!|` runs the step on a raised error alone, opened to the map of its
-// facts, `:trail` among them, under `::error` and the tag of the site
-// that refused laid through its label as a tagged literal lays it, so
-// `!| type` reads the site and a verb of `::error` reaches every error
-// [D97], [D206], a value passing, a label's refusal answering for the
-// opening, and a raise that writes the `:trail` it read resuming that
-// path [D85].
+// `!|` alone catches a failure, its step running on the error at rest, the
+// map of its facts, `:trail` among them, under `::error` and the tag of
+// the site that refused laid through its label as a tagged literal lays
+// it, so `!| type` reads the site and a verb of `::error` reaches every
+// error [D97], [D206], [D210], a value passing, a label's refusal
+// answering for the catch, and a raise that writes the `:trail` it read
+// resuming that path [D85].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
   const errorOfKind = makeTaggedInstance(ERROR_TAG, new Map(raised.descriptor));
-  const opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTaggedInstance(raised.tag.name, errorOfKind, state);
-  if (isErrorValue(opened)) return withPipeValue(state, opened);
+  let opened;
+  try {
+    opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTaggedInstance(raised.tag.name, errorOfKind, state);
+  } catch (caughtError) {
+    opened = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
+  }
+  if (isErrorValue(opened)) return withPipeValue(state, answerOfStep(opened, () => quoteOfBody(stepNode), errorOfKind));
   const answered = await evalNode(stepNode, withPipeValue(state, opened));
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened, state.env));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -194,17 +202,30 @@ function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 
 // Each element and each value of a literal is a word forked against the
-// subject, one after another in their order [D84].
+// subject, one after another in their order [D84]; a failure lives in the
+// pipe alone, so the first a word answers is the answer of the literal,
+// the words after it left unrun [D210].
 async function evalVecLit(node, state) {
-  const elementValues = [];
-  for (const elem of node.elements) elementValues.push(await wordAnswer(elem, state));
-  return withPipeValue(state, elementValues);
+  return withPipeValue(state, await wordValues(node.elements, state));
 }
 
 async function evalMapLit(node, state) {
-  const mapResult = new Map();
-  for (const entry of node.entries) mapResult.set(entry.key.name, await wordAnswer(entry.value, state));
-  return withPipeValue(state, mapResult);
+  return withPipeValue(state, await entryValues(node.entries, state));
+}
+
+async function wordValues(words, state) {
+  const values = [];
+  for (const word of words) {
+    const answered = await wordAnswer(word, state);
+    if (isErrorValue(answered)) return answered;
+    values.push(answered);
+  }
+  return values;
+}
+
+async function entryValues(entries, state) {
+  const values = await wordValues(entries.map(entry => entry.value), state);
+  return isErrorValue(values) ? values : new Map(entries.map((entry, index) => [entry.key.name, values[index]]));
 }
 
 // An error literal raises its facts under the kind of errors [D64], and
@@ -213,8 +234,8 @@ async function evalMapLit(node, state) {
 // label answering for the literal, and the error takes the tag its
 // content shows; every entry is a fact, `:kind` among them [D190].
 async function evalErrorLit(node, state) {
-  const errorDescriptor = new Map();
-  for (const entry of node.entries) errorDescriptor.set(entry.key.name, await wordAnswer(entry.value, state));
+  const errorDescriptor = await entryValues(node.entries, state);
+  if (isErrorValue(errorDescriptor)) return withPipeValue(state, errorDescriptor);
   if (node.tag !== null) {
     const content = await mintTaggedInstance(node.tag, errorDescriptor, state);
     if (isErrorValue(content)) return withPipeValue(state, content);
@@ -227,9 +248,9 @@ async function evalErrorLit(node, state) {
 
 const RAISE_ADDRESS = 'map/raise';
 
-// The value a word of a literal answers, forked against the subject:
-// an error the word raised passes a stop at the word, and any other
-// waits in the container as it is [D85].
+// The value a word of a literal answers, forked against the subject: a
+// failure the word raised passes a stop at the word, and one handed on
+// from inside it goes on as it is to the literal it fails [D85], [D210].
 async function wordAnswer(wordNode, state) {
   const answered = await fork(state, inner => evalNode(wordNode, inner));
   return answerOfWord(answered.pipeValue, wordNode, state.pipeValue);
@@ -258,9 +279,8 @@ async function evalDocLit(node, state) {
 // The elements run in the order they are written, and the set holds
 // them in the one order [D16].
 async function evalSetLit(node, state) {
-  const setElements = [];
-  for (const setElem of node.elements) setElements.push(await wordAnswer(setElem, state));
-  return withPipeValue(state, makeSet(setElements));
+  const elements = await wordValues(node.elements, state);
+  return withPipeValue(state, isErrorValue(elements) ? elements : makeSet(elements));
 }
 
 // ─── TaggedLit / TagLit ────────────────────────────────
@@ -380,7 +400,8 @@ async function evalTagLit(node, state) {
 // at declaration against the current value, `42 | :x / | add 1 | x`
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
-// writes, its own name among it [D44]; a name is declared once in its
+// writes, its own name among it [D44], and a body that fails answering the
+// failure, which no name holds [D210]; a name is declared once in its
 // scope [D71], a node the root holds once at all [D153], and a name with a
 // path under a noun declared before it.
 async function evalBindStep(node, state) {
@@ -398,6 +419,7 @@ async function evalBindStep(node, state) {
   }
 
   const answered = (await evalNode(node.body, state)).pipeValue;
+  if (isErrorValue(answered)) return withPipeValue(state, answered);
   if (nounName === null && !isDoc(answered) && vocabularyWords(state.env).has(name)) {
     throw new BindNameTakenByVocabularyError({ name: keyword(name), addresses: addressesOf(state.env, name) });
   }
@@ -734,16 +756,17 @@ const ARGS_NAME = keyword('args');
 // asks for code reads, by an invariant `is` of a quote or, for the part
 // that reads the args whole, `every ~(is …)` of one: the step ran on the
 // subject by mistake, `filter /active` for `filter ~(/active)`, and the
-// part's invariant refuses it with the error as its value, the part that reads
-// the args naming the place, from zero; anywhere else the error is the
-// answer [D67], [D167], [D169].
+// part's invariant refuses it with the error at rest as its value, the
+// part that reads the args naming the place, from zero; anywhere else the
+// error is the answer [D67], [D167], [D169], [D210].
 function refusalOfComputedCode(parts, place, error, scope) {
   const reading = parts.find(({ selector }) => selector.place === place) ?? parts.find(({ selector }) => selector.readsArgs);
   if (reading === undefined) return error;
   const { kindInvariant: invariant, selector: { readsArgs } } = reading;
   const asked = invariant === undefined ? null : readsArgs ? invariant.elementKinds : invariant.kinds;
   if (asked === null || !asked.includes('quote')) return error;
-  return refusalUnder(invariant.address, readsArgs ? { index: place, actualValue: error } : { actualValue: error }, scope);
+  const atRest = errorAtRest(error.tag, new Map(error.descriptor));
+  return refusalUnder(invariant.address, readsArgs ? { index: place, actualValue: atRest } : { actualValue: atRest }, scope);
 }
 
 // The value a part's selector reads from the args: a selector of one

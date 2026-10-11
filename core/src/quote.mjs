@@ -19,9 +19,9 @@ import { parse } from './parse.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
   keyword, makeTag, makeDoc, makeQuote, makeSet,
-  makeTaggedInstance, makeErrorLiteralStep,
-  isQuote, isKeyword, isTag, isDoc, isVec, isVecOfOwnKind, isQMap, isQSet,
-  isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
+  makeTaggedInstance, errorAtRest,
+  isQuote, isKeyword, isTag, isDoc, isVec, isQMap, isQSet,
+  isValueClass, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
 } from './types.mjs';
@@ -170,7 +170,7 @@ const STEP_OF_NODE = {
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
-  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTag(node.tag)),
+  ErrorLit:        node => errorAtRest(node.tag === null ? ERROR_TAG : makeTag(node.tag), new Map(entryStepsOf(node.entries))),
   TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
   Call:     callStepOf,
@@ -205,15 +205,16 @@ export function isStep(value) {
 }
 
 // isElementStep(value) — a literal, a quote, a doc, a container of
-// element steps, an error literal's step, of its tag or of the kind
-// `::error` [D86], a group, or a record, which counts by its tag since
+// element steps, an error literal's step, the error at rest it spells
+// [D210], a group, or a record, which counts by its tag since
 // its constructor already read it back from its own text. A declaration and a command with modifiers
 // stand in a pipeline alone: inside a container the grammar reads each
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTag(value) || isDoc(value) || isQuote(value)) return true;
-  if (isErrorValue(value)) return [...value.descriptor.values()].every(isElementStep);
+  const errorFields = errorFieldsOf(value);
+  if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('modifiers'));
@@ -279,21 +280,19 @@ function printStep(step) {
     case 'construct': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
-  if (isErrorValue(step)) return `${errorHeadOf(step)}!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || !isEmptyVector(value)))}}`;
+  const errorFields = errorFieldsOf(step);
+  if (errorFields !== null) return `${isValueClass(step, 'taggedInstance') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
 }
 
-// The tag an error literal writes before its bang, none for the kind of
-// errors [D86].
-function errorHeadOf(step) {
-  return step.tag.name === ERROR_TAG.name ? '' : step.tag.literal;
-}
-
-// The empty vector a literal's `:trail` is unless it writes one [D85].
-function isEmptyVector(value) {
-  return isVec(value) && !isVecOfOwnKind(value) && value.length === 0;
+// The fields of the step of an error literal, a map under `::error`
+// beneath the tag the literal writes before its bang [D86], [D210]; null
+// for any other value.
+function errorFieldsOf(value) {
+  const fields = isValueClass(value, 'taggedInstance') ? value.payload : value;
+  return isQMap(fields) && fields[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? fields : null;
 }
 
 function printEntries(entries) {

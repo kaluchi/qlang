@@ -26,7 +26,7 @@
 {"name":"type-quote-vec-false","query":"[1 2 3] | type | eq ::quote","expect":"false","decision":"D8"}
 {"name":"type-quote-map-false","query":"{:a 1} | type | eq ::quote","expect":"false","decision":"D8"}
 {"name":"type-quote-null-false","query":"null | type | eq ::quote","expect":"false","decision":"D8"}
-{"name":"error-element-type-is-not-quote","query":"[!{:k 1}] | map ~(!| type | eq ::quote) | first","expect":"false","decision":"D8"}
+{"name":"error-element-type-is-not-quote","query":"[::error{:k 1}] | map ~(type | eq ::quote) | first","expect":"false","decision":"D8"}
 {"name":"quote-equality-same-source","query":"~(mul 2) | eq ~(mul 2)","expect":"true","decision":"D8"}
 {"name":"quote-equality-different-source","query":"~(mul 2) | eq ~(mul 3)","expect":"false","decision":"D8"}
 {"name":"quote-equality-ignores-spacing","query":"~(mul 2) | eq ~(mul  2)","expect":"true","decision":"D8"}

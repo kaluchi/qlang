@@ -5,9 +5,9 @@
 :explanation
   |~~ The kind of what `explain` answers: the page `doc` reads
       for a value under `:page`, then the value itself under `:value`, so
-      it prints as the page above what it explains, an error
-      raised, with its bang. It is the cord from a value to its
-      procedure in one answer; `page` and `value` answer its parts.
+      it prints as the page above what it explains, an error at rest as
+      `!|` caught it. It is the cord from a value to its procedure in one
+      answer; `page` and `value` answer its parts.
       ::link~(::error | doc)
       ::link~(::qlang/errors | doc)
   ~~|
@@ -67,17 +67,16 @@
 :explanation/value
   |~~ Answers the value the explanation explains, `42 | explain | value`
       answering `42`, and of a name the name, `::vec/count | explain |
-      value` answering `::vec/count`. An error explained answers raised,
-      as it arrived before `!|` opened it, so the steps after `value` are
-      skipped until a `!|` opens it again. The subject is an explanation,
-      so a map is refused, its key `:value` read by `/value`. `page`
-      answers what explains the value.
+      value` answering `::vec/count`. An error explained answers at rest,
+      as `!|` caught it, and `raise` raises it again. The subject is an
+      explanation, so a map is refused, its key `:value` read by
+      `/value`. `page` answers what explains the value.
       ::link~(::any/explain | doc) ::link~(::explanation/page | doc)
   ~~|
   ~(/value)
 
 :explanation/value/answer
-  |~~ The value explained, of any kind, an error among them raised. ~~|
+  |~~ The value explained, of any kind, an error at rest among them. ~~|
   ::any
 
 :explanation/value/SubjectNotExplanationError
@@ -93,9 +92,9 @@
   |~~ A name explained answers the name. ~~|
   ::law~(::vec/count | explain | value | eq ::vec/count)
 
-:explanation/value/keepsAnErrorRaised
-  |~~ An error explained stays raised. ~~|
-  ::law~("x" | add 1 !| explain | value !| type | eq ::number/add/SubjectNotNumberError)
+:explanation/value/holdsAnErrorAtRest
+  |~~ An error explained is the error at rest `!|` caught. ~~|
+  ::law~("x" | add 1 !| explain | value | /actualType | eq ::string)
 
 :explanation/value/SubjectNotExplanationError/refusesAMap
   |~~ A map with a key `:value` is no explanation. ~~|

@@ -7,12 +7,12 @@
 // counted, `:read`, the quote that applied to the value taken answers the
 // part left out, and for a string `:head`, its first characters.
 //
-// An error a host prints is an alert [D184]: its tag and its facts, the
+// A failure a host prints is an alert [D184]: its tag and its facts, the
 // data it carries cut to what places the failure. The subject of the
 // first stop of its trail, where the failure arose, and every other fact
 // print within an excerpt each; the subject of every later stop, which
-// the failure only passed, gives way whole; an error among the facts is
-// an alert in its turn. Every `:read` reads its part beneath `!|`.
+// the failure only passed, gives way whole. Every `:read` reads its part
+// beneath `!|`.
 //
 //   elide(value, budget) → the value within the budget
 //   alertOf(error) → the error as an alert
@@ -136,16 +136,10 @@ export function elide(value, budget) {
 }
 
 // A fact of an alert within its excerpt, beneath the read that reaches
-// it: a value the alert shows already gives way whole the second time, a
-// string past the excerpt gives way whole with its head, an error is an
-// alert in its turn, and any other value gives way within as `elide`
-// cuts it.
-function excerptOf(value, read, shown) {
-  if (typeof value === 'object' && value !== null) {
-    if (shown.has(value)) return passedOver(value, read);
-    shown.add(value);
-  }
-  if (isErrorValue(value)) return alertOf(value, `${read} !| `, shown);
+// it: a string past the excerpt gives way whole with its head, and any
+// other value, an error at rest among them [D210], gives way within as
+// `elide` cuts it.
+function excerptOf(value, read) {
   if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return givenWay({ path: [], value }, read);
   return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone);
 }
@@ -162,19 +156,19 @@ function passedOver(value, read) {
 // The trail of an alert: each stop keeps its step and what it skipped,
 // the subject of the first within its excerpt, of every later one given
 // way whole.
-function stopsOf(trail, read, shown) {
+function stopsOf(trail, read) {
   return Object.freeze(trail.map((stop, index) => {
     const subjectRead = `${read}/${index}/subject`;
     const subject = stop.get('subject');
-    return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead, shown) : passedOver(subject, subjectRead)));
+    return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead) : passedOver(subject, subjectRead)));
   }));
 }
 
-export function alertOf(error, read = '!| ', shown = new Set()) {
+export function alertOf(error) {
   const facts = new Map();
   for (const [name, value] of error.descriptor) {
-    const factRead = `${read}${stepOf(name)}`;
-    facts.set(name, name === 'trail' ? stopsOf(value, factRead, shown) : excerptOf(value, factRead, shown));
+    const factRead = `!| ${stepOf(name)}`;
+    facts.set(name, name === 'trail' ? stopsOf(value, factRead) : excerptOf(value, factRead));
   }
   return makeErrorValue(error.tag, facts);
 }

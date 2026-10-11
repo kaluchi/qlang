@@ -19,10 +19,9 @@ recordRefusal('cli/AnswerNotJsonError');
 
 const JSON_KINDS = new Set(['null', 'boolean', 'number', 'string', 'keyword', 'vec', 'set', 'map']);
 
-// The first value beneath the answer that JSON has no form for, an
-// error among them, with the path to it, or null.
+// The first value beneath the answer that JSON has no form for, with the
+// path to it, or null.
 function firstNotJson(value, path) {
-  if (isErrorValue(value)) return { value, path };
   const kindName = typeKeyword(value).name;
   if (!JSON_KINDS.has(kindName)) return { value, path };
   const parts = kindName === 'vec' || kindName === 'set' ? value.map((element, index) => [index, element])
@@ -35,13 +34,14 @@ function firstNotJson(value, path) {
   return null;
 }
 
-// The answer the JSON channel writes: the answer itself, an error it
-// holds, or the refusal of a value JSON has no form for, which holds the
-// answer as its literal, so a query that asks after a kind, a page or a
-// tag reads its answer on that channel too [D192].
+// The answer the JSON channel writes: a failure, which no value holds
+// [D210], the answer itself, or the refusal of a value JSON has no form
+// for, which holds the answer as its literal, so a query that asks after
+// a kind, a page or a tag reads its answer on that channel too [D192].
 function answerForJson(value) {
+  if (isErrorValue(value)) return value;
   const notJson = firstNotJson(value, []);
-  if (notJson === null || isErrorValue(notJson.value)) return notJson?.value ?? value;
+  if (notJson === null) return value;
   return makeErrorValue(makeTag('cli/AnswerNotJsonError'), new Map([
     ['path', notJson.path], ['actualType', typeKeyword(notJson.value)], ['printed', printValue(value)]]));
 }

@@ -6,7 +6,7 @@ import { printQuoteSource, docText } from '../quote.mjs';
 import {
   isVec,
   isQMap,
-  isErrorValue, ERROR_TAG,
+  ERROR_TAG,
   formOf,
   finiteNumberOrLift,
   TAG_HEADER_SYMBOL,
@@ -81,13 +81,16 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// An error writes the tag of its site before its bang, and none for the
-// kind of errors [D64], and then its facts and its path as it holds them.
+// A failure writes the tag of its site before its bang, none for the kind
+// of errors [D64], then its facts and the path it flew, `:trail []` for
+// one that flew no step, so its print reads back as itself [D210].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  if (e.descriptor.size === 0) return tagHead + '!{}';
-  return tagHead + printMapLike('!{', e.descriptor, indent, printedOf);
+  const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
+  return tagHead + printMapLike('!{', facts, indent, printedOf);
 }
+
+const NO_PATH = Object.freeze([]);
 
 // A payload that opens with a letter, a digit or a minus stands in
 // parentheses after the tag, where it would read as the tag's name.
@@ -105,7 +108,7 @@ function printTaggedInstance(instance, indent, printedOf) {
 // any other puts each entry on a line of its own.
 function printMapLike(open, m, indent, printedOf) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v) || isErrorValue(v));
+  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v));
   if (entries.length <= 2 && !hasComposite) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf)}`).join(' ')}}`;
   }

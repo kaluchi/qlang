@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { deepEqual } from '../../src/equality.mjs';
 import { parse } from '../../src/parse.mjs';
 import { createSession } from '../../src/session.mjs';
 import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
@@ -52,14 +53,13 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [D32], [D64].
     const err = makeErrorValue(makeTag('error'), new Map());
-    expect(printValue(err)).toBe('!{}');
+    expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });
 
-  it('descriptor fields ride inside the brackets', async () => {
-    const err = makeErrorValue(makeTag('error'), new Map([
-      ['message', 'something broke']
-    ]));
-    expect(printValue(err)).toBe('!{:message "something broke"}');
+  it('a failure that flew no step prints its empty path, so its print reads back as itself [D210]', async () => {
+    const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
+    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
+    expect(deepEqual(await evalQuery(printValue(err)), err)).toBe(true);
   });
 
   it('a :kind in the descriptor is a fact like any other', async () => {
@@ -68,19 +68,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('!{:kind :oops}');
-  });
-
-  it('an empty user-defined tag-headed error renders as ::Foo!{}', async () => {
-    const err = makeErrorValue(makeTag('Foo'), new Map());
-    expect(printValue(err)).toBe('::Foo!{}');
-  });
-
-  it('a tag-headed error renders the payload after the head', async () => {
-    const err = makeErrorValue(makeTag('Foo'), new Map([
-      ['category', keyword('oops')]
-    ]));
-    expect(printValue(err)).toBe('::Foo!{:category :oops}');
+    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n}');
   });
 
   it(':message rides through the printer verbatim — user content, not template-fill', async () => {
@@ -92,7 +80,16 @@ describe('printErrorValue — head + payload-filter branches', () => {
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
+    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n}');
+  });
+});
+
+describe('toPlain encodes a failure', () => {
+  it('as the object of its $error, its tag and its facts [D192]', async () => {
+    const plain = toPlain(await evalQuery('"x" | add 1'));
+    expect(Object.keys(plain)).toEqual(['$error']);
+    expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');
+    expect(plain.$error.facts.actualType).toBe('::string');
   });
 });
 
@@ -244,9 +241,9 @@ describe('print — the print declared under a kind', () => {
     expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
   });
 
-  it('reaches a part inside an error and under a tag over a scalar', async () => {
+  it('reaches a part inside an error at rest and under a tag over a scalar', async () => {
     const session = await badgeSession();
-    const inError = await session.evalCell('[!{:k ::badge{:name "in"}}] | print');
+    const inError = await session.evalCell('[::error{:k ::badge{:name "in"}}] | print');
     expect(inError.result).toContain(':k in');
     const underTag = await session.evalCell(':Box |~~ a box ~~| | [::Box(5) :kw] | print');
     expect(underTag.result).toBe('[::Box(5) :kw]');

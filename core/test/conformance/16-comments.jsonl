@@ -55,15 +55,15 @@
 {"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail/-1/skipped","expect":"~(count)","decision":["D81","D85"]}
 {"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::call/KindAnswersNoVerbError","decision":"D85"}
 {"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
-{"name":"comment-head-keeps-leading-fail-apply","query":"[!{:kind :zap}] | map ~(!| |~ note ~| /kind)","expect":"[:zap]"}
+{"name":"comment-head-keeps-leading-fail-apply","query":"~(!| |~ note ~| /kind) | first | type","expect":"::fail"}
 {"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
 {"name":"comment-head-of-a-group","query":"[1 2] | (|~ note ~| map ~(add 1))","expect":"[2 3]"}
-{"name":"comment-head-explicit-fail-apply","query":"[!{:kind :zap}] | map ~(|~ note ~| !| /kind)","expect":"[:zap]"}
-{"name":"comment-head-explicit-pipe-deflects","query":"[(\"x\" | add 1)] | map ~(|~ note ~| | type) | first !| /trail/0/skipped","expect":"~(type)","decision":"D85"}
+{"name":"comment-head-explicit-fail-apply","query":"~(|~ note ~| !| /kind) | first | type","expect":"::fail"}
+{"name":"comment-head-explicit-pipe-rides-the-pipe","query":"~(|~ note ~| | type) | first | type","expect":"::call"}
 {"name":"line-comment-head-of-a-group","query":"[1 2] | (|~| note\nmap ~(add 1))","expect":"[2 3]"}
 {"name":"comment-mid-pipeline","query":"[1 2] |~ note ~| | map ~(add 1)","expect":"[2 3]"}
-{"name":"comment-head-keeps-leading-pipe-deflection","query":"[(\"x\" | add 1)] | map ~(| |~ note ~| count) | first !| /trail/0/skipped","expect":"~(count)","decision":"D85"}
-{"name":"comment-head-without-leading-combinator-rides-pipe","query":"[(\"x\" | add 1)] | map ~(|~ note ~| count) | first !| /trail/0/skipped","expect":"~(count)","decision":"D85"}
+{"name":"comment-head-keeps-leading-pipe","query":"~(| |~ note ~| count) | first | type","expect":"::call"}
+{"name":"comment-head-without-leading-combinator-rides-pipe","query":"~(|~ note ~| count) | first | type","expect":"::call"}
 {"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | content | contains \"\\r\"","expect":"false","decision":["D94","D95"]}
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6","decision":"D81"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6","decision":["D11","D81"]}

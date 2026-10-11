@@ -9,15 +9,13 @@ import { mintTaggedInstance } from '../eval.mjs';
 import { bareNameReach, isMemberValue, partsOfName, residencesOf } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
-  bindingValueOf, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
+  bindingValueOf, isVec, isQMap, isTaggedInstance, isValueClass,
   makeTag, typeKeyword
 } from '../types.mjs';
 
 // The value under a tag as its literal puts it there, for the verbs that
-// keep a kind and for `tag` [D173], an error answering itself, since no
-// tag stands over one [D86].
+// keep a kind and for `tag` [D173].
 export async function mintUnderTag(state, tag, value) {
-  if (isErrorValue(value)) return value;
   return await mintTaggedInstance(tag.name, value, state);
 }
 

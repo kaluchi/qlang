@@ -398,12 +398,9 @@
       which reshapes each element, `map ~({:id /id :n (/tags | count)})`.
       It runs in the scope of the call, so a name declared before the
       call is read inside, and the names a run declares stay in it. The
-      first error the code answers for an element is the answer of the
-      call, the elements after it left unrun; an element that is an error
-      passes by the steps of the code that ride `|`, so code of one value
-      answers it, `[1 ("x" | add 1)] | map ~(0)`, and a code that
-      recovers, `map ~(add 1 !| 0)`, keeps every element, an error element
-      among them. The answers stand in a
+      first failure the code answers for an element is the answer of the
+      call, the elements after it left unrun, and a code that recovers,
+      `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
       vector of their own, under no tag of the subject, whose tags speak
       of the elements it held; a quote maps its steps and a doc its
       segments. A set and a map answer `map` by words of their own;
@@ -462,12 +459,8 @@
   ::law~([1 "a" "b"] | map ~(add 1) !| /trail/0/subject | eq "a")
 
 :vec/map/recoversAFailedElement
-  |~~ A code that recovers answers for an element that is an error. ~~|
-  ::law~([1 ("x" | add 1)] | map ~(add 1 !| 0) | eq [2 0])
-
-:vec/map/answersAFailedElementToCodeOfOneValue
-  |~~ An element that is an error passes code of one value by, as it passes every step that rides `|`. ~~|
-  ::law~([1 ("x" | add 1)] | map ~(0) !| type | eq ::number/add/SubjectNotNumberError)
+  |~~ A code that recovers keeps every element. ~~|
+  ::law~([1 "x"] | map ~(add 1 !| 0) | eq [2 0])
 
 :vec/map/answersUnderNoTag
   |~~ The answers stand under no tag of the subject. ~~|

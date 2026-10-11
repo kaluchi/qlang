@@ -23,13 +23,12 @@ import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
   isKeyword, isTag, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
-  makeTag, makeQuote, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  makeTag, makeQuote, makeDoc, NULL
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { raisedFrom } from './raise.mjs';
 import { docText } from '../quote.mjs';
 import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
@@ -178,25 +177,13 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject,
 bindStateReader('any/doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 
-// The value as an explanation holds it: an error, a map under `::error`
-// beneath the tags stacked over it, raised under the tag it shows, as it
-// arrived before `!|` opened it [D101]; any other value as it is.
-function heldByExplanation(subject) {
-  const passedTags = [];
-  let beneath = subject;
-  while (isValueClass(beneath, 'taggedInstance')) {
-    passedTags.push(beneath.tag);
-    beneath = beneath.payload;
-  }
-  return isQMap(beneath) && beneath[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? raisedFrom(beneath, passedTags) : subject;
-}
-
 // The explanation of a value [D100]: the page `doc` reads for it,
-// null for a declaration without one, above the value itself, so an
-// explanation prints as the page above what it explains [D98].
+// null for a declaration without one, above the value itself, an error at
+// rest as `!|` caught it [D210], so an explanation prints as the page
+// above what it explains [D98].
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
+  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });
 

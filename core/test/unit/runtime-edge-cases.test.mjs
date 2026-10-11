@@ -60,22 +60,19 @@ describe('equality.deepEqual rejection branches', async () => {
   });
 });
 
-describe('formOf for a verb and a binding record', async () => {
-  it('formOf reads a binding record as the tagged Map it is', async () => {
+describe('formOf of a binding record and of a vector under a tag', async () => {
+  it('formOf reads a binding record as a value under a tag, underTag', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(formOf(record)).toBe('underTag');
   });
 
-  it('formOf answers "underTag" for a map under a tag', async () => {
+  it('formOf answers "underTag" for a vector under a tag', async () => {
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
     expect(formOf(instance)).toBe('underTag');
   });
 
-  it('TaggedInstance toPlain on Vec payload — overlay identity, encoded payload is the Array data', async () => {
-    // Identity-overlay design: tag rides on the JS-header slot
-    // of the Array payload itself. `toPlain` encodes the
-    // underlying array as `payload`, identity rides on `$tag`.
+  it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
     const tagged = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);

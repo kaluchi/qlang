@@ -46,6 +46,11 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
+  it('a label of a source is no bare name inside the words of its source [D191], [D200]', async () => {
+    const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
+    expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTagKeyword('call/UnknownNameError'));
+  });
+
   it('a word of a source reads a bare value its source declares after it [D200]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);

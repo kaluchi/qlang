@@ -13,12 +13,12 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isDoc, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
 import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
-import { isUnderLabel } from './nouns.mjs';
+import { holdsAPage, isUnderLabel } from './nouns.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:tagName`
@@ -78,7 +78,7 @@ export async function declareRoot(env, sources) {
 function runInTheRoot(declared, root) {
   const frame = new Map([[ROOT_KEY, root]]);
   for (const [name, record] of declared) {
-    if (splitAddress(name)[0] === null && !isDoc(bindingValueOf(record))) frame.set(name, record);
+    if (splitAddress(name)[0] === null && !holdsAPage(record)) frame.set(name, record);
   }
   for (const record of declared.values()) {
     const value = bindingValueOf(record);

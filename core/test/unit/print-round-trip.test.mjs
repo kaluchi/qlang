@@ -1,7 +1,9 @@
 // Every value prints as a literal that reads back as itself [D30]: values
 // built from a seeded walk over the literals of the language, scalars with
-// their escapes, vectors, sets, maps, values under a tag, quotes and docs,
-// each printed, parsed and applied, and held equal to itself by `eq`.
+// their escapes, vectors, sets, maps, values under a tag, quotes, docs and
+// errors inside a vector, each printed, parsed and applied, and held equal
+// to itself by `eq`; the examples of `round-trip-invariant.test.mjs` pin
+// the forms the walk does not take.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -29,7 +31,9 @@ function literalsOf(count, seed) {
       () => `::T[${parts().join(' ')}]`,
       () => `::T(${literal(depth - 1)})`,
       () => `~(${pick(STEPS)})`,
-      () => `|~~ prose ~(eq ${pick(NUMBERS)}) \`code\` ~~|`
+      () => `|~~ prose ~(eq ${pick(NUMBERS)}) \`code\` ~~|`,
+      () => `[!{:k ${literal(depth - 1)}}]`,
+      () => `[::E!{:k ${literal(depth - 1)}}]`
     ])();
   };
   return Array.from({ length: count }, () => literal(2));

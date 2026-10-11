@@ -35,9 +35,15 @@ export function nodeOf(env, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
-// Whether a node is a label, a name declared by its page [D166], [D168].
+// Whether a record holds a page, which makes its name a label [D166],
+// [D168].
+export function holdsAPage(record) {
+  return isDoc(bindingValueOf(record));
+}
+
+// Whether a node is a label, a name declared by its page.
 export function isLabel(env, name) {
-  return isDoc(bindingValueOf(nodeOf(env, name)));
+  return holdsAPage(nodeOf(env, name));
 }
 
 // Whether a name stands under a label, where a quote or a host's
@@ -213,9 +219,6 @@ export function bareNameReach(env, name, subject) {
   if (residences.length === 0 && root.has(name) && !holdsAPage(root.get(name))) return { record: root.get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
-
-// Whether a declaration of the root is a label, its value a page.
-const holdsAPage = record => isDoc(bindingValueOf(record));
 
 // residencesOf(env, verbName) → the words of a name residing on a kind,
 // each with its kind, in the order of their declarations, the one on

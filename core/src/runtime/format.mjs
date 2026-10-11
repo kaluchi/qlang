@@ -23,16 +23,9 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.scalar(v, path);
 }
 
-// `toPlain` lifts a qlang value to a JSON-serializable plain JS
-// shape (a map → an object keyed by the names of its keywords, a vector
-// and a set → an array, an error → `{$error: …}`); `fromPlain` lifts a
-// plain JS shape back into qlang (object → Map keyed by interned
-// keywords, array → Vec, scalars pass through). Together they
-// bridge the language with any external system that speaks JSON —
-// the verbs `parseJson` and `json`, the command line's reading of
-// stdin and writing of an answer, and a host that hands values across
-// the boundary.
-//
+// `toPlain` writes a value in JSON's shape and `fromPlain` reads that
+// shape back as maps, vectors and the scalars, for `json`, `parseJson`,
+// the command line's streams and a host that hands values across.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
   number:  finiteNumberOrLift,
@@ -83,13 +76,8 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
-// JSON carries no NaN and no infinity, but `JSON.parse` reads a
-// magnitude past the double range as one (`1e400` lifts to
-// Infinity). The lift refuses it here so a piped document cannot
-// seed the pipeline with a value the language does not admit.
-// `:path` names the keys and indices walked to reach the refused
-// scalar, so `!| /path` locates it inside a document of any depth —
-// the reading a message string cannot carry.
+// A number of a JSON document past the doubles, which `JSON.parse` reads
+// as an infinity, is refused at the `:path` of keys and indices to it.
 export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {

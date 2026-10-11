@@ -547,7 +547,7 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['one\ntwo\nthree']);
   });
 
-  it('ends the gathering at a chunk of one character, a line break handed over alone submitting [D204]', () => {
+  it('ends the gathering at a chunk of one character, Enter handed over alone submitting [D204]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\r\ntw', 'o', '\r', '\nthree', SUBMIT);
@@ -573,6 +573,36 @@ describe('createLineEditor — TTY paste fast-path', () => {
     editor.start();
     feed(stdinStream, ESC, 'one\r\ntwo', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo']);
+  });
+
+  it('reads an escape sequence split after its escape as one key [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'abc', ESC, '[D', 'X', SUBMIT);
+    expect(capture.lines).toEqual(['abXc']);
+  });
+
+  it('reads a bracketed paste whose begin marker is split after its escape [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, ESC, '[200~one\r\ntwo', BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwo']);
+  });
+
+  it('reads a chunk that begins with an escape as keys, a line feed in it among them [D204]', () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, 'one\ntwo', ESC + '[Dx\ny', SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwx\nyo']);
+  });
+
+  it('reads a bracketed paste up to its end marker, a pause past the window inside it [D204]', async () => {
+    const { stdinStream, editor, capture } = makeTtySetup();
+    editor.start();
+    feed(stdinStream, BRACKETED_PASTE_BEGIN + 'one\r\ntwo');
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    feed(stdinStream, 'three\r', '\nfour' + BRACKETED_PASTE_END, SUBMIT);
+    expect(capture.lines).toEqual(['one\ntwothree\nfour']);
   });
 
   it('strips a trailing newline that the clipboard end-of-block tends to carry', () => {

@@ -9,7 +9,7 @@
 // values of one kind [D65], [D72].
 
 import {
-  isKeyword, isTagKeyword, isDoc, isErrorValue, isValueClass,
+  isKeyword, isTag, isDoc, isErrorValue, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
 
@@ -39,7 +39,7 @@ function kindOf(value) {
   if (typeof value === 'number') return NUMBER_KIND;
   if (typeof value === 'string') return STRING_KIND;
   if (isKeyword(value)) return KEYWORD_KIND;
-  if (isTagKeyword(value)) return TAG_NAME_KIND;
+  if (isTag(value)) return TAG_NAME_KIND;
   if (isDoc(value)) return DOC_KIND;
   if (isErrorValue(value)) return ERROR_KIND;
   const headerTag = value[TAG_HEADER_SYMBOL];

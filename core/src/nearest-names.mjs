@@ -5,7 +5,7 @@
 // a swap of two neighbours, the slips of a typing hand; beside them, the
 // names one of which begins the other.
 
-import { keyword, makeTagKeyword } from './types.mjs';
+import { keyword, makeTag } from './types.mjs';
 import { nodeAddresses, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
 
 function editDistance(typed, known) {
@@ -70,14 +70,14 @@ function namesOfSteps(env) {
 export function nearestNames(env, typedName) {
   const words = new Set(verbNames(env));
   const onlyItsTag = name => !env.has(name) && !words.has(name) && isLabel(env, name);
-  const near = nearestOf(namesOfSteps(env), typedName).map(name => onlyItsTag(name) ? makeTagKeyword(name) : keyword(name));
-  return Object.freeze(onlyItsTag(typedName) ? [makeTagKeyword(typedName), ...near] : near);
+  const near = nearestOf(namesOfSteps(env), typedName).map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
+  return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
 }
 
 // The tags an unknown tag name was likely meant to be [D118]: the
 // addresses of the tree's nodes.
 export function nearestTagNames(env, typedName) {
-  return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTagKeyword(name)));
+  return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTag(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is

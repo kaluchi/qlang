@@ -7,8 +7,8 @@
 // kind it passes [D34], [D164].
 
 import {
-  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTagKeyword, isTaggedInstance,
-  isValueClass, makeSet, makeTagKeyword,
+  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTag, isTaggedInstance,
+  isValueClass, makeSet, makeTag,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf } from '../state.mjs';
@@ -134,7 +134,7 @@ const INVARIANTS = new WeakMap();
 // The kinds an invariant of one step `is ::k …` asks for, or null.
 function kindsAskedBy(ast) {
   if (ast.type !== 'Call' || ast.name !== 'is') return null;
-  return ast.args.every(arg => arg.type === 'BareTypeKeyword') ? ast.args.map(arg => arg.tag) : null;
+  return ast.args.every(arg => arg.type === 'TagLit') ? ast.args.map(arg => arg.tag) : null;
 }
 
 // The kinds an invariant `every ~(is ::k …)` asks of each element, or null.
@@ -167,8 +167,8 @@ export function lawsUnder(env, address) {
 
 // The kinds a tag or a set of tags names, or null for any other value.
 function kindsNamedBy(value) {
-  if (isTagKeyword(value)) return [value.name];
-  if (isQSet(value) && value.length > 0 && value.every(isTagKeyword)) return value.map(tag => tag.name);
+  if (isTag(value)) return [value.name];
+  if (isQSet(value) && value.length > 0 && value.every(isTag)) return value.map(tag => tag.name);
   return null;
 }
 
@@ -220,7 +220,7 @@ function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
     yield typeKeyword(value).name;
-    if (isTagKeyword(value)) {
+    if (isTag(value)) {
       yield value.name;
       return;
     }
@@ -309,8 +309,8 @@ export function kindNamesOf(env) {
 // answers it, any value among them, which a refusal of the name hands on
 // [D62], [D169].
 export function addressesOf(env, verbName) {
-  const addresses = residencesOf(env, verbName).map(([kindName]) => makeTagKeyword(`${kindName}/${verbName}`));
-  if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTagKeyword(`${ANY_KIND_NAME}/${verbName}`));
+  const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
+  if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
   return makeSet(addresses);
 }
 
@@ -323,7 +323,7 @@ export function verbsReaching(env, kindNames) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
       if (!residesOn(record, env) || reached.has(name)) continue;
-      reached.set(name, { address: makeTagKeyword(`${kindName}/${name}`), verb });
+      reached.set(name, { address: makeTag(`${kindName}/${name}`), verb });
     }
   }
   return reached;
@@ -491,7 +491,7 @@ function rootIndexOf(root) {
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]
     .filter(([, record]) => !isLaw(bindingValueOf(record)))
-    .map(([name]) => makeTagKeyword(`${tagName}/${name}`)));
+    .map(([name]) => makeTag(`${tagName}/${name}`)));
 }
 
 // declarationsUnder(env, address) → the records declared under an

@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQSet, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQSet, makeTag } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runLaws reads a name as laws does', () => {
@@ -28,7 +28,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('a name that names no binding is refused as doc refuses it', async () => {
     const refusal = await evalQuery(':nothingBound | runLaws');
-    expect(refusal.tag).toEqual(makeTagKeyword('any/runLaws/UnknownNameError'));
+    expect(refusal.tag).toEqual(makeTag('any/runLaws/UnknownNameError'));
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
@@ -38,7 +38,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('a tag name that names nothing is refused under the tag it read', async () => {
     const bindingName = await evalQuery('::Nonexistent | runLaws !| /name');
-    expect(bindingName).toEqual(makeTagKeyword('Nonexistent'));
+    expect(bindingName).toEqual(makeTag('Nonexistent'));
   });
 
   it('a value runs the laws of its kind, as doc reads its page [D178]', async () => {
@@ -117,7 +117,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);
     expect(cellProbe.result.tag)
-      .toEqual(makeTagKeyword('call/UnknownNameError'));
+      .toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('a law that lifts a user-built error → :error reads :message from descriptor', async () => {

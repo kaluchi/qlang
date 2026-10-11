@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
-import { keyword, makeTagKeyword, isErrorValue } from '../../src/types.mjs';
+import { keyword, makeTag, isErrorValue } from '../../src/types.mjs';
 import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
 
 describe('createSession lifecycle', () => {
@@ -128,7 +128,7 @@ describe('the sources a host hands [D153]', () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTagKeyword('number/less/by/NotNumberError'));
+      .toEqual(makeTag('number/less/by/NotNumberError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
@@ -138,8 +138,8 @@ describe('the sources a host hands [D153]', () => {
 
   it('answers a host name as its descriptor, whose answer is a definition of its label', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/@fetch | binding | /value | type')).result).toEqual(makeTagKeyword('builtin'));
-    expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTagKeyword('string'));
+    expect((await sessionInstance.evalCell('::any/@fetch | binding | /value | type')).result).toEqual(makeTag('builtin'));
+    expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTag('string'));
   });
 
   it('records the source a host name came from as its origin', async () => {
@@ -154,7 +154,7 @@ describe('the sources a host hands [D153]', () => {
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTagKeyword('any/twice/by/NotNumberError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/NotNumberError'));
   });
 
   it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {
@@ -194,7 +194,7 @@ describe('the sources a host hands [D153]', () => {
     await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError |~~ AddLeftNotNumberError. ~~|' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
     expect((await (await createSession()).evalCell('"a" | add 1 !| type')).result)
-      .toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
+      .toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
   it('declares a refusal of the host at its address again in every session of the process', async () => {

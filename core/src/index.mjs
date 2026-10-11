@@ -23,7 +23,7 @@ export { elide, alertOf, elideAnswer } from './elide.mjs';
 export { tokenize } from './highlight.mjs';
 export { isNameStart, isNameContinue } from './name-chars.mjs';
 export {
-  keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
+  keyword, isKeyword, makeTag, isTag, isErrorValue,
   bindingValueOf, makeErrorValue,
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';

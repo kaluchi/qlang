@@ -221,10 +221,10 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.map(n => n.type)).toEqual(['BindStep', 'Call', 'Call']);
   });
 
-  it('finds BareTypeKeyword occurrences written as a tag', () => {
+  it('finds TagLit occurrences written as a tag', () => {
     const ast = parse('::Box | source');
     const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
-    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'Box')).toBe(true);
+    expect(refs.some(n => n.type === 'TagLit' && n.tag === 'Box')).toBe(true);
   });
 
   it('finds the declaration of a kind written as a tag', () => {

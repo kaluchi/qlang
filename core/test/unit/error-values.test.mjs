@@ -1,7 +1,7 @@
 // Tests for error value type and its trail, deepEqual, the literal, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, formOf, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -19,7 +19,7 @@ describe('makeErrorValue', () => {
     // raised the error or handed it on, otherwise the stops of its
     // path [D85]. The returned descriptor is a fresh Map (not the
     // caller's original input) when the input lacked :trail.
-    const tag = makeTagKeyword('Oops');
+    const tag = makeTag('Oops');
     const descriptor = new Map([['message', 'boom']]);
     const errorVal = makeErrorValue(tag, descriptor);
     expect(isErrorValue(errorVal)).toBe(true);
@@ -38,7 +38,7 @@ describe('makeErrorValue', () => {
       ['step', quoteOfSource('add 1')], ['subject', 'x'], ['skipped', quoteOfSource('mul 2 | count')]
     ])]);
     const descriptor = new Map([['trail', preTrail]]);
-    const errorVal = makeErrorValue(makeTagKeyword('Oops'), descriptor);
+    const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
   });
@@ -54,13 +54,13 @@ describe('makeErrorValue', () => {
     const env = await langRuntime();
     for (const [refusedTrail, kindName] of refusedTrails) {
       let thrown = null;
-      try { makeErrorValue(makeTagKeyword('Oops'), new Map([['trail', refusedTrail]])); }
+      try { makeErrorValue(makeTag('Oops'), new Map([['trail', refusedTrail]])); }
       catch (mintErr) { thrown = mintErr; }
       expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
       expect(thrown).toBeInstanceOf(QlangError);
       expect(thrown.name).toBe('TrailNotVecError');
       expect(thrown.facts.actualValue).toBe(refusedTrail);
-      expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTagKeyword(kindName));
+      expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTag(kindName));
     }
   });
 });
@@ -69,7 +69,7 @@ describe('makeErrorValue', () => {
 
 describe('formOf for error values', () => {
   it('answers "error" for an error value', () => {
-    const errorVal = makeErrorValue(makeTagKeyword('Error'), new Map());
+    const errorVal = makeErrorValue(makeTag('Error'), new Map());
     expect(formOf(errorVal)).toBe('error');
   });
 });
@@ -78,7 +78,7 @@ describe('formOf for error values', () => {
 
 describe('deepEqual for error values', () => {
   it('compares error values by tag and descriptor', () => {
-    const tag = makeTagKeyword('Oops');
+    const tag = makeTag('Oops');
     const errorVal1 = makeErrorValue(tag, new Map([['index', 1]]));
     const errorVal2 = makeErrorValue(tag, new Map([['index', 1]]));
     expect(deepEqual(errorVal1, errorVal2)).toBe(true);
@@ -86,13 +86,13 @@ describe('deepEqual for error values', () => {
 
   it('separates errors carrying the same descriptor under different tags', () => {
     const desc = new Map([['index', 1]]);
-    const left  = makeErrorValue(makeTagKeyword('Foo'), desc);
-    const right = makeErrorValue(makeTagKeyword('Bar'), desc);
+    const left  = makeErrorValue(makeTag('Foo'), desc);
+    const right = makeErrorValue(makeTag('Bar'), desc);
     expect(deepEqual(left, right)).toBe(false);
   });
 
   it('rejects error vs non-error', () => {
-    const errorVal = makeErrorValue(makeTagKeyword('Oops'), new Map());
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map());
     expect(deepEqual(errorVal, new Map([['kind', keyword('oops')]]))).toBe(false);
     expect(deepEqual(errorVal, null)).toBe(false);
     expect(deepEqual(errorVal, 42)).toBe(false);
@@ -109,16 +109,16 @@ describe('the literal reads back error values and tagged instances', () => {
     const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { evalQuery } = await import('../../src/eval.mjs');
-    const errorVal = makeErrorValue(makeTagKeyword('Oops'), new Map([['message', 'something went wrong']]));
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
     const restoredError = await evalQuery(printValue(errorVal));
     expect(isErrorValue(restoredError)).toBe(true);
     expect(restoredError.tag.name).toBe('Oops');
     expect(restoredError.descriptor.get('message')).toBe('something went wrong');
     const hostBuilt = [
-      makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]),
-      makeTaggedInstance(makeTagKeyword('Keys'), makeSet([keyword('b'), keyword('a')])),
-      makeTaggedInstance(makeTagKeyword('User'), new Map([['name', 'alice']])),
-      makeTaggedInstance(makeTagKeyword('Count'), 42)
+      makeTaggedInstance(makeTag('Box'), [1, 2, 3]),
+      makeTaggedInstance(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
+      makeTaggedInstance(makeTag('User'), new Map([['name', 'alice']])),
+      makeTaggedInstance(makeTag('Count'), 42)
     ];
     for (const value of hostBuilt) {
       expect(deepEqual(await evalQuery(printValue(value)), value)).toBe(true);
@@ -132,19 +132,19 @@ describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () =
   // Each branch (Array / Map / Set) gets its own assertion.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
     const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('A'), [1, 2, 3]);
+    const tagged = makeTaggedInstance(makeTag('A'), [1, 2, 3]);
     expect(deepEqual(tagged, [1, 2, 3])).toBe(false);
   });
 
   it('rejects tagged Map vs untagged Map with same entries', async () => {
     const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('U'), new Map([['k', 1]]));
+    const tagged = makeTaggedInstance(makeTag('U'), new Map([['k', 1]]));
     expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
   });
 
   it('rejects a tag over a set vs the set with same members', async () => {
     const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('S'), makeSet([1, 2]));
+    const tagged = makeTaggedInstance(makeTag('S'), makeSet([1, 2]));
     expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
   });
 });
@@ -166,16 +166,16 @@ describe('errorFromQlang', () => {
     const desc = errorVal.descriptor;
     expect(typeErr).toBeInstanceOf(QlangError);
     expect(typeErr.name).toBe('ProbeTypeError');
-    expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
+    expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
-    expect(desc.get('actualType')).toEqual(makeTagKeyword('string'));
+    expect(desc.get('actualType')).toEqual(makeTag('string'));
     expect([...desc.keys()]).toEqual(['actualType', 'actualValue', 'trail']);
   });
 
   it('converts CallUnknownNameError with the facts its label declares before the trail', async () => {
     const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
     const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
-    expect(errorVal.tag).toEqual(makeTagKeyword('call/UnknownNameError'));
+    expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['name', 'addresses', 'trail']);
   });
 
@@ -186,7 +186,7 @@ describe('errorFromQlang', () => {
 
   it('converts a refusal whose site hands no facts to the trail alone', async () => {
     const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
-    expect(errorVal.tag).toEqual(makeTagKeyword('tests/ProbeTypeError'));
+    expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
   });
 });
@@ -200,7 +200,7 @@ describe('errorFromForeign', () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
-    expect(errorVal.tag).toEqual(makeTagKeyword('call/HostFailureError'));
+    expect(errorVal.tag).toEqual(makeTag('call/HostFailureError'));
     expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
     expect(errorVal.descriptor.get('message')).toBe('something went wrong');
     expect(errorVal.originalError).toBe(jsErr);
@@ -249,7 +249,7 @@ describe('error-convert coercion edge cases', () => {
     const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
     expect(errorVal.descriptor.has('index')).toBe(false);
     expect(errorVal.descriptor.get('actualValue')).toBe(null);
-    expect(errorVal.descriptor.get('actualType')).toEqual(makeTagKeyword('null'));
+    expect(errorVal.descriptor.get('actualType')).toEqual(makeTag('null'));
   });
 
   it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {

@@ -23,7 +23,7 @@ import {
   formOf,
   typeKeyword,
   keyword,
-  makeTagKeyword,
+  makeTag,
   makeBinding,
   makeErrorValue,
   isErrorValue
@@ -67,15 +67,15 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
   });
 
   it('formOf answers "underTag" for a vector under a tag', async () => {
-    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
+    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTag('Box'), [42]);
     expect(formOf(instance)).toBe('underTag');
   });
 
   it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
-    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
+    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
+    const tagged = makeTaggedInstance(makeTag('Box'), [42, 'inner']);
     const plainTagged = toPlain(tagged);
     expect(plainTagged.$tag).toBe('Box');
     expect(plainTagged.payload).toEqual([42, 'inner']);
@@ -88,17 +88,17 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
-    const { makeTagKeyword, isTagKeyword, stampTagHeader } = await import('../../src/types.mjs');
+    const { makeTag, isTag, stampTagHeader } = await import('../../src/types.mjs');
     const carriesKindField = new Map([
-      ['kind', makeTagKeyword('Box')],
+      ['kind', makeTag('Box')],
       ['payload', [42, 'inner']]
     ]);
     expect(typeKeyword(carriesKindField).name).toBe('map');
 
     const stamped = new Map([['payload', [42, 'inner']]]);
-    stampTagHeader(stamped, makeTagKeyword('Box'));
+    stampTagHeader(stamped, makeTag('Box'));
     const tk = typeKeyword(stamped);
-    expect(isTagKeyword(tk)).toBe(true);
+    expect(isTag(tk)).toBe(true);
     expect(tk.name).toBe('Box');
   });
 });
@@ -217,15 +217,15 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints error value with tag head and descriptor', async () => {
-    const err = makeErrorValue(makeTagKeyword('Test'), new Map([['index', 1]]));
+    const err = makeErrorValue(makeTag('Test'), new Map([['index', 1]]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);
     expect(out).toContain(':index 1');
   });
 
   it('pretty-prints error with many descriptor fields', async () => {
-    const err = makeErrorValue(makeTagKeyword('Test'), new Map([
-      ['actualType', makeTagKeyword('number')],
+    const err = makeErrorValue(makeTag('Test'), new Map([
+      ['actualType', makeTag('number')],
       ['message', 'boom'],
       ['index', 1]
     ]));

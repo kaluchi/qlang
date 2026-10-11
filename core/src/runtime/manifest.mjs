@@ -4,7 +4,7 @@
 // live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTagKeyword, NULL } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTag, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
 import { recordReadBy, pageOfRecord, pageTextOfRecord } from './axis.mjs';
@@ -57,7 +57,7 @@ async function runLaw({ law, quote, says }, callerState) {
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
   const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
-    law: makeTagKeyword(`${address}/${lastName}`),
+    law: makeTag(`${address}/${lastName}`),
     quote: bindingValueOf(lawRecord).payload,
     says: pageTextOfRecord(lawRecord)
   }));

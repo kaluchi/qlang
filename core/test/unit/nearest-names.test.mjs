@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { keyword, makeTag } from '../../src/types.mjs';
 
 const nearestOf = query => evalQuery(`${query} !| /nearest`);
 
@@ -26,7 +26,7 @@ describe('an unresolved name names the names nearest to it', () => {
   it('the names of the session count, a kind among them by its tag, and an address does not', async () => {
     expect(await nearestOf(':limit 3 | limti')).toEqual([keyword('limit')]);
     expect(await nearestOf(':Limit |~~ Limit. ~~| | XLimit')).toEqual([keyword('Limit')]);
-    expect(await nearestOf('numbe')).toEqual([makeTagKeyword('number')]);
+    expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
   });
 
   it('a name with nothing near holds the empty vector', async () => {

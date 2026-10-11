@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQuote, makeTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
@@ -19,7 +19,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({ sources: [{ uri: 'tests/scalar-only', source: '42' }] });
     const cellEntry = await session.evalCell(':missing | source !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('any/source/UnknownNameError'));
+    expect(cellEntry.result).toEqual(makeTag('any/source/UnknownNameError'));
   });
 
   it('inline BindStep within the current query is reachable through axis lookup', async () => {
@@ -76,7 +76,7 @@ describe(':name | source returns the BindStep source as Quote', () => {
 describe(':name | doc returns the page its attached prefixes make', () => {
   it('::vec/count | doc returns a page', async () => {
     const result = await evalQuery('::vec/count | doc | type');
-    expect(result).toEqual(makeTagKeyword('doc'));
+    expect(result).toEqual(makeTag('doc'));
   });
 
   it('the content of the first doc of ::vec/count carries its prose', async () => {
@@ -92,13 +92,13 @@ describe(':name | doc returns the page its attached prefixes make', () => {
   it('unknown binding raises AnyDocUnknownNameError', async () => {
     const err = await evalQuery(':totallyMadeUp | doc');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
+    expect(err.tag).toEqual(makeTag('any/doc/UnknownNameError'));
   });
 
   it('a value whose kind no binding declares is refused under its kind', async () => {
     // The fork of the parentheses drops the tag the literal declared,
     // and the value it minted leaves with the name of that kind.
-    expect(await evalQuery('(::Ghost(1)) | doc !| /name')).toEqual(makeTagKeyword('Ghost'));
+    expect(await evalQuery('(::Ghost(1)) | doc !| /name')).toEqual(makeTag('Ghost'));
   });
 });
 
@@ -115,12 +115,12 @@ describe(':name | laws reads the laws declared under a name', () => {
 
 describe('the axes read the node a tag addresses', () => {
   it('a keyword names a binding of its scope, a tag of a provider none', async () => {
-    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTagKeyword('any/source/UnknownNameError'));
+    expect(await evalQuery(':"::vec" | source !| type')).toEqual(makeTag('any/source/UnknownNameError'));
   });
 
   it('a keyword naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery(':count | doc !| /addresses')])
-      .toEqual([makeTagKeyword('map/count'), makeTagKeyword('set/count'), makeTagKeyword('string/count'), makeTagKeyword('vec/count')]);
+      .toEqual([makeTag('map/count'), makeTag('set/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
   it('::quote | source reads the declaration of the kind in the language\'s module', async () => {

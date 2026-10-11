@@ -142,7 +142,7 @@ LinePipelineHead
 // name is declared by its keyword, and a value under a tag touches its
 // payload [D152].
 TagDeclarationRefusal
-  = &{ return docQuoteDepth === 0; } BareTypeKeyword _h1 !Combinator (DocOpen / Word)
+  = &{ return docQuoteDepth === 0; } TagLit _h1 !Combinator (DocOpen / Word)
     { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
@@ -372,7 +372,7 @@ Word
   / QuoteLit
   / ShortQuoteLit
   / TaggedLit
-  / BareTypeKeyword
+  / TagLit
   / Projection
   / Name
   / Scalar
@@ -408,9 +408,9 @@ TaggedLit
   = "::" tag:TagName payload:Element
     { return node('TaggedLit', { tag, payload }, span(), text()); }
 
-BareTypeKeyword
+TagLit
   = "::" tag:TagName
-    { return node('BareTypeKeyword', { tag }, span(), text()); }
+    { return node('TagLit', { tag }, span(), text()); }
 
 // A tag's name lives apart from the values, so a name after `::` may be
 // a reserved word, as after `:` and `/`: `::null` is the kind of null
@@ -432,7 +432,7 @@ QuoteLit
     { return node('QuoteLit', { pipeline }, span(), text()); }
 
 ShortQuoteLit
-  = "~" pipeline:(Projection / BareTypeKeyword / Name)
+  = "~" pipeline:(Projection / TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
 
 // The balance reading of a `~(…)` span inside a comment or a doc, where

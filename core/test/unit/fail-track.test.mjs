@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, makeTagKeyword } from '../../src/types.mjs';
+import { keyword, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
@@ -17,12 +17,12 @@ describe('raise', () => {
 
   it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
     const evalResult = await evalQuery('42 | raise !| type');
-    expect(evalResult).toEqual(makeTagKeyword('map/raise/SubjectNotMapError'));
+    expect(evalResult).toEqual(makeTag('map/raise/SubjectNotMapError'));
   });
 
   it('an error in the pipe rides past raise', async () => {
     const evalResult = await evalQuery('("not-a-number" | add 1) | raise !| type');
-    expect(evalResult).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
+    expect(evalResult).toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 });
 
@@ -64,7 +64,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
 
   it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
     const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
-    expect(evalResult).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
+    expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });
 
@@ -204,14 +204,14 @@ describe('per-site error classes carry unique identity', () => {
     // The subject of a call is the value in the pipe [D165], so the
     // pair is named before its value takes the tag it holds.
     const r = await evalQuery('[42 ::Box] | :pair / | /0 | tag (pair | /1) | type');
-    expect(r).toEqual(makeTagKeyword('Box'));
+    expect(r).toEqual(makeTag('Box'));
   });
 
   it('raise takes the tag the map carries and keeps every entry a fact', async () => {
     // A `:kind` entry names no tag [D190]: the tag is the map's own.
     const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
-    expect(result.descriptor.get('kind')).toEqual(makeTagKeyword('Other'));
+    expect(result.descriptor.get('kind')).toEqual(makeTag('Other'));
     expect(result.descriptor.get('detail')).toBe('x');
   });
 

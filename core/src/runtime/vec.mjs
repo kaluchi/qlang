@@ -7,13 +7,13 @@
 // names the word that refused [D172]. A part that takes code arrives
 // closed at the call, a lambda over the element [D73], [D167].
 
-import { isBoolean, isKeyword, isString, isNumber, isTagKeyword, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTagKeyword } from '../types.mjs';
+import { isBoolean, isKeyword, isString, isNumber, isTag, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 
-const DESC_TAG = makeTagKeyword('desc');
+const DESC_TAG = makeTag('desc');
 
 // The elements beside the fact that names the place of each in a
 // refusal: a sequence's index, from zero, and a map's key.
@@ -257,7 +257,7 @@ async function keywordOf(key, element, index, KeyNotKeywordError) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer) || isKeyword(answer)) return answer;
   if (isString(answer) || isNumber(answer) || isBoolean(answer) || answer === NULL) return keyword(String(answer));
-  if (isTagKeyword(answer)) return keyword(answer.name);
+  if (isTag(answer)) return keyword(answer.name);
   throw new KeyNotKeywordError({ index, actualValue: answer });
 }
 

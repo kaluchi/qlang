@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderCellOutcome } from '../src/render.mjs';
-import { makeErrorValue, keyword, makeTagKeyword } from '@kaluchi/qlang-core';
+import { makeErrorValue, keyword, makeTag } from '@kaluchi/qlang-core';
 
 function makeCellEntry({ result = null, error = null } = {}) {
   return {
@@ -40,7 +40,7 @@ describe('renderCellOutcome — error paths', () => {
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
-      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor)
+      result: makeErrorValue(makeTag('FilterSubjectNotContainerError'), errorDescriptor)
     });
     const cliOutcome = await renderCellOutcome(cellEntry, {
       resolvedFormat: 'raw',
@@ -128,7 +128,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
-      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor),
+      result: makeErrorValue(makeTag('FilterSubjectNotContainerError'), errorDescriptor),
       error: new Error('lifted parse failure')
     });
     const cliOutcome = await renderCellOutcome(cellEntry, {

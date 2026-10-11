@@ -28,14 +28,14 @@ import {
   isQSet,
   isVec,
   makeSet,
-  makeTagKeyword,
+  makeTag,
   typeKeyword
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
   it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
-    expect(typeKeyword(Symbol('host'))).toEqual(makeTagKeyword('unknown'));
+    expect(typeKeyword(Symbol('host'))).toEqual(makeTag('unknown'));
   });
 
   it('interns keywords', () => {
@@ -231,10 +231,10 @@ describe('runtime/string.mjs lines', () => {
   });
 });
 
-describe('source axis on verb / freeze / TagKeyword subjects', () => {
+describe('source axis on verb / freeze / tag subjects', () => {
   // `:name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers a name (Keyword
-  // subject) and a node of the tree (TagKeyword subject).
+  // subject) and a node of the tree (tag subject).
 
   it('source on the address of a word returns the whole declaration', async () => {
     const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
@@ -262,7 +262,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if refuses a null condition', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('any/if/condition/NotBooleanError'));
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/NotBooleanError'));
   });
 
   it('if treats false literal as falsy', async () => {

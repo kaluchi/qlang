@@ -9,7 +9,7 @@
     { "include": "#comment-line-plain" },
     { "include": "#comment-block-plain" },
     { "include": "#string" },
-    { "include": "#tagKeyword" },
+    { "include": "#tag" },
     { "include": "#map-key" },
     { "include": "#keyword" },
     { "include": "#number" },
@@ -108,8 +108,8 @@
       ]
     },
 
-    "tagKeyword": {
-      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a BareTypeKeyword reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
+    "tag": {
+      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a TagLit reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
       "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },

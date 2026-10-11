@@ -20,7 +20,7 @@
 //   'word'        a call's name that resolves to a word of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Projection`
-//   'keyword'     the head Keyword/TagKeyword of a BindStep
+//   'keyword'     the head Keyword/tag of a BindStep
 //                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
 //                 in `!{` / closing `}` of an `!{}` descriptor, and
@@ -31,7 +31,7 @@
 //                 form `~add` (DocLit `|~~ … ~~|` falls under
 //                 'comment')
 //   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
-//                 writes one, or a BareTypeKeyword — the
+//                 writes one, or a TagLit — the
 //                 tag sigil + the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
@@ -165,7 +165,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
       }
 
       case 'BindStep': {
-        // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —
+        // The binding key — Keyword `:name` or TagLit `::Tag` —
         // paints as 'keyword' (binding-introducer) so it is visually
         // distinct from a plain value-position `:name`; the doc literals
         // of its slot paint as every doc does [D83].
@@ -174,7 +174,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return; // descend into docs / body
       }
 
-      case 'BareTypeKeyword':
+      case 'TagLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
         return false;
 

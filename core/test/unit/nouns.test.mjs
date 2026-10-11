@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
+import { makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
   it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D169]', async () => {
@@ -24,7 +24,7 @@ describe('the names of the scope', () => {
       source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~|\n:shop/Line |~~ A line. ~~|\n:shop/Line/qty ~(1)'
     }] });
     expect([...(await session.evalCell('::shop | manifest')).result])
-      .toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
+      .toEqual([makeTag('shop/Line'), makeTag('shop/Order')]);
     expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
 
@@ -34,7 +34,7 @@ describe('the names of the scope', () => {
       source: ':shop |~~ A shop. ~~|\n:limit 5'
     }] });
     expect((await session.evalCell('limit')).result).toBe(5);
-    expect((await session.evalCell('shop !| type')).result).toEqual(makeTagKeyword('call/UnknownNameError'));
+    expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('a word of a source reads a bare value of its source before a word of that name a reader or a later source declares [D200]', async () => {
@@ -48,7 +48,7 @@ describe('the names of the scope', () => {
 
   it('a label of a source is no bare name inside the words of its source [D191], [D200]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
-    expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTagKeyword('call/UnknownNameError'));
+    expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('a word of a source reads a bare value its source declares after it [D200]', async () => {
@@ -84,14 +84,14 @@ describe('the verbs that live on a kind', () => {
 
 describe('an address reads the node its name declared', () => {
   it('an address with a kind reads the verb declared under that kind', async () => {
-    expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
+    expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTag('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
     expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | binding | /value | type')).toEqual(makeTagKeyword('builtin'));
+    expect(await evalQuery('::vec/count | binding | /value | type')).toEqual(makeTag('builtin'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {
-    expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
+    expect(await evalQuery('::count | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
   });
 
   it('an address reads the root\'s verb whatever the scope binds', async () => {
@@ -100,8 +100,8 @@ describe('an address reads the node its name declared', () => {
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
-    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('any/doc/UnknownNameError'));
-    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTagKeyword('any/binding/UnknownNameError'));
+    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
+    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTag('any/binding/UnknownNameError'));
   });
 
   it('a value whose tag no node answers reads no page', async () => {
@@ -116,6 +116,6 @@ describe('a name with a path calls the verb its address names', () => {
   });
 
   it('an address that names no verb is refused with the address', async () => {
-    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTagKeyword('vec/nothing'));
+    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTag('vec/nothing'));
   });
 });

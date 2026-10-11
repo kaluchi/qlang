@@ -6,7 +6,7 @@ import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import {
   isVec, isKeyword, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTagKeyword, makeSet, makeTagKeyword, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isTag, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
@@ -59,7 +59,7 @@ bindPrim('number/construct', payload => {
 });
 bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadNotStringError));
 bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
-bindPrim('tag/construct',     coreKindConstructor(isTagKeyword, TagPayloadNotTagError));
+bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadNotTagError));
 bindPrim('vec/construct',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
 // `::map[…]` also builds a map from the vector of its pairs `[key
 // value]`, the reverse of `entries`, as a doc comes back from its
@@ -90,7 +90,7 @@ bindPrim('map/construct', mapConstructor);
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [D140].
-const DESC_TAG = makeTagKeyword('desc');
+const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
@@ -153,7 +153,7 @@ async function mintPair(pair, state) {
     });
   }
   const [pairTag, value] = pair;
-  if (!isTagKeyword(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
+  if (!isTag(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
   return await mintUnderTag(state, pairTag, value);
 }
 

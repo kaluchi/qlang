@@ -22,13 +22,13 @@
 
 import {
   isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTagKeyword, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
+  makeTaggedInstance, makeTag, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { quoteOfSource } from './quote.mjs';
 
-const ELISION_TAG = makeTagKeyword('elision');
+const ELISION_TAG = makeTag('elision');
 const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;
 const keepsNone = () => false;

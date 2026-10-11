@@ -10,13 +10,13 @@ import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { EVAL_DEPTH_LIMIT } from '../../src/state.mjs';
 import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
+import { makeTag } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('depth budget — self-calling verb', () => {
   it('lifts ::call/EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
     const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
-    expect(runaway.tag).toEqual(makeTagKeyword('call/EvaluationDepthExceededError'));
+    expect(runaway.tag).toEqual(makeTag('call/EvaluationDepthExceededError'));
     expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
     const original = runaway.originalError;

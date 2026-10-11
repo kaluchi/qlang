@@ -5,13 +5,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, makeTagKeyword, formOf } from '../../src/types.mjs';
+import { isErrorValue, makeTag, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
-    expect(result).toEqual(makeTagKeyword('doc'));
+    expect(result).toEqual(makeTag('doc'));
   });
 
   it('the bound value content matches the attached doc', async () => {
@@ -29,7 +29,7 @@ describe('BindStep — docs-only form', () => {
     const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
     const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | /value | type');
-    expect(value).toEqual(makeTagKeyword('doc'));
+    expect(value).toEqual(makeTag('doc'));
   });
 });
 
@@ -81,6 +81,6 @@ describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
     const err = await evalQuery(':any/safe ~(@nonExistent)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('bind/EffectMarkMissingError'));
+    expect(err.tag).toEqual(makeTag('bind/EffectMarkMissingError'));
   });
 });

@@ -27,7 +27,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';
-import { isErrorValue, isTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isTag } from '../../src/types.mjs';
 import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -62,7 +62,7 @@ function assertLiteralAst(ast, testName) {
 
 async function answersAsPresent(queryResult, now) {
   const present = await expectedValueOf(now);
-  if (isErrorValue(queryResult) && isTagKeyword(present)) return queryResult.tag.name === present.name;
+  if (isErrorValue(queryResult) && isTag(present)) return queryResult.tag.name === present.name;
   return deepEqual(queryResult, present);
 }
 

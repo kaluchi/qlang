@@ -22,8 +22,8 @@
 import { bindStateReader } from '../primitives.mjs';
 import { envGet } from '../state.mjs';
 import {
-  isKeyword, isTagKeyword, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
-  makeTagKeyword, makeQuote, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  isKeyword, isTag, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
+  makeTag, makeQuote, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, residenceOnSubject
@@ -48,14 +48,14 @@ export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNam
 // itself, and for every other value the tag of its kind, the kind `type`
 // answers [D61].
 function nameReadOf(subject) {
-  return isKeyword(subject) || isTagKeyword(subject) ? subject : typeKeyword(subject);
+  return isKeyword(subject) || isTag(subject) ? subject : typeKeyword(subject);
 }
 
 // The name whose verbs a refusal lists: a keyword's, the last name of a
 // tag name's path, `::any/links` naming `links` [D127], or its kind's.
 function nameOf(subject) {
   if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return splitAddress(subject.name)[1];
+  if (isTag(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
 
@@ -68,7 +68,7 @@ export function refusalOf(env, subject) {
 // The names near the one a subject reads, tags for a tag name and the
 // names of the scope for a keyword [D118].
 function nearestOfSubject(env, subject) {
-  if (isTagKeyword(subject)) return nearestTagNames(env, subject.name);
+  if (isTag(subject)) return nearestTagNames(env, subject.name);
   return isKeyword(subject) ? nearestNames(env, subject.name) : Object.freeze([]);
 }
 
@@ -81,7 +81,7 @@ export function declaringRecordOf(env, subject) {
     const entry = envGet(env, subject.name);
     return isBinding(entry) ? entry : null;
   }
-  const name = isTagKeyword(subject) ? subject.name : typeKeyword(subject).name;
+  const name = isTag(subject) ? subject.name : typeKeyword(subject).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name);
 }
 
@@ -97,7 +97,7 @@ function nodeOfRefused(env, name) {
 // args of a word among them, and otherwise the word the subject's walk
 // reaches under the name [D117].
 function memberRecordOf(env, subject, memberName) {
-  const under = isTagKeyword(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
+  const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
   return under ?? residenceOnSubject(env, memberName, subject);
 }
 
@@ -169,7 +169,7 @@ function recordAlongPath(subject, anchors, state) {
 
 // What the next anchor of a path reads under: the address of the record
 // reached, so a name under a name is read by its address [D164].
-const underRecord = record => makeTagKeyword(record.get('name').name);
+const underRecord = record => makeTag(record.get('name').name);
 
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
@@ -194,7 +194,7 @@ function heldByExplanation(subject) {
 // The explanation of a value [D100]: the page `doc` reads for it,
 // null for a declaration without one, above the value itself, so an
 // explanation prints as the page above what it explains [D98].
-const EXPLANATION_TAG = makeTagKeyword('explanation');
+const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
   return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));

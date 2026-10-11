@@ -843,7 +843,7 @@ describe('parse — block comment nesting', () => {
         '|~ User-error tag identifiers raised by the guards in this',
         '   module. Both ride the universal identity-on-JS-header invariant',
         '   that every ErrorValue carries: `error({:kind ::FooError …})`',
-        "   lifts the TagKeyword to the value's tag slot, and `result !|",
+        "   lifts the tag to the value's tag slot, and `result !|",
         '   type` reads it back. The doc-only `:Tag |~~ ~~|` BindSteps',
         '   below give axis-operands (`::AssertionFailedError | doc`,',
         '   `| source`, `| doc | laws`) a discoverable declaration through',

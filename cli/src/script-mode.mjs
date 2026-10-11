@@ -3,7 +3,7 @@
 // string, and the answer goes back in the format of the input [D37].
 
 import {
-  fromPlain, toPlain, printAnswer, printValue, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
+  fromPlain, toPlain, printAnswer, printValue, makeTag, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
 } from '@kaluchi/qlang-core';
 import { recordRefusal } from '@kaluchi/qlang-core/errors';
 
@@ -42,14 +42,14 @@ function firstNotJson(value, path) {
 function answerForJson(value) {
   const notJson = firstNotJson(value, []);
   if (notJson === null || isErrorValue(notJson.value)) return notJson?.value ?? value;
-  return makeErrorValue(makeTagKeyword('cli/AnswerNotJsonError'), new Map([
+  return makeErrorValue(makeTag('cli/AnswerNotJsonError'), new Map([
     ['path', notJson.path], ['actualType', typeKeyword(notJson.value)], ['printed', printValue(value)]]));
 }
 
 // The noun the command line starts from when standard input carries no
 // bytes, outside any project [D37]; the noun of the nearest `.qlang/`
 // folder comes with the sources a project ships.
-export const DEFAULT_SUBJECT = makeTagKeyword('qlang');
+export const DEFAULT_SUBJECT = makeTag('qlang');
 
 // liftStdinToPipeValue(text, inputFormat) → the first value and the
 // format the input resolved to: the noun of the language with no bytes,

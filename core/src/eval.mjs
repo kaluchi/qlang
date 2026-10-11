@@ -14,7 +14,7 @@ import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet,
-  makeBinding, bindingValueOf, makeTaggedInstance, makeTagKeyword, isTagKeyword,
+  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, isTag,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
 } from './types.mjs';
@@ -89,7 +89,7 @@ const AST_NODE_EVALUATORS = {
   QuoteLit:          evalQuoteLit,
   DocLit:            evalDocLit,
   TaggedLit:         evalTaggedLit,
-  BareTypeKeyword:   evalBareTypeKeyword,
+  TagLit:   evalTagLit,
   Projection:        evalProjection,
   Call:              evalCall,
   BindStep:          evalBindStep,
@@ -263,7 +263,7 @@ async function evalSetLit(node, state) {
   return withPipeValue(state, makeSet(setElements));
 }
 
-// ─── TaggedLit / BareTypeKeyword ────────────────────────────────
+// ─── TaggedLit / TagLit ────────────────────────────────
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D168], a value a verb returns under its subject's
@@ -274,9 +274,9 @@ async function evalSetLit(node, state) {
 // constructor meets an error [D86].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
-  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTagKeyword(tagName), payload);
+  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
   if (!isDoc(declared)) {
-    throw new ConstructTagNotKindError({ tag: makeTagKeyword(tagName), actualValue: declared });
+    throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
   }
   return await underPage(tagName, payload, state);
 }
@@ -294,7 +294,7 @@ async function underPage(tagName, payload, state) {
     built = await constructedBy(bindingValueOf(constructRecord), payload, state);
     if (isErrorValue(built)) return built;
   }
-  const labelled = typeKeyword(built).name === tagName ? built : makeTaggedInstance(makeTagKeyword(tagName), built);
+  const labelled = typeKeyword(built).name === tagName ? built : makeTaggedInstance(makeTag(tagName), built);
   return await refusalOfInvariants(tagName, labelled, state, state.env) ?? labelled;
 }
 
@@ -346,7 +346,7 @@ async function refusalOfQuery(invariants, at, value, state, scope) {
 // it, a part or the args, and leaves them for the subject, which the
 // trail's first stop holds [D85].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
-  const tag = makeTagKeyword(tagName);
+  const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
 }
 
@@ -362,15 +362,15 @@ async function evalTaggedLit(node, state) {
 // its last stop [D86], the literal's own raise where the payload raised
 // it, and resuming its trail where the payload resumed it [D85].
 function passedUntagged(payloadError, node, tagName) {
-  const passed = skipping(payloadError, tagCallStepOf(makeTagKeyword(tagName)));
+  const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
   if (isRaisedBy(payloadError, node.payload)) raisedBy(passed, node);
   if (resumesItsTrail(payloadError)) resumingItsTrail(passed);
   return passed;
 }
 
 // A tag name is a value of its own, read without the scope [D20].
-async function evalBareTypeKeyword(node, state) {
-  return withPipeValue(state, makeTagKeyword(node.tag));
+async function evalTagLit(node, state) {
+  return withPipeValue(state, makeTag(node.tag));
 }
 
 // ─── BindStep ───────────────────────────────────────────────────
@@ -390,7 +390,7 @@ async function evalBindStep(node, state) {
     throw new BindNameDeclaredTwiceError({ name: keyword(name) });
   }
   if (nounName !== null && !envHas(state.env, nounName)) {
-    throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTagKeyword(nounName) });
+    throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTag(nounName) });
   }
 
   if (node.body === null) {
@@ -535,7 +535,7 @@ async function applyBinding(entry, lookupName, lambdas, state) {
 async function callByAddress(node, state) {
   const record = nodeOf(state.env, node.name);
   if (record === null) {
-    throw new CallUnknownAddressError({ address: makeTagKeyword(node.name), nearest: nearestTagNames(state.env, node.name) });
+    throw new CallUnknownAddressError({ address: makeTag(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   const lambdas = node.args.map(argNode => modifierOf(argNode, state));
   if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
@@ -608,7 +608,7 @@ function definitionIn(scope, address) {
   });
   const answer = answerOf(scope, address);
   return {
-    address, parts, places: placesReadBy(declaredParts), argsTag: makeTagKeyword(address),
+    address, parts, places: placesReadBy(declaredParts), argsTag: makeTag(address),
     argsInvariants: invariantsUnder(scope, address),
     taken: parts.map(({ selector, kindInvariant }) => ({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindInvariant?.kinds?.includes('quote') ?? false) })),
     answer, answerInvariants: answer === null ? [] : invariantsUnder(scope, answer.address)
@@ -629,7 +629,7 @@ function declaresUnder(scope, address) {
 // `subject` names `::tag`, the tag name the call was made on [D88].
 function subjectServed(env, address, labelName, subject) {
   const walked = walkToKinds(subject, [labelName]);
-  if (walked !== null || !isTagKeyword(subject)) return walked;
+  if (walked !== null || !isTag(subject)) return walked;
   return subjectOf(env, address)?.includes(TAG_KIND) ? { served: subject, passedTags: [] } : null;
 }
 
@@ -650,7 +650,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   if (reached !== null) return reached.served;
   if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
-  if (constructing !== undefined) return mintUnderTag(state, makeTagKeyword(constructing), answer);
+  if (constructing !== undefined) return mintUnderTag(state, makeTag(constructing), answer);
   return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 

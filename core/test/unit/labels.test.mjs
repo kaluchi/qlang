@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword, makeTaggedInstance } from '../../src/types.mjs';
+import { makeTag, makeTaggedInstance } from '../../src/types.mjs';
 
 const lines = (...steps) => steps.join('\n');
 
@@ -44,7 +44,7 @@ describe('a label declared by its page', () => {
   });
 
   it('answers the error its body answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTagKeyword('proj/IndexOutOfBoundsError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('proj/IndexOutOfBoundsError'));
   });
 
   it('calls a name under it by its address', async () => {
@@ -52,21 +52,21 @@ describe('a label declared by its page', () => {
   });
 
   it('refuses under the name a subject the walk of whose tags reaches no value of the label', async () => {
-    expect(await evalQuery(BOX + '5 | Box/length !| type')).toEqual(makeTagKeyword('Box/length/SubjectNotBoxError'));
+    expect(await evalQuery(BOX + '5 | Box/length !| type')).toEqual(makeTag('Box/length/SubjectNotBoxError'));
   });
 });
 
 describe('the object of a call', () => {
   it('refuses under the part a place the object does not hold', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTagKeyword('Box/put/weight/NotGivenError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
   it('hands on the error a part answers for a place it holds', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | scaled "x" !| type')).toEqual(makeTagKeyword('number/add/SubjectNotNumberError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | scaled "x" !| type')).toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
   it('hands on the error a modifier answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put (/missing) !| type')).toEqual(makeTagKeyword('proj/IndexNotIntegerError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put (/missing) !| type')).toEqual(makeTag('proj/IndexNotIntegerError'));
   });
 
   it('reads a place softly by at, and the values after the lead by any other step', async () => {
@@ -114,7 +114,7 @@ describe('a host\'s primitive under a label', () => {
           'Gauge/construct': payload => payload * 2,
           'Gauge/over': async (reading, test) => test(reading),
           'Gauge/shifted': (reading, by) => reading.payload + by,
-          'Dial/construct': payload => makeTaggedInstance(makeTagKeyword('Dial'), payload + 1)
+          'Dial/construct': payload => makeTaggedInstance(makeTag('Dial'), payload + 1)
         }
       }]
     });
@@ -129,7 +129,7 @@ describe('a host\'s primitive under a label', () => {
     const session = await createSession({
       sources: [{ uri: 'probe/note', source: ':any/@note ::builtin{}', impls: { 'any/@note': subject => { noted += 1; return subject; } } }]
     });
-    expect((await session.evalCell('[1 2] | at /nope ("ran" | @note) !| type')).result).toEqual(makeTagKeyword('proj/IndexNotIntegerError'));
+    expect((await session.evalCell('[1 2] | at /nope ("ran" | @note) !| type')).result).toEqual(makeTag('proj/IndexNotIntegerError'));
     expect(noted).toBe(0);
   });
 

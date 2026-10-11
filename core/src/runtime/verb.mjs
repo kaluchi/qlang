@@ -10,7 +10,7 @@ import { bareNameReach, isMemberValue, partsOfName, residencesOf } from './nouns
 import { declareRefusal } from '../errors.mjs';
 import {
   bindingValueOf, isVec, isQMap, isErrorValue, isTaggedInstance, isValueClass,
-  makeTagKeyword, typeKeyword
+  makeTag, typeKeyword
 } from '../types.mjs';
 
 // The value under a tag as its literal puts it there, for the verbs that
@@ -74,7 +74,7 @@ export function keptAsSubject(answer, served, passedTags, state) {
 }
 
 async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
-  const kept = reached?.served ?? await mintUnderTag(state, makeTagKeyword(ownKind), answer);
+  const kept = reached?.served ?? await mintUnderTag(state, makeTag(ownKind), answer);
   return await underTags(kept, passedTags, state);
 }
 
@@ -98,5 +98,5 @@ export function shownFor(env, name) {
   if (!isMemberValue(bindingValueOf(record))) return undefined;
   const address = record.get('name').name;
   const labels = partsOfName(env, address).map(([partName]) => partName);
-  return { address: makeTagKeyword(address), labels };
+  return { address: makeTag(address), labels };
 }

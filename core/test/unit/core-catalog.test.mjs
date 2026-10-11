@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeSet, makeTagKeyword, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isQMap, isVec, makeSet, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
@@ -33,7 +33,7 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — filter takes its predicate as a part whose law asks for a quote, on each kind that answers it [D169]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTagKeyword('set/filter/ConditionNotBooleanError'), makeTagKeyword('set/filter/answer'), makeTagKeyword('set/filter/predicate')]));
+    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
     expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | /value | print')).toBe('::holds~(is ::quote)');
   });
 });
@@ -124,7 +124,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse errors on non-string subject', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| type');
-    expect(evalResult).toEqual(makeTagKeyword('call/KindAnswersNoVerbError'));
+    expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 
   it('apply runs a quote assembled from its steps', async () => {
@@ -136,7 +136,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
-    expect(evalResult).toEqual(makeTagKeyword('any/apply/code/NotQuoteError'));
+    expect(evalResult).toEqual(makeTag('any/apply/code/NotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {
@@ -160,6 +160,6 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse errors on malformed source lift to fail-track', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"this is not qlang [" | parse !| type');
-    expect(evalResult).toEqual(makeTagKeyword('quote/ParseError'));
+    expect(evalResult).toEqual(makeTag('quote/ParseError'));
   });
 });

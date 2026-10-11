@@ -12,7 +12,7 @@ import {
   makeBinding,
   makeDoc,
   keyword,
-  makeTagKeyword,
+  makeTag,
   makeErrorValue,
   isDoc,
   isQMap
@@ -33,13 +33,13 @@ describe('printValue — binding record / Function branches', () => {
 
   it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
     const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
+    const instance = makeTaggedInstance(makeTag('Box'), [42, 'inner']);
     expect(printValue(instance)).toBe('::Box[42 "inner"]');
   });
 
   it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
     const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Marker'), []);
+    const instance = makeTaggedInstance(makeTag('Marker'), []);
     expect(printValue(instance)).toBe('::Marker[]');
   });
 });
@@ -51,12 +51,12 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // before its bang. The brackets imply that kind, so the
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [D32], [D64].
-    const err = makeErrorValue(makeTagKeyword('error'), new Map());
+    const err = makeErrorValue(makeTag('error'), new Map());
     expect(printValue(err)).toBe('!{}');
   });
 
   it('descriptor fields ride inside the brackets', async () => {
-    const err = makeErrorValue(makeTagKeyword('error'), new Map([
+    const err = makeErrorValue(makeTag('error'), new Map([
       ['message', 'something broke']
     ]));
     expect(printValue(err)).toBe('!{:message "something broke"}');
@@ -65,19 +65,19 @@ describe('printErrorValue — head + payload-filter branches', () => {
   it('a :kind in the descriptor is a fact like any other', async () => {
     // A `:kind` names no tag [D190]: it stays in the descriptor as
     // ordinary user data, the error staying of the kind of errors.
-    const err = makeErrorValue(makeTagKeyword('error'), new Map([
+    const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('!{:kind :oops}');
   });
 
   it('an empty user-defined tag-headed error renders as ::Foo!{}', async () => {
-    const err = makeErrorValue(makeTagKeyword('Foo'), new Map());
+    const err = makeErrorValue(makeTag('Foo'), new Map());
     expect(printValue(err)).toBe('::Foo!{}');
   });
 
   it('a tag-headed error renders the payload after the head', async () => {
-    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
+    const err = makeErrorValue(makeTag('Foo'), new Map([
       ['category', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
@@ -88,7 +88,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // verbatim so round-trip preserves them exactly. Runtime-
     // side errors (`errorFromQlang`) simply omit `:message` from
     // the descriptor at construction.
-    const err = makeErrorValue(makeTagKeyword('Foo'), new Map([
+    const err = makeErrorValue(makeTag('Foo'), new Map([
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]
     ]));
@@ -102,7 +102,7 @@ describe('toPlain encodes every TaggedInstance shape through the $tag envelope',
     // shape — a tag over a set, a Map and an opaque wrap-object are
     // exercised here; the Array branch is covered through the
     // earlier `Box[42]` test.
-    const { makeTaggedInstance, makeTagKeyword: makeTag, makeSet } = await import('../../src/types.mjs');
+    const { makeTaggedInstance, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');
     const taggedSet = makeTaggedInstance(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
     expect(plainSet.$tag).toBe('Keys');
@@ -279,7 +279,7 @@ describe('the print of env reads back', () => {
   it('writes the JSON of a tag name and of a host function as strings', async () => {
     const session = await createSession();
     session.bind('hostFn', async function helloFn() { return 42; });
-    session.bind('kindName', makeTagKeyword('Foo'));
+    session.bind('kindName', makeTag('Foo'));
     const parsed = JSON.parse((await session.evalCell('env | json')).result);
     expect(parsed.hostFn.payload.value).toMatch(/^<host-fn [A-Za-z]+>$/);
     expect(parsed.kindName.payload.value).toBe('::Foo');

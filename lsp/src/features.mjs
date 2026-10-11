@@ -220,7 +220,7 @@ function withDeclaredNames(items, ast, offset, spellings) {
 const KIND_OF_LITERAL = {
   NumberLit: 'number', StringLit: 'string', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
-  QuoteLit: 'quote', DocLit: 'doc', BareTypeKeyword: 'tag'
+  QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag'
 };
 
 // Where the name being typed before the cursor begins.
@@ -292,7 +292,7 @@ export async function hoverAtOffset(ast, source, offset) {
   if (node.type === 'Call') {
     return await hoverForCall(node, ast);
   }
-  if (node.type === 'BareTypeKeyword' || isOnTagHead(node, offset)) {
+  if (node.type === 'TagLit' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
@@ -405,7 +405,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 
   let name, address;
   if (node.type === 'Call')        [name, address] = [node.name, node.name];
-  else if (node.type === 'BareTypeKeyword') [name, address] = [tagNameOf(node.tag), node.tag];
+  else if (node.type === 'TagLit') [name, address] = [tagNameOf(node.tag), node.tag];
   else if (isOnTagHead(node, offset))       [name, address] = [tagNameOf(node.tag), node.tag];
   else return null;
 
@@ -495,7 +495,7 @@ export function referencesAtOffset(ast, offset) {
     if (parent.type === 'BindStep' && parent.key === node) {
       name = splitAddress(node.name)[1];
     }
-  } else if (node.type === 'BareTypeKeyword') {
+  } else if (node.type === 'TagLit') {
     name = tagNameOf(node.tag);
   }
 

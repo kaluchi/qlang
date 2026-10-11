@@ -59,7 +59,7 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, BareTypeKeyword (a tag, the address of a node) have no
+    // Projection, TagLit (a tag, the address of a node) have no
     // semantic children.
   }
   return out;
@@ -173,7 +173,7 @@ function findTagOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
     if (writesTag(node) && node.tag === tagName) occurrences.push(node);
-    else if (node.type === 'BareTypeKeyword' && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'TagLit' && node.tag === tagName) occurrences.push(node);
     else if (node.type === 'BindStep' && declaresKind(node) && node.key.name === tagName) occurrences.push(node);
   });
   return occurrences;

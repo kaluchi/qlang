@@ -4,14 +4,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
+import { isQMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
 import { fromPlain, toPlain, AnyJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
     const readMap = await evalQuery('{"a": 1, "b c": 2}');
     expect(isQMap(readMap)).toBe(true);
-    expect(typeKeyword(readMap)).toEqual(makeTagKeyword('map'));
+    expect(typeKeyword(readMap)).toEqual(makeTag('map'));
     expect([...readMap.keys()]).toEqual(['a', 'b c']);
   });
 
@@ -39,19 +39,19 @@ describe('a map whose data key "type" collides with a value-class name', () => {
   // equality, and the lossy and lossless JSON codecs.
 
   it('classifies as a map regardless of the "type" data value', async () => {
-    for (const typeValue of ['quote', 'doc', 'keyword', 'tagKeyword', 'error', 'function', 'taggedInstance']) {
+    for (const typeValue of ['quote', 'doc', 'keyword', 'tag', 'error', 'function', 'taggedInstance']) {
       const readMap = await evalQuery(`{"type": "${typeValue}", "extra": 1}`);
       expect(formOf(readMap), `formOf for type=${typeValue}`).toBe('map');
     }
   });
 
   it('value-class predicates reject a map that forges their .type tag', async () => {
-    const { isKeyword, isQuote, isDoc, isErrorValue, isTagKeyword } = await import('../../src/types.mjs');
+    const { isKeyword, isQuote, isDoc, isErrorValue, isTag } = await import('../../src/types.mjs');
     expect(isKeyword(fromPlain({ type: 'keyword', name: 'x' }))).toBe(false);
     expect(isQuote(fromPlain({ type: 'quote', source: 'x' }))).toBe(false);
     expect(isDoc(fromPlain({ type: 'doc', content: 'x' }))).toBe(false);
     expect(isErrorValue(fromPlain({ type: 'error' }))).toBe(false);
-    expect(isTagKeyword(fromPlain({ type: 'tagKeyword', name: 'X' }))).toBe(false);
+    expect(isTag(fromPlain({ type: 'tag', name: 'X' }))).toBe(false);
   });
 
   it('| json preserves a {"type":"keyword"} document losslessly', async () => {
@@ -66,7 +66,7 @@ describe('a map whose data key "type" collides with a value-class name', () => {
 
   it('a {"type":"error"} document does not crash the evaluator', async () => {
     const result = await evalQuery('{"type": "error", "msg": "boom"} | type');
-    expect(result).toEqual(makeTagKeyword('map'));
+    expect(result).toEqual(makeTag('map'));
   });
 });
 

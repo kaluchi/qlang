@@ -15,7 +15,7 @@ import { declareRefusal } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
-  keyword, isQMap, isQuote, isKeyword, isTagKeyword,
+  keyword, isQMap, isQuote, isKeyword, isTag,
   isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
   CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
@@ -92,7 +92,7 @@ bindPrim('bind/construct', recordConstructor(BIND_TAG,
   declareRefusal('bind/ReadBackDiffersError')));
 
 bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
-  { tag: isTagKeyword, payload: isElementStep }, ['tag', 'payload'],
+  { tag: isTag, payload: isElementStep }, ['tag', 'payload'],
   declareRefusal('construct/PayloadNotSchemaError'),
   declareRefusal('construct/ReadBackDiffersError')));
 

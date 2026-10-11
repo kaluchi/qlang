@@ -112,7 +112,7 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a bare `::tag` BareTypeKeyword as a single tag-kind span', async () => {
+  it('classifies a bare `::tag` TagLit as a single tag-kind span', async () => {
     expect(tokenize('::snapshot', await builtins())).toEqual([
       { start: 0, end: 10, kind: 'tag' }
     ]);

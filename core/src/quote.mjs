@@ -18,9 +18,9 @@
 import { parse } from './parse.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
+  keyword, makeTag, makeDoc, makeQuote, makeSet,
   makeTaggedInstance, makeErrorLiteralStep,
-  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isVecOfOwnKind, isQMap, isQSet,
+  isQuote, isKeyword, isTag, isDoc, isVec, isVecOfOwnKind, isQMap, isQSet,
   isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
@@ -73,7 +73,7 @@ const DOC_OF_LITERAL = new WeakMap();
 function docSegmentOfPart(part) {
   if (typeof part === 'string') return part;
   if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
-  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTagKeyword(tagName), inner), quoteOfLiteral(part.quote));
+  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTag(tagName), inner), quoteOfLiteral(part.quote));
 }
 
 export function docOfNode(node) {
@@ -164,14 +164,14 @@ const STEP_OF_NODE = {
   BooleanLit:      node => node.value,
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
-  BareTypeKeyword: node => makeTagKeyword(node.tag),
+  TagLit: node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
-  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag)),
-  TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
+  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTag(node.tag)),
+  TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
   Call:     callStepOf,
   BindStep:        bindStepOf,
@@ -212,7 +212,7 @@ export function isStep(value) {
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
-  if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
+  if (isKeyword(value) || isTag(value) || isDoc(value) || isQuote(value)) return true;
   if (isErrorValue(value)) return [...value.descriptor.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);

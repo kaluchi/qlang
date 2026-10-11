@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { QlangError } from '../../src/errors.mjs';
-import { isQMap, isQSet, keyword, makeTagKeyword } from '../../src/types.mjs';
+import { isQMap, isQSet, keyword, makeTag } from '../../src/types.mjs';
 import {
   expectErrorThrown,
   expectOriginalError
@@ -70,7 +70,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with an unresolved name for pred — surfaces on fail-track', async () => {
     const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
-    expect(errorValue).toEqual(makeTagKeyword('call/UnknownNameError'));
+    expect(errorValue).toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('Map with a value bound for pred — every entry passes', async () => {

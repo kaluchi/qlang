@@ -224,7 +224,7 @@ describe('hoverAtOffset', () => {
     expect(await hoverAtOffset(null, '', 0)).toBeNull();
   });
 
-  it('returns hover for BareTypeKeyword tag reference', async () => {
+  it('returns hover for TagLit tag reference', async () => {
     const src = '::number/NotFiniteError | doc';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number/NotFiniteError') + 5;

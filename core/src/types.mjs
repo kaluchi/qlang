@@ -83,12 +83,12 @@ export function keyword(name) {
 
 // A tag name, `::Kind`, a value of its own whose `.name` a keyword's
 // shares.
-export function makeTagKeyword(name) {
-  return Object.freeze(brandValueClass({ name, literal: TAG_SIGIL + name }, 'tagKeyword'));
+export function makeTag(name) {
+  return Object.freeze(brandValueClass({ name, literal: TAG_SIGIL + name }, 'tag'));
 }
 
-export function isTagKeyword(v) {
-  return isValueClass(v, 'tagKeyword');
+export function isTag(v) {
+  return isValueClass(v, 'tag');
 }
 
 // ── binding / quote predicates ────────────────────────────────
@@ -242,25 +242,24 @@ function stampSlot(target, slot, value) {
 }
 
 // The tags the runtime names.
-export const BINDING_TAG     = makeTagKeyword(BINDING_TAG_NAME);
-export const BUILTIN_TAG     = makeTagKeyword(BUILTIN_TAG_NAME);
-export const DOC_TAG         = makeTagKeyword(DOC_TAG_NAME);
-export const ERROR_TAG       = makeTagKeyword('error');
-export const QUOTE_TAG       = makeTagKeyword(QUOTE_TAG_NAME);
-export const SET_TAG         = makeTagKeyword(SET_TAG_NAME);
-export const TAG_BINDING_TAG = makeTagKeyword('tag');
+export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
+export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
+export const DOC_TAG         = makeTag(DOC_TAG_NAME);
+export const ERROR_TAG       = makeTag('error');
+export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
+export const SET_TAG         = makeTag(SET_TAG_NAME);
 
 // The kind of every value without a tag of its own, the one its literal
 // implies, which `type` answers [D32].
 export const CORE_KIND = Object.freeze({
-  null:    makeTagKeyword('null'),
-  boolean: makeTagKeyword('boolean'),
-  number:  makeTagKeyword('number'),
-  string:  makeTagKeyword('string'),
-  keyword: makeTagKeyword('keyword'),
-  tag:     TAG_BINDING_TAG,
-  vec:     makeTagKeyword('vec'),
-  map:     makeTagKeyword('map'),
+  null:    makeTag('null'),
+  boolean: makeTag('boolean'),
+  number:  makeTag('number'),
+  string:  makeTag('string'),
+  keyword: makeTag('keyword'),
+  tag:     makeTag('tag'),
+  vec:     makeTag('vec'),
+  map:     makeTag('map'),
   set:     SET_TAG,
   quote:   QUOTE_TAG,
   doc:     DOC_TAG
@@ -268,12 +267,12 @@ export const CORE_KIND = Object.freeze({
 
 // The tags of a quote's steps [D47]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
-export const CALL_TAG   = makeTagKeyword('call');
-export const PROJ_TAG   = makeTagKeyword('proj');
-export const BIND_TAG   = makeTagKeyword('bind');
-export const CONSTRUCT_TAG = makeTagKeyword('construct');
-export const FAIL_TAG   = makeTagKeyword('fail');
-export const GROUP_TAG  = makeTagKeyword('group');
+export const CALL_TAG   = makeTag('call');
+export const PROJ_TAG   = makeTag('proj');
+export const BIND_TAG   = makeTag('bind');
+export const CONSTRUCT_TAG = makeTag('construct');
+export const FAIL_TAG   = makeTag('fail');
+export const GROUP_TAG  = makeTag('group');
 
 // A tag over a payload: an untagged vector or map keeps its shape under
 // the tag, so every verb of the container reads it; any other payload, a
@@ -364,7 +363,7 @@ export function typeKeyword(v) {
   if (isNumber(v)) return CORE_KIND.number;
   if (isString(v)) return CORE_KIND.string;
   if (isKeyword(v)) return CORE_KIND.keyword;
-  if (isTagKeyword(v)) return CORE_KIND.tag;
+  if (isTag(v)) return CORE_KIND.tag;
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;
@@ -377,4 +376,4 @@ export function typeKeyword(v) {
 
 // What the runtime finds where no value of the language stands: a
 // host's raw object.
-const UNKNOWN_KIND = makeTagKeyword('unknown');
+const UNKNOWN_KIND = makeTag('unknown');

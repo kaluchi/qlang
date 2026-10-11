@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTagKeyword, typeKeyword } from './types.mjs';
+import { keyword, makeErrorValue, makeTag, typeKeyword } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
@@ -38,7 +38,7 @@ export function factsInOrder(tag, facts, env) {
 // is the subject the first stop of the trail holds, so its presence says
 // the site reached below the subject [D85], [D172].
 export function errorFromQlang(qlangError, subject, env) {
-  const tag = makeTagKeyword(qlangError.address);
+  const tag = makeTag(qlangError.address);
   const facts = new Map();
   for (const [name, value] of Object.entries(qlangError.facts)) {
     if (value === undefined || (name === 'actualValue' && value === subject)) continue;
@@ -69,7 +69,7 @@ export function errorFromParse(parseError, env) {
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
   if (parseError.uri) d.set('uri', parseError.uri);
-  const tag = makeTagKeyword('quote/ParseError');
+  const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,
     originalError: parseError
@@ -144,7 +144,7 @@ const CAUSES_RECOUNTED = 8;
 // and the fields of the error stay with the host in `originalError`, and
 // a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {
-  const tag = makeTagKeyword('call/HostFailureError');
+  const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);
   const causes = [];
   for (let cause = jsError?.cause; cause != null && causes.length < CAUSES_RECOUNTED; cause = cause?.cause) {

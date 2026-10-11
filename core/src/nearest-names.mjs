@@ -79,3 +79,9 @@ export function nearestNames(env, typedName) {
 export function nearestTagNames(env, typedName) {
   return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTagKeyword(name)));
 }
+
+// The keys of a map a key it lacks was likely meant to be, as a name is
+// near the names of the scope [D203].
+export function nearestKeys(map, typedKey) {
+  return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
+}

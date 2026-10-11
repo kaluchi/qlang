@@ -1,5 +1,5 @@
 {"name":"single-key","query":"{:name \"Alice\"} | /name","expect":"\"Alice\""}
-{"name":"missing-key","query":"{:name \"Alice\"} | /age","expect":"::proj/KeyNotInMapError!{\n  :key :age\n  :actualType ::map\n  :trail [\n    {\n      :step ~(/age)\n      :subject {:name \"Alice\"}\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"missing-key","query":"{:name \"Alice\"} | /age","expect":"::proj/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :actualType ::map\n  :trail [\n    {\n      :step ~(/age)\n      :subject {:name \"Alice\"}\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"nested-keys","query":"{:point {:x 5 :y 7}} | /point/x","expect":"5"}
 {"name":"deeply-nested","query":"{:a {:b {:c {:d 42}}}} | /a/b/c/d","expect":"42"}
 {"name":"projection-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(/age | gte 18) | map ~/name","expect":"[\"Alice\"]"}

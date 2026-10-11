@@ -7,7 +7,7 @@ import {
   rootState, withPipeValue, withEnv, nestState, envSet, envHas, rootOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
-import { nearestNames, nearestTagNames } from './nearest-names.mjs';
+import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
 import { classifyEffect } from './effect.mjs';
 import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import {
@@ -454,7 +454,7 @@ function evalProjection(node, state) {
 function projectSegment(subject, projKey) {
   const projected = containerBeneathTags(subject);
   if (isQMap(projected)) {
-    if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: keyword(projKey), actualValue: subject });
+    if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: keyword(projKey), nearest: nearestKeys(projected, projKey), actualValue: subject });
     return projected.get(projKey);
   }
   if (isVec(projected)) {

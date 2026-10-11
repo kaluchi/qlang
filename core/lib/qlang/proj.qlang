@@ -104,10 +104,12 @@
 
 :proj/KeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
-      found where it is read; `:key` holds the key read. `keys` lists the
-      keys there are, `{:a 1} | keys`, and a key that may be absent is
-      read by `at`, which answers null for it, a `coalesce` after it
-      giving the fallback, `at :b | coalesce 0`.
+      found where it is read; `:key` holds the key read, and `:nearest`
+      the keys of the map it was likely meant to be, near it in spelling
+      as a name is near the names of the scope. `keys` lists the keys
+      there are, `{:a 1} | keys`, and a key that may be absent is read by
+      `at`, which answers null for it, a `coalesce` after it giving the
+      fallback, `at :b | coalesce 0`.
       ::link~(::proj | doc) ::link~(::map/at | doc)
   ~~|
 
@@ -118,6 +120,10 @@
 :proj/KeyNotInMapError/refusesAKeyTheMapLacks
   |~~ A key the map lacks is refused. ~~|
   ::law~({:a 1} | /b !| [type /key] | eq [::proj/KeyNotInMapError :b])
+
+:proj/KeyNotInMapError/suggestsTheNearestKey
+  |~~ The keys of the map nearest in spelling are suggested. ~~|
+  ::law~({:emails [] :age 3} | /email !| /nearest | eq [:emails])
 
 :proj/SubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a

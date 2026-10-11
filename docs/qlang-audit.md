@@ -1816,16 +1816,23 @@ whole, a primitive the law of every count calls; or the test kept in
 
 A reader's extension inside a word of the root [D23], [D200], [D202].
 The rule of collisions asks that a reader's word under a noun of the
-root stand in the reader's scope alone, and the maintainer read the
-rule so: «получается внутри своего модуля я могу написать любой костыль
-для действующих типов новые методы для стринга, булеана и так далее ..
+root stand in the reader's scope alone. The maintainer asked how a
+short name resolves under it: «хорошо, убедил с vec/filter  ...
+получается внутри своего модуля я могу написать любой костыль для
+действующих типов новые методы для стринга, булеана и так далее ..
 спокойно ими пользоваться и затенять, но наружу они не выскочат
-неявно..» (maintainer, 2026-09-25 09:28, session 86982eb5). A word of
-the root reaches it through the walk of its subject, and an invariant a
-reader declares under a part of a word of the root holds inside a word
-of the root that calls it:
+неявно.. т.к. короткое имя смотрит в локальную область видимости и
+потом прямо в то что привязано к типу текущего сабжекта? так..»
+(maintainer, 2026-09-25 09:28, session 86982eb5). The tree refuses the
+shadowing he names, an address the root holds being declared once at
+all [D153], and a word of the root reaches a reader's word through the
+walk of its subject, an invariant a reader declares under a part of a
+word of the root holding inside a word of the root that calls it:
 
 ```qlang
+> :vec/count ~(99) | [1] | count !| type
+::bind/NameDeclaredTwiceError
+
 > :vec/doc ~("a reader page") | [1 2] | tutorial | first
 "a reader page"
 
@@ -1833,18 +1840,33 @@ of the root that calls it:
 ::number/sub/subtrahend/OverError
 ```
 
-The same word reads an address the reader hands it as data,
-`::vec/second | tutorial`, and that read reaches the reader's node, since
-a word's scope is one map for the names it calls and the addresses it
-reads. The alternatives: the scope of a word of the root holding the
-reader's names under the reader's own nouns alone, and an address read
-as data reaching the reader's tree through a second map the state
-carries, which costs a field of the state and a lookup that knows which
-of the two reads it serves; the reader's names under a noun of the root
-marked in the scope, skipped by the walk of a bare name and read by an
-address, which costs the mark; or the extension as it stands, which
-costs the hygiene the rule asks for and the plan of a word of the root
-read once whatever the reader declares.
+The same word reads an address the reader hands it as data, and that
+read reaches the reader's node, since a word's scope is one map for the
+names it calls and the addresses it reads:
+
+```qlang
+> :vec/second |~~ The second element. ~~| ~(/1) | ::vec/second | tutorial | first
+|~~ The second element. ~~|
+```
+
+The alternatives: the scope of a word of the root holding the reader's
+names under the reader's own nouns alone, and an address read as data
+reaching the reader's tree through a second map the state carries,
+which costs a field of the state and a lookup that knows which of the
+two reads it serves; the reader's names under a noun of the root marked
+in the scope, skipped by the walk of a bare name and read by an
+address, which costs the mark; the scopes of the words of the root
+marked instead, the frame a source gives its words [D200] and every
+scope made from one, where a bare name and the definition of a call
+read the root alone and an address every node, which costs a set of
+the scopes marked and a lookup in each scope made from another, and
+which a session of 2026-10-11 built outside the tree: it answered the
+probes above as the rule asks, `tutorial` reading the page of `doc` and
+`subOf` answering `300`, kept a reader's own word and invariant in the
+reader's calls, and held every case of the core, the time of a query
+within its noise; or the extension as it stands, which costs the
+hygiene the rule asks for and the definition of a call inside a word
+of the root read once whatever the reader declares.
 
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md

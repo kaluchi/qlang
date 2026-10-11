@@ -1377,6 +1377,48 @@
   |~~ The tags of the subject stay over the answer. ~~|
   ::law~(::Box[[1] [2]] | flat | eq ::Box[1 2])
 
+:vec/zip
+  |~~ Answers the vectors the subject holds read side by side, one vector
+      of the elements at each index, as long as the shortest:
+      `[[1 2] [:a :b]] | zip` answers `[[1 :a] [2 :b]]`, and the empty
+      vector answers `[]`. Each element is a vector, a set, a quote and a
+      doc among them; a single vector is put beside the others in a
+      vector first, `[(/names) (/ages)] | zip`. It takes no value.
+      ::link~(::vec/flat | doc)
+  ~~|
+  ::builtin{}
+
+:vec/zip/answer
+  |~~ The elements at each index, a vector each. ~~|
+  ::vec
+
+:vec/zip/ElementNotVecError
+  |~~ `zip` reads vectors side by side; `:index` names the first element
+      that is no vector, a vector put in a vector first, `[(/a) (/b)] |
+      zip`.
+  ~~|
+
+:vec/zip/pairsTheElementsAtEachIndex
+  |~~ The elements at each index stand together. ~~|
+  ::law~([[1 2] [:a :b]] | zip | eq [[1 :a] [2 :b]])
+
+:vec/zip/stopsAtTheShortest
+  |~~ The answer is as long as the shortest vector. ~~|
+  ::law~([[1 2 3] [:a]] | zip | eq [[1 :a]])
+
+:vec/zip/answersNothingOfNothing
+  |~~ The empty vector answers the empty vector. ~~|
+  ::law~([] | zip | eq [])
+
+:vec/zip/readsFieldsSideBySide
+  |~~ Two fields of a record read side by side pair their elements. ~~|
+  ::law~({:names ["ann" "bob"] :ages [30 40]} | [(/names) (/ages)] | zip | eq [["ann" 30] ["bob" 40]])
+
+:vec/zip/ElementNotVecError/refusesANumber
+  |~~ An element that is no vector is refused at its index. ~~|
+  ::law~([[1 2] 3] | zip !| [type /index /actualType] | eq [::vec/zip/ElementNotVecError 1 ::number])
+
+
 :vec/reduce
   |~~ Answers the seed folded over the elements by the reducer, each
       element folded into the value so far, `[1 2 3 4 5] | reduce 0

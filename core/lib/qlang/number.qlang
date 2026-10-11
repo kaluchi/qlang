@@ -300,6 +300,194 @@
   |~~ A number under a tag answers under the tag. ~~|
   ::law~(::Width(6) | div 3 | eq ::Width(2))
 
+:number/mod
+  |~~ Answers the remainder of the subject divided by the number the call
+      gives, its sign the divisor's: `7 | mod 3` answers `1` and `-7 |
+      mod 3` answers `2`, so `mod 2` tells an even number from an odd
+      one, and a fraction leaves its own, `7.5 | mod 2` answering `1.5`.
+      The divisor is computed against the subject, and a number under a
+      tag answers under the tag.
+      ::link~(::number/div | doc)
+  ~~|
+  ::builtin{}
+
+:number/mod/answer
+  |~~ The remainder, its sign the divisor's, under the tags of the subject. ~~|
+  ::number
+
+:number/mod/divisor
+  |~~ The number the subject is divided by, computed against the subject. ~~|
+  ~(/0)
+
+:number/mod/divisor/NotNumberError
+  |~~ The divisor is a number; text that holds one is read by `parseJson`
+      first, `7 | mod ("3" | parseJson)`.
+  ~~|
+  ::holds~(is ::number)
+
+:number/mod/divisor/ZeroError
+  |~~ The divisor is not zero: a division by zero leaves no remainder,
+      and a value that may be zero is asked first, `if (eq 0) …`.
+  ~~|
+  ::holds~(eq 0 | not)
+
+:number/mod/SubjectNotNumberError
+  |~~ `mod` divides a number: text that holds one is read first by
+      `parseJson`, `"7" | parseJson | mod 3`.
+  ~~|
+
+:number/mod/leavesTheRemainder
+  |~~ `mod` answers what the division leaves. ~~|
+  ::law~(7 | mod 3 | eq 1)
+
+:number/mod/takesTheSignOfTheDivisor
+  |~~ The remainder takes the sign of the divisor. ~~|
+  ::law~([(-7 | mod 3) (7 | mod -3)] | eq [2 -2])
+
+:number/mod/tellsAnEvenNumber
+  |~~ `mod 2` answers zero for an even number. ~~|
+  ::law~([1 2 3 4] | filter ~(mod 2 | eq 0) | eq [2 4])
+
+:number/mod/leavesAFraction
+  |~~ A fraction leaves a fraction. ~~|
+  ::law~(7.5 | mod 2 | eq 1.5)
+
+:number/mod/answersUnderTheTag
+  |~~ A number under a tag answers under the tag. ~~|
+  ::law~(::Width(7) | mod 3 | eq ::Width(1))
+
+:number/mod/SubjectNotNumberError/refusesAString
+  |~~ A subject that is no number is refused under the word. ~~|
+  ::law~("7" | mod 3 !| [type /actualType] | eq [::number/mod/SubjectNotNumberError ::string])
+
+:number/mod/divisor/NotNumberError/refusesAString
+  |~~ A divisor that is no number is refused under the part. ~~|
+  ::law~(7 | mod "3" !| [type /actualType] | eq [::number/mod/divisor/NotNumberError ::string])
+
+:number/mod/divisor/ZeroError/refusesZero
+  |~~ A remainder of a division by zero is refused under the divisor. ~~|
+  ::law~(7 | mod 0 !| type | eq ::number/mod/divisor/ZeroError)
+
+:number/abs
+  |~~ Answers the subject without its sign, `-3 | abs` answering `3`, a
+      number under a tag under the tag. It takes no value.
+      ::link~(::number/sub | doc)
+  ~~|
+  ::builtin{}
+
+:number/abs/answer
+  |~~ The subject without its sign, under the tags of the subject. ~~|
+  ::number
+
+:number/abs/SubjectNotNumberError
+  |~~ `abs` takes the sign off a number: text that holds one is read
+      first by `parseJson`, `"-3" | parseJson | abs`.
+  ~~|
+
+:number/abs/dropsTheSign
+  |~~ A negative number loses its sign, and a positive one stays. ~~|
+  ::law~([-3 3 -0.5] | map ~abs | eq [3 3 0.5])
+
+:number/abs/SubjectNotNumberError/refusesAString
+  |~~ A subject that is no number is refused under the word. ~~|
+  ::law~("-3" | abs !| [type /actualType] | eq [::number/abs/SubjectNotNumberError ::string])
+
+:number/floor
+  |~~ Answers the greatest whole number not above the subject, `2.7 |
+      floor` answering `2` and `-2.1 | floor` answering `-3`; `round`
+      answers the nearest and `ceil` the least not below. It takes no
+      value.
+      ::link~(::number/ceil | doc) ::link~(::number/round | doc)
+  ~~|
+  ::builtin{}
+
+:number/floor/answer
+  |~~ The greatest whole number not above the subject, under its tags. ~~|
+  ::number
+
+:number/floor/SubjectNotNumberError
+  |~~ `floor` rounds a number down: text that holds one is read first by
+      `parseJson`, `"2.7" | parseJson | floor`.
+  ~~|
+
+:number/floor/roundsDown
+  |~~ A number rounds down, a negative one away from zero. ~~|
+  ::law~([2.7 -2.1 3] | map ~floor | eq [2 -3 3])
+
+:number/floor/SubjectNotNumberError/refusesAString
+  |~~ A subject that is no number is refused under the word. ~~|
+  ::law~("2.7" | floor !| [type /actualType] | eq [::number/floor/SubjectNotNumberError ::string])
+
+:number/ceil
+  |~~ Answers the least whole number not below the subject, `2.1 | ceil`
+      answering `3` and `-2.7 | ceil` answering `-2`; `floor` answers
+      the greatest not above. It takes no value.
+      ::link~(::number/floor | doc) ::link~(::number/round | doc)
+  ~~|
+  ::builtin{}
+
+:number/ceil/answer
+  |~~ The least whole number not below the subject, under its tags. ~~|
+  ::number
+
+:number/ceil/SubjectNotNumberError
+  |~~ `ceil` rounds a number up: text that holds one is read first by
+      `parseJson`, `"2.1" | parseJson | ceil`.
+  ~~|
+
+:number/ceil/roundsUp
+  |~~ A number rounds up, a negative one toward zero, and prints no negative zero. ~~|
+  ::law~([2.1 -2.7 3 -0.5] | map ~ceil | eq [3 -2 3 0])
+
+:number/ceil/SubjectNotNumberError/refusesAString
+  |~~ A subject that is no number is refused under the word. ~~|
+  ::law~("2.1" | ceil !| [type /actualType] | eq [::number/ceil/SubjectNotNumberError ::string])
+
+:number/range
+  |~~ Answers the whole numbers from zero up to the subject, the subject
+      left out: `5 | range` answers `[0 1 2 3 4]`, and zero or below
+      answers `[]`. A count from one is `range | map ~(add 1)`, and the
+      vector reads as any other, `5 | range | map ~(mul 2)`. The subject
+      is a whole number. It takes no value.
+      ::link~(::vec/map | doc)
+  ~~|
+  ::builtin{}
+
+:number/range/answer
+  |~~ The whole numbers from zero below the subject. ~~|
+  ::vec
+
+:number/range/CountNotIntegerError
+  |~~ The count of `range`, its subject, is a whole number: a fraction is
+      rounded first, `7.5 | floor | range`.
+  ~~|
+
+:number/range/SubjectNotNumberError
+  |~~ `range` counts up to a number: the count of a vector is read first,
+      `[:a :b] | count | range`.
+  ~~|
+
+:number/range/countsFromZero
+  |~~ The numbers start at zero and leave the subject out. ~~|
+  ::law~(5 | range | eq [0 1 2 3 4])
+
+:number/range/answersNothingBelowOne
+  |~~ Zero and below answer the empty vector. ~~|
+  ::law~([0 -2] | map ~range | eq [[] []])
+
+:number/range/countsFromOneByMap
+  |~~ A count from one adds one to each. ~~|
+  ::law~(3 | range | map ~(add 1) | eq [1 2 3])
+
+:number/range/CountNotIntegerError/refusesAFraction
+  |~~ A fraction is no count. ~~|
+  ::law~(2.5 | range !| [type /actualType] | eq [::number/range/CountNotIntegerError ::number])
+
+:number/range/SubjectNotNumberError/refusesAVector
+  |~~ A vector is counted first. ~~|
+  ::law~([:a :b] | range !| [type /actualType] | eq [::number/range/SubjectNotNumberError ::vec])
+
+
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
       gives, none when it gives none: `3.14159 | round 2` answers `3.14`

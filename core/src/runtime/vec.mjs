@@ -36,6 +36,19 @@ bindPrim('map/first', map => firstOf([...map.values()]));
 bindPrim(['vec/last', 'set/last'], lastOf);
 bindPrim('map/last', map => lastOf([...map.values()]));
 
+// ── side by side ───────────────────────────────────────────────
+// The elements at each index of the vectors a vector holds, as long as
+// the shortest, an element that is no vector refused at its index
+// [D194].
+const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
+bindPrim('vec/zip', vectors => {
+  vectors.forEach((element, index) => {
+    if (!Array.isArray(element)) throw new VecZipElementNotVecError({ index, actualValue: element });
+  });
+  const length = vectors.length === 0 ? 0 : Math.min(...vectors.map(vector => vector.length));
+  return Array.from({ length }, (_, index) => vectors.map(vector => vector[index]));
+});
+
 // ── sum and mean ───────────────────────────────────────────────
 
 // The total of the numbers, an element of another kind refused where it

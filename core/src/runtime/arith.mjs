@@ -9,11 +9,26 @@
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 const NumberRoundDigitsNotIntegerError = declareRefusal('number/round/DigitsNotIntegerError');
+const NumberRangeCountNotIntegerError = declareRefusal('number/range/CountNotIntegerError');
 
 bindPrim('number/add', (augend, addend) => augend + addend);
 bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
 bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
 bindPrim('number/div', (dividend, divisor) => dividend / divisor);
+
+// The remainder takes the sign of the divisor, the floored remainder
+// [D194]; a zero answer is no negative zero.
+const unsignedZero = number => (number === 0 ? 0 : number);
+bindPrim('number/mod', (dividend, divisor) => unsignedZero(dividend - divisor * Math.floor(dividend / divisor)));
+bindPrim('number/abs', subject => Math.abs(subject));
+bindPrim('number/floor', subject => Math.floor(subject));
+bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
+
+// The whole numbers from zero below a whole count [D194].
+bindPrim('number/range', count => {
+  if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });
+  return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
+});
 
 // A number rounds half away from zero to the digits after the point the
 // call gives, a negative count rounding to tens and beyond [D132].

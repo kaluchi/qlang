@@ -11,7 +11,8 @@
       `@in | parse | open` reads it back.
       A query runs on what stdin holds: JSON read as values, an object
       a map whose keys are keywords, whose answer is written as JSON,
-      where a value JSON has no form for is refused; text read
+      where a value JSON has no form for is refused, the refusal holding
+      the answer as its literal; text read
       as a string, whose answer is written as its `print`; and
       `| json` writes JSON text. A query that writes to stdout itself,
       by `@out`, holds the channel, and its answer is left unwritten.
@@ -27,9 +28,10 @@
       a set is written as the array of its elements, and a keyword as
       its name.
       `:path` holds the map keys and the indices to it, `:actualType` its
-      kind. The query ends before the answer is data: `payload` takes a
-      value from under its tag, and `print` writes a quote or a tag as
-      its text.
+      kind, and `:printed` the answer as its literal, so a query that asks
+      after a kind, a page or a tag reads its answer there. The query
+      ends before the answer is data: `payload` takes a value from under
+      its tag, and `print` writes a quote or a tag as its text.
   ~~|
 
 :cli/AnswerNotJsonError/path

@@ -36,7 +36,7 @@
 //     honours it.
 
 import {
-  fromPlain, toPlain, printAnswer, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
+  fromPlain, toPlain, printAnswer, printValue, makeTagKeyword, makeErrorValue, isErrorValue, typeKeyword, keyword, elideAnswer
 } from '@kaluchi/qlang-core';
 import { recordRefusal } from '@kaluchi/qlang-core/errors';
 
@@ -70,12 +70,14 @@ function firstNotJson(value, path) {
 }
 
 // The answer the JSON channel writes: the answer itself, an error it
-// holds, or the refusal of a value JSON has no form for.
+// holds, or the refusal of a value JSON has no form for, which holds the
+// answer as its literal, so a query that asks after a kind, a page or a
+// tag reads its answer on that channel too [D192].
 function answerForJson(value) {
   const notJson = firstNotJson(value, []);
   if (notJson === null || isErrorValue(notJson.value)) return notJson?.value ?? value;
-  return makeErrorValue(makeTagKeyword('cli/AnswerNotJsonError'),
-    new Map([['path', notJson.path], ['actualType', typeKeyword(notJson.value)]]));
+  return makeErrorValue(makeTagKeyword('cli/AnswerNotJsonError'), new Map([
+    ['path', notJson.path], ['actualType', typeKeyword(notJson.value)], ['printed', printValue(value)]]));
 }
 
 // The noun the command line starts from when standard input carries no

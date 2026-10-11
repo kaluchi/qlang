@@ -85,8 +85,14 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   it('refuses a quote, naming its place and its kind', async () => {
     const refusal = await refusalOf('[1 ~(add 1)]');
     expect(refusal.$tag).toBe('cli/AnswerNotJsonError');
-    expect(refusal.descriptor.path).toEqual([1]);
-    expect(refusal.descriptor.actualType).toBe('::quote');
+    expect(refusal.facts.path).toEqual([1]);
+    expect(refusal.facts.actualType).toBe('::quote');
+  });
+
+  it('holds the answer as its literal, so a kind asked after is read [D192]', async () => {
+    const refusal = await refusalOf('[1 2] | type');
+    expect(refusal.$tag).toBe('cli/AnswerNotJsonError');
+    expect(refusal.facts).toMatchObject({ path: [], actualType: '::tag', printed: '::vec' });
   });
 
   it('writes a set as the array of its elements in the one order [D126]', async () => {
@@ -98,7 +104,7 @@ describe('encodeSuccessValueForFormat — what the JSON channel refuses', () => 
   });
 
   it('refuses a tagged value by the path of map keys and indices', async () => {
-    expect((await refusalOf(':Box |~~ Box. ~~| | {:a [::Box{:k 1}]}')).descriptor).toMatchObject({ path: ['a', 0], actualType: '::Box' });
+    expect((await refusalOf(':Box |~~ Box. ~~| | {:a [::Box{:k 1}]}')).facts).toMatchObject({ path: ['a', 0], actualType: '::Box' });
   });
 
   it('answers an error a container holds as that error', async () => {

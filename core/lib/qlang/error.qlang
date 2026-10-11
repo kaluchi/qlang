@@ -122,7 +122,9 @@
   #[::keyword ::null]
 
 :error/printed
-  |~~ The text the step prints as, which reads back as another step or as none. ~~|
+  |~~ The text a value prints as, its literal: a step that reads back as
+      another step or as none, or an answer the JSON channel has no form for.
+  ~~|
   ::string
 
 :error/trail

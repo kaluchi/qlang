@@ -1857,17 +1857,17 @@ which costs a field of the state and a lookup that knows which of the
 two reads it serves; the reader's names under a noun of the root marked
 in the scope, skipped by the walk of a bare name and read by an
 address, which costs the mark; the scopes of the words of the root
-marked instead, the frame a source gives its words [D200] and every
-scope made from one, where a bare name and the definition of a call
-read the root alone and an address every node, which costs a set of
-the scopes marked and a lookup in each scope made from another, and
-which a session of 2026-10-11 built outside the tree: it answered the
-probes above as the rule asks, `tutorial` reading the page of `doc` and
-`subOf` answering `300`, kept a reader's own word and invariant in the
-reader's calls, and held every case of the core, the time of a query
-within its noise; or the extension as it stands, which costs the
-hygiene the rule asks for and the definition of a call inside a word
-of the root read once whatever the reader declares.
+marked, the frame a source gives its words [D200] and every scope made
+from one, where a bare name and the definition of a call read the root
+alone and an address every node, which costs a set of the scopes marked
+and a lookup in each scope made from another, and which
+`docs/research/lexical-extension/marked-scopes.patch` makes of the tree:
+under it the probes above answer as the rule asks, `tutorial` reading
+the page of `doc` and `subOf` answering `300`, a reader's own call
+keeps the reader's word and invariant, and every case of the core
+holds; or the extension as it stands, which costs the hygiene the rule
+asks for and the definition of a call inside a word of the root read
+once whatever the reader declares.
 
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md

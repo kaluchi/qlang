@@ -1082,7 +1082,7 @@ language server, in the tree and then in the September master:
 
 ```sh
 $ git ls-files --error-unmatch 'core/src/*.mjs' 'cli/src/*.mjs' 'lsp/src/*.mjs' | xargs cat | awk '/^[ \t]*\/\// {c++; next} /^[ \t]*$/ {next} {k++} END {printf "%.1f\n", c / k}'
-0.4
+0.3
 $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | sed 's#^#f5e8ec8:#' | xargs git show | awk '/^[ \t]*\/\// {c++; next} /^[ \t]*$/ {next} {k++} END {printf "%.1f\n", c / k}'
 0.6
 ```

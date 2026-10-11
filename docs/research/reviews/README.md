@@ -211,3 +211,17 @@ The fates of the sixth review it found holding in part stand in its findings bel
 4. The comment of the gathering said each chunk of a paste joins it. Answered by d0e9e21c: each chunk of text joins it, and keys end it.
 5. The fates of the sixth review said each fate of the fifth it found holding in part is one finding, and named a fate by its alternative. Answered by 70738672.
 6. Three commit messages told loosely what they did. The messages stand, since a commit is never amended, and the fates say what each did.
+
+## 2026-10-11 · the Escape key before keys
+
+[2026-10-11-the-escape-key-before-keys.md](2026-10-11-the-escape-key-before-keys.md), at 926f2476, over a22bfa72..926f2476.
+
+The fates of the seventh review it found holding in part stand in its findings below.
+
+1. d0e9e21c read a chunk that begins with an escape as keys in the rule of the Escape key, so the Escape key before a key spelled by an escape or before a bracketed paste paired with its escape and typed the rest. Answered by b38aa741: the rule reads a chunk of several characters, and two tests hold a key spelled by an escape and a bracketed paste after the Escape key; and by 606ffc1d for D204.
+2. D204 said a bracketed paste is read up to its end marker whatever chunks carry it, and that a paste keeps its line breaks. Answered by 606ffc1d: a bracketed paste whose begin marker opens a chunk, and its line breaks kept as line feeds, the trailing ones dropped.
+3. No test held the clause under which text whose one line feed ends it is read key by key. Answered by b38aa741.
+4. An escape before a character beyond the basic plane stayed pending and swallowed the keys after it, and a key typed alone was counted in code units. Answered by b38aa741: an escape before any character but `[` is dropped, and a key typed alone is counted by characters, so the editor reads an emoji as it reads a letter over every delivery of up to three chunks, and two tests hold both; and by 606ffc1d for D204. The records keep "one character", which the code meets, where the review proposed "one code unit".
+5. The audit's third alternative on the path of an error named no cost. Answered by 606ffc1d: the line of the fifth milestone on `:trail`.
+
+The differential run of the repair found a gathered paste that held two end markers landing the second as text; b38aa741 takes every marker out, and a test holds it.

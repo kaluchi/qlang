@@ -5,6 +5,9 @@
 // execution. Tests build the values directly and call printValue.
 
 import { describe, it, expect } from 'vitest';
+import { evalQuery } from '../../src/eval.mjs';
+import { parse } from '../../src/parse.mjs';
+import { createSession } from '../../src/session.mjs';
 import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
 import {
   makeBinding,
@@ -254,5 +257,31 @@ describe('print — the print declared under a kind', () => {
     const session = await badgeSession();
     const printed = await session.evalCell('[(5 | tag ::badge)] | print');
     expect(printed.result).toContain('::proj/SubjectNotProjectableError!{');
+  });
+});
+
+describe('the print of env reads back', () => {
+  it('prints a literal the parser reads, and no source of a function', async () => {
+    const printed = printValue(await evalQuery('env'));
+    expect(() => parse(printed, { uri: 'env-round-trip' })).not.toThrow();
+    expect(printed).not.toMatch(/async function\b/);
+    expect(printed).not.toMatch(/=>\s*\{/);
+  });
+
+  it('prints a function a host binds as a string that marks it', async () => {
+    const session = await createSession();
+    session.bind('myHostFn', async function helloFn() { return 42; });
+    const printed = printValue((await session.evalCell('env')).result);
+    expect(printed).toContain('"<host-fn helloFn>"');
+    expect(() => parse(printed, { uri: 'host-fn-round-trip' })).not.toThrow();
+  });
+
+  it('writes the JSON of a tag name and of a host function as strings', async () => {
+    const session = await createSession();
+    session.bind('hostFn', async function helloFn() { return 42; });
+    session.bind('kindName', makeTagKeyword('Foo'));
+    const parsed = JSON.parse((await session.evalCell('env | json')).result);
+    expect(parsed.hostFn.payload.value).toMatch(/^<host-fn [A-Za-z]+>$/);
+    expect(parsed.kindName.payload.value).toBe('::Foo');
   });
 });

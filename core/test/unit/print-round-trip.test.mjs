@@ -1,39 +1,51 @@
 // Every value prints as a literal that reads back as itself [D30]: values
 // built from a seeded walk over the literals of the language, scalars with
-// their escapes, vectors, sets, maps, values under a tag, quotes, docs and
-// errors inside a vector, each printed, parsed and applied, and held equal
-// to itself by `eq`; the examples of `round-trip-invariant.test.mjs` pin
-// the forms the walk does not take.
+// their escapes, vectors and maps in both their spellings, sets with a
+// duplicate among them, values under a tag over every payload, the
+// constructors of `::qlang` and `::json`, quotes, docs and errors inside a
+// vector, each printed, parsed and applied, and held equal to itself by
+// `eq`.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 
-const NUMBERS = ['0', '-0', '1', '-1.5', '0.1', '1e21', '1e-7', '5e-324', '1.7976931348623157e308', '-2.5e-3'];
+const NUMBERS = ['0', '-0', '1', '-1.5', '0.1', '1e10', '1e21', '1e-7', '5e-324', '1.7976931348623157e308', '-2.5e-3'];
 const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\\nbreak"', '"tab\\t"', '"ünïcödé"', '"\\u0001"', '"~(not code)"', '"|~ c ~|"', '"::T"'];
-const KEYWORDS = [':a', ':ab-c', ':_x', ':@e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':ñ', ':true', ':null'];
-const TAGS = ['::T', '::Box', '::a/b', '::number'];
-const STEPS = ['count', '/k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}'];
+const KEYWORDS = [':a', ':ab-c', ':_x', ':@e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
+const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
+const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
+const STEPS = ['count', '/k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| /trail', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
+const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
 // A walk of a linear congruential generator, the same values on every run.
 function literalsOf(count, seed) {
   let state = seed;
   const random = () => { state = (state * 1103515245 + 12345) % 2147483648; return state / 2147483648; };
   const pick = items => items[Math.floor(random() * items.length)];
-  const leaf = () => pick([NUMBERS, STRINGS, KEYWORDS, TAGS, ['true', 'false', 'null']].map(pool => () => pick(pool)))();
+  const leaf = () => pick([NUMBERS, STRINGS, KEYWORDS, TAGS, DOCS, ['true', 'false', 'null']].map(pool => () => pick(pool)))();
   const literal = depth => {
     if (depth === 0) return leaf();
     const parts = () => Array.from({ length: Math.floor(random() * 3) }, () => literal(depth - 1));
+    const entries = () => parts().map(part => `${pick(KEYWORDS)} ${part}`).join(' ');
     return pick([
       leaf,
       () => `[${parts().join(' ')}]`,
+      () => `[${parts().join(', ')}]`,
       () => `#[${parts().join(' ')}]`,
-      () => `{${parts().map(part => `${pick(KEYWORDS)} ${part}`).join(' ')}}`,
+      () => { const part = literal(depth - 1); return `#[${part} ${part}]`; },
+      () => `{${entries()}}`,
+      () => `{${parts().map(part => `${pick(JSON_KEYS)}: ${part}`).join(', ')}}`,
       () => `::T[${parts().join(' ')}]`,
+      () => `::T{${entries()}}`,
+      () => `::T#[${parts().join(' ')}]`,
       () => `::T(${literal(depth - 1)})`,
+      () => `::T~(${pick(STEPS)})`,
+      () => `::T${pick([...STRINGS, ...KEYWORDS, ...TAGS, ...DOCS])}`,
+      () => `${pick(['::qlang', '::json'])}{${entries()}}`,
       () => `~(${pick(STEPS)})`,
-      () => `|~~ prose ~(eq ${pick(NUMBERS)}) \`code\` ~~|`,
       () => `[!{:k ${literal(depth - 1)}}]`,
-      () => `[::E!{:k ${literal(depth - 1)}}]`
+      () => `[::E!{:k ${literal(depth - 1)}}]`,
+      () => pick(['[!{}]', '[::number/add/SubjectNotNumberError!{:actualType ::string}]'])
     ])();
   };
   return Array.from({ length: count }, () => literal(2));
@@ -42,7 +54,7 @@ function literalsOf(count, seed) {
 describe('the round trip of the print [D30]', () => {
   it('reads every value back from its print as itself', async () => {
     const failing = [];
-    for (const source of literalsOf(150, 7)) {
+    for (const source of literalsOf(300, 7)) {
       const held = await evalQuery(`${source} | :v / | print | parse | apply / | eq v`);
       if (held !== true) failing.push(source);
     }

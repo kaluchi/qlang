@@ -4,8 +4,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
-import { fromPlain } from '../../src/runtime/format.mjs';
+import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword, keyword } from '../../src/types.mjs';
+import { fromPlain, toPlain, AnyJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
@@ -95,5 +95,27 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     expect(fromPlain(JSON.parse('1e308'))).toBe(1e308);
     expect(fromPlain(JSON.parse('-1e308'))).toBe(-1e308);
     expect(fromPlain(JSON.parse('0'))).toBe(0);
+  });
+});
+
+describe('toPlain refuses a value JSON has no form for', () => {
+  it('refuses a raw object of the host', () => {
+    expect(() => toPlain(new Date())).toThrow(AnyJsonValueNotEncodableError);
+  });
+
+  it('names the JavaScript type of what it refused', () => {
+    let refused;
+    try { toPlain(Symbol('s')); } catch (error) { refused = error; }
+    expect(refused.facts.actualType).toBe('symbol');
+  });
+});
+
+describe('a descriptor is data [D113]', () => {
+  it('writes its keyword field as its name in JSON', async () => {
+    expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
+  });
+
+  it('reads its field by projection', async () => {
+    expect(await evalQuery('::builtin{:note :draft} | /note')).toEqual(keyword('draft'));
   });
 });

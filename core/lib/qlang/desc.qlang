@@ -1,6 +1,33 @@
-|~ What is declared under `::desc`, the kind of a value turned to
-   descend, whose place in the one order is the reverse of its
-   payload's: its constructor and the comparisons of values turned. ~|
+|~ `::desc`, the kind of a value turned to descend, whose place in the
+   one order is the reverse of its payload's, and what is declared under
+   it: its constructor and the comparisons of values turned. ~|
+
+:desc
+  |~~ The kind of a value turned to descend: among the values of this
+      kind the one order runs in reverse, the greater payload first, so a
+      key of `sort`, `min` or `max` under `desc` descends whatever the
+      kind of what it ranks, a string among them, and a place of a vector
+      key descends alone, `sort ~([(/count | desc) /name])`. Every
+      comparison agrees, `gt` and `lt` here as `sort` and `max`, and
+      `payload` opens the value beneath. `desc` lays the kind over any
+      value. ::link~(::qlang/values | doc)
+  ~~|
+
+:desc/holdsTheValue
+  |~~ The payload is the value turned. ~~|
+  ::law~(5 | desc | payload | eq 5)
+
+:desc/buildsByItsConstructor
+  |~~ The constructor turns as `desc` does. ~~|
+  ::law~(::desc(5) | eq (5 | desc))
+
+:desc/sortsInReverse
+  |~~ Turned values sort in reverse. ~~|
+  ::law~([2 1 3] | map ~desc | sort | map ~payload | eq [3 2 1])
+
+:desc/descendsAKey
+  |~~ A key of `desc` sorts in reverse. ~~|
+  ::law~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
 
 :desc/construct
   |~~ Lays the kind over any value, its place in the one order turned around. ~~|

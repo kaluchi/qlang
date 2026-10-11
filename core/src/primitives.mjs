@@ -44,8 +44,7 @@ export function createPrimitiveRegistry() {
     },
 
     // The implementations under a noun, by address, each a name under
-    // one; the language's own source, which declares under none, takes
-    // none.
+    // one.
     implsUnder(nounName) {
       const under = {};
       for (const [address, impl] of bindings) {

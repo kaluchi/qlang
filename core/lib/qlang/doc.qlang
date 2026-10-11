@@ -1,6 +1,33 @@
-|~ What is declared under `::doc`, the kind of a page: its constructor
-   and the refusals of a payload that is no vector of segments, and the
-   words that read a doc. ~|
+|~ `::doc`, the kind of a page, and what is declared under it: its
+   constructor and the refusals of a payload that is no vector of
+   segments, and the words that read a doc. ~|
+
+:doc
+  |~~ The kind of a doc, prose as a value, the value of a doc literal:
+      text that carries quotes of qlang. It is how the language says what
+      it is: every page is a doc, `doc` answers the page of a name, and
+      because a doc is a value its code is checked and the next step can
+      take it apart. A quote under `::link` is a link, a query a reader
+      follows to another page, one under `::snippet` a query a reader
+      runs to see what it shows, and a quote with no tag is code the
+      prose holds. `content` answers its text, `segments` its parts,
+      `links` its links and `snippets` its snippets; the laws of a name
+      stand under it.
+      ::snippet~(::doc | manifest) lists its verbs and refusals. ::link~(::link | doc)
+      ::link~(::qlang/hypertext | doc)
+  ~~|
+
+:doc/isThePageOfAName
+  |~~ The page of a name is a doc. ~~|
+  ::law~(::number/add | doc | type | eq ::doc)
+
+:doc/splitsIntoSegments
+  |~~ A doc of prose, code and prose has three segments. ~~|
+  ::law~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
+
+:doc/buildsFromSegments
+  |~~ Segments under `::doc` build the doc. ~~|
+  ::law~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
 
 :doc/construct
   |~~ The doc of a vector of prose strings and quotes. ~~|

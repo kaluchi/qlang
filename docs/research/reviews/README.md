@@ -20,7 +20,7 @@ A finding not yet settled says open.
 9. The algebra says join, the name of the word that writes strings together. Answered by 621a5b54: the pages say unite, take from and keep what values share.
 10. Refusal pages that do not say how to repair the call. Answered by cf359631: every refusal page of the three kinds shows the call that works.
 11. Generic words where the language has its own: listing, container, bucket, pipeline. Answered by 610b05d4 for bucket and the laws named after a pipeline and by f3ebc9f4 for the listing; listing and container had left the vectors with their rewrite.
-12. Law names that do not say what their queries prove. Open.
+12. Law names that do not say what their queries prove. Answered by 24c66f1e: each law named by its claim and proving it; the law of a reversed set made a set by `distinct` stands under `reverse`, the law of `drop` that called `minus` is gone, and the page of `entries` says what its law proves.
 13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
 14. One fact told in different words across the three kinds. Open.
 15. A refusal with a page under one kind and none under the others. Answered by faf4c8cd for `at` with no index or key, of vectors, maps and null; the rest stays as the rule refusals of finding ten of the third review stay.
@@ -46,20 +46,20 @@ A finding not yet settled says open.
 10. Refusal pages that do not say how to repair the call. Answered by cf359631 and e35d202c: every refusal page shows the call that works.
 11. Pages that do not say what a call with no value or with more values does. Answered by faf4c8cd for the comparisons of numbers and strings, whose parts show their call; the other words, whose refusal by rule names the part a call lacks, stay as they are.
 12. Claims with no law under their name. Open.
-13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Open.
+13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Answered by 24c66f1e: the page says `:actual` is null where a law answered an error, which `:error` names, with the law `failsALawThatAnswersAFailure`, named so that no law ends in `Error`.
 14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
-15. Laws that prove nothing of their page. Open.
+15. Laws that prove nothing of their page. Answered by 24c66f1e: the two laws are gone; the invariants and `construct` of a label stand under the chapter of verbs, and `::tag::Box` under the constructor of tag names, whose page makes the claim.
 16. Negations standing for definitions. Answered by f3ebc9f4: the law of `::error` defined by what a refusal is not leaves, the chapter of errors proving the site, and the page of a number past the doubles says what it is; the address that held no one entity had left with an earlier rewrite.
 17. Words of mutation: edits, has become, is replaced. Answered by edac4969 for has become and by 610b05d4 for edits and is replaced.
 18. A guardian with no payload, a word the language does not have. Answered by 610b05d4: a noun that stands for a thing outside the language.
-19. The order of the kinds in `qlang.qlang` and of the words of `any.qlang`. Open.
-20. Pages of kinds that lead nowhere, and kinds in no chapter. Open.
+19. The order of the kinds in `qlang.qlang` and of the words of `any.qlang`. Answered in part by D189: the kinds left `qlang.qlang`, which holds the topic and its chapters alone; the order of the kinds is the list of the sources, a step of its own, and the order of the words of `any.qlang` stays open.
+20. Pages of kinds that lead nowhere, and kinds in no chapter. Answered by 24c66f1e: every page of a kind leads on; `::desc` and `::tagged` stand in the chapter of values, `::holds` in that of verbs, `::law` in that of hypertext and `::builtin` in that of hosts, which says so, and the chapter of errors links that of code.
 21. Strings say an emoji counts one; a modifier or a flag counts each code point. Answered by edac4969, with a law.
 22. `lines` and `join "\n"` do not write back a closing break; commas between elements. Answered by edac4969, with a law on commas.
-23. Law literals whose characters the page cannot tell apart. Open.
+23. Law literals whose characters the page cannot tell apart. Answered by 24c66f1e: the laws write `"e\u0301"` and `"\u00a0a\u00a0"`.
 24. Generic words: schema, result, implicit argument, pages about tests. Answered by 610b05d4 for schema and by f3ebc9f4 for result, the pages of the suite and the parts of `sumOf`; implicit argument left with the page of D185 and the part named X with an earlier rewrite; the part `value` that number and string pages do not name, open.
-25. `:any/JsonValueNotEncodableError` told inside `json`, which no query meets. Open.
-26. Headers of the sources that repeat the order of a story. Answered by cf359631 for the laws named as refusals are; the headers, open.
+25. `:any/JsonValueNotEncodableError` told inside `json`, which no query meets. Answered by 24c66f1e: the refusal stands first under `::any`, and its page says it is a defect of the host thrown past the fail track, which no query meets.
+26. Headers of the sources that repeat the order of a story. Answered by cf359631 for the laws named as refusals are, and by 24c66f1e for the headers, which say what each source holds, the order of a story told once in the chapter of verbs, where `source` reads it.
 
 The first page itself was written anew by D185 and D186 after this
 review; findings 5 and 6 still stand for the laws declared under
@@ -81,7 +81,7 @@ review; findings 5 and 6 still stand for the laws declared under
 10. Rule refusals with no page and no repair. Answered by faf4c8cd where a repair helps: the compared value of every comparison shows its call on its part's page, which `!| explain` reads for a call with no value, and `at`, `within`, `not` and the streams page their refusal by rule with a law; the other refusals by rule stay without a page, their address naming what the call lacks.
 11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
 12. The sister project still writes `*`. Awaits the maintainer's word.
-13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Open.
+13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Answered by 24c66f1e: the law of `ParseError` stands after its facts, the laws of `:cli` after its refusal, and `table` pages `SubjectNotVecError` with its repair and its two laws under it.
 14. Claims with no law. Open.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Answered by 610b05d4 for env, descriptor, rewrap, constructor invocation and edit, and by f3ebc9f4 for still and the two comments; the part `value` the pages of tags and keywords do not name, open.

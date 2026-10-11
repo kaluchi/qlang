@@ -1,5 +1,19 @@
-|~ What is declared under `::bind`, the step that declares a name: its
-   constructor and the refusals of a declaration. ~|
+|~ `::bind`, the step that declares a name, and what is declared under
+   it: its constructor and the refusals of a declaration. ~|
+
+:bind
+  |~~ The step of a declaration, `:name body`: it names a value for the
+      steps after it, in the scope where it stands, and a group, an
+      element of a literal and a quote a word runs each open a scope of
+      their own, so a name never leaks out of the fork that declared it. As a
+      record, `:name` is the keyword or tag it binds, `:docs` its prose
+      and `:body` the step of its body. ::link~(::binding | doc)
+      ::link~(::qlang/pipeline | doc)
+  ~~|
+
+:bind/holdsTheNameAndTheBody
+  |~~ A declaration holds its name and its body. ~~|
+  ::law~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
 
 :bind/construct
   |~~ The step of a declaration from its record, `:name`, `:docs` and

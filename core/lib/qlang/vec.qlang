@@ -1,10 +1,36 @@
-|~ What is declared under `::vec`: its constructor and the refusal of a
-   payload of another kind, and the words of vectors. A word of vectors
-   serves a vector under any tag, a quote and a doc among them, and a
-   set where the set has no word of its own; a word whose answer names
-   the vector answers under the tags of the subject, and `map`, whose
-   answer is any value, under none. Its parts are read and held to their
-   invariants before the word runs. ~|
+|~ `::vec` and what is declared under it: its constructor and the
+   refusal of a payload of another kind, and the words of vectors. A
+   word of vectors serves a vector under any tag, a quote and a doc
+   among them, and a set where the set has no word of its own; a word
+   whose answer names the vector answers under the tags of the subject,
+   and `map`, whose answer is any value, under none. Its parts are read
+   and held to their invariants before the word runs. ~|
+
+:vec
+  |~~ The kind of a vector, the value of a `[…]` literal, and the shape a
+      long value takes: its parts have an index, a size and a slice,
+      `drop` and `take`, so the rest of a long answer is the same query
+      with a tail, and `map` runs a step on each element. A set, a quote
+      and a doc are vectors under their tags, read as vectors wherever a
+      vector is read; over them the constructor answers the vector of
+      their elements, and `::vec[1 2]` reads as `[1 2]`. A JSON array is
+      a vector literal too, a comma between every two elements; one literal
+      is written in one of the two forms, as a map's is.
+      ::snippet~(::vec | manifest) lists its verbs and refusals.
+      ::link~(::vec/map | doc) ::link~(::qlang/values | doc)
+  ~~|
+
+:vec/readsASetAsItsVector
+  |~~ A set under `::vec` is its vector. ~~|
+  ::law~(#[2 1] | tag ::vec | eq [1 2])
+
+:vec/takesCommas
+  |~~ A comma between every two elements writes the same vector. ~~|
+  ::law~("[1, 2]" | parse | apply / | eq [1 2])
+
+:vec/takesCommasBetweenAllOrNone
+  |~~ A literal writes a comma between every two elements or between none. ~~|
+  ::law~("[1, 2 3]" | parse !| type | eq ::quote/ParseError)
 
 :vec/construct
   |~~ Reads a vector as the bare vector, and a set, a quote or a doc as

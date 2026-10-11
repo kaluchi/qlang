@@ -1,5 +1,21 @@
-|~ What is declared under `::null`, the kind of the absent value: its
-   constructor and its refusal, and the soft read of it. ~|
+|~ `::null`, the kind of the absent value, and what is declared under
+   it: its constructor and its refusal, and the soft read of it. ~|
+
+:null
+  |~~ The kind of null, the absence of a value; a part a call may leave
+      out reads null, `~(at 0)`. Its constructor, as every
+      constructor of a kind of the core, reads a payload of the kind as
+      the value itself. ::link~(::null/at | doc)
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:null/isNull
+  |~~ Null is of `::null`. ~~|
+  ::law~(null | type | eq ::null)
+
+:null/buildsNull
+  |~~ The constructor of null answers null. ~~|
+  ::law~(::null(null) | eq null)
 
 :null/construct
   |~~ Reads null as itself. ~~|

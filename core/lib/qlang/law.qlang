@@ -1,0 +1,14 @@
+|~ `::law`, the kind of a law, and the laws declared under it. ~|
+
+:law
+  |~~ The kind of a law, a query that answers true, declared as a
+      definition under the name whose behaviour it proves: the name says
+      the claim, the page is its sentence, and `laws` answers the laws
+      of a name, which `runLaws` runs.
+      ::link~(::any/laws | doc) ::link~(::any/runLaws | doc)
+      ::link~(::qlang/hypertext | doc)
+  ~~|
+
+:law/provesItsClaim
+  |~~ A law declared under a name proves its claim when it runs. ~~|
+  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | runLaws | map ~/ok | eq [true])

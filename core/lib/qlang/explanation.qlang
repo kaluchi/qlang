@@ -1,6 +1,20 @@
-|~ What is declared under `::explanation`, the kind of what `explain`
-   answers, the page `doc` reads for a value and the value itself: the
-   words that read it. ~|
+|~ `::explanation`, the kind of what `explain` answers, the page `doc`
+   reads for a value and the value itself, and what is declared under
+   it: the words that read it. ~|
+
+:explanation
+  |~~ The kind of what `explain` answers: the page `doc` reads
+      for a value under `:page`, then the value itself under `:value`, so
+      it prints as the page above what it explains, an error
+      raised, with its bang. It is the cord from a value to its
+      procedure in one answer; `page` and `value` answer its parts.
+      ::link~(::error | doc)
+      ::link~(::qlang/errors | doc)
+  ~~|
+
+:explanation/explainsAFailure
+  |~~ An error explained is an `::explanation`. ~~|
+  ::law~("x" | add 1 !| explain | type | eq ::explanation)
 
 :explanation/page
   |~~ Answers the page that explains what `explain` was asked of: of a

@@ -47,10 +47,10 @@ export async function langRuntime(opts = {}) {
   return new Map(templateEnv);
 }
 
-// The noun a source of the language declares under, `qlang/number`
-// under `number`; `qlang`, the kinds and the topic, under none.
+// The noun a source of the language declares, the last name of its uri:
+// `qlang/number` declares `number`, and `qlang` the topic [D189].
 function nounOfSource(uri) {
-  return uri === 'qlang' ? null : uri.slice('qlang/'.length);
+  return uri.slice(uri.lastIndexOf('/') + 1);
 }
 
 // The bootstrap `langRuntime` memoises, callable with a locator of a

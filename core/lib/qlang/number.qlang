@@ -1,6 +1,36 @@
-|~ What is declared under `::number`: its constructor and the refusals
-   of a payload of another kind and of an answer that leaves the
-   doubles, and the words that run on a number. ~|
+|~ `::number` and what is declared under it: its constructor and the
+   refusals of a payload of another kind and of an answer that leaves
+   the doubles, and the words that run on a number. ~|
+
+:number
+  |~~ The kind of a number, a finite double: an infinity or NaN is no
+      value, so a step whose answer leaves the range of the doubles
+      answers an error. No kind reads text, so `::number(5)` is `5` and
+      `::number"5"` is refused; `parseJson` reads a number out of a
+      string. Its literal is JSON's, a leading zero allowed, and its
+      precision the double's own: a literal past the range is no number
+      the parser reads, and an integer and a decimal are one kind,
+      rounded as a double rounds. Its words
+      add, subtract, multiply, divide, round and compare numbers.
+      ::snippet~(::number | manifest) lists its words and refusals.
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:number/isANumber
+  |~~ Five is a number. ~~|
+  ::law~(5 | type | eq ::number)
+
+:number/refusesALiteralPastTheRange
+  |~~ The literal 1e400 does not parse. ~~|
+  ::law~("1e400" | parse !| type | eq ::quote/ParseError)
+
+:number/answersAnErrorPastTheRange
+  |~~ A product past the range answers an error. ~~|
+  ::law~(1e308 | mul 10 !| type | eq ::number/NotFiniteError)
+
+:number/roundsAsADouble
+  |~~ A tenth and two tenths add as doubles add. ~~|
+  ::law~([-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
 
 :number/construct
   |~~ Reads a number as itself, a finite double. ~~|

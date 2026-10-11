@@ -1,5 +1,38 @@
-|~ What is declared under `::proj`, the step that reads a part of a
-   value: its constructor and the refusals of a read that misses. ~|
+|~ `::proj`, the step that reads a part of a value, and what is declared
+   under it: its constructor and the refusals of a read that misses. ~|
+
+:proj
+  |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
+      the pipe by keys and indices, a negative index from the end, and a
+      miss answers an error, never null, so a misspelled field is found
+      where it is read. `/` is the value itself. A key is written as a
+      keyword is, bare, in quotes, `/"foo bar"`, or with its colon when it
+      is a path, `/:qlang/error`, which is one key where `/qlang/error`
+      is two. As a record, `:path` is the keys and indices it walks,
+      `[]` for `/`.
+      ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
+      ::link~(::qlang/pipeline | doc)
+  ~~|
+
+:proj/holdsThePath
+  |~~ A projection holds its path of keys and indices. ~~|
+  ::law~(~(/items/0/name) | first | /path | eq [:items 0 :name])
+
+:proj/holdsTheEmptyPath
+  |~~ `/` alone has the empty path. ~~|
+  ::law~(~(/) | first | /path | eq [])
+
+:proj/readsQuotedAndPathKeys
+  |~~ Quoted keys and keys with a path read in a path. ~~|
+  ::law~({:"foo bar" {:qlang/error 1}} | /"foo bar"/:qlang/error | eq 1)
+
+:proj/readsNestedKeys
+  |~~ A path of two keys reads nested maps. ~~|
+  ::law~({:qlang {:error 2}} | /qlang/error | eq 2)
+
+:proj/readsTheWholeValue
+  |~~ `/` reads the whole value. ~~|
+  ::law~(5 | mul / | eq 25)
 
 :proj/construct
   |~~ The step of a projection from its record, `:path`, which reads

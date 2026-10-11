@@ -43,10 +43,10 @@ Tier 1, every session, whole, before any claim about the language is
 argued or the audit is touched: `core/src/grammar.peggy` for the syntax,
 `core/src/eval.mjs` for the semantics, `core/src/runtime/verb.mjs`
 for application, `core/src/types.mjs` for the values, and
-`core/lib/qlang.qlang`, the kinds of the language and its topic, with
-one source of a noun such as `core/lib/qlang/number.qlang`, whose
-declarations sit under the noun, `:number/add`, for the shape of the
-catalog.
+`core/lib/qlang.qlang`, the topic of the language, its first page and
+chapters, with one source of a noun such as
+`core/lib/qlang/number.qlang`, which declares the kind `:number` and
+what lies under it, `:number/add`, for the shape of the catalog.
 Read source with the file-reading tool, whole; the persistence limit
 below applies to shell output, so a large file is never `cat`-ed.
 

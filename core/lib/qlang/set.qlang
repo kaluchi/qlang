@@ -1,12 +1,43 @@
-|~ What is declared under `::set`: its constructor and the refusal of a
-   payload that is no vector, and the words that run on a set. A set is
-   the vector in the one order without duplicates, and a vector to every
-   word sets do not declare, `#["b" "a"] | join ","` answering `"a,b"`.
-   A word whose answer names the set keeps the one order and answers
-   under the tags of the subject; one that imposes another order answers
-   a vector, which `distinct` makes a set again, and `map` answers the
-   vector of the images under no tag. A value of a kind no word of the
-   name serves is refused by the call, which names the kinds that do. ~|
+|~ `::set` and what is declared under it: its constructor and the
+   refusal of a payload that is no vector, and the words that run on a
+   set. A set is the vector in the one order without duplicates, and a
+   vector to every word sets do not declare, `#["b" "a"] | join ","`
+   answering `"a,b"`. A word whose answer names the set keeps the one
+   order and answers under the tags of the subject; one that imposes
+   another order answers a vector, which `distinct` makes a set again,
+   and `map` answers the vector of the images under no tag. A value of a
+   kind no word of the name serves is refused by the call, which names
+   the kinds that do. ~|
+
+:set
+  |~~ The set, the vector in the one order without duplicates, the value
+      of a `#[…]` literal, of `distinct` and of `keys`; `has` asks it
+      for membership. A set is read as a vector wherever a vector is
+      read; `filter`, `take`, `drop` and `flat` keep it, since its
+      constructor re-runs after them, and a word that imposes an order,
+      `sort` or `reverse`, answers a vector. `map` over a set answers
+      the vector of its images, one per element, and `distinct` after it
+      makes a set of them again. A set written with braces, `#{…}`, is
+      refused with the brackets it takes.
+      ::link~(::vec | doc)
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:set/dropsDuplicates
+  |~~ A set literal drops duplicates. ~~|
+  ::law~("#[3 1 3]" | parse | apply / | eq #[1 3])
+
+:set/buildsFromAVector
+  |~~ A vector under `::set` is its distinct elements. ~~|
+  ::law~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
+
+:set/reversesIntoAVector
+  |~~ A reversed set is a vector. ~~|
+  ::law~(#[3 1 2] | reverse | eq [3 2 1])
+
+:set/refusesBraces
+  |~~ `#{1}` does not parse, and its message names `#[`. ~~|
+  ::law~("#{1}" | parse !| /message | contains "#[")
 
 :set/construct
   |~~ The set of the elements of a vector, in the one order without

@@ -22,8 +22,9 @@ file and the audit disagree, the audit wins and the finding says so.
 3. The touched files, whole. For a change to the language, also
    `core/src/grammar.peggy`, `core/src/eval.mjs`, `core/src/runtime/verb.mjs`
    and the source of each kind it touches, `core/lib/qlang/<kind>.qlang`,
-   whose declarations sit under the kind, `:vec/count`; the kinds, the
-   first page and the chapters are declared in `core/lib/qlang.qlang`.
+   which declares the kind, its page first, and what lies under it,
+   `:vec/count`; the first page and the chapters are declared in
+   `core/lib/qlang.qlang`.
 
 ## The rules
 

@@ -1,6 +1,35 @@
-|~ What is declared under `::tag`, the kind of a tag name: its
+|~ `::tag`, the kind of a tag name, and what is declared under it: its
    constructor and its refusal, the comparisons of tag names, and
    `manifest`. ~|
+
+:tag
+  |~~ The kind of a tag name, `::Kind` taken as a value. A tag is the name
+      of a kind, the interpretation of the value it stands on, and the
+      model of the language hangs on it: a value carries its kind as the
+      tag over it, a name finds its verb through that tag, and the tag
+      names the page of the kind, so `type | doc` reads the page of a
+      value's kind. Tags stack over any payload and read from the outside
+      in; behaviour does not travel with a value, it is found again
+      through the tag wherever the value goes. A kind is a label, a name
+      declared by its page, and the tag is the address of that name, so a
+      page declared as `:d` makes the kind `::d`; a tag no node answers is
+      a kind of identity, which declares nothing.
+      ::snippet~(::Box::Crate{:a 1} | type) answers `::Box`, and
+      ::snippet~(kinds) lists the kinds the scope reads.
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:tag/isATag
+  |~~ A tag name is a value of `::tag`. ~~|
+  ::law~(::Box | type | eq ::tag)
+
+:tag/namesAPage
+  |~~ The tag of a kind names its page. ~~|
+  ::law~(5 | type | doc | type | eq ::doc)
+
+:tag/namesNothingUndeclared
+  |~~ A tag no declaration answers names no record. ~~|
+  ::law~(::Unbound[1] | type | binding !| type | eq ::any/binding/UnknownNameError)
 
 :tag/construct
   |~~ Reads a tag name as itself. ~~|

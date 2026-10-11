@@ -1,9 +1,52 @@
-|~ What is declared under `::error`, the kind every error is a value of:
-   the refusal of an error whose path is no vector of stops, the facts a
-   refusal may carry, and the words of errors. The error `!|` opens is
-   `::error{…}`, or the tag of the site that refused stacked over it,
-   and its walk passes `::error` on its way to the map, so a word
-   declared here reaches every error. ~|
+|~ `::error`, the kind every error is a value of, and what is declared
+   under it: the refusal of an error whose path is no vector of stops,
+   the facts a refusal may carry, and the words of errors. The error
+   `!|` opens is `::error{…}`, or the tag of the site that refused
+   stacked over it, and its walk passes `::error` on its way to the map,
+   so a word declared here reaches every error. ~|
+
+:error
+  |~~ The kind of errors. A reader learning a tool fails often, and
+      a failure is the moment when the knowledge it needs is cheapest to
+      give, so a failure is a value that carries it: the facts of the
+      failure, the path it took, and the tag of the site that refused,
+      which names the page of the procedure. An error is a map of facts
+      under `::error`, `::error{:k 1}`, a value like any other until it
+      is raised, and the bang of a literal raises it, `!{:k 1}`. Every
+      refusal is a tag of its own, named for what failed,
+      `::number/add/SubjectNotNumberError`, stacked over the error. `|` passes a
+      raised error by, `map` stops on one, and `!|` opens it to that
+      stack, so `!| type` reads the site, the verbs of this kind reach
+      every error, and every step works on it as on any value: a fact is
+      added and the error raised again, or it is recovered by the tag of
+      its site. ::snippet~(::error | manifest) lists its verbs and refusals.
+      ::link~(::explanation | doc) ::link~(::fail | doc)
+      ::link~(::qlang/errors | doc)
+  ~~|
+
+:error/opensAFailureLiteralToItsKind
+  |~~ A failure literal opens to an `::error`. ~~|
+  ::law~(!{:detail "boom"} !| type | eq ::error)
+
+:error/standsOverItsKind
+  |~~ Beneath the site's tag lies an `::error`. ~~|
+  ::law~("x" | add 1 !| payload | type | eq ::error)
+
+:error/readsItsFacts
+  |~~ An error's facts read as fields. ~~|
+  ::law~(::error{:k 1} | /k | eq 1)
+
+:error/takesAFactOnTheWay
+  |~~ A fact added on the fail track rides on. ~~|
+  ::law~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
+
+:error/recoversByItsType
+  |~~ A failure of a known type recovers. ~~|
+  ::law~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
+
+:error/raisesAgainOtherwise
+  |~~ A failure of another type raises again as itself. ~~|
+  ::law~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
 
 :error/TrailNotVecError
   |~~ `:trail` among the facts of an error is its path, a

@@ -1,5 +1,18 @@
-|~ What is declared under `::fail`, the step `!|` runs on an error
-   alone: its constructor and its refusals. ~|
+|~ `::fail`, the step `!|` runs on an error alone, and what is declared
+   under it: its constructor and its refusals. ~|
+
+:fail
+  |~~ The step `!| step`, the fail track: it runs its step on an error
+      alone, opened to its facts, and passes any other value by, so it is
+      where a failure is read, recovered or raised again, while `|`
+      passes the error by. As a record it wraps the quote of that one
+      step. ::link~(::error | doc)
+      ::link~(::qlang/errors | doc)
+  ~~|
+
+:fail/holdsItsStep
+  |~~ The fail track holds its step as a quote. ~~|
+  ::law~(~(!| /kind) | first | payload | eq ~(/kind))
 
 :fail/construct
   |~~ The step `!| step` from the quote of its step. ~~|

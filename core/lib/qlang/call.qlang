@@ -1,7 +1,31 @@
-|~ What is declared under `::call`, the step that calls a name: its
-   constructor and the refusals of a call, a name that names nothing, a
-   kind that answers no verb of the name, a value given modifiers, a
-   call too deep and a failure of a host's implementation. ~|
+|~ `::call`, the step that calls a name, and what is declared under it:
+   its constructor and the refusals of a call, a name that names
+   nothing, a kind that answers no verb of the name, a value given
+   modifiers, a call too deep and a failure of a host's implementation.
+   ~|
+
+:call
+  |~~ The step of a command, `verb modifiers`: the name finds its verb
+      through the kind of the subject and runs it with the modifiers.
+      As a record, `:name` is the keyword of the name it calls and
+      `:modifiers` the step of each modifier, when the call gives any.
+      Like every record, a `::call` is the step its own text reads back
+      as: the constructor checks the kind of each field, prints the step
+      and reads it back. ::link~(::quote | doc)
+      ::link~(::qlang/pipeline | doc)
+  ~~|
+
+:call/holdsTheNameAndTheModifiers
+  |~~ A command is a call of its name and its modifiers. ~~|
+  ::law~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :modifiers [~(gt 1)]}])
+
+:call/readsTheName
+  |~~ The name of the call is a keyword. ~~|
+  ::law~(~(count) | first | /name | eq :count)
+
+:call/buildsAStep
+  |~~ A map under `::call` builds the step. ~~|
+  ::law~({:name :filter :modifiers [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
 
 :call/construct
   |~~ The step of a command from its record, `:name` and `:modifiers`,

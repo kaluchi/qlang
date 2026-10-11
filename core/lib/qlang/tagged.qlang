@@ -1,6 +1,29 @@
-|~ What is declared under `::tagged`, the kind of every value under a
-   tag, which the walk of a tagged value reaches after its own tags: the
-   words of tagged values. ~|
+|~ `::tagged`, the kind of every value under a tag, which the walk of a
+   tagged value reaches after its own tags, and what is declared under
+   it: the words of tagged values. ~|
+
+:tagged
+  |~~ The kind of every value under a tag, `::Box[1 2]`, `::Box{:a 1}`,
+      whatever the payload: the walk from a tagged value to its verb
+      passes its own tags, then this kind, then the kind of its payload's
+      shape. The verbs that take a tag apart live here, `payload`, which
+      answers the value beneath, and `within`, which runs code on the
+      value beneath and puts its answer back under the tag through the
+      tag's constructor. A value is put under a tag
+      by a literal, `::T[1 2]` or `::T{:a 1}`, or by `tag`; the literal
+      in a quote is a step of its own kind, `::construct`, and no value of
+      this one. Every value under a tag reaches the words of this kind.
+      ::link~(::tag | doc) ::link~(::construct | doc)
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:tagged/reachesPayload
+  |~~ A box answers `payload`. ~~|
+  ::law~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
+
+:tagged/isNoStep
+  |~~ The step `::Box[1 2]` is a `::construct`. ~~|
+  ::law~(~(::Box[1 2]) | first | type | eq ::construct)
 
 :tagged/payload
   |~~ Answers the value beneath the tag of the subject, `::Box[42] |

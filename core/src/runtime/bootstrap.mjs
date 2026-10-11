@@ -6,15 +6,16 @@
 import { loadSource } from '#qlang/load-source';
 import { declareInvariantError } from '../errors.mjs';
 
-// The sources the language declares its root by, in order [D153]: `qlang`
-// declares the kinds and the topic of the language with its chapters, and
-// each source after it the verbs, refusals and members of the noun its
-// declarations name.
+// The sources the language declares its root by, in order [D153], each
+// the source of one noun, its page and what is declared under it [D189]:
+// `qlang` the topic of the language, its first page and chapters, and
+// each source after it a kind.
 export const LANGUAGE_SOURCES = Object.freeze([
   'qlang',
   'qlang/builtin', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
   'qlang/keyword', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
-  'qlang/error', 'qlang/desc',
+  'qlang/binding', 'qlang/error', 'qlang/elision', 'qlang/desc',
+  'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/holds',
   'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/proj', 'qlang/bind',
   'qlang/fail', 'qlang/group', 'qlang/any'
 ]);

@@ -1,6 +1,25 @@
-|~ What is declared under `::any`, the kind beneath every kind: the
-   refusal of a host's value JSON has no form for, and the words every
-   value answers. ~|
+|~ `::any`, the kind beneath every kind, and what is declared under it:
+   the refusal of a host's value JSON has no form for, and the words
+   every value answers. ~|
+
+:any
+  |~~ The kind beneath every kind, where the verbs every value answers
+      live: `type`, `eq`, `doc`, `print`, `explain`, `elide` and
+      their kin. A verb that means the same for any value is written once
+      here, and the walk from a name to its verb ends here, after the
+      kinds of the subject. No value answers it as its `type`, since each
+      has a kind of its own above it.
+      ::snippet~(::any | manifest) lists the verbs of every value.
+      ::link~(::qlang/verbs | doc)
+  ~~|
+
+:any/holdsType
+  |~~ `type` lives on `::any`. ~~|
+  ::law~(::any | manifest | has ::any/type)
+
+:any/isTheKindOfNoValue
+  |~~ No value's type is `::any`. ~~|
+  ::law~(5 | type | eq ::any | not)
 
 :any/JsonValueNotEncodableError
   |~~ A defect of a host, which no query meets: a value the host put in
@@ -1920,7 +1939,7 @@
       refused at its index. The call gives one condition at least.
       ::link~(::any/allOf | doc) ::link~(::vec/any | doc)
   ~~|
-  ~(conditions | any ~(/))
+  ~(conditions | has true)
 
 :any/anyOf/answer
   |~~ Whether some condition holds. ~~|

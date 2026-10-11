@@ -1,0 +1,16 @@
+|~ `::holds`, the kind of an invariant, and the laws declared under it.
+   ~|
+
+:holds
+  |~~ The kind of an invariant, a query that the values of a label, the
+      args of a word, a part of them or the answer of a word keeps,
+      declared as a definition under the name it holds and named by the
+      refusal of a value that breaks it, `:Small/TooLargeError ::holds~(lt
+      10)`: the value is checked when it is built, read or answered, and
+      refused under that name when the query answers false.
+      ::link~(::qlang/verbs | doc)
+  ~~|
+
+:holds/refusesUnderItsName
+  |~~ A value that breaks an invariant is refused under its name. ~~|
+  ::law~(:Small |~~ Below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/TooLargeError])

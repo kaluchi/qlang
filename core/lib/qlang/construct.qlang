@@ -1,6 +1,18 @@
-|~ What is declared under `::construct`, the step that puts a value
-   under a tag through the tag's constructor, `::T[…]`: its constructor
-   and the refusals of that step. ~|
+|~ `::construct`, the step that puts a value under a tag through the
+   tag's constructor, `::T[…]`, and what is declared under it: its
+   constructor and the refusals of that step. ~|
+
+:construct
+  |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
+      `::T(…)` or `::T"…"`, through the tag's constructor, which checks or
+      builds the value. As a record, `:tag`
+      is the tag and `:payload` the step of its payload. ::link~(::tag | doc)
+      ::link~(::qlang/pipeline | doc)
+  ~~|
+
+:construct/holdsTheTagAndThePayload
+  |~~ The step holds its tag and its payload. ~~|
+  ::law~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
 
 :construct/construct
   |~~ The step of a constructor invocation from its record, `:tag` and

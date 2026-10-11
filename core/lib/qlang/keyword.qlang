@@ -1,6 +1,35 @@
-|~ What is declared under `::keyword`: its constructor and its refusal,
-   the comparisons of keywords, and `keyword`, which answers the name of
-   a keyword as a string. ~|
+|~ `::keyword` and what is declared under it: its constructor and its
+   refusal, the comparisons of keywords, and `keyword`, which answers
+   the name of a keyword as a string. ~|
+
+:keyword
+  |~~ The kind of a keyword, `:k`, a name that stands for itself. It is
+      apart from the string so that no name is read by its look: every
+      key of a map is a keyword, `/k` reads a field by it, and a keyword
+      names a binding of the scope; `keyword` makes one of a string and
+      a string of one. A bare keyword is a name that begins with a letter
+      of any script, `_` or `@` and goes on with letters, digits, `_` and
+      `-`; a slash joins names into a path, `:domain/user`;
+      any other text is written in quotes, `:"foo bar"`, and the quotes
+      around a bare name change nothing. ::link~(::map | doc) ::link~(::binding | doc)
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:keyword/isAKeyword
+  |~~ `:k` is a keyword. ~~|
+  ::law~(:k | type | eq ::keyword)
+
+:keyword/buildsAKeyword
+  |~~ The constructor of a keyword answers it. ~~|
+  ::law~(::keyword:k | eq :k)
+
+:keyword/takesThreeForms
+  |~~ A name of any script, a name with a path and a quoted name are keywords alike. ~~|
+  ::law~([:данные :domain/user :"$ref"] | map ~keyword | eq ["данные" "domain/user" "$ref"])
+
+:keyword/quotesABareName
+  |~~ A bare name quoted is the same keyword. ~~|
+  ::law~(:"foo" | eq :foo)
 
 :keyword/construct
   |~~ Reads a keyword as itself. ~~|

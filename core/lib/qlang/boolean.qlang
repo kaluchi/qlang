@@ -1,6 +1,23 @@
-|~ What is declared under `::boolean`: its constructor and its refusal,
-   and the words that run on a boolean, the negation and the two that
-   join booleans. ~|
+|~ `::boolean` and what is declared under it: its constructor and its
+   refusal, and the words that run on a boolean, the negation and the
+   two that join booleans. ~|
+
+:boolean
+  |~~ The kind of `true` and `false`, the answer of a question about a
+      value: `filter` and `every` take a quote that answers one, `if` the
+      boolean itself, computed at the call, and `false !| true` after
+      steps answers whether they failed.
+      ::snippet~(::boolean | manifest) lists its verbs and refusals.
+      ::link~(::qlang/values | doc)
+  ~~|
+
+:boolean/isABoolean
+  |~~ True is a boolean. ~~|
+  ::law~(true | type | eq ::boolean)
+
+:boolean/buildsABoolean
+  |~~ The constructor of a boolean answers it. ~~|
+  ::law~(::boolean(false) | eq false)
 
 :boolean/construct
   |~~ Reads a boolean as itself. ~~|

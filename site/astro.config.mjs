@@ -17,9 +17,9 @@ export default defineConfig({
     // Keep `@kaluchi/qlang-core` out of every server-side bundle so
     // that `load-source-node.mjs::loadSource` sees its native module
     // URL when calling `createRequire(import.meta.url).resolve(
-    // '#qlang/core')`. Inlined into a server chunk, the
+    // '#qlang')`. Inlined into a server chunk, the
     // `import.meta.url` rewrite points inside `site/dist`, whose
-    // surrounding `package.json` has no `#qlang/core` entry —
+    // surrounding `package.json` has no `#qlang` entry —
     // `package.json#imports` resolves from the importing module's own
     // package, not from the bundling host's package.
     //

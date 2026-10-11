@@ -1,15 +1,15 @@
 {
-  "BindStep — value": {
+  "declare a name": {
     "prefix": "bind",
     "body": [":${1:name} ${2:body}"],
-    "description": "Name the value of a body via BindStep"
+    "description": "Name what the body answers, for the steps after it"
   },
-  "BindStep — word": {
+  "declare a word": {
     "prefix": "bindv",
     "body": [":${1:any}/${2:name} ~(${3:body})", ":${1:any}/${2:name}/${4:part} ~(/0)"],
     "description": "Declare a word under the label of its subject and a part of its object"
   },
-  "BindStep — kind": {
+  "declare a kind": {
     "prefix": "bindtag",
     "body": [":${1:Kind} |~~ ${2:page} ~~|", ":${1:Kind}/construct ~(${3:body})"],
     "description": "Declare a kind by its page, a label, and its constructor under it"

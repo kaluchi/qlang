@@ -1020,6 +1020,7 @@ docs/research/reviews/2026-10-10-first-page-any-number-string.md
 docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
 docs/research/reviews/2026-10-10-vec-set-map.md
 docs/research/reviews/2026-10-11-autonomous-series.md
+docs/research/reviews/2026-10-11-escapes-around-a-paste.md
 docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
 docs/research/reviews/2026-10-11-repair-of-the-series.md
 docs/research/reviews/2026-10-11-the-gathering-of-a-paste.md
@@ -1702,6 +1703,30 @@ literal read as the error unraised, `::error{…}`, which lets a literal
 fail and a quote be built from its steps at the price of what `first`
 answers on a quote today; and the literal as it is, whose failure
 reaches the command line, which refuses it under JSON [D103].
+
+The path of an error beside its descriptor [D85], [D97]. The literal of
+an error leaves an empty path unwritten, as a reader writes it, and the
+descriptor the fail track reads is a map that holds it, so an error
+that waits in a container prints without its `:trail` and its
+descriptor with it, which the fifth milestone asks to print the same
+way:
+
+```qlang
+> [!{:a 1}]
+[!{:a 1}]
+> [!{:a 1}] | map ~(!| keys)
+[#[:a :trail]]
+```
+
+The alternatives are the literal writing the empty path as the
+descriptor does, `[!{:a 1 :trail []}]`, which costs a key in the print
+of every error a reader wrote in a container and a print unlike its
+source; the descriptor of an error whose path is empty holding no
+`:trail`, which changes the shape of a value and refuses `/trail` on
+it, and the verb `trail` with it, `~(/trail)`, unless the verb answers
+`[]` for the key it misses; and the two as they stand, the literal
+reading back to the error it was and the descriptor printing as any map
+does.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

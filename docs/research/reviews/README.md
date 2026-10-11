@@ -189,9 +189,9 @@ Each fate of the fourth review that it found holding in part is one of its findi
 
 [2026-10-11-the-gathering-of-a-paste.md](2026-10-11-the-gathering-of-a-paste.md), at 8f36d29e, over 95f12244..8f36d29e.
 
-Each fate of the fifth review that it found holding in part is one of its findings below.
+The fates of the fifth review it found holding in part stand in its findings below.
 
-1. D204 and the comments of the gathering stated it wider than the code, and a key spelled by an escape joined a gathering paste as text. Answered by 7e292e7b: a chunk that begins with an escape ends the gathering and is read as the key it is, an escape pending alone before a paste is the Escape key, which does nothing, the comments say what the code does, and four tests hold a chunk of one character, an arrow, Alt+Enter and a paste after the Escape key; and by 9f476293 for D204. The paste the review found read key by key after the Escape key is repaired rather than recorded.
+1. D204 and the comments of the gathering stated it wider than the code, and a key spelled by an escape joined a gathering paste as text. Answered by 7e292e7b: a chunk that begins with an escape ends the gathering and is read as the key it is, an escape pending alone before a paste is the Escape key, which does nothing, the comments say what the code does, and four tests hold a chunk of one character, an arrow, Alt+Enter and a paste after the Escape key; and by 9f476293 for D204. The paste the review found read key by key after the Escape key gathers, and a test holds it.
 2. D204's Source and Set aside told the bracketed paste, the dropped spelling of Alt+Enter and the key map untruly and cited no commit. Answered by 9f476293.
 3. The law of a failed element under code of one value said it passes every step. Answered by 7e292e7b: every step that rides `|`.
 4. Two cases of D202 said a part and a scalar modifier run a frame below. Answered by 7e292e7b: they meet the budget a frame below.

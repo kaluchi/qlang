@@ -182,12 +182,11 @@ export function makeSet(elements) {
 
 // The step an error literal leaves in a quote: an error of the tag written
 // before its bang, or of the kind of errors [D86], whose fields hold the
-// steps that compute them as written and an empty `:trail` where the
-// literal writes none, so the error its fields build is the step [D42].
+// steps that compute them as written, no `:trail` where the literal writes
+// none, so the error its fields build is the step [D42], [D209].
 export function makeErrorLiteralStep(fieldSteps, tag = ERROR_TAG) {
-  const descriptor = fieldSteps.has('trail') ? fieldSteps : new Map(fieldSteps).set('trail', Object.freeze([]));
   return Object.freeze(brandValueClass({
-    tag, descriptor, location: null, originalError: null
+    tag, descriptor: fieldSteps, location: null, originalError: null
   }, 'error'));
 }
 
@@ -331,14 +330,18 @@ export function isTrail(value) {
     && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
 }
 
+// An error holds the facts of its site and, once a step raised it or
+// handed it on, its path, `:trail`; one whose path is empty holds no
+// `:trail` [D209].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
     if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualValue: trail });
-  } else {
-    finalDescriptor = new Map(descriptor);
-    finalDescriptor.set('trail', Object.freeze([]));
+    if (trail.length === 0) {
+      finalDescriptor = new Map(descriptor);
+      finalDescriptor.delete('trail');
+    }
   }
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }

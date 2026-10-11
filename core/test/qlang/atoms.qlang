@@ -22,11 +22,12 @@
 :any/asPairs
   |~~ Each element of a vector as the pair of whether it failed and the
       value its parts are taken from: an error as the descriptor the
-      fail track reads, any other value as it is. The error rides a
-      second error past the step that pairs a value, which leaves its
-      trail on the second.
+      fail track reads, its path written into it, an empty one among
+      them, so the glue that raises it again resumes that path [D209],
+      any other value as it is. The error rides a second error past the
+      step that pairs a value, which leaves its trail on the second.
   ~~|
-  ~(map ~(!| ({:failed /} | raise) | [false /] !| [true /failed]))
+  ~(map ~(!| ({:failed (union {:trail (trail)})} | raise) | [false /] !| [true /failed]))
 
 :any/groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the

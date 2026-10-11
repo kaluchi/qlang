@@ -15,12 +15,12 @@
 //     literal or `raise`, wrote its `:trail`.
 //   `raisedBy(error, node)` — marks the error a node's own fault raised.
 //
-// Every error the runtime makes carries a path. The one value of the
-// kind of errors that may carry none is the step of an error literal
+// An error holds its path from its first stop, and one no step has raised
+// or handed on holds no `:trail` [D209]. The step of an error literal
 // whose `:trail` is no vector of stops, which its quote holds as written
-// [D53]: taken out of the quote, it waits in a container as the value it
-// is and passes the steps that skip it, having no stop to join, and a
-// step that answers it raises the refusal its literal meets when it runs.
+// [D53], waits in a container as the value it is and passes the steps
+// that skip it, having no stop to join, and a step that answers it raises
+// the refusal its literal meets when it runs.
 
 import { isErrorValue, isTrail, makeErrorValue, makeQuote, ErrorTrailNotVecError } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';
@@ -55,12 +55,12 @@ function withTrail(error, trail) {
 
 function withStop(error, stepQuote, subject) {
   const stop = Object.freeze(new Map([['step', stepQuote], ['subject', subject], ['skipped', makeQuote([])]]));
-  return withTrail(error, [...error.descriptor.get('trail'), stop]);
+  return withTrail(error, [...(error.descriptor.get('trail') ?? []), stop]);
 }
 
 export function answerOfStep(answer, stepQuoteOf, subject, env) {
   if (!isErrorValue(answer)) return answer;
-  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail'));
+  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail') ?? []);
   return withStop(onItsPath(answer, subject, env), stepQuoteOf(), subject);
 }
 
@@ -68,14 +68,14 @@ export function answerOfStep(answer, stepQuoteOf, subject, env) {
 // error literal that carries no path.
 function onItsPath(answer, subject, env) {
   const trail = answer.descriptor.get('trail');
-  if (isTrail(trail)) return answer;
+  if (trail === undefined || isTrail(trail)) return answer;
   return errorFromQlang(new ErrorTrailNotVecError({ actualValue: trail }), subject, env);
 }
 
 export function answerOfWord(answer, wordNode, subject) {
   if (!isErrorValue(answer)) return answer;
   if (isRaisedBy(answer, wordNode)) return withStop(answer, quoteOfBody(wordNode), subject);
-  return resumesItsTrail(answer) ? withTrail(answer, answer.descriptor.get('trail')) : answer;
+  return resumesItsTrail(answer) ? withTrail(answer, answer.descriptor.get('trail') ?? []) : answer;
 }
 
 // An error written as a value, which no step has raised or handed on,

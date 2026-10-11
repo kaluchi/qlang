@@ -84,3 +84,11 @@
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| | :Role/k ::holds~(count | gt 5) | |~~ see ::Role~(x) ~~| !| type","expect":"::Role/k","decision":"D206"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| | :Role/k ::holds~(count | gt 0) | |~~ see ::Role~(x) ~~| | segments | /1 | type","expect":"::Role","decision":"D206"}
 {"name":"an-error-a-quote-holds-under-a-label-opens-to-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | [(~(::Box!{:a 1}) | first !| /)] | first !| type","expect":"::Box/k","decision":"D206"}
+{"name":"an-error-no-step-raised-prints-without-a-trail","query":"[!{:a 1}] | print","expect":"\"[!{:a 1}]\"","decision":"D209"}
+{"name":"its-descriptor-prints-without-a-trail-as-it-does","query":"[!{:a 1}] | map ~(!| / | print)","expect":"[\"::error{:a 1}\"]","decision":"D209"}
+{"name":"an-error-no-step-raised-holds-its-facts-alone","query":"[!{:a 1}] | map ~(!| keys)","expect":"[#[:a]]","decision":"D209"}
+{"name":"the-path-of-an-error-no-step-raised-is-empty","query":"[!{:a 1}] | map ~(!| trail)","expect":"[[]]","decision":"D209"}
+{"name":"the-trail-of-an-error-no-step-raised-is-no-key-of-it","query":"[!{:a 1}] | map ~(!| /trail) !| [type /key]","expect":"[::proj/KeyNotInMapError :trail]","decision":"D209"}
+{"name":"a-raised-error-holds-its-path","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]","decision":"D209"}
+{"name":"an-error-literal-that-writes-an-empty-trail-holds-none","query":"::Oops!{:a 1 :trail []} !| keys","expect":"#[:a]","decision":"D209"}
+{"name":"an-error-literal-in-a-container-that-writes-an-empty-trail-holds-none","query":"[!{:a 1 :trail []}] | map ~(!| keys)","expect":"[#[:a]]","decision":"D209"}

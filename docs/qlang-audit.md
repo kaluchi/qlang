@@ -1487,12 +1487,9 @@ name the workspace they came from [D38]; and a host's command is the
 language's with its noun as the first value [D37].
 
 The others stand beside the suite: one start command returns the root
-doc; `:trail` prints the same way on an error value and on its
-materialized descriptor, where the error literal hides an empty trail
-and the descriptor shows it; a renderer loads the documents of the tags
-and keywords an answer carries that the session has not been shown, and
-withholds the ones it has; the language has no effect marker and no
-effect flag.
+doc; a renderer loads the documents of the tags and keywords an answer
+carries that the session has not been shown, and withholds the ones it
+has; the language has no effect marker and no effect flag.
 
 After the fifth milestone the remaining surfaces follow: the site is
 decided, rendering the root doc and the catalog or reduced to the
@@ -1712,30 +1709,6 @@ literal read as the error unraised, `::error{…}`, which lets a literal
 fail and a quote be built from its steps at the price of what `first`
 answers on a quote today; and the literal as it is, whose failure
 reaches the command line, which refuses it under JSON [D103].
-
-The path of an error beside its descriptor [D85], [D97]. The literal of
-an error leaves an empty path unwritten, as a reader writes it, and the
-descriptor the fail track reads is a map that holds it, so an error
-that waits in a container prints without its `:trail` and its
-descriptor with it, which the fifth milestone asks to print the same
-way:
-
-```qlang
-> [!{:a 1}]
-[!{:a 1}]
-> [!{:a 1}] | map ~(!| keys)
-[#[:a :trail]]
-```
-
-The alternatives are the literal writing the empty path as the
-descriptor does, `[!{:a 1 :trail []}]`, which costs a key in the print
-of every error a reader wrote in a container and a print unlike its
-source; the descriptor of an error whose path is empty holding no
-`:trail`, which changes the shape of a value and refuses `/trail` on
-it, and the verb `trail` with it, `~(/trail)`, unless the verb answers
-`[]` for the key it misses; and the two as they stand, the literal
-printing as its source was written, at the price of the line of the
-fifth milestone on `:trail`.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call

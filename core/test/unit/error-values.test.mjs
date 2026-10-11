@@ -11,22 +11,18 @@ import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/erro
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces frozen error object with tag on JS-header and the empty :trail when descriptor lacks one', () => {
-    // makeErrorValue takes the identity tag as a first-class arg
-    // (rides on the JS-header `tag` slot, opaque to descriptor
-    // projection) and enforces the invariant that every error
-    // descriptor carries :trail — the empty path when no step has
-    // raised the error or handed it on, otherwise the stops of its
-    // path [D85]. The returned descriptor is a fresh Map (not the
-    // caller's original input) when the input lacked :trail.
+  it('produces a frozen error under its tag that holds no :trail while no step raised it [D209]', () => {
     const tag = makeTag('Oops');
-    const descriptor = new Map([['message', 'boom']]);
-    const errorVal = makeErrorValue(tag, descriptor);
+    const errorVal = makeErrorValue(tag, new Map([['message', 'boom']]));
     expect(isErrorValue(errorVal)).toBe(true);
     expect(Object.isFrozen(errorVal)).toBe(true);
     expect(errorVal.tag).toBe(tag);
-    expect(errorVal.descriptor.get('trail')).toEqual([]);
-    expect(errorVal.descriptor.has('kind')).toBe(false);
+    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
+  });
+
+  it('takes an empty :trail out of the facts it is handed [D209]', () => {
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'boom'], ['trail', Object.freeze([])]]));
+    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
   it('preserves caller-supplied :trail in descriptor', () => {
@@ -169,14 +165,14 @@ describe('errorFromQlang', () => {
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
     expect(desc.get('actualType')).toEqual(makeTag('string'));
-    expect([...desc.keys()]).toEqual(['actualType', 'actualValue', 'trail']);
+    expect([...desc.keys()]).toEqual(['actualType', 'actualValue']);
   });
 
-  it('converts CallUnknownNameError with the facts its label declares before the trail', async () => {
+  it('converts CallUnknownNameError with the facts its label declares', async () => {
     const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
     const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['name', 'addresses', 'trail']);
+    expect([...errorVal.descriptor.keys()]).toEqual(['name', 'addresses']);
   });
 
   it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
@@ -184,10 +180,10 @@ describe('errorFromQlang', () => {
     expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
   });
 
-  it('converts a refusal whose site hands no facts to the trail alone', async () => {
+  it('converts a refusal whose site hands no facts to an error of no facts [D209]', async () => {
     const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['trail']);
+    expect([...errorVal.descriptor.keys()]).toEqual([]);
   });
 });
 
@@ -201,7 +197,7 @@ describe('errorFromForeign', () => {
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     expect(errorVal.tag).toEqual(makeTag('call/HostFailureError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
     expect(errorVal.descriptor.get('message')).toBe('something went wrong');
     expect(errorVal.originalError).toBe(jsErr);
   });
@@ -216,7 +212,7 @@ describe('errorFromForeign', () => {
       }
     }
     const errorVal = errorFromForeign(new AppError(), null, await langRuntime());
-    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
     expect(errorVal.originalError.code).toBe('NOT_FOUND');
   });
 

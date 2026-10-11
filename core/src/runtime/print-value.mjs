@@ -82,17 +82,11 @@ function printListLike(open, elements, indent, printedOf) {
 }
 
 // An error writes the tag of its site before its bang, and none for the
-// kind of errors [D64]; an empty path goes unwritten, as the literal
-// leaves it [D85].
+// kind of errors [D64], and then its facts and its path as it holds them.
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  const payload = new Map();
-  for (const [k, v] of e.descriptor) {
-    if (k === 'trail' && v.length === 0) continue;
-    payload.set(k, v);
-  }
-  if (payload.size === 0) return tagHead + '!{}';
-  return tagHead + printMapLike('!{', payload, indent, printedOf);
+  if (e.descriptor.size === 0) return tagHead + '!{}';
+  return tagHead + printMapLike('!{', e.descriptor, indent, printedOf);
 }
 
 // A payload that opens with a letter, a digit or a minus stands in

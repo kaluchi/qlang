@@ -22,7 +22,7 @@ the decision it stands by. A finding not yet settled says open.
 9. Prose and examples. Answered in part: `the than` left with the part named `value` (a7b3f58a), and the law `:qlang/rounds` and the bare `::call~(add 3)` left the pages; `is read first by parseJson` and the print of a law that writes JSON as qlang are open.
 10. The literal of a doc. Did not hold for an unbalanced `~(`, the doc closing (marked ✗); a comment and a doc told apart by one tilde is open.
 11. The process. Open, a matter of the process.
-12. The implementation. Answered in part by D200: a word of the root runs in the frame of its source's bare values over the root, so a call copies the frame of its source's bare values alone, which the sources of the language leave empty. Open: every node runs through `async`.
+12. The implementation. Answered in part by D200: a word of the root runs in the frame of its source's bare values over the root, so a call copies the frame of its source's bare values alone, which the sources of the language leave empty, and by D202: a call reads the plan of its word, its parts, their invariants and its answer, once for the root where the scope declares nothing under the word, and builds its args where something reads them, so the queries D202 times take about a third of the time they took. Open: every node runs through `async`.
 
 Its proposals, the fifth section, and its disagreements with the audit, the sixth, are open, but for these: hints for names of other languages, `map` among them, answered by D181 for `map`; the literal that fails at its first error, a question of the audit for the maintainer's word; and the page of a refusal named by its site, answered with the fifth finding.
 

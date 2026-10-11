@@ -159,11 +159,44 @@ function kindsNamedBy(value) {
   return null;
 }
 
-// The record of the verb of `verbName` residing on a kind, or null.
+// The record of the verb of `verbName` residing on a kind, or null; a
+// scope whose frame declares no name with a path reads the root's.
 function residenceOf(env, kindName, verbName) {
-  const record = nodeOf(env, `${kindName}/${verbName}`);
+  const address = `${kindName}/${verbName}`;
+  return pathNamesOf(env).length === 0 ? onceForRoot(ROOT_RESIDENCES, env, address, residenceAt) : residenceAt(env, address);
+}
+
+const ROOT_RESIDENCES = new WeakMap();
+
+function residenceAt(env, address) {
+  const record = nodeOf(env, address);
   return record !== null && residesOn(record, env) ? record : null;
 }
+
+// onceForRoot(table, scope, key, read) → what `read(scope, key)` answers,
+// read once for the root of the scope, which a change replaces whole.
+export function onceForRoot(table, scope, key, read) {
+  const root = rootOf(scope);
+  let byKey = table.get(root);
+  if (byKey === undefined) table.set(root, byKey = new Map());
+  let value = byKey.get(key);
+  if (value === undefined) byKey.set(key, value = read(scope, key));
+  return value;
+}
+
+// pathNamesOf(env) → the names with a path the frame of a scope declares;
+// a scope never changes once made, so they are read once for it.
+export function pathNamesOf(env) {
+  let names = PATH_NAMES.get(env);
+  if (names === undefined) {
+    names = [];
+    for (const [name, entry] of env) if (typeof name === 'string' && name.includes('/') && isBinding(entry)) names.push(name);
+    PATH_NAMES.set(env, names);
+  }
+  return names;
+}
+
+const PATH_NAMES = new WeakMap();
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
 // of the value, the kind of every tagged value after a tag [D78], the

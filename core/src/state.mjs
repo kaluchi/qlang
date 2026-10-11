@@ -1,35 +1,23 @@
-// State — the evaluator's (pipeValue, env) pair plus the depth budget.
+// The state of the evaluator: the value in the pipe, the scope and the
+// depth of the frames nested under the query; a step answers a new state,
+// so a fork leaves the declarations of its inside behind by keeping the
+// state it started from.
 //
-// State is meta-notation: it lives only inside the evaluator.
-// Users never see or construct it. Within the evaluator we model
-// it as a frozen object carrying the semantic pair — `pipeValue`,
-// `env` — and one bookkeeping field, `depth`: how many nested
-// evaluation frames (verb bodies, modifiers run at a call, `apply`
-// re-entry, Quote-bodied tag constructors, doc-segment
-// literals) sit between the root and this
-// state. Every step returns a fresh State carrying the next
-// pipeValue or the next env; the previous State stays observable
-// to ancestor frames so fork boundaries can discard inner-env
-// writes without copying.
-//
-// The env is a JS Map from the names a reader declared to their
-// records, the frame, over the root the host's sources declared, which
-// sits under a key no name spells and is shared by every frame [D153]; a
-// lookup reads the frame, then the root.
+// The scope is a map from the names a reader declared to their records,
+// the frame, over the root the host's sources declared, which sits under
+// a key no name spells and is shared by every frame [D153]; a lookup
+// reads the frame, then the root.
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY } from './env-keys.mjs';
 
-// EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
-// that calls itself without a base case, a Quote that applies
-// itself, a tag constructor that mints its own tag: each descends
-// one frame per call and lifts `EvaluationDepthExceededError` on
-// the frame past the budget, so the fail-track reports the runaway
-// while the host's heap stays bounded.
+// The deepest frame `nestState` admits: a runaway, a word that calls
+// itself without end, is refused on the frame past it, and the host's
+// heap stays bounded.
 export const EVAL_DEPTH_LIMIT = 1000;
 
 function makeState(pipeValue, env, depth) {
-  return Object.freeze({ pipeValue, env, depth });
+  return { pipeValue, env, depth };
 }
 
 // rootState(pipeValue, env) → State at depth 0 — the entry frame of

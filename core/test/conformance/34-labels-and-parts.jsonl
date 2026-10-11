@@ -24,3 +24,4 @@
 {"name":"a-word-of-no-part-reads-its-args","query":":any/n ~(args | count) | 5 | n","expect":"0","decision":"D173"}
 {"name":"a-law-under-a-word-holds-a-call-that-gives-nothing","query":":Box |~~ B ~~| | :Box/pick ~(5) | :Box/pick/NothingGivenError ::holds~(count | gt 0) | ::Box[1] | pick !| type","expect":"::Box/pick/NothingGivenError","decision":["D169","D173"]}
 {"name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":":limit 5 | [1] | tag ::limit !| type","expect":"::construct/TagNotKindError","decision":"D173"}
+{"name":"an-invariant-a-reader-declares-under-a-part-of-a-word-of-the-root-holds-at-the-next-call","query":"1 | add 200 | :before / | :number/add/addend/TooBigError ::holds~(lt 100) | 1 | add 200 !| [before type]","expect":"[201 ::number/add/addend/TooBigError]","decision":"D202"}

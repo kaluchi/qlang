@@ -268,7 +268,7 @@
       and a divisor that may be zero is tested first,
       `if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
   ~~|
-  ::holds~(eq 0 | not)
+  ::holds~(ne 0)
 
 :number/div/SubjectNotNumberError
   |~~ `div` divides a number: two fields of one record divide by
@@ -330,7 +330,7 @@
   |~~ The divisor is not zero: a division by zero leaves no remainder,
       and a value that may be zero is asked first, `if (eq 0) …`.
   ~~|
-  ::holds~(eq 0 | not)
+  ::holds~(ne 0)
 
 :number/mod/SubjectNotNumberError
   |~~ `mod` divides a number: text that holds one is read first by

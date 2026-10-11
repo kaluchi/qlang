@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, partsOfName, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -291,7 +291,11 @@ async function constructedBy(construct, payload, state) {
 // holds. An invariant of each element names the index of the element it
 // refuses, from zero.
 async function refusalOfInvariants(address, value, state, scope) {
-  for (const { address: invariantAddress, query, kinds, elementKinds } of invariantsOf(scope, address)) {
+  return await refusalOf(invariantsOf(scope, address), value, state, scope);
+}
+
+async function refusalOf(invariants, value, state, scope) {
+  for (const { address: invariantAddress, query, kinds, elementKinds } of invariants) {
     const elements = elementKinds === null ? null : walkToKinds(value, ['vec']);
     if (elements !== null) {
       const refused = refusedElementOf(elements.served, elementKinds);
@@ -309,19 +313,20 @@ async function refusalOfInvariants(address, value, state, scope) {
 
 // The invariants declared under an address, each with the kinds it asks
 // for when it is one step `is`, of the value or of each element, read
-// once per invariant.
-const KINDS_OF_INVARIANT = new WeakMap();
+// once for each list of them.
+const INVARIANTS_READ = new WeakMap();
 
 function invariantsOf(env, address) {
-  return invariantsUnder(env, address).map(([invariantAddress, query]) => {
-    let asked = KINDS_OF_INVARIANT.get(query);
-    if (asked === undefined) {
+  const declared = invariantsUnder(env, address);
+  let read = INVARIANTS_READ.get(declared);
+  if (read === undefined) {
+    read = declared.map(([invariantAddress, query]) => {
       const ast = astOfQuote(query);
-      asked = { kinds: kindsAskedBy(ast), elementKinds: elementKindsAskedBy(ast) };
-      KINDS_OF_INVARIANT.set(query, asked);
-    }
-    return { address: invariantAddress, query, ...asked };
-  });
+      return { address: invariantAddress, query, kinds: kindsAskedBy(ast), elementKinds: elementKindsAskedBy(ast) };
+    });
+    INVARIANTS_READ.set(declared, read);
+  }
+  return read;
 }
 
 // A refusal named by the address of what refused [D166], its facts with
@@ -546,17 +551,63 @@ async function applyMember(record, lambdas, state) {
   const walked = subjectServed(state.env, address, labelName, state.pipeValue);
   if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, state);
-  const called = await argsOf(address, partsOfName(scope, address), lambdas, state, scope, isQuote(member));
+  const plan = planOf(scope, address);
+  const called = await argsOf(plan, lambdas, state, scope, isQuote(member));
   if (isErrorValue(called)) return withPipeValue(state, called);
   const answer = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
     : await runHostMember(member, walked, called, state);
   if (isErrorValue(answer)) return withPipeValue(state, answer);
-  const answerDefinition = answerOf(scope, address);
-  const brought = answerDefinition === null ? answer : await answerUnderItsLabel(answer, answerDefinition, labelName, walked, state);
+  const brought = plan.answer === null ? answer : await answerUnderItsLabel(answer, plan.answer, labelName, walked, state);
   if (isErrorValue(brought)) return withPipeValue(state, brought);
-  const refused = answerDefinition === null ? null : await refusalOfInvariants(answerDefinition.address, brought, state, scope);
+  const refused = plan.answer === null ? null : await refusalOf(plan.answerInvariants, brought, state, scope);
   return withPipeValue(state, refused ?? brought);
+}
+
+// The plan of a call of the word at an address: its parts in the order of
+// their places, each with its address, its selector, its invariants and
+// what it takes, the places they read, the tag of the args and their
+// invariants, and the answer with its invariants. A scope that declares
+// no name under the address calls the word as the root declares it, so
+// its plan is read once for the root.
+function planOf(scope, address) {
+  return declaresUnder(scope, address) ? planIn(scope, address) : onceForRoot(ROOT_PLANS, scope, address, planIn);
+}
+
+const ROOT_PLANS = new WeakMap();
+
+// The first invariant of a part that asks for kinds, `is` of the value or
+// of each element, or undefined: the part is handed as the value of the
+// kind the walk of its tags reaches, and a part that asks for a quote
+// takes code [D166], [D167], [D169].
+function kindInvariantIn(invariants) {
+  return invariants.find(invariant => invariant.kinds !== null || invariant.elementKinds !== null);
+}
+
+function planIn(scope, address) {
+  const declaredParts = partsOfName(scope, address);
+  const parts = declaredParts.map(([name, partRecord]) => {
+    const partAddress = partRecord.get('name').name;
+    const selector = selectorOf(partRecord);
+    const invariants = invariantsOf(scope, partAddress);
+    return { name: keyword(name), address: partAddress, selector, invariants, kindInvariant: kindInvariantIn(invariants) };
+  });
+  const answer = answerOf(scope, address);
+  return {
+    address, parts, places: placesReadBy(declaredParts), argsTag: makeTagKeyword(address),
+    argsInvariants: invariantsOf(scope, address),
+    taken: parts.map(({ selector, kindInvariant }) => ({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindInvariant?.kinds?.includes('quote') ?? false) })),
+    answer, answerInvariants: answer === null ? [] : invariantsOf(scope, answer.address)
+  };
+}
+
+// Whether a scope declares a name under an address, a part, an invariant
+// or an answer.
+function declaresUnder(scope, address) {
+  const names = pathNamesOf(scope);
+  if (names.length === 0) return false;
+  const prefix = `${address}/`;
+  return names.some(name => name.startsWith(prefix));
 }
 
 // The subject a word serves: the value of its label the walk of the
@@ -630,37 +681,35 @@ function scopeOfMember(member, state) {
 // [D173]. Answers the values of the parts in their order and, for a word
 // of the language, the scope of its body, where each part is bound by its
 // name and the args as `args`; a host's word reads the values alone.
-async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
+async function argsOf(plan, lambdas, state, scope, bindsNames) {
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
     const value = await lambda(state.pipeValue);
-    if (isErrorValue(value)) return refusalOfComputedCode(parts, place, value, scope);
+    if (isErrorValue(value)) return refusalOfComputedCode(plan.parts, place, value, scope);
     values.push(value);
   }
-  const args = makeTaggedInstance(makeTagKeyword(address), values);
-  const places = placesReadBy(parts);
-  if (places !== null && values.length > places) return refusalUnder(argsBeyondPartsAddress(address), { places, actualValue: args }, scope);
-  const argsRefused = await refusalOfInvariants(address, args, state, scope);
+  let args = null;
+  const argsValue = () => args ??= makeTaggedInstance(plan.argsTag, values);
+  if (plan.places !== null && values.length > plan.places) return refusalUnder(argsBeyondPartsAddress(plan.address), { places: plan.places, actualValue: argsValue() }, scope);
+  const argsRefused = plan.argsInvariants.length === 0 ? null : await refusalOf(plan.argsInvariants, argsValue(), state, scope);
   if (argsRefused !== null) return argsRefused;
-  let bodyEnv = bindsNames ? envSet(scope, 'args', makeBinding({ name: keyword('args'), value: args })) : null;
+  let bodyEnv = bindsNames ? envSet(scope, 'args', makeBinding({ name: ARGS_NAME, value: argsValue() })) : null;
+  const overArgs = () => nestState(state, argsValue(), scope);
   const partValues = [];
-  const taken = [];
-  for (const [partName, partRecord] of parts) {
-    const partAddress = partRecord.get('name').name;
-    const selector = selectorOf(partRecord);
-    const part = await partOf(selector, values, nestState(state, args, scope));
-    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(notGivenAddress(partAddress), { actualValue: args }, scope);
+  for (const { name, address: partAddress, selector, invariants, kindInvariant } of plan.parts) {
+    const part = await partOf(selector, values, overArgs);
+    if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(notGivenAddress(partAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(part)) return part;
-    const refused = await refusalOfInvariants(partAddress, part, state, scope);
+    const refused = await refusalOf(invariants, part, state, scope);
     if (refused !== null) return refused;
-    const kindInvariant = kindInvariantOf(scope, partAddress);
     const handed = servedByInvariant(kindInvariant, part);
     partValues.push(handed);
-    taken.push({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindInvariant?.kinds?.includes('quote') ?? false) });
-    if (bindsNames) bodyEnv = envSet(bodyEnv, partName, makeBinding({ name: keyword(partName), value: handed }));
+    if (bindsNames) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: handed }));
   }
-  return { values: partValues, taken, bodyEnv };
+  return { values: partValues, taken: plan.taken, bodyEnv };
 }
+
+const ARGS_NAME = keyword('args');
 
 // A value the call computed that answered an error where a part that
 // asks for code reads, by an invariant `is` of a quote or, for the part
@@ -670,12 +719,9 @@ async function argsOf(address, parts, lambdas, state, scope, bindsNames) {
 // the args naming the place, from zero; anywhere else the error is the
 // answer [D67], [D167], [D169].
 function refusalOfComputedCode(parts, place, error, scope) {
-  const reading = parts.find(([, partRecord]) => selectorOf(partRecord).place === place)
-    ?? parts.find(([, partRecord]) => selectorOf(partRecord).readsArgs);
+  const reading = parts.find(({ selector }) => selector.place === place) ?? parts.find(({ selector }) => selector.readsArgs);
   if (reading === undefined) return error;
-  const [, partRecord] = reading;
-  const invariant = kindInvariantOf(scope, partRecord.get('name').name);
-  const { readsArgs } = selectorOf(partRecord);
+  const { kindInvariant: invariant, selector: { readsArgs } } = reading;
   const asked = invariant === undefined ? null : readsArgs ? invariant.elementKinds : invariant.kinds;
   if (asked === null || !asked.includes('quote')) return error;
   return refusalUnder(invariant.address, readsArgs ? { index: place, actualValue: error } : { actualValue: error }, scope);
@@ -684,12 +730,13 @@ function refusalOfComputedCode(parts, place, error, scope) {
 // The value a part's selector reads from the args: a selector of one
 // step that reads a place, `/n` or `at n default`, is the value at the
 // place, read here as `at` reads it, so the parts of `at` itself read
-// without calling it; any other selector runs as code over the args.
-async function partOf({ ast, place, onePlace, strict, fallback }, values, state) {
-  if (!onePlace) return (await evalBody(ast, state)).pipeValue;
+// without calling it; any other selector runs as code over the args, a
+// frame below the call.
+async function partOf({ ast, place, onePlace, strict, fallback }, values, overArgs) {
+  if (!onePlace) return (await evalBody(ast, overArgs())).pipeValue;
   if (place < values.length) return values[place];
   if (strict) return MISSED_PLACE;
-  return fallback === null ? null : (await evalBody(fallback, state)).pipeValue;
+  return fallback === null ? null : (await evalBody(fallback, overArgs())).pipeValue;
 }
 
 // A strict read of a place past the values of the args.
@@ -709,14 +756,6 @@ function servedByInvariant(invariant, part) {
   if (elements === null) return part;
   const served = Array.from(elements.served, element => walkToKinds(element, invariant.elementKinds).served);
   return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
-}
-
-// The first invariant declared under an address that asks for kinds, `is`
-// of the value or of each element, or undefined: a part is handed as the
-// value of the kind the walk of its tags reaches, and a part that asks
-// for a quote takes code [D166], [D167], [D169].
-function kindInvariantOf(env, address) {
-  return invariantsOf(env, address).find(invariant => invariant.kinds !== null || invariant.elementKinds !== null);
 }
 
 // The kinds an invariant of one step `is ::k …` asks for, or null.

@@ -1,39 +1,10 @@
-// argv parser for the qlang CLI.
-//
-// Reads the trailing slice of `process.argv` (the bin name and the
-// node binary already stripped by the caller) and returns a
-// `cliInvocation` describing the user's intent — five shapes today:
-//
+// parseArgv(args) → what the arguments after the command ask for, one of
 //   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
 //   { kind: 'repl', budget, initialQuery }
-//   { kind: 'help' }
-//   { kind: 'version' }
-//   { kind: 'usageError', message }
-//
-// `inputFormat` is one of 'auto' | 'json' | 'raw' and decides how
-// piped stdin lands on the cell's initial pipeValue plus how the
-// success-track value encodes back to stdout. Default is 'auto':
-// JSON.parse stdin if it looks parseable, otherwise hand it to the
-// query as a String. `--json` forces the parse (and fails loudly
-// on malformed input); `--raw` skips parsing entirely.
-//
-// `budget` is null, a value printing whole and an error as its alert, or
-// the characters every answer prints within that `--budget=N` asked for
-// [D120], [D184].
-//
-// `colorMode` is one of 'auto' | 'always' | 'never' and decides
-// whether script-mode output runs through `highlightAnsi`. Default
-// `auto` paints when stdout is a TTY and stays raw when the stream
-// is piped or redirected — same convention git / grep / ls follow.
-// `NO_COLOR` / `FORCE_COLOR` env vars feed into the resolution
-// downstream; the explicit `--color` flag wins over both.
-//
-// `VERSION_LINE` reads `@kaluchi/qlang-cli`'s own `package.json` at
-// module-load time through `createRequire` so the release script's
-// `package.json` bump propagates without a per-release source edit.
-//
-// Pure function, no side effects. main.mjs branches on `kind` to
-// dispatch into the rest of the runtime.
+//   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
+// the format of the input `auto`, `json` or `raw`, the colour `auto`,
+// `always` or `never`, and the budget null or the characters every
+// answer prints within [D120], [D184].
 
 import { createRequire } from 'node:module';
 
@@ -51,19 +22,18 @@ answer to stdout in the form the input came in. JSON input is the
 subject as values, an object a map whose keys are keywords, and the
 answer is written as JSON, a set as an array and a keyword as its
 name, where a value JSON has no form for, a quote or a tag, is refused
-as ::cli/AnswerNotJsonError.
-Text input is a String, and the answer is written as its print;
-'| json' writes JSON text. Use -i for an interactive REPL, a query
-after it run as its first cell. Quote
-the query so the shell does not split on whitespace or pipe
-characters. qlang '::qlang | doc' reads the language, and
-qlang '::cli | doc' this command line.
+as ::cli/AnswerNotJsonError. Text input is a string, and the answer
+is written as its print; '| json' writes JSON text. Use -i for an
+interactive REPL, a query after it run as its first cell. Quote the
+query so the shell does not split on whitespace or pipe characters.
+qlang '::qlang | doc' reads the language, and qlang '::cli | doc'
+this command line.
 
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure
-              hand the raw text to the query as a String
+              hand the raw text to the query as a string
   --json      force JSON.parse on stdin; exit 1 on parse failure
-  --raw       skip parsing — stdin is the String subject, and the
+  --raw       skip parsing — stdin is the string subject, and the
               answer is written as its print
 
 Output budget:

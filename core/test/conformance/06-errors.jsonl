@@ -32,3 +32,4 @@
 {"name":"reduce-reducer-non-callable-value","query":"5 | :five / | [1 2 3] | reduce 0 ~(five) !| type","expect":"::vec/reduce/ReducerNotBinaryError"}
 {"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce !{:kind :oops} ~(add) !| type","expect":"::error","decision":"D64"}
 {"name":"reduce-reducer-error-shortcircuits","query":":any/r ~(!{:kind :stop}) | :any/r/x ~(/0) | [1 2 3] | reduce 0 ~r !| type","expect":"::error","decision":"D64"}
+{"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D158"}

@@ -40,3 +40,23 @@ Its proposals, the fifth section, and its disagreements with the audit, the sixt
 8. The process eats the design. Open, a matter of the process; the findings of the first audit not followed, answered by this ledger.
 
 Its proposals and its disagreements are open, but for the literal that fails at its first error, answered by D210, and the topic that is a label, a question of the audit for the maintainer's word.
+
+## 2026-10-11 · 6f8c9422
+
+[2026-10-11-6f8c9422.md](2026-10-11-6f8c9422.md), and the model's reading of it, [2026-10-11-6f8c9422-reading.md](2026-10-11-6f8c9422-reading.md). The problems, its third section:
+
+1. The role of a definition read from the form of its value. New: a label whose declaration holds an invariant in its body is a value, so `:Box |~~ A box. ~~| ::holds~(/w | is ::number) | :Box/area ~(mulOf /w /h) | ::Box{:w 2 :h 3} | area` answers `::call/UnknownNameError` with no addresses. Open, the layer of declarations of the work on names.
+2. No abstraction over two inputs: `reduce` takes a quote of one word, and the family `…Of` is incomplete and redundant, `{:price 4 :qty 3} | [/price /qty] | reduce 1 ~mul` answering `12`. Open, with the question of a helper of one word.
+3. `groupBy` merges distinct values under one key, `[1 "1" :"1"] | groupBy ~(/)` answering `{:"1" [1 "1" :"1"]}`. Open; D201, the model's, stands for a key of a map being a keyword.
+4. The print of a failure against D209: misread, `:trail []` marking a failure raised with no step, which `raise` resumes; D219 cites D209 (b5c89c30). A query that does not parse is written with the prose of its page (b5c89c30); `:uri "cell-1"` in its print is open.
+5. `raise` on a map stands by D209, a second spelling of `!{…} | raise` whose removal waits on the maintainer's word; `runLaws` answered by D220, its `:error` the error at rest and its `:says` the page.
+6. Code computed or quoted by the word, `if`, `cond`, `allOf`: stands, each by its own reading, D197 for `allOf`.
+7. Second spellings in the grammar: `a | !| b` stands by D130, a group touching a name by the grammar's rule; the paired `Line*` rules are open; the refusal of a comma between modifiers says how they are separated (b5c89c30).
+8. Scars: the broken wraps of the first page, of `runLaws` and of `raise` answered (b5c89c30); `lambda` in `eval.mjs`, the cases `as-is-no-word` and `22-json-type-key-collision`, and the words for the concepts open; `[Dnn]` in the comments stands, the sources citing the records.
+9. Words that read no subject on `::any`, `@in`, `@out`, `@err`, `@tap`, `env` and `kinds`, and `::cli | manifest` answering `#[]`; the marker `@`, which D2 took out of the core, still there. Open.
+10. The ban on a value named by a word of the vocabulary, D166. Open, a part of the work on names.
+11. Prose written for its author: the page of a zero divisor shows the record its test stands on (b5c89c30); the page of `UnknownNameError` and the length of the first page are open.
+12. The process eats the design. Open, a matter of the process.
+13. The implementation: `scopeOfMember` copying the scope at each call, a missed place told by the name of its tag (`core/src/eval.mjs:807-809`) and `async` on every node are open; the cold start is measured in the audit's question and its work waits on the maintainer's word.
+
+Its proposals and its disagreements are open, but for the page of a parse refusal and the strings of `runLaws`, answered with the fourth and fifth findings.

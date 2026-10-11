@@ -225,3 +225,17 @@ The fates of the seventh review it found holding in part stand in its findings b
 5. The audit's third alternative on the path of an error named no cost. Answered by 606ffc1d: the line of the fifth milestone on `:trail`.
 
 The differential run of the repair found a gathered paste that held two end markers landing the second as text; b38aa741 takes every marker out, and a test holds it.
+
+## 2026-10-11 · an escape after an escape
+
+[2026-10-11-an-escape-after-an-escape.md](2026-10-11-an-escape-after-an-escape.md), at ac91c086, over 926f2476..ac91c086.
+
+The fates of the eighth review it found holding in part stand in its findings below.
+
+1. No test held every begin marker taken out of a gathered paste. Answered by e194acda: a test fails on a copy that takes it out once.
+2. No test held a character beyond the basic plane typed alone ending a gathering. Answered by e194acda: a test fails on a copy that counts a key typed alone in code units.
+3. An escape and a second escape in one chunk were dropped together and the rest of the key typed, so Alt with an arrow typed its tail and an escape before a bracketed paste cut it. Answered by e194acda: an escape that arrives while one is pending opens its own sequence, and two tests hold Alt with an arrow and the paste; and by 7e61353e for D204. Under it the rule of the Escape key reads `!typedAlone` and `!keys` alike, so the cut that swaps them leaves the mutations.
+4. A fate said the editor reads an emoji as a letter, which an emoji of several code points is not. Answered by 7e61353e: a character beyond the basic plane.
+5. The comment at the head of the line editor named a chunk longer than one character as a paste. Answered by e194acda: text whose first line feed is not its last character.
+
+The gatherings with a second marker, which the review found left out of a summary, stand in the last paragraph of the eighth review's fates.

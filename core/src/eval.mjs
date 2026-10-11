@@ -205,20 +205,12 @@ async function evalMapLit(node, state) {
 }
 
 // The tag of an error literal is the one written before its bang,
-// `::Foo!{…}` [D86], else a tag name under `:kind`, else the kind of
-// errors [D64]; a `:kind` of another value stays a field.
+// `::Foo!{…}` [D86], else the kind of errors [D64]; every entry is a
+// fact, `:kind` among them [D190].
 async function evalErrorLit(node, state) {
   const errorDescriptor = new Map();
-  let tag = ERROR_TAG;
-  for (const entry of node.entries) {
-    const entryValue = await wordAnswer(entry.value, state);
-    if (entry.key.name === 'kind' && isTagKeyword(entryValue)) {
-      tag = entryValue;
-      continue;
-    }
-    errorDescriptor.set(entry.key.name, entryValue);
-  }
-  if (node.tag !== null) tag = makeTagKeyword(node.tag);
+  for (const entry of node.entries) errorDescriptor.set(entry.key.name, await wordAnswer(entry.value, state));
+  const tag = node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag);
   // A literal that writes its `:trail` resumes that path [D85].
   const minted = makeErrorValue(tag, errorDescriptor, { location: node.location });
   return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);

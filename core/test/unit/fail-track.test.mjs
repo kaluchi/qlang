@@ -207,15 +207,11 @@ describe('per-site error classes carry unique identity', () => {
     expect(r).toEqual(makeTagKeyword('Box'));
   });
 
-  it('raise lifts a `:kind` tag field onto the JS-header tag', async () => {
-    // When the source Map carries no JS-header tag but has a
-    // `:kind ::Foo` tag entry, raise lifts it onto
-    // the resulting error's `tag` slot and drops the field from
-    // the descriptor — the same identity invariant the
-    // `evalErrorLit` literal path enforces.
-    const result = await evalQuery(':MyTag |~~ MyTag. ~~| | {:kind ::MyTag :detail "x"} | raise');
+  it('raise takes the tag the map carries and keeps every entry a fact', async () => {
+    // A `:kind` entry names no tag [D190]: the tag is the map's own.
+    const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
-    expect(result.descriptor.has('kind')).toBe(false);
+    expect(result.descriptor.get('kind')).toEqual(makeTagKeyword('Other'));
     expect(result.descriptor.get('detail')).toBe('x');
   });
 

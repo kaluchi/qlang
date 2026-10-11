@@ -45,8 +45,8 @@ describe('printValue — binding record / Function branches', () => {
 describe('printErrorValue — head + payload-filter branches', () => {
   it('an error of the kind of errors prints without its kind', async () => {
     // Every error carries an identity tag on the JS-header `tag`
-    // slot — `::error`, the kind of errors, for user `!{}` without
-    // explicit `:kind ::Foo`. The brackets imply that kind, so the
+    // slot — `::error`, the kind of errors, for user `!{}` with no tag
+    // before its bang. The brackets imply that kind, so the
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [D32], [D64].
     const err = makeErrorValue(makeTagKeyword('error'), new Map());
@@ -60,11 +60,9 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{:message "something broke"}');
   });
 
-  it('descriptor with non-TagKeyword :kind keeps the field verbatim', async () => {
-    // The runtime treats `:kind` only as an identity slot when its
-    // value is a TagKeyword. A plain-keyword `:kind` stays in the
-    // descriptor as ordinary user data, the error staying of the kind
-    // of errors.
+  it('a :kind in the descriptor is a fact like any other', async () => {
+    // A `:kind` names no tag [D190]: it stays in the descriptor as
+    // ordinary user data, the error staying of the kind of errors.
     const err = makeErrorValue(makeTagKeyword('error'), new Map([
       ['kind', keyword('oops')]
     ]));

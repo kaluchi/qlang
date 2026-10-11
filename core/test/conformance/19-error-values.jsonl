@@ -1,3 +1,6 @@
+{"name":"a-kind-in-an-error-literal-is-a-fact","query":"!{:kind ::Foo} !| [type /kind]","expect":"[::error ::Foo]","decision":"D190"}
+{"name":"raise-names-no-tag-by-a-kind","query":"{:kind ::Foo} | raise !| [type /kind]","expect":"[::error ::Foo]","decision":"D190"}
+{"name":"raise-takes-the-tag-the-map-carries","query":"::Foo{:a 1} | raise !| type","expect":"::Foo","decision":["D86","D190"]}
 {"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{\n  :kind :oops\n  :message \"boom\"\n  :trail [\n    {\n      :step ~(!{:kind :oops :message \"boom\"})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"error-lit-empty","query":"!{}","expect":"!{\n  :trail [\n    {\n      :step ~(!{})\n      :subject null\n      :skipped ~()\n    }\n  ]\n}"}
 {"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n}","decision":"D97"}

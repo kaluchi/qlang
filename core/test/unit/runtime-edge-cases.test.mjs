@@ -321,20 +321,18 @@ describe('printValue round-trip — all composite types', async () => {
     await assertRoundTrip('{:a {:b {:c 42}}}', 'nested Map');
   });
 
-  it('Error value with TagKeyword :kind lift', async () => {
-    // `:kind` carrying a TagKeyword lifts to `error.tag` on
-    // construction; the print form leaves the kind of errors out,
-    // `!{…}` with the remaining fields, and re-parse recovers the
-    // same value.
-    await assertRoundTrip('!{:kind ::error :message "boom"}', 'Error');
+  it('Error value of its own tag', async () => {
+    // The print form writes the tag before the bang and re-parse
+    // recovers the same value [D86].
+    await assertRoundTrip('::Foo!{:message "boom"}', 'Error');
   });
 
-  it('Error value with plain-keyword :kind stays in descriptor under the kind of errors', async () => {
-    await assertRoundTrip('!{:kind :oops :message "boom"}', 'Error');
+  it('Error value with a :kind fact under the kind of errors', async () => {
+    await assertRoundTrip('!{:kind ::Foo :message "boom"}', 'Error');
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind ::error :trail ~(| count)}', 'Error trail');
+    await assertRoundTrip('!{:message "boom" :trail ~(| count)}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

@@ -1,7 +1,7 @@
 // Tests for error value type and its trail, deepEqual, the literal, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, errorFromKindDescriptor, describeType, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, describeType, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -64,42 +64,6 @@ describe('makeErrorValue', () => {
     }
   });
 });
-
-// ── errorFromKindDescriptor ─────────────────────────────────────
-//
-// Host-facing convenience for hosts (jdt, future bridges) that
-// build descriptors keyword-by-keyword and place the per-site
-// `::TagKeyword` under `:kind`. The helper extracts the tag and
-// delegates to `makeErrorValue`, freeing the host site from
-// repeating `makeErrorValue(d.get('kind'), d)` at every throw.
-
-describe('errorFromKindDescriptor', () => {
-  it('extracts the :kind TagKeyword and produces a tagged ErrorValue', () => {
-    const tag = makeTagKeyword('CoverageNoActiveSession');
-    const descriptor = new Map([
-      ['kind',    tag],
-      ['origin',  keyword('jdt/coverage')],
-      ['message', 'No active coverage session — pin one via @coverage'],
-    ]);
-    const errorVal = errorFromKindDescriptor(descriptor);
-    expect(isErrorValue(errorVal)).toBe(true);
-    expect(errorVal.tag).toBe(tag);
-    expect(errorVal.descriptor.get('origin')).toEqual(keyword('jdt/coverage'));
-    expect(errorVal.descriptor.get('trail')).toEqual([]);
-  });
-
-  it('forwards opts.location and opts.originalError to makeErrorValue', () => {
-    const tag = makeTagKeyword('BridgeNotResponding');
-    const cause = new TypeError('socket hang up');
-    const loc = { start: { offset: 0, line: 1, column: 1 }, end: { offset: 0, line: 1, column: 1 } };
-    const descriptor = new Map([['kind', tag], ['message', 'down']]);
-    const errorVal = errorFromKindDescriptor(descriptor, { location: loc, originalError: cause });
-    expect(errorVal.location).toBe(loc);
-    expect(errorVal.originalError).toBe(cause);
-  });
-
-});
-
 
 // ── describeType ────────────────────────────────────────────────
 

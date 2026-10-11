@@ -1311,9 +1311,9 @@
   |~~ Answers the map as an error on the fail track, the act the literal
       `!{…}` writes with its bang, so a query fails where its own check
       fails. Its tag is the one its value shows: the outermost tag over
-      the map, then the one the map carries, then a `:kind` that names a
-      tag, then `::error`; a `:kind` written as a keyword stays a fact,
-      and an opened error raised again is itself. `|` steps around the
+      the map, then the one the map carries, `::Oops{:message "boom"} |
+      raise`, then `::error`, every entry of the map a fact; and an
+      opened error raised again is itself. `|` steps around the
       raised error into its trail, and `!|` opens it to its facts. It
       takes no value: what the error says is a fact of the map. A value
       of another kind is put in a map first, `{:value /} | raise`.
@@ -1338,15 +1338,15 @@
 
 :map/raise/raisesTheSubject
   |~~ `{…} | raise` raises the subject, a map the step builds among them. ~~|
-  ::law~({:kind :oops :message "boom"} | raise !| /kind | eq :oops)
+  ::law~({:message "boom"} | raise !| /message | eq "boom")
 
-:map/raise/takesItsTagFromAKind
-  |~~ A `:kind` that names a tag is the tag of the error. ~~|
-  ::law~({:kind ::Oops} | raise !| type | eq ::Oops)
+:map/raise/takesTheTagTheMapCarries
+  |~~ The tag the map carries is the tag of the error. ~~|
+  ::law~(::Oops{:message "boom"} | raise !| type | eq ::Oops)
 
-:map/raise/keepsAKeywordKindAsAFact
-  |~~ A `:kind` written as a keyword leaves the error under `::error`. ~~|
-  ::law~({:kind :oops} | raise !| type | eq ::error)
+:map/raise/keepsEveryEntryAsAFact
+  |~~ Every entry of the map is a fact of the error, a `:kind` among them. ~~|
+  ::law~({:kind ::Oops} | raise !| [type /kind] | eq [::error ::Oops])
 
 :map/raise/raisesAnOpenedErrorAsItself
   |~~ An opened error raised again is itself. ~~|
@@ -1358,7 +1358,7 @@
 
 :map/raise/guardsAValue
   |~~ A guard raises an error of its own tag when a value fails its check. ~~|
-  ::law~(42 | if (gt 100) ~(/) ~({:kind ::TooSmall :value /} | raise)
+  ::law~(42 | if (gt 100) ~(/) ~(::TooSmall{:value /} | raise)
     !| [type /value]
     |  eq [::TooSmall 42])
 

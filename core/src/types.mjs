@@ -342,11 +342,6 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }
 
-// An error of the tag a host's descriptor holds under `:kind`.
-export function errorFromKindDescriptor(descriptor, opts = {}) {
-  return makeErrorValue(descriptor.get('kind'), descriptor, opts);
-}
-
 // ── describeType ──────────────────────────────────────────────
 
 export function describeType(v) {

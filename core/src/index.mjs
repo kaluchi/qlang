@@ -24,7 +24,7 @@ export { tokenize } from './highlight.mjs';
 export { isNameStart, isNameContinue } from './name-chars.mjs';
 export {
   keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
-  bindingValueOf, makeErrorValue, errorFromKindDescriptor,
+  bindingValueOf, makeErrorValue,
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';
 export { shownFor } from './runtime/verb.mjs';

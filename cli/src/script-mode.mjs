@@ -137,15 +137,39 @@ function liftParsedDocument(parsed, resolvedFormat) {
 // The answer a channel writes [D120], [D184]: a value whole unless the
 // caller asked for a budget, an error an alert; under JSON data answers
 // whole for the tools that read it, an error alone giving way within the
-// budget, and the print gives way within it.
-export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null) {
+// budget, and the print gives way within it. A failure carries the prose
+// of its refusal's page, under `page` in JSON and below the print as
+// comment lines, which a reading of the literal passes over [D195].
+export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null, page = null) {
   if (resolvedFormat === 'json') {
     const answer = answerForJson(value);
     const shown = isErrorValue(answer) ? elideAnswer(answer, budget) : answer;
-    return JSON.stringify(toPlain(shown), null, JSON_PRETTY_INDENT);
+    const plain = toPlain(shown);
+    if (page !== null) plain.$error.page = oneLine(page);
+    return JSON.stringify(plain, null, JSON_PRETTY_INDENT);
   }
   // resolvedFormat === 'raw'. A String success value goes out as-is
   // (the raw-in-raw-out contract); anything else goes out as its print.
   if (typeof value === 'string') return value;
-  return printAnswer(elideAnswer(value, budget), env);
+  const printed = await printAnswer(elideAnswer(value, budget), env);
+  return page === null ? printed : `${printed}\n${commentLinesOf(page)}`;
+}
+
+const oneLine = text => text.replace(/\s+/g, ' ').trim();
+
+// Prose as line comments, `|~| ` and the words of a line within the
+// width of the catalog's sources.
+const COMMENT_WIDTH = 72;
+function commentLinesOf(text) {
+  const lines = [];
+  let line = null;
+  for (const word of oneLine(text).split(' ')) {
+    if (line !== null && line.length + 1 + word.length > COMMENT_WIDTH) {
+      lines.push(line);
+      line = null;
+    }
+    line = line === null ? `|~| ${word}` : `${line} ${word}`;
+  }
+  lines.push(line);
+  return lines.join('\n');
 }

@@ -274,6 +274,30 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain('number/add/SubjectNotNumberError');
     expect(s.stderrText()).toBe('');
   });
+
+  it('writes a failure with the prose of its refusal\'s page below it, as line comments [D195]', async () => {
+    const s = captureStreams();
+    await main(['{:a 1} | /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
+    expect(commentLines.length).toBeGreaterThan(1);
+    expect(commentLines.every(line => line.length <= 72)).toBe(true);
+    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
+  });
+
+  it('writes the prose of the page under `page` in JSON [D195]', async () => {
+    const s = captureStreams('{"a": 1}');
+    await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const written = JSON.parse(s.stdoutText()).$error;
+    expect(written.$tag).toBe('proj/KeyNotInMapError');
+    expect(written.page).toContain('a key that may be absent is read by `at`');
+  });
+
+  it('writes a failure whose refusal has no page as it is [D195]', async () => {
+    const s = captureStreams();
+    await main(['::Foo!{:a 1}'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    expect(s.stdoutText()).toContain('::Foo!{');
+    expect(s.stdoutText()).not.toContain('|~|');
+  });
 });
 
 describe('main — a query the shell turned into a path', () => {

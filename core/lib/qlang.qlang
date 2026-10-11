@@ -680,7 +680,9 @@
       `::elision` marker, whose `:read` continues the query to the part.
       A failure the host prints is an alert: its tag and its facts, the
       subject where it arose within an excerpt, and a marker for each
-      subject it passed, the failure itself staying whole.
+      subject it passed, the failure itself staying whole; the command
+      line writes below it the prose of its refusal's page, as `!| explain`
+      reads it, so the reader repairs the call where it failed.
       The command line reads JSON or text from stdin and writes
       its answer back in the same form. Rests on values and the hypertext.
       ::link~(::elision | doc) ::link~(::any/elide | doc)

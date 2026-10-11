@@ -78,7 +78,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (didExplicitStdoutEffect) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
-  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell, budget);
+  const encoded = await encodeSuccessValueForFormat(cellEntry.result, resolvedFormat, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
   // Only the qlang-form output (the print, used when the input
   // format is `raw`) gets colorized — JSON output stays raw so
   // downstream readers (jq, et al.) see the structured payload

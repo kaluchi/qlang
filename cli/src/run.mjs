@@ -18,6 +18,7 @@
 // uses this to deliver auto-parsed stdin as the implicit subject of
 // the query, so `cat data.json | qlang '/path'` works as a filter.
 
+import { isErrorValue } from '@kaluchi/qlang-core';
 import { createSession } from '@kaluchi/qlang-core/session';
 import { cliSources } from './cli-sources.mjs';
 
@@ -26,5 +27,14 @@ export async function runQuery(queryText, ioContext, runOpts = {}) {
   const evalOpts = 'initialPipeValue' in runOpts
     ? { initialPipeValue: runOpts.initialPipeValue }
     : {};
-  return session.evalCell(queryText, evalOpts);
+  const cellEntry = await session.evalCell(queryText, evalOpts);
+  if (cellEntry.error !== null || !isErrorValue(cellEntry.result)) return cellEntry;
+  const explained = await session.evalCell(PROSE_OF_THE_PAGE, { initialPipeValue: cellEntry.result });
+  return { ...cellEntry, page: typeof explained.result === 'string' ? explained.result : null };
 }
+
+// The prose of the page `explain` reads for a failure, its links and
+// snippets aside, which the command line writes below the failure so a
+// reader repairs the call where it failed [D195]; null for a refusal
+// with no page.
+const PROSE_OF_THE_PAGE = '!| explain | /page | segments | filter ~(type | eq ::string) | join "" !| null';

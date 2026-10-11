@@ -15,7 +15,11 @@
       the answer as its literal; text read
       as a string, whose answer is written as its `print`; and
       `| json` writes JSON text. A query that writes to stdout itself,
-      by `@out`, holds the channel, and its answer is left unwritten.
+      by `@out`, holds the channel, and its answer is left unwritten. A
+      failure is written with the prose of its refusal's page, which
+      tells how to repair the call: below its literal as line comments,
+      `|~| …`, which a reading of the literal passes over, and under
+      `page` in JSON.
       Its words are declared under the kinds of their subjects, a query
       calls them by their names, and the manifest of each kind lists
       them.

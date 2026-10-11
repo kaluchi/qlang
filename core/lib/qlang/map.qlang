@@ -1321,9 +1321,9 @@
   ::law~({:a 1} | inter 5 !| type | eq ::map/inter/keys/NotMapOrVecError)
 
 :map/raise
-  |~~ Answers the map as an error on the fail track, the act the literal
-      `!{…}` writes with its bang, so a query fails where its own check
-      fails. Its tag is the one its value shows: the outermost tag over
+  |~~ Answers the map as an error on the fail track, an error at rest,
+      `!{:reason :late} | raise`, among them, so a query fails where its
+      own check fails. Its tag is the one its value shows: the outermost tag over
       the map, then the one the map carries, `::Oops{:message "boom"} |
       raise`, then `::error`, every entry of the map a fact; and an
       error at rest raised again is itself. `|` steps around the
@@ -1340,8 +1340,8 @@
 
 :map/raise/SubjectNotMapError
   |~~ `raise` raises a map: a value of another kind is put in one first,
-      `{:value /} | raise`, or the error is written as a literal,
-      `!{:reason :late}`.
+      `{:value /} | raise`, or the error is written as its literal,
+      `!{:reason :late} | raise`.
   ~~|
 
 :map/raise/ArgsBeyondPartsError

@@ -294,14 +294,14 @@ describe('main — error paths', () => {
 
   it('writes a failure whose refusal has no page as it is [D195]', async () => {
     const s = captureStreams();
-    await main(['::Foo!{:a 1}'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(s.stdoutText()).toContain('::Foo!{');
     expect(s.stdoutText()).not.toContain('|~|');
   });
 
   it('writes a failure of the kind of errors, which no site refused, as it is [D195]', async () => {
     const s = captureStreams();
-    await main(['!{:a 1}'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
     expect(s.stdoutText()).toContain('!{');
     expect(s.stdoutText()).not.toContain('|~|');
   });

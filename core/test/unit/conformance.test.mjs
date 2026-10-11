@@ -1,7 +1,8 @@
 // Conformance test runner.
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
-// expect (must be a pure literal — no calls, no pipelines).
+// expect (must be a pure literal — no calls, no pipelines — or the print
+// of a failure, its error at rest raised, `!{…} | raise` [D211]).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where
@@ -42,7 +43,8 @@ const files = readdirSync(conformanceDir, { recursive: true })
 // Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
-function assertLiteralAst(ast, testName) {
+function assertLiteralAst(parsed, testName) {
+  const ast = raisedLiteralOf(parsed) ?? parsed;
   walkAst(ast, (node) => {
     if (node.type === 'QuoteLit') return false;
     if (node.type === 'Call') {
@@ -58,6 +60,15 @@ function assertLiteralAst(ast, testName) {
       );
     }
   });
+}
+
+// The error literal a failure's print raises, or null for any other
+// expectation.
+function raisedLiteralOf(ast) {
+  if (ast.type !== 'Pipeline' || ast.steps.length !== 2) return null;
+  const [literal, { combinator, step }] = ast.steps;
+  const raises = combinator === '|' && step.type === 'Call' && step.name === 'raise' && step.args.length === 0;
+  return raises ? literal : null;
 }
 
 async function answersAsPresent(queryResult, now) {

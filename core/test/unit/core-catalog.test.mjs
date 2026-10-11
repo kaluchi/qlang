@@ -153,7 +153,7 @@ describe('parse / apply — code read, printed and run', () => {
 
   it('error values round-trip through parse | apply(/)', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"!{:kind :oops} !| /kind" | parse | apply /');
+    const evalResult = await evalQuery('"!{:kind :oops} | raise !| /kind" | parse | apply /');
     expect(evalResult).toEqual(keyword('oops'));
   });
 

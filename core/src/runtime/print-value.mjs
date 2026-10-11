@@ -81,13 +81,14 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes the tag of its site before its bang, none for the kind
-// of errors [D64], then its facts and the path it flew, `:trail []` for
-// one that flew no step, so its print reads back as itself [D210].
+// A failure writes its error at rest raised: the tag of its site before
+// the bang, none for the kind of errors [D64], its facts and the path it
+// flew, `:trail []` for one that flew no step, and `| raise`, so its print
+// reads back as itself [D210], [D211].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
-  return tagHead + printMapLike('!{', facts, indent, printedOf);
+  return `${tagHead}${printMapLike('!{', facts, indent, printedOf)} | raise`;
 }
 
 const NO_PATH = Object.freeze([]);
@@ -96,9 +97,12 @@ const NO_PATH = Object.freeze([]);
 // parentheses after the tag, where it would read as the tag's name.
 const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 
+// An error at rest writes the literal of its kind, `!{…}`, as a set
+// writes `#[…]` [D211].
 function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
+  if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
   if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
   const payloadPrint = printValue(instance.payload, indent, printedOf);
   return TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint) ? `${tagLiteral}(${payloadPrint})` : tagLiteral + payloadPrint;

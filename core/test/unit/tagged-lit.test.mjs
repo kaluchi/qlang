@@ -165,9 +165,9 @@ describe('a kind without a body — identity', () => {
   //                        payload value lifted under
   //                        `:payload` slot.
 
-  it('ErrorLit payload (`::Tag!{…}`) lifts to ErrorValue with `:kind` restamped', async () => {
+  it('an error literal under a tag, raised, is a failure of that tag [D211]', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
-    const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42}');
+    const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
     expect(err.descriptor.get('custom')).toBe('field');
@@ -377,8 +377,8 @@ describe('within edits under one tag and rewraps it', () => {
   });
 
   it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
-    expect(await evalQuery('#[1 2] | within ~(!{:k 2}) !| /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1}) !| type')).toEqual(makeTag('tagged/within/code/NotQuoteError'));
+    expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| /k')).toBe(2);
+    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotQuoteError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {

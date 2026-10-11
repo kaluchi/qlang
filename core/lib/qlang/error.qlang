@@ -14,11 +14,13 @@
       of the procedure. An error at rest is a value like any other, a map
       of facts under `::error`, `::error{:k 1}`, and every refusal a tag
       of its own stacked over it, named for what failed,
-      `::number/add/SubjectNotNumberError::error{…}`: a container holds
-      it, a step reads it, `print` writes it. Raised, an error is a
-      failure, which lives in the pipe alone: the bang of a literal
-      raises it, `!{:k 1}`, and so does `raise`; `|` passes it by,
-      writing its path as it goes, and `!|` alone catches it, its step
+      `::number/add/SubjectNotNumberError::error{…}`, whose literal is
+      the bang, `!{:k 1}` and `::number/add/SubjectNotNumberError!{…}`,
+      as `#[…]` is the set's: a container holds it, a step reads it,
+      `print` writes it. Raised by `raise`, an error is a failure, which
+      lives in the pipe alone and prints as its error at rest raised,
+      `!{:k 1} | raise`: `|` passes it by, writing its path as it goes,
+      and `!|` alone catches it, its step
       running on the error at rest, so `!| type` reads the site and the
       verbs of this kind reach every error. A literal, a name or a fact
       whose part fails answers the failure, since no value holds one.
@@ -28,9 +30,9 @@
       ::link~(::qlang/errors | doc)
   ~~|
 
-:error/opensAFailureLiteralToItsKind
-  |~~ A failure literal opens to an `::error`. ~~|
-  ::law~(!{:detail "boom"} !| type | eq ::error)
+:error/writesAnErrorAtRestByItsBang
+  |~~ The bang writes an error at rest of the kind of errors. ~~|
+  ::law~(!{:detail "boom"} | type | eq ::error)
 
 :error/standsOverItsKind
   |~~ Beneath the site's tag lies an `::error`. ~~|
@@ -56,9 +58,9 @@
   |~~ `:trail` among the facts of an error is its path, a
       vector of stops the runtime writes, `{:step :subject :skipped}`,
       from the step where it arose to the step where it is read.
-      An error literal or a `raise` that writes a value that is no plain
-      vector under `:trail`, a set, a quote and a doc among them, is
-      refused as it makes the error. A `raise`
+      A `raise` of a map that writes a value that is no plain vector
+      under `:trail`, a set, a quote and a doc among them, is refused as
+      it makes the error. A `raise`
       that writes the `:trail` it read goes on with that path, and one
       that leaves it out starts a path at its own step.
       ::link~(::error | doc)
@@ -66,11 +68,11 @@
 
 :error/TrailNotVecError/refusesANumberForATrail
   |~~ A number given as a trail is refused. ~~|
-  ::law~(!{:kind :oops :trail 5} !| [type /actualType] | eq [::error/TrailNotVecError ::number])
+  ::law~(!{:kind :oops :trail 5} | raise !| [type /actualType] | eq [::error/TrailNotVecError ::number])
 
 :error/TrailNotVecError/refusesATrailLaidOverAFailure
   |~~ A trail of a number laid over an error is refused when it is raised. ~~|
-  ::law~(!{:kind :oops} | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
+  ::law~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
 
 :error/TrailNotVecError/startsATrailAtTheRaise
   |~~ An error raised without a trail starts its trail at the raise. ~~|

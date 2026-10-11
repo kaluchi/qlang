@@ -45,12 +45,12 @@ describe('fail-apply deflect on non-error', () => {
 
 describe('fail-track dispatch through ParenGroup and verb', () => {
   it('fail-apply fires into a ParenGroup step', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} !| (/kind)');
+    const evalResult = await evalQuery('!{:kind :oops} | raise !| (/kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
   it('a verb body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery(':any/handler ~(/kind) | !{:kind :oops} !| handler');
+    const evalResult = await evalQuery(':any/handler ~(/kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -58,12 +58,12 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
     // the step that calls a word (`count`) joins them [D85].
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
 
   it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });

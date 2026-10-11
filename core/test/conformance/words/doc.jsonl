@@ -19,7 +19,7 @@
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"doc-multiple-in-pipeline","query":"|~~ first ~~| | |~~ second ~~| | content","expect":"\" second \"","decision":["D94","D95"]}
-{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::proj/IndexNotIntegerError!{\n  :key :unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n}","decision":"D94"}
+{"name":"doc-not-projectable-other-key","query":"|~~ x ~~| | /unknownKey","expect":"::proj/IndexNotIntegerError!{\n  :key :unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(/unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D94"}
 {"name":"doc-type-is-not-vec","query":"|~~ x ~~| | type | eq ::vec","expect":"false"}
 {"name":"doc-type-is-not-map","query":"|~~ x ~~| | type | eq ::map","expect":"false"}
 {"name":"doc-type-is-not-string","query":"|~~ x ~~| | type | eq ::string","expect":"false"}

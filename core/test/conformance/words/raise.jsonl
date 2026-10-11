@@ -7,4 +7,4 @@
 {"name":"an-opened-error-raised-again-is-the-error","query":"\"x\" | add 1 !| raise !| type","expect":"::number/add/SubjectNotNumberError","decision":"D97"}
 {"name":"a-projection-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | /a","expect":"1","decision":"D97"}
 {"name":"an-error-value-is-no-raised-error","query":"::error{:k 1} | count","expect":"1","decision":"D97"}
-{"name":"the-bang-raises-an-error","query":"!{:k 1} | count !| type","expect":"::error","decision":"D97"}
+{"name":"the-bang-raises-an-error","query":"!{:k 1} | raise | count !| type","expect":"::error","decision":"D97"}

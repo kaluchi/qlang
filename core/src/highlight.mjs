@@ -23,9 +23,9 @@
 //   'keyword'     the head Keyword/tag of a BindStep
 //                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
-//                 in `!{` / closing `}` of an `!{}` descriptor, and
-//                 the `!|` fail-track combinator — anything that
-//                 carries the fail-track semantic in qlang
+//                 in `!{` / closing `}` of an error literal, and the
+//                 `!|` fail-track combinator — an error and the track
+//                 that catches it
 //   'quote'       Quote literal `~( … )`, including the `~(`
 //                 opener and `)` closer, and the `~` of the short
 //                 form `~add` (DocLit `|~~ … ~~|` falls under

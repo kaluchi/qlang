@@ -30,7 +30,7 @@ import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
-  answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy, resumingItsTrail, resumesItsTrail
+  answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy
 } from './eval-trail.mjs';
 
 // A node or a combinator the tables below do not name is a defect of the
@@ -228,25 +228,18 @@ async function entryValues(entries, state) {
   return isErrorValue(values) ? values : new Map(entries.map((entry, index) => [entry.key.name, values[index]]));
 }
 
-// An error literal raises its facts under the kind of errors [D64], and
-// one written under a tag, `::Foo!{…}`, is `{…} | tag ::Foo | raise`
-// [D86]: the facts go under the tag through its label, a refusal of the
-// label answering for the literal, and the error takes the tag its
-// content shows; every entry is a fact, `:kind` among them [D190].
+// An error literal is the literal of the kind of errors, as `#[…]` is the
+// set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
+// `::Foo::error{…}`, laid through the label of its tag as a tagged literal
+// lays a payload, a refusal of the label answering for the literal; every
+// entry is a fact, `:kind` among them [D190], and `raise` raises the error
+// [D211].
 async function evalErrorLit(node, state) {
-  const errorDescriptor = await entryValues(node.entries, state);
-  if (isErrorValue(errorDescriptor)) return withPipeValue(state, errorDescriptor);
-  if (node.tag !== null) {
-    const content = await mintTaggedInstance(node.tag, errorDescriptor, state);
-    if (isErrorValue(content)) return withPipeValue(state, content);
-    return withPipeValue(state, await callMemberOn(nodeOf(state.env, RAISE_ADDRESS), content, state));
-  }
-  // A literal that writes its `:trail` resumes that path [D85].
-  const minted = makeErrorValue(ERROR_TAG, errorDescriptor, { location: node.location });
-  return withPipeValue(state, errorDescriptor.has('trail') ? resumingItsTrail(minted) : minted);
+  const facts = await entryValues(node.entries, state);
+  if (isErrorValue(facts)) return withPipeValue(state, facts);
+  const atRest = await mintTaggedInstance(ERROR_TAG.name, facts, state);
+  return withPipeValue(state, node.tag === null ? atRest : await mintTaggedInstance(node.tag, atRest, state));
 }
-
-const RAISE_ADDRESS = 'map/raise';
 
 // The value a word of a literal answers, forked against the subject: a
 // failure the word raised passes a stop at the word, and one handed on
@@ -379,12 +372,11 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last stop [D86], the literal's own raise where the payload raised
-// it, and resuming its trail where the payload resumed it [D85].
+// its last stop [D86], and the literal's own raise where the payload
+// raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
   if (isRaisedBy(payloadError, node.payload)) raisedBy(passed, node);
-  if (resumesItsTrail(payloadError)) resumingItsTrail(passed);
   return passed;
 }
 

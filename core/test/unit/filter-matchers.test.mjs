@@ -318,22 +318,22 @@ describe('filter — verb portability across containers', () => {
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
   it('filter over Set — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('filter over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('every over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('any over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 });

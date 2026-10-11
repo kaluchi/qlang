@@ -446,8 +446,9 @@ against resolving untyped text by its look.
 
 Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. An error at
-rest is a value with a tag and a descriptor, and raised it is a failure,
-which lives in the pipe alone and which `!|` alone catches [D210]; its
+rest is a value with a tag and a descriptor, its literal the bang,
+`!{…}`, and raised by `raise` it is a failure, which lives in the pipe
+alone and which `!|` alone catches [D210], [D211]; its
 trail is the path it flew, a stop at every step that raised it or handed
 it on, and the steps its last stop skipped, applied to a fresh subject,
 replay them [D85]. A
@@ -936,9 +937,9 @@ reader acts on [D195]:
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
-1342
+1336
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -v '^|~|' | wc -c
-317
+325
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
 |~| The addend is a number; text that holds one is read by `parseJson`.
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
@@ -2020,3 +2021,4 @@ applies
 [D200]: decisions/D200.md
 [D202]: decisions/D202.md
 [D210]: decisions/D210.md
+[D211]: decisions/D211.md

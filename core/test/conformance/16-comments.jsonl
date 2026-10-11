@@ -51,9 +51,9 @@
 {"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| :foo | doc | content","expect":"\" outer |~~ inner ~~| more \"","decision":["D94","D95","D119"]}
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| :foo | doc | content","expect":"\" pair holds |~| line marker inline \"","decision":["D94","D95","D119"]}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\" mentions |~~ inner pair ~~| inside \"","decision":["D94","D95"]}
-{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} |~| note\n count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
-{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | |~ note ~| count !| /trail/-1/skipped","expect":"~(count)","decision":["D81","D85"]}
-{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::call/KindAnswersNoVerbError","decision":"D85"}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise |~| note\n count !| /trail/-1/skipped","expect":"~(count)","decision":"D85"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise | |~ note ~| count !| /trail/-1/skipped","expect":"~(count)","decision":["D81","D85"]}
+{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} | raise |~| note\n count !| :t /trail/-1/skipped | 42 | apply t !| type","expect":"::call/KindAnswersNoVerbError","decision":"D85"}
 {"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"~(!| |~ note ~| /kind) | first | type","expect":"::fail"}
 {"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}

@@ -38,7 +38,7 @@ describe('a label declared by its page', () => {
   it('answers the error its construct answers', async () => {
     expect(await evalQuery(lines(
       ':Small |~~ A number below ten. ~~|',
-      ':Small/construct |~~ The number, if below ten. ~~| ~(if (lt 10) ~(/) ~(!{:reason :big}))',
+      ':Small/construct |~~ The number, if below ten. ~~| ~(if (lt 10) ~(/) ~(!{:reason :big} | raise))',
       '::Small(12) !| /reason'
     ))).toEqual(await evalQuery(':big'));
   });

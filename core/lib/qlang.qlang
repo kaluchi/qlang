@@ -121,7 +121,8 @@
       `!|` alone catches it, its step running on the error at rest, a
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
       holds a failure, so a literal whose part fails answers it, while an
-      error at rest sits anywhere and `raise` raises it again. A failure
+      error at rest, written `!{:k 1}`, sits anywhere and `raise`
+      raises it. A failure
       carries its facts and its trail, the steps it
       passed with their subjects, and prints as an alert: the subject
       where it arose cut to an excerpt, and each subject it passed an
@@ -292,21 +293,21 @@
   |~~ A part that breaks its invariant refuses under the part. ~~|
   ::law~(1 | add "x" !| type | eq ::number/add/addend/NotNumberError)
 
-:qlang/writesAFailure
-  |~~ A failure is written as a literal. ~~|
-  ::law~(!{:reason :late} !| /reason | eq :late)
+:qlang/writesAnError
+  |~~ An error is written as a literal, a value whose facts read as fields. ~~|
+  ::law~(!{:reason :late} | /reason | eq :late)
 
 :qlang/raisesAMap
   |~~ `raise` builds a failure from a map. ~~|
   ::law~({:reason :late} | raise !| [type /reason] | eq [::error :late])
 
-:qlang/writesAFailureOfItsOwnKind
-  |~~ A tag before the bang names the kind of the failure. ~~|
-  ::law~(::Late!{:by 3} !| [type /by] | eq [::Late 3])
+:qlang/writesAnErrorOfItsOwnKind
+  |~~ A tag before the bang names the kind of the error. ~~|
+  ::law~(::Late!{:by 3} | [type /by] | eq [::Late 3])
 
 :qlang/asksWhetherAValueFailed
   |~~ `false !| true` asks whether the step before failed. ~~|
-  ::law~([(!{:k 1} | false !| true) (5 | false !| true)] | eq [true false])
+  ::law~([(!{:k 1} | raise | false !| true) (5 | false !| true)] | eq [true false])
 
 :qlang/holdsTheTrail
   |~~ The trail holds the steps a failure skipped. ~~|
@@ -728,11 +729,11 @@
 
 :qlang/errors/resumesItsTrail
   |~~ A map raised again resumes its trail. ~~|
-  ::law~(!{:kind :oops} | count !| raise | add 1 !| /trail | map ~/step | eq [~(!{:kind :oops})])
+  ::law~(!{:kind :oops} | raise | count !| raise | add 1 !| /trail | map ~/step | eq [~(raise)])
 
 :qlang/errors/asksWhetherItFailed
   |~~ `false !| true` answers whether the step before failed. ~~|
-  ::law~([(!{:kind :oops} | false !| true) (42 | false !| true)] | eq [true false])
+  ::law~([(!{:kind :oops} | raise | false !| true) (42 | false !| true)] | eq [true false])
 
 :qlang/code
   |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb takes

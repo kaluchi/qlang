@@ -53,12 +53,12 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [D32], [D64].
     const err = makeErrorValue(makeTag('error'), new Map());
-    expect(printValue(err)).toBe('!{\n  :trail []\n}');
+    expect(printValue(err)).toBe('!{\n  :trail []\n} | raise');
   });
 
   it('a failure that flew no step prints its empty path, so its print reads back as itself [D210]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
-    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n} | raise');
     expect(deepEqual(await evalQuery(printValue(err)), err)).toBe(true);
   });
 
@@ -68,7 +68,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n} | raise');
   });
 
   it(':message rides through the printer verbatim — user content, not template-fill', async () => {
@@ -80,7 +80,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n} | raise');
   });
 });
 

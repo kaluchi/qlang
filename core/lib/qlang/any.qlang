@@ -1529,9 +1529,9 @@
       refused, `"5" | tag ::number`, and a kind the reader declares
       holds its invariants. A tag over a tagged value nests it;
       replacing the tag goes through the payload,
-      `payload | tag ::Crate`. A tag laid over an error answers the
-      error unchanged, since no tag stands over one; the fail track
-      opens an error to its descriptor, which a tag and `raise` rename.
+      `payload | tag ::Crate`. A tag over an error at rest names its
+      site, `[::Late !{:by 3}] | tag` answering `::Late!{:by 3}`, and
+      `raise` raises it under that tag.
       The call takes one name; a keyword, `:box`, names a field and no
       kind.
       ::link~(::any/type | doc) ::link~(::tagged/payload | doc)
@@ -1611,9 +1611,9 @@
   |~~ Another tag goes over the payload taken out. ~~|
   ::law~(::Box(1) | payload | tag ::Crate | eq ::Crate(1))
 
-:any/tag/leavesAnErrorUnchanged
-  |~~ A tag laid over an error answers the error. ~~|
-  ::law~([::Box (!{:k 1})] | tag !| type | eq ::error)
+:any/tag/namesTheSiteOfAnErrorAtRest
+  |~~ A tag over an error at rest names its site. ~~|
+  ::law~([::Late !{:by 3}] | tag | eq ::Late!{:by 3})
 
 :any/tag/raisesAnOpenedErrorAsItself
   |~~ An opened error split and tagged back raises as itself. ~~|

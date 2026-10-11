@@ -12,8 +12,8 @@
 //     literal answers: a failure the word raised itself passes a stop at
 //     the word, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
-//   `resumingItsTrail(error)` — marks a failure whose maker, an error
-//     literal or `raise`, wrote its `:trail`.
+//   `resumingItsTrail(error)` — marks a failure `raise` made of a map
+//     that wrote its `:trail`.
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
 // A failure holds its path from its first stop, and one that flew no step,
@@ -62,9 +62,7 @@ export function answerOfStep(answer, stepQuoteOf, subject) {
 }
 
 export function answerOfWord(answer, wordNode, subject) {
-  if (!isErrorValue(answer)) return answer;
-  if (isRaisedBy(answer, wordNode)) return withStop(answer, quoteOfBody(wordNode), subject);
-  return resumesItsTrail(answer) ? withTrail(answer, answer.descriptor.get('trail') ?? []) : answer;
+  return isErrorValue(answer) && isRaisedBy(answer, wordNode) ? withStop(answer, quoteOfBody(wordNode), subject) : answer;
 }
 
 // A failure that flew no step holds no stop to join, and the steps it

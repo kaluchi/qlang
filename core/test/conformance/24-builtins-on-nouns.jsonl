@@ -19,7 +19,7 @@
 {"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError","decision":["D72","D156"]}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
 {"name":"the-manifest-of-a-name-lists-the-parts-it-declares","query":"::map/at | manifest","expect":"#[::map/at/answer ::map/at/default ::map/at/key]","decision":["D167","D169","D180"]}
-{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
+{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1} | raise) 2 !| /k","expect":"1","decision":"D72"}
 {"name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondPartsError","decision":["D72","D165"]}
-{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":any/s ~(mul k) | :any/s/k ~(/0) | :any/s/k/NotNumberError ::holds~(is ::number) | null | s (!{:k 1}) 2 !| type","expect":"::error","decision":"D167"}
+{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":any/s ~(mul k) | :any/s/k ~(/0) | :any/s/k/NotNumberError ::holds~(is ::number) | null | s (!{:k 1} | raise) 2 !| type","expect":"::error","decision":"D167"}
 {"name":"a-builtin-body-without-a-handle-is-a-step","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}

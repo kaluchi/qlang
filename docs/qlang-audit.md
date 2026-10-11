@@ -988,16 +988,18 @@ the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, the research of a
 design whose work has begun, which its records absorb as the work lands
-[D164], the audit of a clean outside reader of the tree, kept as it
-wrote it, and the reviews of the catalog, kept as their reviewers wrote
-them beside the fate of each finding:
+[D164], the audits of a clean outside reader of the tree and the
+reviews of the catalog, each kept as its writer wrote it beside the
+fate of each finding:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
 docs/qlang-audit.md
 docs/qlang-entrypoint.md
 docs/research/legend/README.md
-docs/research/outside-audit/report.md
+docs/research/outside-audit/2026-10-10.md
+docs/research/outside-audit/2026-10-11.md
+docs/research/outside-audit/README.md
 docs/research/reviews/2026-10-10-first-page-any-number-string.md
 docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
 docs/research/reviews/2026-10-10-vec-set-map.md

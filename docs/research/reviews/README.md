@@ -24,7 +24,7 @@ A finding not yet settled says open.
 13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
 14. One fact told in different words across the three kinds. Open.
 15. A refusal with a page under one kind and none under the others. Answered by faf4c8cd for `at` with no index or key, of vectors, maps and null; the rest stays as the rule refusals of finding ten of the third review stay.
-16. Claims of the pages with no law. Open.
+16. Claims of the pages with no law. Answered by 68af9ab5: each claim holds by a law under its word, the page of `flat` says the subject's tag stays, and the page of `has` no longer names the search of the runtime.
 17. `minus` and `inter` over a vector take sets too, which their pages do not say. Answered by 621a5b54: their pages name a map, a set or a vector of keys, and union's page says sets or maps of any count.
 18. The fold of a set of sets keeps the tag, the others do not. Set aside by D188: the rule of the answer's label decides, and a set's fold answers a set, under the subject's tags as every word whose answer names its own label.
 19. The order of the words in the three files does not follow what rests on what. Open.
@@ -45,7 +45,7 @@ A finding not yet settled says open.
 9. Refusal pages with no law under their address. Answered by cf359631 and e35d202c: every refusal of a part has its law; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
 10. Refusal pages that do not say how to repair the call. Answered by cf359631 and e35d202c: every refusal page shows the call that works.
 11. Pages that do not say what a call with no value or with more values does. Answered by faf4c8cd for the comparisons of numbers and strings, whose parts show their call; the other words, whose refusal by rule names the part a call lacks, stay as they are.
-12. Claims with no law under their name. Open.
+12. Claims with no law under their name. Answered by 68af9ab5: each claim holds by a law under its word, the law of the order of keys under `eq`, and the false cases of `gte`, `lte` and `lt` stand.
 13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Answered by 24c66f1e: the page says `:actual` is null where a law answered an error, which `:error` names, with the law `failsALawThatAnswersAFailure`, named so that no law ends in `Error`.
 14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
 15. Laws that prove nothing of their page. Answered by 24c66f1e: the two laws are gone; the invariants and `construct` of a label stand under the chapter of verbs, and `::tag::Box` under the constructor of tag names, whose page makes the claim.
@@ -82,7 +82,7 @@ review; findings 5 and 6 still stand for the laws declared under
 11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
 12. The sister project still writes `*`. Awaits the maintainer's word.
 13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Answered by 24c66f1e: the law of `ParseError` stands after its facts, the laws of `:cli` after its refusal, and `table` pages `SubjectNotVecError` with its repair and its two laws under it.
-14. Claims with no law. Open.
+14. Claims with no law. Answered by 68af9ab5: each claim holds by a law under its word or its refusal.
 15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
 16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Answered by 610b05d4 for env, descriptor, rewrap, constructor invocation and edit, and by f3ebc9f4 for still and the two comments; the part `value` the pages of tags and keywords do not name, open.
 17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.

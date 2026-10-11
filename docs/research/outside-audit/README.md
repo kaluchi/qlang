@@ -1,0 +1,42 @@
+# Outside audits of the language
+
+Each audit stands as a clean outside reader wrote it: `claude -p --model
+opus` started from an empty directory, with no CLAUDE.md, no memory and
+no MCP server, prompted by [prompt.txt](prompt.txt). Below each, its
+findings in its order, one line each, and the fate of each: the commit
+or the decision that answered it, the question of the audit it is, or
+the decision it stands by. A finding not yet settled says open.
+
+## 2026-10-10 · 401046d
+
+[2026-10-10.md](2026-10-10.md). The problems, its third section:
+
+1. The role of a declaration read from the form of its value and the depth of its address. Answered in part: the answer of a word is the name `answer` (D180), so `:Box |~~ b ~~| | :Box/area ~(1) | :Box/area/unit ::string | ::Box{} | area` answers `1`; a page still makes a label (D168), a topic is a label and `::qlang{:a 1}` stands, a question of the audit, and the place, the code and the kind of a part are still read from its form (D169, the model's), which the second audit holds the first scar. Open.
+2. The bare name of a kind answers its page. Answered in part: `map` is a word (D181); `"5" | number` answers the page of `::number`. Open.
+3. One fact written three times over vectors, sets and maps, comparisons on five kinds, `runLaws` on two. Answered in part: `runLaws` stands on `::any` alone (D180); a word declared under each kind stands by D169, the model's, which both audits dispute. Open.
+4. Comparison against the first page. Answered in part: the first page no longer says every value compares (D185); `1 | gt "a"` is refused, and `gt` over the one order on `::any` is open.
+5. Refusals by rule absent from the catalog, and refusals placed unevenly. Answered by D180 and the pages of cf359631, e35d202c and faf4c8cd for the first: `::number/add | manifest | has ::number/add/SubjectNotNumberError` answers `true`, and the refusal has its page. A refusal on the word beside one on the part, `round/DigitsNotIntegerError` and `round/digits/NotNumberError`, `filter/ConditionNotBooleanError` and `if/condition/NotBooleanError`, is open.
+6. The word law meaning two things. Answered by D174, D175 and D185: a law is a definition `::law~(…)` that `laws` and `runLaws` read, an invariant a `::holds~(…)` named by its refusal, and the first page names laws alone.
+7. Gaps of expression. Open: `reduce` takes one word, `[1 2 3] | reduce 0 ~(add 1)` refused; no `replace`, regex, `range`, `zip`, `find` or update of a field; the family of `…Of` and the declarations of a word of one part stand by D165 and D173.
+8. Scars of older models in names. Answered in part: `operand` left the code, the files and the catalog (14d351e), the old names of cases left, and the second spelling of an error's tag by D190; `descriptor` in the JSON of the command line, `TagKeyword` and `BareTypeKeyword` in the core, and the several words for a call's values are open.
+9. Prose and examples. Answered in part: `the than` left with the part named `value` (a7b3f58a), and the law `:qlang/rounds` and the bare `::call~(add 3)` left the pages; `is read first by parseJson` and the print of a law that writes JSON as qlang are open.
+10. The literal of a doc. Did not hold for an unbalanced `~(`, the doc closing (marked ✗); a comment and a doc told apart by one tilde is open.
+11. The process. Open, a matter of the process.
+12. The implementation. Open: every node runs through `async`, and `scopeOfMember` copies the scope on each call of a word written in steps (`core/src/eval.mjs:621-629`).
+
+Its proposals, the fifth section, and its disagreements with the audit, the sixth, are open, but for these: hints for names of other languages, `map` among them, answered by D181 for `map`; the literal that fails at its first error, a question of the audit for the maintainer's word; and the page of a refusal named by its site, answered with the fifth finding.
+
+## 2026-10-11 · 68af9ab5
+
+[2026-10-11.md](2026-10-11.md). The problems, its third section:
+
+1. Almost no abstraction of a reader's own. Open: no quote with parameters, `reduce` of one word, no short circuit, `[1 null] | filter ~(allOf (ne null) (gt 0))` refused, no `mod`, `abs`, `floor`, `replace`, regex, `range`, `zip`, `find` or update of a field.
+2. Quiet traps against the language's own principles. Open: the bare name of a kind answers its page; `[1 ("x" | add 1)] | count` answers `2`, a question of the audit for the maintainer's word; `groupBy` turns `2020` into `:"2020"` and refuses a boolean; `{:status :count} | /status | doc` looks up the name `count`; `1 | gt "a"` is refused while `sort` ranks every value; the command line on JSON input refuses an introspection, `| /users | type` answering `cli/AnswerNotJsonError`, and writes `descriptor`.
+3. The role of a declaration read from its form, a second, hidden mechanism. Open: a page makes a label (D168) and `::qlang{:a 1} | type` answers `::qlang`; the place of a part read from `/n` or `at n`, its kind from a law of the form `is ::k`, the last names `answer`, `subject` and `construct` reserved (D169, D180, the model's); three words for a call's values, and `0 | cond` showing `:actualValue ::any/cond[]`; a step computed or code by the word, `if (gt 0) "pos" "neg"` refused.
+4. A reader cannot name a value by a word of the vocabulary, `[1 2] | :first / | first` refused. Stands by D166, the model's, which this audit disputes. Open.
+5. The effect marker wrong both ways, `:map/f ~(/@x)` refused and a quote nested in a quote unchecked. Open, the audit's repair after the sister project.
+6. Scars of older models. Answered in part: the second spelling of an error's tag by D190; `describeType` beside `typeKeyword`, `source and module [D5]` in `core/src/runtime/axis.mjs`, the snippets and the TextMate grammar of the editor, the names of the cases of bindings and the vocabulary of thirteen words are open.
+7. Complexity that does not pay. Open: comments and docs near a third of the grammar, the catalog near twelve thousand lines, `add` written in sixty-seven, a word declared under three kinds, `source` printed on one line, a cold start near a second, no file mode and no lasting session.
+8. The process eats the design. Open, a matter of the process; the findings of the first audit not followed, answered by this ledger.
+
+Its proposals and its disagreements are open, but for the literal that fails at its first error and the topic that is a label, questions of the audit for the maintainer's word.

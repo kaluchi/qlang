@@ -827,7 +827,17 @@ cells into the root, and the catalog is written by its nouns [D62],
   another `flatten` there, and a shared space hosts write into freezes
   the core out of its own names.
 - One query shows every definition of a name and which one wins, as
-  `type -a` does in bash.
+  `type -a` does in bash. Two queries show it: a subject reads the word
+  a name reaches for it by `binding`, and the refusal of a subject no
+  word of the name serves lists the addresses where its words live.
+
+```qlang
+> [1 2] | binding :count | /name
+:vec/count
+
+> 5 | binding :count !| /addresses
+#[::map/count ::set/count ::string/count ::vec/count]
+```
 
 Namespaces too large to bind become mounted [D24]. The sister project's
 types are tens of thousands of names; a host serves them lazily, the way

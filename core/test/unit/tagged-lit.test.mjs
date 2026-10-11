@@ -256,16 +256,16 @@ describe('TaggedLit / BareTypeKeyword steps', () => {
 
 describe('TagKeyword value mechanics', () => {
   // The base TagKeyword machinery — `makeTagKeyword` /
-  // `describeType` / `typeKeyword` / `printValue` — exercised at
+  // `formOf` / `typeKeyword` / `printValue` — exercised at
   // the value level. Tagged-instance identity rides on the
   // JS-header `TAG_HEADER_SYMBOL` slot, read back through
   // `typeKeyword`; the named-error / `::Tag!{…}` round-trip lives
   // under the error-values suite.
 
-  it('describeType / typeKeyword distinguish TagKeyword from Keyword', async () => {
-    const { describeType, typeKeyword, makeTagKeyword } = await import('../../src/types.mjs');
+  it('formOf / typeKeyword tell a tag name from a keyword', async () => {
+    const { formOf, typeKeyword, makeTagKeyword } = await import('../../src/types.mjs');
     const k = makeTagKeyword('foo');
-    expect(describeType(k)).toBe('TagKeyword');
+    expect(formOf(k)).toBe('tag');
     expect(typeKeyword(k)).toEqual(makeTagKeyword('tag'));
   });
 

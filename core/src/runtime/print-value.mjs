@@ -7,16 +7,17 @@ import {
   isVec,
   isQMap,
   isErrorValue, ERROR_TAG,
-  describeType,
+  formOf,
   finiteNumberOrLift,
   TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from '../types.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
-// handler of the value's class, which the views of `format.mjs` share.
+// handler of the value's form, `formOf`, which the views of `format.mjs`
+// share.
 export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
-  const handler = handlers[describeType(pipeValue)];
+  const handler = handlers[formOf(pipeValue)];
   return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
 }
 
@@ -37,19 +38,19 @@ const literalOfKeyword = k => k.literal;
 // `::builtin` among them [D96]; the set, the quote, the doc and the error
 // write their own brackets.
 const PRINT_HANDLERS = {
-  Null:       () => 'null',
-  Boolean:    v => String(v),
-  Number:     v => String(finiteNumberOrLift(v)),
-  String:     escapeQlangStringLiteral,
-  Keyword:    literalOfKeyword,
-  TagKeyword: literalOfKeyword,
-  Error:      printErrorValue,
-  Vec:        (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
-  Map:        (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
-  Set:        (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
-  Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + docText(d) + '~~|',
-  TaggedInstance: printTaggedInstance
+  null:    () => 'null',
+  boolean: v => String(v),
+  number:  v => String(finiteNumberOrLift(v)),
+  string:  escapeQlangStringLiteral,
+  keyword: literalOfKeyword,
+  tag:     literalOfKeyword,
+  error:   printErrorValue,
+  vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
+  map:     (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
+  set:     (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
+  quote:   q => '~(' + printQuoteSource(q) + ')',
+  doc:     d => '|~~' + docText(d) + '~~|',
+  tagged:  printTaggedInstance
 };
 
 const printedByNoKind = () => undefined;

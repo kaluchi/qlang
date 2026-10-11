@@ -5,8 +5,8 @@
 //
 // Canonical qlang-literal printing lives next door in
 // `print-value.mjs`; `toPlain` routes through the shared
-// `dispatchQlangValue` lookup-table walker so the per-value-class
-// decision sits in one place. A rendering for a terminal is a view
+// `dispatchQlangValue` lookup-table walker so the choice of a writer
+// by the form of a value sits in one place. A rendering for a terminal is a view
 // at a host's boundary, and the command line owns its `table`.
 
 import { printQuoteSource, docText } from '../quote.mjs';
@@ -34,32 +34,32 @@ function dispatchPlainValue(v, handlers, path) {
 // the boundary.
 //
 const TO_PLAIN_HANDLERS = {
-  Null:           () => null,
-  Number:         finiteNumberOrLift,
-  String:         v => v,
-  Boolean:        v => v,
-  Keyword:        k => k.name,
-  TagKeyword:     k => k.literal,
-  Vec:            v => v.map(toPlain),
-  Map:            qMapToPlainObject,
-  // TaggedInstance: identity rides on the JS-header
+  null:    () => null,
+  number:  finiteNumberOrLift,
+  string:  v => v,
+  boolean: v => v,
+  keyword: k => k.name,
+  tag:     k => k.literal,
+  vec:     v => v.map(toPlain),
+  map:     qMapToPlainObject,
+  // tagged: identity rides on the JS-header
   // TAG_HEADER_SYMBOL slot, payload shape varies (Array /
   // Map / opaque wrap-object). The envelope carries identity
   // through `$tag` and encodes the payload through `toPlain`
   // recursively — mirrors the symmetric `Error` envelope.
-  TaggedInstance: t => {
+  tagged:  t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];
     else if (t instanceof Map) inner = new Map(t);
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  Quote:          q => `~(${printQuoteSource(q)})`,
-  Doc:            d => `|~~${docText(d)}~~|`,
-  Set:            s => s.map(toPlain),
+  quote:   q => `~(${printQuoteSource(q)})`,
+  doc:     d => `|~~${docText(d)}~~|`,
+  set:     s => s.map(toPlain),
   // An error writes its tag beside its facts [D192]; the literal, not
   // JSON, is the form that reads back.
-  Error:          e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
+  error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };
 
 export function toPlain(v) {

@@ -1,7 +1,7 @@
 // Tests for error value type and its trail, deepEqual, the literal, error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, describeType, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, formOf, makeTagKeyword, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -65,12 +65,12 @@ describe('makeErrorValue', () => {
   });
 });
 
-// ── describeType ────────────────────────────────────────────────
+// ── formOf ────────────────────────────────────────────────
 
-describe('describeType for error values', () => {
+describe('formOf for error values', () => {
   it('returns "Error" for error values', () => {
     const errorVal = makeErrorValue(makeTagKeyword('Error'), new Map());
-    expect(describeType(errorVal)).toBe('Error');
+    expect(formOf(errorVal)).toBe('error');
   });
 });
 

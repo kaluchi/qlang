@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, makeTagKeyword, describeType } from '../../src/types.mjs';
+import { isErrorValue, makeTagKeyword, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
@@ -21,7 +21,7 @@ describe('BindStep — docs-only form', () => {
 
   it(':name |~~| short-doc-only binds the joined doc-content as a Doc value', async () => {
     const doc = await evalQuery(':forward |~~| placeholder note\n| forward');
-    expect(describeType(doc)).toBe('Doc');
+    expect(formOf(doc)).toBe('doc');
     expect(docText(doc)).toBe(' placeholder note');
   });
 

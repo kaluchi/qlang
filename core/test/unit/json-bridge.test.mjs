@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, describeType, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
+import { isQMap, isVec, formOf, typeKeyword, makeTagKeyword } from '../../src/types.mjs';
 import { fromPlain } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
@@ -19,7 +19,7 @@ describe('JSON syntax reads into the one map and the one vector', () => {
     for (const source of ['[1, 2]', '[1]', '[{"a": 1}]']) {
       const readVec = await evalQuery(source);
       expect(isVec(readVec), source).toBe(true);
-      expect(describeType(readVec), source).toBe('Vec');
+      expect(formOf(readVec), source).toBe('vec');
     }
   });
 
@@ -41,7 +41,7 @@ describe('a map whose data key "type" collides with a value-class name', () => {
   it('classifies as a map regardless of the "type" data value', async () => {
     for (const typeValue of ['quote', 'doc', 'keyword', 'tagKeyword', 'error', 'function', 'taggedInstance']) {
       const readMap = await evalQuery(`{"type": "${typeValue}", "extra": 1}`);
-      expect(describeType(readMap), `describeType for type=${typeValue}`).toBe('Map');
+      expect(formOf(readMap), `formOf for type=${typeValue}`).toBe('map');
     }
   });
 

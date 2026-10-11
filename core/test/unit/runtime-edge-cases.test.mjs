@@ -3,7 +3,7 @@
 // the specific branch / path it exercises (right-operand checks
 // in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
 // `UseModuleCollisionError` site, binding-record classifier in
-// `types.mjs::describeType`,
+// `types.mjs::formOf`,
 // `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
 // topical test files (`error-values.test.mjs`,
 // `print-value-extras.test.mjs`, `effect-check.test.mjs`,
@@ -20,7 +20,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { makeSet } from '../../src/types.mjs';
 import {
-  describeType,
+  formOf,
   typeKeyword,
   keyword,
   makeTagKeyword,
@@ -60,16 +60,16 @@ describe('equality.deepEqual rejection branches', async () => {
   });
 });
 
-describe('describeType for a verb and a binding record', async () => {
-  it('describeType reads a binding record as the tagged Map it is', async () => {
+describe('formOf for a verb and a binding record', async () => {
+  it('formOf reads a binding record as the tagged Map it is', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
-    expect(describeType(record)).toBe('TaggedInstance');
+    expect(formOf(record)).toBe('tagged');
   });
 
-  it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
+  it('formOf answers "tagged" for a map under a tag', async () => {
     const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
     const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
-    expect(describeType(instance)).toBe('TaggedInstance');
+    expect(formOf(instance)).toBe('tagged');
   });
 
   it('TaggedInstance toPlain on Vec payload — overlay identity, encoded payload is the Array data', async () => {

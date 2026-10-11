@@ -342,23 +342,25 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
 }
 
-// ── describeType ──────────────────────────────────────────────
-
-export function describeType(v) {
-  if (isNull(v)) return 'Null';
-  if (isBoolean(v)) return 'Boolean';
-  if (isNumber(v)) return 'Number';
-  if (isString(v)) return 'String';
-  if (isKeyword(v)) return 'Keyword';
-  if (isTagKeyword(v)) return 'TagKeyword';
-  if (isQuote(v)) return 'Quote';
-  if (isDoc(v)) return 'Doc';
-  if (isQSet(v)) return 'Set';
-  if (isTaggedInstance(v)) return 'TaggedInstance';
-  if (isVec(v)) return 'Vec';
-  if (isQMap(v)) return 'Map';
-  if (isErrorValue(v)) return 'Error';
-  return 'Unknown';
+// formOf(v) → the form of the core that writes a value, by the name of
+// what it writes: a kind of the core, `tagged` for a value under a tag
+// of its own, `unknown` for a host's raw object. The printer and the
+// codecs choose their writer by it.
+export function formOf(v) {
+  if (isNull(v)) return 'null';
+  if (isBoolean(v)) return 'boolean';
+  if (isNumber(v)) return 'number';
+  if (isString(v)) return 'string';
+  if (isKeyword(v)) return 'keyword';
+  if (isTagKeyword(v)) return 'tag';
+  if (isQuote(v)) return 'quote';
+  if (isDoc(v)) return 'doc';
+  if (isQSet(v)) return 'set';
+  if (isTaggedInstance(v)) return 'tagged';
+  if (isVec(v)) return 'vec';
+  if (isQMap(v)) return 'map';
+  if (isErrorValue(v)) return 'error';
+  return 'unknown';
 }
 
 // typeKeyword(v) — the kind of a value [D32]: its outermost tag, or

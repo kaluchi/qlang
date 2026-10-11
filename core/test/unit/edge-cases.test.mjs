@@ -22,7 +22,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import {
   keyword,
-  describeType,
+  formOf,
   isKeyword,
   isQMap,
   isQSet,
@@ -43,17 +43,17 @@ describe('types.mjs', () => {
     expect(keyword('foo')).not.toEqual(keyword('bar'));
   });
 
-  it('describeType covers every value class', () => {
-    expect(describeType(null)).toBe('Null');
-    expect(describeType(undefined)).toBe('Null');
-    expect(describeType(true)).toBe('Boolean');
-    expect(describeType(42)).toBe('Number');
-    expect(describeType('s')).toBe('String');
-    expect(describeType(keyword('k'))).toBe('Keyword');
-    expect(describeType([])).toBe('Vec');
-    expect(describeType(new Map())).toBe('Map');
-    expect(describeType(makeSet([]))).toBe('Set');
-    expect(describeType(Symbol('weird'))).toBe('Unknown');
+  it('formOf names the form of every value', () => {
+    expect(formOf(null)).toBe('null');
+    expect(formOf(undefined)).toBe('null');
+    expect(formOf(true)).toBe('boolean');
+    expect(formOf(42)).toBe('number');
+    expect(formOf('s')).toBe('string');
+    expect(formOf(keyword('k'))).toBe('keyword');
+    expect(formOf([])).toBe('vec');
+    expect(formOf(new Map())).toBe('map');
+    expect(formOf(makeSet([]))).toBe('set');
+    expect(formOf(Symbol('weird'))).toBe('unknown');
   });
 
   it('value-class predicates', () => {

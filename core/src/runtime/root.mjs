@@ -13,7 +13,8 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isDoc, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
+import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
@@ -70,13 +71,17 @@ export async function declareRoot(env, sources) {
   return new Map(env).set(ROOT_KEY, root);
 }
 
-// A quote a source declared runs over the root the source joined, which
-// holds the records of the frame the source wrote, so a call of a word of
-// the root copies no frame of its source [D200].
+// A quote a source declared runs in a frame of the source's bare values,
+// its names of one segment that hold no page, over the root the source
+// joined, so its words read those values first, and a label is no bare
+// name [D191], [D200].
 function runInTheRoot(declared, root) {
-  const rootFrame = new Map([[ROOT_KEY, root]]);
+  const frame = new Map([[ROOT_KEY, root]]);
+  for (const [name, record] of declared) {
+    if (splitAddress(name)[0] === null && !isDoc(bindingValueOf(record))) frame.set(name, record);
+  }
   for (const record of declared.values()) {
     const value = bindingValueOf(record);
-    if (isQuote(value) && quoteEnvRef(value) !== undefined) quoteEnvRef(value).env = rootFrame;
+    if (isQuote(value) && quoteEnvRef(value) !== undefined) quoteEnvRef(value).env = frame;
   }
 }

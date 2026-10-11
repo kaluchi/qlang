@@ -30,7 +30,7 @@ bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 const LONGEST_VECTOR = 2 ** 32 - 1;
 bindPrim('number/range', count => {
   if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });
-  if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ actualValue: count });
+  if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count });
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 

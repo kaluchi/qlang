@@ -464,9 +464,13 @@
 
 :number/range/CountTooLargeError
   |~~ The count of `range` is no longer than the longest vector the host
-      holds, 4294967295 for JavaScript: a count past it, `1e10`, makes no
-      vector, and a count of such size is read some other way.
+      holds, which `:longest` names: a count past it makes no vector, and
+      the call has no repair but a count within it.
   ~~|
+
+:number/range/CountTooLargeError/longest
+  |~~ The longest vector the host holds, the count past which `range` makes none. ~~|
+  ::number
 
 :number/range/SubjectNotNumberError
   |~~ `range` counts up to a number: the count of a vector is read first,
@@ -491,7 +495,7 @@
 
 :number/range/CountTooLargeError/refusesACountPastTheLongestVector
   |~~ A count past the longest vector is refused. ~~|
-  ::law~(1e10 | range !| [type /actualType] | eq [::number/range/CountTooLargeError ::number])
+  ::law~(1e10 | range !| [type (/longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
 
 :number/range/SubjectNotNumberError/refusesAVector
   |~~ A vector is counted first. ~~|

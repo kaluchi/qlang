@@ -497,10 +497,10 @@ BlockDocOpen "doc"
 LineDocSegments
   = parts:LineDocPart* { return proseJoined(parts); }
 
-// A run of prose in which nothing else begins is read whole, not a
-// character after every other reading failed: a quote begins at `~` or
-// at the `::` of its tags, a span between backquotes at a backquote, and
-// in a block a nested comment or doc at `|`.
+// A run of prose free of `~`, a backquote, `:` and, in a block, `|` is
+// one part: a quote begins at `~` or at the `::` of its tags, a span
+// between backquotes at a backquote, and in a block a nested comment or
+// doc at `|`.
 LineDocPart
   = [^~`:\n]+ { return text(); }
   / quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }

@@ -532,10 +532,10 @@ async function callByAddress(node, state) {
 // ─── Names under a label ───────────────────────────────────────
 
 // A name under a label runs on a value of the label [D164]: a quote in the
-// scope of its declaration over the root as it stands, so the names under
-// one label see each other whatever their order, and the descriptor of a
-// primitive by the implementation its host handed. A subject the walk of
-// whose tags reaches no value of the label is refused under the name's
+// scope it carries [D44], [D200] over the root as it stands, so the names
+// under one label see each other whatever their order, and the descriptor
+// of a primitive by the implementation its host handed. A subject the walk
+// of whose tags reaches no value of the label is refused under the name's
 // address, and the answer is brought to the label its definition names
 // [D169].
 async function applyMember(record, lambdas, state) {

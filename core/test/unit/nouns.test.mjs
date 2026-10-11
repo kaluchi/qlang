@@ -36,6 +36,20 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('limit')).result).toBe(5);
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTagKeyword('call/UnknownNameError'));
   });
+
+  it('a word of a source reads a bare value of its source before a word of that name a reader or a later source declares [D200]', async () => {
+    const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
+    const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
+    const alone = await createSession({ sources: [shop] });
+    expect((await alone.evalCell(':vec/limit ~(99) | ::shop{} | capped')).result).toBe(5);
+    const beside = await createSession({ sources: [shop, later] });
+    expect((await beside.evalCell('::shop{} | capped')).result).toBe(5);
+  });
+
+  it('a word of a source reads a bare value its source declares after it [D200]', async () => {
+    const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
+    expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
+  });
 });
 
 describe('the verbs that live on a kind', () => {

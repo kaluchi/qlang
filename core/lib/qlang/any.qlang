@@ -1902,23 +1902,27 @@
   ::law~({:a 6 :b "3"} | divOf /a /b !| type | eq ::any/divOf/divisor/NotNumberError)
 
 :any/allOf
-  |~~ Answers whether every condition the call computes against the
-      subject holds: two conditions of one record hold together by
-      `allOf /active (/age | gte 18)`. Each condition is a boolean
-      computed at the call, so every one is computed, and a field the
-      record lacks answers its error even where an earlier condition
-      fails; a quote, `~(/active)`, is code and no condition. The call
-      gives one condition at least.
+  |~~ Answers whether every condition the call gives holds of the
+      subject: two conditions of one record hold together by
+      `allOf /active (/age | gte 18)`. A condition is a boolean computed
+      at the call, every one of them, or a quote, code run on the subject
+      in its turn, once every condition before it held: a condition that
+      fails where an earlier one does not hold is a quote, `allOf (/email
+      | ne null) ~(/email | endsWith ".org")`, and the first condition
+      that does not hold answers `false` with the quotes after it unrun.
+      A quote answers a boolean, refused otherwise as the predicate of
+      `every` is, by the index of its condition. The call gives one
+      condition at least.
       ::link~(::any/anyOf | doc) ::link~(::vec/every | doc)
   ~~|
-  ~(conditions | every ~(/))
+  ~(:subject / | conditions | every ~(if (is ::quote) ~(:condition / | subject | apply condition) ~(/)))
 
 :any/allOf/answer
   |~~ Whether every condition holds. ~~|
   ::boolean
 
 :any/allOf/conditions
-  |~~ The conditions, booleans, one at least. ~~|
+  |~~ The conditions, booleans and quotes, one at least. ~~|
   ~(/)
 
 :any/allOf/conditions/EmptyError
@@ -1927,11 +1931,16 @@
   ~~|
   ::holds~(count | gt 0)
 
-:any/allOf/conditions/ElementNotBooleanError
-  |~~ Each of the conditions is a boolean computed at the call,
-      `(/age | gte 18)`; a quote is code and no condition.
+:any/allOf/conditions/ElementNotBooleanOrQuoteError
+  |~~ Each condition is a boolean computed at the call, `(/age | gte
+      18)`, or a quote run in its turn, `~(/email | endsWith ".org")`. A
+      condition computed at the call is computed even where an earlier
+      one does not hold, and one that answered an error is refused here,
+      the error its value: written as a quote it runs only once every
+      condition before it held, `allOf (/email | ne null) ~(/email |
+      endsWith ".org")`.
   ~~|
-  ::holds~(every ~(is ::boolean))
+  ::holds~(every ~(is ::boolean ::quote))
 
 :any/allOf/holdsWhenEveryConditionHolds
   |~~ An active adult passes both conditions. ~~|
@@ -1941,36 +1950,47 @@
   |~~ A minor fails the second. ~~|
   ::law~({:active true :age 15} | allOf /active (/age | gte 18) | not)
 
-:any/allOf/computesEveryCondition
-  |~~ A field the record lacks answers its error even where an earlier condition fails. ~~|
-  ::law~({:age 15} | allOf (/age | gte 18) /licence !| type | eq ::proj/KeyNotInMapError)
+:any/allOf/runsAQuoteInItsTurn
+  |~~ A quote runs once the conditions before it held. ~~|
+  ::law~([{:email null} {:email "a@b.org"}]
+    | map ~(allOf (/email | ne null) ~(/email | endsWith ".org"))
+    | eq [false true])
 
-:any/allOf/conditions/ElementNotBooleanError/refusesAQuote
-  |~~ A quote is no condition, and is refused at its index. ~~|
-  ::law~({:active true} | allOf ~(/active)
+:any/allOf/conditions/ElementNotBooleanOrQuoteError/refusesAConditionThatFailedAtTheCall
+  |~~ A condition computed at the call is computed even where an earlier one does not hold, and its error is refused at its index. ~~|
+  ::law~({:age 15} | allOf (/age | gte 18) /licence
     !| [type /index /actualType]
-    |  eq [::any/allOf/conditions/ElementNotBooleanError 0 ::quote])
+    |  eq [::any/allOf/conditions/ElementNotBooleanOrQuoteError 1 ::proj/KeyNotInMapError])
+
+:any/allOf/conditions/ElementNotBooleanOrQuoteError/refusesANumber
+  |~~ A number is no condition, and is refused at its index. ~~|
+  ::law~({:age 15} | allOf /age
+    !| [type /index /actualType]
+    |  eq [::any/allOf/conditions/ElementNotBooleanOrQuoteError 0 ::number])
 
 :any/allOf/conditions/EmptyError/refusesNoCondition
   |~~ A call with no condition is refused under the part. ~~|
   ::law~({} | allOf !| type | eq ::any/allOf/conditions/EmptyError)
 
 :any/anyOf
-  |~~ Answers whether some condition the call computes against the
-      subject holds: a high score passes without the flag,
-      `anyOf /vip (/score | gt 95)`. Each condition is a boolean
-      computed at the call, as for `allOf`, and a number or a quote is
-      refused at its index. The call gives one condition at least.
+  |~~ Answers whether some condition the call gives holds of the
+      subject: a high score passes without the flag, `anyOf /vip (/score
+      | gt 95)`. A condition is a boolean computed at the call or a quote
+      run on the subject in its turn, once no condition before it held,
+      as for `allOf`: the first that holds answers `true` with the quotes
+      after it unrun, so a flagged record passes without the field its
+      quote reads, `anyOf /vip ~(/score | gt 95)`. The call gives one
+      condition at least.
       ::link~(::any/allOf | doc) ::link~(::vec/any | doc)
   ~~|
-  ~(conditions | has true)
+  ~(:subject / | conditions | vec/any ~(if (is ::quote) ~(:condition / | subject | apply condition) ~(/)))
 
 :any/anyOf/answer
   |~~ Whether some condition holds. ~~|
   ::boolean
 
 :any/anyOf/conditions
-  |~~ The conditions, booleans, one at least. ~~|
+  |~~ The conditions, booleans and quotes, one at least. ~~|
   ~(/)
 
 :any/anyOf/conditions/EmptyError
@@ -1979,11 +1999,14 @@
   ~~|
   ::holds~(count | gt 0)
 
-:any/anyOf/conditions/ElementNotBooleanError
-  |~~ Each of the conditions is a boolean computed at the call,
-      `(/score | gt 95)`; a number or a quote is no condition.
+:any/anyOf/conditions/ElementNotBooleanOrQuoteError
+  |~~ Each condition is a boolean computed at the call, `(/score | gt
+      95)`, or a quote run in its turn, `~(/score | gt 95)`. A condition
+      computed at the call that answered an error is refused here, the
+      error its value: written as a quote it runs only once no condition
+      before it held, `anyOf /vip ~(/score | gt 95)`.
   ~~|
-  ::holds~(every ~(is ::boolean))
+  ::holds~(every ~(is ::boolean ::quote))
 
 :any/anyOf/holdsWhenOneHolds
   |~~ A high score passes without the flag. ~~|
@@ -1993,11 +2016,17 @@
   |~~ A low score without the flag fails. ~~|
   ::law~({:vip false :score 50} | anyOf /vip (/score | gt 95) | not)
 
-:any/anyOf/conditions/ElementNotBooleanError/refusesANumber
+:any/anyOf/runsAQuoteInItsTurn
+  |~~ A flagged record passes without the field the quote reads. ~~|
+  ::law~([{:vip true} {:vip false :score 99}]
+    | map ~(anyOf /vip ~(/score | gt 95))
+    | eq [true true])
+
+:any/anyOf/conditions/ElementNotBooleanOrQuoteError/refusesANumber
   |~~ A number is no condition, and is refused at its index. ~~|
   ::law~({:a 1} | anyOf /a
     !| [type /index /actualType]
-    |  eq [::any/anyOf/conditions/ElementNotBooleanError 0 ::number])
+    |  eq [::any/anyOf/conditions/ElementNotBooleanOrQuoteError 0 ::number])
 
 :any/anyOf/conditions/EmptyError/refusesNoCondition
   |~~ A call with no condition is refused under the part. ~~|

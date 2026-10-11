@@ -1446,9 +1446,9 @@ other [D185], within the weight it had [D150], is measured on a set of
 tasks no reader has seen [D131], [D142].
 
 The largest part of the milestone is the sister project's. It builds
-on the workspace copy and its suite passes against the baseline, on a
-branch that stands ahead of its remote since 29 September, and its
-redesign has not begun: its nodes carry their kind as a tag, its verbs
+on the workspace copy, its catalog written in the language of [D196]
+and its suite passing against it, on a branch that stands ahead of its
+remote since 29 September, and its redesign has not begun: its nodes carry their kind as a tag, its verbs
 move onto its tags and its noun [D34], [D62], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog
@@ -1705,9 +1705,26 @@ The helpers of the sister project, `jdt/@problemsVia` and its kin, are
 called by their addresses on a string or a node, so under this rule
 they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
-address. The sister project's suite fails on this branch until it
-follows: its host declares its primitives as verbs with heads, which
-the root refuses [D167].
+address. The sister project, ported to the language of [D196], took
+the first: its helpers are words of any value, `::any/@problemsVia`
+and its kin, and its suite passes against the workspace copy.
+
+A helper of one word. [D153] let a word's helper live in the group of
+its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;
+since [D168] took `::verb~` out, a word is the quote it runs, and a
+quote does not close over the group it was written in:
+
+```qlang
+> :any/g (:k 10 | ~(add k)) | 5 | g !| type
+::call/UnknownNameError
+```
+
+So a helper, of one word or several, is a word under a noun its
+readers see, as the sister project's are. The alternatives are a quote
+that closes over the scope it was written in, as `::verb~` did, which
+makes what a word's names mean depend on where it was declared and
+costs a closure each quote carries; and the helper as a word, as it
+stands, which costs a name on a noun for every helper.
 
 The wholeness of a number. A count of `take` is a whole number by the
 law `eq (round)` [D172], and the digits of `round` stay tested by its

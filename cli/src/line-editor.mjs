@@ -1,14 +1,14 @@
-// The line editor of the REPL, which `start`s reading, `prompt`s, and
-// `close`s, emitting 'line' with each cell's text and 'close' at the end
-// of the input or at Ctrl+D. In a terminal it reads keys in raw mode and
-// repaints the buffer through `render` as it changes, its lines and the
-// rows the terminal wraps among them: Enter or Alt+Enter submits,
-// Ctrl+Enter or Ctrl+J breaks a line, a paste, bracketed or a chunk that
-// holds a line break, lands whole at the cursor, the arrows, Home, End,
-// Ctrl+A and Ctrl+E move across the lines, Backspace and Delete erase,
-// Ctrl+C clears, and Ctrl+D on an empty buffer closes. Over a pipe each
-// line of the input is a cell, the last one without its line break
-// among them.
+// The line editor of the REPL, `start`ing, `prompt`ing, `submit`ting a
+// line as if typed and `close`ing, which emits 'line' with each cell and
+// 'close' at the end of the input or at Ctrl+D: in a terminal it reads
+// keys in raw mode and repaints the buffer through `render`, its lines
+// and wrapped rows among it, Enter or Alt+Enter submitting, Ctrl+Enter or
+// Ctrl+J breaking a line, a paste, bracketed or a chunk longer than one
+// character whose first line break is not its last, landing whole at
+// the cursor, the arrows, Home, End, Ctrl+A and Ctrl+E moving across the
+// lines, Up and Down at the first and the last line walking the history,
+// Backspace and Delete erasing, Ctrl+C clearing and Ctrl+D on an empty
+// buffer closing; over a pipe each line of the input is a cell.
 
 import { EventEmitter } from 'node:events';
 import { StringDecoder } from 'node:string_decoder';
@@ -20,12 +20,8 @@ const ENABLE_BRACKETED_PASTE  = ESC + '[?2004h';
 const DISABLE_BRACKETED_PASTE = ESC + '[?2004l';
 const HIDE_CURSOR             = ESC + '[?25l';
 const SHOW_CURSOR             = ESC + '[?25h';
-// Synchronized Output (DECSET 2026) — terminals that support it
-// buffer every byte between BEGIN_SYNC and END_SYNC and present
-// them as one atomic frame, so the clear-then-repaint cycle no
-// longer flashes a blank line of text. Terminals that don't
-// recognise the sequence treat it as an unknown CSI and drop it,
-// matching the prior behaviour without regression.
+// Synchronized output, which a terminal that knows it presents as one
+// frame and any other drops as an unknown sequence.
 const BEGIN_SYNC              = ESC + '[?2026h';
 const END_SYNC                = ESC + '[?2026l';
 
@@ -36,7 +32,7 @@ export function createLineEditor(stdinStream, stdoutWrite, options) {
   return createPipedLineEditor(stdinStream, stdoutWrite, options);
 }
 
-// ── TTY raw-mode editor ────────────────────────────────────────
+// ── The editor of a terminal ──────────────────────────────────
 
 function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns }) {
   const emitter = new EventEmitter();
@@ -47,43 +43,25 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   let pasteBuffer = '';
   let pendingEscape = '';
 
-  // Incremental UTF-8 decoder — chunk boundaries can split a
-  // multi-byte code point (two-byte Cyrillic, three-byte CJK,
-  // four-byte emoji). The decoder buffers a partial tail across
-  // writes so the per-character dispatcher never sees half a
-  // code point.
+  // A decoder that holds a code point split across chunks until its last
+  // byte arrives.
   const utf8Decoder = new StringDecoder('utf8');
 
-  // History ring of submitted cells plus per-index draft slots that
-  // hold whatever the user is typing while parked at each index —
-  // the bottom slot (`history.length`) is the draft the user
-  // started before any recall, intermediate slots capture in-place
-  // edits to recalled entries. A walk away saves the current
-  // buffer into `historyDrafts[oldIndex]`; a walk back reads from
-  // it. Drafts clear on submit. Recalled buffers keep their
-  // internal newlines — the multi-line redraw lays them out as
-  // they were submitted.
+  // The cells submitted, and a draft for each place of the history, the
+  // last the line begun before any recall, which a walk away saves and a
+  // walk back reads, cleared at a submit.
   const history = [];
   let historyIndex = 0;
   const historyDrafts = new Map();
 
-  // Sticky desired column for vertical navigation. A series of
-  // Up/Down keystrokes through rows of varying length keeps
-  // returning to the column the user originally aimed at; any
-  // horizontal motion, edit, or history recall resets it so the
-  // next vertical walk starts from the current local column.
+  // The column a run of Up and Down aims at, which any other key resets.
   let desiredColumn = null;
 
-  // Visible width of the prompt — ANSI colour escapes never advance
-  // the cursor, only the printable bytes do. Computed once.
+  // The width of the prompt on screen, its colour escapes taking none.
   const promptVisibleLength = prompt.replace(/\x1b\[[0-9;]*m/g, '').length;
 
-  // Visual layout state from the last redraw. `lastVisualRows` is
-  // the total number of terminal rows the previous render occupied
-  // (including soft-wrap rows from overlong content). `lastCursorRow`
-  // is where the hardware cursor was parked at the end of that
-  // redraw, measured from row 0 of the block. The next redraw walks
-  // `lastCursorRow` rows UP to reach row 0 before clearing.
+  // The rows the last repaint took, wrapped rows among them, and the row
+  // it left the cursor on, counted from the first.
   let lastVisualRows = 0;
   let lastCursorRow  = 0;
 
@@ -92,17 +70,14 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     return Number.isFinite(c) && c > 0 ? c : Infinity;
   };
 
-  // Visual row count for a single logical line given its starting
-  // column (prompt for row 0, 0 otherwise) and the terminal width.
-  // `Math.max(1, ...)` keeps empty logical lines visible — an empty
-  // line still takes one screen row that the clear step must erase.
+  // The rows a line takes from its first column at a width, one at least
+  // for an empty line.
   function visualRowsForLine(colStart, contentLen, width) {
     if (!Number.isFinite(width)) return 1;
     return Math.max(1, Math.ceil((colStart + contentLen) / width));
   }
 
-  // Count visual rows for the buffer slice split on `\n`. Rows for
-  // each logical line account for soft-wrap at `width`.
+  // The rows a buffer takes, its lines wrapped at the width.
   function countVisualRows(logicalLines, width) {
     let total = 0;
     for (let i = 0; i < logicalLines.length; i += 1) {
@@ -112,8 +87,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     return total;
   }
 
-  // Resolve the `cursor` byte offset to (visual row, visual column)
-  // inside the wrapped layout.
+  // The row and the column of the cursor's offset in the wrapped layout.
   function locateCursorVisual(width) {
     const before = buffer.slice(0, cursor);
     const beforeLines = before.split('\n');
@@ -142,8 +116,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     };
   }
 
-  // The painted buffer of the last redraw: a move of the cursor leaves
-  // the text as it was, and its paint is not computed again.
+  // The paint of the last repaint, read again while the text stays.
   let paintedText = null;
   let painted = '';
 
@@ -158,12 +131,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   function redrawCurrentLine() {
     const width = getColumns();
 
-    // The paint is computed before the frame opens, while the prior
-    // render still stands, and the frame goes out as one write inside a
-    // synchronized-output frame with the hardware cursor hidden, so no
-    // terminal shows the cleared line between the clear and the repaint.
-    // In raw mode a bare `\n` only advances the row, so the paint ends
-    // each line with CRLF.
+    // The paint is computed before the frame opens and goes out in one
+    // write inside a synchronized frame with the cursor hidden, each line
+    // ending in CRLF, since raw mode moves the row alone at `\n`.
     const paintedBuffer = paintOf(buffer);
     const logicalLines  = buffer.split('\n');
     const totalRows     = countVisualRows(logicalLines, width);
@@ -173,9 +143,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     let frame = BEGIN_SYNC + HIDE_CURSOR;
     // 1. Walk the terminal cursor up to row 0 of the prior render.
     if (lastCursorRow > 0) frame += ESC + `[${lastCursorRow}A`;
-    // 2. Return to column 0 and clear everything from here down —
-    //    wipes the prior render in one go, including any soft-wrap
-    //    rows that a shrinking buffer would otherwise leak.
+    // 2. Column 0, and everything below it cleared, wrapped rows among it.
     frame += '\r' + ESC + '[J';
     // 3. The prompt and the painted buffer.
     frame += prompt + paintedBuffer;
@@ -193,9 +161,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   function submitCurrentLine() {
     const lineText = buffer;
 
-    // Walk the hardware cursor from its current row to the last
-    // row of the block before emitting `\r\n`, otherwise the REPL's
-    // result line would overprint the rows below.
+    // The cursor walks to the last row of the block before the line ends,
+    // so the answer prints below it.
     const rowsDown = (lastVisualRows - 1) - lastCursorRow;
     if (rowsDown > 0) stdoutWrite(ESC + `[${rowsDown}B`);
     stdoutWrite('\r\n');
@@ -217,14 +184,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     history.push(lineText);
   }
 
-  // The recall helpers are only reached after arrowUp / arrowDown
-  // have verified that a step in their direction is in range —
-  // they unconditionally save the leaving slot's draft, advance
-  // the index, and reload the buffer from the next slot. Walking
-  // away from `history.length` always seeds its draft slot first,
-  // so a subsequent Down back into `history.length` reads from
-  // `historyDrafts`; the bare `history[i]` branch only fires for
-  // strictly-internal indices.
+  // The recall helpers, reached once a step in their direction is in
+  // range, save the draft of the place left and load the next place's,
+  // the draft of the last place seeded when the walk leaves it.
   function recallHistoryPrev() {
     historyDrafts.set(historyIndex, buffer);
     historyIndex -= 1;
@@ -247,13 +209,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     return historyDrafts.has(i) ? historyDrafts.get(i) : history[i];
   }
 
-  // Vertical navigation. Up/Down step across logical `\n`
-  // boundaries inside the current buffer; on the edge row in the
-  // direction of motion the fallback is history recall, and when
-  // no neighbouring history entry exists the cursor jumps to
-  // Home / End. `desiredColumn` is sticky across the
-  // vertical-only run so a single tall column survives walks
-  // through shorter intermediate rows.
+  // Up and Down cross the lines of the buffer, at its first or last line
+  // walk the history, and with no entry that way go to Home or End, a
+  // run of them keeping the column it aims at.
 
   function getLogicalCursorPosition() {
     const before = buffer.slice(0, cursor);
@@ -271,11 +229,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       offset += lines[i].length + 1; // +1 for the `\n` separator
     }
     let column = Math.min(columnInLine, lines[lineIndex].length);
-    // The cursor is a code-unit offset; a target column derived
-    // from a row whose surrogate-pair layout differs from the
-    // landing row's may aim between the high and low halves of a
-    // pair. Snap to the start of the pair so subsequent edits
-    // operate on whole characters rather than orphan halves.
+    // A column aimed from a line of other characters lands at the start
+    // of a surrogate pair, never between its halves.
     if (column > 0 && column < lines[lineIndex].length) {
       const before = lines[lineIndex].charCodeAt(column - 1);
       const after  = lines[lineIndex].charCodeAt(column);
@@ -287,12 +242,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     cursor = offset + column;
   }
 
-  // JS strings are UTF-16; non-BMP characters (emoji, ancient
-  // scripts, …) occupy a surrogate pair — two adjacent code
-  // units. Editing primitives that walk one code unit at a time
-  // would leak orphan halves, so the cursor steps across a pair
-  // in one move. The two helpers report the code-unit footprint
-  // of the character immediately before or at the given offset.
+  // The code units of the character before or at an offset, two for a
+  // surrogate pair, so the cursor steps over a character whole.
   function codeUnitsForCharBefore(s, i) {
     if (i >= 2) {
       const lo = s.charCodeAt(i - 1);
@@ -363,12 +314,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       return;
     }
 
-    // Control codes and CSI markers are all in the ASCII single-
-    // byte range; `ch` for a control unit is always a single-code-
-    // point string, and `codePointAt(0)` is the canonical way to
-    // dispatch on it. For multi-byte Unicode characters (Cyrillic,
-    // CJK, emoji) `ch` arrives as one code point with value
-    // >= 0x80 and falls through to the insert path.
+    // A control code and a byte of an escape are one code unit below
+    // 0x80, read by `codePointAt(0)`, and any other character is inserted.
     const code = ch.codePointAt(0);
     if (code === 0x1b) { pendingEscape = ESC; return; }
     if (code === 0x03) { interruptCurrentLine();   return; }   // Ctrl+C
@@ -392,19 +339,14 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       return;
     }
     if (pendingEscape === ESC + '\r' || pendingEscape === ESC + '\n') {
-      // Alt+Enter — treat as an explicit submit. Some terminals
-      // send ESC+CR, others ESC+LF; accept both so the binding
-      // works uniformly as a submit on hosts where Ctrl+Enter is
-      // intercepted.
+      // Alt+Enter, ESC then CR or LF, submits.
       pendingEscape = '';
       submitCurrentLine();
       return;
     }
     if (pendingEscape.length === 2 && pendingEscape[1] !== '[') {
-      // ESC followed by a non-CSI byte — drop the half-formed
-      // sequence. Past this point pendingEscape is guaranteed to
-      // start with `ESC[` because the only growth path beyond
-      // length 2 is through this branch's complement above.
+      // ESC before anything but `[` drops the sequence, so a pending
+      // escape past this point begins with `ESC[`.
       pendingEscape = '';
       return;
     }
@@ -426,10 +368,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function insertCharAtCursor(ch) {
-    // The chunk decoder hands `handleChar` one code point at a
-    // time, so `ch.length` is 2 for a non-BMP character and 1
-    // otherwise — advancing by it keeps the cursor on a
-    // character boundary.
+    // The cursor advances by the code units of the character inserted.
     buffer = buffer.slice(0, cursor) + ch + buffer.slice(cursor);
     cursor += ch.length;
     desiredColumn = null;
@@ -476,8 +415,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   function moveCursorEnd()   { cursor = buffer.length; desiredColumn = null; redrawCurrentLine(); }
 
   function interruptCurrentLine() {
-    // Walk to the last row of the block, print ^C on its own line,
-    // then reset the buffer and redraw a fresh empty prompt.
+    // ^C prints on a line below the block, and the prompt starts empty.
     const rowsDown = (lastVisualRows - 1) - lastCursorRow;
     if (rowsDown > 0) stdoutWrite(ESC + `[${rowsDown}B`);
     stdoutWrite('\r\n^C\r\n');
@@ -495,16 +433,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (buffer.length === 0) emitter.emit('close');
   }
 
-  // Paste accumulator — once a chunk looks like the start of a
-  // clipboard paste, every subsequent chunk that arrives within a
-  // short idle window appends to the same buffer. After the timer
-  // fires the accumulated content flushes through
-  // `insertPasteAtCursor` as one paste. This catches pastes that
-  // the terminal delivers across multiple data events — what
-  // PowerShell and several other Windows hosts do for multi-line
-  // clipboard content even with BPM enabled, and what would
-  // otherwise leave half the content per-byte-processed (where
-  // each `\n` from the paste body would trigger a phantom submit).
+  // A paste delivered over several chunks: each chunk that arrives within
+  // a short idle window joins the first, and the whole lands at the cursor
+  // as one paste, so no line break of its body submits.
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;
@@ -528,19 +459,12 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function onData(chunk) {
-    // Decode incrementally — a code point split across chunk
-    // boundaries is buffered in the decoder and emitted on the
-    // next write. `chunkText` is a complete prefix string.
+    // The text of the chunk, a code point split across chunks completed by the next.
     const chunkText = utf8Decoder.write(chunk);
     if (chunkText.length === 0) return;
 
-    // A solitary keystroke that arrives while the accumulator is
-    // open closes the paste window deterministically: flush the
-    // accumulated content, then let the keystroke itself route
-    // through the per-byte dispatcher. That way a Ctrl+Enter
-    // right after a paste submits, a Ctrl+C cancels, a letter
-    // keeps building the buffer — no special-cased branch per
-    // keystroke.
+    // A single key while a paste gathers ends the paste and then acts as
+    // the key it is.
     if (pasteAccumBuffer.length > 0) {
       if (chunkText.length === 1) {
         clearTimeout(pasteAccumTimer);
@@ -552,12 +476,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       }
     }
 
-    // First chunk that smells like the start of a paste — multi-
-    // byte data event with an embedded `\n` that is NOT at the
-    // final position. A typed buffer followed by Ctrl+Enter
-    // arrives as `'…\n'` where the only `\n` is the last byte,
-    // which must route through per-byte submit and not be mistaken
-    // for a paste body.
+    // A chunk longer than one character whose first line break is not
+    // its last character starts a paste; a typed line ending in a line
+    // break is keys.
     if (!pasteMode && pendingEscape.length === 0 && chunkText.length > 1) {
       const firstNewline = chunkText.indexOf('\n');
       if (firstNewline !== -1 && firstNewline !== chunkText.length - 1) {
@@ -570,11 +491,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function insertPasteAtCursor(rawPasteText) {
-    // Normalise CRLF → LF and trim trailing blank lines from the
-    // paste, but preserve the internal structure so the user sees
-    // the pasted block laid out the way it was on the clipboard.
-    // The multi-line redraw path positions the cursor across `\n`
-    // boundaries correctly.
+    // A paste lands with its CRLF read as LF and its trailing blank lines
+    // dropped, its lines as the clipboard held them.
     const normalised = rawPasteText
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
@@ -619,7 +537,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   return emitter;
 }
 
-// ── Non-TTY line-buffered fallback ─────────────────────────────
+// ── The editor of a pipe ──────────────────────────────────────
 
 function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
   const emitter = new EventEmitter();

@@ -334,11 +334,10 @@ async function evalTaggedLit(node, state) {
   return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
 }
 
-// A tagged literal is its payload piped into `tag`, and a tag laid over
-// an error answers the error, so the step of the tag joins the skipped
-// steps of its last stop [D86]. An error the payload raised is the
-// literal's own raise, and one that resumes its trail makes the literal
-// resume it [D85].
+// The error a tagged literal's payload answered, passed by the tag as an
+// error passes every step, the tag's step joining the skipped steps of
+// its last stop [D86], the literal's own raise where the payload raised
+// it, and resuming its trail where the payload resumed it [D85].
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTagKeyword(tagName)));
   if (isRaisedBy(payloadError, node.payload)) raisedBy(passed, node);
@@ -354,14 +353,13 @@ async function evalBareTypeKeyword(node, state) {
 // ─── BindStep ───────────────────────────────────────────────────
 
 // The one binding form [D44]: the value passes on, and the scope takes the
-// record of the binding [D63], whose value is the body evaluated once, at
-// declaration, against the current value, so `42 | :x / | add 1 | x`
-// answers 42; a doc alone binds a doc, a page. A quote written as the
-// body resolves in the scope the declaration writes, so it sees its own
-// name [D44]. A name is declared once in its scope [D71],
-// and a node the root holds once at all, so a reader extends a noun of the
-// root and replaces none of its nodes [D153]; a name with a path is
-// declared under a noun declared before it.
+// record of the binding [D63], whose value is the body evaluated once at
+// declaration against the current value, `42 | :x / | add 1 | x`
+// answering 42, a doc alone a page, and a quote written as the body
+// resolving in the scope the declaration writes, its own name among it
+// [D44]; a name is declared once in its scope [D71], a node the root holds
+// once at all [D153], and a name with a path under a noun declared before
+// it.
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
@@ -544,13 +542,13 @@ async function applyMember(record, lambdas, state) {
   const running = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
     : runHostMember(member, walked, called, state);
-  const answer = running instanceof Promise ? await running : running;
+  const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return withPipeValue(state, answer);
   const bringing = definition.answer === null ? answer : answerUnderItsLabel(answer, definition.answer, labelName, walked, state);
-  const brought = bringing instanceof Promise ? await bringing : bringing;
+  const brought = isThenable(bringing) ? await bringing : bringing;
   if (isErrorValue(brought)) return withPipeValue(state, brought);
   const refusing = definition.answer === null ? null : refusalOf(definition.answerInvariants, brought, state, scope);
-  const refused = refusing instanceof Promise ? await refusing : refusing;
+  const refused = isThenable(refusing) ? await refusing : refusing;
   return withPipeValue(state, refused ?? brought);
 }
 
@@ -672,7 +670,7 @@ async function argsOf(definition, lambdas, state, scope, bindsNames) {
   const values = [];
   for (const [place, lambda] of lambdas.entries()) {
     const computing = lambda(state.pipeValue);
-    const value = computing instanceof Promise ? await computing : computing;
+    const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return refusalOfComputedCode(definition.parts, place, value, scope);
     values.push(value);
   }
@@ -687,11 +685,11 @@ async function argsOf(definition, lambdas, state, scope, bindsNames) {
   for (const { name, address: partAddress, selector, invariants, kindInvariant } of definition.parts) {
     frameBelow(state);
     const reading = partOf(selector, values, overArgs);
-    const part = reading instanceof Promise ? await reading : reading;
+    const part = isThenable(reading) ? await reading : reading;
     if (part === MISSED_PLACE || (isErrorValue(part) && isMissedPlace(part))) return refusalUnder(notGivenAddress(partAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(part)) return part;
     const refusing = refusalOf(invariants, part, state, scope);
-    const refused = refusing instanceof Promise ? await refusing : refusing;
+    const refused = isThenable(refusing) ? await refusing : refusing;
     if (refused !== null) return refused;
     const handed = servedByInvariant(kindInvariant, part);
     partValues.push(handed);
@@ -804,6 +802,10 @@ function modifierOf(argNode, state) {
 }
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
+
+// Whether an answer is waited on: anything with a `then`, so a host's
+// promise of another realm and a thenable resolve as the core's own do.
+const isThenable = value => typeof value?.then === 'function';
 
 // codeOf(code, callState) → lambda: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope

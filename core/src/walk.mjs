@@ -1,7 +1,7 @@
 // The walks of the parser's tree over the children `astChildrenOf` names,
 // which the decoration of a parse, the language server and the editor
-// read rather than a walk of their own: the node at an offset, the
-// occurrences of a name, and the names visible at a cursor.
+// read: the node at an offset, the occurrences of a name, and the names
+// visible at a cursor.
 
 import { splitAddress } from './address.mjs';
 
@@ -188,10 +188,10 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 ]);
 
 // bindingNamesVisibleAt(ast, offset, spelling?) → the names a step may
-// call at the UTF-16 offset: every declaration that ends before it
-// outside a node whose declarations stay inside it, a cursor at the end
-// of such a node seeing its own, and under the spelling of a tag the
-// labels alone [D168].
+// call at the UTF-16 offset: the declarations that end at or before it,
+// one inside a node whose declarations stay inside it only for an offset
+// within the part of that node that holds it, its end included, and
+// under the spelling of a tag the labels alone [D168].
 export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   const visible = new Set();
   walkAst(ast, (node) => {
@@ -216,9 +216,9 @@ export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   return visible;
 }
 
-// locationToQlangMap(loc) → the qlang view of a peggy location:
-// `{:start {:offset :line :column} :end {…}}`, or null for none. The
-// `:location` of a parse error and of a declaration reads through it.
+// locationToQlangMap(loc) → the qlang view of a span,
+// `{:start {:offset :line :column} :end {…}}`, or null for none, which
+// the `:location` of a parse error and of a declaration reads through.
 export function locationToQlangMap(loc) {
   if (!loc) return null;
   return Object.freeze(new Map([['start', positionToQlangMap(loc.start)], ['end', positionToQlangMap(loc.end)]]));

@@ -376,7 +376,9 @@
       It runs in the scope of the call, so a name declared before the
       call is read inside, and the names a run declares stay in it. The
       first error the code answers for an element is the answer of the
-      call, the elements after it left unrun, and a code that recovers,
+      call, the elements after it left unrun, an element that is an error
+      passing the code by and answering the call,
+      `[1 ("x" | add 1)] | map ~(0)`, and a code that recovers,
       `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
       vector of their own, under no tag of the subject, whose tags speak
       of the elements it held; a quote maps its steps and a doc its

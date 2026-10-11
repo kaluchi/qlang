@@ -1,11 +1,10 @@
-// The names of a scope [D153]: a declaration writes its name, and a name
-// with a path, `vec/count`, is the address of the node it declares under
-// the noun its path names before its last name. The root is the scope the
-// host's sources declared before the reader's first step, the language's
-// first. A step reads the nearest declaration of its name, the frame of
-// the reader's before the root's, and a tag name, an address, the root's
-// node of it first, which no reader replaces; a walk of a subject's tags
-// finds the words residing on each kind it passes [D34], [D164].
+// The names of a scope [D153], each a declaration's, a name with a path,
+// `vec/count`, the address of the node it declares under its noun, over
+// the root the host's sources declared before the reader's first step:
+// a step reads the frame's declaration of a name before the root's, a tag
+// name the root's node of it before the reader's, which no reader
+// replaces, and a walk of a subject's tags the words residing on each
+// kind it passes [D34], [D164].
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTagKeyword, isTaggedInstance,
@@ -54,11 +53,10 @@ export function isUnderLabel(env, name) {
 }
 
 // declaresWord(address, runs, isLabelName) → whether a declaration at the
-// address whose value runs is a word: a name under a label, the label's
-// `construct` apart, which builds the label's values [D164], [D169]; a
-// name under such a name is a part of its args and resides nowhere. The
-// core asks it of the records of a scope, the language server of the
-// declarations of a document.
+// address whose value runs is a word, a name under a label but its
+// `construct`, which builds the label's values, a name under such a name
+// being a part of its args that resides nowhere [D164], [D169], for the
+// records of a scope and the declarations of a document alike.
 export function declaresWord(address, runs, isLabelName) {
   const [labelName, lastName] = splitAddress(address);
   return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
@@ -176,7 +174,7 @@ function kindsNamedBy(value) {
 }
 
 // The record of the verb of `verbName` residing on a kind, or null; a
-// scope whose frame declares no name with a path reads the root's.
+// scope whose frame does not declare the address reads the root's.
 function residenceOf(env, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
   return pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, residenceAt);

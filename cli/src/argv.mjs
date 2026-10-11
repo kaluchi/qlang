@@ -1,11 +1,3 @@
-// parseArgv(args) → what the arguments after the command ask for, one of
-//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
-//   { kind: 'repl', budget, initialQuery }
-//   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
-// the format of the input `auto`, `json` or `raw`, the colour `auto`,
-// `always` or `never`, and the budget null or the characters every
-// answer prints within [D120], [D184].
-
 import { createRequire } from 'node:module';
 
 const _cliPackage = createRequire(import.meta.url)('../package.json');
@@ -70,7 +62,14 @@ export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;
 
 const COLOR_MODES = new Set(['auto', 'always', 'never']);
 
-
+// parseArgv(argvSlice) → what the arguments of the command line ask for,
+// one of
+//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
+//   { kind: 'repl', budget, initialQuery }
+//   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
+// the format of the input `auto`, `json` or `raw`, the colour `auto`,
+// `always` or `never`, and the budget null or the characters every
+// answer prints within [D120], [D184].
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';

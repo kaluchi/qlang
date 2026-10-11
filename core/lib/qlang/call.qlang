@@ -246,10 +246,12 @@
   ::law~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
 
 :call/EvaluationDepthExceededError
-  |~~ A call too deep: every verb body, modifier, `apply` and
-      constructor of a tag runs one frame below the step that called it,
-      and the frame past the budget refuses, `:depth` the refused frame
-      and `:limit` the budget. A word that calls itself without a base
+  |~~ A call too deep: the body of a verb, a modifier computed at the
+      call, a part read from the args, `apply` and a constructor of a tag
+      each run one frame below the step that called them, a quote written
+      as a modifier being a value that runs nothing, and the frame past
+      the budget refuses, `:depth` the refused frame and `:limit` the
+      budget. A word that calls itself without a base
       case is refused here, on the fail track, while the host's memory
       stays bounded: the case that ends the recursion is tested first,
       `:any/down ~(if (eq 0) ~(0) ~(sub 1 | down))`.
@@ -271,10 +273,6 @@
 :call/EvaluationDepthExceededError/namesADepthPastTheLimit
   |~~ The depth refused lies past the limit. ~~|
   ::law~(:q ~(apply q) | apply q !| :e / | /depth | gt (e | /limit))
-
-:call/EvaluationDepthExceededError/countsTheFrameOfEveryModifier
-  |~~ A level of a recursion runs its body, its branch and the modifiers of its calls a frame below each other, so a recursion short of the budget in its words meets it in its frames. ~~|
-  ::law~(:any/down ~(if (gt 0) ~(sub 1 | down) ~(0)) | 499 | down !| type | eq ::call/EvaluationDepthExceededError)
 
 :call/EvaluationDepthExceededError/endsARecursionByItsBaseCase
   |~~ A recursion that tests its base case first ends. ~~|

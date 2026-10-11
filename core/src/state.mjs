@@ -60,22 +60,22 @@ export function rootOf(env) {
 }
 
 // envGet(env, name) → the value the frame holds under a name, else the
-// root's, or undefined
+// root's, or undefined.
 export function envGet(env, name) {
   return env.has(name) ? env.get(name) : rootOf(env).get(name);
 }
 
-// envHas(env, name) → boolean
+// envHas(env, name) → whether the frame or the root holds the name.
 export function envHas(env, name) {
   return env.has(name) || rootOf(env).has(name);
 }
 
-// envSet(env, name, value) → new env Map
+// envSet(env, name, value) → a new scope, the name holding the value.
 export function envSet(env, name, value) {
   return new Map(env).set(name, value);
 }
 
-// envMerge(env, otherMap) → new env Map
+// envMerge(env, otherMap) → a new scope, the names of the map over its own.
 export function envMerge(env, otherMap) {
   const next = new Map(env);
   for (const [key, value] of otherMap) next.set(key, value);

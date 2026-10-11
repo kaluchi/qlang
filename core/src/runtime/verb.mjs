@@ -13,9 +13,9 @@ import {
   makeTagKeyword, typeKeyword
 } from '../types.mjs';
 
-// The value under a tag as its literal puts it there [D173]: the verbs
-// that keep a kind and `tag` share it. A tag laid over an error answers
-// the error, since no tag stands over one [D86].
+// The value under a tag as its literal puts it there, for the verbs that
+// keep a kind and for `tag` [D173], an error answering itself, since no
+// tag stands over one [D86].
 export async function mintUnderTag(state, tag, value) {
   if (isErrorValue(value)) return value;
   return await mintTaggedInstance(tag.name, value, state);

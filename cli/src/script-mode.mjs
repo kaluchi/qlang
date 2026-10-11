@@ -97,11 +97,11 @@ function liftParsedDocument(parsed, resolvedFormat) {
 }
 
 // The answer a channel writes [D120], [D184]: a value whole unless the
-// caller asked for a budget, an error an alert; under JSON data answers
-// whole for the tools that read it, an error alone giving way within the
-// budget, and the print gives way within it. A failure carries the prose
-// of its refusal's page, under `page` in JSON and below the print as
-// comment lines, which a reading of the literal passes over [D195].
+// caller asked for a budget and an error an alert, under JSON data whole
+// for the tools that read it and an error alone giving way within the
+// budget, a failure carrying the prose of its refusal's page, under
+// `page` in JSON and below the print as comment lines a reading of the
+// literal passes over [D195].
 export async function encodeSuccessValueForFormat(value, resolvedFormat, env, budget = null, page = null) {
   if (resolvedFormat === 'json') {
     const answer = answerForJson(value);

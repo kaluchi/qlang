@@ -214,6 +214,24 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
   });
 });
 
+describe('the answer of a word of the host', async () => {
+  it('waits on an answer that has a then, a thenable and a promise of another realm', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const vm = await import('node:vm');
+    const s = await createSession({
+      sources: [{
+        uri: 'tests/later',
+        source: ':number/later ::builtin{}\n:number/elsewhere ::builtin{}',
+        impls: {
+          'number/later': n => ({ then(resolve) { resolve(n + 1); } }),
+          'number/elsewhere': vm.runInNewContext('(async (n) => n + 1)')
+        }
+      }]
+    });
+    expect((await s.evalCell('[(41 | later | add 1) (41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
+  });
+});
+
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
   it('wraps a plain JS Error from a word as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');

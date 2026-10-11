@@ -1,8 +1,8 @@
 // renderCellOutcome(cellEntry, outcomeOpts) → what the command line writes
-// for a cell and its exit code: a query that does not parse or a session
-// that fails to start on stderr with exit 1, nothing once the query wrote
-// to stdout by `@out`, and any other answer, a failure among them, in the
-// format of the input with exit 0 [D96], [D103].
+// for a cell and its exit code: a query that does not parse or a defect
+// raised past the fail track on stderr with exit 1, nothing once the
+// query wrote to stdout by `@out`, and any other answer, a failure among
+// them, in the format of the input with exit 0 [D96], [D103].
 
 import { isErrorValue, printAnswer, elideAnswer, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { encodeSuccessValueForFormat } from './script-mode.mjs';
@@ -27,8 +27,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   const { resolvedFormat, didExplicitStdoutEffect, shouldColorize, budget = null } = outcomeOpts;
 
   if (cellEntry.error !== null) {
-    // A query that does not parse prints its error, a session that fails
-    // to start its message.
+    // A query that does not parse prints its error, a defect its message.
     const diagnostic = isErrorValue(cellEntry.result)
       ? await maybePaint(await printAnswer(elideAnswer(cellEntry.result, budget), cellEntry.envAfterCell), shouldColorize)
       : `qlang: ${cellEntry.error.message}`;

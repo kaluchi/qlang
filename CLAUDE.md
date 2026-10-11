@@ -95,8 +95,8 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[D199]. A tool output above thirty kilobytes is persisted with a short
-preview; filter it instead of reading it back whole.
+[D199]. A long tool output is persisted with a short preview; filter it
+instead of reading it back whole.
 
 ## Workspaces
 
@@ -117,8 +117,8 @@ install` at the root links the workspaces; the Node floor is the
 - `npm run ci`: the gate for anything meant to be pushed. Build,
   eslint, `check:conventions`, `check:probes`, `check:fuzz`,
   `check:benchmark`, every suite, coverage thresholds, CLI integration,
-  site build, in that order. Judge it by its real exit code, captured to a file, never
-  through a pipe.
+  site build, in that order. Judge it by its real exit code, captured
+  to a file, never through a pipe.
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
   runs recorded side by side [D104].
@@ -130,9 +130,9 @@ install` at the root links the workspaces; the Node floor is the
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
   that makes a host fail, throws past the fail track or prints as a text
-  that reads back as another value fails it. The gate runs ten variants
-  of each law under the first seed; more variants and other seeds after
-  a change to a primitive, the evaluator, the printer or the grammar.
+  that reads back as another value fails it. The gate runs it with its
+  defaults; other counts and seeds after a change to a primitive, the
+  evaluator, the printer or the grammar.
 - `npm run test:coverage`: the coverage thresholds on the core.
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.
@@ -158,9 +158,8 @@ changed it answers by rewriting the sentence with its probe [D93]; a
 target case records the answer the tree gives today, so the suite
 tells a repair from a broken case [D91].
 
-Coverage thresholds of one hundred on every axis are pinned in the
-`vitest.config.mjs` of `core/` and `cli/`; the audit keeps a threshold
-for the language core alone.
+Coverage thresholds are pinned in the `vitest.config.mjs` of `core/`
+and `cli/`; the audit keeps a threshold for the language core alone.
 
 `.claude/agents/qlang-review.md` is the ruleset the review subagent
 applies, each rule a principle of the audit and the check that enforces

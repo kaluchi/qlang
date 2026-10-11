@@ -966,6 +966,12 @@
   |~~ A reducer written without its quote is refused. ~~|
   ::law~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/NotQuoteError)
 
+:map/reduce/reducer/NotQuoteError/refusesTheReducerFirst
+  |~~ A reducer written before the seed hands the reducer's place the seed. ~~|
+  ::law~({:a 1} | reduce ~(add) 0
+    !| [type /actualType]
+    |  eq [::map/reduce/reducer/NotQuoteError ::number])
+
 :map/reduce/ReducerNotBinaryError/refusesTwoSteps
   |~~ A reducer of two steps is refused. ~~|
   ::law~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/ReducerNotBinaryError)

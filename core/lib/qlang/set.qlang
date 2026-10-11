@@ -599,9 +599,10 @@
       answers a string or a number files under the keyword of its text,
       `#[1 2] | groupBy` answering `{:"1" #[1] :"2" #[2]}`, a boolean
       or null under the keyword of its literal and a tag name under that
-      of its name; a key of another kind is refused, `:index` naming the
-      element. The key is code, a quote run on each element, or null:
-      `groupBy ~(/k)`, where `groupBy /k` is refused under the part.
+      of its name, and values whose text is one under one key; a key of
+      another kind is refused, `:index` naming the element. The key is
+      code, a quote run on each element, or null: `groupBy ~(/k)`, where
+      `groupBy /k` is refused under the part.
       ::link~(::set/indexBy | doc) ::link~(::vec/groupBy | doc)
   ~~|
   ::builtin{}
@@ -651,6 +652,18 @@
   |~~ A boolean files under the keyword of its literal. ~~|
   ::law~(#[true false] | groupBy | eq {:false #[false] :true #[true]})
 
+:set/groupBy/filesNullUnderItsLiteral
+  |~~ A null files under `:null`. ~~|
+  ::law~(#[null 1] | groupBy | keys | eq #[:"1" :null])
+
+:set/groupBy/filesATagUnderItsName
+  |~~ A tag name key files under the keyword of its name. ~~|
+  ::law~(#[1 "a"] | groupBy ~(type) | eq {:number #[1] :string #["a"]})
+
+:set/groupBy/filesValuesOfOneTextUnderOneKey
+  |~~ Values of two kinds whose text is one file under one key. ~~|
+  ::law~(#[true "true"] | groupBy | eq {:true #[true "true"]})
+
 :set/groupBy/key/NotQuoteOrNullError/refusesAKeyWithoutItsQuote
   |~~ A key written without its quote mark is refused under the part. ~~|
   ::law~(#[{:k 1}] | groupBy /k !| type | eq ::set/groupBy/key/NotQuoteOrNullError)
@@ -667,10 +680,10 @@
       answering `{:a :a}`. A key that answers a string or a number files
       under the keyword of its text, `2` under `:"2"`, a boolean or null
       under the keyword of its literal and a tag name under that of its
-      name; a key of another kind is refused, `:index` naming the
-      element. The key is code, a quote run
-      on each element, or null: `indexBy ~(/id)`, where `indexBy /id` is
-      refused under the part.
+      name, and of values whose text is one the last in the one order
+      stays; a key of another kind is refused, `:index` naming the
+      element. The key is code, a quote run on each element, or null:
+      `indexBy ~(/id)`, where `indexBy /id` is refused under the part.
       ::link~(::set/groupBy | doc) ::link~(::vec/indexBy | doc)
   ~~|
   ::builtin{}
@@ -715,6 +728,22 @@
 :set/indexBy/filesANumberUnderItsText
   |~~ A number files under the keyword of its text. ~~|
   ::law~(#[{:k 2}] | indexBy ~(/k) | keys | eq #[:"2"])
+
+:set/indexBy/filesABooleanUnderItsLiteral
+  |~~ A boolean files under the keyword of its literal. ~~|
+  ::law~(#[true false] | indexBy | eq {:false false :true true})
+
+:set/indexBy/filesNullUnderItsLiteral
+  |~~ A null files under `:null`. ~~|
+  ::law~(#[null] | indexBy | eq {:null null})
+
+:set/indexBy/filesATagUnderItsName
+  |~~ A tag name key files under the keyword of its name. ~~|
+  ::law~(#[1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
+
+:set/indexBy/keepsTheLastOfOneText
+  |~~ Of values whose text is one the last in the one order stays. ~~|
+  ::law~(#[true "true"] | indexBy | eq {:true "true"})
 
 :set/indexBy/key/NotQuoteOrNullError/refusesAKeyWithoutItsQuote
   |~~ A key written without its quote mark is refused under the part. ~~|
@@ -1151,6 +1180,12 @@
 :set/reduce/reducer/NotQuoteError/refusesCodeComputedAtTheCall
   |~~ A reducer written without its quote is computed at the call and refused. ~~|
   ::law~(#[1 2] | reduce 0 (add) !| type | eq ::set/reduce/reducer/NotQuoteError)
+
+:set/reduce/reducer/NotQuoteError/refusesTheReducerFirst
+  |~~ A reducer written before the seed hands the reducer's place the seed. ~~|
+  ::law~(#[1 2] | reduce ~(add) 0
+    !| [type /actualType]
+    |  eq [::set/reduce/reducer/NotQuoteError ::number])
 
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and

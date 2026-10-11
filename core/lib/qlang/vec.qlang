@@ -785,9 +785,11 @@
       boolean or null under the keyword of its literal, so a condition
       partitions, `[1 2 3] | groupBy ~(gt 1)` answering `{:false [1]
       :true [2 3]}`, and a tag name under the keyword of its name, so
-      `groupBy ~(type)` files by kind; a key of another kind, a vector or
-      a map, is refused at its element. Without a key an element files under itself, so
-      `groupBy | map ~count` counts the occurrences of each value. The key
+      `groupBy ~(type)` files by kind, and values whose text is one file
+      under one key, `true` beside `"true"`; a key of another kind, a
+      vector or a map, is refused at its element. Without a key an element
+      files under itself, so `groupBy | map ~count` counts the
+      occurrences of each value. The key
       is code run on each element, a quote, `~(/k)`; a value computed at
       the call is refused, and a key that misses its field answers the
       error of the read. A set answers `groupBy` by a word of its own,
@@ -856,6 +858,10 @@
   |~~ A tag name files under the keyword of its name. ~~|
   ::law~([1 "a" 2] | groupBy ~(type) | eq {:number [1 2] :string ["a"]})
 
+:vec/groupBy/filesValuesOfOneTextUnderOneKey
+  |~~ Values of two kinds whose text is one file under one key. ~~|
+  ::law~([true "true"] | groupBy | eq {:true [true "true"]})
+
 :vec/groupBy/filesUnderItselfWithoutAKey
   |~~ Without a key an element files under itself. ~~|
   ::law~(["b" "a" "b"] | groupBy | eq {:b ["b" "b"] :a ["a"]})
@@ -884,8 +890,10 @@
       a key the last wins. A key files under a keyword as `groupBy` files
       it, a string or a number under the keyword of its text, a boolean
       or null under that of its literal and a tag name under that of its
-      name, and a key of another kind is refused at its element. Without a key an element files
-      under itself, a string under its keyword. The key is code run on
+      name, and of values whose text is one the last stays, `[true
+      "true"] | indexBy` answering `{:true "true"}`; a key of another kind
+      is refused at its element. Without a key an element files under
+      itself, a string under its keyword. The key is code run on
       each element, a quote, `~(/id)`; a value computed at the call is
       refused. A set answers `indexBy` by a word of its own, and
       `groupBy` keeps every element of a key.
@@ -937,6 +945,18 @@
 :vec/indexBy/filesABooleanUnderItsLiteral
   |~~ A boolean key files under the keyword of its literal. ~~|
   ::law~([{:ok true :n 1} {:ok false :n 2}] | indexBy ~(/ok) | /true/n | eq 1)
+
+:vec/indexBy/filesNullUnderItsLiteral
+  |~~ A null key files under `:null`. ~~|
+  ::law~([{:id null :n 1}] | indexBy ~(/id) | /null/n | eq 1)
+
+:vec/indexBy/filesATagUnderItsName
+  |~~ A tag name key files under the keyword of its name. ~~|
+  ::law~([1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
+
+:vec/indexBy/keepsTheLastOfOneText
+  |~~ Of values whose text is one the last stays. ~~|
+  ::law~([true "true"] | indexBy | eq {:true "true"})
 
 :vec/indexBy/filesAStringUnderItsKeyword
   |~~ Without a key a string files under its keyword. ~~|
@@ -1802,12 +1822,12 @@
   ::law~([#[1]] | inter #[2] !| type | eq ::vec/inter/ArgsBeyondPartsError)
 
 :vec/join
-  |~~ Answers the strings the vector holds joined into one, the separator
+  |~~ Answers the strings and keywords the vector holds joined into one, the separator
       the call gives between every two, `["a" "b" "c"] | join ","`
       answering `"a,b,c"`; the empty vector joins to the empty string,
       and `split` takes the string apart again. Every element is a
-      string or a keyword, written as its name, so the pairs of a map's
-      entries join as they stand, `{:host "x"} | entries | map ~(join
+      string or a keyword, written as its name, so the pairs of a map of
+      strings join as they stand, `{:host "x"} | entries | map ~(join
       "=")` answering `["host=x"]`; another value is refused at its index,
       and values are made text first, `map ~print | join "+"`. A set joins
       its elements in the one order; a map, a string or a number is
@@ -1858,6 +1878,10 @@
 :vec/join/writesAKeywordAsItsName
   |~~ The pairs of a map's entries join, each key written as its name. ~~|
   ::law~({:host "x" :port "80"} | entries | map ~(join "=") | eq ["host=x" "port=80"])
+
+:vec/join/writesAKeywordSeparatorAsItsName
+  |~~ A keyword separator is written as its name. ~~|
+  ::law~(["a" "b"] | join :x | eq "axb")
 
 :vec/join/joinsValuesMadeText
   |~~ Values made text first join. ~~|

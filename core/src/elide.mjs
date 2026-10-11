@@ -3,9 +3,11 @@
 // gives way to a value of the kind `::elision`, a vector keeping the
 // first half of its elements and ending with a marker of the rest, a
 // string or a map giving way whole, and the top, a vector, keeping the
-// first half of its elements. A marker holds `:size`, what it stands for
-// counted, `:read`, the quote that applied to the value taken answers the
-// part left out, and for a string `:head`, its first characters.
+// first half of its elements; a part whose marker prints no shorter than
+// it stays, so a budget never lengthens a print [D217]. A
+// marker holds `:size`, what it stands for counted, `:read`, the quote
+// that applied to the value taken answers the part left out, and for a
+// string `:head`, its first characters.
 //
 // A failure a host prints is an alert [D184]: its tag and its facts, the
 // data it carries cut to what places the failure. The subject of the
@@ -86,24 +88,37 @@ function partsOf(value, path, keep, parts) {
   }
 }
 
-// The marker or the shortened vector a part gives way to.
-function givenWay(part, prefix) {
+// A vector's elements before the marker that ends it, and what that
+// marker stands for.
+function vectorParts(value) {
+  const trailing = value.length > 0 && isMarker(value[value.length - 1]) ? value[value.length - 1] : null;
+  return { elements: trailing === null ? value : value.slice(0, -1), standsFor: trailing === null ? 0 : trailing.get('size') };
+}
+
+// The marker a part gives way to whole: a string's with its head, a
+// vector's standing for every element it held, a map's for its entries.
+function wholeOf(part, prefix) {
   const { path, value } = part;
   if (typeof value === 'string') {
     return marker([['size', value.length], ['read', readOf(prefix, path)], ['head', value.slice(0, Math.min(HEAD_CHARACTERS, Math.floor(value.length / 2)))]]);
   }
   if (isPlainVector(value)) {
-    const trailing = value.length > 0 && isMarker(value[value.length - 1]) ? value[value.length - 1] : null;
-    const elements = trailing === null ? value : value.slice(0, -1);
-    const kept = Math.ceil(elements.length / 2);
-    const standsFor = trailing === null ? 0 : trailing.get('size');
-    if (kept === elements.length) {
-      return marker([['size', elements.length + standsFor], ['read', readOf(prefix, path)]]);
-    }
-    const leftOut = elements.length - kept + standsFor;
-    return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(prefix, path, ` | drop ${kept}`)]])];
+    const { elements, standsFor } = vectorParts(value);
+    return marker([['size', elements.length + standsFor], ['read', readOf(prefix, path)]]);
   }
   return marker([['size', value.size], ['read', readOf(prefix, path)]]);
+}
+
+// The marker or the shortened vector a part gives way to: a vector keeps
+// the first half of its elements while it holds more than one.
+function givenWay(part, prefix) {
+  const { path, value } = part;
+  if (!isPlainVector(value)) return wholeOf(part, prefix);
+  const { elements, standsFor } = vectorParts(value);
+  const kept = Math.ceil(elements.length / 2);
+  if (kept === elements.length) return wholeOf(part, prefix);
+  const leftOut = elements.length - kept + standsFor;
+  return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(prefix, path, ` | drop ${kept}`)]])];
 }
 
 function replacedAt(value, path, replacement) {
@@ -118,12 +133,17 @@ function replacedAt(value, path, replacement) {
   return copy;
 }
 
+// While the print exceeds the budget, the largest part gives way among
+// those whose marker prints shorter than they do, so a budget never
+// lengthens a print, a vector halving on to its marker at the most; where
+// no part's marker is shorter, the view stands over the budget [D217].
 function elideWithin(value, budget, prefix, keep) {
   let view = value;
   while (printedSize(view) > budget) {
     const parts = [];
     partsOf(view, [], keep, parts);
-    const sized = parts.map(part => ({ part, size: printedSize(part.value) })).filter(({ size }) => size > 0);
+    const sized = parts.map(part => ({ part, size: printedSize(part.value) }))
+      .filter(({ part, size }) => printedSize(wholeOf(part, prefix)) < size);
     if (sized.length === 0) return view;
     const largest = sized.reduce((best, candidate) => (candidate.size > best.size ? candidate : best));
     view = replacedAt(view, largest.part.path, givenWay(largest.part, prefix));
@@ -140,7 +160,7 @@ export function elide(value, budget) {
 // other value, an error at rest among them [D210], gives way within as
 // `elide` cuts it.
 function excerptOf(value, read) {
-  if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return givenWay({ path: [], value }, read);
+  if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
   return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone);
 }
 

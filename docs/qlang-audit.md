@@ -515,7 +515,9 @@ then details on demand [D21]. Seen from the session it has four
 clauses. The session controls the detail of an answer. An answer stays
 within the budget the session asks for, by `elide` in the query or by
 the host's flag, and prints whole when nobody asked [D120], an error as
-an alert whose markers say what the host left out [D184]. When the
+an alert whose markers say what the host left out [D184], and a part
+gives way only to a marker that prints shorter than it, so a budget
+never lengthens an answer [D217]. When the
 answer would have exceeded the budget, it says what was left out and
 how much of it there is. And the session can read what was left out,
 all of it or a part, through the same pipeline that produced the
@@ -2038,3 +2040,4 @@ applies
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
 [D216]: decisions/D216.md
+[D217]: decisions/D217.md

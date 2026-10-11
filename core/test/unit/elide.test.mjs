@@ -9,7 +9,8 @@ import { printValue } from '../../src/runtime/format.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
-const LONG = 'a long line of text to leave out for sure';
+// Long enough that the marker standing for it prints shorter than it.
+const LONG = 'a long line of text to leave out for sure, which runs on long enough that its marker prints shorter';
 const readBack = async (value, marker) => evalQuery(`${printValue(value)} | apply ${printValue(marker.get('read'))}`);
 
 describe('elide [D109]', () => {
@@ -69,6 +70,13 @@ describe('elide [D109]', () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
     const marker = elide(value, 30).get('a key');
     expect(await readBack(value, marker)).toBe(LONG);
+  });
+
+  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D217]', async () => {
+    const value = await evalQuery('[[] {:n 1} "short"]');
+    expect(elide(value, 3)).toBe(value);
+    const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
+    expect(printValue(elideAnswer(failing, 200)).length).toBeLessThanOrEqual(printValue(elideAnswer(failing)).length);
   });
 });
 

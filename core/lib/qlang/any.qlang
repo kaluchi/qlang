@@ -413,7 +413,10 @@
       string keeping its first characters under `:head`; a vector keeps
       the first half of its elements, and half of those until it fits,
       ending with a marker of the rest; and a value under a tag keeps
-      its tag, its parts giving way within. A marker's `:size` counts
+      its tag, its parts giving way within. A part whose marker prints
+      no shorter than it stays, `[]` or `{:n 1}`, so a budget never
+      lengthens a print, and a value whose parts all print no longer
+      than their markers is answered as it is. A marker's `:size` counts
       what it stands for, and its `:read`, applied to the value `elide`
       took, answers the part left out. The top gives way only as a
       vector, so a string or an atom alone is answered whole. The call
@@ -448,12 +451,19 @@
 
 :any/elide/elidesTheLargestPart
   |~~ The largest part gives way to an elision. ~~|
-  ::law~({:s "a long line of text to leave out" :n 1} | elide 40 | /s | type | eq ::elision)
+  ::law~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+    | elide 40 | /s | type | eq ::elision)
 
 :any/elide/keepsTheHeadOfAString
   |~~ The marker of a string keeps its first characters. ~~|
-  ::law~({:s "a long line of text to leave out" :n 1} | elide 40
-    | /s/head | eq "a long line of t")
+  ::law~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+    | elide 40 | /s/head | eq "a long line of text to leave out, which ")
+
+:any/elide/keepsAPartShorterThanItsMarker
+  |~~ A part whose marker prints no shorter than it stays, so a budget
+      never lengthens a print.
+  ~~|
+  ::law~([[] {:n 1} "short"] | elide 3 | eq [[] {:n 1} "short"])
 
 :any/elide/halvesAVectorUntilItFits
   |~~ A vector keeps its first elements and ends with a marker of the rest. ~~|
@@ -463,12 +473,13 @@
 
 :any/elide/keepsATag
   |~~ A value under a tag keeps its tag. ~~|
-  ::law~(::Box{:s "a long line of text"} | elide 10 | type | eq ::Box)
+  ::law~(::Box{:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
+    | elide 10 | type | eq ::Box)
 
 :any/elide/readsTheElidedPartBack
   |~~ An elision holds the query that reads its part back. ~~|
-  ::law~({:s "a long line of text to leave out" :n 1} | :v / | elide 40
-    | /s/read | :r / | v | apply r | eq (v | /s))
+  ::law~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+    | :v / | elide 40 | /s/read | :r / | v | apply r | eq (v | /s))
 
 :any/elide/answersAStringWhole
   |~~ A string alone is answered whole. ~~|

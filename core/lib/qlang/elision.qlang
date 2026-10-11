@@ -20,4 +20,5 @@
 
 :elision/measuresWhatItLeftOut
   |~~ An elision holds the size of what it left out. ~~|
-  ::law~({:s "a long line of text to leave out"} | elide 20 | /s | /size | eq 32)
+  ::law~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
+    | elide 20 | /s | /size | eq 98)

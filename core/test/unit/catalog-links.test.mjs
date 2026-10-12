@@ -13,28 +13,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { printQuoteSource } from '../../src/quote.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
-import { isDoc, isErrorValue, isValueClass } from '../../src/types.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
-
-// The quote beneath the stack of tags of a link.
-function queryOfLink(link) {
-  let beneath = link;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return printQuoteSource(beneath);
-}
-
-// What is wrong with where a link leads, or null when it leads to the page
-// of another name: its answer, the printed pages of the names of the root,
-// and the printed page it stands on.
-function wrongTarget(answer, declaredPages, ownPage) {
-  if (!isDoc(answer)) return `answers ${isErrorValue(answer) ? `the error ${printValue(answer.tag)}` : 'no page'}`;
-  const printed = printValue(answer);
-  if (!declaredPages.has(printed)) return 'answers a doc no name declares';
-  if (printed === ownPage) return 'leads back to its own page';
-  return null;
-}
+import { declaredPagesOf, linksOf, wrongLinksOf, wrongTarget } from '../helpers/catalog-pages.mjs';
 
 // The links of every page, each with the address of the page it stands
 // on, and the printed page of every name of the root.
@@ -42,14 +23,9 @@ let links;
 let declaredPages;
 
 beforeAll(async () => {
-  links = [];
-  declaredPages = new Set();
-  for (const address of rootAddressesOf(await langRuntime())) {
-    const page = await evalQuery(`${address} | doc`);
-    if (!isDoc(page)) continue;
-    declaredPages.add(printValue(page));
-    for (const link of await evalQuery(`${address} | doc | links`)) links.push({ address, page: printValue(page), query: queryOfLink(link) });
-  }
+  const addresses = rootAddressesOf(await langRuntime());
+  links = await linksOf(evalQuery, addresses);
+  declaredPages = await declaredPagesOf(evalQuery, addresses);
 }, 120_000);
 
 describe('the links of the catalog [D108], [D175]', () => {
@@ -65,12 +41,7 @@ describe('the links of the catalog [D108], [D175]', () => {
   });
 
   it('every link leads to the page of another name of the language', async () => {
-    const wrong = [];
-    for (const link of links) {
-      const target = wrongTarget(await evalQuery(link.query), declaredPages, link.page);
-      if (target !== null) wrong.push(`${link.address}: ~(${link.query}) ${target}`);
-    }
-    expect(wrong).toEqual([]);
+    expect(await wrongLinksOf(evalQuery, links, declaredPages)).toEqual([]);
     expect(links.length).toBeGreaterThan(0);
   }, 120_000);
 });

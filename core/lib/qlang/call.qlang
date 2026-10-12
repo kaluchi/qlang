@@ -212,21 +212,18 @@
   ::law~(:host | keyword | append ":80" | eq "host:80")
 
 :call/UnknownNameError
-  |~~ No name of the scope and no verb of any kind answers the name:
-      `:name` holds the name as typed, and `:nearest` the names it was
-      likely meant to be, those within an edit distance of a third of its
-      length, one at least, and of those the nearest alone, in the order
-      of their spelling; an edit is an insertion, a deletion, a
-      substitution or a swap of two neighbours, and a name with nothing
-      near holds `[]`. `:addresses` holds none, since a name that the
-      verbs of other kinds answer is refused by
-      `::call/KindAnswersNoVerbError`, which names them. A name is
-      declared before the steps that read it, `:x 5 | x`, and a fact of a
-      record is no word but a key, read by projection, `/name`. A kind is
-      no word either: its tag reaches it, which `:nearest` names first,
-      `5 | string` pointing to `::string`, whose page says how a value
-      becomes text.
+  |~~ A step called a name nothing declares, no name of the scope and no
+      word of any kind: `:nearest` holds the names it was likely meant to
+      be, and `:name` the name as typed. A name is declared before the
+      steps that read it, `:x 5 | x`; a field of a record is no word but a
+      key, read by projection, `/name`; and a kind is no word either: its
+      tag reaches it, which `:nearest` names first, `5 | string` pointing
+      to `::string`, whose page says how a value becomes text. A name the
+      words of other kinds answer is refused by
+      `::call/KindAnswersNoVerbError`, which names where they live, so
+      `:addresses` holds none here.
       ::link~(::call | doc) ::link~(::call/KindAnswersNoVerbError | doc)
+      ::link~(::error/nearest | doc)
   ~~|
 
 :call/UnknownNameError/name

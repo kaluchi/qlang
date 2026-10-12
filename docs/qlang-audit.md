@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-ninth, holds it against commit `2147bab`, its baseline: a scar the
+tenth, holds it against commit `91a2419`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -788,8 +788,8 @@ its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
 session reached for and missed became the language's where they composed
 with it [D132], [D133], [D138], [D140]. The benchmark measures the pages
-a child lands on, those of the language and of the command line [D26],
-on sets of tasks a clean author writes and no one has read [D26], each
+a child lands on, those of the language and of the command line, on
+sets of tasks a clean author writes and no one has read, each
 measurement read beside the one before it [D26]. The command line
 writes every answer on stdout with the code 0, a failure among them, a
 query that does not parse and an input that does not read among those, a
@@ -1123,7 +1123,12 @@ each lives in a file of its own under `docs/decisions/`, true as a whole
 while it is in force [D227];
 a citation of its number in this document is a link to that file, and
 the requirements it left are the conformance cases that name it [D58];
-it cites a record in force or one waiting on its target [D225].
+it cites a record in force or one waiting on its target [D225]. An
+artifact names the decision it exists for, a mark covering the block it
+stands on, so the scope of a record is every place that marks it; a
+move of the baseline reads again the records whose blocks its diff
+touched, and records of one axis merge into the earliest of them, whose
+number stays the address of the axis [D237].
 How the records are sourced is the subject of the folder's
 `README.md`.
 
@@ -1431,13 +1436,12 @@ meets the tag and the facts.
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
 [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the effect marker leaving the language, open,
+[D127], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
-benchmark runs [D26], each run recorded with the frictions it met
-[D26], each measurement on a set of tasks a
-clean author wrote, which measures once and serves the work once its
-misses are read [D26], its children running the command line from the
-pages of the language and the command line [D26]. An error a host
+benchmark runs, each run recorded with the frictions it met, each
+measurement on a set of tasks a clean author wrote, which measures once
+and serves the work once its misses are read, its children running the
+command line from the pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
 subject it passed a marker [D184].
 
@@ -1575,6 +1579,23 @@ root's reading of it; a role read from a form refused aloud where the
 form stops fitting it, a cheaper repair of the traps that leaves the
 second mechanism; or the forms as they stand. Open, the layer of
 declarations.
+
+A body that declares the name of its part. The body of a word is the
+run of its quote, a scope of its own, so a name it declares shadows a
+part of that name without a word [D71]:
+
+```qlang
+> :number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2
+4
+```
+
+While the head of a verb and its body were one scope, such a
+declaration was refused; the refusal left with the head [D168], with no
+word on that axis. The alternatives: refuse it again where the word
+runs, a check of the body's declarations against the names of its
+parts, at the cost of a rule beside the shadowing every other run of a
+quote allows; or let the body shadow, as a run of any quote shadows the
+scope around it. Open, the layer of declarations.
 
 One rule for line breaks. At the top level a line break ends a
 command's modifiers and stands for `|`, and inside a group or a quote it
@@ -1977,3 +1998,4 @@ the command line without them.
 [D232]: decisions/D232.md
 [D235]: decisions/D235.md
 [D236]: decisions/D236.md
+[D237]: decisions/D237.md

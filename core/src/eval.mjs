@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, readsParts, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -46,9 +46,6 @@ const ProjIndexNotIntegerError = declareRefusal('proj/IndexNotIntegerError');
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a word, an invariant or a tag no node answers [D173].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
-// A bare name the reader declares for a value takes no word of the
-// vocabulary, the name of a verb or of a name under a label, so no step
-// meets the reader's value where the subject's word was meant [D166].
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
@@ -852,19 +849,24 @@ export function codeOf(code, callState) {
 }
 
 // resolveBinaryReducer(reducerLambda) → (acc, item) → value, or null: the
-// verb a reducer's quote names by one word, called as the pipe calls it,
-// `acc | add item`, the verb residing on the accumulator among them [D72];
-// null for code of any other shape, which `reduce` refuses.
+// word a reducer's quote names by one word, its name or its address,
+// called as the pipe calls it, `acc | add item`, the word residing on the
+// accumulator among them [D72], and a value of the scope under the name
+// meeting the word there [D223], [D224]; null for code of any other shape
+// or a name of no word, which `reduce` refuses.
 export function resolveBinaryReducer(reducerLambda) {
   const callerState = reducerLambda.capturedState;
   const astNode = reducerLambda.astNode;
   if (astNode.type !== 'Call' || astNode.args.length !== 0) return null;
-  const lookupName = astNode.name;
-  const reach = bareNameReach(callerState.env, lookupName);
-  const namesAWord = reach === null ? residencesOf(callerState.env, lookupName).length > 0 : reach.underKind;
-  if (!namesAWord) return null;
-  return async (acc, item) =>
-    (await callByName(lookupName, [async () => item], withPipeValue(callerState, acc))).pipeValue;
+  const item = element => [async () => element];
+  if (astNode.address !== undefined) {
+    if (!isWord(callerState.env, astNode.name)) return null;
+    const record = nodeOf(callerState.env, astNode.name);
+    return async (acc, element) => (await applyMember(record, item(element), withPipeValue(callerState, acc))).pipeValue;
+  }
+  if (addressesOf(callerState.env, astNode.name).length === 0) return null;
+  return async (acc, element) =>
+    (await callByName(astNode.name, item(element), withPipeValue(callerState, acc))).pipeValue;
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

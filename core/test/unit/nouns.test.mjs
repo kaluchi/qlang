@@ -55,6 +55,15 @@ describe('the names of the scope', () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
+
+  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [D223]', async () => {
+    const later = { uri: 'stock', source: ':vec/tally ~(count)' };
+    const alone = await createSession({ sources: [] });
+    expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
+    const beside = await createSession({ sources: [later] });
+    const met = ':tally 5 | [(7 | tally) ([1 2] | tally !| [type /addresses]) ([1 2] | vec/tally)]';
+    expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsWordError #[::vec/tally]] 2]`)).result).toBe(true);
+  });
 });
 
 describe('the verbs that live on a kind', () => {

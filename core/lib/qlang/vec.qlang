@@ -1498,10 +1498,11 @@
       ~(add)` answering `15`; the empty vector answers the seed. The seed
       comes first and the reducer after it, so `reduce ~(add)` reads the
       quote as the seed and is refused for the reducer it lacks. The
-      reducer is a quote of one word, `~(add)` or `~add`, which the fold
-      calls with the value so far as its subject and the element as its
-      first arg; a fold of several steps is a word declared first, whose
-      part reads the element. An error the reducer answers answers the
+      reducer is a quote of one word, `~(add)` or `~add`, or of its
+      address, `~(number/add)`, which the fold calls with the value so
+      far as its subject and the element as its first arg; a fold of
+      several steps is a word declared first, whose part reads the
+      element. An error the reducer answers answers the
       call. `sum`, `count`, `max` and the builders of structures all
       factor through it: adding from zero sums, multiplying from one
       gives the product, appending joins strings and uniting merges sets.
@@ -1536,11 +1537,11 @@
   ~~|
 
 :vec/reduce/reducer/NotBinaryError
-  |~~ The quote of `reduce` names one word, which the fold calls with the
-      value so far as its subject and the element as its first arg,
-      `reduce 0 ~(add)`; a quote of several steps, a literal or a name of
-      no word is refused. A fold of several steps is a word declared
-      first, whose part reads the element.
+  |~~ The quote of `reduce` names one word, by its name or its address,
+      which the fold calls with the value so far as its subject and the
+      element as its first arg, `reduce 0 ~(add)`; a quote of several
+      steps, a literal or a name of no word is refused. A fold of several
+      steps is a word declared first, whose part reads the element.
   ~~|
 
 :vec/reduce/sums
@@ -1562,6 +1563,10 @@
 :vec/reduce/takesTheQuoteOfAName
   |~~ The quote of a name alone is a reducer. ~~|
   ::law~([1 2 3] | reduce 0 ~add | eq 6)
+
+:vec/reduce/takesTheAddressOfAWord
+  |~~ A word named by its address is a reducer. ~~|
+  ::law~([1 2 3] | reduce 0 ~(number/add) | eq 6)
 
 :vec/reduce/takesAName
   |~~ A name takes the value so far as its subject and the element as its first arg. ~~|
@@ -1585,6 +1590,10 @@
 :vec/reduce/answersTheErrorOfTheReducer
   |~~ An error the reducer answers answers the call. ~~|
   ::law~([1 "x" 3] | reduce 0 ~(add) !| type | eq ::number/add/addend/NotNumberError)
+
+:vec/reduce/reducer/NotBinaryError/refusesAnAddressOfNoWord
+  |~~ An address that holds no word is refused. ~~|
+  ::law~([1 2 3] | reduce 0 ~(number/add/answer) !| type | eq ::vec/reduce/reducer/NotBinaryError)
 
 :vec/reduce/reducer/NotQuoteError/refusesANumber
   |~~ A number computed at the call is refused. ~~|

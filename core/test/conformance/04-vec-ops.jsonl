@@ -59,3 +59,6 @@
 {"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
 {"name":"a-fold-of-several-steps-is-a-declared-verb","query":":any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
 {"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":["D90","D218"]}
+{"name":"a-reducer-names-its-word-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6","decision":"D224"}
+{"name":"a-reducer-of-an-address-of-no-word-is-refused","query":"[1 2 3] | reduce 0 ~(number/add/addend) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":"D224"}
+{"name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| [type /addresses]","expect":"[::call/ValueMeetsWordError #[::number/add]]","decision":["D223","D224"]}

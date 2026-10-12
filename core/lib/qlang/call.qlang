@@ -142,6 +142,10 @@
   |~~ The word is called by its address beside the value. ~~|
   ::law~(:count 5 | [1 2] | vec/count | eq 2)
 
+:call/ValueMeetsWordError/meetsTheWordOfAFold
+  |~~ A value named as the word of a fold meets it there, and the address calls the word. ~~|
+  ::law~(:add 5 | [1 2 3] | [(reduce 0 ~(add) !| type) (reduce 0 ~(number/add))] | eq [::call/ValueMeetsWordError 6])
+
 :call/ValueMeetsWordError/meetsAPartInTheBodyOfAWord
   |~~ A part named as a word meets the word in the body that reads it. ~~|
   ::law~(:vec/firstN ~([count (take count)]) | :vec/firstN/count ~(/0)

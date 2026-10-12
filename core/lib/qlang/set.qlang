@@ -1122,10 +1122,10 @@
       order shows answers by the one order, not as the elements were
       written: `["b" "a"] | distinct | reduce "" ~(append)` answers `"ab"`
       where the vector folds into `"ba"`. The empty set answers the seed.
-      The reducer is the quote of one word, which the fold calls with the
-      value so far as its subject and the element as its first arg; a
-      quote of several steps, or a word given values of its own, is
-      refused.
+      The reducer is the quote of one word, by its name or its address,
+      which the fold calls with the value so far as its subject and the
+      element as its first arg; a quote of several steps, or a word given
+      values of its own, is refused.
       The seed comes first: a call that gives the reducer alone is
       refused for want of a reducer.
       ::link~(::vec/reduce | doc) ::link~(::set/sum | doc)
@@ -1159,10 +1159,11 @@
   ~~|
 
 :set/reduce/reducer/NotBinaryError
-  |~~ The reducer of `reduce` is the quote of one word, which the fold
-      calls with the value so far as its subject and the element as its
-      first arg, `reduce 0 ~(add)`; a quote of several steps, a literal, a
-      name of no word or a word given values of its own is refused.
+  |~~ The reducer of `reduce` is the quote of one word, by its name or
+      its address, which the fold calls with the value so far as its
+      subject and the element as its first arg, `reduce 0 ~(add)`; a
+      quote of several steps, a literal, a name of no word or a word given
+      values of its own is refused.
   ~~|
 
 :set/reduce/foldsInTheOneOrder

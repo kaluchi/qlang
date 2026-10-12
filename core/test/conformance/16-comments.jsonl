@@ -4,7 +4,7 @@
 {"name":"a-block-comment-stands-between-a-pipe-and-its-step","query":"5 | |~ rationale ~| add 3","expect":"8","decision":"D81"}
 {"name":"line-plain-mid-pipeline","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
 {"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| | add 1","expect":"11","decision":"D81"}
-{"name":"line-doc-on-let","query":":any/double |~~| Doubles the input.\n~(mul 2)\n| 5 | double","expect":"10"}
+{"name":"line-doc-on-let","query":":double |~~| Doubles the input.\n~(mul 2)\n| 5 | apply double","expect":"10"}
 {"name":"line-doc-retrieve","query":":foo |~~| Doc text.\n42\n| ::foo | doc | content","expect":"\" Doc text.\"","decision":["D94","D95","D119"]}
 {"name":"block-doc-on-let","query":":foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| 5 | foo","expect":"42"}
 {"name":"block-doc-retrieve","query":":foo |~~ Block doc here. ~~| 42\n| ::foo | doc | content","expect":"\" Block doc here. \"","decision":["D94","D95","D119"]}

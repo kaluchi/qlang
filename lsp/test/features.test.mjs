@@ -7,7 +7,7 @@ import {
   documentSymbols, signatureHelpAtOffset,
   semanticTokensFor, SEMANTIC_TOKEN_TYPES, foldingRangesOf
 } from '../src/features.mjs';
-import { langRuntime } from '@kaluchi/qlang-core';
+import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 
 describe('parseDocument', () => {
   it('parses valid qlang source without diagnostics', () => {
@@ -143,6 +143,13 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
+  it('shows each verb as a call from the subject reaches it, its signature over its page', async () => {
+    const { ast } = parseDocument('{:a 1} | ', 'test.qlang');
+    const count = (await completionsAtOffset(ast, 9, '{:a 1} | ')).find(item => item.label === 'count');
+    expect(count.detail).toBe('::map/count');
+    expect(count.documentation).toMatch(/entries the map holds/);
+  });
+
   it('reads the pipe the cursor stands right after', async () => {
     const labels = await labelsAt('[1 2 3] |');
     expect(labels).toContain('count');
@@ -273,6 +280,24 @@ describe('hoverAtOffset', () => {
       const hover = await hoverAtOffset(ast, src, offset);
       expect(hover.content).toMatch(/Doubles a number/);
     }
+  });
+
+  it('shows the word the subject of the call reaches, its signature over its page', async () => {
+    for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds']]) {
+      const { ast } = parseDocument(src, 'test.qlang');
+      const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
+      expect(hover.content).toContain(`**count** — ${address}`);
+      expect(hover.content).toContain(words);
+    }
+  });
+
+  it('shows a word with no subject under the address whose page it shows', async () => {
+    const src = 'count';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(ast, src, 0);
+    const address = /— (::[A-Za-z/]+)/.exec(hover.content)[1];
+    const page = await evalQuery(`${address} | doc | content`);
+    expect(hover.content).toContain(page.trim().split('\n')[0].trim());
   });
 
   it('returns null for offset outside any node', async () => {
@@ -513,6 +538,13 @@ describe('signatureHelpAtOffset', () => {
     const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.activeParameter).toBe(1);
+  });
+
+  it('shows the page of the word the subject of the call reaches', async () => {
+    const src = '[1 2 3] | take 2';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(ast, src, src.lastIndexOf('2'));
+    expect(sig.documentation).toMatch(/first elements, as many as the count/);
   });
 
   it('returns null for null ast', async () => {

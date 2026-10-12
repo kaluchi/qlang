@@ -4,7 +4,7 @@
 {"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort ~(/a) | first | /a","expect":"1","decision":"D167"}
 {"name":"the-law-of-an-answer-refuses-an-answer-that-breaks-it","query":":Box |~~ B ~~| | :Box/half |~~ Half. ~~| ~(/0 | div 2) | :Box/half/answer |~~ The half. ~~| ::number | :Box/half/answer/NotWholeError ::holds~(eq (round)) | ::Box[5] | half !| [type /actualValue]","expect":"[::Box/half/answer/NotWholeError 2.5]","decision":["D167","D169","D179"]}
 {"name":"a-set-answered-by-a-name-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]","decision":"D167"}
-{"name":"a-quote-under-a-label-with-its-mark-is-declared","query":":any/loud ~(out) | 5","expect":"5","decision":"D167"}
+{"name":"a-quote-under-a-label-that-calls-a-word-of-a-host-is-declared","query":":any/loud ~(out) | 5","expect":"5","decision":"D167"}
 {"name":"a-law-that-answers-a-refusal-holds-it-at-rest-under-its-address","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | ::d | runLaws | first | /error | type","expect":"::number/add/SubjectNotNumberError","decision":["D167","D220"]}
 {"name":"an-anchor-reads-the-part-of-a-kinds-word","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true","decision":["D167","D169"]}
 {"name":"the-answer-of-a-word-names-its-label","query":"::vec/count/answer | binding | /value","expect":"::number","decision":"D169"}
@@ -25,7 +25,7 @@
 {"name":"a-law-of-each-element-over-a-map-runs-as-code-and-hands-the-map-on","query":":Box |~~ B ~~| | :Box/sumIt ~(m | vals | sum) | :Box/sumIt/m |~~ M ~~| ~(/0) | :Box/sumIt/m/ElementNotNumberError ::holds~(every ~(is ::number)) | ::Box[1] | sumIt {:a 1 :b 2}","expect":"3","decision":"D167"}
 {"name":"each-kind-declares-the-parts-and-the-answer-of-its-word","query":"[(::vec/take | manifest) (::string/take | manifest)]","expect":"[#[::vec/take/count ::vec/take/answer] #[::string/take/count ::string/take/answer]]","decision":"D169"}
 {"name":"a-part-refuses-under-the-address-of-its-kinds-word","query":"[(\"ab\" | take \"x\" !| type) ([1] | take \"x\" !| type)]","expect":"[::string/take/count/NotNumberError ::vec/take/count/NotNumberError]","decision":["D167","D169"]}
-{"name":"a-part-of-a-marked-name-may-call-a-marked-name","query":":any/f ~(1) | :any/f/n ~(/0 | out) | 5","expect":"5","decision":"D167"}
+{"name":"a-part-may-call-a-word-of-a-host","query":":any/f ~(1) | :any/f/n ~(/0 | out) | 5","expect":"5","decision":"D167"}
 {"name":"a-quote-under-a-label-reads-its-own-parts-alone","query":":Box |~~ B ~~| | :Box/take ~([7 8 9] | count) | ::Box[1 2 3] | take","expect":"3","decision":"D167"}
 {"name":"a-primitive-reads-the-contract-at-each-place-it-reads-no-part-of-its-own","query":"[({:a 1} | at :b 0) (null | at 3 9) ({:a 1} | at 5 !| type)]","expect":"[0 9 ::map/at/key/NotKeywordOrStringError]","decision":"D167"}
 {"name":"a-part-that-reads-from-the-end-is-code-over-the-args","query":":any/runAll ~(steps | count) | :any/runAll/steps |~~ The steps. ~~| ~(/-1) | :any/runAll/steps/ElementNotQuoteError ::holds~(every ~(is ::quote)) | 5 | [(runAll /nope [~(1)] !| type) (runAll 7 [~(1)])]","expect":"[::proj/SubjectNotProjectableError 1]","decision":"D167"}

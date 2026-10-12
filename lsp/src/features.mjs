@@ -60,24 +60,30 @@ function dedent(text) {
   return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
-// The contents of the page a name reads, once per name: a tag's own, the
-// page of a word of any value, or the page of the first address where
-// the word lives [D62], [D169].
+// The contents of the page at an address, `::vec/count`, once per
+// address; a word's is read at the address the tool shows for it, so its
+// signature and its page name one word [D169].
 const docsCache = new Map();
-async function fetchDocsContents(name) {
-  if (docsCache.has(name)) return docsCache.get(name);
-  const query = isTagName(name)
-    ? `${name} | doc`
-    : `::any/${name} | doc !| (::${name} | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
+async function pageContents(address) {
+  if (docsCache.has(address)) return docsCache.get(address);
   let page;
   try {
-    page = await evalQuery(query);
+    page = await evalQuery(`${address} | doc`);
   } catch {
     page = null;
   }
   const contents = Array.isArray(page) ? [proseOfSegments(page)] : [];
-  docsCache.set(name, contents);
+  docsCache.set(address, contents);
   return contents;
+}
+
+// What a call of a word shows: its address and the parts of its args.
+const signatureOf = shown => [shown.address.literal, ...shown.labels].join(' ');
+
+// The kinds of the subject of the step that starts at an offset, where the
+// steps before it name them, or null [D169].
+async function subjectKindsAt(source, offset) {
+  return (await subjectAt(source, offset))?.kinds ?? null;
 }
 
 // ── Document state ────────────────────────────────────────────
@@ -150,16 +156,25 @@ async function nameCompletions() {
   const runtime = await langRuntime();
   _valueCompletions = [];
   for (const name of verbNames(runtime)) {
-    if (shownFor(runtime, name) === undefined) continue;
-    const docContents = await fetchDocsContents(name);
-    _valueCompletions.push({
-      label: name,
-      kind: 'function',
-      detail: signatureTextOf(runtime, name),
-      documentation: tidyProse(docContents[0] ?? '')
-    });
+    const item = await wordCompletion(runtime, name, null);
+    if (item !== null) _valueCompletions.push(item);
   }
   return _valueCompletions;
+}
+
+// The completion of a word as a call of it from a subject of the kinds
+// shows it, or with no kinds, its signature and its page; null for a name
+// that reaches no word.
+async function wordCompletion(runtime, name, kinds) {
+  const shown = shownFor(runtime, name, kinds);
+  if (shown === undefined) return null;
+  const docContents = await pageContents(shown.address.literal);
+  return {
+    label: name,
+    kind: 'function',
+    detail: signatureOf(shown),
+    documentation: tidyProse(docContents[0] ?? '')
+  };
 }
 
 async function tagCompletions() {
@@ -168,7 +183,7 @@ async function tagCompletions() {
   _tagCompletions = [];
   for (const address of nodeAddresses(runtime)) {
     const label = tagNameOf(address);
-    const docContents = await fetchDocsContents(label);
+    const docContents = await pageContents(label);
     _tagCompletions.push({
       label,
       kind: 'tag',
@@ -194,8 +209,12 @@ export async function completionsAtOffset(ast, offset, source = null) {
   }
   const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
   if (subject !== null) {
-    const reached = verbsReaching(await langRuntime(), subject.kinds);
-    const verbs = (await nameCompletions()).filter(item => reached.has(item.label));
+    const runtime = await langRuntime();
+    const verbs = [];
+    for (const name of verbsReaching(runtime, subject.kinds).keys()) {
+      const item = await wordCompletion(runtime, name, subject.kinds);
+      if (item !== null) verbs.push(item);
+    }
     return withDeclaredNames(verbs, subject.pipeline, subject.end, [CALL_SPELLING]);
   }
   const everyName = [...(await nameCompletions()), ...(await tagCompletions())];
@@ -290,7 +309,7 @@ export async function hoverAtOffset(ast, source, offset) {
   if (!node) return null;
 
   if (node.type === 'Call') {
-    return await hoverForCall(node, ast);
+    return await hoverForCall(node, ast, source);
   }
   if (node.type === 'TagLit' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
@@ -308,19 +327,16 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-// The address a name of the runtime reaches and what a call of it takes,
-// the slots of a head or the parts of the args [D164].
-function signatureTextOf(runtime, name) {
-  const shown = shownFor(runtime, name);
-  return [shown.address.literal, ...shown.labels].join(' ');
-}
-
-async function hoverForCall(node, documentAst) {
+// A call of a word of the runtime shows the word its subject reaches,
+// where the steps before it name the kinds of the subject, its signature
+// over its page; a word the document declares shows its doc.
+async function hoverForCall(node, documentAst, source) {
   const runtime = await langRuntime();
-  if (shownFor(runtime, node.name) !== undefined) {
-    const docContents = await fetchDocsContents(node.name);
+  const shown = shownFor(runtime, node.name, await subjectKindsAt(source, node.location.start.offset));
+  if (shown !== undefined) {
+    const docContents = await pageContents(shown.address.literal);
     const prose = tidyProse(docContents.join('\n'));
-    const heading = [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`];
+    const heading = [`**${node.name}** — ${signatureOf(shown)}`];
     return {
       content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
@@ -368,7 +384,7 @@ async function hoverForTag(node) {
   const runtime = await langRuntime();
   if (nodeOf(runtime, node.tag) === null) return null;
 
-  const docContents = await fetchDocsContents(tagKey);
+  const docContents = await pageContents(tagKey);
   const headStart = node.location.start.offset;
   const headEnd = headStart + 2 + node.tag.length;
 
@@ -579,11 +595,11 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   if (!call) return null;
 
   const runtime = await langRuntime();
-  const shown = shownFor(runtime, call.name);
+  const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
   if (shown === undefined) return null;
 
   const modifiers = shown.labels;
-  const docContents = await fetchDocsContents(call.name);
+  const docContents = await pageContents(shown.address.literal);
 
   // The active parameter is the modifier the cursor stands on or after:
   // one per word that ends before it.

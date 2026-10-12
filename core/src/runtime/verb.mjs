@@ -6,7 +6,7 @@
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
-import { bareNameReach, isMemberValue, partsOfName, residencesOf } from './nouns.mjs';
+import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf, verbsReaching } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
   bindingValueOf, isVec, isQMap, isTaggedInstance, isValueClass,
@@ -86,13 +86,17 @@ export function runPrimitive(primitive, served, passedTags, partValues, state) {
   return primitive(served, ...partValues);
 }
 
-// shownFor(env, name) → what a tool shows for a name, `{ address, labels }`:
-// the address the name reaches with no subject, or the first word of a
-// name several kinds answer, and the parts of the args of a call of it
-// [D164], [D169]; undefined for a name that reaches no name under a
-// label.
-export function shownFor(env, name) {
-  const record = bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1];
+// shownFor(env, name, kindNames?) → what a tool shows for a name,
+// `{ address, labels }`: the word a subject of the kinds reaches [D34], or,
+// where the tool knows no kinds or they reach none, the address the name
+// reaches with no subject, or the first word of a name several kinds
+// answer, and the parts of the args of a call of it [D164], [D169];
+// undefined for a name that reaches no name under a label.
+export function shownFor(env, name, kindNames = null) {
+  const reached = kindNames === null ? undefined : verbsReaching(env, kindNames).get(name);
+  const record = reached === undefined
+    ? bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1]
+    : nodeOf(env, reached.address.name);
   if (!isMemberValue(bindingValueOf(record))) return undefined;
   const address = record.get('name').name;
   const labels = partsOfName(env, address).map(([partName]) => partName);

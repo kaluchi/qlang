@@ -9,6 +9,7 @@
 //   node scripts/marks.mjs D44             the places that mark a record
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
+//   node scripts/marks.mjs --touched       the records whose scope changed since they were described
 //   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
@@ -76,6 +77,86 @@ export function marksOfTree(root = repoRoot) {
   return { marks, orphans };
 }
 
+// The commit each record in force was last described in: the newest that
+// changed a line of it beyond a link, a statement of fate and a citation
+// a merge or a move wrote anew, which leave its decision as it was.
+const LINK_OR_FATE = /^(\[[DE]\d+\]: |(Pruned of what|Replaced by|Merged into|Replaced in part by) )/;
+const CITATIONS = /\[[DE]\d+\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+\])*/g;
+const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
+const decisionOf = lines => beyondCitations(lines.filter(line => !LINK_OR_FATE.test(line)).join(' '));
+
+// The sides of each file a diff of `-U0` changes, the lines it removed and
+// the lines it added.
+function sidesOf(diff, pathOf) {
+  const sides = new Map();
+  for (const section of diff.split(/^diff --git /m).slice(1)) {
+    const path = pathOf(section);
+    if (path === undefined) continue;
+    const lines = section.split('\n');
+    sides.set(path, {
+      removed: lines.filter(line => line.startsWith('-') && !line.startsWith('---')).map(line => line.slice(1)),
+      added: lines.filter(line => line.startsWith('+') && !line.startsWith('+++')).map(line => line.slice(1))
+    });
+  }
+  return sides;
+}
+
+// The files among the paths a diff since a commit changed beyond the
+// citations of decisions, a mark, its line `The decisions it exists for`
+// or a case's `decision`, which leave what a file does as it was.
+const MARK_STATEMENT = /The decisions? it exists for: [^.]*\./;
+function changedBeyondCitations(root, commit, paths) {
+  const changed = new Set();
+  const diff = git(root, 'diff', '-U0', '-M', '--no-color', commit, '--', ...paths);
+  const beyondMarks = lines => beyondCitations(lines.map(line => line.replace(MARK_STATEMENT, ''))
+    .filter(line => !/^\s*(\/\/|#|\*)?\s*$/.test(line)).join(' '));
+  for (const [path, { removed, added }] of sidesOf(diff, section => section.match(/^a\/\S+ b\/(\S+)\n/)?.[1])) {
+    if (beyondMarks(removed) !== beyondMarks(added)) changed.add(path);
+  }
+  return changed;
+}
+
+function describedIn(root) {
+  const inForce = new Set(git(root, 'ls-files', 'docs/decisions').split('\n').map(path => path.match(/^docs\/decisions\/([DE]\d+)\.md$/)?.[1]).filter(Boolean));
+  const described = new Map();
+  const log = git(root, 'log', '-p', '-M', '--unified=0', '--format=%x00%H', '--', 'docs/decisions');
+  for (const entry of log.split('\0').slice(1)) {
+    const commit = entry.slice(0, entry.indexOf('\n'));
+    for (const [name, { removed, added }] of sidesOf(entry, section => section.match(/^a\/\S+ b\/docs\/decisions\/([DE]\d+)\.md\n/)?.[1])) {
+      if (!inForce.has(name) || described.has(name)) continue;
+      if (decisionOf(removed) !== decisionOf(added)) described.set(name, commit);
+    }
+  }
+  return described;
+}
+
+// touchedRecords(root) → the records in force whose scope the tree changed
+// since they were described, each `{ name, commit, files }`, the changes
+// the working tree holds among them: what a move of the baseline reads
+// again against the new root [D237].
+export function touchedRecords(root = repoRoot) {
+  const scopes = new Map();
+  for (const { path, name } of marksOfTree(root).marks) {
+    if (!scopes.has(name)) scopes.set(name, new Set());
+    scopes.get(name).add(path);
+  }
+  const namesOf = new Map();
+  for (const [name, commit] of describedIn(root)) {
+    if (!scopes.has(name)) continue;
+    if (!namesOf.has(commit)) namesOf.set(commit, []);
+    namesOf.get(commit).push(name);
+  }
+  const touched = [];
+  for (const [commit, names] of namesOf) {
+    const changed = changedBeyondCitations(root, commit, [...new Set(names.flatMap(name => [...scopes.get(name)]))]);
+    for (const name of names) {
+      const files = [...scopes.get(name)].filter(path => changed.has(path));
+      if (files.length > 0) touched.push({ name, commit, files });
+    }
+  }
+  return touched.sort((a, b) => a.name[0].localeCompare(b.name[0]) || Number(a.name.slice(1)) - Number(b.name.slice(1)));
+}
+
 function marksOfSister(dir) {
   return git(dir, 'ls-files').split('\n').filter(path => /\.(mjs|js|qlang|md)$/.test(path))
     .flatMap(path => marksOfText(readFileSync(join(dir, path), 'utf8'), SISTER_MARK).map(mark => ({ path, ...mark })));
@@ -83,7 +164,11 @@ function marksOfSister(dir) {
 
 const [command, argument] = process.argv.slice(2);
 if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(/^([A-Za-z]):/, '/$1:')}` || process.argv[1]?.endsWith('marks.mjs')) {
-  if (command === '--sister') {
+  if (command === '--touched') {
+    const touched = touchedRecords();
+    for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
+    console.log(`touched: ${touched.length} records in force whose scope the tree changed since they were described [D237]`);
+  } else if (command === '--sister') {
     for (const { path, name, line } of marksOfSister(resolve(argument))) console.log(`${name}\t${path}:${line}`);
   } else if (command === '--diff') {
     const changed = new Set(git(repoRoot, 'diff', '--name-only', argument, '--').split('\n').filter(Boolean));

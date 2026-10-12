@@ -14,6 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { FATE, recordPathOf, statementsOf } from './decision-records.mjs';
+import { CITING_DOCUMENTS } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -73,6 +74,15 @@ function cite(text, isRecord = false) {
 function citeProse(text) {
   let written = text;
   for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
+  // The form of a citation a document writes in words, `decision D46` or
+  // `decision D46`, which the walk reads beside the brackets.
+  written = written.replace(/\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g, (run, list) => {
+    const names = list.split(/,\s*| and /);
+    if (!names.some(name => merged.includes(name))) return run;
+    const kept = [...new Set(names.map(name => (merged.includes(name) ? survivor : name)))].sort((a, b) => order(a) - order(b));
+    const spelled = kept.length === 1 ? kept[0] : `${kept.slice(0, -1).join(', ')} and ${kept.at(-1)}`;
+    return `${kept.length === 1 ? 'decision' : 'decisions'} ${spelled}`;
+  });
   return written.replace(/\[[DE]\d+\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+\])+/g, run => {
     if (!run.includes(`[${survivor}]`)) return run;
     const names = [...new Set(run.match(/[DE]\d+/g))].sort((a, b) => order(a) - order(b));
@@ -138,7 +148,8 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // A mark of an artifact, a citation of a document of the work and one of a
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
-const DOCUMENT = /^docs\/qlang-(audit|entrypoint)\.md$|^CLAUDE\.md$/;
+// The documents the walk holds to the records in force [D226].
+const DOCUMENT = { test: path => CITING_DOCUMENTS.includes(path) };
 const RECORD_IN_FORCE = /^docs\/decisions\/[DE]\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs/decisions/${name}.md`);
 const touched = [];

@@ -136,7 +136,19 @@ export function marksOfTree(root = repoRoot) {
 const LINK_OR_FATE = /^(\[[DE]\d+\]: |(Pruned of what|Replaced by|Merged into|Replaced in part by) )/;
 const CITATIONS = /\[[DE]\d+(?:,\s*[DE]\d+)*\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+(?:,\s*[DE]\d+)*\])*/g;
 const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
-const decisionOf = lines => beyondCitations(lines.filter(line => !LINK_OR_FATE.test(line)).join(' '));
+// The lines of a record's hunk that are its decision: a statement of fate,
+// `Replaces in part` and the lines that continue it among them, and a link
+// leave it as it was.
+const STATEMENT_OF_FATE = /^(Replaces|Pruned of what|Replaced by|Merged into|Replaced in part by) /;
+const FIELD_OPENS = /^((Domain|Decided by|Decision|Source|Set aside|Requirements)\.|\[[DE]\d+\]: )/;
+function decisionOf(lines) {
+  let inFate = false;
+  return beyondCitations(lines.filter(line => {
+    if (STATEMENT_OF_FATE.test(line)) inFate = true;
+    else if (FIELD_OPENS.test(line) || line.trim() === '') inFate = false;
+    return !inFate && !LINK_OR_FATE.test(line);
+  }).join(' '));
+}
 
 // The sides of each file a diff of `-U0` changes, the lines it removed and
 // the lines it added.

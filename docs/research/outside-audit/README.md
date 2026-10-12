@@ -60,3 +60,21 @@ Its proposals and its disagreements are open, but for the literal that fails at 
 13. The implementation: a missed place told by the name of its tag (`isMissedPlace` in `core/src/eval.mjs`) stands by D166, a selector of steps that misses a place or a key of the args reading a part not given, the case `a-key-a-selector-of-steps-misses-is-a-part-not-given`, the two tags it reads the refusals of a projection that misses; `scopeOfMember` copying the scope at each call and `async` on every node are open; the cold start is measured in the audit's question and its work waits on the maintainer's word.
 
 Its proposals and its disagreements are open, but for the page of a parse refusal and the strings of `runLaws`, answered with the fourth and fifth findings, and the lexical refinements its sixth section agrees with, answered by D222: a reader's extension of a noun of the root stands in the reader's queries alone, and a kind the reader declared goes with its values into a word of the root.
+
+## 2026-10-12 · 7fe783f6
+
+[2026-10-12-7fe783f6.md](2026-10-12-7fe783f6.md), and the model's reading of it, [2026-10-12-7fe783f6-reading.md](2026-10-12-7fe783f6-reading.md). The problems, its third section:
+
+1. Two inputs: the family `…Of` incomplete, `addOf` unknown with `:nearest [:add]`, and redundant beside `[/x /y] | sum`; `reduce` takes a quote of one word. Open, the first finding of all four audits, waiting on the maintainer's word on the shape of the fold and the fate of `…Of`.
+2. The role of a definition read from the form of its value: a part whose invariant is `is ::number` is served beneath its tags, and one whose invariant is `is ::number | eq true` is not; the reserved last names `answer`, `subject` and `construct`. Open, the layer of declarations, waiting on the maintainer's word; a label is a name with its page by D168, and `kinds` answers the labels, a topic among them, by D160.
+3. A quote under a bare name answers itself, `:double ~(mul 2) | 5 | double` answering `~(mul 2)`. Stands by D44, a name holding a value and `apply` running a quote; whether the step says so aloud is open with the layer of declarations.
+4. A number as a key: `at` on a map refuses `1` where the projection reads `/1` and `groupBy` files the number under `:"1"`; `2 | keyword` is refused. Open.
+5. The marker `@`: the guarantee leaks through a quote under a bare name that `apply` runs; cases mark pure words, `@topBy`, `@surround`, `@matching`; `@callers` names no word of any host, so the case `an-effectful-verb-under-a-marked-name-runs` expects `::call/UnknownNameError`. The removal waits on the maintainer's word on D2; the cases are open.
+6. The grammar: a line break is `|` at the top level and a space in brackets, the paired `Line*` rules, and `docQuoteDepth`. Open: one rule for line breaks waits on the maintainer's word; a prototype of one family of rules, told apart by the depth of brackets, reads every input the tree's parser reads alike, the cases, the sources of the catalog and inputs made from them.
+7. Code or value decided by each word, `if`, `cond` and `allOf`. Stands, each by its own reading, D197 for `allOf`.
+8. The vocabulary of the concepts; `slot` in the names of cases, meaning a part; `::any/tutorial` beside `doc` and `laws`. The words for the concepts wait on the maintainer's word; the names of the cases are open.
+9. `runLaws` runs the laws of a word and not those of its refusals, and no one query runs the whole catalog. Open.
+10. The weight of the catalog, the refusals of every word written by hand; the cold start; `async` on every node; an undeclared tag taken silently, `::Pont{…}`. Open; the cold start waits on the maintainer's word.
+11. The process eats the design: half of the last forty commits prune records, and the comments of the code cite records. The walk of this shift is a debt paid once, the lines that replace a record in part falling from 173 at the baseline to the three of E1, E2 and E3, which the ratchet keeps from growing; a citation of a record in force in the code stands by D225; its rule that a finding open in the ledger closes by code is open, a matter of the process.
+
+Its proposals, the fifth section, and its disagreements with the audit, the sixth, are open.

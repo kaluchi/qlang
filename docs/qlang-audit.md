@@ -834,17 +834,18 @@ design never resolved: «стремительно растущий зоопар�
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
 86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
-and a host still publishes names without a prefix. The sister project's names meet the
-core's on `type` and on `source`, kept apart by the effect marker alone,
-and its graph alone declares under `::any` the verbs a query calls,
+and a host still publishes names without a prefix. The sister project's names would
+meet the core's on `type` and on `source`, which it names `typeNamed`
+and `sourceText` until it declares them under kinds of its own [D234],
+and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
-helpers of `@problems`, since a word under a topic serves the topic's
+helpers of `problems`, since a word under a topic serves the topic's
 values alone [D166]. In the sister project, on 12 October 2026:
 
 ```sh
-$ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
-58
+$ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
+59
 ```
 
 That is the `ioctl` of Unix, every new capability a new verb in one
@@ -1031,10 +1032,11 @@ dice marks the provenance of the value it returns with a tag, and a tag
 can describe an effect as well, a write the host is to perform, which
 an explicit step at the host boundary performs and nothing else, as the
 lesson of YAML's `load` taught: a tag's constructor is pure, and reading
-or constructing a literal performs nothing. The sister project's words
-`type` and `source` meet `::any/type` and `::any/source`, which the root
-holds once, until the sister declares them under kinds of its own
-[D153], the walk of a subject's tags selecting them [D34]. Whether an
+or constructing a literal performs nothing. The sister project names
+its two words that would meet `::any/type` and `::any/source`, which the
+root holds once, `typeNamed` and `sourceText`, until it declares them
+under kinds of its own [D153], the walk of a subject's tags selecting
+them [D34]. Whether an
 effect deserves to become a value of its own, an action awaiting the
 host the way a quote awaits `apply`, is a question for a later branch
 that would have to show a task no plainer construct solves. The repair
@@ -1562,7 +1564,10 @@ a step answers as the quote:
 ~(mul 2)
 ```
 
-All four outside audits name it. The alternatives: the role declared, a
+The pages, the laws and the showcase of the language server run such a
+quote by `apply`, `:double ~(mul 2) | 5 | apply double` answering
+`10`, and declare a word only where they show one [D235]. All four
+outside audits name it. The alternatives: the role declared, a
 signature of a word in one declaration that unfolds into the parts and
 invariants a word has, at the cost of a form of the grammar and of the
 root's reading of it; a role read from a form refused aloud where the
@@ -1780,12 +1785,12 @@ other subject by its address:
 ::T/h/SubjectNotTError
 ```
 
-The helpers of the sister project, `jdt/@problemsVia` and its kin, are
+The helpers of the sister project, `jdt/problemsVia` and its kin, are
 called by their addresses on a string or a node, so under this rule
 they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
 address. The sister project took the first: its helpers are words of
-any value, `::any/@problemsVia` and its kin, and its suite passes
+any value, `::any/problemsVia` and its kin, and its suite passes
 against the workspace copy.
 
 A helper of one word. [D153] let a word's helper live in the group of
@@ -1976,3 +1981,4 @@ the command line without them.
 [D232]: decisions/D232.md
 [D233]: decisions/D233.md
 [D234]: decisions/D234.md
+[D235]: decisions/D235.md

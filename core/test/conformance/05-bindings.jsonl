@@ -17,3 +17,6 @@
 {"name":"a-step-under-map-declares-in-each-element","query":":x 1 | [2 3] | map ~(:x /) | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
 {"name":"a-value-of-the-reader-named-as-a-word-is-read-where-no-word-answers-the-subject","query":":count 5 | count","expect":"5","decision":["D71","D223"]}
+{"name":"code-under-a-bare-name-runs-by-apply","query":":double ~(mul 2) | 5 | apply double","expect":"10","decision":["D44","D235"]}
+{"name":"code-under-a-bare-name-goes-bare-into-a-word-that-takes-code","query":":double ~(mul 2) | [1 2 3] | map double","expect":"[2 4 6]","decision":["D44","D235"]}
+{"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)","decision":["D44","D235"]}

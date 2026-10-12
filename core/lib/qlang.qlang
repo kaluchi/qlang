@@ -65,8 +65,10 @@
       the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
       running code of several steps on the pair of the two,
       `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 (/1 | /n))` answering `3`.
-      Several steps stand in one quote, `map ~(/price | mul 2)`. Without the
-      quote the same text is a modifier computed at the call: in
+      Several steps stand in one quote, `map ~(/price | mul 2)`, and
+      `apply` runs its code on the subject itself,
+      `5 | apply ~(add 1 | mul 2)` answering `12`. Without the quote the
+      same text is a modifier computed at the call: in
       `[{:n 1}] | map /n` the `/n` is read from the vector itself, not
       from each element, and `map` refuses what it is handed,
       `::vec/map/code/NotQuoteError`.
@@ -86,8 +88,11 @@
       goes on unchanged, and the bare word reads the name back, `:r`
       staying a keyword:
       `{:qty 2 :price 3} | :r / | /qty | mul (r | /price)` answers `6`.
-      A name is declared once in a scope, and the names a group or a
-      quote declares stay in it.
+      A name holds code as it holds any value, and a word that takes
+      code takes the name bare: `:double ~(mul 2) | 5 | apply double`
+      answers `10`, and `:double ~(mul 2) | [1 2 3] | map double`
+      answers `[2 4 6]`. A name is declared once in a scope, and the
+      names a group or a quote declares stay in it.
 
       8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
       `first` and `last` read the elements of a vector, a set or a map.
@@ -739,7 +744,7 @@
 
 :qlang/errors/stopsAtEachLevel
   |~~ The trail stops at each level the error left. ~~|
-  ::law~(:any/f ~(add n | mul n) | :any/f/n ~(/0) | "x" | f 2 | sub 3 !| /trail | map ~/step | eq [~(add n) ~(f 2)])
+  ::law~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| /trail | map ~/step | eq [~(add "x") ~(apply f)])
 
 :qlang/errors/holdsTheSkippedSteps
   |~~ The last stop holds the steps skipped. ~~|

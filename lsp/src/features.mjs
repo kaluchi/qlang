@@ -341,13 +341,14 @@ async function hoverForCall(node, documentAst) {
   };
 }
 
-// The docs of the last declaration of the name in the document.
+// The docs of the last declaration of the name in the document, a word
+// under a label by the name a step calls it by.
 function findInDocumentDocs(ast, name) {
   if (!ast) return [];
   let lastDocs = null;
   walkAst(ast, (step) => {
     if (step.type === 'DocLit') return false;
-    if (step.type === 'BindStep' && step.key.type === 'Keyword' && step.key.name === name) {
+    if (step.type === 'BindStep' && step.key.type === 'Keyword' && (step.key.name === name || splitAddress(step.key.name)[1] === name)) {
       lastDocs = (step.docs ?? []).map(doc => proseOfSegments(doc.segments));
     }
   });

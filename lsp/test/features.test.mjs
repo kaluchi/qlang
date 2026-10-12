@@ -156,7 +156,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
   });
 
   it('reads through a declaration and a group over a vector', async () => {
-    const labels = await labelsAt(':any/twice ~(mul 2) | ([1 2] | reverse) | ');
+    const labels = await labelsAt(':twice ~(mul 2) | ([1 2] | reverse) | ');
     expect(labels).toContain('twice');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
@@ -266,6 +266,15 @@ describe('hoverAtOffset', () => {
     expect(hover.endOffset - hover.startOffset).toBe('::number'.length);
   });
 
+  it('returns the doc of a word the document declares under a label, called by its name or its address', async () => {
+    const src = ':number/double |~~ Doubles a number. ~~| ~(mul 2) | 10 | double | number/double';
+    const { ast } = parseDocument(src, 'test.qlang');
+    for (const offset of [src.indexOf('| double') + 2, src.lastIndexOf('number/double')]) {
+      const hover = await hoverAtOffset(ast, src, offset);
+      expect(hover.content).toMatch(/Doubles a number/);
+    }
+  });
+
   it('returns null for offset outside any node', async () => {
     const src = '42';
     const { ast } = parseDocument(src, 'test.qlang');
@@ -295,7 +304,7 @@ const testCatalogCtx = { index: testCatalogIndex, runtime: await langRuntime() }
 
 describe('definitionAtOffset', () => {
   it('jumps from the use site of a word to its declaration under a label', () => {
-    const src = ':any/double ~(mul 2) | 10 | double';
+    const src = ':number/double ~(mul 2) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = definitionAtOffset(ast, useOffset);
@@ -376,10 +385,10 @@ describe('definitionAtOffset', () => {
 
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a word a reader declares', () => {
-    const src = ':any/double ~(mul 2) | [1 2] | map ~double';
+    const src = ':number/double ~(mul 2) | [1 2] | map ~double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
-    // declaration (`:any/double …`) + use site (`map ~double`)
+    // declaration (`:number/double …`) + use site (`map ~double`)
     expect(refs.length).toBe(2);
   });
 
@@ -422,14 +431,14 @@ describe('foldingRangesOf', () => {
 
 describe('documentSymbols', () => {
   it('collects the words a reader declares under a label as verb symbols', async () => {
-    const src = ':any/double ~(mul 2) | :any/triple ~(mul 3) | :q ~(add 1)';
+    const src = ':number/double ~(mul 2) | :number/triple ~(mul 3) | :q ~(add 1)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast, await langRuntime());
     expect(syms).toHaveLength(3);
-    expect(syms[0].name).toBe('any/double');
+    expect(syms[0].name).toBe('number/double');
     expect(syms[0].kind).toBe('verb');
     expect(syms[2].kind).toBe('value');
-    expect(syms[1].name).toBe('any/triple');
+    expect(syms[1].name).toBe('number/triple');
     expect(syms[1].kind).toBe('verb');
   });
 
@@ -547,7 +556,7 @@ describe('semanticTokensFor', () => {
   });
 
   it('paints a user-bound identifier reference as `variable`', async () => {
-    const { data } = await semanticTokensFor(':any/double ~(mul 2) | 5 | double');
+    const { data } = await semanticTokensFor(':double ~(mul 2) | 5 | apply double');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.some(t => t.type === 'variable')).toBe(true);
   });

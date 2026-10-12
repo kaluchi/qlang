@@ -1258,8 +1258,7 @@
 
 :any/doc/readsAPartOfAWord
   |~~ An anchor reads the page of a part of a word. ~~|
-  ::law~(:any/f ~(add n) | :any/f/n |~~ how many ~~| ~(/0)
-    | ::any/f | doc :n | content | eq " how many ")
+  ::law~(::number/add | doc :addend | eq (::number/add/addend | doc))
 
 :any/doc/walksAPath
   |~~ A vector of anchors walks a path. ~~|
@@ -1385,14 +1384,14 @@
 
 :any/laws/answersEachLawByItsName
   |~~ A law declared under a name is answered under its own name. ~~|
-  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5)
-    | ::any/k | laws | keys | eq #[:answersFive])
+  ::law~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5)
+    | ::k | laws | keys | eq #[:answersFive])
 
 :any/laws/pairsThePageWithTheQuery
   |~~ Each law is the pair of its page and its query. ~~|
-  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5)
-    | ::any/k | laws | /answersFive | [(/0 | content) /1]
-    | eq [" k answers five. " ~(0 | k | eq 5)])
+  ::law~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5)
+    | ::k | laws | /answersFive | [(/0 | content) /1]
+    | eq [" k answers five. " ~(k | eq 5)])
 
 :any/laws/readsTheLawsOfTheKindOfAValue
   |~~ A value reads the laws of its kind. ~~|
@@ -1400,7 +1399,7 @@
 
 :any/laws/answersNoLawsAsAnEmptyMap
   |~~ A name with no laws answers an empty map. ~~|
-  ::law~(:any/k ~(5) | ::any/k | laws | eq {})
+  ::law~(:k 5 | ::k | laws | eq {})
 
 :any/laws/UnknownNameError/refusesANameNothingDeclares
   |~~ A name nothing declares is refused. ~~|
@@ -1462,8 +1461,8 @@
 
 :any/runLaws/failsALawThatAnswersFalse
   |~~ A law that answers false fails. ~~|
-  ::law~(:any/k ~(5) | :any/k/wrong |~~ One is two. ~~| ::law~(1 | eq 2)
-    | ::any/k | runLaws | first | /ok | not)
+  ::law~(:k 5 | :k/wrong |~~ One is two. ~~| ::law~(1 | eq 2)
+    | ::k | runLaws | first | /ok | not)
 
 :any/runLaws/runsTheLawsOfTheKindOfAValue
   |~~ A value runs the laws of its kind, as `doc` reads its page. ~~|
@@ -1500,7 +1499,7 @@
 
 :any/runLaws/failsALawThatAnswersAFailure
   |~~ A law that answers an error fails, and `:error` holds it at rest. ~~|
-  ::law~(:any/k ~(5) | :any/k/bad |~~ b ~~| ::law~(add "x") | ::any/k | runLaws | first
+  ::law~(:k 5 | :k/bad |~~ b ~~| ::law~(add "x") | ::k | runLaws | first
     | [(/ok) (/actual) (/error | type)] | eq [false null ::number/add/SubjectNotNumberError])
 
 :any/tutorial

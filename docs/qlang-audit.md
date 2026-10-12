@@ -538,7 +538,7 @@ then details on demand [D21]. Seen from the session it has four
 clauses. The session controls the detail of an answer. An answer stays
 within the budget the session asks for, by `elide` in the query or by
 the host's flag, and prints whole when nobody asked [D120], an error as
-an alert whose markers say what the host left out [D184], and a part
+an alert whose markers say what the host left out [D7], and a part
 gives way only to a marker that prints shorter than it, so a budget
 never lengthens an answer [D217]. When the
 answer would have exceeded the budget, it says what was left out and
@@ -793,7 +793,7 @@ sets of tasks a clean author writes and no one has read, each
 measurement read beside the one before it [D26]. The command line
 writes every answer on stdout with the code 0, a failure among them, a
 query that does not parse and an input that does not read among those, a
-defect of the runtime alone stopping the calls beside it [D232]. What
+defect of the runtime alone stopping the calls beside it [D7]. What
 those repairs left is what the scars below describe.
 
 ## The scars
@@ -932,7 +932,7 @@ deeper carries it twice:
 [true true]
 ```
 
-The host shows such an error as an alert, [D184], its tag and its
+The host shows such an error as an alert, [D7], its tag and its
 facts, the subject where it arose cut to an excerpt, and each subject
 it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
@@ -940,7 +940,7 @@ the runs of [D181] recorded on set T, the alerts print about a third of
 what the errors printed whole, and the command line writes above an
 alert the line that says it was raised [D13] and below it the prose of
 its refusal's page as line comments, the repair a reader acts on
-[D195]:
+[D7]:
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
@@ -973,7 +973,7 @@ catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
 paged with it [D123], [D124]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped, at its start
-and at its end, where a failure of a step prints as an alert [D184]:
+and at its end, where a failure of a step prints as an alert [D7]:
 
 ```sh
 $ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':offset'
@@ -1443,7 +1443,7 @@ measurement on a set of tasks a clean author wrote, which measures once
 and serves the work once its misses are read, its children running the
 command line from the pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
-subject it passed a marker [D184].
+subject it passed a marker [D7].
 
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
@@ -1969,9 +1969,7 @@ the command line without them.
 [D180]: decisions/D180.md
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
-[D184]: decisions/D184.md
 [D185]: decisions/D185.md
-[D195]: decisions/D195.md
 [D200]: decisions/D200.md
 [D208]: decisions/D208.md
 [D212]: decisions/D212.md
@@ -1989,6 +1987,5 @@ the command line without them.
 [D229]: decisions/D229.md
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
-[D232]: decisions/D232.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md

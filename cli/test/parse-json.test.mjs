@@ -1,7 +1,7 @@
 // parseJson coverage. The parser is exercised through
 // runQuery so the bound word's path, the per-site error sites, and
 // the qlang-shape conversion all fire against a real session.
-// The decisions it exists for: [D76], [D232].
+// The decisions it exists for: [D7], [D76].
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';

@@ -211,7 +211,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints within the budget a caller asked for, an error among
-// them [D120], and an error as its alert when none is [D184].
+// them [D120], and an error as its alert when none is [D7].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 

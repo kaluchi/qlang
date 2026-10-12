@@ -72,7 +72,7 @@ describe('answerText — the answer as the language prints it', () => {
 
 
 // An answer prints within the budget a caller asked for [D120]; an error
-// prints as its alert [D184].
+// prints as its alert [D7].
 describe('answerText — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);

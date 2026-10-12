@@ -96,7 +96,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
-  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [D232]', async () => {
+  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [D7]', async () => {
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);

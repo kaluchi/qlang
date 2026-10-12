@@ -9,7 +9,7 @@
 // that applied to the value taken answers the part left out, and for a
 // string `:head`, its first characters.
 //
-// A failure a host prints is an alert [D184]: its tag and its facts, the
+// A failure a host prints is an alert [D7]: its tag and its facts, the
 // data it carries cut to what places the failure. The subject of the
 // first stop of its trail, where the failure arose, and every other fact
 // print within an excerpt each; the subject of every later stop, which

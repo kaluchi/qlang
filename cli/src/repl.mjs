@@ -127,7 +127,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 
 // An answer prints whole, an error as an alert, or within the budget
 // the caller asked for, what does not fit given way to markers that read
-// it [D120], [D184].
+// it [D7], [D120].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
   // A query that does not parse answers its error as a value, so it
   // prints as every failure does, on stderr [D13].

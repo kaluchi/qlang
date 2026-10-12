@@ -157,7 +157,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`NumberAddLeftNotNumberError` for `number/AddLeftNotNumberError`) [D159],
+(`MapElementNotPairError` for `map/ElementNotPairError`) [D159],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that

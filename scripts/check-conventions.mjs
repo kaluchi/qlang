@@ -448,27 +448,49 @@ function brokenLinks() {
 // force a newer one says it took a part of names that record in its own
 // line of fate [D227], [D237].
 
+// The statements of a record: a line that opens a field, `Source.` or
+// `Replaces in part`, opens one, and the lines after it continue it to a
+// blank line or the next field.
+const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
+
+function statementsOf(text) {
+  const statements = [];
+  let current = null;
+  for (const line of text.split(/\r?\n/)) {
+    if (line.trim() === '' || /^\[[DE]\d+\]: /.test(line)) { current = null; continue; }
+    if (current === null || FIELD.test(line)) statements.push(current = [line]);
+    else current.push(line);
+  }
+  return statements.map(lines => lines.join(' '));
+}
+
+// The records a clause of a fate names, those before what it says of them.
+const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
+
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
-  const textOf = name => readFileSync(records.get(name).path, 'utf8');
-  const citedIn = line => [...line.matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
-  const fateLines = text => text.split(/\r?\n/).filter(line => /^(Replaced by|Pruned of what) /.test(line));
+  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8'))]));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Pruned of what) /.test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
   for (const name of records.keys()) {
-    const text = textOf(name);
-    for (const line of fateLines(text)) {
-      for (const taker of citedIn(line.split(', under which')[0])) {
+    for (const fate of fatesOf(name)) {
+      for (const taker of namedIn(fate)) {
         if (!records.has(taker)) violations.push({ name, problem: `names ${taker} in its fate, which has no record` });
-        else if (line.startsWith('Pruned of what') && number(name) !== null && number(taker) !== null && number(taker) < number(name)) violations.push({ name, problem: `says ${taker} took a part of it, written before it` });
+        else if (fate.startsWith('Pruned of what') && number(name) !== null && number(taker) !== null && number(taker) < number(name)) violations.push({ name, problem: `says ${taker} took a part of it, written before it` });
       }
     }
-    for (const line of text.split(/\r?\n/).filter(text => text.startsWith('Replaces in part '))) {
-      for (const taken of citedIn(line.split(/, under which|, whose/)[0])) {
-        const takenRecord = records.get(taken);
-        if (takenRecord === undefined || replacedWhole(takenRecord)) continue;
-        const named = fateLines(textOf(taken)).flatMap(citedIn);
-        if (!named.includes(name)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
+    for (const statement of statementsOfRecord.get(name).filter(statement => statement.startsWith('Replaces '))) {
+      const inPart = statement.startsWith('Replaces in part ') ? 0 : statement.search(/\band in part\b/);
+      const whole = inPart === -1 ? statement : statement.slice(0, inPart);
+      const part = inPart === -1 ? '' : statement.slice(inPart);
+      for (const [clauses, isWhole] of [[whole, true], [part, false]]) {
+        for (const taken of clauses.split(/;\s+/).flatMap(namedIn)) {
+          const takenRecord = records.get(taken);
+          if (takenRecord === undefined) violations.push({ name, problem: `says it took from ${taken}, which has no record` });
+          else if (isWhole && !replacedWhole(takenRecord)) violations.push({ name, problem: `says it replaced ${taken} whole, which stands in force` });
+          else if (!isWhole && !replacedWhole(takenRecord) && !fatesOf(taken).flatMap(namedIn).includes(name)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
+        }
       }
     }
   }

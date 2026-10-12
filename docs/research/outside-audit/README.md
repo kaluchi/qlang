@@ -7,6 +7,70 @@ findings in its order, one line each, and the fate of each: the commit
 or the decision that answered it, the question of the audit it is, or
 the decision it stands by. A finding not yet settled says open.
 
+The audits are run with one prompt from time to time, and the work
+takes from each what it takes, or goes its own way; the next audit,
+compared with the ones before, shows how the reading of the language,
+its strengths and its problems, drifts. The four so far are named
+below by their trees, 401046d, 68af9ab5, 6f8c9422 and 7fe783f6.
+
+## The drift of the assessment
+
+The strengths, theme by theme, and the audits that named each:
+
+- The failure as a value under the address of its site, with its trail,
+  and the two tracks, `|` and `!|`: all four.
+- The literal as the shape of the answer, a step of its own: all four.
+- A grammar that teaches, its refusals naming the habit of another
+  language: all four.
+- Strictness: no truthiness, no text read as a number, a number a finite
+  double: 401046d, 6f8c9422, 7fe783f6, and 68af9ab5 as the early refusal
+  of a value where code is wanted.
+- One order of every value, a set as the ordered vector: 401046d,
+  68af9ab5, 7fe783f6.
+- Code as data that prints and reads back: 401046d, 68af9ab5, 7fe783f6.
+- The catalog as an executable specification, its laws run: 68af9ab5,
+  6f8c9422, 7fe783f6, and 401046d as the cases of query and expectation.
+- The budget of an answer, an elision whose `:read` continues the
+  query: 401046d, 68af9ab5, 6f8c9422.
+- Tags kept through a computation, `::Width(2) | add 3`: 68af9ab5,
+  7fe783f6.
+
+The problems, theme by theme, the audits that named each, and what
+became of it:
+
+- The role of a definition read from the form of its value: all four,
+  first or third; open, the layer of declarations.
+- Two inputs, the family `…Of` and a fold of one word: all four, the
+  first named as a lack of user abstraction and gaps of expression;
+  open.
+- The process eats the design: all four; answered in part by D225, D226
+  and D227, which the fourth reads as more accounting.
+- Scars of older models in names, prose written for its author: all
+  four, shrinking from whole kinds of names to the names of cases.
+- The weight of the implementation, `async` on every node and the cold
+  start: 401046d, 6f8c9422, 7fe783f6; open.
+- The marker `@`: 68af9ab5, 6f8c9422, 7fe783f6; open, the target of D2.
+- One fact in one spelling broken, in the catalog and then in the
+  grammar: 401046d, 6f8c9422, 7fe783f6; open.
+- Each word deciding code or value on its own: 6f8c9422, 7fe783f6;
+  stands, each by its reading.
+- The vocabulary of the concepts: 6f8c9422, 7fe783f6; open.
+- A value named by a word of the vocabulary banned: 68af9ab5, 6f8c9422;
+  answered by D223, not named again.
+- A silent trap against the language's own rules, a literal holding a
+  failure or `groupBy` merging keys: 68af9ab5, 6f8c9422; answered by
+  D210 and D228, not named again.
+- The bare name of a kind as a value, `5 | string`: 401046d; answered
+  by D191.
+- The comparison model against the first page, the word `law` meaning
+  two things, refusals missing from the catalog: 401046d; answered by
+  D185, D174 and the catalog, not named again.
+- The error model after D210 and D211: 6f8c9422; answered by b5c89c30
+  and D220, not named again.
+- New with 7fe783f6: a quote under a bare name answering itself, a
+  number as the key of `at`, `runLaws` that stops at a word, an
+  undeclared tag taken silently.
+
 ## 2026-10-10 · 401046d
 
 [2026-10-10.md](2026-10-10.md). The problems, its third section:
@@ -68,11 +132,11 @@ Its proposals and its disagreements are open, but for the page of a parse refusa
 1. Two inputs: the family `…Of` incomplete, `addOf` unknown with `:nearest [:add]`, and redundant beside `[/x /y] | sum`; `reduce` takes a quote of one word. Open, the first finding of all four audits, waiting on the maintainer's word on the shape of the fold and the fate of `…Of`.
 2. The role of a definition read from the form of its value: a part whose invariant is `is ::number` is served beneath its tags, and one whose invariant is `is ::number | eq true` is not; the reserved last names `answer`, `subject` and `construct`. Open, the layer of declarations, waiting on the maintainer's word; a label is a name with its page by D168, and `kinds` answers the labels, a topic among them, by D160.
 3. A quote under a bare name answers itself, `:double ~(mul 2) | 5 | double` answering `~(mul 2)`. Stands by D44, a name holding a value and `apply` running a quote; whether the step says so aloud is open with the layer of declarations.
-4. A number as a key: `at` on a map refuses `1` where the projection reads `/1` and `groupBy` files the number under `:"1"`; `2 | keyword` is refused. Open.
-5. The marker `@`: the guarantee leaks through a quote under a bare name that `apply` runs; cases mark pure words, `@topBy`, `@surround`, `@matching`; `@callers` names no word of any host, so the case `an-effectful-verb-under-a-marked-name-runs` expects `::call/UnknownNameError`. The removal waits on the maintainer's word on D2; the cases are open.
+4. A number as a key: `at` on a map refuses `1` where the projection reads `/1` and `groupBy` files the number under `:"1"`; `2 | keyword` is refused. Open: `at` refuses a number by the invariant of its key, a keyword or a string, which the page states, and a number taken as the keyword of its text waits on the maintainer's word.
+5. The marker `@`: the guarantee leaks through a quote under a bare name that `apply` runs; cases mark pure words, `@topBy`, `@surround`, `@matching`; `@callers` names no word of any host, so the case `an-effectful-verb-under-a-marked-name-runs` expects `::call/UnknownNameError`. The removal waits on the maintainer's word on D2; the case of the marked word checks what its name says, and the pure words of the cases bear no marker (d51fcacb).
 6. The grammar: a line break is `|` at the top level and a space in brackets, the paired `Line*` rules, and `docQuoteDepth`. Open: one rule for line breaks waits on the maintainer's word; a prototype of one family of rules, told apart by the depth of brackets, reads every input the tree's parser reads alike, the cases, the sources of the catalog and inputs made from them.
 7. Code or value decided by each word, `if`, `cond` and `allOf`. Stands, each by its own reading, D197 for `allOf`.
-8. The vocabulary of the concepts; `slot` in the names of cases, meaning a part; `::any/tutorial` beside `doc` and `laws`. The words for the concepts wait on the maintainer's word; the names of the cases are open.
+8. The vocabulary of the concepts; `slot` in the names of cases, meaning a part; `::any/tutorial` beside `doc` and `laws`. The words for the concepts wait on the maintainer's word; the names of the cases say part where they said slot (d51fcacb).
 9. `runLaws` runs the laws of a word and not those of its refusals, and no one query runs the whole catalog. Open.
 10. The weight of the catalog, the refusals of every word written by hand; the cold start; `async` on every node; an undeclared tag taken silently, `::Pont{…}`. Open; the cold start waits on the maintainer's word.
 11. The process eats the design: half of the last forty commits prune records, and the comments of the code cite records. The walk of this shift is a debt paid once, the lines that replace a record in part falling from 173 at the baseline to the three of E1, E2 and E3, which the ratchet keeps from growing; a citation of a record in force in the code stands by D225; its rule that a finding open in the ledger closes by code is open, a matter of the process.

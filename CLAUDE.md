@@ -32,6 +32,11 @@ wins and this file is what changes.
    names gets its fate, the audit moves to the tree the session leaves,
    and the next shift starts at a clean desk [D226].
 
+After a compaction the summary is a map and no source: reread Tier 1
+whole, and the conversation from its transcript,
+`node scripts/sensors/transcript-tail.mjs`, before the next claim about
+the language.
+
 ## Bootstrap recipe
 
 The tree is larger than a context window; the September 2026 session
@@ -197,9 +202,33 @@ it; where a rule and the audit disagree, the audit wins.
 - Write the decisions as files under `docs/decisions/` in the same
   session as the work, prune in the same commit the part of an older
   record a new one takes, found by a search of the records' words, so a
-  record in force says only what holds [D227], hold their quotes against the transcripts with
-  `node scripts/sensors/check-quotes.mjs`, and remove a scar the tree
-  no longer shows.
+  record in force says only what holds [D227], hold their quotes against
+  the transcripts with `node scripts/sensors/check-quotes.mjs`, and
+  remove a scar the tree no longer shows.
+- Before a construct is proposed, search the maintainer's words about
+  it, `node scripts/sensors/maintainer-messages.mjs`: the project may
+  have had it and left it. A capability of the language, a form of the
+  grammar, the shape of a value or a word, is removed only on the
+  maintainer's words about that very axis.
+- A target is taken in hand only where landing it changes no met case
+  and no record's text; otherwise a move of design with its record
+  comes first [D59].
+- Each clause added to a condition is held by a test that fails without
+  it, cut on a copy to watch it fail. A change to how inputs are read is
+  run against the previous version over generated inputs, each
+  divergence explained. A change to the scope a quote runs in or to the
+  reach of a bare name comes with tests of shadowing by a reader's word
+  and by a later source's, and a quick path in a shared helper is held
+  against every caller and every input each hands it, an error and a
+  value under a tag among them.
+- In the inner loop run the tests of the topic; before a commit
+  `npm test`, and `node scripts/benchmark.mjs check` where the change
+  reads a form of the language anew; the full gate once a series,
+  before a push, or where only it checks. While the gate runs, run
+  nothing that boots the language, no probe, no sensor and no child of
+  the benchmark, since a second boot starves the coverage run.
+- A review's report is kept as its writer wrote it, each finding with
+  the fate it met.
 
 ## Release
 

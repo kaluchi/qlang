@@ -1,3 +1,5 @@
+// The decisions it exists for: [D241].
+
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { formatExample } from '../src/lib/format-example.js';

@@ -1,6 +1,7 @@
 |~ `::qlang`, the topic of the language, and what is declared under it:
    its page, the first screen a session reads, its chapters, and their
-   laws. ~|
+   laws.
+   The decisions it exists for: [D114], [D185]. ~|
 
 :qlang
   |~~ qlang is a pipeline language over values. A query starts from a
@@ -62,9 +63,13 @@
       `["b" "a" "b"] | groupBy ~(/) | map ~(count)` answering
       `{:b 2 :a 1}`; `reduce` folds the elements into a seed, calling
       its word with the value so far as the subject and the element as
-      the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`. Several
-      steps stand in one quote, `map ~(/price | mul 2)`. Without the
-      quote the same text is a modifier computed at the call: in
+      the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
+      running code of several steps on the pair of the two,
+      `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 (/1 | /n))` answering `3`.
+      Several steps stand in one quote, `map ~(/price | mul 2)`, and
+      `apply` runs its code on the subject itself,
+      `5 | apply ~(add 1 | mul 2)` answering `12`. Without the quote the
+      same text is a modifier computed at the call: in
       `[{:n 1}] | map /n` the `/n` is read from the vector itself, not
       from each element, and `map` refuses what it is handed,
       `::vec/map/code/NotQuoteError`.
@@ -84,8 +89,16 @@
       goes on unchanged, and the bare word reads the name back, `:r`
       staying a keyword:
       `{:qty 2 :price 3} | :r / | /qty | mul (r | /price)` answers `6`.
-      A name is declared once in a scope, and the names a group or a
-      quote declares stay in it.
+      A name holds code as it holds any value, and a word that takes
+      code takes the name bare: `:double ~(mul 2) | 5 | apply double`
+      answers `10`, and `:double ~(mul 2) | [1 2 3] | map double`
+      answers `[2 4 6]`. Declared under the label of the values it
+      serves, the code is a word the name calls,
+      `:number/double ~(mul 2) | 5 | double` answering `10`, which in
+      the reader's own queries shadows a word of that name on a broader
+      label, `::any` among them, and which no word of the root sees. A
+      name is declared once in a scope, and the names a group or a quote
+      declares stay in it.
 
       8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
       `first` and `last` read the elements of a vector, a set or a map.
@@ -243,6 +256,10 @@
 :qlang/folds
   |~~ `reduce` folds the elements from a seed. ~~|
   ::law~([3 1 2] | reduce 0 ~(add) | eq 6)
+
+:qlang/foldsCodeOnThePair
+  |~~ Code of several steps folds on the pair of the value so far and the element. ~~|
+  ::law~([{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 (/1 | /n)) | eq 3)
 
 :qlang/ordersASet
   |~~ A set stands in the one order. ~~|
@@ -521,10 +538,14 @@
       word called by its address there, `[1 2] | vec/count`; an address
       the root holds is declared once at all, so a reader extends a noun
       of the root and replaces none of its nodes.
-      A name begins with a letter of any script, `_` or `@`; `@` marks a
-      name whose call reaches outside the language, and a name whose body
-      calls one carries it too, while a name over the value a call
-      answered is plain.
+      A word the reader declares under a label shadows a word of its
+      name on a broader label in the reader's own calls, since the walk
+      of a subject's tags reaches the narrower first, and no word of the
+      root sees it: a word of the root runs in the root's scope, where a
+      name under a noun of the root reads the root alone.
+      A name begins with a letter of any script or `_`, and a word of a
+      host, which reads or writes outside the language, is named as any
+      word is.
       The docs in the slot of a declaration, between its name and its
       body, are its page, one doc each.
       A name under a label resolves its names through the tree of names
@@ -569,13 +590,13 @@
   |~~ A value named as a word meets the word aloud where the subject answers it. ~~|
   ::law~(:count 5 | [(7 | count) ([1 2] | count !| type)] | eq [5 ::call/ValueMeetsWordError])
 
-:qlang/names/leavesAValuePlain
-  |~~ A name over the value a call answered is plain. ~~|
-  ::law~(:any/@io ~(1) | :fine (@io) | fine | eq 1)
+:qlang/names/shadowsForTheReaderAlone
+  |~~ A reader's word shadows a broader one in the reader's call, and a word of the root never sees it. ~~|
+  ::law~(:vec/doc ~("mine") | [1 2] | [(doc) (tutorial | first | type)] | eq ["mine" ::doc])
 
-:qlang/names/marksAWordThatReachesOut
-  |~~ A word that calls a marked name carries the mark. ~~|
-  ::law~(:any/quiet ~(@out) !| type | eq ::bind/EffectMarkMissingError)
+:qlang/names/beginsWithALetter
+  |~~ A name begins with a letter or `_`, and `@` begins none. ~~|
+  ::law~("@out" | parse !| type | eq ::quote/ParseError)
 
 :qlang/names/holdsEachDocOfItsSlot
   |~~ Two docs in the slot are two parts of its page. ~~|
@@ -738,7 +759,7 @@
 
 :qlang/errors/stopsAtEachLevel
   |~~ The trail stops at each level the error left. ~~|
-  ::law~(:any/f ~(add n | mul n) | :any/f/n ~(/0) | "x" | f 2 | sub 3 !| /trail | map ~/step | eq [~(add n) ~(f 2)])
+  ::law~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| /trail | map ~/step | eq [~(add "x") ~(apply f)])
 
 :qlang/errors/holdsTheSkippedSteps
   |~~ The last stop holds the steps skipped. ~~|

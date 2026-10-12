@@ -23,7 +23,6 @@
 //   * site/dist/** — astro build output
 //   * site/coverage/** — vitest coverage HTML artefacts
 //   * vscode/**    — vendored extension, not under our lint remit
-//   * core/test/fixtures/** — deliberately malformed sample input
 
 import js from '@eslint/js';
 
@@ -35,7 +34,7 @@ export default [
       'site/dist/**',
       'site/coverage/**',
       'site/public/**',    // esbuild browser bundle produced by bundle-qlang.mjs
-      'scripts/benchmark/sets/**',  // the data and the generators clean authors wrote [D142]
+      'scripts/benchmark/sets/**',  // the data and the generators clean authors wrote [D26]
       'vscode/**'
     ]
   },

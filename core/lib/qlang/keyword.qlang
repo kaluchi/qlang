@@ -1,6 +1,7 @@
 |~ `::keyword` and what is declared under it: its constructor and its
    refusal, the comparisons of keywords, and `keyword`, which answers
-   the name of a keyword as a string. ~|
+   the name of a keyword as a string.
+   The decisions it exists for: [D114]. ~|
 
 :keyword
   |~~ A keyword is a name that stands for itself, `:name`. It is apart

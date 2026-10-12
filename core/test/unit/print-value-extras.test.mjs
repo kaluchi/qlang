@@ -97,7 +97,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
 });
 
 describe('toPlain encodes a failure', () => {
-  it('as the object of its $error, its tag and its facts [D192]', async () => {
+  it('as the object of its $error, its tag and its facts [D126]', async () => {
     const plain = toPlain(await evalQuery('"x" | add 1'));
     expect(Object.keys(plain)).toEqual(['$error']);
     expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');

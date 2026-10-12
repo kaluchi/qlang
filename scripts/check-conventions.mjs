@@ -65,6 +65,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
+import { marksOfTree } from './marks.mjs';
+import { readDecisionRecords, replacedWhole, statementsOf } from './decision-records.mjs';
+import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -81,7 +84,7 @@ const IGNORE_DIRS = new Set([
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
-  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D142]
+  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D26]
   'vscode'
 ]);
 // A report a reviewer or an outside auditor wrote, named by its date,
@@ -173,13 +176,13 @@ const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
 const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
 const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
-const ADDRESS_RE = /^'((?:@?[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
 // The constant a refusal's class is held by: its address without the
-// slash, each name capitalised and the effect marker dropped.
+// slash, each name capitalised.
 function constantOfAddress(address) {
-  return address.split('/').map(part => part.replace(/^@/, '')).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+  return address.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
 }
 
 // Every workspace that can declare its own refusals goes through the
@@ -353,10 +356,15 @@ function catalogFiles(dir) {
       : entry.name.endsWith('.qlang') ? [join(dir, entry.name)] : []);
 }
 
+// The comment at the head of a source, `|~ … ~|`, is no page a reader
+// reads: it marks the decisions the source exists for [D237].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
-    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    const lines = readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/);
+    const headEnd = lines[0]?.startsWith('|~') && !lines[0].startsWith('|~~') ? lines.findIndex(line => line.includes('~|')) : -1;
+    lines.forEach((line, index) => {
+      if (index <= headEnd) return;
       const reference = line.match(/\[D\d+\]/);
       if (reference) violations.push({ file: file.replace(/\\/g, '/'), line: index + 1, reference: reference[0] });
     });
@@ -374,12 +382,26 @@ const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
 
 function recordsWithoutDecider() {
-  const recordsDir = join(repoRoot, 'docs', 'decisions');
-  return readdirSync(recordsDir)
-    .map(file => ({ file, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
+  return ['docs/decisions', 'docs/decisions/replaced'].flatMap(folder => readdirSync(join(repoRoot, folder))
+    .map(file => ({ file: `${folder}/${file}`, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
     .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
-    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(recordsDir, file), 'utf8')))
-    .map(({ file }) => `docs/decisions/${file}`);
+    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(repoRoot, file), 'utf8')))
+    .map(({ file }) => file));
+}
+
+// ── (8b) The folders of the records ────────────────────────────
+//
+// The root of the records holds those in force, and `replaced/` those
+// replaced whole, each moved there once by `scripts/replaced-records.mjs`
+// [D237].
+
+function misplacedRecords() {
+  const replacedWhole = path => /^(Replaced by|Merged into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
+  return [
+    ...inFolder('docs/decisions').filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
+    ...inFolder('docs/decisions/replaced').filter(path => !replacedWhole(path)).map(path => ({ path, problem: 'is in force, and no record replaced it whole' }))
+  ];
 }
 
 // ── (9) The walk of a baseline ─────────────────────────────────
@@ -395,6 +417,80 @@ function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
 }
 
+// ── (9b) The links of the documents ────────────────────────────
+//
+// A link of a document to a file of markdown, its definition `[Dnn]:
+// Dnn.md` or its inline form, leads to a file the tree holds, so the graph
+// of the records walks from any document into the past [D58], [D237].
+
+const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
+
+function brokenLinks() {
+  const violations = [];
+  const documents = execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  for (const path of documents) {
+    const text = readFileSync(join(repoRoot, path), 'utf8');
+    for (const match of text.matchAll(MARKDOWN_LINK)) {
+      const target = match[1];
+      if (/^[a-z]+:/i.test(target) || target.startsWith('/')) continue;
+      if (existsSync(join(repoRoot, dirname(path), target))) continue;
+      violations.push({ path, line: text.slice(0, match.index).split('\n').length, target });
+    }
+  }
+  return violations;
+}
+
+// ── (9c) The fates of the records ──────────────────────────────
+//
+// A line of fate names records the tree holds, a record that took a part
+// written after the record it pruned, while a record closed whole names
+// the records that carry it out, older ones among them; and a record in
+// force a newer one says it took a part of names that record in its own
+// line of fate [D227], [D237].
+
+// The records a clause of a fate names, those before what it says of them.
+const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
+
+function fatesOutOfStep() {
+  const records = readDecisionRecords(repoRoot);
+  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8')).map(statement => statement.text)]));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what) /.test(statement));
+  const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
+  const violations = [];
+  for (const name of records.keys()) {
+    for (const fate of fatesOf(name)) {
+      for (const taker of namedIn(fate)) {
+        if (!records.has(taker)) violations.push({ name, problem: `names ${taker} in its fate, which has no record` });
+        else if (fate.startsWith('Pruned of what') && number(name) !== null && number(taker) !== null && number(taker) < number(name)) violations.push({ name, problem: `says ${taker} took a part of it, written before it` });
+      }
+    }
+    for (const statement of statementsOfRecord.get(name).filter(statement => statement.startsWith('Replaces '))) {
+      const inPart = statement.startsWith('Replaces in part ') ? 0 : statement.search(/\band in part\b/);
+      const whole = inPart === -1 ? statement : statement.slice(0, inPart);
+      const part = inPart === -1 ? '' : statement.slice(inPart);
+      for (const [clauses, isWhole] of [[whole, true], [part, false]]) {
+        for (const taken of clauses.split(/;\s+/).flatMap(namedIn)) {
+          const takenRecord = records.get(taken);
+          if (takenRecord === undefined) violations.push({ name, problem: `says it took from ${taken}, which has no record` });
+          else if (isWhole && !replacedWhole(takenRecord)) violations.push({ name, problem: `says it replaced ${taken} whole, which stands in force` });
+          else if (!isWhole && !replacedWhole(takenRecord) && !fatesOf(taken).flatMap(namedIn).includes(name)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+// ── (10) The marks of the artifacts ────────────────────────────
+//
+// Every module, script, test file, source of qlang and workflow names
+// the decision it exists for, so the scope of a decision is found by its
+// marks and an artifact no decision explains is seen [D237].
+
+function unmarkedArtifacts() {
+  return marksOfTree(repoRoot).orphans;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -405,6 +501,10 @@ const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
 const undecided = recordsWithoutDecider();
 const unwalked = baselineDrift();
+const unmarked = unmarkedArtifacts();
+const misplaced = misplacedRecords();
+const broken = brokenLinks();
+const outOfStep = fatesOutOfStep();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -413,7 +513,11 @@ if (forbidden.length === 0
     && anchors.length === 0
     && catalogDecisions.length === 0
     && undecided.length === 0
-    && unwalked.length === 0) {
+    && unwalked.length === 0
+    && unmarked.length === 0
+    && misplaced.length === 0
+    && broken.length === 0
+    && outOfStep.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -423,6 +527,7 @@ if (forbidden.length > 0) {
   for (const v of forbidden) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
   }
+  process.stdout.write('    a text says what holds, not when it changed, and leaves no marker of work undone [D239].\n');
 }
 if (refusalDeclarations.length > 0) {
   process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
@@ -434,7 +539,7 @@ if (proseTallies.length > 0) {
     `\nDerivable tallies in prose (${proseTallies.length}):\n`);
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
-    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose.\n');
+    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [D208].\n');
   }
 }
 if (workspaceRanges.length > 0) {
@@ -442,7 +547,7 @@ if (workspaceRanges.length > 0) {
     `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
   for (const v of workspaceRanges) {
     process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
-    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two.\n');
+    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two [D238].\n');
   }
 }
 if (anchors.length > 0) {
@@ -461,6 +566,26 @@ if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
   process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
+}
+if (unmarked.length > 0) {
+  process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
+  for (const path of unmarked) process.stdout.write(`  ${path}\n`);
+  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [D237].\n');
+}
+if (misplaced.length > 0) {
+  process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
+  for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
+  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [D237].\n');
+}
+if (broken.length > 0) {
+  process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
+  for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
+  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D58], [D237].\n');
+}
+if (outOfStep.length > 0) {
+  process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
+  for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
+  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [D227], [D237].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

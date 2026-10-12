@@ -16,6 +16,7 @@
 // the running session without one. `--start` lists in order what arrived
 // before the model's first answer; `--show kind` prints every text of
 // one kind, `system-prompt` among them.
+// The decisions it exists for: [D231].
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';

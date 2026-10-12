@@ -16,7 +16,7 @@ bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subjec
 // The laws declared under the address of the record a value reads, as
 // `doc` reads it: each one's last name and the pair of its page, null for
 // a law without one, and its query, in the order of their declarations
-// [D174].
+// [D123].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
 bindStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
@@ -26,7 +26,7 @@ bindStateReader('any/laws', (subject, state) => {
 
 // A law runs as `apply` runs code, one frame below the step, and passes
 // when it answers true [D14]; its result names the law by its address and
-// the claim it proves by its page [D124], [D174], and holds the error it
+// the claim it proves by its page [D123], [D124], and holds the error it
 // answered at rest, as `!|` grounds it [D210], [D220].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
@@ -47,7 +47,7 @@ async function runLaw({ law, quote, says }, callerState) {
 
 // A value reads its record as the axes do, a name its own and any other
 // value its kind's, a keyword after it the member it holds, `::qlang |
-// runLaws :values` [D124]: the laws declared under its address [D174],
+// runLaws :values` [D124]: the laws declared under its address [D123],
 // [D178].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;

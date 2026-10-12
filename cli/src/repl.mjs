@@ -1,7 +1,7 @@
 // The REPL: one session across its cells, each line a cell whose answer
-// prints, painted, after what its `@out`, `@err` and `@tap` wrote; in a
+// prints, painted, after what its `out`, `err` and `tap` wrote; in a
 // terminal the line paints as it is typed and a paste of several lines is
-// one cell, through the line editor; `@in` reads the empty string, since
+// one cell, through the line editor; `in` reads the empty string, since
 // the prompt holds standard input; a query given after `-i` runs as the
 // first cell [D120]; `.help` lists the commands of the REPL, and `.exit`
 // or Ctrl+D on an empty line closes it.

@@ -1,5 +1,6 @@
 // The surface of the package root: what a host, the command line, the
 // language server and the site build on.
+// The decisions it exists for: [D238].
 
 import { describe, it, expect } from 'vitest';
 import * as core from '../../src/index.mjs';
@@ -30,11 +31,11 @@ describe('the package root', () => {
     const ast = core.parse(':x 1 | x');
     expect(core.findIdentifierOccurrences(ast, 'x').length).toBeGreaterThan(0);
     expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
-    expect(core.isNameStart('@')).toBe(true);
+    expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
   it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'classifyEffect', 'makeTaggedInstance', 'formOf', 'EVAL_DEPTH_LIMIT']) {
+    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'makeTaggedInstance', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
   });

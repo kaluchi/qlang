@@ -1,7 +1,9 @@
 // The screen of the work a shift starts from [D226], [D227]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the audit's baseline, the targets the route holds open, the
-// stashes, and the sister project's branch against its remote.
+// artifacts that name no decision and the records whose scope changed
+// since they were described [D237], the stashes, and the sister project's
+// branch against its remote.
 //
 // Usage: node scripts/desk.mjs
 
@@ -9,6 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { walkOfBaseline, RECORDS_A_WALK_TAKES } from './baseline-walk.mjs';
+import { marksOfTree, touchedRecords } from './marks.mjs';
 
 const root = join(import.meta.dirname, '..');
 const sister = join(root, '..', 'eclipse-jdt-search');
@@ -34,7 +37,7 @@ const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.s
 lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span} · ${walk.partialNow} lines replace in part, ${walk.partialThen} at the baseline`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
-  lines.push(`  the walk breaks ${walk.violations.length} times:`);
+  lines.push(`  the walk breaks ${walk.violations.length} times [D226]:`);
   for (const { where, problem } of walk.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 
@@ -45,6 +48,18 @@ for (const line of requirements.split('\n')) {
   if (line.trim() !== '') open.push(`  ${line}`);
 }
 lines.push(...(open.length === 0 ? ['  no target open'] : open));
+
+const { orphans } = marksOfTree(root);
+if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no decision: node scripts/marks.mjs`);
+const touched = touchedRecords(root);
+const shown = touched.slice(0, 16).map(({ name }) => name).join(' ');
+lines.push(touched.length === 0 ? '  no record touched since the baseline read it' : `  touched ${touched.length} records since the baseline read them, ${shown}${touched.length > 16 ? ' …' : ''}: node scripts/marks.mjs --touched`);
+// The debt shows while the baseline is older than the marks: the records
+// no move read again before the marks were set, read again once [D237].
+const marksSince = linesOf(git(root, 'log', '--diff-filter=A', '--format=%H', '--', 'scripts/marks.mjs')).at(-1);
+if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.baseline, marksSince) !== null) {
+  lines.push(`  debt ${touchedRecords(root, { debt: true }).length} records touched since they were described, which the first move after the marks reads again: node scripts/marks.mjs --touched --debt`);
+}
 
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);

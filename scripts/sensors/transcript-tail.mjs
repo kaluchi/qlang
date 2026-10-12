@@ -7,6 +7,7 @@
 // maintainer's machine, since it reads the transcripts.
 //
 // Usage: node scripts/sensors/transcript-tail.mjs <isoAfter> [i j] [--session <uuid>]
+// The decisions it exists for: [D231].
 
 import { recordsOf, sessionTranscript } from './transcripts.mjs';
 

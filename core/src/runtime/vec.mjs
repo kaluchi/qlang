@@ -362,14 +362,14 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // ── the fold ───────────────────────────────────────────────────
 
-// `reduce seed ~(reducer)` — the universal left-fold: the reducer is
-// applied as `reducer(acc, element)`, a name of two places through its
-// bound form (`acc | add element`), the element the first part of its
-// args [D67], [D167]; `seed` answers for an empty subject, and a
-// reducer error stops the fold.
-async function foldOf(elements, seed, reducer, ReducerNotBinaryError) {
-  const combine = resolveBinaryReducer(reducer);
-  if (combine === null) throw new ReducerNotBinaryError();
+// `reduce seed ~(reducer)` — the universal left-fold: a quote of one word
+// is the word called as the pipe calls it, `acc | add element`, the
+// element the first part of its args [D90], [D224]; any other code runs
+// on the pair of the value so far and the element, and its answer is the
+// value so far after it [D90]. `seed` answers for an empty subject, and
+// a failure of the reducer stops the fold.
+async function foldOf(elements, seed, reducer) {
+  const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;
   for (const element of elements) {
     acc = await combine(acc, element);
@@ -378,9 +378,5 @@ async function foldOf(elements, seed, reducer, ReducerNotBinaryError) {
   return acc;
 }
 
-const VecReduceReducerNotBinaryError = declareRefusal('vec/reduce/reducer/NotBinaryError');
-const SetReduceReducerNotBinaryError = declareRefusal('set/reduce/reducer/NotBinaryError');
-const MapReduceReducerNotBinaryError = declareRefusal('map/reduce/reducer/NotBinaryError');
-bindPrim('vec/reduce', (vector, seed, reducer) => foldOf(vector, seed, reducer, VecReduceReducerNotBinaryError));
-bindPrim('set/reduce', (set, seed, reducer) => foldOf(set, seed, reducer, SetReduceReducerNotBinaryError));
-bindPrim('map/reduce', (map, seed, reducer) => foldOf(map.values(), seed, reducer, MapReduceReducerNotBinaryError));
+bindPrim(['vec/reduce', 'set/reduce'], (sequence, seed, reducer) => foldOf(sequence, seed, reducer));
+bindPrim('map/reduce', (map, seed, reducer) => foldOf(map.values(), seed, reducer));

@@ -15,8 +15,6 @@
 //                 doc holds and its spans in backticks paint as code
 //   'name'        `:name` keyword OR a call's name that resolves
 //                 through a reader's binding
-//   'effect'      `:@name` keyword OR the name of a call marked
-//                 `@`, an effectful word
 //   'word'        a call's name that resolves to a word of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Projection`
@@ -49,10 +47,6 @@
 
 import { closersCompleting, parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
-import { EFFECT_MARKER_PREFIX } from './effect.mjs';
-
-const KEYWORD_SIGIL = ':';
-const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
 // ── Public surface ────────────────────────────────────────────
 
@@ -125,12 +119,9 @@ function collectSemanticSpans(src, ast, builtinNames) {
         spans.push({ start: startOffset, end: endOffset, kind: 'number' });
         return false;
 
-      case 'Keyword': {
-        const keywordText = src.slice(startOffset, endOffset);
-        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'name';
-        spans.push({ start: startOffset, end: endOffset, kind });
+      case 'Keyword':
+        spans.push({ start: startOffset, end: endOffset, kind: 'name' });
         return false;
-      }
 
       case 'ErrorLit': {
         // The tag an error literal writes before its bang paints as
@@ -231,9 +222,7 @@ function pushProseSpans(src, start, end, builtinNames, spans) {
 }
 
 function classifyCallName(callName, builtinNames) {
-  if (callName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
-  if (builtinNames.has(callName))                return 'word';
-  return 'name';
+  return builtinNames.has(callName) ? 'word' : 'name';
 }
 
 // Emit opener and closer spans for a literal with known bracket

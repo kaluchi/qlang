@@ -127,9 +127,9 @@ describe('a host\'s primitive under a label', () => {
   it('computes the modifiers of a call up to the first that answers an error, and runs none after it [D167]', async () => {
     let noted = 0;
     const session = await createSession({
-      sources: [{ uri: 'probe/note', source: ':any/@note ::builtin{}', impls: { 'any/@note': subject => { noted += 1; return subject; } } }]
+      sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', impls: { 'any/note': subject => { noted += 1; return subject; } } }]
     });
-    expect((await session.evalCell('[1 2] | at /nope ("ran" | @note) !| type')).result).toEqual(makeTag('proj/IndexNotIntegerError'));
+    expect((await session.evalCell('[1 2] | at /nope ("ran" | note) !| type')).result).toEqual(makeTag('proj/IndexNotIntegerError'));
     expect(noted).toBe(0);
   });
 
@@ -157,15 +157,5 @@ describe('a host\'s primitive under a label', () => {
       }]
     });
     expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);
-  });
-
-  it('holds a part a host declares under its primitive to the mark of the name [D167]', async () => {
-    for (const [source, primitive] of [
-      [lines(':vec/zap ::builtin{}', ':vec/zap/n ~(/0 | @note)'), 'vec/zap']
-    ]) {
-      await expect(createSession({
-        sources: [{ uri: 'probe/note', source: lines(':any/@note ::builtin{}', source), impls: { 'any/@note': subject => subject, [primitive]: subject => subject } }]
-      })).rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { tagName: '::bind/EffectMarkMissingError' } });
-    }
   });
 });

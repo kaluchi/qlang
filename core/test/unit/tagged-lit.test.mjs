@@ -37,7 +37,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 
   it('a word binds its parts from the modifiers', async () => {
     const result = await evalQuery(
-      ':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/pfx/NotStringError ::holds~(is ::string) | :any/@surround/sfx ~(/1) | :any/@surround/sfx/NotStringError ::holds~(is ::string) | "x" | @surround "[" "]"'
+      ':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/pfx/NotStringError ::holds~(is ::string) | :any/surround/sfx ~(/1) | :any/surround/sfx/NotStringError ::holds~(is ::string) | "x" | surround "[" "]"'
     );
     expect(result).toBe('[x]');
   });

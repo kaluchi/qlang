@@ -1,6 +1,6 @@
-// The benchmark of the first screen [D26], [D104], [D142]. A run hands a
+// The benchmark of the first screen [D26]. A run hands a
 // clean child a screen, the pages of the language and the command line as
-// a tree printed them [D216], and a set of tasks; the child answers with
+// a tree printed them [D26], and a set of tasks; the child answers with
 // the command line, and the tree grades the queries it wrote. The sets are written by
 // a clean author who never saw the language, and a set measures once:
 // reading what its children missed marks it seen, and the next
@@ -68,7 +68,10 @@ async function check() {
     const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : answerOf(task.reference, task).trim();
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
-  if (wrong.length > 0) process.exit(1);
+  if (wrong.length > 0) {
+    console.log('a reference answers its task, or the task is written again with it [D26]');
+    process.exit(1);
+  }
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);
 }
 

@@ -3,7 +3,7 @@
 // A step is a command, a name followed by its modifiers, each one word
 // [D10]. At the top level a line is a step: a command's modifiers end
 // with their line, and a line that neither ends nor begins with a
-// combinator continues the pipeline through `|` [D11, D43]. Inside
+// combinator continues the pipeline through `|` [D11], [D43]. Inside
 // brackets a newline is whitespace. Every combinator is set off by
 // whitespace on both sides.
 //
@@ -692,7 +692,7 @@ ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
 // The letters of a name, `core/src/name-chars.mjs`.
-IdentStart "identifier start (letter, underscore, or @-sigil)"
+IdentStart "identifier start (letter or underscore)"
   = c:. &{ return isNameStart(c); } { return c; }
 IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
   = c:. &{ return isNameContinue(c); } { return c; }

@@ -1,7 +1,7 @@
 // main(argv, stdin, stdout, stderr, env) → the exit code of the command
 // line: the help, the version, the REPL over the streams, or a query run
 // on what standard input lifts to, its answer written as the language
-// prints it unless the query wrote to stdout by `@out`; the streams are
+// prints it unless the query wrote to stdout by `out`; the streams are
 // handed in, so a test runs it without a process.
 
 import { existsSync } from 'node:fs';
@@ -95,7 +95,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   // `parseJson` refuses its text, a failure like every other [D232].
   const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
-  // `@in` reads the text standard input already gave, or reads it then.
+  // `in` reads the text standard input already gave, or reads it then.
   const stdinReader = memoiseStdinReader(() => (readsInput ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
 
   let didExplicitStdoutEffect = false;

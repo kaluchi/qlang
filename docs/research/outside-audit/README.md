@@ -41,15 +41,23 @@ became of it:
 - The role of a definition read from the form of its value: all four,
   first or third; open, the layer of declarations.
 - Two inputs, the family `…Of` and a fold of one word: all four, the
-  first named as a lack of user abstraction and gaps of expression;
-  open.
+  first named as a lack of user abstraction and gaps of expression; the
+  fold answered by D233, which runs code of any shape on the pair of the
+  value so far and the element, the family `…Of` open.
 - The process eats the design: all four; answered in part by D225, D226
   and D227, which the fourth reads as more accounting.
 - Scars of older models in names, prose written for its author: all
   four, shrinking from whole kinds of names to the names of cases.
 - The weight of the implementation, `async` on every node and the cold
   start: 401046d, 6f8c9422, 7fe783f6; open.
-- The marker `@`: 68af9ab5, 6f8c9422, 7fe783f6; open, the target of D2.
+- `::any` as the place of the reader's words: 68af9ab5, a verb declared
+  there for want of an abstraction; 6f8c9422, words that read no
+  subject; 7fe783f6, a common dump, the first page showing no
+  declaration of a word. The fold answered by D233, and the dump by
+  D235, the examples holding code under a bare name run by `apply` and
+  declaring a word only where they show one; the words that read no
+  subject open.
+- The marker `@`: 68af9ab5, 6f8c9422, 7fe783f6; answered by D234, which takes it out of the language and meets the target of D2.
 - One fact in one spelling broken, in the catalog and then in the
   grammar: 401046d, 6f8c9422, 7fe783f6; open.
 - Each word deciding code or value on its own: 6f8c9422, 7fe783f6;
@@ -110,14 +118,14 @@ Its proposals and its disagreements are open, but for the literal that fails at 
 [2026-10-11-6f8c9422.md](2026-10-11-6f8c9422.md), and the model's reading of it, [2026-10-11-6f8c9422-reading.md](2026-10-11-6f8c9422-reading.md). The problems, its third section:
 
 1. The role of a definition read from the form of its value. New: a label whose declaration holds an invariant in its body is a value, so `:Box |~~ A box. ~~| ::holds~(/w | is ::number) | :Box/area ~(mulOf /w /h) | ::Box{:w 2 :h 3} | area` answers `::call/UnknownNameError` with no addresses. Answered for the trap by D229, an invariant a bare name declares refused where it stands, `::bind/InvariantNotUnderLabelError`; the roles of definitions read from the form of their values are open, the layer of declarations of the work on names.
-2. No abstraction over two inputs: `reduce` takes a quote of one word, and the family `…Of` is incomplete and redundant, `{:price 4 :qty 3} | [/price /qty] | reduce 1 ~mul` answering `12`. A reducer names its word by its address as well (D224); open, with the question of a helper of one word.
+2. No abstraction over two inputs: `reduce` takes a quote of one word, and the family `…Of` is incomplete and redundant, `{:price 4 :qty 3} | [/price /qty] | reduce 1 ~mul` answering `12`. A reducer names its word by its address as well (D224); the fold answered by D233, code of any shape running on the pair of the value so far and the element; the family `…Of` open.
 3. `groupBy` merges distinct values under one key, `[1 "1" :"1"] | groupBy ~(/)` answering `{:"1" [1 "1" :"1"]}`. Answered by D228: two values of a key that file under one keyword meet and are refused, `[1 "1"] | groupBy !| type` answering `::vec/groupBy/KeyTakenError`, in `groupBy` and `indexBy` on vectors and sets.
 4. The print of a failure against D209: misread, `:trail []` marking a failure raised with no step, which `raise` resumes; D219 cites D209 (b5c89c30). A query that does not parse is written with the prose of its page (b5c89c30), and names no `:uri` where no host named its source, a cell the session numbers itself.
 5. `raise` on a map stands by D209, a second spelling of `!{…} | raise` whose removal waits on the maintainer's word; `runLaws` answered by D220, its `:error` the error at rest and its `:says` the page.
 6. Code computed or quoted by the word, `if`, `cond`, `allOf`: stands, each by its own reading, D197 for `allOf`.
 7. Second spellings in the grammar: `a | !| b` stands by D130, a group touching a name by the grammar's rule; the paired `Line*` rules are open; the refusal of a comma between modifiers says how they are separated (b5c89c30).
 8. Scars: the broken wraps of the first page, of `runLaws` and of `raise` answered (b5c89c30); `lambda` in `eval.mjs` answered, the evaluator naming the modifiers of a call and code closed at the call; the cases `as-is-no-word` and `22-json-type-key-collision` stand, each stating what the language does, `as` refused as a name no word holds by D70 and a JSON object with a `"type"` key read as a map; the words for the concepts open; `[Dnn]` in the comments stands, the sources citing the records.
-9. Words that read no subject on `::any`, `@in`, `@out`, `@err`, `@tap`, `env` and `kinds`, and `::cli | manifest` answering `#[]`; the marker `@`, which D2 took out of the core, still there. Open.
+9. Words that read no subject on `::any`, `@in`, `@out`, `@err`, `@tap`, `env` and `kinds`, and `::cli | manifest` answering `#[]`; the marker `@`, which D2 took out of the core, still there. The marker answered by D234, which takes it out of the language; `out`, `err` and `tap` read their subject and hand it on, and the place of a word that reads none, `in`, `env` and `kinds`, is open.
 10. The ban on a value named by a word of the vocabulary, D166. Answered by D223, a value taking any name and a step where it meets a word refused aloud, and by D224 for a fold.
 11. Prose written for its author: the page of a zero divisor shows the record its test stands on (b5c89c30); the page of `UnknownNameError` opens with the repair and leads to the page of `:nearest`, which states the rule of the nearest names whole (48d1edc8); the length of the first page is open.
 12. The process eats the design. Answered in part by D225, D226 and D227: a record in force says only what holds, the parts a newer record took pruned from it and a record no part of which holds closed whole, and the lines that replaced a record in part fell from 173 at the baseline to the three of E1, E2 and E3, whose fate waits on the maintainer's word; the code and the cases cite only records in force.
@@ -129,11 +137,11 @@ Its proposals and its disagreements are open, but for the page of a parse refusa
 
 [2026-10-12-7fe783f6.md](2026-10-12-7fe783f6.md), and the model's reading of it, [2026-10-12-7fe783f6-reading.md](2026-10-12-7fe783f6-reading.md). The problems, its third section:
 
-1. Two inputs: the family `…Of` incomplete, `addOf` unknown with `:nearest [:add]`, and redundant beside `[/x /y] | sum`; `reduce` takes a quote of one word. Open, the first finding of all four audits, waiting on the maintainer's word on the shape of the fold and the fate of `…Of`.
+1. Two inputs: the family `…Of` incomplete, `addOf` unknown with `:nearest [:add]`, and redundant beside `[/x /y] | sum`; `reduce` takes a quote of one word. The fold answered by D233, code of any shape running on the pair of the value so far and the element, `reduce 0 ~(sumOf /0 (/1 | /x))`, the word of one name its short form; the family `…Of` open.
 2. The role of a definition read from the form of its value: a part whose invariant is `is ::number` is served beneath its tags, and one whose invariant is `is ::number | eq true` is not; the reserved last names `answer`, `subject` and `construct`. Open, the layer of declarations, waiting on the maintainer's word; a label is a name with its page by D168, and `kinds` answers the labels, a topic among them, by D160.
-3. A quote under a bare name answers itself, `:double ~(mul 2) | 5 | double` answering `~(mul 2)`. Stands by D44, a name holding a value and `apply` running a quote; whether the step says so aloud is open with the layer of declarations.
+3. A quote under a bare name answers itself, `:double ~(mul 2) | 5 | double` answering `~(mul 2)`, while `:any/double ~(mul 2)` is a word, and the first page shows no declaration of a word, so `::any` has become a common dump of the reader's words. Stands by D44, a name holding a value and `apply` running a quote; whether the step says so aloud is open with the layer of declarations. The dump answered by D235: an example holds code under a bare name and runs it by `apply`, `:double ~(mul 2) | 5 | apply double` answering `10`, or hands it bare to a word that takes code, and declares a word only where it shows one, under the label of the values it serves; the first page shows both, and the laws and the showcase of the language server follow.
 4. A number as a key: `at` on a map refuses `1` where the projection reads `/1` and `groupBy` files the number under `:"1"`; `2 | keyword` is refused. Open: `at` refuses a number by the invariant of its key, a keyword or a string, which the page states, and a number taken as the keyword of its text waits on the maintainer's word.
-5. The marker `@`: the guarantee leaks through a quote under a bare name that `apply` runs; cases mark pure words, `@topBy`, `@surround`, `@matching`; `@callers` names no word of any host, so the case `an-effectful-verb-under-a-marked-name-runs` expects `::call/UnknownNameError`. The removal waits on the maintainer's word on D2; the case of the marked word checks what its name says, and the pure words of the cases bear no marker (d51fcacb).
+5. The marker `@`: the guarantee leaks through a quote under a bare name that `apply` runs; cases mark pure words, `@topBy`, `@surround`, `@matching`; `@callers` names no word of any host, so the case `an-effectful-verb-under-a-marked-name-runs` expects `::call/UnknownNameError`. Answered by D234, which takes the marker out of the language, no name beginning with `@` and no declaration checking what its body calls, and meets the target of D2; the case of the marked word checks what its name says, and the pure words of the cases bear no marker (d51fcacb).
 6. The grammar: a line break is `|` at the top level and a space in brackets, the paired `Line*` rules, and `docQuoteDepth`. Open: one rule for line breaks waits on the maintainer's word; a prototype of one family of rules, told apart by the depth of brackets, reads every input the tree's parser reads alike, the cases, the sources of the catalog and inputs made from them.
 7. Code or value decided by each word, `if`, `cond` and `allOf`. Stands, each by its own reading, D197 for `allOf`.
 8. The vocabulary of the concepts; `slot` in the names of cases, meaning a part; `::any/tutorial` beside `doc` and `laws`. The words for the concepts wait on the maintainer's word; the names of the cases say part where they said slot (d51fcacb).

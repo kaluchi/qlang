@@ -15,6 +15,7 @@
 // Usage:
 //   node scripts/gemini-show.mjs 15
 //   node scripts/gemini-show.mjs 15 --since 2026-05-26T21:00:00Z
+// The decisions it exists for: [D240].
 
 import { spawnSync } from 'node:child_process';
 

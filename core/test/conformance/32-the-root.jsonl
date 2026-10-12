@@ -16,7 +16,7 @@
 {"name":"a-binding-records-its-origin","query":"::number/add | binding | /origin","expect":":qlang/number","decision":"D153"}
 {"name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ~(mul h)) | env | has :h","expect":"false","decision":"D153"}
 {"name":"use-left-the-language","query":"{:x 1} | use !| type","expect":"::call/UnknownNameError","decision":"D153"}
-{"name":"the-effect-marker-sits-on-the-last-name","query":":any/@x ~(1) | 5 | @x","expect":"1","decision":["D69","D153"]}
+{"name":"a-word-is-called-by-the-last-name-of-its-address","query":":any/x ~(1) | 5 | x","expect":"1","decision":"D153"}
 {"name":"a-verb-a-body-computes-under-a-kind-serves-the-kind","query":":Box |~~ Box. ~~| | :Box/h (~(type)) | ::Box{} | h","expect":"::Box","decision":"D153"}
 {"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | [vec (env | /vec | /value) (::vec[1] | eq [1]) ([1] | doc | type)]","expect":"[5 5 true ::doc]","decision":["D62","D153"]}
 {"name":"an-address-reads-a-value","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side","expect":"3","decision":"D153"}

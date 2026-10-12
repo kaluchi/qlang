@@ -85,14 +85,6 @@ export function isMemberValue(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
 }
 
-// Whether a call of the name reads the parts declared under it: a quote
-// or a `::builtin{}` under a label, the host's marked as such once its
-// source has run [D167].
-export function readsParts(env, name) {
-  const value = bindingValueOf(nodeOf(env, name));
-  return (isQuote(value) || isBuiltinDescriptor(value)) && isUnderLabel(env, name);
-}
-
 // answerOf(env, address) → the definition of the answer of the word at the
 // address, the name `answer` under it, whose value is a tag or a set of
 // tags, `{ address, kinds }`, or null for a word that answers any value
@@ -156,7 +148,7 @@ export function isInvariant(value) {
 const INVARIANT_TAG_NAME = 'holds';
 
 // Whether a value is a law, a quote under `::law`, which proves the
-// claim its name makes [D174].
+// claim its name makes [D123].
 export function isLaw(value) {
   return isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
@@ -164,7 +156,7 @@ export function isLaw(value) {
 const LAW_TAG_NAME = 'law';
 
 // lawsUnder(env, address) → the laws declared one name under an address,
-// each `[lastName, record]` in the order of their declarations [D174].
+// each `[lastName, record]` in the order of their declarations [D123].
 export function lawsUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
 }
@@ -238,7 +230,7 @@ export function pathNamesOf(env) {
 const PATH_NAMES = new WeakMap();
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
-// of the value, the kind of every tagged value after a tag [D78], the
+// of the value, the kind of every tagged value after a tag [D73], the
 // payload beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].
@@ -513,7 +505,7 @@ function rootIndexOf(root) {
 
 // namesUnder(env, tagName) → the nodes declared one name under a noun,
 // its verbs, refusals and pages, by address [D62]; its laws are read by
-// `laws` [D174].
+// `laws` [D123].
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]
     .filter(([, record]) => !isLaw(bindingValueOf(record)))

@@ -19,7 +19,6 @@
     { "include": "#error-lit-brackets" },
     { "include": "#quote" },
     { "include": "#combinator" },
-    { "include": "#effect-identifier" },
     { "include": "#identifier" },
     { "include": "#punctuation" }
   ],
@@ -60,7 +59,7 @@
     },
     "doc-quote-short": {
       "comment": "The short form of a quote inside a doc: ~name, ~/path, ~::tag.",
-      "match": "(~)((?:::|/)?[@_a-zA-Z][a-zA-Z0-9_/-]*)",
+      "match": "(~)((?:::|/)?[_a-zA-Z][a-zA-Z0-9_/-]*)",
       "captures": {
         "1": { "name": "keyword.operator.quote.qlang" },
         "2": { "name": "entity.name.function.qlang" }
@@ -111,7 +110,7 @@
     "tag": {
       "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a TagLit reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
-      "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
+      "match": "::[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "map-key": {
@@ -126,7 +125,7 @@
         },
         {
           "comment": "bare map key :ident followed by whitespace",
-          "match": "(:[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*)(?=[ \\t])",
+          "match": "(:[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*)(?=[ \\t])",
           "captures": {
             "1": { "name": "support.type.property-name.qlang" }
           }
@@ -151,7 +150,7 @@
         {
           "comment": "bare keyword :name",
           "name": "constant.other.symbol.qlang",
-          "match": ":[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
+          "match": ":[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
         }
       ]
     },
@@ -185,7 +184,7 @@
           }
         },
         {
-          "match": "(/)([@_a-zA-Z][a-zA-Z0-9_-]*)",
+          "match": "(/)([_a-zA-Z][a-zA-Z0-9_-]*)",
           "captures": {
             "1": { "name": "keyword.operator.projection.qlang" },
             "2": { "name": "variable.other.member.qlang" }
@@ -209,7 +208,7 @@
     "quote": {
       "comment": "A quote: ~( opens one, and a ~ before a name, a projection or a tag name is its short form.",
       "name": "keyword.operator.quote.qlang",
-      "match": "~(?=[(/:@_a-zA-Z])"
+      "match": "~(?=[(/:_a-zA-Z])"
     },
 
     "combinator": {
@@ -220,19 +219,10 @@
       ]
     },
 
-    "effect-identifier": {
-      "comment": "@-prefixed names, the effectful words of a host. The @ sigil gets punctuation scope so themes can color it apart from the name.",
-      "match": "(@)([a-zA-Z_][a-zA-Z0-9_-]*)",
-      "captures": {
-        "1": { "name": "punctuation.definition.variable.qlang" },
-        "2": { "name": "variable.language.qlang" }
-      }
-    },
-
     "identifier": {
       "comment": "Names called as words, and addresses of words.",
       "name": "entity.name.function.qlang",
-      "match": "[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
+      "match": "[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "punctuation": {

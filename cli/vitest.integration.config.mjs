@@ -1,3 +1,5 @@
+// The decisions it exists for: [D239].
+
 import { defineConfig } from 'vitest/config';
 
 // Integration test config — spawns the actual `cli/src/bin.mjs`

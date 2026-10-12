@@ -128,3 +128,50 @@ describe('a name with a path calls the verb its address names', () => {
     expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTag('vec/nothing'));
   });
 });
+
+describe('what a word reads and runs as data reads the tree of the query [D236]', () => {
+  const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
+  const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt ~(apply code)\n:any/runIt/code ~(/0)\n:any/runIt/x ~(/1)' };
+
+  it('a word of the root reads the page and the laws of a bare name the reader declares', async () => {
+    expect(await evalQuery(':k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | [(/0 | content) (/1 | keys)] | eq [" Answers five. " #[:answersFive]]')).toBe(true);
+  });
+
+  it('a value of the reader reaches no name the body of a word of the root writes', async () => {
+    expect(await evalQuery(':laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | [(/0 | content) (/1)] | eq [" K. " {}]')).toBe(true);
+  });
+
+  it('the names a word of the root declares stay out of what it reads as data', async () => {
+    expect(await evalQuery('[(::subject | tutorial !| type) (:subject |~~ mine ~~| 1 | ::subject | tutorial | first | content)] | eq [::any/doc/UnknownNameError " mine "]')).toBe(true);
+  });
+
+  it('a word of a source reads the reader\'s name before the source\'s own, and the source\'s where the reader declares none', async () => {
+    const session = await createSession({ sources: [pages] });
+    expect((await session.evalCell('::k | pageOf')).result).toBe(' the source\'s own ');
+    expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
+  });
+
+  it('a word of a source reads a name a later source declares, under the reader\'s', async () => {
+    const reading = { uri: 'reading', source: ':reading |~~ Reading. ~~|\n:any/pageOf ~(doc | content)' };
+    const later = { uri: 'later', source: ':later |~~ Later. ~~|\n:k |~~ the later source\'s ~~| 3' };
+    const session = await createSession({ sources: [reading, later] });
+    expect((await session.evalCell('::k | pageOf')).result).toBe(' the later source\'s ');
+    expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
+  });
+
+  it('code held as data runs in the tree of the query, past the parts of a word of the root', async () => {
+    const session = await createSession({ sources: [runner] });
+    expect((await session.evalCell(':x 1 | "x" | parse | :q / | null | runIt q 99')).result).toBe(1);
+  });
+
+  it('a word the reader declares reads and runs as data under its own declarations, as steps inline in a group', async () => {
+    expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | [(has :y) (has :x)]) | names | eq [true true]')).toBe(true);
+    expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f')).toBe(' L ');
+    expect(await evalQuery(':x 1 | :any/run ~(apply code) | :any/run/code ~(/0) | :any/run/x ~(/1) | "x" | parse | :q / | null | run q 99')).toBe(99);
+  });
+
+  it('a word reads a name the query declares after the word', async () => {
+    expect(await evalQuery(':any/pageOf ~(doc | content) | :k |~~ K. ~~| 1 | ::k | pageOf')).toBe(' K. ');
+    expect(await evalQuery(':any/run ~(apply code) | :any/run/code ~(/0) | :x 5 | "x | add 1" | parse | :q / | null | run q')).toBe(6);
+  });
+});

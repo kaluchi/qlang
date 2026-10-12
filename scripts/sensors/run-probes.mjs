@@ -148,3 +148,4 @@ for (const documentPath of documents) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
+if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [D93], [D59]');

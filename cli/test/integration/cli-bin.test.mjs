@@ -10,7 +10,7 @@
 //   * Argv parsing wired-up correctly (the unit suite tests
 //     parseArgv in isolation; this suite tests the full path
 //     through main → script-mode / runRepl).
-//   * Piped stdin reaches the `@in` word and the format auto-detection.
+//   * Piped stdin reaches the `in` word and the format auto-detection.
 //   * REPL bootstrap loads every lazy-imported module without
 //     throwing on the first prompt.
 

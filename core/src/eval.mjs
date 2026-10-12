@@ -2,14 +2,12 @@
 // steps, each node a function `(node, state) → state`.
 
 import { parse } from './parse.mjs';
-import { ROOT_KEY } from './env-keys.mjs';
+import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf
+  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf, queryTreeOf
 } from './state.mjs';
-import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
+import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
-import { classifyEffect } from './effect.mjs';
-import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
@@ -23,7 +21,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, readsParts, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -413,26 +411,11 @@ async function evalBindStep(node, state) {
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
   if (nounName === null && isInvariant(answered)) throw new BindInvariantNotUnderLabelError({ name: keyword(name) });
-  if (isQuote(answered) && isUnderLabel(state.env, name)) {
-    refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
-  } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {
-    refuseLaunderedByName(nounName, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
-  }
   const writtenQuote = node.body.type === 'QuoteLit';
   const value = writtenQuote ? quoteInEnv(answered, null) : answered;
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
-}
-
-// A name without the effect marker refuses a quote under a label whose
-// body calls one; a part whose selector calls one is refused by the name
-// it is a part of, which runs it at each call [D167].
-function refuseLaunderedByName(name, effectfulName, node) {
-  if (effectfulName === null || classifyEffect(name)) return;
-  const laundering = new BindEffectMarkMissingError({ name: keyword(name), calls: keyword(effectfulName) });
-  laundering.location = node.body.location;
-  throw laundering;
 }
 
 // The record a declaration writes: its name, the docs of its slot, the
@@ -687,12 +670,15 @@ export function answerKindsOf(env, record, subjectKinds) {
 // steps before the call declared and every label the reader declared, so
 // the names under a label see each other whatever their order and a value
 // of a kind the reader declared finds its page, while no bare value of the
-// reader reaches in [D222]; a primitive reads the call's.
+// reader reaches a name the body writes [D222]; it holds the tree of the
+// query that called the word, which what the body reads and runs as data
+// reads, as a primitive reads the call's [D236].
 function scopeOfMember(member, state) {
   if (!isQuote(member)) return state.env;
   const carried = envToRun(member, state.env);
   const scope = asScopeOf(carried, new Map(carried));
   scope.set(ROOT_KEY, rootOf(state.env));
+  scope.set(QUERY_KEY, queryTreeOf(state.env));
   for (const [name, entry] of state.env) {
     if (typeof name !== 'string' || scope.has(name)) continue;
     if (name.includes('/') || (isBinding(entry) && holdsAPage(entry))) scope.set(name, entry);
@@ -847,9 +833,10 @@ const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLi
 
 // codeOf(code, callState) → code closed at the call: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope
-// the quote carries, or that of the call for a quote held as data [D43].
+// the quote carries, or for a quote held as data in the tree of the query
+// that made the call [D43], [D236].
 export function codeOf(code, callState) {
-  return closeCode(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
+  return closeCode(astOfQuote(code), withEnv(callState, envToRun(code, queryTreeOf(callState.env))));
 }
 
 // resolveBinaryReducer(reducer) → (acc, item) → value, or null: the
@@ -857,7 +844,8 @@ export function codeOf(code, callState) {
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
 // meeting the word there [D223], [D224]; null for code of any other shape
-// or a name of no word, which `reduce` refuses.
+// or a name of no word, which `reduce` runs on the pair of the value so
+// far and the element [D90].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;

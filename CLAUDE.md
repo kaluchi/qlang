@@ -79,9 +79,9 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/code.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,
   `core/src/runtime/print.mjs`, `core/src/runtime/format.mjs`
-- host boundary: `core/src/effect.mjs`, `core/src/effect-check.mjs`,
-  `core/src/runtime/bootstrap.mjs`, `core/host/`, `cli/src/main.mjs`,
-  `cli/src/script-mode.mjs`, `cli/src/cli-sources.mjs`
+- host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,
+  `cli/src/main.mjs`, `cli/src/script-mode.mjs`,
+  `cli/src/cli-sources.mjs`, `cli/src/streams.mjs`
 - tests: `core/test/unit/conformance.test.mjs` for the runner, then
   only the conformance or unit file of the topic
 
@@ -131,12 +131,12 @@ install` at the root links the workspaces; the Node floor is the
   to a file, never through a pipe.
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
-  runs recorded side by side [D104].
+  runs recorded side by side [D26].
 - `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
   a set of tasks a clean author writes, clean children that solve it
   with the command line under a saved screen, the pages of the language
-  and the command line [D216], the grade by the tree, and the reading of
-  the misses, which marks the set seen [D142]. The usage is the header
+  and the command line [D26], the grade by the tree, and the reading of
+  the misses, which marks the set seen [D26]. The usage is the header
   of the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
@@ -157,7 +157,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`NumberAddLeftNotNumberError` for `number/AddLeftNotNumberError`) [D159],
+(`MapElementNotPairError` for `map/ElementNotPairError`) [D159],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that

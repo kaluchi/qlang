@@ -1,9 +1,2 @@
-{"name":"bindstep-with-effectful-body-rejected","query":":any/foo ~(@callers) !| type","expect":"::bind/EffectMarkMissingError"}
-{"name":"bindstep-with-nested-effectful-body-rejected","query":":any/foo ~(filter ~(@callers | count)) !| type","expect":"::bind/EffectMarkMissingError"}
-{"name":"bindstep-with-projection-laundering-rejected","query":":any/bad ~(env | /@callers) !| type","expect":"::bind/EffectMarkMissingError"}
-{"name":"bindstep-with-clean-body-and-at-name-accepted","query":":any/@safe ~(count) | [1 2 3] | @safe","expect":"3"}
-{"name":"bindstep-with-clean-body-and-clean-name-accepted","query":":any/foo ~(count) | [1 2 3] | foo","expect":"3"}
-{"name":"transitive-laundering-via-alias-rejected","query":":any/@a ~(count) | :any/b ~(@a) !| type","expect":"::bind/EffectMarkMissingError"}
-{"name":"a-freeze-of-a-result-is-not-rejected","query":"[1 2 3] | :result / | result | count","expect":"3"}
-{"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:any/bad ~(@callers) | bad)","expect":"::bind/EffectMarkMissingError!{\n  :name :any/bad\n  :calls :@callers\n  :trail [\n    {\n      :step ~(:any/bad ~(@callers))\n      :subject 1\n      :skipped ~(bad)\n    }\n    {\n      :step ~((:any/bad ~(@callers) | bad))\n      :subject 1\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-word-that-calls-a-name-under-the-marker-takes-no-mark-of-its-own","query":":any/quiet ~(@out) | 1","expect":"1","now":"::bind/EffectMarkMissingError","decision":"D2","target":true}
+{"name":"a-word-that-calls-a-word-of-a-host-takes-no-mark","query":":any/quiet ~(out) | 1","expect":"1","decision":"D2"}
+{"name":"no-name-begins-with-the-sigil","query":"\"@out\" | parse !| type","expect":"::quote/ParseError","decision":"D2"}

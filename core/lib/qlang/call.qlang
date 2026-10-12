@@ -2,7 +2,8 @@
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
    modifiers, a call too deep and a failure of a host's implementation.
-   ~|
+
+   The decisions it exists for: [D114]. ~|
 
 :call
   |~~ A call, `add 1`, runs a command: its name finds its verb through
@@ -162,11 +163,11 @@
 
 :call/ValueTakesNoModifiersError/namesTheVerbTheValueShadows
   |~~ The refusal names where the word the value shadows lives. ~~|
-  ::law~(:five 5 | :any/five ~(add 5) | 3 | five 42 !| /addresses | eq #[::any/five])
+  ::law~(:five 5 | :number/five ~(add 5) | 3 | five 42 !| /addresses | eq #[::number/five])
 
 :call/ValueTakesNoModifiersError/reachesTheShadowedWordByItsAddress
   |~~ A call by its address reaches the word a value shadows. ~~|
-  ::law~(:five 5 | :any/five ~(add 5) | 3 | any/five | eq 8)
+  ::law~(:five 5 | :number/five ~(add 5) | 3 | number/five | eq 8)
 
 :call/KindAnswersNoVerbError
   |~~ The kind of the subject has no verb of the name while other kinds
@@ -294,10 +295,11 @@
       them, a part read from its place meets the budget at that frame, a
       quote written as a modifier is a value at the call, and the frame
       past the budget refuses, `:depth` the refused frame and `:limit`
-      the budget. A word that calls itself without a base case is refused
-      here, on the fail track, while the host's memory stays bounded: the
-      case that ends the recursion is tested first,
-      `:any/down ~(if (eq 0) ~(0) ~(sub 1 | down))`.
+      the budget. A recursion without a base case, a quote that applies
+      itself or a word that calls itself, is refused here, on the fail
+      track, while the host's memory stays bounded: the case that ends the
+      recursion is tested first,
+      `:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down`.
       ::link~(::call | doc) ::link~(::any/if | doc)
   ~~|
 
@@ -310,8 +312,8 @@
   ::number
 
 :call/EvaluationDepthExceededError/refusesARunawayRecursion
-  |~~ A word that calls itself without end is refused past the budget. ~~|
-  ::law~(:any/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
+  |~~ A quote that applies itself without end is refused past the budget. ~~|
+  ::law~(:inf ~(add 1 | apply inf) | 0 | apply inf !| type | eq ::call/EvaluationDepthExceededError)
 
 :call/EvaluationDepthExceededError/namesADepthPastTheLimit
   |~~ The depth refused lies past the limit. ~~|
@@ -319,4 +321,4 @@
 
 :call/EvaluationDepthExceededError/endsARecursionByItsBaseCase
   |~~ A recursion that tests its base case first ends. ~~|
-  ::law~(:any/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down | eq 0)
+  ::law~(:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down | eq 0)

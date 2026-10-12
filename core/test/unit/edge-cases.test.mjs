@@ -17,6 +17,7 @@
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
 // `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
 // `state.mjs` (→ `state.test.mjs`).
+// The decisions it exists for: [D239].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -242,8 +243,8 @@ describe('source axis on verb / freeze / tag subjects', () => {
   });
 
   it('source on the address of a part returns its declaration', async () => {
-    const source = await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | ::any/@surround/sfx | source | parse');
-    expect(source).toBe(':any/@surround/sfx ~(/1)');
+    const source = await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | ::any/surround/sfx | source | parse');
+    expect(source).toBe(':any/surround/sfx ~(/1)');
   });
 
   it('source on a freeze returns its declaration', async () => {

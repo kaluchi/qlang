@@ -4,6 +4,7 @@
 // `apply`, Quote-bodied tag constructor, `runLaws` — terminates on
 // the fail-track as `::call/EvaluationDepthExceededError` with `:depth`
 // and `:limit`.
+// The decisions it exists for: [D202].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

@@ -1,3 +1,5 @@
+// The decisions it exists for: [D10], [D11].
+
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';
 
@@ -217,9 +219,9 @@ describe('parse — Call', () => {
   });
 
   it('parses an identifier with @ prefix', () => {
-    const ast = parse('@callers');
+    const ast = parse('callers');
     expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('@callers');
+    expect(ast.name).toBe('callers');
     expect(ast.args).toEqual([]);
   });
 

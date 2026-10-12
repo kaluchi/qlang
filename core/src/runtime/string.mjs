@@ -7,7 +7,7 @@ import { declareRefusal } from '../errors.mjs';
 import { isKeyword } from '../types.mjs';
 
 // A value a word writes into text: a string as it is and a keyword as
-// its name, as the JSON channel writes it [D148], [D198].
+// its name, as the JSON channel writes it [D126], [D198].
 const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
 // An element `join` writes is a string or a keyword.

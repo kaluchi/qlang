@@ -1,9 +1,10 @@
 // run.mjs is the seam between cli-level intent (a query string, an
 // ioContext, and an optional initial pipeValue) and core-level
 // evaluation (a cell entry). Tests exercise the success path, the
-// parse-failure path, the `@out` writer reaching the captured
+// parse-failure path, the `out` writer reaching the captured
 // stdout, and the `initialPipeValue` seed that lets the CLI script
 // mode deliver parsed stdin as the query's implicit subject.
+// The decisions it exists for: [D195].
 
 import { describe, it, expect } from 'vitest';
 import { isErrorValue } from '@kaluchi/qlang-core';
@@ -47,9 +48,9 @@ describe('runQuery', () => {
     expect(cellEntry.result.tag.name).toBe('quote/ParseError');
   });
 
-  it('binds the ioContext writers so `@out` reaches the captured stdout chunks', async () => {
+  it('binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"qlang" | @out', io);
+    const cellEntry = await runQuery('"qlang" | out', io);
     expect(cellEntry.error).toBeNull();
     expect(io.stdoutText()).toBe('qlang\n');
     expect(io.stdoutEffectCount()).toBe(1);

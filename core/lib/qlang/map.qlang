@@ -3,7 +3,8 @@
    elements are its values, and its keys are the shape that travels with
    them: a word whose answer names the map keeps the keys of the entries
    it keeps and answers under the tags of the map, and `map`, whose
-   answer is any value, answers under none. ~|
+   answer is any value, answers under none.
+   The decisions it exists for: [D114]. ~|
 
 :map
   |~~ A map holds named values under keywords, `{:id 7 :tags ["a"]}`:
@@ -929,9 +930,10 @@
       the map holds them: `{:a 1 :b 2} | reduce 0 ~(add)` answers `3`, and
       the empty map answers the seed. The reducer is a quote of one word,
       by its name or its address, which the fold calls with the value so
-      far as its subject and each value as its first arg; a quote of several steps, a literal or a
-      name of no word is refused. A vector and a set fold by a `reduce` of
-      their own.
+      far as its subject and each value as its first arg, or any other
+      code, which the fold runs on the pair of the value so far and the
+      value, as a vector's fold does. A vector and a set fold by a
+      `reduce` of their own.
       ::link~(::map/sum | doc) ::link~(::vec/reduce | doc)
   ~~|
   ::builtin{}
@@ -945,7 +947,7 @@
   ~(/0)
 
 :map/reduce/reducer
-  |~~ A quote of one word that folds a value into the value so far. ~~|
+  |~~ A quote: one word the fold calls with a value, or code it runs on the pair of the value so far and the value. ~~|
   ~(/1)
 
 :map/reduce/reducer/NotQuoteError
@@ -955,13 +957,6 @@
       `(add)`, it is computed once at the call; either is refused.
   ~~|
   ::holds~(is ::quote)
-
-:map/reduce/reducer/NotBinaryError
-  |~~ The quote of `reduce` names one word, by its name or its address,
-      which the fold calls with the value so far as its subject and each
-      value as its first arg, `reduce 0 ~(add)`; a quote of several
-      steps, a literal or a name of no word is refused.
-  ~~|
 
 :map/reduce/foldsTheValues
   |~~ The fold adds the values to the seed. ~~|
@@ -985,13 +980,9 @@
     !| [type /actualType]
     |  eq [::map/reduce/reducer/NotQuoteError ::number])
 
-:map/reduce/reducer/NotBinaryError/refusesTwoSteps
-  |~~ A reducer of two steps is refused. ~~|
-  ::law~({:a 1} | reduce 0 ~(mul 2 | add) !| type | eq ::map/reduce/reducer/NotBinaryError)
-
-:map/reduce/reducer/NotBinaryError/refusesALiteral
-  |~~ A literal names no word. ~~|
-  ::law~({:a 1} | reduce 0 ~(1) !| type | eq ::map/reduce/reducer/NotBinaryError)
+:map/reduce/runsCodeOnThePair
+  |~~ Code of more than one word runs on the pair of the value so far and the value. ~~|
+  ::law~({:a 1 :b 2} | reduce 0 ~(sumOf /0 /1) | eq 3)
 
 :map/keys
   |~~ Answers the set of the keys, each a keyword, in the order of their

@@ -40,19 +40,24 @@ function citationsIn(text) {
 }
 
 function stateOf(record) {
+  if (record.mergedInto.length > 0) return `merged into ${record.mergedInto.join(', ')}`;
   if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
   return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
 }
 
 const git = (repoRoot, ...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 
+// baselineOf(repoRoot) → the commit the audit holds itself against, the
+// root the last move of the baseline read every record again against.
+export const baselineOf = repoRoot => /holds it against commit `([0-9a-f]+)`/
+  .exec(readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' '))?.[1];
+
 // walkOfBaseline(repoRoot) → { baseline, since, partialNow, partialThen,
 // violations }: the baseline the audit names, the records written since
 // it, the lines that replace a record in part now and at the baseline,
 // and every breach of the walk, each `{ where, problem }`.
 export function walkOfBaseline(repoRoot) {
-  const audit = readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' ');
-  const baseline = /holds it against commit `([0-9a-f]+)`/.exec(audit)?.[1];
+  const baseline = baselineOf(repoRoot);
   const walk = { baseline, since: [], partialNow: 0, partialThen: 0, violations: [] };
   if (baseline === undefined) {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: 'names no baseline commit' });
@@ -60,7 +65,7 @@ export function walkOfBaseline(repoRoot) {
   }
   let listed;
   try {
-    listed = git(repoRoot, 'ls-tree', '--name-only', baseline, 'docs/decisions/');
+    listed = git(repoRoot, 'ls-tree', '-r', '--name-only', baseline, 'docs/decisions/');
   } catch {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: `names the baseline ${baseline}, which the history lacks` });
     return walk;
@@ -77,7 +82,7 @@ export function walkOfBaseline(repoRoot) {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
   }
   const partialLines = text => (text.match(/^Replaced in part by/gm) ?? []).length;
-  walk.partialNow = [...records.keys()].reduce((sum, name) => sum + partialLines(readFileSync(join(repoRoot, 'docs', 'decisions', `${name}.md`), 'utf8')), 0);
+  walk.partialNow = [...records.values()].reduce((sum, record) => sum + partialLines(readFileSync(record.path, 'utf8')), 0);
   // `git grep` ends with 1 where no line matches, a baseline that held none.
   try {
     walk.partialThen = git(repoRoot, 'grep', '-c', '^Replaced in part by', baseline, '--', 'docs/decisions')

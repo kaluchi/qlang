@@ -3,6 +3,7 @@
 // the maintainer's machine, since it reads the transcripts.
 //
 // Usage: node scripts/sensors/maintainer-messages.mjs
+// The decisions it exists for: [D155], [D231].
 
 import { recordsOf, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
 

@@ -25,11 +25,11 @@
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /trail/0/step | first | /name","expect":":thisIsNotDefined","decision":"D85"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
 {"name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::call/KindAnswersNoVerbError!{\n  :name :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(reduce 0 ~(add))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"reduce-reducer-literal","query":"[1 2 3] | reduce 0 ~(42) !| type","expect":"::vec/reduce/reducer/NotBinaryError"}
-{"name":"reduce-reducer-applied-expr","query":"[1 2 3] | reduce 0 ~(add 1) !| type","expect":"::vec/reduce/reducer/NotBinaryError"}
-{"name":"reduce-reducer-unbound","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::vec/reduce/reducer/NotBinaryError"}
-{"name":"a-reducer-with-a-second-part-left-out-is-refused-by-the-part","query":":any/bad2 ~(a) | :any/bad2/a ~(/0) | :any/bad2/b ~(/1) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::any/bad2/b/NotGivenError","decision":"D166"}
-{"name":"reduce-reducer-non-callable-value","query":"5 | :five / | [1 2 3] | reduce 0 ~(five) !| type","expect":"::vec/reduce/reducer/NotBinaryError"}
+{"name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42","decision":"D90"}
+{"name":"a-reducer-that-gives-its-word-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::vec]","decision":"D90"}
+{"name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::call/UnknownNameError","decision":"D90"}
+{"name":"a-reducer-with-a-second-part-left-out-is-refused-by-the-part","query":":number/bad2 ~(a) | :number/bad2/a ~(/0) | :number/bad2/b ~(/1) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::number/bad2/b/NotGivenError","decision":"D166"}
+{"name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five / | [1 2 3] | reduce 0 ~(five)","expect":"5","decision":"D90"}
 {"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error","decision":"D64"}
 {"name":"reduce-reducer-error-shortcircuits","query":":any/r ~(!{:kind :stop} | raise) | :any/r/x ~(/0) | [1 2 3] | reduce 0 ~r !| type","expect":"::error","decision":"D64"}
 {"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D158"}

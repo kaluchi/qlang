@@ -110,6 +110,3 @@ export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationD
 // A declaration of a name an earlier step of its scope declared [D44],
 // [D71], or of an address the root holds [D153].
 export const BindNameDeclaredTwiceError = declareRefusal('bind/NameDeclaredTwiceError');
-
-// A name whose code calls a name marked `@` carries the mark itself [D69].
-export const BindEffectMarkMissingError = declareRefusal('bind/EffectMarkMissingError');

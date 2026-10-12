@@ -20,13 +20,13 @@
 {"name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
 {"name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
 {"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
-{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :any/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
-{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :any/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
-{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :any/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
-{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :any/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
-{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :any/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
-{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :any/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
-{"name":"a-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2 :c 3} | :any/above ~(gt limit) | :any/above/limit ~(/0) | filter ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}
+{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
+{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
+{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
+{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
+{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :number/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
+{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :number/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
+{"name":"a-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2 :c 3} | :number/above ~(gt limit) | :number/above/limit ~(/0) | filter ~above !| type","expect":"::number/above/limit/NotGivenError","decision":"D166"}
 {"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
 {"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
@@ -46,7 +46,7 @@
 {"name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
 {"name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | [type (payload | type)]","expect":"[::Bar ::Foo]","decision":["D56","D79"]}
-{"name":"reduce-max-via-verb","query":":any/max2 ~(if (gt x) ~(/) ~(x)) | :any/max2/x ~(/0) | :any/max2/x/NotNumberError ::holds~(is ::number) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
+{"name":"reduce-max-via-verb","query":":number/max2 ~(if (gt x) ~(/) ~(x)) | :number/max2/x ~(/0) | :number/max2/x/NotNumberError ::holds~(is ::number) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]","decision":"D43"}
@@ -57,8 +57,14 @@
 {"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
 {"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
 {"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
-{"name":"a-fold-of-several-steps-is-a-declared-verb","query":":any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
-{"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":["D90","D218"]}
+{"name":"a-fold-of-several-steps-is-a-declared-verb","query":":number/step ~(mul 2 | add el) | :number/step/el ~(/0) | :number/step/el/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
+{"name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(:acc /0 | :el /1 | acc | mul 10 | add el)","expect":"123","decision":"D90"}
 {"name":"a-reducer-names-its-word-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6","decision":"D224"}
-{"name":"a-reducer-of-an-address-of-no-word-is-refused","query":"[1 2 3] | reduce 0 ~(number/add/addend) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":"D224"}
+{"name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 ~(/1)","expect":"3","decision":"D90"}
 {"name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| [type /addresses]","expect":"[::call/ValueMeetsWordError #[::number/add]]","decision":["D223","D224"]}
+{"name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))","expect":"3","decision":"D90"}
+{"name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3","decision":"D90"}
+{"name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6","decision":"D90"}
+{"name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3","decision":"D90"}
+{"name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::any/sumOf/numbers/ElementNotNumberError","decision":"D90"}
+{"name":"a-reducer-of-one-word-keeps-its-short-form","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D90"}

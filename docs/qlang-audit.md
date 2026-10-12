@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-ninth, holds it against commit `2147bab`, its baseline: a scar the
+tenth, holds it against commit `91a2419`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -658,7 +658,7 @@ c
 
 A quote has all three, being the vector of its steps [D53], and a doc
 answers its parts by its `segments`, the vector of its prose and its
-quotes [D19], [D95]:
+quotes [D19]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
@@ -696,7 +696,7 @@ page and `open` reaches it, the jump from one page to another
 see what it shows [D122]; with none it is code the prose holds. The laws
 that prove a name stand under it, each a definition of `::law~(…)` that
 `runLaws` holds to answer true, its page the claim it proves [D123],
-[D124], [D174]; `laws` answers each as the pair of its page and its
+[D124]; `laws` answers each as the pair of its page and its
 query, and `tutorial` a name's page and its laws, the pair a reader
 learns the name from [D176], [D177]:
 
@@ -765,35 +765,36 @@ The repairs since have settled most of what grew around the core. Code
 is the vector of its steps, every step a command. There is one binding
 form, a name is declared once in a scope, and a verb is a name under the
 label of its subject, a host's primitive or a quote, the parts of its
-args names under its address with their laws, its args the values a
-call gives under its tag, which read back as they print [D164], [D166],
-[D167], [D168], [D173]. A name is read by its tag, and a keyword is
-data that names nothing [D221]; a word of the root reads the nouns of
-the root as the root holds them, and a kind a reader declared as the
-reader wrote it [D222]; a value takes any name, and a step where it
-meets a word its subject answers is refused [D223], a fold calling its
-word by its name or its address [D224]. Two values of a key that file
-under one keyword meet in `groupBy` and `indexBy` and are refused
-[D228], and an invariant holds of the values of a label, so one a bare
-name declares is refused where it stands [D229]. A comment is
+args names under its address with their laws, its args the values a call
+gives under its tag, which read back as they print [D164], [D166],
+[D167], [D168], [D173]. A name is read by its tag, and a keyword is data
+that names nothing [D221]; a word of the root reads the nouns of the
+root as the root holds them, and a kind a reader declared as the reader
+wrote it [D222], while what a word reads and runs as data, a page, a
+law, code held as data, it reads in the tree of the query that called
+it, as a word of the host does [D236]; a value takes any name, and a
+step where it meets a word its subject answers is refused [D223], a fold
+calling its word by its name or its address [D224]. Two values of a key
+that file under one keyword meet in `groupBy` and `indexBy` and are
+refused [D228], and an invariant holds of the values of a label, so one
+a bare name declares is refused where it stands [D229]. A comment is
 whitespace, and a doc the literal in the slot of the declaration it
-documents. One order ranks every value, the set is
-the ordered vector under its tag, every value has a kind, and every
-condition is a boolean. A refusal is named by the address of the word
-that refused, its facts definitions of the catalog [D172]. The literal
-is the one lossless format [D30], the catalog is the reference of the
-language [D128], and its first page tells the language whole, in the
-order its parts rest on each other, the argument model one rule [D185];
-the forms a clean session reached for and missed
-became the language's where they composed with it [D132], [D133],
-[D138], [D140]. The benchmark measures the pages a child lands on,
-those of the language and of the command line [D216], on sets of tasks
-a clean author writes and no one has read [D142], each measurement read
-beside the one before it [D183]. The command line writes every answer
-on stdout with the code 0, a failure among them, a query that does not
-parse and an input that does not read among those, a defect of the
-runtime alone stopping the calls beside it [D232]. What those repairs
-left is what the scars below describe.
+documents. One order ranks every value, the set is the ordered vector
+under its tag, every value has a kind, and every condition is a boolean.
+A refusal is named by the address of the word that refused, its facts
+definitions of the catalog [D172]. The literal is the one lossless
+format [D30], the catalog is the reference of the language [D128], and
+its first page tells the language whole, in the order its parts rest on
+each other, the argument model one rule [D185]; the forms a clean
+session reached for and missed became the language's where they composed
+with it [D132], [D133], [D138], [D140]. The benchmark measures the pages
+a child lands on, those of the language and of the command line, on
+sets of tasks a clean author writes and no one has read, each
+measurement read beside the one before it [D26]. The command line
+writes every answer on stdout with the code 0, a failure among them, a
+query that does not parse and an input that does not read among those, a
+defect of the runtime alone stopping the calls beside it [D232]. What
+those repairs left is what the scars below describe.
 
 ## The scars
 
@@ -834,17 +835,18 @@ design never resolved: «стремительно растущий зоопар�
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
 86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
-and a host still publishes names without a prefix. The sister project's names meet the
-core's on `type` and on `source`, kept apart by the effect marker alone,
-and its graph alone declares under `::any` the verbs a query calls,
+and a host still publishes names without a prefix. The sister project's names would
+meet the core's on `type` and on `source`, which it names `typeNamed`
+and `sourceText` until it declares them under kinds of its own [D2],
+and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
-helpers of `@problems`, since a word under a topic serves the topic's
+helpers of `problems`, since a word under a topic serves the topic's
 values alone [D166]. In the sister project, on 12 October 2026:
 
 ```sh
-$ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
-58
+$ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
+59
 ```
 
 That is the `ioctl` of Unix, every new capability a new verb in one
@@ -969,7 +971,7 @@ written once, which is the task that would ask for a hierarchy of tags.
 Examples live on two planes, the conformance suite and the laws of the
 catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
-paged with it [D124], [D174]. And a parse failure prints whole, every
+paged with it [D123], [D124]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped, at its start
 and at its end, where a failure of a step prints as an alert [D184]:
 
@@ -1017,20 +1019,6 @@ a second spelling of the grammar beside the parser.
 
 ### Host concerns inside the core
 
-Effect markers are a naming convention: an identifier that begins with
-`@` is effectful, a verb whose body mentions an effectful name must be
-declared under a name that carries the marker, and the evaluator checks
-this at declaration and at call [D69]. The core has no effectful operand of
-its own; every one belongs to a host. The flag rides on every node of
-the parser's tree that names something, and the guarantee it offers is
-incomplete, because an effect handed as code runs under a
-clean name:
-
-```qlang
-> :any/run ~(apply code) | :any/run/code ~(/0) | "leak" | run ~(@out)
-leak
-```
-
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
@@ -1038,30 +1026,22 @@ session, which is to save as the source of its declarations [D30]. The noun of a
 onboards its user with a guide written by hand, which reads from its
 catalog the first sentence of the page of each word it shows first.
 
-The repair must remove the effect marker from the language rather than
-relocate it [D2]: a naming convention keeps every `@`-name a different
-name from its plain twin, and the core has no consumer of purity, since
-it neither reorders nor caches nor optimizes by it. A host whose operand
-reads an index or throws dice marks the provenance of the value it
-returns with a tag, so provenance moves from the source name onto the
-value. A tag can describe an effect as well, a write the host is to
-perform, and there the lesson of YAML applies, whose `load` ran code
-while reading until `safe_load` became the norm: a tag's constructor is
-pure, reading or constructing a literal performs nothing, and an effect
-described by a value is performed by an explicit step at the host
-boundary and by nothing else.
-
-A host's operands are then named as the core's are, under the rule of
-collisions [D222], [D223], and the marker leaves with the host's verbs moving
-onto its tags: without it the sister project's `@type` and `@source`
-become `type` and `source`, which the root refuses beside `::any/type`
-and `::any/source` unless the sister declares them under kinds of its
-own [D153]. Selecting an operand by the tag of its
-subject is the walk of its tags [D34]. Whether an effect deserves to
-become a value of its own, an action awaiting the host the way a quote
-awaits `apply`, is a question for a later branch that would have to
-show a task no plainer construct solves. The repair must also give the
-sister project a guide generated from the catalog.
+The effect marker left the language [D2]: no name begins with
+`@`, and a word of a host is named as any word is, under the rule of
+collisions [D222], [D223]. A host whose word reads an index or throws
+dice marks the provenance of the value it returns with a tag, and a tag
+can describe an effect as well, a write the host is to perform, which
+an explicit step at the host boundary performs and nothing else, as the
+lesson of YAML's `load` taught: a tag's constructor is pure, and reading
+or constructing a literal performs nothing. The sister project names
+its two words that would meet `::any/type` and `::any/source`, which the
+root holds once, `typeNamed` and `sourceText`, until it declares them
+under kinds of its own [D153], the walk of a subject's tags selecting
+them [D34]. Whether an
+effect deserves to become a value of its own, an action awaiting the
+host the way a quote awaits `apply`, is a question for a later branch
+that would have to show a task no plainer construct solves. The repair
+must give the sister project a guide generated from the catalog.
 
 ### Code that explains itself
 
@@ -1143,7 +1123,12 @@ each lives in a file of its own under `docs/decisions/`, true as a whole
 while it is in force [D227];
 a citation of its number in this document is a link to that file, and
 the requirements it left are the conformance cases that name it [D58];
-it cites a record in force or one waiting on its target [D225].
+it cites a record in force or one waiting on its target [D225]. An
+artifact names the decision it exists for, a mark covering the block it
+stands on, so the scope of a record is every place that marks it; a
+move of the baseline reads again the records whose blocks its diff
+touched, and records of one axis merge into the earliest of them, whose
+number stays the address of the axis [D237].
 How the records are sourced is the subject of the folder's
 `README.md`.
 
@@ -1172,7 +1157,7 @@ over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its order and its laws
-[D48], [D169], while one rule of the core prints every literal.
+[D16], [D169], while one rule of the core prints every literal.
 
 One mechanism of operand. An operand is a name under the label of its
 subject, the parts of its args names under its address with their
@@ -1368,14 +1353,13 @@ milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
-work has begun meet their targets, so the suite carries the target of
-the one the walk found in force and unmet, the effect marker leaving
-the language [D2], and every other decision below writes its targets
-before its work:
+work has begun meet their targets, the last of them the effect marker
+leaving the language [D2], so the suite carries no target unmet,
+and every other decision below writes its targets before its work:
 
 ```sh
-$ grep -rhoE '"decision": *"D[0-9]+", *"target": *true' core/test/conformance
-"decision":"D2","target":true
+$ grep -rhoE '"target": *true' core/test/conformance | wc -l
+0
 ```
 
 ### Milestone 4 · One spelling
@@ -1452,13 +1436,12 @@ meets the tag and the facts.
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
 [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the effect marker leaving the language, open,
+[D127], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
-benchmark runs [D26], each run recorded with the frictions it met
-[D104], each measurement on a set of tasks a
-clean author wrote, which measures once and serves the work once its
-misses are read [D142], its children running the command line from the
-pages of the language and the command line [D216]. An error a host
+benchmark runs, each run recorded with the frictions it met, each
+measurement on a set of tasks a clean author wrote, which measures once
+and serves the work once its misses are read, its children running the
+command line from the pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
 subject it passed a marker [D184].
 
@@ -1470,9 +1453,9 @@ parts, its refusals and its laws in that order [D179]; enrichment
 happens once per session; a value shared across kinds of record carries
 a tag of its own, as a field is a definition under its label [D50]; and
 the first screen, the pages
-of the language and of the command line [D216], told whole in the order
+of the language and of the command line [D26], told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
-is measured on a set of tasks no reader has seen [D131], [D142].
+is measured on a set of tasks no reader has seen [D26], [D131].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
@@ -1546,26 +1529,26 @@ and their cost.
 
 Two inputs. A modifier is computed against the subject of its own step
 [D185], so a value read from the record in the pipe meets no value read
-inside a step that runs on another subject; a fold calls one word with
-the value so far as its subject [D224]; and two fields of one record
-meet in a word of their own, the family `…Of`, which has gaps:
+inside a step that runs on another subject. A fold takes them both: a
+quote of one word is called with the value so far as its subject and
+the element as its arg, and any other code runs on the pair of the
+two [D90]. Two fields of one record meet in a word of their own, the
+family `…Of`, which has gaps:
 
 ```qlang
 > {:x 1} | addOf /x /x !| [type /nearest]
 [::call/UnknownNameError [:add]]
 
-> [1 2 3] | reduce 0 ~(add 1) !| type
-::vec/reduce/reducer/NotBinaryError
+> [{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))
+3
 ```
 
-All four outside audits name it first. The alternatives: the subject of
-a fold's code the pair of the value so far and the element, the quote of
-one word its short form, at the cost of the fold's primitive and its
-refusal (`resolveBinaryReducer` in `core/src/eval.mjs`); a name
-declared inside a quote, `:x /`, taught as the one idiom of several
-inputs, the words `…Of` its sugar or gone, at the cost of the pages and
-the cases that teach them; or the model as it stands, the trap the first
-page warns of. Open, the maintainer's word on the argument model.
+All four outside audits name it first, and the fold, the sharpest of
+it, is answered. The alternatives for the rest: a name declared inside a
+quote, `:x /`, taught as the one idiom of several inputs, the words
+`…Of` its sugar or gone, at the cost of the pages and the cases that
+teach them; or the family as it stands, its gaps filled as tasks meet
+them. Open, the maintainer's word on the argument model.
 
 The role of a definition read from the form of its value. An invariant
 written `is ::k` serves its part as the value of the kind beneath its
@@ -1586,13 +1569,33 @@ a step answers as the quote:
 ~(mul 2)
 ```
 
-All four outside audits name it. The alternatives: the role declared, a
+The pages, the laws and the showcase of the language server run such a
+quote by `apply`, `:double ~(mul 2) | 5 | apply double` answering
+`10`, and declare a word only where they show one [D235]. All four
+outside audits name it. The alternatives: the role declared, a
 signature of a word in one declaration that unfolds into the parts and
 invariants a word has, at the cost of a form of the grammar and of the
 root's reading of it; a role read from a form refused aloud where the
 form stops fitting it, a cheaper repair of the traps that leaves the
 second mechanism; or the forms as they stand. Open, the layer of
 declarations.
+
+A body that declares the name of its part. The body of a word is the
+run of its quote, a scope of its own, so a name it declares shadows a
+part of that name without a word [D71]:
+
+```qlang
+> :number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2
+4
+```
+
+While the head of a verb and its body were one scope, such a
+declaration was refused; the refusal left with the head [D168], with no
+word on that axis. The alternatives: refuse it again where the word
+runs, a check of the body's declarations against the names of its
+parts, at the cost of a rule beside the shadowing every other run of a
+quote allows; or let the body shadow, as a run of any quote shadows the
+scope around it. Open, the layer of declarations.
 
 One rule for line breaks. At the top level a line break ends a
 command's modifiers and stands for `|`, and inside a group or a quote it
@@ -1804,12 +1807,12 @@ other subject by its address:
 ::T/h/SubjectNotTError
 ```
 
-The helpers of the sister project, `jdt/@problemsVia` and its kin, are
+The helpers of the sister project, `jdt/problemsVia` and its kin, are
 called by their addresses on a string or a node, so under this rule
 they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
 address. The sister project took the first: its helpers are words of
-any value, `::any/@problemsVia` and its kin, and its suite passes
+any value, `::any/problemsVia` and its kin, and its suite passes
 against the workspace copy.
 
 A helper of one word. [D153] let a word's helper live in the group of
@@ -1883,6 +1886,7 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
+[D16]: decisions/D16.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
@@ -1902,7 +1906,6 @@ the command line without them.
 [D43]: decisions/D43.md
 [D44]: decisions/D44.md
 [D46]: decisions/D46.md
-[D48]: decisions/D48.md
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
@@ -1919,10 +1922,9 @@ the command line without them.
 [D85]: decisions/D85.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
+[D90]: decisions/D90.md
 [D93]: decisions/D93.md
-[D95]: decisions/D95.md
 [D96]: decisions/D96.md
-[D104]: decisions/D104.md
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
@@ -1946,7 +1948,6 @@ the command line without them.
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
 [D140]: decisions/D140.md
-[D142]: decisions/D142.md
 [D150]: decisions/D150.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
@@ -1963,7 +1964,6 @@ the command line without them.
 [D169]: decisions/D169.md
 [D172]: decisions/D172.md
 [D173]: decisions/D173.md
-[D174]: decisions/D174.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
 [D177]: decisions/D177.md
@@ -1972,7 +1972,6 @@ the command line without them.
 [D180]: decisions/D180.md
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
-[D183]: decisions/D183.md
 [D184]: decisions/D184.md
 [D185]: decisions/D185.md
 [D195]: decisions/D195.md
@@ -1982,7 +1981,6 @@ the command line without them.
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
-[D216]: decisions/D216.md
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
 [D219]: decisions/D219.md
@@ -1998,3 +1996,6 @@ the command line without them.
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
+[D235]: decisions/D235.md
+[D236]: decisions/D236.md
+[D237]: decisions/D237.md

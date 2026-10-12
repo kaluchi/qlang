@@ -72,7 +72,7 @@ describe('renderCellOutcome — script-mode encoding', () => {
     expect(cliOutcome.exitCode).toBe(0);
   });
 
-  it('suppresses the auto-encoded stdout when the query wrote to `@out`', async () => {
+  it('suppresses the auto-encoded stdout when the query wrote to `out`', async () => {
     const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: 'hello' }),
       { didExplicitStdoutEffect: true, shouldColorize: false }

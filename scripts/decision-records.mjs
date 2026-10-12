@@ -4,31 +4,66 @@
 // met or open. A record of the language that no case names and no record
 // replaces whole is still being decided [D226].
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
+// The folders of the records: the root holds those in force, and
+// `replaced/` those replaced whole, each moved there once [D237].
+const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs', 'decisions', 'replaced')];
+
+// statementsOf(text) → the statements of a record, each `{ text, from, to }`
+// over the indices of its lines: a line that opens a field, `Source.` or
+// `Replaces in part`, opens one, and the lines after it continue it to a
+// blank line or the next field. A statement of fate, which says what
+// replaced or took a part of what, is history the record keeps [D227],
+// [D237].
+const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
+export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
+
+export function statementsOf(text) {
+  const statements = [];
+  let current = null;
+  text.split(/\r?\n/).forEach((line, index) => {
+    if (line.trim() === '' || /^\[[DE]\d+\]: /.test(line)) { current = null; return; }
+    if (current === null || FIELD.test(line)) statements.push(current = { text: line, from: index, to: index });
+    else { current.text += ` ${line}`; current.to = index; }
+  });
+  return statements;
+}
+
+// recordPathOf(root, name) → the file of a record, in the root of the
+// records or under `replaced/`, or null for a name no record bears.
+export function recordPathOf(root, name) {
+  return recordFolders(root).map(folder => join(folder, `${name}.md`)).find(path => existsSync(path)) ?? null;
+}
+
 // readDecisionRecords(root) → the records by name, D1 onward and then E1
 // onward, those of the environment of the work, each
-// `{ domain, replacedBy, replacedInPartBy, met, targets }`.
+// `{ path, domain, replacedBy, replacedInPartBy, mergedInto, met, targets }`;
+// a record merged into the earliest record of its axis is closed whole
+// as one replaced is [D237].
 export function readDecisionRecords(root) {
-  const decisionsDir = join(root, 'docs', 'decisions');
-  const records = new Map(readdirSync(decisionsDir)
-    .map(fileName => fileName.match(/^([DE]\d+)\.md$/)?.[1])
-    .filter(Boolean)
-    .sort((left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
-    .map(name => {
-      const recordText = readText(join(decisionsDir, `${name}.md`));
+  const records = new Map(recordFolders(root)
+    .flatMap(folder => (existsSync(folder) ? readdirSync(folder) : [])
+      .map(fileName => fileName.match(/^([DE]\d+)\.md$/)?.[1])
+      .filter(Boolean)
+      .map(name => [name, join(folder, `${name}.md`)]))
+    .sort(([left], [right]) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
+    .map(([name, path]) => {
+      const recordText = readText(path);
       const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
         .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
       // A walk files a principle and a rule of the tooling under their
       // domain, which holds them where no case can [D226].
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {
+        path,
         domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)[1].toLowerCase(),
         replacedBy: replacing(false),
         replacedInPartBy: replacing(true),
+        mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
         met: [],
         targets: [],
       }];
@@ -41,7 +76,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [D58]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }
@@ -50,7 +85,7 @@ export function readDecisionRecords(root) {
   return records;
 }
 
-export const replacedWhole = record => record.replacedBy.length > 0;
+export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0;
 
 // Whether a record of the language waits on a case: no case names it and
 // no record replaces it whole.

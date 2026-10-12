@@ -1,6 +1,7 @@
 // @kaluchi/qlang-core — the package root, free of `node:*` for the
 // browser, and what a host builds on; `package.json#sideEffects` keeps
 // the runtime modules, which bind their primitives as they load.
+// The decisions it exists for: [D238].
 
 export { parse, ParseError } from './parse.mjs';
 export { evalQuery, answerKindsOf } from './eval.mjs';
@@ -14,7 +15,6 @@ export {
 } from './walk.mjs';
 export { splitAddress } from './address.mjs';
 export { printQuoteSource } from './quote.mjs';
-export { decorateAstWithEffectMarkers } from './effect-check.mjs';
 export {
   printValue, toPlain, fromPlain, StringParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';

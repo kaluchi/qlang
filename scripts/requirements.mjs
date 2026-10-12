@@ -37,11 +37,14 @@ const askedDecisions = process.argv.slice(2);
 if (askedDecisions.length > 0) {
   for (const decision of askedDecisions) {
     const record = decisions.get(decision);
-    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions`);
+    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions: a case names the record it holds [D58]`);
     console.log(`${decision} · ${record.domain}`);
     const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
       .map(([other]) => other);
     if (record.replacedBy.length > 0) console.log(`  replaced by          ${record.replacedBy.join(' ')}`);
+    if (record.mergedInto.length > 0) console.log(`  merged into          ${record.mergedInto.join(' ')}`);
+    const merged = [...decisions].filter(([, other]) => other.mergedInto.includes(decision)).map(([other]) => other);
+    if (merged.length > 0) console.log(`  holds merged         ${merged.join(' ')}`);
     if (record.replacedInPartBy.length > 0) console.log(`  replaced in part by  ${record.replacedInPartBy.join(' ')}`);
     if (replaces(false).length > 0) console.log(`  replaces             ${replaces(false).join(' ')}`);
     if (replaces(true).length > 0) console.log(`  replaces in part     ${replaces(true).join(' ')}`);
@@ -82,11 +85,12 @@ if (askedDecisions.length > 0) {
   printList('being decided', decisionsWhere(isBeingDecided));
   printList('replaced', decisionsWhere(replacedWhole));
   printList('replaced in part', decisionsWhere(record => !replacedWhole(record) && record.replacedInPartBy.length > 0));
-  // A decision of any other domain, a host, the command line or the
-  // tooling, is held by the tests of that domain.
+  // A decision in force of any other domain, a host, the command line or
+  // the tooling, is held by the tests of that domain.
+  const inForceOf = domain => record => record.domain === domain && !replacedWhole(record);
   const otherDomains = new Set([...decisions.values()].map(record => record.domain)
     .filter(domain => domain !== 'language' && domain !== 'process' && domain !== 'principle'));
-  for (const domain of otherDomains) printList(`held by the tests of the ${domain}`, decisionsWhere(record => record.domain === domain));
-  printList('rules of work', decisionsWhere(record => record.domain === 'process'));
-  printList('principles of the audit', decisionsWhere(record => record.domain === 'principle'));
+  for (const domain of otherDomains) printList(`held by the tests of the ${domain}`, decisionsWhere(inForceOf(domain)));
+  printList('rules of work', decisionsWhere(inForceOf('process')));
+  printList('principles of the audit', decisionsWhere(inForceOf('principle')));
 }

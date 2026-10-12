@@ -1,7 +1,7 @@
 // renderCellOutcome(cellEntry, outcomeOpts) → what the command line writes
 // for a cell and its exit code: a defect raised past the fail track, no
 // answer, on stderr with exit 1, nothing once the query wrote to stdout
-// by `@out`, and any other answer, a failure among them and a query that
+// by `out`, and any other answer, a failure among them and a query that
 // does not parse among those, as the language prints it with exit 0
 // [D96], [D103], [D214], [D232].
 

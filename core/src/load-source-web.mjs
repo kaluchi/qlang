@@ -14,6 +14,7 @@
 // logical name has no entry in the import map. Every other failure
 // (HTTP error, parse error inside the loaded source) propagates as
 // `SourceLoadError`.
+// The decisions it exists for: [D238].
 
 import { BuiltinSourceLoadError } from './source-load-error.mjs';
 

@@ -248,7 +248,7 @@ function writtenSourceOf(quote) {
 
 // docText(doc) → its prose with each quote written where it stands as its
 // author wrote it, a quote under tags with its stack before it, the text
-// a doc's `content` answers [D95], [D108], [D149].
+// a doc's `content` answers [D19], [D108], [D149].
 export function docText(doc) {
   return doc.map(segment => typeof segment === 'string' ? segment
     : isQuote(segment) ? `~(${writtenSourceOf(segment)})` : printValue(segment)).join('');

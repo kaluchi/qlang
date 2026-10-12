@@ -7,6 +7,7 @@
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the audit, the entrypoint and the records
 // of docs/decisions.
+// The decisions it exists for: [D155], [D231].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -18,6 +19,7 @@ const documents = process.argv.length > 2 ? process.argv.slice(2) : [
   join(repoRoot, 'docs', 'qlang-audit.md'),
   join(repoRoot, 'docs', 'qlang-entrypoint.md'),
   ...readdirSync(decisionsDir).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, name)),
+  ...readdirSync(join(decisionsDir, 'replaced')).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, 'replaced', name)),
 ];
 
 const messages = [];
@@ -42,6 +44,6 @@ for (const documentPath of documents) {
     const lineNumber = prose.slice(0, quoted.index).split('\n').length;
     console.log(found
       ? `ok    ${shownPath}:${lineNumber}  ${found.session} ${found.at}`
-      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»`);
+      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»  a quote holds the maintainer's words as he typed them [D155]`);
   }
 }

@@ -9,17 +9,19 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-eighth, holds it against commit `1e7c46a`, its baseline: a scar the
+ninth, holds it against commit `9c2aa02`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
 written. `git log -- docs/qlang-audit.md` lists the versions, and the
 message of the commit that wrote each tells why.
 
-The design of the session entrypoint, the computed context a session
-starts from, lives in `docs/qlang-entrypoint.md`. This document treats
-the language and the work on it; that one treats the environment the
-work happens in.
+A draft of the session entrypoint, the computed context a session
+starts from, lives in `docs/qlang-entrypoint.md`, ideas and no
+decision; what the process took from it stands in the records, the
+screen of the work a session runs first, `npm run desk` [D226], and
+the sensors [D231]. This document treats the language and the work on
+it; that one treats the environment the work happens in.
 
 ## How to read and maintain this document
 
@@ -91,8 +93,9 @@ part of an older one it takes, found by a search of the records' words,
 and the lines that replace a record in part, which a walk prunes, only
 fall. The baseline moves at the end of every shift that wrote records,
 so the next starts at a clean desk, before an outside audit and when a
-branch lands, and `check:conventions` holds a ceiling of records since
-it; the code, the tests and the cases cite only the records in force,
+branch lands, a branch at a clean desk landing on master by a merge
+commit made locally where no pull request is open [D230], and
+`check:conventions` holds a ceiling of records since it; the code, the tests and the cases cite only the records in force,
 and this document those in force or waiting on a target.
 
 An inference is the model's reasoning from named facts. Where an
@@ -328,7 +331,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `1e7c46a` for this
+against the baseline of the version at hand, commit `9c2aa02` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -768,7 +771,11 @@ call gives under its tag, which read back as they print [D164], [D166],
 data that names nothing [D221]; a word of the root reads the nouns of
 the root as the root holds them, and a kind a reader declared as the
 reader wrote it [D222]; a value takes any name, and a step where it
-meets a word its subject answers is refused [D223]. A comment is
+meets a word its subject answers is refused [D223], a fold calling its
+word by its name or its address [D224]. Two values of a key that file
+under one keyword meet in `groupBy` and `indexBy` and are refused
+[D228], and an invariant holds of the values of a label, so one a bare
+name declares is refused where it stands [D229]. A comment is
 whitespace, and a doc the literal in the slot of the declaration it
 documents. One order ranks every value, the set is
 the ordered vector under its tag, every value has a kind, and every
@@ -782,8 +789,11 @@ became the language's where they composed with it [D132], [D133],
 [D138], [D140]. The benchmark measures the pages a child lands on,
 those of the language and of the command line [D216], on sets of tasks
 a clean author writes and no one has read [D142], each measurement read
-beside the one before it [D183]. What those repairs left is what the
-scars below describe.
+beside the one before it [D183]. The command line writes every answer
+on stdout with the code 0, a failure among them, a query that does not
+parse and an input that does not read among those, a defect of the
+runtime alone stopping the calls beside it [D232]. What those repairs
+left is what the scars below describe.
 
 ## The scars
 
@@ -1352,7 +1362,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `1e7c46a`, and the finish
+The start is the tree of the baseline, commit `9c2aa02`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -1417,9 +1427,8 @@ of the names is a host's, which the sister project's redesign moves
 onto its kinds, and the questions of mounting and of one query of every
 definition of a name. Beside both, the examples come to live
 on one plane, the editor's grammar is generated or reduced, and the
-entrypoint of the work gets its first version, the command that
-measures the tree and prints the state of the work as a dark cockpit,
-whose design is the entrypoint document's.
+screen of the work, whose first version `npm run desk` prints [D226],
+grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
 in the conformance suite, every one met, the step of a constructor apart
@@ -1534,6 +1543,83 @@ why.
 
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
+
+Two inputs. A modifier is computed against the subject of its own step
+[D185], so a value read from the record in the pipe meets no value read
+inside a step that runs on another subject; a fold calls one word with
+the value so far as its subject [D224]; and two fields of one record
+meet in a word of their own, the family `…Of`, which has gaps:
+
+```qlang
+> {:x 1} | addOf /x /x !| [type /nearest]
+[::call/UnknownNameError [:add]]
+
+> [1 2 3] | reduce 0 ~(add 1) !| type
+::vec/reduce/reducer/NotBinaryError
+```
+
+All four outside audits name it first. The alternatives: the subject of
+a fold's code the pair of the value so far and the element, the quote of
+one word its short form, at the cost of the fold's primitive and its
+refusal (`resolveBinaryReducer` in `core/src/eval.mjs`); a name
+declared inside a quote, `:x /`, taught as the one idiom of several
+inputs, the words `…Of` its sugar or gone, at the cost of the pages and
+the cases that teach them; or the model as it stands, the trap the first
+page warns of. Open, the maintainer's word on the argument model.
+
+The role of a definition read from the form of its value. An invariant
+written `is ::k` serves its part as the value of the kind beneath its
+tags, while one that computes the same truth another way does not; the
+place, the strictness and the default of a part are read from its
+selector, `/n` or `at n d`; the last names `answer`, `subject` and
+`construct` are roles; and a quote under a bare name is a value, which
+a step answers as the quote:
+
+```qlang
+> :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)
+::number
+
+> :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number | eq true) | null | m ::Width(5)
+::Width
+
+> :double ~(mul 2) | 5 | double
+~(mul 2)
+```
+
+All four outside audits name it. The alternatives: the role declared, a
+signature of a word in one declaration that unfolds into the parts and
+invariants a word has, at the cost of a form of the grammar and of the
+root's reading of it; a role read from a form refused aloud where the
+form stops fitting it, a cheaper repair of the traps that leaves the
+second mechanism; or the forms as they stand. Open, the layer of
+declarations.
+
+One rule for line breaks. At the top level a line break ends a
+command's modifiers and stands for `|`, and inside a group or a quote it
+is a space, so the same lines answer at the top level and fail in
+brackets:
+
+```qlang
+> "[1 2 3]\nmap ~(mul 2)\nsum" | parse | apply /
+12
+
+> "([1 2 3]\nmap ~(mul 2)\nsum)" | parse !| type
+::quote/ParseError
+```
+
+The grammar spells each rule of a pipeline twice for it, the rules
+prefixed `Line` beside their twins in `core/src/grammar.peggy`. The
+alternatives: the rule of the top level in every pipeline, a group and a
+quote among them, which the grammar then spells once while a literal
+still reads a line break as a space between its elements, and which
+reads no case of the suite and no source of the catalog otherwise, the
+model's measurement of 12 October 2026, though a reader who writes a
+command across lines inside a group meets a pipe; one family of rules
+told apart by a depth of brackets the parser counts, which keeps the
+meanings and drops the twins, and a prototype of which read every case,
+every source and some hundred thousand inputs made from them as the
+tree's parser does; or the twins as they stand. Open, the maintainer's
+word on the rule.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
@@ -1705,8 +1791,9 @@ The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
 it, how the state of what a session has been shown is kept, how sensed
 items are computed, and how the maintainer's intent enters the task:
-all of it is the subject of `docs/qlang-entrypoint.md`, and the
-maintainer wants to explore it before it is fixed.
+all of it is the draft `docs/qlang-entrypoint.md` holds, ideas and no
+decision [D231], and the maintainer wants to explore it before any of it
+is fixed.
 
 A topic is a label [D166]. A page declared as a name is a label, a
 topic among them, so a name under a topic resides on it and refuses any
@@ -1902,6 +1989,12 @@ the command line without them.
 [D221]: decisions/D221.md
 [D222]: decisions/D222.md
 [D223]: decisions/D223.md
+[D224]: decisions/D224.md
 [D225]: decisions/D225.md
 [D226]: decisions/D226.md
 [D227]: decisions/D227.md
+[D228]: decisions/D228.md
+[D229]: decisions/D229.md
+[D230]: decisions/D230.md
+[D231]: decisions/D231.md
+[D232]: decisions/D232.md

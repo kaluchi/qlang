@@ -658,7 +658,7 @@ c
 
 A quote has all three, being the vector of its steps [D53], and a doc
 answers its parts by its `segments`, the vector of its prose and its
-quotes [D19], [D95]:
+quotes [D95]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
@@ -1713,7 +1713,7 @@ it names, as a URL does; whether a tag says which of the two it is
 stays open. The first real test is the schemas of the sister project's
 entities, more complex than the kinds of the core.
 
-The site as hypermedia [D19], [D88]. The maintainer pictures the site
+The site as hypermedia [D88], [D95]. The maintainer pictures the site
 as a browser that runs qlang: a module of a tutorial whose quotes, tags
 and keywords are links, a click writing the snippet into the line of a
 REPL and running it, so that the answer reads as the next page: «что б
@@ -1729,7 +1729,7 @@ page, and the site is one renderer of it. The tree gives the segments
 of a doc, its prose apart from its links and snippets, and a name to
 reach a page by [D88], [D175]; the prose that heads a source is a plain
 comment that no name reaches, a tag inside prose is no segment yet
-[D19], and a keyword names nothing a click could open [D221].
+[D95], and a keyword names nothing a click could open [D221].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
 должен удовлетворять» (13:26).
@@ -1865,7 +1865,6 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
-[D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md

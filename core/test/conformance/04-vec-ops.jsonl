@@ -58,4 +58,4 @@
 {"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
 {"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
 {"name":"a-fold-of-several-steps-is-a-declared-verb","query":":any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
-{"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":"D90"}
+{"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":["D90","D218"]}

@@ -28,3 +28,4 @@
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A |~~ A. ~~| | :B |~~ B. ~~| | ~(:returns ::number | 1) | [(:A/f (/) | ::A{} | f) (:B/f (/) | ::B{} | f)]","expect":"[1 1]","decision":"D153"}
 {"name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | [(kinds | has ::vec) (env | /vec | /value)]","expect":"[true 5]","decision":["D153","D160"]}
 {"name":"a-name-a-reader-stands-over-is-near-once","query":":vec 5 | vex !| /nearest","expect":"[:vec]","decision":["D118","D160"]}
+{"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true","decision":"D221"}

@@ -9,3 +9,4 @@
 {"name":"take-string-raises-not-integer","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/NotNumberError"}
 {"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
+{"name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N(2)","expect":"[1 2]","decision":"D218"}

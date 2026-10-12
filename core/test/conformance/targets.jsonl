@@ -1,7 +1,7 @@
-{"name":"a-verb-parameter-holds-a-value","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | 2 | m /","expect":"22","decision":["D57","D67"]}
-{"name":"a-verb-recurses-through-its-parameter","query":":any/fact ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | :any/fact/n ~(/0) | :any/fact/n/NotNumberError ::holds~(is ::number) | 5 | fact /","expect":"120","decision":["D57","D67"]}
-{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":any/inc ~(add 1) | 5 | inc | inc","expect":"7","decision":["D57","D67"]}
-{"name":"a-verb-moved-left-answers-as-inline","query":":any/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D57","D67"]}
+{"name":"a-verb-parameter-holds-a-value","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | 2 | m /","expect":"22","decision":"D67"}
+{"name":"a-verb-recurses-through-its-parameter","query":":any/fact ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1)))) | :any/fact/n ~(/0) | :any/fact/n/NotNumberError ::holds~(is ::number) | 5 | fact /","expect":"120","decision":"D67"}
+{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":any/inc ~(add 1) | 5 | inc | inc","expect":"7","decision":"D67"}
+{"name":"a-verb-moved-left-answers-as-inline","query":":any/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D67"]}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
 {"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc","decision":["D5","D36","D119"]}

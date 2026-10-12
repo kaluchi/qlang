@@ -2,13 +2,13 @@
 {"name":"a-required-part-left-out-is-refused-by-its-name","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m !| type","expect":"::any/m/x/NotGivenError","decision":"D166"}
 {"name":"a-name-refuses-modifiers-beyond-its-places","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m 1 2 3 !| [type /places]","expect":"[::any/m/ArgsBeyondPartsError 1]","decision":"D166"}
 {"name":"a-part-is-held-to-the-law-of-its-kind","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 5 | m \"a\" !| type","expect":"::any/m/x/NotNumberError","decision":"D169"}
-{"name":"a-slot-takes-the-value-of-its-kind-beneath-the-tags","query":":any/m ~(x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)","expect":"5","decision":["D67","D68"]}
+{"name":"a-slot-takes-the-value-of-its-kind-beneath-the-tags","query":":any/m ~(x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)","expect":"5","decision":"D67"}
 {"name":"a-slot-whose-kinds-hold-null-may-be-left-out","query":":any/m ~(limit) | :any/m/limit ~(at 0) | :any/m/limit/NotNumberOrNullError ::holds~(is ::number ::null) | 5 | m","expect":"null","decision":"D67"}
 {"name":"a-slot-of-several-kinds-takes-any-of-them","query":":any/m ~(v) | :any/m/v ~(/0) | :any/m/v/NotNumberOrStringError ::holds~(is ::number ::string) | null | m \"a\"","expect":"\"a\"","decision":"D67"}
 {"name":"a-part-read-softly-is-held-to-its-law","query":":any/top ~(take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [1 2 3 4] | top \"a\" !| type","expect":"::any/top/n/NotNumberError","decision":"D169"}
 {"name":"a-rest-slot-gathers-the-modifiers-that-remain","query":":any/all ~([head tail]) | :any/all/head ~(/0) | :any/all/tail ~(drop 1) | :any/all/tail/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all :a 1 2","expect":"[:a [1 2]]","decision":"D67"}
 {"name":"a-part-of-the-whole-args-is-held-to-its-invariant-of-each-element","query":":any/all ~(xs) | :any/all/xs ~(/) | :any/all/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError","decision":"D169"}
-{"name":"a-rest-slot-without-modifiers-holds-the-empty-vector","query":":any/all ~(xs) | :any/all/xs ~(/) | :any/all/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all","expect":"[]","decision":["D67","D68"]}
+{"name":"a-rest-slot-without-modifiers-holds-the-empty-vector","query":":any/all ~(xs) | :any/all/xs ~(/) | :any/all/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all","expect":"[]","decision":"D67"}
 {"name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError","decision":["D156","D166"]}
 {"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width(5) | inc","expect":"::Width(6)","decision":["D156","D169"]}
 {"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc ~(add 1) | :number/inc/answer ::number | ::Width(5) | inc | [type payload]","expect":"[::Width 6]","decision":"D67"}
@@ -18,30 +18,30 @@
 {"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":any/big ~(gt 2) | [1 2 3] | filter ~big","expect":"[3]","decision":"D67"}
 {"name":"a-code-slot-runs-a-verb-with-its-defaults","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]","decision":"D67"}
 {"name":"apply-runs-a-verb-with-its-defaults","query":"5 | apply ~(:n 1 | add n)","expect":"6","decision":"D67"}
-{"name":"a-verb-folds-with-its-slot-taking-the-element","query":":any/plus ~(add elem) | :any/plus/elem ~(/0) | :any/plus/elem/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~plus","expect":"6","decision":["D67","D68"]}
+{"name":"a-verb-folds-with-its-slot-taking-the-element","query":":any/plus ~(add elem) | :any/plus/elem ~(/0) | :any/plus/elem/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~plus","expect":"6","decision":"D67"}
 {"name":"a-part-carries-the-page-of-its-declaration","query":":any/m ~(x) | :any/m/x |~~ How many. ~~| ~(/0) | ::any/m/x | doc | content","expect":"\" How many. \"","decision":["D119","D166"]}
 {"name":"the-declarations-of-a-verb-body-stay-inside-it","query":":any/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false","decision":"D67"}
-{"name":"a-verb-resolves-its-names-where-it-is-declared","query":":k 1 | :any/f ~(add k) | :any/g ~(5 | f) | :any/g/k ~(/0) | g 100","expect":"6","decision":["D67","D68"]}
-{"name":"a-verb-under-a-clean-name-refuses-an-effectful-body","query":":any/f ~(@callers) !| type","expect":"::bind/EffectMarkMissingError","decision":["D67","D68"]}
-{"name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":any/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError","decision":["D67","D68"]}
+{"name":"a-verb-resolves-its-names-where-it-is-declared","query":":k 1 | :any/f ~(add k) | :any/g ~(5 | f) | :any/g/k ~(/0) | g 100","expect":"6","decision":"D67"}
+{"name":"a-verb-under-a-clean-name-refuses-an-effectful-body","query":":any/f ~(@callers) !| type","expect":"::bind/EffectMarkMissingError","decision":"D67"}
+{"name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":any/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError","decision":"D67"}
 {"name":"a-part-of-several-kinds-refuses-a-value-of-none","query":":any/m ~(limit) | :any/m/limit ~(at 0) | :any/m/limit/NotNumberOrNullError ::holds~(is ::number ::null) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNumberOrNullError","decision":"D169"}
 {"name":"a-part-of-code-takes-a-quote-alone","query":":any/run ~(apply code) | :any/run/code ~(/0) | :any/run/code/NotQuoteError ::holds~(is ::quote) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError","decision":"D169"}
-{"name":"a-slot-of-code-takes-a-verb","query":":any/run ~(apply code) | :any/run/code ~(/0) | :any/run/code/NotQuoteError ::holds~(is ::quote) | 5 | run ~(add 1)","expect":"6","decision":["D67","D68"]}
-{"name":"a-slot-of-vectors-reads-a-set-as-one","query":":any/m ~(xs | count) | :any/m/xs ~(/0) | :any/m/xs/NotVecError ::holds~(is ::vec) | null | m #[1 2]","expect":"2","decision":["D67","D68"]}
-{"name":"a-slot-of-maps-reads-a-tagged-map-as-one","query":":any/m ~(fields | count) | :any/m/fields ~(/0) | :any/m/fields/NotMapError ::holds~(is ::map) | null | m ::T{:a 1}","expect":"1","decision":["D67","D68"]}
-{"name":"a-set-that-names-no-kind-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[1 2]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m","expect":"#[1 2]","decision":["D67","D68"]}
-{"name":"the-empty-set-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m #[3]","expect":"#[3]","decision":["D67","D68"]}
-{"name":"a-body-may-open-with-a-combinator","query":":any/m ~(map ~(add n)) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | [1 2] | m","expect":"[2 3]","decision":["D67","D68"]}
-{"name":"a-comment-in-the-head-is-layout","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 1 | m 2","expect":"3","decision":["D67","D68","D81"]}
-{"name":"a-declaration-on-the-fail-track-ends-the-head","query":":any/m ~(!| :k 2 | add n) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | 5 | m","expect":"6","decision":["D67","D68"]}
-{"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m ~(x) | :any/m/x ~(/0) | 5 | m (!{:k 1} | raise) !| /k","expect":"1","decision":["D67","D68"]}
-{"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all ~(xs) | :any/all/xs ~(/) | null | all 1 (!{:k 2} | raise) !| /k","expect":"2","decision":["D67","D68"]}
-{"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":any/f ~(add \"a\") | :any/f/answer ::number | 1 | f !| type","expect":"::number/add/addend/NotNumberError","decision":["D67","D68"]}
+{"name":"a-slot-of-code-takes-a-verb","query":":any/run ~(apply code) | :any/run/code ~(/0) | :any/run/code/NotQuoteError ::holds~(is ::quote) | 5 | run ~(add 1)","expect":"6","decision":"D67"}
+{"name":"a-slot-of-vectors-reads-a-set-as-one","query":":any/m ~(xs | count) | :any/m/xs ~(/0) | :any/m/xs/NotVecError ::holds~(is ::vec) | null | m #[1 2]","expect":"2","decision":"D67"}
+{"name":"a-slot-of-maps-reads-a-tagged-map-as-one","query":":any/m ~(fields | count) | :any/m/fields ~(/0) | :any/m/fields/NotMapError ::holds~(is ::map) | null | m ::T{:a 1}","expect":"1","decision":"D67"}
+{"name":"a-set-that-names-no-kind-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[1 2]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m","expect":"#[1 2]","decision":"D67"}
+{"name":"the-empty-set-is-a-default","query":":any/m ~(s) | :any/m/s ~(at 0 #[]) | :any/m/s/NotSetError ::holds~(is ::set) | null | m #[3]","expect":"#[3]","decision":"D67"}
+{"name":"a-body-may-open-with-a-combinator","query":":any/m ~(map ~(add n)) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | [1 2] | m","expect":"[2 3]","decision":"D67"}
+{"name":"a-comment-in-the-head-is-layout","query":":any/m ~(add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 1 | m 2","expect":"3","decision":["D67","D81"]}
+{"name":"a-declaration-on-the-fail-track-ends-the-head","query":":any/m ~(!| :k 2 | add n) | :any/m/n ~(at 0 1) | :any/m/n/NotNumberError ::holds~(is ::number) | 5 | m","expect":"6","decision":"D67"}
+{"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m ~(x) | :any/m/x ~(/0) | 5 | m (!{:k 1} | raise) !| /k","expect":"1","decision":"D67"}
+{"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all ~(xs) | :any/all/xs ~(/) | null | all 1 (!{:k 2} | raise) !| /k","expect":"2","decision":"D67"}
+{"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":any/f ~(add \"a\") | :any/f/answer ::number | 1 | f !| type","expect":"::number/add/addend/NotNumberError","decision":"D67"}
 {"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/f ~(payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::Pos/f/SubjectNotPosError :not-positive]","decision":["D156","D166"]}
-{"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/dec ~(payload | sub 1) | :Pos/dec/answer ::Pos | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":["D67","D68"]}
-{"name":"an-effectful-verb-under-a-marked-name-runs","query":":any/@f ~(@callers) | @f !| type","expect":"::call/UnknownNameError","decision":["D67","D68"]}
-{"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]","decision":["D67","D68"]}
-{"name":"a-slot-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice ~(apply f | apply f) | :any/twice/f ~(/0) | :any/twice/f/NotQuoteError ::holds~(is ::quote) | 1 | [(twice ~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":["D67","D68"]}
+{"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/dec ~(payload | sub 1) | :Pos/dec/answer ::Pos | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":"D67"}
+{"name":"an-effectful-verb-under-a-marked-name-runs","query":":any/@f ~(@callers) | @f !| type","expect":"::call/UnknownNameError","decision":"D67"}
+{"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]","decision":"D67"}
+{"name":"a-slot-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice ~(apply f | apply f) | :any/twice/f ~(/0) | :any/twice/f/NotQuoteError ::holds~(is ::quote) | 1 | [(twice ~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":"D67"}
 {"name":"an-optional-slot-takes-a-map-by-default","query":":any/m ~(opts | /limit) | :any/m/opts ~(at 0 {:limit 2}) | :any/m/opts/NotMapError ::holds~(is ::map) | null | m","expect":"2","decision":"D67"}
 {"name":"a-literal-that-computes-inside-begins-the-body","query":":any/m ~(:opts {:n (count)} | opts) | [1 2] | m","expect":"{:n 2}","decision":"D70"}
 {"name":"a-value-derived-from-a-slot-begins-the-body","query":":any/m ~(:limit (k | mul 2) | take limit) | :any/m/k ~(/0) | :any/m/k/NotNumberError ::holds~(is ::number) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]","decision":"D70"}

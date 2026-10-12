@@ -455,7 +455,7 @@ function fatesOutOfStep() {
   const fateLines = text => text.split(/\r?\n/).filter(line => /^(Replaced by|Pruned of what) /.test(line));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
-  for (const [name, record] of records) {
+  for (const name of records.keys()) {
     const text = textOf(name);
     for (const line of fateLines(text)) {
       for (const taker of citedIn(line.split(', under which')[0])) {

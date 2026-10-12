@@ -18,7 +18,7 @@
 {"name":"union-merges-two-sets-of-mixed-kinds","query":"#[1 \"a\"] | union #[null 2]","expect":"#[null 1 2 \"a\"]","decision":"D16"}
 {"name":"minus-merges-two-sets","query":"#[1 2 3 4] | minus #[0 2 4 6]","expect":"#[1 3]","decision":"D16"}
 {"name":"inter-merges-two-sets","query":"#[1 2 3 4] | inter #[0 2 4 6]","expect":"#[2 4]","decision":"D16"}
-{"name":"a-vector-is-no-set-for-the-algebra","query":"[[1] [2]] | union !| [type /index]","expect":"[::vec/union/ElementNotSetOrMapError 0]","decision":["D16","D188"]}
+{"name":"a-vector-is-no-set-for-the-algebra","query":"[[1] [2]] | union !| [type /index]","expect":"[::vec/union/ElementNotSetOrMapError 0]","decision":["D16","D74"]}
 {"name":"the-bare-form-folds-a-set-of-sets","query":"#[#[1] #[2]] | union","expect":"#[1 2]","decision":"D16"}
 {"name":"keys-answer-the-one-order","query":"{:b 1 :a 2} | keys | payload","expect":"[:a :b]","decision":"D16"}
 {"name":"two-sets-are-equal-by-their-content","query":"#[1 2] | eq #[2 1]","expect":"true","decision":"D16"}

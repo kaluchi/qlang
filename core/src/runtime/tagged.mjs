@@ -135,7 +135,7 @@ function payloadOf(tagged) {
 }
 
 // `payload` and `within` reside on `::tagged`, each a plain function
-// over the tagged value the walk served [D78]; the page of `within` keeps
+// over the tagged value the walk served [D73]; the page of `within` keeps
 // its subject's kind, so the answer of its edit mints back under the
 // subject's tag [D41], [D167].
 bindPrim('tagged/payload', subject => payloadOf(subject));

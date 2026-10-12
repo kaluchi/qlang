@@ -230,7 +230,7 @@ export function pathNamesOf(env) {
 const PATH_NAMES = new WeakMap();
 
 // The kinds a verb is looked for on, from the outside in [D34]: the kind
-// of the value, the kind of every tagged value after a tag [D78], the
+// of the value, the kind of every tagged value after a tag [D73], the
 // payload beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].

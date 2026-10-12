@@ -1,6 +1,6 @@
 |~ `::keyword` and what is declared under it: its constructor and its
-   refusal, the comparisons of keywords, and `keyword`, which answers
-   the name of a keyword as a string.
+   refusal, the comparisons of keywords, and the words that turn a
+   keyword into a string, a number and a tag.
    The decisions it exists for: [D114]. ~|
 
 :keyword
@@ -14,8 +14,8 @@
       `-`, `:id`, `:first-name`; a slash joins names into a path,
       `:domain/user`; any other text is quoted, `:"first name"`, and
       quotes around a bare name change nothing. A keyword is no string,
-      `:a | eq "a"` answering `false`, and `keyword` turns either into
-      the other, `"draft" | keyword` answering `:draft`. JSON writes a
+      `:a | eq "a"` answering `false`, and `toKeyword` and `toString`
+      turn one into the other, `"draft" | toKeyword` answering `:draft`. JSON writes a
       keyword as its name, `"draft"`, and keywords rank after strings
       and before tags.
       ::snippet~(::keyword | manifest) lists its words.
@@ -33,7 +33,7 @@
 
 :keyword/takesThreeForms
   |~~ A name of any script, a name with a path and a quoted name are keywords alike. ~~|
-  ::law~([:данные :domain/user :"$ref"] | map ~keyword | eq ["данные" "domain/user" "$ref"])
+  ::law~([:данные :domain/user :"$ref"] | map ~toString | eq ["данные" "domain/user" "$ref"])
 
 :keyword/quotesABareName
   |~~ A bare name quoted is the same keyword. ~~|
@@ -45,11 +45,11 @@
 
 :keyword/PayloadNotKeywordError
   |~~ `::keyword` reads its payload as the keyword it is; a string
-      becomes one by `keyword`.
+      becomes one by `toKeyword`.
   ~~|
 
 :keyword/PayloadNotKeywordError/refusesAString
-  |~~ A string payload is refused; `keyword` turns a string into one. ~~|
+  |~~ A string payload is refused; `toKeyword` turns a string into one. ~~|
   ::law~(::keyword"k" !| [type /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
 
 :keyword/gt
@@ -58,12 +58,12 @@
       are spelled, letter by letter, so a capital comes before a small
       letter, `:a | gt :B` answering `true`. A keyword compares with a
       keyword alone: a string given is refused under the value, so text
-      read from JSON, which arrives as a string, is turned by `keyword`
-      first, `"b" | keyword | gt :a`, or compared with a string. `gte`
+      read from JSON, which arrives as a string, is turned by `toKeyword`
+      first, `"b" | toKeyword | gt :a`, or compared with a string. `gte`
       answers whether the subject comes after the value or is the same
       keyword, `lt` and `lte` the reverse.
       ::link~(::keyword/gte | doc) ::link~(::keyword/lt | doc)
-      ::link~(::keyword/lte | doc) ::link~(::string/keyword | doc)
+      ::link~(::keyword/lte | doc) ::link~(::string/toKeyword | doc)
   ~~|
   ::builtin{}
 
@@ -79,7 +79,7 @@
 
 :keyword/gt/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | gt :a`; a string is
-      turned by `keyword` first, `:b | gt ("a" | keyword)`.
+      turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
   ~~|
   ::holds~(is ::keyword)
 
@@ -95,9 +95,9 @@
   |~~ A keyword does not come after itself. ~~|
   ::law~(:a | gt :a | not)
 
-:keyword/gt/comparesTextTurnedByKeyword
-  |~~ Text turned by `keyword` compares with a keyword. ~~|
-  ::law~("b" | keyword | gt :a)
+:keyword/gt/comparesTextTurnedIntoAKeyword
+  |~~ Text turned by `toKeyword` compares with a keyword. ~~|
+  ::law~("b" | toKeyword | gt :a)
 
 :keyword/gt/value/NotKeywordError/refusesAString
   |~~ A string is no keyword to compare with. ~~|
@@ -125,7 +125,7 @@
 
 :keyword/gte/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | gte :a`; a string is
-      turned by `keyword` first, `:b | gte ("a" | keyword)`.
+      turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
   ~~|
   ::holds~(is ::keyword)
 
@@ -161,7 +161,7 @@
 
 :keyword/lt/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | lt :a`; a string is
-      turned by `keyword` first, `:b | lt ("a" | keyword)`.
+      turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
   ~~|
   ::holds~(is ::keyword)
 
@@ -203,7 +203,7 @@
 
 :keyword/lte/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | lte :a`; a string is
-      turned by `keyword` first, `:b | lte ("a" | keyword)`.
+      turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
   ~~|
   ::holds~(is ::keyword)
 
@@ -219,40 +219,94 @@
   |~~ A number is no keyword to compare with. ~~|
   ::law~(:b | lte 1 !| type | eq ::keyword/lte/value/NotKeywordError)
 
-:keyword/keyword
-  |~~ Answers the name of the keyword as a string, `:foo | keyword`
-      answering `"foo"`: the reverse of `keyword` on a string, which
-      turns text into a keyword, so the two turn a name back and forth,
-      `"foo" | keyword | keyword` answering `"foo"`. A quoted name and a
-      name with a path answer their text as written, `:"foo bar"` the
-      string `"foo bar"` and `:domain/user` the string `"domain/user"`.
-      A value that is neither a keyword nor a string answers no
-      `keyword`, which the refusal of the call names with the kinds that
-      do.
-      ::link~(::string/keyword | doc) ::link~(::keyword | doc)
+:keyword/toString
+  |~~ Answers the name of the keyword as a string, `:foo | toString`
+      answering `"foo"`, the text JSON writes for it, so a key joins text,
+      `{:a "x"} | entries | map ~([(/0 | toString) "=" /1] | join "")`. A
+      quoted name and a name with a path answer their text as written,
+      `:"foo bar"` the string `"foo bar"`. `toKeyword` turns the string
+      back into the keyword.
+      ::link~(::string/toKeyword | doc) ::link~(::keyword | doc)
   ~~|
   ::builtin{}
 
-:keyword/keyword/answer
+:keyword/toString/answer
   |~~ The name of the keyword, a string. ~~|
   ::string
 
-:keyword/keyword/answersTheName
-  |~~ A keyword answers its name as a string. ~~|
-  ::law~(:foo | keyword | eq "foo")
+:keyword/toString/answersTheName
+  |~~ A keyword answers its name as written. ~~|
+  ::law~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
 
-:keyword/keyword/keepsASpace
-  |~~ A name with a space keeps it. ~~|
-  ::law~(:"foo bar" | keyword | eq "foo bar")
+:keyword/toString/readsBack
+  |~~ A keyword turned into its name turns back into itself. ~~|
+  ::law~(:baz | toString | toKeyword | eq :baz)
 
-:keyword/keyword/keepsAPath
-  |~~ A name with a path answers it whole. ~~|
-  ::law~(:domain/user | keyword | eq "domain/user")
+:keyword/toNumber
+  |~~ Answers the number the name of the keyword writes,
+      `:"1" | toNumber` answering `1`, so a key that `groupBy` filed a
+      number under turns back into the number,
+      `groupBy ~(/year) | keys | toVec | map ~toNumber`. A name that
+      writes no number is refused.
+      ::link~(::number/toKeyword | doc) ::link~(::string/toNumber | doc)
+  ~~|
+  ::builtin{}
 
-:keyword/keyword/turnsATextBack
-  |~~ A string turned into a keyword turns back into the string. ~~|
-  ::law~("foo" | keyword | keyword | eq "foo")
+:keyword/toNumber/answer
+  |~~ The number the name writes. ~~|
+  ::number
 
-:keyword/keyword/namesTheKindsThatAnswerIt
-  |~~ A number answers no `keyword`, and the refusal names the kinds that do. ~~|
-  ::law~(5 | keyword !| /addresses | eq #[::keyword/keyword ::string/keyword])
+:keyword/toNumber/NameNotNumberError
+  |~~ `toNumber` reads the name of the keyword as the literal of a
+      number, as a key that `groupBy` filed a number under writes it,
+      `:"1"`; a name such as `:a` writes none.
+  ~~|
+
+:keyword/toNumber/readsTheNumberOfAKey
+  |~~ A key filed from a number turns back into it. ~~|
+  ::law~([{:y 2020} {:y 2021}] | groupBy ~(/y) | keys | toVec | map ~toNumber | eq [2020 2021])
+
+:keyword/toNumber/NameNotNumberError/refusesAName
+  |~~ A name that writes no number is refused. ~~|
+  ::law~(:a | toNumber !| type | eq ::keyword/toNumber/NameNotNumberError)
+
+:keyword/toTag
+  |~~ Answers the tag the keyword names, `:Box | toTag` answering
+      `::Box`; a quoted name that names no tag is refused. `toKeyword`
+      turns the tag back into the keyword.
+      ::link~(::string/toTag | doc) ::link~(::tag/toKeyword | doc)
+  ~~|
+  ::builtin{}
+
+:keyword/toTag/answer
+  |~~ The tag the keyword names. ~~|
+  ::tag
+
+:keyword/toTag/NameNotNameError
+  |~~ `toTag` reads the name of the keyword as the name of a tag; a
+      quoted name with a space, `:"a b"`, names none.
+  ~~|
+
+:keyword/toTag/namesATag
+  |~~ A keyword names the tag of its name. ~~|
+  ::law~(:Box | toTag | eq ::Box)
+
+:keyword/toTag/NameNotNameError/refusesASpace
+  |~~ A name with a space names no tag. ~~|
+  ::law~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotNameError)
+
+:keyword/toKeyword
+  |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
+      strings and numbers into keys, `["a" :b 1] | map ~toKeyword`
+      answering `[:a :b :"1"]`.
+      ::link~(::string/toKeyword | doc) ::link~(::number/toKeyword | doc)
+  ~~|
+  ::builtin{}
+
+:keyword/toKeyword/answer
+  |~~ The keyword itself. ~~|
+  ::keyword
+
+:keyword/toKeyword/answersItself
+  |~~ A keyword answers itself, so names, strings and numbers turn into keys. ~~|
+  ::law~(["a" :b 1] | map ~toKeyword | eq [:a :b :"1"])

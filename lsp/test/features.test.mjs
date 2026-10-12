@@ -156,10 +156,11 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
-  it('reads a line break at the top level as a pipe', async () => {
-    const labels = await labelsAt('[1 2 3]\n');
-    expect(labels).toContain('count');
-    expect(labels).not.toContain('add');
+  it('reads a line break as a space, the step on the next line joined by `|` [D243]', async () => {
+    const piped = await labelsAt('[1 2 3]\n| ');
+    expect(piped).toContain('count');
+    expect(piped).not.toContain('add');
+    expect(await labelsAt('[1 2 3]\n')).toContain('add');
   });
 
   it('reads through a declaration and a group over a vector', async () => {
@@ -591,6 +592,14 @@ describe('semanticTokensFor', () => {
     const { data } = await semanticTokensFor(':double ~(mul 2) | 5 | apply double');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.some(t => t.type === 'variable')).toBe(true);
+  });
+
+  it('paints a pattern literal as `regexp`', async () => {
+    const { data } = await semanticTokensFor('"a1" | contains #"\\d"i');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const patternTok = tokens.find(t => t.type === 'regexp');
+    expect(patternTok).toBeTruthy();
+    expect(patternTok.length).toBe('#"\\d"i'.length);
   });
 
   it('paints a comment span as `comment`', async () => {

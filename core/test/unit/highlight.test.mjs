@@ -52,6 +52,13 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
+  it('classifies a pattern literal, its quote escape and its flags among it [D246]', async () => {
+    const src = 'contains #"\\"\\d+"i';
+    const tokens = tokenize(src, await builtins());
+    expect(tokens.at(-1)).toEqual({ start: 9, end: src.length, kind: 'regex' });
+    expectCoversInputExactly(tokens, src);
+  });
+
   it('classifies a ~(...) QuoteLit as quote delimiters plus italic-flagged sub-tokens', async () => {
     // `~(mul 2)` — `~(` and `)` are upright `quote`-kind delimiters
     // (green); the body sub-tokenises with the regular tokeniser

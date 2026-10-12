@@ -31,10 +31,6 @@
       ::link~(::qlang/values | doc)
   ~~|
 
-:vec/readsASetAsItsVector
-  |~~ A set under `::vec` is its vector. ~~|
-  ::law~(#[2 1] | tag ::vec | eq [1 2])
-
 :vec/takesCommas
   |~~ A comma between every two elements writes the same vector. ~~|
   ::law~("[1, 2]" | parse | apply / | eq [1 2])
@@ -44,15 +40,23 @@
   ::law~("[1, 2 3]" | parse !| type | eq ::quote/ParseError)
 
 :vec/construct
-  |~~ Reads a vector as the bare vector, and a set, a quote or a doc as
-      the vector of its elements.
+  |~~ Reads a vector as itself. A set turns into a vector by `toVec`, and
+      a vector under a tag of its own, a quote and a doc among them, gives
+      the vector beneath by `payload`, each refused here.
+      ::link~(::set/toVec | doc) ::link~(::tagged/payload | doc)
   ~~|
   ::builtin{}
 
 :vec/PayloadNotVecError
-  |~~ `::vec` reads a vector, a set, a quote or a doc as the bare vector;
-      a payload of another kind is refused.
+  |~~ `::vec` reads its payload as the vector it is: a set turns into a
+      vector by `toVec`, `#[2 1] | toVec`, and a vector under a tag of its
+      own, a quote and a doc among them, gives the vector beneath by
+      `payload`.
   ~~|
+
+:vec/PayloadNotVecError/refusesASet
+  |~~ A set is refused; `toVec` turns it into a vector. ~~|
+  ::law~(#[2 1] | tag ::vec !| [type /actualType] | eq [::vec/PayloadNotVecError ::set])
 
 :vec/PayloadNotVecError/refusesAMap
   |~~ A map payload is refused. ~~|
@@ -1193,7 +1197,7 @@
 
 :vec/take/count/NotNumberError
   |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
-      is read by `parseJson` first, `take ("2" | parseJson)`.
+      is read by `toNumber` first, `take ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1257,7 +1261,7 @@
 
 :vec/drop/count/NotNumberError
   |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
-      is read by `parseJson` first, `drop ("2" | parseJson)`.
+      is read by `toNumber` first, `drop ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1320,7 +1324,7 @@
 
 :vec/at/index/NotNumberError
   |~~ The index is a number, `[10 20] | at 1`; text that holds one is
-      read by `parseJson` first, `at ("1" | parseJson)`.
+      read by `toNumber` first, `at ("1" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1922,8 +1926,8 @@
 
 :vec/join/separator/NotStringOrKeywordError
   |~~ The separator is a string, `["a" "b"] | join ","`, or a keyword
-      written as its name; a number writes as text by `print` first,
-      `join (1 | print)`.
+      written as its name; a number writes as text by `toString` first,
+      `join (1 | toString)`.
   ~~|
   ::holds~(is ::string ::keyword)
 
@@ -2065,3 +2069,95 @@
 :vec/append/keepsASetASet
   |~~ A set takes the element as a set does. ~~|
   ::law~(#[1 2] | append 1 | eq #[1 2])
+
+:vec/toSet
+  |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
+      answering `#[1 2]`: the one order and no duplicates, as `distinct`
+      answers. `toVec` turns the set back into a vector. A map's keys are
+      a set already, `keys`.
+      ::link~(::vec/distinct | doc) ::link~(::set/toVec | doc)
+      ::link~(::map/keys | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toSet/answer
+  |~~ The set of the elements. ~~|
+  ::set
+
+:vec/toSet/leadsAMapToItsKeys
+  |~~ A map is led to its keys. ~~|
+  ::law~({:a 1} | toSet !| /nearest | eq [:keys])
+
+:vec/toSet/answersTheSetDistinctAnswers
+  |~~ `toSet` answers what `distinct` answers. ~~|
+  ::law~([2 1 2] | [toSet distinct] | eq [#[1 2] #[1 2]])
+
+:vec/toMap
+  |~~ Answers the map the vector's pairs `[key value]` write, the reverse
+      of `entries`, `[[:a 1] [:b 2]] | toMap` answering `{:a 1 :b 2}`, a
+      set of pairs alike. Each key is named as `toKeyword` names it,
+      `[[1 "x"]] | toMap` answering `{:"1" "x"}`, and of two pairs with one
+      key the last holds. An element that is no pair and a key no keyword
+      names are refused at their index.
+      ::link~(::map/entries | doc) ::link~(::string/toKeyword | doc)
+      ::link~(::map | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toMap/answer
+  |~~ The map of the pairs. ~~|
+  ::map
+
+:vec/toMap/ElementNotPairError
+  |~~ Each element of the vector `toMap` reads is a pair `[key value]`;
+      `:index` names the first that is not.
+  ~~|
+
+:vec/toMap/KeyNotKeywordError
+  |~~ The key of a pair is a value `toKeyword` names, a keyword, a string,
+      a number, a boolean, null or a tag name; `:index` names the pair
+      whose key is another value.
+  ~~|
+
+:vec/toMap/readsBack
+  |~~ A map turned into its pairs turns back into itself. ~~|
+  ::law~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
+
+:vec/toMap/readsASetOfPairs
+  |~~ A set of pairs builds a map as a vector of them does. ~~|
+  ::law~(#[[:a 1]] | toMap | eq {:a 1})
+
+:vec/toMap/namesEachKeyAsToKeywordNamesIt
+  |~~ A number and a boolean name the keywords of their texts. ~~|
+  ::law~([[1 "x"] [true 2]] | toMap | eq {:"1" "x" :true 2})
+
+:vec/toMap/keepsTheLastValueOfAKeyWrittenTwice
+  |~~ A key written twice among the pairs holds its last value. ~~|
+  ::law~([[:a 1] [:a 2]] | toMap | eq {:a 2})
+
+:vec/toMap/ElementNotPairError/refusesAPairOfOne
+  |~~ An element of one place is no pair, and is refused at its index. ~~|
+  ::law~([[:a 1] [:b]] | toMap !| [type /index] | eq [::vec/toMap/ElementNotPairError 1])
+
+:vec/toMap/ElementNotPairError/refusesAPairOfThree
+  |~~ An element of three places is no pair either. ~~|
+  ::law~([[:a 1 2]] | toMap !| [type /index] | eq [::vec/toMap/ElementNotPairError 0])
+
+:vec/toMap/KeyNotKeywordError/refusesAVectorKey
+  |~~ A vector names no key, and is refused at its pair. ~~|
+  ::law~([[[1] 2]] | toMap !| [type /actualType /index] | eq [::vec/toMap/KeyNotKeywordError ::vec 0])
+
+:vec/toVec
+  |~~ Answers the vector itself, so `map ~toVec` turns vectors and sets
+      into vectors.
+      ::link~(::set/toVec | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toVec/answer
+  |~~ The vector itself. ~~|
+  ::vec
+
+:vec/toVec/answersItself
+  |~~ A vector answers itself. ~~|
+  ::law~([2 1] | toVec | eq [2 1])

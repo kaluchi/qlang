@@ -8,6 +8,7 @@
     { "include": "#comment-block-doc" },
     { "include": "#comment-line-plain" },
     { "include": "#comment-block-plain" },
+    { "include": "#regex" },
     { "include": "#string" },
     { "include": "#tag" },
     { "include": "#map-key" },
@@ -93,6 +94,18 @@
       "end": "~\\|",
       "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
       "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } }
+    },
+
+    "regex": {
+      "comment": "A pattern `#\"…\"` read as written: a backslash keeps the character after it, and the flags follow the closing quote.",
+      "name": "string.regexp.qlang",
+      "begin": "#\"",
+      "end": "\"([ims]*)",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.regexp.begin.qlang" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.string.regexp.end.qlang" }, "1": { "name": "keyword.other.flag.regexp.qlang" } },
+      "patterns": [
+        { "name": "constant.character.escape.regexp.qlang", "match": "\\\\." }
+      ]
     },
 
     "string": {

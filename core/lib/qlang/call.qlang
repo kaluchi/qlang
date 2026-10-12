@@ -173,13 +173,18 @@
   |~~ The kind of the subject has no verb of the name while other kinds
       have one: `:name` holds the name, `:actualType` the kind of the
       subject, and `:addresses` the verbs of the name and the kinds they
-      serve. The subject is turned into one of those kinds first, a soft
-      read that answered null given its fallback,
-      `at :items | coalesce [] | count`, a keyword its name by `keyword`,
-      `:host | keyword | append ":80"`, or a verb of another name was
-      meant.
+      serve, and `:nearest`, where a page leads to one, the words the
+      pages of those verbs lead to that the subject answers and that
+      answer a kind the verbs answer, the act its kind keeps under another
+      name, `[1 2] | toString` led to `print`
+      and `json`. The subject is turned
+      into one of those kinds first, a soft read that answered null given
+      its fallback, `at :items | coalesce [] | count`, a keyword its name
+      by `toString`, `:host | toString | append ":80"`, or a verb of
+      another name was meant, which `:nearest` names where a page leads
+      to it.
       ::link~(::call | doc) ::link~(::any/coalesce | doc)
-      ::link~(::keyword/keyword | doc)
+      ::link~(::keyword/toString | doc)
   ~~|
 
 :call/KindAnswersNoVerbError/name
@@ -204,13 +209,17 @@
     !| [type /addresses]
     |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
 
+:call/KindAnswersNoVerbError/namesTheWordsItsPagesLeadTo
+  |~~ `:nearest` names the words the pages of the verbs lead to that the subject answers. ~~|
+  ::law~({:a 1} | toVec !| /nearest | eq [:entries :vals])
+
 :call/KindAnswersNoVerbError/turnsTheSubjectFirst
   |~~ A soft read that answered null is given its fallback first. ~~|
   ::law~({} | at :items | coalesce [] | count | eq 0)
 
 :call/KindAnswersNoVerbError/turnsAKeywordIntoItsName
   |~~ A keyword turned into its name takes the verbs of strings. ~~|
-  ::law~(:host | keyword | append ":80" | eq "host:80")
+  ::law~(:host | toString | append ":80" | eq "host:80")
 
 :call/UnknownNameError
   |~~ A step called a name nothing declares, no name of the scope and no
@@ -242,6 +251,10 @@
 :call/UnknownNameError/suggestsTheReadersNames
   |~~ A reader's own names are suggested too. ~~|
   ::law~(:limit 3 | limti !| /nearest | eq [:limit])
+
+:call/UnknownNameError/suggestsAWordThePageOfItsBeginningLinks
+  |~~ A name that goes on past a word is led where the page of that word links. ~~|
+  ::law~({:x 1} | addOf /x /x !| /nearest | eq [:add :sumOf])
 
 :call/UnknownNameError/suggestsNothingFarAway
   |~~ A name near nothing suggests nothing. ~~|

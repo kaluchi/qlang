@@ -1,11 +1,11 @@
 // PEG grammar for the qlang expression language.
 //
 // A step is a command, a name followed by its modifiers, each one word
-// [D10]. At the top level a line is a step: a command's modifiers end
-// with their line, and a line that neither ends nor begins with a
-// combinator continues the pipeline through `|` [D11], [D43]. Inside
-// brackets a newline is whitespace. Every combinator is set off by
-// whitespace on both sides.
+// [D10]. A line break is whitespace wherever whitespace stands, so a
+// combinator joins two steps and whitespace a declaration as well, and a
+// keyword that begins a line opens a declaration of its own, which ends
+// the modifiers of a command before it [D243]. Every combinator is set off
+// by whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass
@@ -19,7 +19,8 @@
 // declaration whose slot it stands in [D83].
 
 {{
-  import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
+  import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
+  import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
 
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
@@ -62,6 +63,13 @@
     return { source, start: pointOf(start), end: pointOf(end) };
   }
 
+  // The character after what the rule read, where a refusal of the word
+  // that follows points.
+  function after() {
+    const { source, end } = range();
+    return { source, start: pointOf(end), end: pointOf(end + 1) };
+  }
+
   // A plain comment the parser read as whitespace, kept by its offset,
   // since a branch the parser abandons reads the same comment again.
   function recordComment(type, content) {
@@ -93,28 +101,51 @@
   // a shape it refuses elsewhere fails the try, and the span reads as
   // prose [D19].
   let docQuoteDepth = 0;
+
+  // Whether a step can call the name a declaration writes: a bare name,
+  // and no word of a literal, which a step reads as its value, alone but
+  // for a label, which its tag reaches [D152].
+  const LITERAL_WORDS = new Set(['true', 'false', 'null']);
+
+  function nameCalled(name, body) {
+    return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+  }
+
+  function refuseNameNoStepCalls(key, body) {
+    if (!readsAsBareKeyword(key.name)) {
+      error(`\`${key.text}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``, key.location);
+    }
+    if (!nameCalled(key.name, body)) {
+      error(`\`${key.text}\` is the word of a literal, which a step reads as the value: declare another name`, key.location);
+    }
+  }
+
+  // Whether the engine reads a pattern a literal writes with its flags
+  // [D246].
+  function patternRead(source, written) {
+    const flags = canonicalFlags(written);
+    return flags !== null && patternProblem(source, flags) === null;
+  }
+
+  function refuseUnreadPattern(source, written) {
+    const flags = canonicalFlags(written);
+    if (flags === null) error(`a pattern takes the flags ${[...PATTERN_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
+    const problem = patternProblem(source, flags);
+    if (problem !== null) error(patternRefusal(source, flags, problem));
+  }
 }
 
 // A source of whitespace alone, comments among it, is the empty
 // pipeline, which answers the value it is handed, as the empty quote
 // does [D81].
 Query
-  = _ p:LinePipeline _ { return p; }
+  = _ p:Pipeline _ { return p; }
   / _ { return node('Blank', {}, span(), text()); }
 
 // ── Pipelines ──────────────────────────────────────────────────────
-//
-// `Pipeline` reads inside brackets and `LinePipeline` at the top level;
-// the rules prefixed `Line` differ from their bracketed twins only in
-// where a command's modifiers end and in the pipe a line break stands
-// for.
 
 Pipeline
   = leadingComb:(LeadingCombinator __)? head:PipelineHead tail:ContinuationUnit*
-    { return assemblePipeline(leadingComb, head, tail, span(), text()); }
-
-LinePipeline
-  = leadingComb:(LeadingCombinator __)? head:LinePipelineHead tail:LineContinuationUnit*
     { return assemblePipeline(leadingComb, head, tail, span(), text()); }
 
 // The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
@@ -131,13 +162,6 @@ PipelineHead
   / BindStep
   / TagDeclarationRefusal
   / Step
-  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
-
-LinePipelineHead
-  = LineDocBeforeDeclaration
-  / LineBindStep
-  / TagDeclarationRefusal
-  / LineStep
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 // A tag name in the place of a declaration's name declares nothing: a
@@ -160,21 +184,11 @@ ContinuationUnit
 PipedCombinator
   = "|" __ "!|" { return '!|'; }
 
-// A break with a combinator at neither end stands for `|` at the top
-// level.
-LineContinuationUnit
-  = _ LineDocBeforeDeclaration
-  / _ DocAfterStep
-  / __ step:LineBindStep { return { combinator: '|', step }; }
-  / __ c:Combinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
-  / __ c:PipedCombinator __ step:LineStepAfterCombinator { return { combinator: c, step }; }
-  / _h Newline _ !Combinator step:LineStepAfterCombinator { return { combinator: '|', step }; }
-  / SpacingRefusal
-
 // A combinator written against its neighbour, a pipe written against a
-// tilde, which opens a comment, and a word written against the word
-// before it; a slash written against a word is the dangling segment of
-// a projection, which the parser names by the key it expected.
+// tilde, which opens a comment, a word written against the word before
+// it, and a step that follows a step with no combinator between them;
+// a slash written against a word is the dangling segment of a
+// projection, which the parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
     ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
@@ -182,6 +196,8 @@ SpacingRefusal
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
+    / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
+    / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
     )
 
 StepAfterCombinator
@@ -190,21 +206,11 @@ StepAfterCombinator
   / TagDeclarationRefusal
   / Step
 
-LineStepAfterCombinator
-  = LineDocBeforeDeclaration
-  / LineBindStep
-  / TagDeclarationRefusal
-  / LineStep
-
 // A doc documents the declaration whose slot it stands in, between the
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [D83].
 DocBeforeDeclaration
   = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &BindStep
-    { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
-
-LineDocBeforeDeclaration
-  = &{ return docQuoteDepth === 0; } &DocOpen DocLit (_ DocLit)* _ &LineBindStep
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
@@ -291,12 +297,6 @@ Step
   / Word
   / DocLit
 
-LineStep
-  = LineCommand
-  / ProjectionBeforeWord
-  / Word
-  / DocLit
-
 // A projection written before a word, the method call of other
 // languages, `/ne ""`: a verb is called by its name alone.
 ProjectionBeforeWord
@@ -305,33 +305,28 @@ ProjectionBeforeWord
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
-// the group `(gt(1))`. At the top level the modifiers end with the line.
+// the group `(gt(1))`.
 Command
-  = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
-    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, span(), text()); }
-
-LineCommand
-  = callName:CallName first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
+  = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(ModifierGap @ModifierWord)*
     { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, span(), text()); }
 
 FirstModifierSeparator
-  = __ / &"("
+  = ModifierGap / &"("
 
-FirstLineModifierSeparator
-  = _h1 / &"("
+// The whitespace before a modifier: on the same line, or on a later one
+// that does not open a declaration [D66], [D243].
+ModifierGap
+  = _h1 !Whitespace
+  / __ !BindStep
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [D152]; a lone
-// `:foo` is a keyword.
+// `:foo` is a keyword. The name it writes is one a step can call [D152].
 BindStep
   = key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
-    { return node('BindStep', { key, docs, body }, span(), text()); }
-
-LineBindStep
-  = key:BindName docs:(__ @DocSlot)? body:LineBody?
-    & { return docs !== null || body !== null; }
-    { return node('BindStep', { key, docs, body }, span(), text()); }
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
 
 BindName
   = Keyword
@@ -349,11 +344,6 @@ Body
     & { return body.type !== 'Keyword' || !later; }
     { return body; }
 
-LineBody
-  = later:BodyBreak body:LineStep
-    & { return body.type !== 'Keyword' || !later; }
-    { return body; }
-
 // Whether the whitespace before a body crosses a line.
 BodyBreak
   = _h1 !Whitespace { return false; }
@@ -368,6 +358,7 @@ BodyBreak
 Word
   = ParenGroup
   / ErrorLit
+  / RegexLit
   / SetLit
   / VecLit
   / MapLit
@@ -578,6 +569,24 @@ QlangMapEntry
   = key:Keyword __ value:Element
     { return node('MapEntry', { key, value }, span(), text()); }
 
+// A pattern of text, read as written: a backslash passes to the engine
+// with the character after it, but for `\"`, a quote in the pattern that
+// does not end it, and the flags may follow the closing quote,
+// `#"error"i` [D246].
+RegexLit
+  = "#\"" chars:RegexChar* "\"" written:$[a-zA-Z]*
+    &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }
+    {
+      const pattern = chars.join('');
+      refuseUnreadPattern(pattern, written);
+      return node('RegexLit', { pattern, flags: canonicalFlags(written) }, span(), text());
+    }
+
+RegexChar
+  = "\\\"" { return '"'; }
+  / $("\\" .)
+  / [^"\\]
+
 SetLit
   = "#[" _ "]"
     { return node('SetLit', { elements: [] }, span(), text()); }
@@ -701,16 +710,14 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 
 // ── Whitespace ─────────────────────────────────────────────────────
 //
-// `_` is optional whitespace, `__` required whitespace, `_h` and `_h1`
-// optional and required whitespace within a line; a plain comment is
-// whitespace, and its line breaks end no line [D81].
+// `_` is optional whitespace, `__` required whitespace, and `_h1`
+// whitespace within a line, which tells a body or a modifier on the line
+// of its name from a declaration that opens a later line [D66]; a plain
+// comment is whitespace [D81].
 
 _   = Whitespace*
 __  = Whitespace+
-_h  = InlineSpace*
 _h1 = InlineSpace+
-
-Newline = "\r"? "\n"
 
 Whitespace "whitespace" = [ \t\n\r] / PlainComment
 

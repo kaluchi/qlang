@@ -66,8 +66,8 @@
 {"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| /actualValue","expect":"!{:a 1}","decision":"D13"}
 {"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| type","expect":"::number/PayloadNotNumberError","decision":"D13"}
 {"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| type","expect":"::vec/PayloadNotVecError","decision":"D13"}
-{"name":"an-error-literal-under-the-tag-of-maps-raises-under-the-kind-of-errors","query":"::map!{:a 1} | raise !| type","expect":"::error","decision":"D13"}
-{"name":"the-error-literal-under-the-tag-of-maps-is-the-map-its-label-builds","query":"::map!{:a 1}","expect":"{:a 1}","decision":"D13"}
+{"name":"the-facts-of-an-error-at-rest-raise-under-the-kind-of-errors","query":"!{:a 1} | payload | [type (raise !| type)]","expect":"[::map ::error]","decision":"D13"}
+{"name":"the-error-literal-under-the-tag-of-maps-is-refused-by-their-label","query":"::map!{:a 1} !| [type /actualType]","expect":"[::map/PayloadNotMapError ::error]","decision":"D244"}
 {"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| type","expect":"::Oops","decision":"D13"}
 {"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 1} !| type","expect":"::Box/k","decision":"D13"}
 {"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 9} | raise !| type","expect":"::Box","decision":"D13"}
@@ -75,8 +75,8 @@
 {"name":"an-error-literal-under-a-tag-that-writes-its-trail-resumes-it","query":"::Oops!{:a 1 :trail []} | raise !| trail","expect":"[]","decision":"D13"}
 {"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| [type /actualType]","expect":"[::number/PayloadNotNumberError ::quote]","decision":"D206"}
 {"name":"the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| / | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true","decision":"D206"}
-{"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/ElementNotPairError","decision":"D206"}
-{"name":"a-doc-s-quote-under-the-tag-of-vectors-writes-as-written","query":"|~~ see ::vec~(::vec | doc) ~~| | content","expect":"\" see ::vec~(::vec | doc) \"","decision":"D206"}
+{"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/PayloadNotMapError","decision":"D206"}
+{"name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| type","expect":"::vec/PayloadNotVecError","decision":"D206"}
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | /1 | type","expect":"::link","decision":"D206"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\"","decision":"D206"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\" see ::vec~(x) \"","decision":"D206"}

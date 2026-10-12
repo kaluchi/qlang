@@ -875,7 +875,7 @@
 
 :set/take/count/NotNumberError
   |~~ The count is a number, `#[1 2 3] | take 2`; text that holds one
-      is read by `parseJson` first, `take ("2" | parseJson)`.
+      is read by `toNumber` first, `take ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -956,7 +956,7 @@
 
 :set/drop/count/NotNumberError
   |~~ The count is a number, `#[1 2 3] | drop 2`; text that holds one
-      is read by `parseJson` first, `drop ("2" | parseJson)`.
+      is read by `toNumber` first, `drop ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1026,7 +1026,7 @@
 
 :set/at/index/NotNumberError
   |~~ The index is a number, `#[10 20] | at 1`; text that holds one is
-      read by `parseJson` first, `at ("1" | parseJson)`.
+      read by `toNumber` first, `at ("1" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1586,3 +1586,43 @@
 :set/contains/holdsOnlyWholeElements
   |~~ A string holds a piece of its text, a set only whole elements. ~~|
   ::law~(["abc" #["abc"]] | map ~(contains "b") | eq [true false])
+
+:set/toVec
+  |~~ Answers the vector of the set's elements in its order,
+      `#[2 1] | toVec` answering `[1 2]`, a vector where a word of
+      vectors keeps what it reads, `reverse` among them. `toSet` turns
+      the vector back into the set. A map has no `toVec`: its pairs are
+      `entries`, its keys `keys` and its values `vals`; and the characters
+      of a string are `split ""`.
+      ::link~(::vec/toSet | doc) ::link~(::map/entries | doc)
+      ::link~(::map/keys | doc) ::link~(::map/vals | doc)
+      ::link~(::string/split | doc)
+  ~~|
+  ::builtin{}
+
+:set/toVec/answer
+  |~~ The vector of the elements. ~~|
+  ::vec
+
+:set/toVec/leadsAMapToItsParts
+  |~~ A map is led to its pairs and its values, the words that answer a vector, and a string to `split`. ~~|
+  ::law~([({:a 1} | toVec !| /nearest) ("ab" | toVec !| /nearest)] | eq [[:entries :vals] [:split]])
+
+:set/toVec/readsBack
+  |~~ A set turned into a vector turns back into itself. ~~|
+  ::law~(#[2 1] | toVec | [/ toSet] | eq [[1 2] #[1 2]])
+
+:set/toSet
+  |~~ Answers the set itself, so `map ~toSet` turns vectors and sets into
+      sets.
+      ::link~(::vec/toSet | doc)
+  ~~|
+  ::builtin{}
+
+:set/toSet/answer
+  |~~ The set itself. ~~|
+  ::set
+
+:set/toSet/answersItself
+  |~~ A set answers itself. ~~|
+  ::law~(#[1 2] | toSet | eq #[1 2])

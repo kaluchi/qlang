@@ -14,8 +14,8 @@
       prints the shortest digits that read back, `1e21` printing
       `1e+21`; a literal past the range does not parse. `::number(5)` is
       `5`, while text is never read as a number by its look:
-      `::number"5"` is refused, and `parseJson` reads a number out of a
-      string, `"42" | parseJson | add 1` answering `43`. Numbers rank
+      `::number"5"` is refused, and `toNumber` reads a number out of a
+      string, `"42" | toNumber | add 1` answering `43`. Numbers rank
       after booleans and before strings.
 
       Its words add, subtract, multiply, divide and compare, `add`,
@@ -23,7 +23,7 @@
       `ceil`; `sum`, `avg`, `min` and `max` read the numbers of a
       vector, and `range` counts up to one.
       ::snippet~(::number | manifest) lists its words and refusals.
-      ::link~(::string/parseJson | doc) ::link~(::qlang/values | doc)
+      ::link~(::string/toNumber | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :number/isANumber
@@ -48,11 +48,11 @@
 
 :number/PayloadNotNumberError
   |~~ `::number` reads its payload as the number it is; a payload of
-      another kind is refused, and text is read by `parseJson`.
+      another kind is refused, and text is read by `toNumber`.
   ~~|
 
 :number/PayloadNotNumberError/refusesAString
-  |~~ A string payload is refused; `parseJson` reads a number from text. ~~|
+  |~~ A string payload is refused; `toNumber` reads a number from text. ~~|
   ::law~(::number"5" !| [type /actualType] | eq [::number/PayloadNotNumberError ::string])
 
 :number/NotFiniteError
@@ -72,7 +72,7 @@
       The subject is a number: a vector adds to each of its elements by
       `map`, `map ~(add 1)`, and sums them by `sum`; a string joins by
       `append`; and text that holds a number is read first by
-      `parseJson`, `"5" | parseJson | add 1`. The addend is computed
+      `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
       of one record add by `sumOf /x /y`. A number under a tag answers
       under the tag, `::Width(2) | add 3` answering `::Width(5)`, and a
@@ -90,14 +90,14 @@
   ~(/0)
 
 :number/add/addend/NotNumberError
-  |~~ The addend is a number; text that holds one is read by `parseJson`. ~~|
+  |~~ The addend is a number; text that holds one is read by `toNumber`. ~~|
   ::holds~(is ::number)
 
 :number/add/SubjectNotNumberError
   |~~ `add` adds to a number: two fields of one record add by
       `sumOf /x /y`, a vector adds to each element by `map`,
       `map ~(add 1)`, a string joins by `append`, and text that holds a
-      number is read first by `parseJson`.
+      number is read first by `toNumber`.
   ~~|
 
 :number/add/ArgsBeyondPartsError
@@ -139,7 +139,7 @@
       `10 | sub 3`, which may fall below zero, `5 | sub 7` answering
       `-2`. The subject is a number: a vector subtracts from each of its
       elements by `map`, `map ~(sub 1)`, and text that holds a number is
-      read first by `parseJson`. The subtrahend is computed against the
+      read first by `toNumber`. The subtrahend is computed against the
       subject, and two fields of one record subtract by
       `subOf /total /paid`. A number under a tag answers under the tag.
       ::link~(::number/add | doc) ::link~(::any/subOf | doc)
@@ -156,7 +156,7 @@
 
 :number/sub/subtrahend/NotNumberError
   |~~ The subtrahend is a number; text that holds one is read by
-      `parseJson` first, `10 | sub ("3" | parseJson)`.
+      `toNumber` first, `10 | sub ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -164,7 +164,7 @@
   |~~ `sub` subtracts from a number: two fields of one record subtract by
       `subOf /total /paid`, a vector subtracts from each element by
       `map`, `map ~(sub 1)`, and text that holds a number is read first by
-      `parseJson`.
+      `toNumber`.
   ~~|
 
 :number/sub/subtractsTheNumber
@@ -192,7 +192,7 @@
       a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
       is a number: a vector multiplies each of its elements by `map`,
       `map ~(mul 2)`, and text that holds a number is read first by
-      `parseJson`. The multiplier is computed against the subject, so
+      `toNumber`. The multiplier is computed against the subject, so
       `5 | mul /` squares it, and two fields of one record multiply by
       `mulOf /price /qty`. A number under a tag answers under the tag,
       and a product past the doubles is refused as no number.
@@ -210,7 +210,7 @@
 
 :number/mul/multiplier/NotNumberError
   |~~ The multiplier is a number; text that holds one is read by
-      `parseJson` first, `2 | mul ("3" | parseJson)`.
+      `toNumber` first, `2 | mul ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -218,7 +218,7 @@
   |~~ `mul` multiplies a number: two fields of one record multiply by
       `mulOf /price /qty`, a vector multiplies each element by `map`,
       `map ~(mul 2)`, and text that holds a number is read first by
-      `parseJson`.
+      `toNumber`.
   ~~|
 
 :number/mul/multipliesByTheNumber
@@ -268,8 +268,8 @@
   ~(/0)
 
 :number/div/divisor/NotNumberError
-  |~~ The divisor is a number; text that holds one is read by `parseJson`
-      first, `6 | div ("3" | parseJson)`.
+  |~~ The divisor is a number; text that holds one is read by `toNumber`
+      first, `6 | div ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -285,7 +285,7 @@
   |~~ `div` divides a number: two fields of one record divide by
       `divOf /sum /count`, a vector divides each element by `map`,
       `map ~(div 2)`, and text that holds a number is read first by
-      `parseJson`.
+      `toNumber`.
   ~~|
 
 :number/div/dividesByTheNumber
@@ -332,8 +332,8 @@
   ~(/0)
 
 :number/mod/divisor/NotNumberError
-  |~~ The divisor is a number; text that holds one is read by `parseJson`
-      first, `7 | mod ("3" | parseJson)`.
+  |~~ The divisor is a number; text that holds one is read by `toNumber`
+      first, `7 | mod ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -345,7 +345,7 @@
 
 :number/mod/SubjectNotNumberError
   |~~ `mod` divides a number: text that holds one is read first by
-      `parseJson`, `"7" | parseJson | mod 3`.
+      `toNumber`, `"7" | toNumber | mod 3`.
   ~~|
 
 :number/mod/leavesTheRemainder
@@ -393,7 +393,7 @@
 
 :number/abs/SubjectNotNumberError
   |~~ `abs` takes the sign off a number: text that holds one is read
-      first by `parseJson`, `"-3" | parseJson | abs`.
+      first by `toNumber`, `"-3" | toNumber | abs`.
   ~~|
 
 :number/abs/dropsTheSign
@@ -419,7 +419,7 @@
 
 :number/floor/SubjectNotNumberError
   |~~ `floor` rounds a number down: text that holds one is read first by
-      `parseJson`, `"2.7" | parseJson | floor`.
+      `toNumber`, `"2.7" | toNumber | floor`.
   ~~|
 
 :number/floor/roundsDown
@@ -444,7 +444,7 @@
 
 :number/ceil/SubjectNotNumberError
   |~~ `ceil` rounds a number up: text that holds one is read first by
-      `parseJson`, `"2.1" | parseJson | ceil`.
+      `toNumber`, `"2.1" | toNumber | ceil`.
   ~~|
 
 :number/ceil/roundsUp
@@ -521,7 +521,7 @@
       `-2.5 | round` answering `-3`; a negative count rounds to tens and
       beyond, `1234 | round -2` answering `1200`; and a number rounded
       to zero prints as `0`. The digits are a whole number. The subject
-      is a number, and text that holds one is read first by `parseJson`.
+      is a number, and text that holds one is read first by `toNumber`.
       ::link~(::number/div | doc)
   ~~|
   ::builtin{}
@@ -546,7 +546,7 @@
 
 :number/round/SubjectNotNumberError
   |~~ `round` rounds a number: text that holds one is read first by
-      `parseJson`, `"2.5" | parseJson | round`.
+      `toNumber`, `"2.5" | toNumber | round`.
   ~~|
 
 :number/round/keepsTheDigitsGiven
@@ -613,7 +613,7 @@
 
 :number/gt/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
-      `parseJson` first, `5 | gt ("3" | parseJson)`.
+      `toNumber` first, `5 | gt ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -662,7 +662,7 @@
 
 :number/gte/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
-      `parseJson` first, `5 | gte ("3" | parseJson)`.
+      `toNumber` first, `5 | gte ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -702,7 +702,7 @@
 
 :number/lt/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
-      `parseJson` first, `5 | lt ("3" | parseJson)`.
+      `toNumber` first, `5 | lt ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -738,7 +738,7 @@
 
 :number/lte/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
-      `parseJson` first, `5 | lte ("3" | parseJson)`.
+      `toNumber` first, `5 | lte ("3" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -753,3 +753,62 @@
 :number/lte/failsAbove
   |~~ A greater number is not at most the value. ~~|
   ::law~(2 | lte 1 | not)
+
+:number/toString
+  |~~ Answers the number written as text, as a query and JSON write it,
+      `42 | toString` answering `"42"` and `0.5` answering `"0.5"`, so a
+      number joins text, `[(5 | toString) "px"] | join ""`. `toNumber`
+      turns the text back into the number.
+      ::link~(::string/toNumber | doc)
+  ~~|
+  ::builtin{}
+
+:number/toString/answer
+  |~~ The text that writes the number. ~~|
+  ::string
+
+:number/toString/writesTheNumber
+  |~~ A number answers the text that writes it. ~~|
+  ::law~([42 -1.5 1e21] | map ~toString | eq ["42" "-1.5" "1e+21"])
+
+:number/toString/readsBack
+  |~~ A number turned into its string turns back into itself. ~~|
+  ::law~(0.1 | add 0.2 | :n / | toString | toNumber | eq n)
+
+:number/toKeyword
+  |~~ Answers the keyword a number files under as a key, `1 | toKeyword`
+      answering `:"1"`, as `groupBy` and `indexBy` file it, so a record a
+      number names is read from the map they build,
+      `byId | at (/uid | toKeyword)`. `toNumber` turns the keyword back
+      into the number.
+      ::link~(::keyword/toNumber | doc) ::link~(::vec/indexBy | doc)
+  ~~|
+  ::builtin{}
+
+:number/toKeyword/answer
+  |~~ The keyword of the number's text. ~~|
+  ::keyword
+
+:number/toKeyword/readsTheKeyIndexByFiledItUnder
+  |~~ A number turns into the key `indexBy` files it under. ~~|
+  ::law~([{:id 1 :n "Ann"}] | indexBy ~(/id) | at (1 | toKeyword) | /n | eq "Ann")
+
+:number/toKeyword/readsBack
+  |~~ A number turned into its keyword turns back into itself. ~~|
+  ::law~(1 | toKeyword | toNumber | eq 1)
+
+:number/toNumber
+  |~~ Answers the number itself, so `map ~toNumber` turns numbers and the
+      strings that write numbers into numbers, `[1 "2"] | map ~toNumber`
+      answering `[1 2]`.
+      ::link~(::string/toNumber | doc)
+  ~~|
+  ::builtin{}
+
+:number/toNumber/answer
+  |~~ The number itself. ~~|
+  ::number
+
+:number/toNumber/answersItself
+  |~~ A number answers itself, so numbers and their strings turn into numbers. ~~|
+  ::law~([1 "2"] | map ~toNumber | eq [1 2])

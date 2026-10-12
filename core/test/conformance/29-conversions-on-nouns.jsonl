@@ -1,4 +1,4 @@
-{"name":"a-call-of-keyword-no-kind-answers-names-where-it-lives","query":"42 | keyword !| /addresses","expect":"#[::keyword/keyword ::string/keyword]","decision":"D34"}
+{"name":"a-call-of-a-word-no-kind-answers-names-where-it-lives","query":"42 | toTag !| /addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]","decision":"D34"}
 {"name":"the-contract-of-parse-names-its-residences","query":"42 | parse !| /addresses","expect":"#[::quote/parse ::string/parse]","decision":"D34"}
 {"name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError","decision":"D34"}
 {"name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]","decision":"D34"}

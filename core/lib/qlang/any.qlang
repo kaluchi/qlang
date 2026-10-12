@@ -1670,7 +1670,7 @@
       `{:x 10 :y 3} | sumOf /x /y` answering `13`. A field the record
       lacks answers the error of `/`, and one that may be missing is
       read with its default, `(at :y | coalesce 0)`. Text that holds a
-      number is read first by `parseJson`, and the numbers of a vector
+      number is read first by `toNumber`, and the numbers of a vector
       sum by `sum`. The call gives one number at least.
       ::link~(::number/add | doc) ::link~(::vec/sum | doc)
   ~~|
@@ -1692,7 +1692,7 @@
 
 :any/sumOf/numbers/ElementNotNumberError
   |~~ Each of the numbers is a number; text that holds one is read by
-      `parseJson`, `sumOf (/x | parseJson) /y`.
+      `toNumber`, `sumOf (/x | toNumber) /y`.
   ~~|
   ::holds~(every ~(is ::number))
 
@@ -1712,9 +1712,9 @@
   |~~ A field that may be missing is read with its default. ~~|
   ::law~({:x 1} | sumOf /x (at :y | coalesce 0) | eq 1)
 
-:any/sumOf/readsTextByParseJson
-  |~~ Text that holds a number is read first by `parseJson`. ~~|
-  ::law~({:x "1" :y 2} | sumOf (/x | parseJson) /y | eq 3)
+:any/sumOf/readsTextByToNumber
+  |~~ Text that holds a number is read first by `toNumber`. ~~|
+  ::law~({:x "1" :y 2} | sumOf (/x | toNumber) /y | eq 3)
 
 :any/sumOf/numbers/EmptyError/refusesNoNumber
   |~~ A call with no number is refused under the part. ~~|
@@ -1732,7 +1732,7 @@
       line multiply by `mulOf /price /qty`, `{:price 4 :qty 3} | mulOf
       /price /qty` answering `12`. One factor answers itself, and the
       call gives one at least. Text that holds a number is read first by
-      `parseJson`.
+      `toNumber`.
       ::link~(::number/mul | doc) ::link~(::any/sumOf | doc)
   ~~|
   ~(factors | reduce 1 ~(mul))
@@ -1753,7 +1753,7 @@
 
 :any/mulOf/factors/ElementNotNumberError
   |~~ Each of the factors is a number; text that holds one is read by
-      `parseJson`.
+      `toNumber`.
   ~~|
   ::holds~(every ~(is ::number))
 
@@ -1799,7 +1799,7 @@
 
 :any/subOf/minuend/NotNumberError
   |~~ The minuend is a number, `{:a 5 :b 3} | subOf /a /b`; text that holds
-      one is read by `parseJson` first, `subOf (/a | parseJson) /b`.
+      one is read by `toNumber` first, `subOf (/a | toNumber) /b`.
   ~~|
   ::holds~(is ::number)
 
@@ -1809,7 +1809,7 @@
 
 :any/subOf/subtrahend/NotNumberError
   |~~ The subtrahend is a number, `{:a 5 :b 3} | subOf /a /b`; text that
-      holds one is read by `parseJson` first, `subOf /a (/b | parseJson)`.
+      holds one is read by `toNumber` first, `subOf /a (/b | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1871,7 +1871,7 @@
 
 :any/divOf/dividend/NotNumberError
   |~~ The dividend is a number, `{:a 6 :b 3} | divOf /a /b`; text that holds
-      one is read by `parseJson` first, `divOf (/a | parseJson) /b`.
+      one is read by `toNumber` first, `divOf (/a | toNumber) /b`.
   ~~|
   ::holds~(is ::number)
 
@@ -1881,7 +1881,7 @@
 
 :any/divOf/divisor/NotNumberError
   |~~ The divisor is a number, `{:a 6 :b 3} | divOf /a /b`; text that holds
-      one is read by `parseJson` first, `divOf /a (/b | parseJson)`.
+      one is read by `toNumber` first, `divOf /a (/b | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -2132,7 +2132,7 @@
   |~~ Answers the union of the parts the call computes against the
       subject, maps or sets, in their order, a later key holding over an
       earlier: the value of a pair with its name beside it is
-      `unionOf /1 {:name (/0 | keyword)}`. Maps unite with maps and sets
+      `unionOf /1 {:name (/0 | toString)}`. Maps unite with maps and sets
       with sets, a map with a set being refused by `union`, and the
       union keeps the tags of the first part. One part answers itself,
       and the call gives one at least.
@@ -2164,7 +2164,7 @@
 
 :any/unionOf/foldsTheKeyIntoTheValue
   |~~ The key of a pair joins its value as a field. ~~|
-  ::law~([:auth {:port 3000}] | unionOf /1 {:name (/0 | keyword)} | eq {:port 3000 :name "auth"})
+  ::law~([:auth {:port 3000}] | unionOf /1 {:name (/0 | toString)} | eq {:port 3000 :name "auth"})
 
 :any/unionOf/unitesSets
   |~~ Two sets unite. ~~|

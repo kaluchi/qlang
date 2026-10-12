@@ -7,11 +7,11 @@ import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf, queryTreeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
-import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
+import { nearestKeys, nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
-  makeDoc, makeSet,
+  makeDoc, makeSet, makeRegex,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, isTag, errorAtRest,
   isValueClass, quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
@@ -86,6 +86,7 @@ const AST_NODE_EVALUATORS = {
   DocLit:            evalDocLit,
   TaggedLit:         evalTaggedLit,
   TagLit:   evalTagLit,
+  RegexLit:          evalRegexLit,
   Projection:        evalProjection,
   Call:              evalCall,
   BindStep:          evalBindStep,
@@ -196,6 +197,7 @@ function evalStringLit(node, state)  { return withPipeValue(state, node.value); 
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
+function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
 
 // Each element and each value of a literal is a word forked against the
 // subject, one after another in their order [D84]; a failure lives in the
@@ -493,7 +495,8 @@ async function callByName(lookupName, modifiers, state) {
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, actualValue: state.pipeValue });
+      const nearest = nearestWords(state.env, addresses, state.pipeValue);
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
@@ -840,7 +843,7 @@ function modifierOf(argNode, state) {
   return closeCode(argNode, state);
 }
 
-const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
+const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
 // codeOf(code, callState) → code closed at the call: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope

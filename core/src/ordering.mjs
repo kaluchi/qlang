@@ -1,7 +1,8 @@
 // One order ranks every value [D16]: first by kind, null,
-// boolean, number, string, keyword, tag name, vector, set, map, quote,
-// doc, elision and desc, then every other tag by its name; within
-// a kind numbers by value, strings by their code units, vectors element
+// boolean, number, string, pattern, keyword, tag name, vector, set, map,
+// quote, doc, elision and desc, then every other tag by its name; within
+// a kind numbers by value, strings by their code units, patterns by their
+// text and then their flags [D246], vectors element
 // by element, a set as its vector, maps by their keys and then their
 // values, a desc by the reverse of its payload's place [D140], and a
 // tagged value by its payload. `sort`, `min` and `max`
@@ -9,7 +10,7 @@
 // values of one kind [D34], [D72].
 
 import {
-  isKeyword, isTag, isDoc, isValueClass,
+  isKeyword, isTag, isRegex, isDoc, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
 
@@ -18,16 +19,17 @@ const NULL_KIND     = 0;
 const BOOLEAN_KIND  = 1;
 const NUMBER_KIND   = 2;
 const STRING_KIND   = 3;
-const KEYWORD_KIND  = 4;
-const TAG_NAME_KIND = 5;
-const VECTOR_KIND   = 6;
-const SET_KIND      = 7;
-const MAP_KIND      = 8;
-const QUOTE_KIND    = 9;
-const DOC_KIND      = 10;
-const ELISION_KIND  = 11;
-const DESC_KIND     = 12;
-const TAGGED_KIND   = 13;
+const REGEX_KIND    = 4;
+const KEYWORD_KIND  = 5;
+const TAG_NAME_KIND = 6;
+const VECTOR_KIND   = 7;
+const SET_KIND      = 8;
+const MAP_KIND      = 9;
+const QUOTE_KIND    = 10;
+const DOC_KIND      = 11;
+const ELISION_KIND  = 12;
+const DESC_KIND     = 13;
+const TAGGED_KIND   = 14;
 
 const ELISION_TAG_NAME = 'elision';
 const DESC_TAG_NAME = 'desc';
@@ -37,6 +39,7 @@ function kindOf(value) {
   if (typeof value === 'boolean') return BOOLEAN_KIND;
   if (typeof value === 'number') return NUMBER_KIND;
   if (typeof value === 'string') return STRING_KIND;
+  if (isRegex(value)) return REGEX_KIND;
   if (isKeyword(value)) return KEYWORD_KIND;
   if (isTag(value)) return TAG_NAME_KIND;
   if (isDoc(value)) return DOC_KIND;
@@ -76,6 +79,10 @@ function compareKinded(leftKind, left, rightKind, right) {
     case NUMBER_KIND:
     case STRING_KIND:
       return compareCodeUnits(left, right);
+    case REGEX_KIND: {
+      const bySource = compareCodeUnits(left.source, right.source);
+      return bySource !== 0 ? bySource : compareCodeUnits(left.flags, right.flags);
+    }
     case KEYWORD_KIND:
     case TAG_NAME_KIND:
       return compareCodeUnits(left.name, right.name);

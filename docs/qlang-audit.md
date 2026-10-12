@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-eleventh, holds it against commit `2388dd8`, its baseline: a scar the
+twelfth, holds it against commit `4dc957d`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -332,7 +332,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `2147bab` for this
+against the baseline of the version at hand, commit `4dc957d` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -774,17 +774,29 @@ wrote it, while what a word reads and runs as data, a page, a
 law, code held as data, it reads in the tree of the query that called
 it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
-calling its word by its name or its address [D224]. Two values of a key
+calling its word by its name or its address [D224], and a declaration
+writes a name a step can call [D152]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
 refused [D228], and an invariant holds of the values of a label, so one
 a bare name declares is refused where it stands [D229]; the body of a
 word runs in the scope its call opens with `args` and each part, and a
 step of the body declares none of them again [D71]. A comment is
-whitespace, and a doc the literal in the slot of the declaration it
-documents. One order ranks every value, the set is the ordered vector
+whitespace, and so is a line break wherever it stands, a combinator
+joining two steps and whitespace a declaration as well [D243], and a
+doc is the literal in the slot of the declaration it documents. A value turns into another
+kind by a word of its own kind named for the kind it answers,
+`"42" | toNumber`, `1 | toKeyword`, and nothing converts where no such
+word is written [D244]. A pattern of text is a value of its own,
+`#"\d+ms"`, written as the engine reads it, which the words of a string
+read text by, `match`, `capture`, `scan`, `replace`, `split` and
+`contains` [D246]. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
-definitions of the catalog [D46]. The literal is the one lossless
+definitions of the catalog [D46], and a name no word answers is met
+with the names near it, by its spelling and by the links of the page of
+the word it begins with, `addOf` with `sumOf`, and a word the kind
+of its subject lacks with the words its pages lead to that the subject
+answers, `print` for the `toString` of a vector [D118]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -804,7 +816,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 12 October 2026
+shell with the `qlang` command or in its REPL, and on 13 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -844,7 +856,7 @@ and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
 helpers of `problems`, since a word under a topic serves the topic's
-values alone [D166]. In the sister project, on 12 October 2026:
+values alone [D166]. In the sister project, on 13 October 2026:
 
 ```sh
 $ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
@@ -951,7 +963,7 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | 
 317
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
 |~| raised, and no !| caught it
-|~| The addend is a number; text that holds one is read by `parseJson`.
+|~| The addend is a number; text that holds one is read by `toNumber`.
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
 1
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/subject | count" < /dev/null
@@ -1200,11 +1212,11 @@ Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
 back. A map's elements are its values and its keys are the shape that
 travels with them; `entries` makes the keys data as the pairs `[key
-value]`, and the constructor of `::map` builds a map back from them
-[D138], a string naming a key wherever a key is taken [D139]:
+value]`, and `toMap` builds a map back from them [D138], [D244], a
+string naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
+> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | toString)}) | sort ~(/port)
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -1277,8 +1289,8 @@ them may name them otherwise.
   lines and has one pipeline production. The parser's tree, with
   positions and text, is a separate view for tools and never reaches a
   value.
-- Values: the set of values, null, boolean, number, string, keyword,
-  tag name, vector, map and tagged value; tags with their schemas and
+- Values: the set of values, null, boolean, number, string, pattern,
+  keyword, tag name, vector, map and tagged value; tags with their schemas and
   constructors; the one order; structural equality; the printer of the
   literal.
 - The evaluator: the state pair, the fork, the combinators as
@@ -1350,7 +1362,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `2147bab`, and the finish
+The start is the tree of the baseline, commit `4dc957d`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -1530,36 +1542,13 @@ why.
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
 
-Two inputs. A modifier is computed against the subject of its own step
-[D185], so a value read from the record in the pipe meets no value read
-inside a step that runs on another subject. A fold takes them both: a
-quote of one word is called with the value so far as its subject and
-the element as its arg, and any other code runs on the pair of the
-two [D90]. Two fields of one record meet in a word of their own, the
-family `…Of`, which has gaps:
-
-```qlang
-> {:x 1} | addOf /x /x !| [type /nearest]
-[::call/UnknownNameError [:add]]
-
-> [{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))
-3
-```
-
-All four outside audits name it first, and the fold, the sharpest of
-it, is answered. The alternatives for the rest: a name declared inside a
-quote, `:x /`, taught as the one idiom of several inputs, the words
-`…Of` its sugar or gone, at the cost of the pages and the cases that
-teach them; or the family as it stands, its gaps filled as tasks meet
-them. Open, the maintainer's word on the argument model.
-
 The role of a definition read from the form of its value. An invariant
-written `is ::k` serves its part as the value of the kind beneath its
-tags, while one that computes the same truth another way does not; the
-place, the strictness and the default of a part are read from its
-selector, `/n` or `at n d`; the last names `answer`, `subject` and
-`construct` are roles; and a quote under a bare name is a value, which
-a step answers as the quote:
+written `is ::k` serves its part to the body of the word as the value
+of the kind beneath its tags, while one that computes the same truth
+another way, or none, hands the part as it was given, as the body is
+handed its subject; the place, the strictness and the default of a part
+are read from its selector, `/n` or `at n d`; and the last names
+`answer`, `subject` and `construct` are roles:
 
 ```qlang
 > :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)
@@ -1568,47 +1557,65 @@ a step answers as the quote:
 > :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number | eq true) | null | m ::Width(5)
 ::Width
 
-> :double ~(mul 2) | 5 | double
-~(mul 2)
+> :number/t ~(type) | ::Width(5) | t
+::Width
 ```
 
-The pages, the laws and the showcase of the language server run such a
-quote by `apply`, `:double ~(mul 2) | 5 | apply double` answering
-`10`, and declare a word only where they show one [D235]. All four
-outside audits name it. The alternatives: the role declared, a
-signature of a word in one declaration that unfolds into the parts and
-invariants a word has, at the cost of a form of the grammar and of the
-root's reading of it; a role read from a form refused aloud where the
-form stops fitting it, a cheaper repair of the traps that leaves the
-second mechanism; or the forms as they stand. Open, the layer of
-declarations.
+The serving is what a host's primitive needs, the bare number it adds,
+and it reaches the body of a reader's word as well. Handing that body
+its parts as given, as its subject is handed, turns red the cases that
+state the serving and the laws of `is` that ask each element of a part
+and a set as a vector, and hands a part that reads the args whole the
+args under the tag of the word, the model's measurement of 12 October
+2026. All four outside audits name the second mechanism. The
+alternatives: the role declared, a signature of a word in one
+declaration that unfolds into the parts and invariants a word has, at
+the cost of a form of the grammar and of the root's reading of it; a
+role read from a form refused aloud where the form stops fitting it, a
+cheaper repair of the traps that leaves the second mechanism; the
+serving kept for a host's primitive alone, a move of the design whose
+cases [D67] and [D167] name; or the forms as they stand. Open, the
+layer of declarations.
 
-One rule for line breaks. At the top level a line break ends a
-command's modifiers and stands for `|`, and inside a group or a quote it
-is a space, so the same lines answer at the top level and fail in
-brackets:
+A step that drops its subject. A step after `|` that reads nothing of
+the value it is handed, a literal of no parts, a tag name, a quote, a
+doc or a bare name that holds a value, replaces the value in silence,
+and a reader who meant another step learns nothing from the answer; a
+child of the benchmark put a vector under two tags so and met the
+second tag alone (`scripts/benchmark/runs/R7.json`, friction F3):
 
 ```qlang
-> "[1 2 3]\nmap ~(mul 2)\nsum" | parse | apply /
-12
-
-> "([1 2 3]\nmap ~(mul 2)\nsum)" | parse !| type
-::quote/ParseError
+> [7 8] | ::Inner | ::Outer
+::Outer
 ```
 
-The grammar spells each rule of a pipeline twice for it, the rules
-prefixed `Line` beside their twins in `core/src/grammar.peggy`. The
-alternatives: the rule of the top level in every pipeline, a group and a
-quote among them, which the grammar then spells once while a literal
-still reads a line break as a space between its elements, and which
-reads no case of the suite and no source of the catalog otherwise, the
-model's measurement of 12 October 2026, though a reader who writes a
-command across lines inside a group meets a pipe; one family of rules
-told apart by a depth of brackets the parser counts, which keeps the
-meanings and drops the twins, and a prototype of which read every case,
-every source and some hundred thousand inputs made from them as the
-tree's parser does; or the twins as they stand. Open, the maintainer's
-word on the rule.
+The maintainer put the idea of showing it, «можем какой-то
+прокси-субьъект придумать скрытый.. если рантайм конечно в состоянии
+вычислить тихую смену субъекта и для прокси субъекта будем печатать
+новый субьъект с тривией что старый сменили и почему .. как с ошибками
+неперехваченными», beside the pipeline changed «что б не поволять в нем
+тихой смены субъекта - но там тоже могут быть косяки» (maintainer,
+2026-10-12 16:16, session 014e5a04), and kept the first to ripen:
+«давай просто запишем идею куда-то вариант 1 .. на будущее, пусть
+полежит дозреет» (16:35). The model's reading: whether a step reads its
+subject is read from the parser's tree, as `readsItsSubject` tells the
+command line [D215], and whether a bare name holds a value from the
+declarations its scope holds; a step after a declaration starts anew,
+and a step followed by `!|` reads the outcome, as `false !| true` does,
+so neither drops; a guard that passes or raises, its answer left for a
+name read back, drops by design. Over the laws of the catalog, the cases
+of the suite, the queries of the benchmark and the sources of the
+sister project, the other drops show what such a step answers, the
+model's measurement of 12 October 2026. The alternatives: the answer
+printed as it is, with a line comment beneath it that names the step
+and what it likely meant, as a host writes a line above a failure no
+`!|` caught [D13], an answer that still reads back and a hint the
+language server shows on the step, the maintainer's first variant and
+the model's recommendation; a hidden value that stands for the new one
+and remembers the old, which has no literal of its own; or a refusal of
+the step in the language, under which `5 | false !| true` answers
+`true` and the cases of [D8], [D125] and [D235] that pipe a quote, a
+doc and a name of a quote change. Open, left to ripen.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
@@ -1682,8 +1689,9 @@ the first candidate, and it amends the state pair.
 
 Where a host's query runs. A host answers the language's calls one by
 one over its own boundary today, so a query that fans out over a large
-answer, `@members | map ~@callers` on `java.lang.String`, pays a round trip
-per element, and its elements now run in their order [D84]. The
+answer, the members of `java.lang.String` and the callers of each, pays
+a round trip per element, and its elements now run in their order
+[D84]. The
 maintainer's direction is the other end: «само qlang выражение мы будем
 отправлять через jdt в сам эклипс и пусть его процесс считает ... и
 тогда не надо все эти ресты выставлять в апи, для выдергивания данных»
@@ -1799,7 +1807,15 @@ they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
 address. The sister project took the first: its helpers are words of
 any value, `::any/problemsVia` and its kin, and its suite passes
-against the workspace copy.
+against the workspace copy. The maintainer reads it as a workaround:
+«там перенос под any это простой - но немного кривой способ .. там оно
+переписано так что осталось .. в старой функциональной парадигме, а не
+от тэга .. в общем не SVO там до сих пор..» (maintainer, 2026-10-12
+20:12, session 014e5a04). A helper takes a string or a node as its
+object and runs as a function over it, where a word of S V O resides on
+the tag of the node it serves [D34]; the helpers move onto those tags
+when the sister project's nodes carry their kinds, which its redesign
+brings. Open, with that redesign.
 
 A helper of one word. [D153] let a word's helper live in the group of
 its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;
@@ -1848,27 +1864,6 @@ still; and sources loaded by an index of their names, which costs the
 loader and a rewrite of every reader of the whole root, and spares a
 query that fails nothing.
 
-Regular expressions. Each outside audit names their absence. Text comes
-apart by `split` and `lines` and is read by `contains`, `startsWith`
-and `endsWith`, each of a fixed text, and no composition of them
-matches a pattern, so a line whose fields vary in their order and their
-width, the line of a log, is out of reach:
-
-```qlang
-> "took 12ms" | matches "\\d+ms" !| type
-::call/UnknownNameError
-```
-
-The alternatives: words of strings over the patterns of JavaScript,
-`matches` asking whether a pattern holds, `match` answering the first
-match as the vector of its whole and its groups, or null, and `replace`
-putting a text in the place of every match, a pattern written in a
-string as JSON writes one, `"\\d+"`, which costs a step that calls a
-reader's value named `match` on a string, refused once the word is
-there [D223], and a dialect of patterns every host of the language
-carries; or the patterns left to a host, which leaves the readers of
-the command line without them.
-
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
@@ -1899,13 +1894,13 @@ the command line without them.
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
+[D67]: decisions/D67.md
 [D71]: decisions/D71.md
 [D72]: decisions/D72.md
 [D80]: decisions/D80.md
 [D84]: decisions/D84.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
-[D90]: decisions/D90.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
 [D107]: decisions/D107.md
@@ -1970,3 +1965,6 @@ the command line without them.
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md
+[D243]: decisions/D243.md
+[D244]: decisions/D244.md
+[D246]: decisions/D246.md

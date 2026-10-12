@@ -88,7 +88,7 @@
 {"name":"a-flush-combinator-is-no-continuation","query":"\"(1 | add(2\" | parse !| /expected","expect":"[\")\"]","decision":"D125"}
 {"name":"a-doc-after-a-step-is-refused","query":"\"5 | add 1 |~~ why ~~|\" | parse !| /message | contains \"|~ … ~|\"","expect":"true","decision":"D125"}
 {"name":"a-doc-piped-to-is-a-value","query":"5 | |~~ note ~~| | type","expect":"::doc","decision":"D125"}
-{"name": "a-source-no-short-run-of-closers-completes-lists-the-continuations", "query": "\"[[[[[ |~~ a\" | parse !| /expected | has :any-character", "expect": "true", "decision": "D125"}
+{"name":"a-source-no-short-run-of-closers-completes-lists-the-continuations","query":"\"[[[[[ |~~ a\" | parse !| /expected | has :any-character","expect":"true","decision":"D125"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| /addresses","expect":"#[::doc/content]","decision":"D46"}
 {"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
@@ -107,3 +107,4 @@
 {"name":"an-implicit-kind-answers-one-page-whatever-asked-first","query":"[(::Late | doc !| type) (::Late{:a 1} | doc !| type)] | distinct | count","expect":"1","decision":"D152"}
 {"name":"the-body-of-a-kind-is-its-constructor","query":":Small |~~ Small. ~~| | :Small/construct ~(if (lt 10) ~(/) ~(!{:reason :big} | raise)) | ::Small(12) !| /reason","expect":":big","decision":"D152"}
 {"name":"a-kind-of-the-core-is-a-label-with-a-construct","query":"::keyword | [(binding | /value | type) (::keyword/construct | binding | /value | type)]","expect":"[::doc ::builtin]","decision":"D169"}
+{"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf /x /x !| /nearest | has :sumOf","expect":"true","decision":"D118"}

@@ -7,11 +7,12 @@
 // names the word that refused [D46]. A part that takes code arrives
 // closed at the call, code run on the element [D34], [D167].
 
-import { isBoolean, isKeyword, isString, isNumber, isTag, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
+import { isKeyword, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
+import { keywordFiledFor } from './convert.mjs';
 
 const DESC_TAG = makeTag('desc');
 
@@ -248,19 +249,15 @@ bindPrim('map/any', (map, predicate) => firstVerdict(keyed(map), predicate, true
 
 // ── partitions ─────────────────────────────────────────────────
 
-// The keyword the key of `groupBy` or `indexBy` answers for an element:
-// a string or a number filed under the keyword of its text [D130], a
-// boolean or null under that of its literal and a tag name under that of
-// its name [D201], or the error it answered; without a key the element
-// is its own [D135]. Two values of the key that file under one keyword
-// meet, `1` and `"1"` under `:"1"`, and the second is refused [D228].
+// The keyword the key of `groupBy` or `indexBy` answers for an element,
+// the one `toKeyword` turns it into [D201], [D244], or the error it
+// answered; without a key the element is its own [D135]. Two values of
+// the key that file under one keyword meet, `1` and `"1"` under `:"1"`,
+// and the second is refused [D228].
 async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return answer;
-  const named = isKeyword(answer) ? answer
-    : isString(answer) || isNumber(answer) || isBoolean(answer) || answer === NULL ? keyword(String(answer))
-    : isTag(answer) ? keyword(answer.name)
-    : null;
+  const named = keywordFiledFor(answer);
   if (named === null) throw new KeyNotKeywordError({ index, actualValue: answer });
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);

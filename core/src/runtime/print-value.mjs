@@ -3,6 +3,7 @@
 // the forms of the core write the rest [D96].
 
 import { printQuoteSource, docText } from '../quote.mjs';
+import { patternLiteral } from '../pattern.mjs';
 import {
   isVec,
   isQMap,
@@ -34,6 +35,9 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
+// A pattern writes its literal, its flags after it [D246].
+export const printRegex = r => patternLiteral(r.source, r.flags);
+
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [D96]; the set, the quote, the doc and the error
 // write their own brackets.
@@ -44,6 +48,7 @@ const PRINT_HANDLERS = {
   string:  escapeQlangStringLiteral,
   keyword: literalOfKeyword,
   tag:     literalOfKeyword,
+  regex:   printRegex,
   error:   printErrorValue,
   vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
   map:     (m, indent, printedOf) => printMapLike('{', m, indent, printedOf),

@@ -237,7 +237,7 @@ function withDeclaredNames(items, ast, offset, spellings) {
 
 // The kind of the value a literal step answers [D32].
 const KIND_OF_LITERAL = {
-  NumberLit: 'number', StringLit: 'string', BooleanLit: 'boolean', NullLit: 'null',
+  NumberLit: 'number', StringLit: 'string', RegexLit: 'regex', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
   QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag'
 };
@@ -251,9 +251,9 @@ function wordStartBefore(source, offset) {
 
 // The subject of the step at the cursor, the word being typed aside: the
 // steps before it, where the source with a step at the cursor parses, that
-// step follows `|` or a line break, and the value before it has kinds its
-// declarations name; a step after `!|` takes an error, and has none. The
-// parser tells the combinator, the grammar written once.
+// step follows `|`, and the value before it has kinds its declarations
+// name; a step after `!|` takes an error, and has none. The parser tells
+// the combinator, the grammar written once.
 async function subjectAt(source, offset) {
   const start = wordStartBefore(source, offset);
   let pipeline;
@@ -635,7 +635,8 @@ export const SEMANTIC_TOKEN_TYPES = [
   'struct',
   'string',
   'number',
-  'comment'
+  'comment',
+  'regexp'
 ];
 
 const KIND_TO_TYPE_INDEX = {
@@ -647,6 +648,7 @@ const KIND_TO_TYPE_INDEX = {
   quote:   4,
   number:  5,
   comment: 6,
+  regex:   7,
   err:     2
 };
 

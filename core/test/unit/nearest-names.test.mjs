@@ -29,6 +29,22 @@ describe('an unresolved name names the names nearest to it', () => {
     expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
   });
 
+  it('a name that begins with a word and goes on in a capitalised tail names the words its page links that end in the tail [D118]', async () => {
+    expect(await nearestOf('{:x 1} | addOf /x /x')).toEqual([keyword('add'), keyword('sumOf')]);
+  });
+
+  it('follows the links of a page alone, by the tag a link opens with, past a capitalised tail', async () => {
+    const twice = ':number/twice |~~ Doubles. ::snippet~(::any/sumOf | doc) ::link~(1) ::link~(::map/keys | doc) ::link~(::any/mulOf | doc) ~~| ~(mul 2) | 5';
+    expect(await nearestOf(`${twice} | twiceOf`)).toEqual([keyword('mulOf'), keyword('twice')]);
+    expect(await nearestOf(`${twice} | twices`)).toEqual([keyword('twice')]);
+    expect(await nearestOf(`${twice} | twic`)).toEqual([keyword('twice')]);
+  });
+
+  it('follows no page of a name near by its spelling that the typed name does not begin with', async () => {
+    const smooth = ':any/endX ~(1) | :number/smooth |~~ Smooths. ::link~(::any/endX | doc) ~~| ~(1) | 5';
+    expect(await nearestOf(`${smooth} | smoathX`)).toEqual([keyword('smooth')]);
+  });
+
   it('a name with nothing near holds the empty vector', async () => {
     expect(await nearestOf('zzzzqqq')).toEqual([]);
   });

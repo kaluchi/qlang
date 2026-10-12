@@ -180,7 +180,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('split with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringError');
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringOrRegexError');
   });
 
   it('join on non-Vec subject is refused by the address of join', async () => {

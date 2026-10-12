@@ -14,3 +14,4 @@
 {"name":"groupBy-files-a-number-under-the-keyword-of-its-text","query":"[{:k 1} {:k 2} {:k 1}] | groupBy ~(/k) | keys","expect":"#[:\"1\" :\"2\"]","decision":"D130"}
 {"name":"a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | groupBy ~(/b) !| type","expect":"::proj/KeyNotInMapError"}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-set","query":"#[{:a 1}] | groupBy ~(/b) !| type","expect":"::proj/KeyNotInMapError","decision":"D87"}
+{"name":"two-values-of-one-text-meet-under-one-key","query":"[1 \"1\"] | groupBy !| [type /key /taken]","expect":"[::vec/groupBy/KeyTakenError :\"1\" 1]","decision":"D228"}

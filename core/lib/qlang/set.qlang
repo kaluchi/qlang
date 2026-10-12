@@ -611,8 +611,9 @@
       answers a string or a number files under the keyword of its text,
       `#[1 2] | groupBy` answering `{:"1" #[1] :"2" #[2]}`, a boolean
       or null under the keyword of its literal and a tag name under that
-      of its name, and values whose text is one under one key; a key of
-      another kind is refused, `:index` naming the element. The key is
+      of its name, and two values whose text is one meet and are
+      refused; a key of another kind is refused, `:index` naming the
+      element. The key is
       code, a quote run on each element, or null: `groupBy ~(/k)`, where
       `groupBy /k` is refused under the part.
       ::link~(::set/indexBy | doc) ::link~(::vec/groupBy | doc)
@@ -672,9 +673,27 @@
   |~~ A tag name key files under the keyword of its name. ~~|
   ::law~(#[1 "a"] | groupBy ~(type) | eq {:number #[1] :string #["a"]})
 
-:set/groupBy/filesValuesOfOneTextUnderOneKey
-  |~~ Values of two kinds whose text is one file under one key. ~~|
-  ::law~(#[true "true"] | groupBy | eq {:true #[true "true"]})
+
+:set/groupBy/KeyTakenError
+  |~~ Two values the key answers file under one keyword, `1` and `"1"`
+      both under `:"1"`, and a map holds the elements of one value under a key: the second
+      is refused, `:key` naming the keyword, `:taken` the value that
+      filed under it first and `:index` the element that met it. A key
+      that means both answers one kind,
+      `~(/id | if (type | eq ::string) ~(/) ~(print))`.
+  ~~|
+
+:set/groupBy/KeyTakenError/key
+  |~~ The keyword both values file under. ~~|
+  ::keyword
+
+:set/groupBy/KeyTakenError/taken
+  |~~ The value of the key that filed under the keyword first. ~~|
+  ::any
+
+:set/groupBy/KeyTakenError/refusesTwoValuesOfOneText
+  |~~ A number and a string of one text meet under one key. ~~|
+  ::law~(#[1 "1"] | groupBy !| [type /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
 
 :set/groupBy/key/NotQuoteOrNullError/refusesAKeyWithoutItsQuote
   |~~ A key written without its quote mark is refused under the part. ~~|
@@ -692,9 +711,8 @@
       answering `{:a :a}`. A key that answers a string or a number files
       under the keyword of its text, `2` under `:"2"`, a boolean or null
       under the keyword of its literal and a tag name under that of its
-      name, and of values whose text is one the last in the one order
-      stays; a key of another kind is refused, `:index` naming the
-      element. The key is code, a quote run on each element, or null:
+      name, and two values whose text is one meet and are refused; a key
+      of another kind is refused, `:index` naming the element. The key is code, a quote run on each element, or null:
       `indexBy ~(/id)`, where `indexBy /id` is refused under the part.
       ::link~(::set/groupBy | doc) ::link~(::vec/indexBy | doc)
   ~~|
@@ -753,9 +771,27 @@
   |~~ A tag name key files under the keyword of its name. ~~|
   ::law~(#[1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
 
-:set/indexBy/keepsTheLastOfOneText
-  |~~ Of values whose text is one the last in the one order stays. ~~|
-  ::law~(#[true "true"] | indexBy | eq {:true "true"})
+
+:set/indexBy/KeyTakenError
+  |~~ Two values the key answers file under one keyword, `1` and `"1"`
+      both under `:"1"`, and a map holds one element of one value under a key: the second
+      is refused, `:key` naming the keyword, `:taken` the value that
+      filed under it first and `:index` the element that met it. A key
+      that means both answers one kind,
+      `~(/id | if (type | eq ::string) ~(/) ~(print))`.
+  ~~|
+
+:set/indexBy/KeyTakenError/key
+  |~~ The keyword both values file under. ~~|
+  ::keyword
+
+:set/indexBy/KeyTakenError/taken
+  |~~ The value of the key that filed under the keyword first. ~~|
+  ::any
+
+:set/indexBy/KeyTakenError/refusesTwoValuesOfOneText
+  |~~ A number and a string of one text meet under one key. ~~|
+  ::law~(#[1 "1"] | indexBy !| [type /key /taken] | eq [::set/indexBy/KeyTakenError :"1" 1])
 
 :set/indexBy/key/NotQuoteOrNullError/refusesAKeyWithoutItsQuote
   |~~ A key written without its quote mark is refused under the part. ~~|

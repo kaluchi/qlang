@@ -252,21 +252,29 @@ bindPrim('map/any', (map, predicate) => firstVerdict(keyed(map), predicate, true
 // a string or a number filed under the keyword of its text [D130], a
 // boolean or null under that of its literal and a tag name under that of
 // its name [D201], or the error it answered; without a key the element
-// is its own [D135].
-async function keywordOf(key, element, index, KeyNotKeywordError) {
+// is its own [D135]. Two values of the key that file under one keyword
+// meet, `1` and `"1"` under `:"1"`, and the second is refused [D228].
+async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
-  if (isErrorValue(answer) || isKeyword(answer)) return answer;
-  if (isString(answer) || isNumber(answer) || isBoolean(answer) || answer === NULL) return keyword(String(answer));
-  if (isTag(answer)) return keyword(answer.name);
-  throw new KeyNotKeywordError({ index, actualValue: answer });
+  if (isErrorValue(answer)) return answer;
+  const named = isKeyword(answer) ? answer
+    : isString(answer) || isNumber(answer) || isBoolean(answer) || answer === NULL ? keyword(String(answer))
+    : isTag(answer) ? keyword(answer.name)
+    : null;
+  if (named === null) throw new KeyNotKeywordError({ index, actualValue: answer });
+  const taken = filed.get(named.name);
+  if (taken === undefined) filed.set(named.name, answer);
+  else if (compareValues(taken, answer) !== 0) throw new KeyTakenError({ key: named, taken, index, actualValue: answer });
+  return named;
 }
 
 // The elements filed under the keyword the key answers for each, in
 // order.
-async function bucketsOf(sequence, key, KeyNotKeywordError) {
+async function bucketsOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
   const buckets = new Map();
+  const filed = new Map();
   for (const [index, element] of sequence.entries()) {
-    const bucketKey = await keywordOf(key, element, index, KeyNotKeywordError);
+    const bucketKey = await keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed);
     if (isErrorValue(bucketKey)) return bucketKey;
     if (!buckets.has(bucketKey.name)) buckets.set(bucketKey.name, []);
     buckets.get(bucketKey.name).push(element);
@@ -275,20 +283,23 @@ async function bucketsOf(sequence, key, KeyNotKeywordError) {
 }
 
 const VecGroupByKeyNotKeywordError = declareRefusal('vec/groupBy/KeyNotKeywordError');
+const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
 const SetGroupByKeyNotKeywordError = declareRefusal('set/groupBy/KeyNotKeywordError');
-bindPrim('vec/groupBy', (vector, key) => bucketsOf(vector, key, VecGroupByKeyNotKeywordError));
+const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
+bindPrim('vec/groupBy', (vector, key) => bucketsOf(vector, key, VecGroupByKeyNotKeywordError, VecGroupByKeyTakenError));
 // A set's buckets are sets, so the uniqueness of its elements survives
 // the partition.
 bindPrim('set/groupBy', async (set, key) => {
-  const buckets = await bucketsOf(set, key, SetGroupByKeyNotKeywordError);
+  const buckets = await bucketsOf(set, key, SetGroupByKeyNotKeywordError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 });
 
 // The last element filed under each keyword the key answers.
-async function indexOf(sequence, key, KeyNotKeywordError) {
+async function indexOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
   const index = new Map();
+  const filed = new Map();
   for (const [position, element] of sequence.entries()) {
-    const indexKey = await keywordOf(key, element, position, KeyNotKeywordError);
+    const indexKey = await keywordOf(key, element, position, KeyNotKeywordError, KeyTakenError, filed);
     if (isErrorValue(indexKey)) return indexKey;
     index.set(indexKey.name, element);
   }
@@ -296,9 +307,11 @@ async function indexOf(sequence, key, KeyNotKeywordError) {
 }
 
 const VecIndexByKeyNotKeywordError = declareRefusal('vec/indexBy/KeyNotKeywordError');
+const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
 const SetIndexByKeyNotKeywordError = declareRefusal('set/indexBy/KeyNotKeywordError');
-bindPrim('vec/indexBy', (vector, key) => indexOf(vector, key, VecIndexByKeyNotKeywordError));
-bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordError));
+const SetIndexByKeyTakenError = declareRefusal('set/indexBy/KeyTakenError');
+bindPrim('vec/indexBy', (vector, key) => indexOf(vector, key, VecIndexByKeyNotKeywordError, VecIndexByKeyTakenError));
+bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordError, SetIndexByKeyTakenError));
 
 // ── slices and lookup ──────────────────────────────────────────
 

@@ -822,8 +822,8 @@
       boolean or null under the keyword of its literal, so a condition
       partitions, `[1 2 3] | groupBy ~(gt 1)` answering `{:false [1]
       :true [2 3]}`, and a tag name under the keyword of its name, so
-      `groupBy ~(type)` files by kind, and values whose text is one file
-      under one key, `true` beside `"true"`; a key of another kind, a
+      `groupBy ~(type)` files by kind, and two values whose text is one,
+      `1` and `"1"`, meet and are refused; a key of another kind, a
       vector or a map, is refused at its element. Without a key an element
       files under itself, so `groupBy | map ~count` counts the
       occurrences of each value. The key
@@ -895,9 +895,9 @@
   |~~ A tag name files under the keyword of its name. ~~|
   ::law~([1 "a" 2] | groupBy ~(type) | eq {:number [1 2] :string ["a"]})
 
-:vec/groupBy/filesValuesOfOneTextUnderOneKey
-  |~~ Values of two kinds whose text is one file under one key. ~~|
-  ::law~([true "true"] | groupBy | eq {:true [true "true"]})
+:vec/groupBy/filesOneKindOfOneTextTogether
+  |~~ A key that answers one kind files the values of one text together. ~~|
+  ::law~([{:id 1} {:id "1"}] | groupBy ~(/id | if (type | eq ::string) ~(/) ~(print)) | map ~count | eq {:"1" 2})
 
 :vec/groupBy/filesUnderItselfWithoutAKey
   |~~ Without a key an element files under itself. ~~|
@@ -906,6 +906,27 @@
 :vec/groupBy/answersTheErrorOfTheKey
   |~~ A key that misses its field answers the error of the read. ~~|
   ::law~([{:a 1}] | groupBy ~(/k) !| type | eq ::proj/KeyNotInMapError)
+
+:vec/groupBy/KeyTakenError
+  |~~ Two values the key answers file under one keyword, `1` and `"1"`
+      both under `:"1"`, and a map holds the elements of one value under a key: the second
+      is refused, `:key` naming the keyword, `:taken` the value that
+      filed under it first and `:index` the element that met it. A key
+      that means both answers one kind,
+      `~(/id | if (type | eq ::string) ~(/) ~(print))`.
+  ~~|
+
+:vec/groupBy/KeyTakenError/key
+  |~~ The keyword both values file under. ~~|
+  ::keyword
+
+:vec/groupBy/KeyTakenError/taken
+  |~~ The value of the key that filed under the keyword first. ~~|
+  ::any
+
+:vec/groupBy/KeyTakenError/refusesTwoValuesOfOneText
+  |~~ A number and a string of one text meet under one key. ~~|
+  ::law~([1 "1"] | groupBy !| [type /key /taken /index] | eq [::vec/groupBy/KeyTakenError :"1" 1 1])
 
 :vec/groupBy/key/NotQuoteOrNullError/refusesAKeyword
   |~~ A keyword given as the key is computed at the call, and refused. ~~|
@@ -927,9 +948,8 @@
       a key the last wins. A key files under a keyword as `groupBy` files
       it, a string or a number under the keyword of its text, a boolean
       or null under that of its literal and a tag name under that of its
-      name, and of values whose text is one the last stays, `[true
-      "true"] | indexBy` answering `{:true "true"}`; a key of another kind
-      is refused at its element. Without a key an element files under
+      name, and two values whose text is one, `1` and `"1"`, meet and
+      are refused; a key of another kind is refused at its element. Without a key an element files under
       itself, a string under its keyword. The key is code run on
       each element, a quote, `~(/id)`; a value computed at the call is
       refused. A set answers `indexBy` by a word of its own, and
@@ -991,9 +1011,6 @@
   |~~ A tag name key files under the keyword of its name. ~~|
   ::law~([1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
 
-:vec/indexBy/keepsTheLastOfOneText
-  |~~ Of values whose text is one the last stays. ~~|
-  ::law~([true "true"] | indexBy | eq {:true "true"})
 
 :vec/indexBy/filesAStringUnderItsKeyword
   |~~ Without a key a string files under its keyword. ~~|
@@ -1002,6 +1019,27 @@
 :vec/indexBy/filesAKeywordUnderItself
   |~~ Without a key a keyword files under itself. ~~|
   ::law~([:x :y] | indexBy | eq {:x :x :y :y})
+
+:vec/indexBy/KeyTakenError
+  |~~ Two values the key answers file under one keyword, `1` and `"1"`
+      both under `:"1"`, and a map holds one element of one value under a key: the second
+      is refused, `:key` naming the keyword, `:taken` the value that
+      filed under it first and `:index` the element that met it. A key
+      that means both answers one kind,
+      `~(/id | if (type | eq ::string) ~(/) ~(print))`.
+  ~~|
+
+:vec/indexBy/KeyTakenError/key
+  |~~ The keyword both values file under. ~~|
+  ::keyword
+
+:vec/indexBy/KeyTakenError/taken
+  |~~ The value of the key that filed under the keyword first. ~~|
+  ::any
+
+:vec/indexBy/KeyTakenError/refusesTwoValuesOfOneText
+  |~~ A number and a string of one text meet under one key. ~~|
+  ::law~([{:id 1} {:id "1"}] | indexBy ~(/id) !| [type /key /taken /index] | eq [::vec/indexBy/KeyTakenError :"1" 1 1])
 
 :vec/indexBy/key/NotQuoteOrNullError/refusesAKeyword
   |~~ A keyword given as the key is computed at the call, and refused. ~~|

@@ -107,4 +107,4 @@
 {"name":"an-implicit-kind-answers-one-page-whatever-asked-first","query":"[(::Late | doc !| type) (::Late{:a 1} | doc !| type)] | distinct | count","expect":"1","decision":"D152"}
 {"name":"the-body-of-a-kind-is-its-constructor","query":":Small |~~ Small. ~~| | :Small/construct ~(if (lt 10) ~(/) ~(!{:reason :big} | raise)) | ::Small(12) !| /reason","expect":":big","decision":"D152"}
 {"name":"a-kind-of-the-core-is-a-label-with-a-construct","query":"::keyword | [(binding | /value | type) (::keyword/construct | binding | /value | type)]","expect":"[::doc ::builtin]","decision":"D169"}
-{"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf /x /x !| /nearest | has :sumOf","expect":"true","decision":"D242"}
+{"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf /x /x !| /nearest | has :sumOf","expect":"true","decision":"D118"}

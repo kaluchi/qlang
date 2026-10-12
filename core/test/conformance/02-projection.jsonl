@@ -20,5 +20,5 @@
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | /rows/1/0","expect":"3"}
 {"name":"null-subject-strict","query":"null | /any","expect":"::proj/SubjectNotProjectableError!{\n  :key :any\n  :actualType ::null\n  :trail [\n    {\n      :step ~(/any)\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-missed-key-leads-to-the-keys-near-it","query":"{:emails [] :age 3} | /email !| /nearest","expect":"[:emails]","decision":"D203"}
+{"name":"a-missed-key-leads-to-the-keys-near-it","query":"{:emails [] :age 3} | /email !| /nearest","expect":"[:emails]","decision":"D118"}
 {"name":"a-descriptor-reads-its-field-by-projection","query":"::builtin{:note :draft} | /note","expect":":draft","decision":"D113"}

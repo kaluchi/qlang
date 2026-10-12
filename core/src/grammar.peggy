@@ -102,14 +102,22 @@
   // prose [D19].
   let docQuoteDepth = 0;
 
-  // The words of the literals, which a step reads as their values.
+  // Whether a step can call the name a declaration writes: a bare name,
+  // and no word of a literal, which a step reads as its value, alone but
+  // for a label, which its tag reaches [D152].
   const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 
-  // Whether a step can call the name a declaration writes: a bare name,
-  // and no literal's word alone but for a label, which its tag reaches
-  // [D245].
   function nameCalled(name, body) {
     return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+  }
+
+  function refuseNameNoStepCalls(key, body) {
+    if (!readsAsBareKeyword(key.name)) {
+      error(`\`${key.text}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``, key.location);
+    }
+    if (!nameCalled(key.name, body)) {
+      error(`\`${key.text}\` is the word of a literal, which a step reads as the value: declare another name`, key.location);
+    }
   }
 
   // Whether the engine reads a pattern a literal writes with its flags
@@ -124,15 +132,6 @@
     if (flags === null) error(`a pattern takes the flags ${[...PATTERN_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
     const problem = patternProblem(source, flags);
     if (problem !== null) error(patternRefusal(source, flags, problem));
-  }
-
-  function refuseNameNoStepCalls(key, body) {
-    if (!readsAsBareKeyword(key.name)) {
-      error(`\`${key.text}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``, key.location);
-    }
-    if (!nameCalled(key.name, body)) {
-      error(`\`${key.text}\` is the word of a literal, which a step reads as the value: declare another name`, key.location);
-    }
   }
 }
 
@@ -322,7 +321,7 @@ ModifierGap
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [D152]; a lone
-// `:foo` is a keyword. The name it writes is one a step can call [D245].
+// `:foo` is a keyword. The name it writes is one a step can call [D152].
 BindStep
   = key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }

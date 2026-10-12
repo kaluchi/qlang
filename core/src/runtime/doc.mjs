@@ -24,7 +24,7 @@ export const linksOf = doc => Object.freeze(doc.filter(inRole('link')));
 
 // linkedAddressesOf(doc) → the address each link of a page opens with,
 // `::link~(::any/sumOf | doc)` opening with `any/sumOf`; a link that
-// opens with no tag name names none [D242].
+// opens with no tag name names none [D118].
 export function linkedAddressesOf(doc) {
   return linksOf(doc).map(link => beneathTags(link).beneath[0]).filter(isTag).map(tag => tag.name);
 }

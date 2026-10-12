@@ -10,7 +10,7 @@
 {"name":"a-container-has-no-string-and-a-map-no-vector","query":"[([1 2] | toString !| type) ({:a 1} | toVec !| type) (null | toString !| type)]","expect":"[::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError]","decision":"D244"}
 {"name":"keyword-leaves-the-language","query":"\"5\" | keyword !| type","expect":"::call/UnknownNameError","decision":"D244"}
 {"name":"distinct-stays-beside-toSet","query":"[2 1 2] | [distinct toSet]","expect":"[#[1 2] #[1 2]]","decision":"D244"}
-{"name":"a-refused-word-leads-to-the-act-the-kind-keeps","query":"[([1 2] | toString !| /nearest) (~(add 1) | toString !| /nearest) ({:a 1} | toVec !| /nearest) ({:a 1} | toSet !| /nearest)]","expect":"[[:json :print] [:json :parse :print] [:entries :vals] [:keys]]","decision":"D247"}
-{"name":"a-refused-word-leads-only-to-a-word-of-its-answer","query":"[(42 | parse !| has :nearest) (42 | filter ~(gt 0) !| has :nearest)]","expect":"[false false]","decision":"D247"}
+{"name":"a-refused-word-leads-to-the-act-the-kind-keeps","query":"[([1 2] | toString !| /nearest) (~(add 1) | toString !| /nearest) ({:a 1} | toVec !| /nearest) ({:a 1} | toSet !| /nearest)]","expect":"[[:json :print] [:json :parse :print] [:entries :vals] [:keys]]","decision":"D118"}
+{"name":"a-refused-word-leads-only-to-a-word-of-its-answer","query":"[(42 | parse !| has :nearest) (42 | filter ~(gt 0) !| has :nearest)]","expect":"[false false]","decision":"D118"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"[([[:a 1]] | tag ::map !| type) (#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadNotMapError ::vec/PayloadNotVecError]","decision":"D244"}
 {"name":"a-string-of-two-characters-is-no-pair","query":"[\"ab\"] | toMap !| [type /index]","expect":"[::vec/toMap/ElementNotPairError 0]","decision":"D244"}

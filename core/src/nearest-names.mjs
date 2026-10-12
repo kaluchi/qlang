@@ -4,7 +4,7 @@
 // their spelling. An edit is an insertion, a deletion, a substitution or
 // a swap of two neighbours, the slips of a typing hand; beside them, the
 // names one of which begins the other, and the words the page of a word
-// the typed name begins with links [D242].
+// the typed name begins with links [D118].
 
 import { keyword, makeTag } from './types.mjs';
 import { addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
@@ -70,7 +70,7 @@ function namesOfSteps(env) {
 // The words the page of a word the typed name begins with links, whose
 // names end as the typed name goes on past it in a tail of its own,
 // capitalised: `add` begins `addOf`, and its page links `sumOf`, the
-// word that adds two fields of one record [D242].
+// word that adds two fields of one record [D118].
 function linkedFromBegun(env, typedName, names) {
   const linked = [];
   for (const name of names) {
@@ -105,7 +105,7 @@ export function nearestTagNames(env, typedName) {
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is
-// near the names of the scope [D203].
+// near the names of the scope [D118].
 export function nearestKeys(map, typedKey) {
   return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
 }
@@ -117,7 +117,7 @@ const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => a
 // at the addresses link whose words the subject answers, each a word that
 // answers a kind those words answer: the act a step meant by a word the
 // kind of its subject lacks, under the name the kind keeps it by, `print`
-// for the `toString` of a vector [D247].
+// for the `toString` of a vector [D118].
 export function nearestWords(env, addresses, subject) {
   const kinds = answeredKinds(env, addresses.map(address => address.name));
   const names = new Set();

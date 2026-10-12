@@ -775,7 +775,7 @@ law, code held as data, it reads in the tree of the query that called
 it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
 calling its word by its name or its address [D224], and a declaration
-writes a name a step can call [D245]. Two values of a key
+writes a name a step can call [D152]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
 refused [D228], and an invariant holds of the values of a label, so one
 a bare name declares is refused where it stands [D229]; the body of a
@@ -794,9 +794,9 @@ under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
 definitions of the catalog [D46], and a name no word answers is met
 with the names near it, by its spelling and by the links of the page of
-the word it begins with, `addOf` with `sumOf` [D242], and a word the kind
+the word it begins with, `addOf` with `sumOf`, and a word the kind
 of its subject lacks with the words its pages lead to that the subject
-answers, `print` for the `toString` of a vector [D247]. The literal is the one lossless
+answers, `print` for the `toString` of a vector [D118]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -1965,9 +1965,6 @@ query that fails nothing.
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md
-[D242]: decisions/D242.md
 [D243]: decisions/D243.md
 [D244]: decisions/D244.md
-[D245]: decisions/D245.md
 [D246]: decisions/D246.md
-[D247]: decisions/D247.md

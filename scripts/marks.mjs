@@ -11,6 +11,7 @@
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
 //   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it
 //   node scripts/marks.mjs --touched --debt  the same since they were described, the debt before the marks
+//   node scripts/marks.mjs --reread D44 [--debt]  the hunks of the blocks of a record since it was read
 //   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
@@ -133,7 +134,7 @@ export function marksOfTree(root = repoRoot) {
 // changed a line of it beyond a link, a statement of fate and a citation
 // a merge or a move wrote anew, which leave its decision as it was.
 const LINK_OR_FATE = /^(\[[DE]\d+\]: |(Pruned of what|Replaced by|Merged into|Replaced in part by) )/;
-const CITATIONS = /\[[DE]\d+\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+\])*/g;
+const CITATIONS = /\[[DE]\d+(?:,\s*[DE]\d+)*\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+(?:,\s*[DE]\d+)*\])*/g;
 const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
 const decisionOf = lines => beyondCitations(lines.filter(line => !LINK_OR_FATE.test(line)).join(' '));
 
@@ -178,7 +179,7 @@ function changedBeyondCitations(root, commit, paths) {
       const start = Number(from);
       const length = count === undefined ? 1 : Number(count);
       if (!changed.has(path)) changed.set(path, []);
-      changed.get(path).push(length === 0 ? [start, start + 1] : [start, start + length - 1]);
+      changed.get(path).push({ from: start, to: length === 0 ? start + 1 : start + length - 1, text: hunk.trimEnd() });
     }
   }
   return changed;
@@ -200,7 +201,8 @@ function describedIn(root) {
 
 // touchedRecords(root, { debt }) → the records in force whose scope the
 // tree changed since it was read against them, each `{ name, commit,
-// files }`, the changes the working tree holds among them: what a move of
+// files, hunks }`, the hunks of its blocks each `{ path, text }`, the
+// changes the working tree holds among them: what a move of
 // the baseline reads again against the new root [D237]. A record is read
 // against the later of the commit that last described it and the
 // baseline, whose move read again every record its diff touched; with
@@ -231,9 +233,10 @@ export function touchedRecords(root = repoRoot, { debt = false, baseline = basel
   for (const [commit, names] of namesOf) {
     const changed = changedBeyondCitations(root, commit, [...new Set(names.flatMap(name => [...blocksOfRecord.get(name).keys()]))]);
     for (const name of names) {
-      const files = [...blocksOfRecord.get(name)].filter(([path, recordBlocks]) => (changed.get(path) ?? [])
-        .some(([from, to]) => recordBlocks.some(block => from <= block.to && to >= block.from))).map(([path]) => path);
-      if (files.length > 0) touched.push({ name, commit, files });
+      const hunks = [...blocksOfRecord.get(name)].flatMap(([path, recordBlocks]) => (changed.get(path) ?? [])
+        .filter(({ from, to }) => recordBlocks.some(block => from <= block.to && to >= block.from)).map(({ text }) => ({ path, text })));
+      const files = [...new Set(hunks.map(({ path }) => path))];
+      if (files.length > 0) touched.push({ name, commit, files, hunks });
     }
   }
   return touched.sort((a, b) => a.name[0].localeCompare(b.name[0]) || Number(a.name.slice(1)) - Number(b.name.slice(1)));
@@ -251,6 +254,14 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
     const touched = touchedRecords(repoRoot, { debt });
     for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
     console.log(`touched: ${touched.length} records in force whose scope the tree changed since ${debt ? 'they were described' : 'they were read against it, the later of their description and the baseline'} [D237]`);
+  } else if (command === '--reread') {
+    const debt = process.argv.includes('--debt');
+    const record = touchedRecords(repoRoot, { debt }).find(({ name }) => name === argument);
+    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the ${debt ? 'commit that described it' : 'later of its description and the baseline'} [D237]`);
+    else {
+      console.log(`${record.name} read against ${record.commit.slice(0, 8)}; the hunks of its blocks since:`);
+      for (const { path, text } of record.hunks) console.log(`\n--- ${path}\n${text}`);
+    }
   } else if (command === '--sister') {
     for (const { path, name, line } of marksOfSister(resolve(argument))) console.log(`${name}\t${path}:${line}`);
   } else if (command === '--diff') {

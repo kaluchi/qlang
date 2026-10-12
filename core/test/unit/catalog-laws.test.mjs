@@ -75,7 +75,7 @@ describe('the laws of the catalog, run by runLaws', () => {
   }, 30000);
 
   it('no quote of a page is read as prose', async () => {
-    // A quote the parser refuses reads as prose [D94], so a link or a
+    // A quote the parser refuses reads as prose [D19], so a link or a
     // snippet a change of the grammar breaks leaves its page with no
     // failure to show; prose names code inside backticks alone.
     const proseQuotes = [];

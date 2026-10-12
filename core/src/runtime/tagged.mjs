@@ -93,7 +93,7 @@ bindPrim('map/construct', mapConstructor);
 const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
-// `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
+// `::doc[…]` — the doc of a vector of prose strings and quotes [D19], so
 // a doc comes apart into its segments and back by `tag`.
 const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');

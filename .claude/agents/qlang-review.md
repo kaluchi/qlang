@@ -197,12 +197,13 @@ probes and the quotes.
 ### The maintainer's words bind, the model's readings are weighed
 
 Check: a record the diff adds names who decided it, `Decided by.`, and
-holds one party's decision, a choice of the maintainer and the model's
-mechanics around it being two records. A record, a commit message or a
-page that cites a record the model decided does not present it as the
-maintainer's rule; a change that leaves a better reading undone because
-a record of the model's stands in its way, or that asks the maintainer
-leave to replace one, is a finding (`docs/decisions/D155.md`).
+where it holds a choice of the maintainer beside the model's mechanics
+around it, that line names the parts that are the model's. A record, a
+commit message or a page that cites a record the model decided does not
+present it as the maintainer's rule; a change that leaves a better
+reading undone because a record of the model's stands in its way, or
+that asks the maintainer leave to replace one, is a finding
+(`docs/decisions/D155.md`).
 
 ### The tests follow what they test
 

@@ -33,7 +33,7 @@ const TAG_SIGIL = '::';
 const tagNameOf = tag => TAG_SIGIL + tag;
 const isTagName = name => name.startsWith(TAG_SIGIL);
 
-// The prose of a doc, its segments without its quotes [D94], which hover
+// The prose of a doc, its segments without its quotes [D19], which hover
 // and completion show; a doc the runtime answers is its segments, and a
 // doc of the document's tree holds them as the parser read them.
 const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');

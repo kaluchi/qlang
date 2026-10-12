@@ -65,7 +65,7 @@ export function quoteOfLiteral(node) {
 }
 
 // A doc literal's value, the prose the parser read and a quote for each
-// span of it that read as code [D94], read once per node as a quote is.
+// span of it that read as code [D19], read once per node as a quote is.
 const DOC_OF_LITERAL = new WeakMap();
 
 // The segment a part of a doc literal is: its prose, a quote, or a quote

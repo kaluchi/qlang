@@ -128,8 +128,9 @@ Some rules for whoever edits the document, each learnt at a cost:
   replaces the maintainer's intention with the model's reading of it,
   and the next session cannot tell the two apart.
 - Only the maintainer's quoted words bind a session. A record names
-  who decided it, `Decided by.`, and a choice the maintainer made and
-  the mechanics the model worked out around it are two records; a
+  who decided it, `Decided by.`, and where it holds a choice the
+  maintainer made beside the mechanics the model worked out around it,
+  that line names the parts that are the model's; a
   record the model decided is weighed on its merits and replaced by a
   record of the session's own when a better reading turns up, without
   asking leave, and is never named to the maintainer as a rule the

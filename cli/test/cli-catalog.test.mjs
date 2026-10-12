@@ -1,5 +1,5 @@
 // The catalog of the command line is held as the core's is [D108], [D121],
-// [D123], [D94]: the laws of every name its source declares answer true,
+// [D19], [D123]: the laws of every name its source declares answer true,
 // every link of its pages leads to the page of another name, and no quote
 // of a page falls to its prose, where a link the grammar no longer reads,
 // `::link~(::any/@tap | doc)` once the sigil left, would go stale in
@@ -20,7 +20,7 @@ let session;
 const answerOf = async query => (await session.evalCell(query)).result;
 
 // The prose of a page with its code spans taken out: a `~(` left in it is
-// a quote the parser refused, which reads as prose [D94].
+// a quote the parser refused, which reads as prose [D19].
 const quoteInProse = prose => prose.replace(/`[^`]*`/g, '').includes('~(');
 
 let cliNames;

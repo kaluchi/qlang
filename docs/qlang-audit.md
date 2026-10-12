@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-seventh, holds it against commit `f679cfe`, its baseline: a scar the
+eighth, holds it against commit `1e7c46a`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -309,7 +309,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `f679cfe` for this
+against the baseline of the version at hand, commit `1e7c46a` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -461,8 +461,7 @@ laws, the axes pass from a name to its projections, `doc` its page,
 `source` its code and `binding` its record,
 `manifest` enumerates what exists, and `runLaws` runs the laws
 declared under the name any value reads as tests, each with the claim
-its page states [D178]. The self-test over the whole catalog runs in
-under a second.
+its page states [D178].
 
 Three of these are in the core for reasons the mechanisms do not show.
 The fail track is there because a session that is learning a tool fails
@@ -589,12 +588,12 @@ fits the next utility. On 24 September 2026:
 ```
 
 Enrichment is an act of the same kind. The host's renderer sees that a
-value, or an error, carries tags and keywords the session has not met,
-and loads their documents into the answer while the budget allows,
-first those of the tags, then whatever their keywords and quotes lead
-to; the vocabulary of the value drives it, links recognized rather than
-written, as Plan 9's plumber recognized them, and once per session, as
-a game's codex opens an entry the first time the player meets it.
+value, or an error, carries tags the session has not met, and loads
+their pages into the answer while the budget allows, first those of the
+tags, then whatever their links lead to; the vocabulary of the value
+drives it, links recognized rather than written, as Plan 9's plumber
+recognized them, and once per session, as a game's codex opens an
+entry the first time the player meets it.
 
 A host learns what its reader wants by the reader's declaration rather
 than by sniffing, as HTTP's `Accept`, `Range`, `If-None-Match` and
@@ -651,12 +650,12 @@ The pageable shape is the vector, and a value that can overflow breaks
 into one, as the quote and the doc have, and a string does through its
 lines.
 
-Next, every tag and keyword inside a value is an anchor that resolves
-to its document. A keyword resolves only as the name of a binding, so
-the keyword of a field leads nowhere and one keyword means different
-things in different records; a record that is to be enriched therefore
-carries a tag, which documents its fields, and a value shared by
-several kinds of record a tag of its own [D50]. The shape of an answer
+Next, every tag inside a value is an anchor that resolves to its page,
+and a keyword is a value that names nothing [D221], so the keyword of a
+field leads nowhere and one keyword means different things in
+different records; a record that is to be enriched therefore carries a
+tag, which documents its fields, and a value shared by several kinds of
+record a tag of its own [D50]. The shape of an answer
 is read the same way, before the answer is fetched: the result of a
 word is the label its `answer` names, `:number/add/answer ::number`,
 and the definitions under that label say what its values hold [D169],
@@ -746,8 +745,13 @@ form, a name is declared once in a scope, and a verb is a name under the
 label of its subject, a host's primitive or a quote, the parts of its
 args names under its address with their laws, its args the values a
 call gives under its tag, which read back as they print [D164], [D166],
-[D167], [D168], [D173]. A comment is whitespace, and a doc the literal in the slot of
-the declaration it documents. One order ranks every value, the set is
+[D167], [D168], [D173]. A name is read by its tag, and a keyword is
+data that names nothing [D221]; a word of the root reads the nouns of
+the root as the root holds them, and a kind a reader declared as the
+reader wrote it [D222]; a value takes any name, and a step where it
+meets a word its subject answers is refused [D223]. A comment is
+whitespace, and a doc the literal in the slot of the declaration it
+documents. One order ranks every value, the set is
 the ordered vector under its tag, every value has a kind, and every
 condition is a boolean. A refusal is named by the address of the word
 that refused, its facts definitions of the catalog [D172]. The literal
@@ -756,10 +760,11 @@ language [D128], and its first page tells the language whole, in the
 order its parts rest on each other, the argument model one rule [D185];
 the forms a clean session reached for and missed
 became the language's where they composed with it [D132], [D133],
-[D138], [D140]. The benchmark measures the first screen on sets of
-tasks a clean author writes and no one has read [D142], and `node
-scripts/benchmark.mjs grade R` and `grade S` hold its runs side by side.
-What those repairs left is what the scars below describe.
+[D138], [D140]. The benchmark measures the pages a child lands on,
+those of the language and of the command line [D216], on sets of tasks
+a clean author writes and no one has read [D142], each measurement read
+beside the one before it [D183]. What those repairs left is what the
+scars below describe.
 
 ## The scars
 
@@ -767,7 +772,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 7 October 2026
+shell with the `qlang` command or in its REPL, and on 12 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -776,9 +781,10 @@ A host declares its refusals by their addresses with `declareRefusal`,
 imported through the `errors` subpath of the core
 (`cli/src/streams.mjs`), and declares their facts under their
 labels in its catalog [D172], so the declaration stays an interface of
-the runtime a host builds on. The sister project no longer imports them,
-and carries its own copy of `fromPlain`, named `jsonToQlang`
-(`cli/lib/jdt/coverage.impl.mjs`).
+the runtime a host builds on. The sister project imports none of them,
+and carries two copies of `fromPlain` of its own, each named
+`jsonToQlang` (`cli/lib/jdt/coverage.impl.mjs`,
+`cli/lib/jdt/graph.impl.mjs`).
 
 The repair must make the refusals of a host kinds its catalog declares,
 so that nothing of the runtime is exported for building operands [D46].
@@ -801,26 +807,24 @@ design never resolved: «стремительно растущий зоопар�
 86982eb5). The rule is decided [D23], [D34], [D62], and a host still
 publishes names without a prefix. The sister project's names meet the
 core's on `type` and on `source`, kept apart by the effect marker alone,
-and its graph alone declares under `::any` the verbs a query calls, six
-lookups by kind of element, four accessors of the containing element,
-four enumerations by scope and some fifteen relations among them, and
-beside them the helpers of `@problems`, since a word under a topic
-serves the topic's values alone [D166]. In the sister project, on 11
-October 2026:
+and its graph alone declares under `::any` the verbs a query calls,
+lookups by kind of element, accessors of the containing element,
+enumerations by scope and the relations among them, and beside them the
+helpers of `@problems`, since a word under a topic serves the topic's
+values alone [D166]. In the sister project, on 12 October 2026:
 
 ```sh
 $ grep -oE '^:any/@[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
-60
+58
 ```
 
 That is the `ioctl` of Unix, every new capability a new verb in one
 shared space, where Plan 9 kept the verbs fixed and let the nouns grow;
 a host's catalog should grow the same way.
 
-[D153] repaired the surface and the loading: a helper stays out of a
-reader's names, a host hands its names one way, its sources declared as
-cells into the root, and the catalog is written by its nouns [D62],
-[D67]. What remains is the rest of the rule of collisions:
+What remains is the rest of the rule of collisions, the surface and
+the loading [D153], the reading of a name [D221], the rule of the owner
+[D222] and the meeting of a value and a word [D223] settled:
 
 - A verb and a kind may be joined by whoever owns one of them, the
   orphan rule of Rust: a host may specialize a core verb on its own tags
@@ -828,21 +832,6 @@ cells into the root, and the catalog is written by its nouns [D62],
   core's kinds. So `source` on the sister project's node tags resolves
   by the subject, while its `type`, the reader of identity every error
   handler and sort relies on, moves into a field or a tag.
-- Extensions are switched on lexically, as Ruby's refinements made a
-  patch active only where `using` names it: a reader's verb under a
-  noun of the root, `:vec/second`, stands in its scope alone, and a
-  host's extensions in the root its sources declare for its readers
-  [D153]. A word of the root reads a noun of the root in the root
-  alone, and a kind a reader declared as the reader wrote it, its
-  values carrying it in, the rule of the owner [D222]:
-
-  ```qlang
-  > :vec/doc ~("a reader page") | [1 2] | tutorial | first | type
-  ::doc
-
-  > :Box |~~ A box. ~~| | :Box/doc ~("box page") | ::Box{} | tutorial | first
-  "box page"
-  ```
 - Names without a prefix belong to the core, as EDN reserves its
   unprefixed tags; JavaScript learnt the cost when
   `Array.prototype.flatten` could not ship because a library had put
@@ -979,37 +968,28 @@ refusal means in one sentence, which fact names the culprit, the usual
 cause, how to recover with `!|` as a runnable example, and the refusals
 it is often confused with, the text that refusals for one reason share
 written once, which is the task that would ask for a hierarchy of tags.
-The error it prints is the alert the cockpit shows [D184]: the tag, the
-facts in the order the catalog declares them, a short excerpt of the
-input, and the rest one projection away, the subjects the failure
-passed being what elision takes first.
 
-### Self-description at full size
-
-The full view is the default one, where the terminals of the paper age
-made the cheap path the default and the full view a flag: what lies
-under a kind answers its verbs beside every refusal they raise, at
-once, with no view of the verbs alone.
-
-```qlang
-> ::vec | manifest | filter ~(print | contains "Error" | not) | count | lt (::vec | manifest | count)
-true
-```
+### Self-description on two planes
 
 Examples live on two planes, the conformance suite and the laws of the
 catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
-paged with it [D124], [D174].
+paged with it [D124], [D174]. And a parse failure prints whole, every
+token the parser could have read and the place it stopped, at its start
+and at its end, where a failure of a step prints as an alert [D184]:
 
-The repair must give the language views sized to a budget, the cheap
-view the default [D27]. It must reduce catalog prose to what the facts
-do not say, written in the language's own vocabulary, with no name of a
-file, a symbol, a service or a section of another document in it. It
-must make examples live on one plane, and print errors and parse
-failures economically, with the full value reachable by projection
-rather than dumped. It must let a reader assemble from the definitions
-under an address the description a question needs, in one round trip
-[D168], [D169].
+```sh
+$ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':offset'
+2
+```
+
+The repair must reduce catalog prose to what the facts do not say,
+written in the language's own vocabulary, with no name of a file, a
+symbol, a service or a section of another document in it. It must make
+examples live on one plane, and print a parse failure economically,
+with the full value reachable by projection rather than dumped. It must
+let a reader assemble from the definitions under an address the
+description a question needs, in one round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -1029,30 +1009,12 @@ reviews of the catalog, each kept as its writer wrote it beside the
 fate of each finding:
 
 ```sh
-$ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions
+$ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions | sed -E 's#^(docs/research/[^/]+)/.*#\1/#' | sort -u
 docs/qlang-audit.md
 docs/qlang-entrypoint.md
-docs/research/legend/README.md
-docs/research/outside-audit/2026-10-10.md
-docs/research/outside-audit/2026-10-11-6f8c9422-reading.md
-docs/research/outside-audit/2026-10-11-6f8c9422.md
-docs/research/outside-audit/2026-10-11.md
-docs/research/outside-audit/README.md
-docs/research/reviews/2026-10-10-first-page-any-number-string.md
-docs/research/reviews/2026-10-10-small-kinds-steps-cli-map-core.md
-docs/research/reviews/2026-10-10-vec-set-map.md
-docs/research/reviews/2026-10-11-an-escape-after-an-escape.md
-docs/research/reviews/2026-10-11-autonomous-series.md
-docs/research/reviews/2026-10-11-escapes-around-a-paste.md
-docs/research/reviews/2026-10-11-plans-grammar-and-tests.md
-docs/research/reviews/2026-10-11-repair-of-the-series.md
-docs/research/reviews/2026-10-11-the-digits-of-the-running-mean.md
-docs/research/reviews/2026-10-11-the-escape-key-before-keys.md
-docs/research/reviews/2026-10-11-the-gathering-of-a-paste.md
-docs/research/reviews/2026-10-11-the-mean-at-the-ends.md
-docs/research/reviews/2026-10-11-thenables-frames-and-the-line-editor.md
-docs/research/reviews/2026-10-11-waits-repairs-and-comments.md
-docs/research/reviews/README.md
+docs/research/legend/
+docs/research/outside-audit/
+docs/research/reviews/
 ```
 
 What remains of the scar is the editor's hand-written TextMate grammar,
@@ -1078,7 +1040,8 @@ A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
 `.qlang/` folder waits for the sources a project ships [D37]. The sister project
-onboards its user with a static guide.
+onboards its user with a guide written by hand, which reads from its
+catalog the first sentence of the page of each word it shows first.
 
 The repair must remove the effect marker from the language rather than
 relocate it [D2]: a naming convention keeps every `@`-name a different
@@ -1167,7 +1130,9 @@ tests the mechanism rather than the language: almost every unit test
 imports the internals it checks, so it dies with them, while the
 conformance cases, each a query and the literal it must answer, state
 what the language does and survive any rewrite of how. The drift tests
-and three of the five convention checks exist to guard duplicates.
+and the convention checks that hold a refusal's constant to its
+address, a sibling's range to its version and a document's anchors to
+the tree exist to guard duplicates.
 
 The repair must replace the coverage number with a policy that keeps
 the threshold for the language core and a no-number rule elsewhere;
@@ -1275,25 +1240,26 @@ and a query written alike, and a namespace too large to declare is
 mounted and served on demand [D24], [D36]. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D62], [D153]; a value the reader names takes any name, and a step that
-calls it on a subject a word of the name answers is refused, the word
-called by its address there [D223]:
+[D62], [D153]; a tag in the subject position is dispatched to the noun
+it names [D88]; a host sets up a query by its sources and the first
+value of its pipe and nothing else [D37], [D153]. A value the reader
+names takes any name, and a step that calls it on a subject a word of
+the name answers is refused, the word called by its address there
+[D223]:
 
 ```qlang
 > :count 5 | [(7 | count) ([1 2] | count !| type) ([1 2] | vec/count)]
 [5 ::call/ValueMeetsWordError 2]
 ```
 
- a tag in the subject position is dispatched to the noun
-it names [D88]; a host sets up a query by its sources and the first
-value of its pipe and nothing else [D37], [D153]. A declaration writes
-into its scope the record of its binding, so the axes are projections
-of the record [D63], each reading a name by its tag, a label of the
-root from the root and any other name at its nearest declaration, while
-a keyword is a value that names nothing, `:limit | doc` the page of
-`::keyword` [D221]. Effect markers are gone; a host that wants
-provenance visible tags the value, and an effect described by a value
-is performed at the boundary and nowhere else.
+A declaration writes into its scope the record of its binding, so the
+axes are projections of the record [D63], each reading a name by its
+tag, a label of the root from the root and any other name at its
+nearest declaration, while a keyword is a value that names nothing,
+`:limit | doc` the page of `::keyword` [D221]. Effect markers are
+gone; a host that wants provenance visible tags the value, and an
+effect described by a value is performed at the boundary and nowhere
+else.
 
 Fingerprints, terminal conveniences, the budget of an answer, its
 elision and its enrichment belong to hosts; the language computes whole
@@ -1377,30 +1343,30 @@ carries bytes, the default subject otherwise [D37], and read only for a
 query that reads its subject, so a pipe left open never holds a query
 that reads none [D215]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
-[D214]; the budget and the rendering at the end of the pipe, no
-`table`, no `template`.
+[D214]; the budget at the end of the pipe, and its renderings, `table`
+among them, words of its own [D49]:
 
 ```sh
 $ sleep 4 | timeout 2 node cli/src/bin.mjs '1 | add 1'
 2
 $ echo '{"name":"Ann"}' | node cli/src/bin.mjs 'type'
 ::map
-``` The
-language server reads the declarations and the parser's tree and
-nothing else. The editor's
-grammar is generated from the grammar's tokens or reduced to what the
-language server cannot give. The site renders the root doc and the
-catalog or is reduced to the playground. The sister project builds on
-the workspace copy, generates its guide from the catalog, tags its
-nodes, mounts its types and its workspaces [D38], and speaks through
-about a dozen verbs on its own tags, its writing commands staying
-commands [D39]. And
-the entrypoint of the work on qlang is a consumer like the others,
-built on the language it helps to build.
+```
+
+The language server reads the declarations and the parser's tree and
+nothing else. The editor's grammar is generated from the grammar's
+tokens or reduced to what the language server cannot give. The site
+renders the root doc and the catalog or is reduced to the playground.
+The sister project builds on the workspace copy, generates its guide
+from the catalog, tags its nodes, mounts its types and its workspaces
+[D38], and speaks through about a dozen verbs on its own tags, its
+writing commands staying commands [D39]. And the entrypoint of the work
+on qlang is a consumer like the others, built on the language it helps
+to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `f679cfe`, and the finish
+The start is the tree of the baseline, commit `1e7c46a`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -1470,7 +1436,7 @@ measures the tree and prints the state of the work as a dark cockpit,
 whose design is the entrypoint document's.
 
 Its answers are the targets of [D6], [D33], [D46], [D152] and [D153] in
-the conformance suite, those of the last two met, and those of the first
+the conformance suite, those of the last three met, and those of the first
 two written when they are decided, the step of a constructor apart from
 the kind of tagged values having landed [D115]. Beside them: no class
 of the JavaScript stands for a refusal; no operand contract is spelled
@@ -1507,18 +1473,16 @@ is reduced to what the facts do not say, every page telling what its
 name is for and the claims its laws prove [D110], [D124], each
 definition a story a reader falls into, the word, its answer, its
 parts, its refusals and its laws in that order [D179]; enrichment
-happens once per session; fields are documented
-by their records' tags and shared values by their own [D50]; the first
-page's sections are names under `::qlang` from which the first screen
-is assembled [D169];
-and the first screen, told whole in the order its parts rest on each
-other [D185], within the weight it had [D150], is measured on a set of
-tasks no reader has seen [D131], [D142].
+happens once per session; fields are documented by their records' tags
+and shared values by their own [D50]; and the first screen, the pages
+of the language and of the command line [D216], told whole in the order
+its parts rest on each other [D185], within the weight it had [D150],
+is measured on a set of tasks no reader has seen [D131], [D142].
 
 The largest part of the milestone is the sister project's. It builds
-on the workspace copy, its catalog written in the language of [D196]
-and its suite passing against it, on a branch that stands ahead of its
-remote since 29 September, and its redesign has not begun: its nodes carry their kind as a tag, its verbs
+on the workspace copy, its suite passing against it, on a branch that
+stands ahead of its remote since 29 September, and its redesign has not
+begun: its nodes carry their kind as a tag, its verbs
 move onto its tags and its noun [D34], [D62], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog
@@ -1529,9 +1493,9 @@ name the workspace they came from [D38]; and a host's command is the
 language's with its noun as the first value [D37].
 
 The others stand beside the suite: one start command returns the root
-doc; a renderer loads the documents of the tags and keywords an answer
-carries that the session has not been shown, and withholds the ones it
-has; the language has no effect marker and no effect flag.
+doc; a renderer loads the pages of the tags an answer carries that the
+session has not been shown, and withholds the ones it has; the
+language has no effect marker and no effect flag.
 
 After the fifth milestone the remaining surfaces follow: the site is
 decided, rendering the root doc and the catalog or reduced to the
@@ -1584,31 +1548,6 @@ why.
 
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
-
-The examples of the first screen [D174], [D175], [D176]. The first page
-showed after a sentence the query that proves it, answering true; its
-laws left for definitions under its name, and its prose reads without
-them. Set T, written by a clean author after the screens, holds the
-runs under `scripts/benchmark/sets/T/runs/`, which `node
-scripts/benchmark.mjs grade T` grades, and they read two ways. Sonnet
-with the command line solved every task on every screen, in 7 to 10
-calls over six runs with the examples in place and in 9 to 22 without
-them; the same examples below the prose, as `tutorial` answers them or
-listed plainly, or in place as a query and its answer, or under
-`::snippet`, took 7 to 24 calls over three runs each. Haiku blind
-solved 4 of 42 tasks with no examples and 10 to 12 with them in any of
-these forms, from 0 to 9 of 14 in one run. So a fresh reader pays for
-the examples' absence, and the form sonnet's calls single out is the
-query in place after its sentence. The alternatives: the first page
-holds each example again as a bare quote in its prose, code the prose
-holds that is no law [D175], each held by a test to the query of a law
-of its name, which costs the text of a query written twice; the prose links to the laws it
-shows and the first screen writes the code of each such link in its
-place, which costs a renderer of the screen and has not been measured;
-or the page keeps its prose alone, and a fresh reader pays the calls.
-The page of [D185] holds its examples in place, each a query and its
-answer in the prose, which a test of the core runs as the page writes
-them; its measurement against [D184] answers the question.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
@@ -1699,8 +1638,8 @@ text typed in the REPL or passed on the command line gives the same
 page, and the site is one renderer of it. The tree gives the segments
 of a doc, its prose apart from its links and snippets, and a name to
 reach a page by [D88], [D175]; the prose that heads a source is a plain
-comment that no name reaches, and a tag or a keyword inside prose is no
-segment yet [D19].
+comment that no name reaches, a tag inside prose is no segment yet
+[D19], and a keyword names nothing a click could open [D221].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
 должен удовлетворять» (13:26).
@@ -1720,7 +1659,14 @@ signal at the price of a budget sometimes exceeded.
 
 A constructor that tags its own result [D53]. `tag` runs a tag's
 constructor, so a constructor written as a quote that tags its own
-result through `tag` recurses until the depth budget refuses it. «c
+result through `tag` recurses until the depth budget refuses it:
+
+```qlang
+> :P |~~ A person. ~~| | :P/construct ~(tag ::P) | ::P{:a 1} !| type
+::call/EvaluationDepthExceededError
+```
+
+«c
 рекурсией на конструкторе таг да не подумали.. можно и потом вернуться
 или тебя самого может озарит как надо было правильно решать в процессе
 другой работы» (maintainer, 2026-09-24 03:05, session 86982eb5). The
@@ -1752,9 +1698,9 @@ The helpers of the sister project, `jdt/@problemsVia` and its kin, are
 called by their addresses on a string or a node, so under this rule
 they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
-address. The sister project, ported to the language of [D196], took
-the first: its helpers are words of any value, `::any/@problemsVia`
-and its kin, and its suite passes against the workspace copy.
+address. The sister project took the first: its helpers are words of
+any value, `::any/@problemsVia` and its kin, and its suite passes
+against the workspace copy.
 
 A helper of one word. [D153] let a word's helper live in the group of
 its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;
@@ -1803,7 +1749,7 @@ still; and sources loaded by an index of their names, which costs the
 loader and a rewrite of every reader of the whole root, and spares a
 query that fails nothing.
 
-Regular expressions. Both outside audits name their absence. Text comes
+Regular expressions. Each outside audit names their absence. Text comes
 apart by `split` and `lines` and is read by `contains`, `startsWith`
 and `endsWith`, each of a fixed text, and no composition of them
 matches a pattern, so a line whose fields vary in their order and their
@@ -1818,29 +1764,16 @@ The alternatives: words of strings over the patterns of JavaScript,
 `matches` asking whether a pattern holds, `match` answering the first
 match as the vector of its whole and its groups, or null, and `replace`
 putting a text in the place of every match, a pattern written in a
-string as JSON writes one, `"\\d+"`, which costs the names they take from
-the reader, a value named `match` refused once the word is there
-[D166], and a dialect of patterns every host of the language carries;
-or the patterns left to a host, which leaves the readers of the
-command line without them.
+string as JSON writes one, `"\\d+"`, which costs a step that calls a
+reader's value named `match` on a string, refused once the word is
+there [D223], and a dialect of patterns every host of the language
+carries; or the patterns left to a host, which leaves the readers of
+the command line without them.
 
-[D1]: decisions/D1.md
 [D2]: decisions/D2.md
-[D3]: decisions/D3.md
-[D4]: decisions/D4.md
 [D5]: decisions/D5.md
 [D6]: decisions/D6.md
 [D7]: decisions/D7.md
-[D8]: decisions/D8.md
-[D9]: decisions/D9.md
-[D10]: decisions/D10.md
-[D11]: decisions/D11.md
-[D12]: decisions/D12.md
-[D13]: decisions/D13.md
-[D14]: decisions/D14.md
-[D15]: decisions/D15.md
-[D16]: decisions/D16.md
-[D18]: decisions/D18.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
@@ -1848,7 +1781,6 @@ command line without them.
 [D23]: decisions/D23.md
 [D24]: decisions/D24.md
 [D26]: decisions/D26.md
-[D27]: decisions/D27.md
 [D28]: decisions/D28.md
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
@@ -1856,7 +1788,6 @@ command line without them.
 [D32]: decisions/D32.md
 [D33]: decisions/D33.md
 [D34]: decisions/D34.md
-[D35]: decisions/D35.md
 [D36]: decisions/D36.md
 [D37]: decisions/D37.md
 [D38]: decisions/D38.md
@@ -1866,59 +1797,26 @@ command line without them.
 [D42]: decisions/D42.md
 [D43]: decisions/D43.md
 [D44]: decisions/D44.md
-[D45]: decisions/D45.md
 [D46]: decisions/D46.md
-[D47]: decisions/D47.md
-[D48]: decisions/D48.md
+[D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
 [D53]: decisions/D53.md
-[D55]: decisions/D55.md
-[D56]: decisions/D56.md
-[D57]: decisions/D57.md
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
-[D60]: decisions/D60.md
 [D61]: decisions/D61.md
 [D62]: decisions/D62.md
 [D63]: decisions/D63.md
-[D64]: decisions/D64.md
-[D65]: decisions/D65.md
-[D66]: decisions/D66.md
-[D67]: decisions/D67.md
-[D68]: decisions/D68.md
 [D69]: decisions/D69.md
-[D70]: decisions/D70.md
 [D72]: decisions/D72.md
-[D73]: decisions/D73.md
-[D74]: decisions/D74.md
-[D75]: decisions/D75.md
-[D76]: decisions/D76.md
-[D77]: decisions/D77.md
-[D78]: decisions/D78.md
-[D79]: decisions/D79.md
 [D80]: decisions/D80.md
-[D81]: decisions/D81.md
-[D82]: decisions/D82.md
-[D83]: decisions/D83.md
 [D84]: decisions/D84.md
 [D85]: decisions/D85.md
-[D86]: decisions/D86.md
-[D87]: decisions/D87.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
-[D92]: decisions/D92.md
 [D93]: decisions/D93.md
-[D94]: decisions/D94.md
 [D95]: decisions/D95.md
 [D96]: decisions/D96.md
-[D97]: decisions/D97.md
-[D98]: decisions/D98.md
-[D99]: decisions/D99.md
-[D100]: decisions/D100.md
-[D101]: decisions/D101.md
-[D102]: decisions/D102.md
-[D103]: decisions/D103.md
 [D104]: decisions/D104.md
 [D105]: decisions/D105.md
 [D106]: decisions/D106.md
@@ -1927,11 +1825,7 @@ command line without them.
 [D109]: decisions/D109.md
 [D110]: decisions/D110.md
 [D111]: decisions/D111.md
-[D112]: decisions/D112.md
-[D113]: decisions/D113.md
-[D114]: decisions/D114.md
 [D115]: decisions/D115.md
-[D116]: decisions/D116.md
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
@@ -1941,7 +1835,6 @@ command line without them.
 [D123]: decisions/D123.md
 [D124]: decisions/D124.md
 [D125]: decisions/D125.md
-[D126]: decisions/D126.md
 [D127]: decisions/D127.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
@@ -1958,13 +1851,10 @@ command line without them.
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
 [D156]: decisions/D156.md
-[D158]: decisions/D158.md
-[D160]: decisions/D160.md
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md
 [D164]: decisions/D164.md
-[D165]: decisions/D165.md
 [D166]: decisions/D166.md
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
@@ -1980,12 +1870,11 @@ command line without them.
 [D180]: decisions/D180.md
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
+[D183]: decisions/D183.md
 [D184]: decisions/D184.md
 [D185]: decisions/D185.md
 [D195]: decisions/D195.md
-[D196]: decisions/D196.md
-[D200]: decisions/D200.md
-[D202]: decisions/D202.md
+[D208]: decisions/D208.md
 [D210]: decisions/D210.md
 [D211]: decisions/D211.md
 [D214]: decisions/D214.md
@@ -1994,7 +1883,6 @@ command line without them.
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
 [D219]: decisions/D219.md
-[D220]: decisions/D220.md
 [D221]: decisions/D221.md
 [D222]: decisions/D222.md
 [D223]: decisions/D223.md

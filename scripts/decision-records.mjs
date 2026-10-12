@@ -19,8 +19,8 @@ const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs
 // blank line or the next field. A statement of fate, which says what
 // replaced or took a part of what, is history the record keeps [D227],
 // [D237].
-const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
-export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
+const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
+export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
 
 export function statementsOf(text) {
   const statements = [];
@@ -41,7 +41,9 @@ export function recordPathOf(root, name) {
 
 // readDecisionRecords(root) → the records by name, D1 onward and then E1
 // onward, those of the environment of the work, each
-// `{ path, domain, replacedBy, replacedInPartBy, met, targets }`.
+// `{ path, domain, replacedBy, replacedInPartBy, mergedInto, met, targets }`;
+// a record merged into the earliest record of its axis is closed whole
+// as one replaced is [D237].
 export function readDecisionRecords(root) {
   const records = new Map(recordFolders(root)
     .flatMap(folder => (existsSync(folder) ? readdirSync(folder) : [])
@@ -61,6 +63,7 @@ export function readDecisionRecords(root) {
         domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)[1].toLowerCase(),
         replacedBy: replacing(false),
         replacedInPartBy: replacing(true),
+        mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
         met: [],
         targets: [],
       }];
@@ -82,7 +85,7 @@ export function readDecisionRecords(root) {
   return records;
 }
 
-export const replacedWhole = record => record.replacedBy.length > 0;
+export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0;
 
 // Whether a record of the language waits on a case: no case names it and
 // no record replaces it whole.

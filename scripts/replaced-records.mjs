@@ -1,8 +1,8 @@
 // The records replaced whole leave the root of the records for
 // `docs/decisions/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
-// [D237]. Run where a record gains its line `Replaced by`; a record moved
-// once is never moved again.
+// [D237]. Run where a record gains its line `Replaced by` or `Merged
+// into`; a record moved once is never moved again.
 //
 // Usage: node scripts/replaced-records.mjs
 
@@ -14,7 +14,7 @@ const repoRoot = resolve(import.meta.dirname, '..');
 const recordsDir = join(repoRoot, 'docs', 'decisions');
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
 
-const replacedWhole = text => /^Replaced by /m.test(text);
+const replacedWhole = text => /^(Replaced by|Merged into) /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });

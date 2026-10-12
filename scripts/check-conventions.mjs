@@ -396,7 +396,7 @@ function recordsWithoutDecider() {
 // [D237].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^Replaced by /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const replacedWhole = path => /^(Replaced by|Merged into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder('docs/decisions').filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
@@ -454,7 +454,7 @@ const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
   const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8')).map(statement => statement.text)]));
-  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Pruned of what) /.test(statement));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what) /.test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
   for (const name of records.keys()) {

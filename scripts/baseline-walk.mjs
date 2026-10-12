@@ -40,6 +40,7 @@ function citationsIn(text) {
 }
 
 function stateOf(record) {
+  if (record.mergedInto.length > 0) return `merged into ${record.mergedInto.join(', ')}`;
   if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
   return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
 }

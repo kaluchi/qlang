@@ -1,12 +1,12 @@
-// Merges records about one thing into the one that holds them [D237]: each
-// record merged gains its line of fate naming the survivor and moves to
-// `replaced/` by `scripts/replaced-records.mjs`, and every case, mark,
-// document and record in force that named it names the survivor. The
+// Merges the records of one axis into the earliest of them, the survivor,
+// whose number stays the address of the axis [D237]: each record merged
+// gains the line `Merged into` the survivor and moves to `replaced/` by
+// `scripts/replaced-records.mjs`, and every case, mark, document and
+// record in force that named it in prose names the survivor. The
 // survivor's text, written anew against the root, is the author's to write
 // before the run, and so is a case whose decision the merge would name
-// wrongly; a record in force keeps what it cites, and the lines the run
-// rewrote in one are listed for the author to read. A run again changes
-// nothing.
+// wrongly; the lines the run rewrote in a record in force are listed for
+// the author to read. A run again changes nothing.
 //
 // Usage: node scripts/merge-records.mjs <survivor> <merged>...
 
@@ -42,6 +42,11 @@ const rewrite = (path, change) => {
 };
 const order = name => (name.startsWith('E') ? 100000 : 0) + Number(name.slice(1));
 const DEFINITION = /^\[([DE]\d+)\]: /;
+const earlier = merged.filter(name => order(name) < order(survivor));
+if (earlier.length > 0) {
+  console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [D237]`);
+  process.exit(2);
+}
 
 // A citation of a record merged names the survivor, and a run of
 // citations that comes to name it twice names it once, in the order of
@@ -102,14 +107,17 @@ function relink(path, text) {
 // Each record merged names the survivor in its line of fate.
 for (const name of merged) {
   rewrite(recordPath(name), text => {
-    if (new RegExp(`^Replaced by \\[${survivor}\\]`, 'm').test(text)) return text;
+    if (new RegExp(`^Merged into \\[${survivor}\\]`, 'm').test(text)) return text;
     const lines = text.replace(/\n+$/, '').split('\n');
     const firstLink = lines.findIndex(line => DEFINITION.test(line));
     const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
     const links = firstLink === -1 ? [] : lines.slice(firstLink);
     while (body.at(-1) === '') body.pop();
-    body.push(`Replaced by [${survivor}], which holds what it decided, the records about one thing merged into one.`);
-    if (!links.some(line => line.startsWith(`[${survivor}]:`))) links.push(`[${survivor}]: ${survivor}.md`);
+    body.push(`Merged into [${survivor}].`);
+    if (!links.some(line => line.startsWith(`[${survivor}]:`))) {
+      const after = links.findIndex(line => DEFINITION.test(line) && order(line.match(DEFINITION)[1]) > order(survivor));
+      links.splice(after === -1 ? links.length : after, 0, `[${survivor}]: ${survivor}.md`);
+    }
     return [...body, '', ...links, ''].join('\n');
   });
 }

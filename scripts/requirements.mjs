@@ -42,6 +42,9 @@ if (askedDecisions.length > 0) {
     const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
       .map(([other]) => other);
     if (record.replacedBy.length > 0) console.log(`  replaced by          ${record.replacedBy.join(' ')}`);
+    if (record.mergedInto.length > 0) console.log(`  merged into          ${record.mergedInto.join(' ')}`);
+    const merged = [...decisions].filter(([, other]) => other.mergedInto.includes(decision)).map(([other]) => other);
+    if (merged.length > 0) console.log(`  holds merged         ${merged.join(' ')}`);
     if (record.replacedInPartBy.length > 0) console.log(`  replaced in part by  ${record.replacedInPartBy.join(' ')}`);
     if (replaces(false).length > 0) console.log(`  replaces             ${replaces(false).join(' ')}`);
     if (replaces(true).length > 0) console.log(`  replaces in part     ${replaces(true).join(' ')}`);

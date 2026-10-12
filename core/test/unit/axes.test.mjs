@@ -196,11 +196,11 @@ describe('a value that is no name reads the declaration of its kind', () => {
 describe('the axes resolve the binding the evaluator dispatches', () => {
   // The axes project the one record the scope holds under an address, so
   // a word the reader declares reads as itself, the case the hypertext
-  // chain exists for. A name of the reader takes no word of the
-  // vocabulary [D166].
+  // chain exists for. A value of the reader's named as a word meets the
+  // word at a step whose subject the word answers [D223].
   const shadowed = ':any/hundredfold ~(mul 100) | ';
 
-  it('a binding of the reader takes no word of the vocabulary', async () => {
+  it('a value of the reader named as a word meets the word where the subject answers it', async () => {
     expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('call/ValueMeetsWordError');
   });
 

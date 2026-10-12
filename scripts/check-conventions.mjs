@@ -50,13 +50,22 @@
 //   (8) Who decided: a record from D155 on names in a line of its
 //       own, `Decided by.`, the maintainer or the model [D155].
 //
+//   (9) The walk of a baseline: a record of the language the audit's
+//       baseline holds is held by a case or closed by the line of its
+//       fate, no more than a working day of records waits for the next
+//       walk, and the code, the tests and the cases cite the records in
+//       force, the documents that hold the work those in force or
+//       waiting on a target [D225], [D226].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
+import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './decision-records.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -335,7 +344,7 @@ function anchorDrift() {
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
 // no page of the language, so a reference to one is a link that leads
-// nowhere, and the reason of a sentence lives with its decision [D110].
+// nowhere, and the reason of a sentence lives with its decision [D225].
 
 const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
 
@@ -374,6 +383,93 @@ function recordsWithoutDecider() {
     .map(({ file }) => `docs/decisions/${file}`);
 }
 
+// ── (9) The walk of a baseline ─────────────────────────────────
+//
+// The audit is held against a commit, its baseline. A record of the
+// language that the baseline's tree holds is held by a case or closed by
+// the line of its fate, and the records written since wait for the walk
+// no longer than a working day of them; the code, the tests and the
+// cases cite the records in force, and the documents that hold the work
+// those in force or waiting on a target [D225], [D226].
+
+const RECORDS_A_WALK_TAKES = 20;
+const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
+const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
+const CODE_FILE = /\.(mjs|js|ts|astro|peggy)$/;
+const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const CITATION = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]|\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
+
+function filesUnder(dir, pattern) {
+  const absolute = join(repoRoot, dir);
+  if (!existsSync(absolute)) return [];
+  return readdirSync(absolute, { withFileTypes: true }).flatMap(entry => {
+    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(`${dir}/${entry.name}`, pattern);
+    return pattern.test(entry.name) ? [`${dir}/${entry.name}`] : [];
+  });
+}
+
+function citationsIn(text) {
+  const cited = [];
+  text.split(/\r?\n/).forEach((line, index) => {
+    for (const match of line.matchAll(CITATION)) {
+      for (const name of (match[1] ?? match[2]).split(/,\s*| and /)) cited.push({ name, line: index + 1 });
+    }
+  });
+  return cited;
+}
+
+function stateOf(record) {
+  if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
+  return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
+}
+
+function baselineDrift() {
+  const audit = readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' ');
+  const baseline = /holds it against commit `([0-9a-f]+)`/.exec(audit)?.[1];
+  if (baseline === undefined) return [{ where: 'docs/qlang-audit.md', problem: 'names no baseline commit' }];
+  let listed;
+  try {
+    listed = execFileSync('git', ['ls-tree', '--name-only', baseline, 'docs/decisions/'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return [{ where: 'docs/qlang-audit.md', problem: `names the baseline ${baseline}, which the history lacks` }];
+  }
+  const atBaseline = new Set(listed.split('\n').map(path => /([DE]\d+)\.md$/.exec(path)?.[1]).filter(Boolean));
+  const records = readDecisionRecords(repoRoot);
+  const violations = [];
+  for (const [name, record] of records) {
+    if (atBaseline.has(name) && isBeingDecided(record)) {
+      violations.push({ where: `docs/decisions/${name}.md`, problem: `outlived the baseline ${baseline}: no case names it and no line gives its fate` });
+    }
+  }
+  const since = [...records.keys()].filter(name => !atBaseline.has(name));
+  if (since.length > RECORDS_A_WALK_TAKES) {
+    violations.push({ where: 'docs/qlang-audit.md', problem: `${since.length} records since the baseline ${baseline}, from ${since[0]}: the walk is due` });
+  }
+  const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
+  for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(root, CODE_FILE))) {
+    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
+      const record = records.get(name);
+      if (record !== undefined && !isHeld(record)) violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
+    }
+  }
+  for (const file of filesUnder('core/test/conformance', /\.jsonl$/)) {
+    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      if (line.trim() === '' || line.trim().startsWith('//')) return;
+      for (const name of [JSON.parse(line).decision ?? []].flat()) {
+        const record = records.get(name);
+        if (record !== undefined && !notClosed(record)) violations.push({ where: `${file}:${index + 1}`, problem: `names ${name}, ${stateOf(record)}` });
+      }
+    });
+  }
+  for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
+    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
+      const record = records.get(name);
+      if (record !== undefined && !notClosed(record)) violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
+    }
+  }
+  return violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -383,6 +479,7 @@ const workspaceRanges = workspaceRangeDrift();
 const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
 const undecided = recordsWithoutDecider();
+const unwalked = baselineDrift();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -390,7 +487,8 @@ if (forbidden.length === 0
     && workspaceRanges.length === 0
     && anchors.length === 0
     && catalogDecisions.length === 0
-    && undecided.length === 0) {
+    && undecided.length === 0
+    && unwalked.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -432,11 +530,16 @@ if (anchors.length > 0) {
 if (catalogDecisions.length > 0) {
   process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
   for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
-  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D110].\n');
+  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D225].\n');
 }
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
   process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
+}
+if (unwalked.length > 0) {
+  process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
+  for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
+  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225], [D226].\n');
 }
 process.exit(1);

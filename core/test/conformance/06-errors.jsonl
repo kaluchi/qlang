@@ -33,3 +33,4 @@
 {"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error","decision":"D64"}
 {"name":"reduce-reducer-error-shortcircuits","query":":any/r ~(!{:kind :stop} | raise) | :any/r/x ~(/0) | [1 2 3] | reduce 0 ~r !| type","expect":"::error","decision":"D64"}
 {"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D158"}
+{"name":"the-library-of-error-pipelines-left-the-package","query":"1 | mapError !| type","expect":"::call/UnknownNameError","decision":"D102"}

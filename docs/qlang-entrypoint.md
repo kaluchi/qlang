@@ -292,7 +292,7 @@ been tried [E3]:
 
 The tags are placeholders for the schema the discussion settles, and
 they are qualified by their owner, since the values a host produces
-carry their owner in the prefix [D35]. What the block
+carry their owner in the address of their tags [D153]. What the block
 fixes is that the dashboard is a literal whose parts are addressed by
 projection, `/gates`, and read in detail by a query on the part, the
 gate's page or the fact's text, under the budget and the elision of
@@ -679,7 +679,7 @@ its decisions at once. `::workflow | start`, which became
 `::workflow | status` [E5], is a verb found through the subject's tag
 [D34]: the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag with a schema [D6], printed as
+case, a metric, each a tag whose label declares what it holds [D169], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
@@ -733,15 +733,15 @@ decision and no record followed.
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
-[D6]: decisions/D6.md
 [D21]: decisions/D21.md
 [D34]: decisions/D34.md
-[D35]: decisions/D35.md
 [D58]: decisions/D58.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
+[D153]: decisions/D153.md
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
+[D169]: decisions/D169.md
 [E1]: decisions/E1.md
 [E2]: decisions/E2.md
 [E3]: decisions/E3.md

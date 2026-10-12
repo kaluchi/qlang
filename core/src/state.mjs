@@ -69,7 +69,7 @@ export function envSet(env, name, value) {
 }
 
 // The scopes of the words of the root, where a bare name and the
-// definition of a call read the root alone [D23], and every scope made
+// definition of a call read the root alone [D222], and every scope made
 // from one.
 const ROOT_WORD_SCOPES = new WeakSet();
 

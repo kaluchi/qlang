@@ -28,7 +28,9 @@ wins and this file is what changes.
 4. Before the session ends, write every decision taken as a file
    under `docs/decisions/`, with the requirements it leaves as target
    cases of the conformance suite. A decision that survives only in a
-   conversation is lost.
+   conversation is lost. Then walk the baseline: every record no case
+   names gets its fate, the audit moves to the tree the session leaves,
+   and the next shift starts at a clean desk [D226].
 
 ## Bootstrap recipe
 
@@ -152,7 +154,11 @@ on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that
 the tree lacks or on words they quote from the tree that their file no
-longer holds. `npm run check:probes` runs every probe of the audit and the
+longer holds, and on the walk of a baseline: a record of the language
+the audit's baseline holds that no case and no line of its fate does,
+more than twenty records since the baseline, and a citation of a record
+not in force, which the code, the tests and the cases never make and the
+documents make only of one waiting on its target [D226]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone
 included, and fails on one whose answer changed, which the branch that
 changed it answers by rewriting the sentence with its probe [D93]; a
@@ -188,7 +194,9 @@ it; where a rule and the audit disagree, the audit wins.
   Ask which merge strategy to use before merging. Delete the branch
   after the merge, locally and on the remote.
 - Write the decisions as files under `docs/decisions/` in the same
-  session as the work, hold their quotes against the transcripts with
+  session as the work, close in the same commit each part of an older
+  record a new one contradicts, found by a search of the records'
+  words, hold their quotes against the transcripts with
   `node scripts/sensors/check-quotes.mjs`, and remove a scar the tree
   no longer shows.
 

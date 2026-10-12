@@ -76,6 +76,21 @@ requirement a decision leaves is a conformance case that names the
 decision, a target until the tree meets it, so whether a decision is
 carried out is computed by running the cases.
 
+A record is held against every new baseline, and a walk gives each
+record of the language that no case names one fate: carried out in
+another form, contradicted by a newer record, a principle this document
+states, a rule of the tooling, an intention, which is a question of the
+open chapter and no decision, set aside, or in force, its requirement
+written as a case in the language as it stands [D225], [D226]. The form
+a record wrote was the means of its baseline: the walk keeps the intent
+and lets the form go. A new record closes, in the same commit, each
+part of an older one it contradicts, found by a search of the records'
+words. The baseline moves at the end of every shift that wrote records,
+so the next starts at a clean desk, before an outside audit and when a
+branch lands, and `check:conventions` holds a ceiling of records since
+it; the code, the tests and the cases cite only the records in force,
+and this document those in force or waiting on a target.
+
 An inference is the model's reasoning from named facts. Where an
 inference carries weight it is marked as the model's reading, so that
 a reader knows it can be re-derived and where to look.
@@ -804,8 +819,8 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D23], [D34], [D62], and a host still
-publishes names without a prefix. The sister project's names meet the
+86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
+and a host still publishes names without a prefix. The sister project's names meet the
 core's on `type` and on `source`, kept apart by the effect marker alone,
 and its graph alone declares under `::any` the verbs a query calls,
 lookups by kind of element, accessors of the containing element,
@@ -822,9 +837,10 @@ That is the `ioctl` of Unix, every new capability a new verb in one
 shared space, where Plan 9 kept the verbs fixed and let the nouns grow;
 a host's catalog should grow the same way.
 
-What remains is the rest of the rule of collisions, the surface and
-the loading [D153], the reading of a name [D221], the rule of the owner
-[D222] and the meeting of a value and a word [D223] settled:
+What remains of the rule of collisions are intentions, questions of
+this document and no decisions [D226], the surface and the loading
+[D153], the reading of a name [D221], the rule of the owner [D222] and
+the meeting of a value and a word [D223] settled:
 
 - A verb and a kind may be joined by whoever owns one of them, the
   orphan rule of Rust: a host may specialize a core verb on its own tags
@@ -850,45 +866,10 @@ the loading [D153], the reading of a name [D221], the rule of the owner
 #[::map/count ::set/count ::string/count ::vec/count]
 ```
 
-Namespaces too large to bind become mounted [D24]. The sister project's
-types are tens of thousands of names; a host serves them lazily, the way
-a file server was mounted into a namespace of Plan 9: a tag no binding
-knows is asked of the mounted namespaces in order, the first that knows
-it answers, and the order of mounting and the rule of ownership settle
-any overlap. The core knows nothing about Java; it knows how to ask a
-mounted namespace. With that, a Java type is a tag, written in Java's
-own spelling, copied from a stack trace and pasted into a query:
-
-```qlang target
-> ::app.m8.web.servlet.gwt.orgstructure.functask.ConfirmFtNewEmpHandler | source
-```
-
-answers the type's source text, and `doc`, `binding` and the type's
-relations work on it as they work on any tag of the catalog. The slash
-is accepted inside a tag's name and the dot is not:
-
-```qlang
-> ::app/m8/web/Foo | type
-::tag
-
-> ::app.m8.web.Foo | type
-::quote/ParseError!{ … :found "." … }
-```
-
-The dot is unused elsewhere in the grammar, so admitting it inside a
-tag's name is a local change, and a quoted form, `::"…"`, covers the
-characters Java allows and an identifier does not, the `$` of a nested
-class among them. A member of a type is a record under the host's tag
-that points at its type, `::JdtMethod{:of ::app.m8.Foo :sig
-"bar(int)"}`, a value that prints, reads back and resolves. And the
-sister project's sixty verbs shrink to about a dozen: the lookups become
-the tag literal, the accessors of the containing element fields whose
-values are tags and therefore links, the enumerations by scope one verb
-over any containing node, the relations one verb with a map of options
-beside a few named ones, and the helpers stop being exported. A
-namespace is also what an agent sees: a session, and a sub-agent inside
-it, is given the namespaces its task needs, so focus comes from
-construction rather than from being asked for.
+Namespaces too large to bind are the sister project's types, tens of
+thousands of names, which it reaches by lookups it declares under
+`::any`; serving them as tags is an intention, the question of mounting
+in the chapter of open questions.
 
 ### Errors named by their site
 
@@ -1057,7 +1038,7 @@ described by a value is performed by an explicit step at the host
 boundary and by nothing else.
 
 A host's operands are then named as the core's are, under the rule of
-collisions [D23], and the marker leaves with the host's verbs moving
+collisions [D222], [D223], and the marker leaves with the host's verbs moving
 onto its tags: without it the sister project's `@type` and `@source`
 become `type` and `source`, which the root refuses beside `::any/type`
 and `::any/source` unless the sister declares them under kinds of its
@@ -1146,7 +1127,8 @@ each guard together with the duplicate it guards.
 A decision is the discussion with its choice and its circumstances, and
 each lives in a file of its own under `docs/decisions/`, written once;
 a citation of its number in this document is a link to that file, and
-the requirements it left are the conformance cases that name it [D58].
+the requirements it left are the conformance cases that name it [D58];
+it cites a record in force or one waiting on its target [D225].
 How the records are sourced is the subject of the folder's
 `README.md`.
 
@@ -1163,8 +1145,8 @@ Seen together, the repairs describe one language, and three
 unifications carry it.
 
 One mechanism of value. A tag names the kind of a value and stands over
-any payload; its declaration is its schema or its constructor and its
-document [D6]; a value under a tag obeys the tag's invariant, checked
+any payload; its declaration is its page, and the definitions under it
+its constructor and its invariants [D168], [D169]; a value under a tag obeys the tag's invariant, checked
 when the value is built and again after every transform whose
 declaration keeps the tag, `within` editing under a tag and checking
 once at the rewrap [D41]; every value comes apart into its atoms and a
@@ -1174,8 +1156,8 @@ the doc, a host's record and the elision marker are all this one thing:
 over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
-[D32]; a kind carries the value's constructor, its JSON form, its order
-and its laws, while one rule of the core prints every literal [D33].
+[D32]; a kind carries the value's constructor, its order and its laws
+[D48], [D169], while one rule of the core prints every literal.
 
 One mechanism of operand. An operand is a name under the label of its
 subject, the parts of its args names under its address with their
@@ -1236,8 +1218,7 @@ noun its path names, whose address its tag is, and a name under a label
 resides on it, taking a subject the walk of its tags brings to the
 label [D152], [D153], [D156], [D164]. The root is the scope a host's
 sources declare as cells before a reader's first step, a source, a cell
-and a query written alike, and a namespace too large to declare is
-mounted and served on demand [D24], [D36]. A name typed bare resolves
+and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
 [D62], [D153]; a tag in the subject position is dispatched to the noun
@@ -1372,19 +1353,20 @@ milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
-work has begun meet their targets, so the suite carries none, and every
-other decision below writes its targets before its work:
+work has begun meet their targets, so the suite carries the target of
+the one the walk found in force and unmet, the effect marker leaving
+the language [D2], and every other decision below writes its targets
+before its work:
 
 ```sh
-$ grep -rhE '"target": *true' core/test/conformance | wc -l
-0
+$ grep -rhoE '"decision": *"D[0-9]+", *"target": *true' core/test/conformance
+"decision":"D2","target":true
 ```
 
 ### Milestone 4 · One spelling
 
 Every fact has one spelling, and a kind owns what is said of its values.
-The keystone is the declaration of a kind, its schema or its constructor
-[D6], [D33]. A kind is a label, a name declared by its page, which
+The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
 builds a value by the `construct` declared under it and checks it by
 the laws declared under it, each named by its refusal [D168], [D169],
 so a field of a record no law names is spelled nowhere a reader can
@@ -1424,24 +1406,22 @@ its label, values of the language [D172]:
 ::string
 ```
 
-What remains on the schema: a field documented by its record's tag and
-a value shared across kinds by its own [D50], and elision taking the
-tail of a schema [D21]. What remains of the names: mounted namespaces
-for a host whose names are too many to declare [D24], [D36], and the
-rest of the rule of collisions, a verb and a kind joined only by
-whoever owns one of them [D23]. Beside both, the examples come to live
+What remains on the schema is elision taking the tail of a schema
+[D21], a field being a definition under its label [D50]; what remains
+of the names is a host's, which the sister project's redesign moves
+onto its kinds, and the questions of mounting and of one query of every
+definition of a name. Beside both, the examples come to live
 on one plane, the editor's grammar is generated or reduced, and the
 entrypoint of the work gets its first version, the command that
 measures the tree and prints the state of the work as a dark cockpit,
 whose design is the entrypoint document's.
 
-Its answers are the targets of [D6], [D33], [D46], [D152] and [D153] in
-the conformance suite, those of the last three met, and those of the first
-two written when they are decided, the step of a constructor apart from
-the kind of tagged values having landed [D115]. Beside them: no class
-of the JavaScript stands for a refusal; no operand contract is spelled
-outside the catalog; one query shows every definition of a name and
-which one wins; and the environment holds no key of the runtime's own.
+Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
+in the conformance suite, every one met, the step of a constructor apart
+from the kind of tagged values having landed [D115]. Beside them: no
+class of the JavaScript stands for a refusal; no operand contract is
+spelled outside the catalog; and the environment holds no key of the
+runtime's own.
 
 The model's reading of what in this milestone the language needs, and
 what is the debt of its tree. The schema is the language's, since
@@ -1456,25 +1436,26 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D7], [D107], [D108], [D109],
+conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
 [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the first screen and the hypertext it opens, every
-one met. The benchmark runs [D26], each run recorded with the frictions
-it met [D104], [D105], [D106], each measurement on a set of tasks a
+[D127], [D129] and [D150]: the effect marker leaving the language, open,
+and the first screen and the hypertext it opens, every one met. The
+benchmark runs [D26], each run recorded with the frictions it met
+[D104], each measurement on a set of tasks a
 clean author wrote, which measures once and serves the work once its
 misses are read [D142], its children running the command line from the
 pages of the language and the command line [D216]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
 subject it passed a marker [D184].
 
-What remains of it: a view takes its options beyond a few positional
-modifiers as one map whose keys it declares [D40]; the catalog's prose
-is reduced to what the facts do not say, every page telling what its
-name is for and the claims its laws prove [D110], [D124], each
+What remains of it: the catalog's prose is reduced to what the facts
+do not say, every page telling what its name is for and the claims its
+laws prove [D124], [D212], each
 definition a story a reader falls into, the word, its answer, its
 parts, its refusals and its laws in that order [D179]; enrichment
-happens once per session; fields are documented by their records' tags
-and shared values by their own [D50]; and the first screen, the pages
+happens once per session; a value shared across kinds of record carries
+a tag of its own, as a field is a definition under its label [D50]; and
+the first screen, the pages
 of the language and of the command line [D216], told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
 is measured on a set of tasks no reader has seen [D131], [D142].
@@ -1485,8 +1466,8 @@ stands ahead of its remote since 29 September, and its redesign has not
 begun: its nodes carry their kind as a tag, its verbs
 move onto its tags and its noun [D34], [D62], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
-shrink to about a dozen, and its guide is generated from the catalog
-[D24]; the effect marker leaves the language with them [D2], since
+shrink to about a dozen, and its guide is generated from the catalog;
+the effect marker leaves the language with them [D2], since
 without it a host's names meet the core's in the root, which refuses a
 second declaration of a name [D153]; its workspaces become nouns and its answers
 name the workspace they came from [D38]; and a host's command is the
@@ -1558,13 +1539,49 @@ a host can say that every kind of its nodes answers a verb once. One
 level of it is decided: every walk ends at `::any`, whose words every
 value answers, a host's among them [D153], [D169].
 
-The spelling and the mechanics of mounting [D24]. Admitting the dot
-inside a tag's name is local to the grammar; the quoted form `::"…"`
-mirrors the quoted keyword. A tag name is the address of a name of the
-root [D153], so a mount is a noun whose names a host answers on demand
-for a tag no declaration names [D24], [D36], and `manifest` lists them
-beside the declared nodes [D61]. Open: how a host declares the noun it
-answers on demand, and the exact record of a member.
+Mounting a namespace too large to declare. The sister project's types
+are tens of thousands of names, which no source declares; the intention
+is that a host serves them on demand, the way a file server was mounted
+into a namespace of Plan 9: a tag no declaration names is asked of the
+mounted namespaces in order, the first that knows it answers, and the
+order of mounting and the rule of ownership settle any overlap. The core
+would know nothing about Java, only how to ask a mounted namespace, and
+a Java type would be a tag, written in Java's own spelling, copied from
+a stack trace and pasted into a query, its source, its page, its record
+and its relations read as any tag's:
+
+```qlang target
+> ::app.m8.web.servlet.gwt.orgstructure.functask.ConfirmFtNewEmpHandler | source
+```
+
+The slash is accepted inside a tag's name and the dot is not:
+
+```qlang
+> ::app/m8/web/Foo | type
+::tag
+
+> ::app.m8.web.Foo | type
+::quote/ParseError!{ … :found "." … }
+```
+
+The dot is unused elsewhere in the grammar, so admitting it inside a
+tag's name is local to the grammar, and a quoted form, `::"…"`, mirrors
+the quoted keyword and covers what Java allows and an identifier does
+not, the `$` of a nested class among them. A tag name is the address of
+a name of the root [D153], so a mount is a noun whose names a host
+answers on demand, and `manifest` lists them beside the declared nodes
+[D61]. A member of a type is a record under the host's tag that points
+at its type, `::JdtMethod{:of ::app.m8.Foo :sig "bar(int)"}`, and the
+verbs the sister project declares under any value shrink to about a
+dozen: the lookups become the tag literal, the accessors of the
+containing element fields whose values are tags and therefore links, the
+enumerations by scope one verb over any containing node, the relations
+one verb beside a few named ones. A namespace is also what an agent
+sees: a session, and a sub-agent inside it, is given the namespaces its
+task needs, so focus comes from construction rather than from being
+asked for. Open: whether a host needs it before the sister project's
+redesign, how a host declares the noun it answers on demand, and the
+exact record of a member.
 
 The pressure for a second format. Clojure answered the slowness of
 parsing its notation in browsers with Transit, the same model written
@@ -1675,8 +1692,9 @@ the runtime puts the tag on, which needs no change and leaves the
 self-tag a recursion like any other; `tag` inside a constructor of the
 same tag stamping without running it again, which is a rule of dynamic
 scope; and a refusal that names the self-tag at its second entry, which
-is one more check on every constructor. It returns where the contracts
-move onto the kinds [D6], [D33].
+is one more check on every constructor. The contracts are on the kinds
+[D168], [D169], so it waits on a constructor that needs to tag its own
+result.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
@@ -1772,32 +1790,27 @@ the command line without them.
 
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
-[D6]: decisions/D6.md
 [D7]: decisions/D7.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md
-[D23]: decisions/D23.md
-[D24]: decisions/D24.md
 [D26]: decisions/D26.md
 [D28]: decisions/D28.md
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
 [D31]: decisions/D31.md
 [D32]: decisions/D32.md
-[D33]: decisions/D33.md
 [D34]: decisions/D34.md
-[D36]: decisions/D36.md
 [D37]: decisions/D37.md
 [D38]: decisions/D38.md
 [D39]: decisions/D39.md
-[D40]: decisions/D40.md
 [D41]: decisions/D41.md
 [D42]: decisions/D42.md
 [D43]: decisions/D43.md
 [D44]: decisions/D44.md
 [D46]: decisions/D46.md
+[D48]: decisions/D48.md
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
@@ -1818,12 +1831,9 @@ the command line without them.
 [D95]: decisions/D95.md
 [D96]: decisions/D96.md
 [D104]: decisions/D104.md
-[D105]: decisions/D105.md
-[D106]: decisions/D106.md
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
-[D110]: decisions/D110.md
 [D111]: decisions/D111.md
 [D115]: decisions/D115.md
 [D117]: decisions/D117.md
@@ -1877,6 +1887,7 @@ the command line without them.
 [D208]: decisions/D208.md
 [D210]: decisions/D210.md
 [D211]: decisions/D211.md
+[D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
 [D216]: decisions/D216.md
@@ -1886,3 +1897,5 @@ the command line without them.
 [D221]: decisions/D221.md
 [D222]: decisions/D222.md
 [D223]: decisions/D223.md
+[D225]: decisions/D225.md
+[D226]: decisions/D226.md

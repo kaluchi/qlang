@@ -6,3 +6,4 @@
 {"name":"transitive-laundering-via-alias-rejected","query":":any/@a ~(count) | :any/b ~(@a) !| type","expect":"::bind/EffectMarkMissingError"}
 {"name":"a-freeze-of-a-result-is-not-rejected","query":"[1 2 3] | :result / | result | count","expect":"3"}
 {"name":"bindstep-inside-paren-group-with-effectful-body-rejected","query":"1 | (:any/bad ~(@callers) | bad)","expect":"::bind/EffectMarkMissingError!{\n  :name :any/bad\n  :calls :@callers\n  :trail [\n    {\n      :step ~(:any/bad ~(@callers))\n      :subject 1\n      :skipped ~(bad)\n    }\n    {\n      :step ~((:any/bad ~(@callers) | bad))\n      :subject 1\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-word-that-calls-a-name-under-the-marker-takes-no-mark-of-its-own","query":":any/quiet ~(@out) | 1","expect":"1","now":"::bind/EffectMarkMissingError","decision":"D2","target":true}

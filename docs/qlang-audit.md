@@ -1152,7 +1152,7 @@ over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its order and its laws
-[D48], [D169], while one rule of the core prints every literal.
+[D16], [D169], while one rule of the core prints every literal.
 
 One mechanism of operand. An operand is a name under the label of its
 subject, the parts of its args names under its address with their
@@ -1865,6 +1865,7 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
+[D16]: decisions/D16.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md
@@ -1883,7 +1884,6 @@ the command line without them.
 [D43]: decisions/D43.md
 [D44]: decisions/D44.md
 [D46]: decisions/D46.md
-[D48]: decisions/D48.md
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md

@@ -1,4 +1,4 @@
-// One order ranks every value [D16], [D48]: first by kind, null,
+// One order ranks every value [D16]: first by kind, null,
 // boolean, number, string, keyword, tag name, vector, set, map, quote,
 // doc, elision and desc, then every other tag by its name; within
 // a kind numbers by value, strings by their code units, vectors element

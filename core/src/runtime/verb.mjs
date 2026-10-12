@@ -54,7 +54,7 @@ export function walkToKinds(value, kindNames) {
 
 // The value under the tags from the innermost out, their constructors
 // run again [D41]; an error passes as it is, as it does under every tag
-// [D86].
+// [D13].
 async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
@@ -81,7 +81,7 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 // parts of the call's args, a reader of the scope over the state of
 // the call after them, its scope the tree of the query, wherever it is
 // called [D79], [D200], and a reader of the tags its subject stood
-// beneath over the tags the walk passed [D86].
+// beneath over the tags the walk passed [D13].
 export function runPrimitive(primitive, served, passedTags, partValues, state) {
   if (readsState(primitive)) return primitive(served, ...partValues, queryStateOf(state));
   if (readsPassedTags(primitive)) return primitive(served, ...partValues, passedTags);

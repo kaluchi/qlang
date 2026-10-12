@@ -2,7 +2,7 @@
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
 // expect (must be a pure literal — no calls, no pipelines — or the print
-// of a failure, its error at rest raised, `!{…} | raise` [D211]).
+// of a failure, its error at rest raised, `!{…} | raise` [D13]).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where

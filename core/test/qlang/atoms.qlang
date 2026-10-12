@@ -9,7 +9,7 @@
    the shapes of its elements; a map is built from the pairs of its keys
    and values by `indexBy`; a tagged value, the set, the quote and the
    doc and an error at rest among them, from its tag and its payload by
-   `tag` [D94], [D210].
+   `tag` [D13], [D94].
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
    `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) | map ~last)])`. The verbs
    are the language's own, and the test of the ring runs them over every

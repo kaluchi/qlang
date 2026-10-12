@@ -157,7 +157,7 @@ export function elide(value, budget) {
 
 // A fact of an alert within its excerpt, beneath the read that reaches
 // it: a string past the excerpt gives way whole with its head, and any
-// other value, an error at rest among them [D210], gives way within as
+// other value, an error at rest among them [D13], gives way within as
 // `elide` cuts it.
 function excerptOf(value, read) {
   if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);

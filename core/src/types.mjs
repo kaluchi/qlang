@@ -182,7 +182,7 @@ export function makeSet(elements) {
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what `!|`
-// opens a failure to and `raise` raises [D97], [D210].
+// opens a failure to and `raise` raises [D13].
 export function errorAtRest(tag, facts) {
   const ofKind = makeTaggedInstance(ERROR_TAG, facts);
   return tag.name === ERROR_TAG.name ? ofKind : makeTaggedInstance(tag, ofKind);
@@ -317,12 +317,12 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names
 // none [D64], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [D85], a vector of stops that `eval-trail.mjs` writes;
+// the path it took [D13], a vector of stops that `eval-trail.mjs` writes;
 // a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
 // A trail is a vector of stops, each a map whose `:skipped` is the quote
-// of the steps the error skipped after it [D85].
+// of the steps the error skipped after it [D13].
 export function isTrail(value) {
   return isVec(value) && !isVecOfOwnKind(value)
     && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
@@ -330,7 +330,7 @@ export function isTrail(value) {
 
 // An error holds the facts of its site and, once a step raised it or
 // handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [D209].
+// `:trail` [D13].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {

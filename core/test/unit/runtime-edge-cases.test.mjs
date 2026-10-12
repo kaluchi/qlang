@@ -320,7 +320,7 @@ describe('printValue round-trip — all composite types', async () => {
 
   it('Error value of its own tag', async () => {
     // The print form writes the tag before the bang and re-parse
-    // recovers the same value [D86].
+    // recovers the same value [D13].
     await assertRoundTrip('::Foo!{:message "boom"}', 'Error');
   });
 

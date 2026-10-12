@@ -10,7 +10,7 @@
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-word","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D70"}
 {"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":["D44","D71"]}
-{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":["D71","D85"]}
+{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":["D13","D71"]}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71"}
 {"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}

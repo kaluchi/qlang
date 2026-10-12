@@ -85,7 +85,7 @@ function printListLike(open, elements, indent, printedOf) {
 // site before the bang, none for the kind of errors [D64], its facts and
 // the path it flew, `:trail []` for one that flew no step, so its print
 // reads back as the error at rest, a value that stands in a vector or a
-// map; the answer of a host says above it that it was raised [D219].
+// map; the answer of a host says above it that it was raised [D13].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
@@ -99,7 +99,7 @@ const NO_PATH = Object.freeze([]);
 const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
-// writes `#[…]` [D211].
+// writes `#[…]` [D13].
 function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);

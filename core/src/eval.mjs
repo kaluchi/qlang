@@ -107,7 +107,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // stop [D85].
+    // stop [D13].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -131,7 +131,7 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error,
-// the step joining the skipped steps of its last stop [D85], and `!|`
+// the step joining the skipped steps of its last stop [D13], and `!|`
 // fires on an error alone [D51]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
@@ -171,9 +171,9 @@ function containerBeneathTags(value) {
 // map of its facts, `:trail` among them, under `::error` and the tag of
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
-// error [D97], [D206], [D210], a value passing, a label's refusal
+// error [D13], [D206], a value passing, a label's refusal
 // answering for the catch, and a raise that writes the `:trail` it read
-// resuming that path [D85].
+// resuming that path [D13].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -200,7 +200,7 @@ function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.
 // Each element and each value of a literal is a word forked against the
 // subject, one after another in their order [D84]; a failure lives in the
 // pipe alone, so the first a word answers is the answer of the literal,
-// the words after it left unrun [D210].
+// the words after it left unrun [D13].
 async function evalVecLit(node, state) {
   return withPipeValue(state, await wordValues(node.elements, state));
 }
@@ -228,8 +228,8 @@ async function entryValues(entries, state) {
 // set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
 // `::Foo::error{…}`, laid through the label of its tag as a tagged literal
 // lays a payload, a refusal of the label answering for the literal; every
-// entry is a fact, `:kind` among them [D190], and `raise` raises the error
-// [D211].
+// entry is a fact, `:kind` among them [D13], and `raise` raises the error
+// [D13].
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
@@ -239,7 +239,7 @@ async function evalErrorLit(node, state) {
 
 // The value a word of a literal answers, forked against the subject: a
 // failure the word raised passes a stop at the word, and one handed on
-// from inside it goes on as it is to the literal it fails [D85], [D210].
+// from inside it goes on as it is to the literal it fails [D13].
 async function wordAnswer(wordNode, state) {
   const answered = await fork(state, inner => evalNode(wordNode, inner));
   return answerOfWord(answered.pipeValue, wordNode, state.pipeValue);
@@ -280,7 +280,7 @@ async function evalSetLit(node, state) {
 // args of a call of it, which the call checks as it reads them, and the
 // tag of an invariant over the facts a reader raises again lay
 // themselves over the payload as they are [D42], [D173], and no
-// constructor meets an error [D86].
+// constructor meets an error [D13].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
@@ -353,7 +353,7 @@ async function refusalOfQuery(invariants, at, value, state, scope) {
 // the kind of the value refused in the order the catalog declares them
 // [D172]; the value itself rides the facts where the trail does not hold
 // it, a part or the args, and leaves them for the subject, which the
-// trail's first stop holds [D85].
+// trail's first stop holds [D13].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -368,7 +368,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last stop [D86], and the literal's own raise where the payload
+// its last stop [D13], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
@@ -389,7 +389,7 @@ async function evalTagLit(node, state) {
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
 // writes, its own name among it [D44], and a body that fails answering the
-// failure, which no name holds [D210]; a name is declared once in its
+// failure, which no name holds [D13]; a name is declared once in its
 // scope [D71], a node the root holds once at all [D153], and a name with a
 // path under a noun declared before it; an invariant holds of the
 // values of the label it is declared under, so one a bare name declares
@@ -443,7 +443,7 @@ function evalProjection(node, state) {
 }
 
 // A projection reads the map or the vector beneath the tags stacked over
-// its subject, so the facts of an opened error read by name [D97].
+// its subject, so the facts of an opened error read by name [D13].
 function projectSegment(subject, projKey) {
   const projected = containerBeneathTags(subject);
   if (isQMap(projected)) {
@@ -733,7 +733,7 @@ const ARGS_NAME = keyword('args');
 // subject by mistake, `filter /active` for `filter ~(/active)`, and the
 // part's invariant refuses it with the error at rest as its value, the
 // part that reads the args naming the place, from zero; anywhere else the
-// error is the answer [D67], [D167], [D169], [D210].
+// error is the answer [D13], [D67], [D167], [D169].
 function refusalOfComputedCode(parts, place, error, scope) {
   const reading = parts.find(({ selector }) => selector.place === place) ?? parts.find(({ selector }) => selector.readsArgs);
   if (reading === undefined) return error;

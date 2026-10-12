@@ -20,7 +20,7 @@ const ERROR_KIND_NAME = 'error';
 // the order of the definitions that describe them, each named as its fact
 // [D172]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it [D85]. A fact neither declares is a
+// after them as the trail joins it [D13]. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -36,7 +36,7 @@ export function factsInOrder(tag, facts, env) {
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value itself left out where it
 // is the subject the first stop of the trail holds, so its presence says
-// the site reached below the subject [D85], [D172].
+// the site reached below the subject [D13], [D172].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();

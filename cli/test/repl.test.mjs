@@ -172,7 +172,7 @@ describe('runRepl — output highlighting', () => {
 
 describe('runRepl — error rendering', () => {
   it('renders an error value with its path through the same printValue path as success values', async () => {
-    // The path of an error is written as it flows [D85], so the value
+    // The path of an error is written as it flows [D13], so the value
     // the cell answers already holds every stop and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';

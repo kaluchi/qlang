@@ -181,7 +181,7 @@ export function findAstNodeAtOffset(ast, offset) {
 // it, a keyword written as a value none of them: called, a call of the
 // name, its declaration and a projection that reads it as a key; written
 // as a tag [D152], its declaration, a tagged or an error literal that
-// writes it [D86] and the tag name alone.
+// writes it [D13] and the tag name alone.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
@@ -195,7 +195,7 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
 
 // writesTag(node) — a node whose head is a tag it writes: a tagged
 // literal, `::Tag(…)`, or an error literal that writes the tag of its
-// content before its bang, `::Tag!{…}` [D86].
+// content before its bang, `::Tag!{…}` [D13].
 export function writesTag(node) {
   return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
 }

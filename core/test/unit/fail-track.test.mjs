@@ -57,7 +57,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
-    // the step that calls a word (`count`) joins them [D85].
+    // the step that calls a word (`count`) joins them [D13].
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
@@ -98,7 +98,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
 });
 
 describe('json on errors at rest inside containers', () => {
-  it('renders an error at rest as the value under its tags [D210]', async () => {
+  it('renders an error at rest as the value under its tags [D13]', async () => {
     const evalResult = await evalQuery('[11 ("x" | add 10 !| /) 13] | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('"$tag":"number/add/SubjectNotNumberError"');
@@ -207,7 +207,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('raise takes the tag the map carries and keeps every entry a fact', async () => {
-    // A `:kind` entry names no tag [D190]: the tag is the map's own.
+    // A `:kind` entry names no tag [D13]: the tag is the map's own.
     const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
     expect(result.descriptor.get('kind')).toEqual(makeTag('Other'));

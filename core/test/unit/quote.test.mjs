@@ -82,7 +82,7 @@ describe('assembling steps by hand', () => {
   it('an error at rest of a tag is the step of the literal that spells it', async () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
-    // [D86], [D210].
+    // [D13].
     expect(await evalQuery('[("x" | add 1 !| /)] | tag ::quote | parse'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });

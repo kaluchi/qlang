@@ -470,12 +470,12 @@ Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. An error at
 rest is a value with a tag and a descriptor, its literal the bang,
 `!{…}`, and raised by `raise` it is a failure, which lives in the pipe
-alone and which `!|` alone catches [D210], [D211], and a host prints a
+alone and which `!|` alone catches [D13], and a host prints a
 failure as its error at rest under a line that says it was raised
-[D219]; its
+[D13]; its
 trail is the path it flew, a stop at every step that raised it or handed
 it on, and the steps its last stop skipped, applied to a fresh subject,
-replay them [D85]. A
+replay them [D13]. A
 quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
@@ -921,7 +921,7 @@ true
 ```
 
 An error carries its whole input, and the path of an error carries the
-subject of every level it left [D85], so the same failure one verb
+subject of every level it left [D13], so the same failure one verb
 deeper carries it twice:
 
 ```qlang
@@ -938,7 +938,7 @@ it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
 the runs of [D181] recorded on set T, the alerts print about a third of
 what the errors printed whole, and the command line writes above an
-alert the line that says it was raised [D219] and below it the prose of
+alert the line that says it was raised [D13] and below it the prose of
 its refusal's page as line comments, the repair a reader acts on
 [D195]:
 
@@ -1886,6 +1886,7 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
+[D13]: decisions/D13.md
 [D16]: decisions/D16.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
@@ -1918,7 +1919,6 @@ the command line without them.
 [D72]: decisions/D72.md
 [D80]: decisions/D80.md
 [D84]: decisions/D84.md
-[D85]: decisions/D85.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
 [D90]: decisions/D90.md
@@ -1976,14 +1976,11 @@ the command line without them.
 [D195]: decisions/D195.md
 [D200]: decisions/D200.md
 [D208]: decisions/D208.md
-[D210]: decisions/D210.md
-[D211]: decisions/D211.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
-[D219]: decisions/D219.md
 [D221]: decisions/D221.md
 [D223]: decisions/D223.md
 [D224]: decisions/D224.md

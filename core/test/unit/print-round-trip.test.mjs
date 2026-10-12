@@ -3,7 +3,7 @@
 // their escapes, vectors and maps in both their spellings, sets with a
 // duplicate among them, values under a tag over every payload, a label
 // the source declares among the tags, the constructors of `::qlang` and
-// `::json`, quotes, docs and errors at rest inside a vector [D210], one with
+// `::json`, quotes, docs and errors at rest inside a vector [D13], one with
 // a stop on its trail among them, each printed, parsed and applied, and
 // held equal to itself by `eq`.
 

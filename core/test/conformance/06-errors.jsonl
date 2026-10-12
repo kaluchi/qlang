@@ -22,7 +22,7 @@
 {"name":"cannot-apply-args-to-value","query":"5 | :five / | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort ~(/a) !| /addresses","expect":"#[::vec/sort]"}
 {"name":"unresolvedIdentifier","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
-{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /trail/0/step | first | /name","expect":":thisIsNotDefined","decision":"D85"}
+{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /trail/0/step | first | /name","expect":":thisIsNotDefined","decision":"D13"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
 {"name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::call/KindAnswersNoVerbError!{\n  :name :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(reduce 0 ~(add))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42","decision":"D90"}

@@ -1,6 +1,6 @@
 {"name":"first-page-writes-a-quote-in-its-base-form","query":"::qlang | doc | content | contains \"~/\"","expect":"false","decision":"D185"}
 {"name":"a-modifier-is-computed-against-the-subject-of-its-step","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12","decision":"D185"}
-{"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map /n !| /actualValue | type","expect":"::proj/IndexNotIntegerError","decision":["D185","D210"]}
+{"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map /n !| /actualValue | type","expect":"::proj/IndexNotIntegerError","decision":["D13","D185"]}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r / | /qty | mul (r | /price)","expect":"6","decision":"D185"}
 {"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r / | :r | type","expect":"::keyword","decision":"D185"}
 {"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (/email | ne null) (/email | endsWith \".org\") !| [type /index /actualType]","expect":"[::any/allOf/conditions/ElementNotBooleanOrQuoteError 1 ::string/endsWith/SubjectNotStringError]","decision":["D185","D197"]}

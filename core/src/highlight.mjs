@@ -125,7 +125,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'ErrorLit': {
         // The tag an error literal writes before its bang paints as
-        // every tag head does, then the `!{` / `}` of the error [D86].
+        // every tag head does, then the `!{` / `}` of the error [D13].
         const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
         if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
         emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);

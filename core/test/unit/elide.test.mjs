@@ -112,7 +112,7 @@ describe('elideAnswer [D109]', () => {
 // A failure a host prints is an alert [D184]: the subject where the
 // failure arose within an excerpt, a subject it only passed given way
 // whole, an error at rest among its facts a value cut within its excerpt
-// [D210], a value shown once, and the read of every marker continuing the
+// [D13], a value shown once, and the read of every marker continuing the
 // query beneath `!|`.
 describe('alertOf [D184]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
@@ -152,7 +152,7 @@ describe('alertOf [D184]', () => {
     expect(kept.get('subject')).toBe(5);
   });
 
-  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D210]', async () => {
+  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D13]', async () => {
     const query = `${records} | map (/n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');

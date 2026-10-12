@@ -2,5 +2,5 @@
 {"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| [type /index /actualType]","expect":"[::any/cond/clauses/ElementNotQuoteError 0 ::boolean]","decision":"D167"}
 {"name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce ~(/b) /a","expect":"1","decision":"D133"}
 {"name":"a-verb-in-a-rest-of-code-runs-as-code","query":"{:a 1} | coalesce ~(/a)","expect":"1","decision":"D67"}
-{"name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if /missing ~(1) ~(2) !| type","expect":"::proj/KeyNotInMapError","decision":"D87"}
+{"name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if /missing ~(1) ~(2) !| type","expect":"::proj/KeyNotInMapError","decision":"D13"}
 {"name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| type","expect":"::any/if/else/NotGivenError","decision":"D167"}

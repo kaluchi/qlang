@@ -254,7 +254,7 @@ describe('hoverAtOffset', () => {
   it('returns hover for the tag an error literal writes before its bang', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
     // tag, so its head resolves like every tag head, and its braces,
-    // which the literal owns, show no tag [D86].
+    // which the literal owns, show no tag [D13].
     const src = '::number/NotFiniteError!{:step 1}';
     const { ast } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(ast, src, 5);

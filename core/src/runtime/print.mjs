@@ -15,7 +15,7 @@ import { callMemberOn } from '../eval.mjs';
 // forms of the core print the rest. An answer that is a failure, which a
 // host meets alone since a step skips it, prints as its error at rest
 // under a line comment that says it was raised, which a reading of the
-// literal passes over [D219].
+// literal passes over [D13].
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printedByKind = new Map();
   await collectPrintsOfKinds(value, env, state, nodeOf(env, 'any/print'), printedByKind);

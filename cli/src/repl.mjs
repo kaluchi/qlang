@@ -130,7 +130,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // it [D120], [D184].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
   // A query that does not parse answers its error as a value, so it
-  // prints as every failure does, on stderr [D85].
+  // prints as every failure does, on stderr [D13].
   const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
   const shown = elideAnswer(cellEntry.result, budget);
   sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');

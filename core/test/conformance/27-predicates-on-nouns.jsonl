@@ -6,4 +6,4 @@
 {"name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string","decision":"D76"}
 {"name":"parse-json-resides-on-the-string","query":"5 | parseJson !| type","expect":"::string/parseJson/SubjectNotStringError","decision":["D34","D76"]}
 {"name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError","decision":["D34","D76"]}
-{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| /kind","expect":":inner","decision":["D13","D76","D97"]}
+{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| /kind","expect":":inner","decision":["D13","D76"]}

@@ -165,7 +165,7 @@ describe('a kind without a body — identity', () => {
   //                        payload value lifted under
   //                        `:payload` slot.
 
-  it('an error literal under a tag, raised, is a failure of that tag [D211]', async () => {
+  it('an error literal under a tag, raised, is a failure of that tag [D13]', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);

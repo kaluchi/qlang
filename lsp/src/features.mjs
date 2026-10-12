@@ -132,7 +132,7 @@ export function buildCatalogIndex(catalogAst) {
   return index;
 }
 
-// The catalog's declaration of what a name reaches with no subject [D62],
+// The catalog's declaration of what a name reaches with no subject [D34],
 // [D153]: the one word of the name, or of a word several kinds answer the
 // first the catalog declares [D169]; for an address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
@@ -372,7 +372,7 @@ function findInDocumentDocs(ast, name) {
 }
 
 // A click on the head of a node that writes a tag, the `::Tag` of a
-// TaggedLit or of an error literal `::Tag!{…}` [D86], and not on the
+// TaggedLit or of an error literal `::Tag!{…}` [D13], and not on the
 // brackets the error literal owns around its entries.
 function isOnTagHead(node, offset) {
   return writesTag(node) && offset < node.location.start.offset + 2 + node.tag.length;
@@ -444,7 +444,7 @@ function bindingDeclarationOf(node) {
 // Whether a declaration of a value declares a word, by the core's rule: a
 // name the runtime holds as the core answers it, and one of the document
 // as `declaresWord` reads it, a quote running where a reader's
-// `::builtin{}` reaches no primitive [D73], [D169].
+// `::builtin{}` reaches no primitive [D34], [D169].
 function declaresWordIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isWord(runtime, key.name)

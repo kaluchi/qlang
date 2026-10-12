@@ -335,14 +335,14 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain('|~| The source does not read as qlang');
   });
 
-  it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
+  it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D13], [D195]', async () => {
     const s = captureStreams();
     await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('::Foo!{');
     expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
 
-  it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D195], [D219]', async () => {
+  it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D13], [D195]', async () => {
     const s = captureStreams();
     await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('!{');

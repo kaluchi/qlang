@@ -1160,8 +1160,9 @@
       where the vector folds into `"ba"`. The empty set answers the seed.
       The reducer is the quote of one word, by its name or its address,
       which the fold calls with the value so far as its subject and the
-      element as its first arg; a quote of several steps, or a word given
-      values of its own, is refused.
+      element as its first arg, or any other code, which the fold runs on
+      the pair of the value so far and the element, as a vector's fold
+      does.
       The seed comes first: a call that gives the reducer alone is
       refused for want of a reducer.
       ::link~(::vec/reduce | doc) ::link~(::set/sum | doc)
@@ -1194,14 +1195,6 @@
       seed and leaves the reducer out. The sum of numbers is `sum`.
   ~~|
 
-:set/reduce/reducer/NotBinaryError
-  |~~ The reducer of `reduce` is the quote of one word, by its name or
-      its address, which the fold calls with the value so far as its
-      subject and the element as its first arg, `reduce 0 ~(add)`; a
-      quote of several steps, a literal, a name of no word or a word given
-      values of its own is refused.
-  ~~|
-
 :set/reduce/foldsInTheOneOrder
   |~~ The fold meets the elements in the one order. ~~|
   ::law~(#["b" "a"] | reduce "" ~(append) | eq "ab")
@@ -1218,13 +1211,9 @@
   |~~ A reducer given alone stands as the seed and leaves no reducer. ~~|
   ::law~(#[1 2] | reduce ~(add) !| type | eq ::set/reduce/reducer/NotGivenError)
 
-:set/reduce/reducer/NotBinaryError/refusesTwoSteps
-  |~~ A reducer of two steps is refused. ~~|
-  ::law~(#[1 2] | reduce 0 ~(mul 2 | add) !| type | eq ::set/reduce/reducer/NotBinaryError)
-
-:set/reduce/reducer/NotBinaryError/refusesAWordGivenAValue
-  |~~ A reducer that gives its word a value of its own is refused. ~~|
-  ::law~(#[1 2] | reduce 0 ~(add 1) !| type | eq ::set/reduce/reducer/NotBinaryError)
+:set/reduce/runsCodeOnThePair
+  |~~ Code of more than one word runs on the pair of the value so far and the element. ~~|
+  ::law~(#[1 2 3] | reduce 0 ~(sumOf /0 /1) | eq 6)
 
 :set/reduce/reducer/NotQuoteError/refusesCodeComputedAtTheCall
   |~~ A reducer written without its quote is computed at the call and refused. ~~|

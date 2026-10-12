@@ -1546,26 +1546,26 @@ and their cost.
 
 Two inputs. A modifier is computed against the subject of its own step
 [D185], so a value read from the record in the pipe meets no value read
-inside a step that runs on another subject; a fold calls one word with
-the value so far as its subject [D224]; and two fields of one record
-meet in a word of their own, the family `…Of`, which has gaps:
+inside a step that runs on another subject. A fold takes them both: a
+quote of one word is called with the value so far as its subject and
+the element as its arg, and any other code runs on the pair of the
+two [D233]. Two fields of one record meet in a word of their own, the
+family `…Of`, which has gaps:
 
 ```qlang
 > {:x 1} | addOf /x /x !| [type /nearest]
 [::call/UnknownNameError [:add]]
 
-> [1 2 3] | reduce 0 ~(add 1) !| type
-::vec/reduce/reducer/NotBinaryError
+> [{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))
+3
 ```
 
-All four outside audits name it first. The alternatives: the subject of
-a fold's code the pair of the value so far and the element, the quote of
-one word its short form, at the cost of the fold's primitive and its
-refusal (`resolveBinaryReducer` in `core/src/eval.mjs`); a name
-declared inside a quote, `:x /`, taught as the one idiom of several
-inputs, the words `…Of` its sugar or gone, at the cost of the pages and
-the cases that teach them; or the model as it stands, the trap the first
-page warns of. Open, the maintainer's word on the argument model.
+All four outside audits name it first, and the fold, the sharpest of
+it, is answered. The alternatives for the rest: a name declared inside a
+quote, `:x /`, taught as the one idiom of several inputs, the words
+`…Of` its sugar or gone, at the cost of the pages and the cases that
+teach them; or the family as it stands, its gaps filled as tasks meet
+them. Open, the maintainer's word on the argument model.
 
 The role of a definition read from the form of its value. An invariant
 written `is ::k` serves its part as the value of the kind beneath its
@@ -1998,3 +1998,4 @@ the command line without them.
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
+[D233]: decisions/D233.md

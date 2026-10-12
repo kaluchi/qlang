@@ -239,10 +239,9 @@ describe('per-site error classes carry unique identity', () => {
   });
 
 
-  it('reduce with a non-binary reducer → VecReduceReducerNotBinaryError (distinct from subject site)', async () => {
-    const caughtErr = await catchOriginalError('[1 2 3] | reduce 0 ~(42)');
-    expect(caughtErr).toBeInstanceOf(QlangError);
-    expect(caughtErr.address).toBe('vec/reduce/reducer/NotBinaryError');
+  it('a reducer of code runs on the pair, failing under the word it called [D233]', async () => {
+    const answer = await evalQuery('[1 2 3] | reduce 0 ~(add 1)');
+    expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });
 
   it('every refusal of the runtime is one kind of error, its message its address [D172]', async () => {
@@ -252,8 +251,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | /name',
       '42 | map ~(add 1)',
       '5 | :five / | five 42',
-      '42 | reduce 0 ~(add)',
-      '[1 2 3] | reduce 0 ~(42)'
+      '42 | reduce 0 ~(add)'
     ];
     for (const q of queries) {
       const caughtErr = await catchOriginalError(q);
@@ -270,7 +268,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | vals',         // map/vals/SubjectNotMapError
       '1 | /name',         // proj/SubjectNotProjectableError (Number subject — neither Map nor Vec)
       '[1] | /a',          // proj/IndexNotIntegerError
-      '[1 2 3] | reduce 0 ~(42)' // vec/reduce/reducer/NotBinaryError
+      '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotQuoteError
     ];
     for (const q of queries) {
       addresses.add((await evalQuery(q)).tag.name);

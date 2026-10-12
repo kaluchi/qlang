@@ -1536,12 +1536,14 @@
       ~(add)` answering `15`; the empty vector answers the seed. The seed
       comes first and the reducer after it, so `reduce ~(add)` reads the
       quote as the seed and is refused for the reducer it lacks. The
-      reducer is a quote of one word, `~(add)` or `~add`, or of its
-      address, `~(number/add)`, which the fold calls with the value so
-      far as its subject and the element as its first arg; a fold of
-      several steps is a word declared first, whose part reads the
-      element. An error the reducer answers answers the
-      call. `sum`, `count`, `max` and the builders of structures all
+      reducer is a quote. A quote of one word, `~(add)` or `~add`, or of
+      its address, `~(number/add)`, is the word the fold calls with the
+      value so far as its subject and the element as its first arg; any
+      other code runs on the pair of the value so far and the element,
+      and what it answers is the value so far after that element:
+      `[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))` answers `3`. A
+      failure the reducer answers answers the call. `sum`, `count`, `max`
+      and the builders of structures all
       factor through it: adding from zero sums, multiplying from one
       gives the product, appending joins strings and uniting merges sets.
       A set and a map answer `reduce` by words of their own.
@@ -1558,7 +1560,7 @@
   ~(/0)
 
 :vec/reduce/reducer
-  |~~ A quote of one word that folds an element into the value so far. ~~|
+  |~~ A quote: one word the fold calls with the element, or code it runs on the pair of the value so far and the element. ~~|
   ~(/1)
 
 :vec/reduce/reducer/NotQuoteError
@@ -1572,14 +1574,6 @@
 :vec/reduce/reducer/NotGivenError
   |~~ `reduce` takes the seed first and the reducer after it, `reduce 0
       ~(add)`; a call of the reducer alone reads it as the seed.
-  ~~|
-
-:vec/reduce/reducer/NotBinaryError
-  |~~ The quote of `reduce` names one word, by its name or its address,
-      which the fold calls with the value so far as its subject and the
-      element as its first arg, `reduce 0 ~(add)`; a quote of several
-      steps, a literal or a name of no word is refused. A fold of several
-      steps is a word declared first, whose part reads the element.
   ~~|
 
 :vec/reduce/sums
@@ -1606,6 +1600,14 @@
   |~~ A word named by its address is a reducer. ~~|
   ::law~([1 2 3] | reduce 0 ~(number/add) | eq 6)
 
+:vec/reduce/runsCodeOnThePair
+  |~~ Code of more than one word runs on the pair of the value so far and the element. ~~|
+  ::law~([1 2 3] | reduce 0 ~(:acc /0 | :el /1 | acc | mul 10 | add el) | eq 123)
+
+:vec/reduce/foldsAFieldOfEachElement
+  |~~ Code reads a field of each element from the pair. ~~|
+  ::law~([{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x)) | eq 3)
+
 :vec/reduce/takesAName
   |~~ A name takes the value so far as its subject and the element as its first arg. ~~|
   ::law~(:number/max2 ~(if (gt x) ~(/) ~(x))
@@ -1629,10 +1631,6 @@
   |~~ An error the reducer answers answers the call. ~~|
   ::law~([1 "x" 3] | reduce 0 ~(add) !| type | eq ::number/add/addend/NotNumberError)
 
-:vec/reduce/reducer/NotBinaryError/refusesAnAddressOfNoWord
-  |~~ An address that holds no word is refused. ~~|
-  ::law~([1 2 3] | reduce 0 ~(number/add/answer) !| type | eq ::vec/reduce/reducer/NotBinaryError)
-
 :vec/reduce/reducer/NotQuoteError/refusesANumber
   |~~ A number computed at the call is refused. ~~|
   ::law~([1 2 3] | reduce 0 1
@@ -1649,15 +1647,7 @@
   |~~ A call of the reducer alone lacks the reducer. ~~|
   ::law~([1 2 3] | reduce ~(add) !| type | eq ::vec/reduce/reducer/NotGivenError)
 
-:vec/reduce/reducer/NotBinaryError/refusesTwoSteps
-  |~~ A reducer of two steps is refused. ~~|
-  ::law~([1 2 3] | reduce 0 ~(mul 2 | add) !| type | eq ::vec/reduce/reducer/NotBinaryError)
-
-:vec/reduce/reducer/NotBinaryError/refusesAStepWithItsArg
-  |~~ A reducer that gives its word an arg of its own is refused. ~~|
-  ::law~([1 2 3] | reduce 0 ~(add 1) !| type | eq ::vec/reduce/reducer/NotBinaryError)
-
-:vec/reduce/reducer/NotBinaryError/takesANameForTwoSteps
+:vec/reduce/takesANameOfTwoSteps
   |~~ Two steps under a name of their own fold as one word. ~~|
   ::law~(:any/step ~(mul 2 | add el)
     | :any/step/el ~(/0)

@@ -62,8 +62,10 @@
       `["b" "a" "b"] | groupBy ~(/) | map ~(count)` answering
       `{:b 2 :a 1}`; `reduce` folds the elements into a seed, calling
       its word with the value so far as the subject and the element as
-      the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`. Several
-      steps stand in one quote, `map ~(/price | mul 2)`. Without the
+      the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
+      running code of several steps on the pair of the two,
+      `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 (/1 | /n))` answering `3`.
+      Several steps stand in one quote, `map ~(/price | mul 2)`. Without the
       quote the same text is a modifier computed at the call: in
       `[{:n 1}] | map /n` the `/n` is read from the vector itself, not
       from each element, and `map` refuses what it is handed,
@@ -243,6 +245,10 @@
 :qlang/folds
   |~~ `reduce` folds the elements from a seed. ~~|
   ::law~([3 1 2] | reduce 0 ~(add) | eq 6)
+
+:qlang/foldsCodeOnThePair
+  |~~ Code of several steps folds on the pair of the value so far and the element. ~~|
+  ::law~([{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 (/1 | /n)) | eq 3)
 
 :qlang/ordersASet
   |~~ A set stands in the one order. ~~|

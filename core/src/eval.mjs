@@ -857,7 +857,8 @@ export function codeOf(code, callState) {
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
 // meeting the word there [D223], [D224]; null for code of any other shape
-// or a name of no word, which `reduce` refuses.
+// or a name of no word, which `reduce` runs on the pair of the value so
+// far and the element [D233].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;

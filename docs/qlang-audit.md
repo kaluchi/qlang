@@ -1219,7 +1219,7 @@ rule.
 A name is declared by its keyword, a name with a path a node under the
 noun its path names, whose address its tag is, and a name under a label
 resides on it, taking a subject the walk of its tags brings to the
-label [D152], [D153], [D156], [D164]. The root is the scope a host's
+label [D34], [D152], [D153], [D164]. The root is the scope a host's
 sources declare as cells before a reader's first step, a source, a cell
 and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
@@ -1937,7 +1937,6 @@ the command line without them.
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
-[D156]: decisions/D156.md
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md

@@ -7,16 +7,16 @@
 {"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D72"}
 {"name":"a-name-refuses-a-modifier-beyond-its-places","query":":number/scale ~(mul k) | :number/scale/k ~(/0) | :number/scale/k/NotNumberError ::holds~(is ::number) | 5 | scale 5 2 !| type","expect":"::number/scale/ArgsBeyondPartsError","decision":["D165","D166"]}
 {"name":"a-call-of-more-values-than-places-is-refused","query":":number/scale ~(mul k) | :number/scale/k ~(/0) | :number/scale/k/NotNumberError ::holds~(is ::number) | 5 | scale 5 2 3 !| type","expect":"::number/scale/ArgsBeyondPartsError","decision":["D165","D166"]}
-{"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
-{"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
-{"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
-{"name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError","decision":["D65","D72"]}
-{"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72","D140"]}
+{"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D34","D72"]}
+{"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D34","D72"]}
+{"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D34","D72"]}
+{"name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError","decision":["D34","D72"]}
+{"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D34","D72","D140"]}
 {"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt /a /b !| type","expect":"::call/KindAnswersNoVerbError","decision":["D72","D165"]}
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true","decision":"D72"}
 {"name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119","D169"]}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
-{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError","decision":["D72","D156"]}
+{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError","decision":["D34","D72"]}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
 {"name":"the-manifest-of-a-name-lists-the-parts-it-declares","query":"::map/at | manifest","expect":"#[::map/at/answer ::map/at/default ::map/at/key]","decision":["D167","D169","D180"]}
 {"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1} | raise) 2 !| /k","expect":"1","decision":"D72"}

@@ -9,8 +9,8 @@
 {"name":"a-rest-part-gathers-the-modifiers-that-remain","query":":any/all ~([head tail]) | :any/all/head ~(/0) | :any/all/tail ~(drop 1) | :any/all/tail/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all :a 1 2","expect":"[:a [1 2]]","decision":"D67"}
 {"name":"a-part-of-the-whole-args-is-held-to-its-invariant-of-each-element","query":":any/all ~(xs) | :any/all/xs ~(/) | :any/all/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError","decision":"D169"}
 {"name":"a-rest-part-without-modifiers-holds-the-empty-vector","query":":any/all ~(xs) | :any/all/xs ~(/) | :any/all/xs/ElementNotNumberError ::holds~(every ~(is ::number)) | null | all","expect":"[]","decision":"D67"}
-{"name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError","decision":["D156","D166"]}
-{"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width(5) | inc","expect":"::Width(6)","decision":["D156","D169"]}
+{"name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError","decision":["D34","D166"]}
+{"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width(5) | inc","expect":"::Width(6)","decision":["D34","D169"]}
 {"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc ~(add 1) | :number/inc/answer ::number | ::Width(5) | inc | [type payload]","expect":"[::Width 6]","decision":"D67"}
 {"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T","decision":"D67"}
 {"name":"a-verb-that-returns-a-kind-checks-its-answer","query":":vec/n ~(count) | :vec/n/answer ::string | [1 2] | n !| type","expect":"::string/PayloadNotStringError","decision":"D67"}
@@ -36,7 +36,7 @@
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m ~(x) | :any/m/x ~(/0) | 5 | m (!{:k 1} | raise) !| /k","expect":"1","decision":"D67"}
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all ~(xs) | :any/all/xs ~(/) | null | all 1 (!{:k 2} | raise) !| /k","expect":"2","decision":"D67"}
 {"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":number/f ~(add \"a\") | :number/f/answer ::number | 1 | f !| type","expect":"::number/add/addend/NotNumberError","decision":"D67"}
-{"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/f ~(payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::Pos/f/SubjectNotPosError :not-positive]","decision":["D156","D166"]}
+{"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/f ~(payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::Pos/f/SubjectNotPosError :not-positive]","decision":["D34","D166"]}
 {"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/dec ~(payload | sub 1) | :Pos/dec/answer ::Pos | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":"D67"}
 {"name":"a-word-whose-body-calls-a-word-runs-as-any-word","query":":any/io ~(1) | :any/f ~(io) | f","expect":"1","decision":"D2"}
 {"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]","decision":"D67"}

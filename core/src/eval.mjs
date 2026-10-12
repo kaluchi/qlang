@@ -497,7 +497,7 @@ async function evalCall(node, state) {
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
 // address, which calls the word, as another name reads the value [D223].
-async function callByName(lookupName, lambdas, state) {
+async function callByName(lookupName, modifiers, state) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
@@ -508,20 +508,20 @@ async function callByName(lookupName, lambdas, state) {
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
     });
   }
-  if (reach.underKind) return await applyMember(reach.record, lambdas, state);
+  if (reach.underKind) return await applyMember(reach.record, modifiers, state);
   const word = residenceOnSubject(state.env, lookupName, state.pipeValue);
   if (word !== null) throw new CallValueMeetsWordError({ name: keyword(lookupName), addresses: makeSet([makeTag(word.get('name').name)]) });
-  return await applyBinding(reach.record, lookupName, lambdas, state);
+  return await applyBinding(reach.record, lookupName, modifiers, state);
 }
 
 // A name reads the value its record holds [D63], so `:x / | x` sees the
 // raw data, a quote among it, which `apply` runs [D44].
-async function applyBinding(entry, lookupName, lambdas, state) {
+async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
   // A value takes no modifiers; its refusal names where a word of the
   // name lives, one a declaration shadows among them [D62].
-  if (lambdas.length > 0) {
+  if (modifiers.length > 0) {
     throw new CallValueTakesNoModifiersError({
       name: keyword(lookupName),
       actualValue: resolved,
@@ -542,11 +542,11 @@ async function callByAddress(node, state) {
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTag(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
-  const lambdas = node.args.map(argNode => modifierOf(argNode, state));
+  const modifiers = node.args.map(argNode => modifierOf(argNode, state));
   if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
-    return await applyMember(record, lambdas, state);
+    return await applyMember(record, modifiers, state);
   }
-  return await applyBinding(record, splitAddress(node.name)[1], lambdas, state);
+  return await applyBinding(record, splitAddress(node.name)[1], modifiers, state);
 }
 
 // ─── Names under a label ───────────────────────────────────────
@@ -557,7 +557,7 @@ async function callByAddress(node, state) {
 // subject the walk of whose tags reaches no value of the label refused
 // under the name's address, and its answer brought to the label its
 // definition names [D169].
-async function applyMember(record, lambdas, state) {
+async function applyMember(record, modifiers, state) {
   const address = record.get('name').name;
   const member = bindingValueOf(record);
   const [labelName] = splitAddress(address);
@@ -565,7 +565,7 @@ async function applyMember(record, lambdas, state) {
   if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, state);
   const definition = definitionOf(scope, address);
-  const called = await argsOf(definition, lambdas, state, scope, isQuote(member));
+  const called = await argsOf(definition, modifiers, state, scope, isQuote(member));
   if (isErrorValue(called)) return withPipeValue(state, called);
   const running = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
@@ -707,10 +707,10 @@ function scopeOfMember(member, state) {
 // places are refused under the name, and what breaks an invariant, args
 // or a part, under the invariant, a part the args do not hold under the
 // part [D169], [D173].
-async function argsOf(definition, lambdas, state, scope, bindsNames) {
+async function argsOf(definition, modifiers, state, scope, bindsNames) {
   const values = [];
-  for (const [place, lambda] of lambdas.entries()) {
-    const computing = lambda(state.pipeValue);
+  for (const [place, modifier] of modifiers.entries()) {
+    const computing = modifier(state.pipeValue);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return refusalOfComputedCode(definition.parts, place, value, scope);
     values.push(value);
@@ -819,48 +819,48 @@ function runHostMember(member, walked, called, state) {
   return runPrimitive(hostImplOf(member), walked.served, walked.passedTags, handed, state);
 }
 
-// makeLambda(astNode, capturedState) → (input) → value: code run against
+// closeCode(astNode, capturedState) → (input) → value: code run against
 // the input it is handed, one frame below and in its scope, a step on the
 // success track as every step is; it keeps its tree and its state, so
 // `reduce` finds the verb a quote of one name holds [D56].
-function makeLambda(astNode, capturedState) {
-  const lambda = async (lambdaInput) => {
-    const subState = nestState(capturedState, lambdaInput, capturedState.env);
+function closeCode(astNode, capturedState) {
+  const run = async (input) => {
+    const subState = nestState(capturedState, input, capturedState.env);
     return (await evalBody(astNode, subState)).pipeValue;
   };
-  lambda.astNode = astNode;
-  lambda.capturedState = capturedState;
-  return lambda;
+  run.astNode = astNode;
+  run.capturedState = capturedState;
+  return run;
 }
 
-// modifierOf(argNode, state) → the lambda of a modifier of a call, whose
+// modifierOf(argNode, state) → the code of a modifier of a call, whose
 // subject is never an error: a quote written there carrying the scope of
 // the call [D43], a literal of a scalar its value one frame below the
 // call, and any other modifier the code it is.
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return async () => quoteInEnv(quoteOfLiteral(argNode), state.env);
   if (SCALAR_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
-  return makeLambda(argNode, state);
+  return closeCode(argNode, state);
 }
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword']);
 
-// codeOf(code, callState) → lambda: a quote a part of code holds, closed
+// codeOf(code, callState) → code closed at the call: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope
 // the quote carries, or that of the call for a quote held as data [D43].
 export function codeOf(code, callState) {
-  return makeLambda(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
+  return closeCode(astOfQuote(code), withEnv(callState, envToRun(code, callState.env)));
 }
 
-// resolveBinaryReducer(reducerLambda) → (acc, item) → value, or null: the
+// resolveBinaryReducer(reducer) → (acc, item) → value, or null: the
 // word a reducer's quote names by one word, its name or its address,
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
 // meeting the word there [D223], [D224]; null for code of any other shape
 // or a name of no word, which `reduce` refuses.
-export function resolveBinaryReducer(reducerLambda) {
-  const callerState = reducerLambda.capturedState;
-  const astNode = reducerLambda.astNode;
+export function resolveBinaryReducer(reducer) {
+  const callerState = reducer.capturedState;
+  const astNode = reducer.astNode;
   if (astNode.type !== 'Call' || astNode.args.length !== 0) return null;
   const item = element => [async () => element];
   if (astNode.address !== undefined) {

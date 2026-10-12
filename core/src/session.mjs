@@ -47,9 +47,11 @@ export async function createSession(opts = {}) {
       } catch (evalCellErr) {
         // A parse failure answers its error value beside the throw, so
         // the host prints it as it prints any error and still tells a
-        // syntactic failure by the error channel.
+        // syntactic failure by the error channel; it names the source
+        // its text came from where the host named one, a cell the
+        // session numbers itself naming none.
         if (evalCellErr instanceof ParseError) {
-          cellResult = errorFromParse(evalCellErr, env);
+          cellResult = errorFromParse(evalCellErr, env, evalOpts.uri ?? null);
         }
         cellError = evalCellErr;
       }

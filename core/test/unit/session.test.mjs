@@ -68,6 +68,15 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.error.name).toBe('ParseError');
   });
 
+  it('a parse failure names the source a host named, and a cell the session numbers names none', async () => {
+    const sessionInstance = await createSession();
+    const numbered = await sessionInstance.evalCell('[1 2');
+    expect(numbered.uri).toBe('cell-1');
+    expect(numbered.result.descriptor.has('uri')).toBe(false);
+    const named = await sessionInstance.evalCell('[1 2', { uri: 'shop.qlang' });
+    expect(named.result.descriptor.get('uri')).toBe('shop.qlang');
+  });
+
   it('evalCell records the error on runtime failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | count');

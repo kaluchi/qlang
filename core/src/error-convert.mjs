@@ -53,7 +53,7 @@ export function errorFromQlang(qlangError, subject, env) {
 
 // The error of a text the parser refused: where it stopped and what it
 // wanted there, in the order its label declares them.
-export function errorFromParse(parseError, env) {
+export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
@@ -68,7 +68,7 @@ export function errorFromParse(parseError, env) {
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
-  if (parseError.uri) d.set('uri', parseError.uri);
+  if (uri) d.set('uri', uri);
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,

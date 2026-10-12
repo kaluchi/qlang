@@ -16,6 +16,7 @@
 // @param {Function} walkAst  — qlang `walkAst` function
 // @param {Set}      builtins — Set of the names of the words of the language
 // @returns {string} HTML string
+// The decisions it exists for: [D241].
 
 import { highlightQlang } from './qlang-highlight.js';
 

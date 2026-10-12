@@ -13,7 +13,8 @@
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
    `~([/1 [/0 /0] ([[/3 /2]] | indexBy ~(first) | map ~last)])`. The verbs
    are the language's own, and the test of the ring runs them over every
-   example of the catalog and every literal of the conformance cases. ~|
+   example of the catalog and every literal of the conformance cases.
+   The decisions it exists for: [D42]. ~|
 
 :atomKinds
   |~~ The kinds of the atoms. ~~|

@@ -1,5 +1,6 @@
 // VS Code extension entry point — starts the qlang language client
 // that connects to the LSP server in ../lsp/src/server.mjs.
+// The decisions it exists for: [D241].
 
 const path = require('path');
 const { pathToFileURL } = require('url');

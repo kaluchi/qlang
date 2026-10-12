@@ -16,7 +16,8 @@
    query names is held under a bare name and run by `apply`; a
    word, called by its name on a value, is declared under the
    label of the values it serves, and `::any` holds the words
-   that mean the same for every value. ~|
+   that mean the same for every value.
+   The decisions it exists for: [D235]. ~|
 
 
 |~| ── 1. Hover ─────────────────────────────────────────────

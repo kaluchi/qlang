@@ -7,7 +7,8 @@
    another order answers a vector, which `distinct` makes a set again,
    and `map` answers the vector of the images under no tag. A value of a
    kind no word of the name serves is refused by the call, which names
-   the kinds that do. ~|
+   the kinds that do.
+   The decisions it exists for: [D114], [D189]. ~|
 
 :set
   |~~ A set is a vector in the one order without duplicates, `#[1 2 3]`:

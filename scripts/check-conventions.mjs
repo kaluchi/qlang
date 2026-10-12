@@ -65,6 +65,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
+import { marksOfTree } from './marks.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -353,10 +354,15 @@ function catalogFiles(dir) {
       : entry.name.endsWith('.qlang') ? [join(dir, entry.name)] : []);
 }
 
+// The comment at the head of a source, `|~ … ~|`, is no page a reader
+// reads: it marks the decisions the source exists for [D237].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
-    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    const lines = readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/);
+    const headEnd = lines[0]?.startsWith('|~') && !lines[0].startsWith('|~~') ? lines.findIndex(line => line.includes('~|')) : -1;
+    lines.forEach((line, index) => {
+      if (index <= headEnd) return;
       const reference = line.match(/\[D\d+\]/);
       if (reference) violations.push({ file: file.replace(/\\/g, '/'), line: index + 1, reference: reference[0] });
     });
@@ -395,6 +401,16 @@ function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
 }
 
+// ── (10) The marks of the artifacts ────────────────────────────
+//
+// Every module, script, test file, source of qlang and workflow names
+// the decision it exists for, so the scope of a decision is found by its
+// marks and an artifact no decision explains is seen [D237].
+
+function unmarkedArtifacts() {
+  return marksOfTree(repoRoot).orphans;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -405,6 +421,7 @@ const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
 const undecided = recordsWithoutDecider();
 const unwalked = baselineDrift();
+const unmarked = unmarkedArtifacts();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -413,7 +430,8 @@ if (forbidden.length === 0
     && anchors.length === 0
     && catalogDecisions.length === 0
     && undecided.length === 0
-    && unwalked.length === 0) {
+    && unwalked.length === 0
+    && unmarked.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -461,6 +479,11 @@ if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
   process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
+}
+if (unmarked.length > 0) {
+  process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
+  for (const path of unmarked) process.stdout.write(`  ${path}\n`);
+  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [D237].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

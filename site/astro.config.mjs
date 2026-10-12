@@ -1,3 +1,5 @@
+// The decisions it exists for: [D241].
+
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 

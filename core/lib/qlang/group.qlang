@@ -1,5 +1,6 @@
 |~ `::group`, the steps in parentheses run on the value in the pipe, and
-   what is declared under it: its constructor and its refusals. ~|
+   what is declared under it: its constructor and its refusals.
+   The decisions it exists for: [D114], [D189]. ~|
 
 :group
   |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the

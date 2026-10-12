@@ -17,6 +17,7 @@
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
 // `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
 // `state.mjs` (→ `state.test.mjs`).
+// The decisions it exists for: [D239].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

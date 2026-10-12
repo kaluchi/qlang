@@ -3,6 +3,7 @@
 // tag, and fails on a variant whose answer is a host's failure, whose run
 // throws past the fail track, or whose answer prints as a text that reads
 // back as another value: node scripts/fuzz-laws.mjs [variants of each law] [seed].
+// The decisions it exists for: [D239].
 
 import { evalQuery, printValue, langRuntime } from '../core/src/index.mjs';
 import { ROOT_KEY } from '../core/src/env-keys.mjs';

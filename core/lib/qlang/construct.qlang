@@ -1,6 +1,7 @@
 |~ `::construct`, the step that puts a value under a tag through the
    tag's constructor, `::T[…]`, and what is declared under it: its
-   constructor and the refusals of that step. ~|
+   constructor and the refusals of that step.
+   The decisions it exists for: [D114], [D189]. ~|
 
 :construct
   |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,

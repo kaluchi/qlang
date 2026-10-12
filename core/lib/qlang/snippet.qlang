@@ -1,5 +1,6 @@
 |~ `::snippet`, the kind of a snippet, and the laws declared under it.
-   ~|
+
+   The decisions it exists for: [D114], [D189]. ~|
 
 :snippet
   |~~ A snippet is a query a page shows its reader to run and see,

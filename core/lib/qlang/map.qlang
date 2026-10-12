@@ -3,7 +3,8 @@
    elements are its values, and its keys are the shape that travels with
    them: a word whose answer names the map keeps the keys of the entries
    it keeps and answers under the tags of the map, and `map`, whose
-   answer is any value, answers under none. ~|
+   answer is any value, answers under none.
+   The decisions it exists for: [D114], [D189]. ~|
 
 :map
   |~~ A map holds named values under keywords, `{:id 7 :tags ["a"]}`:

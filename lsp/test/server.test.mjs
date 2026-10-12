@@ -2,6 +2,7 @@
 // answers `initialize` with its capabilities, which a test of the
 // features alone never reaches, since those import `features.mjs` and
 // leave the server's own imports unread.
+// The decisions it exists for: [D241].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';

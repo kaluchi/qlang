@@ -3,6 +3,7 @@
 // touches `process.*` directly. main.mjs holds every branch worth
 // covering; this file forwards the stdin / stdout / stderr streams
 // and exits with the resolved code.
+// The decisions it exists for: [D241].
 
 import { main } from './main.mjs';
 

@@ -23,7 +23,6 @@
 //   * site/dist/** — astro build output
 //   * site/coverage/** — vitest coverage HTML artefacts
 //   * vscode/**    — vendored extension, not under our lint remit
-//   * core/test/fixtures/** — deliberately malformed sample input
 
 import js from '@eslint/js';
 

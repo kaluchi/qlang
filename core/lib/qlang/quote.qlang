@@ -3,7 +3,8 @@
    as code and the facts it carries, and the words that read a quote. A
    quote is also the vector of its steps, so the words of vectors read
    it as one, and a quote under a tag, a link or a snippet of a page,
-   reads them through its shape. ~|
+   reads them through its shape.
+   The decisions it exists for: [D114], [D189]. ~|
 
 :quote
   |~~ A quote is code held as a value, `~(add 1 | mul 2)`: steps that

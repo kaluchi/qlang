@@ -27,6 +27,7 @@
 // Examples:
 //   node scripts/release.mjs 0.3.0
 //   node scripts/release.mjs 0.3.0-alpha
+// The decisions it exists for: [D240].
 
 import { execSync } from 'node:child_process';
 import {

@@ -2,6 +2,7 @@
 // the tokens of the core's tokenizer, which the site paints as HTML, each
 // in the colour of its kind among the eight of ANSI and their bright and
 // dim variants.
+// The decisions it exists for: [D241].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

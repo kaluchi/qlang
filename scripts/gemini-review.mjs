@@ -13,6 +13,7 @@
 //
 // Exit codes: 0 on success, 1 on argument error, propagates gh's
 // exit code on transport failure.
+// The decisions it exists for: [D240].
 
 import { spawnSync } from 'node:child_process';
 

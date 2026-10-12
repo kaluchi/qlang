@@ -1,7 +1,8 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
    the kinds of their subjects, `table` under `::vec` and the names of
    the streams under `::any`. Their primitives are plain functions over
-   the served subject and the parts. ~|
+   the served subject and the parts.
+   The decisions it exists for: [D114], [D189], [D234]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints

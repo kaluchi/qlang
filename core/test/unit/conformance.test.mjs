@@ -101,7 +101,7 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
-  it('names only decisions that have their record', () => {
+  it('names only decisions in force, whose records stand in the root of the records [D237]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
     const unrecorded = allCases.flatMap(test => [test.decision ?? []].flat()
       .filter(decision => !existsSync(join(decisionsDir, `${decision}.md`)))

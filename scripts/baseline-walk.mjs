@@ -60,7 +60,7 @@ export function walkOfBaseline(repoRoot) {
   }
   let listed;
   try {
-    listed = git(repoRoot, 'ls-tree', '--name-only', baseline, 'docs/decisions/');
+    listed = git(repoRoot, 'ls-tree', '-r', '--name-only', baseline, 'docs/decisions/');
   } catch {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: `names the baseline ${baseline}, which the history lacks` });
     return walk;
@@ -77,7 +77,7 @@ export function walkOfBaseline(repoRoot) {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
   }
   const partialLines = text => (text.match(/^Replaced in part by/gm) ?? []).length;
-  walk.partialNow = [...records.keys()].reduce((sum, name) => sum + partialLines(readFileSync(join(repoRoot, 'docs', 'decisions', `${name}.md`), 'utf8')), 0);
+  walk.partialNow = [...records.values()].reduce((sum, record) => sum + partialLines(readFileSync(record.path, 'utf8')), 0);
   // `git grep` ends with 1 where no line matches, a baseline that held none.
   try {
     walk.partialThen = git(repoRoot, 'grep', '-c', '^Replaced in part by', baseline, '--', 'docs/decisions')

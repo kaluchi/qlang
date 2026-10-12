@@ -19,6 +19,7 @@ const documents = process.argv.length > 2 ? process.argv.slice(2) : [
   join(repoRoot, 'docs', 'qlang-audit.md'),
   join(repoRoot, 'docs', 'qlang-entrypoint.md'),
   ...readdirSync(decisionsDir).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, name)),
+  ...readdirSync(join(decisionsDir, 'replaced')).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, 'replaced', name)),
 ];
 
 const messages = [];

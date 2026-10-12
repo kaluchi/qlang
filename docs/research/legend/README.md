@@ -481,7 +481,7 @@ what aspects say by name; the head is the concept the chronology above
 shows stalled. Both readings are withdrawn.
 
 [D2]: ../../decisions/D2.md
-[D40]: ../../decisions/D40.md
+[D40]: ../../decisions/replaced/D40.md
 [D50]: ../../decisions/D50.md
 [D61]: ../../decisions/D61.md
 [D153]: ../../decisions/D153.md

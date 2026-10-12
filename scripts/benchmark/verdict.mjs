@@ -2,8 +2,9 @@
 // runs of a baseline in one set, from what each run fixed when it ran,
 // computing nothing again. Runs compare within one mode and one model.
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { recordPathOf } from '../decision-records.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
@@ -66,8 +67,8 @@ function standing(baseline, measured) {
 }
 
 function titleOf(screen) {
-  const recordPath = join(repoRoot, 'docs', 'decisions', `${screen.split('.')[0]}.md`);
-  return existsSync(recordPath) ? readFileSync(recordPath, 'utf8').split('\n')[0].replace(/^#\s*/, '') : null;
+  const recordPath = recordPathOf(repoRoot, screen.split('.')[0]);
+  return recordPath === null ? null : readFileSync(recordPath, 'utf8').split('\n')[0].replace(/^#\s*/, '');
 }
 
 function describe(label, screen, records) {

@@ -2,11 +2,18 @@
 
 One file holds one decision: `Dnn.md` for a decision of the language and of
 the work on it, `En.md` for one of the environment of the work that
-`docs/qlang-entrypoint.md` designs. A record that a later one replaces whole
-keeps its text and gains the line that names the record replacing it [D58];
-one a later record takes a part of is pruned of that part and names the
-record that took it, so a record in force is true as a whole, and git keeps
-every text a record had [D227].
+`docs/qlang-entrypoint.md` designs. The root of this folder holds the
+records in force. A record that a later one replaces whole keeps its text
+and gains the line that names the record replacing it [D58], and moves to
+`replaced/` once, by `node scripts/replaced-records.mjs`, which writes
+every link to it again; nothing moves it after [D237]. One a later record
+takes a part of is pruned of that part and names the record that took
+it, so a record in force is true as a whole, and git keeps every text a
+record had [D227].
+
+An artifact names the decision it exists for, a module or a script at
+its head, a case in its `decision`, and the scope of a record is every
+place that marks it, which `node scripts/marks.mjs` answers [D237].
 
 A record's first line names its domain, which says where its requirements
 live. A decision of the language leaves them as conformance cases that name
@@ -50,3 +57,4 @@ day in another session, «почему все мое?» (2026-09-22 07:21, sessi
 [D59]: D59.md
 [D155]: D155.md
 [D227]: D227.md
+[D237]: D237.md

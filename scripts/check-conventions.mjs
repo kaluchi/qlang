@@ -380,12 +380,26 @@ const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
 
 function recordsWithoutDecider() {
-  const recordsDir = join(repoRoot, 'docs', 'decisions');
-  return readdirSync(recordsDir)
-    .map(file => ({ file, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
+  return ['docs/decisions', 'docs/decisions/replaced'].flatMap(folder => readdirSync(join(repoRoot, folder))
+    .map(file => ({ file: `${folder}/${file}`, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
     .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
-    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(recordsDir, file), 'utf8')))
-    .map(({ file }) => `docs/decisions/${file}`);
+    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(repoRoot, file), 'utf8')))
+    .map(({ file }) => file));
+}
+
+// ── (8b) The folders of the records ────────────────────────────
+//
+// The root of the records holds those in force, and `replaced/` those
+// replaced whole, each moved there once by `scripts/replaced-records.mjs`
+// [D237].
+
+function misplacedRecords() {
+  const replacedWhole = path => /^Replaced by /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
+  return [
+    ...inFolder('docs/decisions').filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
+    ...inFolder('docs/decisions/replaced').filter(path => !replacedWhole(path)).map(path => ({ path, problem: 'is in force, and no record replaced it whole' }))
+  ];
 }
 
 // ── (9) The walk of a baseline ─────────────────────────────────
@@ -422,6 +436,7 @@ const catalogDecisions = decisionsInCatalog();
 const undecided = recordsWithoutDecider();
 const unwalked = baselineDrift();
 const unmarked = unmarkedArtifacts();
+const misplaced = misplacedRecords();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -431,7 +446,8 @@ if (forbidden.length === 0
     && catalogDecisions.length === 0
     && undecided.length === 0
     && unwalked.length === 0
-    && unmarked.length === 0) {
+    && unmarked.length === 0
+    && misplaced.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -485,6 +501,11 @@ if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
   for (const path of unmarked) process.stdout.write(`  ${path}\n`);
   process.stdout.write('    name the decision the artifact exists for at its head, or let it go [D237].\n');
+}
+if (misplaced.length > 0) {
+  process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
+  for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
+  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [D237].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

@@ -572,7 +572,7 @@ const isThenable = value => typeof value?.then === 'function';
 // tag and the invariants of its args and its answer with its invariants
 // [D179], read once for the root where the scope declares no name under
 // the address, or reads the root alone under the word's noun [D202],
-// [D222].
+// [D200].
 function definitionOf(scope, address) {
   return readsTheReaderUnder(scope, splitAddress(address)[0]) && declaresUnder(scope, address) ? definitionIn(scope, address) : onceForRoot(ROOT_DEFINITIONS, scope, address, rootDefinitionIn);
 }
@@ -670,9 +670,9 @@ export function answerKindsOf(env, record, subjectKinds) {
 // steps before the call declared and every label the reader declared, so
 // the names under a label see each other whatever their order and a value
 // of a kind the reader declared finds its page, while no bare value of the
-// reader reaches a name the body writes [D222]; it holds the tree of the
+// reader reaches a name the body writes [D200]; it holds the tree of the
 // query that called the word, which what the body reads and runs as data
-// reads, as a primitive reads the call's [D236].
+// reads, as a primitive reads the call's [D200].
 function scopeOfMember(member, state) {
   if (!isQuote(member)) return state.env;
   const carried = envToRun(member, state.env);
@@ -834,7 +834,7 @@ const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLi
 // codeOf(code, callState) → code closed at the call: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope
 // the quote carries, or for a quote held as data in the tree of the query
-// that made the call [D43], [D236].
+// that made the call [D43], [D200].
 export function codeOf(code, callState) {
   return closeCode(astOfQuote(code), withEnv(callState, envToRun(code, queryTreeOf(callState.env))));
 }

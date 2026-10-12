@@ -129,7 +129,7 @@ describe('a name with a path calls the verb its address names', () => {
   });
 });
 
-describe('what a word reads and runs as data reads the tree of the query [D236]', () => {
+describe('what a word reads and runs as data reads the tree of the query [D200]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
   const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt ~(apply code)\n:any/runIt/code ~(/0)\n:any/runIt/x ~(/1)' };
 

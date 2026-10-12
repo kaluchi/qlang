@@ -770,9 +770,9 @@ gives under its tag, which read back as they print [D164], [D166],
 [D167], [D168], [D173]. A name is read by its tag, and a keyword is data
 that names nothing [D221]; a word of the root reads the nouns of the
 root as the root holds them, and a kind a reader declared as the reader
-wrote it [D222], while what a word reads and runs as data, a page, a
+wrote it [D200], while what a word reads and runs as data, a page, a
 law, code held as data, it reads in the tree of the query that called
-it, as a word of the host does [D236]; a value takes any name, and a
+it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
 calling its word by its name or its address [D224]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
@@ -834,7 +834,7 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D34], [D153], [D222], [D223],
+86982eb5). The rule is decided [D34], [D153], [D200], [D223],
 and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
 and `sourceText` until it declares them under kinds of its own [D2],
@@ -855,7 +855,7 @@ a host's catalog should grow the same way.
 
 What remains of the rule of collisions are intentions, questions of
 this document and no decisions [D226], the surface and the loading
-[D153], the reading of a name [D221], the rule of the owner [D222] and
+[D153], the reading of a name [D221], the rule of the owner [D200] and
 the meeting of a value and a word [D223] settled:
 
 - A verb and a kind may be joined by whoever owns one of them, the
@@ -1028,7 +1028,7 @@ catalog the first sentence of the page of each word it shows first.
 
 The effect marker left the language [D2]: no name begins with
 `@`, and a word of a host is named as any word is, under the rule of
-collisions [D222], [D223]. A host whose word reads an index or throws
+collisions [D200], [D223]. A host whose word reads an index or throws
 dice marks the provenance of the value it returns with a tag, and a tag
 can describe an effect as well, a write the host is to perform, which
 an explicit step at the host boundary performs and nothing else, as the
@@ -1974,6 +1974,7 @@ the command line without them.
 [D184]: decisions/D184.md
 [D185]: decisions/D185.md
 [D195]: decisions/D195.md
+[D200]: decisions/D200.md
 [D208]: decisions/D208.md
 [D210]: decisions/D210.md
 [D211]: decisions/D211.md
@@ -1984,7 +1985,6 @@ the command line without them.
 [D218]: decisions/D218.md
 [D219]: decisions/D219.md
 [D221]: decisions/D221.md
-[D222]: decisions/D222.md
 [D223]: decisions/D223.md
 [D224]: decisions/D224.md
 [D225]: decisions/D225.md
@@ -1996,5 +1996,4 @@ the command line without them.
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
 [D235]: decisions/D235.md
-[D236]: decisions/D236.md
 [D237]: decisions/D237.md

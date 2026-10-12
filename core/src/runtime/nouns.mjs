@@ -172,7 +172,7 @@ function kindsNamedBy(value) {
 // does but a word's of the root, which reads a noun of the root in the
 // root alone, a reader's extension of it staying in the reader's queries,
 // and a noun the reader declared, whose values carry it, as the reader
-// wrote it [D222].
+// wrote it [D200].
 export function readsTheReaderUnder(env, nounName) {
   return !isRootWordScope(env) || !rootOf(env).has(nounName);
 }

@@ -5,5 +5,5 @@
 {"name":"a-name-with-no-laws-has-none","query":":k 5 | ::k | laws","expect":"{}","decision":"D123"}
 {"name":"the-manifest-of-a-name-leaves-its-laws-to-laws","query":":k 5 | :k/answersFive ::law~(k | eq 5) | :k/n ~(/0) | ::k | manifest","expect":"#[::k/n]","decision":"D123"}
 {"name":"a-law-reads-as-the-pair-of-its-page-and-its-query","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | laws | /answersFive | [(/0 | content) /1]","expect":"[\" k answers five. \" ~(k | eq 5)]","decision":"D176"}
-{"name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | [(/0 | content) (/1 | keys)]","expect":"[\" Answers five. \" #[:answersFive]]","decision":["D176","D236"]}
+{"name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | [(/0 | content) (/1 | keys)]","expect":"[\" Answers five. \" #[:answersFive]]","decision":["D176","D200"]}
 {"name":"the-tutorial-of-a-name-nothing-declares-is-refused-as-doc-refuses-it","query":"::nothere | tutorial !| type","expect":"::any/doc/UnknownNameError","decision":"D177"}

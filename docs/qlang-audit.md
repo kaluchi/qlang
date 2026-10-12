@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-tenth, holds it against commit `91a2419`, its baseline: a scar the
+eleventh, holds it against commit `2388dd8`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -1129,8 +1129,9 @@ it cites a record in force or one waiting on its target [D225]. An
 artifact names the decision it exists for, a mark covering the block it
 stands on, so the scope of a record is every place that marks it; a
 move of the baseline reads again the records whose blocks its diff
-touched, and records of one axis merge into the earliest of them, whose
-number stays the address of the axis [D237].
+touched, records of one axis merge into the earliest of them, whose
+number stays the address of the axis, and a case names the one record
+whose rule it shows [D237].
 How the records are sourced is the subject of the folder's
 `README.md`.
 

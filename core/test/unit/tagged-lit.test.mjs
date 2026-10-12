@@ -51,7 +51,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('makes ::myType invokable through the constructor its host handed [D73]', async () => {
+  it('makes ::myType invokable through the constructor its host handed [D34]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| | :myType/construct ::builtin{}', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -59,7 +59,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     expect((await sessionInstance.evalCell('::myType(4) | [type payload]')).result).toEqual([makeTag('myType'), 8]);
   });
 
-  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D73]', async () => {
+  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D34]', async () => {
     const result = await evalQuery(':myType |~~ myType. ~~| | :myType/construct ::builtin{} | ::myType~(add 1) | type');
     expect(result).toEqual(makeTag('myType'));
   });

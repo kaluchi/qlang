@@ -100,7 +100,7 @@ export const BuiltinRefusalDeclaredTwiceError = declareInvariantError('builtin/R
 
 export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 
-// A name with a path that no declaration names [D62], [D153].
+// A name with a path that no declaration names [D34], [D153].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
 // One more nested frame of evaluation past the budget, a runaway in the

@@ -214,7 +214,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   });
 
   // The reader's declaration of a name the root holds stands over it
-  // [D62], [D153].
+  // [D34], [D153].
   it('a cell declaration of a name the root holds is the one the axes read', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({

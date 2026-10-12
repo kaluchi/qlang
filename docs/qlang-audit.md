@@ -834,7 +834,7 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
+86982eb5). The rule is decided [D34], [D153], [D222], [D223],
 and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
 and `sourceText` until it declares them under kinds of its own [D2],
@@ -1221,7 +1221,7 @@ sources declare as cells before a reader's first step, a source, a cell
 and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D62], [D153]; a tag in the subject position is dispatched to the noun
+[D34], [D153]; a tag in the subject position is dispatched to the noun
 it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A value the reader
 names takes any name, and a step that calls it on a subject a word of
@@ -1461,7 +1461,7 @@ The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
 stands ahead of its remote since 29 September, and its redesign has not
 begun: its nodes carry their kind as a tag, its verbs
-move onto its tags and its noun [D34], [D62], the noun's own verbs
+move onto its tags and its noun [D34], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog;
 the effect marker leaves the language with them [D2], since
@@ -1913,7 +1913,6 @@ the command line without them.
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
-[D62]: decisions/D62.md
 [D63]: decisions/D63.md
 [D69]: decisions/D69.md
 [D72]: decisions/D72.md

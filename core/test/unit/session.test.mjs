@@ -166,7 +166,7 @@ describe('the sources a host hands [D153]', () => {
     expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/NotNumberError'));
   });
 
-  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {
+  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D34]', async () => {
     await expect(createSession({ sources: [{
       uri: 'tests/bare', source: ':any/shout ~(::builtin{})', impls: { shout: text => text.toUpperCase() }
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });

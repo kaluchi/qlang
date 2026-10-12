@@ -392,7 +392,7 @@ Name
 
 // A name with a path, the path of a noun and the name of a verb that
 // lives on it, calls the verb by its address, as the keyword and the tag
-// name carry a path [D62]: `vec/count` is the `count` of vectors.
+// name carry a path [D34]: `vec/count` is the `count` of vectors.
 CallName
   = head:Ident tail:("/" @KeywordName)+
     {

@@ -474,7 +474,7 @@ async function evalCall(node, state) {
   return await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state);
 }
 
-// A bare name calls what it reaches for the subject [D62], [D153]; a
+// A bare name calls what it reaches for the subject [D34], [D153]; a
 // word the kind of the subject does not answer is refused with the
 // addresses where the word lives [D169], and a name that reaches nothing
 // with the names near it. A value the scope binds and a word the subject
@@ -503,7 +503,7 @@ async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
   // A value takes no modifiers; its refusal names where a word of the
-  // name lives, one a declaration shadows among them [D62].
+  // name lives, one a declaration shadows among them [D34].
   if (modifiers.length > 0) {
     throw new CallValueTakesNoModifiersError({
       name: keyword(lookupName),
@@ -516,7 +516,7 @@ async function applyBinding(entry, lookupName, modifiers, state) {
 
 // A name with a path reads what its address declared, past every bare
 // name of the scope, a name under a label run and any other value
-// itself, so a word a declaration shadows stays one address away [D62],
+// itself, so a word a declaration shadows stays one address away [D34],
 // [D153]:
 // `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of vectors whatever
 // the scope binds as `filter`.

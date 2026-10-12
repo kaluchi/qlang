@@ -2,7 +2,7 @@
 // kind a name serves, the value put under a tag through its label
 // [D168], the answer kept as its subject's kind under the tags the walk
 // passed [D41], and the primitive a host handed run over the value the
-// walk served [D73].
+// walk served [D34].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';

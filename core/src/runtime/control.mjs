@@ -2,7 +2,7 @@
 // the subject and the parts of its args [D167]: a branch, a clause, an
 // alternative and a quote among the conditions of `allOf` and `anyOf`
 // is code the name runs only when it is chosen, closed at the call [D43],
-// [D73], and the condition of `if` is a boolean computed at the call
+// [D34], and the condition of `if` is a boolean computed at the call
 // [D14].
 //
 // The verbs live in lib/qlang/any.qlang.

@@ -55,7 +55,7 @@ function nameOf(subject) {
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live [D62], [D137].
+// where the pages of that name live [D34], [D137].
 export function refusalOf(env, subject) {
   return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }

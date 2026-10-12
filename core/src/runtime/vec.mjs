@@ -5,7 +5,7 @@
 // the elements in order [D16], a map's reads its values and keeps its
 // keys [D15], a string's reads its characters [D132], and a refusal
 // names the word that refused [D172]. A part that takes code arrives
-// closed at the call, code run on the element [D73], [D167].
+// closed at the call, code run on the element [D34], [D167].
 
 import { isBoolean, isKeyword, isString, isNumber, isTag, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';

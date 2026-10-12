@@ -3,7 +3,7 @@
 // before it left, the language's first. A source whose run answers an
 // error, or that declares again a name the root holds, is refused; each
 // name under a label a source declares is the host's, which alone
-// reaches an implementation [D73]: a name that is `::builtin{}`, the
+// reaches an implementation [D34]: a name that is `::builtin{}`, the
 // `construct` of a kind among them, runs the implementation the host
 // handed beside the source under its name [D80], [D157], [D167], [D169],
 // and is refused as the root is declared when it was handed none; a
@@ -34,7 +34,7 @@ export const BuiltinImplementationNotHandedError = declareInvariantError('builti
 
 // An implementation a host hands for a name its source declares as no
 // `::builtin{}` under a label has nothing to run under: a name written
-// in steps runs them, and a bare name reads its value [D73], [D167].
+// in steps runs them, and a bare name reads its value [D34], [D167].
 export const BuiltinImplementationNamesNoBuiltinError = declareInvariantError('builtin/ImplementationNamesNoBuiltinError',
   ({ uri, name }) => `qlang root: the source ${uri} is handed an implementation for ${name.literal}, which it declares as no ::builtin{} under a label`);
 

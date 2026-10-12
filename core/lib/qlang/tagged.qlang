@@ -1,7 +1,7 @@
 |~ `::tagged`, the kind of every value under a tag, which the walk of a
    tagged value reaches after its own tags, and what is declared under
    it: the words of tagged values.
-   The decisions it exists for: [D189]. ~|
+   The decisions it exists for: [D114]. ~|
 
 :tagged
   |~~ A value under a tag is a payload read by the kind its tag names,

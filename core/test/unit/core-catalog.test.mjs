@@ -1,5 +1,5 @@
 // The catalog the language declares its root by [D153], each source the
-// page of one noun and what is declared under it [D189]: `lib/qlang.qlang`
+// page of one noun and what is declared under it [D114]: `lib/qlang.qlang`
 // the topic of the language, and each source under `lib/qlang/` a kind.
 // `langRuntime()` runs them once at startup and seals the registry of
 // primitives the verbs name.

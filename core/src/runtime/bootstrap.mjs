@@ -7,7 +7,7 @@ import { loadSource } from '#qlang/load-source';
 import { declareInvariantError } from '../errors.mjs';
 
 // The sources the language declares its root by, in order [D153], each
-// the source of one noun, its page and what is declared under it [D189]:
+// the source of one noun, its page and what is declared under it [D114]:
 // `qlang` the topic of the language, its first page and chapters, and
 // each source after it a kind.
 export const LANGUAGE_SOURCES = Object.freeze([

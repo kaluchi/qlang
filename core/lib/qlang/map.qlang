@@ -4,7 +4,7 @@
    them: a word whose answer names the map keeps the keys of the entries
    it keeps and answers under the tags of the map, and `map`, whose
    answer is any value, answers under none.
-   The decisions it exists for: [D189]. ~|
+   The decisions it exists for: [D114]. ~|
 
 :map
   |~~ A map holds named values under keywords, `{:id 7 :tags ["a"]}`:

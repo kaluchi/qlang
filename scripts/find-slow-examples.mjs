@@ -6,7 +6,7 @@
 // longer than expected — isolates which binding's doc-prefix carries
 // a Quote whose evaluation diverges (recursion, super-slow eval,
 // fail-track storm, …).
-// The decisions it exists for: [D174].
+// The decisions it exists for: [D123].
 
 import { spawn } from 'node:child_process';
 import { evalQuery } from '../core/src/eval.mjs';

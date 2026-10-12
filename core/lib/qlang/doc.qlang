@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
    segments, and the words that read a doc.
-   The decisions it exists for: [D157], [D189]. ~|
+   The decisions it exists for: [D114], [D157]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:

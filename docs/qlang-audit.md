@@ -658,7 +658,7 @@ c
 
 A quote has all three, being the vector of its steps [D53], and a doc
 answers its parts by its `segments`, the vector of its prose and its
-quotes [D95]:
+quotes [D19]:
 
 ```qlang
 > ~(add 1 | mul 2) | take 1
@@ -695,8 +695,8 @@ page and `open` reaches it, the jump from one page to another
 [D108], [D121], [D175]; under `::snippet` it is a query a reader runs to
 see what it shows [D122]; with none it is code the prose holds. The laws
 that prove a name stand under it, each a definition of `::law~(…)` that
-`runLaws` holds to answer true, its page the claim it proves [D124],
-[D174]; `laws` answers each as the pair of its page and its
+`runLaws` holds to answer true, its page the claim it proves [D123],
+[D124]; `laws` answers each as the pair of its page and its
 query, and `tutorial` a name's page and its laws, the pair a reader
 learns the name from [D176], [D177]:
 
@@ -971,7 +971,7 @@ written once, which is the task that would ask for a hierarchy of tags.
 Examples live on two planes, the conformance suite and the laws of the
 catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
-paged with it [D124], [D174]. And a parse failure prints whole, every
+paged with it [D123], [D124]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped, at its start
 and at its end, where a failure of a step prints as an alert [D184]:
 
@@ -1430,8 +1430,8 @@ meets the tag and the facts.
 
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
-[D111], [D117], [D118], [D119], [D121], [D122], [D124], [D125], [D127],
-[D129], [D150] and [D174]: the effect marker leaving the language, open,
+[D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
+[D127], [D129] and [D150]: the effect marker leaving the language, open,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs [D26], each run recorded with the frictions it met
 [D104], each measurement on a set of tasks a
@@ -1713,7 +1713,7 @@ it names, as a URL does; whether a tag says which of the two it is
 stays open. The first real test is the schemas of the sister project's
 entities, more complex than the kinds of the core.
 
-The site as hypermedia [D88], [D95]. The maintainer pictures the site
+The site as hypermedia [D19], [D88]. The maintainer pictures the site
 as a browser that runs qlang: a module of a tutorial whose quotes, tags
 and keywords are links, a click writing the snippet into the line of a
 REPL and running it, so that the answer reads as the next page: «что б
@@ -1729,7 +1729,7 @@ page, and the site is one renderer of it. The tree gives the segments
 of a doc, its prose apart from its links and snippets, and a name to
 reach a page by [D88], [D175]; the prose that heads a source is a plain
 comment that no name reaches, a tag inside prose is no segment yet
-[D95], and a keyword names nothing a click could open [D221].
+[D19], and a keyword names nothing a click could open [D221].
 The site waits for the syntax: «пока синтаксис не начнет мне самому
 нравиться» (13:23), and «но сперва UIX в вебе и UIX в терминале нас
 должен удовлетворять» (13:26).
@@ -1866,6 +1866,7 @@ the command line without them.
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
 [D16]: decisions/D16.md
+[D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md
@@ -1901,7 +1902,6 @@ the command line without them.
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
 [D93]: decisions/D93.md
-[D95]: decisions/D95.md
 [D96]: decisions/D96.md
 [D104]: decisions/D104.md
 [D107]: decisions/D107.md
@@ -1915,6 +1915,7 @@ the command line without them.
 [D120]: decisions/D120.md
 [D121]: decisions/D121.md
 [D122]: decisions/D122.md
+[D123]: decisions/D123.md
 [D124]: decisions/D124.md
 [D125]: decisions/D125.md
 [D127]: decisions/D127.md
@@ -1943,7 +1944,6 @@ the command line without them.
 [D169]: decisions/D169.md
 [D172]: decisions/D172.md
 [D173]: decisions/D173.md
-[D174]: decisions/D174.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
 [D177]: decisions/D177.md

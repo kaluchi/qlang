@@ -189,7 +189,7 @@ export function errorAtRest(tag, facts) {
 }
 
 // A doc is the vector of its prose strings and quotes under `::doc`
-// [D94], [D95], each run of prose one string that reads a line break as
+// [D19], [D94], each run of prose one string that reads a line break as
 // one whatever bytes the source wrote.
 export const DOC_TAG_NAME = 'doc';
 

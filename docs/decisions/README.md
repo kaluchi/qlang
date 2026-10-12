@@ -6,7 +6,11 @@ the work on it, `En.md` for one of the environment of the work that
 records in force. A record that a later one replaces whole keeps its text
 and gains the line that names the record replacing it [D58], and moves to
 `replaced/` once, by `node scripts/replaced-records.mjs`, which writes
-every link to it again; nothing moves it after [D237]. One a later record
+every link to it again; nothing moves it after [D237]. A record on the
+axis of an earlier one merges into it: the earliest, written anew,
+holds what both decided, and the later gains the line `Merged into` it
+and moves to `replaced/` by `node scripts/merge-records.mjs`, which
+writes every citation of it in prose anew [D237]. One a later record
 takes a part of is pruned of that part and names the record that took
 it, so a record in force is true as a whole, and git keeps every text a
 record had [D227].

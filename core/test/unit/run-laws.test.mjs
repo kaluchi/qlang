@@ -1,5 +1,5 @@
 // runLaws — run each law declared under a name as an executable test
-// case [D174]. A law passes when it answers `true`. The subject is a keyword (binding name) or a tag name, the
+// case [D123]. A law passes when it answers `true`. The subject is a keyword (binding name) or a tag name, the
 // address of a verb among them, so `kinds | map ~manifest | flat | map
 // ~runLaws` walks the whole catalog.
 

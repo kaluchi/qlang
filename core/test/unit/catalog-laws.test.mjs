@@ -1,5 +1,5 @@
 // The laws of the catalog, run. The laws of a name are declared under
-// it [D174]; `runLaws` evaluates each in isolation and reports
+// it [D123]; `runLaws` evaluates each in isolation and reports
 // {:law :says :actual :ok :error}, a law whose answer is true passing.
 //
 // The walk reads every name the root holds by its address [D153], and

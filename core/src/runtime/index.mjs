@@ -48,7 +48,7 @@ export async function langRuntime(opts = {}) {
 }
 
 // The noun a source of the language declares, the last name of its uri:
-// `qlang/number` declares `number`, and `qlang` the topic [D189].
+// `qlang/number` declares `number`, and `qlang` the topic [D114].
 function nounOfSource(uri) {
   return uri.slice(uri.lastIndexOf('/') + 1);
 }

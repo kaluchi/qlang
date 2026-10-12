@@ -679,8 +679,8 @@ qlang-литералом дашборд в духе темной кабины в
 
 Read against the audit, that sketch is the first real user of three of
 its decisions at once. `::workflow | start`, which became
-`::workflow | status`, is a verb found through the subject's tag
-[D34]: the verb belongs to `::workflow`. The
+`::workflow | status`, is a verb found through the subject's tag [D34]:
+the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
 case, a metric, each a tag whose label declares what it holds [D169], printed as
 the cockpit wants it and read back by the next utility. And the zoom is

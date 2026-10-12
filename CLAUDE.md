@@ -15,10 +15,11 @@ wins and this file is what changes.
    decision is a file under `docs/decisions/`, opened where the audit
    cites it, and `node scripts/requirements.mjs` lists the
    requirements every decision left and which the tree meets.
-   `docs/qlang-entrypoint.md` designs the computed context a session
-   starts from. Its sensors live in `scripts/sensors/`: the probes run
-   wherever the checkout is, and the readers of the transcripts in a
-   session on the maintainer's machine.
+   `docs/qlang-entrypoint.md` is a draft of the computed context a
+   session starts from, ideas and no decision [D231]. The sensors live
+   in `scripts/sensors/`: the probes run wherever the checkout is, and
+   the readers of the transcripts in a session on the maintainer's
+   machine.
 2. `npm run desk`, the screen of the work: the branch against master,
    the walk of the audit's baseline, the targets open, the stashes and
    the sister project's branch [D226]. Then `npm test` at the repo root,

@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, rootScopeOf, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress, vocabularyWords
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, readsParts, residencesOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -49,7 +49,7 @@ const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 // A bare name the reader declares for a value takes no word of the
 // vocabulary, the name of a verb or of a name under a label, so no step
 // meets the reader's value where the subject's word was meant [D166].
-const BindNameTakenByVocabularyError = declareRefusal('bind/NameTakenByVocabularyError');
+const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 
@@ -412,13 +412,6 @@ async function evalBindStep(node, state) {
 
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
-  if (nounName === null && !isDoc(answered) && vocabularyWords(state.env).has(name)) {
-    throw new BindNameTakenByVocabularyError({ name: keyword(name), addresses: addressesOf(state.env, name) });
-  }
-  const partName = nounName === null ? null : splitAddress(name)[1];
-  if (isQuote(answered) && partName !== null && isQuoteUnderLabel(state.env, nounName) && vocabularyWords(state.env).has(partName)) {
-    throw new BindNameTakenByVocabularyError({ name: keyword(partName), addresses: addressesOf(state.env, partName) });
-  }
   if (isQuote(answered) && isUnderLabel(state.env, name)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {
@@ -429,13 +422,6 @@ async function evalBindStep(node, state) {
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
-}
-
-// Whether a node is a quote under a label, whose parts are bound by name
-// in its body, so a part takes no word of the vocabulary, as a bare name
-// does not [D166].
-function isQuoteUnderLabel(env, nounName) {
-  return isQuote(bindingValueOf(nodeOf(env, nounName))) && isUnderLabel(env, nounName);
 }
 
 // A name without the effect marker refuses a quote under a label whose
@@ -507,7 +493,9 @@ async function evalCall(node, state) {
 // A bare name calls what it reaches for the subject [D62], [D153]; a
 // word the kind of the subject does not answer is refused with the
 // addresses where the word lives [D169], and a name that reaches nothing
-// with the names near it.
+// with the names near it. A value the scope binds and a word the subject
+// answers under one name meet, and the step is refused with the word's
+// address, which calls the word, as another name reads the value [D223].
 async function callByName(lookupName, lambdas, state) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
@@ -520,6 +508,8 @@ async function callByName(lookupName, lambdas, state) {
     });
   }
   if (reach.underKind) return await applyMember(reach.record, lambdas, state);
+  const word = residenceOnSubject(state.env, lookupName, state.pipeValue);
+  if (word !== null) throw new CallValueMeetsWordError({ name: keyword(lookupName), addresses: makeSet([makeTag(word.get('name').name)]) });
   return await applyBinding(reach.record, lookupName, lambdas, state);
 }
 

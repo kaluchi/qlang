@@ -109,6 +109,44 @@
   |~~ The name, which holds a value and no word. ~~|
   ::keyword
 
+:call/ValueMeetsWordError
+  |~~ A name the scope binds to a value is the name of a word the
+      subject answers, and the step does not choose between them:
+      `:count 5 | [1 2] | count` meets `::vec/count`. A name of the
+      reader's takes any name, and meets a word only where a step calls
+      the name on a subject the word answers, `:count 5 | 7 | count`
+      answering `5`; there the word is called by its address,
+      `[1 2] | vec/count`, or the value takes another name, `:limit 5`.
+      `:name` holds the name, and `:addresses` the word the subject
+      answers.
+      ::link~(::call | doc) ::link~(::bind | doc)
+  ~~|
+
+:call/ValueMeetsWordError/name
+  |~~ The name, which holds a value and names a word of the subject. ~~|
+  ::keyword
+
+:call/ValueMeetsWordError/addresses
+  |~~ The address of the word the subject answers under the name. ~~|
+  ::set
+
+:call/ValueMeetsWordError/refusesAValueAndAWordThatMeet
+  |~~ A value and a word that meet at a step are refused with the word's address. ~~|
+  ::law~(:count 5 | [1 2] | count !| [type /addresses] | eq [::call/ValueMeetsWordError #[::vec/count]])
+
+:call/ValueMeetsWordError/readsTheValueWhereNoWordAnswers
+  |~~ On a subject no word of the name answers, the value is read. ~~|
+  ::law~(:count 5 | 7 | count | eq 5)
+
+:call/ValueMeetsWordError/callsTheWordByItsAddress
+  |~~ The word is called by its address beside the value. ~~|
+  ::law~(:count 5 | [1 2] | vec/count | eq 2)
+
+:call/ValueMeetsWordError/meetsAPartInTheBodyOfAWord
+  |~~ A part named as a word meets the word in the body that reads it. ~~|
+  ::law~(:vec/firstN ~([count (take count)]) | :vec/firstN/count ~(/0)
+    | [1 2 3] | firstN 2 !| [type /name] | eq [::call/ValueMeetsWordError :count])
+
 :call/ValueTakesNoModifiersError/addresses
   |~~ The addresses where a word of that name lives, one a declaration shadows among them. ~~|
   ::set

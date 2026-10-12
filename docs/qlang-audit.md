@@ -1275,7 +1275,16 @@ and a query written alike, and a namespace too large to declare is
 mounted and served on demand [D24], [D36]. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D62], [D153]; a tag in the subject position is dispatched to the noun
+[D62], [D153]; a value the reader names takes any name, and a step that
+calls it on a subject a word of the name answers is refused, the word
+called by its address there [D223]:
+
+```qlang
+> :count 5 | [(7 | count) ([1 2] | count !| type) ([1 2] | vec/count)]
+[5 ::call/ValueMeetsWordError 2]
+```
+
+ a tag in the subject position is dispatched to the noun
 it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A declaration writes
 into its scope the record of its binding, so the axes are projections
@@ -1780,8 +1789,7 @@ The maintainer asked whether a lazy one pays: «потом уже переход
 операнды которые работают над всей вселенной..» (maintainer, 2026-10-07
 21:23, session 22b934f8). Words read the whole root: a bare name the walk
 of its subject does not answer, `residencesOf` in
-`core/src/runtime/nouns.mjs`; a name a reader declares, held against
-the words of every kind, `vocabularyWords` there [D166]; the words of
+`core/src/runtime/nouns.mjs`; the words of
 `::any`, which several sources declare, `namesUnderOf` there; `kinds`,
 `kindNamesOf` there; and the names near a name a refusal offers,
 `nearestNames` in `core/src/nearest-names.mjs`. So a query that fails,
@@ -1815,29 +1823,6 @@ the reader, a value named `match` refused once the word is there
 [D166], and a dialect of patterns every host of the language carries;
 or the patterns left to a host, which leaves the readers of the
 command line without them.
-
-A value named by a word of the vocabulary [D166]. A bare name a reader
-declares for a value takes no word of the vocabulary, the name of a
-verb or of a name under a label, so a step never meets the reader's
-value where the subject's word was meant:
-
-```qlang
-> [1 2] | :first / | first !| type
-::bind/NameTakenByVocabularyError
-```
-
-Both outside audits dispute it, and the maintainer shares the concern
-and leaves it for later: `first`, `count`, `keys`, `type` and
-`doc` are names no reader may give a value, and every word the core or
-a host adds breaks the queries that named a value by it. The
-alternatives: the ban as it stands; the reader's name over the word, as
-a scope shadows in every other language, which lets a value named
-`count` answer where `count` was meant, silently; a step refused where
-both meet, the reader's value and a word that serves the subject, its
-refusal naming both, so a name is free until it is called on a subject
-its word serves and a new word breaks only the queries that call it so;
-or a reader's value read by a form of its own, a sigil before its name,
-which costs a second spelling of every name a query reads.
 
 [D1]: decisions/D1.md
 [D2]: decisions/D2.md
@@ -2012,3 +1997,4 @@ which costs a second spelling of every name a query reads.
 [D220]: decisions/D220.md
 [D221]: decisions/D221.md
 [D222]: decisions/D222.md
+[D223]: decisions/D223.md

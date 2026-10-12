@@ -201,7 +201,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   const shadowed = ':any/hundredfold ~(mul 100) | ';
 
   it('a binding of the reader takes no word of the vocabulary', async () => {
-    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('bind/NameTakenByVocabularyError');
+    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('call/ValueMeetsWordError');
   });
 
   it('a word of the reader is the one source reports', async () => {

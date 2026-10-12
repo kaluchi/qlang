@@ -20,7 +20,7 @@
 {"name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/NotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::string/append/suffix/NotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"cannot-apply-args-to-value","query":"5 | :five / | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort ~(/a) !| /addresses","expect":"#[::map/sort ::set/sort ::vec/sort]"}
+{"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort ~(/a) !| /addresses","expect":"#[::vec/sort]"}
 {"name":"unresolvedIdentifier","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| /trail/0/step | first | /name","expect":":thisIsNotDefined","decision":"D85"}
 {"name":"unresolved-inside-filter","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}

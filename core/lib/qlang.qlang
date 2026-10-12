@@ -516,10 +516,11 @@
       from one label and declared under another resides on the second.
       A name is declared once in a scope and again in a scope inside it,
       which shadows it for the steps after; a value the reader names
-      takes no word of the vocabulary, the name of a verb or of a name
-      under a label, so no step meets it where the subject's word was
-      meant; an address the root holds is declared once at all, so a
-      reader extends a noun of the root and replaces none of its nodes.
+      takes any name, and a step that calls the name on a subject a word
+      of that name answers is refused, so the two never meet unseen, the
+      word called by its address there, `[1 2] | vec/count`; an address
+      the root holds is declared once at all, so a reader extends a noun
+      of the root and replaces none of its nodes.
       A name begins with a letter of any script, `_` or `@`; `@` marks a
       name whose call reaches outside the language, and a name whose body
       calls one carries it too, while a name over the value a call
@@ -564,9 +565,9 @@
   |~~ A name is declared once in a scope. ~~|
   ::law~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
 
-:qlang/names/takesNoWord
-  |~~ A value takes no word of the vocabulary. ~~|
-  ::law~(:count 5 !| type | eq ::bind/NameTakenByVocabularyError)
+:qlang/names/meetsAWordAloud
+  |~~ A value named as a word meets the word aloud where the subject answers it. ~~|
+  ::law~(:count 5 | [(7 | count) ([1 2] | count !| type)] | eq [5 ::call/ValueMeetsWordError])
 
 :qlang/names/leavesAValuePlain
   |~~ A name over the value a call answered is plain. ~~|

@@ -135,35 +135,6 @@
   |~~ A name under a noun declared before it runs on the noun's values. ~~|
   ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
 
-:bind/NameTakenByVocabularyError
-  |~~ A value the reader names takes no word of the vocabulary, the name
-      of a verb or of a name under a label, since a step that names the
-      word means the subject's; a part of a word takes none either, since
-      the body reads the part by its name. `:name` holds the name and
-      `:addresses` where the word lives. The value or the part takes
-      another name, `:limit 5` where `:count 5` is refused.
-      ::link~(::bind | doc)
-  ~~|
-
-:bind/NameTakenByVocabularyError/name
-  |~~ The name, a word of the vocabulary. ~~|
-  ::keyword
-
-:bind/NameTakenByVocabularyError/refusesAValueNamedAsAWord
-  |~~ A value named as a word is refused with the addresses of the word. ~~|
-  ::law~(:count 5
-    !| [type /addresses]
-    |  eq [::bind/NameTakenByVocabularyError #[::map/count ::set/count ::string/count ::vec/count]])
-
-:bind/NameTakenByVocabularyError/refusesAPartNamedAsAWord
-  |~~ A part of a word named as a word is refused. ~~|
-  ::law~(:any/f ~(1) | :any/f/count ~(/0)
-    !| [type /name] | eq [::bind/NameTakenByVocabularyError :count])
-
-:bind/NameTakenByVocabularyError/takesANameNoWordHolds
-  |~~ A name no word holds names a value. ~~|
-  ::law~(:limit 5 | [1 2 3] | take limit | eq [1 2 3])
-
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline that
       the pipe or the fail track joins share one scope, and a declaration

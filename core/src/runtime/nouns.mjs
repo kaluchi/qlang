@@ -550,31 +550,3 @@ export function verbNames(env) {
   return names;
 }
 
-// vocabularyWords(env) → the words of the vocabulary, the last names of
-// the verbs and of the names a label holds, each declared under a noun,
-// which a bare name of the reader may not take [D166].
-export function vocabularyWords(env) {
-  const words = new Set(rootWordsOf(rootOf(env)));
-  for (const [name, entry] of env) {
-    if (!isBinding(entry)) continue;
-    const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(entry, env)) words.add(lastName);
-  }
-  return words;
-}
-
-// The words a root holds, gathered once for the root.
-const ROOT_WORDS = new WeakMap();
-
-function rootWordsOf(root) {
-  let words = ROOT_WORDS.get(root);
-  if (words === undefined) {
-    const rootScope = new Map([[ROOT_KEY, root]]);
-    words = new Set();
-    for (const names of rootIndexOf(root).values()) {
-      for (const [lastName, record] of names) if (residesOn(record, rootScope)) words.add(lastName);
-    }
-    ROOT_WORDS.set(root, words);
-  }
-  return words;
-}

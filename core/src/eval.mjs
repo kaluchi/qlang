@@ -845,7 +845,7 @@ export function codeOf(code, callState) {
 // accumulator among them [D72], and a value of the scope under the name
 // meeting the word there [D223], [D224]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so
-// far and the element [D233].
+// far and the element [D90].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;

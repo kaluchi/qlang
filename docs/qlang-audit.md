@@ -1528,7 +1528,7 @@ Two inputs. A modifier is computed against the subject of its own step
 inside a step that runs on another subject. A fold takes them both: a
 quote of one word is called with the value so far as its subject and
 the element as its arg, and any other code runs on the pair of the
-two [D233]. Two fields of one record meet in a word of their own, the
+two [D90]. Two fields of one record meet in a word of their own, the
 family `…Of`, which has gaps:
 
 ```qlang
@@ -1901,6 +1901,7 @@ the command line without them.
 [D85]: decisions/D85.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
+[D90]: decisions/D90.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
 [D104]: decisions/D104.md
@@ -1978,6 +1979,5 @@ the command line without them.
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
-[D233]: decisions/D233.md
 [D235]: decisions/D235.md
 [D236]: decisions/D236.md

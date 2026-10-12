@@ -239,7 +239,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
 
-  it('a reducer of code runs on the pair, failing under the word it called [D233]', async () => {
+  it('a reducer of code runs on the pair, failing under the word it called [D90]', async () => {
     const answer = await evalQuery('[1 2 3] | reduce 0 ~(add 1)');
     expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });

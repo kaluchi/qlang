@@ -366,7 +366,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 // is the word called as the pipe calls it, `acc | add element`, the
 // element the first part of its args [D90], [D224]; any other code runs
 // on the pair of the value so far and the element, and its answer is the
-// value so far after it [D233]. `seed` answers for an empty subject, and
+// value so far after it [D90]. `seed` answers for an empty subject, and
 // a failure of the reducer stops the fold.
 async function foldOf(elements, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));

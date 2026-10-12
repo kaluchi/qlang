@@ -113,8 +113,8 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     budget: cliInvocation.budget
   });
 
-  if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);
-  if (cliOutcome.stderrText) stderrWrite(cliOutcome.stderrText);
+  stdoutWrite(cliOutcome.stdoutText);
+  stderrWrite(cliOutcome.stderrText);
   if (SHELL_PATH_OF_A_QUERY.test(queryText)) stderrWrite(SHELL_PATH_HINT);
   return cliOutcome.exitCode;
 }

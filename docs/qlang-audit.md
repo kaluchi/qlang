@@ -452,7 +452,7 @@ combinator applies a step and deflects on an error, recording the
 skipped step on the error's trail, and `!|` is the only combinator that
 fires on an error, which `|` steps around [D51]; a step run on each
 element is the word `map`, whose code is a quote, and the first error an
-element answers is its answer [D181], [D182]. Parentheses, vectors, maps, sets, and error literals all obey one
+element answers is its answer [D116]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
 only its value, which is where every scoping rule of the page of the
 pipeline comes from. A literal is a step that replaces the value, and the values it
@@ -939,7 +939,7 @@ The host shows such an error as an alert, [D7], its tag and its
 facts, the subject where it arose cut to an excerpt, and each subject
 it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
-the runs of [D181] recorded on set T, the alerts print about a third of
+the runs of [D116] recorded on set T, the alerts print about a third of
 what the errors printed whole, and the command line writes above an
 alert the line that says it was raised [D13] and below it the prose of
 its refusal's page as line comments, the repair a reader acts on
@@ -1914,6 +1914,7 @@ the command line without them.
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
 [D111]: decisions/D111.md
+[D116]: decisions/D116.md
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
@@ -1952,8 +1953,6 @@ the command line without them.
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
 [D180]: decisions/D180.md
-[D181]: decisions/D181.md
-[D182]: decisions/D182.md
 [D185]: decisions/D185.md
 [D200]: decisions/D200.md
 [D208]: decisions/D208.md

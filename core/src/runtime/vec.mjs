@@ -164,7 +164,7 @@ bindPrim('map/sort', async (map, key) => {
 
 // `map` runs its code on each element in order and answers what each
 // answered, the first error the code answers answering for the call, the
-// elements after it left unrun [D182]; a map keeps its keys.
+// elements after it left unrun [D116]; a map keeps its keys.
 async function answersOf(elements, code) {
   const answers = [];
   for (const element of elements) {

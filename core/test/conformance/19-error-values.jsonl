@@ -44,7 +44,7 @@
 {"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| /trail | map ~([(/step | parse) (/skipped | parse)])","expect":"[[\"pre\" \"\"]]","decision":"D13"}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError","decision":["D8","D13"]}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D13"}
-{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":["D13","D182"]}
+{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":["D13","D116"]}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-part-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error","decision":"D13"}
 {"name":"a-part-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1} | raise) !| /trail | map ~/step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]","decision":"D13"}

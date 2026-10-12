@@ -38,3 +38,4 @@
 {"name":"a-bare-value-of-the-reader-stays-out-of-a-word-of-the-root","query":":subject 99 | [1 2] | tutorial | first | type","expect":"::doc","decision":"D222"}
 {"name":"a-value-of-the-reader-meets-a-word-the-reader-declared","query":":vec/second ~(/1) | :second 5 | [(4 | second) ([7 8 9] | second !| /addresses)]","expect":"[5 #[::vec/second]]","decision":"D223"}
 {"name":"a-field-of-a-label-is-a-definition-under-it-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | [(::Box | manifest) (::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]","decision":"D50"}
+{"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(/w | is ::number) | :Box/area ~(mulOf /w /h) !| [type /name]","expect":"[::bind/InvariantNotUnderLabelError :Box]","decision":"D229"}

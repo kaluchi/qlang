@@ -135,6 +135,24 @@
   |~~ A name under a noun declared before it runs on the noun's values. ~~|
   ::law~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
 
+:bind/InvariantNotUnderLabelError
+  |~~ An invariant holds of the values of the label it is declared under,
+      named by its refusal: `:Box |~~ A box. ~~|` declares the label by
+      its page alone, and `:Box/WNotNumberError ::holds~(/w | is ::number)`
+      an invariant of its values. Declared by a bare name an invariant
+      holds of no value, and a page beside it makes no label, so the
+      declaration is refused, `:name` naming it.
+      ::link~(::holds | doc) ::link~(::bind | doc)
+  ~~|
+
+:bind/InvariantNotUnderLabelError/refusesAnInvariantDeclaredBare
+  |~~ An invariant declared by a bare name is refused, a page beside it or none. ~~|
+  ::law~(:Box |~~ A box. ~~| ::holds~(/w | is ::number) !| [type /name] | eq [::bind/InvariantNotUnderLabelError :Box])
+
+:bind/InvariantNotUnderLabelError/takesAnInvariantUnderItsLabel
+  |~~ An invariant under its label holds of the label's values. ~~|
+  ::law~(:Box |~~ A box. ~~| | :Box/WNotNumberError ::holds~(/w | is ::number) | ::Box{:w "x"} !| type | eq ::Box/WNotNumberError)
+
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline that
       the pipe or the fail track joins share one scope, and a declaration

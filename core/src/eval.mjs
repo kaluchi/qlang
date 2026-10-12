@@ -48,6 +48,7 @@ const ProjIndexNotIntegerError = declareRefusal('proj/IndexNotIntegerError');
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
+const BindInvariantNotUnderLabelError = declareRefusal('bind/InvariantNotUnderLabelError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 
 // evalQuery(source, env?) → the value a query answers from null, in the
@@ -392,7 +393,9 @@ async function evalTagLit(node, state) {
 // writes, its own name among it [D44], and a body that fails answering the
 // failure, which no name holds [D210]; a name is declared once in its
 // scope [D71], a node the root holds once at all [D153], and a name with a
-// path under a noun declared before it.
+// path under a noun declared before it; an invariant holds of the
+// values of the label it is declared under, so one a bare name declares
+// is refused [D229].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
@@ -409,6 +412,7 @@ async function evalBindStep(node, state) {
 
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
+  if (nounName === null && isInvariant(answered)) throw new BindInvariantNotUnderLabelError({ name: keyword(name) });
   if (isQuote(answered) && isUnderLabel(state.env, name)) {
     refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
   } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {

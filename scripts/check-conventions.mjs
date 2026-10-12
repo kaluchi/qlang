@@ -61,11 +61,10 @@
 // Run via `npm run check:conventions` from the repo root.
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './decision-records.mjs';
+import { walkOfBaseline } from './baseline-walk.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -392,98 +391,8 @@ function recordsWithoutDecider() {
 // cases cite the records in force, and the documents that hold the work
 // those in force or waiting on a target [D225], [D226].
 
-const RECORDS_A_WALK_TAKES = 20;
-const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
-const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
-const CODE_FILE = /\.(mjs|js|ts|astro|peggy)$/;
-const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
-const CITATION = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]|\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
-
-function filesUnder(dir, pattern) {
-  const absolute = join(repoRoot, dir);
-  if (!existsSync(absolute)) return [];
-  return readdirSync(absolute, { withFileTypes: true }).flatMap(entry => {
-    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(`${dir}/${entry.name}`, pattern);
-    return pattern.test(entry.name) ? [`${dir}/${entry.name}`] : [];
-  });
-}
-
-function citationsIn(text) {
-  const cited = [];
-  text.split(/\r?\n/).forEach((line, index) => {
-    for (const match of line.matchAll(CITATION)) {
-      for (const name of (match[1] ?? match[2]).split(/,\s*| and /)) cited.push({ name, line: index + 1 });
-    }
-  });
-  return cited;
-}
-
-function stateOf(record) {
-  if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
-  return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
-}
-
 function baselineDrift() {
-  const audit = readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' ');
-  const baseline = /holds it against commit `([0-9a-f]+)`/.exec(audit)?.[1];
-  if (baseline === undefined) return [{ where: 'docs/qlang-audit.md', problem: 'names no baseline commit' }];
-  let listed;
-  try {
-    listed = execFileSync('git', ['ls-tree', '--name-only', baseline, 'docs/decisions/'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  } catch {
-    return [{ where: 'docs/qlang-audit.md', problem: `names the baseline ${baseline}, which the history lacks` }];
-  }
-  const atBaseline = new Set(listed.split('\n').map(path => /([DE]\d+)\.md$/.exec(path)?.[1]).filter(Boolean));
-  const records = readDecisionRecords(repoRoot);
-  const violations = [];
-  for (const [name, record] of records) {
-    if (atBaseline.has(name) && isBeingDecided(record)) {
-      violations.push({ where: `docs/decisions/${name}.md`, problem: `outlived the baseline ${baseline}: no case names it and no line gives its fate` });
-    }
-  }
-  const since = [...records.keys()].filter(name => !atBaseline.has(name));
-  if (since.length > RECORDS_A_WALK_TAKES) {
-    violations.push({ where: 'docs/qlang-audit.md', problem: `${since.length} records since the baseline ${baseline}, from ${since[0]}: the walk is due` });
-  }
-  // A record in force says only what holds: a newer record prunes the
-  // part it takes, so the lines that replace a record in part only fall
-  // [D227].
-  const partialLines = text => (text.match(/^Replaced in part by/gm) ?? []).length;
-  const partialNow = [...records.keys()].reduce((sum, name) => sum + partialLines(readFileSync(join(repoRoot, 'docs', 'decisions', `${name}.md`), 'utf8')), 0);
-  // `git grep` ends with 1 where no line matches, a baseline that held none.
-  let partialThen;
-  try {
-    partialThen = execFileSync('git', ['grep', '-c', '^Replaced in part by', baseline, '--', 'docs/decisions'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
-      .split('\n').filter(Boolean).reduce((sum, line) => sum + Number(line.split(':').pop()), 0);
-  } catch {
-    partialThen = 0;
-  }
-  if (partialNow > partialThen) {
-    violations.push({ where: 'docs/decisions', problem: `${partialNow} lines replace a record in part, more than the ${partialThen} of the baseline ${baseline}: prune the part a newer record takes` });
-  }
-  const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
-  for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(root, CODE_FILE))) {
-    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
-      const record = records.get(name);
-      if (record !== undefined && !isHeld(record)) violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
-    }
-  }
-  for (const file of filesUnder('core/test/conformance', /\.jsonl$/)) {
-    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
-      if (line.trim() === '' || line.trim().startsWith('//')) return;
-      for (const name of [JSON.parse(line).decision ?? []].flat()) {
-        const record = records.get(name);
-        if (record !== undefined && !notClosed(record)) violations.push({ where: `${file}:${index + 1}`, problem: `names ${name}, ${stateOf(record)}` });
-      }
-    });
-  }
-  for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
-    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
-      const record = records.get(name);
-      if (record !== undefined && !notClosed(record)) violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
-    }
-  }
-  return violations;
+  return walkOfBaseline(repoRoot).violations;
 }
 
 // ── Main ───────────────────────────────────────────────────────

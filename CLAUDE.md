@@ -19,10 +19,12 @@ wins and this file is what changes.
    starts from. Its sensors live in `scripts/sensors/`: the probes run
    wherever the checkout is, and the readers of the transcripts in a
    session on the maintainer's machine.
-2. `git status && git log --oneline -3`, then `npm test` at the repo
-   root, in the background while reading. The git snapshot the
-   harness injects at the start of a session goes stale; the status
-   you run is the truth.
+2. `npm run desk`, the screen of the work: the branch against master,
+   the walk of the audit's baseline, the targets open, the stashes and
+   the sister project's branch [D226]. Then `npm test` at the repo root,
+   in the background while reading. The git snapshot the harness
+   injects at the start of a session goes stale; the screen you run is
+   the truth.
 3. State in one paragraph where the work stands: the scar at hand, or
    the question under discussion.
 4. Before the session ends, write every decision taken as a file

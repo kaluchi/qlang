@@ -837,7 +837,7 @@ design never resolved: «стремительно растущий зоопар�
 86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
 and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
-and `sourceText` until it declares them under kinds of its own [D234],
+and `sourceText` until it declares them under kinds of its own [D2],
 and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
@@ -1026,7 +1026,7 @@ session, which is to save as the source of its declarations [D30]. The noun of a
 onboards its user with a guide written by hand, which reads from its
 catalog the first sentence of the page of each word it shows first.
 
-The effect marker left the language [D2], [D234]: no name begins with
+The effect marker left the language [D2]: no name begins with
 `@`, and a word of a host is named as any word is, under the rule of
 collisions [D222], [D223]. A host whose word reads an index or throws
 dice marks the provenance of the value it returns with a tag, and a tag
@@ -1349,7 +1349,7 @@ Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
 work has begun meet their targets, the last of them the effect marker
-leaving the language [D2], [D234], so the suite carries no target unmet,
+leaving the language [D2], so the suite carries no target unmet,
 and every other decision below writes its targets before its work:
 
 ```sh
@@ -1979,6 +1979,5 @@ the command line without them.
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
 [D233]: decisions/D233.md
-[D234]: decisions/D234.md
 [D235]: decisions/D235.md
 [D236]: decisions/D236.md

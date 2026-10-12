@@ -3,7 +3,7 @@
 // its name reads back so: UAX #31 `ID_Start` and `ID_Continue`, with `_`
 // starting a name and `_` and `-` continuing one, a character being a
 // code unit as the parser reads it.
-// The decisions it exists for: [D234].
+// The decisions it exists for: [D2].
 
 const NAME_START = /^[_\p{ID_Start}]$/u;
 const NAME_CONTINUE = /^[\p{ID_Continue}_-]$/u;

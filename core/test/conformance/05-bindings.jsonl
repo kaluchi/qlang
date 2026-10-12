@@ -9,8 +9,8 @@
 {"name":"a-binding-holds-what-the-word-its-body-calls-answers","query":":any/two ~(2) | :n two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-word","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D5"}
-{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":["D5","D71"]}
-{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":["D13","D71"]}
+{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":"D71"}
+{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| /trail/0/step","expect":"~(:k 2)","decision":"D71"}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71"}
 {"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
 {"name":"a-body-declares-no-part-of-its-word-again","query":":number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2 !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
@@ -26,7 +26,7 @@
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
 {"name":"a-step-under-map-declares-in-each-element","query":":x 1 | [2 3] | map ~(:x /) | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
-{"name":"a-value-of-the-reader-named-as-a-word-is-read-where-no-word-answers-the-subject","query":":count 5 | count","expect":"5","decision":["D71","D223"]}
-{"name":"code-under-a-bare-name-runs-by-apply","query":":double ~(mul 2) | 5 | apply double","expect":"10","decision":["D5","D235"]}
-{"name":"code-under-a-bare-name-goes-bare-into-a-word-that-takes-code","query":":double ~(mul 2) | [1 2 3] | map double","expect":"[2 4 6]","decision":["D5","D235"]}
-{"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)","decision":["D5","D235"]}
+{"name":"a-value-of-the-reader-named-as-a-word-is-read-where-no-word-answers-the-subject","query":":count 5 | count","expect":"5","decision":"D223"}
+{"name":"code-under-a-bare-name-runs-by-apply","query":":double ~(mul 2) | 5 | apply double","expect":"10","decision":"D235"}
+{"name":"code-under-a-bare-name-goes-bare-into-a-word-that-takes-code","query":":double ~(mul 2) | [1 2 3] | map double","expect":"[2 4 6]","decision":"D235"}
+{"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)","decision":"D235"}

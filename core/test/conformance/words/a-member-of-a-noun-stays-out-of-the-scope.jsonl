@@ -1,2 +1,2 @@
-{"name":"a-law-of-a-name-applied-binds-in-its-readers-scope","query":"::qlang/pipeline | laws | map ~(/1 | apply /) | every ~(/)","expect":"true","decision":["D117","D123"]}
+{"name":"a-law-of-a-name-applied-binds-in-its-readers-scope","query":"::qlang/pipeline | laws | map ~(/1 | apply /) | every ~(/)","expect":"true","decision":"D117"}
 {"name":"a-member-of-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false","decision":"D117"}

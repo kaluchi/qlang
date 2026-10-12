@@ -40,6 +40,6 @@
 {"name":"a-doc-that-opens-on-a-quote-holds-no-prose-before-it","query":"|~~~(add 1) b~~| | segments | first | type","expect":"::quote","decision":"D19"}
 {"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | segments | count","expect":"1","decision":"D19"}
 {"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2","decision":"D19"}
-{"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\"","decision":["D19","D83"]}
+{"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\"","decision":"D83"}
 {"name":"the-parts-of-a-doc-are-its-segments","query":"|~~ a ~(add 1) b ~~| | segments","expect":"[\" a \" ~(add 1) \" b \"]","decision":"D19"}
 {"name":"a-keyword-is-read-by-its-kind","query":":limit | doc | eq (::keyword | doc)","expect":"true","decision":"D221"}

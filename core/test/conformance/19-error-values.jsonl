@@ -4,7 +4,7 @@
 {"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}","decision":"D13"}
 {"name":"error-lit-empty","query":"!{}","expect":"!{}","decision":"D13"}
 {"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D13"}
-{"name":"raise-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":["D13","D165"]}
+{"name":"raise-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D13"}
 {"name":"error-test-in-a-literal","query":"[(!{:kind :oops} | raise | false !| true) (42 | false !| true)]","expect":"[true false]","decision":"D13"}
 {"name":"fail-apply-deflects-map-with-kind","query":"{:kind :oops} !| /kind","expect":"{:kind :oops}"}
 {"name":"fail-apply-deflects-null","query":"null !| /kind","expect":"null"}
@@ -18,7 +18,7 @@
 {"name":"deflect-add-into-trail","query":"!{:kind :oops} | raise | add 1 !| /trail/-1/skipped | parse","expect":"\"add 1\"","decision":"D13"}
 {"name":"deflect-projection-into-trail","query":"!{:kind :oops} | raise | /name !| /trail/-1/skipped | parse","expect":"\"/name\"","decision":"D13"}
 {"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | raise | count | add 1 | mul 2 !| /trail/-1/skipped | parse","expect":"\"count | add 1 | mul 2\"","decision":"D13"}
-{"name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | raise | add 1 !| /trail/-1/skipped | first | type","expect":"::call","decision":["D8","D13"]}
+{"name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | raise | add 1 !| /trail/-1/skipped | first | type","expect":"::call","decision":"D13"}
 {"name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | raise | add 1 !| /trail/-1/skipped | first | /name","expect":":add","decision":"D13"}
 {"name":"deflect-entry-carries-no-location","query":"!{:kind :oops} | add 1 !| /trail | first | has :location","expect":"false"}
 {"name":"a-stop-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} | raise !| /trail/-1/skipped","expect":"~()","decision":"D13"}
@@ -42,9 +42,9 @@
 {"name":"a-tagged-error-literal-whose-trail-is-no-path-is-refused-when-raised","query":"::Foo::Bar!{:trail 5} | raise !| [type (/trail | map ~(/step | parse))]","expect":"[::error/TrailNotVecError [\"raise\"]]","decision":"D13"}
 {"name":"the-tag-a-tagged-literal-over-a-failure-skips-is-its-call","query":"::Foo(nosuch) !| /trail | map ~([(/step | parse) (/skipped | parse)])","expect":"[[\"nosuch\" \"tag ::Foo\"] [\"::Foo(nosuch)\" \"\"]]","decision":"D13"}
 {"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| /trail | map ~([(/step | parse) (/skipped | parse)])","expect":"[[\"pre\" \"\"]]","decision":"D13"}
-{"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError","decision":["D8","D13"]}
+{"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError","decision":"D8"}
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D13"}
-{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":["D13","D116"]}
+{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":"D13"}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-part-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error","decision":"D13"}
 {"name":"a-part-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1} | raise) !| /trail | map ~/step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]","decision":"D13"}
@@ -80,10 +80,10 @@
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | /1 | type","expect":"::link","decision":"D206"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\"","decision":"D206"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\" see ::vec~(x) \"","decision":"D206"}
-{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| / !| [type /actualType]","expect":"[::number/PayloadNotNumberError ::error]","decision":["D13","D206"]}
+{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| / !| [type /actualType]","expect":"[::number/PayloadNotNumberError ::error]","decision":"D206"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| | :Role/k ::holds~(count | gt 5) | |~~ see ::Role~(x) ~~| !| type","expect":"::Role/k","decision":"D206"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| | :Role/k ::holds~(count | gt 0) | |~~ see ::Role~(x) ~~| | segments | /1 | type","expect":"::Role","decision":"D206"}
-{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ~(::Box!{:a 1}) | first | raise !| / !| type","expect":"::Box/k","decision":["D13","D206"]}
+{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ~(::Box!{:a 1}) | first | raise !| / !| type","expect":"::Box/k","decision":"D206"}
 {"name":"an-error-at-rest-prints-its-facts-as-it-holds-them","query":"::error{:a 1} | print","expect":"\"!{:a 1}\"","decision":"D13"}
 {"name":"an-error-at-rest-in-a-container-prints-as-it-is","query":"[::error{:a 1}] | print","expect":"\"[!{:a 1}]\"","decision":"D13"}
 {"name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"#[:a]","decision":"D13"}
@@ -107,7 +107,7 @@
 {"name":"a-catch-whose-label-refuses-passes-a-stop-at-its-step","query":"~(::number!{:a 1}) | first | raise !| / | count !| trail | map ~([(/step) (/skipped)])","expect":"[[~(/) ~(count)]]","decision":"D13"}
 {"name":"a-failure-a-word-resumes-flies-on-through-its-literal","query":"[(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)] !| trail | map ~/step","expect":"[~(pre) ~([(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)])]","decision":"D13"}
 {"name":"a-failure-a-word-raises-on-an-empty-written-path-flies-on-from-its-literal","query":"[(!{:a 1 :trail []} | raise)] !| trail | map ~/step","expect":"[~([(!{:a 1 :trail []} | raise)])]","decision":"D13"}
-{"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ~(::Box!{:a 1}) | first | raise !| / | count !| trail | map ~([(/step) (/skipped)])","expect":"[[~(/) ~(count)]]","decision":["D13","D206"]}
+{"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ~(::Box!{:a 1}) | first | raise !| / | count !| trail | map ~([(/step) (/skipped)])","expect":"[[~(/) ~(count)]]","decision":"D206"}
 {"name":"the-bang-writes-an-error-at-rest-a-container-holds","query":"[!{:a 1}] | /0","expect":"!{:a 1}","decision":"D13"}
 {"name":"an-error-at-rest-a-container-holds-reads-its-facts","query":"[!{:a 1}] | /0 | /a","expect":"1","decision":"D13"}
 {"name":"the-bang-is-the-literal-of-the-kind-of-errors","query":"!{:a 1} | eq ::error{:a 1}","expect":"true","decision":"D13"}

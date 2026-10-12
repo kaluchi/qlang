@@ -13,7 +13,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
-import { recordPathOf } from './decision-records.mjs';
+import { FATE, recordPathOf, statementsOf } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -45,10 +45,13 @@ const DEFINITION = /^\[([DE]\d+)\]: /;
 
 // A citation of a record merged names the survivor, and a run of
 // citations that comes to name it twice names it once, in the order of
-// the records; a definition of a link is left to `relink`.
-function cite(text) {
-  return text.split('\n').map(line => {
-    if (DEFINITION.test(line)) return line;
+// the records; a definition of a link is left to `relink`, and a
+// statement of fate, which says what took a part of what, keeps the
+// record it named, as history.
+function cite(text, isRecord = false) {
+  const fate = new Set(isRecord ? statementsOf(text).filter(statement => FATE.test(statement.text)).flatMap(({ from, to }) => Array.from({ length: to - from + 1 }, (_, index) => from + index)) : []);
+  return text.split('\n').map((line, index) => {
+    if (DEFINITION.test(line) || fate.has(index)) return line;
     let written = line;
     for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
     return written.replace(/\[[DE]\d+\](?:,\s*\[[DE]\d+\])+/g, run => {
@@ -115,7 +118,7 @@ const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs
 const touched = [];
 for (const path of tracked.filter(path => (ARTIFACT.test(path) && !path.startsWith('docs/')) || DOCUMENT.test(path) || (RECORD_IN_FORCE.test(path) && !isRecordMerged(path)))) {
   const before = readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/);
-  if (rewrite(path, text => (path.endsWith('.md') ? relink(path, cite(text)) : cite(text)))) {
+  if (rewrite(path, text => (path.endsWith('.md') ? relink(path, cite(text, RECORD_IN_FORCE.test(path))) : cite(text)))) {
     touched.push(path);
     if (RECORD_IN_FORCE.test(path)) {
       const after = readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/);

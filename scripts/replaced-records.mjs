@@ -17,17 +17,15 @@ const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'u
 const replacedWhole = text => /^Replaced by /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
-if (moving.length === 0) {
-  console.log('replaced: no record in the root is replaced whole');
-  process.exit(0);
-}
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
-const movedTo = new Map();
-for (const name of moving) {
-  git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
-  movedTo.set(`docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
-}
-const movedFrom = new Map([...movedTo].map(([from, to]) => [to, from]));
+for (const name of moving) git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+
+// A record under `replaced/` never moves again, so a link to the root's
+// place of it, from a move this run or a merge that wrote the link
+// before it, points there.
+const movedTo = new Map(readdirSync(join(recordsDir, 'replaced')).filter(name => /^[DE]\d+\.md$/.test(name))
+  .map(name => [`docs/decisions/${name}`, `docs/decisions/replaced/${name}`]));
+const movedFrom = new Map(moving.map(name => [`docs/decisions/replaced/${name}`, `docs/decisions/${name}`]));
 
 // A link of markdown, its definition `[D44]: D44.md` or its inline form
 // `(D44.md)`, whose target is a file of markdown.
@@ -47,4 +45,4 @@ for (const path of git('ls-files', '*.md').split('\n').filter(Boolean)) {
   writeFileSync(join(repoRoot, path), written);
   relinked++;
 }
-console.log(`replaced: ${moving.map(name => name.slice(0, -3)).join(' ')} moved; links written again in ${relinked} documents`);
+console.log(`replaced: ${moving.length === 0 ? 'no record in the root is replaced whole' : `${moving.map(name => name.slice(0, -3)).join(' ')} moved`}; links written again in ${relinked} documents`);

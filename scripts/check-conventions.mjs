@@ -66,7 +66,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
-import { readDecisionRecords, replacedWhole } from './decision-records.mjs';
+import { readDecisionRecords, replacedWhole, statementsOf } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -448,28 +448,12 @@ function brokenLinks() {
 // force a newer one says it took a part of names that record in its own
 // line of fate [D227], [D237].
 
-// The statements of a record: a line that opens a field, `Source.` or
-// `Replaces in part`, opens one, and the lines after it continue it to a
-// blank line or the next field.
-const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
-
-function statementsOf(text) {
-  const statements = [];
-  let current = null;
-  for (const line of text.split(/\r?\n/)) {
-    if (line.trim() === '' || /^\[[DE]\d+\]: /.test(line)) { current = null; continue; }
-    if (current === null || FIELD.test(line)) statements.push(current = [line]);
-    else current.push(line);
-  }
-  return statements.map(lines => lines.join(' '));
-}
-
 // The records a clause of a fate names, those before what it says of them.
 const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
 
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
-  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8'))]));
+  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8')).map(statement => statement.text)]));
   const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Pruned of what) /.test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];

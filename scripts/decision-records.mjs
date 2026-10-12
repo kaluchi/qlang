@@ -13,6 +13,26 @@ const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 // `replaced/` those replaced whole, each moved there once [D237].
 const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs', 'decisions', 'replaced')];
 
+// statementsOf(text) → the statements of a record, each `{ text, from, to }`
+// over the indices of its lines: a line that opens a field, `Source.` or
+// `Replaces in part`, opens one, and the lines after it continue it to a
+// blank line or the next field. A statement of fate, which says what
+// replaced or took a part of what, is history the record keeps [D227],
+// [D237].
+const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
+export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by) /;
+
+export function statementsOf(text) {
+  const statements = [];
+  let current = null;
+  text.split(/\r?\n/).forEach((line, index) => {
+    if (line.trim() === '' || /^\[[DE]\d+\]: /.test(line)) { current = null; return; }
+    if (current === null || FIELD.test(line)) statements.push(current = { text: line, from: index, to: index });
+    else { current.text += ` ${line}`; current.to = index; }
+  });
+  return statements;
+}
+
 // recordPathOf(root, name) → the file of a record, in the root of the
 // records or under `replaced/`, or null for a name no record bears.
 export function recordPathOf(root, name) {

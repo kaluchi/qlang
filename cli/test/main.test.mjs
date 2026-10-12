@@ -129,7 +129,8 @@ describe('main — standard input read for a query that reads its subject', () =
   it('refuses a query that does not parse without reading stdin', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], openStdin(), s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('::quote/ParseError!{');
   });
 });
 
@@ -205,15 +206,15 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('{"a":1} done\n');
   });
 
-  it('hard-fails on --json with malformed stdin', async () => {
+  it('answers --json over malformed stdin with the refusal of parseJson, on stdout with exit 0 [D232]', async () => {
     const s = captureStreams('not-json');
     const exitCode = await main(
       ['--json', '/x'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toBe('');
-    expect(s.stderrText()).toMatch(/^qlang: --json input:/);
+    expect(exitCode).toBe(0);
+    expect(s.stderrText()).toBe('');
+    expect(s.stdoutText()).toContain('::string/parseJson/TextNotJsonError!{');
   });
 
   it('emits the query value on empty stdin via raw fallback', async () => {
@@ -254,53 +255,50 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('returns exit 1 with a structured ::quote/ParseError!{…} diagnostic on stderr for a parse failure', async () => {
+  it('writes a query that does not parse as its failure on stdout, with exit 0 as every answer [D232]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toBe('');
-    // Structured printValue form — `::quote/ParseError!{:expected …
+    expect(exitCode).toBe(0);
+    expect(s.stderrText()).toBe('');
+    // The failure as the language prints it, `::quote/ParseError!{:expected …
     // :found … :source "[1 2" :marker "    ^" :location {…}}`.
-    expect(s.stderrText()).toContain('::quote/ParseError!{');
-    expect(s.stderrText()).toContain(':source "[1 2"');
-    expect(s.stderrText()).toContain(':marker');
+    expect(s.stdoutText()).toContain('::quote/ParseError!{');
+    expect(s.stdoutText()).toContain(':source "[1 2"');
+    expect(s.stdoutText()).toContain(':marker');
   });
 
-  it('reports a stdin magnitude outside the finite-double domain, naming the slot', async () => {
+  it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [D232]', async () => {
     // `JSON.parse` reads `1e400` as an infinity, which the lift
     // refuses. Auto-mode keeps the refusal instead of re-labelling
-    // the document as text, and the `:path` the error carries
-    // renders as the projection chain that reaches the slot.
+    // the document as text, and the answer is the refusal `parseJson`
+    // gives the text, its `:path` the keys that reach the number.
     const s = captureStreams('{"big": 1e400, "n": 1}');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toBe('');
-    expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
-    expect(s.stderrText()).toContain('at /big');
+    expect(exitCode).toBe(0);
+    expect(s.stderrText()).toBe('');
+    expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
+    expect(s.stdoutText()).toContain(':path ["big"]');
   });
 
-  it('reports a bare out-of-range magnitude without a slot chain', async () => {
-    // The whole document is the refused scalar, so `:path` is empty
-    // and the diagnostic carries no chain to point at.
+  it('answers a bare out-of-range magnitude with an empty path', async () => {
     const s = captureStreams('1e400');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
-    expect(s.stderrText()).not.toContain(' at /');
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
+    expect(s.stdoutText()).toContain(':path []');
   });
 
-  it('reports the same refusal under an explicit --json input mode', async () => {
+  it('answers the same refusal under an explicit --json input mode', async () => {
     const s = captureStreams('{"deep": [0, 1e400]}');
     const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stderrText()).toContain('at /deep/1');
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain(':path ["deep" 1]');
   });
 
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {
-    // Per spec, error values travel as data on the same channel as
-    // plain values. Non-zero exit reserved for host-level setup
-    // failure (parse error, config blowup), not for in-language
-    // fail-track results.
+    // A failure is an answer and travels on the channel of every answer
+    // with exit 0 [D103], [D232]; a nonzero exit is kept for what is no
+    // answer, a defect of the runtime or a call with no query.
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add 1'],
@@ -328,12 +326,13 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
-  it('writes a query that does not parse with the prose of its refusal\'s page below it, on stderr [D195]', async () => {
+  it('writes a query that does not parse with the prose of its refusal\'s page below it, as any failure [D195], [D232]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stderrText()).toContain('::quote/ParseError!{');
-    expect(s.stderrText()).toContain('|~| The source does not read as qlang');
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('|~| raised, and no !| caught it');
+    expect(s.stdoutText()).toContain('::quote/ParseError!{');
+    expect(s.stdoutText()).toContain('|~| The source does not read as qlang');
   });
 
   it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
@@ -375,7 +374,8 @@ describe('main — a query the shell turned into a path', () => {
   it('names the shell and the two ways around it when the query begins with a drive', async () => {
     const s = captureStreams('{"a": 1}');
     const exitCode = await main(['C:/Program Files/Git/a'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('::quote/ParseError!{');
     expect(s.stderrText()).toMatch(/the shell turned a query that began with `\/` into a path/);
     expect(s.stderrText()).toMatch(/MSYS_NO_PATHCONV=1/);
   });
@@ -383,7 +383,7 @@ describe('main — a query the shell turned into a path', () => {
   it('adds nothing to the failure of a query of the language', async () => {
     const s = captureStreams('{"a": 1}');
     const exitCode = await main(['(1'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('::quote/ParseError!{');
     expect(s.stderrText()).not.toMatch(/the shell turned/);
-  });
-});
+  });});

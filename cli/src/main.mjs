@@ -24,16 +24,10 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
   return Boolean(stdoutStream.isTTY);
 }
 
-// The path to the number a document holds past the doubles, written as
-// the projection that reads it.
-function slotSuffixOf(codecError) {
-  const path = codecError.facts.path;
-  return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
-}
-
 // A query no qlang source begins with: a drive and a slash, the path
 // Git Bash on Windows writes for an argument that began with `/`, so
-// `qlang '/data/users'` arrives as `C:/Program Files/Git/data/users`.
+// `qlang '/data/users'` arrives as `C:/Program Files/Git/data/users`;
+// such a query never parses, and the note goes beside its failure.
 const SHELL_PATH_OF_A_QUERY = /^[A-Za-z]:\//;
 
 const SHELL_PATH_HINT = 'qlang: the shell turned a query that began with `/` into a path; '
@@ -97,15 +91,9 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const readsInput = queryReadsInput(queryText);
   const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
   const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
-
-  if (lifted.parseError) {
-    stderrWrite(`qlang: --json input: ${lifted.parseError.message}\n`);
-    return 1;
-  }
-  if (lifted.codecError) {
-    stderrWrite(`qlang: stdin: ${lifted.codecError.message}${slotSuffixOf(lifted.codecError)}\n`);
-    return 1;
-  }
+  // An input that does not read as the JSON it is taken for answers as
+  // `parseJson` refuses its text, a failure like every other [D232].
+  const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
   // `@in` reads the text standard input already gave, or reads it then.
   const stdinReader = memoiseStdinReader(() => (readsInput ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
@@ -114,9 +102,9 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
 
   const cellEntry = await runQuery(
-    queryText,
+    unreadable ? 'parseJson' : queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
-    { initialPipeValue: lifted.pipeValue }
+    { initialPipeValue: unreadable ? stdinText : lifted.pipeValue }
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {
@@ -127,6 +115,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);
   if (cliOutcome.stderrText) stderrWrite(cliOutcome.stderrText);
-  if (cliOutcome.exitCode !== 0 && SHELL_PATH_OF_A_QUERY.test(queryText)) stderrWrite(SHELL_PATH_HINT);
+  if (SHELL_PATH_OF_A_QUERY.test(queryText)) stderrWrite(SHELL_PATH_HINT);
   return cliOutcome.exitCode;
 }

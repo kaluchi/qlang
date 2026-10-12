@@ -96,7 +96,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
-  it('paints a fail-track error value in ANSI when shouldColorize is true', async () => {
+  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [D232]', async () => {
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
@@ -109,6 +109,8 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       shouldColorize: true
     });
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
-    expect(cliOutcome.stderrText).toMatch(/\x1b\[/);
+    expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
+    expect(cliOutcome.stderrText).toBe('');
+    expect(cliOutcome.exitCode).toBe(0);
   });
 });

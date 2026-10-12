@@ -29,9 +29,11 @@
       arose cut to an excerpt, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
-      the call; `!| json` writes a failure as JSON. The exit code is 0 for every answer, a
-      failure among them, and 1 for a query that does not parse or an
-      input `--json` cannot read.
+      the call; `!| json` writes a failure as JSON. Every answer goes to
+      stdout with the exit code 0, a failure among them: a query that does
+      not parse answers `::quote/ParseError`, and an input that does not
+      read as JSON answers as `parseJson` refuses its text, so calls run
+      side by side never stop each other.
 
       An answer prints whole, and `--budget=N` or `| elide N` bounds it,
       what is left out an `::elision` marker whose `:read` continues the

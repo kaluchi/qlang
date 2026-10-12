@@ -695,8 +695,8 @@ page and `open` reaches it, the jump from one page to another
 [D108], [D121], [D175]; under `::snippet` it is a query a reader runs to
 see what it shows [D122]; with none it is code the prose holds. The laws
 that prove a name stand under it, each a definition of `::law~(…)` that
-`runLaws` holds to answer true, its page the claim it proves [D123],
-[D124], [D174]; `laws` answers each as the pair of its page and its
+`runLaws` holds to answer true, its page the claim it proves [D124],
+[D174]; `laws` answers each as the pair of its page and its
 query, and `tutorial` a name's page and its laws, the pair a reader
 learns the name from [D176], [D177]:
 
@@ -1430,8 +1430,8 @@ meets the tag and the facts.
 
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
-[D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the effect marker leaving the language, open,
+[D111], [D117], [D118], [D119], [D121], [D122], [D124], [D125], [D127],
+[D129], [D150] and [D174]: the effect marker leaving the language, open,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs [D26], each run recorded with the frictions it met
 [D104], each measurement on a set of tasks a
@@ -1915,7 +1915,6 @@ the command line without them.
 [D120]: decisions/D120.md
 [D121]: decisions/D121.md
 [D122]: decisions/D122.md
-[D123]: decisions/D123.md
 [D124]: decisions/D124.md
 [D125]: decisions/D125.md
 [D127]: decisions/D127.md

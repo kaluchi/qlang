@@ -38,7 +38,7 @@
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true","decision":["D62","D72","D157"]}
 {"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | /value | type","expect":"::builtin","decision":["D62","D164"]}
 {"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":["D61","D62","D94","D95","D119"]}
-{"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D123"]}
+{"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every ~(/ok))","expect":"true","decision":["D62","D174"]}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate / | env | /taxRate | /value","expect":"0.07","decision":"D63"}
 {"name":"a-binding-record-holds-its-name","query":":foo 2 | env | /foo | /name","expect":":foo","decision":"D63"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| type","expect":"::error","decision":"D64"}

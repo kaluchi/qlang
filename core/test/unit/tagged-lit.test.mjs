@@ -244,7 +244,7 @@ describe('a kind without a body — identity', () => {
 });
 
 describe('TaggedLit / TagLit steps', () => {
-  it('TaggedLit leaves a ::construct step over the step of its payload [D115]', async () => {
+  it('TaggedLit leaves a ::construct step over the step of its payload [D8]', async () => {
     expect(await evalQuery('~(::holds~(mul 2)) | first | [type /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });

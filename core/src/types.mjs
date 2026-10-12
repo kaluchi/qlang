@@ -128,7 +128,7 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [D53], minted here alone,
+// A quote is a vector of steps under `::quote` [D8], minted here alone,
 // with a holder of the tree it runs through, the parser's for a quote read
 // from text and filled at its first run for one assembled from data.
 export const QUOTE_TAG_NAME = 'quote';
@@ -262,7 +262,7 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
-// The tags of a quote's steps [D47]: the records of what computes,
+// The tags of a quote's steps [D8]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTag('call');
 export const PROJ_TAG   = makeTag('proj');

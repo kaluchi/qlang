@@ -657,7 +657,7 @@ b
 c
 ```
 
-A quote has all three, being the vector of its steps [D53], and a doc
+A quote has all three, being the vector of its steps [D8], and a doc
 answers its parts by its `segments`, the vector of its prose and its
 quotes [D19]:
 
@@ -1419,7 +1419,7 @@ grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
 in the conformance suite, every one met, the step of a constructor apart
-from the kind of tagged values having landed [D115]. Beside them: no
+from the kind of tagged values having landed [D8]. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1754,7 +1754,7 @@ tags as every verb is and specialized by a host on its own; and a floor
 under every kind, the head of its schema never elided, which keeps the
 signal at the price of a budget sometimes exceeded.
 
-A constructor that tags its own result [D53]. `tag` runs a tag's
+A constructor that tags its own result [D8]. `tag` runs a tag's
 constructor, so a constructor written as a quote that tags its own
 result through `tag` recurses until the depth budget refuses it:
 
@@ -1872,6 +1872,7 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
+[D8]: decisions/D8.md
 [D13]: decisions/D13.md
 [D16]: decisions/D16.md
 [D19]: decisions/D19.md
@@ -1896,7 +1897,6 @@ the command line without them.
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
-[D53]: decisions/D53.md
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
@@ -1914,7 +1914,6 @@ the command line without them.
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
 [D111]: decisions/D111.md
-[D115]: decisions/D115.md
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md

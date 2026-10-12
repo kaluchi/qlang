@@ -7,7 +7,7 @@
 // holds the steps of its elements, a pipeline element as its group;
 // where the syntax computes, the step is a record, `::call`, `::proj`,
 // `::bind` or `::construct`; the fail track and the parentheses wrap the
-// quote of their step as `::fail` and `::group` [D47]. A comment leaves no
+// quote of their step as `::fail` and `::group` [D8]. A comment leaves no
 // step. A command's modifier is one word and is stored as its step [D10,
 // D47].
 //

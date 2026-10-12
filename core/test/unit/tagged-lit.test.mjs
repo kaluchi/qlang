@@ -51,7 +51,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('makes ::myType invokable through the constructor its host handed [D73]', async () => {
+  it('makes ::myType invokable through the constructor its host handed [D34]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| | :myType/construct ::builtin{}', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -59,7 +59,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     expect((await sessionInstance.evalCell('::myType(4) | [type payload]')).result).toEqual([makeTag('myType'), 8]);
   });
 
-  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D73]', async () => {
+  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D34]', async () => {
     const result = await evalQuery(':myType |~~ myType. ~~| | :myType/construct ::builtin{} | ::myType~(add 1) | type');
     expect(result).toEqual(makeTag('myType'));
   });
@@ -165,7 +165,7 @@ describe('a kind without a body — identity', () => {
   //                        payload value lifted under
   //                        `:payload` slot.
 
-  it('an error literal under a tag, raised, is a failure of that tag [D211]', async () => {
+  it('an error literal under a tag, raised, is a failure of that tag [D13]', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);
@@ -244,7 +244,7 @@ describe('a kind without a body — identity', () => {
 });
 
 describe('TaggedLit / TagLit steps', () => {
-  it('TaggedLit leaves a ::construct step over the step of its payload [D115]', async () => {
+  it('TaggedLit leaves a ::construct step over the step of its payload [D8]', async () => {
     expect(await evalQuery('~(::holds~(mul 2)) | first | [type /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });

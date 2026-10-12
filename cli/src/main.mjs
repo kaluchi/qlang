@@ -92,7 +92,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
   const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
   // An input that does not read as the JSON it is taken for answers as
-  // `parseJson` refuses its text, a failure like every other [D232].
+  // `parseJson` refuses its text, a failure like every other [D7].
   const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
   // `in` reads the text standard input already gave, or reads it then.

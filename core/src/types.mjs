@@ -93,7 +93,7 @@ export function isTag(v) {
 
 // ── binding / quote predicates ────────────────────────────────
 
-// The record a declaration writes into its scope [D63]: the name, the
+// The record a declaration writes into its scope [D5]: the name, the
 // docs of its slot, the value, the quote of the declaring step and its
 // origin, the source or the cell it was read from [D153], under the kind
 // `::binding`. A binding with no declaration behind it, a value a host
@@ -128,7 +128,7 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [D53], minted here alone,
+// A quote is a vector of steps under `::quote` [D8], minted here alone,
 // with a holder of the tree it runs through, the parser's for a quote read
 // from text and filled at its first run for one assembled from data.
 export const QUOTE_TAG_NAME = 'quote';
@@ -143,7 +143,7 @@ export function makeQuote(steps, ast = undefined) {
 
 // A quote written as a modifier carries the scope of its call [D43], one
 // written as the body of a reader's declaration that of its declaration
-// [D44], and one a source of the root declared the frame of the source's
+// [D5], and one a source of the root declared the frame of the source's
 // bare values over the root [D200], on a JS-internal slot; a quote held as
 // data carries none and runs where it is applied.
 const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
@@ -182,14 +182,14 @@ export function makeSet(elements) {
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what `!|`
-// opens a failure to and `raise` raises [D97], [D210].
+// opens a failure to and `raise` raises [D13].
 export function errorAtRest(tag, facts) {
   const ofKind = makeTaggedInstance(ERROR_TAG, facts);
   return tag.name === ERROR_TAG.name ? ofKind : makeTaggedInstance(tag, ofKind);
 }
 
 // A doc is the vector of its prose strings and quotes under `::doc`
-// [D19], [D94], each run of prose one string that reads a line break as
+// [D19], each run of prose one string that reads a line break as
 // one whatever bytes the source wrote.
 export const DOC_TAG_NAME = 'doc';
 
@@ -262,7 +262,7 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
-// The tags of a quote's steps [D47]: the records of what computes,
+// The tags of a quote's steps [D8]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTag('call');
 export const PROJ_TAG   = makeTag('proj');
@@ -298,7 +298,7 @@ export function isBuiltinDescriptor(v) {
 }
 
 // A name under a label a host's source declared, which alone reaches a
-// primitive [D73], with the implementation the host handed beside that
+// primitive [D34], with the implementation the host handed beside that
 // source, a plain function over the values of the parts of the call's
 // args [D4], [D80].
 const HOST_IMPLS = new WeakMap();
@@ -317,12 +317,12 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names
 // none [D64], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [D85], a vector of stops that `eval-trail.mjs` writes;
+// the path it took [D13], a vector of stops that `eval-trail.mjs` writes;
 // a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
 // A trail is a vector of stops, each a map whose `:skipped` is the quote
-// of the steps the error skipped after it [D85].
+// of the steps the error skipped after it [D13].
 export function isTrail(value) {
   return isVec(value) && !isVecOfOwnKind(value)
     && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
@@ -330,7 +330,7 @@ export function isTrail(value) {
 
 // An error holds the facts of its site and, once a step raised it or
 // handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [D209].
+// `:trail` [D13].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {

@@ -25,6 +25,6 @@ const ERROR_KIND = 'error';
 
 // The prose of the page `explain` reads for a failure, its links and
 // snippets aside, which the command line writes below the failure so a
-// reader repairs the call where it failed [D195]; null for a refusal
+// reader repairs the call where it failed [D7]; null for a refusal
 // with no page.
 const PROSE_OF_THE_PAGE = '!| explain | /page | segments | filter ~(type | eq ::string) | join "" !| null';

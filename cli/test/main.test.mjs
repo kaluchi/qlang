@@ -206,7 +206,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('{"a":1} done\n');
   });
 
-  it('answers --json over malformed stdin with the refusal of parseJson, on stdout with exit 0 [D232]', async () => {
+  it('answers --json over malformed stdin with the refusal of parseJson, on stdout with exit 0 [D7]', async () => {
     const s = captureStreams('not-json');
     const exitCode = await main(
       ['--json', '/x'],
@@ -255,7 +255,7 @@ describe('main — `out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('writes a query that does not parse as its failure on stdout, with exit 0 as every answer [D232]', async () => {
+  it('writes a query that does not parse as its failure on stdout, with exit 0 as every answer [D7]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
@@ -267,7 +267,7 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain(':marker');
   });
 
-  it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [D232]', async () => {
+  it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [D7]', async () => {
     // `JSON.parse` reads `1e400` as an infinity, which the lift
     // refuses. Auto-mode keeps the refusal instead of re-labelling
     // the document as text, and the answer is the refusal `parseJson`
@@ -297,7 +297,7 @@ describe('main — error paths', () => {
 
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {
     // A failure is an answer and travels on the channel of every answer
-    // with exit 0 [D103], [D232]; a nonzero exit is kept for what is no
+    // with exit 0 [D7], [D103]; a nonzero exit is kept for what is no
     // answer, a defect of the runtime or a call with no query.
     const s = captureStreams();
     const exitCode = await main(
@@ -309,7 +309,7 @@ describe('main — error paths', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('writes a failure with the prose of its refusal\'s page below it, as line comments [D195]', async () => {
+  it('writes a failure with the prose of its refusal\'s page below it, as line comments [D7]', async () => {
     const s = captureStreams();
     await main(['{:a 1} | /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
@@ -326,7 +326,7 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
   });
 
-  it('writes a query that does not parse with the prose of its refusal\'s page below it, as any failure [D195], [D232]', async () => {
+  it('writes a query that does not parse with the prose of its refusal\'s page below it, as any failure [D7]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
@@ -335,14 +335,14 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain('|~| The source does not read as qlang');
   });
 
-  it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
+  it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D7], [D13]', async () => {
     const s = captureStreams();
     await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('::Foo!{');
     expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
 
-  it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D195], [D219]', async () => {
+  it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D7], [D13]', async () => {
     const s = captureStreams();
     await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('!{');

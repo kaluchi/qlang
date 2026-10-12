@@ -93,7 +93,7 @@ bindPrim('map/construct', mapConstructor);
 const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
-// `::doc[…]` — the doc of a vector of prose strings and quotes [D94], so
+// `::doc[…]` — the doc of a vector of prose strings and quotes [D19], so
 // a doc comes apart into its segments and back by `tag`.
 const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
@@ -135,7 +135,7 @@ function payloadOf(tagged) {
 }
 
 // `payload` and `within` reside on `::tagged`, each a plain function
-// over the tagged value the walk served [D73]; the page of `within` keeps
+// over the tagged value the walk served [D34]; the page of `within` keeps
 // its subject's kind, so the answer of its edit mints back under the
 // subject's tag [D41], [D167].
 bindPrim('tagged/payload', subject => payloadOf(subject));

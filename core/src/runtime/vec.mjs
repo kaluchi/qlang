@@ -4,8 +4,8 @@
 // word: a vector and a set, which read alike, share the one that reads
 // the elements in order [D16], a map's reads its values and keeps its
 // keys [D15], a string's reads its characters [D132], and a refusal
-// names the word that refused [D172]. A part that takes code arrives
-// closed at the call, code run on the element [D73], [D167].
+// names the word that refused [D46]. A part that takes code arrives
+// closed at the call, code run on the element [D34], [D167].
 
 import { isBoolean, isKeyword, isString, isNumber, isTag, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -93,7 +93,7 @@ bindPrim('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
 // ── ranking ────────────────────────────────────────────────────
 
 // The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [D87], [D140].
+// the vector it answered, or null [D13], [D140].
 function errorOfKey(rankKey) {
   if (isErrorValue(rankKey)) return rankKey;
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
@@ -143,7 +143,7 @@ bindPrim('map/max', (map, key) => extremeOf([...map.values()], key, greatest));
 // orders its entries by their values and keeps the keys. A vector the key
 // answers ranks element by element, and `desc` reverses a place of it.
 // A key that answers an error answers the call, as the key of `groupBy`
-// does, and so does one whose vector holds an error [D87], [D140].
+// does, and so does one whose vector holds an error [D13], [D140].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -164,7 +164,7 @@ bindPrim('map/sort', async (map, key) => {
 
 // `map` runs its code on each element in order and answers what each
 // answered, the first error the code answers answering for the call, the
-// elements after it left unrun [D182]; a map keeps its keys.
+// elements after it left unrun [D116]; a map keeps its keys.
 async function answersOf(elements, code) {
   const answers = [];
   for (const element of elements) {
@@ -315,7 +315,7 @@ bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordE
 
 // ── slices and lookup ──────────────────────────────────────────
 
-// A count is a whole number by the invariant of its part [D172]; a negative
+// A count is a whole number by the invariant of its part [D46]; a negative
 // one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
@@ -364,7 +364,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // `reduce seed ~(reducer)` — the universal left-fold: a quote of one word
 // is the word called as the pipe calls it, `acc | add element`, the
-// element the first part of its args [D90], [D224]; any other code runs
+// element the first part of its args [D224]; any other code runs
 // on the pair of the value so far and the element, and its answer is the
 // value so far after it [D90]. `seed` answers for an empty subject, and
 // a failure of the reducer stops the fold.

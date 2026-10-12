@@ -187,7 +187,7 @@ describe('findIdentifierOccurrences', () => {
 
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
-    // that writes none names no tag [D86].
+    // that writes none names no tag [D13].
     const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
     const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);

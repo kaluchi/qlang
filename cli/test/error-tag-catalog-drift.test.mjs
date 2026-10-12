@@ -25,7 +25,7 @@ const isLaw = value => typeKeyword(value).name === 'holds';
 const srcDir = join(here, '..', 'src');
 
 // Every form that declares a refusal opens with its address as a string
-// literal [D158].
+// literal [D46].
 const DECLARATION_RE = /(?:declareRefusal|recordRefusal)\(\s*'([A-Za-z0-9@/]+)'/g;
 
 const throwSites = new Map();

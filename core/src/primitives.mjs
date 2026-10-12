@@ -92,7 +92,7 @@ export function readsState(impl) {
 
 // A primitive whose answer names the tags its subject stood beneath takes
 // the tags the walk of its subject passed, from the outside in, after its
-// values [D34]: `raise` names its error by the outermost [D86].
+// values [D34]: `raise` names its error by the outermost [D13].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 
 export function bindReaderOfPassedTags(addresses, impl) {

@@ -82,14 +82,16 @@
   }
 
   // A combinator after a combinator is the habit of a pipe before every
-  // step: the second stands in the place of the first [D127].
+  // step, which gives way to the combinator before it, so `!| |` keeps the
+  // catch; a combinator stands once between two steps [D46].
   function refuseCombinatorAfterCombinator(first, second) {
-    error(`\`${second}\` stands in the place of \`${first}\`, not after it: write \`a ${second} b\``);
+    if (second === '|') error(`\`|\` written after \`${first}\` is the habit of a pipe before every step: write \`a ${first} b\``);
+    error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
   }
 
   // How deep the parser is in a `~(…)` of a doc it tries as code: there
   // a shape it refuses elsewhere fails the try, and the span reads as
-  // prose [D94].
+  // prose [D19].
   let docQuoteDepth = 0;
 }
 
@@ -339,9 +341,9 @@ DocSlot
     { return [first, ...rest]; }
 
 // A body is a step read once after the whitespace before it: a keyword is
-// a body on the line of its declaration's name or doc [D66], since on a
-// later line it opens a declaration of its own, and a tag name, which
-// opens none [D152], is the body on a later line too [D154].
+// a body on the line of its declaration's name or doc, since on a later
+// line it opens a declaration of its own, and a tag name, which opens
+// none [D152], is the body on a later line too [D66].
 Body
   = later:BodyBreak body:Step
     & { return body.type !== 'Keyword' || !later; }
@@ -392,7 +394,7 @@ Name
 
 // A name with a path, the path of a noun and the name of a verb that
 // lives on it, calls the verb by its address, as the keyword and the tag
-// name carry a path [D62]: `vec/count` is the `count` of vectors.
+// name carry a path [D34]: `vec/count` is the `count` of vectors.
 CallName
   = head:Ident tail:("/" @KeywordName)+
     {
@@ -485,7 +487,7 @@ QuoteChar
 
 // A doc value, in a line form and a block form, read as its segments: a
 // `~(…)` that reads as code is a quote, a span between backquotes is
-// prose whole, and the rest is prose [D43], [D94]; a line doc's quote
+// prose whole, and the rest is prose [D19], [D43]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
 // names its opening `doc` among the continuations, where its markers
 // would read as a comment's [D7].
@@ -545,7 +547,7 @@ DocQuoteTag
 
 // An error literal, `!{…}`, the literal of an error at rest, and the
 // literal of one under a tag, `::Tag!{…}`, the tag written before the
-// bang and laid through its label [D211].
+// bang and laid through its label [D13].
 ErrorLit
   = tag:ErrorLitTag? "!{" _ "}"
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }

@@ -3,7 +3,7 @@
 // it by its address, and in the tree of names, where a source of the
 // language pages it under the noun of the place it guards, with the
 // prose, the facts and the laws a reader reaches through `doc` [D152],
-// [D172]. Nothing in the language forces the two to exist in pairs, so a
+// [D46]. Nothing in the language forces the two to exist in pairs, so a
 // renamed address or a fresh site without a page drifts silently, and
 // surfaces to a reader as `!| type | doc` answering a refusal of its own.
 

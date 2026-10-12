@@ -135,7 +135,7 @@ install` at the root links the workspaces; the Node floor is the
 - `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
   a set of tasks a clean author writes, clean children that solve it
   with the command line under a saved screen, the pages of the language
-  and the command line [D26], the grade by the tree, and the reading of
+  and the command line, the grade by the tree, and the reading of
   the misses, which marks the set seen [D26]. The usage is the header
   of the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
@@ -157,7 +157,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`MapElementNotPairError` for `map/ElementNotPairError`) [D159],
+(`MapElementNotPairError` for `map/ElementNotPairError`) [D46],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that

@@ -1,8 +1,8 @@
-// What a call reads of the kinds [D34]: the walk of a value's tags to a
-// kind a name serves, the value put under a tag through its label
+// What a call reads of the kinds: the walk of a value's tags to a kind a
+// name serves, the value put under a tag through its label
 // [D168], the answer kept as its subject's kind under the tags the walk
 // passed [D41], and the primitive a host handed run over the value the
-// walk served [D73].
+// walk served [D34].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
@@ -54,7 +54,7 @@ export function walkToKinds(value, kindNames) {
 
 // The value under the tags from the innermost out, their constructors
 // run again [D41]; an error passes as it is, as it does under every tag
-// [D86].
+// [D13].
 async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
@@ -80,8 +80,8 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 // A primitive runs over the value the walk served and the values of the
 // parts of the call's args, a reader of the scope over the state of
 // the call after them, its scope the tree of the query, wherever it is
-// called [D79], [D236], and a reader of the tags its subject stood
-// beneath over the tags the walk passed [D86].
+// called [D79], [D200], and a reader of the tags its subject stood
+// beneath over the tags the walk passed [D13].
 export function runPrimitive(primitive, served, passedTags, partValues, state) {
   if (readsState(primitive)) return primitive(served, ...partValues, queryStateOf(state));
   if (readsPassedTags(primitive)) return primitive(served, ...partValues, passedTags);

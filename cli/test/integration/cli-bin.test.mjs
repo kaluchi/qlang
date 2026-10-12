@@ -74,7 +74,7 @@ describe('CLI: script mode — query argument', () => {
     expect(stdout.trim()).toBe('3');
   });
 
-  it('writes a query that does not parse as its failure on stdout, with exit code 0 [D232]', async () => {
+  it('writes a query that does not parse as its failure on stdout, with exit code 0 [D7]', async () => {
     const { stdout, stderr, exitCode } = await runCli(['[1 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout).toContain('::quote/ParseError!{');
@@ -117,7 +117,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
     expect(stdout.trim()).toBe('hello world');
   });
 
-  it('--json over malformed input answers the refusal of parseJson with exit 0 [D232]', async () => {
+  it('--json over malformed input answers the refusal of parseJson with exit 0 [D7]', async () => {
     const { exitCode, stdout, stderr } = await runCli(['--json', '/name'], {
       stdin: 'not-json-at-all{'
     });

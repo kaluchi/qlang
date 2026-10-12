@@ -264,3 +264,24 @@ The fate of the tenth review it found true to the tree but untrue of the mean st
 4. The opened error under a kind's tag stood in a fate alone. The audit's chapter of open questions asks it, with its probe, its alternatives and their cost.
 
 The catalog answers by ef006452, and the audit and this ledger by the commit that keeps the review.
+
+## 2026-10-12 · the catalog of the command line and the records merged by axis
+
+[2026-10-12-the-cli-catalog-and-the-records-merged-by-axis.md](2026-10-12-the-cli-catalog-and-the-records-merged-by-axis.md), at ef5acaaa, over master..ef5acaaa.
+
+1. A body of one group was refused as a step of the body's pipeline. Answered by 9554c9d4: the parent is read only of a body that is a pipeline, and the case `a-body-of-one-group-declares-a-part-in-the-group-s-scope` holds it.
+2. The test of the command line's catalog spelt the core's checks again. Answered by d2d38158: the checks stand in one module, `core/test/helpers/catalog-pages.mjs`, and the streams that do nothing in one helper of the command line's tests.
+3. The merge script spelt the citation in words again, its example was written anew by the script itself, and an object stood for a pattern. Answered by 70f2458c: the walk exports the pattern, the comment names no record, and a predicate names the documents.
+4. D200 said the lexical extension stays unmet, which the tree contradicts. Answered by 70f2458c: the sentence left.
+5. The REPL wrote a failed cell on standard error while D7 has every failure an answer on stdout. Answered by f20a1d22: the REPL prints it on stdout, and D7 says so for both modes.
+6. The decider lines of the merged records held a choice of the maintainer beside the model's mechanics. Answered by c12dd033, under which such a line names the model's parts, and by 9554c9d4 for D71's line.
+7. D71 set aside a scope kept on the state while the change keeps a mark on the body's scope. Answered by 9554c9d4: D71 tells the mark and why a fork resets nothing of it.
+8. Words of time and a bare name of a known type. Answered by d2d38158 for the test's comments, 48323e7a for D46, 70f2458c for D13 and 9554c9d4 for `bindStep`; the message of 598511eb stands, since a commit is never amended.
+9. The merges dropped claims the code cites the survivors for. Answered by 48323e7a for D46's invariants of the parts and the dispatch a primitive keeps none of, and by 70f2458c for D13's step of a tag on a failure's trail.
+10. Counts written in words in the sources of the merged records. Answered by f20a1d22, 48323e7a and 70f2458c.
+11. Pruned lines named records merged into their survivor. Answered by f20a1d22 for D7, 48323e7a for D46 and 70f2458c for D13 and D200; D34's line was written anew by 69b2a3ec.
+12. A link's definition was read by a pattern that took a line of prose. Answered by 70f2458c: one pattern anchored on the file it links, and D138's line reflowed.
+13. D237 kept the fate of a record as history and not its source. Answered by 70f2458c.
+14. The order of the evaluator's names and of the laws of a refusal. Answered by 9554c9d4 for the check beside the declaration, the name of the args before its use and spelt once, and by 70f2458c for the laws.
+15. A sentence cited one record more than once. Answered by 9554c9d4 and 70f2458c, the other such sentences of the tree found by a search and written so.
+16. The help's test held the old text gone, and the refusal of a pipe after a combinator dropped the catch. Answered by 70f2458c for the test and by 48323e7a for the refusal, which names `a !| b`.

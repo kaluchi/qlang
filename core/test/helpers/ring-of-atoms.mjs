@@ -5,7 +5,7 @@
 // address of each verb and at the name of each tag it declares, and over
 // every literal the conformance cases expect, a failure among them
 // caught to its error at rest, its path written into it, and raised again
-// [D209], [D210]. The examples of the catalog are walked in shares, a
+// [D13]. The examples of the catalog are walked in shares, a
 // file each, which run side by side.
 
 import { describe, it, expect, beforeAll } from 'vitest';

@@ -54,7 +54,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(84);
   });
 
-  it('a cell opens a scope of its own, where a later cell declares a name again [D44]', async () => {
+  it('a cell opens a scope of its own, where a later cell declares a name again [D5]', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':k 1');
     const cellEntry = await sessionInstance.evalCell(':k 2 | k');
@@ -166,7 +166,7 @@ describe('the sources a host hands [D153]', () => {
     expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/NotNumberError'));
   });
 
-  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D73]', async () => {
+  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D34]', async () => {
     await expect(createSession({ sources: [{
       uri: 'tests/bare', source: ':any/shout ~(::builtin{})', impls: { shout: text => text.toUpperCase() }
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });

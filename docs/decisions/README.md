@@ -38,9 +38,9 @@ Each record states the decision, its source, what it rests on where
 that is not obvious, and the alternatives set aside with the reason.
 A decision the maintainer took is sourced by the maintainer's words; a
 decision the model took says so and names the request it answered. From
-D155 on a record says it in a line of its own, `Decided by.`, and a
-choice the maintainer made and the mechanics the model worked out
-around it are two records; only the maintainer's words bind, and a
+D155 on a record says it in a line of its own, `Decided by.`, which
+names the parts that are the model's where a record holds them beside
+a choice the maintainer made; only the maintainer's words bind, and a
 record the model decided is replaced by a better reading without
 asking leave [D155].
 Several decisions of 15 September were taken by the model at the

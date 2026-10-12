@@ -172,7 +172,7 @@ function kindsNamedBy(value) {
 // does but a word's of the root, which reads a noun of the root in the
 // root alone, a reader's extension of it staying in the reader's queries,
 // and a noun the reader declared, whose values carry it, as the reader
-// wrote it [D222].
+// wrote it [D200].
 export function readsTheReaderUnder(env, nounName) {
   return !isRootWordScope(env) || !rootOf(env).has(nounName);
 }
@@ -229,9 +229,9 @@ export function pathNamesOf(env) {
 
 const PATH_NAMES = new WeakMap();
 
-// The kinds a verb is looked for on, from the outside in [D34]: the kind
-// of the value, the kind of every tagged value after a tag [D73], the
-// payload beneath a tag over a value, the kind of a vector or a map
+// The kinds a verb is looked for on, from the outside in: the kind of the
+// value, the kind of every tagged value after a tag [D34], the payload
+// beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].
 function* kindsOfWalk(subject) {
@@ -267,9 +267,9 @@ export function residenceOnSubject(env, verbName, subject) {
 }
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
-// first [D62], [D153]: the reader's declaration, the word residing on a
-// kind the walk of the subject reaches, the one word of the name residing
-// on a kind, which refuses a subject of another kind [D156], and for a
+// first [D153]: the reader's declaration, the word residing on a kind the
+// walk of the subject reaches, the one word of the name residing on a
+// kind, which refuses a subject of another kind [D34], and for a
 // name no kind answers the root's declaration [D169], but for a label of
 // the root, a kind or a topic, which its tag alone reaches [D191];
 // `{ record, underKind }`, or null when no record answers or words of
@@ -325,7 +325,7 @@ export function kindNamesOf(env) {
 
 // The addresses where the words of a name live, one for each kind that
 // answers it, any value among them, which a refusal of the name hands on
-// [D62], [D169].
+// [D34], [D169].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
   if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
@@ -504,7 +504,7 @@ function rootIndexOf(root) {
 }
 
 // namesUnder(env, tagName) → the nodes declared one name under a noun,
-// its verbs, refusals and pages, by address [D62]; its laws are read by
+// its verbs, refusals and pages, by address [D34]; its laws are read by
 // `laws` [D123].
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]

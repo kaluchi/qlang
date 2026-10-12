@@ -7,7 +7,7 @@
 // holds the steps of its elements, a pipeline element as its group;
 // where the syntax computes, the step is a record, `::call`, `::proj`,
 // `::bind` or `::construct`; the fail track and the parentheses wrap the
-// quote of their step as `::fail` and `::group` [D47]. A comment leaves no
+// quote of their step as `::fail` and `::group` [D8]. A comment leaves no
 // step. A command's modifier is one word and is stored as its step [D10,
 // D47].
 //
@@ -65,7 +65,7 @@ export function quoteOfLiteral(node) {
 }
 
 // A doc literal's value, the prose the parser read and a quote for each
-// span of it that read as code [D94], read once per node as a quote is.
+// span of it that read as code [D19], read once per node as a quote is.
 const DOC_OF_LITERAL = new WeakMap();
 
 // The segment a part of a doc literal is: its prose, a quote, or a quote
@@ -96,7 +96,7 @@ export function stepOfNode(node) {
 }
 
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
-// stands for [D86].
+// stands for [D13].
 export function tagCallStepOf(tag) {
   return record(CALL_TAG, [['name', keyword('tag')], ['modifiers', Object.freeze([tag])]]);
 }
@@ -206,7 +206,7 @@ export function isStep(value) {
 
 // isElementStep(value) — a literal, a quote, a doc, a container of
 // element steps, an error literal's step, the error at rest it spells
-// [D210], a group, or a record, which counts by its tag since
+// [D13], a group, or a record, which counts by its tag since
 // its constructor already read it back from its own text. A declaration and a command with modifiers
 // stand in a pipeline alone: inside a container the grammar reads each
 // of their words as an element of its own.
@@ -288,7 +288,7 @@ function printStep(step) {
 }
 
 // The fields of the step of an error literal, a map under `::error`
-// beneath the tag the literal writes before its bang [D86], [D210]; null
+// beneath the tag the literal writes before its bang [D13]; null
 // for any other value.
 function errorFieldsOf(value) {
   const fields = isValueClass(value, 'taggedInstance') ? value.payload : value;

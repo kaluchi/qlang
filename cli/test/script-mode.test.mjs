@@ -63,7 +63,7 @@ describe('answerText — the answer as the language prints it', () => {
     expect(await answerText(await evalQuery('{:a [1 :k #[2]]} | json'), await langRuntime())).toBe('{"a":[1,"k",[2]]}');
   });
 
-  it('writes a failure as its error at rest under the line that says it was raised, and `!| json` as JSON text [D219]', async () => {
+  it('writes a failure as its error at rest under the line that says it was raised, and `!| json` as JSON text [D13]', async () => {
     const env = await langRuntime();
     expect(await answerText(await evalQuery('"x" | add 1'), env)).toMatch(/^\|~\| raised, and no !\| caught it\n::number\/add\/SubjectNotNumberError!\{[\s\S]*\}$/);
     expect(JSON.parse(await answerText(await evalQuery('"x" | add 1 !| json'), env)).$tag).toBe('number/add/SubjectNotNumberError');
@@ -72,7 +72,7 @@ describe('answerText — the answer as the language prints it', () => {
 
 
 // An answer prints within the budget a caller asked for [D120]; an error
-// prints as its alert [D184].
+// prints as its alert [D7].
 describe('answerText — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);

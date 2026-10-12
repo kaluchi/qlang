@@ -1,7 +1,7 @@
 // Arithmetic primitives, each a plain function over the number the walk
 // served and the parts of the args its call gives [D164]. The invariants
 // of the parts hold before a primitive runs, a divisor no zero among them
-// [D166], [D172], and an answer that left the finite doubles is refused
+// [D46], [D166], and an answer that left the finite doubles is refused
 // as it is brought under `::number` [D169].
 //
 // The names live in lib/qlang/number.qlang.

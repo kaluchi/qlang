@@ -1,16 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { cliSources } from '../src/cli-sources.mjs';
 import { createSession } from '@kaluchi/qlang-core/session';
-
-const noopCtx = {
-  stdinReader: () => Promise.resolve(''),
-  stdoutWrite: () => {},
-  stderrWrite: () => {}
-};
+import { silentStreams } from './helpers/silent-streams.mjs';
 
 describe('cliSources', () => {
   it('hands the source of the command line with the primitives of its verbs', () => {
-    const [cliSource] = cliSources(noopCtx);
+    const [cliSource] = cliSources(silentStreams);
     expect(cliSource.uri).toBe('cli');
     expect(cliSource.source).toContain(':vec/table');
     expect(Object.keys(cliSource.impls)).toEqual(expect.arrayContaining(['any/in', 'any/out', 'any/err', 'any/tap', 'vec/table']));
@@ -19,7 +14,7 @@ describe('cliSources', () => {
 
 describe('the verbs of the command line [D153]', () => {
   const evalInCli = async (query) => {
-    const session = await createSession({ sources: cliSources(noopCtx) });
+    const session = await createSession({ sources: cliSources(silentStreams) });
     return (await session.evalCell(query)).result;
   };
 

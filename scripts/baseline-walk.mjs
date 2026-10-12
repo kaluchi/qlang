@@ -15,10 +15,13 @@ import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './de
 
 export const RECORDS_A_WALK_TAKES = 20;
 const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
-const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
+export const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
 const CODE_FILE = /\.(mjs|js|ts|astro|peggy)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
-const CITATION = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]|\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
+// A citation a document writes in words, `decision Dnn` or `decisions Dnn
+// and Dnn`, and one in brackets, `[Dnn, Dnn]`.
+export const CITATION_IN_WORDS = /\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
+const CITATION = new RegExp(`\\[((?:[DE]\\d+)(?:,\\s*[DE]\\d+)*)\\]|${CITATION_IN_WORDS.source}`, 'g');
 
 function filesUnder(repoRoot, dir, pattern) {
   const absolute = join(repoRoot, dir);

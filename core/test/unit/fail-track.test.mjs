@@ -57,7 +57,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
   it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
-    // the step that calls a word (`count`) joins them [D85].
+    // the step that calls a word (`count`) joins them [D13].
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
@@ -98,7 +98,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
 });
 
 describe('json on errors at rest inside containers', () => {
-  it('renders an error at rest as the value under its tags [D210]', async () => {
+  it('renders an error at rest as the value under its tags [D13]', async () => {
     const evalResult = await evalQuery('[11 ("x" | add 10 !| /) 13] | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('"$tag":"number/add/SubjectNotNumberError"');
@@ -107,7 +107,7 @@ describe('json on errors at rest inside containers', () => {
 
 describe('per-site error classes carry unique identity', () => {
   // Each test catches a concrete error from a known source site and
-  // asserts its class name and the facts the error value holds [D172].
+  // asserts its class name and the facts the error value holds [D46].
   // The class name alone identifies the throw location, and tests
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
@@ -207,7 +207,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('raise takes the tag the map carries and keeps every entry a fact', async () => {
-    // A `:kind` entry names no tag [D190]: the tag is the map's own.
+    // A `:kind` entry names no tag [D13]: the tag is the map's own.
     const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
     expect(result.descriptor.get('kind')).toEqual(makeTag('Other'));
@@ -232,7 +232,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('a count that is no whole number breaks the law of the count of its word [D172]', async () => {
+  it('a count that is no whole number breaks the law of the count of its word [D46]', async () => {
     expect((await evalQuery('[1 2 3] | take 1.5')).tag.name).toBe('vec/take/count/NotIntegerError');
     expect((await evalQuery('[1 2 3] | drop 1.5')).tag.name).toBe('vec/drop/count/NotIntegerError');
     expect((await evalQuery('"abc" | take 1.5')).tag.name).toBe('string/take/count/NotIntegerError');
@@ -244,7 +244,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });
 
-  it('every refusal of the runtime is one kind of error, its message its address [D172]', async () => {
+  it('every refusal of the runtime is one kind of error, its message its address [D46]', async () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',
@@ -278,7 +278,7 @@ describe('per-site error classes carry unique identity', () => {
 });
 
 describe('coalesce refuses a call with no alternatives by the law of its part', () => {
-  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D172], [D173]', async () => {
+  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D46], [D173]', async () => {
     const refused = await evalQuery('{} | coalesce');
     expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');
     expect(await evalQuery('{} | coalesce !| /actualValue | eq ::any/coalesce[]')).toBe(true);

@@ -1,5 +1,5 @@
 {"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]","decision":"D14"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":["D14","D172"]}
+{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":"D46"}
 {"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::vec/every/ConditionNotBooleanError 1]","decision":"D14"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false","decision":"D14"}
 {"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::vec/any/ConditionNotBooleanError 1]","decision":"D14"}
@@ -11,7 +11,7 @@
 {"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/NotBooleanError","decision":"D14"}
 {"name":"not-negates-a-boolean","query":"false | not","expect":"true","decision":"D14"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]","decision":"D14"}
-{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | /ok","expect":"false","decision":["D14","D123"]}
-{"name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | /ok","expect":"true","decision":["D14","D123"]}
+{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | /ok","expect":"false","decision":"D14"}
+{"name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | /ok","expect":"true","decision":"D123"}
 {"name":"when-left-the-catalog","query":"5 | when true ~(1) !| type","expect":"::call/UnknownNameError","decision":"D14"}
 {"name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]","decision":"D14"}

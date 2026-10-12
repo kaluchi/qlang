@@ -1,4 +1,4 @@
-// `manifest` answers the nodes declared one name under a noun [D62],
+// `manifest` answers the nodes declared one name under a noun [D34],
 // `laws` the laws declared under a name and `runLaws` runs them, each
 // primitive reading the state of the call [D79]; the axes of one binding
 // live in `axis.mjs`.
@@ -27,7 +27,7 @@ bindStateReader('any/laws', (subject, state) => {
 // A law runs as `apply` runs code, one frame below the step, and passes
 // when it answers true [D14]; its result names the law by its address and
 // the claim it proves by its page [D123], [D124], and holds the error it
-// answered at rest, as `!|` grounds it [D210], [D220].
+// answered at rest, as `!|` grounds it [D13], [D220].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);

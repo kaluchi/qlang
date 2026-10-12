@@ -59,14 +59,14 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });
 
-  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [D210], [D219]', async () => {
+  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [D13]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
     expect(deepEqual(await evalQuery(`${printValue(err)} | raise`), err)).toBe(true);
   });
 
-  it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [D219]', async () => {
+  it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [D13]', async () => {
     const env = await langRuntime();
     const failure = await evalQuery('"x" | add 1');
     expect(await printAnswer(failure, env)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
@@ -75,7 +75,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it('a :kind in the descriptor is a fact like any other', async () => {
-    // A `:kind` names no tag [D190]: it stays in the descriptor as
+    // A `:kind` names no tag [D13]: it stays in the descriptor as
     // ordinary user data, the error staying of the kind of errors.
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]

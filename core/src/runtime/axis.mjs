@@ -1,5 +1,5 @@
 // The axes, each a passage from a name to its declaration
-// [D61], the record the declaration wrote into its scope [D63]: a
+// [D61], the record the declaration wrote into its scope [D5]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
 // name the node of the tree it addresses, `::vec/count` or
 // `::qlang/values` [D153], a record the binding it records, and every
@@ -48,14 +48,14 @@ function nameReadOf(subject) {
 }
 
 // The name whose verbs a refusal lists: the last name of a tag name's
-// path, `::any/links` naming `links` [D127], or its kind's.
+// path, `::any/links` naming `links` [D46], or its kind's.
 function nameOf(subject) {
   if (isTag(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live [D62], [D137].
+// where the pages of that name live [D34], [D46].
 export function refusalOf(env, subject) {
   return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
@@ -162,10 +162,10 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject,
 bindStateReader('any/doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 
-// The explanation of a value [D100]: the page `doc` reads for it,
-// null for a declaration without one, above the value itself, an error at
-// rest as `!|` caught it [D210], so an explanation prints as the page
-// above what it explains [D98].
+// The explanation of a value: the page `doc` reads for it, null for a
+// declaration without one, above the value itself, an error at rest as
+// `!|` caught it [D13], so an explanation prints as the page above what
+// it explains [D98].
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));

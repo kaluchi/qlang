@@ -1,9 +1,9 @@
-{"name":"not-resides-on-the-boolean","query":"5 | not !| type","expect":"::boolean/not/SubjectNotBooleanError","decision":["D62","D76"]}
-{"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf /active (/age | gte 18)","expect":"true","decision":["D76","D165"]}
-{"name":"and-refuses-a-left-of-another-kind-at-its-subject","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError","decision":"D76"}
-{"name":"eq-takes-any-value","query":"1 | eq \"a\"","expect":"false","decision":"D76"}
-{"name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag","decision":["D32","D76"]}
-{"name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string","decision":"D76"}
-{"name":"parse-json-resides-on-the-string","query":"5 | parseJson !| type","expect":"::string/parseJson/SubjectNotStringError","decision":["D62","D76"]}
-{"name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError","decision":["D62","D76"]}
-{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| /kind","expect":":inner","decision":["D13","D76","D97"]}
+{"name":"not-resides-on-the-boolean","query":"5 | not !| type","expect":"::boolean/not/SubjectNotBooleanError","decision":"D34"}
+{"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf /active (/age | gte 18)","expect":"true","decision":"D165"}
+{"name":"and-refuses-a-left-of-another-kind-at-its-subject","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError","decision":"D34"}
+{"name":"eq-takes-any-value","query":"1 | eq \"a\"","expect":"false","decision":"D34"}
+{"name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag","decision":"D32"}
+{"name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string","decision":"D34"}
+{"name":"parse-json-resides-on-the-string","query":"5 | parseJson !| type","expect":"::string/parseJson/SubjectNotStringError","decision":"D34"}
+{"name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError","decision":"D34"}
+{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| /kind","expect":":inner","decision":"D13"}

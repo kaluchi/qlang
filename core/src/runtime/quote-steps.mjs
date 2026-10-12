@@ -1,4 +1,4 @@
-// Constructors of a quote and of its steps [D8], [D47], [D54].
+// Constructors of a quote and of its steps [D8].
 //
 // `::quote[…]` holds a vector every element of which is a step, and
 // runs wherever a vector comes under the tag, `tag ::quote` and every

@@ -6,7 +6,7 @@
 // values, a desc by the reverse of its payload's place [D140], and a
 // tagged value by its payload. `sort`, `min` and `max`
 // order by it, and so do the ordering predicates, whose heads admit two
-// values of one kind [D65], [D72].
+// values of one kind [D34], [D72].
 
 import {
   isKeyword, isTag, isDoc, isValueClass,

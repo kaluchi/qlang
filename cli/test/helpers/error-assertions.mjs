@@ -3,7 +3,7 @@
 // A refusal reaches the query as an error value: its tag is the address
 // of what refused, `result !| type` answering
 // `::any/out/SubjectNotStringError` and the like, and its facts stand in
-// its descriptor in the order the catalog declares them [D172]. A
+// its descriptor in the order the catalog declares them [D46]. A
 // refusal a site of a word raised keeps the JavaScript instance it
 // was raised as in the opaque `originalError` slot, which a host
 // re-throws, one kind of error named by the same address.

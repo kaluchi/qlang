@@ -21,12 +21,15 @@ const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs
 // [D237].
 const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
 export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
+// The definition of a link to a record, `[D19]: D19.md`, and no line of
+// prose that opens with a citation and a colon.
+export const LINK_DEFINITION = /^\[([DE]\d+)\]: \S+\.md$/;
 
 export function statementsOf(text) {
   const statements = [];
   let current = null;
   text.split(/\r?\n/).forEach((line, index) => {
-    if (line.trim() === '' || /^\[[DE]\d+\]: /.test(line)) { current = null; return; }
+    if (line.trim() === '' || LINK_DEFINITION.test(line)) { current = null; return; }
     if (current === null || FIELD.test(line)) statements.push(current = { text: line, from: index, to: index });
     else { current.text += ` ${line}`; current.to = index; }
   });

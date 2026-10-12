@@ -10,7 +10,6 @@ import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printAnswer,
   elideAnswer,
-  isErrorValue,
   langRuntime,
   verbNames
 } from '@kaluchi/qlang-core';
@@ -119,7 +118,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, builtinNames, writeOutput, writeDiagnostic, budget);
+      await writeCellOutcome(cellEntry, builtinNames, writeOutput, budget);
       lineEditor.prompt();
     }
   });
@@ -127,11 +126,9 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 
 // An answer prints whole, an error as an alert, or within the budget
 // the caller asked for, what does not fit given way to markers that read
-// it [D120], [D184].
-async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, stderrWrite, budget) {
-  // A query that does not parse answers its error as a value, so it
-  // prints as every failure does, on stderr [D85].
-  const sink = isErrorValue(cellEntry.result) ? stderrWrite : stdoutWrite;
+// it, on stdout: a failed cell, one that does not parse among them, is an
+// answer as every failure is [D7], [D120].
+async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, budget) {
   const shown = elideAnswer(cellEntry.result, budget);
-  sink(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
+  stdoutWrite(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
 }

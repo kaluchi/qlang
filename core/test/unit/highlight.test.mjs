@@ -121,7 +121,7 @@ describe('tokenize — atomic literal kinds', () => {
 
   it('paints the tag an error literal writes before its bang, then its `!{` and `}`', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
-    // tag [D86].
+    // tag [D13].
     const tokens = tokenize('::Oops!{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 6, kind: 'tag' });
     expect(tokens[1]).toEqual({ start: 6, end: 8, kind: 'err' });

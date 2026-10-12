@@ -35,7 +35,7 @@ describe('BindStep — docs-only form', () => {
 
 describe('BindStep — value-body purity routing', () => {
   // A pure-literal body evaluates at declaration and its record holds
-  // the value [D63]; identifier lookup reads it, so the
+  // the value [D5]; identifier lookup reads it, so the
   // user-observable contract is "lookup yields the eval-at-bind-time
   // value".
 

@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-tenth, holds it against commit `91a2419`, its baseline: a scar the
+eleventh, holds it against commit `2388dd8`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -128,8 +128,9 @@ Some rules for whoever edits the document, each learnt at a cost:
   replaces the maintainer's intention with the model's reading of it,
   and the next session cannot tell the two apart.
 - Only the maintainer's quoted words bind a session. A record names
-  who decided it, `Decided by.`, and a choice the maintainer made and
-  the mechanics the model worked out around it are two records; a
+  who decided it, `Decided by.`, and where it holds a choice the
+  maintainer made beside the mechanics the model worked out around it,
+  that line names the parts that are the model's; a
   record the model decided is weighed on its merits and replaced by a
   record of the session's own when a better reading turns up, without
   asking leave, and is never named to the maintainer as a rule the
@@ -451,7 +452,7 @@ combinator applies a step and deflects on an error, recording the
 skipped step on the error's trail, and `!|` is the only combinator that
 fires on an error, which `|` steps around [D51]; a step run on each
 element is the word `map`, whose code is a quote, and the first error an
-element answers is its answer [D181], [D182]. Parentheses, vectors, maps, sets, and error literals all obey one
+element answers is its answer [D116]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
 only its value, which is where every scoping rule of the page of the
 pipeline comes from. A literal is a step that replaces the value, and the values it
@@ -470,12 +471,11 @@ Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. An error at
 rest is a value with a tag and a descriptor, its literal the bang,
 `!{…}`, and raised by `raise` it is a failure, which lives in the pipe
-alone and which `!|` alone catches [D210], [D211], and a host prints a
-failure as its error at rest under a line that says it was raised
-[D219]; its
-trail is the path it flew, a stop at every step that raised it or handed
-it on, and the steps its last stop skipped, applied to a fresh subject,
-replay them [D85]. A
+alone and which `!|` alone catches, and a host prints a failure as its
+error at rest under a line that says it was raised; its trail is the
+path it flew, a stop at every step that raised it or handed it on, and
+the steps its last stop skipped, applied to a fresh subject, replay them
+[D13]. A
 quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
@@ -538,7 +538,7 @@ then details on demand [D21]. Seen from the session it has four
 clauses. The session controls the detail of an answer. An answer stays
 within the budget the session asks for, by `elide` in the query or by
 the host's flag, and prints whole when nobody asked [D120], an error as
-an alert whose markers say what the host left out [D184], and a part
+an alert whose markers say what the host left out [D7], and a part
 gives way only to a marker that prints shorter than it, so a budget
 never lengthens an answer [D217]. When the
 answer would have exceeded the budget, it says what was left out and
@@ -656,7 +656,7 @@ b
 c
 ```
 
-A quote has all three, being the vector of its steps [D53], and a doc
+A quote has all three, being the vector of its steps [D8], and a doc
 answers its parts by its `segments`, the vector of its prose and its
 quotes [D19]:
 
@@ -770,19 +770,21 @@ gives under its tag, which read back as they print [D164], [D166],
 [D167], [D168], [D173]. A name is read by its tag, and a keyword is data
 that names nothing [D221]; a word of the root reads the nouns of the
 root as the root holds them, and a kind a reader declared as the reader
-wrote it [D222], while what a word reads and runs as data, a page, a
+wrote it, while what a word reads and runs as data, a page, a
 law, code held as data, it reads in the tree of the query that called
-it, as a word of the host does [D236]; a value takes any name, and a
+it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
 calling its word by its name or its address [D224]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
 refused [D228], and an invariant holds of the values of a label, so one
-a bare name declares is refused where it stands [D229]. A comment is
+a bare name declares is refused where it stands [D229]; the body of a
+word runs in the scope its call opens with `args` and each part, and a
+step of the body declares none of them again [D71]. A comment is
 whitespace, and a doc the literal in the slot of the declaration it
 documents. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
-definitions of the catalog [D172]. The literal is the one lossless
+definitions of the catalog [D46]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -793,7 +795,7 @@ sets of tasks a clean author writes and no one has read, each
 measurement read beside the one before it [D26]. The command line
 writes every answer on stdout with the code 0, a failure among them, a
 query that does not parse and an input that does not read among those, a
-defect of the runtime alone stopping the calls beside it [D232]. What
+defect of the runtime alone stopping the calls beside it [D7]. What
 those repairs left is what the scars below describe.
 
 ## The scars
@@ -810,7 +812,7 @@ every probe of this chapter answered as its block records.
 A host declares its refusals by their addresses with `declareRefusal`,
 imported through the `errors` subpath of the core
 (`cli/src/streams.mjs`), and declares their facts under their
-labels in its catalog [D172], so the declaration stays an interface of
+labels in its catalog [D46], so the declaration stays an interface of
 the runtime a host builds on. The sister project imports none of them,
 and carries two copies of `fromPlain` of its own, each named
 `jsonToQlang` (`cli/lib/jdt/coverage.impl.mjs`,
@@ -834,7 +836,7 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D34], [D62], [D153], [D222], [D223],
+86982eb5). The rule is decided [D34], [D153], [D200], [D223],
 and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
 and `sourceText` until it declares them under kinds of its own [D2],
@@ -855,7 +857,7 @@ a host's catalog should grow the same way.
 
 What remains of the rule of collisions are intentions, questions of
 this document and no decisions [D226], the surface and the loading
-[D153], the reading of a name [D221], the rule of the owner [D222] and
+[D153], the reading of a name [D221], the rule of the owner [D200] and
 the meeting of a value and a word [D223] settled:
 
 - A verb and a kind may be joined by whoever owns one of them, the
@@ -898,7 +900,7 @@ a number is whole where it equals its floor, `eq (floor)`, the law of
 every count and of the digits of `round` [D218]. The facts an error carries
 are definitions under the label of the refusal and under `::error`, held
 in the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D166], [D169], [D172]:
+declares is a defect of the runtime [D46], [D166], [D169]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -921,7 +923,7 @@ true
 ```
 
 An error carries its whole input, and the path of an error carries the
-subject of every level it left [D85], so the same failure one verb
+subject of every level it left [D13], so the same failure one verb
 deeper carries it twice:
 
 ```qlang
@@ -932,15 +934,15 @@ deeper carries it twice:
 [true true]
 ```
 
-The host shows such an error as an alert, [D184], its tag and its
+The host shows such an error as an alert, [D7], its tag and its
 facts, the subject where it arose cut to an excerpt, and each subject
 it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
-the runs of [D181] recorded on set T, the alerts print about a third of
+the runs of [D116] recorded on set T, the alerts print about a third of
 what the errors printed whole, and the command line writes above an
-alert the line that says it was raised [D219] and below it the prose of
+alert the line that says it was raised [D13] and below it the prose of
 its refusal's page as line comments, the repair a reader acts on
-[D195]:
+[D7]:
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
@@ -958,7 +960,7 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/sub
 
 And a refusal of the runtime is still a class of the JavaScript for
 each address, which the runtime declares and a test holds against its
-page [D172].
+page [D46].
 
 The repair must make the page behind each refusal a procedure: what the
 refusal means in one sentence, which fact names the culprit, the usual
@@ -973,7 +975,7 @@ catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
 paged with it [D123], [D124]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped, at its start
-and at its end, where a failure of a step prints as an alert [D184]:
+and at its end, where a failure of a step prints as an alert [D7]:
 
 ```sh
 $ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':offset'
@@ -1028,7 +1030,7 @@ catalog the first sentence of the page of each word it shows first.
 
 The effect marker left the language [D2]: no name begins with
 `@`, and a word of a host is named as any word is, under the rule of
-collisions [D222], [D223]. A host whose word reads an index or throws
+collisions [D200], [D223]. A host whose word reads an index or throws
 dice marks the provenance of the value it returns with a tag, and a tag
 can describe an effect as well, a write the host is to perform, which
 an explicit step at the host boundary performs and nothing else, as the
@@ -1127,8 +1129,9 @@ it cites a record in force or one waiting on its target [D225]. An
 artifact names the decision it exists for, a mark covering the block it
 stands on, so the scope of a record is every place that marks it; a
 move of the baseline reads again the records whose blocks its diff
-touched, and records of one axis merge into the earliest of them, whose
-number stays the address of the axis [D237].
+touched, records of one axis merge into the earliest of them, whose
+number stays the address of the axis, and a case names the one record
+whose rule it shows [D237].
 How the records are sourced is the subject of the folder's
 `README.md`.
 
@@ -1190,7 +1193,7 @@ binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a name under the
 label of its subject whose value is a quote, the parts of its args and
 its answer names under its address, and it runs when its name is
-mentioned, as a built-in does [D44], [D164], [D169]. Comments are
+mentioned, as a built-in does [D5], [D164], [D169]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -1216,12 +1219,12 @@ rule.
 A name is declared by its keyword, a name with a path a node under the
 noun its path names, whose address its tag is, and a name under a label
 resides on it, taking a subject the walk of its tags brings to the
-label [D152], [D153], [D156], [D164]. The root is the scope a host's
+label [D34], [D152], [D153], [D164]. The root is the scope a host's
 sources declare as cells before a reader's first step, a source, a cell
 and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D62], [D153]; a tag in the subject position is dispatched to the noun
+[D34]; a tag in the subject position is dispatched to the noun
 it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A value the reader
 names takes any name, and a step that calls it on a subject a word of
@@ -1234,7 +1237,7 @@ the name answers is refused, the word called by its address there
 ```
 
 A declaration writes into its scope the record of its binding, so the
-axes are projections of the record [D63], each reading a name by its
+axes are projections of the record [D5], each reading a name by its
 tag, a label of the root from the root and any other name at its
 nearest declaration, while a keyword is a value that names nothing,
 `:limit | doc` the page of `::keyword` [D221]. Effect markers are
@@ -1396,7 +1399,7 @@ the host hands, `:number/construct ::builtin{}`:
 
 The refusals rest on the schema as well: a refusal is named by the
 address of the word that refused, and its facts are definitions under
-its label, values of the language [D172]:
+its label, values of the language [D46]:
 
 ```qlang
 > 1 | add "x" !| entries | map ~first
@@ -1416,7 +1419,7 @@ grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
 in the conformance suite, every one met, the step of a constructor apart
-from the kind of tagged values having landed [D115]. Beside them: no
+from the kind of tagged values having landed [D8]. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1434,16 +1437,16 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
-[D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the effect marker leaving the language,
+conformance suite are the targets of [D2], [D7], [D46], [D107], [D108],
+[D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124],
+[D125], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
 and serves the work once its misses are read, its children running the
 command line from the pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
-subject it passed a marker [D184].
+subject it passed a marker [D7].
 
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
@@ -1453,7 +1456,7 @@ parts, its refusals and its laws in that order [D179]; enrichment
 happens once per session; a value shared across kinds of record carries
 a tag of its own, as a field is a definition under its label [D50]; and
 the first screen, the pages
-of the language and of the command line [D26], told whole in the order
+of the language and of the command line, told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
 is measured on a set of tasks no reader has seen [D26], [D131].
 
@@ -1461,7 +1464,7 @@ The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
 stands ahead of its remote since 29 September, and its redesign has not
 begun: its nodes carry their kind as a tag, its verbs
-move onto its tags and its noun [D34], [D62], the noun's own verbs
+move onto its tags and its noun [D34], the noun's own verbs
 taking its name as their subject [D88], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog;
 the effect marker leaves the language with them [D2], since
@@ -1579,23 +1582,6 @@ root's reading of it; a role read from a form refused aloud where the
 form stops fitting it, a cheaper repair of the traps that leaves the
 second mechanism; or the forms as they stand. Open, the layer of
 declarations.
-
-A body that declares the name of its part. The body of a word is the
-run of its quote, a scope of its own, so a name it declares shadows a
-part of that name without a word [D71]:
-
-```qlang
-> :number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2
-4
-```
-
-While the head of a verb and its body were one scope, such a
-declaration was refused; the refusal left with the head [D168], with no
-word on that axis. The alternatives: refuse it again where the word
-runs, a check of the body's declarations against the names of its
-parts, at the cost of a rule beside the shadowing every other run of a
-quote allows; or let the body shadow, as a run of any quote shadows the
-scope around it. Open, the layer of declarations.
 
 One rule for line breaks. At the top level a line break ends a
 command's modifiers and stands for `|`, and inside a group or a quote it
@@ -1768,7 +1754,7 @@ tags as every verb is and specialized by a host on its own; and a floor
 under every kind, the head of its schema never elided, which keeps the
 signal at the price of a budget sometimes exceeded.
 
-A constructor that tags its own result [D53]. `tag` runs a tag's
+A constructor that tags its own result [D8]. `tag` runs a tag's
 constructor, so a constructor written as a quote that tags its own
 result through `tag` recurses until the depth budget refuses it:
 
@@ -1886,6 +1872,8 @@ the command line without them.
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
+[D8]: decisions/D8.md
+[D13]: decisions/D13.md
 [D16]: decisions/D16.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
@@ -1904,22 +1892,17 @@ the command line without them.
 [D41]: decisions/D41.md
 [D42]: decisions/D42.md
 [D43]: decisions/D43.md
-[D44]: decisions/D44.md
 [D46]: decisions/D46.md
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
-[D53]: decisions/D53.md
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
-[D62]: decisions/D62.md
-[D63]: decisions/D63.md
-[D69]: decisions/D69.md
+[D71]: decisions/D71.md
 [D72]: decisions/D72.md
 [D80]: decisions/D80.md
 [D84]: decisions/D84.md
-[D85]: decisions/D85.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
 [D90]: decisions/D90.md
@@ -1929,7 +1912,7 @@ the command line without them.
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
 [D111]: decisions/D111.md
-[D115]: decisions/D115.md
+[D116]: decisions/D116.md
 [D117]: decisions/D117.md
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
@@ -1939,7 +1922,6 @@ the command line without them.
 [D123]: decisions/D123.md
 [D124]: decisions/D124.md
 [D125]: decisions/D125.md
-[D127]: decisions/D127.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
 [D131]: decisions/D131.md
@@ -1953,7 +1935,6 @@ the command line without them.
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
-[D156]: decisions/D156.md
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md
@@ -1962,7 +1943,6 @@ the command line without them.
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
 [D169]: decisions/D169.md
-[D172]: decisions/D172.md
 [D173]: decisions/D173.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
@@ -1970,22 +1950,15 @@ the command line without them.
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
 [D180]: decisions/D180.md
-[D181]: decisions/D181.md
-[D182]: decisions/D182.md
-[D184]: decisions/D184.md
 [D185]: decisions/D185.md
-[D195]: decisions/D195.md
+[D200]: decisions/D200.md
 [D208]: decisions/D208.md
-[D210]: decisions/D210.md
-[D211]: decisions/D211.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
-[D219]: decisions/D219.md
 [D221]: decisions/D221.md
-[D222]: decisions/D222.md
 [D223]: decisions/D223.md
 [D224]: decisions/D224.md
 [D225]: decisions/D225.md
@@ -1995,7 +1968,5 @@ the command line without them.
 [D229]: decisions/D229.md
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
-[D232]: decisions/D232.md
 [D235]: decisions/D235.md
-[D236]: decisions/D236.md
 [D237]: decisions/D237.md

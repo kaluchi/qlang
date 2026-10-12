@@ -56,7 +56,7 @@
   |~~ The key an atom's place is read by, the keyword of its print, which
       tells `1` from `"1"`.
   ~~|
-  ~(print | keyword)
+  ~(print | toKeyword)
 
 :any/numberedWith
   |~~ The atoms numbered so far, `{:next … :pairs …}`, with one more. ~~|

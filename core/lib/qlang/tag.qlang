@@ -295,3 +295,51 @@
 :tag/manifest/ArgsBeyondPartsError/refusesANounGivenAsAValue
   |~~ A noun given as a value is refused; it is the subject. ~~|
   ::law~(::qlang | manifest ::vec !| type | eq ::tag/manifest/ArgsBeyondPartsError)
+
+:tag/toString
+  |~~ Answers the name of the tag as a string, `::vec | toString`
+      answering `"vec"`, so a kind joins text. `toTag` turns the name
+      back into the tag.
+      ::link~(::string/toTag | doc)
+  ~~|
+  ::builtin{}
+
+:tag/toString/answer
+  |~~ The name of the tag, a string. ~~|
+  ::string
+
+:tag/toString/answersTheName
+  |~~ A tag answers its name. ~~|
+  ::law~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
+
+:tag/toKeyword
+  |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
+      answering `:Box`, as `groupBy ~(type)` files values by their kinds.
+      `toTag` turns the keyword back into the tag.
+      ::link~(::keyword/toTag | doc)
+  ~~|
+  ::builtin{}
+
+:tag/toKeyword/answer
+  |~~ The keyword of the tag's name. ~~|
+  ::keyword
+
+:tag/toKeyword/readsBack
+  |~~ A tag turned into its keyword turns back into itself. ~~|
+  ::law~(::Box | toKeyword | toTag | eq ::Box)
+
+:tag/toTag
+  |~~ Answers the tag itself, so `map ~toTag` turns names and tags into
+      tags, `["vec" :Box ::map] | map ~toTag` answering
+      `[::vec ::Box ::map]`.
+      ::link~(::string/toTag | doc)
+  ~~|
+  ::builtin{}
+
+:tag/toTag/answer
+  |~~ The tag itself. ~~|
+  ::tag
+
+:tag/toTag/answersItself
+  |~~ A tag answers itself, so names and tags turn into tags. ~~|
+  ::law~(["vec" :Box ::map] | map ~toTag | eq [::vec ::Box ::map])

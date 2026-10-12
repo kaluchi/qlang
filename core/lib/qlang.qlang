@@ -26,8 +26,9 @@
       no duplicates and keep one order: `#[3 1 3]` answers `#[1 3]`.
       JSON is a literal too and pastes into a query as it is, its keys
       read as keywords: `{"a": [1, 2]}` answers `{:a [1 2]}`. A keyword
-      is not its string: `:a | eq "a"` answers `false`, and `keyword`
-      turns either into the other, `:a | keyword` answering `"a"`.
+      is not its string: `:a | eq "a"` answers `false`, and `toString`
+      and `toKeyword` turn one into the other, `:a | toString` answering
+      `"a"`.
 
       3. Reading parts. `/k` reads a key, `/0` an element, `/-1` the
       last, `/a/b/0` a path, `/` the whole value:
@@ -125,8 +126,8 @@
       `"a,b,c" | split "," | join "-"` answering `"a-b-c"`; `lines`
       breaks text into its lines, and `trim`, `lower`, `upper`,
       `contains`, `startsWith` and `endsWith` read it. A string is never
-      read as a number behind the reader's back: `parseJson` reads one,
-      `"42" | parseJson | add 1` answering `43`.
+      read as a number behind the reader's back: `toNumber` reads one,
+      `"42" | toNumber | add 1` answering `43`.
 
       11. Failures. A step that fails answers a failure, a value under
       the tag of what refused: `"x" | add 1 !| type` answers
@@ -247,7 +248,7 @@
 
 :qlang/turnsKeysIntoData
   |~~ Entries turn the keys of a map into data. ~~|
-  ::law~({:auth {:port 3000}} | entries | map ~(unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+  ::law~({:auth {:port 3000}} | entries | map ~(unionOf /1 {:name (/0 | toString)}) | eq [{:port 3000 :name "auth"}])
 
 :qlang/buildsAMapFromEntries
   |~~ Entries build back into the map. ~~|
@@ -290,12 +291,12 @@
   ::law~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/if/condition/NotBooleanError)
 
 :qlang/turnsAStringIntoAKeyword
-  |~~ `keyword` turns a string into a keyword. ~~|
-  ::law~("draft" | keyword | eq :draft)
+  |~~ `toKeyword` turns a string into a keyword. ~~|
+  ::law~("draft" | toKeyword | eq :draft)
 
 :qlang/turnsAKeywordIntoAString
-  |~~ `keyword` turns a keyword into its string. ~~|
-  ::law~(:draft | keyword | eq "draft")
+  |~~ `toString` turns a keyword into its string. ~~|
+  ::law~(:draft | toString | eq "draft")
 
 :qlang/printsText
   |~~ `print` answers the text a value reads back from. ~~|

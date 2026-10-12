@@ -22,13 +22,13 @@ export const TASKS = [
   {
     id: 'T3', input: 'orders.json',
     question: 'the number of orders per status. Expected shape: a JSON object status → count.',
-    reference: 'groupBy ~(/status | keyword) | map ~count',
+    reference: 'groupBy ~(/status | toKeyword) | map ~count',
     answer: '{"paid":3,"pending":2,"cancelled":1}'
   },
   {
     id: 'T4', input: 'orders.json',
     question: 'the total amount of the "paid" orders per customer. Expected shape: a JSON object customer → sum.',
-    reference: 'filter ~(/status | eq "paid") | groupBy ~(/customer | keyword) | map ~(map ~/amount | sum)',
+    reference: 'filter ~(/status | eq "paid") | groupBy ~(/customer | toKeyword) | map ~(map ~/amount | sum)',
     answer: '{"acme":160.5,"globex":300}'
   },
   {

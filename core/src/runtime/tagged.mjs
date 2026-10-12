@@ -75,7 +75,7 @@ function keyNameOfPair(pairKey, index) {
   throw new MapKeyNotKeywordError({ index, actualValue: pairKey });
 }
 
-function mapConstructor(payload) {
+export function mapConstructor(payload) {
   if (isQMap(payload)) return bareMapOf(payload);
   if (!isVec(payload)) throw new MapPayloadNotMapError({ actualValue: payload });
   const built = new Map();

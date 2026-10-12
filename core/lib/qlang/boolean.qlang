@@ -239,3 +239,34 @@
 :boolean/or/asksTheRightOfTheBoolean
   |~~ The right is asked of the boolean the left answered, so a comparison of the element there is refused. ~~|
   ::law~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| [type /actualType] | eq [::call/KindAnswersNoVerbError ::boolean])
+
+:boolean/toString
+  |~~ Answers the literal of the boolean as a string, `true | toString`
+      answering `"true"`.
+      ::link~(::string/toString | doc)
+  ~~|
+  ::builtin{}
+
+:boolean/toString/answer
+  |~~ `"true"` or `"false"`. ~~|
+  ::string
+
+:boolean/toString/writesTheLiteral
+  |~~ A boolean answers its literal. ~~|
+  ::law~([true false] | map ~toString | eq ["true" "false"])
+
+:boolean/toKeyword
+  |~~ Answers the keyword of the boolean's literal, `true | toKeyword`
+      answering `:true`, as `groupBy` files the elements a condition
+      parts, `[1 2 3] | groupBy ~(gt 1)`.
+      ::link~(::vec/groupBy | doc)
+  ~~|
+  ::builtin{}
+
+:boolean/toKeyword/answer
+  |~~ `:true` or `:false`. ~~|
+  ::keyword
+
+:boolean/toKeyword/readsTheKeyGroupByFiledItUnder
+  |~~ A boolean turns into the key `groupBy` files a condition under. ~~|
+  ::law~([1 2 3] | groupBy ~(gt 1) | at (true | toKeyword) | eq [2 3])

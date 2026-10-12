@@ -175,11 +175,11 @@
       subject, and `:addresses` the verbs of the name and the kinds they
       serve. The subject is turned into one of those kinds first, a soft
       read that answered null given its fallback,
-      `at :items | coalesce [] | count`, a keyword its name by `keyword`,
-      `:host | keyword | append ":80"`, or a verb of another name was
+      `at :items | coalesce [] | count`, a keyword its name by `toString`,
+      `:host | toString | append ":80"`, or a verb of another name was
       meant.
       ::link~(::call | doc) ::link~(::any/coalesce | doc)
-      ::link~(::keyword/keyword | doc)
+      ::link~(::keyword/toString | doc)
   ~~|
 
 :call/KindAnswersNoVerbError/name
@@ -210,7 +210,7 @@
 
 :call/KindAnswersNoVerbError/turnsAKeywordIntoItsName
   |~~ A keyword turned into its name takes the verbs of strings. ~~|
-  ::law~(:host | keyword | append ":80" | eq "host:80")
+  ::law~(:host | toString | append ":80" | eq "host:80")
 
 :call/UnknownNameError
   |~~ A step called a name nothing declares, no name of the scope and no

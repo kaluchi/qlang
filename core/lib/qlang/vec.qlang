@@ -1193,7 +1193,7 @@
 
 :vec/take/count/NotNumberError
   |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
-      is read by `parseJson` first, `take ("2" | parseJson)`.
+      is read by `toNumber` first, `take ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1257,7 +1257,7 @@
 
 :vec/drop/count/NotNumberError
   |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
-      is read by `parseJson` first, `drop ("2" | parseJson)`.
+      is read by `toNumber` first, `drop ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -1320,7 +1320,7 @@
 
 :vec/at/index/NotNumberError
   |~~ The index is a number, `[10 20] | at 1`; text that holds one is
-      read by `parseJson` first, `at ("1" | parseJson)`.
+      read by `toNumber` first, `at ("1" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -2065,3 +2065,56 @@
 :vec/append/keepsASetASet
   |~~ A set takes the element as a set does. ~~|
   ::law~(#[1 2] | append 1 | eq #[1 2])
+
+:vec/toSet
+  |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
+      answering `#[1 2]`: the one order and no duplicates, as `distinct`
+      answers. `toVec` turns the set back into a vector.
+      ::link~(::vec/distinct | doc) ::link~(::set/toVec | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toSet/answer
+  |~~ The set of the elements. ~~|
+  ::set
+
+:vec/toSet/answersTheSetDistinctAnswers
+  |~~ `toSet` answers what `distinct` answers. ~~|
+  ::law~([2 1 2] | [toSet distinct] | eq [#[1 2] #[1 2]])
+
+:vec/toMap
+  |~~ Answers the map the vector's pairs `[key value]` write, the reverse
+      of `entries`, `[[:a 1] [:b 2]] | toMap` answering `{:a 1 :b 2}`, as
+      the constructor of `::map` builds one: a key is a keyword, or a
+      string or a number naming the keyword of its text, and of two pairs
+      with one key the last wins. An element that is no pair is refused.
+      ::link~(::map/entries | doc) ::link~(::map | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toMap/answer
+  |~~ The map of the pairs. ~~|
+  ::map
+
+:vec/toMap/readsBack
+  |~~ A map turned into its pairs turns back into itself. ~~|
+  ::law~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
+
+:vec/toMap/refusesAnElementThatIsNoPair
+  |~~ An element that is no pair is refused as the constructor of `::map` refuses it. ~~|
+  ::law~([[:a 1] 5] | toMap !| type | eq ::map/ElementNotPairError)
+
+:vec/toVec
+  |~~ Answers the vector itself, so `map ~toVec` turns vectors and sets
+      into vectors.
+      ::link~(::set/toVec | doc)
+  ~~|
+  ::builtin{}
+
+:vec/toVec/answer
+  |~~ The vector itself. ~~|
+  ::vec
+
+:vec/toVec/answersItself
+  |~~ A vector answers itself. ~~|
+  ::law~([2 1] | toVec | eq [2 1])

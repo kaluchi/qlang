@@ -782,7 +782,10 @@ word runs in the scope its call opens with `args` and each part, and a
 step of the body declares none of them again [D71]. A comment is
 whitespace, and so is a line break wherever it stands, only a
 combinator joining two steps [D243], and a doc is the literal in the
-slot of the declaration it documents. One order ranks every value, the set is the ordered vector
+slot of the declaration it documents. A value turns into another
+kind by a word of its own kind named for the kind it answers,
+`"42" | toNumber`, `1 | toKeyword`, and nothing converts where no such
+word is written [D244]. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
 definitions of the catalog [D46]. The literal is the one lossless
@@ -952,7 +955,7 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | 
 317
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
 |~| raised, and no !| caught it
-|~| The addend is a number; text that holds one is read by `parseJson`.
+|~| The addend is a number; text that holds one is read by `toNumber`.
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
 1
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/subject | count" < /dev/null
@@ -1205,7 +1208,7 @@ value]`, and the constructor of `::map` builds a map back from them
 [D138], a string naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | keyword)}) | sort ~(/port)
+> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | toString)}) | sort ~(/port)
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -1361,12 +1364,11 @@ work has begun meet their targets, the last of them the effect marker
 leaving the language [D2], and every other decision below writes its
 targets before its work; the targets the suite carries name the
 decisions whose work waits, the refusal of `addOf` that names `sumOf`
-[D242] and the words that turn a value into another kind [D244]:
+[D242]:
 
 ```sh
 $ grep -rh '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
 "decision":"D242"
-"decision":"D244"
 ```
 
 ### Milestone 4 · One spelling
@@ -1419,9 +1421,7 @@ onto its kinds, and the questions of mounting and of one query of every
 definition of a name. Beside both, the examples come to live
 on one plane, the editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D226],
-grows from the draft of the entrypoint document [D231]. A value turns
-into another kind by one family of words, each of its own kind and named
-for the kind it answers [D244].
+grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
 in the conformance suite, every one met, the step of a constructor apart

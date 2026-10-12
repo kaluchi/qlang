@@ -6,8 +6,8 @@
 :string
   |~~ A string is text, kept as it came: the value of a JSON string, a
       line of a log, a message. Text is never read as another kind by
-      its look, so `"42"` stays text until `parseJson` reads it, and
-      `"draft"` is no keyword until `keyword` makes one.
+      its look, so `"42"` stays text until `toNumber` reads it, and
+      `"draft"` is no keyword until `toKeyword` makes one.
 
       It is written in double quotes with the escapes of JSON, `\"`,
       `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
@@ -89,7 +89,7 @@
 
 :string/gt/value/NotStringError
   |~~ The value compared is a string; a keyword gives its name by
-      `keyword` first, `"b" | gt (:a | keyword)`.
+      `toString` first, `"b" | gt (:a | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -150,7 +150,7 @@
 
 :string/gte/value/NotStringError
   |~~ The value compared is a string; a keyword gives its name by
-      `keyword` first, `"b" | gte (:a | keyword)`.
+      `toString` first, `"b" | gte (:a | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -186,7 +186,7 @@
 
 :string/lt/value/NotStringError
   |~~ The value compared is a string; a keyword gives its name by
-      `keyword` first, `"b" | lt (:a | keyword)`.
+      `toString` first, `"b" | lt (:a | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -227,7 +227,7 @@
 
 :string/lte/value/NotStringError
   |~~ The value compared is a string; a keyword gives its name by
-      `keyword` first, `"b" | lte (:a | keyword)`.
+      `toString` first, `"b" | lte (:a | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -323,7 +323,7 @@
 
 :string/take/count/NotNumberError
   |~~ The count is a number, `"abc" | take 2`; text that holds one is
-      read by `parseJson` first, `take ("2" | parseJson)`.
+      read by `toNumber` first, `take ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -386,7 +386,7 @@
 
 :string/drop/count/NotNumberError
   |~~ The count is a number, `"abc" | drop 2`; text that holds one is
-      read by `parseJson` first, `drop ("2" | parseJson)`.
+      read by `toNumber` first, `drop ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -450,7 +450,7 @@
   ~(/0)
 
 :string/split/separator/NotStringError
-  |~~ The separator is a string; a keyword gives its name by `keyword`. ~~|
+  |~~ The separator is a string; a keyword gives its name by `toString`. ~~|
   ::holds~(is ::string)
 
 :string/split/separator/NotGivenError
@@ -597,7 +597,7 @@
       and signs stay as they are. A letter may lower into more than one
       character, `"İ"` into an `i` and a combining dot, so the count may
       grow. A string under a tag answers under the tag. A keyword has no
-      case to lower: `keyword` gives its name first. A vector of strings
+      case to lower: `toString` gives its name first. A vector of strings
       lowers by `map`.
       ::link~(::string/upper | doc)
   ~~|
@@ -608,8 +608,8 @@
   ::string
 
 :string/lower/SubjectNotStringError
-  |~~ `lower` lowers a string: a keyword gives its name by `keyword`,
-      `:A | keyword | lower`, and a vector of strings lowers by `map`,
+  |~~ `lower` lowers a string: a keyword gives its name by `toString`,
+      `:A | toString | lower`, and a vector of strings lowers by `map`,
       `map ~lower`.
   ~~|
 
@@ -642,7 +642,7 @@
       `"ok, go" | upper` answering `"OK, GO"`; digits and signs stay as
       they are. A letter may raise into more than one character, `ß`
       into `SS`, so the count may grow. A string under a tag answers
-      under the tag. A keyword has no case to raise: `keyword` gives its
+      under the tag. A keyword has no case to raise: `toString` gives its
       name first. A vector of strings raises by `map`.
       ::link~(::string/lower | doc)
   ~~|
@@ -653,7 +653,7 @@
   ::string
 
 :string/upper/SubjectNotStringError
-  |~~ `upper` raises a string: a keyword gives its name by `keyword`, and
+  |~~ `upper` raises a string: a keyword gives its name by `toString`, and
       a vector of strings raises by `map`, `map ~upper`.
   ~~|
 
@@ -728,7 +728,7 @@
       contains "ell"` answers `true`. Every string holds the empty
       needle. Case counts, `"Hello" | contains "h"` answering `false`;
       where it should not, `lower` comes first, `lower | contains "h"`.
-      The needle is a string: a keyword is refused, and `keyword` gives
+      The needle is a string: a keyword is refused, and `toString` gives
       its name. The name `contains` asks a vector and a set for an
       element, whole, so `["ab"] | contains "a"` answers `false`, and a
       number or a map answers no `contains`, which the refusal of the
@@ -747,7 +747,7 @@
   ~(/0)
 
 :string/contains/needle/NotStringError
-  |~~ The needle is a string; a keyword gives its name by `keyword`. ~~|
+  |~~ The needle is a string; a keyword gives its name by `toString`. ~~|
   ::holds~(is ::string)
 
 :string/contains/findsAWord
@@ -808,7 +808,7 @@
 
 :string/startsWith/prefix/NotStringError
   |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword gives
-      its name by `keyword` first, `startsWith (:ab | keyword)`.
+      its name by `toString` first, `startsWith (:ab | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -872,7 +872,7 @@
 
 :string/endsWith/suffix/NotStringError
   |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword gives
-      its name by `keyword` first, `endsWith (:bc | keyword)`.
+      its name by `toString` first, `endsWith (:bc | toString)`.
   ~~|
   ::holds~(is ::string)
 
@@ -1012,7 +1012,7 @@
       string, `true`, `false` and `null` themselves; whitespace around
       the text is read past, and a key written twice keeps its last
       value. A string that holds a number reads as the number, `"42" |
-      parseJson`, which is how a number comes out of text. JSON has no
+      parseJson`, while `toNumber` reads a number alone. JSON has no
       form for a set, a keyword or a tag: what `json` wrote of a set
       reads back as a vector, of a keyword as a string, and of a value
       under a tag as a map of its `$tag` and `payload`, and of an error
@@ -1056,7 +1056,7 @@
 
 :string/parseJson/readsANumber
   |~~ A JSON number reads as a number. ~~|
-  ::law~("42" | parseJson | eq 42)
+  ::law~("42" | toNumber | eq 42)
 
 :string/parseJson/readsAString
   |~~ A JSON string reads as a string. ~~|
@@ -1120,47 +1120,6 @@
   |~~ The refusal names the path to the number in the text. ~~|
   ::law~("[1, 1e400]" | parseJson !| /path | eq [1])
 
-:string/keyword
-  |~~ Answers the keyword the string names, `"draft" | keyword` answering
-      `:draft`: the bridge from strings, JSON data and text built from
-      parts, to keywords, the keys of maps and the names of a scope, so
-      `at ("a" | keyword)` reads the key a string names. Any text names a
-      keyword: a slash makes a path, `:qlang/error`, and a space or the
-      empty string makes a quoted one, `:"a b"`. A keyword answers its
-      name by `keyword` again, so the two read back. A string under a tag
-      names the keyword of its text.
-      ::link~(::keyword/keyword | doc) ::link~(::keyword | doc)
-  ~~|
-  ::builtin{}
-
-:string/keyword/answer
-  |~~ The keyword the text names. ~~|
-  ::keyword
-
-:string/keyword/namesAKeyword
-  |~~ A string names the keyword of its text. ~~|
-  ::law~("foo" | keyword | eq :foo)
-
-:string/keyword/keepsASlash
-  |~~ A slash stays in the name. ~~|
-  ::law~("qlang/error" | keyword | eq :qlang/error)
-
-:string/keyword/quotesAName
-  |~~ A space makes a quoted keyword. ~~|
-  ::law~("a b" | keyword | eq :"a b")
-
-:string/keyword/readsTheKeyAStringNames
-  |~~ A string names the key a map is read by. ~~|
-  ::law~({:a 1} | at ("a" | keyword) | eq 1)
-
-:string/keyword/readsBack
-  |~~ A keyword's name reads back as the string. ~~|
-  ::law~("bar" | keyword | keyword | eq "bar")
-
-:string/keyword/namesTheKeywordOfATaggedString
-  |~~ A string under a tag names the keyword of its text. ~~|
-  ::law~(::Name("ab") | keyword | eq :ab)
-
 :string/parse
   |~~ Answers the quote of the steps the source text spells, `"add 1 2" |
       parse` answering `~(add 1 2)`, the reverse of `parse` on a quote,
@@ -1211,3 +1170,115 @@
 :string/parse/namesTheTokenFound
   |~~ The refusal names the token that stood where the parser stopped. ~~|
   ::law~("add )" | parse !| /found | eq ")")
+
+:string/toNumber
+  |~~ Answers the number the whole text of the string writes as a
+      literal, `"42" | toNumber` answering `42` and `"-1.5e3"` answering
+      `-1500`: the way a number comes out of text, a field of JSON that
+      holds one among it, `/price | toNumber | mul 2`. Text that is no
+      literal of a number is refused whole, `"4x"`, `""` and `" 42"`
+      among it, so a space is cut first by `trim`; JSON text of any value
+      is read by `parseJson`. `toString` turns the number back into its
+      text.
+      ::link~(::number/toString | doc) ::link~(::string/trim | doc)
+      ::link~(::string/parseJson | doc)
+  ~~|
+  ::builtin{}
+
+:string/toNumber/answer
+  |~~ The number the text writes. ~~|
+  ::number
+
+:string/toNumber/TextNotNumberError
+  |~~ `toNumber` reads the whole text as the literal of a number, as a
+      query writes one, `"42"`, `"-1.5"`, `"2.5e-3"`: a space around it is
+      cut first by `trim`, `" 42" | trim | toNumber`, and a number among
+      other words is taken out first by `split`.
+  ~~|
+
+:string/toNumber/readsTheNumberItWrites
+  |~~ A string turns into the number it writes. ~~|
+  ::law~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
+
+:string/toNumber/readsBack
+  |~~ A number turned into its string turns back into itself. ~~|
+  ::law~(42 | toString | toNumber | eq 42)
+
+:string/toNumber/TextNotNumberError/refusesATextThatIsNoNumber
+  |~~ Text that is no number, or a number with a space around it, is refused. ~~|
+  ::law~(["4x" "" " 42"] | map ~(toNumber !| type) | eq [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError])
+
+:string/toKeyword
+  |~~ Answers the keyword the string names, `"draft" | toKeyword`
+      answering `:draft`: the bridge from text, JSON's among it, to
+      keywords, the keys of maps and the names of a scope. Any text names
+      a keyword: a slash makes a path, `:qlang/error`, and a space or the
+      empty text makes a quoted one, `:"a b"`. `toString` turns the
+      keyword back into the string.
+      ::link~(::keyword/toString | doc) ::link~(::keyword | doc)
+  ~~|
+  ::builtin{}
+
+:string/toKeyword/answer
+  |~~ The keyword the text names. ~~|
+  ::keyword
+
+:string/toKeyword/namesAKeyword
+  |~~ A string names the keyword of its text, a slash and a space kept. ~~|
+  ::law~(["foo" "qlang/error" "a b"] | map ~toKeyword | eq [:foo :qlang/error :"a b"])
+
+:string/toKeyword/readsBack
+  |~~ A string turned into a keyword turns back into itself. ~~|
+  ::law~("bar" | toKeyword | toString | eq "bar")
+
+:string/toKeyword/namesTheKeywordOfATaggedString
+  |~~ A string under a tag names the keyword of its text. ~~|
+  ::law~(::Name("ab") | toKeyword | eq :ab)
+
+:string/toTag
+  |~~ Answers the tag the string names, `"vec" | toTag` answering
+      `::vec`, so a kind named in text is asked as any tag is,
+      `"vec" | toTag | manifest`. The text is a name, or names joined by
+      `/`; text that names no tag is refused. `toString` turns the tag
+      back into its name.
+      ::link~(::tag/toString | doc) ::link~(::tag | doc)
+  ~~|
+  ::builtin{}
+
+:string/toTag/answer
+  |~~ The tag the text names. ~~|
+  ::tag
+
+:string/toTag/TextNotNameError
+  |~~ `toTag` reads the text as the name of a tag: names that begin with
+      a letter or `_`, joined by `/`, `"vec"`, `"number/add"`; a space,
+      the empty text and a name that begins with a digit name no tag.
+  ~~|
+
+:string/toTag/namesATag
+  |~~ A string names the tag of its text. ~~|
+  ::law~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
+
+:string/toTag/readsBack
+  |~~ A tag turned into its name turns back into itself. ~~|
+  ::law~(::vec | toString | toTag | eq ::vec)
+
+:string/toTag/TextNotNameError/refusesASpace
+  |~~ Text with a space names no tag. ~~|
+  ::law~("a b" | toTag !| type | eq ::string/toTag/TextNotNameError)
+
+:string/toString
+  |~~ Answers the string itself, so `map ~toString` turns the scalars of
+      a vector into strings whatever their kinds,
+      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`.
+      ::link~(::number/toString | doc) ::link~(::keyword/toString | doc)
+  ~~|
+  ::builtin{}
+
+:string/toString/answer
+  |~~ The string itself. ~~|
+  ::string
+
+:string/toString/answersItself
+  |~~ A string answers itself, so scalars of several kinds turn into strings. ~~|
+  ::law~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])

@@ -730,7 +730,7 @@
 
 :map/take/count/NotNumberError
   |~~ The count is a number, `{:a 1 :b 2 :c 3} | take 2`; text that holds one
-      is read by `parseJson` first, `take ("2" | parseJson)`.
+      is read by `toNumber` first, `take ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -787,7 +787,7 @@
 
 :map/drop/count/NotNumberError
   |~~ The count is a number, `{:a 1 :b 2 :c 3} | drop 2`; text that holds one
-      is read by `parseJson` first, `drop ("2" | parseJson)`.
+      is read by `toNumber` first, `drop ("2" | toNumber)`.
   ~~|
   ::holds~(is ::number)
 
@@ -854,7 +854,9 @@
 :map/at/key/NotKeywordOrStringError
   |~~ The key is a keyword or a string: a field is read by the keyword
       that names it, `at :email`, while `at /email` hands the value of the
-      field as the key, and `:actualValue` holds what it handed.
+      field as the key, and `:actualValue` holds what it handed. A number
+      that `indexBy` filed a record under is read by its keyword,
+      `at (/uid | toKeyword)`.
   ~~|
   ::holds~(is ::keyword ::string)
 
@@ -1068,7 +1070,7 @@
       payload]` reads a tagged value. `tag ::map` builds the map back, so
       a test of a key is `entries | filter ~(/0 | ne :tmp) | tag ::map`,
       and a key is spelled with its value by turning it to text first,
-      `map ~([(/0 | keyword) "@" /1] | join "")`. It takes no value, and
+      `map ~([(/0 | toString) "@" /1] | join "")`. It takes no value, and
       the empty map answers `[]`.
       ::link~(::map/keys | doc) ::link~(::map/construct | doc)
       ::link~(::tagged/payload | doc)
@@ -1090,7 +1092,7 @@
 
 :map/entries/spellsTheKeyWithTheValue
   |~~ The key and its value spell one string. ~~|
-  ::law~({:axios "^1.6.0"} | entries | map ~([(/0 | keyword) "@" /1] | join "")
+  ::law~({:axios "^1.6.0"} | entries | map ~([(/0 | toString) "@" /1] | join "")
     | eq ["axios@^1.6.0"])
 
 :map/entries/filtersByKeyAndBuildsBack
@@ -1127,7 +1129,8 @@
 
 :map/has/key/NotKeywordOrStringError
   |~~ The key is a keyword or a string, written as the keyword that names
-      it, `has :name`.
+      it, `has :name`; a number that `indexBy` filed a record under is
+      asked by its keyword, `has (/uid | toKeyword)`.
   ~~|
   ::holds~(is ::keyword ::string)
 
@@ -1382,3 +1385,18 @@
 :map/raise/ArgsBeyondPartsError/refusesAMessage
   |~~ A message given to `raise` is refused; the map holds it. ~~|
   ::law~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondPartsError)
+
+:map/toMap
+  |~~ Answers the map itself, so `map ~toMap` turns maps and vectors of
+      pairs into maps.
+      ::link~(::vec/toMap | doc)
+  ~~|
+  ::builtin{}
+
+:map/toMap/answer
+  |~~ The map itself. ~~|
+  ::map
+
+:map/toMap/answersItself
+  |~~ A map answers itself. ~~|
+  ::law~({:a 1} | toMap | eq {:a 1})

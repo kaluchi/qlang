@@ -13,7 +13,7 @@ import './format.mjs';
 import './predicates.mjs';
 import './control.mjs';
 import './raise.mjs';
-import './keyword.mjs';
+import './convert.mjs';
 import './tagged.mjs';
 import './quote-steps.mjs';
 import './verb.mjs';

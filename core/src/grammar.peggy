@@ -341,7 +341,7 @@ DocSlot
 // A body is a step read once after the whitespace before it: a keyword is
 // a body on the line of its declaration's name or doc [D66], since on a
 // later line it opens a declaration of its own, and a tag name, which
-// opens none [D152], is the body on a later line too [D154].
+// opens none [D152], is the body on a later line too [D66].
 Body
   = later:BodyBreak body:Step
     & { return body.type !== 'Keyword' || !later; }

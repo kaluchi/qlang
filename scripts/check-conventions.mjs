@@ -446,7 +446,8 @@ function brokenLinks() {
 // written after the record it pruned, while a record closed whole names
 // the records that carry it out, older ones among them; and a record in
 // force a newer one says it took a part of names that record in its own
-// line of fate [D227], [D237].
+// line of fate, unless the newer one merged into it and gave the part
+// back [D227], [D237].
 
 // The records a clause of a fate names, those before what it says of them.
 const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
@@ -473,7 +474,7 @@ function fatesOutOfStep() {
           const takenRecord = records.get(taken);
           if (takenRecord === undefined) violations.push({ name, problem: `says it took from ${taken}, which has no record` });
           else if (isWhole && !replacedWhole(takenRecord)) violations.push({ name, problem: `says it replaced ${taken} whole, which stands in force` });
-          else if (!isWhole && !replacedWhole(takenRecord) && !fatesOf(taken).flatMap(namedIn).includes(name)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
+          else if (!isWhole && !replacedWhole(takenRecord) && !fatesOf(taken).flatMap(namedIn).includes(name) && !records.get(name).mergedInto.includes(taken)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
         }
       }
     }

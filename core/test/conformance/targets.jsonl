@@ -3,7 +3,7 @@
 {"name":"a-verb-without-modifiers-runs-at-each-mention","query":":any/inc ~(add 1) | 5 | inc | inc","expect":"7","decision":"D67"}
 {"name":"a-verb-moved-left-answers-as-inline","query":":any/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | /items | take most","expect":"[1 2]","decision":["D44","D67"]}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x / | add 1 | x","expect":"42","decision":"D44"}
-{"name":"a-value-slot-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| type","expect":"::error","decision":["D13","D64"]}
+{"name":"a-value-part-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| type","expect":"::error","decision":["D13","D64"]}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc","decision":["D5","D36","D119"]}
 {"name":"a-binding-names-the-source-it-came-from","query":"::vec/filter | binding | /origin","expect":":qlang/vec","decision":"D5"}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | type","expect":"::string","decision":["D19","D95","D119"]}
@@ -51,9 +51,9 @@
 {"name":"a-declaration-names-a-kind","query":":s ::vec | env | /s | /value","expect":"::vec","decision":"D66"}
 {"name":"a-declaration-names-a-keyword","query":":status :active | env | /status | /value","expect":":active","decision":"D66"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)","decision":"D67"}
-{"name":"a-verb-takes-a-slot-by-its-declaration","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 2 | m 3","expect":"23","decision":"D67"}
-{"name":"an-optional-slot-takes-its-default","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
-{"name":"an-optional-slot-takes-a-modifier","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
+{"name":"a-verb-takes-a-part-by-its-declaration","query":":any/m ~(mul 10 | add x) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | 2 | m 3","expect":"23","decision":"D67"}
+{"name":"an-optional-part-takes-its-default","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top","expect":"[9 7 5]","decision":"D67"}
+{"name":"an-optional-part-takes-a-modifier","query":":any/top ~(sort | reverse | take n) | :any/top/n ~(at 0 3) | :any/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
 {"name":"a-contract-names-its-residences","query":"5 | count !| /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]","decision":"D67"}
 {"name":"a-member-answers-its-descriptor","query":"::vec/sort | binding | /value | type","expect":"::builtin","decision":"D164"}
@@ -93,7 +93,7 @@
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| /addresses","expect":"#[::doc/content]","decision":"D127"}
 {"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter /a !| [type /actualType]","expect":"[::vec/filter/predicate/NotQuoteError ::proj/IndexNotIntegerError]","decision":"D129"}
 {"name":"a-part-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f ~(apply q) | :any/f/q ~(/0) | :any/f/q/NotQuoteError ::holds~(is ::quote) | 1 | f /x !| type","expect":"::any/f/q/NotQuoteError","decision":["D129","D169"]}
-{"name":"a-slot-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
+{"name":"a-part-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take /x !| type","expect":"::proj/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| /message | contains \"#[\"","expect":"true","decision":"D127"}
 {"name":"a-pipe-after-a-combinator-names-its-place","query":"\"[1] !| | count\" | parse !| /message | contains \"in the place of\"","expect":"true","decision":"D127"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}

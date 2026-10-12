@@ -46,8 +46,8 @@
 {"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| /trail/-1/skipped","expect":"~(add 1)","decision":"D85"}
 {"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| /trail/-1/skipped | parse","expect":"\"map ~(add 1)\"","decision":["D85","D182"]}
 {"name":"runtime-error-printValue-post-m4-shape","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-slot-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error","decision":"D87"}
-{"name":"a-slot-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1} | raise) !| /trail | map ~/step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]","decision":"D87"}
+{"name":"a-part-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error","decision":"D87"}
+{"name":"a-part-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f ~([x]) | :any/f/x ~(/0) | 1 | f (!{:k 1} | raise) !| /trail | map ~/step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]","decision":"D87"}
 {"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]","decision":"D210"}
 {"name":"a-literal-answers-the-failure-a-word-answers","query":"[1 (\"x\" | add 1)] | count !| type","expect":"::number/add/SubjectNotNumberError","decision":"D210"}
 {"name":"map-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| [type (/trail | map ~/step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]","decision":"D103"}

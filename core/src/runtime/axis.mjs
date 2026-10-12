@@ -162,10 +162,10 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject,
 bindStateReader('any/doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 
-// The explanation of a value [D98]: the page `doc` reads for it,
-// null for a declaration without one, above the value itself, an error at
-// rest as `!|` caught it [D13], so an explanation prints as the page
-// above what it explains [D98].
+// The explanation of a value: the page `doc` reads for it, null for a
+// declaration without one, above the value itself, an error at rest as
+// `!|` caught it [D13], so an explanation prints as the page above what
+// it explains [D98].
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));

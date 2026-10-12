@@ -149,6 +149,6 @@ describe('HELP_TEXT and VERSION_LINE constants', () => {
   it('tells an input --json takes that does not parse as the refusal it answers, exit 0 as every answer [D7]', () => {
     const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
     expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');
-    expect(jsonMode).not.toMatch(/exit 1/);
+    expect(jsonMode).toContain('exit 0 as every answer');
   });
 });

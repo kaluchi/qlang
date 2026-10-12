@@ -1,5 +1,5 @@
-// The path of a failure [D13], written in flight: a failure lives in the
-// pipe alone [D13], and its `:trail` holds a stop at every step that
+// The path of a failure, written in flight: a failure lives in the pipe
+// alone [D13], and its `:trail` holds a stop at every step that
 // raised it or handed it on, `{:step :subject :skipped}`, from the step
 // where it arose to the `!|` that catches it, and a step it skips joins
 // the `:skipped` of the last stop. The helpers build a new error for

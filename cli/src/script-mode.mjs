@@ -47,9 +47,9 @@ function liftParsedDocument(parsed) {
 // answerText(value, env, budget, page) → the text the command line writes
 // for an answer [D214]: a string as it is, so `| json` writes JSON text
 // and `| table` a table, and any other value as its print, whole unless
-// the caller asked for a budget [D120], an error as its alert [D7], a
-// failure carrying the prose of its refusal's page below it as line
-// comments a reading of the literal passes over [D7].
+// the caller asked for a budget [D120], an error as its alert, a failure
+// carrying the prose of its refusal's page below it as line comments a
+// reading of the literal passes over [D7].
 export async function answerText(value, env, budget = null, page = null) {
   if (typeof value === 'string') return value;
   const printed = await printAnswer(elideAnswer(value, budget), env);

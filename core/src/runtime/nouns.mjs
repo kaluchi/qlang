@@ -229,9 +229,9 @@ export function pathNamesOf(env) {
 
 const PATH_NAMES = new WeakMap();
 
-// The kinds a verb is looked for on, from the outside in [D34]: the kind
-// of the value, the kind of every tagged value after a tag [D34], the
-// payload beneath a tag over a value, the kind of a vector or a map
+// The kinds a verb is looked for on, from the outside in: the kind of the
+// value, the kind of every tagged value after a tag [D34], the payload
+// beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].
 function* kindsOfWalk(subject) {
@@ -267,9 +267,9 @@ export function residenceOnSubject(env, verbName, subject) {
 }
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
-// first [D34], [D153]: the reader's declaration, the word residing on a
-// kind the walk of the subject reaches, the one word of the name residing
-// on a kind, which refuses a subject of another kind [D34], and for a
+// first [D153]: the reader's declaration, the word residing on a kind the
+// walk of the subject reaches, the one word of the name residing on a
+// kind, which refuses a subject of another kind [D34], and for a
 // name no kind answers the root's declaration [D169], but for a label of
 // the root, a kind or a topic, which its tag alone reaches [D191];
 // `{ record, underKind }`, or null when no record answers or words of

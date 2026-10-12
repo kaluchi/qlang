@@ -135,7 +135,7 @@ install` at the root links the workspaces; the Node floor is the
 - `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
   a set of tasks a clean author writes, clean children that solve it
   with the command line under a saved screen, the pages of the language
-  and the command line [D26], the grade by the tree, and the reading of
+  and the command line, the grade by the tree, and the reading of
   the misses, which marks the set seen [D26]. The usage is the header
   of the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the

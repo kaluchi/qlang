@@ -6,7 +6,7 @@ import { bindReaderOfPassedTags } from '../primitives.mjs';
 import { resumingItsTrail } from '../eval-trail.mjs';
 
 
-// The tag of the raised error is the one its value shows [D13]: the
+// The tag of the raised error is the one its value shows: the
 // outermost tag the walk passed, an opened error's among them, then the
 // one the map carries, then the kind of errors; every entry is a fact
 // [D13]. A map that writes `:trail` resumes that path [D13].

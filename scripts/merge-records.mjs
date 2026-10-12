@@ -13,8 +13,8 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
-import { FATE, recordPathOf, statementsOf } from './decision-records.mjs';
-import { CITING_DOCUMENTS } from './baseline-walk.mjs';
+import { FATE, LINK_DEFINITION, recordPathOf, statementsOf } from './decision-records.mjs';
+import { CITATION_IN_WORDS, CITING_DOCUMENTS } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -42,7 +42,6 @@ const rewrite = (path, change) => {
   return written !== text;
 };
 const order = name => (name.startsWith('E') ? 100000 : 0) + Number(name.slice(1));
-const DEFINITION = /^\[([DE]\d+)\]: /;
 const earlier = merged.filter(name => order(name) < order(survivor));
 if (earlier.length > 0) {
   console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [D237]`);
@@ -62,7 +61,7 @@ function cite(text, isRecord = false) {
   let prose = [];
   const flush = () => { if (prose.length > 0) written.push(...citeProse(prose.join('\n')).split('\n')); prose = []; };
   lines.forEach((line, index) => {
-    if (DEFINITION.test(line) || fate.has(index)) { flush(); written.push(line); } else prose.push(line);
+    if (LINK_DEFINITION.test(line) || fate.has(index)) { flush(); written.push(line); } else prose.push(line);
   });
   flush();
   return written.join('\n');
@@ -74,9 +73,9 @@ function cite(text, isRecord = false) {
 function citeProse(text) {
   let written = text;
   for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
-  // The form of a citation a document writes in words, `decision D46` or
-  // `decision D46`, which the walk reads beside the brackets.
-  written = written.replace(/\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g, (run, list) => {
+  // A citation a document writes in words, which the walk reads beside
+  // the brackets.
+  written = written.replace(CITATION_IN_WORDS, (run, list) => {
     const names = list.split(/,\s*| and /);
     if (!names.some(name => merged.includes(name))) return run;
     const kept = [...new Set(names.map(name => (merged.includes(name) ? survivor : name)))].sort((a, b) => order(a) - order(b));
@@ -99,13 +98,13 @@ function citeProse(text) {
 // loses its own, and the survivor it cites gains one among the others.
 function relink(path, text) {
   const lines = text.split('\n');
-  const body = lines.filter(line => !DEFINITION.test(line)).join('\n');
+  const body = lines.filter(line => !LINK_DEFINITION.test(line)).join('\n');
   const cites = name => body.includes(`[${name}]`);
-  let kept = lines.filter(line => !(DEFINITION.test(line) && merged.includes(line.match(DEFINITION)[1]) && !cites(line.match(DEFINITION)[1])));
-  if (cites(survivor) && !kept.some(line => line.startsWith(`[${survivor}]: `)) && lines.some(line => DEFINITION.test(line))) {
+  let kept = lines.filter(line => !(LINK_DEFINITION.test(line) && merged.includes(line.match(LINK_DEFINITION)[1]) && !cites(line.match(LINK_DEFINITION)[1])));
+  if (cites(survivor) && !kept.some(line => line.match(LINK_DEFINITION)?.[1] === survivor) && lines.some(line => LINK_DEFINITION.test(line))) {
     const definition = `[${survivor}]: ${posix.relative(posix.dirname(path), `docs/decisions/${survivor}.md`)}`;
-    const indices = kept.map((line, index) => (DEFINITION.test(line) ? index : -1)).filter(index => index !== -1);
-    const after = indices.find(index => order(kept[index].match(DEFINITION)[1]) > order(survivor));
+    const indices = kept.map((line, index) => (LINK_DEFINITION.test(line) ? index : -1)).filter(index => index !== -1);
+    const after = indices.find(index => order(kept[index].match(LINK_DEFINITION)[1]) > order(survivor));
     const at = after ?? (indices.length > 0 ? indices.at(-1) + 1 : kept.length);
     if (indices.length === 0) {
       while (kept.at(-1) === '') kept.pop();
@@ -120,13 +119,13 @@ for (const name of merged) {
   rewrite(recordPath(name), text => {
     if (new RegExp(`^Merged into \\[${survivor}\\]`, 'm').test(text)) return text;
     const lines = text.replace(/\n+$/, '').split('\n');
-    const firstLink = lines.findIndex(line => DEFINITION.test(line));
+    const firstLink = lines.findIndex(line => LINK_DEFINITION.test(line));
     const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
     const links = firstLink === -1 ? [] : lines.slice(firstLink);
     while (body.at(-1) === '') body.pop();
     body.push(`Merged into [${survivor}].`);
     if (!links.some(line => line.startsWith(`[${survivor}]:`))) {
-      const after = links.findIndex(line => DEFINITION.test(line) && order(line.match(DEFINITION)[1]) > order(survivor));
+      const after = links.findIndex(line => LINK_DEFINITION.test(line) && order(line.match(LINK_DEFINITION)[1]) > order(survivor));
       links.splice(after === -1 ? links.length : after, 0, `[${survivor}]: ${survivor}.md`);
     }
     return [...body, '', ...links, ''].join('\n');
@@ -149,17 +148,17 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
 // The documents the walk holds to the records in force [D226].
-const DOCUMENT = { test: path => CITING_DOCUMENTS.includes(path) };
+const isDocument = path => CITING_DOCUMENTS.includes(path);
 const RECORD_IN_FORCE = /^docs\/decisions\/[DE]\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs/decisions/${name}.md`);
 const touched = [];
-for (const path of tracked.filter(path => (ARTIFACT.test(path) && !path.startsWith('docs/')) || DOCUMENT.test(path) || (RECORD_IN_FORCE.test(path) && !isRecordMerged(path)))) {
+for (const path of tracked.filter(path => (ARTIFACT.test(path) && !path.startsWith('docs/')) || isDocument(path) || (RECORD_IN_FORCE.test(path) && !isRecordMerged(path)))) {
   const before = readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/);
   if (rewrite(path, text => (path.endsWith('.md') ? relink(path, cite(text, RECORD_IN_FORCE.test(path))) : cite(text)))) {
     touched.push(path);
     if (RECORD_IN_FORCE.test(path)) {
       const after = readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/);
-      after.forEach((line, index) => { if (!before.includes(line) && !DEFINITION.test(line)) console.log(`  ${path}:${index + 1}  ${line}`); });
+      after.forEach((line, index) => { if (!before.includes(line) && !LINK_DEFINITION.test(line)) console.log(`  ${path}:${index + 1}  ${line}`); });
     }
   }
 }

@@ -1,5 +1,5 @@
-// The screens a run hands a child [D26]: the pages of the language and
-// the command line as the tree printed them [D26], saved under a name,
+// The screens a run hands a child: the pages of the language and the
+// command line as the tree printed them [D26], saved under a name,
 // so a run states which pages it read and two runs compare two screens.
 // `none` is the empty screen, a child with no page.
 

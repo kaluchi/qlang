@@ -145,21 +145,9 @@
   |~~ A name declared again in its scope is refused. ~~|
   ::law~(:k 1 | :k 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :k])
 
-:bind/NameDeclaredTwiceError/refusesAPartDeclaredInTheBody
-  |~~ The body of a word declares none of its parts again. ~~|
-  ::law~(:number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :x])
-
 :bind/NameDeclaredTwiceError/letsAGroupDeclareAgain
   |~~ A group declares in a scope of its own, so it may name a name again. ~~|
   ::law~(:k 1 | (:k 2 | k) | eq 2)
-
-:bind/NameDeclaredTwiceError/refusesANameTheRootHolds
-  |~~ A reader declares no name the root holds. ~~|
-  ::law~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
-
-:bind/NameDeclaredTwiceError/extendsANounOfTheRoot
-  |~~ A reader extends a noun of the root by a name of its own. ~~|
-  ::law~(:vec/second ~(/1) | [1 2] | second | eq 2)
 
 :bind/NameDeclaredTwiceError/letsAnElementDeclareAgain
   |~~ A declaration inside an element stays in it. ~~|
@@ -172,3 +160,15 @@
 :bind/NameDeclaredTwiceError/letsAQuoteDeclareAgain
   |~~ A quote declares in a scope of its own. ~~|
   ::law~(:k 1 | apply ~(:k 2 | k) | eq 2)
+
+:bind/NameDeclaredTwiceError/refusesAPartDeclaredInTheBody
+  |~~ The body of a word declares none of its parts again. ~~|
+  ::law~(:number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :x])
+
+:bind/NameDeclaredTwiceError/refusesANameTheRootHolds
+  |~~ A reader declares no name the root holds. ~~|
+  ::law~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)
+
+:bind/NameDeclaredTwiceError/extendsANounOfTheRoot
+  |~~ A reader extends a noun of the root by a name of its own. ~~|
+  ::law~(:vec/second ~(/1) | [1 2] | second | eq 2)

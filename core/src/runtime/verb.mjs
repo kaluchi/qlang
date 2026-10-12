@@ -1,5 +1,5 @@
-// What a call reads of the kinds [D34]: the walk of a value's tags to a
-// kind a name serves, the value put under a tag through its label
+// What a call reads of the kinds: the walk of a value's tags to a kind a
+// name serves, the value put under a tag through its label
 // [D168], the answer kept as its subject's kind under the tags the walk
 // passed [D41], and the primitive a host handed run over the value the
 // walk served [D34].

@@ -162,7 +162,7 @@ function scanForbiddenWords() {
 // ── (3) A refusal is declared by its address ──────────────────
 //
 // A refusal's address is the one key the implementation and its page
-// in the catalog share [D46]: every declaration of a refusal and every
+// in the catalog share: every declaration of a refusal and every
 // recording of an address outside one takes it as a literal, the path of
 // the place that refused, a marked name such as `@out` among its names,
 // and a last name ending in `Error`, `vec/sum/ElementNotNumberError`, and

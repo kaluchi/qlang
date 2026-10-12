@@ -471,12 +471,11 @@ Naming is lexical: a binding sees itself and everything declared before
 it, and recursion through the pipeline value is correct. An error at
 rest is a value with a tag and a descriptor, its literal the bang,
 `!{…}`, and raised by `raise` it is a failure, which lives in the pipe
-alone and which `!|` alone catches [D13], and a host prints a
-failure as its error at rest under a line that says it was raised
-[D13]; its
-trail is the path it flew, a stop at every step that raised it or handed
-it on, and the steps its last stop skipped, applied to a fresh subject,
-replay them [D13]. A
+alone and which `!|` alone catches, and a host prints a failure as its
+error at rest under a line that says it was raised; its trail is the
+path it flew, a stop at every step that raised it or handed it on, and
+the steps its last stop skipped, applied to a fresh subject, replay them
+[D13]. A
 quote is code as a value, a doc is prose as a value, and a tag names the
 kind of a value and is stamped on it without changing its shape. The
 catalog is qlang source: every verb is a binding with its page and its
@@ -771,7 +770,7 @@ gives under its tag, which read back as they print [D164], [D166],
 [D167], [D168], [D173]. A name is read by its tag, and a keyword is data
 that names nothing [D221]; a word of the root reads the nouns of the
 root as the root holds them, and a kind a reader declared as the reader
-wrote it [D200], while what a word reads and runs as data, a page, a
+wrote it, while what a word reads and runs as data, a page, a
 law, code held as data, it reads in the tree of the query that called
 it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
@@ -1224,7 +1223,7 @@ sources declare as cells before a reader's first step, a source, a cell
 and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D34], [D153]; a tag in the subject position is dispatched to the noun
+[D34]; a tag in the subject position is dispatched to the noun
 it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A value the reader
 names takes any name, and a step that calls it on a subject a word of
@@ -1456,7 +1455,7 @@ parts, its refusals and its laws in that order [D179]; enrichment
 happens once per session; a value shared across kinds of record carries
 a tag of its own, as a field is a definition under its label [D50]; and
 the first screen, the pages
-of the language and of the command line [D26], told whole in the order
+of the language and of the command line, told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
 is measured on a set of tasks no reader has seen [D26], [D131].
 

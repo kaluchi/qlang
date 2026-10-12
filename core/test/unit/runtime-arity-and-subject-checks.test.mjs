@@ -144,7 +144,7 @@ describe('setops bare-form empty Vec', async () => {
 });
 
 describe('min/max subject type checks', async () => {
-  it('min and max on a non-container reach their contracts [D72]', async () => {
+  it('min and max on a value no kind of which answers them are refused with their addresses [D72]', async () => {
     for (const query of ['42 | min', '"hello" | max']) {
       const result = await evalQuery(query);
       expect(isErrorValue(result)).toBe(true);

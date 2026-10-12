@@ -543,9 +543,9 @@ DocQuoteTag
 
 // ── Literals ───────────────────────────────────────────────────────
 
-// An error literal, `!{…}`, and the literal of an error whose content
-// carries a tag, `::Tag!{…}`, the tag written before the bang: one
-// literal, so no tag stands over an error [D86].
+// An error literal, `!{…}`, the literal of an error at rest, and the
+// literal of one under a tag, `::Tag!{…}`, the tag written before the
+// bang and laid through its label [D211].
 ErrorLit
   = tag:ErrorLitTag? "!{" _ "}"
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }

@@ -118,7 +118,7 @@ describe('per-site error classes carry unique identity', () => {
   // `.originalError` for structured (`.name`, `.facts.*`,
   // `instanceof QlangError`) inspection.
 
-  it('count on a non-container reaches its contract, which names the residences [D72]', async () => {
+  it('count on a value no kind of which answers it is refused with the addresses of count [D72]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('KindAnswersNoVerbError');

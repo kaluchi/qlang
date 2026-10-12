@@ -75,7 +75,7 @@ function captureStreams(stdinPayload = '') {
 describe('main — flag dispatch', () => {
   it('returns exit 0 and writes the help banner on --help', async () => {
     const s = captureStreams();
-    const exitCode = await main(['--help'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['--help'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toMatch(/Usage:/);
     expect(s.stderrText()).toBe('');
@@ -83,7 +83,7 @@ describe('main — flag dispatch', () => {
 
   it('returns exit 0 and writes the version line on --version', async () => {
     const s = captureStreams();
-    const exitCode = await main(['--version'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['--version'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toMatch(/@kaluchi\/qlang-cli/);
     expect(s.stderrText()).toBe('');
@@ -91,7 +91,7 @@ describe('main — flag dispatch', () => {
 
   it('returns exit 2 and writes a usage hint on an empty argv slice', async () => {
     const s = captureStreams();
-    const exitCode = await main([], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main([], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(2);
     expect(s.stdoutText()).toBe('');
     expect(s.stderrText()).toMatch(/missing query/);
@@ -101,7 +101,7 @@ describe('main — flag dispatch', () => {
     const s = captureStreams('.exit\n');
     const exitCode = await main(
       ['--repl'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toMatch(/qlang.*>/);
@@ -115,20 +115,20 @@ describe('main — standard input read for a query that reads its subject', () =
 
   it('answers a query that reads no subject over a stdin that never ends', async () => {
     const s = captureStreams();
-    const exitCode = await main(['1 | add 1'], openStdin(), s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['1 | add 1'], openStdin(), s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('2\n');
   });
 
   it('reads stdin when `@in` is called by a query that reads no subject', async () => {
     const s = captureStreams('piped text');
-    await main(['"x" | @in'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['"x" | @in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('piped text\n');
   });
 
   it('refuses a query that does not parse without reading stdin', async () => {
     const s = captureStreams();
-    const exitCode = await main(['[1 2'], openStdin(), s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['[1 2'], openStdin(), s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
   });
 });
@@ -136,7 +136,7 @@ describe('main — standard input read for a query that reads its subject', () =
 describe('main — script mode auto-pipe', () => {
   it('starts from the default subject when stdin carries no bytes', async () => {
     const s = captureStreams();
-    const exitCode = await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('::tag\n');
   });
@@ -145,7 +145,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('{"user": {"name": "alice"}}');
     const exitCode = await main(
       ['/user/name'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('alice\n');
@@ -156,7 +156,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('{"a": {"b": 1, "c": 2}}');
     const exitCode = await main(
       ['/a'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('{:b 1 :c 2}\n');
@@ -164,13 +164,13 @@ describe('main — script mode auto-pipe', () => {
 
   it('prints a kind asked of a JSON input, which JSON has no form for [D214]', async () => {
     const s = captureStreams('{"a": 1}');
-    await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('::map\n');
   });
 
   it('writes JSON text for a query that ends in `| json` [D214]', async () => {
     const s = captureStreams('{"a": [1, 2]}');
-    await main(['/a | json'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['/a | json'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('[1,2]\n');
   });
 
@@ -178,7 +178,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('[1, 2, 3]');
     const exitCode = await main(
       ['count'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('3\n');
@@ -188,7 +188,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('plain text');
     const exitCode = await main(
       ['append " world"'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('plain text world\n');
@@ -199,7 +199,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
       ['--raw', 'append " done"'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('{"a":1} done\n');
@@ -209,7 +209,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams('not-json');
     const exitCode = await main(
       ['--json', '/x'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
@@ -220,7 +220,7 @@ describe('main — script mode auto-pipe', () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('3\n');
@@ -233,7 +233,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count | print | @out'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     // `@out` wrote '3\n' during eval — no trailing duplicate from
@@ -246,7 +246,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
       ['@in | @out'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('hello world\n');
@@ -256,7 +256,7 @@ describe('main — `@out` suppression of auto-encoded stdout', () => {
 describe('main — error paths', () => {
   it('returns exit 1 with a structured ::quote/ParseError!{…} diagnostic on stderr for a parse failure', async () => {
     const s = captureStreams();
-    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
     // Structured printValue form — `::quote/ParseError!{:expected …
@@ -272,7 +272,7 @@ describe('main — error paths', () => {
     // the document as text, and the `:path` the error carries
     // renders as the projection chain that reaches the slot.
     const s = captureStreams('{"big": 1e400, "n": 1}');
-    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toBe('');
     expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
@@ -283,7 +283,7 @@ describe('main — error paths', () => {
     // The whole document is the refused scalar, so `:path` is empty
     // and the diagnostic carries no chain to point at.
     const s = captureStreams('1e400');
-    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stderrText()).toContain('qlang: stdin: ::string/parseJson/NumberNotFiniteError');
     expect(s.stderrText()).not.toContain(' at /');
@@ -291,7 +291,7 @@ describe('main — error paths', () => {
 
   it('reports the same refusal under an explicit --json input mode', async () => {
     const s = captureStreams('{"deep": [0, 1e400]}');
-    const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stderrText()).toContain('at /deep/1');
   });
@@ -304,7 +304,7 @@ describe('main — error paths', () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add 1'],
-      s.stdinStream, s.stdoutStream, s.stderrStream
+      s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toContain('number/add/SubjectNotNumberError');
@@ -313,7 +313,7 @@ describe('main — error paths', () => {
 
   it('writes a failure with the prose of its refusal\'s page below it, as line comments [D195]', async () => {
     const s = captureStreams();
-    await main(['{:a 1} | /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['{:a 1} | /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
     expect(commentLines.length).toBeGreaterThan(1);
     expect(commentLines.every(line => line.length <= 72)).toBe(true);
@@ -322,7 +322,7 @@ describe('main — error paths', () => {
 
   it('writes a failure on a JSON input as its alert with the prose of its page [D214]', async () => {
     const s = captureStreams('{"a": 1}');
-    await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toMatch(/^\|~\| raised, and no !\| caught it\n::proj\/KeyNotInMapError!\{/);
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
@@ -330,7 +330,7 @@ describe('main — error paths', () => {
 
   it('writes a query that does not parse with the prose of its refusal\'s page below it, on stderr [D195]', async () => {
     const s = captureStreams();
-    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stderrText()).toContain('::quote/ParseError!{');
     expect(s.stderrText()).toContain('|~| The source does not read as qlang');
@@ -338,14 +338,14 @@ describe('main — error paths', () => {
 
   it('writes a failure whose refusal has no page as it is, under the line that says it was raised [D195], [D219]', async () => {
     const s = captureStreams();
-    await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['::Foo!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('::Foo!{');
     expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
 
   it('writes a failure of the kind of errors, which no site refused, as it is, under the line that says it was raised [D195], [D219]', async () => {
     const s = captureStreams();
-    await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    await main(['!{:a 1} | raise'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('!{');
     expect(s.stdoutText().split('\n').filter(line => line.startsWith('|~|'))).toEqual(['|~| raised, and no !| caught it']);
   });
@@ -382,7 +382,7 @@ describe('main — a query the shell turned into a path', () => {
 
   it('adds nothing to the failure of a query of the language', async () => {
     const s = captureStreams('{"a": 1}');
-    const exitCode = await main(['(1'], s.stdinStream, s.stdoutStream, s.stderrStream);
+    const exitCode = await main(['(1'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
     expect(s.stderrText()).not.toMatch(/the shell turned/);
   });

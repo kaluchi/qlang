@@ -3,10 +3,12 @@
 // length, one at least, and of those the nearest alone, in the order of
 // their spelling. An edit is an insertion, a deletion, a substitution or
 // a swap of two neighbours, the slips of a typing hand; beside them, the
-// names one of which begins the other.
+// names one of which begins the other, and the words the page of a word
+// the typed name begins with links [D242].
 
-import { keyword, makeTag } from './types.mjs';
-import { nodeAddresses, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { keyword, makeTag, isTag, isValueClass } from './types.mjs';
+import { addressesOf, nodeAddresses, nodeOf, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { splitAddress } from './address.mjs';
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -64,13 +66,49 @@ function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
+// The last name of the word a segment of a page links by the tag its
+// quote opens with, `::link~(::any/sumOf | doc)` linking `sumOf`, or null
+// for prose, a quote in another role and a link that opens with no tag.
+function linkedNameOf(segment) {
+  let beneath = segment;
+  let linking = false;
+  while (isValueClass(beneath, 'taggedInstance')) {
+    linking ||= beneath.tag.name === 'link';
+    beneath = beneath.payload;
+  }
+  return linking && isTag(beneath[0]) ? splitAddress(beneath[0].name)[1] : null;
+}
+
+// The words the page of a word the typed name begins with links, whose
+// names end as the typed name goes on past it in a tail of its own,
+// capitalised: `add` begins `addOf`, and its page links `sumOf`, the
+// word that adds two fields of one record [D242].
+function linkedFromBegun(env, typedName, names) {
+  const linked = [];
+  for (const name of names) {
+    const tail = typedName.slice(name.length);
+    if (!typedName.startsWith(name) || !/^\p{Lu}/u.test(tail)) continue;
+    for (const address of addressesOf(env, name)) {
+      for (const doc of nodeOf(env, address.name).get('docs')) {
+        for (const segment of doc) {
+          const linkedName = linkedNameOf(segment);
+          if (linkedName !== null && linkedName.endsWith(tail)) linked.push(linkedName);
+        }
+      }
+    }
+  }
+  return linked;
+}
+
 // The names near a typed one, a label of the root that is no word
 // written as its tag, and the tag first when the typed name is the
 // label's own.
 export function nearestNames(env, typedName) {
   const words = new Set(verbNames(env));
   const onlyItsTag = name => !env.has(name) && !words.has(name) && isLabel(env, name);
-  const near = nearestOf(namesOfSteps(env), typedName).map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
+  const spelled = nearestOf(namesOfSteps(env), typedName);
+  const near = [...new Set([...spelled, ...linkedFromBegun(env, typedName, spelled)])].sort()
+    .map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
   return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
 }
 

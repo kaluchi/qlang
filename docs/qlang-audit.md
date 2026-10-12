@@ -788,7 +788,9 @@ kind by a word of its own kind named for the kind it answers,
 word is written [D244]. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
-definitions of the catalog [D46]. The literal is the one lossless
+definitions of the catalog [D46], and a name no word answers is met
+with the names near it, by its spelling and by the links of the page of
+the word it begins with, `addOf` with `sumOf` [D242]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -1361,14 +1363,12 @@ Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
 work has begun meet their targets, the last of them the effect marker
-leaving the language [D2], and every other decision below writes its
-targets before its work; the targets the suite carries name the
-decisions whose work waits, the refusal of `addOf` that names `sumOf`
-[D242]:
+leaving the language [D2], so the suite carries no target unmet,
+and every other decision below writes its targets before its work:
 
 ```sh
-$ grep -rh '"target": *true' core/test/conformance | grep -oE '"decision": *"D[0-9]+"' | sort -u
-"decision":"D242"
+$ grep -rhoE '"target": *true' core/test/conformance | wc -l
+0
 ```
 
 ### Milestone 4 · One spelling

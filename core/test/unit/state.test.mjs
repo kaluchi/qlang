@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   rootState, withPipeValue, withEnv, nestState, EVAL_DEPTH_LIMIT,
-  envSet, envHas, envGet, envMerge
+  envSet, envHas, envMerge
 } from '../../src/state.mjs';
 import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 
@@ -15,7 +15,7 @@ describe('state.mjs env updaters', () => {
     const extended = envSet(initial, 'foo', 42);
     expect(initial.size).toBe(0);
     expect(extended.size).toBe(1);
-    expect(envGet(extended, 'foo')).toBe(42);
+    expect(extended.get('foo')).toBe(42);
     expect(envHas(extended, 'foo')).toBe(true);
     expect(envHas(extended, 'bar')).toBe(false);
   });
@@ -24,9 +24,9 @@ describe('state.mjs env updaters', () => {
     const base    = envSet(envSet(new Map(), 'a', 1), 'shared', 'base');
     const incoming = envSet(envSet(new Map(), 'b', 2), 'shared', 'incoming');
     const merged = envMerge(base, incoming);
-    expect(envGet(merged, 'a')).toBe(1);
-    expect(envGet(merged, 'b')).toBe(2);
-    expect(envGet(merged, 'shared')).toBe('incoming');
+    expect(merged.get('a')).toBe(1);
+    expect(merged.get('b')).toBe(2);
+    expect(merged.get('shared')).toBe('incoming');
   });
 });
 
@@ -41,7 +41,7 @@ describe('state.mjs frames', () => {
     expect(nextValue.depth).toBe(0);
     const nextEnv = withEnv(nextValue, envSet(root.env, 'x', 1));
     expect(nextEnv.pipeValue).toBe(42);
-    expect(envGet(nextEnv.env, 'x')).toBe(1);
+    expect(nextEnv.env.get('x')).toBe(1);
     expect(nextEnv.depth).toBe(0);
   });
 
@@ -50,7 +50,7 @@ describe('state.mjs frames', () => {
     const inner = nestState(root, 2, envSet(root.env, 'y', 2));
     expect(inner.depth).toBe(1);
     expect(inner.pipeValue).toBe(2);
-    expect(envGet(inner.env, 'y')).toBe(2);
+    expect(inner.env.get('y')).toBe(2);
     const deeper = nestState(inner, 3, inner.env);
     expect(deeper.depth).toBe(2);
   });

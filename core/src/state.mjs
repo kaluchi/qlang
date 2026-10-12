@@ -58,12 +58,6 @@ export function rootOf(env) {
   return env.get(ROOT_KEY) ?? NO_ROOT;
 }
 
-// envGet(env, name) → the value the frame holds under a name, else the
-// root's, or undefined.
-export function envGet(env, name) {
-  return env.has(name) ? env.get(name) : rootOf(env).get(name);
-}
-
 // envHas(env, name) → whether the frame or the root holds the name.
 export function envHas(env, name) {
   return env.has(name) || rootOf(env).has(name);

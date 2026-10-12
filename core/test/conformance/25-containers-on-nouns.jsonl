@@ -15,7 +15,7 @@
 {"name":"append-reruns-the-constructor-of-its-tag","query":":P |~~ P. ~~| | :P/construct ~(/) | ::P[1 2] | append 3 | type","expect":"::P","decision":"D41"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box(\"ab\") | append \"c\"","expect":"::Box\"abc\"","decision":["D34","D41"]}
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| type","expect":"::vec/union/ArgsBeyondPartsError","decision":["D16","D188"]}
-{"name":"the-contract-of-union-names-its-residences","query":"42 | union !| /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
+{"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]","decision":["D34","D67","D74"]}
 {"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type /actualType]","expect":"[::set/union/other/NotSetOrNullError ::vec]","decision":"D74"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError","decision":"D74"}

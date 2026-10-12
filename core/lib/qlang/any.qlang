@@ -1712,7 +1712,7 @@
   |~~ A field that may be missing is read with its default. ~~|
   ::law~({:x 1} | sumOf /x (at :y | coalesce 0) | eq 1)
 
-:any/sumOf/readsTextByParseJson
+:any/sumOf/readsTextByToNumber
   |~~ Text that holds a number is read first by `toNumber`. ~~|
   ::law~({:x "1" :y 2} | sumOf (/x | toNumber) /y | eq 3)
 

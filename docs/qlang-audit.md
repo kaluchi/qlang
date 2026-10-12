@@ -781,9 +781,9 @@ refused [D228], and an invariant holds of the values of a label, so one
 a bare name declares is refused where it stands [D229]; the body of a
 word runs in the scope its call opens with `args` and each part, and a
 step of the body declares none of them again [D71]. A comment is
-whitespace, and so is a line break wherever it stands, only a
-combinator joining two steps [D243], and a doc is the literal in the
-slot of the declaration it documents. A value turns into another
+whitespace, and so is a line break wherever it stands, a combinator
+joining two steps and whitespace a declaration as well [D243], and a
+doc is the literal in the slot of the declaration it documents. A value turns into another
 kind by a word of its own kind named for the kind it answers,
 `"42" | toNumber`, `1 | toKeyword`, and nothing converts where no such
 word is written [D244]. A pattern of text is a value of its own,
@@ -794,7 +794,9 @@ under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
 definitions of the catalog [D46], and a name no word answers is met
 with the names near it, by its spelling and by the links of the page of
-the word it begins with, `addOf` with `sumOf` [D242]. The literal is the one lossless
+the word it begins with, `addOf` with `sumOf` [D242], and a word the kind
+of its subject lacks with the words its pages lead to that the subject
+answers, `print` for the `toString` of a vector [D247]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -1210,8 +1212,8 @@ Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
 back. A map's elements are its values and its keys are the shape that
 travels with them; `entries` makes the keys data as the pairs `[key
-value]`, and the constructor of `::map` builds a map back from them
-[D138], a string naming a key wherever a key is taken [D139]:
+value]`, and `toMap` builds a map back from them [D138], [D244], a
+string naming a key wherever a key is taken [D139]:
 
 ```qlang
 > {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | toString)}) | sort ~(/port)
@@ -1968,3 +1970,4 @@ query that fails nothing.
 [D244]: decisions/D244.md
 [D245]: decisions/D245.md
 [D246]: decisions/D246.md
+[D247]: decisions/D247.md

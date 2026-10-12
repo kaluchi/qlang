@@ -7,7 +7,7 @@ import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf, queryTreeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
-import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
+import { nearestKeys, nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
@@ -495,7 +495,8 @@ async function callByName(lookupName, modifiers, state) {
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, actualValue: state.pipeValue });
+      const nearest = nearestWords(state.env, addresses, state.pipeValue);
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses

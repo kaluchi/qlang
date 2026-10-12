@@ -24,7 +24,7 @@
       against the subject, `{:first "Ann" :age 30} | {:who /first}`
       answering `{:who "Ann"}`. `map ~(…)` runs a step on each value
       under its key, `filter ~(…)` keeps the entries whose value holds,
-      and `tag ::map` builds a map back from its pairs.
+      and `toMap` builds a map back from its pairs.
       ::snippet~(::map | manifest) lists its words and refusals.
       ::link~(::keyword | doc) ::link~(::proj | doc)
       ::link~(::qlang/values | doc)
@@ -46,73 +46,36 @@
   |~~ A key written twice keeps the last value. ~~|
   ::law~("{:a 1 :a 2}" | parse | apply / | eq {:a 2})
 
-:map/buildsFromPairs
-  |~~ A vector of pairs under `::map` is a map. ~~|
-  ::law~([[:a 1] ["b" 2]] | tag ::map | eq {:a 1 :b 2})
-
 :map/buildsBackFromEntries
-  |~~ The entries of a map build it back. ~~|
-  ::law~({:a 1 :b 2} | entries | tag ::map | eq {:a 1 :b 2})
+  |~~ The entries of a map build it back by `toMap`. ~~|
+  ::law~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
 
 :map/construct
-  |~~ Reads a map as the bare map beneath its tags, and a vector or a set
-      of pairs `[key value]` as the map of those entries in their order, a
-      key written twice holding its last value.
-      ::link~(::map | doc) ::link~(::map/entries | doc)
+  |~~ Reads a map as itself. A map under a tag of its own gives the map
+      beneath by `payload`, and the pairs of a vector build a map by
+      `toMap`, each refused here.
+      ::link~(::map | doc) ::link~(::vec/toMap | doc)
+      ::link~(::tagged/payload | doc)
   ~~|
   ::builtin{}
 
 :map/PayloadNotMapError
-  |~~ `::map` reads a map as the map it is and a vector or a set as its
-      pairs; a payload of another kind is refused.
+  |~~ `::map` reads its payload as the map it is: the pairs of a vector
+      build a map by `toMap`, `entries | toMap`, and a map under a tag of
+      its own gives the map beneath by `payload`.
   ~~|
-
-:map/ElementNotPairError
-  |~~ Each element of the vector `::map` builds from is a pair `[key
-      value]`; `:index` names the first that is not.
-  ~~|
-
-:map/KeyNotKeywordError
-  |~~ The key of a pair is a keyword, or a string or a number naming the
-      keyword of its text; `:index` names the pair whose key is another
-      value.
-  ~~|
-
-:map/construct/readsTheMapBeneathItsTags
-  |~~ A map under a tag reads as the bare map. ~~|
-  ::law~(::map(::Box{:a 1}) | eq {:a 1})
-
-:map/construct/readsASetOfPairs
-  |~~ A set of pairs builds a map as a vector of them does. ~~|
-  ::law~(#[[:a 1]] | tag ::map | eq {:a 1})
-
-:map/construct/keepsTheLastValueOfAKeyWrittenTwice
-  |~~ A key written twice among the pairs holds its last value. ~~|
-  ::law~([[:a 1] [:a 2]] | tag ::map | eq {:a 2})
-
-:map/construct/namesAKeyByTheTextOfANumber
-  |~~ A number names the keyword of its text. ~~|
-  ::law~([[1 "x"]] | tag ::map | eq {:"1" "x"})
 
 :map/PayloadNotMapError/refusesANumber
   |~~ A number payload is refused. ~~|
   ::law~(::map(1) !| [type /actualType] | eq [::map/PayloadNotMapError ::number])
 
-:map/ElementNotPairError/refusesAPairOfOne
-  |~~ An element of one place is no pair, and is refused at its index. ~~|
-  ::law~([[:a 1] [:b]] | tag ::map !| [type /index] | eq [::map/ElementNotPairError 1])
+:map/PayloadNotMapError/refusesThePairsOfAVector
+  |~~ The pairs of a vector are refused; `toMap` builds them into a map. ~~|
+  ::law~([[:a 1]] | tag ::map !| [type /actualType] | eq [::map/PayloadNotMapError ::vec])
 
-:map/ElementNotPairError/refusesAPairOfThree
-  |~~ An element of three places is no pair either. ~~|
-  ::law~([[:a 1 2]] | tag ::map !| [type /index] | eq [::map/ElementNotPairError 0])
-
-:map/KeyNotKeywordError/refusesAVectorKey
-  |~~ A vector key is refused at its pair. ~~|
-  ::law~([[[1] 2]] | tag ::map !| [type /actualType /index] | eq [::map/KeyNotKeywordError ::vec 0])
-
-:map/KeyNotKeywordError/refusesABooleanKey
-  |~~ A boolean names no key. ~~|
-  ::law~([[true 1]] | tag ::map !| [type /actualType] | eq [::map/KeyNotKeywordError ::boolean])
+:map/PayloadNotMapError/refusesAMapUnderATag
+  |~~ A map under a tag of its own is refused; `payload` reads the map beneath. ~~|
+  ::law~(::map(::Box{:a 1}) !| [type /actualType] | eq [::map/PayloadNotMapError ::Box])
 
 :map/count
   |~~ Answers how many entries the map holds, `{:a 1 :b 2} | count`
@@ -495,7 +458,7 @@
       filter ~(gt 1)` answers `{:b 2 :c 3}`. The predicate is a quote the
       call gives, run on each value and not on its entry, so a test of a
       key reads the entries and builds the map back, `entries | filter
-      ~(/0 | ne :tmp) | tag ::map`, and a key leaves by `minus`. The
+      ~(/0 | ne :tmp) | toMap`, and a key leaves by `minus`. The
       predicate answers a boolean; any other answer is refused with the
       key of its entry. A vector and a set keep their elements by a
       `filter` of their own.
@@ -1067,12 +1030,12 @@
   |~~ Answers the vector of the pairs `[key value]` of the map, in the
       order of the entries, each key a keyword: the map with its keys as
       data, for a step that reads a key beside its value, as `[type
-      payload]` reads a tagged value. `tag ::map` builds the map back, so
-      a test of a key is `entries | filter ~(/0 | ne :tmp) | tag ::map`,
+      payload]` reads a tagged value. `toMap` builds the map back, so a
+      test of a key is `entries | filter ~(/0 | ne :tmp) | toMap`,
       and a key is spelled with its value by turning it to text first,
       `map ~([(/0 | toString) "@" /1] | join "")`. It takes no value, and
       the empty map answers `[]`.
-      ::link~(::map/keys | doc) ::link~(::map/construct | doc)
+      ::link~(::map/keys | doc) ::link~(::vec/toMap | doc)
       ::link~(::tagged/payload | doc)
   ~~|
   ::builtin{}
@@ -1097,7 +1060,7 @@
 
 :map/entries/filtersByKeyAndBuildsBack
   |~~ Entries filtered by key build back into a map. ~~|
-  ::law~({:a 1 :tmp 2} | entries | filter ~(/0 | ne :tmp) | tag ::map | eq {:a 1})
+  ::law~({:a 1 :tmp 2} | entries | filter ~(/0 | ne :tmp) | toMap | eq {:a 1})
 
 :map/entries/SubjectNotMapError/refusesAVector
   |~~ A vector has no entries. ~~|

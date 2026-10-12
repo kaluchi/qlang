@@ -95,7 +95,7 @@
   |~~ A keyword does not come after itself. ~~|
   ::law~(:a | gt :a | not)
 
-:keyword/gt/comparesTextTurnedByKeyword
+:keyword/gt/comparesTextTurnedIntoAKeyword
   |~~ Text turned by `toKeyword` compares with a keyword. ~~|
   ::law~("b" | toKeyword | gt :a)
 

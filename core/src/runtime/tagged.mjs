@@ -22,11 +22,12 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [D32], [D168]: each reads its
-// payload as the value of its kind, so `::vec[1 2]` and `[1 2]` are one
-// value and print as the latter, and a payload of
-// another kind is refused at the site. A vector or a map under a tag of
-// its own reads as the bare one.
+// The constructors of the core's kinds [D32], [D168]: each reads a
+// payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]` are
+// one value and print as the latter, and a payload of another kind is
+// refused at the site, a vector or a map under a tag of its own among
+// them, a set's and a quote's too: `payload` reads what stands beneath a
+// tag, and a word `toX` turns a value into another kind [D244].
 const NullPayloadNotNullError       = declareRefusal('null/PayloadNotNullError');
 const BooleanPayloadNotBooleanError = declareRefusal('boolean/PayloadNotBooleanError');
 const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberError');
@@ -37,15 +38,15 @@ const TagPayloadNotTagError         = declareRefusal('tag/PayloadNotTagError');
 const VecPayloadNotVecError         = declareRefusal('vec/PayloadNotVecError');
 const MapPayloadNotMapError         = declareRefusal('map/PayloadNotMapError');
 
-function coreKindConstructor(isOfKind, ErrorCls, bareValueOf = payload => payload) {
+function coreKindConstructor(isOfKind, ErrorCls) {
   return payload => {
     if (!isOfKind(payload)) throw new ErrorCls({ actualValue: payload });
-    return bareValueOf(payload);
+    return payload;
   };
 }
 
-const bareVecOf = vec => vec[TAG_HEADER_SYMBOL] === undefined ? vec : Object.freeze([...vec]);
-const bareMapOf = map => map[TAG_HEADER_SYMBOL] === undefined ? map : new Map(map);
+const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
+const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
@@ -62,33 +63,8 @@ bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadNotStri
 bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
 bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadNotRegexError));
 bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadNotTagError));
-bindPrim('vec/construct',     coreKindConstructor(isVec, VecPayloadNotVecError, bareVecOf));
-// `::map[…]` also builds a map from the vector of its pairs `[key
-// value]`, the reverse of `entries`, as a doc comes back from its
-// segments: a key is a keyword, or a string or a number naming the
-// keyword of its text, as the key of `groupBy` [D130], and of two pairs
-// with one key the last wins [D138].
-const MapElementNotPairError = declareRefusal('map/ElementNotPairError');
-const MapKeyNotKeywordError  = declareRefusal('map/KeyNotKeywordError');
-
-function keyNameOfPair(pairKey, index) {
-  if (isKeyword(pairKey)) return pairKey.name;
-  if (isString(pairKey) || isNumber(pairKey)) return String(pairKey);
-  throw new MapKeyNotKeywordError({ index, actualValue: pairKey });
-}
-
-export function mapConstructor(payload) {
-  if (isQMap(payload)) return bareMapOf(payload);
-  if (!isVec(payload)) throw new MapPayloadNotMapError({ actualValue: payload });
-  const built = new Map();
-  payload.forEach((pair, index) => {
-    if (!isVec(pair) || pair.length !== 2) throw new MapElementNotPairError({ index, actualValue: pair });
-    built.set(keyNameOfPair(pair[0], index), pair[1]);
-  });
-  return built;
-}
-
-bindPrim('map/construct', mapConstructor);
+bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadNotVecError));
+bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadNotMapError));
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [D140].

@@ -16,22 +16,32 @@
       keywords, by their characters.
 
       Its words read it whole or by its characters, `count`, `take`,
-      `drop`, `contains`, `startsWith`, `upper`, and break it, `split`
-      and `lines`, into a vector that `join` makes text again. `print`
-      turns any value into the text of its literal, `5 | print`
-      answering `"5"`, and `json` into JSON.
+      `drop`, `contains`, `startsWith`, `upper`, break it, `split` and
+      `lines`, into a vector that `join` makes text again, and read it by
+      a pattern, `match`, `capture`, `scan` and `replace`. A number, a
+      keyword, a tag name and a boolean turn into text by `toString`,
+      `5 | toString` answering `"5"`, while `print` writes any value as
+      its literal and `json` as JSON.
       ::snippet~(::string | manifest) lists its words and refusals.
-      ::link~(::keyword | doc) ::link~(::any/print | doc)
-      ::link~(::qlang/values | doc)
+      ::link~(::regex | doc) ::link~(::keyword | doc)
+      ::link~(::any/print | doc) ::link~(::qlang/values | doc)
   ~~|
 
 :string/isAString
   |~~ Text in quotes is a string. ~~|
   ::law~("x" | type | eq ::string)
 
-:string/isMadeByPrint
-  |~~ A value of another kind becomes text by `print`. ~~|
-  ::law~(5 | print | eq "5")
+:string/isMadeByToString
+  |~~ A number, a keyword, a tag name and a boolean become text by `toString`. ~~|
+  ::law~([5 :a ::vec true] | map ~toString | eq ["5" "a" "vec" "true"])
+
+:string/printsTheLiteral
+  |~~ `print` writes a value as its literal, a keyword with its colon. ~~|
+  ::law~([5 :a] | map ~print | eq ["5" ":a"])
+
+:string/readsTextByAPattern
+  |~~ A pattern reads text, its match and its groups. ~~|
+  ::law~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
 
 :string/buildsAString
   |~~ The constructor of a string answers it. ~~|
@@ -50,12 +60,13 @@
   ::builtin{}
 
 :string/PayloadNotStringError
-  |~~ `::string` reads its payload as the string it is; a value of
-      another kind becomes text by `print`.
+  |~~ `::string` reads its payload as the string it is; a number or a
+      keyword becomes text by `toString`, and any value its literal by
+      `print`.
   ~~|
 
 :string/PayloadNotStringError/refusesANumber
-  |~~ A number payload is refused; `print` makes text of a value. ~~|
+  |~~ A number payload is refused; `toString` makes text of a number. ~~|
   ::law~(::string(1) !| [type /actualType] | eq [::string/PayloadNotStringError ::number])
 
 :string/gt
@@ -448,7 +459,9 @@
   ::vec
 
 :string/split/separator
-  |~~ The string the subject is cut at, computed against the subject. ~~|
+  |~~ The text or the pattern the subject is cut at, computed against
+      the subject.
+  ~~|
   ~(/0)
 
 :string/split/separator/NotStringOrRegexError
@@ -464,7 +477,8 @@
 
 :string/split/SubjectNotStringError
   |~~ `split` cuts a string: a vector of strings splits by `map`,
-      `map ~(split ",")`, and a value becomes text by `print`.
+      `map ~(split ",")`, and a number or a keyword becomes text by
+      `toString`.
   ~~|
 
 :string/split/cutsAtEveryMatchOfAPattern
@@ -550,7 +564,8 @@
 
 :string/lines/SubjectNotStringError
   |~~ `lines` breaks a string: a vector of texts breaks by `map`,
-      `map ~lines`, and a value becomes text by `print`.
+      `map ~lines`, and a number or a keyword becomes text by
+      `toString`.
   ~~|
 
 :string/lines/ArgsBeyondPartsError
@@ -703,7 +718,7 @@
 
 :string/trim/SubjectNotStringError
   |~~ `trim` trims a string: a vector of strings trims by `map`,
-      `map ~trim`, and a value becomes text by `print`.
+      `map ~trim`, and a number or a keyword becomes text by `toString`.
   ~~|
 
 :string/trim/dropsTheWhitespaceAtTheEnds
@@ -753,7 +768,7 @@
   ::boolean
 
 :string/contains/needle
-  |~~ The text looked for, computed against the subject. ~~|
+  |~~ The text or the pattern looked for, computed against the subject. ~~|
   ~(/0)
 
 :string/contains/needle/NotStringOrRegexError
@@ -938,9 +953,9 @@
       `"world" | prepend "hello "` answering `"hello world"`. A string
       under a tag answers under the tag. The prefix is a string, or a
       keyword written as its name, `"x" | prepend :a` answering `"ax"`;
-      a value of another kind becomes text by `print` first, `prepend (n
-      | print)`. The name `prepend` also puts an element in front of a
-      vector, `[1] | prepend 0`.
+      a number becomes text by `toString` first, `prepend (n | toString)`.
+      The name `prepend` also puts an element in front of a vector,
+      `[1] | prepend 0`.
       ::link~(::string/append | doc) ::link~(::vec/prepend | doc)
   ~~|
   ::builtin{}
@@ -954,8 +969,8 @@
   ~(/0)
 
 :string/prepend/prefix/NotStringOrKeywordError
-  |~~ The prefix is a string, or a keyword written as its name; `print`
-      makes text of another value.
+  |~~ The prefix is a string, or a keyword written as its name; a number
+      becomes text by `toString`.
   ~~|
   ::holds~(is ::string ::keyword)
 
@@ -967,26 +982,25 @@
   |~~ A string under a tag answers under the tag. ~~|
   ::law~(::Box("b") | prepend "a" | eq ::Box("ab"))
 
-:string/prepend/prependsTheTextOfAValue
-  |~~ A value becomes text by `print` before it goes in front. ~~|
-  ::law~("x" | prepend (42 | print) | eq "42x")
+:string/prepend/prependsTheTextOfANumber
+  |~~ A number becomes text by `toString` before it goes in front. ~~|
+  ::law~("x" | prepend (42 | toString) | eq "42x")
 
 :string/prepend/writesAKeywordAsItsName
   |~~ A keyword goes in front as its name. ~~|
   ::law~("x" | prepend :a | eq "ax")
 
 :string/prepend/prefix/NotStringOrKeywordError/refusesANumber
-  |~~ A number prefix is refused; `print` makes it text. ~~|
+  |~~ A number prefix is refused; `toString` makes it text. ~~|
   ::law~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotStringOrKeywordError)
 
 :string/append
   |~~ Answers the string with the suffix the call gives after it, `"hello"
       | append " world"` answering `"hello world"`. A string under a tag
       answers under the tag. The suffix is a string, or a keyword written
-      as its name, `"x" | append :a` answering `"xa"`; a value of another
-      kind becomes text by `print` first, `append (n | print)`. The name
-      `append` also puts an element after the last of a vector, `[1] |
-      append 2`.
+      as its name, `"x" | append :a` answering `"xa"`; a number becomes
+      text by `toString` first, `append (n | toString)`. The name `append`
+      also puts an element after the last of a vector, `[1] | append 2`.
       ::link~(::string/prepend | doc) ::link~(::vec/append | doc)
   ~~|
   ::builtin{}
@@ -1000,8 +1014,8 @@
   ~(/0)
 
 :string/append/suffix/NotStringOrKeywordError
-  |~~ The suffix is a string, or a keyword written as its name; `print`
-      makes text of another value.
+  |~~ The suffix is a string, or a keyword written as its name; a number
+      becomes text by `toString`.
   ~~|
   ::holds~(is ::string ::keyword)
 
@@ -1013,16 +1027,16 @@
   |~~ A string under a tag answers under the tag. ~~|
   ::law~(::Box("a") | append "b" | eq ::Box("ab"))
 
-:string/append/appendsTheTextOfAValue
-  |~~ A value becomes text by `print` before it goes after. ~~|
-  ::law~("x" | append (42 | print) | eq "x42")
+:string/append/appendsTheTextOfANumber
+  |~~ A number becomes text by `toString` before it goes after. ~~|
+  ::law~("x" | append (42 | toString) | eq "x42")
 
 :string/append/writesAKeywordAsItsName
   |~~ A keyword goes after as its name. ~~|
   ::law~("x" | append :a | eq "xa")
 
 :string/append/suffix/NotStringOrKeywordError/refusesANumber
-  |~~ A number suffix is refused; `print` makes it text. ~~|
+  |~~ A number suffix is refused; `toString` makes it text. ~~|
   ::law~("x" | append 42 !| type | eq ::string/append/suffix/NotStringOrKeywordError)
 
 :string/parseJson
@@ -1076,7 +1090,7 @@
 
 :string/parseJson/readsANumber
   |~~ A JSON number reads as a number. ~~|
-  ::law~("42" | toNumber | eq 42)
+  ::law~("42" | parseJson | eq 42)
 
 :string/parseJson/readsAString
   |~~ A JSON string reads as a string. ~~|
@@ -1290,8 +1304,13 @@
 :string/toString
   |~~ Answers the string itself, so `map ~toString` turns the scalars of
       a vector into strings whatever their kinds,
-      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`.
+      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`. A
+      vector, a set, a map, null and a pattern have no `toString`: `print`
+      writes the literal of any value and `json` its JSON, while a quote
+      gives its text by `parse` and a doc its prose by `content`.
       ::link~(::number/toString | doc) ::link~(::keyword/toString | doc)
+      ::link~(::any/print | doc) ::link~(::any/json | doc)
+      ::link~(::quote/parse | doc) ::link~(::doc/content | doc)
   ~~|
   ::builtin{}
 
@@ -1302,6 +1321,10 @@
 :string/toString/answersItself
   |~~ A string answers itself, so scalars of several kinds turn into strings. ~~|
   ::law~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
+
+:string/toString/leadsAValueOfNoStringToItsText
+  |~~ A vector is led to `print` and `json`, and a quote to `parse` beside them. ~~|
+  ::law~([([1 2] | toString !| /nearest) (~(add 1) | toString !| /nearest)] | eq [[:json :print] [:json :parse :print]])
 
 :string/match
   |~~ Answers the first match of the pattern the call gives as a vector,
@@ -1423,8 +1446,8 @@
   ::law~("none" | scan #"\d" | eq [])
 
 :string/replace
-  |~~ Answers the text with every match of the pattern the call gives in
-      the place of the replacement: `"a-b-c" | replace "-" "+"` answers
+  |~~ Answers the text with the replacement the call gives in the place
+      of every match of the pattern: `"a-b-c" | replace "-" "+"` answers
       `"a+b+c"`. The pattern is a `#"…"` or a text looked for as it is. The
       replacement is a string, in which `$1`, `$<name>` and `$&` name a
       group, a named group and the whole match of a pattern, `"2026-10-12"
@@ -1482,6 +1505,10 @@
   |~~ A text is looked for and replaced as written, a dollar among it. ~~|
   ::law~("a.b.c" | replace "." "$&" | eq "a$&b$&c")
 
+:string/replace/cutsNoCharacterInHalves
+  |~~ The empty text stands between every two characters, an emoji whole among them. ~~|
+  ::law~("a😀" | [(replace "" "-") (replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
+
 :string/replace/runsCodeOnEachMatch
   |~~ Code answers the text that takes the place of each match. ~~|
   ::law~("2 and 30" | replace #"\d+" ~(/0 | toNumber | mul 2 | toString) | eq "4 and 60")
@@ -1491,32 +1518,75 @@
   ::law~("2" | replace #"\d" ~(/0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
 
 :string/toRegex
-  |~~ Answers the pattern whose source the string holds, its flags none,
-      `"\\d+" | toRegex` answering `#"\d+"`: a pattern kept in data or
-      built from parts. The string is read as a string reads, so its
-      backslashes are doubled where a literal `#"…"` writes one, and a
-      source the engine cannot read is refused with what the engine says.
-      ::link~(::regex | doc)
+  |~~ Answers the pattern whose source the string holds, with the flags
+      the call gives, none when it gives none: `"\\d+" | toRegex` answers
+      `#"\d+"` and `"error" | toRegex "i"` answers `#"error"i`, a pattern
+      kept in data or built from parts. The string is read as a string
+      reads, so its backslashes are doubled where a literal `#"…"` writes
+      one. A source that is no pattern is refused with the reason, and so
+      is a text that writes the literal of a pattern whole, as `json`
+      writes one, which `parse | apply /` reads.
+      ::link~(::regex | doc) ::link~(::string/parse | doc)
   ~~|
   ::builtin{}
 
 :string/toRegex/answer
-  |~~ The pattern the source writes. ~~|
+  |~~ The pattern the source writes, with its flags. ~~|
   ::regex
 
+:string/toRegex/flags
+  |~~ The flags of the pattern written in a string, none when the call
+      gives none, `toRegex "im"`.
+  ~~|
+  ~(at 0 "")
+
+:string/toRegex/flags/NotStringError
+  |~~ The flags are written in a string, `toRegex "i"`. ~~|
+  ::holds~(is ::string)
+
+:string/toRegex/flags/NotFlagsError
+  |~~ The flags are `i` to ignore case, `m` for `^` and `$` at every line
+      and `s` for a dot that matches a line break, each written once,
+      `toRegex "im"`.
+  ~~|
+
 :string/toRegex/TextNotPatternError
-  |~~ `toRegex` reads the string as the source of a pattern, and the
-      engine could not read it; what it says rides on `:message`.
+  |~~ `toRegex` reads the string as the source of a pattern, and it is
+      none: `:message` says why, and names the repair where the source
+      shows the habit of another dialect, flags written inside it or a
+      backslash before a character that needs none.
   ~~|
 
 :string/toRegex/TextNotPatternError/message
-  |~~ What the engine says of the source. ~~|
+  |~~ Why the source is no pattern, and its repair where one shows. ~~|
   ::string
+
+:string/toRegex/LiteralNotSourceError
+  |~~ `toRegex` reads the source of a pattern, and this text writes the
+      literal of one whole, `#"\d+"i`, as `json` writes a pattern: the
+      literal reads back by `parse | apply /`, its flags among it.
+  ~~|
 
 :string/toRegex/readsTheSource
   |~~ A string reads as the pattern whose source it holds. ~~|
   ::law~("a1" | contains ("\\d" | toRegex))
 
+:string/toRegex/takesTheFlags
+  |~~ The flags the call gives go with the pattern, in their order. ~~|
+  ::law~("error" | toRegex "si" | eq #"error"is)
+
+:string/toRegex/flags/NotFlagsError/refusesALetterOfNoFlag
+  |~~ A letter that is no flag is refused. ~~|
+  ::law~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)
+
 :string/toRegex/TextNotPatternError/refusesAnOpenGroup
   |~~ A source the engine cannot read is refused. ~~|
   ::law~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
+
+:string/toRegex/TextNotPatternError/namesTheFlagsAsAPart
+  |~~ Flags written inside the source are refused, the refusal naming the part. ~~|
+  ::law~("(?i)abc" | toRegex !| /message | contains "toRegex \"i\"")
+
+:string/toRegex/LiteralNotSourceError/refusesALiteral
+  |~~ The literal of a pattern is refused, and `parse | apply /` reads it. ~~|
+  ::law~(#"\d+"i | json | parseJson | [(toRegex !| type) (parse | apply /)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])

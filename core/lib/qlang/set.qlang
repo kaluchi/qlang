@@ -1591,14 +1591,22 @@
   |~~ Answers the vector of the set's elements in its order,
       `#[2 1] | toVec` answering `[1 2]`, a vector where a word of
       vectors keeps what it reads, `reverse` among them. `toSet` turns
-      the vector back into the set.
-      ::link~(::vec/toSet | doc)
+      the vector back into the set. A map has no `toVec`: its pairs are
+      `entries`, its keys `keys` and its values `vals`; and the characters
+      of a string are `split ""`.
+      ::link~(::vec/toSet | doc) ::link~(::map/entries | doc)
+      ::link~(::map/keys | doc) ::link~(::map/vals | doc)
+      ::link~(::string/split | doc)
   ~~|
   ::builtin{}
 
 :set/toVec/answer
   |~~ The vector of the elements. ~~|
   ::vec
+
+:set/toVec/leadsAMapToItsParts
+  |~~ A map is led to its pairs and its values, the words that answer a vector, and a string to `split`. ~~|
+  ::law~([({:a 1} | toVec !| /nearest) ("ab" | toVec !| /nearest)] | eq [[:entries :vals] [:split]])
 
 :set/toVec/readsBack
   |~~ A set turned into a vector turns back into itself. ~~|

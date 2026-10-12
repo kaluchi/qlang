@@ -285,3 +285,27 @@ The catalog answers by ef006452, and the audit and this ledger by the commit tha
 14. The order of the evaluator's names and of the laws of a refusal. Answered by 9554c9d4 for the check beside the declaration, the name of the args before its use and spelt once, and by 70f2458c for the laws.
 15. A sentence cited one record more than once. Answered by 9554c9d4 and 70f2458c, the other such sentences of the tree found by a search and written so.
 16. The help's test held the old text gone, and the refusal of a pipe after a combinator dropped the catch. Answered by 70f2458c for the test and by 48323e7a for the refusal, which names `a !| b`.
+
+## 2026-10-13 · the open questions walked
+
+[2026-10-13-the-open-questions-walked.md](2026-10-13-the-open-questions-walked.md), at 5ddc5d45, over master..5ddc5d45.
+
+1. The names near an unknown name read the links of a page by a walk of their own beside `holdsRole`. Answered: `doc.mjs` exports the reader of the links of a page, which `doc/links` and the names near an unknown name both call.
+2. `toMap` and `toVec` stand beside the constructors of `::map` and `::vec`, which still convert, D138 unpruned and the first page teaching `tag ::map`. Answered: the constructors of `::map` and `::vec` read their own kind alone, `toMap` refuses under `::vec/toMap/…`, the first page and the pages of `::map` write `entries | toMap`, and D244 prunes D138.
+3. The refusal of a pattern quotes the engine's literal, and its hint reads V8's words. Answered: the refusal keeps the engine's reason without its literal and reads the repair of a habit from the source, and the case asks the tag and that no literal of the engine stands in `:message`.
+4. `replace` of the empty text by a string splits a character of two code units. Answered: a text is looked for by code points on both paths, held by the law `:string/replace/cutsNoCharacterInHalves` and a case.
+5. A pattern written by JSON and read back by `toRegex` is another pattern, in silence. Answered: `toRegex` refuses a text that writes the literal of a pattern whole, `::string/toRegex/LiteralNotSourceError`, naming `parse | apply /`, and the law `:regex/readsBackFromJson` reads the literal JSON wrote.
+6. The literal reads groups of flags and group names written twice, which D246 sets aside. Answered: the literal refuses a group of flags and a group name written twice on every host, and D246 names the dialect of 2018.
+7. The refusals of `toString` on a container and `toVec` on a map name no word that does the act. Answered by D247: the refusal leads by `:nearest` to the words the pages of the word link that the subject answers in a kind the word answers.
+8. The law of `parseJson` reading a number runs `toNumber`. Answered: the law runs `parseJson`.
+9. Two laws are named for words that left. Answered: `:any/sumOf/readsTextByToNumber` and `:keyword/gt/comparesTextTurnedIntoAKeyword`.
+10. The page of `replace` puts the matches where the replacement goes. Answered: the page puts the replacement in the place of every match.
+11. The pages of strings teach `print` where D244 has `toString`. Answered: the pages of strings, of docs and of `join` name `toString` for a scalar and `print` for the literal of any value, and their laws follow.
+12. The pages of the parts that take a pattern speak of text alone. Answered: the parts take a text or a pattern.
+13. The page of `::string` leads to no word that reads text by a pattern. Answered: the page of `::string` names the words that read text by a pattern and links `::regex`, with its law.
+14. `toRegex` makes no flags. Answered: `toRegex` takes its flags as a part, `"error" | toRegex "i"`, held by the check of a literal's flags.
+15. Three sentences have only a combinator join two steps, which a declaration does by whitespace. Answered: the audit, the grammar and D243 join steps by a combinator and a declaration by whitespace as well.
+16. The editor's hand-written grammar gains the pattern. Set aside: without the rule the string rule of the editor's grammar paints the `\d` of a pattern as an escape a string refuses; the rule leaves with the scar, once the editor's grammar is made from the parser's tokens.
+17. The core grows by the pattern and the conversions, and the branch names no deletion. Set aside: the growth buys the pattern and the conversions, the branch having deleted `keyword`, the constructors that converted and the twin rules of a line, and no deletion follows from either.
+
+The tree answers by the commit that keeps this review.

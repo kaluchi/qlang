@@ -69,8 +69,10 @@ async function replacedByCode(text, engine, code) {
 }
 
 // A pattern's replacement names the parts of a match, `$1`, `$<name>`,
-// `$&`; a text's stands as written.
+// `$&`; a text's stands as written. A text is looked for by code points
+// as a pattern is, so the empty text cuts no character in halves.
 bindPrim('string/replace', (text, pattern, replacement) => {
-  if (typeof replacement === 'function') return replacedByCode(text, isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern), replacement);
-  return isRegex(pattern) ? text.replace(engineFor(pattern, 'g'), replacement) : text.replaceAll(pattern, () => replacement);
+  const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
+  if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
+  return text.replace(engine, isRegex(pattern) ? replacement : () => replacement);
 });

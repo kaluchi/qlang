@@ -6,8 +6,9 @@
 // names one of which begins the other, and the words the page of a word
 // the typed name begins with links [D242].
 
-import { keyword, makeTag, isTag, isValueClass } from './types.mjs';
-import { addressesOf, nodeAddresses, nodeOf, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { keyword, makeTag } from './types.mjs';
+import { addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { linkedAddressesOf } from './runtime/doc.mjs';
 import { splitAddress } from './address.mjs';
 
 function editDistance(typed, known) {
@@ -66,19 +67,6 @@ function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
-// The last name of the word a segment of a page links by the tag its
-// quote opens with, `::link~(::any/sumOf | doc)` linking `sumOf`, or null
-// for prose, a quote in another role and a link that opens with no tag.
-function linkedNameOf(segment) {
-  let beneath = segment;
-  let linking = false;
-  while (isValueClass(beneath, 'taggedInstance')) {
-    linking ||= beneath.tag.name === 'link';
-    beneath = beneath.payload;
-  }
-  return linking && isTag(beneath[0]) ? splitAddress(beneath[0].name)[1] : null;
-}
-
 // The words the page of a word the typed name begins with links, whose
 // names end as the typed name goes on past it in a tail of its own,
 // capitalised: `add` begins `addOf`, and its page links `sumOf`, the
@@ -90,10 +78,8 @@ function linkedFromBegun(env, typedName, names) {
     if (!typedName.startsWith(name) || !/^\p{Lu}/u.test(tail)) continue;
     for (const address of addressesOf(env, name)) {
       for (const doc of nodeOf(env, address.name).get('docs')) {
-        for (const segment of doc) {
-          const linkedName = linkedNameOf(segment);
-          if (linkedName !== null && linkedName.endsWith(tail)) linked.push(linkedName);
-        }
+        const linkedNames = linkedAddressesOf(doc).map(linkedAddress => splitAddress(linkedAddress)[1]);
+        linked.push(...linkedNames.filter(linkedName => linkedName.endsWith(tail)));
       }
     }
   }
@@ -122,4 +108,27 @@ export function nearestTagNames(env, typedName) {
 // near the names of the scope [D203].
 export function nearestKeys(map, typedKey) {
   return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
+}
+
+// The kinds the words at the addresses answer, a word of any value aside.
+const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => answerOf(env, address)?.kinds ?? []).filter(kind => kind !== 'any'));
+
+// nearestWords(env, addresses, subject) → the names the pages of the words
+// at the addresses link whose words the subject answers, each a word that
+// answers a kind those words answer: the act a step meant by a word the
+// kind of its subject lacks, under the name the kind keeps it by, `print`
+// for the `toString` of a vector [D247].
+export function nearestWords(env, addresses, subject) {
+  const kinds = answeredKinds(env, addresses.map(address => address.name));
+  const names = new Set();
+  for (const address of addresses) {
+    for (const doc of nodeOf(env, address.name).get('docs')) {
+      for (const linked of linkedAddressesOf(doc)) {
+        const name = splitAddress(linked)[1];
+        const word = residenceOnSubject(env, name, subject);
+        if (word !== null && [...answeredKinds(env, [word.get('name').name])].some(kind => kinds.has(kind))) names.add(name);
+      }
+    }
+  }
+  return Object.freeze([...names].sort().map(name => keyword(name)));
 }

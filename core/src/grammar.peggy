@@ -1,10 +1,11 @@
 // PEG grammar for the qlang expression language.
 //
 // A step is a command, a name followed by its modifiers, each one word
-// [D10]. A line break is whitespace wherever whitespace stands, so only a
-// combinator joins two steps, and a keyword that begins a line opens a
-// declaration of its own, which ends the modifiers of a command before it
-// [D243]. Every combinator is set off by whitespace on both sides.
+// [D10]. A line break is whitespace wherever whitespace stands, so a
+// combinator joins two steps and whitespace a declaration as well, and a
+// keyword that begins a line opens a declaration of its own, which ends
+// the modifiers of a command before it [D243]. Every combinator is set off
+// by whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass

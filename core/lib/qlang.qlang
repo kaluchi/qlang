@@ -106,7 +106,7 @@
       A map's elements are its values, the keys travelling with them:
       `{:a 1 :b 5} | filter ~(gt 2)` answers `{:b 5}`, and
       `{:a 1 :b 5} | map ~(add 1)` answers `{:a 2 :b 6}`. `keys` answers
-      its keys, and `entries` the pairs `[key value]`, which `tag ::map`
+      its keys, and `entries` the pairs `[key value]`, which `toMap`
       builds back into a map. One order ranks every value, so anything
       sorts: null, then booleans, numbers, strings, keywords, vectors,
       sets, maps. `desc` turns a key to descend:
@@ -255,7 +255,7 @@
 
 :qlang/buildsAMapFromEntries
   |~~ Entries build back into the map. ~~|
-  ::law~({:a 1} | entries | tag ::map | eq {:a 1})
+  ::law~({:a 1} | entries | toMap | eq {:a 1})
 
 :qlang/folds
   |~~ `reduce` folds the elements from a seed. ~~|

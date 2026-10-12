@@ -98,12 +98,17 @@
   ::set
 
 :error/nearest
-  |~~ The names nearest in spelling to the name, the key or the tag a
-      step missed, those it could have meant: within a slip of the typing
-      hand, an insertion, a deletion, a substitution or a swap of two
-      neighbours, up to a third of its length and one at least, the
-      nearest of them alone, and beside them a name that begins it or
-      that it begins, three letters at least, `multiply` for `mul`; in the
+  |~~ The names a step could have meant where it missed. For a name, a
+      key or a tag nothing declares, those nearest in spelling: within a
+      slip of the typing hand, an insertion, a deletion, a substitution or
+      a swap of two neighbours, up to a third of its length and one at
+      least, the nearest of them alone; beside them a name that begins it
+      or that it begins, three letters at least, `multiply` for `mul`; and
+      the words the page of a word it begins with links whose names end as
+      it goes on, `sumOf` for `addOf`. For a word the kind of the subject
+      lacks, the words the pages of the word lead to that the subject
+      answers and that answer a kind the word answers, `print` and `json`
+      for the `toString` of a vector. In the
       order of their spelling, and `[]` where none is near.
   ~~|
   ::vec

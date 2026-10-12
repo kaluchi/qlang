@@ -4,13 +4,12 @@
 // itself, and what a word cannot read whole it refuses under its address
 // [D244].
 
-import { keyword, makeTag, makeSet, makeRegex, isString, isNumber, isBoolean, isKeyword, isTag, NULL } from '../types.mjs';
-import { patternProblem } from '../pattern.mjs';
+import { keyword, makeTag, makeSet, makeRegex, isString, isNumber, isBoolean, isKeyword, isTag, isVec, NULL } from '../types.mjs';
+import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { parse } from '../parse.mjs';
-import { mapConstructor } from './tagged.mjs';
 
 // keywordFiledFor(value) → the keyword a value files under as a key, or
 // null for a value no key names: a keyword itself, a string or a number
@@ -28,16 +27,19 @@ bindPrim(['string/toString', 'number/toString', 'keyword/toString', 'tag/toStrin
 
 bindPrim(['keyword/toKeyword', 'string/toKeyword', 'number/toKeyword', 'boolean/toKeyword', 'null/toKeyword', 'tag/toKeyword'], keywordFiledFor);
 
-// The number a text writes whole as the literal of a number, or null.
-function numberWritten(text) {
+// The node of a literal of the kind a text writes whole, or null.
+function literalWritten(text, nodeType) {
   let ast;
   try {
     ast = parse(text);
   } catch {
     return null;
   }
-  return ast.type === 'NumberLit' && ast.text === text ? ast.value : null;
+  return ast.type === nodeType && ast.text === text ? ast : null;
 }
+
+// The number a text writes whole as the literal of a number, or null.
+const numberWritten = text => literalWritten(text, 'NumberLit')?.value ?? null;
 
 const StringToNumberTextNotNumberError = declareRefusal('string/toNumber/TextNotNumberError');
 const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameNotNumberError');
@@ -67,17 +69,42 @@ bindPrim('keyword/toTag', key => {
   return makeTag(key.name);
 });
 
-// A string reads as the source of a pattern, its flags none [D246].
+// A string reads as the source of a pattern with the flags the call
+// gives, none by default, and a text that writes the literal of a pattern
+// whole, as JSON writes one, is refused, its reading being `parse` [D246].
 const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
+const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
+const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
 
 bindPrim('regex/toRegex', regex => regex);
-bindPrim('string/toRegex', text => {
-  const problem = patternProblem(text, '');
-  if (problem !== null) throw new StringToRegexTextNotPatternError({ message: problem, actualValue: text });
-  return makeRegex(text, '');
+bindPrim('string/toRegex', (text, written) => {
+  const flags = canonicalFlags(written);
+  if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
+  if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
+  const problem = patternProblem(text, flags);
+  if (problem !== null) throw new StringToRegexTextNotPatternError({ message: textRefusal(problem), actualValue: text });
+  return makeRegex(text, flags);
 });
 
 bindPrim(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));
 bindPrim('set/toSet', set => set);
 bindPrim('vec/toSet', vector => makeSet(vector));
-bindPrim(['map/toMap', 'vec/toMap'], mapConstructor);
+// The map a vector's pairs `[key value]` write, the reverse of `entries`:
+// each key named as `toKeyword` names it, and of two pairs with one key
+// the last holds [D138].
+const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
+const VecToMapKeyNotKeywordError = declareRefusal('vec/toMap/KeyNotKeywordError');
+
+function mapOfPairs(pairs) {
+  const built = new Map();
+  pairs.forEach((pair, index) => {
+    if (!isVec(pair) || pair.length !== 2) throw new VecToMapElementNotPairError({ index, actualValue: pair });
+    const key = keywordFiledFor(pair[0]);
+    if (key === null) throw new VecToMapKeyNotKeywordError({ index, actualValue: pair[0] });
+    built.set(key.name, pair[1]);
+  });
+  return built;
+}
+
+bindPrim('map/toMap', map => map);
+bindPrim('vec/toMap', mapOfPairs);

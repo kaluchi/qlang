@@ -1,7 +1,7 @@
 |~ `::desc`, the kind of a value turned to descend, whose place in the
    one order is the reverse of its payload's, and what is declared under
    it: its constructor and the comparisons of values turned.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :desc
   |~~ A desc turns a value to descend: among values of this kind the one

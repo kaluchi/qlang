@@ -1,7 +1,7 @@
 |~ `::explanation`, the kind of what `explain` answers, the page `doc`
    reads for a value and the value itself, and what is declared under
    it: the words that read it.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :explanation
   |~~ An explanation sets a value beside the page that explains it, the

@@ -1,5 +1,5 @@
 |~ `::link`, the kind of a link, and the laws declared under it.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :link
   |~~ A link is a query a page names for its reader to follow to another

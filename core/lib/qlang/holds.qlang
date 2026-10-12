@@ -1,6 +1,6 @@
 |~ `::holds`, the kind of an invariant, and the laws declared under it.
 
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :holds
   |~~ An invariant is a query the values of a label keep, written as a

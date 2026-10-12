@@ -1,6 +1,6 @@
 |~ `::fail`, the step `!|` runs on an error alone, and what is declared
    under it: its constructor and its refusals.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :fail
   |~~ The fail track, `a !| b`: the step `b` runs on a failure alone,

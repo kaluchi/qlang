@@ -1,6 +1,6 @@
 |~ `::bind`, the step that declares a name, and what is declared under
    it: its constructor and the refusals of a declaration.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :bind
   |~~ A declaration, `:name body`, names a value for the steps after it,

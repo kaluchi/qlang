@@ -1,6 +1,6 @@
 |~ `::proj`, the step that reads a part of a value, and what is declared
    under it: its constructor and the refusals of a read that misses.
-   The decisions it exists for: [D114], [D189]. ~|
+   The decisions it exists for: [D189]. ~|
 
 :proj
   |~~ A projection, `/a/0/b`, reads a part of the value in the pipe by

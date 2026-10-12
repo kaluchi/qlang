@@ -765,35 +765,36 @@ The repairs since have settled most of what grew around the core. Code
 is the vector of its steps, every step a command. There is one binding
 form, a name is declared once in a scope, and a verb is a name under the
 label of its subject, a host's primitive or a quote, the parts of its
-args names under its address with their laws, its args the values a
-call gives under its tag, which read back as they print [D164], [D166],
-[D167], [D168], [D173]. A name is read by its tag, and a keyword is
-data that names nothing [D221]; a word of the root reads the nouns of
-the root as the root holds them, and a kind a reader declared as the
-reader wrote it [D222]; a value takes any name, and a step where it
-meets a word its subject answers is refused [D223], a fold calling its
-word by its name or its address [D224]. Two values of a key that file
-under one keyword meet in `groupBy` and `indexBy` and are refused
-[D228], and an invariant holds of the values of a label, so one a bare
-name declares is refused where it stands [D229]. A comment is
+args names under its address with their laws, its args the values a call
+gives under its tag, which read back as they print [D164], [D166],
+[D167], [D168], [D173]. A name is read by its tag, and a keyword is data
+that names nothing [D221]; a word of the root reads the nouns of the
+root as the root holds them, and a kind a reader declared as the reader
+wrote it [D222], while what a word reads and runs as data, a page, a
+law, code held as data, it reads in the tree of the query that called
+it, as a word of the host does [D236]; a value takes any name, and a
+step where it meets a word its subject answers is refused [D223], a fold
+calling its word by its name or its address [D224]. Two values of a key
+that file under one keyword meet in `groupBy` and `indexBy` and are
+refused [D228], and an invariant holds of the values of a label, so one
+a bare name declares is refused where it stands [D229]. A comment is
 whitespace, and a doc the literal in the slot of the declaration it
-documents. One order ranks every value, the set is
-the ordered vector under its tag, every value has a kind, and every
-condition is a boolean. A refusal is named by the address of the word
-that refused, its facts definitions of the catalog [D172]. The literal
-is the one lossless format [D30], the catalog is the reference of the
-language [D128], and its first page tells the language whole, in the
-order its parts rest on each other, the argument model one rule [D185];
-the forms a clean session reached for and missed
-became the language's where they composed with it [D132], [D133],
-[D138], [D140]. The benchmark measures the pages a child lands on,
-those of the language and of the command line [D216], on sets of tasks
-a clean author writes and no one has read [D142], each measurement read
-beside the one before it [D183]. The command line writes every answer
-on stdout with the code 0, a failure among them, a query that does not
-parse and an input that does not read among those, a defect of the
-runtime alone stopping the calls beside it [D232]. What those repairs
-left is what the scars below describe.
+documents. One order ranks every value, the set is the ordered vector
+under its tag, every value has a kind, and every condition is a boolean.
+A refusal is named by the address of the word that refused, its facts
+definitions of the catalog [D172]. The literal is the one lossless
+format [D30], the catalog is the reference of the language [D128], and
+its first page tells the language whole, in the order its parts rest on
+each other, the argument model one rule [D185]; the forms a clean
+session reached for and missed became the language's where they composed
+with it [D132], [D133], [D138], [D140]. The benchmark measures the pages
+a child lands on, those of the language and of the command line [D216],
+on sets of tasks a clean author writes and no one has read [D142], each
+measurement read beside the one before it [D183]. The command line
+writes every answer on stdout with the code 0, a failure among them, a
+query that does not parse and an input that does not read among those, a
+defect of the runtime alone stopping the calls beside it [D232]. What
+those repairs left is what the scars below describe.
 
 ## The scars
 
@@ -1982,3 +1983,4 @@ the command line without them.
 [D233]: decisions/D233.md
 [D234]: decisions/D234.md
 [D235]: decisions/D235.md
+[D236]: decisions/D236.md

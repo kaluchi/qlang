@@ -5,6 +5,7 @@
 // walk served [D73].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
+import { queryStateOf } from '../state.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
 import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf, verbsReaching } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -78,10 +79,11 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 
 // A primitive runs over the value the walk served and the values of the
 // parts of the call's args, a reader of the scope over the state of
-// the call after them [D79], and a reader of the tags its subject stood
+// the call after them, its scope the tree of the query, wherever it is
+// called [D79], [D236], and a reader of the tags its subject stood
 // beneath over the tags the walk passed [D86].
 export function runPrimitive(primitive, served, passedTags, partValues, state) {
-  if (readsState(primitive)) return primitive(served, ...partValues, state);
+  if (readsState(primitive)) return primitive(served, ...partValues, queryStateOf(state));
   if (readsPassedTags(primitive)) return primitive(served, ...partValues, passedTags);
   return primitive(served, ...partValues);
 }

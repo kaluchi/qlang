@@ -7,7 +7,7 @@
 // root [D153].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
-import { ROOT_KEY } from './env-keys.mjs';
+import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
 
 // The deepest frame `nestState` admits: a runaway, a word that calls
 // itself without end, is refused on the frame past it, and the host's
@@ -63,9 +63,33 @@ export function envHas(env, name) {
   return env.has(name) || rootOf(env).has(name);
 }
 
-// envSet(env, name, value) → a new scope, the name holding the value.
+// queryTreeOf(env) → the tree of names of the query a scope runs under:
+// in the body of a word, the tree of the query that called it, carried
+// down through every word the body calls, and elsewhere the scope itself.
+// What a step reads and runs as data reads it, while the names a body
+// writes read the body's scope, so a word written in the language and a
+// word of the host read the same tree [D236].
+export function queryTreeOf(env) {
+  return env.get(QUERY_KEY) ?? env;
+}
+
+// queryStateOf(state) → the state as a word of the host reads it at its
+// call: its value and its depth over the tree of the query [D236].
+export function queryStateOf(state) {
+  const tree = queryTreeOf(state.env);
+  return tree === state.env ? state : withEnv(state, tree);
+}
+
+// envSet(env, name, value) → a new scope, the name holding the value; in
+// the body of a word the reader declared, the tree of the query takes the
+// name too, as the steps written inline in a group would see it, and the
+// body of a word of the root keeps its own names out of it, as a word of
+// the host does [D222], [D236].
 export function envSet(env, name, value) {
-  return asScopeOf(env, new Map(env).set(name, value));
+  const next = asScopeOf(env, new Map(env).set(name, value));
+  const query = env.get(QUERY_KEY);
+  if (query !== undefined && !isRootWordScope(env)) next.set(QUERY_KEY, envSet(query, name, value));
+  return next;
 }
 
 // The scopes of the words of the root, where a bare name and the

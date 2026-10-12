@@ -39,3 +39,7 @@
 {"name":"a-value-of-the-reader-meets-a-word-the-reader-declared","query":":vec/second ~(/1) | :second 5 | [(4 | second) ([7 8 9] | second !| /addresses)]","expect":"[5 #[::vec/second]]","decision":"D223"}
 {"name":"a-field-of-a-label-is-a-definition-under-it-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | [(::Box | manifest) (::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]","decision":"D50"}
 {"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(/w | is ::number) | :Box/area ~(mulOf /w /h) !| [type /name]","expect":"[::bind/InvariantNotUnderLabelError :Box]","decision":"D229"}
+{"name":"a-value-of-the-reader-reaches-no-name-a-word-of-the-root-writes","query":":laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | [(/0 | content) (/1)]","expect":"[\" K. \" {}]","decision":["D222","D236"]}
+{"name":"the-names-a-word-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| type","expect":"::any/doc/UnknownNameError","decision":"D236"}
+{"name":"a-word-the-reader-declares-reads-its-own-declarations-as-data","query":":x 1 | :any/names ~(:y 2 | env | [(has :y) (has :x)]) | names","expect":"[true true]","decision":"D236"}
+{"name":"code-held-as-data-runs-in-the-tree-of-the-query","query":":any/run ~(apply code) | :any/run/code ~(/0) | :x 5 | \"x | add 1\" | parse | :q / | null | run q","expect":"6","decision":"D236"}

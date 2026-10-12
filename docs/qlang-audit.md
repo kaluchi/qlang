@@ -9,7 +9,7 @@ satisfactory, why the code falls short of it, what has been decided,
 where the work ends, and by which route it gets there. It was first
 written in September 2026, and each version since holds the text
 against the tree the repairs of the one before left. This, the
-eleventh, holds it against commit `2388dd8`, its baseline: a scar the
+twelfth, holds it against commit `4dc957d`, its baseline: a scar the
 tree no longer shows has left the document, what remains of a scar is
 stated as it stands, the route starts from the baseline, and every
 probe answers as the tree answered on the day this version was
@@ -332,7 +332,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `2147bab` for this
+against the baseline of the version at hand, commit `4dc957d` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -816,7 +816,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 12 October 2026
+shell with the `qlang` command or in its REPL, and on 13 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -856,7 +856,7 @@ and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
 helpers of `problems`, since a word under a topic serves the topic's
-values alone [D166]. In the sister project, on 12 October 2026:
+values alone [D166]. In the sister project, on 13 October 2026:
 
 ```sh
 $ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
@@ -1289,8 +1289,8 @@ them may name them otherwise.
   lines and has one pipeline production. The parser's tree, with
   positions and text, is a separate view for tools and never reaches a
   value.
-- Values: the set of values, null, boolean, number, string, keyword,
-  tag name, vector, map and tagged value; tags with their schemas and
+- Values: the set of values, null, boolean, number, string, pattern,
+  keyword, tag name, vector, map and tagged value; tags with their schemas and
   constructors; the one order; structural equality; the printer of the
   literal.
 - The evaluator: the state pair, the fork, the combinators as
@@ -1362,7 +1362,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `2147bab`, and the finish
+The start is the tree of the baseline, commit `4dc957d`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,

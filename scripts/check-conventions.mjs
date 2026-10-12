@@ -66,6 +66,8 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
+import { readDecisionRecords, replacedWhole } from './decision-records.mjs';
+import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -415,6 +417,64 @@ function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
 }
 
+// ── (9b) The links of the documents ────────────────────────────
+//
+// A link of a document to a file of markdown, its definition `[D44]:
+// D44.md` or its inline form, leads to a file the tree holds, so the graph
+// of the records walks from any document into the past [D58], [D237].
+
+const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
+
+function brokenLinks() {
+  const violations = [];
+  const documents = execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  for (const path of documents) {
+    const text = readFileSync(join(repoRoot, path), 'utf8');
+    for (const match of text.matchAll(MARKDOWN_LINK)) {
+      const target = match[1];
+      if (/^[a-z]+:/i.test(target) || target.startsWith('/')) continue;
+      if (existsSync(join(repoRoot, dirname(path), target))) continue;
+      violations.push({ path, line: text.slice(0, match.index).split('\n').length, target });
+    }
+  }
+  return violations;
+}
+
+// ── (9c) The fates of the records ──────────────────────────────
+//
+// A line of fate names records the tree holds, a record that took a part
+// written after the record it pruned, while a record closed whole names
+// the records that carry it out, older ones among them; and a record in
+// force a newer one says it took a part of names that record in its own
+// line of fate [D227], [D237].
+
+function fatesOutOfStep() {
+  const records = readDecisionRecords(repoRoot);
+  const textOf = name => readFileSync(records.get(name).path, 'utf8');
+  const citedIn = line => [...line.matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
+  const fateLines = text => text.split(/\r?\n/).filter(line => /^(Replaced by|Pruned of what) /.test(line));
+  const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
+  const violations = [];
+  for (const [name, record] of records) {
+    const text = textOf(name);
+    for (const line of fateLines(text)) {
+      for (const taker of citedIn(line.split(', under which')[0])) {
+        if (!records.has(taker)) violations.push({ name, problem: `names ${taker} in its fate, which has no record` });
+        else if (line.startsWith('Pruned of what') && number(name) !== null && number(taker) !== null && number(taker) < number(name)) violations.push({ name, problem: `says ${taker} took a part of it, written before it` });
+      }
+    }
+    for (const line of text.split(/\r?\n/).filter(text => text.startsWith('Replaces in part '))) {
+      for (const taken of citedIn(line.split(/, under which|, whose/)[0])) {
+        const takenRecord = records.get(taken);
+        if (takenRecord === undefined || replacedWhole(takenRecord)) continue;
+        const named = fateLines(textOf(taken)).flatMap(citedIn);
+        if (!named.includes(name)) violations.push({ name, problem: `says it took a part of ${taken}, whose fate names it not` });
+      }
+    }
+  }
+  return violations;
+}
+
 // ── (10) The marks of the artifacts ────────────────────────────
 //
 // Every module, script, test file, source of qlang and workflow names
@@ -437,6 +497,8 @@ const undecided = recordsWithoutDecider();
 const unwalked = baselineDrift();
 const unmarked = unmarkedArtifacts();
 const misplaced = misplacedRecords();
+const broken = brokenLinks();
+const outOfStep = fatesOutOfStep();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -447,7 +509,9 @@ if (forbidden.length === 0
     && undecided.length === 0
     && unwalked.length === 0
     && unmarked.length === 0
-    && misplaced.length === 0) {
+    && misplaced.length === 0
+    && broken.length === 0
+    && outOfStep.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -506,6 +570,16 @@ if (misplaced.length > 0) {
   process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
   for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
   process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [D237].\n');
+}
+if (broken.length > 0) {
+  process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
+  for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
+  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D58], [D237].\n');
+}
+if (outOfStep.length > 0) {
+  process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
+  for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
+  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [D227], [D237].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

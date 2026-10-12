@@ -82,9 +82,11 @@
   }
 
   // A combinator after a combinator is the habit of a pipe before every
-  // step: the second stands in the place of the first [D46].
+  // step, which gives way to the combinator before it, so `!| |` keeps the
+  // catch; a combinator stands once between two steps [D46].
   function refuseCombinatorAfterCombinator(first, second) {
-    error(`\`${second}\` stands in the place of \`${first}\`, not after it: write \`a ${second} b\``);
+    if (second === '|') error(`\`|\` written after \`${first}\` is the habit of a pipe before every step: write \`a ${first} b\``);
+    error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
   }
 
   // How deep the parser is in a `~(…)` of a doc it tries as code: there
@@ -339,9 +341,9 @@ DocSlot
     { return [first, ...rest]; }
 
 // A body is a step read once after the whitespace before it: a keyword is
-// a body on the line of its declaration's name or doc [D66], since on a
-// later line it opens a declaration of its own, and a tag name, which
-// opens none [D152], is the body on a later line too [D66].
+// a body on the line of its declaration's name or doc, since on a later
+// line it opens a declaration of its own, and a tag name, which opens
+// none [D152], is the body on a later line too [D66].
 Body
   = later:BodyBreak body:Step
     & { return body.type !== 'Keyword' || !later; }

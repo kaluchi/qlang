@@ -25,7 +25,8 @@ qlang '::qlang | doc' the language.
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure
               hand the raw text to the query as a string
-  --json      stdin must be JSON; exit 1 when it does not parse
+  --json      stdin must be JSON; a text that does not parse answers
+              ::string/parseJson/TextNotJsonError, exit 0 as every answer
   --raw       skip parsing — stdin is the string subject
 
 Output budget:
@@ -69,7 +70,7 @@ const COLOR_MODES = new Set(['auto', 'always', 'never']);
 //   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
 // the format of the input `auto`, `json` or `raw`, the colour `auto`,
 // `always` or `never`, and the budget null or the characters every
-// answer prints within [D120], [D184].
+// answer prints within [D7], [D120].
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';

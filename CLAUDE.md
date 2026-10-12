@@ -182,8 +182,9 @@ it; where a rule and the audit disagree, the audit wins.
 ## Change workflow
 
 - A branch is a shift: it takes the scars of its shift, is named after
-  them, and lands on master at every move of the baseline, the strategy
-  of the merge asked first, so master is the clean desk [D227]. Never
+  them, and lands on master at every move of the baseline by a merge
+  commit, made locally with no question asked where no pull request is
+  open, so master is the clean desk [D227], [D230]. Never
   commit code on master; a change to documents alone lands without a
   branch. A branch states in its description what it shows when it
   lands. The sign of its diff by
@@ -199,8 +200,7 @@ it; where a rule and the audit disagree, the audit wins.
 - Tests first for any new public surface. `npm run ci` green before a
   push.
 - Commit on request. Push only on an explicit invitation. Never amend.
-  Ask which merge strategy to use before merging. Delete the branch
-  after the merge, locally and on the remote.
+  Delete the branch after the merge, locally and on the remote.
 - Write the decisions as files under `docs/decisions/` in the same
   session as the work, prune in the same commit the part of an older
   record a new one takes, found by a search of the records' words, so a

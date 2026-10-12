@@ -68,7 +68,7 @@
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6","decision":"D81"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6","decision":["D11","D81"]}
 {"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true","decision":"D81"}
-{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\"","decision":["D19","D70","D81","D119"]}
+{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\"","decision":["D5","D19","D81","D119"]}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| /) | first | /docs | first | type","expect":"::doc","decision":"D83"}
 {"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError","decision":"D83"}
 {"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\" note \"","decision":["D19","D83","D119"]}

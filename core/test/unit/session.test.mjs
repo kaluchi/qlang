@@ -54,7 +54,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(84);
   });
 
-  it('a cell opens a scope of its own, where a later cell declares a name again [D44]', async () => {
+  it('a cell opens a scope of its own, where a later cell declares a name again [D5]', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':k 1');
     const cellEntry = await sessionInstance.evalCell(':k 2 | k');

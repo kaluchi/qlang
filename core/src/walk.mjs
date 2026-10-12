@@ -158,7 +158,7 @@ function repeatedDeclarationsOf(pipeline) {
 }
 
 // repeatsDeclarationInScope(bindStep) — whether an earlier step of the
-// declaration's scope declares its name [D44], [D71].
+// declaration's scope declares its name [D5], [D71].
 export function repeatsDeclarationInScope(bindStep) {
   return bindStep.parent?.type === 'Pipeline' && repeatedDeclarationsOf(bindStep.parent).has(bindStep);
 }

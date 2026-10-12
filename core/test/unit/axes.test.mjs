@@ -1,5 +1,5 @@
 // The axes — `source`, `doc`, `binding` project the record a
-// declaration wrote into its scope [D63].
+// declaration wrote into its scope [D5].
 
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
@@ -229,7 +229,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 
   it('a host binding is a record with no source and no docs', async () => {
     // `session.bind` writes the record of a binding without a
-    // declaration behind it [D63], which the axes project.
+    // declaration behind it [D5], which the axes project.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInstalled', null);
@@ -248,7 +248,7 @@ describe('::name | binding | /value answers the value of the declaration', () =>
 
   it('the record of a freeze holds the value', async () => {
     // `:name /` writes the record of a binding under :name in env
-    // [D63], which `binding` reads.
+    // [D5], which `binding` reads.
     expect(await evalQuery('42 | :answer / | ::answer | binding | /value')).toBe(42);
   });
 });

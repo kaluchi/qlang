@@ -1,5 +1,5 @@
 // The axes, each a passage from a name to its declaration
-// [D61], the record the declaration wrote into its scope [D63]: a
+// [D61], the record the declaration wrote into its scope [D5]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
 // name the node of the tree it addresses, `::vec/count` or
 // `::qlang/values` [D153], a record the binding it records, and every

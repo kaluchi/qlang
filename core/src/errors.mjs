@@ -107,6 +107,6 @@ export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError'
 // recursion of the query (`state.mjs`).
 export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationDepthExceededError');
 
-// A declaration of a name an earlier step of its scope declared [D44],
+// A declaration of a name an earlier step of its scope declared [D5],
 // [D71], or of an address the root holds [D153].
 export const BindNameDeclaredTwiceError = declareRefusal('bind/NameDeclaredTwiceError');

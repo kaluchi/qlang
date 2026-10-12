@@ -1,4 +1,4 @@
-{"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9","decision":"D70"}
+{"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9","decision":"D5"}
 {"name":"a-required-part-left-out-is-refused-by-its-name","query":":number/m ~(add x) | :number/m/x ~(/0) | :number/m/x/NotNumberError ::holds~(is ::number) | 5 | m !| type","expect":"::number/m/x/NotGivenError","decision":"D166"}
 {"name":"a-name-refuses-modifiers-beyond-its-places","query":":number/m ~(add x) | :number/m/x ~(/0) | :number/m/x/NotNumberError ::holds~(is ::number) | 5 | m 1 2 3 !| [type /places]","expect":"[::number/m/ArgsBeyondPartsError 1]","decision":"D166"}
 {"name":"a-part-is-held-to-the-law-of-its-kind","query":":number/m ~(add x) | :number/m/x ~(/0) | :number/m/x/NotNumberError ::holds~(is ::number) | 5 | m \"a\" !| type","expect":"::number/m/x/NotNumberError","decision":"D169"}
@@ -42,11 +42,11 @@
 {"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]","decision":"D67"}
 {"name":"a-part-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice ~(apply f | apply f) | :any/twice/f ~(/0) | :any/twice/f/NotQuoteError ::holds~(is ::quote) | 1 | [(twice ~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":"D67"}
 {"name":"an-optional-part-takes-a-map-by-default","query":":any/m ~(opts | /limit) | :any/m/opts ~(at 0 {:limit 2}) | :any/m/opts/NotMapError ::holds~(is ::map) | null | m","expect":"2","decision":"D67"}
-{"name":"a-literal-that-computes-inside-begins-the-body","query":":vec/m ~(:opts {:n (count)} | opts) | [1 2] | m","expect":"{:n 2}","decision":"D70"}
-{"name":"a-body-names-a-value-derived-from-a-part","query":":vec/m ~(:limit (k | mul 2) | take limit) | :vec/m/k ~(/0) | :vec/m/k/NotNumberError ::holds~(is ::number) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]","decision":"D70"}
+{"name":"a-literal-that-computes-inside-begins-the-body","query":":vec/m ~(:opts {:n (count)} | opts) | [1 2] | m","expect":"{:n 2}","decision":"D5"}
+{"name":"a-body-names-a-value-derived-from-a-part","query":":vec/m ~(:limit (k | mul 2) | take limit) | :vec/m/k ~(/0) | :vec/m/k/NotNumberError ::holds~(is ::number) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]","decision":"D5"}
 {"name":"an-optional-part-takes-a-vector-by-default","query":":any/m ~(xs | count) | :any/m/xs ~(at 0 [1 2]) | :any/m/xs/NotVecError ::holds~(is ::vec) | null | [m (m [5])]","expect":"[2 1]","decision":"D67"}
-{"name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self / | [self self]) | 5 | pair","expect":"[5 5]","decision":"D70"}
-{"name":"a-body-names-its-subject-before-a-step","query":":number/scale ~(:self / | mul k | add self) | :number/scale/k ~(/0) | :number/scale/k/NotNumberError ::holds~(is ::number) | 5 | scale 2","expect":"15","decision":"D70"}
+{"name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self / | [self self]) | 5 | pair","expect":"[5 5]","decision":"D5"}
+{"name":"a-body-names-its-subject-before-a-step","query":":number/scale ~(:self / | mul k | add self) | :number/scale/k ~(/0) | :number/scale/k/NotNumberError ::holds~(is ::number) | 5 | scale 2","expect":"15","decision":"D5"}
 {"name":"a-verb-body-shadows-a-name-of-its-scope","query":":n 1 | :any/f ~(n) | :any/f/n ~(at 0 2) | :any/f/n/NotNumberError ::holds~(is ::number) | null | [f n]","expect":"[2 1]","decision":"D71"}
 {"name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair ~([a b]) | :any/pair/a ~(/0) | :any/pair/b ~(/1) | 5 | pair (add 1) (mul 2)","expect":"[6 10]","decision":"D12"}
 {"name":"a-modifier-sees-no-name-another-declared","query":":any/pair ~([a b]) | :any/pair/a ~(/0) | :any/pair/b ~(/1) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError","decision":"D12"}

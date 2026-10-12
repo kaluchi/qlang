@@ -93,7 +93,7 @@ export function isTag(v) {
 
 // ── binding / quote predicates ────────────────────────────────
 
-// The record a declaration writes into its scope [D63]: the name, the
+// The record a declaration writes into its scope [D5]: the name, the
 // docs of its slot, the value, the quote of the declaring step and its
 // origin, the source or the cell it was read from [D153], under the kind
 // `::binding`. A binding with no declaration behind it, a value a host
@@ -143,7 +143,7 @@ export function makeQuote(steps, ast = undefined) {
 
 // A quote written as a modifier carries the scope of its call [D43], one
 // written as the body of a reader's declaration that of its declaration
-// [D44], and one a source of the root declared the frame of the source's
+// [D5], and one a source of the root declared the frame of the source's
 // bare values over the root [D200], on a JS-internal slot; a quote held as
 // data carries none and runs where it is applied.
 const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');

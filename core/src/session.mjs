@@ -1,5 +1,5 @@
 // A session keeps the env its cells write, so a query sees what the
-// cells before it declared [D44], [D153].
+// cells before it declared [D5], [D153].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
@@ -58,7 +58,7 @@ export async function createSession(opts = {}) {
       return { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };
     },
 
-    // A host binds a value as a binding without a doc [D63], a record
+    // A host binds a value as a binding without a doc [D5], a record
     // as the binding it is.
     bind(name, value) {
       env = new Map(env).set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));

@@ -1193,7 +1193,7 @@ binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a name under the
 label of its subject whose value is a quote, the parts of its args and
 its answer names under its address, and it runs when its name is
-mentioned, as a built-in does [D44], [D164], [D169]. Comments are
+mentioned, as a built-in does [D5], [D164], [D169]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -1237,7 +1237,7 @@ the name answers is refused, the word called by its address there
 ```
 
 A declaration writes into its scope the record of its binding, so the
-axes are projections of the record [D63], each reading a name by its
+axes are projections of the record [D5], each reading a name by its
 tag, a label of the root from the root and any other name at its
 nearest declaration, while a keyword is a value that names nothing,
 `:limit | doc` the page of `::keyword` [D221]. Effect markers are
@@ -1892,7 +1892,6 @@ the command line without them.
 [D41]: decisions/D41.md
 [D42]: decisions/D42.md
 [D43]: decisions/D43.md
-[D44]: decisions/D44.md
 [D46]: decisions/D46.md
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
@@ -1900,7 +1899,6 @@ the command line without them.
 [D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
-[D63]: decisions/D63.md
 [D71]: decisions/D71.md
 [D72]: decisions/D72.md
 [D80]: decisions/D80.md

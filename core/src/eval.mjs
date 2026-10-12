@@ -383,12 +383,12 @@ async function evalTagLit(node, state) {
 
 // ─── BindStep ───────────────────────────────────────────────────
 
-// The one binding form [D44]: the value passes on, and a fresh scope holds
-// the record of the binding [D63], whose value is the body evaluated once
+// The one binding form [D5]: the value passes on, and a fresh scope holds
+// the record of the binding [D5], whose value is the body evaluated once
 // at declaration against the current value, `42 | :x / | add 1 | x`
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
-// writes, its own name among it [D44], and a body that fails answering the
+// writes, its own name among it [D5], and a body that fails answering the
 // failure, which no name holds [D13]; a name is declared once in its
 // scope [D71], a node the root holds once at all [D153], and a name with a
 // path under a noun declared before it; an invariant holds of the
@@ -419,7 +419,7 @@ async function evalBindStep(node, state) {
 }
 
 // The record a declaration writes: its name, the docs of its slot, the
-// value, the quote of its step and its origin [D63], [D153].
+// value, the quote of its step and its origin [D5], [D153].
 function declarationRecord(node, value) {
   return makeBinding({
     name: keyword(node.key.name),
@@ -497,8 +497,8 @@ async function callByName(lookupName, modifiers, state) {
   return await applyBinding(reach.record, lookupName, modifiers, state);
 }
 
-// A name reads the value its record holds [D63], so `:x / | x` sees the
-// raw data, a quote among it, which `apply` runs [D44].
+// A name reads the value its record holds [D5], so `:x / | x` sees the
+// raw data, a quote among it, which `apply` runs [D5].
 async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
@@ -535,7 +535,7 @@ async function callByAddress(node, state) {
 // ─── Names under a label ───────────────────────────────────────
 
 // A name under a label runs on a value of the label [D164], a quote in the
-// scope it carries [D44], [D200] over the root as it stands and the
+// scope it carries [D5], [D200] over the root as it stands and the
 // descriptor of a primitive by the implementation its host handed, a
 // subject the walk of whose tags reaches no value of the label refused
 // under the name's address, and its answer brought to the label its

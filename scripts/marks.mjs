@@ -28,6 +28,15 @@ const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
 const MARK = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]/g;
+
+// The data of the benchmark names the decision it measures in the name of
+// its file, where no text of its own can bear a mark: a screen,
+// `screens/D167.txt`, and a run of a set, `sets/H/runs/D167~blind~haiku~1.json`
+// [D142], [D183].
+const PATH_MARKS = [
+  /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
+  /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/
+];
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;
 
 function marksOfText(text, pattern) {
@@ -56,6 +65,8 @@ export function marksOfTree(root = repoRoot) {
   const marks = [];
   const orphans = [];
   for (const path of git(root, 'ls-files').split('\n').filter(Boolean)) {
+    const byPath = PATH_MARKS.map(pattern => pattern.exec(path)?.[1]).find(Boolean);
+    if (byPath !== undefined) { marks.push({ path, name: byPath, line: 1 }); continue; }
     if (CASES.test(path)) { marks.push(...marksOfCases(readFileSync(join(root, path), 'utf8')).map(mark => ({ path, ...mark }))); continue; }
     if (!isArtifact(path)) continue;
     const found = marksOfText(readFileSync(join(root, path), 'utf8'), MARK);

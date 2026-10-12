@@ -1,10 +1,12 @@
 # Decisions
 
-One file holds one decision, written once: `Dnn.md` for a decision of the
-language and of the work on it, `En.md` for one of the environment of the
-work that `docs/qlang-entrypoint.md` designs; a record that a later one
-replaces keeps its text and gains the line that names the record replacing it
-[D58].
+One file holds one decision: `Dnn.md` for a decision of the language and of
+the work on it, `En.md` for one of the environment of the work that
+`docs/qlang-entrypoint.md` designs. A record that a later one replaces whole
+keeps its text and gains the line that names the record replacing it [D58];
+one a later record takes a part of is pruned of that part and names the
+record that took it, so a record in force is true as a whole, and git keeps
+every text a record had [D227].
 
 A record's first line names its domain, which says where its requirements
 live. A decision of the language leaves them as conformance cases that name
@@ -47,3 +49,4 @@ day in another session, «почему все мое?» (2026-09-22 07:21, sessi
 [D58]: D58.md
 [D59]: D59.md
 [D155]: D155.md
+[D227]: D227.md

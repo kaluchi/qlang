@@ -445,6 +445,22 @@ function baselineDrift() {
   if (since.length > RECORDS_A_WALK_TAKES) {
     violations.push({ where: 'docs/qlang-audit.md', problem: `${since.length} records since the baseline ${baseline}, from ${since[0]}: the walk is due` });
   }
+  // A record in force says only what holds: a newer record prunes the
+  // part it takes, so the lines that replace a record in part only fall
+  // [D227].
+  const partialLines = text => (text.match(/^Replaced in part by/gm) ?? []).length;
+  const partialNow = [...records.keys()].reduce((sum, name) => sum + partialLines(readFileSync(join(repoRoot, 'docs', 'decisions', `${name}.md`), 'utf8')), 0);
+  // `git grep` ends with 1 where no line matches, a baseline that held none.
+  let partialThen;
+  try {
+    partialThen = execFileSync('git', ['grep', '-c', '^Replaced in part by', baseline, '--', 'docs/decisions'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\n').filter(Boolean).reduce((sum, line) => sum + Number(line.split(':').pop()), 0);
+  } catch {
+    partialThen = 0;
+  }
+  if (partialNow > partialThen) {
+    violations.push({ where: 'docs/decisions', problem: `${partialNow} lines replace a record in part, more than the ${partialThen} of the baseline ${baseline}: prune the part a newer record takes` });
+  }
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
   for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(root, CODE_FILE))) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {

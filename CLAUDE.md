@@ -174,11 +174,12 @@ it; where a rule and the audit disagree, the audit wins.
 
 ## Change workflow
 
-- Branch off master and name the branch after the scar it repairs.
-  Never commit code on master; a change to documents alone lands
-  without a branch.
-- A branch repairs one scar or one part of one and states in its
-  description what it shows when it lands. The sign of its diff by
+- A branch is a shift: it takes the scars of its shift, is named after
+  them, and lands on master at every move of the baseline, the strategy
+  of the merge asked first, so master is the clean desk [D227]. Never
+  commit code on master; a change to documents alone lands without a
+  branch. A branch states in its description what it shows when it
+  lands. The sign of its diff by
   area, which `node scripts/measure.mjs` computes from the history, is
   read against what it delivered, and no commit message carries a count
   the history answers [D208].
@@ -194,9 +195,9 @@ it; where a rule and the audit disagree, the audit wins.
   Ask which merge strategy to use before merging. Delete the branch
   after the merge, locally and on the remote.
 - Write the decisions as files under `docs/decisions/` in the same
-  session as the work, close in the same commit each part of an older
-  record a new one contradicts, found by a search of the records'
-  words, hold their quotes against the transcripts with
+  session as the work, prune in the same commit the part of an older
+  record a new one takes, found by a search of the records' words, so a
+  record in force says only what holds [D227], hold their quotes against the transcripts with
   `node scripts/sensors/check-quotes.mjs`, and remove a scar the tree
   no longer shows.
 

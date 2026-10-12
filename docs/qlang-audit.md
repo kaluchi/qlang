@@ -56,7 +56,7 @@ the answer replaces the sentence with the new fact and its new probe
 
 A decision is the discussion that ends in a choice between
 alternatives. Decisions are numbered, `D1` to the last, and recorded
-one to a file, `docs/decisions/Dnn.md`, written once [D31], [D58]: what
+one to a file, `docs/decisions/Dnn.md` [D31], [D58]: what
 was decided, who decided it, the source, what it rests on, and the
 alternatives set aside with the reason. The source of
 a decision the maintainer took is the maintainer's own words, quoted
@@ -69,9 +69,12 @@ everywhere in this document, and words quoted from the tree stand in
 transcripts and a grep the second against the tree. The source of a
 decision the model took says so, and says what request it answered.
 This document cites a decision by its number, a link to its file. A
-decision changes by a new record that names the one it replaces; the
-old record stays as it was written, with one line that names the record
-replacing it, so the chain of reasons survives as a graph of files. A
+decision changes by a new record that names the one it replaces: an
+old record replaced whole keeps its text and gains the line that names
+its replacement, and one a new record takes a part of is pruned of that
+part and names the record that took it, so a record in force says only
+what holds, while git keeps every text a record had and the chain of
+reasons survives as a graph of files [D227]. A
 requirement a decision leaves is a conformance case that names the
 decision, a target until the tree meets it, so whether a decision is
 carried out is computed by running the cases.
@@ -83,9 +86,10 @@ states, a rule of the tooling, an intention, which is a question of the
 open chapter and no decision, set aside, or in force, its requirement
 written as a case in the language as it stands [D225], [D226]. The form
 a record wrote was the means of its baseline: the walk keeps the intent
-and lets the form go. A new record closes, in the same commit, each
-part of an older one it contradicts, found by a search of the records'
-words. The baseline moves at the end of every shift that wrote records,
+and lets the form go. A new record prunes, in the same commit, each
+part of an older one it takes, found by a search of the records' words,
+and the lines that replace a record in part, which a walk prunes, only
+fall. The baseline moves at the end of every shift that wrote records,
 so the next starts at a clean desk, before an outside audit and when a
 branch lands, and `check:conventions` holds a ceiling of records since
 it; the code, the tests and the cases cite only the records in force,
@@ -1125,7 +1129,8 @@ each guard together with the duplicate it guards.
 ## Decisions
 
 A decision is the discussion with its choice and its circumstances, and
-each lives in a file of its own under `docs/decisions/`, written once;
+each lives in a file of its own under `docs/decisions/`, true as a whole
+while it is in force [D227];
 a citation of its number in this document is a link to that file, and
 the requirements it left are the conformance cases that name it [D58];
 it cites a record in force or one waiting on its target [D225].
@@ -1899,3 +1904,4 @@ the command line without them.
 [D223]: decisions/D223.md
 [D225]: decisions/D225.md
 [D226]: decisions/D226.md
+[D227]: decisions/D227.md

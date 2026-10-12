@@ -419,8 +419,8 @@ function baselineDrift() {
 
 // ── (9b) The links of the documents ────────────────────────────
 //
-// A link of a document to a file of markdown, its definition `[D44]:
-// D44.md` or its inline form, leads to a file the tree holds, so the graph
+// A link of a document to a file of markdown, its definition `[Dnn]:
+// Dnn.md` or its inline form, leads to a file the tree holds, so the graph
 // of the records walks from any document into the past [D58], [D237].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;

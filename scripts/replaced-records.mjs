@@ -27,8 +27,8 @@ const movedTo = new Map(readdirSync(join(recordsDir, 'replaced')).filter(name =>
   .map(name => [`docs/decisions/${name}`, `docs/decisions/replaced/${name}`]));
 const movedFrom = new Map(moving.map(name => [`docs/decisions/replaced/${name}`, `docs/decisions/${name}`]));
 
-// A link of markdown, its definition `[D44]: D44.md` or its inline form
-// `(D44.md)`, whose target is a file of markdown.
+// A link of markdown, its definition `[Dnn]: Dnn.md` or its inline form
+// `(Dnn.md)`, whose target is a file of markdown.
 const LINK = /(\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s]|$)/gm;
 let relinked = 0;
 for (const path of git('ls-files', '*.md').split('\n').filter(Boolean)) {

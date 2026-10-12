@@ -66,7 +66,7 @@ function cite(text, isRecord = false) {
   return written.join('\n');
 }
 
-// A run of citations, `[D2], [D7] and [D150]` across the lines it wraps
+// A run of citations, `[Dnn], [Dnn] and [Dnn]` across the lines it wraps
 // over, names its records in their order, each once, and keeps its
 // separators where they stand, a line break before any other.
 function citeProse(text) {

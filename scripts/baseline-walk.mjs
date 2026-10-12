@@ -47,13 +47,17 @@ function stateOf(record) {
 
 const git = (repoRoot, ...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 
+// baselineOf(repoRoot) → the commit the audit holds itself against, the
+// root the last move of the baseline read every record again against.
+export const baselineOf = repoRoot => /holds it against commit `([0-9a-f]+)`/
+  .exec(readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' '))?.[1];
+
 // walkOfBaseline(repoRoot) → { baseline, since, partialNow, partialThen,
 // violations }: the baseline the audit names, the records written since
 // it, the lines that replace a record in part now and at the baseline,
 // and every breach of the walk, each `{ where, problem }`.
 export function walkOfBaseline(repoRoot) {
-  const audit = readFileSync(join(repoRoot, 'docs', 'qlang-audit.md'), 'utf8').replace(/\s+/g, ' ');
-  const baseline = /holds it against commit `([0-9a-f]+)`/.exec(audit)?.[1];
+  const baseline = baselineOf(repoRoot);
   const walk = { baseline, since: [], partialNow: 0, partialThen: 0, violations: [] };
   if (baseline === undefined) {
     walk.violations.push({ where: 'docs/qlang-audit.md', problem: 'names no baseline commit' });

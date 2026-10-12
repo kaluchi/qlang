@@ -1,7 +1,7 @@
 // The marks the artifacts set on the decisions they exist for [D237]: a
 // module, a script and a test file name a record in a comment or a title,
-// `[D44]`, a case names it in its `decision`, and the sister project
-// names a record of qlang as `(qlang D96)`. A record lists no file; its
+// `[Dnn]`, a case names it in its `decision`, and the sister project
+// names a record of qlang as `(qlang Dnn)`. A record lists no file; its
 // scope is every place that marks it, which this search answers.
 //
 // Usage:
@@ -9,12 +9,14 @@
 //   node scripts/marks.mjs D44             the places that mark a record
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
-//   node scripts/marks.mjs --touched       the records whose scope changed since they were described
+//   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it
+//   node scripts/marks.mjs --touched --debt  the same since they were described, the debt before the marks
 //   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { baselineOf } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -60,21 +62,71 @@ function marksOfCases(text) {
   return marks;
 }
 
+// The blocks a file's marks stand on: a mark covers the lines from the
+// comment that holds it to the next comment that holds one, the marks of
+// one comment covering one block, and the first block reaches up to the
+// head of the file, so every line of an artifact lies under a mark; a case
+// covers its own line [D237].
+function commentLines(text, path) {
+  const lines = text.split(/\r?\n/);
+  const isComment = [];
+  let inQlangComment = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (path.endsWith('.qlang')) {
+      const opens = /^\|~(?!~)/.test(trimmed);
+      isComment.push(inQlangComment || opens);
+      if (opens || inQlangComment) inQlangComment = !/~\|\s*$/.test(trimmed);
+    } else isComment.push(/^(\/\/|\/\*|\*|#)/.test(trimmed));
+  }
+  return isComment;
+}
+
+function blocksOf(marks, text, path) {
+  const isComment = commentLines(text, path);
+  const startOf = line => {
+    let start = line;
+    while (start > 1 && isComment[line - 1] && isComment[start - 2]) start--;
+    return start;
+  };
+  const starts = new Map();
+  for (const { name, line } of marks) {
+    const start = startOf(line);
+    if (!starts.has(start)) starts.set(start, new Set());
+    starts.get(start).add(name);
+  }
+  const ordered = [...starts].sort((a, b) => a[0] - b[0]);
+  return ordered.map(([from, names], index) => ({ from: index === 0 ? 1 : from, to: index + 1 < ordered.length ? ordered[index + 1][0] - 1 : Infinity, names }));
+}
+
 // marksOfTree(root) → every mark the tracked files of a checkout set, each
-// `{ path, name, line }`, and the artifacts that set none.
+// `{ path, name, line }`, the blocks they stand on, each `{ from, to, names }`
+// by the path of its file, and the artifacts that set none.
 export function marksOfTree(root = repoRoot) {
   const marks = [];
   const orphans = [];
+  const blocks = new Map();
   for (const path of git(root, 'ls-files').split('\n').filter(Boolean)) {
     const byPath = PATH_MARKS.map(pattern => pattern.exec(path)?.[1]).find(Boolean);
-    if (byPath !== undefined) { marks.push({ path, name: byPath, line: 1 }); continue; }
-    if (CASES.test(path)) { marks.push(...marksOfCases(readFileSync(join(root, path), 'utf8')).map(mark => ({ path, ...mark }))); continue; }
+    if (byPath !== undefined) {
+      marks.push({ path, name: byPath, line: 1 });
+      blocks.set(path, [{ from: 1, to: Infinity, names: new Set([byPath]) }]);
+      continue;
+    }
+    if (CASES.test(path)) {
+      const found = marksOfCases(readFileSync(join(root, path), 'utf8'));
+      marks.push(...found.map(mark => ({ path, ...mark })));
+      blocks.set(path, found.map(({ name, line }) => ({ from: line, to: line, names: new Set([name]) })));
+      continue;
+    }
     if (!isArtifact(path)) continue;
-    const found = marksOfText(readFileSync(join(root, path), 'utf8'), MARK);
+    const text = readFileSync(join(root, path), 'utf8');
+    const found = marksOfText(text, MARK);
     if (found.length === 0) orphans.push(path);
     marks.push(...found.map(mark => ({ path, ...mark })));
+    if (found.length > 0) blocks.set(path, blocksOf(found, text, path));
   }
-  return { marks, orphans };
+  return { marks, orphans, blocks };
 }
 
 // The commit each record in force was last described in: the newest that
@@ -101,17 +153,33 @@ function sidesOf(diff, pathOf) {
   return sides;
 }
 
-// The files among the paths a diff since a commit changed beyond the
-// citations of decisions, a mark, its line `The decisions it exists for`
-// or a case's `decision`, which leave what a file does as it was.
+// The lines of the present files among the paths that a diff since a
+// commit changed beyond the citations of decisions, a mark, its line `The
+// decisions it exists for` or a case's `decision`, which leave what a file
+// does as it was: the ranges of the hunks that change more, by the path
+// of their file, a hunk that only removes reaching the lines around it.
 const MARK_STATEMENT = /The decisions? it exists for: [^.]*\./;
+const beyondMarks = lines => beyondCitations(lines.map(line => line.replace(MARK_STATEMENT, ''))
+  .filter(line => !/^\s*(\/\/|#|\*)?\s*$/.test(line)).join(' '));
+
 function changedBeyondCitations(root, commit, paths) {
-  const changed = new Set();
+  const changed = new Map();
   const diff = git(root, 'diff', '-U0', '-M', '--no-color', commit, '--', ...paths);
-  const beyondMarks = lines => beyondCitations(lines.map(line => line.replace(MARK_STATEMENT, ''))
-    .filter(line => !/^\s*(\/\/|#|\*)?\s*$/.test(line)).join(' '));
-  for (const [path, { removed, added }] of sidesOf(diff, section => section.match(/^a\/\S+ b\/(\S+)\n/)?.[1])) {
-    if (beyondMarks(removed) !== beyondMarks(added)) changed.add(path);
+  for (const section of diff.split(/^diff --git /m).slice(1)) {
+    const path = section.match(/^a\/\S+ b\/(\S+)\n/)?.[1];
+    if (path === undefined) continue;
+    for (const hunk of section.split(/^(?=@@ )/m).slice(1)) {
+      const [, from, count] = hunk.match(/^@@ -\S+ \+(\d+)(?:,(\d+))? @@/) ?? [];
+      if (from === undefined) continue;
+      const lines = hunk.split('\n').slice(1);
+      const removed = lines.filter(line => line.startsWith('-')).map(line => line.slice(1));
+      const added = lines.filter(line => line.startsWith('+')).map(line => line.slice(1));
+      if (beyondMarks(removed) === beyondMarks(added)) continue;
+      const start = Number(from);
+      const length = count === undefined ? 1 : Number(count);
+      if (!changed.has(path)) changed.set(path, []);
+      changed.get(path).push(length === 0 ? [start, start + 1] : [start, start + length - 1]);
+    }
   }
   return changed;
 }
@@ -130,27 +198,41 @@ function describedIn(root) {
   return described;
 }
 
-// touchedRecords(root) → the records in force whose scope the tree changed
-// since they were described, each `{ name, commit, files }`, the changes
-// the working tree holds among them: what a move of the baseline reads
-// again against the new root [D237].
-export function touchedRecords(root = repoRoot) {
-  const scopes = new Map();
-  for (const { path, name } of marksOfTree(root).marks) {
-    if (!scopes.has(name)) scopes.set(name, new Set());
-    scopes.get(name).add(path);
+// touchedRecords(root, { debt }) → the records in force whose scope the
+// tree changed since it was read against them, each `{ name, commit,
+// files }`, the changes the working tree holds among them: what a move of
+// the baseline reads again against the new root [D237]. A record is read
+// against the later of the commit that last described it and the
+// baseline, whose move read again every record its diff touched; with
+// `debt`, against the commit that described it alone, the records no move
+// read again before the marks were set.
+export function touchedRecords(root = repoRoot, { debt = false, baseline = baselineOf(root) } = {}) {
+  const { blocks } = marksOfTree(root);
+  const blocksOfRecord = new Map();
+  for (const [path, fileBlocks] of blocks) {
+    for (const block of fileBlocks) {
+      for (const name of block.names) {
+        if (!blocksOfRecord.has(name)) blocksOfRecord.set(name, new Map());
+        const byPath = blocksOfRecord.get(name);
+        if (!byPath.has(path)) byPath.set(path, []);
+        byPath.get(path).push(block);
+      }
+    }
   }
+  const sinceBaseline = debt || baseline === null ? null : new Set(git(root, 'rev-list', `${baseline}..HEAD`).split('\n').filter(Boolean));
   const namesOf = new Map();
-  for (const [name, commit] of describedIn(root)) {
-    if (!scopes.has(name)) continue;
+  for (const [name, described] of describedIn(root)) {
+    if (!blocksOfRecord.has(name)) continue;
+    const commit = sinceBaseline === null || sinceBaseline.has(described) ? described : baseline;
     if (!namesOf.has(commit)) namesOf.set(commit, []);
     namesOf.get(commit).push(name);
   }
   const touched = [];
   for (const [commit, names] of namesOf) {
-    const changed = changedBeyondCitations(root, commit, [...new Set(names.flatMap(name => [...scopes.get(name)]))]);
+    const changed = changedBeyondCitations(root, commit, [...new Set(names.flatMap(name => [...blocksOfRecord.get(name).keys()]))]);
     for (const name of names) {
-      const files = [...scopes.get(name)].filter(path => changed.has(path));
+      const files = [...blocksOfRecord.get(name)].filter(([path, recordBlocks]) => (changed.get(path) ?? [])
+        .some(([from, to]) => recordBlocks.some(block => from <= block.to && to >= block.from))).map(([path]) => path);
       if (files.length > 0) touched.push({ name, commit, files });
     }
   }
@@ -165,9 +247,10 @@ function marksOfSister(dir) {
 const [command, argument] = process.argv.slice(2);
 if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(/^([A-Za-z]):/, '/$1:')}` || process.argv[1]?.endsWith('marks.mjs')) {
   if (command === '--touched') {
-    const touched = touchedRecords();
+    const debt = argument === '--debt';
+    const touched = touchedRecords(repoRoot, { debt });
     for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
-    console.log(`touched: ${touched.length} records in force whose scope the tree changed since they were described [D237]`);
+    console.log(`touched: ${touched.length} records in force whose scope the tree changed since ${debt ? 'they were described' : 'they were read against it, the later of their description and the baseline'} [D237]`);
   } else if (command === '--sister') {
     for (const { path, name, line } of marksOfSister(resolve(argument))) console.log(`${name}\t${path}:${line}`);
   } else if (command === '--diff') {

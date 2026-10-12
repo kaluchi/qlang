@@ -61,18 +61,18 @@
 {"name":"a-word-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| type","expect":"::any/doc/UnknownNameError","decision":"D172"}
 {"name":"a-fold-of-no-values-is-refused-by-the-word-that-folds","query":"#[] | union !| type","expect":"::set/union/SubjectEmptyError","decision":"D172"}
 {"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| /key","expect":":b","decision":"D172"}
-{"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| type","expect":"::number/PayloadNotNumberError","decision":"D205"}
-{"name":"the-error-literal-under-the-tag-of-a-kind-opens-to-a-value-that-prints","query":"::number!{:a 1} !| / | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true","decision":"D205"}
-{"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| /actualValue","expect":"!{:a 1}","decision":["D205","D211"]}
-{"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| type","expect":"::number/PayloadNotNumberError","decision":"D205"}
-{"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| type","expect":"::vec/PayloadNotVecError","decision":"D205"}
-{"name":"an-error-literal-under-the-tag-of-maps-raises-under-the-kind-of-errors","query":"::map!{:a 1} | raise !| type","expect":"::error","decision":"D205"}
-{"name":"the-error-literal-under-the-tag-of-maps-is-the-map-its-label-builds","query":"::map!{:a 1}","expect":"{:a 1}","decision":["D205","D211"]}
-{"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| type","expect":"::Oops","decision":"D205"}
-{"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 1} !| type","expect":"::Box/k","decision":"D205"}
-{"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 9} | raise !| type","expect":"::Box","decision":"D205"}
-{"name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:actualType ::string} | raise !| type","expect":"::number/add/SubjectNotNumberError","decision":"D205"}
-{"name":"an-error-literal-under-a-tag-that-writes-its-trail-resumes-it","query":"::Oops!{:a 1 :trail []} | raise !| trail","expect":"[]","decision":"D205"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| type","expect":"::number/PayloadNotNumberError","decision":"D211"}
+{"name":"the-error-literal-under-the-tag-of-a-kind-opens-to-a-value-that-prints","query":"::number!{:a 1} !| / | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true","decision":"D211"}
+{"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| /actualValue","expect":"!{:a 1}","decision":"D211"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| type","expect":"::number/PayloadNotNumberError","decision":"D211"}
+{"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| type","expect":"::vec/PayloadNotVecError","decision":"D211"}
+{"name":"an-error-literal-under-the-tag-of-maps-raises-under-the-kind-of-errors","query":"::map!{:a 1} | raise !| type","expect":"::error","decision":"D211"}
+{"name":"the-error-literal-under-the-tag-of-maps-is-the-map-its-label-builds","query":"::map!{:a 1}","expect":"{:a 1}","decision":"D211"}
+{"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| type","expect":"::Oops","decision":"D211"}
+{"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 1} !| type","expect":"::Box/k","decision":"D211"}
+{"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| | :Box/k ::holds~(/a | gt 5) | ::Box!{:a 9} | raise !| type","expect":"::Box","decision":"D211"}
+{"name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:actualType ::string} | raise !| type","expect":"::number/add/SubjectNotNumberError","decision":"D211"}
+{"name":"an-error-literal-under-a-tag-that-writes-its-trail-resumes-it","query":"::Oops!{:a 1 :trail []} | raise !| trail","expect":"[]","decision":"D211"}
 {"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| [type /actualType]","expect":"[::number/PayloadNotNumberError ::quote]","decision":"D206"}
 {"name":"the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| / | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true","decision":"D206"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/ElementNotPairError","decision":"D206"}

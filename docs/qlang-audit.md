@@ -1801,7 +1801,15 @@ they move under `::any`, words of every value, or a topic is a page that
 no value goes under and whose names run on any subject by their
 address. The sister project took the first: its helpers are words of
 any value, `::any/problemsVia` and its kin, and its suite passes
-against the workspace copy.
+against the workspace copy. The maintainer reads it as a workaround:
+«там перенос под any это простой - но немного кривой способ .. там оно
+переписано так что осталось .. в старой функциональной парадигме, а не
+от тэга .. в общем не SVO там до сих пор..» (maintainer, 2026-10-12
+20:12, session 014e5a04). A helper takes a string or a node as its
+object and runs as a function over it, where a word of S V O resides on
+the tag of the node it serves [D34]; the helpers move onto those tags
+when the sister project's nodes carry their kinds, which its redesign
+brings. Open, with that redesign.
 
 A helper of one word. [D153] let a word's helper live in the group of
 its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;

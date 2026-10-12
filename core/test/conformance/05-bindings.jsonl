@@ -30,3 +30,8 @@
 {"name":"code-under-a-bare-name-runs-by-apply","query":":double ~(mul 2) | 5 | apply double","expect":"10","decision":"D235"}
 {"name":"code-under-a-bare-name-goes-bare-into-a-word-that-takes-code","query":":double ~(mul 2) | [1 2 3] | map double","expect":"[2 4 6]","decision":"D235"}
 {"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)","decision":"D235"}
+{"name":"a-name-in-quotes-a-step-cannot-call-declares-nothing","query":"\":\\\"1\\\" 5 | 7\" | parse !| /message","expect":"\"`:\\\"1\\\"` names nothing a step can call: a name begins with a letter or `_`, `:first_name 5`\"","decision":"D245"}
+{"name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | apply /","expect":"5","decision":"D245"}
+{"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\"","decision":"D245"}
+{"name":"the-word-of-a-literal-names-a-label","query":"\":null |~~ A thing. ~~| | 1\" | parse | count","expect":"2","decision":"D245"}
+{"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1","decision":"D245"}

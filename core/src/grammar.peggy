@@ -18,7 +18,7 @@
 // declaration whose slot it stands in [D83].
 
 {{
-  import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
+  import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
 
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
@@ -99,6 +99,25 @@
   // a shape it refuses elsewhere fails the try, and the span reads as
   // prose [D19].
   let docQuoteDepth = 0;
+
+  // The words of the literals, which a step reads as their values.
+  const LITERAL_WORDS = new Set(['true', 'false', 'null']);
+
+  // Whether a step can call the name a declaration writes: a bare name,
+  // and no literal's word alone but for a label, which its tag reaches
+  // [D245].
+  function nameCalled(name, body) {
+    return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+  }
+
+  function refuseNameNoStepCalls(key, body) {
+    if (!readsAsBareKeyword(key.name)) {
+      error(`\`${key.text}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``, key.location);
+    }
+    if (!nameCalled(key.name, body)) {
+      error(`\`${key.text}\` is the word of a literal, which a step reads as the value: declare another name`, key.location);
+    }
+  }
 }
 
 // A source of whitespace alone, comments among it, is the empty
@@ -287,11 +306,12 @@ ModifierGap
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [D152]; a lone
-// `:foo` is a keyword.
+// `:foo` is a keyword. The name it writes is one a step can call [D245].
 BindStep
   = key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
-    { return node('BindStep', { key, docs, body }, span(), text()); }
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
 
 BindName
   = Keyword

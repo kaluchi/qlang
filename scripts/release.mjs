@@ -64,7 +64,7 @@ function runCapture(cmd, opts = {}) {
 }
 
 function fail(message) {
-  console.error('\n✗ ' + message);
+  console.error('\n✗ ' + message + ' [D240]');
   process.exit(1);
 }
 

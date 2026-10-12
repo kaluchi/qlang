@@ -68,7 +68,10 @@ async function check() {
     const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : answerOf(task.reference, task).trim();
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
-  if (wrong.length > 0) process.exit(1);
+  if (wrong.length > 0) {
+    console.log('a reference answers its task, or the task is written again with it [D26]');
+    process.exit(1);
+  }
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);
 }
 

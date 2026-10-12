@@ -37,7 +37,7 @@ const askedDecisions = process.argv.slice(2);
 if (askedDecisions.length > 0) {
   for (const decision of askedDecisions) {
     const record = decisions.get(decision);
-    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions`);
+    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions: a case names the record it holds [D58]`);
     console.log(`${decision} · ${record.domain}`);
     const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
       .map(([other]) => other);

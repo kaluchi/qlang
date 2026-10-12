@@ -46,7 +46,7 @@ function markSeen(setId, reason) {
 // file tools and node alone; its inputs, tasks and generator are copied
 // under `sets/<id>/`, the scratch directory lying on any drive.
 export async function author(setId, model = 'sonnet') {
-  if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists`);
+  if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists: a set is authored once and its reader never saw it [D142]`);
   const workDir = join(scratchRoot, 'author', setId);
   rmSync(workDir, { recursive: true, force: true });
   mkdirSync(workDir, { recursive: true });
@@ -120,15 +120,15 @@ function changesOutsideCommit() {
 export async function run(setId, { decision, model, runs, reason }) {
   const mode = 'cli';
   if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, 'docs', 'decisions', `${decision}.md`))) {
-    throw new Error(`--decision names no decision: ${decision}`);
+    throw new Error(`--decision names no decision: ${decision}; a measurement belongs to a decision [D183]`);
   }
   const changes = changesOutsideCommit();
-  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit:\n${changes.join('\n')}`);
+  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit, which a run fixes [D183]:\n${changes.join('\n')}`);
   const measured = measuredNumbers();
   const number = Number(decision.slice(1));
   const last = Math.max(0, ...measured);
-  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it`);
-  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason`);
+  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it, and the numbers of the measured decisions grow [D183]`);
+  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason [D183]`);
   const screen = fixScreen(decision);
   const runsDir = join(setDirOf(setId), 'runs');
   mkdirSync(runsDir, { recursive: true });

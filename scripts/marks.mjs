@@ -90,7 +90,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   } else {
     const { orphans } = marksOfTree();
     for (const path of orphans) console.log(path);
-    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the decision it exists for' : `${orphans.length} artifacts name no decision`}`);
+    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the decision it exists for' : `${orphans.length} artifacts name no decision [D237]`}`);
     process.exitCode = orphans.length === 0 ? 0 : 1;
   }
 }

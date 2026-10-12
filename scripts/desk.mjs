@@ -34,7 +34,7 @@ const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.s
 lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span} · ${walk.partialNow} lines replace in part, ${walk.partialThen} at the baseline`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
-  lines.push(`  the walk breaks ${walk.violations.length} times:`);
+  lines.push(`  the walk breaks ${walk.violations.length} times [D226]:`);
   for (const { where, problem } of walk.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 

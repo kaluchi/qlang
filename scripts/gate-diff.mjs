@@ -138,5 +138,5 @@ console.log(`gate-diff ${base.slice(0, 7)}..${head}${task.size > 0 ? ` · task $
 for (const note of notes) console.log(`  ${note}`);
 if (codePaths.length > 0) console.log(`  other files changed: ${codePaths.length}`);
 for (const finding of findings) console.log(`! ${finding}`);
-console.log(findings.length === 0 ? 'clean' : `${findings.length} finding${findings.length === 1 ? '' : 's'}`);
+console.log(findings.length === 0 ? 'clean' : `${findings.length} finding${findings.length === 1 ? '' : 's'}: a branch that works targets leaves the records, the cases and the gates as it found them [D59]`);
 process.exitCode = findings.length === 0 ? 0 : 1;

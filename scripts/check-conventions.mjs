@@ -441,6 +441,7 @@ if (forbidden.length > 0) {
   for (const v of forbidden) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
   }
+  process.stdout.write('    a text says what holds, not when it changed, and leaves no marker of work undone [D239].\n');
 }
 if (refusalDeclarations.length > 0) {
   process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
@@ -452,7 +453,7 @@ if (proseTallies.length > 0) {
     `\nDerivable tallies in prose (${proseTallies.length}):\n`);
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
-    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose.\n');
+    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [D208].\n');
   }
 }
 if (workspaceRanges.length > 0) {
@@ -460,7 +461,7 @@ if (workspaceRanges.length > 0) {
     `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
   for (const v of workspaceRanges) {
     process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
-    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two.\n');
+    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two [D238].\n');
   }
 }
 if (anchors.length > 0) {

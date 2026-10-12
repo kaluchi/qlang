@@ -43,6 +43,6 @@ for (const documentPath of documents) {
     const lineNumber = prose.slice(0, quoted.index).split('\n').length;
     console.log(found
       ? `ok    ${shownPath}:${lineNumber}  ${found.session} ${found.at}`
-      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»`);
+      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»  a quote holds the maintainer's words as he typed them [D155]`);
   }
 }

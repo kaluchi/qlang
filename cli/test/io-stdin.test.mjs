@@ -4,6 +4,7 @@
 // end resolution, error rejection) is exercised through synthetic
 // streams. memoiseStdinReader's caching behaviour is tested with
 // a counting stub.
+// The decisions it exists for: [D215].
 
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';

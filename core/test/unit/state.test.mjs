@@ -1,6 +1,7 @@
 // state.mjs — the (pipeValue, env) accessors, the immutable env
 // updaters, and the frame constructors that carry the evaluation
 // depth budget.
+// The decisions it exists for: [D153], [D202].
 
 import { describe, it, expect } from 'vitest';
 import {

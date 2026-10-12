@@ -9,6 +9,7 @@
 // Run after a grammar change, then read the diff: a shifted
 // `:expected` Vec is the expected churn, a changed `:marker` or
 // `:location` is a behaviour change that wants a second look.
+// The decisions it exists for: [D7], [D125].
 
 import { evalQuery, printValue } from '../src/index.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';

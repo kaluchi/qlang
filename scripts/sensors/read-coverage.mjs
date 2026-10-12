@@ -7,6 +7,7 @@
 //
 // Usage: node scripts/sensors/read-coverage.mjs [transcript]
 // Without a transcript it reads the running session's.
+// The decisions it exists for: [D231].
 
 import { recordsOf, sessionTranscript } from './transcripts.mjs';
 

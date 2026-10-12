@@ -7,6 +7,7 @@
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the audit, the entrypoint and the records
 // of docs/decisions.
+// The decisions it exists for: [D155], [D231].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';

@@ -4,6 +4,7 @@
 // parse-failure path, the `out` writer reaching the captured
 // stdout, and the `initialPipeValue` seed that lets the CLI script
 // mode deliver parsed stdin as the query's implicit subject.
+// The decisions it exists for: [D195].
 
 import { describe, it, expect } from 'vitest';
 import { isErrorValue } from '@kaluchi/qlang-core';

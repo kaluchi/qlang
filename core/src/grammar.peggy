@@ -3,7 +3,7 @@
 // A step is a command, a name followed by its modifiers, each one word
 // [D10]. At the top level a line is a step: a command's modifiers end
 // with their line, and a line that neither ends nor begins with a
-// combinator continues the pipeline through `|` [D11, D43]. Inside
+// combinator continues the pipeline through `|` [D11], [D43]. Inside
 // brackets a newline is whitespace. Every combinator is set off by
 // whitespace on both sides.
 //

@@ -171,9 +171,9 @@ function containerBeneathTags(value) {
 // map of its facts, `:trail` among them, under `::error` and the tag of
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
-// error [D13], [D206], a value passing, a label's refusal
-// answering for the catch, and a raise that writes the `:trail` it read
-// resuming that path [D13].
+// error [D206], a value passing, a label's refusal answering for the
+// catch, and a raise that writes the `:trail` it read resuming that path
+// [D13].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -228,8 +228,7 @@ async function entryValues(entries, state) {
 // set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
 // `::Foo::error{…}`, laid through the label of its tag as a tagged literal
 // lays a payload, a refusal of the label answering for the literal; every
-// entry is a fact, `:kind` among them [D13], and `raise` raises the error
-// [D13].
+// entry is a fact, `:kind` among them, and `raise` raises the error [D13].
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
@@ -383,9 +382,9 @@ async function evalTagLit(node, state) {
 
 // ─── BindStep ───────────────────────────────────────────────────
 
-// The one binding form [D5]: the value passes on, and a fresh scope holds
-// the record of the binding [D5], whose value is the body evaluated once
-// at declaration against the current value, `42 | :x / | add 1 | x`
+// The one binding form: the value passes on, and a fresh scope holds the
+// record of the binding, whose value is the body evaluated once at
+// declaration against the current value, `42 | :x / | add 1 | x`
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
 // writes, its own name among it [D5], and a body that fails answering the
@@ -416,6 +415,15 @@ async function evalBindStep(node, state) {
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
+}
+
+// Whether a declaration among the steps of a word's body, the body itself
+// or a step of its pipeline, names what its call bound in the body's
+// scope, `args` or a part; a group of one step the parser leaves as the
+// body is a scope of its own [D71].
+function declaresWhatTheCallBinds(bindStep, env, name) {
+  const binds = env.get(CALL_BINDS_KEY);
+  return binds !== undefined && (bindStep === binds.body || (binds.body.type === 'Pipeline' && bindStep.parent === binds.body)) && binds.names.has(name);
 }
 
 // The record a declaration writes: its name, the docs of its slot, the
@@ -497,8 +505,8 @@ async function callByName(lookupName, modifiers, state) {
   return await applyBinding(reach.record, lookupName, modifiers, state);
 }
 
-// A name reads the value its record holds [D5], so `:x / | x` sees the
-// raw data, a quote among it, which `apply` runs [D5].
+// A name reads the value its record holds, so `:x / | x` sees the raw
+// data, a quote among it, which `apply` runs [D5].
 async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
@@ -534,6 +542,9 @@ async function callByAddress(node, state) {
 
 // ─── Names under a label ───────────────────────────────────────
 
+// The name a word's body reads its whole args by [D173].
+const ARGS_NAME = keyword('args');
+
 // A name under a label runs on a value of the label [D164], a quote in the
 // scope it carries [D5], [D200] over the root as it stands and the
 // descriptor of a primitive by the implementation its host handed, a
@@ -561,13 +572,6 @@ async function applyMember(record, modifiers, state) {
   const refusing = definition.answer === null ? null : refusalOf(definition.answerInvariants, brought, state, scope);
   const refused = isThenable(refusing) ? await refusing : refusing;
   return withPipeValue(state, refused ?? brought);
-}
-
-// Whether a declaration among the steps of a word's body names what its
-// call bound in the body's scope, `args` or a part [D71].
-function declaresWhatTheCallBinds(node, env, name) {
-  const binds = env.get(CALL_BINDS_KEY);
-  return binds !== undefined && (node === binds.body || node.parent === binds.body) && binds.names.has(name);
 }
 
 // Whether an answer is waited on: anything with a `then`, so a host's
@@ -678,9 +682,9 @@ export function answerKindsOf(env, record, subjectKinds) {
 // steps before the call declared and every label the reader declared, so
 // the names under a label see each other whatever their order and a value
 // of a kind the reader declared finds its page, while no bare value of the
-// reader reaches a name the body writes [D200]; it holds the tree of the
-// query that called the word, which what the body reads and runs as data
-// reads, as a primitive reads the call's [D200].
+// reader reaches a name the body writes; it holds the tree of the query
+// that called the word, which what the body reads and runs as data reads,
+// as a primitive reads the call's [D200].
 function scopeOfMember(member, state) {
   if (!isQuote(member)) return state.env;
   const carried = envToRun(member, state.env);
@@ -715,7 +719,7 @@ async function argsOf(definition, modifiers, state, scope, body) {
   if (definition.places !== null && values.length > definition.places) return refusalUnder(argsBeyondPartsAddress(definition.address), { places: definition.places, actualValue: argsValue() }, scope);
   const argsRefused = definition.argsInvariants.length === 0 ? null : await refusalOf(definition.argsInvariants, argsValue(), state, scope);
   if (argsRefused !== null) return argsRefused;
-  let bodyEnv = body === null ? null : envSet(scope, 'args', makeBinding({ name: ARGS_NAME, value: argsValue() })).set(CALL_BINDS_KEY, { body, names: definition.bound });
+  let bodyEnv = body === null ? null : envSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() })).set(CALL_BINDS_KEY, { body, names: definition.bound });
   const overArgs = () => nestState(state, argsValue(), scope);
   const partValues = [];
   for (const { name, address: partAddress, selector, invariants, kindInvariant } of definition.parts) {
@@ -733,8 +737,6 @@ async function argsOf(definition, modifiers, state, scope, body) {
   }
   return { values: partValues, taken: definition.taken, bodyEnv };
 }
-
-const ARGS_NAME = keyword('args');
 
 // A value the call computed that answered an error where a part that
 // asks for code reads, by an invariant `is` of a quote or, for the part

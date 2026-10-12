@@ -8,7 +8,8 @@ import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { makeTag, makeTaggedInstance } from '../../src/types.mjs';
 
-const lines = (...steps) => steps.join('\n');
+// The steps of a query a line each, joined by `|` [D243].
+const lines = (...steps) => steps.join('\n| ');
 
 const BOX = lines(
   ':Box |~~ A parcel. ~~|',

@@ -58,12 +58,12 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
     // the step that calls a word (`count`) joins them [D13].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
 
   it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });

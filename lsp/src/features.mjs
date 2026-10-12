@@ -251,9 +251,9 @@ function wordStartBefore(source, offset) {
 
 // The subject of the step at the cursor, the word being typed aside: the
 // steps before it, where the source with a step at the cursor parses, that
-// step follows `|` or a line break, and the value before it has kinds its
-// declarations name; a step after `!|` takes an error, and has none. The
-// parser tells the combinator, the grammar written once.
+// step follows `|`, and the value before it has kinds its declarations
+// name; a step after `!|` takes an error, and has none. The parser tells
+// the combinator, the grammar written once.
 async function subjectAt(source, offset) {
   const start = wordStartBefore(source, offset);
   let pipeline;

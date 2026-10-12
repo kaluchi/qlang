@@ -450,10 +450,10 @@
       A name holds the value in the pipe for the steps after it, and
       steps in parentheses run on the value in the pipe and answer what
       their last step answers.
-      At the top level a line is a step, joined to the next by `|` unless
-      one of them carries its combinator, and inside brackets a line
-      break is a space; a comment, `|~ … ~|`, nesting, or `|~|` to the
-      end of its line, is whitespace wherever a space stands.
+      A line break is a space wherever it stands, so a step on the next
+      line joins by `|`, written at the end of a line or at the start of
+      the next; a comment, `|~ … ~|`, nesting, or `|~|` to the end of its
+      line, is whitespace too.
       `|` and `!|` bind alike, from left to right. Each part of a
       literal and a group is a fork: it starts from the
       value and the names outside it, and only its answer leaves it, so
@@ -493,9 +493,13 @@
   |~~ A name holds the value in the pipe. ~~|
   ::law~(5 | :n / | [n (n | add 1)] | eq [5 6])
 
-:qlang/pipeline/joinsLines
-  |~~ Lines join as steps, a comment between them. ~~|
-  ::law~("[3 1 2]\n|~| the order\nsort\n| first" | parse | apply / | eq 1)
+:qlang/pipeline/joinsLinesByAPipe
+  |~~ Steps on several lines join by `|`, a comment between them. ~~|
+  ::law~("[3 1 2]\n|~| the order\n| sort\n| first" | parse | apply / | eq 1)
+
+:qlang/pipeline/joinsNoStepsByALine
+  |~~ A line break is a space, and joins no steps. ~~|
+  ::law~("[3 1 2]\nsort" | parse !| type | eq ::quote/ParseError)
 
 :qlang/pipeline/nestsComments
   |~~ Comments nest and stand where spaces stand. ~~|

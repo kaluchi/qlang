@@ -156,10 +156,11 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
-  it('reads a line break at the top level as a pipe', async () => {
-    const labels = await labelsAt('[1 2 3]\n');
-    expect(labels).toContain('count');
-    expect(labels).not.toContain('add');
+  it('reads a line break as a space, the step on the next line joined by `|` [D243]', async () => {
+    const piped = await labelsAt('[1 2 3]\n| ');
+    expect(piped).toContain('count');
+    expect(piped).not.toContain('add');
+    expect(await labelsAt('[1 2 3]\n')).toContain('add');
   });
 
   it('reads through a declaration and a group over a vector', async () => {

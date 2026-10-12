@@ -97,7 +97,7 @@ export const TASKS = [
   {
     id: 'L8',
     question: 'declare a name of your own holding 2 with two laws under it, the claims "eq 2" and "gt 1" of 2, and answer how many laws the name has.',
-    reference: ':two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | :two | laws | count',
+    reference: ':two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | ::two | laws | count',
     answer: "2"
   },
   {

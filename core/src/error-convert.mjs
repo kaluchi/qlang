@@ -18,7 +18,7 @@ const ERROR_KIND_NAME = 'error';
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
-// [D172]: those under the refusal's label first, then those under
+// [D46]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the path an error takes coming
 // after them as the trail joins it [D13]. A fact neither declares is a
 // defect of the runtime.
@@ -36,7 +36,7 @@ export function factsInOrder(tag, facts, env) {
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value itself left out where it
 // is the subject the first stop of the trail holds, so its presence says
-// the site reached below the subject [D13], [D172].
+// the site reached below the subject [D13], [D46].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
@@ -140,7 +140,7 @@ const CAUSES_RECOUNTED = 8;
 // host: a tag of the language and the facts every host can give, its
 // account and the accounts of the failures beneath it, so a port of the
 // runtime to another language changes no fact a query reads [D7],
-// [D172]. The step that failed stands in the trail; the stack, the class
+// [D46]. The step that failed stands in the trail; the stack, the class
 // and the fields of the error stay with the host in `originalError`, and
 // a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {

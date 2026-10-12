@@ -28,7 +28,7 @@ describe('QlangError base class', () => {
 // A refusal whose site hands no facts.
 const TestsProbeError = declareRefusal('tests/ProbeError');
 
-describe('a refusal declared by its address [D172]', () => {
+describe('a refusal declared by its address [D46]', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);

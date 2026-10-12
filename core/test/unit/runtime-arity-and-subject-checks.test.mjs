@@ -133,7 +133,7 @@ describe('a slot left without its modifier', async () => {
 });
 
 describe('setops bare-form empty Vec', async () => {
-  it('a fold of no operands is refused by the word that folds, on a vector and on a set [D172]', async () => {
+  it('a fold of no operands is refused by the word that folds, on a vector and on a set [D46]', async () => {
     for (const kind of ['vec', 'set']) {
       for (const verb of ['union', 'minus', 'inter']) {
         const empty = kind === 'vec' ? '[]' : '#[]';

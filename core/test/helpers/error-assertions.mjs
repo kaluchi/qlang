@@ -20,7 +20,7 @@ export async function expectErrorResult(query) {
 // expectErrorThrown(query, address) → error value
 //
 // Asserts the query produces an error value whose tag is the address of
-// the refusal (e.g. `'number/add/SubjectNotNumberError'`) [D158].
+// the refusal (e.g. `'number/add/SubjectNotNumberError'`) [D46].
 export async function expectErrorThrown(query, address) {
   const errorResult = await expectErrorResult(query);
   expect(errorResult.tag?.name).toBe(address);

@@ -107,7 +107,7 @@ describe('json on errors at rest inside containers', () => {
 
 describe('per-site error classes carry unique identity', () => {
   // Each test catches a concrete error from a known source site and
-  // asserts its class name and the facts the error value holds [D172].
+  // asserts its class name and the facts the error value holds [D46].
   // The class name alone identifies the throw location, and tests
   // match on `e.name` (stable identifier) so they stay readable
   // without importing every per-site class.
@@ -232,7 +232,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('a count that is no whole number breaks the law of the count of its word [D172]', async () => {
+  it('a count that is no whole number breaks the law of the count of its word [D46]', async () => {
     expect((await evalQuery('[1 2 3] | take 1.5')).tag.name).toBe('vec/take/count/NotIntegerError');
     expect((await evalQuery('[1 2 3] | drop 1.5')).tag.name).toBe('vec/drop/count/NotIntegerError');
     expect((await evalQuery('"abc" | take 1.5')).tag.name).toBe('string/take/count/NotIntegerError');
@@ -244,7 +244,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });
 
-  it('every refusal of the runtime is one kind of error, its message its address [D172]', async () => {
+  it('every refusal of the runtime is one kind of error, its message its address [D46]', async () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',
@@ -278,7 +278,7 @@ describe('per-site error classes carry unique identity', () => {
 });
 
 describe('coalesce refuses a call with no alternatives by the law of its part', () => {
-  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D172], [D173]', async () => {
+  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D46], [D173]', async () => {
     const refused = await evalQuery('{} | coalesce');
     expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');
     expect(await evalQuery('{} | coalesce !| /actualValue | eq ::any/coalesce[]')).toBe(true);

@@ -1,5 +1,5 @@
 {"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]","decision":"D14"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":["D14","D172"]}
+{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":["D14","D46"]}
 {"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::vec/every/ConditionNotBooleanError 1]","decision":"D14"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false","decision":"D14"}
 {"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::vec/any/ConditionNotBooleanError 1]","decision":"D14"}

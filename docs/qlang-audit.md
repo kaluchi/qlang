@@ -782,7 +782,7 @@ whitespace, and a doc the literal in the slot of the declaration it
 documents. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
-definitions of the catalog [D172]. The literal is the one lossless
+definitions of the catalog [D46]. The literal is the one lossless
 format [D30], the catalog is the reference of the language [D128], and
 its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
@@ -810,7 +810,7 @@ every probe of this chapter answered as its block records.
 A host declares its refusals by their addresses with `declareRefusal`,
 imported through the `errors` subpath of the core
 (`cli/src/streams.mjs`), and declares their facts under their
-labels in its catalog [D172], so the declaration stays an interface of
+labels in its catalog [D46], so the declaration stays an interface of
 the runtime a host builds on. The sister project imports none of them,
 and carries two copies of `fromPlain` of its own, each named
 `jsonToQlang` (`cli/lib/jdt/coverage.impl.mjs`,
@@ -898,7 +898,7 @@ a number is whole where it equals its floor, `eq (floor)`, the law of
 every count and of the digits of `round` [D218]. The facts an error carries
 are definitions under the label of the refusal and under `::error`, held
 in the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D166], [D169], [D172]:
+declares is a defect of the runtime [D46], [D166], [D169]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -958,7 +958,7 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/sub
 
 And a refusal of the runtime is still a class of the JavaScript for
 each address, which the runtime declares and a test holds against its
-page [D172].
+page [D46].
 
 The repair must make the page behind each refusal a procedure: what the
 refusal means in one sentence, which fact names the culprit, the usual
@@ -1396,7 +1396,7 @@ the host hands, `:number/construct ::builtin{}`:
 
 The refusals rest on the schema as well: a refusal is named by the
 address of the word that refused, and its facts are definitions under
-its label, values of the language [D172]:
+its label, values of the language [D46]:
 
 ```qlang
 > 1 | add "x" !| entries | map ~first
@@ -1434,9 +1434,9 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
-[D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124], [D125],
-[D127], [D129] and [D150]: the effect marker leaving the language,
+conformance suite are the targets of [D2], [D7], [D46], [D107], [D108],
+[D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124],
+[D125], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
@@ -1938,7 +1938,6 @@ the command line without them.
 [D123]: decisions/D123.md
 [D124]: decisions/D124.md
 [D125]: decisions/D125.md
-[D127]: decisions/D127.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
 [D131]: decisions/D131.md
@@ -1961,7 +1960,6 @@ the command line without them.
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
 [D169]: decisions/D169.md
-[D172]: decisions/D172.md
 [D173]: decisions/D173.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md

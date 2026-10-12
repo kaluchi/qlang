@@ -114,13 +114,13 @@ describe('deepEqual Set keyword mismatch', async () => {
 });
 
 describe('setops keyword-aware minus/inter with mixed Set members', async () => {
-  it('Map×Set minus refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
+  it('Map×Set minus refuses a member that names no key, under the word of the fold [D46], [D139]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
     expect(result.name).toBe('vec/minus/KeyNotKeywordOrStringError');
   });
 
-  it('Map×Set inter refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
+  it('Map×Set inter refuses a member that names no key, under the word of the fold [D46], [D139]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
     expect(result.name).toBe('vec/inter/KeyNotKeywordOrStringError');
@@ -218,7 +218,7 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
 });
 
 // `at` on a Set subject — indexing in the one order, its index a
-// whole number by the law of its part [D172].
+// whole number by the law of its part [D46].
 describe('at on a Set subject', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

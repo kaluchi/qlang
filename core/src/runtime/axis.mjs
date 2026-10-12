@@ -48,14 +48,14 @@ function nameReadOf(subject) {
 }
 
 // The name whose verbs a refusal lists: the last name of a tag name's
-// path, `::any/links` naming `links` [D127], or its kind's.
+// path, `::any/links` naming `links` [D46], or its kind's.
 function nameOf(subject) {
   if (isTag(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live [D34], [D137].
+// where the pages of that name live [D34], [D46].
 export function refusalOf(env, subject) {
   return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }

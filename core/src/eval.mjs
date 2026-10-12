@@ -351,7 +351,7 @@ async function refusalOfQuery(invariants, at, value, state, scope) {
 
 // A refusal named by the address of what refused [D166], its facts with
 // the kind of the value refused in the order the catalog declares them
-// [D172]; the value itself rides the facts where the trail does not hold
+// [D46]; the value itself rides the facts where the trail does not hold
 // it, a part or the args, and leaves them for the subject, which the
 // trail's first stop holds [D13].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {

@@ -154,8 +154,8 @@ const TestsProbeTypeError = declareRefusal('tests/ProbeTypeError');
 describe('errorFromQlang', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trail last
-  // [D13], [D172].
-  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D158]', async () => {
+  // [D13], [D46].
+  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D46]', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
@@ -191,7 +191,7 @@ describe('errorFromQlang', () => {
 
 describe('errorFromForeign', () => {
   // A host's failure carries the facts every host can give, its account
-  // and the accounts of the failures beneath it [D7], [D172].
+  // and the accounts of the failures beneath it [D7], [D46].
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());

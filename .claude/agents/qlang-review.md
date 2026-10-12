@@ -71,7 +71,7 @@ a word, `…/SubjectNot<Label>Error`, `…/<part>/NotGivenError`,
 `…/ArgsBeyondPartsError`, `…/answer/Not<Kinds>Error`, by the one spelling
 the runtime raises it by, and paged where a procedure helps the reader;
 each fact a refusal carries is a definition under its label or under
-`::error` (decision D172); the repair of a call stands on the page of its
+`::error` (decision D46); the repair of a call stands on the page of its
 refusal, where `!| explain` lands, and a part's page says what the part
 is; a law about a refusal stands under the refusal's address, ends in its
 claim with no `| eq true` tail, and repeats no other law of the catalog;

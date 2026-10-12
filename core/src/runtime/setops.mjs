@@ -1,6 +1,6 @@
 // The algebra of containers: union, minus, inter, each a plain function
 // over the subject and the parts of its args [D167], one for each word
-// of a kind [D172]. A set meets the other set its call gives, and a map
+// of a kind [D46]. A set meets the other set its call gives, and a map
 // the other map or the keys a vector or a set names; a vector holds the
 // values it folds and takes none beside it, and a set its call leaves
 // without the other value folds the values it holds [D16], [D188].

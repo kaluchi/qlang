@@ -4,7 +4,7 @@
 // word: a vector and a set, which read alike, share the one that reads
 // the elements in order [D16], a map's reads its values and keeps its
 // keys [D15], a string's reads its characters [D132], and a refusal
-// names the word that refused [D172]. A part that takes code arrives
+// names the word that refused [D46]. A part that takes code arrives
 // closed at the call, code run on the element [D34], [D167].
 
 import { isBoolean, isKeyword, isString, isNumber, isTag, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
@@ -315,7 +315,7 @@ bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordE
 
 // ── slices and lookup ──────────────────────────────────────────
 
-// A count is a whole number by the invariant of its part [D172]; a negative
+// A count is a whole number by the invariant of its part [D46]; a negative
 // one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));

@@ -82,7 +82,7 @@
   }
 
   // A combinator after a combinator is the habit of a pipe before every
-  // step: the second stands in the place of the first [D127].
+  // step: the second stands in the place of the first [D46].
   function refuseCombinatorAfterCombinator(first, second) {
     error(`\`${second}\` stands in the place of \`${first}\`, not after it: write \`a ${second} b\``);
   }

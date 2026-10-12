@@ -91,7 +91,7 @@ function relink(path, text) {
   const body = lines.filter(line => !DEFINITION.test(line)).join('\n');
   const cites = name => body.includes(`[${name}]`);
   let kept = lines.filter(line => !(DEFINITION.test(line) && merged.includes(line.match(DEFINITION)[1]) && !cites(line.match(DEFINITION)[1])));
-  if (cites(survivor) && !kept.some(line => line.startsWith(`[${survivor}]: `))) {
+  if (cites(survivor) && !kept.some(line => line.startsWith(`[${survivor}]: `)) && lines.some(line => DEFINITION.test(line))) {
     const definition = `[${survivor}]: ${posix.relative(posix.dirname(path), `docs/decisions/${survivor}.md`)}`;
     const indices = kept.map((line, index) => (DEFINITION.test(line) ? index : -1)).filter(index => index !== -1);
     const after = indices.find(index => order(kept[index].match(DEFINITION)[1]) > order(survivor));

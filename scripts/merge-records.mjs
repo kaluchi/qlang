@@ -49,17 +49,34 @@ const DEFINITION = /^\[([DE]\d+)\]: /;
 // statement of fate, which says what took a part of what, keeps the
 // record it named, as history.
 function cite(text, isRecord = false) {
+  const lines = text.split('\n');
   const fate = new Set(isRecord ? statementsOf(text).filter(statement => FATE.test(statement.text)).flatMap(({ from, to }) => Array.from({ length: to - from + 1 }, (_, index) => from + index)) : []);
-  return text.split('\n').map((line, index) => {
-    if (DEFINITION.test(line) || fate.has(index)) return line;
-    let written = line;
-    for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
-    return written.replace(/\[[DE]\d+\](?:,\s*\[[DE]\d+\])+/g, run => {
-      if (!run.includes(`[${survivor}]`)) return run;
-      const names = [...new Set(run.match(/[DE]\d+/g))].sort((a, b) => order(a) - order(b));
-      return names.map(name => `[${name}]`).join(', ');
-    });
-  }).join('\n');
+  const written = [];
+  let prose = [];
+  const flush = () => { if (prose.length > 0) written.push(...citeProse(prose.join('\n')).split('\n')); prose = []; };
+  lines.forEach((line, index) => {
+    if (DEFINITION.test(line) || fate.has(index)) { flush(); written.push(line); } else prose.push(line);
+  });
+  flush();
+  return written.join('\n');
+}
+
+// A run of citations, `[D2], [D7] and [D150]` across the lines it wraps
+// over, names its records in their order, each once, and keeps its
+// separators where they stand, a line break before any other.
+function citeProse(text) {
+  let written = text;
+  for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
+  return written.replace(/\[[DE]\d+\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+\])+/g, run => {
+    if (!run.includes(`[${survivor}]`)) return run;
+    const names = [...new Set(run.match(/[DE]\d+/g))].sort((a, b) => order(a) - order(b));
+    const separators = run.split(/\[[DE]\d+\]/).slice(1, -1);
+    while (separators.length > names.length - 1) {
+      const plain = separators.findIndex((separator, index) => !separator.includes('\n') && !(index === separators.length - 1 && separator.includes('and')));
+      separators.splice(plain !== -1 ? plain : Math.max(separators.findIndex(separator => !separator.includes('\n')), 0), 1);
+    }
+    return names.map((name, index) => `${index === 0 ? '' : separators[index - 1]}[${name}]`).join('');
+  });
 }
 
 // A document's definitions of links: a record merged it no longer cites

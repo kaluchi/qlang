@@ -56,6 +56,16 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
+  it('a body declares none of the names its call binds whatever a reader or a later source names so, and shadows every other [D71]', async () => {
+    const shop = { uri: 'shop', source: ':vec/sized ~(:n 3 | n)\n:vec/sized/n ~(/0)\n:vec/scaled ~(map ~(mul n))\n:vec/scaled/n ~(/0)\n:vec/padded ~(:n 3 | count | add n)' };
+    const later = { uri: 'stock', source: ':n 9' };
+    const session = await createSession({ sources: [shop, later] });
+    const answers = ':n 7 | [([1] | sized 2 !| [type /name]) ([1 2] | scaled 2) ([1 2] | padded)]';
+    expect((await session.evalCell(`${answers} | eq [[::bind/NameDeclaredTwiceError :n] [2 4] 5]`)).result).toBe(true);
+    const reader = ':n 7 | :vec/twice ~(:n 2 | map ~(mul n)) | :vec/sum2 ~(:n 2 | sum | add n) | :vec/sum2/n ~(/0)';
+    expect((await session.evalCell(`${reader} | [([1 2] | twice) ([1 2] | sum2 5 !| [type /name])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
+  });
+
   it('a value of the reader meets a word a later source declares, where the subject answers the word alone [D223]', async () => {
     const later = { uri: 'stock', source: ':vec/tally ~(count)' };
     const alone = await createSession({ sources: [] });

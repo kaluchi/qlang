@@ -2,7 +2,7 @@
 // steps, each node a function `(node, state) → state`.
 
 import { parse } from './parse.mjs';
-import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
+import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf, queryTreeOf
 } from './state.mjs';
@@ -397,7 +397,7 @@ async function evalTagLit(node, state) {
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
-  if (repeatsDeclarationInScope(node) || (nounName !== null && rootOf(state.env).has(name))) {
+  if (repeatsDeclarationInScope(node) || declaresWhatTheCallBinds(node, state.env, name) || (nounName !== null && rootOf(state.env).has(name))) {
     throw new BindNameDeclaredTwiceError({ name: keyword(name) });
   }
   if (nounName !== null && !envHas(state.env, nounName)) {
@@ -548,7 +548,7 @@ async function applyMember(record, modifiers, state) {
   if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, state);
   const definition = definitionOf(scope, address);
-  const called = await argsOf(definition, modifiers, state, scope, isQuote(member));
+  const called = await argsOf(definition, modifiers, state, scope, isQuote(member) ? astOfQuote(member) : null);
   if (isErrorValue(called)) return withPipeValue(state, called);
   const running = isQuote(member)
     ? (await evalBody(astOfQuote(member), nestState(state, state.pipeValue, called.bodyEnv))).pipeValue
@@ -563,16 +563,23 @@ async function applyMember(record, modifiers, state) {
   return withPipeValue(state, refused ?? brought);
 }
 
+// Whether a declaration among the steps of a word's body names what its
+// call bound in the body's scope, `args` or a part [D71].
+function declaresWhatTheCallBinds(node, env, name) {
+  const binds = env.get(CALL_BINDS_KEY);
+  return binds !== undefined && (node === binds.body || node.parent === binds.body) && binds.names.has(name);
+}
+
 // Whether an answer is waited on: anything with a `then`, so a host's
 // promise of another realm and a thenable resolve as the core's own do.
 const isThenable = value => typeof value?.then === 'function';
 
 // The definition of the word at an address as a call reads it, its parts
 // in the order of their places with their selectors and invariants, the
-// tag and the invariants of its args and its answer with its invariants
-// [D179], read once for the root where the scope declares no name under
-// the address, or reads the root alone under the word's noun [D202],
-// [D200].
+// names a call binds in the scope of its body, the tag and the invariants
+// of its args and its answer with its invariants [D179], [D71], read once
+// for the root where the scope declares no name under the address, or
+// reads the root alone under the word's noun [D202], [D200].
 function definitionOf(scope, address) {
   return readsTheReaderUnder(scope, splitAddress(address)[0]) && declaresUnder(scope, address) ? definitionIn(scope, address) : onceForRoot(ROOT_DEFINITIONS, scope, address, rootDefinitionIn);
 }
@@ -600,6 +607,7 @@ function definitionIn(scope, address) {
   const answer = answerOf(scope, address);
   return {
     address, parts, places: placesReadBy(declaredParts), argsTag: makeTag(address),
+    bound: new Set([ARGS_NAME.name, ...parts.map(({ name }) => name.name)]),
     argsInvariants: invariantsUnder(scope, address),
     taken: parts.map(({ selector, kindInvariant }) => ({ readsArgs: selector.readsArgs, code: selector.readsArgs || (kindInvariant?.kinds?.includes('quote') ?? false) })),
     answer, answerInvariants: answer === null ? [] : invariantsUnder(scope, answer.address)
@@ -688,12 +696,13 @@ function scopeOfMember(member, state) {
 
 // The values of the parts of a call in their order, read from its args,
 // the values of its modifiers computed against the subject, and for a
-// word of the language the scope of its body, each part bound by its name
-// and the args as `args`; args with more values than the parts have
-// places are refused under the name, and what breaks an invariant, args
-// or a part, under the invariant, a part the args do not hold under the
-// part [D169], [D173].
-async function argsOf(definition, modifiers, state, scope, bindsNames) {
+// word of the language, whose body is the tree it runs, the scope of its
+// body, each part bound by its name and the args as `args`, names the
+// steps of the body declare no second time [D71]; args with more values
+// than the parts have places are refused under the name, and what breaks
+// an invariant, args or a part, under the invariant, a part the args do
+// not hold under the part [D169], [D173].
+async function argsOf(definition, modifiers, state, scope, body) {
   const values = [];
   for (const [place, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue);
@@ -706,7 +715,7 @@ async function argsOf(definition, modifiers, state, scope, bindsNames) {
   if (definition.places !== null && values.length > definition.places) return refusalUnder(argsBeyondPartsAddress(definition.address), { places: definition.places, actualValue: argsValue() }, scope);
   const argsRefused = definition.argsInvariants.length === 0 ? null : await refusalOf(definition.argsInvariants, argsValue(), state, scope);
   if (argsRefused !== null) return argsRefused;
-  let bodyEnv = bindsNames ? envSet(scope, 'args', makeBinding({ name: ARGS_NAME, value: argsValue() })) : null;
+  let bodyEnv = body === null ? null : envSet(scope, 'args', makeBinding({ name: ARGS_NAME, value: argsValue() })).set(CALL_BINDS_KEY, { body, names: definition.bound });
   const overArgs = () => nestState(state, argsValue(), scope);
   const partValues = [];
   for (const { name, address: partAddress, selector, invariants, kindInvariant } of definition.parts) {
@@ -720,7 +729,7 @@ async function argsOf(definition, modifiers, state, scope, bindsNames) {
     if (refused !== null) return refused;
     const handed = servedByInvariant(kindInvariant, part);
     partValues.push(handed);
-    if (bindsNames) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: handed }));
+    if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: handed }));
   }
   return { values: partValues, taken: definition.taken, bodyEnv };
 }

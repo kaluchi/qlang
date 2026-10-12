@@ -777,7 +777,9 @@ step where it meets a word its subject answers is refused [D223], a fold
 calling its word by its name or its address [D224]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
 refused [D228], and an invariant holds of the values of a label, so one
-a bare name declares is refused where it stands [D229]. A comment is
+a bare name declares is refused where it stands [D229]; the body of a
+word runs in the scope its call opens with `args` and each part, and a
+step of the body declares none of them again [D71]. A comment is
 whitespace, and a doc the literal in the slot of the declaration it
 documents. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
@@ -1580,23 +1582,6 @@ form stops fitting it, a cheaper repair of the traps that leaves the
 second mechanism; or the forms as they stand. Open, the layer of
 declarations.
 
-A body that declares the name of its part. The body of a word is the
-run of its quote, a scope of its own, so a name it declares shadows a
-part of that name without a word [D71]:
-
-```qlang
-> :number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2
-4
-```
-
-While the head of a verb and its body were one scope, such a
-declaration was refused; the refusal left with the head [D168], with no
-word on that axis. The alternatives: refuse it again where the word
-runs, a check of the body's declarations against the names of its
-parts, at the cost of a rule beside the shadowing every other run of a
-quote allows; or let the body shadow, as a run of any quote shadows the
-scope around it. Open, the layer of declarations.
-
 One rule for line breaks. At the top level a line break ends a
 command's modifiers and stands for `|`, and inside a group or a quote it
 is a space, so the same lines answer at the top level and fail in
@@ -1915,7 +1900,7 @@ the command line without them.
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
 [D63]: decisions/D63.md
-[D69]: decisions/D69.md
+[D71]: decisions/D71.md
 [D72]: decisions/D72.md
 [D80]: decisions/D80.md
 [D84]: decisions/D84.md

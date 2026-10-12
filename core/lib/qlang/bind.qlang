@@ -126,9 +126,12 @@
       `:name` the name. A group, an element, a modifier and a quote open
       scopes of their own, where a name of the
       scope around them is shadowed, so a second value takes another
-      name or a group of its own, `(:k 2 | k)`. An address the root holds
-      is declared once at all: a reader extends a noun of the root by a
-      name of its own, `:vec/second ~(/1)`, and replaces none of its
+      name or a group of its own, `(:k 2 | k)`. The body of a word runs
+      in a scope its call opens with `args` and each part, so a step of
+      the body declares none of them again: the body reads a part by its
+      name, and a value of its own takes another. An address the root
+      holds is declared once at all: a reader extends a noun of the root
+      by a name of its own, `:vec/second ~(/1)`, and replaces none of its
       names, and a source of the root that declares a name the root holds
       is refused.
       ::link~(::bind | doc)
@@ -141,6 +144,10 @@
 :bind/NameDeclaredTwiceError/refusesASecondDeclaration
   |~~ A name declared again in its scope is refused. ~~|
   ::law~(:k 1 | :k 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :k])
+
+:bind/NameDeclaredTwiceError/refusesAPartDeclaredInTheBody
+  |~~ The body of a word declares none of its parts again. ~~|
+  ::law~(:number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :x])
 
 :bind/NameDeclaredTwiceError/letsAGroupDeclareAgain
   |~~ A group declares in a scope of its own, so it may name a name again. ~~|

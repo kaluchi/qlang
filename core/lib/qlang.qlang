@@ -631,7 +631,8 @@
       An answer of the word's own label goes back under the tags the
       subject came through.
       A reader's name under a noun takes the parts of its args after
-      it, each a name under the call's address.
+      it, each a name under the call's address, which its body reads bare
+      and declares no second time.
       A modifier is evaluated at the call against the subject, the value
       in the pipe, which is always the subject of the call; a form that
       combines several values of one subject is a verb of its own, which

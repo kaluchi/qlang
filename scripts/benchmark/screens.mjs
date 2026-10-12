@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { pipeEnv } from '../pipe-env.mjs';
 
 const benchDir = import.meta.dirname;
 const screensDir = join(benchDir, 'screens');
@@ -16,7 +17,7 @@ const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
 // command line, or what another query prints, a screen a run tries
 // against it.
 export function firstScreen(query = '[::qlang ::cli] | map ~([/ doc])') {
-  return execFileSync(process.execPath, [commandLine, query], { input: '', encoding: 'utf8' });
+  return execFileSync(process.execPath, [commandLine, query], { input: '', encoding: 'utf8', env: pipeEnv });
 }
 
 export function screenText(screenName) {

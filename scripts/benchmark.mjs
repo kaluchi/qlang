@@ -28,6 +28,7 @@ import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { TASKS } from './benchmark/tasks.mjs';
 import { firstScreen, saveScreen } from './benchmark/screens.mjs';
+import { pipeEnv } from './pipe-env.mjs';
 import { author, run, grade, misses, frictions } from './benchmark/sets.mjs';
 import { verdict } from './benchmark/verdict.mjs';
 
@@ -49,7 +50,7 @@ const shortHash = text => createHash('sha256').update(text).digest('hex').slice(
 function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
   return execFileSync(process.execPath, [commandLine, ...flags],
-    { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8' });
+    { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8', env: pipeEnv });
 }
 
 // A task over an input answers JSON through the command line; a task of

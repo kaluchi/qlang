@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
 import { runChild, CHILD_ENVIRONMENT } from './child.mjs';
 import { screenText, fixScreen } from './screens.mjs';
+import { pipeEnv } from '../pipe-env.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
@@ -171,7 +172,7 @@ function answerOf(setId, task, query) {
   try {
     const flags = isTextInput(task.input) ? ['--raw'] : [];
     const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed) };
   } catch {
     return null;
@@ -241,7 +242,7 @@ export function misses(setId, runName, taskIds) {
     if (query !== null) {
       try {
         const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-        printed = execFileSync(process.execPath, [commandLine, ...(isTextInput(task.input) ? ['--raw'] : []), query], { input, encoding: 'utf8', timeout: 30000 });
+        printed = execFileSync(process.execPath, [commandLine, ...(isTextInput(task.input) ? ['--raw'] : []), query], { input, encoding: 'utf8', timeout: 30000, env: pipeEnv });
       } catch (failure) {
         printed = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
       }

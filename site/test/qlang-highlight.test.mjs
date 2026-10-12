@@ -54,10 +54,6 @@ describe('keywords as names', () => {
   it('wraps :name in a name span', () => {
     expect(hl(':foo')).toBe('<span class="name">:foo</span>');
   });
-
-  it('wraps :@name in effect span', () => {
-    expect(hl(':@log')).toBe('<span class="effect">:@log</span>');
-  });
 });
 
 // ── Calls of words ─────────────────────────────────────────────
@@ -71,11 +67,6 @@ describe('the words of the language', () => {
   it('BindStep key gets keyword span', () => {
     const out = hl(':x 1');
     expect(out).toContain('<span class="keyword">:x</span>');
-  });
-
-  it('@-prefixed call gets effect span', () => {
-    const out = hl(':@log identity | 42 | @log');
-    expect(out).toContain('<span class="effect">@log</span>');
   });
 
   it('the name of a reader gets a name span, not a word span', () => {

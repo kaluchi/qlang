@@ -14,7 +14,6 @@ export {
 } from './walk.mjs';
 export { splitAddress } from './address.mjs';
 export { printQuoteSource } from './quote.mjs';
-export { decorateAstWithEffectMarkers } from './effect-check.mjs';
 export {
   printValue, toPlain, fromPlain, StringParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';

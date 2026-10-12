@@ -527,10 +527,9 @@
       word called by its address there, `[1 2] | vec/count`; an address
       the root holds is declared once at all, so a reader extends a noun
       of the root and replaces none of its nodes.
-      A name begins with a letter of any script, `_` or `@`; `@` marks a
-      name whose call reaches outside the language, and a name whose body
-      calls one carries it too, while a name over the value a call
-      answered is plain.
+      A name begins with a letter of any script or `_`, and a word of a
+      host, which reads or writes outside the language, is named as any
+      word is.
       The docs in the slot of a declaration, between its name and its
       body, are its page, one doc each.
       A name under a label resolves its names through the tree of names
@@ -575,13 +574,9 @@
   |~~ A value named as a word meets the word aloud where the subject answers it. ~~|
   ::law~(:count 5 | [(7 | count) ([1 2] | count !| type)] | eq [5 ::call/ValueMeetsWordError])
 
-:qlang/names/leavesAValuePlain
-  |~~ A name over the value a call answered is plain. ~~|
-  ::law~(:any/@io ~(1) | :fine (@io) | fine | eq 1)
-
-:qlang/names/marksAWordThatReachesOut
-  |~~ A word that calls a marked name carries the mark. ~~|
-  ::law~(:any/quiet ~(@out) !| type | eq ::bind/EffectMarkMissingError)
+:qlang/names/beginsWithALetter
+  |~~ A name begins with a letter or `_`, and `@` begins none. ~~|
+  ::law~("@out" | parse !| type | eq ::quote/ParseError)
 
 :qlang/names/holdsEachDocOfItsSlot
   |~~ Two docs in the slot are two parts of its page. ~~|

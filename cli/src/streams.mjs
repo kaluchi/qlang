@@ -1,13 +1,13 @@
-// The primitives of the streams of the command line, `@in`, `@out`,
-// `@err` and `@tap`, names its source declares under `::any` [D153],
+// The primitives of the streams of the command line, `in`, `out`,
+// `err` and `tap`, names its source declares under `::any` [D153],
 // each a plain function over the subject and the parts of its args
 // [D80], [D167].
 
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const AnyOutSubjectNotStringError = declareRefusal('any/@out/SubjectNotStringError');
-const AnyErrSubjectNotStringError = declareRefusal('any/@err/SubjectNotStringError');
+const AnyOutSubjectNotStringError = declareRefusal('any/out/SubjectNotStringError');
+const AnyErrSubjectNotStringError = declareRefusal('any/err/SubjectNotStringError');
 
 // A writer takes the text the call gives, or bare, its subject, which is
 // then a string; the subject passes on either way.
@@ -24,10 +24,10 @@ function makeWriter(writer, recordEffect, SubjectError) {
 export function makeIoImpls(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   return {
-    'any/@in':  async () => ioContext.stdinReader(),
-    'any/@out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectNotStringError),
-    'any/@err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectNotStringError),
-    'any/@tap': (subject, label) => {
+    'any/in':  async () => ioContext.stdinReader(),
+    'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectNotStringError),
+    'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectNotStringError),
+    'any/tap': (subject, label) => {
       ioContext.stderrWrite(`[tap ${label.name}] ${printValue(subject)}\n`);
       return subject;
     }

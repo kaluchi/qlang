@@ -173,13 +173,13 @@ const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
 const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
 const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
-const ADDRESS_RE = /^'((?:@?[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
 // The constant a refusal's class is held by: its address without the
-// slash, each name capitalised and the effect marker dropped.
+// slash, each name capitalised.
 function constantOfAddress(address) {
-  return address.split('/').map(part => part.replace(/^@/, '')).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+  return address.split('/').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
 }
 
 // Every workspace that can declare its own refusals goes through the

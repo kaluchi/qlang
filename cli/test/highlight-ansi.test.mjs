@@ -53,11 +53,6 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
-  it('wraps an `@`-prefixed call in the bright-magenta effect escape', () => {
-    const out = highlightAnsi('@log', noBuiltins);
-    expect(out).toBe('\x1b[95m@log\x1b[0m');
-  });
-
   it('wraps the call of a word of the language in the bright-blue escape pair', () => {
     const builtins = new Set(['count']);
     const out = highlightAnsi('count', builtins);

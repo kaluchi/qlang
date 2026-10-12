@@ -30,11 +30,11 @@ describe('the package root', () => {
     const ast = core.parse(':x 1 | x');
     expect(core.findIdentifierOccurrences(ast, 'x').length).toBeGreaterThan(0);
     expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
-    expect(core.isNameStart('@')).toBe(true);
+    expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
   it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'classifyEffect', 'makeTaggedInstance', 'formOf', 'EVAL_DEPTH_LIMIT']) {
+    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'makeTaggedInstance', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
   });

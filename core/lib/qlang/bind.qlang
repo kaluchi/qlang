@@ -74,41 +74,6 @@
   |~~ A doc in a group is the value a declaration binds. ~~|
   ::law~(:k (|~~ x ~~|) | k | content | eq " x ")
 
-:bind/EffectMarkMissingError
-  |~~ A word whose body calls a name marked `@` reaches outside the
-      language, and its own name carries the mark, so every reader of the
-      name sees it: `:name` holds the name declared and `:calls` the
-      marked name its code calls. The word is declared under its marked
-      name, `:any/@fetchAll ~(@fetch …)`. A part whose selector calls a
-      marked name is held to the mark of the name it is a part of, which
-      runs it at each call, and `:name` is that name.
-      ::link~(::bind | doc)
-  ~~|
-
-:bind/EffectMarkMissingError/name
-  |~~ The name declared without the mark. ~~|
-  ::keyword
-
-:bind/EffectMarkMissingError/calls
-  |~~ The marked name its code calls. ~~|
-  ::keyword
-
-:bind/EffectMarkMissingError/refusesAnUnmarkedWordThatCallsAMarkedName
-  |~~ A word that calls a marked name and carries no mark is refused, naming both. ~~|
-  ::law~(1 | (:any/bad ~(@callers) | bad)
-    !| [type /name /calls]
-    |  eq [::bind/EffectMarkMissingError
-            :any/bad :@callers])
-
-:bind/EffectMarkMissingError/refusesAWordWhosePartCallsAMarkedName
-  |~~ A part whose selector calls a marked name refuses its unmarked word. ~~|
-  ::law~(:any/f ~(1) | :any/f/n ~(/0 | @out)
-    !| [type /name /calls] | eq [::bind/EffectMarkMissingError :any/f :@out])
-
-:bind/EffectMarkMissingError/takesAWordUnderItsMarkedName
-  |~~ A word declared under its marked name is taken. ~~|
-  ::law~(:any/@good ~(@callers) | ::any | manifest | has ::any/@good)
-
 :bind/NounNotDeclaredError
   |~~ A name with a path is declared under the noun its path names
       before its last name, and that noun is declared before it, so

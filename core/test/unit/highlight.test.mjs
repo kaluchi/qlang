@@ -106,12 +106,6 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a `:@name` effect-marked keyword', async () => {
-    expect(tokenize(':@log', await builtins())).toEqual([
-      { start: 0, end: 5, kind: 'effect' }
-    ]);
-  });
-
   it('classifies a bare `::tag` TagLit as a single tag-kind span', async () => {
     expect(tokenize('::snapshot', await builtins())).toEqual([
       { start: 0, end: 10, kind: 'tag' }
@@ -146,12 +140,7 @@ describe('tokenize — the kind of a call\'s name', () => {
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('an `@`-prefixed call name resolves to `effect`', async () => {
-    const tokens = tokenize('@log', await builtins());
-    expect(tokens[0].kind).toBe('effect');
-  });
-
-  it('a user-defined name (not in builtins, no `@`) resolves to `atom`', async () => {
+  it('a user-defined name (not in builtins) resolves to `atom`', async () => {
     const tokens = tokenize('myVerb', await builtins());
     expect(tokens[0].kind).toBe('name');
   });

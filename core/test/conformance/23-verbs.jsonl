@@ -22,7 +22,6 @@
 {"name":"a-part-carries-the-page-of-its-declaration","query":":any/m ~(x) | :any/m/x |~~ How many. ~~| ~(/0) | ::any/m/x | doc | content","expect":"\" How many. \"","decision":["D119","D166"]}
 {"name":"the-declarations-of-a-verb-body-stay-inside-it","query":":any/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false","decision":"D67"}
 {"name":"a-verb-resolves-its-names-where-it-is-declared","query":":k 1 | :any/f ~(add k) | :any/g ~(5 | f) | :any/g/k ~(/0) | g 100","expect":"6","decision":"D67"}
-{"name":"a-verb-under-a-clean-name-refuses-an-effectful-body","query":":any/f ~(@callers) !| type","expect":"::bind/EffectMarkMissingError","decision":"D67"}
 {"name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":any/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError","decision":"D67"}
 {"name":"a-part-of-several-kinds-refuses-a-value-of-none","query":":any/m ~(limit) | :any/m/limit ~(at 0) | :any/m/limit/NotNumberOrNullError ::holds~(is ::number ::null) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNumberOrNullError","decision":"D169"}
 {"name":"a-part-of-code-takes-a-quote-alone","query":":any/run ~(apply code) | :any/run/code ~(/0) | :any/run/code/NotQuoteError ::holds~(is ::quote) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError","decision":"D169"}
@@ -39,7 +38,7 @@
 {"name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":any/f ~(add \"a\") | :any/f/answer ::number | 1 | f !| type","expect":"::number/add/addend/NotNumberError","decision":"D67"}
 {"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/f ~(payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| /reason)]","expect":"[5 ::Pos/f/SubjectNotPosError :not-positive]","decision":["D156","D166"]}
 {"name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos |~~ Pos. ~~| | :Pos/construct ~(if (gt 0) ~(/) ~(!{:reason :not-positive} | raise)) | :Pos/dec ~(payload | sub 1) | :Pos/dec/answer ::Pos | ::Box(::Pos(1)) | dec !| type","expect":"::error","decision":"D67"}
-{"name":"an-effectful-verb-under-a-marked-name-runs","query":":any/@io ~(1) | :any/@f ~(@io) | @f","expect":"1","decision":"D67"}
+{"name":"a-word-whose-body-calls-a-word-runs-as-any-word","query":":any/io ~(1) | :any/f ~(io) | f","expect":"1","decision":"D234"}
 {"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]","decision":"D67"}
 {"name":"a-part-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice ~(apply f | apply f) | :any/twice/f ~(/0) | :any/twice/f/NotQuoteError ::holds~(is ::quote) | 1 | [(twice ~(add 1)) (twice ~(add 1))]","expect":"[3 3]","decision":"D67"}
 {"name":"an-optional-part-takes-a-map-by-default","query":":any/m ~(opts | /limit) | :any/m/opts ~(at 0 {:limit 2}) | :any/m/opts/NotMapError ::holds~(is ::map) | null | m","expect":"2","decision":"D67"}

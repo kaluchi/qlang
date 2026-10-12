@@ -538,12 +538,6 @@ describe('semanticTokensFor', () => {
     expect(countTok.line).toBe(0);
   });
 
-  it('paints an `@`-prefixed effectful word as `decorator`', async () => {
-    const { data } = await semanticTokensFor(':any/@audit ~(add 1) | 5 | @audit');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.filter(t => t.type === 'decorator').length).toBeGreaterThanOrEqual(1);
-  });
-
   it('paints a `::Tag` head as `struct`', async () => {
     const { data } = await semanticTokensFor('::number/add/SubjectNotNumberError | doc');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);

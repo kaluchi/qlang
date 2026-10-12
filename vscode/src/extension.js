@@ -112,14 +112,10 @@ function tokenizeWithAst(code) {
     switch (node.type) {
       case 'Call':
         // Annotate only the name token, not the whole call expression.
-        // Effect-marked calls get a distinct class. `.effectful`
-        // is the precomputed boolean stamped by parse.mjs's post-parse
-        // decorateAstWithEffectMarkers pass; read the structured field
-        // rather than re-deriving the classification from node.name.
         annotations.push({
           start: s,
           end: s + node.name.length,
-          cls: node.effectful ? 'hljs-meta' : 'hljs-built_in'
+          cls: 'hljs-built_in'
         });
         break;
       case 'Keyword':
@@ -183,11 +179,6 @@ function tokenizeWithRegex(code) {
       let j = i;
       while (j < code.length && (code[j] === '/' || /[a-zA-Z0-9_]/.test(code[j]))) j++;
       out += span('hljs-attr', code.slice(i, j));
-      i = j;
-    } else if (ch === '@' && /[a-zA-Z_]/.test(code[i + 1] ?? '')) {
-      let j = i + 1;
-      while (j < code.length && /[a-zA-Z0-9_]/.test(code[j])) j++;
-      out += span('hljs-meta', code.slice(i, j));
       i = j;
     } else if (/[a-zA-Z_]/.test(ch)) {
       let j = i;

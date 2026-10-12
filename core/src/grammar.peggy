@@ -692,7 +692,7 @@ ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
 // The letters of a name, `core/src/name-chars.mjs`.
-IdentStart "identifier start (letter, underscore, or @-sigil)"
+IdentStart "identifier start (letter or underscore)"
   = c:. &{ return isNameStart(c); } { return c; }
 IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
   = c:. &{ return isNameContinue(c); } { return c; }

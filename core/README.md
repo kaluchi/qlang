@@ -33,12 +33,12 @@ import { createSession, printValue } from '@kaluchi/qlang-core';
 const session = await createSession({
   sources: [{
     uri: 'my/tools',
-    source: ':string/@fetch ::builtin{}',
-    impls: { 'string/@fetch': async (url) => fetchText(url) }
+    source: ':string/fetch ::builtin{}',
+    impls: { 'string/fetch': async (url) => fetchText(url) }
   }]
 });
 
-const cell = await session.evalCell('"https://example.org" | @fetch');
+const cell = await session.evalCell('"https://example.org" | fetch');
 cell.error;               // a ParseError when the source does not parse, else null
 printValue(cell.result);  // the answer as its literal; a failure is an error value
 ```
@@ -49,7 +49,7 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   installs a value under a name; `env` is the current scope.
 - A source is `{ uri, source, impls? }`: its declarations stand in the
   root, a name declared under the kind of its subject whose value is
-  `::builtin{}`, `:string/@fetch`, the parts of its args names under
+  `::builtin{}`, `:string/fetch`, the parts of its args names under
   it, and each implementation is a plain function over the subject and
   the values of the parts in their order. A source that declares a name
   the root holds is refused.

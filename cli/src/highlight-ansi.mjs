@@ -15,7 +15,6 @@ const KIND_TO_SGR = {
   number:   '33',         // yellow
   comment:  '2',          // dim
   name:     '36',         // cyan
-  effect:   '95',         // bright magenta
   tag:      '96',         // bright cyan — `::tag` identifier
   word:     '94',         // bright blue
   keyword:  '1;94',       // bold bright blue

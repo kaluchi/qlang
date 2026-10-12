@@ -22,7 +22,7 @@ describe('createSession lifecycle', () => {
   it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
     // The CLI script mode uses this hook to deliver parsed stdin
     // as the implicit subject — `qlang '/key'` then acts as a
-    // pure filter without needing `@in | parseJson | …` ceremony.
+    // pure filter without needing `in | parseJson | …` ceremony.
     const sessionInstance = await createSession();
     const seeded = new Map([['a', 1], ['b', 2]]);
     const cellEntry = await sessionInstance.evalCell('/a', { initialPipeValue: seeded });
@@ -32,7 +32,7 @@ describe('createSession lifecycle', () => {
 
   it('evalCell omitting initialPipeValue falls back to env as the seed', async () => {
     // Historical behaviour — a query that starts with a value
-    // producer (`42`, `[1 2]`, `@in`) overrides the seed anyway,
+    // producer (`42`, `[1 2]`, `in`) overrides the seed anyway,
     // so a cell that does not reference pipeValue acts as before.
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42');
@@ -126,11 +126,11 @@ describe('the sources a host hands [D153]', () => {
       ':number/less |~~ The subject less the part. ~~| ::builtin{}',
       ':number/less/by |~~ How much less. ~~| ~(/0)',
       ':number/less/by/NotNumberError |~~ The amount is a number. ~~| ::holds~(is ::number)',
-      ':any/@fetch |~~ The text fetched. ~~| ::builtin{}',
-      ':any/@fetch/text |~~ The text. ~~| ::string',
-      ':any/@doubled ~(@fetch | append @fetch)'
+      ':any/fetch |~~ The text fetched. ~~| ::builtin{}',
+      ':any/fetch/text |~~ The text. ~~| ::string',
+      ':any/doubled ~(fetch | append fetch)'
     ].join('\n'),
-    impls: { 'number/less': (subject, by) => subject - by, 'any/@fetch': () => 'fetched' }
+    impls: { 'number/less': (subject, by) => subject - by, 'any/fetch': () => 'fetched' }
   }];
 
   it('runs a host name through the implementation handed beside its source', async () => {
@@ -142,13 +142,13 @@ describe('the sources a host hands [D153]', () => {
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('@doubled')).result).toBe('fetchedfetched');
+    expect((await sessionInstance.evalCell('doubled')).result).toBe('fetchedfetched');
   });
 
   it('answers a host name as its descriptor, whose answer is a definition of its label', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/@fetch | binding | /value | type')).result).toEqual(makeTag('builtin'));
-    expect((await sessionInstance.evalCell('@fetch | type')).result).toEqual(makeTag('string'));
+    expect((await sessionInstance.evalCell('::any/fetch | binding | /value | type')).result).toEqual(makeTag('builtin'));
+    expect((await sessionInstance.evalCell('fetch | type')).result).toEqual(makeTag('string'));
   });
 
   it('records the source a host name came from as its origin', async () => {

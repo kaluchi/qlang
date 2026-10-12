@@ -85,14 +85,6 @@ export function isMemberValue(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
 }
 
-// Whether a call of the name reads the parts declared under it: a quote
-// or a `::builtin{}` under a label, the host's marked as such once its
-// source has run [D167].
-export function readsParts(env, name) {
-  const value = bindingValueOf(nodeOf(env, name));
-  return (isQuote(value) || isBuiltinDescriptor(value)) && isUnderLabel(env, name);
-}
-
 // answerOf(env, address) → the definition of the answer of the word at the
 // address, the name `answer` under it, whose value is a tag or a set of
 // tags, `{ address, kinds }`, or null for a word that answers any value

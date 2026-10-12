@@ -288,12 +288,6 @@ code, pre {
 .repl-input-highlight .name,
 .repl-entry-input .name,   .repl-entry-output .name     { color: #15803d; }
 
-.code-editor-body .effect,
-.pg-source .effect,        .pg-value .effect,
-.playground-highlight .effect,
-.repl-input-highlight .effect,
-.repl-entry-input .effect, .repl-entry-output .effect   { color: #c2410c; }
-
 .code-editor-body .tag,
 .pg-source .tag,           .pg-value .tag,
 .playground-highlight .tag,

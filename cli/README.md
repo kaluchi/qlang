@@ -36,13 +36,13 @@ qlang -i '::qlang | doc | links | map ~open'
 
 The language documents itself: `qlang '::qlang | doc'` reads the
 language, and `qlang '::cli | doc'` this command line, its verbs
-`@in`, `@out`, `@err`, `@tap` and `table` among them.
+`in`, `out`, `err`, `tap` and `table` among them.
 
 A value one query hands another over a pipe keeps its kinds as its
 literal:
 
 ```
-qlang '#[:admin :user] | print | @out' | qlang --raw 'parse | open | count'
+qlang '#[:admin :user] | print | out' | qlang --raw 'parse | open | count'
 2
 ```
 
@@ -58,5 +58,5 @@ qlang '#[:admin :user] | print | @out' | qlang --raw 'parse | open | count'
 
 `qlang -i` opens a session whose cells share the names they declare;
 a query after `-i` runs as its first cell. `.help` lists the meta
-commands and the keys of the editor. `@in` answers the empty string
+commands and the keys of the editor. `in` answers the empty string
 inside the REPL, since the prompt reads stdin.

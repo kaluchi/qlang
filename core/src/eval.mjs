@@ -6,10 +6,8 @@ import { ROOT_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf
 } from './state.mjs';
-import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindEffectMarkMissingError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
+import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestKeys, nearestNames, nearestTagNames } from './nearest-names.mjs';
-import { classifyEffect } from './effect.mjs';
-import { findFirstEffectfulIdentifier } from './effect-check.mjs';
 import {
   isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
@@ -23,7 +21,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, readsParts, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -413,26 +411,11 @@ async function evalBindStep(node, state) {
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
   if (nounName === null && isInvariant(answered)) throw new BindInvariantNotUnderLabelError({ name: keyword(name) });
-  if (isQuote(answered) && isUnderLabel(state.env, name)) {
-    refuseLaunderedByName(name, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
-  } else if (isQuote(answered) && nounName !== null && readsParts(state.env, nounName)) {
-    refuseLaunderedByName(nounName, findFirstEffectfulIdentifier(astOfQuote(answered)), node);
-  }
   const writtenQuote = node.body.type === 'QuoteLit';
   const value = writtenQuote ? quoteInEnv(answered, null) : answered;
   const nextEnv = envSet(state.env, name, declarationRecord(node, value));
   if (writtenQuote) quoteEnvRef(value).env = nextEnv;
   return withEnv(state, nextEnv);
-}
-
-// A name without the effect marker refuses a quote under a label whose
-// body calls one; a part whose selector calls one is refused by the name
-// it is a part of, which runs it at each call [D167].
-function refuseLaunderedByName(name, effectfulName, node) {
-  if (effectfulName === null || classifyEffect(name)) return;
-  const laundering = new BindEffectMarkMissingError({ name: keyword(name), calls: keyword(effectfulName) });
-  laundering.location = node.body.location;
-  throw laundering;
 }
 
 // The record a declaration writes: its name, the docs of its slot, the

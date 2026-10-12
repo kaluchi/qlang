@@ -614,7 +614,6 @@ function findEnclosingCall(node) {
 export const SEMANTIC_TOKEN_TYPES = [
   'function',
   'variable',
-  'decorator',
   'keyword',
   'struct',
   'string',
@@ -625,14 +624,13 @@ export const SEMANTIC_TOKEN_TYPES = [
 const KIND_TO_TYPE_INDEX = {
   word:    0,
   name:    1,
-  effect:  2,
-  keyword: 3,
-  tag:     4,
-  string:  5,
-  quote:   5,
-  number:  6,
-  comment: 7,
-  err:     3
+  keyword: 2,
+  tag:     3,
+  string:  4,
+  quote:   4,
+  number:  5,
+  comment: 6,
+  err:     2
 };
 
 // The names of the runtime, which `tokenize` paints as words.

@@ -116,15 +116,15 @@ x
 
 :any/abs |~~ The absolute value, by a conditional negation. ~~| ~(if (lt 0) ~(mul -1))
 
-:any/@surround
+:any/surround
   |~~ Surround a string with a prefix and suffix, a word with two
       parts. ~~|
   ~(prepend pfx | append sfx)
-:any/@surround/pfx ~(/0)
-:any/@surround/sfx ~(/1)
+:any/surround/pfx ~(/0)
+:any/surround/sfx ~(/1)
 
-|~| Ctrl+Click on @surround → jumps to the BindStep above
-"world" | @surround "[" "]"
+|~| Ctrl+Click on surround → jumps to the BindStep above
+"world" | surround "[" "]"
 
 
 |~| ── 11. Effect markers ────────────────────────────────

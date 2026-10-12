@@ -1,7 +1,7 @@
 // main orchestrator coverage. Every cliInvocation kind dispatches
 // to its own branch; one test per branch, plus end-to-end flows
 // that cover the script-mode auto-pipe contract (JSON in → the
-// literal out, text in → the text out, `@out` suppression, standard
+// literal out, text in → the text out, `out` suppression, standard
 // input read only for a query that reads its subject).
 //
 // Tests inject Readable / Writable stream stubs so the orchestrator
@@ -120,9 +120,9 @@ describe('main — standard input read for a query that reads its subject', () =
     expect(s.stdoutText()).toBe('2\n');
   });
 
-  it('reads stdin when `@in` is called by a query that reads no subject', async () => {
+  it('reads stdin when `in` is called by a query that reads no subject', async () => {
     const s = captureStreams('piped text');
-    await main(['"x" | @in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['"x" | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('piped text\n');
   });
 
@@ -229,24 +229,24 @@ describe('main — script mode auto-pipe', () => {
   });
 });
 
-describe('main — `@out` suppression of auto-encoded stdout', () => {
-  it('routes `@out` emissions to stdout and skips the auto-encode', async () => {
+describe('main — `out` suppression of auto-encoded stdout', () => {
+  it('routes `out` emissions to stdout and skips the auto-encode', async () => {
     const s = captureStreams();
     const exitCode = await main(
-      ['[1 2 3] | count | print | @out'],
+      ['[1 2 3] | count | print | out'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
-    // `@out` wrote '3\n' during eval — no trailing duplicate from
+    // `out` wrote '3\n' during eval — no trailing duplicate from
     // the renderer.
     expect(s.stdoutText()).toBe('3\n');
     expect(s.stderrText()).toBe('');
   });
 
-  it('feeds stdin into `@in` alongside the auto-pipe so explicit queries still work', async () => {
+  it('feeds stdin into `in` alongside the auto-pipe so explicit queries still work', async () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
-      ['@in | @out'],
+      ['in | out'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);

@@ -37,15 +37,15 @@
 
       An answer prints whole, and `--budget=N` or `| elide N` bounds it,
       what is left out an `::elision` marker whose `:read` continues the
-      query to it. `@in`, `@out`, `@err` and `@tap` read and write the
-      streams, `@tap` showing a value halfway through a query on stderr;
-      a query that writes to stdout by `@out` holds the channel, and its
+      query to it. `in`, `out`, `err` and `tap` read and write the
+      streams, `tap` showing a value halfway through a query on stderr;
+      a query that writes to stdout by `out` holds the channel, and its
       answer is left unwritten. A value one query hands another over a
-      pipe keeps its kinds as its literal, `print | @out` writing it and
-      `@in | parse | open` reading it back.
+      pipe keeps its kinds as its literal, `print | out` writing it and
+      `in | parse | open` reading it back.
       ::link~(::any/json | doc) ::link~(::vec/table | doc)
       ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
-      ::link~(::any/@tap | doc) ::link~(::qlang/hosts | doc)
+      ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
 
 :cli/declaresTable
@@ -54,149 +54,149 @@
 
 :cli/declaresTheStreams
   |~~ The command line declares the streams under any value. ~~|
-  ::law~(::any | manifest | has ::any/@out)
+  ::law~(::any | manifest | has ::any/out)
 
-:any/@in
+:any/in
   |~~ Answers the text stdin holds, read to its end whatever the subject,
       the text the command line also lifts into the subject; a terminal
       with nothing piped answers the empty string. It heads a query that
-      reads the text as it came, ::snippet~(@in | lines | count) counting
+      reads the text as it came, ::snippet~(in | lines | count) counting
       the lines piped in, and it takes no value.
   ~~|
   ::builtin{}
 
-:any/@in/answer
+:any/in/answer
   |~~ The text stdin held, the empty string when nothing was piped. ~~|
   ::string
 
-:any/@out
+:any/out
   |~~ Writes a line to stdout and answers its subject as it came: it
-      writes the subject when it is a string, `"hi" | @out`, or the text
-      the call gives, computed against the subject, `42 | @out json`, the
-      steps after still reading `42`. A query that writes by `@out`
+      writes the subject when it is a string, `"hi" | out`, or the text
+      the call gives, computed against the subject, `42 | out json`, the
+      steps after still reading `42`. A query that writes by `out`
       leaves its answer unwritten.
-      ::snippet~([1 2] | @out json | count) writes `[1,2]`.
+      ::snippet~([1 2] | out json | count) writes `[1,2]`.
   ~~|
   ::builtin{}
 
-:any/@out/answer
+:any/out/answer
   |~~ The subject as it came. ~~|
   ::any
 
-:any/@out/text
+:any/out/text
   |~~ The text written, computed against the subject, null when the call
       gives none.
   ~~|
   ~(at 0)
 
-:any/@out/text/NotStringOrNullError
-  |~~ The text `@out` writes is a string: a value of another kind is made
-      text first, `@out json` or `@out print`.
+:any/out/text/NotStringOrNullError
+  |~~ The text `out` writes is a string: a value of another kind is made
+      text first, `out json` or `out print`.
   ~~|
   ::holds~(is ::string ::null)
 
-:any/@out/SubjectNotStringError
-  |~~ `@out` alone writes its subject, a string, as a line; another
+:any/out/SubjectNotStringError
+  |~~ `out` alone writes its subject, a string, as a line; another
       value is written as the text the call computes from it,
-      `42 | @out json` or `{:x 1} | @out print`.
+      `42 | out json` or `{:x 1} | out print`.
   ~~|
 
-:any/@out/ArgsBeyondPartsError
-  |~~ `@out` writes its subject, or the one text its call gives, `"hi" |
-      @out`; texts are joined first, `@out (["a" "b"] | join "")`.
+:any/out/ArgsBeyondPartsError
+  |~~ `out` writes its subject, or the one text its call gives, `"hi" |
+      out`; texts are joined first, `out (["a" "b"] | join "")`.
   ~~|
 
-:any/@out/SubjectNotStringError/refusesANumber
-  |~~ A number is no line `@out` writes alone. ~~|
-  ::law~(42 | @out !| type | eq ::any/@out/SubjectNotStringError)
+:any/out/SubjectNotStringError/refusesANumber
+  |~~ A number is no line `out` writes alone. ~~|
+  ::law~(42 | out !| type | eq ::any/out/SubjectNotStringError)
 
-:any/@out/text/NotStringOrNullError/refusesANumber
+:any/out/text/NotStringOrNullError/refusesANumber
   |~~ A number is no text to write. ~~|
-  ::law~("hi" | @out 5 !| type | eq ::any/@out/text/NotStringOrNullError)
+  ::law~("hi" | out 5 !| type | eq ::any/out/text/NotStringOrNullError)
 
-:any/@out/ArgsBeyondPartsError/refusesTwoTexts
+:any/out/ArgsBeyondPartsError/refusesTwoTexts
   |~~ A call with two texts is refused under the word. ~~|
-  ::law~("hi" | @out "a" "b" !| type | eq ::any/@out/ArgsBeyondPartsError)
+  ::law~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondPartsError)
 
-:any/@err
-  |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
+:any/err
+  |~~ Writes a line to stderr, the channel of diagnostics, as `out`
       writes to stdout, and answers its subject as it came; the answer of
       the query is written as ever.
-      ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
+      ::snippet~([1 2 3] | err "counting" | count) writes `counting` to
       stderr and answers 3.
   ~~|
   ::builtin{}
 
-:any/@err/answer
+:any/err/answer
   |~~ The subject as it came. ~~|
   ::any
 
-:any/@err/text
+:any/err/text
   |~~ The text written, computed against the subject, null when the call
       gives none.
   ~~|
   ~(at 0)
 
-:any/@err/text/NotStringOrNullError
-  |~~ The text `@err` writes is a string: a value of another kind is made
-      text first, `@err json` or `@err print`.
+:any/err/text/NotStringOrNullError
+  |~~ The text `err` writes is a string: a value of another kind is made
+      text first, `err json` or `err print`.
   ~~|
   ::holds~(is ::string ::null)
 
-:any/@err/SubjectNotStringError
-  |~~ `@err` alone writes its subject, a string, as a line on stderr;
+:any/err/SubjectNotStringError
+  |~~ `err` alone writes its subject, a string, as a line on stderr;
       another value is written as the text the call computes from it,
-      `@err json` or `@err print`.
+      `err json` or `err print`.
   ~~|
 
-:any/@err/ArgsBeyondPartsError
-  |~~ `@err` writes its subject, or the one text its call gives, `"hi" |
-      @err`; texts are joined first, `@err (["a" "b"] | join "")`.
+:any/err/ArgsBeyondPartsError
+  |~~ `err` writes its subject, or the one text its call gives, `"hi" |
+      err`; texts are joined first, `err (["a" "b"] | join "")`.
   ~~|
 
-:any/@err/SubjectNotStringError/refusesANumber
-  |~~ A number is no line `@err` writes alone. ~~|
-  ::law~(42 | @err !| type | eq ::any/@err/SubjectNotStringError)
+:any/err/SubjectNotStringError/refusesANumber
+  |~~ A number is no line `err` writes alone. ~~|
+  ::law~(42 | err !| type | eq ::any/err/SubjectNotStringError)
 
-:any/@err/ArgsBeyondPartsError/refusesTwoTexts
+:any/err/ArgsBeyondPartsError/refusesTwoTexts
   |~~ A call with two texts is refused under the word. ~~|
-  ::law~("hi" | @err "a" "b" !| type | eq ::any/@err/ArgsBeyondPartsError)
+  ::law~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondPartsError)
 
-:any/@tap
+:any/tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject as it came, a look at a value halfway through a
       query:
-      ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
+      ::snippet~([{:on true} {:on false}] | tap :before | filter ~(/on) | tap :after | count)
       shows both vectors and answers 1.
   ~~|
   ::builtin{}
 
-:any/@tap/answer
+:any/tap/answer
   |~~ The subject as it came. ~~|
   ::any
 
-:any/@tap/label
+:any/tap/label
   |~~ The label written before the value, a keyword. ~~|
   ~(/0)
 
-:any/@tap/label/NotKeywordError
-  |~~ The label of `@tap` is a keyword, `@tap :before`, written before
+:any/tap/label/NotKeywordError
+  |~~ The label of `tap` is a keyword, `tap :before`, written before
       the value as `[tap before]`.
   ~~|
   ::holds~(is ::keyword)
 
-:any/@tap/ArgsBeyondPartsError
-  |~~ `@tap` writes its subject under one label its call gives, `5 | @tap
+:any/tap/ArgsBeyondPartsError
+  |~~ `tap` writes its subject under one label its call gives, `5 | tap
       :n`; a call with more labels is refused.
   ~~|
 
-:any/@tap/label/NotKeywordError/refusesAString
+:any/tap/label/NotKeywordError/refusesAString
   |~~ A string is no label. ~~|
-  ::law~(1 | @tap "x" !| type | eq ::any/@tap/label/NotKeywordError)
+  ::law~(1 | tap "x" !| type | eq ::any/tap/label/NotKeywordError)
 
-:any/@tap/ArgsBeyondPartsError/refusesTwoLabels
+:any/tap/ArgsBeyondPartsError/refusesTwoLabels
   |~~ A call with two labels is refused under the word. ~~|
-  ::law~(5 | @tap :a :b !| type | eq ::any/@tap/ArgsBeyondPartsError)
+  ::law~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondPartsError)
 
 :vec/table
   |~~ Answers a vector of maps drawn as a table of fixed-width columns, a

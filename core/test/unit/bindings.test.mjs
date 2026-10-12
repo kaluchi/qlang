@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, makeTag, formOf } from '../../src/types.mjs';
+import { makeTag, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
@@ -62,25 +62,17 @@ describe('BindStep — value-body purity routing', () => {
 
 describe('BindStep — a word with parts', () => {
   it('a word binds its parts from the modifiers of the call', async () => {
-    expect(await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | "x" | @surround "[" "]"'))
+    expect(await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | "x" | surround "[" "]"'))
       .toBe('[x]');
   });
 
   it('the part x binds the modifier', async () => {
-    expect(await evalQuery(':any/@add1 ~(add x) | :any/@add1/x ~(/0) | 5 | @add1 10')).toBe(15);
+    expect(await evalQuery(':any/add1 ~(add x) | :any/add1/x ~(/0) | 5 | add1 10')).toBe(15);
   });
 });
 
 describe('BindStep — pipeline-transparency', () => {
   it('subject pipeValue passes through unchanged across a binding step', async () => {
     expect(await evalQuery('"input" | :x 1 | x')).toBe(1);
-  });
-});
-
-describe('BindStep — effectLaundering safety net', () => {
-  it('rejects an effectful body under a non-@-prefixed binding name', async () => {
-    const err = await evalQuery(':any/safe ~(@nonExistent)');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('bind/EffectMarkMissingError'));
   });
 });

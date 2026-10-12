@@ -30,7 +30,6 @@ const KIND_TO_CLASS = {
   number:   'number',
   comment:  'comment',
   name:     'name',
-  effect:   'effect',
   tag:      'tag',
   word:     'word',
   keyword:  'keyword',

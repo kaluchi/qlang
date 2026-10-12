@@ -79,9 +79,9 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/code.mjs`, `core/src/walk.mjs`
 - printing and codecs: `core/src/runtime/print-value.mjs`,
   `core/src/runtime/print.mjs`, `core/src/runtime/format.mjs`
-- host boundary: `core/src/effect.mjs`, `core/src/effect-check.mjs`,
-  `core/src/runtime/bootstrap.mjs`, `core/host/`, `cli/src/main.mjs`,
-  `cli/src/script-mode.mjs`, `cli/src/cli-sources.mjs`
+- host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,
+  `cli/src/main.mjs`, `cli/src/script-mode.mjs`,
+  `cli/src/cli-sources.mjs`, `cli/src/streams.mjs`
 - tests: `core/test/unit/conformance.test.mjs` for the runner, then
   only the conformance or unit file of the topic
 

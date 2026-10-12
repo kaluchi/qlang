@@ -217,9 +217,9 @@ describe('parse — Call', () => {
   });
 
   it('parses an identifier with @ prefix', () => {
-    const ast = parse('@callers');
+    const ast = parse('callers');
     expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('@callers');
+    expect(ast.name).toBe('callers');
     expect(ast.args).toEqual([]);
   });
 

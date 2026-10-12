@@ -1017,20 +1017,6 @@ a second spelling of the grammar beside the parser.
 
 ### Host concerns inside the core
 
-Effect markers are a naming convention: an identifier that begins with
-`@` is effectful, a verb whose body mentions an effectful name must be
-declared under a name that carries the marker, and the evaluator checks
-this at declaration and at call [D69]. The core has no effectful operand of
-its own; every one belongs to a host. The flag rides on every node of
-the parser's tree that names something, and the guarantee it offers is
-incomplete, because an effect handed as code runs under a
-clean name:
-
-```qlang
-> :any/run ~(apply code) | :any/run/code ~(/0) | "leak" | run ~(@out)
-leak
-```
-
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
@@ -1038,30 +1024,21 @@ session, which is to save as the source of its declarations [D30]. The noun of a
 onboards its user with a guide written by hand, which reads from its
 catalog the first sentence of the page of each word it shows first.
 
-The repair must remove the effect marker from the language rather than
-relocate it [D2]: a naming convention keeps every `@`-name a different
-name from its plain twin, and the core has no consumer of purity, since
-it neither reorders nor caches nor optimizes by it. A host whose operand
-reads an index or throws dice marks the provenance of the value it
-returns with a tag, so provenance moves from the source name onto the
-value. A tag can describe an effect as well, a write the host is to
-perform, and there the lesson of YAML applies, whose `load` ran code
-while reading until `safe_load` became the norm: a tag's constructor is
-pure, reading or constructing a literal performs nothing, and an effect
-described by a value is performed by an explicit step at the host
-boundary and by nothing else.
-
-A host's operands are then named as the core's are, under the rule of
-collisions [D222], [D223], and the marker leaves with the host's verbs moving
-onto its tags: without it the sister project's `@type` and `@source`
-become `type` and `source`, which the root refuses beside `::any/type`
-and `::any/source` unless the sister declares them under kinds of its
-own [D153]. Selecting an operand by the tag of its
-subject is the walk of its tags [D34]. Whether an effect deserves to
-become a value of its own, an action awaiting the host the way a quote
-awaits `apply`, is a question for a later branch that would have to
-show a task no plainer construct solves. The repair must also give the
-sister project a guide generated from the catalog.
+The effect marker left the language [D2], [D234]: no name begins with
+`@`, and a word of a host is named as any word is, under the rule of
+collisions [D222], [D223]. A host whose word reads an index or throws
+dice marks the provenance of the value it returns with a tag, and a tag
+can describe an effect as well, a write the host is to perform, which
+an explicit step at the host boundary performs and nothing else, as the
+lesson of YAML's `load` taught: a tag's constructor is pure, and reading
+or constructing a literal performs nothing. The sister project's words
+`type` and `source` meet `::any/type` and `::any/source`, which the root
+holds once, until the sister declares them under kinds of its own
+[D153], the walk of a subject's tags selecting them [D34]. Whether an
+effect deserves to become a value of its own, an action awaiting the
+host the way a quote awaits `apply`, is a question for a later branch
+that would have to show a task no plainer construct solves. The repair
+must give the sister project a guide generated from the catalog.
 
 ### Code that explains itself
 
@@ -1368,14 +1345,13 @@ milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
-work has begun meet their targets, so the suite carries the target of
-the one the walk found in force and unmet, the effect marker leaving
-the language [D2], and every other decision below writes its targets
-before its work:
+work has begun meet their targets, the last of them the effect marker
+leaving the language [D2], [D234], so the suite carries no target unmet,
+and every other decision below writes its targets before its work:
 
 ```sh
-$ grep -rhoE '"decision": *"D[0-9]+", *"target": *true' core/test/conformance
-"decision":"D2","target":true
+$ grep -rhoE '"target": *true' core/test/conformance | wc -l
+0
 ```
 
 ### Milestone 4 · One spelling
@@ -1999,3 +1975,4 @@ the command line without them.
 [D231]: decisions/D231.md
 [D232]: decisions/D232.md
 [D233]: decisions/D233.md
+[D234]: decisions/D234.md

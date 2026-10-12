@@ -242,8 +242,8 @@ describe('source axis on verb / freeze / tag subjects', () => {
   });
 
   it('source on the address of a part returns its declaration', async () => {
-    const source = await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | ::any/@surround/sfx | source | parse');
-    expect(source).toBe(':any/@surround/sfx ~(/1)');
+    const source = await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | ::any/surround/sfx | source | parse');
+    expect(source).toBe(':any/surround/sfx ~(/1)');
   });
 
   it('source on a freeze returns its declaration', async () => {

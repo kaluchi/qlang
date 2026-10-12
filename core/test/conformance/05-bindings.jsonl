@@ -6,7 +6,7 @@
 {"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item / | {:key /id :record item})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
 {"name":"a-reader-declares-a-word-named-use","query":":any/use ~(mul 2) | 5 | use","expect":"10"}
 {"name":"a-reader-names-a-value-use","query":"42 | :use / | use","expect":"42"}
-{"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":any/@two ~(2) | :n @two | n","expect":"2","decision":"D69"}
+{"name":"a-binding-of-a-value-under-a-clean-name-may-call-an-effect","query":":any/two ~(2) | :n two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-word","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D70"}
 {"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type /name]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":["D44","D71"]}

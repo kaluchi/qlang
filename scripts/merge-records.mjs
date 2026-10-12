@@ -50,12 +50,13 @@ if (earlier.length > 0) {
 
 // A citation of a record merged names the survivor, and a run of
 // citations that comes to name it twice names it once, in the order of
-// the records; a definition of a link is left to `relink`, and a
-// statement of fate, which says what took a part of what, keeps the
-// record it named, as history.
+// the records; a definition of a link is left to `relink`, and the
+// source of a record and a statement of fate, which tell its history,
+// keep the record they named.
 function cite(text, isRecord = false) {
   const lines = text.split('\n');
-  const fate = new Set(isRecord ? statementsOf(text).filter(statement => FATE.test(statement.text)).flatMap(({ from, to }) => Array.from({ length: to - from + 1 }, (_, index) => from + index)) : []);
+  const history = statement => FATE.test(statement.text) || statement.text.startsWith('Source. ');
+  const fate = new Set(isRecord ? statementsOf(text).filter(history).flatMap(({ from, to }) => Array.from({ length: to - from + 1 }, (_, index) => from + index)) : []);
   const written = [];
   let prose = [];
   const flush = () => { if (prose.length > 0) written.push(...citeProse(prose.join('\n')).split('\n')); prose = []; };

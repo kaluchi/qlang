@@ -4,7 +4,8 @@
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { isKeyword } from '../types.mjs';
+import { isKeyword, isRegex } from '../types.mjs';
+import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
 // A value a word writes into text: a string as it is and a keyword as
 // its name, as the JSON channel writes it [D126], [D198].
@@ -19,8 +20,12 @@ bindPrim('string/append', (text, suffix) => text + writtenAsText(suffix));
 bindPrim('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
-// `count` counts, so no character falls in halves.
-bindPrim('string/split', (subject, separator) => (separator === '' ? Array.from(subject) : subject.split(separator)));
+// `count` counts, so no character falls in halves, and a pattern cuts it at
+// every match [D246].
+bindPrim('string/split', (subject, separator) => {
+  if (isRegex(separator)) return piecesBetweenMatches(subject, separator);
+  return separator === '' ? Array.from(subject) : subject.split(separator);
+});
 
 // A `\n` ends a line, a `\r` before it belongs to the ending, and a
 // final ending opens no line [D49].
@@ -45,6 +50,6 @@ bindPrim('string/upper', subject => subject.toUpperCase());
 // [D141].
 bindPrim('string/trim', subject => subject.trim());
 
-bindPrim('string/contains',   (subject, needle) => subject.includes(needle));
+bindPrim('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));
 bindPrim('string/startsWith', (subject, prefix) => subject.startsWith(prefix));
 bindPrim('string/endsWith',   (subject, suffix) => subject.endsWith(suffix));

@@ -13,7 +13,7 @@ import { declareInvariantError } from '../errors.mjs';
 export const LANGUAGE_SOURCES = Object.freeze([
   'qlang',
   'qlang/builtin', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
-  'qlang/keyword', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
+  'qlang/keyword', 'qlang/regex', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
   'qlang/binding', 'qlang/error', 'qlang/elision', 'qlang/desc',
   'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/holds',
   'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/proj', 'qlang/bind',

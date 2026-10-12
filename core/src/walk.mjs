@@ -59,8 +59,8 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, TagLit (a tag, the address of a node) have no
-    // semantic children.
+    // RegexLit, Projection, TagLit (a tag, the address of a node) have
+    // no semantic children.
   }
   return out;
 }
@@ -68,7 +68,7 @@ export function astChildrenOf(node) {
 // The literals of no parts, which answer themselves whatever the subject,
 // and the literals whose parts run on the subject, `[/a 1]` reading it
 // where `[1 2]` does not.
-const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit']);
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit']);
 const LITERALS_OF_PARTS = new Set([
   'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
 ]);

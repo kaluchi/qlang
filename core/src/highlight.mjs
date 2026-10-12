@@ -10,6 +10,7 @@
 // Token kinds:
 //
 //   'string'      String literal, including the surrounding quotes
+//   'regex'       Pattern literal `#"…"`, its flags among it [D246]
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     Plain comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
@@ -111,6 +112,10 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'StringLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'string' });
+        return false;
+
+      case 'RegexLit':
+        spans.push({ start: startOffset, end: endOffset, kind: 'regex' });
         return false;
 
       case 'NumberLit':

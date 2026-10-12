@@ -1,7 +1,7 @@
 |~ Every value comes apart into the set of its atoms and a shape, and
    the shape applied to the set builds the value back [D42]. The
    atoms are the values no verb takes further apart, null, booleans,
-   numbers, strings, keywords and tag names, each once, in the one
+   numbers, strings, patterns, keywords and tag names, each once, in the one
    order, and a value is taken apart to the end: the keys of its maps
    and the tags over its payloads are atoms as its other leaves are.
    The shape is a quote of projections into the set and of the steps
@@ -18,7 +18,7 @@
 
 :atomKinds
   |~~ The kinds of the atoms. ~~|
-  #[::null ::boolean ::number ::string ::keyword ::tag]
+  #[::null ::boolean ::number ::string ::regex ::keyword ::tag]
 
 :any/groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the

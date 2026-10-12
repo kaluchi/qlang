@@ -18,9 +18,9 @@
 import { parse } from './parse.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTag, makeDoc, makeQuote, makeSet,
+  keyword, makeTag, makeDoc, makeQuote, makeSet, makeRegex,
   makeTaggedInstance, errorAtRest,
-  isQuote, isKeyword, isTag, isDoc, isVec, isQMap, isQSet,
+  isQuote, isKeyword, isTag, isRegex, isDoc, isVec, isQMap, isQSet,
   isValueClass, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
@@ -164,6 +164,7 @@ const STEP_OF_NODE = {
   BooleanLit:      node => node.value,
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
+  RegexLit:        node => makeRegex(node.pattern, node.flags),
   TagLit: node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,
@@ -212,7 +213,7 @@ export function isStep(value) {
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
-  if (isKeyword(value) || isTag(value) || isDoc(value) || isQuote(value)) return true;
+  if (isKeyword(value) || isTag(value) || isRegex(value) || isDoc(value) || isQuote(value)) return true;
   const errorFields = errorFieldsOf(value);
   if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);

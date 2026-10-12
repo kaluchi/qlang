@@ -119,6 +119,16 @@ export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
 }
 
+// A pattern of text, the value of a `#"…"` literal: its source as written
+// and its flags, which `pattern.mjs` hands to the engine [D246].
+export function makeRegex(source, flags) {
+  return Object.freeze(brandValueClass({ source, flags }, 'regex'));
+}
+
+export function isRegex(v) {
+  return isValueClass(v, 'regex');
+}
+
 // A value under a tag of its own.
 export function isTaggedInstance(v) {
   return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;
@@ -253,6 +263,7 @@ export const CORE_KIND = Object.freeze({
   boolean: makeTag('boolean'),
   number:  makeTag('number'),
   string:  makeTag('string'),
+  regex:   makeTag('regex'),
   keyword: makeTag('keyword'),
   tag:     makeTag('tag'),
   vec:     makeTag('vec'),
@@ -365,6 +376,7 @@ export function typeKeyword(v) {
   if (isString(v)) return CORE_KIND.string;
   if (isKeyword(v)) return CORE_KIND.keyword;
   if (isTag(v)) return CORE_KIND.tag;
+  if (isRegex(v)) return CORE_KIND.regex;
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;

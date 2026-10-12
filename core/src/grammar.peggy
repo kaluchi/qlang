@@ -19,6 +19,7 @@
 
 {{
   import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
+  import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
 
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
@@ -108,6 +109,20 @@
   // [D245].
   function nameCalled(name, body) {
     return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+  }
+
+  // Whether the engine reads a pattern a literal writes with its flags
+  // [D246].
+  function patternRead(source, written) {
+    const flags = canonicalFlags(written);
+    return flags !== null && patternProblem(source, flags) === null;
+  }
+
+  function refuseUnreadPattern(source, written) {
+    const flags = canonicalFlags(written);
+    if (flags === null) error(`a pattern takes the flags ${[...PATTERN_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
+    const problem = patternProblem(source, flags);
+    if (problem !== null) error(patternRefusal(source, flags, problem));
   }
 
   function refuseNameNoStepCalls(key, body) {
@@ -343,6 +358,7 @@ BodyBreak
 Word
   = ParenGroup
   / ErrorLit
+  / RegexLit
   / SetLit
   / VecLit
   / MapLit
@@ -552,6 +568,24 @@ JsonMapEntry
 QlangMapEntry
   = key:Keyword __ value:Element
     { return node('MapEntry', { key, value }, span(), text()); }
+
+// A pattern of text, read as written: a backslash passes to the engine
+// with the character after it, but for `\"`, a quote in the pattern that
+// does not end it, and the flags may follow the closing quote,
+// `#"error"i` [D246].
+RegexLit
+  = "#\"" chars:RegexChar* "\"" written:$[a-zA-Z]*
+    &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }
+    {
+      const pattern = chars.join('');
+      refuseUnreadPattern(pattern, written);
+      return node('RegexLit', { pattern, flags: canonicalFlags(written) }, span(), text());
+    }
+
+RegexChar
+  = "\\\"" { return '"'; }
+  / $("\\" .)
+  / [^"\\]
 
 SetLit
   = "#[" _ "]"

@@ -23,6 +23,11 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
+  it('wraps a pattern literal, its flags among it, in the bright-magenta escape pair', () => {
+    const out = highlightAnsi('#"\\d+"i', noBuiltins);
+    expect(out).toBe('\x1b[95m#"\\d+"i\x1b[0m');
+  });
+
   it('paints a ~(…) Quote with green upright delimiters and italic body', () => {
     // `~(` and `)` get the upright green `quote` escape; the body
     // sub-tokenises with each inner kind's colour combined with

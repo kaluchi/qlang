@@ -4,7 +4,8 @@
 // itself, and what a word cannot read whole it refuses under its address
 // [D244].
 
-import { keyword, makeTag, makeSet, isString, isNumber, isBoolean, isKeyword, isTag, NULL } from '../types.mjs';
+import { keyword, makeTag, makeSet, makeRegex, isString, isNumber, isBoolean, isKeyword, isTag, NULL } from '../types.mjs';
+import { patternProblem } from '../pattern.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
@@ -64,6 +65,16 @@ bindPrim('string/toTag', text => {
 bindPrim('keyword/toTag', key => {
   if (!readsAsBareKeyword(key.name)) throw new KeywordToTagNameNotNameError({ actualValue: key });
   return makeTag(key.name);
+});
+
+// A string reads as the source of a pattern, its flags none [D246].
+const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
+
+bindPrim('regex/toRegex', regex => regex);
+bindPrim('string/toRegex', text => {
+  const problem = patternProblem(text, '');
+  if (problem !== null) throw new StringToRegexTextNotPatternError({ message: problem, actualValue: text });
+  return makeRegex(text, '');
 });
 
 bindPrim(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));

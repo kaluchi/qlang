@@ -127,7 +127,10 @@
       breaks text into its lines, and `trim`, `lower`, `upper`,
       `contains`, `startsWith` and `endsWith` read it. A string is never
       read as a number behind the reader's back: `toNumber` reads one,
-      `"42" | toNumber | add 1` answering `43`.
+      `"42" | toNumber | add 1` answering `43`. A pattern, `#"…"`, is
+      written as the engine reads it, no backslash doubled, and reads
+      text: `"took 12ms" | match #"(\d+)ms" | /1` answers `"12"`, and
+      `capture` answers the groups it names as a record.
 
       11. Failures. A step that fails answers a failure, a value under
       the tag of what refused: `"x" | add 1 !| type` answers
@@ -387,7 +390,8 @@
       Every value prints as a literal that reads back as itself.
       A value is told by how its print opens: `"` a string, `:` a
       keyword, `::` and a name alone a tag and with a payload touching
-      it a value under that tag, `[` a vector, `#[` a set, `{` a map,
+      it a value under that tag, `[` a vector, `#[` a set, `#"` a
+      pattern of text, `{` a map,
       `~(` a quote, `|~~` a doc, `!{` an error at rest, a digit or a
       minus a number, and `true`, `false` and `null` themselves; a
       failure a host prints is its error at rest under the line
@@ -395,7 +399,7 @@
       A kind of the core reads a payload of its own kind under its tag
       as the value itself, `::set[2 1]` printing `#[1 2]`.
   ~~|
-  #[::tag ::null ::boolean ::number ::string ::keyword ::vec ::map ::set ::desc ::tagged]
+  #[::tag ::null ::boolean ::number ::string ::regex ::keyword ::vec ::map ::set ::desc ::tagged]
 
 :qlang/values/impliesTheKinds
   |~~ Each literal answers its kind. ~~|
@@ -406,8 +410,8 @@
   ::law~([::Box{:a 1} ::Box[1 2] ::Box(1 | add 2) ::Box"s"] | map ~payload | eq [{:a 1} [1 2] 3 "s"])
 
 :qlang/values/isToldByHowItsPrintOpens
-  |~~ A string, a keyword, a tag, a vector, a set, a map, a quote and an error at rest each print as their kind opens. ~~|
-  ::law~(["a" :a ::A [1] #[1] {:a 1} ~(a) !{:a 1}] | map ~type | eq [::string ::keyword ::tag ::vec ::set ::map ::quote ::error])
+  |~~ A string, a keyword, a tag, a vector, a set, a pattern, a map, a quote and an error at rest each print as their kind opens. ~~|
+  ::law~(["a" :a ::A [1] #[1] #"a" {:a 1} ~(a) !{:a 1}] | map ~type | eq [::string ::keyword ::tag ::vec ::set ::regex ::map ::quote ::error])
 
 :qlang/values/readsAKindOfTheCoreUnderItsTag
   |~~ A kind of the core reads its payload under its tag as the value itself. ~~|

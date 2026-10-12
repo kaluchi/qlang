@@ -774,7 +774,8 @@ wrote it, while what a word reads and runs as data, a page, a
 law, code held as data, it reads in the tree of the query that called
 it, as a word of the host does [D200]; a value takes any name, and a
 step where it meets a word its subject answers is refused [D223], a fold
-calling its word by its name or its address [D224]. Two values of a key
+calling its word by its name or its address [D224], and a declaration
+writes a name a step can call [D245]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
 refused [D228], and an invariant holds of the values of a label, so one
 a bare name declares is refused where it stands [D229]; the body of a
@@ -785,7 +786,10 @@ combinator joining two steps [D243], and a doc is the literal in the
 slot of the declaration it documents. A value turns into another
 kind by a word of its own kind named for the kind it answers,
 `"42" | toNumber`, `1 | toKeyword`, and nothing converts where no such
-word is written [D244]. One order ranks every value, the set is the ordered vector
+word is written [D244]. A pattern of text is a value of its own,
+`#"\d+ms"`, written as the engine reads it, which the words of a string
+read text by, `match`, `capture`, `scan`, `replace`, `split` and
+`contains` [D246]. One order ranks every value, the set is the ordered vector
 under its tag, every value has a kind, and every condition is a boolean.
 A refusal is named by the address of the word that refused, its facts
 definitions of the catalog [D46], and a name no word answers is met
@@ -1858,27 +1862,6 @@ still; and sources loaded by an index of their names, which costs the
 loader and a rewrite of every reader of the whole root, and spares a
 query that fails nothing.
 
-Regular expressions. Each outside audit names their absence. Text comes
-apart by `split` and `lines` and is read by `contains`, `startsWith`
-and `endsWith`, each of a fixed text, and no composition of them
-matches a pattern, so a line whose fields vary in their order and their
-width, the line of a log, is out of reach:
-
-```qlang
-> "took 12ms" | matches "\\d+ms" !| type
-::call/UnknownNameError
-```
-
-The alternatives: words of strings over the patterns of JavaScript,
-`matches` asking whether a pattern holds, `match` answering the first
-match as the vector of its whole and its groups, or null, and `replace`
-putting a text in the place of every match, a pattern written in a
-string as JSON writes one, `"\\d+"`, which costs a step that calls a
-reader's value named `match` on a string, refused once the word is
-there [D223], and a dialect of patterns every host of the language
-carries; or the patterns left to a host, which leaves the readers of
-the command line without them.
-
 [D2]: decisions/D2.md
 [D5]: decisions/D5.md
 [D7]: decisions/D7.md
@@ -1983,3 +1966,5 @@ the command line without them.
 [D242]: decisions/D242.md
 [D243]: decisions/D243.md
 [D244]: decisions/D244.md
+[D245]: decisions/D245.md
+[D246]: decisions/D246.md

@@ -594,6 +594,14 @@ describe('semanticTokensFor', () => {
     expect(tokens.some(t => t.type === 'variable')).toBe(true);
   });
 
+  it('paints a pattern literal as `regexp`', async () => {
+    const { data } = await semanticTokensFor('"a1" | contains #"\\d"i');
+    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
+    const patternTok = tokens.find(t => t.type === 'regexp');
+    expect(patternTok).toBeTruthy();
+    expect(patternTok.length).toBe('#"\\d"i'.length);
+  });
+
   it('paints a comment span as `comment`', async () => {
     const { data } = await semanticTokensFor('42 |~| trace');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);

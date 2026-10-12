@@ -1,0 +1,88 @@
+|~ `::regex` and what is declared under it: its constructor and its
+   refusal, and `toRegex`, which answers the pattern itself. The words
+   that read text by a pattern live under `::string`.
+   The decisions it exists for: [D246]. ~|
+
+:regex
+  |~~ A pattern of text, `#"\d+ms"`, which the words of a string read text
+      by: whether a match stands, `"took 12ms" | contains #"\d+ms"`, the
+      first match and its groups, `match`, the groups it names, `capture`,
+      the text of every match, `scan`, the text put in the place of every
+      match, `replace`, and the pieces between the matches, `split`.
+
+      What stands between the quotes reaches the engine as it is written:
+      `\d` is a digit and `\.` a dot, with no backslash doubled, and `\"`
+      is a quote that does not end the literal. The flags follow the
+      closing quote, each once, `i` to ignore case, `m` for `^` and `$` at
+      every line and `s` for a dot that matches a line break,
+      `#"^error"im`. A pattern reads text by code points, as Unicode
+      names characters, so `#"\p{L}+"` is a run of letters of any script.
+      The dialect is the one of JavaScript; a pattern the engine cannot
+      read does not parse, and the refusal says why, a backslash before
+      a character that needs none among the reasons, `\-`, `\:`.
+
+      A pattern is no string: `split "."` cuts a text at its dots, and
+      `split #"[.,;]"` at any of three marks. Text becomes a pattern by
+      `toRegex`, `"\\d+" | toRegex`, and a pattern prints as its literal,
+      which `print` writes. JSON writes that literal as a string, and
+      patterns rank after strings, by their text and then their flags.
+      ::snippet~(::string | manifest)
+      ::link~(::string/match | doc) ::link~(::string/capture | doc)
+      ::link~(::string | doc) ::link~(::qlang/values | doc)
+  ~~|
+
+:regex/isAPattern
+  |~~ `#"\d+"` is a pattern. ~~|
+  ::law~(#"\d+" | type | eq ::regex)
+
+:regex/readsAsWritten
+  |~~ A backslash reaches the engine as written, and `\"` writes a quote. ~~|
+  ::law~(["12" "a.b" "say \"hi\""] | map ~(contains #"\d|\.|\"hi\"") | eq [true true true])
+
+:regex/takesItsFlagsAfterItsQuote
+  |~~ The flags follow the closing quote and change how the engine reads. ~~|
+  ::law~(["ERROR here" "a\nerror"] | [(/0 | contains #"error"i) (/1 | contains #"^error"m)] | eq [true true])
+
+:regex/readsLettersOfAnyScript
+  |~~ A pattern reads text by code points, a class of Unicode among it. ~~|
+  ::law~("данные 42" | match #"\p{L}+" | eq ["данные"])
+
+:regex/printsAsItsLiteral
+  |~~ A pattern prints as its literal and reads back as itself. ~~|
+  ::law~(#"\"(\d+)\""i | :p / | print | parse | apply / | eq p)
+
+:regex/isNoString
+  |~~ A pattern is no string, so a text cuts at a dot and a pattern at any mark. ~~|
+  ::law~("a.b,c" | [(split ".") (split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
+
+:regex/ranksAfterStrings
+  |~~ Patterns rank after strings and before keywords, by their text. ~~|
+  ::law~([:k #"b" "z" #"a"] | sort | eq ["z" #"a" #"b" :k])
+
+:regex/construct
+  |~~ Reads a pattern as itself. ~~|
+  ::builtin{}
+
+:regex/PayloadNotRegexError
+  |~~ `::regex` reads its payload as the pattern it is; text becomes one
+      by `toRegex`, `"\\d+" | toRegex`.
+  ~~|
+
+:regex/PayloadNotRegexError/refusesAString
+  |~~ A string payload is refused; `toRegex` reads text as a pattern. ~~|
+  ::law~(::regex"a" !| [type /actualType] | eq [::regex/PayloadNotRegexError ::string])
+
+:regex/toRegex
+  |~~ Answers the pattern itself, so `map ~toRegex` turns patterns and
+      the strings that hold their sources into patterns.
+      ::link~(::string/toRegex | doc)
+  ~~|
+  ::builtin{}
+
+:regex/toRegex/answer
+  |~~ The pattern itself. ~~|
+  ::regex
+
+:regex/toRegex/answersItself
+  |~~ A pattern answers itself, so patterns and their sources turn into patterns. ~~|
+  ::law~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])

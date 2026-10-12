@@ -431,8 +431,10 @@
       leave an empty piece between them, a separator at an end an empty
       piece there, and the empty string is one empty piece; a separator
       the string lacks leaves it whole, one piece. The separator is any
-      string, a line break or `"::"` among them, and a keyword is
-      refused. The empty separator cuts the string into its characters,
+      string, a line break or `"::"` among them, or a pattern, which cuts
+      at every match, `"a, b;c" | split #"[,;]\s*"` answering
+      `["a" "b" "c"]`, the groups it captures left out of the pieces; a
+      keyword is refused. The empty separator cuts the string into its characters,
       as `count` counts them: a letter stands alone, and an emoji
       of one code point stays whole. `join` writes the pieces back, and
       `lines` breaks a text at its line breaks. A vector of strings
@@ -449,9 +451,11 @@
   |~~ The string the subject is cut at, computed against the subject. ~~|
   ~(/0)
 
-:string/split/separator/NotStringError
-  |~~ The separator is a string; a keyword gives its name by `toString`. ~~|
-  ::holds~(is ::string)
+:string/split/separator/NotStringOrRegexError
+  |~~ The separator is a text or a pattern, `#"[,;]"`; a keyword gives
+      its name by `toString`.
+  ~~|
+  ::holds~(is ::string ::regex)
 
 :string/split/separator/NotGivenError
   |~~ `split` needs the separator to cut at, `split ","`: a text cuts at
@@ -462,6 +466,10 @@
   |~~ `split` cuts a string: a vector of strings splits by `map`,
       `map ~(split ",")`, and a value becomes text by `print`.
   ~~|
+
+:string/split/cutsAtEveryMatchOfAPattern
+  |~~ A pattern cuts at every match, its groups left out of the pieces. ~~|
+  ::law~("a, b;c" | [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
 
 :string/split/cutsAtTheSeparator
   |~~ The pieces between the commas. ~~|
@@ -511,9 +519,9 @@
   |~~ A number is no string to cut. ~~|
   ::law~(42 | split "," !| [type /actualType] | eq [::string/split/SubjectNotStringError ::number])
 
-:string/split/separator/NotStringError/refusesAKeyword
+:string/split/separator/NotStringOrRegexError/refusesAKeyword
   |~~ A keyword is no separator. ~~|
-  ::law~("abc" | split :b !| type | eq ::string/split/separator/NotStringError)
+  ::law~("abc" | split :b !| type | eq ::string/split/separator/NotStringOrRegexError)
 
 :string/split/separator/NotGivenError/refusesACallWithNoSeparator
   |~~ A call with no separator is refused under the part. ~~|
@@ -728,8 +736,10 @@
       contains "ell"` answers `true`. Every string holds the empty
       needle. Case counts, `"Hello" | contains "h"` answering `false`;
       where it should not, `lower` comes first, `lower | contains "h"`.
-      The needle is a string: a keyword is refused, and `toString` gives
-      its name. The name `contains` asks a vector and a set for an
+      The needle is a text or a pattern, which asks whether a match stands
+      anywhere, `"took 12ms" | contains #"\d+ms"`, and of the whole text
+      when `^` and `$` anchor it; a keyword is refused, and `toString`
+      gives its name. The name `contains` asks a vector and a set for an
       element, whole, so `["ab"] | contains "a"` answers `false`, and a
       number or a map answers no `contains`, which the refusal of the
       call names with the kinds that do.
@@ -746,9 +756,11 @@
   |~~ The text looked for, computed against the subject. ~~|
   ~(/0)
 
-:string/contains/needle/NotStringError
-  |~~ The needle is a string; a keyword gives its name by `toString`. ~~|
-  ::holds~(is ::string)
+:string/contains/needle/NotStringOrRegexError
+  |~~ The needle is a text or a pattern, `#"\d+"`; a keyword gives its
+      name by `toString`.
+  ~~|
+  ::holds~(is ::string ::regex)
 
 :string/contains/findsAWord
   |~~ A word of the string is found. ~~|
@@ -770,6 +782,10 @@
   |~~ Case counts. ~~|
   ::law~("Hello" | contains "h" | not)
 
+:string/contains/findsAMatchOfAPattern
+  |~~ A pattern is asked whether a match stands anywhere. ~~|
+  ::law~(["took 12ms" "took long"] | map ~(contains #"\d+ms") | eq [true false])
+
 :string/contains/ignoresCaseAfterLower
   |~~ Lowered first, the string holds the needle whatever its case. ~~|
   ::law~("Hello" | lower | contains "h")
@@ -778,9 +794,9 @@
   |~~ A vector of strings is asked for a whole element, not a piece. ~~|
   ::law~(["ab"] | contains "a" | not)
 
-:string/contains/needle/NotStringError/refusesAKeyword
+:string/contains/needle/NotStringOrRegexError/refusesAKeyword
   |~~ A keyword is no needle. ~~|
-  ::law~("hi" | contains :h !| type | eq ::string/contains/needle/NotStringError)
+  ::law~("hi" | contains :h !| type | eq ::string/contains/needle/NotStringOrRegexError)
 
 :string/contains/namesTheKindsThatAnswerIt
   |~~ A map answers no `contains`, and the refusal names the kinds that do. ~~|
@@ -808,7 +824,9 @@
 
 :string/startsWith/prefix/NotStringError
   |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword gives
-      its name by `toString` first, `startsWith (:ab | toString)`.
+      its name by `toString` first, `startsWith (:ab | toString)`, and a
+      pattern at the start of the text is asked by `contains`,
+      `contains #"^\d"`.
   ~~|
   ::holds~(is ::string)
 
@@ -872,7 +890,9 @@
 
 :string/endsWith/suffix/NotStringError
   |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword gives
-      its name by `toString` first, `endsWith (:bc | toString)`.
+      its name by `toString` first, `endsWith (:bc | toString)`, and a
+      pattern at the end of the text is asked by `contains`,
+      `contains #"\d$"`.
   ~~|
   ::holds~(is ::string)
 
@@ -1282,3 +1302,221 @@
 :string/toString/answersItself
   |~~ A string answers itself, so scalars of several kinds turn into strings. ~~|
   ::law~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
+
+:string/match
+  |~~ Answers the first match of the pattern the call gives as a vector,
+      its text and then each group in its place, or `null` where none
+      stands: `"took 12ms" | match #"(\d+)ms"` answers `["12ms" "12"]`, so
+      `match #"(\d+)ms" | /1` reads the number's text. A group that took no
+      part in the match is `null`. The groups a pattern names come as a map
+      from `capture`, every match from `scan`, and whether one stands at all
+      from `contains`.
+      ::link~(::string/capture | doc) ::link~(::string/scan | doc)
+      ::link~(::regex | doc)
+  ~~|
+  ::builtin{}
+
+:string/match/answer
+  |~~ The text of the match and its groups, or `null`. ~~|
+  #[::vec ::null]
+
+:string/match/pattern
+  |~~ The pattern the text is read by, `#"(\d+)ms"`. ~~|
+  ~(/0)
+
+:string/match/pattern/NotRegexError
+  |~~ The pattern is a `#"…"`; text that holds one becomes a pattern by
+      `toRegex`, and a text looked for as it is is asked by `contains`.
+  ~~|
+  ::holds~(is ::regex)
+
+:string/match/readsTheFirstMatchAndItsGroups
+  |~~ The first match comes with its groups. ~~|
+  ::law~("took 12ms, then 7ms" | match #"(\d+)ms" | eq ["12ms" "12"])
+
+:string/match/answersNullWhereNoneStands
+  |~~ A text with no match answers null. ~~|
+  ::law~("took long" | match #"\d+" | eq null)
+
+:string/match/answersNullForAGroupThatTookNoPart
+  |~~ A group that took no part is null. ~~|
+  ::law~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
+
+:string/match/pattern/NotRegexError/refusesAString
+  |~~ Text is no pattern; `toRegex` reads it as one. ~~|
+  ::law~("a1" | match "\\d" !| type | eq ::string/match/pattern/NotRegexError)
+
+:string/capture
+  |~~ Answers the groups the pattern names in its first match as a map,
+      each under the keyword of its name, or `null` where none stands:
+      `"2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+)"`
+      answers `{:date "2026-10-12" :level "ERROR"}`, so a line of a log
+      becomes a record, `lines | map ~(capture #"…")`. A named group that
+      took no part is `null`. A pattern that names no group is refused;
+      `match` answers the groups by their places.
+      ::link~(::string/match | doc) ::link~(::string/lines | doc)
+  ~~|
+  ::builtin{}
+
+:string/capture/answer
+  |~~ The named groups of the first match, or `null`. ~~|
+  #[::map ::null]
+
+:string/capture/pattern
+  |~~ The pattern whose groups are named, `#"(?<level>\w+)"`. ~~|
+  ~(/0)
+
+:string/capture/pattern/NotRegexError
+  |~~ The pattern is a `#"…"` that names its groups, `(?<name>…)`. ~~|
+  ::holds~(is ::regex)
+
+:string/capture/PatternNamesNoGroupError
+  |~~ `capture` answers the groups a pattern names, `(?<level>\w+)`, and
+      this pattern names none: `match` answers its groups by their
+      places, `match #"(\w+)" | /1`.
+  ~~|
+
+:string/capture/turnsALineIntoARecord
+  |~~ The named groups of a line of a log are a record. ~~|
+  ::law~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
+
+:string/capture/answersNullWhereNoneStands
+  |~~ A text with no match answers null. ~~|
+  ::law~("" | capture #"(?<n>\d+)" | eq null)
+
+:string/capture/answersNullForAGroupThatTookNoPart
+  |~~ A named group that took no part is null. ~~|
+  ::law~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
+
+:string/capture/PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
+  |~~ A pattern that names no group is refused. ~~|
+  ::law~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
+
+:string/scan
+  |~~ Answers the text of every match of the pattern, in order, `[]`
+      where none stands: `"took 12ms, then 7ms" | scan #"\d+"` answers
+      `["12" "7"]`, which `map ~toNumber` turns into numbers. The groups
+      of each match come from `match` and `capture` on its text,
+      `scan #"…" | map ~(capture #"…")`.
+      ::link~(::string/match | doc) ::link~(::string/toNumber | doc)
+  ~~|
+  ::builtin{}
+
+:string/scan/answer
+  |~~ The text of every match, in order. ~~|
+  ::vec
+
+:string/scan/pattern
+  |~~ The pattern every match of which is read, `#"\d+"`. ~~|
+  ~(/0)
+
+:string/scan/pattern/NotRegexError
+  |~~ The pattern is a `#"…"`; text becomes one by `toRegex`. ~~|
+  ::holds~(is ::regex)
+
+:string/scan/readsEveryMatch
+  |~~ Every match comes, in order. ~~|
+  ::law~("took 12ms, then 7ms" | scan #"\d+" | map ~toNumber | eq [12 7])
+
+:string/scan/answersNothingWhereNoneStands
+  |~~ A text with no match answers the empty vector. ~~|
+  ::law~("none" | scan #"\d" | eq [])
+
+:string/replace
+  |~~ Answers the text with every match of the pattern the call gives in
+      the place of the replacement: `"a-b-c" | replace "-" "+"` answers
+      `"a+b+c"`. The pattern is a `#"…"` or a text looked for as it is. The
+      replacement is a string, in which `$1`, `$<name>` and `$&` name a
+      group, a named group and the whole match of a pattern, `"2026-10-12"
+      | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering `"12.10.2026"`,
+      while the replacement of a text stands as written; or code, which
+      runs on the vector `match` answers for each match and answers the
+      text that takes its place, `replace #"\d+" ~(/0 | toNumber | mul 2
+      | toString)` doubling every number.
+      ::link~(::string/match | doc) ::link~(::regex | doc)
+  ~~|
+  ::builtin{}
+
+:string/replace/answer
+  |~~ The text with every match replaced. ~~|
+  ::string
+
+:string/replace/pattern
+  |~~ What is looked for, a pattern or a text. ~~|
+  ~(/0)
+
+:string/replace/pattern/NotStringOrRegexError
+  |~~ What is looked for is a `#"…"` or a text; a keyword gives its name
+      by `toString`.
+  ~~|
+  ::holds~(is ::string ::regex)
+
+:string/replace/with
+  |~~ What takes the place of each match: a string, or code that answers
+      one from the match.
+  ~~|
+  ~(/1)
+
+:string/replace/with/NotStringOrQuoteError
+  |~~ The replacement is a string, `replace #"\s+" " "`, or code that
+      answers one from the vector of the match, `replace #"\d+" ~(/0 |
+      toNumber | mul 2 | toString)`.
+  ~~|
+  ::holds~(is ::string ::quote)
+
+:string/replace/with/AnswerNotStringError
+  |~~ The code of `replace` answers the text that takes the place of a
+      match: a number becomes text by `toString`, `~(/0 | toNumber | mul 2
+      | toString)`.
+  ~~|
+
+:string/replace/replacesEveryMatch
+  |~~ Every match is replaced. ~~|
+  ::law~("a  b   c" | replace #"\s+" " " | eq "a b c")
+
+:string/replace/namesTheGroupsOfAMatch
+  |~~ `$1` and its kin name the groups of a match. ~~|
+  ::law~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1" | eq "12.10.2026")
+
+:string/replace/replacesATextAsWritten
+  |~~ A text is looked for and replaced as written, a dollar among it. ~~|
+  ::law~("a.b.c" | replace "." "$&" | eq "a$&b$&c")
+
+:string/replace/runsCodeOnEachMatch
+  |~~ Code answers the text that takes the place of each match. ~~|
+  ::law~("2 and 30" | replace #"\d+" ~(/0 | toNumber | mul 2 | toString) | eq "4 and 60")
+
+:string/replace/with/AnswerNotStringError/refusesANumber
+  |~~ Code that answers no string is refused. ~~|
+  ::law~("2" | replace #"\d" ~(/0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
+
+:string/toRegex
+  |~~ Answers the pattern whose source the string holds, its flags none,
+      `"\\d+" | toRegex` answering `#"\d+"`: a pattern kept in data or
+      built from parts. The string is read as a string reads, so its
+      backslashes are doubled where a literal `#"…"` writes one, and a
+      source the engine cannot read is refused with what the engine says.
+      ::link~(::regex | doc)
+  ~~|
+  ::builtin{}
+
+:string/toRegex/answer
+  |~~ The pattern the source writes. ~~|
+  ::regex
+
+:string/toRegex/TextNotPatternError
+  |~~ `toRegex` reads the string as the source of a pattern, and the
+      engine could not read it; what it says rides on `:message`.
+  ~~|
+
+:string/toRegex/TextNotPatternError/message
+  |~~ What the engine says of the source. ~~|
+  ::string
+
+:string/toRegex/readsTheSource
+  |~~ A string reads as the pattern whose source it holds. ~~|
+  ::law~("a1" | contains ("\\d" | toRegex))
+
+:string/toRegex/TextNotPatternError/refusesAnOpenGroup
+  |~~ A source the engine cannot read is refused. ~~|
+  ::law~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)

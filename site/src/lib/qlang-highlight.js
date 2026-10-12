@@ -27,6 +27,7 @@ function escHtml(s) {
 
 const KIND_TO_CLASS = {
   string:   'string',
+  regex:    'regex',
   quote:    'quote',
   number:   'number',
   comment:  'comment',

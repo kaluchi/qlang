@@ -237,7 +237,7 @@ function withDeclaredNames(items, ast, offset, spellings) {
 
 // The kind of the value a literal step answers [D32].
 const KIND_OF_LITERAL = {
-  NumberLit: 'number', StringLit: 'string', BooleanLit: 'boolean', NullLit: 'null',
+  NumberLit: 'number', StringLit: 'string', RegexLit: 'regex', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
   QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag'
 };
@@ -635,7 +635,8 @@ export const SEMANTIC_TOKEN_TYPES = [
   'struct',
   'string',
   'number',
-  'comment'
+  'comment',
+  'regexp'
 ];
 
 const KIND_TO_TYPE_INDEX = {
@@ -647,6 +648,7 @@ const KIND_TO_TYPE_INDEX = {
   quote:   4,
   number:  5,
   comment: 6,
+  regex:   7,
   err:     2
 };
 

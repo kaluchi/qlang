@@ -73,30 +73,32 @@ describe('runRepl — query evaluation', () => {
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
-  it('auto-prints a fail-track error value on stderr (still exit 0 on close)', async () => {
+  it('prints a failed cell on stdout as every answer, exit 0 on close [D7]', async () => {
     const replHarness = captureRepl('[1 2 3] | add 1\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    expect(stripAnsi(replHarness.stderrText())).toMatch(/!\{/);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/!\{/);
+    expect(replHarness.stderrText()).toBe('');
   });
 
   it('prints the path of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
-    const text = stripAnsi(replHarness.stderrText());
+    const text = stripAnsi(replHarness.stdoutText());
     expect(text).toMatch(/:trail/);
     expect(text).toMatch(/mul/);
     expect(text).toMatch(/sub/);
   });
 
-  it('writes a structured ::quote/ParseError!{…} diagnostic on stderr for parse failures', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [D7]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // REPL paints output with ANSI colour codes — strip before
     // matching the structural shape.
-    const text = replHarness.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
+    const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
+    expect(replHarness.stderrText()).toBe('');
   });
 });
 
@@ -115,28 +117,32 @@ describe('runRepl — output highlighting', () => {
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
-  it('translates `\\n` into `\\r\\n` for stderr writes in TTY mode', async () => {
+  it('translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell on stdout and `err` on stderr', async () => {
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
 
+    const stdoutChunks = [];
     const stderrChunks = [];
-    const stdoutWrite = () => {};
+    const stdoutWrite = (text) => stdoutChunks.push(text);
     const stderrWrite = (text) => stderrChunks.push(text);
 
     const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
-    // A bare `[1 2` is a parse failure that the REPL routes to
-    // stderr through writeDiagnostic. Enter (CR) is the submit
-    // keystroke in the multi-line editor; Ctrl+Enter (LF) would
+    // A bare `[1 2` is a parse failure, an answer the REPL prints on
+    // stdout, and `err` writes its text on stderr. Enter (CR) is the
+    // submit keystroke in the multi-line editor; Ctrl+Enter (LF) would
     // insert a soft newline.
     ttyStdin.write(Buffer.from('[1 2\r'));
+    await new Promise((resolveTick) => setImmediate(resolveTick));
+    ttyStdin.write(Buffer.from('"one\\ntwo" | err\r'));
     await new Promise((resolveTick) => setImmediate(resolveTick));
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
 
-    const stderrText = stderrChunks.join('');
-    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::quote/ParseError!{');
-    expect(stderrText).toMatch(/\r\n/);
+    const stdoutText = stdoutChunks.join('');
+    expect(stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::quote/ParseError!{');
+    expect(stdoutText).toMatch(/\r\n/);
+    expect(stderrChunks.join('')).toContain('one\r\ntwo');
   });
 
   it('exercises the per-keystroke render callback in TTY mode', async () => {
@@ -179,7 +185,7 @@ describe('runRepl — error rendering', () => {
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
-    const out = stripAnsi(replHarness.stderrText());
+    const out = stripAnsi(replHarness.stdoutText());
     expect(out).toMatch(/count/);
     expect(out).toMatch(/add 1/);
     expect(out).toMatch(/mul 2/);
@@ -225,12 +231,12 @@ describe('runRepl — the budget of an answer', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
-    expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/1/subject)');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| /trail/1/subject)');
   });
 
   it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200 });
-    expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| /trail/');
   });
 });

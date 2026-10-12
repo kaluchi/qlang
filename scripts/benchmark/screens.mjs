@@ -1,5 +1,5 @@
-// The screens a run hands a child [D142]: the pages of the language and
-// the command line as the tree printed them [D216], saved under a name,
+// The screens a run hands a child [D26]: the pages of the language and
+// the command line as the tree printed them [D26], saved under a name,
 // so a run states which pages it read and two runs compare two screens.
 // `none` is the empty screen, a child with no page.
 
@@ -31,7 +31,7 @@ export const screenHash = screenName => shortHash(screenText(screenName));
 
 // fixScreen(decision) → the first screen the tree prints, saved under the
 // number of the decision a run measures, or under the number and its hash
-// when an earlier measurement of the number read another page [D183].
+// when an earlier measurement of the number read another page [D26].
 export function fixScreen(decision) {
   mkdirSync(screensDir, { recursive: true });
   const text = firstScreen().trim();

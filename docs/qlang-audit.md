@@ -788,9 +788,9 @@ its first page tells the language whole, in the order its parts rest on
 each other, the argument model one rule [D185]; the forms a clean
 session reached for and missed became the language's where they composed
 with it [D132], [D133], [D138], [D140]. The benchmark measures the pages
-a child lands on, those of the language and of the command line [D216],
-on sets of tasks a clean author writes and no one has read [D142], each
-measurement read beside the one before it [D183]. The command line
+a child lands on, those of the language and of the command line [D26],
+on sets of tasks a clean author writes and no one has read [D26], each
+measurement read beside the one before it [D26]. The command line
 writes every answer on stdout with the code 0, a failure among them, a
 query that does not parse and an input that does not read among those, a
 defect of the runtime alone stopping the calls beside it [D232]. What
@@ -1434,10 +1434,10 @@ conformance suite are the targets of [D2], [D7], [D107], [D108], [D109],
 [D127], [D129] and [D150]: the effect marker leaving the language, open,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs [D26], each run recorded with the frictions it met
-[D104], each measurement on a set of tasks a
+[D26], each measurement on a set of tasks a
 clean author wrote, which measures once and serves the work once its
-misses are read [D142], its children running the command line from the
-pages of the language and the command line [D216]. An error a host
+misses are read [D26], its children running the command line from the
+pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
 subject it passed a marker [D184].
 
@@ -1449,9 +1449,9 @@ parts, its refusals and its laws in that order [D179]; enrichment
 happens once per session; a value shared across kinds of record carries
 a tag of its own, as a field is a definition under its label [D50]; and
 the first screen, the pages
-of the language and of the command line [D216], told whole in the order
+of the language and of the command line [D26], told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
-is measured on a set of tasks no reader has seen [D131], [D142].
+is measured on a set of tasks no reader has seen [D26], [D131].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
@@ -1904,7 +1904,6 @@ the command line without them.
 [D90]: decisions/D90.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
-[D104]: decisions/D104.md
 [D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
@@ -1928,7 +1927,6 @@ the command line without them.
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
 [D140]: decisions/D140.md
-[D142]: decisions/D142.md
 [D150]: decisions/D150.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
@@ -1953,7 +1951,6 @@ the command line without them.
 [D180]: decisions/D180.md
 [D181]: decisions/D181.md
 [D182]: decisions/D182.md
-[D183]: decisions/D183.md
 [D184]: decisions/D184.md
 [D185]: decisions/D185.md
 [D195]: decisions/D195.md
@@ -1963,7 +1960,6 @@ the command line without them.
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D215]: decisions/D215.md
-[D216]: decisions/D216.md
 [D217]: decisions/D217.md
 [D218]: decisions/D218.md
 [D219]: decisions/D219.md

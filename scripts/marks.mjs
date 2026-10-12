@@ -25,7 +25,7 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 // An artifact is a source, a script or a test file of a workspace, a
 // source of qlang by the comment at its head and a workflow; the data a
 // run of the benchmark wrote, its runs and the sets its authors
-// generated, marks nothing [D142].
+// generated, marks nothing [D26].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
 const RUN_OUTPUT = /^scripts\/benchmark\/(runs|sets)\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
@@ -36,7 +36,7 @@ const MARK = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]/g;
 // The data of the benchmark names the decision it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
 // `screens/D167.txt`, and a run of a set, `sets/H/runs/D167~blind~haiku~1.json`
-// [D142], [D183].
+// [D26].
 const PATH_MARKS = [
   /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
   /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/

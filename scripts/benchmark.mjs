@@ -1,6 +1,6 @@
-// The benchmark of the first screen [D26], [D104], [D142]. A run hands a
+// The benchmark of the first screen [D26]. A run hands a
 // clean child a screen, the pages of the language and the command line as
-// a tree printed them [D216], and a set of tasks; the child answers with
+// a tree printed them [D26], and a set of tasks; the child answers with
 // the command line, and the tree grades the queries it wrote. The sets are written by
 // a clean author who never saw the language, and a set measures once:
 // reading what its children missed marks it seen, and the next
